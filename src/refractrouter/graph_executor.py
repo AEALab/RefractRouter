@@ -1,0 +1,105 @@
+from __future__ import annotations
+
+from collections import defaultdict
+from collections.abc import Mapping
+from graphlib import TopologicalSorter
+
+from .adapters import ModelAdapter
+from .model_registry import ModelRegistry
+from .schemas import NodeResult, TaskDAG, TaskResult
+from .scoring import score_node, score_task
+
+
+class GraphExecutor:
+    """Execute a fixed task DAG with per-node model assignments."""
+
+    def __init__(
+        self,
+        task: TaskDAG,
+        adapter: ModelAdapter,
+        registry: ModelRegistry,
+    ):
+        self.task = task
+        self.adapter = adapter
+        self.registry = registry
+        self._nodes = {node.node_id: node for node in task.nodes}
+        self._validate_dag()
+
+    def _validate_dag(self) -> None:
+        if not self.task.nodes:
+            raise ValueError("TaskDAG requires at least one node")
+        node_ids = set(self._nodes)
+        for node in self.task.nodes:
+            for parent in node.parents:
+                if parent not in node_ids:
+                    raise ValueError(f"Unknown parent node: {parent}")
+
+    def execute(self, assignments: Mapping[str, str], strategy: str) -> TaskResult:
+        context: dict[str, str] = {}
+        results: list[NodeResult] = []
+        graph = {node.node_id: set(node.parents) for node in self.task.nodes}
+        sorter = TopologicalSorter(graph)
+        for node_id in sorter.static_order():
+            node = self._nodes[node_id]
+            model_id = assignments.get(node_id)
+            if model_id is None:
+                raise ValueError(f"Missing model assignment for node: {node_id}")
+            model = self.registry.get(model_id)
+            prompt = self._build_prompt(node, context)
+            result = self.adapter.invoke(self.task, node, prompt, context, model)
+            result = self._replace_score(result, score_node(self.task, node, result.output))
+            results.append(result)
+            context[node_id] = result.output
+        render_nodes = [node for node in self.task.nodes if node.node_type == "rendering"]
+        final_node_id = render_nodes[-1].node_id if render_nodes else self.task.nodes[-1].node_id
+        final_output = context.get(final_node_id, "")
+        task_score = score_task(self.task, tuple(results), final_output)
+        total_cost = sum(result.cost_usd for result in results)
+        critical_path = self._critical_path_latency(results)
+        failure_types = tuple(
+            result.failure_type for result in results if result.failure_type is not None
+        )
+        return TaskResult(
+            task_id=self.task.task_id,
+            strategy=strategy,
+            model_assignments=dict(assignments),
+            node_results=tuple(results),
+            final_output=final_output,
+            task_score=task_score,
+            total_cost_usd=round(total_cost, 6),
+            critical_path_latency_ms=critical_path,
+            failure_types=failure_types,
+        )
+
+    @staticmethod
+    def _replace_score(result: NodeResult, score: float) -> NodeResult:
+        return NodeResult(
+            node_id=result.node_id,
+            node_type=result.node_type,
+            model_id=result.model_id,
+            output=result.output,
+            input_tokens=result.input_tokens,
+            output_tokens=result.output_tokens,
+            cost_usd=result.cost_usd,
+            latency_ms=result.latency_ms,
+            score=score,
+            status=result.status,
+            failure_type=result.failure_type,
+        )
+
+    def _build_prompt(self, node, context: dict[str, str]) -> str:
+        parent_outputs = "\n".join(
+            f"[{parent}]\n{context[parent]}" for parent in node.parents if parent in context
+        )
+        return f"{node.prompt_template}\n\n{parent_outputs}".strip()
+
+    def _critical_path_latency(self, results: list[NodeResult]) -> int:
+        latency = {result.node_id: result.latency_ms for result in results}
+        best: dict[str, int] = {}
+        graph = {node.node_id: set(node.parents) for node in self.task.nodes}
+        sorter = TopologicalSorter(graph)
+        for node_id in sorter.static_order():
+            parents = graph[node_id]
+            parent_max = max((best[parent] for parent in parents), default=0)
+            best[node_id] = parent_max + latency[node_id]
+        return max(best.values(), default=0)

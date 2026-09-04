@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RefractRouter Task DAG",
+  "type": "object",
+  "required": ["task_id", "domain", "nodes"],
+  "properties": {
+    "task_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
+    "domain": {"type": "string"},
+    "source_pack_id": {"type": ["string", "null"]},
+    "required_sections": {"type": "array", "items": {"type": "string"}},
+    "output_constraints": {"type": "array", "items": {"type": "string"}},
+    "scoring_rubric_version": {"type": "string"},
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["node_id", "node_type", "prompt_template"],
+        "properties": {
+          "node_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"},
+          "node_type": {"type": "string", "enum": ["planning", "extraction", "synthesis", "generation", "rendering", "verification"]},
+          "prompt_template": {"type": "string", "minLength": 1},
+          "parents": {"type": "array", "items": {"type": "string"}},
+          "expected_output": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,63 @@
+{
+  "task_id": "report_001",
+  "domain": "2026 年企业 LLM Agent 平台选型",
+  "source_pack_id": "report_001",
+  "required_sections": [
+    "Executive Summary",
+    "Background",
+    "Selection Criteria",
+    "Platform Comparison",
+    "Risks",
+    "Conclusion",
+    "References"
+  ],
+  "output_constraints": [
+    "standalone HTML",
+    "all claims cite source_id",
+    "no external CSS or JavaScript"
+  ],
+  "scoring_rubric_version": "v0.1",
+  "nodes": [
+    {
+      "node_id": "parse_requirements",
+      "node_type": "planning",
+      "prompt_template": "Extract the report topic, audience, required sections, and output constraints."
+    },
+    {
+      "node_id": "build_outline",
+      "node_type": "planning",
+      "prompt_template": "Build a section outline that covers every required section.",
+      "parents": ["parse_requirements"]
+    },
+    {
+      "node_id": "extract_evidence",
+      "node_type": "extraction",
+      "prompt_template": "Extract the most relevant claims from the fixed source pack. Preserve source_id.",
+      "parents": ["build_outline"]
+    },
+    {
+      "node_id": "synthesize_analysis",
+      "node_type": "synthesis",
+      "prompt_template": "Compare candidate platforms against the selection criteria and identify tradeoffs.",
+      "parents": ["extract_evidence"]
+    },
+    {
+      "node_id": "write_report",
+      "node_type": "generation",
+      "prompt_template": "Write the full report body with every required section and citation.",
+      "parents": ["synthesize_analysis"]
+    },
+    {
+      "node_id": "render_html",
+      "node_type": "rendering",
+      "prompt_template": "Render the report as a standalone HTML document.",
+      "parents": ["write_report"]
+    },
+    {
+      "node_id": "verify_report",
+      "node_type": "verification",
+      "prompt_template": "Verify required sections, citations, HTML validity, and output constraints.",
+      "parents": ["render_html"]
+    }
+  ]
+}

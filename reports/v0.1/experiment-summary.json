@@ -1,0 +1,75 @@
+{
+  "task_id": "report_001",
+  "strategies": {
+    "weak-all": {
+      "task_score": 79.762,
+      "total_cost_usd": 0.001349,
+      "critical_path_latency_ms": 10155,
+      "model_assignments": {
+        "parse_requirements": "cheap-model",
+        "build_outline": "cheap-model",
+        "extract_evidence": "cheap-model",
+        "synthesize_analysis": "cheap-model",
+        "write_report": "cheap-model",
+        "render_html": "cheap-model",
+        "verify_report": "cheap-model"
+      }
+    },
+    "strong-all": {
+      "task_score": 100.0,
+      "total_cost_usd": 0.016764,
+      "critical_path_latency_ms": 3441,
+      "model_assignments": {
+        "parse_requirements": "strong-model",
+        "build_outline": "strong-model",
+        "extract_evidence": "strong-model",
+        "synthesize_analysis": "strong-model",
+        "write_report": "strong-model",
+        "render_html": "strong-model",
+        "verify_report": "strong-model"
+      }
+    },
+    "node-type-rule": {
+      "task_score": 83.333,
+      "total_cost_usd": 0.006469,
+      "critical_path_latency_ms": 6799,
+      "model_assignments": {
+        "parse_requirements": "mid-model",
+        "build_outline": "mid-model",
+        "extract_evidence": "cheap-model",
+        "synthesize_analysis": "strong-model",
+        "write_report": "strong-model",
+        "render_html": "mid-model",
+        "verify_report": "cheap-model"
+      }
+    },
+    "task-oracle": {
+      "task_score": 100.0,
+      "total_cost_usd": 0.016764,
+      "critical_path_latency_ms": 3441,
+      "model_assignments": {
+        "parse_requirements": "strong-model",
+        "build_outline": "strong-model",
+        "extract_evidence": "strong-model",
+        "synthesize_analysis": "strong-model",
+        "write_report": "strong-model",
+        "render_html": "strong-model",
+        "verify_report": "strong-model"
+      }
+    },
+    "node-oracle": {
+      "task_score": 100.0,
+      "total_cost_usd": 0.004141,
+      "critical_path_latency_ms": 8721,
+      "model_assignments": {
+        "parse_requirements": "cheap-model",
+        "build_outline": "cheap-model",
+        "extract_evidence": "strong-model",
+        "synthesize_analysis": "cheap-model",
+        "write_report": "cheap-model",
+        "render_html": "mid-model",
+        "verify_report": "cheap-model"
+      }
+    }
+  }
+}
