@@ -1,6 +1,18 @@
-# RefractRouter
+# Refract Agent（析衡）
 
-> Task-Decomposition-Aware Heterogeneous Model Routing
+> 析构知难，衡派选优 — Refract the task, spend every token where it matters.
+
+Refract Agent（中文名 **析衡**）是一个面向 **任务分解感知的异构 LLM 路由**（Task-Decomposition-Aware Heterogeneous Model Routing）的研究项目。
+
+## 品牌命名
+
+| 中文 | 英文 | Slogan（中文） | Slogan（英文） |
+|------|------|----------------|----------------|
+| 析衡 | Refract Agent | 析构知难，衡派选优 | Refract the task — spend every token where it matters. |
+
+**析** = 分析、解构——学术语境中的任务分解感知。
+**衡** = 权衡、平衡——节点级多目标路由决策。
+**Refract** = 拉丁语 *re-*（重新）+ *frangere*（打破），字面即「打破再重新分配」：复杂任务经过 router 折射为子任务光谱，每个波长路由到最合适的模型。
 
 RefractRouter 是一个面向 **任务分解感知的异构 LLM 路由** 的研究仓库。它关注的问题是：当一个复杂任务被表示为 DAG 后，如何在预算、延迟和执行历史约束下，为每个子任务节点选择合适的 agent、模型和计算量。
 
