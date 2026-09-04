@@ -72,7 +72,7 @@ max_π E[Q(T) − λC − μL]
 - [研究讨论辩论档案](https://github.com/AEALab/RefractRouter/wiki/04-研究讨论辩论档案)
 - [后续行动计划](https://github.com/AEALab/RefractRouter/wiki/05-后续行动计划)
 - [WikiSkill 跨模型迁移与路由对齐](https://github.com/AEALab/RefractRouter/wiki/06-WikiSkill跨模型迁移与路由对齐)
-- [WikiSkill 深度解析](https://github.com/AEALab/RefractRouter/wiki/WikiSkill-2026/WikiSkill深度解析)
+- [WikiSkill 深度解析](https://github.com/AEALab/RefractRouter/wiki/WikiSkill深度解析)
 
 ## 推荐阅读路径
 
