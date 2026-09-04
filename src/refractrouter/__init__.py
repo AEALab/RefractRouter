@@ -5,6 +5,7 @@ from .schemas import (
     NodeResult,
     NodeSpec,
     RunRecord,
+    SourceDocument,
     TaskDAG,
     TaskResult,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "NodeResult",
     "NodeSpec",
     "RunRecord",
+    "SourceDocument",
     "TaskDAG",
     "TaskResult",
 ]

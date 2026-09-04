@@ -1,42 +1,23 @@
 from __future__ import annotations
 
+import argparse
 import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from refractrouter.adapters import FakeModelAdapter
+from refractrouter.cli import load_task
 from refractrouter.deepagents_executor import DeepAgentsGraphExecutor
 from refractrouter.metrics import pareto_front
 from refractrouter.model_registry import ModelRegistry
 from refractrouter.report_renderer import save_html_report
 from refractrouter.routing import node_oracle, node_type_rule, strong_all, task_oracle, weak_all
-from refractrouter.schemas import ModelSpec, NodeSpec, TaskDAG, TaskResult
+from refractrouter.schemas import ModelSpec, TaskDAG, TaskResult
+from refractrouter.source_pack import attach_source_pack
 
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def load_task(path: Path) -> TaskDAG:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return TaskDAG(
-        task_id=data["task_id"],
-        domain=data["domain"],
-        nodes=tuple(
-            NodeSpec(
-                node_id=node["node_id"],
-                node_type=node["node_type"],
-                prompt_template=node["prompt_template"],
-                parents=tuple(node.get("parents", [])),
-                expected_output=node.get("expected_output"),
-            )
-            for node in data["nodes"]
-        ),
-        required_sections=tuple(data.get("required_sections", [])),
-        output_constraints=tuple(data.get("output_constraints", [])),
-        source_pack_id=data.get("source_pack_id"),
-        scoring_rubric_version=data.get("scoring_rubric_version", "v0.1"),
-    )
 
 
 def default_registry() -> ModelRegistry:
@@ -154,12 +135,18 @@ def build_run_record(task: TaskDAG, result: TaskResult, metadata: dict[str, str]
     }
 
 
-def main() -> int:
-    task_path = ROOT / "data" / "tasks" / "report_001.json"
-    output_dir = ROOT / "reports" / "v0.1"
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run the RefractRouter v0.1 experiment")
+    parser.add_argument("--task", type=Path, default=ROOT / "data" / "tasks" / "report_001.json")
+    parser.add_argument("--source-pack-root", type=Path, default=ROOT / "data" / "source_packs")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "reports" / "v0.1")
+    args = parser.parse_args(argv)
+
+    task_path = args.task.resolve()
+    output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    task = load_task(task_path)
+    task = attach_source_pack(load_task(task_path), args.source_pack_root.resolve())
     registry = default_registry()
     executor = DeepAgentsGraphExecutor(task, FakeModelAdapter(registry), registry)
 

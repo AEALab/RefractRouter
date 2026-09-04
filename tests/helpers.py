@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from refractrouter.model_registry import ModelRegistry
-from refractrouter.schemas import ModelSpec, NodeSpec, TaskDAG
+from refractrouter.schemas import ModelSpec, NodeSpec, SourceDocument, TaskDAG
 
 
 def make_registry() -> ModelRegistry:
@@ -72,4 +72,28 @@ def make_task() -> TaskDAG:
         ),
         output_constraints=("standalone HTML",),
         source_pack_id="report_001",
+        source_documents=make_sources(),
+    )
+
+
+def make_sources() -> tuple[SourceDocument, ...]:
+    return (
+        SourceDocument(
+            source_id="source_001",
+            title="DeepAgents",
+            content="DeepAgents provides a fixed-DAG execution harness.",
+            content_hash="hash-001",
+        ),
+        SourceDocument(
+            source_id="source_002",
+            title="LangGraph",
+            content="LangGraph provides explicit graph nodes and edges.",
+            content_hash="hash-002",
+        ),
+        SourceDocument(
+            source_id="source_003",
+            title="Benchmark design",
+            content="Routing benchmarks must report quality, cost, and latency.",
+            content_hash="hash-003",
+        ),
     )

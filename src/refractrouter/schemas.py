@@ -5,6 +5,14 @@ from typing import Any, Mapping
 
 
 @dataclass(frozen=True, slots=True)
+class SourceDocument:
+    source_id: str
+    title: str
+    content: str
+    content_hash: str
+
+
+@dataclass(frozen=True, slots=True)
 class ModelSpec:
     model_id: str
     provider: str
@@ -32,6 +40,7 @@ class TaskDAG:
     output_constraints: tuple[str, ...] = ()
     source_pack_id: str | None = None
     scoring_rubric_version: str = "v0.1"
+    source_documents: tuple[SourceDocument, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

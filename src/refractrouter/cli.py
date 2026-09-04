@@ -10,9 +10,10 @@ from .model_registry import ModelRegistry
 from .report_renderer import save_html_report
 from .routing import strong_all, weak_all
 from .schemas import ModelSpec, NodeSpec, TaskDAG
+from .source_pack import attach_source_pack
 
 
-def _load_task(path: Path) -> TaskDAG:
+def load_task(path: Path) -> TaskDAG:
     data = json.loads(path.read_text(encoding="utf-8"))
     nodes = tuple(
         NodeSpec(
@@ -35,7 +36,7 @@ def _load_task(path: Path) -> TaskDAG:
     )
 
 
-def _default_registry() -> ModelRegistry:
+def default_registry() -> ModelRegistry:
     return ModelRegistry(
         [
             ModelSpec("cheap-model", "fake", 0.001, 0.002, 0.35),
@@ -53,11 +54,14 @@ def main() -> int:
     run_parser.add_argument("--task", required=True, type=Path)
     run_parser.add_argument("--strategy", choices=("weak-all", "strong-all"), default="strong-all")
     run_parser.add_argument("--output", required=True, type=Path)
+    run_parser.add_argument("--source-pack-root", type=Path)
 
     args = parser.parse_args()
     if args.command == "run":
-        task = _load_task(args.task)
-        registry = _default_registry()
+        task = load_task(args.task)
+        source_pack_root = args.source_pack_root or args.task.parent.parent / "source_packs"
+        task = attach_source_pack(task, source_pack_root)
+        registry = default_registry()
         assignments = weak_all(task, registry) if args.strategy == "weak-all" else strong_all(task, registry)
         executor = GraphExecutor(task, FakeModelAdapter(registry), registry)
         result = executor.execute(assignments, args.strategy)
@@ -70,6 +74,7 @@ def main() -> int:
                     "task_score": result.task_score,
                     "cost_usd": result.total_cost_usd,
                     "critical_path_latency_ms": result.critical_path_latency_ms,
+                    "failure_types": result.failure_types,
                     "output": str(args.output),
                 },
                 ensure_ascii=False,

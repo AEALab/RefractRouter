@@ -21,6 +21,10 @@ class GraphExecutorTests(unittest.TestCase):
         self.assertGreater(strong.total_cost_usd, weak.total_cost_usd)
         self.assertGreater(strong.critical_path_latency_ms, 0)
         self.assertTrue(strong.final_output.startswith("<!doctype html>"))
+        self.assertIn('data-cite-source-id="source_001"', strong.final_output)
+        self.assertIn('data-source-id="source_001"', strong.final_output)
+        self.assertIn("DeepAgents provides a fixed-DAG execution harness.", strong.final_output)
+        self.assertEqual(strong.failure_types, ())
 
     def test_missing_assignment_raises(self) -> None:
         task = make_task()
