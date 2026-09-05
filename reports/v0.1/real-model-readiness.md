@@ -27,7 +27,8 @@
 
 验证日期：2026-09-05。
 
-- 测试：`42 passed`。
+- 测试：`46 passed`（含 DSH bundle manifest、Standard Schema、原生 service 接线与
+  plugin provenance 测试）。
 - canonical fake-model 隔离复跑：`pass`，issues 为空，六项 artifact hash 全部生成。
 - real-model final preflight：`pass`，issues 为空，`credential_available=false`。
 - 数据集 SHA-256：`8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17`。
@@ -35,6 +36,8 @@
 - 20-task corpus SHA-256：`ca9d3919aed145177fcd15b8e55541df261de7273abfcdb174aea77356548157`。
 - 实验代码 SHA-256：`09e7e6f95834a27d1ddf84ba22352840579350f0aeaf37dce641e4ab671f94ad`。
 - 验证环境：Python 3.12.13、DeepAgents 0.7.13、LangGraph 1.2.11、DSH 0.1.1-rc.2。
+- DSH plugin：隔离 profile 安装与配置组合成功；真实 headless tool call 返回 `pass`、
+  `issues=[]`、`invoked_by=dsh-plugin`，且仍为零费用 preflight。
 
 这些 hash 来自当前工作树内容；提交后应由 CI 在干净 checkout 中再次生成持久证据。
 
@@ -69,5 +72,5 @@ p95 关键路径延迟不超过 task-oracle 的 120%、成功率不退化、两�
 2. dry run 通过后执行 10-task pilot；如需观察波动，用 `--repeats 3` 并相应提高预算。
 3. pilot 通过后执行 20-task final benchmark。
 4. 人工填写冻结的 4 条 audit record 并运行 finalizer。
-5. 在明确允许披露仓库代码、合成 source pack 与 manifest 后，通过 DSH headless session
-   复核真实阶段，发布最终 Go / No-Go。
+5. 在明确允许披露仓库上下文后，通过 `refractrouter_validate` plugin tool call 复核真实
+   阶段，发布最终 Go / No-Go。

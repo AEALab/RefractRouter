@@ -1,0 +1,10 @@
+# RefractRouter validation remains a normal Cordis contribution. The base
+# profile owns tools, subprocess, sandbox, policy, and credential providers;
+# this bundle contributes only the domain-specific consumer.
+- insert:
+    - id: refractrouter-validation
+      name: dsh-refractrouter-validation
+      config:
+        allowPaidRuns: false
+        maxProductionCostUsd: 2
+        maxEvaluationCostUsd: 1

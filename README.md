@@ -12,7 +12,8 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 - `weak-all`、`strong-all`、`node-type-rule`、`task-oracle`、`node-oracle` 基线策略。
 - DeepAgents 0.7 宿主运行时与 LangGraph 执行底座。
 - 可追溯的最终 HTML 引用、确定性评分、baseline 表、Pareto 表和 oracle gap 报告。
-- DSH 外层验证边界与确定性 runner；已在隔离 workspace 通过真实 DSH headless session 验证。
+- 可安装的 DSH bundle、结构化验证工具与确定性 runner；已在隔离 profile 通过真实 DSH
+  headless tool call 验证。
 - 20-task 合成 benchmark（train/test 各 10 个）、冻结真实模型 manifest、
   OpenAI-compatible adapter、真实 token/成本/延迟遥测、独立 judge 与付费预算保护。
 
@@ -36,6 +37,9 @@ uv run python validation/dsh/canonical_runner.py \
 uv run python experiments/run_real_v0_1.py \
   --phase dry-run \
   --output-dir /tmp/refractrouter-real-preflight
+dsh plugin --profile headless add ./validation/dsh/plugin
+dsh --profile headless \
+  'Call refractrouter_validate exactly once with {"phase":"final","executePaidRun":false}. Return the tool result unchanged.'
 ```
 
 命令说明：
@@ -48,6 +52,8 @@ uv run python experiments/run_real_v0_1.py \
   独立计算 oracle gate，并输出可审计的验证证据。
 - `uv run python experiments/run_real_v0_1.py ...`：默认只执行真实模型 preflight，
   检查数据集、模型快照、凭据是否存在、调用数量和成本估算，不调用 API。
+- `dsh plugin ...`：把 `dsh-refractrouter-validation` bundle 安装到 profile；之后通过
+  `refractrouter_validate` 结构化工具运行验证，不让模型临时组装 shell 命令。
 
 ## Real-model benchmark
 
@@ -138,15 +144,16 @@ Canonical task 是 `data/tasks/report_001.json`，主题为“2026 年企业 LLM
 
 ### DSH
 
-DeepSeek Harness 只作为外层验证环境，负责启动、校验和证据捕获；不参与模型选择，
-也不替换 DeepAgents/LangGraph 主执行循环。确定性 runner 会记录输入、代码和输出
-hash、依赖版本、CLI 输出及 source-trace 检查结果。边界与命令见
-`validation/dsh/README.md`。
+DeepSeek Harness 只作为外层验证环境，负责组合、工具调度、进程生命周期、sandbox、凭证
+解析和证据捕获；不参与模型选择，也不替换 DeepAgents/LangGraph 主执行循环。
+`validation/dsh/plugin/` 是可由 `dsh plugin` 安装的 bundle，向 Cordis 树贡献
+`refractrouter_validate` 工具。插件通过 DSH 原生 service 运行固定 argv，并把 Python
+runner 的证据投影为结构化结果；评分、hash 与 gate 仍只有 Python runner 一份实现。
 
-真实阶段使用 `validation/dsh/real_runner.py`。它既可无付费地验证 preflight，也可在
-明确传入 `--execute-paid-run` 和预算上限后执行真实调用，并记录 dataset、model manifest、
-corpus、代码和全部产物哈希。通过真实 DSH headless 会话前，应明确确认允许把仓库代码和
-合成 source pack 提供给 DSH 配置的外部模型。
+真实阶段由插件调用 `validation/dsh/real_runner.py`。bundle 默认
+`allowPaidRuns: false`；付费执行必须由更高优先级的 profile patch 开启，并同时通过部署级
+与调用级两层生产/评审预算上限。凭证由 `ctx.credentials` 按次解析，只显式交给受控子进程，
+不会出现在工具结果或 evidence 中。通过真实 DSH headless 会话前，应明确确认外部披露范围。
 
 ## Current Dry Run
 
@@ -187,7 +194,7 @@ data/benchmarks/         Train/test/pilot and human-audit split
 data/model-manifests/    Frozen provider, model snapshot, price, and key-env configuration
 data/judges/             Versioned independent-judge rubric
 experiments/             v0.1 experiment runner
-validation/dsh/          DSH boundary and runner contract
+validation/dsh/          DSH bundle, Cordis tool, boundary, and runner contracts
 reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 ```
 
@@ -196,7 +203,7 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 1. 注入 `OPENAI_API_KEY`，在用户确认预算后执行 1-task paid dry run。
 2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
 3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
-4. pilot 通过后执行 20-task final benchmark，并通过真实 DSH headless session 复核。
+4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。
 5. 将 DSH 验证加入 CI，发布最终 Pareto、failure taxonomy 与 Go/No-Go 结论。
 
 ## Wiki

@@ -12,17 +12,16 @@ uv run python validation/dsh/runner.py \
   --evidence reports/v0.1/dsh-evidence.json
 ```
 
-To capture the same validation in a DSH session, ask the headless profile to run exactly that
-command and add `--invoked-by dsh`. Use an isolated workspace and `DSH_HOME`; DSH is responsible
-for the outer session log, while `runner.py` remains responsible for deterministic checks.
+DSH validation is delivered as the installable `dsh-refractrouter-validation` bundle. Install the
+checkout into a base-backed profile:
 
 ```bash
-dsh --profile headless \
-  "Run uv run python validation/dsh/runner.py --task data/tasks/report_001.json \
-  --strategy strong-all --output reports/v0.1/report_001-dsh.html \
-  --evidence reports/v0.1/dsh-evidence.json --invoked-by dsh. \
-  Do not edit source files. Return the validator status and evidence path."
+dsh plugin --profile headless add ./validation/dsh/plugin
+dsh --profile headless --dump-config | rg refractrouter-validation
 ```
+
+The bundle is a normal Cordis patch layer. It registers `refractrouter_validate` beside the profile's
+other tools and relies on DSH's injected subprocess, sandbox, policy, and credential services.
 
 The evidence record contains:
 
@@ -41,32 +40,28 @@ uv run python validation/dsh/canonical_runner.py \
   --evidence /tmp/refractrouter-canonical-evidence.json
 ```
 
-For the final DSH session, run this command through the headless profile and add
-`--invoked-by dsh`. The canonical validator requires all six report artifacts, checks the
-node-oracle run record against the experiment summary, validates final-output source trace,
-recomputes cost reduction and latency ratio, and applies the 120% latency gate independently.
-
-The v0.1 integration does not require a custom DSH plugin. A thin deterministic wrapper is
-sufficient; DSH must not select models or calculate the benchmark score.
+The canonical validator requires all six report artifacts, checks the node-oracle run record against
+the experiment summary, validates final-output source trace, recomputes cost reduction and latency
+ratio, and applies the 120% latency gate independently. It remains a Python domain runner; the DSH
+plugin does not duplicate its score implementation.
 
 For the real-model phase, invoke `validation/dsh/real_runner.py`. Default execution is preflight-only.
 Paid execution is invalid unless the caller supplies `--execute-paid-run`, a positive production cost
 limit, a positive evaluation cost limit, and the API-key environment variable named by the model
 manifest. Evidence records only whether the variable exists; it never records the value.
 
-Run the zero-cost final preflight through DSH with:
+Run the zero-cost final preflight through the installed DSH plugin with:
 
 ```bash
 dsh --profile headless \
-  "Run UV_CACHE_DIR=/tmp/refractrouter-uv-cache uv run --extra dev --extra deepagents \
-  python validation/dsh/real_runner.py --dataset data/benchmarks/v0.1.json \
-  --manifest data/model-manifests/openai-gpt-5.4.json --phase final \
-  --output-dir /tmp/refractrouter-real-preflight \
-  --evidence /tmp/refractrouter-real-preflight-evidence.json --invoked-by dsh. \
-  Do not edit source files or execute paid model calls. Return the validator status, issues, \
-  call plan, cost estimate, input hashes, and evidence path."
+  'Call refractrouter_validate exactly once with {"phase":"final","executePaidRun":false}. Return the tool result unchanged.'
 ```
 
-This is an actual DSH session but not an actual candidate-model benchmark. A paid benchmark must be
-launched separately only after the API key, phase, disclosure scope, and both cost ceilings are
-explicitly approved.
+The plugin sends a fixed argv through `ctx.subprocess`, confines it with the active sandbox policy,
+and projects the evidence JSON into a structured tool result. This is an actual DSH session but not
+an actual candidate-model benchmark.
+
+Paid calls are disabled by the bundle default. A higher-precedence profile patch must explicitly set
+`allowPaidRuns: true` and define the maximum production/evaluation ceilings. The tool call must then
+request `executePaidRun: true` and supply two positive limits no larger than those ceilings. The
+plugin resolves the credential for that operation only and never returns its value.

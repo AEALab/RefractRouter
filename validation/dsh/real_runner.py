@@ -181,7 +181,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--execute-paid-run", action="store_true")
     parser.add_argument("--max-production-cost-usd", type=float)
     parser.add_argument("--max-evaluation-cost-usd", type=float)
-    parser.add_argument("--invoked-by", choices=("local", "dsh"), default="local")
+    parser.add_argument(
+        "--invoked-by",
+        choices=("local", "dsh", "dsh-plugin"),
+        default="local",
+    )
     args = parser.parse_args(argv)
     return run_real_validation(
         dataset_path=args.dataset,
