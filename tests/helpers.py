@@ -72,6 +72,7 @@ def make_task() -> TaskDAG:
         ),
         output_constraints=("standalone HTML",),
         source_pack_id="report_001",
+        expected_claims=("Routing benchmarks report three objectives.",),
         source_documents=make_sources(),
     )
 

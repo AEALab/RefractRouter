@@ -29,7 +29,13 @@
               "latency_ms": {"type": "integer", "minimum": 0},
               "score": {"type": "number", "minimum": 0, "maximum": 100},
               "status": {"type": "string"},
-              "failure_type": {"type": ["string", "null"]}
+              "failure_type": {"type": ["string", "null"]},
+              "cached_input_tokens": {"type": "integer", "minimum": 0},
+              "reasoning_tokens": {"type": "integer", "minimum": 0},
+              "attempts": {"type": "integer", "minimum": 0},
+              "finish_reason": {"type": ["string", "null"]},
+              "request_id": {"type": ["string", "null"]},
+              "error_message": {"type": ["string", "null"]}
             },
             "additionalProperties": false
           }

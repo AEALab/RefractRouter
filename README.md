@@ -12,9 +12,13 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 - `weak-all`、`strong-all`、`node-type-rule`、`task-oracle`、`node-oracle` 基线策略。
 - DeepAgents 0.7 宿主运行时与 LangGraph 执行底座。
 - 可追溯的最终 HTML 引用、确定性评分、baseline 表、Pareto 表和 oracle gap 报告。
-- DSH 外层验证边界与确定性 runner；已在隔离 workspace 通过真实 DSH headless session 验证。
+- 可安装的 DSH bundle、结构化验证工具与确定性 runner；已在隔离 profile 通过真实 DSH
+  headless tool call 验证。
+- 20-task 合成 benchmark（train/test 各 10 个）、冻结真实模型 manifest、
+  OpenAI-compatible adapter、真实 token/成本/延迟遥测、独立 judge 与付费预算保护。
 
-当前 dry run 使用 fake model，不调用真实 API，也不包含任何密钥。
+当前已经完成真实模型实验基础设施，但尚未产生真实模型 benchmark 结果：环境中未配置
+`OPENAI_API_KEY`，因此现有分数仍只来自 fake model。preflight 不调用 API，也不产生费用。
 
 ## Quick Start
 
@@ -30,6 +34,12 @@ uv run python validation/dsh/canonical_runner.py \
   --task data/tasks/report_001.json \
   --output-dir /tmp/refractrouter-canonical-validation \
   --evidence /tmp/refractrouter-canonical-evidence.json
+uv run python experiments/run_real_v0_1.py \
+  --phase dry-run \
+  --output-dir /tmp/refractrouter-real-preflight
+dsh plugin --profile headless add ./validation/dsh/plugin
+dsh --profile headless \
+  'Call refractrouter_validate exactly once with {"phase":"final","executePaidRun":false}. Return the tool result unchanged.'
 ```
 
 命令说明：
@@ -40,6 +50,62 @@ uv run python validation/dsh/canonical_runner.py \
 - `uv run python experiments/run_v0_1.py`：运行五个策略并生成实验报告。
 - `uv run python validation/dsh/canonical_runner.py ...`：在隔离目录重跑完整实验、
   独立计算 oracle gate，并输出可审计的验证证据。
+- `uv run python experiments/run_real_v0_1.py ...`：默认只执行真实模型 preflight，
+  检查数据集、模型快照、凭据是否存在、调用数量和成本估算，不调用 API。
+- `dsh plugin ...`：把 `dsh-refractrouter-validation` bundle 安装到 profile；之后通过
+  `refractrouter_validate` 结构化工具运行验证，不让模型临时组装 shell 命令。
+
+## Real-model benchmark
+
+模型清单位于 `data/model-manifests/openai-gpt-5.4.json`，价格快照日期为
+2026-09-05。候选池冻结为 GPT-5.4 nano、GPT-5.4 Mini、GPT-5.4 的日期快照；
+独立 judge 使用不在候选池中的 GPT-5.5 日期快照。模型 ID、价格和端点能力依据
+[官方 OpenAI 模型文档](https://developers.openai.com/api/docs/models)。
+
+三阶段默认调用量和保守成本估算如下。估算假设每个生产调用 4,000 input / 1,200
+output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出以 API usage 为准。
+
+| Phase | Train / test tasks | Production calls | Judge calls | Conservative estimate |
+|---|---:|---:|---:|---:|
+| dry-run | 0 / 1 | 56 | 5 | $1.95 |
+| pilot | 5 / 5 | 455 | 35 | $15.40 |
+| final | 10 / 10 | 910 | 70 | $30.80 |
+
+付费 dry run 必须同时显式提供开关和两类预算上限：
+
+```bash
+export OPENAI_API_KEY="..."
+uv run python experiments/run_real_v0_1.py \
+  --phase dry-run \
+  --execute-paid-run \
+  --max-production-cost-usd 2 \
+  --max-evaluation-cost-usd 1 \
+  --output-dir reports/v0.1-real/dry-run
+```
+
+密钥只从 manifest 指定的环境变量读取，不写入任务、run record 或 DSH evidence。
+runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与关键路径延迟、
+重试、finish reason、request ID 和标准化 failure type。超过预算后不会继续发起新调用。
+默认执行策略固定为 temperature 0、单次 120 秒超时、最多重试 2 次；preflight 会把这些
+参数写入记录，也可通过 `--timeout-seconds` 与 `--max-retries` 显式覆盖。聚合结果包含
+质量、生产成本与关键路径延迟的均值/标准差，以及成本和延迟的 p50/p95；需要观察同一
+任务的运行波动时，用 `--repeats 3`（或更高）执行，但调用量和预算会同比增加。
+
+独立 judge 使用 `data/judges/v0.1.md` 的固定 rubric。需求覆盖、证据准确性和 HTML
+有效性分别取确定性检查与 judge 的较低值；source trace 失败时证据分直接归零。
+生产成本和 judge 评测成本分别统计，Pareto 主比较只使用生产成本。
+真实阶段会生成 `baseline-table.md`、`pareto-front.md`、`oracle-gap.md`、
+`failure-taxonomy.md`、逐策略 run record 和带哈希的 `evidence-index.json`。
+
+final phase 即使模型和 judge 全部成功，也只会标记为 `awaiting-human-audit`。复制
+`data/judges/human-audit-template-v0.1.json`、填写冻结的两项任务及两种 oracle 策略后，
+运行以下命令；人工分与 judge 分差距超过 10 分时，最终结论强制为 No-go：
+
+```bash
+uv run python experiments/finalize_real_v0_1.py \
+  --output-dir reports/v0.1-real/final \
+  --audit /path/to/completed-human-audit.json
+```
 
 ## v0.1 Scope
 
@@ -56,6 +122,10 @@ parse_requirements
 ```
 
 Canonical task 是 `data/tasks/report_001.json`，主题为“2026 年企业 LLM Agent 平台选型”。输入使用 `data/source_packs/report_001/` 下的固定 source pack，输出必须是可离线打开的 standalone HTML。
+
+完整数据集定义在 `data/benchmarks/v0.1.json`。`report_001` 保留为 canonical task；
+`report_002` 至 `report_020` 是明确标注的合成 benchmark brief，不代表现实供应商事实。
+每个任务包含 8 份独立 source pack，训练集与测试集按 task ID 隔离。
 
 ## Architecture Boundary
 
@@ -74,10 +144,16 @@ Canonical task 是 `data/tasks/report_001.json`，主题为“2026 年企业 LLM
 
 ### DSH
 
-DeepSeek Harness 只作为外层验证环境，负责启动、校验和证据捕获；不参与模型选择，
-也不替换 DeepAgents/LangGraph 主执行循环。确定性 runner 会记录输入、代码和输出
-hash、依赖版本、CLI 输出及 source-trace 检查结果。边界与命令见
-`validation/dsh/README.md`。
+DeepSeek Harness 只作为外层验证环境，负责组合、工具调度、进程生命周期、sandbox、凭证
+解析和证据捕获；不参与模型选择，也不替换 DeepAgents/LangGraph 主执行循环。
+`validation/dsh/plugin/` 是可由 `dsh plugin` 安装的 bundle，向 Cordis 树贡献
+`refractrouter_validate` 工具。插件通过 DSH 原生 service 运行固定 argv，并把 Python
+runner 的证据投影为结构化结果；评分、hash 与 gate 仍只有 Python runner 一份实现。
+
+真实阶段由插件调用 `validation/dsh/real_runner.py`。bundle 默认
+`allowPaidRuns: false`；付费执行必须由更高优先级的 profile patch 开启，并同时通过部署级
+与调用级两层生产/评审预算上限。凭证由 `ctx.credentials` 按次解析，只显式交给受控子进程，
+不会出现在工具结果或 evidence 中。通过真实 DSH headless 会话前，应明确确认外部披露范围。
 
 ## Current Dry Run
 
@@ -114,18 +190,21 @@ tests/                   Unit tests
 data/schema/             Task DAG and run-record JSON schemas
 data/tasks/              Canonical task definitions
 data/source_packs/       Frozen source packs
+data/benchmarks/         Train/test/pilot and human-audit split
+data/model-manifests/    Frozen provider, model snapshot, price, and key-env configuration
+data/judges/             Versioned independent-judge rubric
 experiments/             v0.1 experiment runner
-validation/dsh/          DSH boundary and runner contract
+validation/dsh/          DSH bundle, Cordis tool, boundary, and runner contracts
 reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 ```
 
 ## Roadmap
 
-1. 扩展到 10-task pilot，并按 `task_id` 做训练 / 测试切分。
-2. 引入 OpenAI-compatible real model adapter，模型 ID、版本和价格表在 M0 冻结。
-3. 增加独立 judge model 与 claim-to-source 语义支持校验。
-4. 将 DSH headless 验证加入可重复执行的 CI，并持久化 session 证据索引。
-5. 生成 20-task final benchmark 与完整 Go/No-Go 报告。
+1. 注入 `OPENAI_API_KEY`，在用户确认预算后执行 1-task paid dry run。
+2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
+3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
+4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。
+5. 将 DSH 验证加入 CI，发布最终 Pareto、failure taxonomy 与 Go/No-Go 结论。
 
 ## Wiki
 

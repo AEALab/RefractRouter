@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RefractRouter Model Manifest",
+  "type": "object",
+  "required": ["schema_version", "pricing_snapshot_date", "defaults", "models"],
+  "properties": {
+    "schema_version": {"const": "v0.1"},
+    "pricing_snapshot_date": {"type": "string", "format": "date"},
+    "documentation_urls": {
+      "type": "array",
+      "items": {"type": "string", "format": "uri"}
+    },
+    "defaults": {
+      "type": "object",
+      "required": ["provider", "base_url", "api_key_env"],
+      "properties": {
+        "provider": {"type": "string"},
+        "base_url": {"type": "string", "format": "uri"},
+        "api_key_env": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "context_window": {"type": "integer", "minimum": 1},
+        "max_output_tokens": {"type": "integer", "minimum": 1},
+        "request_options": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "models": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "model_id",
+          "api_model",
+          "snapshot_date",
+          "role",
+          "capability",
+          "input_cost_per_1k_usd",
+          "cached_input_cost_per_1k_usd",
+          "output_cost_per_1k_usd"
+        ],
+        "properties": {
+          "model_id": {"type": "string"},
+          "api_model": {"type": "string"},
+          "snapshot_date": {"type": "string", "format": "date"},
+          "role": {"enum": ["candidate", "judge"]},
+          "capability": {"type": "number", "minimum": 0, "maximum": 1},
+          "input_cost_per_1k_usd": {"type": "number", "minimum": 0},
+          "cached_input_cost_per_1k_usd": {"type": "number", "minimum": 0},
+          "output_cost_per_1k_usd": {"type": "number", "minimum": 0},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "request_options": {"type": "object"},
+          "provider": {"type": "string"},
+          "base_url": {"type": "string", "format": "uri"},
+          "api_key_env": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "context_window": {"type": "integer", "minimum": 1},
+          "max_output_tokens": {"type": "integer", "minimum": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

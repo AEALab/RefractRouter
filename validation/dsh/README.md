@@ -1,6 +1,7 @@
 # DSH Validation Boundary
 
-DeepSeek Harness is used only as the outer validation environment for RefractRouter v0.1.
+DeepSeek Harness is the outer validation environment for RefractRouter v0.1. The integration is an
+installable DSH bundle, not a natural-language request to assemble and execute a shell command.
 
 ## Responsibilities
 
@@ -8,6 +9,7 @@ DeepSeek Harness is used only as the outer validation environment for RefractRou
 - Verify task package, model configuration, and source-pack hashes.
 - Capture execution evidence.
 - Run deterministic HTML and scoring checks.
+- Apply the DSH profile's credential, sandbox, lifecycle, and tool-dispatch policies.
 
 ## Non-responsibilities
 
@@ -15,7 +17,36 @@ DeepSeek Harness is used only as the outer validation environment for RefractRou
 - DSH does not replace the DeepAgents/LangGraph execution loop.
 - DSH does not own task decomposition.
 
-## Runner contract
+## Plugin contract
+
+`validation/dsh/plugin/` is the `dsh-refractrouter-validation` bundle. Its `dsh.bundle` manifest
+contributes one Cordis plugin row, which registers the structured `refractrouter_validate` tool.
+The plugin:
+
+- uses `ctx.subprocess` for process ownership and bounded output;
+- uses `ctx.sandbox` and `ctx.sandboxPolicy` for the profile's file boundary;
+- uses `ctx.credentials` to resolve the manifest credential per paid operation;
+- returns typed status, plan, cost, hashes, issues, and evidence paths;
+- defaults `allowPaidRuns` to false and enforces deployment-level production/evaluation ceilings.
+
+Install it into a base-backed profile from this checkout:
+
+```bash
+dsh plugin --profile headless add ./validation/dsh/plugin
+dsh --profile headless --dump-config | rg refractrouter-validation
+```
+
+Run the real-model final preflight through the plugin:
+
+```bash
+dsh --profile headless \
+  'Call refractrouter_validate exactly once with {"phase":"final","executePaidRun":false}. Return the tool result unchanged.'
+```
+
+The DSH provider handles the short orchestration turn. The plugin launches a fixed argv rather than
+letting the model construct one. It never returns credential values.
+
+## Python runner contract
 
 The deterministic runner accepts:
 
@@ -29,14 +60,35 @@ uv run python validation/dsh/runner.py \
 
 It invokes the fixed RefractRouter CLI and emits a validation evidence record containing the
 exact command, exit code, standard streams, dependency versions, Git state, input hashes,
-generated HTML hash, and final-output source-trace issues. See `runner.md` for local and DSH
-headless invocation examples.
+generated HTML hash, and final-output source-trace issues. See `runner.md` for local runner and DSH
+plugin examples.
 
 `canonical_runner.py` is the experiment-level validator. It runs all five canonical strategies
 in an isolated output directory, requires every report artifact, cross-checks the node-oracle
 run record, and independently derives the oracle Go / No-Go result from the experiment summary.
 
-The complete flow has been exercised through DSH `0.1.1-rc.2` in a disposable workspace. The
-runner reported no validation or source-trace issues, and its code and artifact hashes matched an
-independent local run. The durable next step is to retain a stable session-evidence index in CI;
-temporary workspace paths are not treated as permanent evidence locations.
+The bundle installation, composition and tool invocation have been exercised through DSH
+`0.1.1-rc.2` in a disposable profile. The plugin preflight returned `pass` with no issues and
+recorded `invoked_by=dsh-plugin`.
+
+## Real-model boundary
+
+`real_runner.py` wraps the 20-task real-model benchmark. Its default mode is a zero-cost preflight:
+
+```bash
+uv run python validation/dsh/real_runner.py \
+  --dataset data/benchmarks/v0.1.json \
+  --manifest data/model-manifests/openai-gpt-5.4.json \
+  --phase dry-run \
+  --output-dir /tmp/refractrouter-real-preflight \
+  --evidence /tmp/refractrouter-real-preflight-evidence.json
+```
+
+The preflight validates the dataset/model boundary, records corpus and code hashes, and calculates the
+call plan without invoking a candidate or judge model. A paid run additionally requires
+`--execute-paid-run`, both cost limits, and the manifest's API-key environment variable.
+
+DSH is still only the outer validator. It must not choose candidate models, change the frozen manifest,
+or replace the DeepAgents/LangGraph execution path. Before launching a DSH headless session, explicitly
+approve sending the repository context to the configured external DSH model. Before a paid run, also
+enable it in the higher-precedence profile patch and approve both cost ceilings.

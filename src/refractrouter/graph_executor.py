@@ -37,18 +37,38 @@ class GraphExecutor:
     def execute(self, assignments: Mapping[str, str], strategy: str) -> TaskResult:
         context: dict[str, str] = {}
         results: list[NodeResult] = []
+        results_by_node: dict[str, NodeResult] = {}
         graph = {node.node_id: set(node.parents) for node in self.task.nodes}
         sorter = TopologicalSorter(graph)
         for node_id in sorter.static_order():
-            node = self._nodes[node_id]
             model_id = assignments.get(node_id)
             if model_id is None:
                 raise ValueError(f"Missing model assignment for node: {node_id}")
-            model = self.registry.get(model_id)
-            prompt = self._build_prompt(node, context)
-            result = self.adapter.invoke(self.task, node, prompt, context, model)
-            result = self._replace_score(result, score_node(self.task, node, result.output))
+            node = self._nodes[node_id]
+            failed_parents = [
+                parent
+                for parent in node.parents
+                if results_by_node[parent].status != "ok"
+            ]
+            if failed_parents:
+                result = NodeResult(
+                    node_id=node_id,
+                    node_type=node.node_type,
+                    model_id=model_id,
+                    output="",
+                    input_tokens=0,
+                    output_tokens=0,
+                    cost_usd=0.0,
+                    latency_ms=0,
+                    status="failed",
+                    failure_type="upstream-failure",
+                    attempts=0,
+                    error_message=f"Failed parents: {', '.join(failed_parents)}",
+                )
+            else:
+                result = self.probe_node(node_id, model_id, context)
             results.append(result)
+            results_by_node[node_id] = result
             context[node_id] = result.output
         render_nodes = [node for node in self.task.nodes if node.node_type == "rendering"]
         final_node_id = render_nodes[-1].node_id if render_nodes else self.task.nodes[-1].node_id
@@ -71,6 +91,26 @@ class GraphExecutor:
             failure_types=failure_types,
         )
 
+    def probe_node(
+        self,
+        node_id: str,
+        model_id: str,
+        context: Mapping[str, str],
+    ) -> NodeResult:
+        """Run one node against a caller-supplied frozen upstream context."""
+        if node_id not in self._nodes:
+            raise KeyError(f"Unknown node: {node_id}")
+        node = self._nodes[node_id]
+        missing_parents = [parent for parent in node.parents if parent not in context]
+        if missing_parents:
+            raise ValueError(
+                f"Missing upstream context for {node_id}: {', '.join(missing_parents)}"
+            )
+        model = self.registry.get(model_id)
+        prompt = self._build_prompt(node, dict(context))
+        result = self.adapter.invoke(self.task, node, prompt, dict(context), model)
+        return self._replace_score(result, score_node(self.task, node, result.output))
+
     @staticmethod
     def _replace_score(result: NodeResult, score: float) -> NodeResult:
         return NodeResult(
@@ -85,6 +125,12 @@ class GraphExecutor:
             score=score,
             status=result.status,
             failure_type=result.failure_type,
+            cached_input_tokens=result.cached_input_tokens,
+            reasoning_tokens=result.reasoning_tokens,
+            attempts=result.attempts,
+            finish_reason=result.finish_reason,
+            request_id=result.request_id,
+            error_message=result.error_message,
         )
 
     def _build_prompt(self, node, context: dict[str, str]) -> str:
