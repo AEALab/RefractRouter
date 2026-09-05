@@ -48,3 +48,25 @@ recomputes cost reduction and latency ratio, and applies the 120% latency gate i
 
 The v0.1 integration does not require a custom DSH plugin. A thin deterministic wrapper is
 sufficient; DSH must not select models or calculate the benchmark score.
+
+For the real-model phase, invoke `validation/dsh/real_runner.py`. Default execution is preflight-only.
+Paid execution is invalid unless the caller supplies `--execute-paid-run`, a positive production cost
+limit, a positive evaluation cost limit, and the API-key environment variable named by the model
+manifest. Evidence records only whether the variable exists; it never records the value.
+
+Run the zero-cost final preflight through DSH with:
+
+```bash
+dsh --profile headless \
+  "Run UV_CACHE_DIR=/tmp/refractrouter-uv-cache uv run --extra dev --extra deepagents \
+  python validation/dsh/real_runner.py --dataset data/benchmarks/v0.1.json \
+  --manifest data/model-manifests/openai-gpt-5.4.json --phase final \
+  --output-dir /tmp/refractrouter-real-preflight \
+  --evidence /tmp/refractrouter-real-preflight-evidence.json --invoked-by dsh. \
+  Do not edit source files or execute paid model calls. Return the validator status, issues, \
+  call plan, cost estimate, input hashes, and evidence path."
+```
+
+This is an actual DSH session but not an actual candidate-model benchmark. A paid benchmark must be
+launched separately only after the API key, phase, disclosure scope, and both cost ceilings are
+explicitly approved.

@@ -1,0 +1,47 @@
+name: Validate v0.1
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --frozen --extra dev --extra deepagents
+      - name: Run tests
+        run: uv run pytest
+      - name: Validate canonical fake-model experiment
+        run: >-
+          uv run python validation/dsh/canonical_runner.py
+          --task data/tasks/report_001.json
+          --output-dir "${RUNNER_TEMP}/canonical"
+          --evidence "${RUNNER_TEMP}/canonical-evidence.json"
+      - name: Validate real-model final preflight
+        run: >-
+          uv run python validation/dsh/real_runner.py
+          --dataset data/benchmarks/v0.1.json
+          --manifest data/model-manifests/openai-gpt-5.4.json
+          --phase final
+          --output-dir "${RUNNER_TEMP}/real-preflight"
+          --evidence "${RUNNER_TEMP}/real-preflight-evidence.json"
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refractrouter-validation-evidence
+          path: |
+            ${{ runner.temp }}/canonical-evidence.json
+            ${{ runner.temp }}/real-preflight-evidence.json
+            ${{ runner.temp }}/real-preflight/preflight.json
+          if-no-files-found: warn

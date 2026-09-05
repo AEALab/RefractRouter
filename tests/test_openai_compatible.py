@@ -1,0 +1,163 @@
+from __future__ import annotations
+
+import json
+import unittest
+
+from refractrouter.adapters import OpenAICompatibleAdapter
+from refractrouter.openai_compatible import (
+    ModelInvocationError,
+    OpenAICompatibleClient,
+    TransportResponse,
+    model_response_cost,
+)
+from refractrouter.schemas import ModelSpec
+from tests.helpers import make_task
+
+
+class SequenceTransport:
+    def __init__(self, responses: list[TransportResponse]):
+        self.responses = responses
+        self.calls: list[dict[str, object]] = []
+
+    def post(self, url, headers, body, timeout_seconds):
+        self.calls.append(
+            {
+                "url": url,
+                "authorization": headers["Authorization"],
+                "payload": json.loads(body),
+                "timeout": timeout_seconds,
+            }
+        )
+        return self.responses.pop(0)
+
+
+def real_model() -> ModelSpec:
+    return ModelSpec(
+        model_id="cheap",
+        provider="test-provider",
+        input_cost_per_1k_usd=0.002,
+        cached_input_cost_per_1k_usd=0.0002,
+        output_cost_per_1k_usd=0.008,
+        capability=0.7,
+        api_model="test-model-2026-01-01",
+        base_url="https://example.invalid/v1",
+        api_key_env="TEST_API_KEY",
+        max_output_tokens=4096,
+    )
+
+
+def success_response(
+    content: str = '{"requirements":"ok","sections":["a"],"constraints":[],"analysis":"ok"}',
+) -> TransportResponse:
+    body = {
+        "id": "chatcmpl-test",
+        "choices": [
+            {"message": {"content": content}, "finish_reason": "stop", "index": 0}
+        ],
+        "usage": {
+            "prompt_tokens": 100,
+            "completion_tokens": 25,
+            "prompt_tokens_details": {"cached_tokens": 40},
+            "completion_tokens_details": {"reasoning_tokens": 5},
+        },
+    }
+    return TransportResponse(200, {"X-Request-ID": "req-test"}, json.dumps(body).encode())
+
+
+class OpenAICompatibleClientTests(unittest.TestCase):
+    def test_parses_usage_retries_and_computes_cached_cost(self) -> None:
+        transport = SequenceTransport(
+            [
+                TransportResponse(429, {}, b'{"error":{"message":"retry later"}}'),
+                success_response(),
+            ]
+        )
+        sleeps: list[float] = []
+        client = OpenAICompatibleClient(
+            transport=transport,
+            environment={"TEST_API_KEY": "secret"},
+            max_retries=2,
+            sleep=sleeps.append,
+        )
+
+        response = client.complete(
+            real_model(),
+            [{"role": "user", "content": "test"}],
+            json_mode=True,
+        )
+
+        self.assertEqual(response.attempts, 2)
+        self.assertEqual(response.cached_input_tokens, 40)
+        self.assertEqual(response.reasoning_tokens, 5)
+        self.assertEqual(response.request_id, "req-test")
+        self.assertEqual(sleeps, [1])
+        self.assertEqual(model_response_cost(real_model(), response), 0.000328)
+        self.assertEqual(transport.calls[0]["authorization"], "Bearer secret")
+        self.assertEqual(
+            transport.calls[0]["payload"]["response_format"], {"type": "json_object"}
+        )
+
+    def test_missing_key_fails_without_transport_call(self) -> None:
+        transport = SequenceTransport([])
+        client = OpenAICompatibleClient(transport=transport, environment={})
+
+        with self.assertRaises(ModelInvocationError) as caught:
+            client.complete(real_model(), [{"role": "user", "content": "test"}])
+
+        self.assertEqual(caught.exception.failure_type, "missing-api-key")
+        self.assertEqual(transport.calls, [])
+
+    def test_adapter_records_real_telemetry(self) -> None:
+        transport = SequenceTransport([success_response()])
+        adapter = OpenAICompatibleAdapter(
+            OpenAICompatibleClient(
+                transport=transport,
+                environment={"TEST_API_KEY": "secret"},
+                max_retries=0,
+            )
+        )
+        task = make_task()
+        node = task.nodes[0]
+
+        result = adapter.invoke(task, node, "Plan the task", {}, real_model())
+
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.input_tokens, 100)
+        self.assertEqual(result.output_tokens, 25)
+        self.assertEqual(result.cached_input_tokens, 40)
+        self.assertEqual(result.reasoning_tokens, 5)
+        self.assertEqual(result.request_id, "req-test")
+        self.assertEqual(result.attempts, 1)
+
+    def test_adapter_rejects_hallucinated_evidence_identity(self) -> None:
+        content = json.dumps(
+            {
+                "evidence": [
+                    {
+                        "source_id": "source_999",
+                        "title": "Invented",
+                        "claim": "Invented claim",
+                        "content_hash": "invented-hash",
+                    }
+                ]
+            }
+        )
+        transport = SequenceTransport([success_response(content)])
+        adapter = OpenAICompatibleAdapter(
+            OpenAICompatibleClient(
+                transport=transport,
+                environment={"TEST_API_KEY": "secret"},
+                max_retries=0,
+            )
+        )
+        task = make_task()
+        node = next(node for node in task.nodes if node.node_type == "extraction")
+
+        result = adapter.invoke(task, node, "Extract evidence", {}, real_model())
+
+        self.assertEqual(result.status, "failed")
+        self.assertEqual(result.failure_type, "invalid-evidence")
+
+
+if __name__ == "__main__":
+    unittest.main()

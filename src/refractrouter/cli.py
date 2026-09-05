@@ -33,6 +33,7 @@ def load_task(path: Path) -> TaskDAG:
         output_constraints=tuple(data.get("output_constraints", [])),
         source_pack_id=data.get("source_pack_id"),
         scoring_rubric_version=data.get("scoring_rubric_version", "v0.1"),
+        expected_claims=tuple(data.get("expected_claims", [])),
     )
 
 

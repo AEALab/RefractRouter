@@ -6,9 +6,13 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .playwright-cli/
+.env
+.env.*
+!.env.example
 reports/v0.1/*.html
 !reports/v0.1/report_001.html
 reports/v0.1/runs/
+reports/v0.1-real/runs/
 dist/
 build/
 *.egg-info/

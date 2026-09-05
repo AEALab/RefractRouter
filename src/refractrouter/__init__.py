@@ -1,5 +1,7 @@
 """RefractRouter v0.1 research harness."""
 
+from .adapters import FakeModelAdapter, ModelAdapter, OpenAICompatibleAdapter
+from .manifest import ModelManifest, load_model_manifest
 from .schemas import (
     ModelSpec,
     NodeResult,
@@ -11,6 +13,9 @@ from .schemas import (
 )
 
 __all__ = [
+    "FakeModelAdapter",
+    "ModelAdapter",
+    "ModelManifest",
     "ModelSpec",
     "NodeResult",
     "NodeSpec",
@@ -18,4 +23,6 @@ __all__ = [
     "SourceDocument",
     "TaskDAG",
     "TaskResult",
+    "OpenAICompatibleAdapter",
+    "load_model_manifest",
 ]

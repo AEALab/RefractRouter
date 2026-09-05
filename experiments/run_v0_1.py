@@ -46,20 +46,34 @@ def probe_node_candidates(
     task: TaskDAG,
     registry: ModelRegistry,
     executor: DeepAgentsGraphExecutor,
+    reference_result: TaskResult,
 ) -> list[TaskResult]:
     """Probe candidate models with a fixed strong-model upstream context."""
-    reference_model = registry.strongest().model_id
+    reference_context = {
+        result.node_id: result.output for result in reference_result.node_results
+    }
     results: list[TaskResult] = []
     for target_node in task.nodes:
         for candidate in registry.list():
-            assignments = {
-                node.node_id: reference_model if node.node_id != target_node.node_id else candidate.model_id
-                for node in task.nodes
-            }
+            node_result = executor.probe_node(
+                target_node.node_id,
+                candidate.model_id,
+                reference_context,
+            )
+            failures = (
+                (node_result.failure_type,) if node_result.failure_type is not None else ()
+            )
             results.append(
-                executor.execute(
-                    assignments,
-                    f"probe:{target_node.node_id}:{candidate.model_id}",
+                TaskResult(
+                    task_id=task.task_id,
+                    strategy=f"probe:{target_node.node_id}:{candidate.model_id}",
+                    model_assignments={target_node.node_id: candidate.model_id},
+                    node_results=(node_result,),
+                    final_output="",
+                    task_score=node_result.score,
+                    total_cost_usd=node_result.cost_usd,
+                    critical_path_latency_ms=node_result.latency_ms,
+                    failure_types=failures,
                 )
             )
     return results
@@ -156,7 +170,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     weak = executor.execute(weak_all(task, registry), "weak-all")
     strong = executor.execute(strong_all(task, registry), "strong-all")
     task_best = executor.execute(task_oracle(task, registry, single_model_results), "task-oracle")
-    node_probes = probe_node_candidates(task, registry, executor)
+    node_probes = probe_node_candidates(task, registry, executor, strong)
     node_best = executor.execute(node_oracle(task, registry, node_probes), "node-oracle")
     rule = executor.execute(
         node_type_rule(

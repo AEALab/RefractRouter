@@ -74,7 +74,11 @@ def _contains_analysis(result: NodeResult) -> bool:
     return isinstance(value, dict) and bool(value.get("analysis"))
 
 
-def score_task(task: TaskDAG, node_results: tuple[NodeResult, ...], final_output: str) -> float:
+def score_task_dimensions(
+    task: TaskDAG,
+    node_results: tuple[NodeResult, ...],
+    final_output: str,
+) -> dict[str, float]:
     sections = sum(1 for section in task.required_sections if section.lower() in final_output.lower())
     section_score = sections / max(1, len(task.required_sections))
     traceable_ids = traceable_source_ids(task, final_output)
@@ -87,14 +91,18 @@ def score_task(task: TaskDAG, node_results: tuple[NodeResult, ...], final_output
     )
     analysis_depth = 1.0 if any(_contains_analysis(result) for result in node_results) else 0.5
     readability = 1.0 if "<h1>" in final_output.lower() or "<h2>" in final_output.lower() else 0.5
-    score = (
-        section_score * 25
-        + citation_score * 25
-        + analysis_depth * 20
-        + readability * 15
-        + (1.0 if html_valid else 0.0) * 15
-    )
-    return round(score, 3)
+    return {
+        "requirement_coverage": round(section_score * 25, 3),
+        "evidence_accuracy": round(citation_score * 25, 3),
+        "analysis_depth": round(analysis_depth * 20, 3),
+        "structure_readability": round(readability * 15, 3),
+        "html_validity": 15.0 if html_valid else 0.0,
+    }
+
+
+def score_task(task: TaskDAG, node_results: tuple[NodeResult, ...], final_output: str) -> float:
+    dimensions = score_task_dimensions(task, node_results, final_output)
+    return round(sum(dimensions.values()), 3)
 
 
 def score_node(task: TaskDAG, node: NodeSpec, output: str) -> float:

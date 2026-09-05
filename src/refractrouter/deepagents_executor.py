@@ -5,7 +5,7 @@ from typing import Any
 from .adapters import ModelAdapter
 from .graph_executor import GraphExecutor
 from .model_registry import ModelRegistry
-from .schemas import TaskDAG, TaskResult
+from .schemas import NodeResult, TaskDAG, TaskResult
 
 
 class DeepAgentsGraphExecutor:
@@ -87,3 +87,12 @@ class DeepAgentsGraphExecutor:
         if "result" not in captured:
             raise RuntimeError("DeepAgents execution did not invoke the fixed DAG tool")
         return captured["result"]
+
+    def probe_node(
+        self,
+        node_id: str,
+        model_id: str,
+        context: dict[str, str],
+    ) -> NodeResult:
+        """Probe one node while keeping upstream outputs fixed."""
+        return self._fallback.probe_node(node_id, model_id, context)

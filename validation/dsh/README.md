@@ -40,3 +40,25 @@ The complete flow has been exercised through DSH `0.1.1-rc.2` in a disposable wo
 runner reported no validation or source-trace issues, and its code and artifact hashes matched an
 independent local run. The durable next step is to retain a stable session-evidence index in CI;
 temporary workspace paths are not treated as permanent evidence locations.
+
+## Real-model boundary
+
+`real_runner.py` wraps the 20-task real-model benchmark. Its default mode is a zero-cost preflight:
+
+```bash
+uv run python validation/dsh/real_runner.py \
+  --dataset data/benchmarks/v0.1.json \
+  --manifest data/model-manifests/openai-gpt-5.4.json \
+  --phase dry-run \
+  --output-dir /tmp/refractrouter-real-preflight \
+  --evidence /tmp/refractrouter-real-preflight-evidence.json
+```
+
+The preflight validates the dataset/model boundary, records corpus and code hashes, and calculates the
+call plan without invoking a candidate or judge model. A paid run additionally requires
+`--execute-paid-run`, both cost limits, and the manifest's API-key environment variable.
+
+DSH is still only the outer validator. It must not choose candidate models, change the frozen manifest,
+or replace the DeepAgents/LangGraph execution path. Before launching a DSH headless session, explicitly
+approve sending the repository code, synthetic source packs, and manifest to the configured external
+DSH model.
