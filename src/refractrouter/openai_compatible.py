@@ -3,13 +3,17 @@ from __future__ import annotations
 import json
 import os
 import socket
+import sys
 import time
 from dataclasses import dataclass
-from typing import Callable, Mapping, Protocol, Sequence
+from typing import Callable, Mapping, Protocol, Sequence, TextIO
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .schemas import ModelSpec
+
+
+DSH_BRIDGE_PROTOCOL = "refractrouter-dsh-llm/v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,6 +32,62 @@ class HttpTransport(Protocol):
         timeout_seconds: float,
     ) -> TransportResponse:
         """Send one HTTP POST request."""
+
+
+class DshBridge(Protocol):
+    def complete(
+        self,
+        model: ModelSpec,
+        messages: Sequence[Mapping[str, str]],
+        *,
+        json_mode: bool,
+    ) -> Mapping[str, object]:
+        """Execute one model request through the hosting DSH LLM service."""
+
+
+class DshStdioBridge:
+    """Synchronous NDJSON bridge to the parent DSH plugin process."""
+
+    def __init__(self, reader: TextIO | None = None, writer: TextIO | None = None):
+        self.reader = reader or sys.stdin
+        self.writer = writer or sys.stdout
+        self.request_id = 0
+
+    def complete(
+        self,
+        model: ModelSpec,
+        messages: Sequence[Mapping[str, str]],
+        *,
+        json_mode: bool,
+    ) -> Mapping[str, object]:
+        self.request_id += 1
+        request_id = str(self.request_id)
+        request = {
+            "protocol": DSH_BRIDGE_PROTOCOL,
+            "type": "request",
+            "id": request_id,
+            "provider": model.provider,
+            "model": model.api_model,
+            "messages": list(messages),
+            "json_mode": json_mode,
+            "temperature": 0,
+            "max_tokens": min(model.max_output_tokens or 4096, 8192),
+            "request_options": dict(model.request_options),
+        }
+        self.writer.write(json.dumps(request, ensure_ascii=False) + "\n")
+        self.writer.flush()
+        line = self.reader.readline()
+        if not line:
+            raise RuntimeError("DSH LLM bridge closed before returning a response")
+        response = json.loads(line)
+        if (
+            not isinstance(response, dict)
+            or response.get("protocol") != DSH_BRIDGE_PROTOCOL
+            or response.get("type") != "response"
+            or response.get("id") != request_id
+        ):
+            raise RuntimeError("DSH LLM bridge returned an invalid response envelope")
+        return response
 
 
 class UrllibTransport:
@@ -86,12 +146,16 @@ class OpenAICompatibleClient:
         timeout_seconds: float = 120.0,
         max_retries: int = 2,
         sleep: Callable[[float], None] = time.sleep,
+        dsh_bridge: DshBridge | None = None,
     ):
         self.transport = transport or UrllibTransport()
         self.environment = environment if environment is not None else os.environ
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
         self.sleep = sleep
+        self.dsh_bridge = dsh_bridge
+        if self.dsh_bridge is None and self.environment.get("REFRACTROUTER_DSH_BRIDGE") == "stdio":
+            self.dsh_bridge = DshStdioBridge()
 
     def complete(
         self,
@@ -100,6 +164,8 @@ class OpenAICompatibleClient:
         *,
         json_mode: bool = False,
     ) -> ChatResponse:
+        if model.wire_api == "dsh-llm":
+            return self._complete_dsh(model, messages, json_mode=json_mode)
         if not model.base_url or not model.api_key_env or not model.api_model:
             raise ModelInvocationError(
                 "invalid-model-config", "Model is missing API configuration", 0, 0
@@ -157,6 +223,70 @@ class OpenAICompatibleClient:
         latency_ms = round((time.perf_counter() - started) * 1000)
         raise ModelInvocationError(last_failure, last_message, attempts, latency_ms)
 
+    def _complete_dsh(
+        self,
+        model: ModelSpec,
+        messages: Sequence[Mapping[str, str]],
+        *,
+        json_mode: bool,
+    ) -> ChatResponse:
+        if self.dsh_bridge is None:
+            raise ModelInvocationError(
+                "missing-dsh-bridge",
+                "dsh-llm models must run through the RefractRouter DSH plugin",
+                0,
+                0,
+            )
+        started = time.perf_counter()
+        attempts = 0
+        last_failure = "transport-error"
+        last_message = "DSH LLM request failed"
+        while attempts <= self.max_retries:
+            attempts += 1
+            try:
+                response = self.dsh_bridge.complete(
+                    model, messages, json_mode=json_mode
+                )
+                if response.get("ok") is True:
+                    usage = response.get("usage", {})
+                    if not isinstance(usage, dict):
+                        raise TypeError("usage must be an object")
+                    return ChatResponse(
+                        content=str(response.get("content", "")),
+                        input_tokens=int(usage.get("input_tokens", 0)),
+                        output_tokens=int(usage.get("output_tokens", 0)),
+                        cached_input_tokens=int(usage.get("cached_input_tokens", 0)),
+                        reasoning_tokens=int(usage.get("reasoning_tokens", 0)),
+                        latency_ms=round((time.perf_counter() - started) * 1000),
+                        attempts=attempts,
+                        finish_reason=(
+                            str(response["finish_reason"])
+                            if response.get("finish_reason") is not None
+                            else None
+                        ),
+                        request_id=(
+                            str(response["request_id"])
+                            if response.get("request_id") is not None
+                            else None
+                        ),
+                    )
+                last_failure = str(response.get("failure_type", "provider-error"))
+                last_message = str(response.get("message", "DSH LLM request failed"))[:300]
+            except (RuntimeError, ValueError, TypeError, json.JSONDecodeError) as exc:
+                last_failure = "transport-error"
+                last_message = f"DSH LLM bridge failure: {type(exc).__name__}"
+            if attempts <= self.max_retries and last_failure in {
+                "rate-limit",
+                "timeout",
+                "provider-error",
+                "transport-error",
+            }:
+                self.sleep(min(2 ** (attempts - 1), 4))
+                continue
+            break
+        latency_ms = round((time.perf_counter() - started) * 1000)
+        raise ModelInvocationError(last_failure, last_message, attempts, latency_ms)
+
     @staticmethod
     def _parse_response(
         response: TransportResponse,
@@ -194,14 +324,14 @@ def model_response_cost(model: ModelSpec, response: ChatResponse) -> float:
     cached_tokens = min(response.cached_input_tokens, response.input_tokens)
     uncached_tokens = response.input_tokens - cached_tokens
     cached_rate = (
-        model.cached_input_cost_per_1k_usd
-        if model.cached_input_cost_per_1k_usd is not None
-        else model.input_cost_per_1k_usd
+        model.cached_input_cost_per_1k
+        if model.cached_input_cost_per_1k is not None
+        else model.input_cost_per_1k
     )
     return round(
-        uncached_tokens / 1000 * model.input_cost_per_1k_usd
+        uncached_tokens / 1000 * model.input_cost_per_1k
         + cached_tokens / 1000 * cached_rate
-        + response.output_tokens / 1000 * model.output_cost_per_1k_usd,
+        + response.output_tokens / 1000 * model.output_cost_per_1k,
         8,
     )
 

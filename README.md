@@ -14,11 +14,12 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 - 可追溯的最终 HTML 引用、确定性评分、baseline 表、Pareto 表和 oracle gap 报告。
 - 可安装的 DSH bundle、结构化验证工具与确定性 runner；已在隔离 profile 通过真实 DSH
   headless tool call 验证。
-- 20-task 合成 benchmark（train/test 各 10 个）、冻结真实模型 manifest、
-  OpenAI-compatible adapter、真实 token/成本/延迟遥测、独立 judge 与付费预算保护。
+- 20-task 合成 benchmark（train/test 各 10 个）、USD/AFP 真实模型 manifest、
+  OpenAI-compatible 与 DSH LLM adapter、真实 token/成本/延迟遥测、独立 judge 与预算保护。
 
-当前已经完成真实模型实验基础设施，但尚未产生真实模型 benchmark 结果：环境中未配置
-`OPENAI_API_KEY`，因此现有分数仍只来自 fake model。preflight 不调用 API，也不产生费用。
+当前已经完成真实模型实验基础设施，但尚未产生真实模型 benchmark 结果。方舟 Agent Plan
+凭据变量可被零费用 preflight 识别；正式执行仍需先在 DSH 中配置 `ark-plan` provider 并批准
+AFP 上限。现有分数仍只来自 fake model。preflight 不调用模型，也不消耗 AFP 或 API 费用。
 
 ## Quick Start
 
@@ -62,10 +63,12 @@ dsh --profile headless \
 
 ## Real-model benchmark
 
-模型清单位于 `data/model-manifests/openai-gpt-5.4.json`，价格快照日期为
-2026-09-05。候选池冻结为 GPT-5.4 nano、GPT-5.4 Mini、GPT-5.4 的日期快照；
-独立 judge 使用不在候选池中的 GPT-5.5 日期快照。模型 ID、价格和端点能力依据
-[官方 OpenAI 模型文档](https://developers.openai.com/api/docs/models)。
+仓库提供两个 v0.2 模型清单：`data/model-manifests/openai-gpt-5.4.json` 使用 USD
+计费和直接 Chat Completions；`data/model-manifests/volcengine-agent-plan.json` 使用 AFP
+计费，并通过 DSH `ctx.llm` 调用方舟 Agent Plan。方舟候选池冻结为
+`deepseek-v4-flash`、`minimax-m3`、`deepseek-v4-pro`，独立 judge 为 `kimi-k3`。
+当前 AFP 系数及支持范围来自[方舟抵扣规则](https://www.volcengine.com/docs/82379/2516283?lang=zh)
+和[套餐概览](https://www.volcengine.com/docs/82379/2366394?lang=zh)。
 
 三阶段默认调用量和保守成本估算如下。估算假设每个生产调用 4,000 input / 1,200
 output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出以 API usage 为准。
@@ -76,6 +79,10 @@ output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出�
 | pilot | 5 / 5 | 455 | 35 | $15.40 |
 | final | 10 / 10 | 910 | 70 | $30.80 |
 
+同一 dry run 使用方舟池时，生产调用按最贵候选 `deepseek-v4-pro` 的 5.5 系数估算，
+judge 按 `kimi-k3` 的 10 系数估算：生产 160.16 AFP、评审 46 AFP，总计
+206.16 AFP。建议调用上限分别为 200 AFP 和 60 AFP。
+
 付费 dry run 必须同时显式提供开关和两类预算上限：
 
 ```bash
@@ -83,8 +90,8 @@ export OPENAI_API_KEY="..."
 uv run python experiments/run_real_v0_1.py \
   --phase dry-run \
   --execute-paid-run \
-  --max-production-cost-usd 2 \
-  --max-evaluation-cost-usd 1 \
+  --max-production-cost 2 \
+  --max-evaluation-cost 1 \
   --output-dir reports/v0.1-real/dry-run
 ```
 
@@ -95,6 +102,11 @@ runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与�
 参数写入记录，也可通过 `--timeout-seconds` 与 `--max-retries` 显式覆盖。聚合结果包含
 质量、生产成本与关键路径延迟的均值/标准差，以及成本和延迟的 p50/p95；需要观察同一
 任务的运行波动时，用 `--repeats 3`（或更高）执行，但调用量和预算会同比增加。
+
+Agent Plan 个人版要求文本模型从受支持的 AI 工具使用。RefractRouter 因此不把专属 Key
+交给 Python 直连方舟端点；DSH 插件通过其原生 `llm` service 执行请求，并用有界 stdio
+桥接结果和 telemetry。配置与零费用验证步骤见
+`validation/dsh/plugin/README.md` 和 `reports/v0.1/issue-4-agent-plan-preflight.md`。
 
 独立 judge 使用 `data/judges/v0.1.md` 的固定 rubric。需求覆盖、证据准确性和 HTML
 有效性分别取确定性检查与 judge 的较低值；source trace 失败时证据分直接归零。
@@ -149,11 +161,12 @@ Canonical task 是 `data/tasks/report_001.json`，主题为“2026 年企业 LLM
 
 ### DSH
 
-DeepSeek Harness 只作为外层验证环境，负责组合、工具调度、进程生命周期、sandbox、凭证
-解析和证据捕获；不参与模型选择，也不替换 DeepAgents/LangGraph 主执行循环。
+DeepSeek Harness 作为外层验证环境，负责组合、工具调度、模型 provider、进程生命周期、
+sandbox、凭证解析和证据捕获；不参与模型选择，也不替换 DeepAgents/LangGraph 主执行循环。
 `validation/dsh/plugin/` 是可由 `dsh plugin` 安装的 bundle，向 Cordis 树贡献
 `refractrouter_validate` 工具。插件通过 DSH 原生 service 运行固定 argv，并把 Python
-runner 的证据投影为结构化结果；评分、hash 与 gate 仍只有 Python runner 一份实现。
+runner 的证据投影为结构化结果。Agent Plan 请求通过 DSH `llm` service 转发；评分、hash
+与 gate 仍只有 Python runner 一份实现。
 
 v0.1 固定支持 DSH `0.1.1-rc.2`、Node `>=22.19.0 <23` 和 pnpm `10.15.0`，并在 CI 中
 验证 Node `22.19.0` 与最新 Node 22。插件暂按仓库路径或指定 commit 生成的 tarball 分发，
@@ -162,8 +175,8 @@ v0.1 固定支持 DSH `0.1.1-rc.2`、Node `>=22.19.0 <23` 和 pnpm `10.15.0`，�
 
 真实阶段由插件调用 `validation/dsh/real_runner.py`。bundle 默认
 `allowPaidRuns: false`；付费执行必须由更高优先级的 profile patch 开启，并同时通过部署级
-与调用级两层生产/评审预算上限。凭证由 `ctx.credentials` 按次解析，只显式交给受控子进程，
-不会出现在工具结果或 evidence 中。通过真实 DSH headless 会话前，应明确确认外部披露范围。
+与调用级两层生产/评审预算上限。直接 HTTP manifest 的凭证仅显式交给受控子进程；
+Agent Plan manifest 的凭证始终留在 DSH provider 中。两者都不会出现在工具结果或 evidence 中。
 
 ## Current Dry Run
 
@@ -210,7 +223,7 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 
 ## Roadmap
 
-1. 注入 `OPENAI_API_KEY`，在用户确认预算后执行 1-task paid dry run。
+1. 在 DSH 中配置 `ark-plan` provider，并在确认 200/60 AFP 上限后执行 1-task paid dry run。
 2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
 3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
 4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。

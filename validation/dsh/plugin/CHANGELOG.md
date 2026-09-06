@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0
+
+- Add an AFP-billed Volcengine Agent Plan manifest and generic billing-unit budgets.
+- Route Agent Plan calls through the hosting DSH `llm` service over a bounded stdio bridge, so the
+  provider credential remains owned by DSH and is never copied into the Python child.
+- Validate the frozen provider/model routes before a paid run and expose the billing unit in
+  structured preflight and evidence results.
+- Reject paid ceilings below the conservative preflight estimate, reserve an estimated call before
+  each invocation, and default DSH runner retries to zero.
+
 ## 0.1.1
 
 - Bound evidence and standard-stream capture, fail on truncation, and redact resolved credentials

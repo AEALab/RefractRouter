@@ -58,7 +58,8 @@ class GraphExecutor:
                     output="",
                     input_tokens=0,
                     output_tokens=0,
-                    cost_usd=0.0,
+                    cost=0.0,
+                    billing_unit=self.registry.get(model_id).billing_unit,
                     latency_ms=0,
                     status="failed",
                     failure_type="upstream-failure",
@@ -74,7 +75,10 @@ class GraphExecutor:
         final_node_id = render_nodes[-1].node_id if render_nodes else self.task.nodes[-1].node_id
         final_output = context.get(final_node_id, "")
         task_score = score_task(self.task, tuple(results), final_output)
-        total_cost = sum(result.cost_usd for result in results)
+        total_cost = sum(result.cost for result in results)
+        billing_units = {result.billing_unit for result in results}
+        if len(billing_units) != 1:
+            raise ValueError("Task results contain mixed billing units")
         critical_path = self._critical_path_latency(results)
         failure_types = tuple(
             result.failure_type for result in results if result.failure_type is not None
@@ -86,7 +90,8 @@ class GraphExecutor:
             node_results=tuple(results),
             final_output=final_output,
             task_score=task_score,
-            total_cost_usd=round(total_cost, 6),
+            total_cost=round(total_cost, 6),
+            billing_unit=next(iter(billing_units)),
             critical_path_latency_ms=critical_path,
             failure_types=failure_types,
         )
@@ -120,7 +125,8 @@ class GraphExecutor:
             output=result.output,
             input_tokens=result.input_tokens,
             output_tokens=result.output_tokens,
-            cost_usd=result.cost_usd,
+            cost=result.cost,
+            billing_unit=result.billing_unit,
             latency_ms=result.latency_ms,
             score=score,
             status=result.status,

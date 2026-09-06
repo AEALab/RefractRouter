@@ -21,16 +21,17 @@ class ModelRegistry:
                 ModelSpec(
                     model_id=model_id,
                     provider=str(values["provider"]),
-                    input_cost_per_1k_usd=float(values["input_cost_per_1k_usd"]),
-                    output_cost_per_1k_usd=float(values["output_cost_per_1k_usd"]),
+                    input_cost_per_1k=float(values["input_cost_per_1k"]),
+                    output_cost_per_1k=float(values["output_cost_per_1k"]),
                     capability=float(values["capability"]),
+                    billing_unit=str(values.get("billing_unit", "USD")),
                     tags=tuple(str(tag) for tag in values.get("tags", [])),
                     api_model=str(values["api_model"]) if values.get("api_model") else None,
                     base_url=str(values["base_url"]) if values.get("base_url") else None,
                     api_key_env=str(values["api_key_env"]) if values.get("api_key_env") else None,
-                    cached_input_cost_per_1k_usd=(
-                        float(values["cached_input_cost_per_1k_usd"])
-                        if values.get("cached_input_cost_per_1k_usd") is not None
+                    cached_input_cost_per_1k=(
+                        float(values["cached_input_cost_per_1k"])
+                        if values.get("cached_input_cost_per_1k") is not None
                         else None
                     ),
                     context_window=(
@@ -47,6 +48,7 @@ class ModelRegistry:
                         str(values["snapshot_date"]) if values.get("snapshot_date") else None
                     ),
                     role=str(values.get("role", "candidate")),
+                    wire_api=str(values.get("wire_api", "chat-completions")),
                     request_options=dict(values.get("request_options", {})),
                 )
             )
@@ -64,7 +66,7 @@ class ModelRegistry:
         return min(
             self._models.values(),
             key=lambda model: (
-                model.input_cost_per_1k_usd + model.output_cost_per_1k_usd,
+                model.input_cost_per_1k + model.output_cost_per_1k,
                 model.model_id,
             ),
         )
@@ -72,5 +74,5 @@ class ModelRegistry:
     def strongest(self) -> ModelSpec:
         return max(
             self._models.values(),
-            key=lambda model: (model.capability, -model.input_cost_per_1k_usd, model.model_id),
+            key=lambda model: (model.capability, -model.input_cost_per_1k, model.model_id),
         )

@@ -16,7 +16,7 @@ class DSHPluginTests(unittest.TestCase):
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.1.1")
+        self.assertEqual(package["version"], "0.2.0")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")
@@ -30,8 +30,9 @@ class DSHPluginTests(unittest.TestCase):
         )
         self.assertIn("name: dsh-refractrouter-validation", patch)
         self.assertIn("allowPaidRuns: false", patch)
-        self.assertIn("maxProductionCostUsd: 2", patch)
-        self.assertIn("maxEvaluationCostUsd: 1", patch)
+        self.assertIn("maxProductionCost: 2", patch)
+        self.assertIn("maxEvaluationCost: 1", patch)
+        self.assertIn("maxRetries: 0", patch)
 
     def test_plugin_is_valid_esm_and_uses_native_dsh_seams(self) -> None:
         source = (PLUGIN / "index.js").read_text(encoding="utf-8")
@@ -56,11 +57,13 @@ class DSHPluginTests(unittest.TestCase):
         program = """
 import { Config } from './validation/dsh/plugin/index.js'
 const valid = Config['~standard'].validate({})
-if (!('value' in valid) || valid.value.allowPaidRuns !== false) process.exit(1)
+if (!('value' in valid) || valid.value.allowPaidRuns !== false || valid.value.maxRetries !== 0) process.exit(1)
 const invalid = Config['~standard'].validate({ unexpected: true })
 if (!('issues' in invalid) || invalid.issues.length !== 1) process.exit(2)
 const fractional = Config['~standard'].validate({ timeoutMs: 1.5 })
 if (!('issues' in fractional) || fractional.issues.length !== 1) process.exit(3)
+const retry = Config['~standard'].validate({ maxRetries: -1 })
+if (!('issues' in retry) || retry.issues.length !== 1) process.exit(4)
 """
         completed = subprocess.run(
             ["node", "--input-type=module", "--eval", program],

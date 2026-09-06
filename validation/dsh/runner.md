@@ -48,8 +48,10 @@ plugin does not duplicate its score implementation.
 
 For the real-model phase, invoke `validation/dsh/real_runner.py`. Default execution is preflight-only.
 Paid execution is invalid unless the caller supplies `--execute-paid-run`, a positive production cost
-limit, a positive evaluation cost limit, and the API-key environment variable named by the model
-manifest. Evidence records only whether the variable exists; it never records the value.
+limit, a positive evaluation cost limit, and the credential named by the model manifest. Direct HTTP
+manifests pass the resolved value only to the child environment. `dsh-llm` manifests keep the value
+inside DSH and require the frozen provider/model routes before the subprocess starts. Evidence records
+only whether the credential exists; it never records the value.
 
 Run the zero-cost final preflight through the installed DSH plugin with:
 
@@ -65,7 +67,8 @@ an actual candidate-model benchmark.
 Paid calls are disabled by the bundle default. A higher-precedence profile patch must explicitly set
 `allowPaidRuns: true` and define the maximum production/evaluation ceilings. The tool call must then
 request `executePaidRun: true` and supply two positive limits no larger than those ceilings. The
-plugin resolves the credential for that operation only and never returns its value.
+plugin resolves a direct-HTTP credential for that operation only and never returns its value. Agent
+Plan calls use the DSH `llm` service and a zero-retry runner policy.
 
 The supported versions, all three phase examples, clean-profile lifecycle check, output limits,
 failure diagnosis, upgrade procedure, and rollback procedure are maintained in

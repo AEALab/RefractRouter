@@ -36,8 +36,9 @@ def run_real_validation(
     phase: str,
     repeats: int,
     execute_paid_run: bool = False,
-    max_production_cost_usd: float | None = None,
-    max_evaluation_cost_usd: float | None = None,
+    max_production_cost: float | None = None,
+    max_evaluation_cost: float | None = None,
+    max_retries: int = 2,
     invoked_by: str = "local",
 ) -> int:
     dataset_path = dataset_path.resolve()
@@ -59,17 +60,19 @@ def run_real_validation(
         phase,
         "--repeats",
         str(repeats),
+        "--max-retries",
+        str(max_retries),
     ]
     if execute_paid_run:
-        if max_production_cost_usd is None or max_evaluation_cost_usd is None:
+        if max_production_cost is None or max_evaluation_cost is None:
             raise ValueError("Paid DSH validation requires both cost limits")
         command.extend(
             [
                 "--execute-paid-run",
-                "--max-production-cost-usd",
-                str(max_production_cost_usd),
-                "--max-evaluation-cost-usd",
-                str(max_evaluation_cost_usd),
+                "--max-production-cost",
+                str(max_production_cost),
+                "--max-evaluation-cost",
+                str(max_evaluation_cost),
             ]
         )
     completed = subprocess.run(
@@ -111,7 +114,7 @@ def run_real_validation(
     git_status = _command_output(("git", "status", "--porcelain"))
     api_key_env = preflight.get("credential_env") if isinstance(preflight, dict) else None
     evidence = {
-        "schema_version": "v0.1",
+        "schema_version": "v0.2",
         "status": "pass" if not issues else "fail",
         "mode": "paid" if execute_paid_run else "preflight",
         "invoked_by": invoked_by,
@@ -179,8 +182,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--phase", choices=("dry-run", "pilot", "final"), default="dry-run")
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--execute-paid-run", action="store_true")
-    parser.add_argument("--max-production-cost-usd", type=float)
-    parser.add_argument("--max-evaluation-cost-usd", type=float)
+    parser.add_argument("--max-production-cost", type=float)
+    parser.add_argument("--max-evaluation-cost", type=float)
+    parser.add_argument("--max-retries", type=int, default=2)
     parser.add_argument(
         "--invoked-by",
         choices=("local", "dsh", "dsh-plugin"),
@@ -195,8 +199,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         phase=args.phase,
         repeats=args.repeats,
         execute_paid_run=args.execute_paid_run,
-        max_production_cost_usd=args.max_production_cost_usd,
-        max_evaluation_cost_usd=args.max_evaluation_cost_usd,
+        max_production_cost=args.max_production_cost,
+        max_evaluation_cost=args.max_evaluation_cost,
+        max_retries=args.max_retries,
         invoked_by=args.invoked_by,
     )
 

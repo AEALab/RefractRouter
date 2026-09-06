@@ -31,7 +31,7 @@ def task_level_router(
                 continue
             for node in result.node_results:
                 scores[node.model_id].append(node.score)
-        model_id = max(scores, key=lambda mid: (sum(scores[mid]) / len(scores[mid]), -registry.get(mid).input_cost_per_1k_usd))
+        model_id = max(scores, key=lambda mid: (sum(scores[mid]) / len(scores[mid]), -registry.get(mid).input_cost_per_1k))
         model = registry.get(model_id)
     return {node.node_id: model.model_id for node in task.nodes}
 
@@ -75,7 +75,7 @@ def statistical_q(
                 candidates,
                 key=lambda candidate: (
                     sum(scores[(node.node_type, candidate.model_id)]) / len(scores[(node.node_type, candidate.model_id)]),
-                    -candidate.input_cost_per_1k_usd,
+                    -candidate.input_cost_per_1k,
                 ),
             )
         assignments[node.node_id] = model.model_id
@@ -90,7 +90,7 @@ def task_oracle(
     candidates = [result for result in all_results if result.task_id == task.task_id]
     if not candidates:
         return strong_all(task, registry)
-    best = max(candidates, key=lambda result: (result.task_score, -result.total_cost_usd))
+    best = max(candidates, key=lambda result: (result.task_score, -result.total_cost))
     model_id = next(iter(best.model_assignments.values()))
     return {node.node_id: model_id for node in task.nodes}
 
@@ -120,7 +120,7 @@ def node_oracle(
                 key=lambda candidate: (
                     sum(node_scores[(node.node_id, candidate.model_id)])
                     / len(node_scores[(node.node_id, candidate.model_id)]),
-                    -candidate.input_cost_per_1k_usd,
+                    -candidate.input_cost_per_1k,
                 ),
             )
         assignments[node.node_id] = model.model_id

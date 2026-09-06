@@ -21,16 +21,16 @@ class BenchmarkObservation:
 
 def aggregate_observations(
     observations: Iterable[BenchmarkObservation],
-) -> dict[str, dict[str, float | int]]:
+) -> dict[str, dict[str, float | int | str]]:
     grouped: dict[str, list[BenchmarkObservation]] = defaultdict(list)
     for observation in observations:
         grouped[observation.strategy].append(observation)
-    summary: dict[str, dict[str, float | int]] = {}
+    summary: dict[str, dict[str, float | int | str]] = {}
     for strategy, items in sorted(grouped.items()):
         results = [item.result for item in items]
         latencies = [result.critical_path_latency_ms for result in results]
-        production_costs = [result.total_cost_usd for result in results]
-        evaluation_costs = [item.judge.cost_usd for item in items if item.judge]
+        production_costs = [result.total_cost for result in results]
+        evaluation_costs = [item.judge.cost for item in items if item.judge]
         failed = sum(bool(result.failure_types) for result in results)
         retried_nodes = sum(
             result.attempts > 1
@@ -38,19 +38,26 @@ def aggregate_observations(
             for result in task_result.node_results
         )
         node_count = sum(len(result.node_results) for result in results)
+        billing_units = {result.billing_unit for result in results}
+        billing_units.update(
+            item.judge.billing_unit for item in items if item.judge is not None
+        )
+        if len(billing_units) != 1:
+            raise ValueError("Benchmark observations contain mixed billing units")
         summary[strategy] = {
+            "billing_unit": next(iter(billing_units)),
             "runs": len(items),
             "task_count": len({item.task_id for item in items}),
             "quality_mean": round(mean(result.task_score for result in results), 3),
             "quality_stddev": round(
                 pstdev(result.task_score for result in results), 3
             ),
-            "production_cost_mean_usd": round(mean(production_costs), 8),
-            "production_cost_stddev_usd": round(pstdev(production_costs), 8),
-            "production_cost_p50_usd": round(_percentile(production_costs, 0.50), 8),
-            "production_cost_p95_usd": round(_percentile(production_costs, 0.95), 8),
-            "production_cost_total_usd": round(sum(production_costs), 8),
-            "evaluation_cost_total_usd": round(sum(evaluation_costs), 8),
+            "production_cost_mean": round(mean(production_costs), 8),
+            "production_cost_stddev": round(pstdev(production_costs), 8),
+            "production_cost_p50": round(_percentile(production_costs, 0.50), 8),
+            "production_cost_p95": round(_percentile(production_costs, 0.95), 8),
+            "production_cost_total": round(sum(production_costs), 8),
+            "evaluation_cost_total": round(sum(evaluation_costs), 8),
             "critical_path_p50_ms": round(_percentile(latencies, 0.50)),
             "critical_path_p95_ms": round(_percentile(latencies, 0.95)),
             "critical_path_stddev_ms": round(pstdev(latencies)),
@@ -62,13 +69,13 @@ def aggregate_observations(
 
 
 def oracle_gate(
-    summary: Mapping[str, Mapping[str, float | int]],
+    summary: Mapping[str, Mapping[str, float | int | str]],
 ) -> dict[str, float | str | bool]:
     task = summary["task-oracle"]
     node = summary["node-oracle"]
     quality_delta = float(node["quality_mean"]) - float(task["quality_mean"])
-    task_cost = float(task["production_cost_mean_usd"])
-    node_cost = float(node["production_cost_mean_usd"])
+    task_cost = float(task["production_cost_mean"])
+    node_cost = float(node["production_cost_mean"])
     cost_reduction = (task_cost - node_cost) / max(task_cost, 1e-12) * 100
     latency_ratio = float(node["critical_path_p95_ms"]) / max(
         float(task["critical_path_p95_ms"]), 1
@@ -113,19 +120,20 @@ def failure_taxonomy(
     return dict(sorted(failures.items()))
 
 
-def baseline_markdown(summary: Mapping[str, Mapping[str, float | int]]) -> str:
+def baseline_markdown(summary: Mapping[str, Mapping[str, float | int | str]]) -> str:
+    unit = str(next(iter(summary.values()))["billing_unit"])
     rows = [
         "# Real-model baseline summary",
         "",
-        "| Strategy | Quality mean ± sd | Production cost mean ± sd (USD) | p50 / p95 latency (ms) | Success | Judge coverage |",
+        f"| Strategy | Quality mean ± sd | Production cost mean ± sd ({unit}) | p50 / p95 latency (ms) | Success | Judge coverage |",
         "|---|---:|---:|---:|---:|---:|",
     ]
     for strategy, values in summary.items():
         rows.append(
             f"| `{strategy}` | {float(values['quality_mean']):.3f} ± "
             f"{float(values['quality_stddev']):.3f} | "
-            f"{float(values['production_cost_mean_usd']):.8f} ± "
-            f"{float(values['production_cost_stddev_usd']):.8f} | "
+            f"{float(values['production_cost_mean']):.8f} ± "
+            f"{float(values['production_cost_stddev']):.8f} | "
             f"{int(values['critical_path_p50_ms'])} / "
             f"{int(values['critical_path_p95_ms'])} | "
             f"{float(values['success_rate']):.2%} | "
@@ -150,37 +158,38 @@ def oracle_gap_markdown(gate: Mapping[str, float | str | bool]) -> str:
 
 
 def pareto_front_markdown(
-    summary: Mapping[str, Mapping[str, float | int]],
+    summary: Mapping[str, Mapping[str, float | int | str]],
 ) -> str:
     """Render the quality-production-cost frontier; latency remains a reported guardrail."""
     front: set[str] = set()
     for strategy, candidate in summary.items():
         quality = float(candidate["quality_mean"])
-        cost = float(candidate["production_cost_mean_usd"])
+        cost = float(candidate["production_cost_mean"])
         dominated = any(
             float(other["quality_mean"]) >= quality
-            and float(other["production_cost_mean_usd"]) <= cost
+            and float(other["production_cost_mean"]) <= cost
             and (
                 float(other["quality_mean"]) > quality
-                or float(other["production_cost_mean_usd"]) < cost
+                or float(other["production_cost_mean"]) < cost
             )
             for other_name, other in summary.items()
             if other_name != strategy
         )
         if not dominated:
             front.add(strategy)
+    unit = str(next(iter(summary.values()))["billing_unit"])
     rows = [
         "# Real-model Pareto front",
         "",
         "The frontier uses mean judged quality and mean production cost. p95 latency is reported as a separate deployment guardrail.",
         "",
-        "| Strategy | Quality mean | Production cost mean (USD) | p95 latency (ms) | On quality-cost front |",
+        f"| Strategy | Quality mean | Production cost mean ({unit}) | p95 latency (ms) | On quality-cost front |",
         "|---|---:|---:|---:|:---:|",
     ]
     for strategy, values in summary.items():
         rows.append(
             f"| `{strategy}` | {float(values['quality_mean']):.3f} | "
-            f"{float(values['production_cost_mean_usd']):.8f} | "
+            f"{float(values['production_cost_mean']):.8f} | "
             f"{int(values['critical_path_p95_ms'])} | "
             f"{'Yes' if strategy in front else 'No'} |"
         )

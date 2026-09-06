@@ -41,9 +41,9 @@ class FakeModelAdapter:
         output = self._render_output(node.node_type, quality, task, context)
         input_tokens = max(64, len(prompt) // 4)
         output_tokens = max(32, len(output) // 4)
-        cost_usd = (
-            input_tokens / 1000 * model.input_cost_per_1k_usd
-            + output_tokens / 1000 * model.output_cost_per_1k_usd
+        cost = (
+            input_tokens / 1000 * model.input_cost_per_1k
+            + output_tokens / 1000 * model.output_cost_per_1k
         )
         latency_ms = int(400 + (1 - model.capability) * 1600 + len(output) // 16)
         trace_issues = (
@@ -58,7 +58,8 @@ class FakeModelAdapter:
             output=output,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
-            cost_usd=round(cost_usd, 6),
+            cost=round(cost, 6),
+            billing_unit=model.billing_unit,
             latency_ms=latency_ms,
             score=quality,
             status="failed" if trace_issues else "ok",
@@ -243,7 +244,8 @@ class OpenAICompatibleAdapter:
                 output="",
                 input_tokens=0,
                 output_tokens=0,
-                cost_usd=0.0,
+                cost=0.0,
+                billing_unit=model.billing_unit,
                 latency_ms=exc.latency_ms,
                 status="failed",
                 failure_type=exc.failure_type,
@@ -261,7 +263,8 @@ class OpenAICompatibleAdapter:
             output_tokens=response.output_tokens,
             cached_input_tokens=response.cached_input_tokens,
             reasoning_tokens=response.reasoning_tokens,
-            cost_usd=model_response_cost(model, response),
+            cost=model_response_cost(model, response),
+            billing_unit=model.billing_unit,
             latency_ms=response.latency_ms,
             attempts=response.attempts,
             finish_reason=response.finish_reason,

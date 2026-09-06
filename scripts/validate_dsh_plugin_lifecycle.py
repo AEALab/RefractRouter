@@ -71,8 +71,10 @@ def assert_default_config(dump: str) -> None:
         "  name: dsh-refractrouter-validation\n"
         "  config:\n"
         "    allowPaidRuns: false\n"
-        "    maxProductionCostUsd: 2\n"
-        "    maxEvaluationCostUsd: 1"
+        "    billingUnit: USD\n"
+        "    maxProductionCost: 2\n"
+        "    maxEvaluationCost: 1\n"
+        "    maxRetries: 0"
     )
     if expected not in dump:
         raise RuntimeError("composed profile does not contain the plugin's safe defaults")
@@ -108,15 +110,19 @@ def main() -> int:
             "- id: refractrouter-validation\n"
             "  config:\n"
             "    allowPaidRuns: true\n"
-            "    maxProductionCostUsd: 1.25\n"
-            "    maxEvaluationCostUsd: 0.5\n",
+            "    billingUnit: USD\n"
+            "    maxProductionCost: 1.25\n"
+            "    maxEvaluationCost: 0.5\n"
+            "    maxRetries: 0\n",
             encoding="utf-8",
         )
         overridden = run(dump, env=env)
         for expected in (
             "allowPaidRuns: true",
-            "maxProductionCostUsd: 1.25",
-            "maxEvaluationCostUsd: 0.5",
+            "billingUnit: USD",
+            "maxProductionCost: 1.25",
+            "maxEvaluationCost: 0.5",
+            "maxRetries: 0",
         ):
             if expected not in overridden:
                 raise RuntimeError(f"profile override was not composed: {expected}")

@@ -4,16 +4,22 @@ import { rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import test from 'node:test'
 
-import { apply } from '../validation/dsh/plugin/index.js'
+import { apply, callDshLlm } from '../validation/dsh/plugin/index.js'
 
 const ROOT = resolve(import.meta.dirname, '..')
 
-function evidence({ mode = 'preflight', issues = [], artifact = 'preflight.json' } = {}) {
+function evidence({
+  mode = 'preflight',
+  issues = [],
+  artifact = 'preflight.json',
+  billingUnit = 'USD',
+} = {}) {
   return {
     status: issues.length === 0 ? 'pass' : 'fail',
     mode,
     issues,
     preflight: {
+      billing_unit: billingUnit,
       call_plan: {
         training_model_calls: 0,
         production_model_calls: 56,
@@ -21,9 +27,10 @@ function evidence({ mode = 'preflight', issues = [], artifact = 'preflight.json'
         total_model_calls: 61,
       },
       cost_estimates: {
-        production_upper_estimate_usd: 1.5,
-        evaluation_upper_estimate_usd: 0.45,
-        total_upper_estimate_usd: 1.95,
+        billing_unit: billingUnit,
+        production_upper_estimate: 1.5,
+        evaluation_upper_estimate: 0.45,
+        total_upper_estimate: 1.95,
       },
     },
     inputs: {
@@ -51,6 +58,8 @@ function fakeContext({
   outcome = { exitCode: 0, signal: null },
   settleOnAbort = false,
   spawnError,
+  providers = ['deepseek-official'],
+  unresolvedModels = [],
 } = {}) {
   const calls = {
     describe: 0,
@@ -74,6 +83,13 @@ function fakeContext({
       async resolve() {
         calls.resolve += 1
         return credential === undefined ? undefined : { value: credential, source: 'test' }
+      },
+    },
+    llm: {
+      listProviders() { return providers.map(id => ({ id, name: id })) },
+      async resolveModelInfo(provider, model) {
+        if (unresolvedModels.includes(`${provider}/${model}`)) throw new Error('unresolved')
+        return { id: model, name: model }
       },
     },
     sandboxPolicy: {
@@ -162,6 +178,9 @@ test('preflight registers a discoverable tool and uses DSH service seams', async
   assert.equal(fixture.calls.spawnSpec.stdio.stdout.maxBytes, 262_144)
   assert.equal(fixture.calls.spawnSpec.stdio.stderr.maxBytes, 262_144)
   assert.equal(fixture.calls.spawnSpec.graceMs, 5_000)
+  const retryIndex = fixture.calls.spawnSpec.argv.indexOf('--max-retries')
+  assert.notEqual(retryIndex, -1)
+  assert.equal(fixture.calls.spawnSpec.argv[retryIndex + 1], '0')
   assert.equal(fixture.calls.spawnSpec.argv.includes('--execute-paid-run'), false)
 })
 
@@ -175,14 +194,45 @@ test('danger-full-access bypasses sandbox wrapping', async () => {
   assert.equal(fixture.calls.confine, 0)
 })
 
+test('Agent Plan preflight verifies the frozen DSH provider routes without resolving the key', async () => {
+  const config = {
+    billingUnit: 'AFP',
+    maxProductionCost: 200,
+    maxEvaluationCost: 60,
+    manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    credentialEnv: 'CODEX_ARK_API_KEY',
+  }
+  const ready = fakeContext({
+    config,
+    credentialConfigured: true,
+    providers: ['ark-plan'],
+    resultEvidence: evidence({ billingUnit: 'AFP' }),
+  })
+  const result = await ready.tool.execute({ phase: 'dry-run' }, execution())
+
+  assert.equal(result.status, 'pass')
+  assert.equal(result.billingUnit, 'AFP')
+  assert.equal(result.modelProviderConfigured, true)
+  assert.equal(ready.calls.resolve, 0)
+
+  const missing = fakeContext({
+    config,
+    providers: [],
+    resultEvidence: evidence({ billingUnit: 'AFP' }),
+  })
+  const missingResult = await missing.tool.execute({ phase: 'dry-run' }, execution())
+  assert.equal(missingResult.status, 'fail')
+  assert.ok(missingResult.issues.includes('missing-llm-provider:ark-plan'))
+})
+
 test('paid execution requires deployment enablement, two budgets, and a credential', async () => {
   const disabled = fakeContext({ credential: 'test-secret' })
   await assert.rejects(
     disabled.tool.execute({
       phase: 'dry-run',
       executePaidRun: true,
-      maxProductionCostUsd: 2,
-      maxEvaluationCostUsd: 1,
+      maxProductionCost: 2,
+      maxEvaluationCost: 1,
     }, execution()),
     /paid validation is disabled/,
   )
@@ -192,18 +242,18 @@ test('paid execution requires deployment enablement, two budgets, and a credenti
   const enabled = fakeContext({ config: { allowPaidRuns: true } })
   await assert.rejects(
     enabled.tool.execute({ phase: 'dry-run', executePaidRun: true }, execution()),
-    /maxProductionCostUsd must be a positive finite number/,
+    /maxProductionCost must be a positive finite number/,
   )
   await assert.rejects(
     enabled.tool.execute({
       phase: 'dry-run',
       executePaidRun: true,
-      maxProductionCostUsd: 2,
-      maxEvaluationCostUsd: 1,
+      maxProductionCost: 2,
+      maxEvaluationCost: 1,
     }, execution()),
     /requires configured credential OPENAI_API_KEY/,
   )
-  assert.equal(enabled.calls.resolve, 1)
+  assert.equal(enabled.calls.resolve, 0)
 })
 
 test('paid diagnostics and evidence issues redact the resolved credential', async () => {
@@ -222,8 +272,8 @@ test('paid diagnostics and evidence issues redact the resolved credential', asyn
   const result = await fixture.tool.execute({
     phase: 'dry-run',
     executePaidRun: true,
-    maxProductionCostUsd: 2,
-    maxEvaluationCostUsd: 1,
+    maxProductionCost: 2,
+    maxEvaluationCost: 1,
   }, execution())
 
   assert.equal(fixture.calls.resolve, 1)
@@ -245,8 +295,8 @@ test('paid subprocess failures redact the resolved credential', async () => {
     fixture.tool.execute({
       phase: 'dry-run',
       executePaidRun: true,
-      maxProductionCostUsd: 2,
-      maxEvaluationCostUsd: 1,
+      maxProductionCost: 2,
+      maxEvaluationCost: 1,
     }, execution()),
     error => {
       assert.doesNotMatch(error.message, new RegExp(secret))
@@ -370,11 +420,65 @@ test('the registered tool completes a real zero-cost Python preflight', async ()
   try {
     assert.equal(result.status, 'pass', JSON.stringify(result, null, 2))
     assert.equal(result.mode, 'preflight')
+    assert.equal(result.billingUnit, 'USD')
     assert.equal(result.credentialConfigured, false)
     assert.equal(result.callPlan.totalModelCalls, 61)
-    assert.equal(result.costEstimateUsd.total, 1.95)
+    assert.equal(result.costEstimate.billingUnit, 'USD')
+    assert.equal(result.costEstimate.total, 1.95)
     assert.equal(result.artifactHashes.length, 1)
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })
   }
+})
+
+test('DSH LLM bridge preserves content, disjoint usage, finish reason, and request id', async () => {
+  const ctx = {
+    llm: {
+      async *stream(options) {
+        assert.equal(options.provider, 'ark-plan')
+        assert.equal(options.model, 'deepseek-v4-flash')
+        assert.equal(options.system, 'Return JSON.')
+        assert.equal(options.messages[0].content[0].text, 'test')
+        yield { type: 'text-delta', index: 0, text: '{"ok":' }
+        yield { type: 'text-delta', index: 0, text: 'true}' }
+        yield {
+          type: 'usage',
+          usage: {
+            inputTokens: 80,
+            cacheReadTokens: 20,
+            cacheWriteTokens: 5,
+            outputTokens: 12,
+            reasoningTokens: 3,
+          },
+        }
+        yield {
+          type: 'finish',
+          reason: { kind: 'stop' },
+          replayState: { response: { responseId: 'resp-ark-test' } },
+        }
+      },
+    },
+  }
+  const response = await callDshLlm(ctx, {
+    protocol: 'refractrouter-dsh-llm/v1',
+    type: 'request',
+    id: '1',
+    provider: 'ark-plan',
+    model: 'deepseek-v4-flash',
+    messages: [
+      { role: 'system', content: 'Return JSON.' },
+      { role: 'user', content: 'test' },
+    ],
+    temperature: 0,
+    max_tokens: 128,
+    request_options: {},
+  })
+
+  assert.equal(response.ok, true)
+  assert.equal(response.content, '{"ok":true}')
+  assert.equal(response.usage.input_tokens, 105)
+  assert.equal(response.usage.cached_input_tokens, 20)
+  assert.equal(response.usage.reasoning_tokens, 3)
+  assert.equal(response.finish_reason, 'stop')
+  assert.equal(response.request_id, 'resp-ark-test')
 })
