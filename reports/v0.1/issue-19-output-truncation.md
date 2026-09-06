@@ -24,7 +24,7 @@ an output-budget configuration failure; it cannot establish a routing-effectiven
 The larger cap and prompt changes address the observed causes. Offline checks cannot prove that
 live models will now complete every contract, citation and judge response.
 
-## Validation and live budget
+## Pre-run validation and budget proposal
 
 Offline replay of all five saved truncations verifies failure classification, preservation of billed
 usage/partial output, one attempt, and an 8,192-token request. A separate case verifies that syntactically
@@ -47,8 +47,23 @@ assumptions (4,000 production / 8,000 judge tokens), 8,192 output tokens and no 
 
 Input token counts are estimates, not hard bounds. The existing per-call reservation and Plan overage
 settings remain relevant to spend control. The 495 AFP proposal is for one new run, in addition to
-previous usage. It exceeds the original 265 AFP authorization and needs a new approval before paid
-execution. The old dry-run evidence and its budget remain historical facts.
+previous usage. At preparation time it exceeded the original 265 AFP authorization and required new approval before
+execution (the subsequent approval and result are recorded below). The old dry-run evidence and its budget remain historical facts.
 
-Issue #19 remains open until live validation is recorded. Issue #5 stays blocked pending a successful
-admission run; passing offline tests does not unblock it.
+## Live validation completed
+
+The user subsequently approved the additional 495 AFP allowance. A single live run from clean
+merged commit `f69e0d2` completed with DSH `status=pass`, `issues=[]`, 61/61 calls, zero truncations,
+zero failures, and 100% strategy success and judge coverage. All five final source traces and all
+20 indexed hash checks passed. Production cost was 30.44395 AFP and evaluation cost 17.153 AFP;
+the two outer DSH turns add an estimated 1.1972 AFP. No ordinary Ark endpoint was used.
+
+The largest response used 2,430 output tokens, confirming that the previous 1,200-token cap was
+too small for this workload. Evidence is in
+[`../v0.1-real/dry-run-agent-plan-8192/`](../v0.1-real/dry-run-agent-plan-8192/README.md).
+
+Issue #19 is verified and can close. Issue #5's output-completeness blocker is removed, while its
+pilot budget and execution remain pending. The one-task routing-benefit result is still No-go:
+node-oracle scored 84 versus task-oracle 100 at nearly equal cost. Both chose Flash for every node,
+so the score gap comes from separately generated/judged reports and cannot demonstrate a benefit
+or loss caused by different routing assignments. Multi-task/repeat assessment belongs to the pilot.

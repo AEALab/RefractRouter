@@ -1,0 +1,28 @@
+{
+  "provider": "ark-plan",
+  "model": "deepseek-v4-flash",
+  "billing_unit": "AFP",
+  "source": "DSH assistant/message usage events (stream events excluded to avoid double counting)",
+  "session_sha256": "907956eb16fb1070364b3c800bbadf15b92640abff4c269ae50b6abd749f71d9",
+  "calls": [
+    {
+      "step": 1,
+      "usage": {
+        "inputTokens": 5502,
+        "outputTokens": 171,
+        "cacheReadTokens": 6144
+      }
+    },
+    {
+      "step": 2,
+      "usage": {
+        "inputTokens": 1723,
+        "outputTokens": 164,
+        "cacheReadTokens": 10240
+      }
+    }
+  ],
+  "estimated_cost": 1.1972,
+  "allowance": 5,
+  "pricing_note": "Noncached input, cached input and output each use the frozen 0.05 AFP/1k rate; this is a telemetry estimate, not an account billing export."
+}
