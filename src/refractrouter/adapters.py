@@ -253,7 +253,11 @@ class OpenAICompatibleAdapter:
                 error_message=str(exc),
             )
         output = _strip_code_fence(response.content)
-        failure_type = self._output_failure(task, node, output, context)
+        failure_type = (
+            "output-truncated"
+            if response.finish_reason == "length"
+            else self._output_failure(task, node, output, context)
+        )
         return NodeResult(
             node_id=node.node_id,
             node_type=node.node_type,
@@ -279,11 +283,14 @@ class OpenAICompatibleAdapter:
             "You are one node in a frozen research-report DAG. Follow only the requested "
             "node contract. Preserve source_id and content_hash exactly; do not invent sources. "
             "Do not use web search or outside knowledge. "
+            "Keep output concise and complete. Do not echo the input or add unrequested keys. "
+            "For JSON nodes, use compact JSON without indentation. Never shorten source hashes. "
         )
         contracts = {
             "planning": (
                 'Return one JSON object with "requirements", "sections", "constraints", '
-                'and "analysis" keys.'
+                'and "analysis" keys. Use a flat array of section titles, short constraint strings, '
+                "and at most 150 words of analysis; do not draft report paragraphs."
             ),
             "extraction": (
                 'Return one JSON object with an "evidence" array. Every item must contain '
@@ -291,17 +298,23 @@ class OpenAICompatibleAdapter:
             ),
             "synthesis": (
                 'Return one JSON object with a substantive "analysis" string and an "evidence" '
-                "array copied from upstream evidence. Compare alternatives and explain tradeoffs."
+                "array copied from upstream evidence. Compare alternatives and explain tradeoffs "
+                "in at most 400 words; avoid repeating the source pack."
             ),
             "generation": (
                 'Return one JSON object with "title", "sections", and "evidence". Each section '
-                'must have "heading" and "paragraph"; cite claims as [source_###].'
+                'must have "heading" and "paragraph"; cite claims as [source_###]. '
+                "Include every required section exactly once, using one paragraph of at most "
+                "100 words per section. Preserve the evidence needed by all citations."
             ),
             "rendering": (
                 "Return only a complete standalone HTML document. Convert every [source_###] "
-                'citation to <a href="#source-source_###" data-cite-source-id="source_###">. '
+                'citation to <a href="#source-source_###" data-cite-source-id="source_###">'
+                '[source_###]</a>. '
                 "Add a source trace list whose entries carry data-source-id and data-content-hash "
-                "copied exactly from upstream evidence. Do not add external CSS or JavaScript."
+                "copied exactly from upstream evidence. Do not add external CSS or JavaScript. "
+                "Render the supplied report without expanding its prose or adding decorative CSS. "
+                "Include every cited source in the trace list and close all tags, including </html>."
             ),
             "verification": (
                 'Return one JSON object with "valid", "issues", and "summary". Do not repair output.'

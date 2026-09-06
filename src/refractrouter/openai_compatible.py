@@ -344,6 +344,7 @@ class OpenAICompatibleClient:
                             "latency_ms": parsed.latency_ms,
                             "attempts": attempts,
                             "provider_request_id": parsed.request_id,
+                            "finish_reason": parsed.finish_reason,
                             "usage": {
                                 "input_tokens": parsed.input_tokens,
                                 "output_tokens": parsed.output_tokens,

@@ -85,6 +85,7 @@ class RealRunnerPreflightTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(preflight["billing_unit"], "AFP")
+        self.assertEqual(preflight["cost_estimate_assumptions"]["output_tokens_per_call"], 8192)
         self.assertEqual(preflight["wire_api"], "chat-completions")
         self.assertEqual(
             preflight["base_url"],
@@ -105,15 +106,15 @@ class RealRunnerPreflightTests(unittest.TestCase):
         )
         self.assertEqual(
             preflight["cost_estimate_assumptions"]["manifest_max_output_tokens"],
-            1200,
+            8192,
         )
         self.assertEqual(
             preflight["cost_estimates"],
             {
                 "billing_unit": "AFP",
-                "production_upper_estimate": 160.16,
-                "evaluation_upper_estimate": 46.0,
-                "total_upper_estimate": 206.16,
+                "production_upper_estimate": 375.51,
+                "evaluation_upper_estimate": 80.96,
+                "total_upper_estimate": 456.47,
             },
         )
 
@@ -146,7 +147,7 @@ class RealRunnerPreflightTests(unittest.TestCase):
                 )
 
         self.assertIn(
-            "must cover the preflight estimate 160.16 AFP", stderr.getvalue()
+            "must cover the preflight estimate 375.51 AFP", stderr.getvalue()
         )
 
     def test_paid_run_rejects_output_estimate_below_manifest_request_cap(self) -> None:
@@ -180,8 +181,16 @@ class RealRunnerPreflightTests(unittest.TestCase):
                 )
 
         self.assertIn(
-            "must cover the manifest request cap 1200", stderr.getvalue()
+            "must cover the manifest request cap 8192", stderr.getvalue()
         )
+
+    def test_preflight_rejects_underestimate_without_dispatch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            stderr = io.StringIO()
+            with redirect_stderr(stderr), self.assertRaises(SystemExit):
+                main(["--output-dir", directory, "--estimated-output-tokens", "1200"])
+            self.assertFalse((Path(directory) / "preflight.json").exists())
+        self.assertIn("must cover the manifest request cap 8192", stderr.getvalue())
 
 
 if __name__ == "__main__":

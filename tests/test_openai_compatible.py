@@ -70,6 +70,56 @@ def success_response(
 
 
 class OpenAICompatibleClientTests(unittest.TestCase):
+    def test_recorded_dry_run_truncations_keep_content_usage_and_cost(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        records = root / "reports/v0.1-real/dry-run-agent-plan-final-no-go/runs/report_001/repeat-1"
+        task = make_task()
+        checked = 0
+        for path in sorted(records.glob("*.json")):
+            record = json.loads(path.read_text())
+            for saved in record["result"]["node_results"]:
+                if saved.get("finish_reason") != "length":
+                    continue
+                with self.subTest(strategy=path.stem, node=saved["node_id"]):
+                    body = {
+                        "choices": [{"message": {"content": saved["output"]}, "finish_reason": "length"}],
+                        "usage": {"prompt_tokens": saved["input_tokens"], "completion_tokens": saved["output_tokens"]},
+                    }
+                    transport = SequenceTransport([TransportResponse(
+                        200, {"X-Request-ID": saved["request_id"]}, json.dumps(body).encode()
+                    )])
+                    client = OpenAICompatibleClient(
+                        transport=transport, environment={"TEST_API_KEY": "secret"}, max_retries=0
+                    )
+                    node = next(n for n in task.nodes if n.node_id == saved["node_id"])
+                    model = replace(real_model(), max_output_tokens=8192)
+                    result = OpenAICompatibleAdapter(client).invoke(task, node, "Replay", {}, model)
+                    self.assertEqual(result.failure_type, "output-truncated")
+                    self.assertEqual(result.status, "failed")
+                    self.assertEqual(result.output, saved["output"])
+                    self.assertEqual(result.output_tokens, 1200)
+                    self.assertEqual(result.input_tokens, saved["input_tokens"])
+                    self.assertEqual(result.request_id, saved["request_id"])
+                    self.assertGreater(result.cost, 0)
+                    self.assertEqual(len(transport.calls), 1)
+                    self.assertEqual(transport.calls[0]["payload"]["max_completion_tokens"], 8192)
+                    checked += 1
+        self.assertEqual(checked, 5)
+
+    def test_length_termination_is_failure_even_when_json_parses(self) -> None:
+        response = success_response()
+        body = json.loads(response.body)
+        body["choices"][0]["finish_reason"] = "length"
+        transport = SequenceTransport([replace(response, body=json.dumps(body).encode())])
+        client = OpenAICompatibleClient(
+            transport=transport, environment={"TEST_API_KEY": "secret"}, max_retries=0
+        )
+        task = make_task()
+        result = OpenAICompatibleAdapter(client).invoke(task, task.nodes[0], "Plan", {}, real_model())
+        self.assertEqual(result.failure_type, "output-truncated")
+        self.assertEqual(result.finish_reason, "length")
+        self.assertGreater(result.cost, 0)
+
     def test_parses_usage_retries_and_computes_cached_cost(self) -> None:
         transport = SequenceTransport(
             [
@@ -158,6 +208,7 @@ class OpenAICompatibleClientTests(unittest.TestCase):
         )
         self.assertEqual(records[0]["timeout_ms"], 120_000)
         self.assertTrue(records[1]["ok"])
+        self.assertEqual(records[1]["finish_reason"], "stop")
         self.assertEqual(records[1]["usage"]["output_tokens"], 25)
         serialized = json.dumps(records)
         self.assertNotIn("secret prompt", serialized)
