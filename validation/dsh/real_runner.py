@@ -26,6 +26,7 @@ REAL_ARTIFACTS = (
     "evidence-index.json",
 )
 DSH_BRIDGE_PROGRESS = "bridge-progress.ndjson"
+MODEL_PROGRESS = "model-progress.ndjson"
 
 
 def _expected_artifacts(
@@ -35,7 +36,7 @@ def _expected_artifacts(
         return REAL_ARTIFACTS[:1]
     if isinstance(preflight, dict) and preflight.get("wire_api") == "dsh-llm":
         return (*REAL_ARTIFACTS, DSH_BRIDGE_PROGRESS)
-    return REAL_ARTIFACTS
+    return (*REAL_ARTIFACTS, MODEL_PROGRESS)
 
 
 def run_real_validation(

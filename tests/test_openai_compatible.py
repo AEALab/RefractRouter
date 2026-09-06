@@ -111,6 +111,72 @@ class OpenAICompatibleClientTests(unittest.TestCase):
         self.assertEqual(caught.exception.failure_type, "missing-api-key")
         self.assertEqual(transport.calls, [])
 
+    def test_direct_client_persists_prompt_free_progress(self) -> None:
+        transport = SequenceTransport([success_response("secret model output")])
+        with tempfile.TemporaryDirectory() as directory:
+            progress_path = Path(directory) / "model-progress.ndjson"
+            client = OpenAICompatibleClient(
+                transport=transport,
+                environment={
+                    "TEST_API_KEY": "secret-api-key",
+                    "REFRACTROUTER_MODEL_PROGRESS": str(progress_path),
+                },
+                max_retries=0,
+            )
+
+            client.complete(
+                real_model(),
+                [{"role": "user", "content": "secret prompt"}],
+            )
+            records = [
+                json.loads(line)
+                for line in progress_path.read_text(encoding="utf-8").splitlines()
+            ]
+
+        self.assertEqual(
+            [record["event"] for record in records],
+            ["request-start", "request-finish"],
+        )
+        self.assertEqual(
+            records[0]["endpoint"],
+            "https://example.invalid/v1/chat/completions",
+        )
+        self.assertEqual(records[0]["timeout_ms"], 120_000)
+        self.assertTrue(records[1]["ok"])
+        self.assertEqual(records[1]["usage"]["output_tokens"], 25)
+        serialized = json.dumps(records)
+        self.assertNotIn("secret prompt", serialized)
+        self.assertNotIn("secret model output", serialized)
+        self.assertNotIn("secret-api-key", serialized)
+
+    def test_direct_progress_finishes_when_response_is_invalid(self) -> None:
+        transport = SequenceTransport([TransportResponse(200, {}, b"{}")])
+        with tempfile.TemporaryDirectory() as directory:
+            progress_path = Path(directory) / "model-progress.ndjson"
+            client = OpenAICompatibleClient(
+                transport=transport,
+                environment={
+                    "TEST_API_KEY": "secret",
+                    "REFRACTROUTER_MODEL_PROGRESS": str(progress_path),
+                },
+                max_retries=0,
+            )
+
+            with self.assertRaises(ModelInvocationError) as caught:
+                client.complete(
+                    real_model(),
+                    [{"role": "user", "content": "test"}],
+                )
+            records = [
+                json.loads(line)
+                for line in progress_path.read_text(encoding="utf-8").splitlines()
+            ]
+
+        self.assertEqual(caught.exception.failure_type, "invalid-response")
+        self.assertEqual(records[-1]["event"], "request-finish")
+        self.assertFalse(records[-1]["ok"])
+        self.assertEqual(records[-1]["failure_type"], "invalid-response")
+
     def test_adapter_records_real_telemetry(self) -> None:
         transport = SequenceTransport([success_response()])
         adapter = OpenAICompatibleAdapter(
@@ -289,10 +355,10 @@ class OpenAICompatibleClientTests(unittest.TestCase):
                 for line in progress_path.read_text(encoding="utf-8").splitlines()
             ]
 
-        self.assertEqual([record["event"] for record in records], [
-            "request-start",
-            "request-finish",
-        ])
+        self.assertEqual(
+            [record["event"] for record in records],
+            ["request-start", "request-finish"],
+        )
         self.assertTrue(records[1]["ok"])
         self.assertEqual(records[1]["usage"]["output_tokens"], 3)
         serialized = json.dumps(records)

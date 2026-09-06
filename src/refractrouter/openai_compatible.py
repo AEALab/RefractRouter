@@ -25,6 +25,18 @@ def _progress_count(value: object) -> int:
         return 0
 
 
+def _append_progress(path: Path | None, event: Mapping[str, object]) -> None:
+    if path is None:
+        return
+    record = {
+        "schema_version": "v0.1",
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        **event,
+    }
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
 @dataclass(frozen=True, slots=True)
 class TransportResponse:
     status: int
@@ -75,15 +87,7 @@ class DshStdioBridge:
         self.request_id = 0
 
     def _record_progress(self, event: Mapping[str, object]) -> None:
-        if self.progress_path is None:
-            return
-        record = {
-            "schema_version": "v0.1",
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
-            **event,
-        }
-        with self.progress_path.open("a", encoding="utf-8") as stream:
-            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+        _append_progress(self.progress_path, event)
 
     def complete(
         self,
@@ -239,6 +243,11 @@ class OpenAICompatibleClient:
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
         self.sleep = sleep
+        configured_progress = self.environment.get("REFRACTROUTER_MODEL_PROGRESS")
+        self.progress_path = (
+            Path(configured_progress) if configured_progress is not None else None
+        )
+        self.progress_request_id = 0
         self.dsh_bridge = dsh_bridge
         if self.dsh_bridge is None and self.environment.get("REFRACTROUTER_DSH_BRIDGE") == "stdio":
             self.dsh_bridge = DshStdioBridge()
@@ -264,6 +273,20 @@ class OpenAICompatibleClient:
                 0,
                 0,
             )
+        self.progress_request_id += 1
+        progress_request_id = str(self.progress_request_id)
+        endpoint = f"{model.base_url}/chat/completions"
+        _append_progress(
+            self.progress_path,
+            {
+                "event": "request-start",
+                "request_id": progress_request_id,
+                "provider": model.provider,
+                "model": model.api_model,
+                "endpoint": endpoint,
+                "timeout_ms": round(self.timeout_seconds * 1000),
+            },
+        )
         payload: dict[str, object] = {
             "model": model.api_model,
             "messages": list(messages),
@@ -287,13 +310,49 @@ class OpenAICompatibleClient:
             attempts += 1
             try:
                 response = self.transport.post(
-                    f"{model.base_url}/chat/completions",
+                    endpoint,
                     headers,
                     body,
                     self.timeout_seconds,
                 )
                 if 200 <= response.status < 300:
-                    return self._parse_response(response, attempts, started)
+                    try:
+                        parsed = self._parse_response(response, attempts, started)
+                    except ModelInvocationError as exc:
+                        _append_progress(
+                            self.progress_path,
+                            {
+                                "event": "request-finish",
+                                "request_id": progress_request_id,
+                                "provider": model.provider,
+                                "model": model.api_model,
+                                "ok": False,
+                                "failure_type": exc.failure_type,
+                                "latency_ms": exc.latency_ms,
+                                "attempts": attempts,
+                            },
+                        )
+                        raise
+                    _append_progress(
+                        self.progress_path,
+                        {
+                            "event": "request-finish",
+                            "request_id": progress_request_id,
+                            "provider": model.provider,
+                            "model": model.api_model,
+                            "ok": True,
+                            "latency_ms": parsed.latency_ms,
+                            "attempts": attempts,
+                            "provider_request_id": parsed.request_id,
+                            "usage": {
+                                "input_tokens": parsed.input_tokens,
+                                "output_tokens": parsed.output_tokens,
+                                "cached_input_tokens": parsed.cached_input_tokens,
+                                "reasoning_tokens": parsed.reasoning_tokens,
+                            },
+                        },
+                    )
+                    return parsed
                 last_failure = _http_failure_type(response.status)
                 last_message = _safe_error_message(response.status, response.body)
                 if response.status not in {408, 409, 429} and response.status < 500:
@@ -307,6 +366,19 @@ class OpenAICompatibleClient:
             if attempts <= self.max_retries:
                 self.sleep(min(2 ** (attempts - 1), 4))
         latency_ms = round((time.perf_counter() - started) * 1000)
+        _append_progress(
+            self.progress_path,
+            {
+                "event": "request-finish",
+                "request_id": progress_request_id,
+                "provider": model.provider,
+                "model": model.api_model,
+                "ok": False,
+                "failure_type": last_failure,
+                "latency_ms": latency_ms,
+                "attempts": attempts,
+            },
+        )
         raise ModelInvocationError(last_failure, last_message, attempts, latency_ms)
 
     def _complete_dsh(

@@ -26,7 +26,7 @@ The plugin:
 - uses `ctx.subprocess` for process ownership and bounded output;
 - uses `ctx.sandbox` and `ctx.sandboxPolicy` for the profile's file boundary;
 - uses `ctx.credentials` for credential readiness and direct-HTTP credential resolution;
-- uses `ctx.llm` for Agent Plan provider discovery and paid model calls;
+- uses `ctx.llm` only for manifests that explicitly select the generic DSH LLM bridge;
 - returns typed status, plan, cost, hashes, issues, and evidence paths;
 - defaults `allowPaidRuns` to false and enforces deployment-level production/evaluation ceilings.
 
@@ -109,7 +109,10 @@ stdio bridge and its credential remains inside the DSH provider.
 
 Issue #4 uses `data/model-manifests/volcengine-agent-plan.json`: three Agent Plan candidates,
 `kimi-k3` as the independent judge, AFP billing, 200/60 AFP deployment ceilings, and zero retries.
-The frozen inputs and 206.16 AFP estimate are recorded in
+Its benchmark requests use the exact Agent Plan OpenAI-compatible base URL
+`https://ark.cn-beijing.volces.com/api/plan/v3`; the plugin rejects the ordinary Ark `/api/v3`
+endpoint for any AFP manifest. DSH resolves the plan credential and passes it only to the scrubbed
+Python child. The frozen inputs and 206.16 AFP estimate are recorded in
 [`../../reports/v0.1/issue-4-agent-plan-preflight.md`](../../reports/v0.1/issue-4-agent-plan-preflight.md).
 
 DSH is still only the outer validator. It must not choose candidate models, change the frozen manifest,

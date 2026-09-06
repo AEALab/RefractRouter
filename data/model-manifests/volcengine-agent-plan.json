@@ -4,12 +4,14 @@
   "documentation_urls": [
     "https://www.volcengine.com/docs/82379/2516283?lang=zh",
     "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+    "https://www.volcengine.com/docs/82379/2123434?lang=zh",
     "https://www.volcengine.com/docs/82379/2637928?lang=zh"
   ],
   "defaults": {
     "provider": "ark-plan",
     "billing_unit": "AFP",
-    "wire_api": "dsh-llm",
+    "wire_api": "chat-completions",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
     "api_key_env": "CODEX_ARK_API_KEY",
     "context_window": 1024000,
     "max_output_tokens": 1200,
