@@ -213,8 +213,8 @@ function resolveRequest(args, config) {
   ])
   const unknown = Object.keys(args).filter(key => !allowed.has(key))
   if (unknown.length > 0) throw new Error(`unknown tool arguments: ${unknown.join(', ')}`)
-  if (!['dry-run', 'pilot', 'final'].includes(args.phase)) {
-    throw new Error('phase must be dry-run, pilot, or final')
+  if (!['dry-run', 'pilot', 'final', 'contract-replay'].includes(args.phase)) {
+    throw new Error('phase must be dry-run, pilot, final, or contract-replay')
   }
   if (args.executePaidRun !== undefined && typeof args.executePaidRun !== 'boolean') {
     throw new Error('executePaidRun must be a boolean')
@@ -222,6 +222,9 @@ function resolveRequest(args, config) {
   const repeats = args.repeats ?? 1
   if (!Number.isInteger(repeats) || repeats <= 0) {
     throw new Error('repeats must be a positive integer')
+  }
+  if (args.phase === 'contract-replay' && (repeats > 3 || config.maxRetries !== 0)) {
+    throw new Error('contract-replay requires repeats <= 3 and configured maxRetries = 0')
   }
   const paid = args.executePaidRun ?? false
   if (!paid) {
@@ -833,7 +836,7 @@ const OUTPUT_SCHEMA = {
   properties: {
     status: { type: 'string', enum: ['pass', 'fail'] },
     mode: { type: 'string', enum: ['preflight', 'paid'] },
-    phase: { type: 'string', enum: ['dry-run', 'pilot', 'final'] },
+    phase: { type: 'string', enum: ['dry-run', 'pilot', 'final', 'contract-replay'] },
     exitCode: { oneOf: [{ type: 'integer' }, { type: 'null' }] },
     signal: { oneOf: [{ type: 'string' }, { type: 'null' }] },
     timedOut: { type: 'boolean' },
@@ -918,8 +921,8 @@ export function apply(ctx, rawConfig = {}) {
       properties: {
         phase: {
           type: 'string',
-          enum: ['dry-run', 'pilot', 'final'],
-          description: 'Benchmark phase whose fixed task split and call plan should be validated.',
+          enum: ['dry-run', 'pilot', 'final', 'contract-replay'],
+          description: 'Benchmark phase or bounded replay of the seven frozen issue #25 contract failures.',
         },
         repeats: {
           type: 'integer',

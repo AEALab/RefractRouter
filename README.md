@@ -122,6 +122,20 @@ runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与�
 质量、生产成本与关键路径延迟的均值/标准差，以及成本和延迟的 p50/p95；需要观察同一
 任务的运行波动时，用 `--repeats 3`（或更高）执行，但调用量和预算会同比增加。
 
+issue #25 的恢复入口为 `contract-replay`，只重放归档中的 7 个失败写作节点，复用原始
+上游并核验哈希。默认零调用，最多三次重放、不重试，遇到第一个契约失败即停止。
+它验证输出格式与证据传递，不产生语义质量分或 Go 结论：
+
+```bash
+uv run python experiments/replay_node_contracts.py --output-dir /tmp/refractrouter-contract-preflight
+```
+
+真实重放由 DSH 的 `refractrouter_validate` 工具使用 `phase: "contract-replay"` 执行，
+沿用 Agent Plan 专属端点、部署级开关及生产/评审双预算限制。M3 的 manifest 使用
+`json_mode_strategy: "prompt-only"`；其他模型保留 `json-object-hint`。这些都是调用策略，
+不代表服务端已保证 schema。节点提示协议 v0.3 明确区分中间 JSON 和最终 HTML，
+preflight 记录 schema 哈希及各模型 JSON 策略。
+
 Agent Plan 支持 OpenAI 兼容的 Chat API 与 Responses API。RefractRouter 使用前者；AFP
 manifest 和 DSH 插件共同拒绝普通方舟 `/api/v3`，只允许
 `https://ark.cn-beijing.volces.com/api/plan/v3`。DSH 凭证服务在每次获批的付费操作中解析

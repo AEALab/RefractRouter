@@ -4,6 +4,13 @@ This package contributes the structured `refractrouter_validate` tool to a base-
 Harness profile. The tool runs the repository's fixed Python validation entry point and projects its
 evidence into a bounded result.
 
+Version 0.4.0 adds `phase: "contract-replay"` for the seven archived issue #25 writer failures.
+It defaults to preflight, permits at most three repeats, requires configured `maxRetries: 0`,
+and stops on the first failed output contract. Paid calls retain the same deployment enablement,
+credential resolution, exact Agent Plan endpoint, and two budget ceilings. No judge is invoked;
+the tool still requires a positive evaluation ceiling for a paid request, but replay evaluation
+spend is zero. A replay pass establishes contract validity only, not semantic quality or Go.
+
 ## Supported versions
 
 The v0.1 compatibility contract is intentionally narrow:
@@ -34,7 +41,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.3.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.4.0.tgz
 ```
 
 The package contains only `index.js`, `cordis.patch.yml`, `README.md`, `CHANGELOG.md`, and

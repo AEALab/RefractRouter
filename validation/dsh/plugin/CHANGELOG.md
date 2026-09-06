@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Add `contract-replay` for the seven frozen issue #25 writer failures. Default to preflight,
+  limit repeats to three, prohibit retries, stop after the first failure, and retain all existing
+  Agent Plan credential and budget controls. Replay results establish contract validity only.
+
 ## 0.3.0
 
 - Send AFP benchmark calls directly to the Agent Plan OpenAI-compatible Chat Completions endpoint,

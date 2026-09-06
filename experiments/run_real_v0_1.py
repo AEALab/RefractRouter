@@ -28,6 +28,7 @@ from refractrouter.judge import JudgeEvaluation
 from refractrouter.manifest import ModelManifest, load_model_manifest
 from refractrouter.model_registry import ModelRegistry
 from refractrouter.node_judge import IndependentNodeJudge, NodeJudgeError, NODE_RUBRIC_PATH, NODE_RUBRIC_VERSION
+from refractrouter.node_contracts import CONTRACT_FAILURES, prompt_contract_snapshot
 from refractrouter.scoring import NODE_CHECKS_VERSION, node_contract_checks
 from refractrouter.openai_compatible import ModelInvocationError, OpenAICompatibleClient
 from refractrouter.routing import (
@@ -77,7 +78,10 @@ class NodeQualityRecorder:
         upstream = {parent: context.get(parent, "") for parent in node.parents}
         checks = node_contract_checks(task, node, result.output, upstream)
         evaluation = {"error": None, "final_score": 0.0, "cost": 0.0, "checks": checks}
-        if result.status != "ok" or checks["score_cap"] == 0:
+        if result.status != "ok" and result.failure_type not in CONTRACT_FAILURES:
+            evaluation.update(method="execution-unavailable", final_score=None,
+                              error=result.failure_type or "execution-failed")
+        elif result.status != "ok" or checks["score_cap"] == 0:
             evaluation["method"] = "deterministic-rejection"
         else:
             reserve = _estimated_invocation_cost(
@@ -105,6 +109,11 @@ class NodeQualityRecorder:
             "upstream_sha256": hashlib.sha256(json.dumps(upstream, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
             "output_sha256": hashlib.sha256(result.output.encode()).hexdigest(),
             "node_result": asdict(result), "evaluation": evaluation,
+            "evaluation_state": (
+                "unavailable" if evaluation["error"] else
+                "contract-rejected" if evaluation.get("method") == "deterministic-rejection" else
+                "judged"
+            ),
             "eligible": result.status == "ok" and checks["score_cap"] > 0 and evaluation["error"] is None,
             "selected": False,
         }
@@ -118,6 +127,7 @@ class NodeQualityRecorder:
                    "rubric_sha256": self.judge.rubric_sha256, "rows": self.rows,
                    "raw_node_score_kind": "deterministic contract cap; use evaluation.final_score for selection",
                    "selection": "highest eligible semantic score, then lowest observed node cost",
+                   "selection_policy": "all-candidates-required-v1",
                    "global_oracle": False}
         (self.output_dir / "node-quality-matrix.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -504,11 +514,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "checks_version": NODE_CHECKS_VERSION, "rubric_sha256": _sha256(NODE_RUBRIC_PATH),
             "selection": "blinded-independent-node-judge-with-contract-caps",
             "tie_break": "observed-node-cost", "global_oracle": False,
+            "selection_policy": "all-candidates-required-v1",
         },
+        "node_output_contract": prompt_contract_snapshot(),
         "execution_policy": {
             "temperature": 0,
             "timeout_seconds": args.timeout_seconds,
             "max_retries": args.max_retries,
+            "json_mode_by_model": {model.api_model: model.json_mode_strategy for model in manifest.models},
             "request_options_by_model": {
                 model.api_model: dict(model.request_options)
                 for model in manifest.models

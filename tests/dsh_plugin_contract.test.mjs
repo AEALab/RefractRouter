@@ -278,6 +278,28 @@ test('AFP execution rejects the ordinary Ark pay-as-you-go endpoint', async () =
   }
 })
 
+test('contract replay is bounded and retains paid deployment controls', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'contract-replay' }, execution())
+  assert.ok(fixture.calls.spawnSpec.argv.includes('contract-replay'))
+  assert.equal(fixture.calls.resolve, 0)
+  await assert.rejects(
+    fixture.tool.execute({ phase: 'contract-replay', repeats: 4 }, execution()),
+    /contract-replay requires/,
+  )
+  await assert.rejects(
+    fixture.tool.execute({ phase: 'contract-replay', executePaidRun: true,
+      maxProductionCost: 2, maxEvaluationCost: 1 }, execution()),
+    /paid validation is disabled/,
+  )
+  const retrying = fakeContext({ config: { maxRetries: 1 } })
+  await assert.rejects(
+    retrying.tool.execute({ phase: 'contract-replay' }, execution()),
+    /configured maxRetries = 0/,
+  )
+  assert.equal(retrying.calls.spawn, 0)
+})
+
 test('paid execution requires deployment enablement, two budgets, and a credential', async () => {
   const disabled = fakeContext({ credential: 'test-secret' })
   await assert.rejects(
