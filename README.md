@@ -22,6 +22,8 @@ issue #4 的真实 Agent Plan paid dry run 已完成并以 `incomplete / No-go` 
 遥测且无 reasoning tokens；但四个策略未产出可评审终稿，唯一进入 judge 的结果也未通过
 HTML/source-trace 校验。最终证据保存在
 `reports/v0.1-real/dry-run-agent-plan-final-no-go/`，pilot 因完整性门槛未通过而保持阻塞。
+修复由 issue #19 跟踪：输出额度已提高为 8,192 tokens，并增加简洁输出约束和截断分类；
+离线验证通过后仍须完成新的真实准入运行。
 
 ## Quick Start
 
@@ -72,20 +74,22 @@ dsh --profile headless \
 当前 AFP 系数及支持范围来自[方舟抵扣规则](https://www.volcengine.com/docs/82379/2516283?lang=zh)
 和[套餐概览](https://www.volcengine.com/docs/82379/2366394?lang=zh)。
 
-三阶段默认调用量和保守成本估算如下。估算假设每个生产调用 4,000 input / 1,200
+三阶段默认调用量和保守成本估算如下。估算假设每个生产调用 4,000 input / 8,192
 output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出以 API usage 为准。
 
 | Phase | Train / test tasks | Production calls | Judge calls | Conservative estimate |
 |---|---:|---:|---:|---:|
-| dry-run | 0 / 1 | 56 | 5 | $1.95 |
-| pilot | 5 / 5 | 455 | 35 | $15.40 |
-| final | 10 / 10 | 910 | 70 | $30.80 |
+| dry-run | 0 / 1 | 56 | 5 | $8.87 |
+| pilot | 5 / 5 | 455 | 35 | $70.46 |
+| final | 10 / 10 | 910 | 70 | $140.92 |
 
 同一 dry run 使用方舟池时，生产调用按最贵候选 `deepseek-v4-pro` 的 5.5 系数估算，
-judge 按 `kimi-k3` 的 10 系数估算：生产 160.16 AFP、评审 46 AFP，总计
-206.16 AFP。建议调用上限分别为 200 AFP 和 60 AFP。DSH 原生工具调用的外层 agent
+judge 按 `kimi-k3` 的 10 系数估算：生产 375.51 AFP、评审 80.96 AFP，总计
+456.47 AFP。issue #19 提议的新调用上限分别为 400 AFP 和 90 AFP。DSH 原生工具调用的外层 agent
 不进入这两本 benchmark 账；固定使用 `deepseek-v4-flash`，另设 5 AFP 运行上限，因此一次
-完整执行的批准上限为 265 AFP。
+完整执行提议上限为 495 AFP，须重新取得预算批准，不能沿用 #4 的 265 AFP 授权。
+默认输出估算自动取 manifest 最大输出额度；显式低估会在 preflight 阶段被拒绝。输入
+token 数仍是估算假设，所以这些估算并非单次请求费用的硬上界。
 
 付费 dry run 必须同时显式提供开关和两类预算上限：
 
@@ -94,8 +98,8 @@ export OPENAI_API_KEY="..."
 uv run python experiments/run_real_v0_1.py \
   --phase dry-run \
   --execute-paid-run \
-  --max-production-cost 2 \
-  --max-evaluation-cost 1 \
+  --max-production-cost 8 \
+  --max-evaluation-cost 2 \
   --output-dir reports/v0.1-real/dry-run
 ```
 
@@ -111,7 +115,7 @@ Agent Plan 支持 OpenAI 兼容的 Chat API 与 Responses API。RefractRouter �
 manifest 和 DSH 插件共同拒绝普通方舟 `/api/v3`，只允许
 `https://ark.cn-beijing.volces.com/api/plan/v3`。DSH 凭证服务在每次获批的付费操作中解析
 Agent Plan 专属 Key，并只交给受控且诊断输出会脱敏的 benchmark 子进程。冻结 manifest
-显式关闭 thinking，避免推理 tokens 占用结构化正文的 1,200-token 上限。配置与零费用验证
+显式关闭 thinking，避免推理 tokens 占用结构化正文的 8,192-token 上限。配置与零费用验证
 步骤见
 `validation/dsh/plugin/README.md` 和 `reports/v0.1/issue-4-agent-plan-preflight.md`。
 
@@ -232,7 +236,7 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 ## Roadmap
 
 1. issue #4 已完成 1-task paid dry run，并保留 DSH evidence、逐请求遥测和 No-go 结论。
-2. issue #5 的 10-task pilot 保持阻塞，直到新的工作项解决结构化输出和 HTML 完整性问题，
+2. issue #5 的 10-task pilot 保持阻塞，直到 issue #19 解决结构化输出和 HTML 完整性问题，
    并通过新的 1-task 准入验证。
 3. pilot 通过后，对冻结样本完成人工抽检，并与独立 judge 结果对照。
 4. 执行 20-task final benchmark，通过 DSH plugin tool call 复核并发布最终结论。

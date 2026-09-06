@@ -325,7 +325,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--max-production-cost", type=float)
     parser.add_argument("--max-evaluation-cost", type=float)
     parser.add_argument("--estimated-input-tokens", type=int, default=4000)
-    parser.add_argument("--estimated-output-tokens", type=int, default=1200)
+    parser.add_argument(
+        "--estimated-output-tokens", type=int,
+        help="Output estimate per call; defaults to the largest manifest output cap",
+    )
     parser.add_argument("--timeout-seconds", type=float, default=120.0)
     parser.add_argument("--max-retries", type=int, default=2)
     args = parser.parse_args(argv)
@@ -338,6 +341,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.dataset.resolve(), args.tasks_root.resolve(), args.source_pack_root.resolve()
     )
     manifest = load_model_manifest(args.manifest.resolve())
+    manifest_output_cap = max(model.max_output_tokens or 0 for model in manifest.models)
+    if args.estimated_output_tokens is None:
+        args.estimated_output_tokens = manifest_output_cap
+    if args.estimated_input_tokens <= 0 or args.estimated_output_tokens <= 0:
+        parser.error("token estimates must be positive")
+    if args.estimated_output_tokens < manifest_output_cap:
+        parser.error(
+            "--estimated-output-tokens must cover the manifest request cap "
+            f"{manifest_output_cap}"
+        )
     train_tasks, test_tasks, include_learned = phase_tasks(dataset, args.phase)
     plan = call_plan(
         train_tasks, test_tasks, len(manifest.candidates), args.repeats, include_learned
@@ -395,12 +408,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("paid runs require a positive --max-production-cost")
     if args.max_evaluation_cost is None or args.max_evaluation_cost <= 0:
         parser.error("paid runs require a positive --max-evaluation-cost")
-    manifest_output_cap = max(model.max_output_tokens or 0 for model in manifest.models)
-    if args.estimated_output_tokens < manifest_output_cap:
-        parser.error(
-            "--estimated-output-tokens must cover the manifest request cap "
-            f"{manifest_output_cap}"
-        )
     if args.max_production_cost < cost_estimates["production_upper_estimate"]:
         parser.error(
             "--max-production-cost must cover the preflight estimate "

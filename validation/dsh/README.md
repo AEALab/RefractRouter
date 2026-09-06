@@ -107,13 +107,13 @@ call plan without invoking a candidate or judge model. A paid run additionally r
 requires every frozen provider/model route to resolve in DSH; its requests pass through a bounded
 stdio bridge and its credential remains inside the DSH provider.
 
-Issue #4 uses `data/model-manifests/volcengine-agent-plan.json`: three Agent Plan candidates,
-`kimi-k3` as the independent judge, AFP billing, 200/60 AFP deployment ceilings, and zero retries.
+The issue #19 correction uses `data/model-manifests/volcengine-agent-plan.json`: three Agent Plan candidates,
+`kimi-k3` as the independent judge, AFP billing, proposed 400/90 AFP deployment ceilings, and zero retries.
 Its benchmark requests use the exact Agent Plan OpenAI-compatible base URL
 `https://ark.cn-beijing.volces.com/api/plan/v3`; the plugin rejects the ordinary Ark `/api/v3`
 endpoint for any AFP manifest. DSH resolves the plan credential and passes it only to the scrubbed
-Python child. The frozen inputs and 206.16 AFP estimate are recorded in
-[`../../reports/v0.1/issue-4-agent-plan-preflight.md`](../../reports/v0.1/issue-4-agent-plan-preflight.md).
+Python child. The corrected 8,192-token cap yields a 456.47 AFP estimate. Its new budget and validation status
+are recorded in [`../../reports/v0.1/issue-19-output-truncation.md`](../../reports/v0.1/issue-19-output-truncation.md).
 
 DSH is still only the outer validator. It must not choose candidate models, change the frozen manifest,
 or replace the DeepAgents/LangGraph execution path. Before launching a DSH headless session, explicitly

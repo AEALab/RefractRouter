@@ -150,8 +150,8 @@ Then apply this profile override:
   config:
     allowPaidRuns: false
     billingUnit: AFP
-    maxProductionCost: 200
-    maxEvaluationCost: 60
+    maxProductionCost: 400
+    maxEvaluationCost: 90
     maxRetries: 0
     manifestPath: data/model-manifests/volcengine-agent-plan.json
     credentialEnv: CODEX_ARK_API_KEY
@@ -162,13 +162,14 @@ The zero-cost preflight verifies AFP billing, provider `ark-plan`, and the exact
 credential resolution or process launch. During a paid operation, DSH resolves the Agent Plan key and
 injects it only into the scrubbed Python child, which calls `/api/plan/v3/chat/completions` directly.
 The runner uses a 120-second per-request timeout and zero retries. The manifest caps every response at
-the same 1,200 tokens used by the AFP preflight estimate; paid execution rejects an estimate below the
-manifest's request cap. Because this cap includes reasoning tokens, the frozen issue #4 manifest sends
+8,192 tokens; the preflight output estimate defaults to the manifest cap and rejects a lower explicit
+estimate even in zero-cost mode. Because this cap includes reasoning tokens, the manifest sends
 `thinking: {"type": "disabled"}` to reserve the output allowance for the required structured result.
 
 Paid direct runs create `model-progress.ndjson` beside `preflight.json`. Each request writes a
 prompt-free start record before dispatch and a finish record with status, latency, request ID, and
-token usage. This file identifies the current model during a long run without storing prompts,
+token usage and finish reason. `finish_reason=length` is classified as `output-truncated` by the
+node adapter while preserving the partial output and billed usage. This file identifies the current model during a long run without storing prompts,
 generated content, or credentials, and its hash is included in the final evidence. Generic
 `dsh-llm` manifests retain the equivalent `bridge-progress.ndjson` evidence.
 
@@ -181,8 +182,10 @@ When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coeff
     model: deepseek-v4-flash
 ```
 
-The outer agent calls occur outside the plugin's production/evaluation ledgers. For issue #4 they
-have a separate 5 AFP operational allowance, bringing the complete approved ceiling to 265 AFP.
+The outer agent calls occur outside the plugin's production/evaluation ledgers. Issue #19 proposes
+400 AFP production, 90 AFP evaluation, and a separate 5 AFP outer allowance (495 AFP total). This
+is a new budget request, not covered by issue #4's prior 265 AFP authorization. Keep paid execution
+disabled until the new budget is approved.
 
 ## Invoke each phase
 
