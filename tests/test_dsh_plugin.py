@@ -16,9 +16,17 @@ class DSHPluginTests(unittest.TestCase):
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
+        self.assertEqual(package["version"], "0.1.1")
+        self.assertTrue(package["private"])
+        self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
+        self.assertEqual(package["packageManager"], "pnpm@10.15.0")
         self.assertEqual(
             package["dsh"]["bundle"]["patch"],
             "./cordis.patch.yml",
+        )
+        self.assertEqual(
+            package["dsh"]["compatibility"]["cli"],
+            "0.1.1-rc.2",
         )
         self.assertIn("name: dsh-refractrouter-validation", patch)
         self.assertIn("allowPaidRuns: false", patch)
@@ -51,6 +59,8 @@ const valid = Config['~standard'].validate({})
 if (!('value' in valid) || valid.value.allowPaidRuns !== false) process.exit(1)
 const invalid = Config['~standard'].validate({ unexpected: true })
 if (!('issues' in invalid) || invalid.issues.length !== 1) process.exit(2)
+const fractional = Config['~standard'].validate({ timeoutMs: 1.5 })
+if (!('issues' in fractional) || fractional.issues.length !== 1) process.exit(3)
 """
         completed = subprocess.run(
             ["node", "--input-type=module", "--eval", program],
@@ -61,6 +71,21 @@ if (!('issues' in invalid) || invalid.issues.length !== 1) process.exit(2)
         )
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
+
+    def test_node_service_contract(self) -> None:
+        completed = subprocess.run(
+            ["node", "--test", "tests/dsh_plugin_contract.test.mjs"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            f"{completed.stdout}\n{completed.stderr}",
+        )
 
     def test_real_runner_accepts_plugin_provenance(self) -> None:
         completed = subprocess.run(

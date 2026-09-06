@@ -16,6 +16,7 @@ DSH validation is delivered as the installable `dsh-refractrouter-validation` bu
 checkout into a base-backed profile:
 
 ```bash
+npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
 dsh plugin --profile headless add ./validation/dsh/plugin
 dsh --profile headless --dump-config | rg refractrouter-validation
 ```
@@ -65,3 +66,8 @@ Paid calls are disabled by the bundle default. A higher-precedence profile patch
 `allowPaidRuns: true` and define the maximum production/evaluation ceilings. The tool call must then
 request `executePaidRun: true` and supply two positive limits no larger than those ceilings. The
 plugin resolves the credential for that operation only and never returns its value.
+
+The supported versions, all three phase examples, clean-profile lifecycle check, output limits,
+failure diagnosis, upgrade procedure, and rollback procedure are maintained in
+[`plugin/README.md`](plugin/README.md). Run `python3 scripts/validate_dsh_plugin_lifecycle.py` after a
+DSH or Node upgrade and before any paid benchmark.
