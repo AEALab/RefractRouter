@@ -56,6 +56,18 @@ class RealRunnerPreflightTests(unittest.TestCase):
         )
         self.assertEqual(preflight["provider"], "ark-plan")
         self.assertEqual(
+            preflight["execution_policy"]["request_options_by_model"],
+            {
+                model: {"thinking": {"type": "disabled"}}
+                for model in (
+                    "deepseek-v4-flash",
+                    "minimax-m3",
+                    "deepseek-v4-pro",
+                    "kimi-k3",
+                )
+            },
+        )
+        self.assertEqual(
             preflight["cost_estimate_assumptions"]["manifest_max_output_tokens"],
             1200,
         )

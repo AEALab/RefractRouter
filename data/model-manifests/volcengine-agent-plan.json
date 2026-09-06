@@ -15,7 +15,11 @@
     "api_key_env": "CODEX_ARK_API_KEY",
     "context_window": 1024000,
     "max_output_tokens": 1200,
-    "request_options": {}
+    "request_options": {
+      "thinking": {
+        "type": "disabled"
+      }
+    }
   },
   "models": [
     {

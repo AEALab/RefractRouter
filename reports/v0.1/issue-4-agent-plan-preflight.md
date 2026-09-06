@@ -175,3 +175,42 @@ preflight passed with zero retries and produced manifest SHA-256
 
 Plugin 0.3.0 passed 57 Python tests, 12 Node contract tests, the five-file package check, and a clean
 DSH `0.1.1-rc.2` install/override/remove/reinstall/boot lifecycle with zero paid calls.
+
+## First direct paid dry-run result
+
+The DSH tool executed the paid dry run from merged commit `926146e` and returned structured
+`status=fail`, `mode=paid`, with `benchmark-incomplete` and `plugin-runner-exit:1`. The experiment
+process produced its complete failure artifacts and exited normally; the validation wrapper then
+returned non-zero because `benchmark-summary.json` had status `incomplete`. These layers are
+consistent with an experiment No-go.
+
+All 28 HTTP requests actually dispatched through the Agent Plan endpoint succeeded in one attempt,
+with a provider request ID and complete token/latency telemetry. They used 13,707 input tokens,
+30,455 output tokens, 1,059 cached-input tokens, and 22,920 reasoning tokens. Production cost was
+12.1471 AFP. No `kimi-k3` judge request was dispatched because no strategy produced a final report.
+
+The 1,200-token cap includes reasoning tokens. Five selected initial nodes ended with
+`finish_reason=length`: two returned empty content and three returned truncated JSON. This caused 29
+downstream `upstream-failure` results and five `judge:missing-final-output` results. Judge coverage and
+success rate were both zero, so the gate correctly returned `No-go`. The retained evidence is in
+`reports/v0.1-real/dry-run-agent-plan-default-thinking/`; a credential-value scan found zero matches
+across all 14 files.
+
+The refreshed Agent Plan console showed 20.379 AFP for the near-five-hour window, 30,851.871 AFP for
+the week, and 63,966.543 AFP for the month. The near-five-hour increase from the 6.414 baseline was
+13.965 AFP, aligning with the direct run, its outer DSH turns, the live probes, and the previously
+unaccounted outer retry. The overage dialog still showed every model as `未开启`, including
+DeepSeek-V4-Flash and DeepSeek-V4-Pro.
+
+Official Ark requests can disable deep thinking with `thinking: {"type": "disabled"}`. Four bounded
+live probes verified that option on `deepseek-v4-flash`, `minimax-m3`, `deepseek-v4-pro`, and
+`kimi-k3`: each returned in one attempt with zero reasoning tokens. Their estimated total was
+0.1506 AFP. The corrected manifest therefore disables thinking without changing the 1,200-token cap
+or the original 206.16 AFP benchmark ceiling. Including a fresh 5 AFP outer allowance, the next run's
+worst-case cumulative usage remains about 231.6896 AFP, below the approved 265 AFP ceiling.
+
+The corrected zero-cost preflight exposes the effective request options for all four models, passed
+with zero retries, and produced manifest SHA-256
+`bfe79c97e7f9868eeea76f4e81cb0cf6102325388dc8d81313b8fde59bfeda25` and preflight SHA-256
+`b241d92693f166ad1180af5dff0fdd6c8958606245f3ffacd3bf5fe0c8f02b74`. The correction passed
+57 Python tests and all 12 Node DSH contract tests.

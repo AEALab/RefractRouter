@@ -363,6 +363,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             "temperature": 0,
             "timeout_seconds": args.timeout_seconds,
             "max_retries": args.max_retries,
+            "request_options_by_model": {
+                model.api_model: dict(model.request_options)
+                for model in manifest.models
+            },
         },
         "call_plan": plan,
         "cost_estimate_assumptions": {

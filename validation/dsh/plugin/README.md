@@ -163,7 +163,8 @@ credential resolution or process launch. During a paid operation, DSH resolves t
 injects it only into the scrubbed Python child, which calls `/api/plan/v3/chat/completions` directly.
 The runner uses a 120-second per-request timeout and zero retries. The manifest caps every response at
 the same 1,200 tokens used by the AFP preflight estimate; paid execution rejects an estimate below the
-manifest's request cap.
+manifest's request cap. Because this cap includes reasoning tokens, the frozen issue #4 manifest sends
+`thinking: {"type": "disabled"}` to reserve the output allowance for the required structured result.
 
 Paid direct runs create `model-progress.ndjson` beside `preflight.json`. Each request writes a
 prompt-free start record before dispatch and a finish record with status, latency, request ID, and

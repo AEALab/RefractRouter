@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import json
 import io
+import json
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from refractrouter.adapters import OpenAICompatibleAdapter
@@ -99,6 +100,20 @@ class OpenAICompatibleClientTests(unittest.TestCase):
         self.assertEqual(transport.calls[0]["authorization"], "Bearer secret")
         self.assertEqual(
             transport.calls[0]["payload"]["response_format"], {"type": "json_object"}
+        )
+
+        thinking_model = replace(
+            real_model(), request_options={"thinking": {"type": "disabled"}}
+        )
+        thinking_transport = SequenceTransport([success_response()])
+        OpenAICompatibleClient(
+            transport=thinking_transport,
+            environment={"TEST_API_KEY": "secret"},
+            max_retries=0,
+        ).complete(thinking_model, [{"role": "user", "content": "test"}])
+        self.assertEqual(
+            thinking_transport.calls[0]["payload"]["thinking"],
+            {"type": "disabled"},
         )
 
     def test_missing_key_fails_without_transport_call(self) -> None:

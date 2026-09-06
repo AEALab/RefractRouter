@@ -17,10 +17,10 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 - 20-task 合成 benchmark（train/test 各 10 个）、USD/AFP 真实模型 manifest、
   OpenAI-compatible 与 DSH LLM adapter、真实 token/成本/延迟遥测、独立 judge 与预算保护。
 
-当前已经完成真实模型实验基础设施，但尚未产生完整的真实模型 benchmark 结果。方舟
-Agent Plan 凭据与外层 `ark-plan` provider 已配置，正式 benchmark 通过 Agent Plan 专属
-`/api/plan/v3` OpenAI 兼容端点执行。现有分数仍只来自 fake model。preflight 不调用模型，
-也不消耗 benchmark AFP。
+首次真实 Agent Plan paid dry run 已验证专属 `/api/plan/v3` 传输、遥测和 DSH 证据链，
+但因默认深度思考耗尽 1,200-token 输出额度而以 `incomplete / No-go` 结束；证据保存在
+`reports/v0.1-real/dry-run-agent-plan-default-thinking/`。修正版关闭候选模型与 judge 的
+thinking，并保持原输出额度和 AFP 上限。pilot 在修正版 dry run 完整通过前保持阻塞。
 
 ## Quick Start
 
@@ -109,8 +109,9 @@ runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与�
 Agent Plan 支持 OpenAI 兼容的 Chat API 与 Responses API。RefractRouter 使用前者；AFP
 manifest 和 DSH 插件共同拒绝普通方舟 `/api/v3`，只允许
 `https://ark.cn-beijing.volces.com/api/plan/v3`。DSH 凭证服务在每次获批的付费操作中解析
-Agent Plan 专属 Key，并只交给受控且诊断输出会脱敏的 benchmark 子进程。配置与零费用
-验证步骤见
+Agent Plan 专属 Key，并只交给受控且诊断输出会脱敏的 benchmark 子进程。冻结 manifest
+显式关闭 thinking，避免推理 tokens 占用结构化正文的 1,200-token 上限。配置与零费用验证
+步骤见
 `validation/dsh/plugin/README.md` 和 `reports/v0.1/issue-4-agent-plan-preflight.md`。
 
 独立 judge 使用 `data/judges/v0.1.md` 的固定 rubric。需求覆盖、证据准确性和 HTML
@@ -229,8 +230,8 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 
 ## Roadmap
 
-1. 通过 Agent Plan 专属 Chat Completions 端点完成 1-task paid dry run，并复核请求进度、
-   实际 AFP、失败率和证据哈希。
+1. 使用关闭 thinking 的冻结 manifest 重跑 1-task paid dry run，并复核 judge 覆盖、source
+   trace、实际 AFP、失败率和证据哈希。
 2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
 3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
 4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。
