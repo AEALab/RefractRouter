@@ -13,6 +13,7 @@ const DEFAULT_EVIDENCE_BYTES = 2_097_152
 const MAX_MODEL_TIMEOUT_MS = 300_000
 const REDACTED = '[REDACTED]'
 const DSH_BRIDGE_PROTOCOL = 'refractrouter-dsh-llm/v1'
+const AGENT_PLAN_BASE_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
 
 function positiveFinite(value, field) {
   if (!Number.isFinite(value) || value <= 0) {
@@ -144,6 +145,8 @@ async function readExecutionManifest(path) {
   const billingUnits = new Set(models.map(model => String(model.billing_unit).toUpperCase()))
   const wireApis = new Set(models.map(model => String(model.wire_api)))
   const credentialEnvs = new Set(models.map(model => String(model.api_key_env)))
+  const providers = new Set(models.map(model => String(model.provider)))
+  const baseURLs = new Set(models.map(model => String(model.base_url ?? '').replace(/\/+$/, '')))
   if (billingUnits.size !== 1 || wireApis.size !== 1 || credentialEnvs.size !== 1) {
     throw new Error('plugin requires one billing unit, wire API, and credential reference')
   }
@@ -151,13 +154,30 @@ async function readExecutionManifest(path) {
   if (!['chat-completions', 'dsh-llm'].includes(wireApi)) {
     throw new Error(`unsupported manifest wire API: ${wireApi}`)
   }
+  const billingUnit = [...billingUnits][0]
+  const baseURL = baseURLs.size === 1 ? [...baseURLs][0] : undefined
+  if (wireApi === 'chat-completions' && (baseURL === undefined || baseURL.length === 0)) {
+    throw new Error('chat-completions manifest requires one base URL')
+  }
+  if (
+    billingUnit === 'AFP'
+    && (
+      wireApi !== 'chat-completions'
+      || baseURL !== AGENT_PLAN_BASE_URL
+      || providers.size !== 1
+      || !providers.has('ark-plan')
+    )
+  ) {
+    throw new Error(`AFP validation requires ark-plan at ${AGENT_PLAN_BASE_URL}`)
+  }
   const routes = models.map(model => ({
     provider: String(model.provider),
     model: String(model.api_model),
   }))
   return {
-    billingUnit: [...billingUnits][0],
+    billingUnit,
     wireApi,
+    baseURL,
     credentialEnv: [...credentialEnvs][0],
     routes,
   }
@@ -619,6 +639,7 @@ async function executeValidation(ctx, args, exec, config) {
     if (!credentialConfigured) {
       throw new Error(`paid validation requires configured credential ${config.credentialEnv}`)
     }
+    env.REFRACTROUTER_MODEL_PROGRESS = join(outputDir, 'model-progress.ndjson')
     if (manifest.wireApi === 'dsh-llm') {
       env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
       env.REFRACTROUTER_DSH_PROGRESS = join(outputDir, 'bridge-progress.ndjson')

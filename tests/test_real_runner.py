@@ -49,7 +49,11 @@ class RealRunnerPreflightTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(preflight["billing_unit"], "AFP")
-        self.assertEqual(preflight["wire_api"], "dsh-llm")
+        self.assertEqual(preflight["wire_api"], "chat-completions")
+        self.assertEqual(
+            preflight["base_url"],
+            "https://ark.cn-beijing.volces.com/api/plan/v3",
+        )
         self.assertEqual(preflight["provider"], "ark-plan")
         self.assertEqual(
             preflight["cost_estimate_assumptions"]["manifest_max_output_tokens"],

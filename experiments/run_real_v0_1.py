@@ -357,6 +357,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "pricing_snapshot_date": manifest.pricing_snapshot_date,
         "billing_unit": manifest.billing_unit,
         "wire_api": manifest.candidates[0].wire_api,
+        "base_url": manifest.candidates[0].base_url,
         "provider": manifest.candidates[0].provider,
         "execution_policy": {
             "temperature": 0,

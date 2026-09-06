@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { spawn as spawnChild } from 'node:child_process'
-import { rm, writeFile } from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 
 import { apply, callDshLlm } from '../validation/dsh/plugin/index.js'
@@ -196,7 +197,7 @@ test('danger-full-access bypasses sandbox wrapping', async () => {
   assert.equal(fixture.calls.confine, 0)
 })
 
-test('Agent Plan preflight verifies the frozen DSH provider routes without resolving the key', async () => {
+test('Agent Plan uses only the dedicated direct endpoint and DSH-resolved credential', async () => {
   const config = {
     billingUnit: 'AFP',
     maxProductionCost: 200,
@@ -207,7 +208,7 @@ test('Agent Plan preflight verifies the frozen DSH provider routes without resol
   const ready = fakeContext({
     config,
     credentialConfigured: true,
-    providers: ['ark-plan'],
+    providers: [],
     resultEvidence: evidence({ billingUnit: 'AFP' }),
   })
   const result = await ready.tool.execute({ phase: 'dry-run' }, execution())
@@ -217,33 +218,64 @@ test('Agent Plan preflight verifies the frozen DSH provider routes without resol
   assert.equal(result.modelProviderConfigured, true)
   assert.equal(ready.calls.resolve, 0)
 
-  const missing = fakeContext({
-    config,
-    providers: [],
-    resultEvidence: evidence({ billingUnit: 'AFP' }),
-  })
-  const missingResult = await missing.tool.execute({ phase: 'dry-run' }, execution())
-  assert.equal(missingResult.status, 'fail')
-  assert.ok(missingResult.issues.includes('missing-llm-provider:ark-plan'))
-
-  const retriesEnabled = fakeContext({
+  const paid = fakeContext({
     config: { ...config, allowPaidRuns: true },
     credential: 'test-secret',
-    providers: ['ark-plan'],
-    providerRetryPolicy: { mode: 'normal', maxRetries: 5 },
-    resultEvidence: evidence({ billingUnit: 'AFP' }),
+    providers: [],
+    resultEvidence: evidence({ mode: 'paid', billingUnit: 'AFP' }),
   })
-  await assert.rejects(
-    retriesEnabled.tool.execute({
-      phase: 'dry-run',
-      executePaidRun: true,
-      maxProductionCost: 200,
-      maxEvaluationCost: 60,
-    }, execution()),
-    /llm-provider-retry-policy-not-zero:ark-plan/,
+  const paidResult = await paid.tool.execute({
+    phase: 'dry-run',
+    executePaidRun: true,
+    maxProductionCost: 200,
+    maxEvaluationCost: 60,
+  }, execution())
+  assert.equal(paidResult.status, 'pass')
+  assert.equal(paid.calls.resolve, 1)
+  assert.equal(paid.calls.spawnSpec.env.CODEX_ARK_API_KEY, 'test-secret')
+  assert.equal(paid.calls.spawnSpec.env.REFRACTROUTER_DSH_BRIDGE, undefined)
+  assert.match(
+    paid.calls.spawnSpec.env.REFRACTROUTER_MODEL_PROGRESS,
+    /\/output\/model-progress\.ndjson$/,
   )
-  assert.equal(retriesEnabled.calls.describe, 0)
-  assert.equal(retriesEnabled.calls.spawn, 0)
+  assert.equal(paid.calls.spawnSpec.stdio.stdin, 'ignore')
+  assert.equal(paid.calls.spawnSpec.stdio.stdout.maxBytes, 262_144)
+})
+
+test('AFP execution rejects the ordinary Ark pay-as-you-go endpoint', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'refractrouter-afp-manifest-'))
+  const manifestPath = join(directory, 'manifest.json')
+  await writeFile(manifestPath, JSON.stringify({
+    schema_version: 'v0.2',
+    defaults: {
+      provider: 'ark-plan',
+      billing_unit: 'AFP',
+      wire_api: 'chat-completions',
+      base_url: 'https://ark.cn-beijing.volces.com/api/v3',
+      api_key_env: 'CODEX_ARK_API_KEY',
+    },
+    models: [{ model_id: 'cheap', api_model: 'deepseek-v4-flash' }],
+  }), 'utf8')
+
+  try {
+    const fixture = fakeContext({
+      config: {
+        billingUnit: 'AFP',
+        manifestPath,
+        credentialEnv: 'CODEX_ARK_API_KEY',
+      },
+      credentialConfigured: true,
+      providers: [],
+      resultEvidence: evidence({ billingUnit: 'AFP' }),
+    })
+    await assert.rejects(
+      fixture.tool.execute({ phase: 'dry-run' }, execution()),
+      /AFP validation requires ark-plan at https:\/\/ark\.cn-beijing\.volces\.com\/api\/plan\/v3/,
+    )
+    assert.equal(fixture.calls.spawn, 0)
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
 })
 
 test('paid execution requires deployment enablement, two budgets, and a credential', async () => {

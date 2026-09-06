@@ -5,16 +5,18 @@ not evidence that any real model was called.
 
 ## Provider boundary
 
-Volcengine documents Agent Plan text models for supported AI tools and warns against using the
-personal-plan endpoint as a general API. DeepSeek Harness is a supported tool and exposes Agent
-Plan through `openai-completions` or `openai-responses` providers. RefractRouter therefore sends
-model requests through the hosting DSH `llm` service. The Python runner receives model output and
-telemetry over a bounded stdio bridge; `CODEX_ARK_API_KEY` remains owned by DSH.
+Volcengine exposes Agent Plan through the OpenAI-compatible base URL
+`https://ark.cn-beijing.volces.com/api/plan/v3` and supports both Chat API and Responses API.
+RefractRouter uses `/api/plan/v3/chat/completions`. The AFP manifest and DSH plugin require that exact
+base URL and provider name `ark-plan`, so the ordinary Ark `/api/v3` pay-as-you-go route is rejected
+before a model call. DSH resolves `CODEX_ARK_API_KEY` only for a paid operation and passes it to the
+scrubbed benchmark child without returning it in diagnostics or evidence.
 
 Official references:
 
 - [Agent Plan AFP deduction rules](https://www.volcengine.com/docs/82379/2516283?lang=zh)
 - [Agent Plan packages, models, and usage limits](https://www.volcengine.com/docs/82379/2366394?lang=zh)
+- [Agent Plan Chat API and Responses API resources](https://www.volcengine.com/docs/82379/2123434?lang=zh)
 - [Agent Plan with DeepSeek Harness](https://www.volcengine.com/docs/82379/2637928?lang=zh)
 - [Agent Plan with Codex](https://www.volcengine.com/docs/82379/2556054?lang=zh)
 
@@ -52,15 +54,14 @@ part of the benchmark production or evaluation ledger. The execution profile pin
 `ark-plan/deepseek-v4-flash` and reserves a separate 5 AFP operational allowance. The complete
 approval ceiling is therefore 265 AFP.
 
-Before paid execution, the DSH profile must expose provider route `ark-plan`, resolve all four model
-names, store the credential under `CODEX_ARK_API_KEY`, keep Agent Plan overage disabled, and set the
-plugin manifest and AFP ceilings. The paid switch remains disabled until those facts and the final
-ceilings are explicitly approved.
+Before paid execution, the DSH profile must expose `ark-plan/deepseek-v4-flash` for the outer tool
+turn, store the Agent Plan credential under `CODEX_ARK_API_KEY`, keep Agent Plan overage disabled,
+and set the plugin manifest and AFP ceilings. Benchmark model names and the dedicated base URL are
+frozen in the manifest.
 
-Both the DSH provider and the runner set `maxRetries: 0`. The plugin verifies the effective provider
-policy before launching a paid subprocess. It also carries the runner's 120-second per-model timeout
-over the stdio bridge, in addition to the whole-run deadline. The runner rejects ceilings below the
-preflight estimates and reserves one estimated call before every production or judge invocation.
+Both the outer DSH provider and the runner set `maxRetries: 0`. Direct benchmark requests have a
+120-second per-model timeout in addition to the whole-run deadline. The runner rejects ceilings below
+the preflight estimates and reserves one estimated call before every production or judge invocation.
 The account-level Agent Plan overage switch remains the final hard stop if actual token usage exceeds
 the estimate.
 
@@ -139,3 +140,38 @@ request signal and detaching iterator cleanup on abort. It also writes a prompt-
 `bridge-progress.ndjson` start/finish record for every request, including the selected provider,
 model, status, latency, and usage. A run can now identify the active request and completed count
 without waiting for all benchmark artifacts.
+
+## Direct Agent Plan transport correction
+
+The first run with plugin 0.2.2 wrote a `request-start` record for
+`ark-plan/deepseek-v4-flash` at 16:46:37 local time but had no finish record by 16:50:06, more than
+120 seconds later. Neither the DSH parent nor the Python process held a TCP connection. The Python
+child had written its request to stdout, but the parent had not consumed it, so the DSH model call and
+its timeout had never started. The attempt was stopped immediately after that state was established.
+
+Plugin 0.3.0 removes that unreliable stdio path for AFP manifests. The benchmark child now uses the
+official OpenAI-compatible Agent Plan Chat endpoint directly, while DSH retains credential resolution,
+process ownership, sandboxing, budget gates, outer-agent execution, redaction, and evidence capture.
+Every direct request writes prompt-free `model-progress.ndjson` start and finish records. AFP manifests
+are rejected unless they use `ark-plan` and the exact `/api/plan/v3` base URL.
+
+After the failed bridge attempts, the Agent Plan console showed 6.414 AFP of near-five-hour usage.
+All listed overage switches, including `deepseek-v4-flash` and `deepseek-v4-pro`, were disabled. Against
+the approved 265 AFP total ceiling, 258.586 AFP remained.
+
+A one-request direct probe then called the exact
+`https://ark.cn-beijing.volces.com/api/plan/v3/chat/completions` endpoint with
+`deepseek-v4-flash`, zero retries, a 30-second timeout, and a 16-token output cap. It completed in one
+attempt with a provider request ID, 88 input tokens, and 16 output tokens. The local AFP formula puts
+that probe at 0.0052 AFP. This verifies the dedicated endpoint, Agent Plan key, model name, and Chat
+Completions request shape; it does not claim benchmark quality.
+
+The next full invocation uses exact benchmark limits of 160.16 production AFP and 46 evaluation AFP
+plus at most 5 AFP for the outer turn. Including the earlier 6.414 AFP and the direct probe, the
+worst-case cumulative total is 217.5792 AFP, 47.4208 below the approved ceiling. The direct-transport
+preflight passed with zero retries and produced manifest SHA-256
+`8a2598bf4b848ef0f0d5f6d03a316b332bc0e35c33dcec33a5788d241dda4c58` and preflight SHA-256
+`323f855e44c1a7208f7027f0543acbfe81576ee78e896f0019dd2c63aabb021b`.
+
+Plugin 0.3.0 passed 57 Python tests, 12 Node contract tests, the five-file package check, and a clean
+DSH `0.1.1-rc.2` install/override/remove/reinstall/boot lifecycle with zero paid calls.

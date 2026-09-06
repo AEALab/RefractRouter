@@ -34,7 +34,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.2.2.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.3.0.tgz
 ```
 
 The package contains only `index.js`, `cordis.patch.yml`, `README.md`, `CHANGELOG.md`, and
@@ -51,8 +51,9 @@ The package contains only `index.js`, `cordis.patch.yml`, `README.md`, `CHANGELO
 - The plugin launches a fixed argv through `ctx.subprocess`; it never asks a model to construct a
   shell command.
 - Direct HTTP manifests resolve their credential once per paid operation, forward it only in the
-  scrubbed child environment, and redact it from diagnostics. `dsh-llm` manifests keep provider
-  credentials inside DSH; a bounded stdio bridge carries only prompts, model results, and telemetry.
+  scrubbed child environment, and redact it from diagnostics. AFP manifests additionally require
+  provider `ark-plan` and the exact Agent Plan `/api/plan/v3` base URL. Generic `dsh-llm` manifests
+  keep provider credentials inside DSH; a bounded stdio bridge carries prompts, results, and telemetry.
 
 ## Install, inspect, remove, and restore
 
@@ -110,7 +111,7 @@ The main deployment fields are:
 | `processGraceMs` | `5000` | Managed subprocess termination grace |
 | `outputCaptureBytes` | `262144` | Tail retained for each standard stream |
 | `maxEvidenceBytes` | `2097152` | Largest accepted evidence JSON |
-| `credentialEnv` | `OPENAI_API_KEY` | Credential reference; direct HTTP only also uses it as the child variable |
+| `credentialEnv` | `OPENAI_API_KEY` | Credential reference; direct HTTP also uses it as the scrubbed child variable |
 
 Paths for the runner, dataset, manifest, `uv` executable, and `uv` cache are also configurable for
 deployment. Unknown fields fail configuration validation.
@@ -121,10 +122,10 @@ Either requested limit above its deployment ceiling is rejected before credentia
 subprocess launch. The runner also rejects a limit below its conservative preflight estimate before
 the first model call and reserves one estimated call against the remaining ledger before each call.
 
-For the Agent Plan dry run, first configure a DSH provider route named `ark-plan` through ArkCLI
-Helper, the official `ark-plan-api` plugin, or the DSH Models UI. Use the Agent Plan endpoint and
-the same credential reference as the manifest. The generic `llm-pi-ai` settings must disable its
-provider-owned retry policy and bound both the complete request and an idle provider read:
+For the Agent Plan dry run, configure a DSH provider route named `ark-plan` for the short outer agent
+turn through ArkCLI Helper, the official `ark-plan-api` plugin, or the DSH Models UI. Use the Agent
+Plan endpoint and the same credential reference as the manifest. The outer route needs only the
+low-coefficient `deepseek-v4-flash` model and zero provider retries:
 
 ```yaml
 llm-pi-ai:
@@ -134,20 +135,12 @@ llm-pi-ai:
       apiKeyEnv: CODEX_ARK_API_KEY
       api: openai-responses
       baseURL: https://ark.cn-beijing.volces.com/api/plan/v3
-      timeoutMs: 120000
-      streamIdleTimeoutMs: 120000
       retryPolicy:
         mode: normal
         maxRetries: 0
       models:
         - id: deepseek-v4-flash
           name: deepseek-v4-flash
-        - id: minimax-m3
-          name: minimax-m3
-        - id: deepseek-v4-pro
-          name: deepseek-v4-pro
-        - id: kimi-k3
-          name: kimi-k3
 ```
 
 Then apply this profile override:
@@ -164,18 +157,19 @@ Then apply this profile override:
     credentialEnv: CODEX_ARK_API_KEY
 ```
 
-The zero-cost preflight checks all four frozen `ark-plan` model routes and rejects any provider retry
-policy other than `normal` with zero retries. A paid run also opens the stdio bridge and invokes those
-models through `ctx.llm`; the Agent Plan key is not sent to Python. The runner's 120-second model
-timeout crosses the bridge, locally races each stream read, and returns `timeout` even if a provider
-stream ignores its abort signal. The Agent Plan manifest caps every response at the same 1,200 tokens
-used by the AFP preflight estimate; paid execution rejects an estimate below the manifest's request
-cap.
+The zero-cost preflight verifies AFP billing, provider `ark-plan`, and the exact base URL
+`https://ark.cn-beijing.volces.com/api/plan/v3`. It rejects the ordinary Ark `/api/v3` endpoint before
+credential resolution or process launch. During a paid operation, DSH resolves the Agent Plan key and
+injects it only into the scrubbed Python child, which calls `/api/plan/v3/chat/completions` directly.
+The runner uses a 120-second per-request timeout and zero retries. The manifest caps every response at
+the same 1,200 tokens used by the AFP preflight estimate; paid execution rejects an estimate below the
+manifest's request cap.
 
-Paid DSH bridge runs create `bridge-progress.ndjson` beside `preflight.json`. Each request writes a
-prompt-free start record before dispatch and a finish record with status, latency, and token usage.
-This file identifies the current model during a long run without storing prompts, generated content,
-or credentials. It is included in the final evidence artifact hashes.
+Paid direct runs create `model-progress.ndjson` beside `preflight.json`. Each request writes a
+prompt-free start record before dispatch and a finish record with status, latency, request ID, and
+token usage. This file identifies the current model during a long run without storing prompts,
+generated content, or credentials, and its hash is included in the final evidence. Generic
+`dsh-llm` manifests retain the equivalent `bridge-progress.ndjson` evidence.
 
 When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coefficient candidate:
 
@@ -235,9 +229,9 @@ Do not move to `pilot` or `final` until the preceding issue's evidence and budge
 | Profile boot rejects configuration | Remove unknown fields and verify value types in the higher-precedence patch. |
 | `paid validation is disabled` | Keep the safe default, or explicitly enable paid runs for an approved execution. |
 | `requires configured credential` | Configure the manifest's credential reference in DSH; never put the value in a patch or tool call. |
-| `missing-llm-provider:ark-plan` | Configure the Agent Plan provider in the DSH profile, then repeat preflight. |
-| `unresolved-llm-model:*` | Ensure the DSH provider exposes every model frozen in the selected manifest. |
-| `llm-provider-retry-policy-not-zero:*` | Set the provider's nested `retryPolicy` to `mode: normal` and `maxRetries: 0`. |
+| `missing-llm-provider:*` | A generic `dsh-llm` manifest references an unavailable DSH provider. |
+| `unresolved-llm-model:*` | A generic `dsh-llm` manifest references an unavailable provider/model route. |
+| `llm-provider-retry-policy-not-zero:*` | Set a generic bridge provider's nested `retryPolicy` to `mode: normal` and `maxRetries: 0`. |
 | `plugin-runner-timeout` / `plugin-runner-aborted` | Inspect the evidence and bounded stream tails, then adjust the deployment timeout only if the run plan justifies it. |
 | `plugin-runner-stdout-truncated` / `plugin-runner-stderr-truncated` | Increase the capture limit for diagnosis; truncation fails closed. |
 | `invalid-evidence` / `missing-evidence` | Verify runner paths, write access, evidence size, Python dependencies, and the child exit code. |

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- Send AFP benchmark calls directly to the Agent Plan OpenAI-compatible Chat Completions endpoint,
+  avoiding the DSH stdio bridge that could stall before dispatch.
+- Reject AFP manifests unless every model uses provider `ark-plan` and the exact
+  `https://ark.cn-beijing.volces.com/api/plan/v3` base URL, preventing fallback to ordinary Ark
+  pay-as-you-go billing.
+- Resolve the Agent Plan key through DSH credentials only for a paid operation, inject it into the
+  scrubbed child environment, and persist prompt-free `model-progress.ndjson` request evidence.
+
 ## 0.2.2
 
 - Enforce per-request timeouts locally while consuming DSH streams, including providers that ignore
