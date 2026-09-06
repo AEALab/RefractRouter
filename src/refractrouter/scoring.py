@@ -105,7 +105,7 @@ def score_task(task: TaskDAG, node_results: tuple[NodeResult, ...], final_output
     return round(sum(dimensions.values()), 3)
 
 
-NODE_CHECKS_VERSION = "v0.2"
+NODE_CHECKS_VERSION = "v0.3"
 
 
 class _HeadingParser(HTMLParser):
@@ -212,16 +212,18 @@ def node_contract_checks(task: TaskDAG, node: NodeSpec, output: str, context=Non
         evidence = value.get("evidence")
         known = {x.source_id: x for x in task.source_documents}
         valid_ids: set[str] = set()
+        seen_claims: set[tuple[str, str]] = set()
         valid = isinstance(evidence, list) and bool(evidence)
         for item in evidence if isinstance(evidence, list) else []:
             sid = item.get("source_id") if isinstance(item, dict) else None
             source = known.get(sid) if isinstance(sid, str) else None
             if not source or item.get("content_hash") != source.content_hash or item.get("title") != source.title or not isinstance(item.get("claim"), str) or not item["claim"].strip():
                 valid = False
-            elif sid in valid_ids:
+            elif (sid, " ".join(item["claim"].split()).casefold()) in seen_claims:
                 valid = False
             else:
                 valid_ids.add(sid)
+                seen_claims.add((sid, " ".join(item["claim"].split()).casefold()))
         checks["evidence_identity"] = valid
         checks["unique_sources"] = sorted(valid_ids)
         if not valid:

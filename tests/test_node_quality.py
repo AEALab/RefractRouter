@@ -90,6 +90,20 @@ def test_verification_scores_verdict_against_actual_input():
     assert OpenAICompatibleAdapter._output_failure(task, node, valid, broken) == 'incorrect-verification'
 
 
+def test_distinct_claims_from_one_source_are_eligible_without_inflating_source_count():
+    task, _, _, context = fixture()
+    node = task.nodes[2]
+    output = json.loads(context[node.node_id])
+    first = output['evidence'][0]
+    output['evidence'].append({**first, 'claim': 'Another distinct fact from the same source.'})
+    checks = node_contract_checks(task, node, json.dumps(output))
+    assert checks['score_cap'] == 100
+    assert len(checks['checks']['unique_sources']) == 3
+    # Identity checks admit distinct facts; semantic support is decided by the judge.
+    output['evidence'].append({**first, 'claim': '  ' + first['claim'].upper() + '  '})
+    assert node_contract_checks(task, node, json.dumps(output))['score_cap'] == 0
+
+
 def test_node_judge_is_blind_and_grounding_requires_semantic_support():
     task, registry, run, context = fixture()
     client = JudgeClient()
@@ -221,3 +235,28 @@ def test_paired_statistics_exclude_failures_and_never_pair_across_repeats():
     assert stats['per_task_quality_delta'][run.task_id]['repeats'] == 2
     with pytest.raises(ValueError, match='Duplicate'):
         paired_comparisons(observations + observations[:1])
+
+
+def test_live_multifact_extraction_regression():
+    from refractrouter.dataset import load_benchmark_dataset
+    dataset = load_benchmark_dataset(ROOT / 'data/benchmarks/v0.1.json', ROOT / 'data/tasks', ROOT / 'data/source_packs')
+    task = dataset.all_tasks[0]
+    path = ROOT / 'reports/v0.2-node-quality/interrupted-duplicate-source-check/node-evaluations.ndjson'
+    cell = next(r for r in map(json.loads, path.read_text().splitlines())
+                if r['node_id'] == 'extract_evidence' and r['model_id'] == 'strong')
+    assert cell['evaluation']['final_score'] == 0  # immutable original failure
+    checks = node_contract_checks(task, task.nodes[2], cell['node_result']['output'], cell['upstream'])
+    assert checks['score_cap'] == 100
+    assert len(checks['checks']['unique_sources']) == 8
+
+
+def test_single_models_checkpoint_before_node_judge_failure():
+    task, registry, _, _ = fixture()
+    saved = {}
+    def fail_evaluation(*args):
+        assert len(saved) == 3
+        raise RuntimeError('interrupted node judge')
+    with pytest.raises(RuntimeError, match='interrupted node judge'):
+        build_task_strategy_bundle(task, registry, FakeModelAdapter(registry), include_learned=False,
+                                   node_evaluator=fail_evaluation, single_recorder=saved.__setitem__)
+    assert all(result.node_results for result in saved.values())

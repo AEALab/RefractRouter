@@ -1,0 +1,34 @@
+{
+  "status": "interrupted",
+  "code_commit": "28cd8acfe412773a1fea8445c6149aaf03062fcb",
+  "reason": "A source with multiple distinct claims was incorrectly rejected as duplicate evidence.",
+  "completed_requests": 41,
+  "started_requests": 42,
+  "matrix_cells": 11,
+  "known_production_afp": 17.282,
+  "known_evaluation_afp": 29.144,
+  "known_benchmark_afp": 46.426,
+  "unsettled_request": {
+    "id": "42",
+    "model": "kimi-k3",
+    "reserved_afp": 16.192,
+    "actual_cost": "unknown; no finish telemetry"
+  },
+  "outer_agent": {
+    "provider": "ark-plan",
+    "model": "deepseek-v4-flash",
+    "calls": 1,
+    "usage": {
+      "inputTokens": 9632,
+      "outputTokens": 172,
+      "cacheReadTokens": 2048
+    },
+    "estimated_afp": 0.5926
+  },
+  "raw_artifact_hashes": {
+    "preflight.json": "2465cda603a5598805c41e8df2a6fa3cc591e2f9fef9fe215d4b45f61aef85f2",
+    "model-progress.ndjson": "8175df5c3db7053b9928a105e67815b8d28fc9536023e5e5373c949b163bbd45",
+    "node-evaluations.ndjson": "330cbeee2969ac8e6a330356acc9a19a6b42af35efbecaefe78712684bf3075a"
+  },
+  "interpretation": "Partial evidence only. No three-repeat result or routing benefit conclusion."
+}
