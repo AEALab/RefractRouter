@@ -37,6 +37,11 @@ MODEL_PROGRESS = "model-progress.ndjson"
 def _expected_artifacts(
     execute_paid_run: bool, preflight: object
 ) -> tuple[str, ...]:
+    if isinstance(preflight, dict) and preflight.get("phase") == "contract-replay":
+        if not execute_paid_run:
+            return ("preflight.json", "replay-cases.json")
+        return ("preflight.json", "replay-cases.json", "replay-results.ndjson",
+                "benchmark-summary.json", "evidence-index.json", MODEL_PROGRESS)
     if not execute_paid_run:
         return REAL_ARTIFACTS[:1]
     if isinstance(preflight, dict) and preflight.get("wire_api") == "dsh-llm":
@@ -66,7 +71,8 @@ def run_real_validation(
     evidence_path.parent.mkdir(parents=True, exist_ok=True)
     command = [
         sys.executable,
-        str(ROOT / "experiments" / "run_real_v0_1.py"),
+        str(ROOT / "experiments" / (
+            "replay_node_contracts.py" if phase == "contract-replay" else "run_real_v0_1.py")),
         "--dataset",
         str(dataset_path),
         "--manifest",
@@ -196,7 +202,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--evidence", required=True, type=Path)
-    parser.add_argument("--phase", choices=("dry-run", "pilot", "final"), default="dry-run")
+    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay"), default="dry-run")
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--execute-paid-run", action="store_true")
     parser.add_argument("--max-production-cost", type=float)

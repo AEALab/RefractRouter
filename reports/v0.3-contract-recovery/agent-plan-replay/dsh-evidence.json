@@ -1,0 +1,133 @@
+{
+  "schema_version": "v0.2",
+  "status": "pass",
+  "mode": "paid",
+  "invoked_by": "dsh-plugin",
+  "recorded_at": "2026-09-06T15:19:04.669506+00:00",
+  "phase": "contract-replay",
+  "repeats": 1,
+  "command": [
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/.venv/bin/python3",
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/experiments/replay_node_contracts.py",
+    "--dataset",
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/benchmarks/v0.1.json",
+    "--manifest",
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+    "--output-dir",
+    "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-QK9aVv/output",
+    "--phase",
+    "contract-replay",
+    "--repeats",
+    "1",
+    "--max-retries",
+    "0",
+    "--execute-paid-run",
+    "--max-production-cost",
+    "32.0",
+    "--max-evaluation-cost",
+    "1.0"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "",
+  "issues": [],
+  "preflight": {
+    "schema_version": "v0.2",
+    "phase": "contract-replay",
+    "repeats": 1,
+    "scope": "Seven saved write_report failures; contract validity only, no semantic or Go claim",
+    "billing_unit": "AFP",
+    "provider": "ark-plan",
+    "wire_api": "chat-completions",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true,
+    "node_output_contract": {
+      "version": "v0.3",
+      "schema_sha256": "671e43c2eda7db3280aba7a514d5f6a62e4093d2a66e5b51a26f3c3278aa8716",
+      "enforcement": "prompt description and local checks; no provider schema guarantee"
+    },
+    "cases_sha256": "00c831aac9bab09be2b2b3ccb38f0f6defd87466da8ca745d69c81b93ad13885",
+    "call_plan": {
+      "training_model_calls": 0,
+      "production_model_calls": 7,
+      "judge_model_calls": 0,
+      "total_model_calls": 7
+    },
+    "cost_estimates": {
+      "billing_unit": "AFP",
+      "production_upper_estimate": 27.24785,
+      "evaluation_upper_estimate": 0,
+      "total_upper_estimate": 27.24785
+    },
+    "json_mode_by_model": {
+      "deepseek-v4-flash": "json-object-hint",
+      "minimax-m3": "prompt-only",
+      "deepseek-v4-pro": "json-object-hint",
+      "kimi-k3": "json-object-hint"
+    },
+    "execution_policy": {
+      "max_retries": 0,
+      "timeout_seconds": 120,
+      "temperature": 0,
+      "max_output_tokens": 8192,
+      "stop_after_contract_failure": true
+    }
+  },
+  "summary": {
+    "status": "complete",
+    "phase": "contract-replay",
+    "planned_calls": 7,
+    "completed_calls": 7,
+    "production_afp": 5.81585,
+    "evaluation_afp": 0,
+    "stopped_early": false,
+    "interpretation": "Contract-only replay. Semantic quality and oracle Go remain unassessed."
+  },
+  "inputs": {
+    "dataset": {
+      "path": "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/benchmarks/v0.1.json",
+      "sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17"
+    },
+    "model_manifest": {
+      "path": "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+      "sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367"
+    },
+    "corpus": {
+      "paths": [
+        "data/tasks",
+        "data/source_packs"
+      ],
+      "sha256": "ca9d3919aed145177fcd15b8e55541df261de7273abfcdb174aea77356548157"
+    },
+    "code": {
+      "paths": [
+        "src/refractrouter",
+        "experiments",
+        "validation/dsh"
+      ],
+      "sha256": "a9a30e103e19ee46e95d12cd3432bb7980101ee6a57cb5e4950f94c8e1f381f9"
+    }
+  },
+  "artifacts": {
+    "preflight.json": "38a45f2f07ff84ee8b03e72bcdf20f3c7bf293940aaa2aaec4669907dfedbe67",
+    "replay-cases.json": "36ff32a3b8967b6878bc0908f47092483859cd476ef8d9e7ff2a769862fb878b",
+    "replay-results.ndjson": "5632c087d8b780d728ffb344abaedd36bf142ed43ec14a4f06ba7d33b598a197",
+    "benchmark-summary.json": "d18fc11ca5a3f3470a787d10bb0b6e3d28d2bb75d160b7048120b8f7cf176ce3",
+    "evidence-index.json": "2ee879fdcc6745d0697b07759931cddd3381f5fc3913fd941f18a17de527fd54",
+    "model-progress.ndjson": "c3292040914dbdf8a414616f74e863c5c18acb1289e4d730d6aae5bd5783a1b6"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "git_commit": "2210b601b13c448b204d248bba6ffca39f6e1868",
+    "git_dirty": false,
+    "git_status": "",
+    "dsh": "0.1.1-rc.2",
+    "deepagents": "0.7.13",
+    "langgraph": "1.2.11",
+    "refractrouter": "0.1.0",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  }
+}

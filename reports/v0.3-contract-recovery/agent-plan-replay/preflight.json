@@ -1,0 +1,43 @@
+{
+  "schema_version": "v0.2",
+  "phase": "contract-replay",
+  "repeats": 1,
+  "scope": "Seven saved write_report failures; contract validity only, no semantic or Go claim",
+  "billing_unit": "AFP",
+  "provider": "ark-plan",
+  "wire_api": "chat-completions",
+  "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+  "credential_env": "CODEX_ARK_API_KEY",
+  "credential_available": true,
+  "node_output_contract": {
+    "version": "v0.3",
+    "schema_sha256": "671e43c2eda7db3280aba7a514d5f6a62e4093d2a66e5b51a26f3c3278aa8716",
+    "enforcement": "prompt description and local checks; no provider schema guarantee"
+  },
+  "cases_sha256": "00c831aac9bab09be2b2b3ccb38f0f6defd87466da8ca745d69c81b93ad13885",
+  "call_plan": {
+    "training_model_calls": 0,
+    "production_model_calls": 7,
+    "judge_model_calls": 0,
+    "total_model_calls": 7
+  },
+  "cost_estimates": {
+    "billing_unit": "AFP",
+    "production_upper_estimate": 27.24785,
+    "evaluation_upper_estimate": 0,
+    "total_upper_estimate": 27.24785
+  },
+  "json_mode_by_model": {
+    "deepseek-v4-flash": "json-object-hint",
+    "minimax-m3": "prompt-only",
+    "deepseek-v4-pro": "json-object-hint",
+    "kimi-k3": "json-object-hint"
+  },
+  "execution_policy": {
+    "max_retries": 0,
+    "timeout_seconds": 120,
+    "temperature": 0,
+    "max_output_tokens": 8192,
+    "stop_after_contract_failure": true
+  }
+}

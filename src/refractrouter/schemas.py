@@ -31,6 +31,7 @@ class ModelSpec:
     role: str = "candidate"
     wire_api: str = "chat-completions"
     request_options: Mapping[str, Any] = field(default_factory=dict)
+    json_mode_strategy: str = "json-object-hint"
 
 
 @dataclass(frozen=True, slots=True)

@@ -81,6 +81,9 @@ def _load_model(data: object, defaults: Mapping[str, Any]) -> ModelSpec:
     request_options = merged.get("request_options", {})
     if not isinstance(request_options, dict):
         raise ValueError("request_options must be an object")
+    json_mode_strategy = merged.get("json_mode_strategy", "json-object-hint")
+    if json_mode_strategy not in {"json-object-hint", "prompt-only"}:
+        raise ValueError("Unsupported json_mode_strategy")
     billing_unit = str(merged["billing_unit"]).upper()
     if billing_unit not in {"USD", "AFP"}:
         raise ValueError(f"Unsupported billing_unit: {billing_unit}")
@@ -108,4 +111,5 @@ def _load_model(data: object, defaults: Mapping[str, Any]) -> ModelSpec:
         wire_api=wire_api,
         tags=tuple(str(tag) for tag in merged.get("tags", [])),
         request_options=dict(request_options),
+        json_mode_strategy=json_mode_strategy,
     )

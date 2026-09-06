@@ -294,7 +294,7 @@ class OpenAICompatibleClient:
             "max_completion_tokens": min(model.max_output_tokens or 4096, 8192),
             **dict(model.request_options),
         }
-        if json_mode:
+        if json_mode and model.json_mode_strategy != "prompt-only":
             payload["response_format"] = {"type": "json_object"}
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         headers = {

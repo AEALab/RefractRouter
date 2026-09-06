@@ -112,9 +112,9 @@ class RealRunnerPreflightTests(unittest.TestCase):
             preflight["cost_estimates"],
             {
                 "billing_unit": "AFP",
-                "production_upper_estimate": 375.51,
+                "production_upper_estimate": 238.96,
                 "evaluation_upper_estimate": 420.99,
-                "total_upper_estimate": 796.51,
+                "total_upper_estimate": 659.96,
             },
         )
 
@@ -147,7 +147,7 @@ class RealRunnerPreflightTests(unittest.TestCase):
                 )
 
         self.assertIn(
-            "must cover the preflight estimate 375.51 AFP", stderr.getvalue()
+            "must cover the preflight estimate 238.96 AFP", stderr.getvalue()
         )
 
     def test_paid_run_rejects_output_estimate_below_manifest_request_cap(self) -> None:

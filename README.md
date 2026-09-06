@@ -87,14 +87,16 @@ output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出�
 
 | Phase | Train / test tasks | Production calls | Judge calls | Conservative estimate |
 |---|---:|---:|---:|---:|
-| dry-run | 0 / 1 | 56 | 21 节点 + 5 最终 | $14.87 |
-| pilot | 5 / 5 | 455 | 210 节点 + 35 最终 | $130.47 |
-| final | 10 / 10 | 910 | 420 节点 + 70 最终 | $260.94 |
+| dry-run | 0 / 1 | 56 | 21 节点 + 5 最终 | $11.86 |
+| pilot | 5 / 5 | 455 | 210 节点 + 35 最终 | $107.91 |
+| final | 10 / 10 | 910 | 420 节点 + 70 最终 | $215.82 |
 
-同一轮 dry run 使用方舟池时，生产调用按最贵候选 `deepseek-v4-pro` 的 5.5 系数估算，
-judge 按 `kimi-k3` 的 10 系数估算：生产 375.51 AFP、评审 420.99 AFP，共 796.51 AFP。
+生产预算将已知的单模型和探测遍历按各自模型价格计算，其余待选路调用按最贵单次
+请求计算；输入/输出 token 假设不变。同一轮方舟 dry run 估算生产 238.96 AFP、
+评审 420.99 AFP，共 659.96 AFP（总额使用未舍入值计算）。
 三轮重复为 168 次生产、63 次节点评审、15 次最终评审，最多 246 次调用；估算生产
-1126.54 AFP、评审 1262.98 AFP，总计 2389.52 AFP。训练集只执行一次，不随测试轮数重复。
+716.89 AFP、评审 1262.98 AFP，总计 1979.87 AFP。训练集只执行一次，不随测试轮数重复。
+旧归档中的“全部生产调用按最贵模型计算”估算仍作为历史记录保留。
 
 issue #22 的三轮复验已获得 2505 AFP 总预算批准并执行。修复过程中在总额内调整了
 生产/评审预留；含初次中断与 DSH 外层调用，已知费用为 386.27070 AFP，另保留一笔
@@ -121,6 +123,20 @@ runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与�
 参数写入记录，也可通过 `--timeout-seconds` 与 `--max-retries` 显式覆盖。聚合结果包含
 质量、生产成本与关键路径延迟的均值/标准差，以及成本和延迟的 p50/p95；需要观察同一
 任务的运行波动时，用 `--repeats 3`（或更高）执行，但调用量和预算会同比增加。
+
+issue #25 的恢复入口为 `contract-replay`，只重放归档中的 7 个失败写作节点，复用原始
+上游并核验哈希。默认零调用，最多三次重放、不重试，遇到第一个契约失败即停止。
+它验证输出格式与证据传递，不产生语义质量分或 Go 结论：
+
+```bash
+uv run python experiments/replay_node_contracts.py --output-dir /tmp/refractrouter-contract-preflight
+```
+
+真实重放由 DSH 的 `refractrouter_validate` 工具使用 `phase: "contract-replay"` 执行，
+沿用 Agent Plan 专属端点、部署级开关及生产/评审双预算限制。M3 的 manifest 使用
+`json_mode_strategy: "prompt-only"`；其他模型保留 `json-object-hint`。这些都是调用策略，
+不代表服务端已保证 schema。节点提示协议 v0.3 明确区分中间 JSON 和最终 HTML，
+preflight 记录 schema 哈希及各模型 JSON 策略。
 
 Agent Plan 支持 OpenAI 兼容的 Chat API 与 Responses API。RefractRouter 使用前者；AFP
 manifest 和 DSH 插件共同拒绝普通方舟 `/api/v3`，只允许

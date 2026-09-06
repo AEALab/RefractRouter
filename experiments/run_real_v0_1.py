@@ -28,6 +28,7 @@ from refractrouter.judge import JudgeEvaluation
 from refractrouter.manifest import ModelManifest, load_model_manifest
 from refractrouter.model_registry import ModelRegistry
 from refractrouter.node_judge import IndependentNodeJudge, NodeJudgeError, NODE_RUBRIC_PATH, NODE_RUBRIC_VERSION
+from refractrouter.node_contracts import CONTRACT_FAILURES, prompt_contract_snapshot
 from refractrouter.scoring import NODE_CHECKS_VERSION, node_contract_checks
 from refractrouter.openai_compatible import ModelInvocationError, OpenAICompatibleClient
 from refractrouter.routing import (
@@ -77,7 +78,10 @@ class NodeQualityRecorder:
         upstream = {parent: context.get(parent, "") for parent in node.parents}
         checks = node_contract_checks(task, node, result.output, upstream)
         evaluation = {"error": None, "final_score": 0.0, "cost": 0.0, "checks": checks}
-        if result.status != "ok" or checks["score_cap"] == 0:
+        if result.status != "ok" and result.failure_type not in CONTRACT_FAILURES:
+            evaluation.update(method="execution-unavailable", final_score=None,
+                              error=result.failure_type or "execution-failed")
+        elif result.status != "ok" or checks["score_cap"] == 0:
             evaluation["method"] = "deterministic-rejection"
         else:
             reserve = _estimated_invocation_cost(
@@ -105,6 +109,11 @@ class NodeQualityRecorder:
             "upstream_sha256": hashlib.sha256(json.dumps(upstream, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
             "output_sha256": hashlib.sha256(result.output.encode()).hexdigest(),
             "node_result": asdict(result), "evaluation": evaluation,
+            "evaluation_state": (
+                "unavailable" if evaluation["error"] else
+                "contract-rejected" if evaluation.get("method") == "deterministic-rejection" else
+                "judged"
+            ),
             "eligible": result.status == "ok" and checks["score_cap"] > 0 and evaluation["error"] is None,
             "selected": False,
         }
@@ -118,6 +127,7 @@ class NodeQualityRecorder:
                    "rubric_sha256": self.judge.rubric_sha256, "rows": self.rows,
                    "raw_node_score_kind": "deterministic contract cap; use evaluation.final_score for selection",
                    "selection": "highest eligible semantic score, then lowest observed node cost",
+                   "selection_policy": "all-candidates-required-v1",
                    "global_oracle": False}
         (self.output_dir / "node-quality-matrix.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -380,19 +390,18 @@ def call_plan(
     repeats: int,
     include_learned: bool,
 ) -> dict[str, int]:
-    node_count = len((train_tasks or test_tasks)[0].nodes)
-    training_calls = len(train_tasks) * candidate_count * node_count
-    per_test = candidate_count * node_count + candidate_count * node_count + 2 * node_count
-    if include_learned:
-        per_test += 2 * node_count
+    training_nodes = sum(len(task.nodes) for task in train_tasks)
+    test_nodes = sum(len(task.nodes) for task in test_tasks) * repeats
+    training_calls = training_nodes * candidate_count
     strategies = 7 if include_learned else 5
-    production_calls = training_calls + len(test_tasks) * repeats * per_test
+    production_calls = training_calls + test_nodes * (2 * candidate_count + (4 if include_learned else 2))
     final_judge_calls = len(test_tasks) * repeats * strategies
-    node_judge_calls = training_calls + len(test_tasks) * repeats * candidate_count * node_count
+    node_judge_calls = training_calls + test_nodes * candidate_count
     judge_calls = final_judge_calls + node_judge_calls
     return {
         "training_model_calls": training_calls,
         "production_model_calls": production_calls,
+        "fixed_calls_per_candidate": training_nodes + 2 * test_nodes,
         "node_judge_model_calls": node_judge_calls,
         "final_judge_model_calls": final_judge_calls,
         "judge_model_calls": judge_calls,
@@ -406,14 +415,15 @@ def estimate_costs(
     input_tokens: int,
     output_tokens: int,
 ) -> dict[str, float]:
-    strongest_price = max(
-        manifest.candidates,
-        key=lambda model: model.input_cost_per_1k + model.output_cost_per_1k,
-    )
-    production = int(plan["production_model_calls"]) * (
-        input_tokens / 1000 * strongest_price.input_cost_per_1k
-        + output_tokens / 1000 * strongest_price.output_cost_per_1k
-    )
+    prices = [input_tokens / 1000 * model.input_cost_per_1k
+              + output_tokens / 1000 * model.output_cost_per_1k for model in manifest.candidates]
+    fixed = int(plan.get("fixed_calls_per_candidate", 0))
+    remaining = int(plan["production_model_calls"]) - fixed * len(prices)
+    if fixed < 0 or remaining < 0:
+        raise ValueError("Invalid fixed candidate call count")
+    # Single-model runs and isolated sweeps have known model identities. Only
+    # composed/learned routes need the most expensive possible per-call price.
+    production = fixed * sum(prices) + remaining * max(prices)
     judge = manifest.judge
     evaluation = int(plan["judge_model_calls"]) * (
         input_tokens * 2 / 1000 * judge.input_cost_per_1k
@@ -504,11 +514,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "checks_version": NODE_CHECKS_VERSION, "rubric_sha256": _sha256(NODE_RUBRIC_PATH),
             "selection": "blinded-independent-node-judge-with-contract-caps",
             "tie_break": "observed-node-cost", "global_oracle": False,
+            "selection_policy": "all-candidates-required-v1",
         },
+        "node_output_contract": prompt_contract_snapshot(),
         "execution_policy": {
             "temperature": 0,
             "timeout_seconds": args.timeout_seconds,
             "max_retries": args.max_retries,
+            "json_mode_by_model": {model.api_model: model.json_mode_strategy for model in manifest.models},
             "request_options_by_model": {
                 model.api_model: dict(model.request_options)
                 for model in manifest.models
@@ -516,6 +529,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "call_plan": plan,
         "cost_estimate_assumptions": {
+            "production_assignment_bound": "fixed candidate sweeps at each model's price; remaining calls at maximum per-call price",
             "input_tokens_per_production_call": args.estimated_input_tokens,
             "input_tokens_per_judge_call": args.estimated_input_tokens * 2,
             "output_tokens_per_call": args.estimated_output_tokens,
