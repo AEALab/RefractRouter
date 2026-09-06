@@ -8,7 +8,7 @@ from typing import Protocol
 from .model_registry import ModelRegistry
 from .openai_compatible import ModelInvocationError, OpenAICompatibleClient, model_response_cost
 from .schemas import ModelSpec, NodeResult, NodeSpec, TaskDAG
-from .scoring import source_trace_issues
+from .scoring import source_trace_issues, node_contract_checks
 
 
 class ModelAdapter(Protocol):
@@ -88,12 +88,8 @@ class FakeModelAdapter:
         context: dict[str, str],
     ) -> str:
         if node_type == "planning":
-            sections = "; ".join(task.required_sections)
-            constraints = "; ".join(task.output_constraints)
-            return (
-                f"requirements: {task.domain}; sections: {sections}; "
-                f"constraints: {constraints}"
-            )
+            return json.dumps({"requirements": task.domain, "sections": list(task.required_sections),
+                               "constraints": list(task.output_constraints), "analysis": "Frozen report requirements."})
         if node_type == "extraction":
             count = 3 if quality >= 0.82 else 2 if quality >= 0.68 else 1
             if not task.source_documents:
@@ -177,9 +173,7 @@ class FakeModelAdapter:
         if node_type == "verification":
             rendered = context.get("render_html", "")
             issues = source_trace_issues(task, rendered)
-            status = "valid" if not issues else "invalid"
-            details = ",".join(issues) if issues else "none"
-            return f"verification: source_trace={status}; issues={details}; html=checked"
+            return json.dumps({"valid": not issues, "issues": list(issues), "summary": "Checked source trace and HTML."})
         return "generic output"
 
     @staticmethod
@@ -361,6 +355,8 @@ class OpenAICompatibleAdapter:
             lowered = output.lower()
             if not lowered.startswith("<!doctype html>") or "</html>" not in lowered:
                 return "invalid-html"
+            if source_trace_issues(task, output):
+                return "source-trace"
         else:
             try:
                 parsed = json.loads(output)
@@ -371,10 +367,10 @@ class OpenAICompatibleAdapter:
             contract_failure = _structured_output_failure(task, node.node_type, parsed)
             if contract_failure:
                 return contract_failure
-            if node.node_type == "verification" and source_trace_issues(
-                task, context.get("render_html", "")
-            ):
-                return "source-trace"
+            if node.node_type == "verification" and node_contract_checks(
+                task, node, output, context
+            )["score_cap"] == 0:
+                return "incorrect-verification"
         return None
 
 

@@ -101,11 +101,15 @@ def node_oracle(
     all_results: Sequence[TaskResult],
 ) -> dict[str, str]:
     node_scores: dict[tuple[str, str], list[float]] = defaultdict(list)
+    node_costs: dict[tuple[str, str], list[float]] = defaultdict(list)
     for result in all_results:
         if result.task_id != task.task_id:
             continue
         for node in result.node_results:
+            if node.status != "ok":
+                continue
             node_scores[(node.node_id, node.model_id)].append(node.score)
+            node_costs[(node.node_id, node.model_id)].append(node.cost)
     assignments: dict[str, str] = {}
     for node in task.nodes:
         candidates = [
@@ -120,7 +124,8 @@ def node_oracle(
                 key=lambda candidate: (
                     sum(node_scores[(node.node_id, candidate.model_id)])
                     / len(node_scores[(node.node_id, candidate.model_id)]),
-                    -candidate.input_cost_per_1k,
+                    -sum(node_costs[(node.node_id, candidate.model_id)])
+                    / len(node_costs[(node.node_id, candidate.model_id)]),
                 ),
             )
         assignments[node.node_id] = model.model_id

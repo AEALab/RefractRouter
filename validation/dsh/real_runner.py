@@ -24,6 +24,11 @@ REAL_ARTIFACTS = (
     "oracle-gap.md",
     "failure-taxonomy.md",
     "evidence-index.json",
+    "node-evaluations.ndjson",
+    "node-quality-matrix.json",
+    "node-quality-matrix.md",
+    "strategy-comparisons.json",
+    "strategy-comparisons.md",
 )
 DSH_BRIDGE_PROGRESS = "bridge-progress.ndjson"
 MODEL_PROGRESS = "model-progress.ndjson"

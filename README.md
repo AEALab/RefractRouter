@@ -23,7 +23,8 @@ issue #19 的修复已通过真实 Agent Plan dry run：61/61 个请求完成、
 
 本轮单任务路由收益判定为 No-go：node-oracle 84 分、task-oracle 100 分，成本几乎相同。
 两者实际都选择 7 节点全用 Flash，报告来自不同生成调用，因此分差不能归因于模型分配差异。
-这不影响 dry run 完整性验收通过；issue #5 的截断阻塞已解除，pilot 预算与执行待安排。
+这不影响 dry run 完整性验收通过。issue #22 已补齐独立节点评审、三模型矩阵、配对比较和
+三轮离线验证；真实三轮复验预算尚未批准，issue #5 等待这项复验。旧报告保留历史判定。
 
 ## Quick Start
 
@@ -79,29 +80,31 @@ output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出�
 
 | Phase | Train / test tasks | Production calls | Judge calls | Conservative estimate |
 |---|---:|---:|---:|---:|
-| dry-run | 0 / 1 | 56 | 5 | $8.87 |
-| pilot | 5 / 5 | 455 | 35 | $70.46 |
-| final | 10 / 10 | 910 | 70 | $140.92 |
+| dry-run | 0 / 1 | 56 | 21 节点 + 5 最终 | $14.87 |
+| pilot | 5 / 5 | 455 | 210 节点 + 35 最终 | $130.47 |
+| final | 10 / 10 | 910 | 420 节点 + 70 最终 | $260.94 |
 
-同一 dry run 使用方舟池时，生产调用按最贵候选 `deepseek-v4-pro` 的 5.5 系数估算，
-judge 按 `kimi-k3` 的 10 系数估算：生产 375.51 AFP、评审 80.96 AFP，总计
-456.47 AFP。issue #19 提议的新调用上限分别为 400 AFP 和 90 AFP。DSH 原生工具调用的外层 agent
-不进入这两本 benchmark 账；固定使用 `deepseek-v4-flash`，另设 5 AFP 运行上限，因此一次
-完整执行上限为 495 AFP。用户已批准并完成 issue #19 的这一轮；后续 pilot 需单独核定预算。
-默认输出估算自动取 manifest 最大输出额度；显式低估会在 preflight 阶段被拒绝。输入
-token 数仍是估算假设，所以这些估算并非单次请求费用的硬上界。
+同一轮 dry run 使用方舟池时，生产调用按最贵候选 `deepseek-v4-pro` 的 5.5 系数估算，
+judge 按 `kimi-k3` 的 10 系数估算：生产 375.51 AFP、评审 420.99 AFP，共 796.51 AFP。
+三轮重复为 168 次生产、63 次节点评审、15 次最终评审，最多 246 次调用；估算生产
+1126.54 AFP、评审 1262.98 AFP，总计 2389.52 AFP。训练集只执行一次，不随测试轮数重复。
 
-付费 dry run 必须同时显式提供开关和两类预算上限：
+issue #22 的三轮复验提案为生产 1200 AFP、评审 1300 AFP、DSH 外层 Flash 最多 5 AFP，
+总调用准入上限 2505 AFP，**尚未批准或执行**。issue #19 已完成的 495 AFP 授权仅用于原先
+那一轮，不能用于本轮新增评审。预算检查在每次调用前进行；输入 token 数仍是估算假设，
+单次请求结算可能超出预留，所以这些上限不能保证请求内精确硬停。
+
+零费用三轮预检命令：
 
 ```bash
-export OPENAI_API_KEY="..."
 uv run python experiments/run_real_v0_1.py \
-  --phase dry-run \
-  --execute-paid-run \
-  --max-production-cost 8 \
-  --max-evaluation-cost 2 \
-  --output-dir reports/v0.1-real/dry-run
+  --phase dry-run --repeats 3 --max-retries 0 \
+  --manifest data/model-manifests/volcengine-agent-plan.json \
+  --output-dir /tmp/refractrouter-node-quality-preflight
 ```
+
+获批后才可加入 `--execute-paid-run --max-production-cost 1200 --max-evaluation-cost 1300`，
+并使用新的输出目录；已有矩阵证据的目录禁止重复写入。
 
 密钥只从 manifest 指定的环境变量读取，不写入任务、run record 或 DSH evidence。
 runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与关键路径延迟、
@@ -119,11 +122,31 @@ Agent Plan 专属 Key，并只交给受控且诊断输出会脱敏的 benchmark 
 步骤见
 `validation/dsh/plugin/README.md` 和 `reports/v0.1/issue-4-agent-plan-preflight.md`。
 
-独立 judge 使用 `data/judges/v0.1.md` 的固定 rubric。需求覆盖、证据准确性和 HTML
+最终报告 judge 使用 v0.1 固定 rubric（说明见 `data/judges/v0.1.md`）。需求覆盖、证据准确性和 HTML
 有效性分别取确定性检查与 judge 的较低值；source trace 失败时证据分直接归零。
 生产成本和 judge 评测成本分别统计，Pareto 主比较只使用生产成本。
 真实阶段会生成 `baseline-table.md`、`pareto-front.md`、`oracle-gap.md`、
 `failure-taxonomy.md`、逐策略 run record 和带哈希的 `evidence-index.json`。
+
+节点评审使用 `data/judges/node-v0.2.md`：确定性检查仅限制分数上限，独立 judge 从正确性、
+证据支持、完整性、下游可用性评估内容，且不接收候选名称、价格或能力等级。引用次数、
+英文关键词和合法 JSON 本身不代表语义质量。验证节点按上游 HTML 的实际情况检查结论。
+每轮用 strong-all 的固定直接上游输入分别探测三模型，按语义分最高、实际节点成本最低
+选择，再重新执行组合后的完整 DAG。该 node-oracle 是局部贪心选择，无法证明全局最优。
+
+每个 task/repeat 保存 `node-quality-matrix.json` 和 `.md` 的 7×3 矩阵，包含原文、输入与
+输出哈希、成本与延迟、评分维度和理由、资格与选择结果。`node-evaluations.ndjson` 逐格
+落盘，记录选择前状态；最终选择以矩阵 JSON 为准。`single-models/` 保存三个模型每轮的
+完整结果和最终 judge 记录，包括没有被任何基线复用的中间价位模型。
+评审失败、候选调用失败或缺少有效候选时不生成 node-oracle 路由，不静默退回最便宜模型。
+
+`strategy-comparisons.json` 和 `.md` 按 task/repeat 配对，将 node-oracle、node-type-rule
+分别对照 strong-all、task-oracle。task-oracle 是每组中经过最终评审的最佳单模型，允许
+选择便宜模型；strong-all 才是全贵模型。报告给出逐轮质量、成本、延迟差及均值/标准差，
+并报告每个任务内部的重复波动。相同模型分配的分差不能作为路由改变带来的收益。
+少于三轮、证据不完整或两种 oracle 始终采用相同分配时，判定为 `Insufficient-evidence`。
+三轮只提供描述性波动观察，不构成跨任务泛化或统计显著性的证明。
+
 
 final phase 即使模型和 judge 全部成功，也只会标记为 `awaiting-human-audit`。复制
 `data/judges/human-audit-template-v0.1.json`、填写冻结的两项任务及两种 oracle 策略后，

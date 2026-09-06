@@ -72,7 +72,7 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(score_task(task, results, final_output), 65.0)
         self.assertEqual(
             score_node(task, task.nodes[2], "Preserve source_id; found source_001."),
-            33.333,
+            0.0,
         )
 
     def test_intermediate_citations_do_not_increase_task_score(self) -> None:

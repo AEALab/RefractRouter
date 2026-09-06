@@ -60,7 +60,7 @@ class RealRunnerPreflightTests(unittest.TestCase):
 
         self.assertEqual(exit_code, 0)
         self.assertFalse(preflight["credential_available"])
-        self.assertEqual(preflight["call_plan"]["total_model_calls"], 490)
+        self.assertEqual(preflight["call_plan"]["total_model_calls"], 700)
         self.assertEqual(len(preflight["train_task_ids"]), 5)
         self.assertEqual(len(preflight["test_task_ids"]), 5)
 
@@ -113,8 +113,8 @@ class RealRunnerPreflightTests(unittest.TestCase):
             {
                 "billing_unit": "AFP",
                 "production_upper_estimate": 375.51,
-                "evaluation_upper_estimate": 80.96,
-                "total_upper_estimate": 456.47,
+                "evaluation_upper_estimate": 420.99,
+                "total_upper_estimate": 796.51,
             },
         )
 

@@ -105,24 +105,139 @@ def score_task(task: TaskDAG, node_results: tuple[NodeResult, ...], final_output
     return round(sum(dimensions.values()), 3)
 
 
-def score_node(task: TaskDAG, node: NodeSpec, output: str) -> float:
+NODE_CHECKS_VERSION = "v0.2"
+
+
+class _HeadingParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.headings: list[str] = []
+        self.current: list[str] | None = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+            self.current = []
+
+    def handle_data(self, data):
+        if self.current is not None:
+            self.current.append(data)
+
+    def handle_endtag(self, tag):
+        if tag in {"h1", "h2", "h3", "h4", "h5", "h6"} and self.current is not None:
+            self.headings.append("".join(self.current).strip())
+            self.current = None
+
+
+def node_contract_checks(task: TaskDAG, node: NodeSpec, output: str, context=None) -> dict:
+    """Deterministic validity/coverage caps, never a claim of semantic quality."""
+    context = context or {}
+    issues: list[str] = []
+    checks: dict[str, object] = {}
+    cap = 100.0
+    value = None
+    if node.node_type != "rendering":
+        try:
+            value = json.loads(output)
+        except (json.JSONDecodeError, TypeError):
+            value = None
+        if not isinstance(value, dict):
+            return {"version": NODE_CHECKS_VERSION, "score_cap": 0.0,
+                    "checks": {"json_object": False}, "issues": ["invalid-json"]}
+        checks["json_object"] = True
+
+    headings = None
     if node.node_type == "planning":
-        covered = sum(1 for section in task.required_sections if section.lower() in output.lower())
-        return round(covered / max(1, len(task.required_sections)) * 100, 3)
-    if node.node_type == "extraction":
-        citations = _count_citations(output)
-        return round(min(1.0, citations / 3) * 100, 3)
-    if node.node_type == "synthesis":
-        markers = ("comparison", "tradeoff", "recommendation")
-        return round(sum(marker in output.lower() for marker in markers) / len(markers) * 100, 3)
-    if node.node_type == "generation":
-        covered = sum(1 for section in task.required_sections if section.lower() in output.lower())
-        return round(covered / max(1, len(task.required_sections)) * 100, 3)
-    if node.node_type == "rendering":
-        valid = output.lower().startswith("<!doctype html>") and "</html>" in output.lower()
-        covered = sum(1 for section in task.required_sections if section.lower() in output.lower())
-        section_score = covered / max(1, len(task.required_sections))
-        return round(section_score * 70 + (1.0 if valid else 0.0) * 30, 3)
-    if node.node_type == "verification":
-        return 100.0 if "verification:" in output.lower() else 0.0
-    return 0.0
+        raw = value.get("sections")
+        headings = raw if isinstance(raw, list) and all(isinstance(x, str) for x in raw) else []
+        checks["planning_contract"] = bool(value.get("requirements")) and isinstance(value.get("constraints"), list) and isinstance(value.get("analysis"), str) and bool(value["analysis"].strip()) and bool(headings)
+        if not checks["planning_contract"]:
+            issues.append("invalid-planning-contract")
+            cap = 0.0
+    elif node.node_type == "generation":
+        sections = value.get("sections")
+        valid = isinstance(sections, list) and bool(sections) and all(
+            isinstance(x, dict) and isinstance(x.get("heading"), str) and bool(x["heading"].strip())
+            and isinstance(x.get("paragraph"), str) and bool(x["paragraph"].strip()) for x in sections
+        )
+        checks["generation_contract"] = valid and isinstance(value.get("title"), str) and bool(value["title"].strip())
+        headings = [x["heading"] for x in sections] if valid else []
+        if not checks["generation_contract"]:
+            issues.append("invalid-generation-contract")
+            cap = 0.0
+    elif node.node_type == "synthesis":
+        checks["analysis_present"] = isinstance(value.get("analysis"), str) and bool(value["analysis"].strip())
+        if not checks["analysis_present"]:
+            issues.append("missing-analysis")
+            cap = 0.0
+    elif node.node_type == "rendering":
+        lowered = output.strip().lower()
+        checks["html_envelope"] = lowered.startswith("<!doctype html>") and "<html" in lowered and lowered.endswith("</html>")
+        trace = source_trace_issues(task, output)
+        checks["source_trace"] = not trace
+        parser = _HeadingParser()
+        parser.feed(output)
+        headings = parser.headings
+        issues.extend(trace)
+        if not checks["html_envelope"]:
+            issues.append("invalid-html")
+        if issues:
+            cap = 0.0
+    elif node.node_type == "verification":
+        rendered = context.get("render_html", "")
+        lowered = rendered.strip().lower()
+        expected_issues = list(source_trace_issues(task, rendered))
+        if not (lowered.startswith("<!doctype html>") and "<html" in lowered and lowered.endswith("</html>")):
+            expected_issues.append("invalid-html")
+        valid = isinstance(value.get("valid"), bool) and isinstance(value.get("issues"), list) and isinstance(value.get("summary"), str) and bool(value["summary"].strip())
+        checks["verification_contract"] = valid
+        checks["known_defects"] = expected_issues
+        # Passing mechanical checks does not prove semantic validity. A rejection may
+        # identify unsupported claims; the independent judge must assess that finding.
+        checks["verdict_matches_checks"] = valid and (not expected_issues or not value["valid"])
+        checks["issues_consistent"] = valid and bool(value["issues"]) == (not value["valid"])
+        if not rendered or not all(checks[k] for k in ["verification_contract", "verdict_matches_checks", "issues_consistent"]):
+            issues.append("incorrect-verification")
+            cap = 0.0
+
+    if headings is not None:
+        normalized = [x.strip().casefold() for x in headings]
+        required = {x.strip().casefold() for x in task.required_sections}
+        missing = sorted(required - set(normalized))
+        checks["missing_sections"] = missing
+        if missing:
+            issues.append("missing-sections")
+        cap = min(cap, 100 * (len(required) - len(missing)) / len(required)) if required else cap
+
+    if node.node_type in {"extraction", "synthesis", "generation"}:
+        evidence = value.get("evidence")
+        known = {x.source_id: x for x in task.source_documents}
+        valid_ids: set[str] = set()
+        valid = isinstance(evidence, list) and bool(evidence)
+        for item in evidence if isinstance(evidence, list) else []:
+            sid = item.get("source_id") if isinstance(item, dict) else None
+            source = known.get(sid) if isinstance(sid, str) else None
+            if not source or item.get("content_hash") != source.content_hash or item.get("title") != source.title or not isinstance(item.get("claim"), str) or not item["claim"].strip():
+                valid = False
+            elif sid in valid_ids:
+                valid = False
+            else:
+                valid_ids.add(sid)
+        checks["evidence_identity"] = valid
+        checks["unique_sources"] = sorted(valid_ids)
+        if not valid:
+            issues.append("invalid-evidence")
+            cap = 0.0
+        # Literal source IDs must resolve; repetition never raises the score.
+        if node.node_type == "generation":
+            raw_sections = value.get("sections")
+            paragraphs = " ".join(x["paragraph"] for x in (raw_sections if isinstance(raw_sections, list) else []) if isinstance(x, dict) and isinstance(x.get("paragraph"), str))
+            citations = set(re.findall(r"\[(source_\d+)\]", paragraphs))
+            checks["citations_resolve"] = bool(citations) and citations <= valid_ids
+            if not checks["citations_resolve"]:
+                issues.append("unresolved-citations")
+                cap = 0.0
+    return {"version": NODE_CHECKS_VERSION, "score_cap": round(cap, 3), "checks": checks, "issues": issues}
+
+
+def score_node(task: TaskDAG, node: NodeSpec, output: str, context=None) -> float:
+    return node_contract_checks(task, node, output, context)["score_cap"]

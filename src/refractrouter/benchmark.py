@@ -153,7 +153,11 @@ def oracle_gap_markdown(gate: Mapping[str, float | str | bool]) -> str:
         f"- Latency pass: {gate['latency_pass']}\n"
         f"- Reliability pass: {gate['reliability_pass']}\n"
         f"- Judge complete: {gate['judge_complete']}\n"
-        f"- Decision: **{gate['decision']}**\n"
+        + (f"- Minimum three repeats: {gate['repeated']}\n"
+           f"- Routing assignment changes observed: {gate['routing_change_observed']}\n"
+           f"- Complete evaluation evidence: {gate['matrix_complete']}\n"
+           if "repeated" in gate else "")
+        + f"- Decision: **{gate['decision']}**\n"
     )
 
 
