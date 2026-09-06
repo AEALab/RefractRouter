@@ -238,3 +238,32 @@ After the second run and four no-thinking probes, the console's real-time near-f
 worst-case cumulative value of 251.712 AFP, leaving 13.288 AFP below the approved ceiling. A third
 dry-run may therefore proceed under the existing authorization; no further full retry fits the same
 worst-case envelope.
+
+## Final paid dry-run decision
+
+The final issue #4 run executed from merged commit `b9d3bc8`. DSH returned structured `status=fail`,
+`mode=paid`, with `benchmark-incomplete` and `plugin-runner-exit:1`. The experiment exited normally
+after writing the complete evidence set; the validation wrapper returned non-zero because the
+summary was incomplete. This is the expected control flow for a semantic benchmark failure.
+
+All 42 dispatched requests used the dedicated Agent Plan Chat Completions endpoint. They completed
+in one attempt with provider request IDs and zero reasoning tokens: 17 used `deepseek-v4-flash`, 12
+used `minimax-m3`, 12 used `deepseek-v4-pro`, and one judge request used `kimi-k3`. Total usage was
+34,480 input tokens, 30,401 output tokens, and 2,044 cached-input tokens. Production cost was
+15.28745 AFP and evaluation cost was 2.86 AFP, totaling 18.14745 AFP.
+
+Only `node-oracle` produced a final report and reached the judge. Its `render_html` result was
+truncated and failed HTML/source-trace validation. The other strategies produced invalid JSON at
+either `build_outline` or `write_report`, leaving no judgeable final output. The taxonomy therefore
+contains one `invalid-html`, four `invalid-json`, twelve `upstream-failure`, and four
+`judge:missing-final-output` records. Judge coverage was incomplete and every strategy had a zero
+success rate, so the oracle gate returned `No-go`.
+
+The refreshed Agent Plan console showed 59.906 AFP in the near-five-hour window, 30,891.397 AFP for
+the week, and 64,006.07 AFP for the month. The 19.354 AFP increase from the final pre-run reading
+covers the 18.14745 AFP benchmark ledger and the outer DSH agent. A credential-value scan across all
+14 raw evidence files found zero matches.
+
+The final artifacts are retained in
+`reports/v0.1-real/dry-run-agent-plan-final-no-go/`. Issue #4 closes with a **No-go** decision; issue
+#5 must remain blocked, and no pilot or additional paid retry will be started from this result.

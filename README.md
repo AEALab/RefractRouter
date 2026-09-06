@@ -17,11 +17,11 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 - 20-task 合成 benchmark（train/test 各 10 个）、USD/AFP 真实模型 manifest、
   OpenAI-compatible 与 DSH LLM adapter、真实 token/成本/延迟遥测、独立 judge 与预算保护。
 
-首次真实 Agent Plan paid dry run 已验证专属 `/api/plan/v3` 传输、遥测和 DSH 证据链，
-但因默认深度思考耗尽 1,200-token 输出额度而以 `incomplete / No-go` 结束；证据保存在
-`reports/v0.1-real/dry-run-agent-plan-default-thinking/`。修正版关闭候选模型与 judge 的
-thinking，并保持原输出额度和 AFP 上限。第二轮已完成 41 个无 reasoning 的生产请求，随后
-在首次 judge 预算检查暴露并修复了字段引用错误。pilot 在修正版 dry run 完整通过前保持阻塞。
+issue #4 的真实 Agent Plan paid dry run 已完成并以 `incomplete / No-go` 收口。最终运行通过
+专属 `/api/plan/v3` 发出 42 个请求，全部一次成功、具备 request ID、完整 token/成本/延迟
+遥测且无 reasoning tokens；但四个策略未产出可评审终稿，唯一进入 judge 的结果也未通过
+HTML/source-trace 校验。最终证据保存在
+`reports/v0.1-real/dry-run-agent-plan-final-no-go/`，pilot 因完整性门槛未通过而保持阻塞。
 
 ## Quick Start
 
@@ -231,12 +231,11 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 
 ## Roadmap
 
-1. 使用关闭 thinking 的冻结 manifest 重跑 1-task paid dry run，并复核 judge 覆盖、source
-   trace、实际 AFP、失败率和证据哈希。
-2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
-3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
-4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。
-5. 汇总 DSH evidence，发布最终 Pareto、failure taxonomy 与 Go/No-Go 结论。
+1. issue #4 已完成 1-task paid dry run，并保留 DSH evidence、逐请求遥测和 No-go 结论。
+2. issue #5 的 10-task pilot 保持阻塞，直到新的工作项解决结构化输出和 HTML 完整性问题，
+   并通过新的 1-task 准入验证。
+3. pilot 通过后，对冻结样本完成人工抽检，并与独立 judge 结果对照。
+4. 执行 20-task final benchmark，通过 DSH plugin tool call 复核并发布最终结论。
 
 ## Wiki
 
