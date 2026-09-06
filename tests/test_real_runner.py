@@ -6,11 +6,47 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr
 from pathlib import Path
+from types import SimpleNamespace
 
-from experiments.run_real_v0_1 import main
+from experiments.run_real_v0_1 import CostLedger, _evaluate_with_budget, main
+from refractrouter.schemas import ModelSpec
 
 
 class RealRunnerPreflightTests(unittest.TestCase):
+    def test_evaluation_budget_reserves_against_the_judge_model(self) -> None:
+        judge_model = ModelSpec(
+            model_id="judge",
+            provider="test",
+            input_cost_per_1k=0.1,
+            output_cost_per_1k=0.1,
+            capability=1.0,
+            role="judge",
+        )
+        evaluation = SimpleNamespace(cost=0.4)
+        judge = SimpleNamespace(
+            judge_model=judge_model,
+            evaluate=lambda task, result: evaluation,
+        )
+        ledger = CostLedger(
+            billing_unit="AFP",
+            production_limit=10,
+            evaluation_limit=2,
+            estimated_production_input_tokens=4_000,
+            estimated_evaluation_input_tokens=8_000,
+            estimated_output_tokens=1_200,
+        )
+
+        actual, error = _evaluate_with_budget(
+            judge,
+            SimpleNamespace(),
+            SimpleNamespace(final_output="<html></html>"),
+            ledger,
+        )
+
+        self.assertIs(actual, evaluation)
+        self.assertIsNone(error)
+        self.assertEqual(ledger.evaluation_spent, 0.4)
+
     def test_preflight_never_requires_a_key_or_calls_models(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_dir = Path(temp_dir)

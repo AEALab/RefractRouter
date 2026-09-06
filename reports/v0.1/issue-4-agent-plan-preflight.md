@@ -214,3 +214,27 @@ with zero retries, and produced manifest SHA-256
 `bfe79c97e7f9868eeea76f4e81cb0cf6102325388dc8d81313b8fde59bfeda25` and preflight SHA-256
 `b241d92693f166ad1180af5dff0fdd6c8958606245f3ffacd3bf5fe0c8f02b74`. The correction passed
 57 Python tests and all 12 Node DSH contract tests.
+
+## Corrected-thinking runner error
+
+The next paid run from merged commit `633df01` verified that the thinking correction worked in the
+benchmark workload. All 41 dispatched production requests succeeded in one attempt with provider
+request IDs and zero reasoning tokens. They used 39,454 input tokens, 33,312 output tokens, and 3,752
+cached-input tokens for 18.8087 AFP, with request latency from 2,745 to 29,953 ms.
+
+The first judge budget check then raised `AttributeError` before dispatch because
+`_evaluate_with_budget` referenced `judge.model`; `IndependentJudge` stores the frozen specification
+as `judge.judge_model`. DSH captured the traceback, returned `real-runner-exit:1`, required the missing
+summary artifacts, and stopped. The retained evidence is in
+`reports/v0.1-real/dry-run-agent-plan-no-thinking-runner-error/`, with zero credential matches across
+the three captured files.
+
+The correction uses `judge.judge_model` for the conservative evaluation reservation and adds a test
+that executes this previously uncovered success path. It does not change the manifest, request count,
+or AFP ceilings.
+
+After the second run and four no-thinking probes, the console's real-time near-five-hour value was
+40.552 AFP. Adding the unchanged 206.16 AFP benchmark ceiling and 5 AFP outer allowance gives a
+worst-case cumulative value of 251.712 AFP, leaving 13.288 AFP below the approved ceiling. A third
+dry-run may therefore proceed under the existing authorization; no further full retry fits the same
+worst-case envelope.

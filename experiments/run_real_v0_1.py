@@ -526,7 +526,7 @@ def _evaluate_with_budget(
     if not result.final_output:
         return None, "missing-final-output"
     reserve = _estimated_invocation_cost(
-        judge.model,
+        judge.judge_model,
         ledger.estimated_evaluation_input_tokens,
         ledger.estimated_output_tokens,
     )
