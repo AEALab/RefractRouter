@@ -48,6 +48,12 @@ class ModelManifestTests(unittest.TestCase):
             all(model.api_key_env == "CODEX_ARK_API_KEY" for model in manifest.models)
         )
         self.assertTrue(all(model.max_output_tokens == 1200 for model in manifest.models))
+        self.assertTrue(
+            all(
+                model.request_options == {"thinking": {"type": "disabled"}}
+                for model in manifest.models
+            )
+        )
 
 
 if __name__ == "__main__":
