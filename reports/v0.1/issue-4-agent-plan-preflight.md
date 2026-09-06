@@ -120,3 +120,22 @@ The corrected zero-cost preflight retained the 206.16 AFP estimate and produced 
 `b100b2deef173dd301d11ce9f48785958b1f4f3981cfab82b6ee4c97621cba97` and preflight SHA-256
 `869c3cf12e9bdf840cf8aab67d8cfcf0f4d1c8a35838cca2e093dce9fd777885`. The correction passed 53
 Python tests and all 11 Node contract tests.
+
+## Hard-timeout and progress correction
+
+Before a subsequent full attempt, the Agent Plan console showed 5.809 AFP of near-five-hour usage,
+matching the increase from the recorded weekly and monthly baselines. The attempt used only the
+`ark-plan` provider at `https://ark.cn-beijing.volces.com/api/plan/v3`, with Agent Plan overage
+disabled. It passed preflight at 15:15:55 local time but produced no request-level artifacts.
+
+After 1 hour 12 minutes, a process inspection showed the Python runner sleeping with 0.72 seconds of
+CPU time. Neither it nor the DSH parent held a TCP connection. The Python bridge was blocked waiting
+for a response line while the plugin was blocked inside the DSH stream iterator, proving that the
+provider stream did not settle when its supplied abort signal expired. The run was terminated; its
+provider-side AFP after the 5.809 baseline is unknown until the Agent Plan console is refreshed.
+
+Plugin 0.2.2 makes the timeout local and deterministic by racing every iterator read against the
+request signal and detaching iterator cleanup on abort. It also writes a prompt-free
+`bridge-progress.ndjson` start/finish record for every request, including the selected provider,
+model, status, latency, and usage. A run can now identify the active request and completed count
+without waiting for all benchmark artifacts.

@@ -6,6 +6,8 @@ import socket
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable, Mapping, Protocol, Sequence, TextIO
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -14,6 +16,13 @@ from .schemas import ModelSpec
 
 
 DSH_BRIDGE_PROTOCOL = "refractrouter-dsh-llm/v1"
+
+
+def _progress_count(value: object) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,10 +58,32 @@ class DshBridge(Protocol):
 class DshStdioBridge:
     """Synchronous NDJSON bridge to the parent DSH plugin process."""
 
-    def __init__(self, reader: TextIO | None = None, writer: TextIO | None = None):
+    def __init__(
+        self,
+        reader: TextIO | None = None,
+        writer: TextIO | None = None,
+        progress_path: str | Path | None = None,
+    ):
         self.reader = reader or sys.stdin
         self.writer = writer or sys.stdout
+        configured_progress = progress_path or os.environ.get(
+            "REFRACTROUTER_DSH_PROGRESS"
+        )
+        self.progress_path = (
+            Path(configured_progress) if configured_progress is not None else None
+        )
         self.request_id = 0
+
+    def _record_progress(self, event: Mapping[str, object]) -> None:
+        if self.progress_path is None:
+            return
+        record = {
+            "schema_version": "v0.1",
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            **event,
+        }
+        with self.progress_path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     def complete(
         self,
@@ -77,19 +108,71 @@ class DshStdioBridge:
             "timeout_ms": max(1, round(timeout_seconds * 1000)),
             "request_options": dict(model.request_options),
         }
+        self._record_progress(
+            {
+                "event": "request-start",
+                "request_id": request_id,
+                "provider": model.provider,
+                "model": model.api_model,
+                "timeout_ms": request["timeout_ms"],
+            }
+        )
         self.writer.write(json.dumps(request, ensure_ascii=False) + "\n")
         self.writer.flush()
-        line = self.reader.readline()
-        if not line:
-            raise RuntimeError("DSH LLM bridge closed before returning a response")
-        response = json.loads(line)
-        if (
-            not isinstance(response, dict)
-            or response.get("protocol") != DSH_BRIDGE_PROTOCOL
-            or response.get("type") != "response"
-            or response.get("id") != request_id
-        ):
-            raise RuntimeError("DSH LLM bridge returned an invalid response envelope")
+        started = time.perf_counter()
+        try:
+            line = self.reader.readline()
+            if not line:
+                raise RuntimeError("DSH LLM bridge closed before returning a response")
+            response = json.loads(line)
+            if (
+                not isinstance(response, dict)
+                or response.get("protocol") != DSH_BRIDGE_PROTOCOL
+                or response.get("type") != "response"
+                or response.get("id") != request_id
+            ):
+                raise RuntimeError("DSH LLM bridge returned an invalid response envelope")
+        except Exception as exc:
+            self._record_progress(
+                {
+                    "event": "request-finish",
+                    "request_id": request_id,
+                    "provider": model.provider,
+                    "model": model.api_model,
+                    "ok": False,
+                    "failure_type": "bridge-error",
+                    "error_type": type(exc).__name__,
+                    "latency_ms": round((time.perf_counter() - started) * 1000),
+                }
+            )
+            raise
+        usage = response.get("usage")
+        safe_usage = usage if isinstance(usage, dict) else {}
+        self._record_progress(
+            {
+                "event": "request-finish",
+                "request_id": request_id,
+                "provider": model.provider,
+                "model": model.api_model,
+                "ok": response.get("ok") is True,
+                "failure_type": response.get("failure_type"),
+                "latency_ms": round((time.perf_counter() - started) * 1000),
+                "usage": {
+                    "input_tokens": _progress_count(
+                        safe_usage.get("input_tokens", 0)
+                    ),
+                    "output_tokens": _progress_count(
+                        safe_usage.get("output_tokens", 0)
+                    ),
+                    "cached_input_tokens": _progress_count(
+                        safe_usage.get("cached_input_tokens", 0)
+                    ),
+                    "reasoning_tokens": _progress_count(
+                        safe_usage.get("reasoning_tokens", 0)
+                    ),
+                },
+            }
+        )
         return response
 
 

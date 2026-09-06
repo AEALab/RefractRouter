@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+
+- Enforce per-request timeouts locally while consuming DSH streams, including providers that ignore
+  the supplied abort signal.
+- Persist prompt-free request start and finish records so long paid runs expose their current model
+  and completed-call progress.
+
 ## 0.2.1
 
 - Reject DSH model routes whose provider-owned retry policy is not normal mode with zero retries.

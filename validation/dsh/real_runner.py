@@ -25,6 +25,17 @@ REAL_ARTIFACTS = (
     "failure-taxonomy.md",
     "evidence-index.json",
 )
+DSH_BRIDGE_PROGRESS = "bridge-progress.ndjson"
+
+
+def _expected_artifacts(
+    execute_paid_run: bool, preflight: object
+) -> tuple[str, ...]:
+    if not execute_paid_run:
+        return REAL_ARTIFACTS[:1]
+    if isinstance(preflight, dict) and preflight.get("wire_api") == "dsh-llm":
+        return (*REAL_ARTIFACTS, DSH_BRIDGE_PROGRESS)
+    return REAL_ARTIFACTS
 
 
 def run_real_validation(
@@ -85,7 +96,15 @@ def run_real_validation(
     issues: list[str] = []
     if completed.returncode != 0:
         issues.append(f"real-runner-exit:{completed.returncode}")
-    expected = REAL_ARTIFACTS if execute_paid_run else REAL_ARTIFACTS[:1]
+    preflight = None
+    if (output_dir / "preflight.json").is_file():
+        try:
+            preflight = json.loads(
+                (output_dir / "preflight.json").read_text(encoding="utf-8")
+            )
+        except json.JSONDecodeError:
+            issues.append("invalid-preflight")
+    expected = _expected_artifacts(execute_paid_run, preflight)
     artifacts: dict[str, str | None] = {}
     for filename in expected:
         path = output_dir / filename
@@ -103,14 +122,6 @@ def run_real_validation(
                 issues.append("benchmark-incomplete")
         except (json.JSONDecodeError, AttributeError):
             issues.append("invalid-benchmark-summary")
-    preflight = None
-    if (output_dir / "preflight.json").is_file():
-        try:
-            preflight = json.loads(
-                (output_dir / "preflight.json").read_text(encoding="utf-8")
-            )
-        except json.JSONDecodeError:
-            issues.append("invalid-preflight")
     git_status = _command_output(("git", "status", "--porcelain"))
     api_key_env = preflight.get("credential_env") if isinstance(preflight, dict) else None
     evidence = {
