@@ -139,6 +139,17 @@ the same credential reference as the manifest. Then apply this profile override:
 
 The zero-cost preflight checks all four frozen `ark-plan` model routes. A paid run also opens the
 stdio bridge and invokes those models through `ctx.llm`; the Agent Plan key is not sent to Python.
+When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coefficient candidate:
+
+```yaml
+- id: agent-default-model
+  config:
+    provider: ark-plan
+    model: deepseek-v4-flash
+```
+
+The outer agent calls occur outside the plugin's production/evaluation ledgers. For issue #4 they
+have a separate 5 AFP operational allowance, bringing the complete approved ceiling to 265 AFP.
 
 ## Invoke each phase
 

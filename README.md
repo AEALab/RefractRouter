@@ -81,7 +81,9 @@ output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出�
 
 同一 dry run 使用方舟池时，生产调用按最贵候选 `deepseek-v4-pro` 的 5.5 系数估算，
 judge 按 `kimi-k3` 的 10 系数估算：生产 160.16 AFP、评审 46 AFP，总计
-206.16 AFP。建议调用上限分别为 200 AFP 和 60 AFP。
+206.16 AFP。建议调用上限分别为 200 AFP 和 60 AFP。DSH 原生工具调用的外层 agent
+不进入这两本 benchmark 账；固定使用 `deepseek-v4-flash`，另设 5 AFP 运行上限，因此一次
+完整执行的批准上限为 265 AFP。
 
 付费 dry run 必须同时显式提供开关和两类预算上限：
 
@@ -223,7 +225,8 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 
 ## Roadmap
 
-1. 在 DSH 中配置 `ark-plan` provider，并在确认 200/60 AFP 上限后执行 1-task paid dry run。
+1. 在 DSH 中配置 `ark-plan` provider，并在确认 200/60 AFP benchmark 上限及 5 AFP 外层
+   agent 上限后执行 1-task paid dry run。
 2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
 3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
 4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。

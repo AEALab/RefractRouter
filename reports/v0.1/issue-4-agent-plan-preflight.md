@@ -45,6 +45,11 @@ output tokens per judge call, the estimates are:
 | Evaluation | 46 AFP | 60 AFP |
 | Total | 206.16 AFP | 260 AFP |
 
+A native DSH tool call also uses the outer agent before and after tool execution. That usage is not
+part of the benchmark production or evaluation ledger. The execution profile pins the outer agent to
+`ark-plan/deepseek-v4-flash` and reserves a separate 5 AFP operational allowance. The complete
+approval ceiling is therefore 265 AFP.
+
 Before paid execution, the DSH profile must expose provider route `ark-plan`, resolve all four model
 names, store the credential under `CODEX_ARK_API_KEY`, keep Agent Plan overage disabled, and set the
 plugin manifest and AFP ceilings. The paid switch remains disabled until those facts and the final
@@ -67,3 +72,8 @@ dry run contained only the expected five files, and an isolated DSH profile pass
 configuration override, removal, reinstall, and boot with `paid_calls=0`. The workstation's default
 `headless` profile did not compose successfully and no `ark-plan` route could be verified there, so
 provider configuration remains a required deployment step before paid execution.
+
+A disposable DSH home was then created from the reviewed plugin. It boots successfully with the
+official `openai-responses` Agent Plan endpoint, all four model declarations, the AFP plugin limits,
+and `ark-plan/deepseek-v4-flash` as its outer agent. Exact runtime route resolution still requires a
+DSH tool turn, which consumes AFP and is intentionally deferred to the approved paid execution.
