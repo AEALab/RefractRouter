@@ -17,13 +17,13 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 - 20-task 合成 benchmark（train/test 各 10 个）、USD/AFP 真实模型 manifest、
   OpenAI-compatible 与 DSH LLM adapter、真实 token/成本/延迟遥测、独立 judge 与预算保护。
 
-issue #4 的真实 Agent Plan paid dry run 已完成并以 `incomplete / No-go` 收口。最终运行通过
-专属 `/api/plan/v3` 发出 42 个请求，全部一次成功、具备 request ID、完整 token/成本/延迟
-遥测且无 reasoning tokens；但四个策略未产出可评审终稿，唯一进入 judge 的结果也未通过
-HTML/source-trace 校验。最终证据保存在
-`reports/v0.1-real/dry-run-agent-plan-final-no-go/`，pilot 因完整性门槛未通过而保持阻塞。
-修复由 issue #19 跟踪：输出额度已提高为 8,192 tokens，并增加简洁输出约束和截断分类；
-离线验证通过后仍须完成新的真实准入运行。
+issue #19 的修复已通过真实 Agent Plan dry run：61/61 个请求完成、无截断或失败，
+五个策略成功率与 judge 覆盖均为 100%，DSH 返回 `pass`。生产与评审合计 47.59695 AFP。
+证据见 `reports/v0.1-real/dry-run-agent-plan-8192/`；旧失败证据仍保留。
+
+本轮单任务路由收益判定为 No-go：node-oracle 84 分、task-oracle 100 分，成本几乎相同。
+两者实际都选择 7 节点全用 Flash，报告来自不同生成调用，因此分差不能归因于模型分配差异。
+这不影响 dry run 完整性验收通过；issue #5 的截断阻塞已解除，pilot 预算与执行待安排。
 
 ## Quick Start
 
@@ -87,7 +87,7 @@ output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出�
 judge 按 `kimi-k3` 的 10 系数估算：生产 375.51 AFP、评审 80.96 AFP，总计
 456.47 AFP。issue #19 提议的新调用上限分别为 400 AFP 和 90 AFP。DSH 原生工具调用的外层 agent
 不进入这两本 benchmark 账；固定使用 `deepseek-v4-flash`，另设 5 AFP 运行上限，因此一次
-完整执行提议上限为 495 AFP，须重新取得预算批准，不能沿用 #4 的 265 AFP 授权。
+完整执行上限为 495 AFP。用户已批准并完成 issue #19 的这一轮；后续 pilot 需单独核定预算。
 默认输出估算自动取 manifest 最大输出额度；显式低估会在 preflight 阶段被拒绝。输入
 token 数仍是估算假设，所以这些估算并非单次请求费用的硬上界。
 
@@ -235,9 +235,8 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 
 ## Roadmap
 
-1. issue #4 已完成 1-task paid dry run，并保留 DSH evidence、逐请求遥测和 No-go 结论。
-2. issue #5 的 10-task pilot 保持阻塞，直到 issue #19 解决结构化输出和 HTML 完整性问题，
-   并通过新的 1-task 准入验证。
+1. issue #4 的失败证据已保留，issue #19 修复已通过新的 1-task 真实准入验证。
+2. issue #5 的 10-task pilot 已解除截断阻塞；核定独立预算后评估多任务与重复运行差异。
 3. pilot 通过后，对冻结样本完成人工抽检，并与独立 judge 结果对照。
 4. 执行 20-task final benchmark，通过 DSH plugin tool call 复核并发布最终结论。
 

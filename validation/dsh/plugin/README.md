@@ -93,8 +93,8 @@ Bundle defaults live in `cordis.patch.yml`. Override them in the profile's highe
   config:
     allowPaidRuns: true
     billingUnit: USD
-    maxProductionCost: 2
-    maxEvaluationCost: 1
+    maxProductionCost: 8
+    maxEvaluationCost: 2
     maxRetries: 0
 ```
 
@@ -210,7 +210,7 @@ After configuring the credential and deployment switch, a paid dry run call is:
 
 ```text
 Call refractrouter_validate exactly once with
-{"phase":"dry-run","executePaidRun":true,"maxProductionCost":2,"maxEvaluationCost":1}
+{"phase":"dry-run","executePaidRun":true,"maxProductionCost":8,"maxEvaluationCost":2}
 and return the tool result unchanged.
 ```
 
@@ -218,7 +218,7 @@ With the Agent Plan override above, the corresponding call uses AFP ceilings:
 
 ```text
 Call refractrouter_validate exactly once with
-{"phase":"dry-run","executePaidRun":true,"maxProductionCost":200,"maxEvaluationCost":60}
+{"phase":"dry-run","executePaidRun":true,"maxProductionCost":400,"maxEvaluationCost":90}
 and return the tool result unchanged.
 ```
 
