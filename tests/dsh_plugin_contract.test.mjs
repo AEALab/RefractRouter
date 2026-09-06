@@ -60,6 +60,7 @@ function fakeContext({
   spawnError,
   providers = ['deepseek-official'],
   unresolvedModels = [],
+  providerRetryPolicy = { mode: 'normal', maxRetries: 0 },
 } = {}) {
   const calls = {
     describe: 0,
@@ -87,6 +88,7 @@ function fakeContext({
     },
     llm: {
       listProviders() { return providers.map(id => ({ id, name: id })) },
+      providerRetryPolicy() { return providerRetryPolicy },
       async resolveModelInfo(provider, model) {
         if (unresolvedModels.includes(`${provider}/${model}`)) throw new Error('unresolved')
         return { id: model, name: model }
@@ -223,6 +225,25 @@ test('Agent Plan preflight verifies the frozen DSH provider routes without resol
   const missingResult = await missing.tool.execute({ phase: 'dry-run' }, execution())
   assert.equal(missingResult.status, 'fail')
   assert.ok(missingResult.issues.includes('missing-llm-provider:ark-plan'))
+
+  const retriesEnabled = fakeContext({
+    config: { ...config, allowPaidRuns: true },
+    credential: 'test-secret',
+    providers: ['ark-plan'],
+    providerRetryPolicy: { mode: 'normal', maxRetries: 5 },
+    resultEvidence: evidence({ billingUnit: 'AFP' }),
+  })
+  await assert.rejects(
+    retriesEnabled.tool.execute({
+      phase: 'dry-run',
+      executePaidRun: true,
+      maxProductionCost: 200,
+      maxEvaluationCost: 60,
+    }, execution()),
+    /llm-provider-retry-policy-not-zero:ark-plan/,
+  )
+  assert.equal(retriesEnabled.calls.describe, 0)
+  assert.equal(retriesEnabled.calls.spawn, 0)
 })
 
 test('paid execution requires deployment enablement, two budgets, and a credential', async () => {
@@ -471,6 +492,7 @@ test('DSH LLM bridge preserves content, disjoint usage, finish reason, and reque
     ],
     temperature: 0,
     max_tokens: 128,
+    timeout_ms: 120_000,
     request_options: {},
   })
 
@@ -481,4 +503,37 @@ test('DSH LLM bridge preserves content, disjoint usage, finish reason, and reque
   assert.equal(response.usage.reasoning_tokens, 3)
   assert.equal(response.finish_reason, 'stop')
   assert.equal(response.request_id, 'resp-ark-test')
+})
+
+test('DSH LLM bridge enforces the per-request hard timeout', async () => {
+  const keepAlive = setTimeout(() => {}, 100)
+  const ctx = {
+    llm: {
+      async *stream(options) {
+        await new Promise((resolveWait, reject) => {
+          options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true })
+        })
+        yield { type: 'finish', reason: { kind: 'stop' } }
+      },
+    },
+  }
+  try {
+    const response = await callDshLlm(ctx, {
+      protocol: 'refractrouter-dsh-llm/v1',
+      type: 'request',
+      id: 'timeout-test',
+      provider: 'ark-plan',
+      model: 'deepseek-v4-flash',
+      messages: [{ role: 'user', content: 'test' }],
+      temperature: 0,
+      max_tokens: 128,
+      timeout_ms: 5,
+      request_options: {},
+    })
+
+    assert.equal(response.ok, false)
+    assert.equal(response.failure_type, 'timeout')
+  } finally {
+    clearTimeout(keepAlive)
+  }
 })

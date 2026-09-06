@@ -55,9 +55,12 @@ names, store the credential under `CODEX_ARK_API_KEY`, keep Agent Plan overage d
 plugin manifest and AFP ceilings. The paid switch remains disabled until those facts and the final
 ceilings are explicitly approved.
 
-The DSH profile sets `maxRetries: 0`. The runner rejects ceilings below the preflight estimates and
-reserves one estimated call before every production or judge invocation. The account-level Agent
-Plan overage switch remains the final hard stop if actual token usage exceeds the estimate.
+Both the DSH provider and the runner set `maxRetries: 0`. The plugin verifies the effective provider
+policy before launching a paid subprocess. It also carries the runner's 120-second per-model timeout
+over the stdio bridge, in addition to the whole-run deadline. The runner rejects ceilings below the
+preflight estimates and reserves one estimated call before every production or judge invocation.
+The account-level Agent Plan overage switch remains the final hard stop if actual token usage exceeds
+the estimate.
 
 ## Zero-cost verification
 
@@ -77,3 +80,23 @@ A disposable DSH home was then created from the reviewed plugin. It boots succes
 official `openai-responses` Agent Plan endpoint, all four model declarations, the AFP plugin limits,
 and `ark-plan/deepseek-v4-flash` as its outer agent. Exact runtime route resolution still requires a
 DSH tool turn, which consumes AFP and is intentionally deferred to the approved paid execution.
+
+## First execution attempt and runtime guard correction
+
+The approved DSH turn reached `ark-plan/deepseek-v4-flash`, used 11,631 input and 130 output tokens
+for the outer agent (about 0.58805 AFP), and called `refractrouter_validate` exactly once. The first
+benchmark request then stalled without returning model telemetry or final evidence, so the run was
+stopped. No benchmark output beyond `preflight.json` was produced; any provider-side AFP consumed by
+that incomplete request is therefore not yet known from local telemetry.
+
+Inspection of the pinned DSH runtime showed that an omitted provider retry policy resolves to five
+retries at the agent failed-step layer, while direct `ctx.llm.stream()` calls remain single-attempt.
+It also showed that the runner's 120-second timeout had not crossed the stdio bridge. Plugin 0.2.1
+closes both deployment gaps: paid execution fails before spawn unless the effective provider policy
+is normal mode with zero retries, and every bridge request now carries a bounded timeout that aborts
+its DSH stream. A fresh paid attempt remains conditional on passing the corrected zero-cost checks
+and accounting for the earlier attempt against the approved total ceiling.
+
+The correction passed all 52 Python tests, 11 Node contract tests, the five-file `0.2.1` package
+check, and a clean DSH `0.1.1-rc.2` install/override/remove/reinstall/boot lifecycle with zero paid
+calls.

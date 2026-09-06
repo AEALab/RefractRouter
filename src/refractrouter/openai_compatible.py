@@ -41,6 +41,7 @@ class DshBridge(Protocol):
         messages: Sequence[Mapping[str, str]],
         *,
         json_mode: bool,
+        timeout_seconds: float,
     ) -> Mapping[str, object]:
         """Execute one model request through the hosting DSH LLM service."""
 
@@ -59,6 +60,7 @@ class DshStdioBridge:
         messages: Sequence[Mapping[str, str]],
         *,
         json_mode: bool,
+        timeout_seconds: float,
     ) -> Mapping[str, object]:
         self.request_id += 1
         request_id = str(self.request_id)
@@ -72,6 +74,7 @@ class DshStdioBridge:
             "json_mode": json_mode,
             "temperature": 0,
             "max_tokens": min(model.max_output_tokens or 4096, 8192),
+            "timeout_ms": max(1, round(timeout_seconds * 1000)),
             "request_options": dict(model.request_options),
         }
         self.writer.write(json.dumps(request, ensure_ascii=False) + "\n")
@@ -245,7 +248,10 @@ class OpenAICompatibleClient:
             attempts += 1
             try:
                 response = self.dsh_bridge.complete(
-                    model, messages, json_mode=json_mode
+                    model,
+                    messages,
+                    json_mode=json_mode,
+                    timeout_seconds=self.timeout_seconds,
                 )
                 if response.get("ok") is True:
                     usage = response.get("usage", {})

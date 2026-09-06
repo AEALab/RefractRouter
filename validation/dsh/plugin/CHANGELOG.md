@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Reject DSH model routes whose provider-owned retry policy is not normal mode with zero retries.
+- Carry the runner's per-model timeout across the stdio bridge and abort stalled DSH streams.
+
 ## 0.2.0
 
 - Add an AFP-billed Volcengine Agent Plan manifest and generic billing-unit budgets.

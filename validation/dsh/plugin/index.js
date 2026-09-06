@@ -10,6 +10,7 @@ export const inject = ['tools', 'subprocess', 'sandbox', 'sandboxPolicy', 'crede
 const DEFAULT_TIMEOUT_MS = 7_200_000
 const DEFAULT_OUTPUT_CAPTURE_BYTES = 262_144
 const DEFAULT_EVIDENCE_BYTES = 2_097_152
+const MAX_MODEL_TIMEOUT_MS = 300_000
 const REDACTED = '[REDACTED]'
 const DSH_BRIDGE_PROTOCOL = 'refractrouter-dsh-llm/v1'
 
@@ -358,6 +359,7 @@ function replayRequestId(replayState) {
 export async function callDshLlm(ctx, request, signal) {
   const id = String(request?.id ?? '')
   const base = { protocol: DSH_BRIDGE_PROTOCOL, type: 'response', id }
+  let timeoutSignal
   try {
     if (
       request?.protocol !== DSH_BRIDGE_PROTOCOL
@@ -369,6 +371,14 @@ export async function callDshLlm(ctx, request, signal) {
     ) {
       throw new Error('invalid DSH bridge request')
     }
+    const timeoutMs = positiveInteger(request.timeout_ms, 'timeout_ms')
+    if (timeoutMs > MAX_MODEL_TIMEOUT_MS) {
+      throw new Error(`timeout_ms must be no greater than ${String(MAX_MODEL_TIMEOUT_MS)}`)
+    }
+    timeoutSignal = AbortSignal.timeout(timeoutMs)
+    const callSignal = AbortSignal.any(signal === undefined
+      ? [timeoutSignal]
+      : [signal, timeoutSignal])
     const system = []
     const messages = []
     for (const message of request.messages) {
@@ -395,7 +405,7 @@ export async function callDshLlm(ctx, request, signal) {
       system: system.length === 0 ? undefined : system.join('\n\n'),
       temperature: Number(request.temperature ?? 0),
       maxTokens: Number(request.max_tokens),
-      signal,
+      signal: callSignal,
     }
     const reasoningEffort = request.request_options?.reasoning_effort
     if (typeof reasoningEffort === 'string' && reasoningEffort.length > 0) {
@@ -412,10 +422,11 @@ export async function callDshLlm(ctx, request, signal) {
     if (finish === undefined) throw new Error('DSH LLM stream ended without finish')
     if (finish.reason?.kind === 'error' || finish.reason?.kind === 'aborted') {
       const failure = finish.reason.failure ?? {}
+      const timedOut = timeoutSignal.aborted === true && signal?.aborted !== true
       return {
         ...base,
         ok: false,
-        failure_type: bridgeFailureType(failure.code),
+        failure_type: timedOut ? 'timeout' : bridgeFailureType(failure.code),
         message: String(failure.message ?? 'DSH LLM request failed').slice(0, 300),
         request_id: failure.requestId,
       }
@@ -436,10 +447,11 @@ export async function callDshLlm(ctx, request, signal) {
       request_id: replayRequestId(finish.replayState),
     }
   } catch (error) {
+    const timedOut = timeoutSignal?.aborted === true && signal?.aborted !== true
     return {
       ...base,
       ok: false,
-      failure_type: signal?.aborted ? 'aborted' : 'provider-error',
+      failure_type: timedOut ? 'timeout' : signal?.aborted ? 'aborted' : 'provider-error',
       message: String(error instanceof Error ? error.message : error).slice(0, 300),
     }
   }
@@ -511,10 +523,22 @@ async function pumpDshBridge(ctx, handle, signal, routes, maxBytes) {
 async function dshProviderIssues(ctx, routes) {
   const providers = new Set(ctx.llm.listProviders().map(provider => provider.id))
   const issues = []
+  const checkedPolicies = new Set()
   for (const route of routes) {
     if (!providers.has(route.provider)) {
       issues.push(`missing-llm-provider:${route.provider}`)
       continue
+    }
+    if (!checkedPolicies.has(route.provider)) {
+      checkedPolicies.add(route.provider)
+      try {
+        const policy = ctx.llm.providerRetryPolicy(route.provider)
+        if (policy?.mode !== 'normal' || policy.maxRetries !== 0) {
+          issues.push(`llm-provider-retry-policy-not-zero:${route.provider}`)
+        }
+      } catch {
+        issues.push(`unresolved-llm-retry-policy:${route.provider}`)
+      }
     }
     try {
       await ctx.llm.resolveModelInfo(route.provider, route.model)
@@ -544,7 +568,7 @@ async function executeValidation(ctx, args, exec, config) {
     ? await dshProviderIssues(ctx, manifest.routes)
     : []
   if (request.paid && providerIssues.length > 0) {
-    throw new Error(`paid validation requires resolved DSH models: ${providerIssues.join(', ')}`)
+    throw new Error(`paid validation requires safe DSH routes: ${providerIssues.join(', ')}`)
   }
   const runRoot = await mkdtemp(join(tmpdir(), 'refractrouter-dsh-plugin-'))
   const outputDir = join(runRoot, 'output')
