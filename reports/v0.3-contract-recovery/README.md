@@ -23,7 +23,7 @@ The original three-repeat archive remains unchanged.
 
 ## Verification
 
-93 tests and 5 subtests pass locally, including all seven recorded failures, complete evidence
+94 tests and 5 subtests pass locally, including all seven recorded failures, complete evidence
 acceptance, missing-field rejection, M3 request-format selection, absent-score semantics,
 zero-call preflight, seven-case simulated replay, early failure and budget rejection.
 DSH tests verify the replay phase, bounded repeats, disabled retries and existing paid controls.
@@ -34,4 +34,31 @@ ceiling is 32 AFP within the user's existing 2505-AFP total authorization; DSH's
 evaluation ceiling is set to 1 AFP with zero evaluation calls. A passing replay does not validate
 final report quality or the full oracle comparison.
 
-The live replay evidence will be saved separately after execution on a clean committed version.
+## Live replay result
+
+All seven cases passed on clean commit `2210b601b13c448b204d248bba6ffca39f6e1868`.
+DSH reports `pass`: six M3 writers and the composed Flash writer now satisfy the complete
+JSON/evidence contract on their original saved upstream inputs. Each request completed normally
+in one attempt. Production cost was 5.81585 AFP; outer DSH cost was 1.20045 AFP from usage.
+The temporary paid profile was disabled afterward. This validates the scoped contract recovery,
+not the semantic quality or end-to-end reliability of a newly generated DAG.
+
+Original results, parent hashes, request telemetry, manifest/code provenance and billing estimates
+are in [agent-plan-replay/](agent-plan-replay/). The five original indexed hashes were verified
+and the saved output was scanned for the credential before publication.
+
+## Full-repeat budget preparation
+
+Preflight now prices the known candidate sweeps by their assigned models; it retains the most
+expensive per-call price for unknown composed/learned assignments. At three repeats, 42 calls
+per candidate are fixed (126 total), and the remaining 42 calls retain the most expensive bound.
+The existing 4000 input / 8192 output token assumptions are unchanged. The estimate becomes
+716.89 production + 1262.98 evaluation = 1979.87 AFP. Tests verify the bound and use actual
+input/output token weights when choosing the most expensive request.
+
+Known cost across the initial interrupted run, repeated run and seven-case replay, including
+DSH outer calls, is 393.287 AFP; add the retained 16.192 AFP unsettled request estimate to get
+409.479 AFP. A fresh 740-production / 1290-evaluation admission envelope plus the remaining
+1.9742 AFP of the original outer allowance gives total admitted exposure 2441.4532 AFP,
+within the existing 2505-AFP approval. Per-request reservations remain estimates, and the
+existing budget checks stop new requests when the remaining allowance is insufficient.

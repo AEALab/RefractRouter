@@ -499,7 +499,7 @@ test('the registered tool completes a real zero-cost Python preflight', async ()
     assert.equal(result.credentialConfigured, false)
     assert.equal(result.callPlan.totalModelCalls, 82)
     assert.equal(result.costEstimate.billingUnit, 'USD')
-    assert.equal(result.costEstimate.total, 14.87)
+    assert.equal(result.costEstimate.total, 11.86)
     assert.equal(result.artifactHashes.length, 1)
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })

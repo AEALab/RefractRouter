@@ -390,19 +390,18 @@ def call_plan(
     repeats: int,
     include_learned: bool,
 ) -> dict[str, int]:
-    node_count = len((train_tasks or test_tasks)[0].nodes)
-    training_calls = len(train_tasks) * candidate_count * node_count
-    per_test = candidate_count * node_count + candidate_count * node_count + 2 * node_count
-    if include_learned:
-        per_test += 2 * node_count
+    training_nodes = sum(len(task.nodes) for task in train_tasks)
+    test_nodes = sum(len(task.nodes) for task in test_tasks) * repeats
+    training_calls = training_nodes * candidate_count
     strategies = 7 if include_learned else 5
-    production_calls = training_calls + len(test_tasks) * repeats * per_test
+    production_calls = training_calls + test_nodes * (2 * candidate_count + (4 if include_learned else 2))
     final_judge_calls = len(test_tasks) * repeats * strategies
-    node_judge_calls = training_calls + len(test_tasks) * repeats * candidate_count * node_count
+    node_judge_calls = training_calls + test_nodes * candidate_count
     judge_calls = final_judge_calls + node_judge_calls
     return {
         "training_model_calls": training_calls,
         "production_model_calls": production_calls,
+        "fixed_calls_per_candidate": training_nodes + 2 * test_nodes,
         "node_judge_model_calls": node_judge_calls,
         "final_judge_model_calls": final_judge_calls,
         "judge_model_calls": judge_calls,
@@ -416,14 +415,15 @@ def estimate_costs(
     input_tokens: int,
     output_tokens: int,
 ) -> dict[str, float]:
-    strongest_price = max(
-        manifest.candidates,
-        key=lambda model: model.input_cost_per_1k + model.output_cost_per_1k,
-    )
-    production = int(plan["production_model_calls"]) * (
-        input_tokens / 1000 * strongest_price.input_cost_per_1k
-        + output_tokens / 1000 * strongest_price.output_cost_per_1k
-    )
+    prices = [input_tokens / 1000 * model.input_cost_per_1k
+              + output_tokens / 1000 * model.output_cost_per_1k for model in manifest.candidates]
+    fixed = int(plan.get("fixed_calls_per_candidate", 0))
+    remaining = int(plan["production_model_calls"]) - fixed * len(prices)
+    if fixed < 0 or remaining < 0:
+        raise ValueError("Invalid fixed candidate call count")
+    # Single-model runs and isolated sweeps have known model identities. Only
+    # composed/learned routes need the most expensive possible per-call price.
+    production = fixed * sum(prices) + remaining * max(prices)
     judge = manifest.judge
     evaluation = int(plan["judge_model_calls"]) * (
         input_tokens * 2 / 1000 * judge.input_cost_per_1k
@@ -529,6 +529,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "call_plan": plan,
         "cost_estimate_assumptions": {
+            "production_assignment_bound": "fixed candidate sweeps at each model's price; remaining calls at maximum per-call price",
             "input_tokens_per_production_call": args.estimated_input_tokens,
             "input_tokens_per_judge_call": args.estimated_input_tokens * 2,
             "output_tokens_per_call": args.estimated_output_tokens,

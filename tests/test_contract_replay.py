@@ -146,3 +146,22 @@ def test_replay_rejects_insufficient_budget_before_invoking_client(tmp_path):
             main(['--output-dir', str(tmp_path), '--execute-paid-run',
                   '--max-production-cost', '0.01', '--max-evaluation-cost', '0'])
     client.assert_not_called()
+
+
+def test_production_bound_counts_fixed_sweeps_and_worst_case_composed_routes():
+    from experiments.run_real_v0_1 import call_plan, estimate_costs
+    manifest = load_model_manifest(ROOT / 'data/model-manifests/volcengine-agent-plan.json')
+    plan = call_plan([], [task()], 3, 3, False)
+    assert plan['fixed_calls_per_candidate'] == 42
+    assert plan['production_model_calls'] == 168
+    costs = estimate_costs(plan, manifest, 4000, 8192)
+    prices = [(4000*m.input_cost_per_1k + 8192*m.output_cost_per_1k)/1000 for m in manifest.candidates]
+    assert costs['production_upper_estimate'] == round(42*sum(prices) + 42*max(prices), 2)
+    assert costs['production_upper_estimate'] == 716.89
+    assert costs['total_upper_estimate'] == 1979.87
+    # Price ordering must weight input/output token counts, not add their unit rates.
+    models = tuple(replace(m, input_cost_per_1k=2, output_cost_per_1k=0) if m.model_id == 'cheap'
+                   else replace(m, input_cost_per_1k=0, output_cost_per_1k=1) if m.model_id == 'mid'
+                   else m for m in manifest.models)
+    bound = estimate_costs({'production_model_calls': 1, 'judge_model_calls': 0}, replace(manifest, models=models), 1, 10000)
+    assert bound['production_upper_estimate'] == 10
