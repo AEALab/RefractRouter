@@ -28,7 +28,7 @@ class OracleTests(unittest.TestCase):
 
         self.assertEqual(set(task_assignment.values()), {"strong-model"})
         self.assertGreater(len(set(node_assignment.values())), 1)
-        self.assertEqual(node_assignment["extract_evidence"], "strong-model")
+        self.assertEqual(node_assignment["extract_evidence"], "cheap-model")
         self.assertEqual(node_assignment["render_html"], "mid-model")
 
     def test_node_probes_execute_only_the_target_node(self) -> None:

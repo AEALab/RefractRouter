@@ -23,6 +23,9 @@ class DSHRealRunnerTests(unittest.TestCase):
             True, {"wire_api": "chat-completions"}
         )
         self.assertIn("model-progress.ndjson", direct_artifacts)
+        for artifact in ("node-quality-matrix.json", "node-quality-matrix.md",
+                         "node-evaluations.ndjson", "strategy-comparisons.json", "strategy-comparisons.md"):
+            self.assertIn(artifact, direct_artifacts)
         self.assertNotIn("bridge-progress.ndjson", direct_artifacts)
         bridge_artifacts = _expected_artifacts(True, {"wire_api": "dsh-llm"})
         self.assertIn(
@@ -53,7 +56,7 @@ class DSHRealRunnerTests(unittest.TestCase):
         self.assertEqual(evidence["status"], "pass")
         self.assertEqual(evidence["mode"], "preflight")
         self.assertEqual(evidence["invoked_by"], "dsh")
-        self.assertEqual(evidence["preflight"]["call_plan"]["total_model_calls"], 61)
+        self.assertEqual(evidence["preflight"]["call_plan"]["total_model_calls"], 82)
         self.assertTrue(evidence["inputs"]["corpus"]["sha256"])
 
     def test_direct_script_entrypoint(self) -> None:

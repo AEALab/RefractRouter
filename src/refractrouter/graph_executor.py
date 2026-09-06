@@ -114,7 +114,7 @@ class GraphExecutor:
         model = self.registry.get(model_id)
         prompt = self._build_prompt(node, dict(context))
         result = self.adapter.invoke(self.task, node, prompt, dict(context), model)
-        return self._replace_score(result, score_node(self.task, node, result.output))
+        return self._replace_score(result, score_node(self.task, node, result.output, context) if result.status == "ok" else 0.0)
 
     @staticmethod
     def _replace_score(result: NodeResult, score: float) -> NodeResult:

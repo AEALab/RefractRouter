@@ -2,11 +2,16 @@
 
 ## Project Structure & Module Organization
 
-This repository is currently documentation-only. `README.md` is the root project README and the sole tracked file. As implementation work begins, place source code in purpose-specific top-level directories (for example, `src/` and `tests/`) and keep static assets under a directory such as `assets/`.
+Python implementation lives in `src/refractrouter/`, benchmark entry points in `experiments/`,
+frozen tasks, sources, manifests and rubrics in `data/`, tests in `tests/`, and DSH integration
+in `validation/dsh/`. Historical evidence lives in `reports/`; preserve completed run artifacts.
 
 ## Build, Test, and Development Commands
 
-No build, test, or development commands are configured yet. For repository maintenance, use `git status`, `git diff`, and `git log` to inspect changes before committing. Update this section as soon as package, build, or test tooling is added.
+Use `uv sync --frozen --extra dev --extra deepagents` to install dependencies and `uv run pytest`
+to run the full suite, including Node contract tests. `experiments/run_real_v0_1.py` defaults to
+zero-call preflight. Paid runs require explicit scoped budget authorization and fresh output paths.
+For this project, Ark calls must use the Agent Plan `/api/plan/v3` endpoint.
 
 ## Coding Style & Naming Conventions
 
@@ -14,11 +19,12 @@ No language-specific formatter or linter is configured. For Markdown, use one bl
 
 ## Testing Guidelines
 
-There are currently no tests or testing frameworks. When tests are introduced, put them in `tests/`, mirror the production directory layout, and name files after the behavior under test. Run the full test suite before every pull request and document the command here.
+Put behavior tests in `tests/`. Use deterministic fake adapters and mocked judge responses for
+network-free tests; never make paid calls from tests. Run `uv run pytest` before every pull request.
 
 ## Commit & Pull Request Guidelines
 
-The history contains only the initial commit, `first commit`, so no repository-specific commit convention has been established. Use short, imperative commit subjects (for example, `Add routing benchmark`) and add body details when the reason for the change is not obvious. Pull requests should include a clear summary, scope of changes, verification performed, and links to related issues or specifications.
+Use short, imperative commit subjects (for example, `Add routing benchmark`) and add body details when the reason for the change is not obvious. Pull requests should include a clear summary, scope of changes, verification performed, and links to related issues or specifications.
 
 ## Security & Configuration Tips
 

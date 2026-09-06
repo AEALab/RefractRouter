@@ -87,8 +87,8 @@ class BenchmarkTests(unittest.TestCase):
         plan = call_plan((), (task,), 3, 1, False)
 
         self.assertEqual(plan["production_model_calls"], 56)
-        self.assertEqual(plan["judge_model_calls"], 5)
-        self.assertEqual(plan["total_model_calls"], 61)
+        self.assertEqual(plan["judge_model_calls"], 26)
+        self.assertEqual(plan["total_model_calls"], 82)
 
     def test_oracle_gate_accepts_same_cost_quality_gain(self) -> None:
         summary = {

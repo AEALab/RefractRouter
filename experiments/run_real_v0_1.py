@@ -20,12 +20,15 @@ from refractrouter.benchmark import (
     oracle_gate,
     pareto_front_markdown,
 )
+from refractrouter.comparisons import paired_comparisons, comparisons_markdown
 from refractrouter.dataset import BenchmarkDataset, load_benchmark_dataset
 from refractrouter.deepagents_executor import DeepAgentsGraphExecutor
 from refractrouter.judge import IndependentJudge, apply_judge_score
 from refractrouter.judge import JudgeEvaluation
 from refractrouter.manifest import ModelManifest, load_model_manifest
 from refractrouter.model_registry import ModelRegistry
+from refractrouter.node_judge import IndependentNodeJudge, NodeJudgeError, NODE_RUBRIC_PATH, NODE_RUBRIC_VERSION
+from refractrouter.scoring import node_contract_checks
 from refractrouter.openai_compatible import ModelInvocationError, OpenAICompatibleClient
 from refractrouter.routing import (
     node_oracle,
@@ -56,6 +59,91 @@ class CostLedger:
 class TaskStrategyBundle:
     results: dict[str, TaskResult]
     single_results: dict[str, TaskResult]
+    node_matrix: tuple[dict, ...] = ()
+    matrix_complete: bool = True
+
+
+class NodeQualityRecorder:
+    """Persist every cell, including failed/unevaluated candidates, before selection."""
+
+    def __init__(self, judge, ledger, output_dir, models=()):
+        self.judge = judge
+        self.ledger = ledger
+        self.output_dir = output_dir
+        self.rows = []
+        self.models = {model.model_id: model for model in models}
+
+    def record(self, task, node, result, context, *, repeat, stage):
+        upstream = {parent: context.get(parent, "") for parent in node.parents}
+        checks = node_contract_checks(task, node, result.output, upstream)
+        evaluation = {"error": None, "final_score": 0.0, "cost": 0.0, "checks": checks}
+        if result.status != "ok" or checks["score_cap"] == 0:
+            evaluation["method"] = "deterministic-rejection"
+        else:
+            reserve = _estimated_invocation_cost(
+                self.judge.judge_model, self.ledger.estimated_evaluation_input_tokens,
+                self.ledger.estimated_output_tokens,
+            )
+            if self.ledger.evaluation_spent + reserve > self.ledger.evaluation_limit:
+                evaluation["error"] = "evaluation-budget-exhausted"
+                evaluation["final_score"] = None
+            else:
+                try:
+                    evaluation = {**self.judge.evaluate(task, node, result, upstream), "error": None,
+                                  "method": "independent-node-judge"}
+                except NodeJudgeError as exc:
+                    evaluation.update(exc.telemetry)
+                    evaluation.update(error=exc.failure_type, final_score=None)
+                except ModelInvocationError as exc:
+                    evaluation.update(error=exc.failure_type, final_score=None)
+                self.ledger.evaluation_spent += evaluation["cost"]
+        row = {
+            "task_id": task.task_id, "repeat": repeat, "stage": stage,
+            "node_id": node.node_id, "node_type": node.node_type, "model_id": result.model_id,
+            "api_model": self.models[result.model_id].api_model if result.model_id in self.models else None,
+            "upstream": upstream,
+            "upstream_sha256": hashlib.sha256(json.dumps(upstream, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
+            "output_sha256": hashlib.sha256(result.output.encode()).hexdigest(),
+            "node_result": asdict(result), "evaluation": evaluation,
+            "eligible": result.status == "ok" and checks["score_cap"] > 0 and evaluation["error"] is None,
+            "selected": False,
+        }
+        self.rows.append(row)
+        with (self.output_dir / "node-evaluations.ndjson").open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(row, ensure_ascii=False) + "\n")
+        return row
+
+    def write_matrix(self):
+        payload = {"rubric_version": NODE_RUBRIC_VERSION,
+                   "rubric_sha256": self.judge.rubric_sha256, "rows": self.rows,
+                   "raw_node_score_kind": "deterministic contract cap; use evaluation.final_score for selection",
+                   "selection": "highest eligible semantic score, then lowest observed node cost",
+                   "global_oracle": False}
+        (self.output_dir / "node-quality-matrix.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        lines = ["# Node quality matrix", "",
+                 "Independent semantic scores capped by contract checks. * marks the selected model.",
+                 "Full outputs, checks, rationale, telemetry and exclusions are in the JSON matrix.", ""]
+        blocks = dict.fromkeys((r["stage"], r["task_id"], r["repeat"]) for r in self.rows)
+        for stage, task_id, repeat in blocks:
+            rows = [r for r in self.rows if (r["stage"], r["task_id"], r["repeat"]) == (stage, task_id, repeat)]
+            models = list(dict.fromkeys(r["model_id"] for r in rows))
+            labels = {r["model_id"]: r["api_model"] or r["model_id"] for r in rows}
+            lines.extend([f"## {stage} / {task_id} / repeat {repeat}", "",
+                          "| Node | " + " | ".join(labels[m] for m in models) + " |",
+                          "|---|" + "---:|" * len(models)])
+            for node_id in dict.fromkeys(r["node_id"] for r in rows):
+                cells = []
+                for model in models:
+                    row = next(r for r in rows if r["node_id"] == node_id and r["model_id"] == model)
+                    score = row["evaluation"]["final_score"]
+                    label = str(score) if score is not None else "unevaluated"
+                    label += " *" if row["selected"] else "" if row["eligible"] else " (ineligible)"
+                    cells.append(label)
+                lines.append("| " + node_id + " | " + " | ".join(cells) + " |")
+            lines.append("")
+        (self.output_dir / "node-quality-matrix.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
 
 
 class BudgetedAdapter:
@@ -125,6 +213,7 @@ def build_task_strategy_bundle(
     training_results: Sequence[TaskResult] = (),
     *,
     include_learned: bool,
+    node_evaluator=None,
 ) -> TaskStrategyBundle:
     executor = DeepAgentsGraphExecutor(task, adapter, registry)
     singles: dict[str, TaskResult] = {}
@@ -146,12 +235,43 @@ def build_task_strategy_bundle(
         result.node_id: result.output for result in strong.node_results
     }
     probes: list[TaskResult] = []
+    matrix = []
+    matrix_complete = True
+    reference_status = {r.node_id: r.status for r in strong.node_results}
+    eligible_nodes = set()
     for node in task.nodes:
         for model in registry.list():
-            node_result = executor.probe_node(node.node_id, model.model_id, reference_context)
-            probes.append(_probe_result(task, node_result))
-    node_assignments = node_oracle(task, registry, probes)
-    node_best = executor.execute(node_assignments, "node-oracle")
+            invalid_reference = any(reference_status.get(parent) != "ok" for parent in node.parents)
+            if invalid_reference:
+                node_result = NodeResult(node.node_id, node.node_type, model.model_id, "", 0, 0, 0, 0,
+                                         billing_unit=model.billing_unit, status="failed",
+                                         failure_type="invalid-reference-context", attempts=0)
+            else:
+                node_result = executor.probe_node(node.node_id, model.model_id, reference_context)
+            if node_evaluator is not None:
+                row = node_evaluator(task, node, node_result, reference_context)
+                matrix.append(row)
+                matrix_complete = (matrix_complete and row["evaluation"]["error"] is None
+                                   and node_result.status == "ok" and not invalid_reference)
+                if row["eligible"]:
+                    eligible_nodes.add(node.node_id)
+                    probes.append(_probe_result(task, replace(node_result, score=row["evaluation"]["final_score"])))
+            else:
+                probes.append(_probe_result(task, node_result))
+    if node_evaluator is not None and (not matrix_complete or len(eligible_nodes) != len(task.nodes)):
+        matrix_complete = False
+        node_assignments = {}
+        failed = tuple(NodeResult(n.node_id, n.node_type, "unselected", "", 0, 0, 0, 0,
+                                 billing_unit=registry.cheapest().billing_unit, status="failed",
+                                 failure_type="node-quality-incomplete", attempts=0) for n in task.nodes)
+        node_best = TaskResult(task.task_id, "node-oracle", {}, failed, "", 0, 0, 0,
+                               billing_unit=registry.cheapest().billing_unit,
+                               failure_types=("node-quality-incomplete",))
+    else:
+        node_assignments = node_oracle(task, registry, probes)
+        node_best = executor.execute(node_assignments, "node-oracle")
+    for row in matrix:
+        row["selected"] = row["eligible"] and node_assignments.get(row["node_id"]) == row["model_id"]
 
     priced = sorted(
         registry.list(),
@@ -186,7 +306,7 @@ def build_task_strategy_bundle(
             statistical_q(task, registry, training_results),
             "statistical-q",
         )
-    return TaskStrategyBundle(results=results, single_results=singles)
+    return TaskStrategyBundle(results=results, single_results=singles, node_matrix=tuple(matrix), matrix_complete=matrix_complete)
 
 
 def _retag(
@@ -264,10 +384,14 @@ def call_plan(
         per_test += 2 * node_count
     strategies = 7 if include_learned else 5
     production_calls = training_calls + len(test_tasks) * repeats * per_test
-    judge_calls = len(test_tasks) * repeats * strategies
+    final_judge_calls = len(test_tasks) * repeats * strategies
+    node_judge_calls = training_calls + len(test_tasks) * repeats * candidate_count * node_count
+    judge_calls = final_judge_calls + node_judge_calls
     return {
         "training_model_calls": training_calls,
         "production_model_calls": production_calls,
+        "node_judge_model_calls": node_judge_calls,
+        "final_judge_model_calls": final_judge_calls,
         "judge_model_calls": judge_calls,
         "total_model_calls": production_calls + judge_calls,
     }
@@ -372,6 +496,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         "wire_api": manifest.candidates[0].wire_api,
         "base_url": manifest.candidates[0].base_url,
         "provider": manifest.candidates[0].provider,
+        "node_quality": {
+            "rubric_version": NODE_RUBRIC_VERSION, "rubric_sha256": _sha256(NODE_RUBRIC_PATH),
+            "selection": "blinded-independent-node-judge-with-contract-caps",
+            "tie_break": "observed-node-cost", "global_oracle": False,
+        },
         "execution_policy": {
             "temperature": 0,
             "timeout_seconds": args.timeout_seconds,
@@ -397,6 +526,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             os.environ.get(manifest.candidates[0].api_key_env or "")
         ),
     }
+    if args.execute_paid_run and (args.output_dir / "node-evaluations.ndjson").exists():
+        parser.error("Use a fresh output directory for a paid run; existing node evidence cannot be overwritten")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "preflight.json").write_text(
         json.dumps(preflight, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -443,14 +574,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     adapter = BudgetedAdapter(OpenAICompatibleAdapter(client), ledger)
     registry = manifest.candidate_registry()
 
+    node_judge = IndependentNodeJudge(client, manifest.judge)
+    quality = NodeQualityRecorder(node_judge, ledger, args.output_dir, manifest.candidates)
     training_results: list[TaskResult] = []
     for task in train_tasks:
         executor = DeepAgentsGraphExecutor(task, adapter, registry)
         for model in registry.list():
             assignments = {node.node_id: model.model_id for node in task.nodes}
-            training_results.append(
-                executor.execute(assignments, f"train-single:{model.model_id}")
-            )
+            training = executor.execute(assignments, f"train-single:{model.model_id}")
+            context = {}
+            scored = []
+            for node_result in training.node_results:
+                node = next(n for n in task.nodes if n.node_id == node_result.node_id)
+                row = quality.record(task, node, node_result, context, repeat=0, stage="training")
+                scored.append(replace(node_result, score=row["evaluation"].get("final_score") or 0))
+                context[node.node_id] = node_result.output
+            training_results.append(replace(training, node_results=tuple(scored)))
+
 
     judge = IndependentJudge(client, manifest.judge)
     observations: list[BenchmarkObservation] = []
@@ -462,6 +602,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 adapter,
                 training_results,
                 include_learned=include_learned,
+                node_evaluator=lambda task, node, result, context: quality.record(
+                    task, node, result, context, repeat=repeat_index, stage="probe"),
             )
             single_evaluations = {}
             single_errors = {}
@@ -488,6 +630,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "task-oracle",
                     assignments,
                 )
+            single_dir = args.output_dir / "single-models" / task.task_id / f"repeat-{repeat_index}"
+            single_dir.mkdir(parents=True, exist_ok=True)
+            for model_id, single in bundle.single_results.items():
+                (single_dir / f"{model_id}.json").write_text(json.dumps({
+                    "result": asdict(single),
+                    "judge": asdict(single_evaluations[model_id]) if single_evaluations[model_id] else None,
+                    "judge_error": single_errors[model_id],
+                }, ensure_ascii=False, indent=2) + "\n")
+            task_oracle_complete = all(value is not None for value in single_evaluations.values())
             reused_models = {
                 "weak-all": registry.cheapest().model_id,
                 "strong-all": registry.strongest().model_id,
@@ -507,6 +658,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     evaluation, judge_error = _evaluate_with_budget(
                         judge, task, raw_result, ledger
                     )
+                if strategy == "task-oracle" and not task_oracle_complete:
+                    evaluation, judge_error = None, "incomplete-single-model-evaluations"
                 if evaluation is not None:
                     result = apply_judge_score(raw_result, evaluation)
                 observations.append(
@@ -520,7 +673,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     )
                 )
 
-    _write_outputs(args.output_dir, args, manifest, observations, ledger, preflight)
+    quality.write_matrix()
+    _write_outputs(args.output_dir, args, manifest, observations, ledger, preflight, quality.rows)
     return 0
 
 
@@ -554,6 +708,7 @@ def _write_outputs(
     observations: Sequence[BenchmarkObservation],
     ledger: CostLedger,
     preflight: Mapping[str, object],
+    node_rows: Sequence[dict] = (),
 ) -> None:
     runs_dir = output_dir / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
@@ -566,10 +721,27 @@ def _write_outputs(
         )
     summary = aggregate_observations(observations)
     gate = oracle_gate(summary)
+    comparisons = paired_comparisons(observations)
     failures = failure_taxonomy(observations)
+    for row in node_rows:
+        if row["node_result"]["status"] != "ok":
+            error = "node-probe:" + str(row["node_result"]["failure_type"])
+            failures[error] = failures.get(error, 0) + 1
+        if row["evaluation"]["error"]:
+            error = "node-judge:" + row["evaluation"]["error"]
+            failures[error] = failures.get(error, 0) + 1
+    expected_cells = preflight["call_plan"]["node_judge_model_calls"]
+    if len(node_rows) != expected_cells:
+        failures["node-matrix:missing-cells"] = abs(expected_cells - len(node_rows))
     model_run_complete = all(
         float(values["judge_coverage"]) == 1.0 for values in summary.values()
-    ) and not any("budget-exhausted" in name for name in failures)
+    ) and not failures
+    comparison = comparisons["summaries"]["node-oracle vs task-oracle"]
+    gate["routing_change_observed"] = comparison["pairs"] > comparison["identical_assignment_pairs"]
+    gate["repeated"] = args.repeats >= 3
+    gate["matrix_complete"] = model_run_complete
+    if not model_run_complete or not gate["repeated"] or not gate["routing_change_observed"]:
+        gate["decision"] = "Insufficient-evidence"
     status = (
         "awaiting-human-audit"
         if model_run_complete and args.phase == "final"
@@ -590,9 +762,13 @@ def _write_outputs(
         },
         "preflight": preflight,
         "strategies": summary,
+        "comparisons": comparisons["summaries"],
+        "node_matrix": {"expected_cells": expected_cells, "recorded_cells": len(node_rows)},
         "oracle_gate": gate,
         "failure_taxonomy": failures,
         "costs": {
+            "node_evaluation": round(sum(row["evaluation"]["cost"] for row in node_rows), 8),
+            "final_evaluation": round(ledger.evaluation_spent - sum(row["evaluation"]["cost"] for row in node_rows), 8),
             "billing_unit": ledger.billing_unit,
             "production": round(ledger.production_spent, 8),
             "evaluation": round(ledger.evaluation_spent, 8),
@@ -614,6 +790,9 @@ def _write_outputs(
     (output_dir / "failure-taxonomy.md").write_text(
         failure_taxonomy_markdown(failures), encoding="utf-8"
     )
+    (output_dir / "strategy-comparisons.json").write_text(
+        json.dumps(comparisons, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (output_dir / "strategy-comparisons.md").write_text(comparisons_markdown(comparisons), encoding="utf-8")
     artifacts = sorted(
         path for path in output_dir.rglob("*") if path.is_file() and path.name != "evidence-index.json"
     )
