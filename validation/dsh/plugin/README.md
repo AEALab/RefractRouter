@@ -168,7 +168,9 @@ The zero-cost preflight checks all four frozen `ark-plan` model routes and rejec
 policy other than `normal` with zero retries. A paid run also opens the stdio bridge and invokes those
 models through `ctx.llm`; the Agent Plan key is not sent to Python. The runner's 120-second model
 timeout crosses the bridge and aborts the corresponding DSH stream independently of the whole-run
-deadline.
+deadline. The Agent Plan manifest caps every response at the same 1,200 tokens used by the AFP
+preflight estimate; paid execution rejects an estimate below the manifest's request cap.
+
 When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coefficient candidate:
 
 ```yaml
