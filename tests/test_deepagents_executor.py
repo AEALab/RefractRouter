@@ -16,7 +16,7 @@ class DeepAgentsGraphExecutorTests(unittest.TestCase):
         result = executor.execute(strong_all(task, registry), "strong-all")
         self.assertEqual(result.task_id, "report_001")
         self.assertGreater(result.task_score, 0)
-        self.assertGreater(result.total_cost_usd, 0)
+        self.assertGreater(result.total_cost, 0)
 
 
 if __name__ == "__main__":

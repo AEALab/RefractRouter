@@ -16,18 +16,20 @@ class SourceDocument:
 class ModelSpec:
     model_id: str
     provider: str
-    input_cost_per_1k_usd: float
-    output_cost_per_1k_usd: float
+    input_cost_per_1k: float
+    output_cost_per_1k: float
     capability: float
+    billing_unit: str = "USD"
     tags: tuple[str, ...] = ()
     api_model: str | None = None
     base_url: str | None = None
     api_key_env: str | None = None
-    cached_input_cost_per_1k_usd: float | None = None
+    cached_input_cost_per_1k: float | None = None
     context_window: int | None = None
     max_output_tokens: int | None = None
     snapshot_date: str | None = None
     role: str = "candidate"
+    wire_api: str = "chat-completions"
     request_options: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -61,8 +63,9 @@ class NodeResult:
     output: str
     input_tokens: int
     output_tokens: int
-    cost_usd: float
+    cost: float
     latency_ms: int
+    billing_unit: str = "USD"
     score: float = 0.0
     status: str = "ok"
     failure_type: str | None = None
@@ -82,8 +85,9 @@ class TaskResult:
     node_results: tuple[NodeResult, ...]
     final_output: str
     task_score: float
-    total_cost_usd: float
+    total_cost: float
     critical_path_latency_ms: int
+    billing_unit: str = "USD"
     failure_types: tuple[str, ...] = field(default_factory=tuple)
 
 

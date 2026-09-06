@@ -32,10 +32,11 @@ class JudgeEvaluation:
     output_tokens: int
     cached_input_tokens: int
     reasoning_tokens: int
-    cost_usd: float
+    cost: float
     latency_ms: int
     attempts: int
     request_id: str | None
+    billing_unit: str = "USD"
 
 
 class IndependentJudge:
@@ -129,7 +130,8 @@ class IndependentJudge:
             output_tokens=response.output_tokens,
             cached_input_tokens=response.cached_input_tokens,
             reasoning_tokens=response.reasoning_tokens,
-            cost_usd=model_response_cost(self.judge_model, response),
+            cost=model_response_cost(self.judge_model, response),
+            billing_unit=self.judge_model.billing_unit,
             latency_ms=response.latency_ms,
             attempts=response.attempts,
             request_id=response.request_id,

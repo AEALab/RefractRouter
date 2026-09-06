@@ -1,14 +1,17 @@
 import { mkdtemp, readFile, stat } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { createInterface } from 'node:readline'
 
 export const name = 'refractrouter-validation'
-export const inject = ['tools', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials']
+export const inject = ['tools', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'llm']
 
 const DEFAULT_TIMEOUT_MS = 7_200_000
 const DEFAULT_OUTPUT_CAPTURE_BYTES = 262_144
 const DEFAULT_EVIDENCE_BYTES = 2_097_152
 const REDACTED = '[REDACTED]'
+const DSH_BRIDGE_PROTOCOL = 'refractrouter-dsh-llm/v1'
 
 function positiveFinite(value, field) {
   if (!Number.isFinite(value) || value <= 0) {
@@ -20,6 +23,13 @@ function positiveFinite(value, field) {
 function positiveInteger(value, field) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${field} must be a positive safe integer`)
+  }
+  return value
+}
+
+function nonNegativeInteger(value, field) {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`${field} must be a non-negative safe integer`)
   }
   return value
 }
@@ -49,8 +59,10 @@ export function resolveConfig(config = {}) {
   }
   const allowed = new Set([
     'allowPaidRuns',
-    'maxProductionCostUsd',
-    'maxEvaluationCostUsd',
+    'maxProductionCost',
+    'maxEvaluationCost',
+    'billingUnit',
+    'maxRetries',
     'uvExecutable',
     'uvCacheDir',
     'runnerPath',
@@ -66,8 +78,10 @@ export function resolveConfig(config = {}) {
   if (unknown.length > 0) throw new Error(`unknown config fields: ${unknown.join(', ')}`)
   const resolved = {
     allowPaidRuns: config.allowPaidRuns ?? false,
-    maxProductionCostUsd: config.maxProductionCostUsd ?? 2,
-    maxEvaluationCostUsd: config.maxEvaluationCostUsd ?? 1,
+    maxProductionCost: config.maxProductionCost ?? 2,
+    maxEvaluationCost: config.maxEvaluationCost ?? 1,
+    billingUnit: configuredString(config.billingUnit, 'USD', 'billingUnit').toUpperCase(),
+    maxRetries: config.maxRetries ?? 0,
     uvExecutable: configuredString(config.uvExecutable, 'uv', 'uvExecutable'),
     uvCacheDir: configuredString(
       config.uvCacheDir,
@@ -102,8 +116,12 @@ export function resolveConfig(config = {}) {
   if (typeof resolved.allowPaidRuns !== 'boolean') {
     throw new Error('allowPaidRuns must be a boolean')
   }
-  positiveFinite(resolved.maxProductionCostUsd, 'maxProductionCostUsd')
-  positiveFinite(resolved.maxEvaluationCostUsd, 'maxEvaluationCostUsd')
+  if (!['USD', 'AFP'].includes(resolved.billingUnit)) {
+    throw new Error('billingUnit must be USD or AFP')
+  }
+  positiveFinite(resolved.maxProductionCost, 'maxProductionCost')
+  positiveFinite(resolved.maxEvaluationCost, 'maxEvaluationCost')
+  nonNegativeInteger(resolved.maxRetries, 'maxRetries')
   positiveInteger(resolved.timeoutMs, 'timeoutMs')
   positiveInteger(resolved.processGraceMs, 'processGraceMs')
   positiveInteger(resolved.outputCaptureBytes, 'outputCaptureBytes')
@@ -112,6 +130,36 @@ export function resolveConfig(config = {}) {
     throw new Error('credentialEnv must be a POSIX environment variable name')
   }
   return Object.freeze(resolved)
+}
+
+async function readExecutionManifest(path) {
+  const raw = JSON.parse(await readFile(path, 'utf8'))
+  if (raw?.schema_version !== 'v0.2' || !Array.isArray(raw.models)) {
+    throw new Error('plugin requires a v0.2 model manifest')
+  }
+  const defaults = raw.defaults ?? {}
+  const models = raw.models.map(model => ({ ...defaults, ...model }))
+  if (models.length === 0) throw new Error('model manifest has no models')
+  const billingUnits = new Set(models.map(model => String(model.billing_unit).toUpperCase()))
+  const wireApis = new Set(models.map(model => String(model.wire_api)))
+  const credentialEnvs = new Set(models.map(model => String(model.api_key_env)))
+  if (billingUnits.size !== 1 || wireApis.size !== 1 || credentialEnvs.size !== 1) {
+    throw new Error('plugin requires one billing unit, wire API, and credential reference')
+  }
+  const wireApi = [...wireApis][0]
+  if (!['chat-completions', 'dsh-llm'].includes(wireApi)) {
+    throw new Error(`unsupported manifest wire API: ${wireApi}`)
+  }
+  const routes = models.map(model => ({
+    provider: String(model.provider),
+    model: String(model.api_model),
+  }))
+  return {
+    billingUnit: [...billingUnits][0],
+    wireApi,
+    credentialEnv: [...credentialEnvs][0],
+    routes,
+  }
 }
 
 /** Dependency-free Standard Schema keeps linked checkout bundles self-contained. */
@@ -139,8 +187,8 @@ function resolveRequest(args, config) {
     'phase',
     'repeats',
     'executePaidRun',
-    'maxProductionCostUsd',
-    'maxEvaluationCostUsd',
+    'maxProductionCost',
+    'maxEvaluationCost',
   ])
   const unknown = Object.keys(args).filter(key => !allowed.has(key))
   if (unknown.length > 0) throw new Error(`unknown tool arguments: ${unknown.join(', ')}`)
@@ -156,7 +204,7 @@ function resolveRequest(args, config) {
   }
   const paid = args.executePaidRun ?? false
   if (!paid) {
-    if (args.maxProductionCostUsd !== undefined || args.maxEvaluationCostUsd !== undefined) {
+    if (args.maxProductionCost !== undefined || args.maxEvaluationCost !== undefined) {
       throw new Error('cost limits are valid only when executePaidRun is true')
     }
     return { phase: args.phase, repeats, paid: false }
@@ -165,21 +213,21 @@ function resolveRequest(args, config) {
     throw new Error('paid validation is disabled by plugin config (allowPaidRuns: false)')
   }
   const productionLimit = positiveFinite(
-    args.maxProductionCostUsd,
-    'maxProductionCostUsd',
+    args.maxProductionCost,
+    'maxProductionCost',
   )
   const evaluationLimit = positiveFinite(
-    args.maxEvaluationCostUsd,
-    'maxEvaluationCostUsd',
+    args.maxEvaluationCost,
+    'maxEvaluationCost',
   )
-  if (productionLimit > config.maxProductionCostUsd) {
+  if (productionLimit > config.maxProductionCost) {
     throw new Error(
-      `maxProductionCostUsd exceeds configured ceiling ${String(config.maxProductionCostUsd)}`,
+      `maxProductionCost exceeds configured ceiling ${String(config.maxProductionCost)}`,
     )
   }
-  if (evaluationLimit > config.maxEvaluationCostUsd) {
+  if (evaluationLimit > config.maxEvaluationCost) {
     throw new Error(
-      `maxEvaluationCostUsd exceeds configured ceiling ${String(config.maxEvaluationCostUsd)}`,
+      `maxEvaluationCost exceeds configured ceiling ${String(config.maxEvaluationCost)}`,
     )
   }
   return {
@@ -230,6 +278,8 @@ function summarizeEvidence(evidence, fallback, secrets) {
     evidencePath: fallback.evidencePath,
     outputDir: fallback.outputDir,
     credentialConfigured: fallback.credentialConfigured,
+    modelProviderConfigured: fallback.modelProviderConfigured,
+    billingUnit: String(preflight?.billing_unit ?? fallback.billingUnit),
     sandboxMode: fallback.sandboxMode,
     ...fallback.sandboxEnforcement === undefined
       ? {}
@@ -248,10 +298,11 @@ function summarizeEvidence(evidence, fallback, secrets) {
     ...costs === null || typeof costs !== 'object'
       ? {}
       : {
-          costEstimateUsd: {
-            production: costs.production_upper_estimate_usd,
-            evaluation: costs.evaluation_upper_estimate_usd,
-            total: costs.total_upper_estimate_usd,
+          costEstimate: {
+            billingUnit: costs.billing_unit,
+            production: costs.production_upper_estimate,
+            evaluation: costs.evaluation_upper_estimate,
+            total: costs.total_upper_estimate,
           },
         },
     inputHashes: {
@@ -286,9 +337,215 @@ function capturedTail(captured, secrets) {
   return redactSensitiveText(captured?.text ?? '', secrets)
 }
 
+function bridgeFailureType(code) {
+  const normalized = String(code ?? '').toUpperCase()
+  if (normalized.includes('AUTH') || normalized.includes('CREDENTIAL')) return 'authentication'
+  if (normalized.includes('RATE_LIMIT')) return 'rate-limit'
+  if (normalized.includes('QUOTA')) return 'quota-exhausted'
+  if (normalized.includes('TIMEOUT')) return 'timeout'
+  if (normalized.includes('ABORT')) return 'aborted'
+  if (normalized.includes('CONTEXT')) return 'context-window-exceeded'
+  return 'provider-error'
+}
+
+function replayRequestId(replayState) {
+  const response = replayState?.response
+  if (response === null || typeof response !== 'object') return undefined
+  const value = response.requestId ?? response.responseId ?? response.id
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+export async function callDshLlm(ctx, request, signal) {
+  const id = String(request?.id ?? '')
+  const base = { protocol: DSH_BRIDGE_PROTOCOL, type: 'response', id }
+  try {
+    if (
+      request?.protocol !== DSH_BRIDGE_PROTOCOL
+      || request?.type !== 'request'
+      || id.length === 0
+      || typeof request.provider !== 'string'
+      || typeof request.model !== 'string'
+      || !Array.isArray(request.messages)
+    ) {
+      throw new Error('invalid DSH bridge request')
+    }
+    const system = []
+    const messages = []
+    for (const message of request.messages) {
+      if (message === null || typeof message !== 'object' || typeof message.content !== 'string') {
+        throw new Error('invalid DSH bridge message')
+      }
+      if (message.role === 'system') {
+        system.push(message.content)
+      } else if (message.role === 'user') {
+        messages.push(Object.freeze({
+          id: randomUUID(),
+          role: 'user',
+          content: Object.freeze([Object.freeze({ type: 'text', text: message.content })]),
+          source: Object.freeze({ kind: 'plugin', plugin: name }),
+        }))
+      } else {
+        throw new Error(`unsupported DSH bridge role: ${String(message.role)}`)
+      }
+    }
+    const options = {
+      provider: request.provider,
+      model: request.model,
+      messages,
+      system: system.length === 0 ? undefined : system.join('\n\n'),
+      temperature: Number(request.temperature ?? 0),
+      maxTokens: Number(request.max_tokens),
+      signal,
+    }
+    const reasoningEffort = request.request_options?.reasoning_effort
+    if (typeof reasoningEffort === 'string' && reasoningEffort.length > 0) {
+      options.reasoningEffort = reasoningEffort
+    }
+    let content = ''
+    let usage = {}
+    let finish
+    for await (const chunk of ctx.llm.stream(options)) {
+      if (chunk.type === 'text-delta') content += chunk.text
+      if (chunk.type === 'usage') usage = chunk.usage ?? {}
+      if (chunk.type === 'finish') finish = chunk
+    }
+    if (finish === undefined) throw new Error('DSH LLM stream ended without finish')
+    if (finish.reason?.kind === 'error' || finish.reason?.kind === 'aborted') {
+      const failure = finish.reason.failure ?? {}
+      return {
+        ...base,
+        ok: false,
+        failure_type: bridgeFailureType(failure.code),
+        message: String(failure.message ?? 'DSH LLM request failed').slice(0, 300),
+        request_id: failure.requestId,
+      }
+    }
+    const cachedInput = Number(usage.cacheReadTokens ?? 0)
+    const cacheWrite = Number(usage.cacheWriteTokens ?? 0)
+    return {
+      ...base,
+      ok: true,
+      content,
+      usage: {
+        input_tokens: Number(usage.inputTokens ?? 0) + cachedInput + cacheWrite,
+        output_tokens: Number(usage.outputTokens ?? 0),
+        cached_input_tokens: cachedInput,
+        reasoning_tokens: Number(usage.reasoningTokens ?? 0),
+      },
+      finish_reason: finish.reason?.kind,
+      request_id: replayRequestId(finish.replayState),
+    }
+  } catch (error) {
+    return {
+      ...base,
+      ok: false,
+      failure_type: signal?.aborted ? 'aborted' : 'provider-error',
+      message: String(error instanceof Error ? error.message : error).slice(0, 300),
+    }
+  }
+}
+
+function tailCapture(maxBytes) {
+  let buffer = Buffer.alloc(0)
+  let lossy = false
+  return {
+    append(text) {
+      buffer = Buffer.concat([buffer, Buffer.from(text)])
+      if (buffer.length > maxBytes) {
+        buffer = buffer.subarray(buffer.length - maxBytes)
+        lossy = true
+      }
+    },
+    read() { return { text: buffer.toString('utf8'), lossy } },
+  }
+}
+
+async function writeLine(stream, value) {
+  const line = `${JSON.stringify(value)}\n`
+  if (stream.write(line)) return
+  await new Promise(resolveDrain => stream.once('drain', resolveDrain))
+}
+
+async function pumpDshBridge(ctx, handle, signal, routes, maxBytes) {
+  if (handle.stdout === undefined || handle.stdin === undefined) {
+    throw new Error('DSH bridge requires piped child stdin and stdout')
+  }
+  const allowed = new Set(routes.map(route => `${route.provider}\u0000${route.model}`))
+  const capture = tailCapture(maxBytes)
+  const lines = createInterface({ input: handle.stdout, crlfDelay: Infinity })
+  try {
+    for await (const line of lines) {
+      if (Buffer.byteLength(line) > maxBytes) {
+        throw new Error('DSH bridge request exceeds configured capture limit')
+      }
+      let request
+      try {
+        request = JSON.parse(line)
+      } catch {
+        capture.append(`${line}\n`)
+        continue
+      }
+      if (request?.protocol !== DSH_BRIDGE_PROTOCOL || request?.type !== 'request') {
+        capture.append(`${line}\n`)
+        continue
+      }
+      const route = `${String(request.provider)}\u0000${String(request.model)}`
+      const response = allowed.has(route)
+        ? await callDshLlm(ctx, request, signal)
+        : {
+            protocol: DSH_BRIDGE_PROTOCOL,
+            type: 'response',
+            id: String(request.id ?? ''),
+            ok: false,
+            failure_type: 'invalid-model-config',
+            message: 'model route is not frozen in the manifest',
+          }
+      await writeLine(handle.stdin, response)
+    }
+  } finally {
+    handle.stdin.end()
+  }
+  return capture.read()
+}
+
+async function dshProviderIssues(ctx, routes) {
+  const providers = new Set(ctx.llm.listProviders().map(provider => provider.id))
+  const issues = []
+  for (const route of routes) {
+    if (!providers.has(route.provider)) {
+      issues.push(`missing-llm-provider:${route.provider}`)
+      continue
+    }
+    try {
+      await ctx.llm.resolveModelInfo(route.provider, route.model)
+    } catch {
+      issues.push(`unresolved-llm-model:${route.provider}/${route.model}`)
+    }
+  }
+  return [...new Set(issues)]
+}
+
 async function executeValidation(ctx, args, exec, config) {
   const request = resolveRequest(args, config)
   const workspace = workspaceOf(exec)
+  const manifestPath = resolve(workspace, config.manifestPath)
+  const manifest = await readExecutionManifest(manifestPath)
+  if (manifest.billingUnit !== config.billingUnit) {
+    throw new Error(
+      `manifest billing unit ${manifest.billingUnit} does not match plugin billingUnit ${config.billingUnit}`,
+    )
+  }
+  if (manifest.credentialEnv !== config.credentialEnv) {
+    throw new Error(
+      `manifest credential ${manifest.credentialEnv} does not match plugin credentialEnv ${config.credentialEnv}`,
+    )
+  }
+  const providerIssues = manifest.wireApi === 'dsh-llm'
+    ? await dshProviderIssues(ctx, manifest.routes)
+    : []
+  if (request.paid && providerIssues.length > 0) {
+    throw new Error(`paid validation requires resolved DSH models: ${providerIssues.join(', ')}`)
+  }
   const runRoot = await mkdtemp(join(tmpdir(), 'refractrouter-dsh-plugin-'))
   const outputDir = join(runRoot, 'output')
   const evidencePath = join(runRoot, 'evidence.json')
@@ -303,20 +560,27 @@ async function executeValidation(ctx, args, exec, config) {
   const env = { UV_CACHE_DIR: config.uvCacheDir }
   const secrets = []
   if (request.paid) {
-    let credential
-    try {
-      credential = await ctx.credentials.resolve(reference)
-    } catch {
-      throw new Error(`failed to resolve credential ${reference}`)
-    }
-    if (credential === undefined) {
+    if (!credentialConfigured) {
       throw new Error(`paid validation requires configured credential ${config.credentialEnv}`)
     }
-    if (typeof credential.value !== 'string' || credential.value.length === 0) {
-      throw new Error(`paid validation requires non-empty credential ${config.credentialEnv}`)
+    if (manifest.wireApi === 'dsh-llm') {
+      env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
+    } else {
+      let credential
+      try {
+        credential = await ctx.credentials.resolve(reference)
+      } catch {
+        throw new Error(`failed to resolve credential ${reference}`)
+      }
+      if (credential === undefined) {
+        throw new Error(`paid validation requires configured credential ${config.credentialEnv}`)
+      }
+      if (typeof credential.value !== 'string' || credential.value.length === 0) {
+        throw new Error(`paid validation requires non-empty credential ${config.credentialEnv}`)
+      }
+      secrets.push(credential.value)
+      env[config.credentialEnv] = credential.value
     }
-    secrets.push(credential.value)
-    env[config.credentialEnv] = credential.value
   }
   exec.signal.throwIfAborted()
   let executable
@@ -342,11 +606,13 @@ async function executeValidation(ctx, args, exec, config) {
     '--dataset',
     resolve(workspace, config.datasetPath),
     '--manifest',
-    resolve(workspace, config.manifestPath),
+    manifestPath,
     '--phase',
     request.phase,
     '--repeats',
     String(request.repeats),
+    '--max-retries',
+    String(config.maxRetries),
     '--output-dir',
     outputDir,
     '--evidence',
@@ -357,9 +623,9 @@ async function executeValidation(ctx, args, exec, config) {
   if (request.paid) {
     argv.push(
       '--execute-paid-run',
-      '--max-production-cost-usd',
+      '--max-production-cost',
       String(request.productionLimit),
-      '--max-evaluation-cost-usd',
+      '--max-evaluation-cost',
       String(request.evaluationLimit),
     )
   }
@@ -373,33 +639,44 @@ async function executeValidation(ctx, args, exec, config) {
   const signal = AbortSignal.any([exec.signal, timeoutSignal])
   let handle
   let outcome
+  let bridgedStdout
+  const useBridge = request.paid && manifest.wireApi === 'dsh-llm'
   try {
     handle = ctx.subprocess.spawn({
       argv: confined?.argv ?? argv,
       cwd: workspace,
       env,
       stdio: {
-        stdin: 'ignore',
-        stdout: { maxBytes: config.outputCaptureBytes },
+        stdin: useBridge ? 'pipe' : 'ignore',
+        stdout: useBridge ? 'pipe' : { maxBytes: config.outputCaptureBytes },
         stderr: { maxBytes: config.outputCaptureBytes },
       },
       graceMs: config.processGraceMs,
       signal,
     })
-    outcome = await handle.done
+    if (useBridge) {
+      ;[outcome, bridgedStdout] = await Promise.all([
+        handle.done,
+        pumpDshBridge(ctx, handle, signal, manifest.routes, config.outputCaptureBytes),
+      ])
+    } else {
+      outcome = await handle.done
+    }
     await handle.waitForExit()
   } catch (error) {
+    handle?.terminate?.()
+    await handle?.waitForExit?.()
     const detail = error instanceof Error ? error.message : String(error)
     throw new Error(`validation subprocess failed: ${redactSensitiveText(detail, secrets)}`)
   }
-  const stdout = handle.collected.stdout?.readFrom(0)
+  const stdout = useBridge ? bridgedStdout : handle.collected.stdout?.readFrom(0)
   const stderr = handle.collected.stderr?.readFrom(0)
   const stdoutTail = capturedTail(stdout, secrets)
   const stderrTail = capturedTail(stderr, secrets)
   const timedOut = timeoutSignal.aborted && !exec.signal.aborted
   const aborted = exec.signal.aborted
   let evidence
-  const fallbackIssues = []
+  const fallbackIssues = [...providerIssues]
   try {
     evidence = await readEvidence(evidencePath, config.maxEvidenceBytes)
   } catch (error) {
@@ -420,6 +697,8 @@ async function executeValidation(ctx, args, exec, config) {
     evidencePath,
     outputDir,
     credentialConfigured,
+    modelProviderConfigured: providerIssues.length === 0,
+    billingUnit: manifest.billingUnit,
     sandboxMode: policy.mode,
     sandboxEnforcement: confined?.enforcement,
     issues: fallbackIssues,
@@ -438,6 +717,8 @@ async function executeValidation(ctx, args, exec, config) {
       evidencePath,
       outputDir,
       credentialConfigured,
+      modelProviderConfigured: providerIssues.length === 0,
+      billingUnit: manifest.billingUnit,
       sandboxMode: policy.mode,
       ...confined === undefined ? {} : { sandboxEnforcement: confined.enforcement },
       issues: fallbackIssues,
@@ -464,6 +745,8 @@ const OUTPUT_SCHEMA = {
     'evidencePath',
     'outputDir',
     'credentialConfigured',
+    'modelProviderConfigured',
+    'billingUnit',
     'sandboxMode',
     'issues',
     'inputHashes',
@@ -480,6 +763,8 @@ const OUTPUT_SCHEMA = {
     evidencePath: { type: 'string' },
     outputDir: { type: 'string' },
     credentialConfigured: { type: 'boolean' },
+    modelProviderConfigured: { type: 'boolean' },
+    billingUnit: { type: 'string', enum: ['USD', 'AFP'] },
     sandboxMode: {
       type: 'string',
       enum: ['read-only', 'workspace-write', 'danger-full-access'],
@@ -502,11 +787,12 @@ const OUTPUT_SCHEMA = {
         totalModelCalls: { type: 'integer' },
       },
     },
-    costEstimateUsd: {
+    costEstimate: {
       type: 'object',
       additionalProperties: false,
-      required: ['production', 'evaluation', 'total'],
+      required: ['billingUnit', 'production', 'evaluation', 'total'],
       properties: {
+        billingUnit: { type: 'string', enum: ['USD', 'AFP'] },
         production: { type: 'number' },
         evaluation: { type: 'number' },
         total: { type: 'number' },
@@ -565,13 +851,13 @@ export function apply(ctx, rawConfig = {}) {
           type: 'boolean',
           description: 'Actually invoke candidate and judge models. Defaults to false.',
         },
-        maxProductionCostUsd: {
+        maxProductionCost: {
           type: 'number',
-          description: 'Required paid-run production ceiling; rejected above the bundle ceiling.',
+          description: 'Required paid-run production ceiling in the configured billing unit.',
         },
-        maxEvaluationCostUsd: {
+        maxEvaluationCost: {
           type: 'number',
-          description: 'Required paid-run judge ceiling; rejected above the bundle ceiling.',
+          description: 'Required paid-run judge ceiling in the configured billing unit.',
         },
       },
     },
@@ -583,9 +869,10 @@ export function apply(ctx, rawConfig = {}) {
           status: value.status,
           mode: value.mode,
           phase: value.phase,
+          billingUnit: value.billingUnit,
           issues: value.issues,
           callPlan: value.callPlan,
-          costEstimateUsd: value.costEstimateUsd,
+          costEstimate: value.costEstimate,
           evidencePath: value.evidencePath,
         }),
       }],

@@ -1,5 +1,5 @@
 {
-  "schema_version": "v0.1",
+  "schema_version": "v0.2",
   "pricing_snapshot_date": "2026-09-05",
   "documentation_urls": [
     "https://developers.openai.com/api/docs/models/gpt-5.4-nano",
@@ -9,6 +9,8 @@
   ],
   "defaults": {
     "provider": "openai",
+    "billing_unit": "USD",
+    "wire_api": "chat-completions",
     "base_url": "https://api.openai.com/v1",
     "api_key_env": "OPENAI_API_KEY",
     "context_window": 400000,
@@ -24,9 +26,9 @@
       "snapshot_date": "2026-03-17",
       "role": "candidate",
       "capability": 0.55,
-      "input_cost_per_1k_usd": 0.0002,
-      "cached_input_cost_per_1k_usd": 0.00002,
-      "output_cost_per_1k_usd": 0.00125,
+      "input_cost_per_1k": 0.0002,
+      "cached_input_cost_per_1k": 0.00002,
+      "output_cost_per_1k": 0.00125,
       "tags": ["cheap", "extraction"]
     },
     {
@@ -35,9 +37,9 @@
       "snapshot_date": "2026-03-17",
       "role": "candidate",
       "capability": 0.78,
-      "input_cost_per_1k_usd": 0.00075,
-      "cached_input_cost_per_1k_usd": 0.000075,
-      "output_cost_per_1k_usd": 0.0045,
+      "input_cost_per_1k": 0.00075,
+      "cached_input_cost_per_1k": 0.000075,
+      "output_cost_per_1k": 0.0045,
       "tags": ["balanced", "generation"]
     },
     {
@@ -46,9 +48,9 @@
       "snapshot_date": "2026-03-05",
       "role": "candidate",
       "capability": 0.92,
-      "input_cost_per_1k_usd": 0.0025,
-      "cached_input_cost_per_1k_usd": 0.00025,
-      "output_cost_per_1k_usd": 0.015,
+      "input_cost_per_1k": 0.0025,
+      "cached_input_cost_per_1k": 0.00025,
+      "output_cost_per_1k": 0.015,
       "tags": ["strong", "synthesis"]
     },
     {
@@ -57,9 +59,9 @@
       "snapshot_date": "2026-04-23",
       "role": "judge",
       "capability": 0.97,
-      "input_cost_per_1k_usd": 0.005,
-      "cached_input_cost_per_1k_usd": 0.0005,
-      "output_cost_per_1k_usd": 0.03,
+      "input_cost_per_1k": 0.005,
+      "cached_input_cost_per_1k": 0.0005,
+      "output_cost_per_1k": 0.03,
       "context_window": 1050000,
       "tags": ["independent-judge"]
     }

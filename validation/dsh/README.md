@@ -25,7 +25,8 @@ The plugin:
 
 - uses `ctx.subprocess` for process ownership and bounded output;
 - uses `ctx.sandbox` and `ctx.sandboxPolicy` for the profile's file boundary;
-- uses `ctx.credentials` to resolve the manifest credential per paid operation;
+- uses `ctx.credentials` for credential readiness and direct-HTTP credential resolution;
+- uses `ctx.llm` for Agent Plan provider discovery and paid model calls;
 - returns typed status, plan, cost, hashes, issues, and evidence paths;
 - defaults `allowPaidRuns` to false and enforces deployment-level production/evaluation ceilings.
 
@@ -102,7 +103,14 @@ uv run python validation/dsh/real_runner.py \
 
 The preflight validates the dataset/model boundary, records corpus and code hashes, and calculates the
 call plan without invoking a candidate or judge model. A paid run additionally requires
-`--execute-paid-run`, both cost limits, and the manifest's API-key environment variable.
+`--execute-paid-run`, both cost limits, and the manifest credential. A `dsh-llm` manifest also
+requires every frozen provider/model route to resolve in DSH; its requests pass through a bounded
+stdio bridge and its credential remains inside the DSH provider.
+
+Issue #4 uses `data/model-manifests/volcengine-agent-plan.json`: three Agent Plan candidates,
+`kimi-k3` as the independent judge, AFP billing, 200/60 AFP deployment ceilings, and zero retries.
+The frozen inputs and 206.16 AFP estimate are recorded in
+[`../../reports/v0.1/issue-4-agent-plan-preflight.md`](../../reports/v0.1/issue-4-agent-plan-preflight.md).
 
 DSH is still only the outer validator. It must not choose candidate models, change the frozen manifest,
 or replace the DeepAgents/LangGraph execution path. Before launching a DSH headless session, explicitly

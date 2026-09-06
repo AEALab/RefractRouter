@@ -42,10 +42,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @dataclass(slots=True)
 class CostLedger:
-    production_limit_usd: float
-    evaluation_limit_usd: float
-    production_spent_usd: float = 0.0
-    evaluation_spent_usd: float = 0.0
+    billing_unit: str
+    production_limit: float
+    evaluation_limit: float
+    estimated_production_input_tokens: int
+    estimated_evaluation_input_tokens: int
+    estimated_output_tokens: int
+    production_spent: float = 0.0
+    evaluation_spent: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,7 +64,12 @@ class BudgetedAdapter:
         self.ledger = ledger
 
     def invoke(self, task, node, prompt, context, model):
-        if self.ledger.production_spent_usd >= self.ledger.production_limit_usd:
+        reserve = _estimated_invocation_cost(
+            model,
+            self.ledger.estimated_production_input_tokens,
+            self.ledger.estimated_output_tokens,
+        )
+        if self.ledger.production_spent + reserve > self.ledger.production_limit:
             return NodeResult(
                 node_id=node.node_id,
                 node_type=node.node_type,
@@ -68,7 +77,8 @@ class BudgetedAdapter:
                 output="",
                 input_tokens=0,
                 output_tokens=0,
-                cost_usd=0.0,
+                cost=0.0,
+                billing_unit=model.billing_unit,
                 latency_ms=0,
                 status="failed",
                 failure_type="production-budget-exhausted",
@@ -76,8 +86,19 @@ class BudgetedAdapter:
                 error_message="Paid-run production budget exhausted",
             )
         result = self.delegate.invoke(task, node, prompt, context, model)
-        self.ledger.production_spent_usd += result.cost_usd
+        self.ledger.production_spent += result.cost
         return result
+
+
+def _estimated_invocation_cost(
+    model: ModelSpec,
+    input_tokens: int,
+    output_tokens: int,
+) -> float:
+    return (
+        input_tokens / 1000 * model.input_cost_per_1k
+        + output_tokens / 1000 * model.output_cost_per_1k
+    )
 
 
 def run_task_strategies(
@@ -135,7 +156,7 @@ def build_task_strategy_bundle(
     priced = sorted(
         registry.list(),
         key=lambda model: (
-            model.input_cost_per_1k_usd + model.output_cost_per_1k_usd,
+            model.input_cost_per_1k + model.output_cost_per_1k,
             model.model_id,
         ),
     )
@@ -189,7 +210,8 @@ def _probe_result(task: TaskDAG, result: NodeResult) -> TaskResult:
         node_results=(result,),
         final_output="",
         task_score=result.score,
-        total_cost_usd=result.cost_usd,
+        total_cost=result.cost,
+        billing_unit=result.billing_unit,
         critical_path_latency_ms=result.latency_ms,
         failure_types=failures,
     )
@@ -205,7 +227,7 @@ def select_judged_task_oracle(
         single_results,
         key=lambda model_id: (
             evaluations[model_id].final_score,
-            -single_results[model_id].total_cost_usd,
+            -single_results[model_id].total_cost,
         ),
     )
 
@@ -259,21 +281,22 @@ def estimate_costs(
 ) -> dict[str, float]:
     strongest_price = max(
         manifest.candidates,
-        key=lambda model: model.input_cost_per_1k_usd + model.output_cost_per_1k_usd,
+        key=lambda model: model.input_cost_per_1k + model.output_cost_per_1k,
     )
     production = int(plan["production_model_calls"]) * (
-        input_tokens / 1000 * strongest_price.input_cost_per_1k_usd
-        + output_tokens / 1000 * strongest_price.output_cost_per_1k_usd
+        input_tokens / 1000 * strongest_price.input_cost_per_1k
+        + output_tokens / 1000 * strongest_price.output_cost_per_1k
     )
     judge = manifest.judge
     evaluation = int(plan["judge_model_calls"]) * (
-        input_tokens * 2 / 1000 * judge.input_cost_per_1k_usd
-        + output_tokens / 1000 * judge.output_cost_per_1k_usd
+        input_tokens * 2 / 1000 * judge.input_cost_per_1k
+        + output_tokens / 1000 * judge.output_cost_per_1k
     )
     return {
-        "production_upper_estimate_usd": round(production, 2),
-        "evaluation_upper_estimate_usd": round(evaluation, 2),
-        "total_upper_estimate_usd": round(production + evaluation, 2),
+        "billing_unit": manifest.billing_unit,
+        "production_upper_estimate": round(production, 2),
+        "evaluation_upper_estimate": round(evaluation, 2),
+        "total_upper_estimate": round(production + evaluation, 2),
     }
 
 
@@ -299,8 +322,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--phase", choices=("dry-run", "pilot", "final"), default="dry-run")
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--execute-paid-run", action="store_true")
-    parser.add_argument("--max-production-cost-usd", type=float)
-    parser.add_argument("--max-evaluation-cost-usd", type=float)
+    parser.add_argument("--max-production-cost", type=float)
+    parser.add_argument("--max-evaluation-cost", type=float)
     parser.add_argument("--estimated-input-tokens", type=int, default=4000)
     parser.add_argument("--estimated-output-tokens", type=int, default=1200)
     parser.add_argument("--timeout-seconds", type=float, default=120.0)
@@ -319,8 +342,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     plan = call_plan(
         train_tasks, test_tasks, len(manifest.candidates), args.repeats, include_learned
     )
+    cost_estimates = estimate_costs(
+        plan, manifest, args.estimated_input_tokens, args.estimated_output_tokens
+    )
     preflight = {
-        "schema_version": "v0.1",
+        "schema_version": "v0.2",
         "phase": args.phase,
         "repeats": args.repeats,
         "train_task_ids": [task.task_id for task in train_tasks],
@@ -329,6 +355,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "candidate_models": [model.api_model for model in manifest.candidates],
         "judge_model": manifest.judge.api_model,
         "pricing_snapshot_date": manifest.pricing_snapshot_date,
+        "billing_unit": manifest.billing_unit,
+        "wire_api": manifest.candidates[0].wire_api,
+        "provider": manifest.candidates[0].provider,
         "execution_policy": {
             "temperature": 0,
             "timeout_seconds": args.timeout_seconds,
@@ -341,9 +370,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "output_tokens_per_call": args.estimated_output_tokens,
             "cached_input_discount_assumed": False,
         },
-        "cost_estimates": estimate_costs(
-            plan, manifest, args.estimated_input_tokens, args.estimated_output_tokens
-        ),
+        "cost_estimates": cost_estimates,
         "credential_env": manifest.candidates[0].api_key_env,
         "credential_available": bool(
             os.environ.get(manifest.candidates[0].api_key_env or "")
@@ -356,17 +383,37 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.execute_paid_run:
         print(json.dumps(preflight, ensure_ascii=False, indent=2))
         return 0
-    if args.max_production_cost_usd is None or args.max_production_cost_usd <= 0:
-        parser.error("paid runs require a positive --max-production-cost-usd")
-    if args.max_evaluation_cost_usd is None or args.max_evaluation_cost_usd <= 0:
-        parser.error("paid runs require a positive --max-evaluation-cost-usd")
+    if args.max_production_cost is None or args.max_production_cost <= 0:
+        parser.error("paid runs require a positive --max-production-cost")
+    if args.max_evaluation_cost is None or args.max_evaluation_cost <= 0:
+        parser.error("paid runs require a positive --max-evaluation-cost")
+    if args.max_production_cost < cost_estimates["production_upper_estimate"]:
+        parser.error(
+            "--max-production-cost must cover the preflight estimate "
+            f"{cost_estimates['production_upper_estimate']} {manifest.billing_unit}"
+        )
+    if args.max_evaluation_cost < cost_estimates["evaluation_upper_estimate"]:
+        parser.error(
+            "--max-evaluation-cost must cover the preflight estimate "
+            f"{cost_estimates['evaluation_upper_estimate']} {manifest.billing_unit}"
+        )
     required_env = manifest.candidates[0].api_key_env or ""
-    if not os.environ.get(required_env):
+    if manifest.candidates[0].wire_api != "dsh-llm" and not os.environ.get(required_env):
         parser.error(f"paid run requires environment variable {required_env}")
+    if manifest.candidates[0].wire_api == "dsh-llm" and os.environ.get(
+        "REFRACTROUTER_DSH_BRIDGE"
+    ) != "stdio":
+        parser.error("dsh-llm paid runs require the RefractRouter DSH plugin bridge")
+    if manifest.candidates[0].wire_api == "dsh-llm" and args.max_retries != 0:
+        parser.error("dsh-llm paid runs require --max-retries 0 for bounded spend")
 
     ledger = CostLedger(
-        production_limit_usd=args.max_production_cost_usd,
-        evaluation_limit_usd=args.max_evaluation_cost_usd,
+        billing_unit=manifest.billing_unit,
+        production_limit=args.max_production_cost,
+        evaluation_limit=args.max_evaluation_cost,
+        estimated_production_input_tokens=args.estimated_input_tokens,
+        estimated_evaluation_input_tokens=args.estimated_input_tokens * 2,
+        estimated_output_tokens=args.estimated_output_tokens,
     )
     client = OpenAICompatibleClient(
         timeout_seconds=args.timeout_seconds,
@@ -464,13 +511,18 @@ def _evaluate_with_budget(
 ):
     if not result.final_output:
         return None, "missing-final-output"
-    if ledger.evaluation_spent_usd >= ledger.evaluation_limit_usd:
+    reserve = _estimated_invocation_cost(
+        judge.model,
+        ledger.estimated_evaluation_input_tokens,
+        ledger.estimated_output_tokens,
+    )
+    if ledger.evaluation_spent + reserve > ledger.evaluation_limit:
         return None, "evaluation-budget-exhausted"
     try:
         evaluation = judge.evaluate(task, result)
     except (ModelInvocationError, ValueError, json.JSONDecodeError) as exc:
         return None, getattr(exc, "failure_type", type(exc).__name__)
-    ledger.evaluation_spent_usd += evaluation.cost_usd
+    ledger.evaluation_spent += evaluation.cost
     return evaluation, None
 
 
@@ -505,7 +557,7 @@ def _write_outputs(
         else "incomplete"
     )
     payload = {
-        "schema_version": "v0.1",
+        "schema_version": "v0.2",
         "status": status,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "phase": args.phase,
@@ -520,8 +572,9 @@ def _write_outputs(
         "oracle_gate": gate,
         "failure_taxonomy": failures,
         "costs": {
-            "production_usd": round(ledger.production_spent_usd, 8),
-            "evaluation_usd": round(ledger.evaluation_spent_usd, 8),
+            "billing_unit": ledger.billing_unit,
+            "production": round(ledger.production_spent, 8),
+            "evaluation": round(ledger.evaluation_spent, 8),
         },
     }
     summary_path = output_dir / "benchmark-summary.json"
@@ -544,7 +597,7 @@ def _write_outputs(
         path for path in output_dir.rglob("*") if path.is_file() and path.name != "evidence-index.json"
     )
     evidence = {
-        "schema_version": "v0.1",
+        "schema_version": "v0.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "artifacts": {
             str(path.relative_to(output_dir)): _sha256(path) for path in artifacts

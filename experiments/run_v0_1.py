@@ -71,7 +71,7 @@ def probe_node_candidates(
                     node_results=(node_result,),
                     final_output="",
                     task_score=node_result.score,
-                    total_cost_usd=node_result.cost_usd,
+                    total_cost=node_result.cost,
                     critical_path_latency_ms=node_result.latency_ms,
                     failure_types=failures,
                 )
@@ -87,7 +87,7 @@ def build_baseline_table(results: Iterable[tuple[str, TaskResult]]) -> str:
     for strategy, result in results:
         rows.append(
             f"| `{strategy}` | {result.task_score:.3f} | "
-            f"{result.total_cost_usd:.6f} | {result.critical_path_latency_ms} |"
+            f"{result.total_cost:.6f} | {result.critical_path_latency_ms} |"
         )
     return "\n".join(rows) + "\n"
 
@@ -103,7 +103,7 @@ def build_pareto_report(results: Iterable[tuple[str, TaskResult]]) -> str:
     for name, result in items:
         rows.append(
             f"| `{name}` | {result.task_score:.3f} | "
-            f"{result.total_cost_usd:.6f} | {result.critical_path_latency_ms} | "
+            f"{result.total_cost:.6f} | {result.critical_path_latency_ms} | "
             f"{'Yes' if result.strategy in front_names else 'No'} |"
         )
     return "\n".join(rows) + "\n"
@@ -117,9 +117,9 @@ def build_oracle_gap_report(results: Iterable[tuple[str, TaskResult]]) -> str:
         raise ValueError("Oracle gap report requires task-oracle and node-oracle results")
 
     quality_delta = node.task_score - task.task_score
-    cost_delta = node.total_cost_usd - task.total_cost_usd
+    cost_delta = node.total_cost - task.total_cost
     latency_ratio = node.critical_path_latency_ms / max(1, task.critical_path_latency_ms)
-    cost_reduction = -cost_delta / max(1e-12, task.total_cost_usd) * 100
+    cost_reduction = -cost_delta / max(1e-12, task.total_cost) * 100
     same_quality = abs(quality_delta) < 2
     latency_pass = latency_ratio <= 1.2
     gate = "Go" if same_quality and cost_reduction >= 20 and latency_pass else "No-go"
@@ -129,7 +129,7 @@ def build_oracle_gap_report(results: Iterable[tuple[str, TaskResult]]) -> str:
         "| Metric | task-oracle | node-oracle | Delta |\n"
         "|---|---:|---:|---:|\n"
         f"| Task score | {task.task_score:.3f} | {node.task_score:.3f} | {quality_delta:+.3f} |\n"
-        f"| Cost (USD) | {task.total_cost_usd:.6f} | {node.total_cost_usd:.6f} | {cost_delta:+.6f} |\n"
+        f"| Cost (USD) | {task.total_cost:.6f} | {node.total_cost:.6f} | {cost_delta:+.6f} |\n"
         f"| Critical path (ms) | {task.critical_path_latency_ms} | {node.critical_path_latency_ms} | {latency_ratio:.2f}x |\n\n"
         f"- Cost reduction: {cost_reduction:.2f}%\n"
         f"- Latency ratio: {latency_ratio:.2f}x\n"
@@ -141,10 +141,16 @@ def build_oracle_gap_report(results: Iterable[tuple[str, TaskResult]]) -> str:
 
 
 def build_run_record(task: TaskDAG, result: TaskResult, metadata: dict[str, str]) -> dict[str, object]:
+    task_result = asdict(result)
+    task_result["total_cost_usd"] = task_result.pop("total_cost")
+    task_result.pop("billing_unit", None)
+    for node in task_result["node_results"]:
+        node["cost_usd"] = node.pop("cost")
+        node.pop("billing_unit", None)
     return {
         "task_id": task.task_id,
         "strategy": result.strategy,
-        "task_result": asdict(result),
+        "task_result": task_result,
         "metadata": metadata,
     }
 
@@ -211,7 +217,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "strategies": {
             name: {
                 "task_score": result.task_score,
-                "total_cost_usd": result.total_cost_usd,
+                "total_cost_usd": result.total_cost,
                 "critical_path_latency_ms": result.critical_path_latency_ms,
                 "model_assignments": result.model_assignments,
             }

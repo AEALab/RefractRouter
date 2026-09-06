@@ -58,8 +58,8 @@ class IndependentJudgeTests(unittest.TestCase):
         judge_model = ModelSpec(
             model_id="judge",
             provider="test",
-            input_cost_per_1k_usd=0.01,
-            output_cost_per_1k_usd=0.02,
+            input_cost_per_1k=0.01,
+            output_cost_per_1k=0.02,
             capability=1.0,
             api_model="judge-snapshot",
             base_url="https://example.invalid/v1",
@@ -81,7 +81,7 @@ class IndependentJudgeTests(unittest.TestCase):
 
         self.assertEqual(evaluation.final_score, 96.0)
         self.assertEqual(evaluation.final_dimensions["requirement_coverage"], 24.0)
-        self.assertEqual(evaluation.cost_usd, 0.004)
+        self.assertEqual(evaluation.cost, 0.004)
         self.assertEqual(rescored.task_score, 96.0)
         self.assertEqual(result.task_score, 100.0)
 
@@ -94,8 +94,8 @@ class IndependentJudgeTests(unittest.TestCase):
         judge_model = ModelSpec(
             model_id="judge",
             provider="test",
-            input_cost_per_1k_usd=0.01,
-            output_cost_per_1k_usd=0.02,
+            input_cost_per_1k=0.01,
+            output_cost_per_1k=0.02,
             capability=1.0,
             api_model="judge-snapshot",
             base_url="https://example.invalid/v1",

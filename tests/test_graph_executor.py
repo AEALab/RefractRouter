@@ -19,7 +19,7 @@ class GraphExecutorTests(unittest.TestCase):
         strong = executor.execute(strong_all(task, registry), "strong-all")
 
         self.assertGreater(strong.task_score, weak.task_score)
-        self.assertGreater(strong.total_cost_usd, weak.total_cost_usd)
+        self.assertGreater(strong.total_cost, weak.total_cost)
         self.assertGreater(strong.critical_path_latency_ms, 0)
         self.assertTrue(strong.final_output.startswith("<!doctype html>"))
         self.assertIn('data-cite-source-id="source_001"', strong.final_output)
@@ -51,7 +51,7 @@ class GraphExecutorTests(unittest.TestCase):
                     output="",
                     input_tokens=1,
                     output_tokens=0,
-                    cost_usd=0.01,
+                    cost=0.01,
                     latency_ms=5,
                     status="failed",
                     failure_type="timeout",
@@ -70,7 +70,7 @@ class GraphExecutorTests(unittest.TestCase):
                 for node in result.node_results[1:]
             )
         )
-        self.assertEqual(result.total_cost_usd, 0.01)
+        self.assertEqual(result.total_cost, 0.01)
 
 
 if __name__ == "__main__":

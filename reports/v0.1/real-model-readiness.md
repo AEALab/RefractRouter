@@ -3,9 +3,18 @@
 ## 结论
 
 真实模型实验的代码、数据、模型清单、独立裁判、人工抽检入口、预算保护和 DSH 证据链已
-实现并通过本地验证。当前状态是 **ready for paid dry run**，不是“真实模型结果已完成”。
-运行环境未设置 `OPENAI_API_KEY`，因此没有产生真实质量分、真实 API 成本或真实线上延迟，
-也不能据此给出真实模型 Go / No-Go 结论。
+实现并通过本地验证。当前状态是 **implementation ready for paid dry run**，不是“真实模型
+结果已完成”。2026-09-05 的 OpenAI 路径未设置 `OPENAI_API_KEY`；2026-09-06 新增的方舟
+Agent Plan 路径可识别 `CODEX_ARK_API_KEY`，但 DSH `ark-plan` provider 尚未就绪。两条路径
+都没有产生真实质量分、实际模型成本或线上延迟，不能据此给出真实模型 Go / No-Go 结论。
+
+## Agent Plan 补充预检
+
+Issue #4 的首选 dry run 已冻结为 `deepseek-v4-flash`、`minimax-m3`、
+`deepseek-v4-pro` 三档候选和池外 `kimi-k3` judge。个人版 Agent Plan 请求通过 DSH 原生
+`llm` service 发出，Key 不进入 Python 子进程。按 56 次生产调用和 5 次 judge 调用估算，
+生产为 160.16 AFP、评审为 46 AFP；建议上限为 200/60 AFP，重试次数为 0。详见
+[`issue-4-agent-plan-preflight.md`](issue-4-agent-plan-preflight.md)。
 
 ## 已实现范围
 

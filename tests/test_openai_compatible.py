@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import io
 import unittest
 
 from refractrouter.adapters import OpenAICompatibleAdapter
 from refractrouter.openai_compatible import (
+    DshStdioBridge,
     ModelInvocationError,
     OpenAICompatibleClient,
     TransportResponse,
@@ -35,9 +37,9 @@ def real_model() -> ModelSpec:
     return ModelSpec(
         model_id="cheap",
         provider="test-provider",
-        input_cost_per_1k_usd=0.002,
-        cached_input_cost_per_1k_usd=0.0002,
-        output_cost_per_1k_usd=0.008,
+        input_cost_per_1k=0.002,
+        cached_input_cost_per_1k=0.0002,
+        output_cost_per_1k=0.008,
         capability=0.7,
         api_model="test-model-2026-01-01",
         base_url="https://example.invalid/v1",
@@ -157,6 +159,85 @@ class OpenAICompatibleClientTests(unittest.TestCase):
 
         self.assertEqual(result.status, "failed")
         self.assertEqual(result.failure_type, "invalid-evidence")
+
+    def test_dsh_bridge_model_does_not_require_key_in_child_environment(self) -> None:
+        class Bridge:
+            def complete(self, model, messages, *, json_mode):
+                self.model = model
+                self.messages = messages
+                self.json_mode = json_mode
+                return {
+                    "ok": True,
+                    "content": '{"requirements":"ok","sections":[],"constraints":[],"analysis":"ok"}',
+                    "usage": {
+                        "input_tokens": 100,
+                        "output_tokens": 20,
+                        "cached_input_tokens": 0,
+                        "reasoning_tokens": 4,
+                    },
+                    "finish_reason": "stop",
+                    "request_id": "resp-ark-test",
+                }
+
+        bridge = Bridge()
+        model = ModelSpec(
+            model_id="ark-cheap",
+            provider="ark-plan",
+            input_cost_per_1k=0.05,
+            output_cost_per_1k=0.05,
+            capability=0.7,
+            billing_unit="AFP",
+            api_model="deepseek-v4-flash",
+            api_key_env="CODEX_ARK_API_KEY",
+            max_output_tokens=4096,
+            wire_api="dsh-llm",
+        )
+        response = OpenAICompatibleClient(
+            environment={}, dsh_bridge=bridge, max_retries=0
+        ).complete(model, [{"role": "user", "content": "test"}], json_mode=True)
+
+        self.assertEqual(response.request_id, "resp-ark-test")
+        self.assertEqual(response.reasoning_tokens, 4)
+        self.assertEqual(model_response_cost(model, response), 0.006)
+        self.assertTrue(bridge.json_mode)
+
+    def test_stdio_bridge_uses_bounded_request_response_envelopes(self) -> None:
+        reader = io.StringIO(
+            json.dumps(
+                {
+                    "protocol": "refractrouter-dsh-llm/v1",
+                    "type": "response",
+                    "id": "1",
+                    "ok": False,
+                    "failure_type": "rate-limit",
+                    "message": "retry later",
+                }
+            )
+            + "\n"
+        )
+        writer = io.StringIO()
+        bridge = DshStdioBridge(reader=reader, writer=writer)
+        model = ModelSpec(
+            "ark-cheap",
+            "ark-plan",
+            0.05,
+            0.05,
+            0.7,
+            billing_unit="AFP",
+            api_model="deepseek-v4-flash",
+            api_key_env="CODEX_ARK_API_KEY",
+            wire_api="dsh-llm",
+        )
+
+        response = bridge.complete(
+            model, [{"role": "user", "content": "test"}], json_mode=True
+        )
+        request = json.loads(writer.getvalue())
+
+        self.assertEqual(response["failure_type"], "rate-limit")
+        self.assertEqual(request["provider"], "ark-plan")
+        self.assertEqual(request["model"], "deepseek-v4-flash")
+        self.assertNotIn("CODEX_ARK_API_KEY", writer.getvalue())
 
 
 if __name__ == "__main__":

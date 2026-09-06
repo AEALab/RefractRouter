@@ -73,7 +73,7 @@ def main() -> int:
                     "task_id": result.task_id,
                     "strategy": result.strategy,
                     "task_score": result.task_score,
-                    "cost_usd": result.total_cost_usd,
+                    "cost": result.total_cost,
                     "critical_path_latency_ms": result.critical_path_latency_ms,
                     "failure_types": result.failure_types,
                     "output": str(args.output),
