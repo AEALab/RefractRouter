@@ -37,7 +37,9 @@ not the promotional Auto route whose model mix can vary by time of day.
 
 The dry run contains 56 production calls and 5 judge calls. With the existing conservative
 assumptions of 4,000 input and 1,200 output tokens per production call, and 8,000 input and 1,200
-output tokens per judge call, the estimates are:
+output tokens per judge call, the estimates are shown below. The manifest enforces 1,200 as the
+request output cap for every candidate and judge model, so the output assumption is also a hard
+per-call bound.
 
 | Ledger | Estimate | Proposed ceiling |
 |---|---:|---:|
@@ -84,10 +86,11 @@ DSH tool turn, which consumes AFP and is intentionally deferred to the approved 
 ## First execution attempt and runtime guard correction
 
 The approved DSH turn reached `ark-plan/deepseek-v4-flash`, used 11,631 input and 130 output tokens
-for the outer agent (about 0.58805 AFP), and called `refractrouter_validate` exactly once. The first
-benchmark request then stalled without returning model telemetry or final evidence, so the run was
-stopped. No benchmark output beyond `preflight.json` was produced; any provider-side AFP consumed by
-that incomplete request is therefore not yet known from local telemetry.
+for the outer agent (about 0.58805 AFP), and called `refractrouter_validate` exactly once. The tool
+had not returned final evidence after more than ten minutes, so the run was stopped. The bridge did
+not persist per-call progress, so local evidence cannot identify which benchmark request was active
+at that point. No benchmark output beyond `preflight.json` was produced; any provider-side AFP
+consumed by that incomplete run is therefore not yet known from local telemetry.
 
 Inspection of the pinned DSH runtime showed that an omitted provider retry policy resolves to five
 retries at the agent failed-step layer, while direct `ctx.llm.stream()` calls remain single-attempt.
@@ -100,3 +103,20 @@ and accounting for the earlier attempt against the approved total ceiling.
 The correction passed all 52 Python tests, 11 Node contract tests, the five-file `0.2.1` package
 check, and a clean DSH `0.1.1-rc.2` install/override/remove/reinstall/boot lifecycle with zero paid
 calls.
+
+A corrected retry/timeout run was also stopped after about four minutes because no final artifact was
+yet visible. Since artifacts are written only after all 61 planned calls, their absence was not proof
+of per-call timeouts. A minimal direct DSH probe subsequently succeeded on
+`deepseek-v4-flash` in 2,394 ms with 93 input and 27 output tokens, proving the endpoint, credential,
+model route, streaming seam, and zero-retry provider policy were healthy. The exact first benchmark
+request was then reconstructed locally with 294 system characters, 587 user characters, a 1,200-token
+cap, and a 120-second deadline; it completed through the live DSH route in 4,609 ms with a
+1,004-character JSON result.
+
+The diagnosis also found an independent budget-to-request-cap mismatch: the AFP estimate assumed
+1,200 output tokens while the manifest allowed 8,192. The manifest now caps requests at 1,200 tokens,
+and paid execution rejects any output estimate below the selected manifest's maximum request cap.
+The corrected zero-cost preflight retained the 206.16 AFP estimate and produced manifest SHA-256
+`b100b2deef173dd301d11ce9f48785958b1f4f3981cfab82b6ee4c97621cba97` and preflight SHA-256
+`869c3cf12e9bdf840cf8aab67d8cfcf0f4d1c8a35838cca2e093dce9fd777885`. The correction passed 53
+Python tests and all 11 Node contract tests.

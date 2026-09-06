@@ -368,6 +368,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             "input_tokens_per_production_call": args.estimated_input_tokens,
             "input_tokens_per_judge_call": args.estimated_input_tokens * 2,
             "output_tokens_per_call": args.estimated_output_tokens,
+            "manifest_max_output_tokens": max(
+                model.max_output_tokens or 0 for model in manifest.models
+            ),
             "cached_input_discount_assumed": False,
         },
         "cost_estimates": cost_estimates,
@@ -387,6 +390,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("paid runs require a positive --max-production-cost")
     if args.max_evaluation_cost is None or args.max_evaluation_cost <= 0:
         parser.error("paid runs require a positive --max-evaluation-cost")
+    manifest_output_cap = max(model.max_output_tokens or 0 for model in manifest.models)
+    if args.estimated_output_tokens < manifest_output_cap:
+        parser.error(
+            "--estimated-output-tokens must cover the manifest request cap "
+            f"{manifest_output_cap}"
+        )
     if args.max_production_cost < cost_estimates["production_upper_estimate"]:
         parser.error(
             "--max-production-cost must cover the preflight estimate "

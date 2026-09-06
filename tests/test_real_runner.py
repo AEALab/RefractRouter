@@ -52,6 +52,10 @@ class RealRunnerPreflightTests(unittest.TestCase):
         self.assertEqual(preflight["wire_api"], "dsh-llm")
         self.assertEqual(preflight["provider"], "ark-plan")
         self.assertEqual(
+            preflight["cost_estimate_assumptions"]["manifest_max_output_tokens"],
+            1200,
+        )
+        self.assertEqual(
             preflight["cost_estimates"],
             {
                 "billing_unit": "AFP",
@@ -91,6 +95,40 @@ class RealRunnerPreflightTests(unittest.TestCase):
 
         self.assertIn(
             "must cover the preflight estimate 160.16 AFP", stderr.getvalue()
+        )
+
+    def test_paid_run_rejects_output_estimate_below_manifest_request_cap(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            stderr = io.StringIO()
+            with redirect_stderr(stderr), self.assertRaises(SystemExit):
+                main(
+                    [
+                        "--phase",
+                        "dry-run",
+                        "--manifest",
+                        str(
+                            root
+                            / "data"
+                            / "model-manifests"
+                            / "volcengine-agent-plan.json"
+                        ),
+                        "--output-dir",
+                        temp_dir,
+                        "--estimated-output-tokens",
+                        "1199",
+                        "--execute-paid-run",
+                        "--max-production-cost",
+                        "200",
+                        "--max-evaluation-cost",
+                        "60",
+                        "--max-retries",
+                        "0",
+                    ]
+                )
+
+        self.assertIn(
+            "must cover the manifest request cap 1200", stderr.getvalue()
         )
 
 
