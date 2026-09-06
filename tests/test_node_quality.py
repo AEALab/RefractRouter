@@ -223,11 +223,11 @@ def test_paired_statistics_exclude_failures_and_never_pair_across_repeats():
     observations = []
     for repeat, delta in ((1, 2), (2, 8)):
         observations.append(BenchmarkObservation(run.task_id, repeat, 'task-oracle',
-                            replace(run, task_score=80), judge=SimpleNamespace()))
+                            replace(run, task_score=100), judge=SimpleNamespace(final_score=80)))
         observations.append(BenchmarkObservation(run.task_id, repeat, 'node-oracle',
-                            replace(run, task_score=80 + delta), judge=SimpleNamespace()))
+                            replace(run, task_score=100), judge=SimpleNamespace(final_score=80 + delta)))
     observations.append(BenchmarkObservation(run.task_id, 3, 'node-oracle',
-                        replace(run, task_score=100), judge=SimpleNamespace()))
+                        replace(run, task_score=100), judge=SimpleNamespace(final_score=100)))
     stats = paired_comparisons(observations)['summaries']['node-oracle vs task-oracle']
     assert stats['pairs'] == 2 and stats['excluded_pairs'] == 1
     assert stats['quality_delta_mean'] == 5 and stats['quality_delta_stddev'] == 3
@@ -260,3 +260,26 @@ def test_single_models_checkpoint_before_node_judge_failure():
         build_task_strategy_bundle(task, registry, FakeModelAdapter(registry), include_learned=False,
                                    node_evaluator=fail_evaluation, single_recorder=saved.__setitem__)
     assert all(result.node_results for result in saved.values())
+
+
+def test_unjudged_fallback_scores_never_become_quality_or_pareto_evidence():
+    from refractrouter.benchmark import (BenchmarkObservation, aggregate_observations,
+                                        baseline_markdown, pareto_front_markdown)
+    _, _, run, _ = fixture()
+    rows = [BenchmarkObservation(run.task_id, 1, 'task-oracle', replace(run, task_score=100),
+                                 judge_error='incomplete-single-model-evaluations'),
+            BenchmarkObservation(run.task_id, 1, 'valid', replace(run, task_score=100),
+                                 judge=SimpleNamespace(final_score=88, cost=1, billing_unit='USD'))]
+    summary = aggregate_observations(rows)
+    assert summary['task-oracle']['quality_mean'] is None
+    assert summary['valid']['quality_mean'] == 88
+    assert '| `task-oracle` | N/A (unjudged)' in baseline_markdown(summary)
+    row = next(line for line in pareto_front_markdown(summary).splitlines() if '`task-oracle`' in line)
+    assert 'N/A' in row and row.endswith('| No |')
+    from refractrouter.comparisons import paired_comparisons
+    rows.append(replace(rows[1], strategy='node-oracle'))
+    pair = next(p for p in paired_comparisons(rows)['pairs']
+                if p['candidate'] == 'node-oracle' and p['baseline'] == 'task-oracle')
+    assert pair['included'] is False
+    assert pair['candidate_quality'] == 88
+    assert pair['baseline_quality'] is None and pair['quality_delta'] is None

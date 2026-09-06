@@ -1,0 +1,476 @@
+{
+  "schema_version": "v0.2",
+  "status": "fail",
+  "mode": "paid",
+  "invoked_by": "dsh-plugin",
+  "recorded_at": "2026-09-06T14:13:35.956553+00:00",
+  "phase": "dry-run",
+  "repeats": 3,
+  "command": [
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/.venv/bin/python3",
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/experiments/run_real_v0_1.py",
+    "--dataset",
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/benchmarks/v0.1.json",
+    "--manifest",
+    "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+    "--output-dir",
+    "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-XFKN2w/output",
+    "--phase",
+    "dry-run",
+    "--repeats",
+    "3",
+    "--max-retries",
+    "0",
+    "--execute-paid-run",
+    "--max-production-cost",
+    "1160.0",
+    "--max-evaluation-cost",
+    "1270.0"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "",
+  "issues": [
+    "benchmark-incomplete"
+  ],
+  "preflight": {
+    "schema_version": "v0.2",
+    "phase": "dry-run",
+    "repeats": 3,
+    "train_task_ids": [],
+    "test_task_ids": [
+      "report_001"
+    ],
+    "human_audit_task_ids": [
+      "report_011",
+      "report_020"
+    ],
+    "candidate_models": [
+      "deepseek-v4-flash",
+      "minimax-m3",
+      "deepseek-v4-pro"
+    ],
+    "judge_model": "kimi-k3",
+    "pricing_snapshot_date": "2026-09-06",
+    "billing_unit": "AFP",
+    "wire_api": "chat-completions",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "provider": "ark-plan",
+    "node_quality": {
+      "rubric_version": "v0.2",
+      "checks_version": "v0.3",
+      "rubric_sha256": "c35a5ac78c5801120be16b905ca09dc23d6e601dedf486caa6c2815fb630c71f",
+      "selection": "blinded-independent-node-judge-with-contract-caps",
+      "tie_break": "observed-node-cost",
+      "global_oracle": false
+    },
+    "execution_policy": {
+      "temperature": 0,
+      "timeout_seconds": 120.0,
+      "max_retries": 0,
+      "request_options_by_model": {
+        "deepseek-v4-flash": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "minimax-m3": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "deepseek-v4-pro": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "kimi-k3": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      }
+    },
+    "call_plan": {
+      "training_model_calls": 0,
+      "production_model_calls": 168,
+      "node_judge_model_calls": 63,
+      "final_judge_model_calls": 15,
+      "judge_model_calls": 78,
+      "total_model_calls": 246
+    },
+    "cost_estimate_assumptions": {
+      "input_tokens_per_production_call": 4000,
+      "input_tokens_per_judge_call": 8000,
+      "output_tokens_per_call": 8192,
+      "manifest_max_output_tokens": 8192,
+      "cached_input_discount_assumed": false
+    },
+    "cost_estimates": {
+      "billing_unit": "AFP",
+      "production_upper_estimate": 1126.54,
+      "evaluation_upper_estimate": 1262.98,
+      "total_upper_estimate": 2389.52
+    },
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  },
+  "summary": {
+    "schema_version": "v0.2",
+    "status": "incomplete",
+    "generated_at": "2026-09-06T14:13:35.724131+00:00",
+    "phase": "dry-run",
+    "repeats": 3,
+    "manifest": {
+      "path": "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+      "sha256": "8f1ec3434e2ef722edb2d41d685e0205848986f08bbc1999bdf5be73fb6915eb",
+      "pricing_snapshot_date": "2026-09-06"
+    },
+    "preflight": {
+      "schema_version": "v0.2",
+      "phase": "dry-run",
+      "repeats": 3,
+      "train_task_ids": [],
+      "test_task_ids": [
+        "report_001"
+      ],
+      "human_audit_task_ids": [
+        "report_011",
+        "report_020"
+      ],
+      "candidate_models": [
+        "deepseek-v4-flash",
+        "minimax-m3",
+        "deepseek-v4-pro"
+      ],
+      "judge_model": "kimi-k3",
+      "pricing_snapshot_date": "2026-09-06",
+      "billing_unit": "AFP",
+      "wire_api": "chat-completions",
+      "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "provider": "ark-plan",
+      "node_quality": {
+        "rubric_version": "v0.2",
+        "checks_version": "v0.3",
+        "rubric_sha256": "c35a5ac78c5801120be16b905ca09dc23d6e601dedf486caa6c2815fb630c71f",
+        "selection": "blinded-independent-node-judge-with-contract-caps",
+        "tie_break": "observed-node-cost",
+        "global_oracle": false
+      },
+      "execution_policy": {
+        "temperature": 0,
+        "timeout_seconds": 120.0,
+        "max_retries": 0,
+        "request_options_by_model": {
+          "deepseek-v4-flash": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "minimax-m3": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "deepseek-v4-pro": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "kimi-k3": {
+            "thinking": {
+              "type": "disabled"
+            }
+          }
+        }
+      },
+      "call_plan": {
+        "training_model_calls": 0,
+        "production_model_calls": 168,
+        "node_judge_model_calls": 63,
+        "final_judge_model_calls": 15,
+        "judge_model_calls": 78,
+        "total_model_calls": 246
+      },
+      "cost_estimate_assumptions": {
+        "input_tokens_per_production_call": 4000,
+        "input_tokens_per_judge_call": 8000,
+        "output_tokens_per_call": 8192,
+        "manifest_max_output_tokens": 8192,
+        "cached_input_discount_assumed": false
+      },
+      "cost_estimates": {
+        "billing_unit": "AFP",
+        "production_upper_estimate": 1126.54,
+        "evaluation_upper_estimate": 1262.98,
+        "total_upper_estimate": 2389.52
+      },
+      "credential_env": "CODEX_ARK_API_KEY",
+      "credential_available": true
+    },
+    "strategies": {
+      "node-oracle": {
+        "billing_unit": "AFP",
+        "runs": 3,
+        "task_count": 1,
+        "quality_mean": 9.167,
+        "quality_stddev": 12.964,
+        "production_cost_mean": 0.56726667,
+        "production_cost_stddev": 0.80223621,
+        "production_cost_p50": 0.0,
+        "production_cost_p95": 1.53162,
+        "production_cost_total": 1.7018,
+        "evaluation_cost_total": 0,
+        "critical_path_p50_ms": 0,
+        "critical_path_p95_ms": 38355,
+        "critical_path_stddev_ms": 20090,
+        "success_rate": 0.0,
+        "judge_coverage": 0.0,
+        "retry_rate": 0.0
+      },
+      "node-type-rule": {
+        "billing_unit": "AFP",
+        "runs": 3,
+        "task_count": 1,
+        "quality_mean": 86.667,
+        "quality_stddev": 2.055,
+        "production_cost_mean": 3.0288,
+        "production_cost_stddev": 0.21769743,
+        "production_cost_p50": 3.00285,
+        "production_cost_p95": 3.27699,
+        "production_cost_total": 9.0864,
+        "evaluation_cost_total": 9.981,
+        "critical_path_p50_ms": 55789,
+        "critical_path_p95_ms": 57411,
+        "critical_path_stddev_ms": 3613,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "strong-all": {
+        "billing_unit": "AFP",
+        "runs": 3,
+        "task_count": 1,
+        "quality_mean": 88.333,
+        "quality_stddev": 0.943,
+        "production_cost_mean": 7.77351667,
+        "production_cost_stddev": 1.17636864,
+        "production_cost_p50": 8.5921,
+        "production_cost_p95": 8.61586,
+        "production_cost_total": 23.32055,
+        "evaluation_cost_total": 11.782,
+        "critical_path_p50_ms": 87373,
+        "critical_path_p95_ms": 87599,
+        "critical_path_stddev_ms": 12626,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "task-oracle": {
+        "billing_unit": "AFP",
+        "runs": 3,
+        "task_count": 1,
+        "quality_mean": 100.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 0.50558333,
+        "production_cost_stddev": 0.02025234,
+        "production_cost_p50": 0.49905,
+        "production_cost_p95": 0.529605,
+        "production_cost_total": 1.51675,
+        "evaluation_cost_total": 0,
+        "critical_path_p50_ms": 48618,
+        "critical_path_p95_ms": 49258,
+        "critical_path_stddev_ms": 2372,
+        "success_rate": 1.0,
+        "judge_coverage": 0.0,
+        "retry_rate": 0.0
+      },
+      "weak-all": {
+        "billing_unit": "AFP",
+        "runs": 3,
+        "task_count": 1,
+        "quality_mean": 88.333,
+        "quality_stddev": 3.859,
+        "production_cost_mean": 0.50558333,
+        "production_cost_stddev": 0.02025234,
+        "production_cost_p50": 0.49905,
+        "production_cost_p95": 0.529605,
+        "production_cost_total": 1.51675,
+        "evaluation_cost_total": 9.279,
+        "critical_path_p50_ms": 48618,
+        "critical_path_p95_ms": 49258,
+        "critical_path_stddev_ms": 2372,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      }
+    },
+    "comparisons": {
+      "node-oracle vs strong-all": {
+        "pairs": 0,
+        "excluded_pairs": 3,
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      },
+      "node-oracle vs task-oracle": {
+        "pairs": 0,
+        "excluded_pairs": 3,
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      },
+      "node-type-rule vs strong-all": {
+        "pairs": 3,
+        "excluded_pairs": 0,
+        "task_count": 1,
+        "repeats": [
+          1,
+          2,
+          3
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 3,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 3,
+            "mean": -1.666667,
+            "stddev": 1.247219
+          }
+        },
+        "quality_delta_mean": -1.66666667,
+        "quality_delta_stddev": 1.24721913,
+        "cost_delta_mean": -4.74471667,
+        "cost_delta_stddev": 1.00674353,
+        "cost_reduction_percent_mean": 60.40942823,
+        "cost_reduction_percent_stddev": 4.39385485,
+        "latency_delta_ms_mean": -24382,
+        "latency_delta_ms_stddev": 15253.71865044
+      },
+      "node-type-rule vs task-oracle": {
+        "pairs": 0,
+        "excluded_pairs": 3,
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      }
+    },
+    "node_matrix": {
+      "expected_cells": 63,
+      "recorded_cells": 63
+    },
+    "oracle_gate": {
+      "quality_delta": -90.833,
+      "cost_reduction_percent": -12.20043,
+      "relative_cost_delta_percent": 12.20043,
+      "p95_latency_ratio": 0.778655,
+      "quality_path_pass": false,
+      "cost_path_pass": false,
+      "latency_pass": true,
+      "reliability_pass": false,
+      "judge_complete": false,
+      "decision": "Insufficient-evidence",
+      "routing_change_observed": false,
+      "repeated": true,
+      "matrix_complete": false
+    },
+    "failure_taxonomy": {
+      "invalid-evidence": 1,
+      "judge:incomplete-single-model-evaluations": 3,
+      "judge:missing-final-output": 3,
+      "node-quality-incomplete": 2,
+      "upstream-failure": 2,
+      "node-probe:invalid-json": 2
+    },
+    "costs": {
+      "node_evaluation": 225.763,
+      "final_evaluation": 31.042,
+      "billing_unit": "AFP",
+      "production": 81.21435,
+      "evaluation": 256.805
+    }
+  },
+  "inputs": {
+    "dataset": {
+      "path": "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/benchmarks/v0.1.json",
+      "sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17"
+    },
+    "model_manifest": {
+      "path": "/Users/chun-hsianglee/Documents/Codes/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+      "sha256": "8f1ec3434e2ef722edb2d41d685e0205848986f08bbc1999bdf5be73fb6915eb"
+    },
+    "corpus": {
+      "paths": [
+        "data/tasks",
+        "data/source_packs"
+      ],
+      "sha256": "ca9d3919aed145177fcd15b8e55541df261de7273abfcdb174aea77356548157"
+    },
+    "code": {
+      "paths": [
+        "src/refractrouter",
+        "experiments",
+        "validation/dsh"
+      ],
+      "sha256": "bfd970c3e1eefc428c94998ee41294e63bb90c4776ea87715d3fc90fdb494ebe"
+    }
+  },
+  "artifacts": {
+    "preflight.json": "3e1ab1f6a23294e6424807b0f9e0a0e2d1cce0688fd74a495b7385b082208973",
+    "benchmark-summary.json": "fcc32a8a4f6da6e9da1efc18818d4c94ab56f00892011caf1c1f12a3aa99568a",
+    "baseline-table.md": "392933f6b95394931da94a8a1ded05d3f6e7310abcab97bb2beae4d184a78194",
+    "pareto-front.md": "9410913e976f8dd3511416ae003ef9670222bafe4e69b50f00a6d2cc8a685bc7",
+    "oracle-gap.md": "305217ba9b7f374c0f4a273dbaa7907c04f4695b85311e0e3977d893127ea463",
+    "failure-taxonomy.md": "5172f108ab85c4a9ccfc8f12b982df4aab4eeb052dbbbfda12746792b8d4c65f",
+    "evidence-index.json": "24dc6bbd4aa9913315b537bcccdc3c5c11551fdb2eda78dc2cf5722bc4109153",
+    "node-evaluations.ndjson": "d0825f9e5c4fbd5ed71a64dd17aab2bfd4a2e542bbe0ba05f73bd26b67ff32bb",
+    "node-quality-matrix.json": "e886ac6cc93420215b0ec09414e19289c3af1bc49454fbbadbf5a98969228c22",
+    "node-quality-matrix.md": "208d41ef861fc7e2d93eb446c5cde094b03bb753b1bd5ad86260061003d23bea",
+    "strategy-comparisons.json": "dc27395dbe6bf252d5732559bc0530c1889f3e0cb2ab5a589c92aff76a36ed73",
+    "strategy-comparisons.md": "19baf3c195490b7f4fc3dffd20eb42c14de6772e1911ed26614d4d72d12d8cc3",
+    "model-progress.ndjson": "745ee3840ec602754b44b0b9e54f342a0e81a39dc544d947c9737de1757c9961"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "git_commit": "d1602cfac71e9c4e7c53ae6821f185be4d1a587c",
+    "git_dirty": false,
+    "git_status": "",
+    "dsh": "0.1.1-rc.2",
+    "deepagents": "0.7.13",
+    "langgraph": "1.2.11",
+    "refractrouter": "0.1.0",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  }
+}

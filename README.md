@@ -21,10 +21,17 @@ issue #19 的修复已通过真实 Agent Plan dry run：61/61 个请求完成、
 五个策略成功率与 judge 覆盖均为 100%，DSH 返回 `pass`。生产与评审合计 47.59695 AFP。
 证据见 `reports/v0.1-real/dry-run-agent-plan-8192/`；旧失败证据仍保留。
 
-本轮单任务路由收益判定为 No-go：node-oracle 84 分、task-oracle 100 分，成本几乎相同。
+此前单任务路由收益判定为 No-go：node-oracle 84 分、task-oracle 100 分，成本几乎相同。
 两者实际都选择 7 节点全用 Flash，报告来自不同生成调用，因此分差不能归因于模型分配差异。
-这不影响 dry run 完整性验收通过。issue #22 已补齐独立节点评审、三模型矩阵、配对比较和
-三轮离线验证；真实三轮复验预算尚未批准，issue #5 等待这项复验。旧报告保留历史判定。
+这不影响此前 dry run 完整性验收通过。旧报告保留历史判定。
+
+issue #22 已补齐独立节点评审、三模型矩阵、配对比较，并完成获批的真实三轮运行：
+215/215 请求正常返回，63 格矩阵和 9 份单模型结果全部保存。Flash、全 Pro、固定混合的
+最终平均质量分别为 88.333、88.333、86.667。M3 的中间 JSON 契约失败及组合输出缺失
+证据字段导致 oracle 最终评审不完整，因此判定为 **Insufficient-evidence**。
+未评审的备用分数在核对版汇总中显示 N/A。
+完整结果见 [三轮复验证据](reports/v0.2-node-quality/repeated-agent-plan/README.md)；
+[issue #25](https://github.com/AEALab/RefractRouter/issues/25) 追踪修复，issue #5 等待有效对照。
 
 ## Quick Start
 
@@ -89,9 +96,10 @@ judge 按 `kimi-k3` 的 10 系数估算：生产 375.51 AFP、评审 420.99 AFP�
 三轮重复为 168 次生产、63 次节点评审、15 次最终评审，最多 246 次调用；估算生产
 1126.54 AFP、评审 1262.98 AFP，总计 2389.52 AFP。训练集只执行一次，不随测试轮数重复。
 
-issue #22 的三轮复验提案为生产 1200 AFP、评审 1300 AFP、DSH 外层 Flash 最多 5 AFP，
-总调用准入上限 2505 AFP，**尚未批准或执行**。issue #19 已完成的 495 AFP 授权仅用于原先
-那一轮，不能用于本轮新增评审。预算检查在每次调用前进行；输入 token 数仍是估算假设，
+issue #22 的三轮复验已获得 2505 AFP 总预算批准并执行。修复过程中在总额内调整了
+生产/评审预留；含初次中断与 DSH 外层调用，已知费用为 386.27070 AFP，另保留一笔
+中断请求的 16.192 AFP 未结算估计。明细与实际准入限制见上述证据目录。
+此次授权不自动扩展到后续 pilot。预算检查在每次调用前进行；输入 token 数仍是估算假设，
 单次请求结算可能超出预留，所以这些上限不能保证请求内精确硬停。
 
 零费用三轮预检命令：
@@ -103,8 +111,8 @@ uv run python experiments/run_real_v0_1.py \
   --output-dir /tmp/refractrouter-node-quality-preflight
 ```
 
-获批后才可加入 `--execute-paid-run --max-production-cost 1200 --max-evaluation-cost 1300`，
-并使用新的输出目录；已有矩阵证据的目录禁止重复写入。
+实际运行必须使用获批范围内的 `--execute-paid-run --max-production-cost ...
+--max-evaluation-cost ...`，并使用新的输出目录；已有矩阵证据的目录禁止重复写入。
 
 密钥只从 manifest 指定的环境变量读取，不写入任务、run record 或 DSH evidence。
 runner 记录 input/output/cache/reasoning tokens、实际成本、端到端与关键路径延迟、
@@ -259,7 +267,8 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 ## Roadmap
 
 1. issue #4 的失败证据已保留，issue #19 修复已通过新的 1-task 真实准入验证。
-2. issue #5 的 10-task pilot 已解除截断阻塞；核定独立预算后评估多任务与重复运行差异。
+2. issue #25 修复中间输出契约并恢复完整 oracle 对照后，为 issue #5 的 10-task pilot
+   核定独立预算，再评估多任务与重复运行差异。
 3. pilot 通过后，对冻结样本完成人工抽检，并与独立 judge 结果对照。
 4. 执行 20-task final benchmark，通过 DSH plugin tool call 复核并发布最终结论。
 

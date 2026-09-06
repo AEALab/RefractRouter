@@ -56,9 +56,11 @@ class BenchmarkTests(unittest.TestCase):
         gate = oracle_gate(summary)
 
         self.assertEqual(summary["node-oracle"]["judge_coverage"], 0.0)
-        self.assertEqual(summary["node-oracle"]["quality_stddev"], 0.0)
+        self.assertIsNone(summary["node-oracle"]["quality_stddev"])
+        self.assertIsNone(summary["node-oracle"]["quality_mean"])
         self.assertFalse(gate["judge_complete"])
-        self.assertEqual(gate["decision"], "No-go")
+        self.assertEqual(gate["decision"], "Insufficient-evidence")
+        self.assertIsNone(gate["quality_delta"])
 
     def test_pareto_report_uses_quality_and_production_cost(self) -> None:
         summary = {
