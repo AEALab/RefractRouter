@@ -1,0 +1,228 @@
+{
+  "task_id": "report_001",
+  "repeat": 2,
+  "strategy": "node-type-rule",
+  "result": {
+    "task_id": "report_001",
+    "strategy": "node-type-rule",
+    "model_assignments": {
+      "parse_requirements": "mid",
+      "build_outline": "mid",
+      "extract_evidence": "cheap",
+      "synthesize_analysis": "strong",
+      "write_report": "strong",
+      "render_html": "mid",
+      "verify_report": "cheap"
+    },
+    "node_results": [
+      {
+        "node_id": "parse_requirements",
+        "node_type": "planning",
+        "model_id": "mid",
+        "output": "{\"requirements\": {\"topic\": \"2026 年企业 LLM Agent 平台选型\", \"audience\": \"企业技术决策者与平台选型负责人\", \"required_sections\": [\"Executive Summary\", \"Background\", \"Selection Criteria\", \"Platform Comparison\", \"Risks\", \"Conclusion\", \"References\"], \"expected_claims\": [\"DeepAgents is built on LangGraph.\", \"DSH is reserved for the outer validation environment.\", \"The benchmark reports quality, cost, and critical-path latency.\"]}, \"sections\": [\"Executive Summary\", \"Background\", \"Selection Criteria\", \"Platform Comparison\", \"Risks\", \"Conclusion\", \"References\"], \"constraints\": [\"standalone HTML\", \"all claims cite source_id\", \"no external CSS or JavaScript\"], \"analysis\": \"任务为 2026 年企业级 LLM Agent 平台选型报告，目标读者为企业技术决策者与选型负责人。报告需覆盖 7 个固定章节，并以独立 HTML 文件交付，所有事实陈述须引用 source_id，禁止外链 CSS 或 JavaScript。关键事实包括 DeepAgents 基于 LangGraph 构建、DSH 用于外层验证环境、基准测试报告质量、成本与关键路径延迟。\"}",
+        "input_tokens": 414,
+        "output_tokens": 241,
+        "cost": 0.16375,
+        "latency_ms": 3850,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178870313559439b5b0f4b57789945865e795386c35304e4589",
+        "error_message": null
+      },
+      {
+        "node_id": "build_outline",
+        "node_type": "planning",
+        "model_id": "mid",
+        "output": "{\"requirements\":{\"topic\":\"2026 年企业 LLM Agent 平台选型\",\"audience\":\"企业技术决策者与平台选型负责人\",\"required_sections\":[\"Executive Summary\",\"Background\",\"Selection Criteria\",\"Platform Comparison\",\"Risks\",\"Conclusion\",\"References\"],\"expected_claims\":[\"DeepAgents is built on LangGraph.\",\"DSH is reserved for the outer validation environment.\",\"The benchmark reports quality, cost, and critical-path latency.\"]},\"sections\":[\"Executive Summary\",\"Background\",\"Selection Criteria\",\"Platform Comparison\",\"Risks\",\"Conclusion\",\"References\"],\"constraints\":[\"standalone HTML\",\"all claims cite source_id\",\"no external CSS or JavaScript\"],\"analysis\":\"任务为 2026 年企业级 LLM Agent 平台选型报告。读者为企业技术决策者与选型负责人。需覆盖 7 个固定章节，以独立 HTML 交付，所有事实须引用 source_id，禁用外链 CSS/JS。关键事实已锁定：DeepAgents 基于 LangGraph、DSH 用于外层验证环境、基准覆盖质量/成本/关键路径延迟。大纲应反映 Executive Summary 给出选型结论与三大事实锚点，Background 界定 LLM Agent 平台与 2026 年企业诉求，Selection Criteria 围绕质量、成本、延迟、可扩展性、安全合规、生态、部署模式，Platform Comparison 横向对比 DeepAgents 等候选并标注 LangGraph 依赖与 DSH 适用层，Risks 涵盖供应商锁定、延迟成本、治理与合规，Conclusion 给出推荐路径，References 列出全部 source_id 以便正文引用。\"}",
+        "input_tokens": 656,
+        "output_tokens": 314,
+        "cost": 0.2425,
+        "latency_ms": 4082,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887031394607093713527b8c530401a403eec8fc1529039e0",
+        "error_message": null
+      },
+      {
+        "node_id": "extract_evidence",
+        "node_type": "extraction",
+        "model_id": "cheap",
+        "output": "{\n  \"evidence\": [\n    {\n      \"source_id\": \"source_001\",\n      \"title\": \"DeepAgents\",\n      \"claim\": \"DeepAgents is built on LangGraph.\",\n      \"content_hash\": \"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"\n    },\n    {\n      \"source_id\": \"source_004\",\n      \"title\": \"DeepSeek Harness\",\n      \"claim\": \"DSH is reserved for the outer validation environment.\",\n      \"content_hash\": \"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\"\n    },\n    {\n      \"source_id\": \"source_007\",\n      \"title\": \"Benchmark design\",\n      \"claim\": \"The benchmark reports quality, cost, and critical-path latency.\",\n      \"content_hash\": \"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\"\n    }\n  ]\n}",
+        "input_tokens": 1626,
+        "output_tokens": 251,
+        "cost": 0.09385,
+        "latency_ms": 3712,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887031435387093713527b8c530401a403eec8fc152e2c581",
+        "error_message": null
+      },
+      {
+        "node_id": "synthesize_analysis",
+        "node_type": "synthesis",
+        "model_id": "strong",
+        "output": "{\n  \"analysis\": \"Comparing candidate platforms against the selection criteria reveals three distinct architectural tradeoffs. DeepAgents (source_001) offers a LangGraph foundation, which provides a mature graph-based orchestration model with strong ecosystem support and predictable execution semantics. This makes it well-suited for complex multi-step agent workflows where control flow must be explicit and auditable. However, its generality means teams must invest in custom validation scaffolding, since the platform itself does not enforce a separation between development and production-grade validation. DeepSeek Harness (source_004) takes the opposite approach: it is explicitly reserved for the outer validation environment, meaning it is not intended as a general-purpose development platform but as a gatekeeper for final quality assurance. This yields strong guarantees about what reaches production, but it creates a two-platform operational burden and may slow iteration because developers cannot use the same tooling end-to-end. The benchmark design (source_007) introduces a third consideration: any selected platform must expose quality, cost, and critical-path latency as first-class observable metrics. Platforms that do not natively instrument these dimensions will require additional telemetry work, eroding the cost advantage of otherwise cheaper options. The core tradeoff is therefore between orchestration flexibility (DeepAgents), validation rigor (DSH), and observability readiness (benchmark alignment). A combined approach—using DeepAgents for agent construction and DSH for outer validation—mitigates individual weaknesses but increases integration complexity and operational overhead. Teams prioritizing speed of development will favor DeepAgents alone; teams with strict compliance requirements will favor the DSH gate; teams needing defensible ROI reporting must ensure benchmark metric coverage regardless of platform choice.\",\n  \"evidence\": [\n    {\n      \"source_id\": \"source_001\",\n      \"title\": \"DeepAgents\",\n      \"claim\": \"DeepAgents is built on LangGraph.\",\n      \"content_hash\": \"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"\n    },\n    {\n      \"source_id\": \"source_004\",\n      \"title\": \"DeepSeek Harness\",\n      \"claim\": \"DSH is reserved for the outer validation environment.\",\n      \"content_hash\": \"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\"\n    },\n    {\n      \"source_id\": \"source_007\",\n      \"title\": \"Benchmark design\",\n      \"claim\": \"The benchmark reports quality, cost, and critical-path latency.\",\n      \"content_hash\": \"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\"\n    }\n  ]\n}",
+        "input_tokens": 521,
+        "output_tokens": 590,
+        "cost": 0.61105,
+        "latency_ms": 11563,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178870314727420244bbcebb250bf80b1bc04ef464017f659cf",
+        "error_message": null
+      },
+      {
+        "node_id": "write_report",
+        "node_type": "generation",
+        "model_id": "strong",
+        "output": "{\n  \"title\": \"2026 年企业 LLM Agent 平台选型\",\n  \"sections\": [\n    {\n      \"heading\": \"Executive Summary\",\n      \"paragraph\": \"本报告评估 2026 年企业 LLM Agent 平台候选方案，重点比较 DeepAgents 与 DeepSeek Harness（DSH）。DeepAgents 基于 LangGraph 构建，提供成熟的图编排能力 [source_001]。DSH 专用于外层验证环境，作为生产发布前的质量门禁 [source_004]。选型基准要求平台可报告质量、成本与关键路径延迟三项指标 [source_007]。核心结论：单一平台难以同时满足编排灵活性、验证严格性与可观测性要求，建议采用 DeepAgents 负责 Agent 构建、DSH 负责外层验证的组合方案，并确保基准指标覆盖。\"\n    },\n    {\n      \"heading\": \"Background\",\n      \"paragraph\": \"2026 年企业 LLM Agent 平台选型面临多目标权衡。DeepAgents 以 LangGraph 为底层，提供显式、可审计的多步工作流控制，适合复杂 Agent 场景 [source_001]。DSH 的定位不同，它被保留用于外层验证环境，不承担通用开发职责，而是作为最终质量保证的守门人 [source_004]。同时，选型决策受基准设计约束：任何入选平台必须将质量、成本与关键路径延迟作为一等可观测指标 [source_007]。这一背景决定了评估不能只看功能，还需考察验证集成与指标原生支持能力。\"\n    },\n    {\n      \"heading\": \"Selection Criteria\",\n      \"paragraph\": \"选型标准围绕三个维度展开。第一，编排能力：平台是否支持显式、可审计的多步 Agent 工作流，DeepAgents 的 LangGraph 基础在此维度占优 [source_001]。第二，验证严格性：平台是否提供生产级质量门禁，DSH 专用于外层验证环境，满足该要求 [source_004]。第三，可观测性：平台是否原生暴露质量、成本与关键路径延迟，否则需额外遥测投入，侵蚀成本优势 [source_007]。此外，集成复杂度与运营开销作为跨维度约束纳入评估。\"\n    },\n    {\n      \"heading\": \"Platform Comparison\",\n      \"paragraph\": \"DeepAgents 基于 LangGraph，提供成熟图编排与强生态支持，执行语义可预测，适合复杂多步工作流，但需自建验证脚手架 [source_001]。DSH 专用于外层验证环境，提供强生产发布保证，但造成双平台运营负担并可能拖慢迭代 [source_004]。基准设计要求平台报告质量、成本与关键路径延迟，未原生支持这些指标的平台需额外遥测工作 [source_007]。核心权衡为：DeepAgents 偏编排灵活性，DSH 偏验证严格性，基准对齐偏可观测性就绪度。\"\n    },\n    {\n      \"heading\": \"Risks\",\n      \"paragraph\": \"主要风险有三类。其一，单一采用 DeepAgents 时，平台不强制开发与生产级验证分离，团队需自行搭建验证脚手架，存在质量门禁缺失风险 [source_001]。其二，单一依赖 DSH 作为外层验证环境，会形成双平台运营负担，开发与验证工具链割裂，可能拖慢迭代速度 [source_004]。其三，若所选平台未原生暴露质量、成本与关键路径延迟，需额外遥测投入，可能抵消低成本方案的优势并影响 ROI 报告可信度 [source_007]。组合方案则引入集成复杂度与运营开销风险。\"\n    },\n    {\n      \"heading\": \"Conclusion\",\n      \"paragraph\": \"选型结论取决于团队优先级。追求开发速度者可选 DeepAgents 单独使用，因其 LangGraph 基础提供灵活编排 [source_001]。有严格合规要求者应引入 DSH 作为外层验证门禁 [source_004]。需要可辩护 ROI 报告的团队，无论平台选择如何，都必须确保基准指标覆盖质量、成本与关键路径延迟 [source_007]。推荐组合方案：DeepAgents 负责 Agent 构建，DSH 负责外层验证，同时将基准指标作为强制验收条件，以平衡灵活性、严格性与可观测性。\"\n    },\n    {\n      \"heading\": \"References\",\n      \"paragraph\": \"source_001: DeepAgents — DeepAgents is built on LangGraph. Content hash: ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39. source_004: DeepSeek Harness — DSH is reserved for the outer validation environment. Content hash: b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331. source_007: Benchmark design — The benchmark reports quality, cost, and critical-path latency. Content hash: 03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0.\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"source_id\": \"source_001\",\n      \"title\": \"DeepAgents\",\n      \"claim\": \"DeepAgents is built on LangGraph.\",\n      \"content_hash\": \"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"\n    },\n    {\n      \"source_id\": \"source_004\",\n      \"title\": \"DeepSeek Harness\",\n      \"claim\": \"DSH is reserved for the outer validation environment.\",\n      \"content_hash\": \"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\"\n    },\n    {\n      \"source_id\": \"source_007\",\n      \"title\": \"Benchmark design\",\n      \"claim\": \"The benchmark reports quality, cost, and critical-path latency.\",\n      \"content_hash\": \"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\"\n    }\n  ]\n}",
+        "input_tokens": 882,
+        "output_tokens": 1353,
+        "cost": 1.22925,
+        "latency_ms": 20933,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887031588245e054c6d0ba743fab13ed8d72af4b8b28fbfb8",
+        "error_message": null
+      },
+      {
+        "node_id": "render_html",
+        "node_type": "rendering",
+        "model_id": "mid",
+        "output": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<title>2026 年企业 LLM Agent 平台选型</title>\n</head>\n<body>\n<h1>2026 年企业 LLM Agent 平台选型</h1>\n\n<h2>Executive Summary</h2>\n<p>本报告评估 2026 年企业 LLM Agent 平台候选方案，重点比较 DeepAgents 与 DeepSeek Harness（DSH）。DeepAgents 基于 LangGraph 构建，提供成熟的图编排能力 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。DSH 专用于外层验证环境，作为生产发布前的质量门禁 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。选型基准要求平台可报告质量、成本与关键路径延迟三项指标 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。核心结论：单一平台难以同时满足编排灵活性、验证严格性与可观测性要求，建议采用 DeepAgents 负责 Agent 构建、DSH 负责外层验证的组合方案，并确保基准指标覆盖。</p>\n\n<h2>Background</h2>\n<p>2026 年企业 LLM Agent 平台选型面临多目标权衡。DeepAgents 以 LangGraph 为底层，提供显式、可审计的多步工作流控制，适合复杂 Agent 场景 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。DSH 的定位不同，它被保留用于外层验证环境，不承担通用开发职责，而是作为最终质量保证的守门人 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。同时，选型决策受基准设计约束：任何入选平台必须将质量、成本与关键路径延迟作为一等可观测指标 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。这一背景决定了评估不能只看功能，还需考察验证集成与指标原生支持能力。</p>\n\n<h2>Selection Criteria</h2>\n<p>选型标准围绕三个维度展开。第一，编排能力：平台是否支持显式、可审计的多步 Agent 工作流，DeepAgents 的 LangGraph 基础在此维度占优 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。第二，验证严格性：平台是否提供生产级质量门禁，DSH 专用于外层验证环境，满足该要求 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。第三，可观测性：平台是否原生暴露质量、成本与关键路径延迟，否则需额外遥测投入，侵蚀成本优势 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。此外，集成复杂度与运营开销作为跨维度约束纳入评估。</p>\n\n<h2>Platform Comparison</h2>\n<p>DeepAgents 基于 LangGraph，提供成熟图编排与强生态支持，执行语义可预测，适合复杂多步工作流，但需自建验证脚手架 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。DSH 专用于外层验证环境，提供强生产发布保证，但造成双平台运营负担并可能拖慢迭代 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。基准设计要求平台报告质量、成本与关键路径延迟，未原生支持这些指标的平台需额外遥测工作 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。核心权衡为：DeepAgents 偏编排灵活性，DSH 偏验证严格性，基准对齐偏可观测性就绪度。</p>\n\n<h2>Risks</h2>\n<p>主要风险有三类。其一，单一采用 DeepAgents 时，平台不强制开发与生产级验证分离，团队需自行搭建验证脚手架，存在质量门禁缺失风险 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。其二，单一依赖 DSH 作为外层验证环境，会形成双平台运营负担，开发与验证工具链割裂，可能拖慢迭代速度 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。其三，若所选平台未原生暴露质量、成本与关键路径延迟，需额外遥测投入，可能抵消低成本方案的优势并影响 ROI 报告可信度 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。组合方案则引入集成复杂度与运营开销风险。</p>\n\n<h2>Conclusion</h2>\n<p>选型结论取决于团队优先级。追求开发速度者可选 DeepAgents 单独使用，因其 LangGraph 基础提供灵活编排 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。有严格合规要求者应引入 DSH 作为外层验证门禁 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。需要可辩护 ROI 报告的团队，无论平台选择如何，都必须确保基准指标覆盖质量、成本与关键路径延迟 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。推荐组合方案：DeepAgents 负责 Agent 构建，DSH 负责外层验证，同时将基准指标作为强制验收条件，以平衡灵活性、严格性与可观测性。</p>\n\n<h2>References</h2>\n<p>source_001: DeepAgents — DeepAgents is built on LangGraph. Content hash: ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39. source_004: DeepSeek Harness — DSH is reserved for the outer validation environment. Content hash: b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331. source_007: Benchmark design — The benchmark reports quality, cost, and critical-path latency. Content hash: 03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0.</p>\n\n<ol class=\"source-trace\">\n<li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"><a id=\"source-source_001\" href=\"#source-source_001\">source_001 — DeepAgents: DeepAgents is built on LangGraph.</a></li>\n<li data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\"><a id=\"source-source_004\" href=\"#source-source_004\">source_004 — DeepSeek Harness: DSH is reserved for the outer validation environment.</a></li>\n<li data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\"><a id=\"source-source_007\" href=\"#source-source_007\">source_007 — Benchmark design: The benchmark reports quality, cost, and critical-path latency.</a></li>\n</ol>\n\n</body>\n</html>",
+        "input_tokens": 1753,
+        "output_tokens": 1698,
+        "cost": 0.86275,
+        "latency_ms": 9559,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887031797524c81961e630bce638d970dc275335873d5d875",
+        "error_message": null
+      },
+      {
+        "node_id": "verify_report",
+        "node_type": "verification",
+        "model_id": "cheap",
+        "output": "{\"valid\":true,\"issues\":[],\"summary\":\"All required sections present; all three expected claims cited; HTML is standalone with no external CSS/JS; citations use source_id and content_hash correctly.\"}",
+        "input_tokens": 2044,
+        "output_tokens": 42,
+        "cost": 0.1043,
+        "latency_ms": 2090,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887031893079255aa03547266d00c3fa3dce78057f118d9c9",
+        "error_message": null
+      }
+    ],
+    "final_output": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<title>2026 年企业 LLM Agent 平台选型</title>\n</head>\n<body>\n<h1>2026 年企业 LLM Agent 平台选型</h1>\n\n<h2>Executive Summary</h2>\n<p>本报告评估 2026 年企业 LLM Agent 平台候选方案，重点比较 DeepAgents 与 DeepSeek Harness（DSH）。DeepAgents 基于 LangGraph 构建，提供成熟的图编排能力 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。DSH 专用于外层验证环境，作为生产发布前的质量门禁 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。选型基准要求平台可报告质量、成本与关键路径延迟三项指标 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。核心结论：单一平台难以同时满足编排灵活性、验证严格性与可观测性要求，建议采用 DeepAgents 负责 Agent 构建、DSH 负责外层验证的组合方案，并确保基准指标覆盖。</p>\n\n<h2>Background</h2>\n<p>2026 年企业 LLM Agent 平台选型面临多目标权衡。DeepAgents 以 LangGraph 为底层，提供显式、可审计的多步工作流控制，适合复杂 Agent 场景 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。DSH 的定位不同，它被保留用于外层验证环境，不承担通用开发职责，而是作为最终质量保证的守门人 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。同时，选型决策受基准设计约束：任何入选平台必须将质量、成本与关键路径延迟作为一等可观测指标 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。这一背景决定了评估不能只看功能，还需考察验证集成与指标原生支持能力。</p>\n\n<h2>Selection Criteria</h2>\n<p>选型标准围绕三个维度展开。第一，编排能力：平台是否支持显式、可审计的多步 Agent 工作流，DeepAgents 的 LangGraph 基础在此维度占优 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。第二，验证严格性：平台是否提供生产级质量门禁，DSH 专用于外层验证环境，满足该要求 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。第三，可观测性：平台是否原生暴露质量、成本与关键路径延迟，否则需额外遥测投入，侵蚀成本优势 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。此外，集成复杂度与运营开销作为跨维度约束纳入评估。</p>\n\n<h2>Platform Comparison</h2>\n<p>DeepAgents 基于 LangGraph，提供成熟图编排与强生态支持，执行语义可预测，适合复杂多步工作流，但需自建验证脚手架 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。DSH 专用于外层验证环境，提供强生产发布保证，但造成双平台运营负担并可能拖慢迭代 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。基准设计要求平台报告质量、成本与关键路径延迟，未原生支持这些指标的平台需额外遥测工作 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。核心权衡为：DeepAgents 偏编排灵活性，DSH 偏验证严格性，基准对齐偏可观测性就绪度。</p>\n\n<h2>Risks</h2>\n<p>主要风险有三类。其一，单一采用 DeepAgents 时，平台不强制开发与生产级验证分离，团队需自行搭建验证脚手架，存在质量门禁缺失风险 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。其二，单一依赖 DSH 作为外层验证环境，会形成双平台运营负担，开发与验证工具链割裂，可能拖慢迭代速度 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。其三，若所选平台未原生暴露质量、成本与关键路径延迟，需额外遥测投入，可能抵消低成本方案的优势并影响 ROI 报告可信度 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。组合方案则引入集成复杂度与运营开销风险。</p>\n\n<h2>Conclusion</h2>\n<p>选型结论取决于团队优先级。追求开发速度者可选 DeepAgents 单独使用，因其 LangGraph 基础提供灵活编排 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。有严格合规要求者应引入 DSH 作为外层验证门禁 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。需要可辩护 ROI 报告的团队，无论平台选择如何，都必须确保基准指标覆盖质量、成本与关键路径延迟 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。推荐组合方案：DeepAgents 负责 Agent 构建，DSH 负责外层验证，同时将基准指标作为强制验收条件，以平衡灵活性、严格性与可观测性。</p>\n\n<h2>References</h2>\n<p>source_001: DeepAgents — DeepAgents is built on LangGraph. Content hash: ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39. source_004: DeepSeek Harness — DSH is reserved for the outer validation environment. Content hash: b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331. source_007: Benchmark design — The benchmark reports quality, cost, and critical-path latency. Content hash: 03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0.</p>\n\n<ol class=\"source-trace\">\n<li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"><a id=\"source-source_001\" href=\"#source-source_001\">source_001 — DeepAgents: DeepAgents is built on LangGraph.</a></li>\n<li data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\"><a id=\"source-source_004\" href=\"#source-source_004\">source_004 — DeepSeek Harness: DSH is reserved for the outer validation environment.</a></li>\n<li data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\"><a id=\"source-source_007\" href=\"#source-source_007\">source_007 — Benchmark design: The benchmark reports quality, cost, and critical-path latency.</a></li>\n</ol>\n\n</body>\n</html>",
+    "task_score": 89.0,
+    "total_cost": 3.30745,
+    "critical_path_latency_ms": 55789,
+    "billing_unit": "AFP",
+    "failure_types": []
+  },
+  "judge": {
+    "rubric_version": "v0.1",
+    "deterministic_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "judge_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 20.0,
+      "analysis_depth": 16.0,
+      "structure_readability": 14.0,
+      "html_validity": 14.0
+    },
+    "final_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 20.0,
+      "analysis_depth": 16.0,
+      "structure_readability": 14.0,
+      "html_validity": 14.0
+    },
+    "final_score": 89.0,
+    "claim_support": [
+      {
+        "claim": "DeepAgents is built on LangGraph.",
+        "source_ids": [
+          "source_001"
+        ],
+        "supported": true,
+        "explanation": "The report correctly cites source_001 which explicitly states 'DeepAgents is a LangChain harness built on LangGraph.' The claim is accurately represented in the Executive Summary, Background, and Platform Comparison sections."
+      },
+      {
+        "claim": "DSH is reserved for the outer validation environment.",
+        "source_ids": [
+          "source_004"
+        ],
+        "supported": true,
+        "explanation": "The report accurately cites source_004 which states 'DSH is reserved for the outer validation environment, not the core routing loop.' The claim is correctly used to describe DSH's role as a quality gate."
+      },
+      {
+        "claim": "The benchmark reports quality, cost, and critical-path latency.",
+        "source_ids": [
+          "source_007"
+        ],
+        "supported": true,
+        "explanation": "The report correctly cites source_007 which mentions 'per-node and per-task scoring, cost accounting, and critical-path latency.' The report accurately reflects these three metrics as required observability criteria."
+      }
+    ],
+    "rationale": "The report demonstrates excellent structural compliance with all seven required sections present in the correct order. All three expected claims are accurately supported by their respective sources with proper citations. However, the report contains unsupported extrapolations: claims about '双平台运营负担' (dual-platform operational burden) and '拖慢迭代' (slowing iteration) are not present in source_004, which only states DSH is reserved for validation without discussing operational overhead or iteration speed. Similarly, assertions about '生态支持' (ecosystem support) and '需自建验证脚手架' (need to build validation scaffolding) extend beyond source_001's description of DeepAgents' features. The analysis provides reasonable depth on the trade-offs between orchestration flexibility and validation strictness, though it misses opportunities to leverage other provided sources (e.g., source_005 on routing research gaps, source_006 on task decomposition boundaries) that could have enriched the evaluation context. The HTML is well-formed with proper semantic structure, valid anchor links, and correct content-hash traceability, though the use of paragraph tags for the reference list rather than definition lists or structured markup is a minor semantic imperfection.",
+    "input_tokens": 2912,
+    "output_tokens": 553,
+    "cached_input_tokens": 0,
+    "reasoning_tokens": 0,
+    "cost": 3.465,
+    "latency_ms": 12741,
+    "attempts": 1,
+    "request_id": "02178870322548139b5b0f4b57789945865e795386c3530cd8b68",
+    "billing_unit": "AFP"
+  },
+  "judge_error": null
+}

@@ -33,8 +33,9 @@ def paired_comparisons(observations):
                         raise ValueError("Paired observations contain mixed billing units")
                     row.update(
                         billing_unit=a.billing_unit,
-                        candidate_quality=a.task_score, baseline_quality=b.task_score,
-                        quality_delta=a.task_score - b.task_score,
+                        candidate_quality=left.judge.final_score if left.judge and not left.judge_error else None,
+                        baseline_quality=right.judge.final_score if right.judge and not right.judge_error else None,
+                        quality_delta=left.judge.final_score - right.judge.final_score if not errors else None,
                         candidate_cost=a.total_cost, baseline_cost=b.total_cost,
                         cost_delta=a.total_cost - b.total_cost,
                         cost_reduction_percent=(b.total_cost-a.total_cost)/b.total_cost*100 if b.total_cost else None,
