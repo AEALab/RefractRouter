@@ -28,7 +28,7 @@ from refractrouter.judge import JudgeEvaluation
 from refractrouter.manifest import ModelManifest, load_model_manifest
 from refractrouter.model_registry import ModelRegistry
 from refractrouter.node_judge import IndependentNodeJudge, NodeJudgeError, NODE_RUBRIC_PATH, NODE_RUBRIC_VERSION
-from refractrouter.scoring import node_contract_checks
+from refractrouter.scoring import NODE_CHECKS_VERSION, node_contract_checks
 from refractrouter.openai_compatible import ModelInvocationError, OpenAICompatibleClient
 from refractrouter.routing import (
     node_oracle,
@@ -214,6 +214,7 @@ def build_task_strategy_bundle(
     *,
     include_learned: bool,
     node_evaluator=None,
+    single_recorder=None,
 ) -> TaskStrategyBundle:
     executor = DeepAgentsGraphExecutor(task, adapter, registry)
     singles: dict[str, TaskResult] = {}
@@ -222,6 +223,8 @@ def build_task_strategy_bundle(
         singles[model.model_id] = executor.execute(
             assignments, f"single:{model.model_id}"
         )
+        if single_recorder is not None:
+            single_recorder(model.model_id, singles[model.model_id])
 
     weak_id = registry.cheapest().model_id
     strong_id = registry.strongest().model_id
@@ -497,7 +500,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "base_url": manifest.candidates[0].base_url,
         "provider": manifest.candidates[0].provider,
         "node_quality": {
-            "rubric_version": NODE_RUBRIC_VERSION, "rubric_sha256": _sha256(NODE_RUBRIC_PATH),
+            "rubric_version": NODE_RUBRIC_VERSION,
+            "checks_version": NODE_CHECKS_VERSION, "rubric_sha256": _sha256(NODE_RUBRIC_PATH),
             "selection": "blinded-independent-node-judge-with-contract-caps",
             "tie_break": "observed-node-cost", "global_oracle": False,
         },
@@ -596,12 +600,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     observations: list[BenchmarkObservation] = []
     for task in test_tasks:
         for repeat_index in range(1, args.repeats + 1):
+            single_dir = args.output_dir / "single-models" / task.task_id / f"repeat-{repeat_index}"
+            single_dir.mkdir(parents=True, exist_ok=True)
+
+            def checkpoint_single(model_id, result):
+                (single_dir / f"{model_id}.json").write_text(json.dumps({
+                    "result": asdict(result), "judge": None, "judge_error": "awaiting-evaluation",
+                }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
             bundle = build_task_strategy_bundle(
                 task,
                 registry,
                 adapter,
                 training_results,
                 include_learned=include_learned,
+                single_recorder=checkpoint_single,
                 node_evaluator=lambda task, node, result, context: quality.record(
                     task, node, result, context, repeat=repeat_index, stage="probe"),
             )
