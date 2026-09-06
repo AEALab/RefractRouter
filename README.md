@@ -20,7 +20,8 @@ v0.1 已进入可运行原型阶段。当前实现包含：
 首次真实 Agent Plan paid dry run 已验证专属 `/api/plan/v3` 传输、遥测和 DSH 证据链，
 但因默认深度思考耗尽 1,200-token 输出额度而以 `incomplete / No-go` 结束；证据保存在
 `reports/v0.1-real/dry-run-agent-plan-default-thinking/`。修正版关闭候选模型与 judge 的
-thinking，并保持原输出额度和 AFP 上限。pilot 在修正版 dry run 完整通过前保持阻塞。
+thinking，并保持原输出额度和 AFP 上限。第二轮已完成 41 个无 reasoning 的生产请求，随后
+在首次 judge 预算检查暴露并修复了字段引用错误。pilot 在修正版 dry run 完整通过前保持阻塞。
 
 ## Quick Start
 
