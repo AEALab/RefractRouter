@@ -29,11 +29,24 @@ The plugin:
 - returns typed status, plan, cost, hashes, issues, and evidence paths;
 - defaults `allowPaidRuns` to false and enforces deployment-level production/evaluation ceilings.
 
+The v0.1 release contract supports DSH `0.1.1-rc.2`, Node `>=22.19.0 <23`, and pnpm `10.15.0`.
+The package is private and installed from the same repository commit as the Python runner; no
+registry publication is planned while DSH remains pre-release. Full installation, configuration,
+phase examples, troubleshooting, and rollback guidance live in
+[`plugin/README.md`](plugin/README.md).
+
 Install it into a base-backed profile from this checkout:
 
 ```bash
+npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
 dsh plugin --profile headless add ./validation/dsh/plugin
 dsh --profile headless --dump-config | rg refractrouter-validation
+```
+
+Validate install, override, removal, reinstall, and boot in a disposable profile:
+
+```bash
+python3 scripts/validate_dsh_plugin_lifecycle.py
 ```
 
 Run the real-model final preflight through the plugin:
@@ -68,8 +81,11 @@ in an isolated output directory, requires every report artifact, cross-checks th
 run record, and independently derives the oracle Go / No-Go result from the experiment summary.
 
 The bundle installation, composition and tool invocation have been exercised through DSH
-`0.1.1-rc.2` in a disposable profile. The plugin preflight returned `pass` with no issues and
-recorded `invoked_by=dsh-plugin`.
+`0.1.1-rc.2` in disposable profiles. CI tests the oldest supported Node release and latest Node 22,
+including clean-profile lifecycle, package contents, service-seam behavior, output bounds,
+credential redaction, timeout/abort behavior, and a real zero-cost Python preflight through the
+registered tool. A read-only sandbox is insufficient because the runner must write temporary output;
+use the default `workspace-write` profile or an explicitly approved wider policy.
 
 ## Real-model boundary
 

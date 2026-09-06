@@ -45,3 +45,20 @@ jobs:
             ${{ runner.temp }}/real-preflight-evidence.json
             ${{ runner.temp }}/real-preflight/preflight.json
           if-no-files-found: warn
+
+  dsh-plugin-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["22.19.0", "22.x"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install pinned DSH plugin tooling
+        run: npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+      - name: Validate clean-profile plugin lifecycle
+        run: python3 scripts/validate_dsh_plugin_lifecycle.py
+      - name: Validate package contents
+        run: npm pack ./validation/dsh/plugin --dry-run --json

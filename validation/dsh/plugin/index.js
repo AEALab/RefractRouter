@@ -8,10 +8,18 @@ export const inject = ['tools', 'subprocess', 'sandbox', 'sandboxPolicy', 'crede
 const DEFAULT_TIMEOUT_MS = 7_200_000
 const DEFAULT_OUTPUT_CAPTURE_BYTES = 262_144
 const DEFAULT_EVIDENCE_BYTES = 2_097_152
+const REDACTED = '[REDACTED]'
 
 function positiveFinite(value, field) {
   if (!Number.isFinite(value) || value <= 0) {
     throw new Error(`${field} must be a positive finite number`)
+  }
+  return value
+}
+
+function positiveInteger(value, field) {
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new Error(`${field} must be a positive safe integer`)
   }
   return value
 }
@@ -22,6 +30,16 @@ function configuredString(value, fallback, field) {
     throw new Error(`${field} must be a non-empty string`)
   }
   return resolved
+}
+
+function redactSensitiveText(value, secrets) {
+  let redacted = typeof value === 'string' ? value : String(value ?? '')
+  for (const secret of secrets) {
+    if (typeof secret === 'string' && secret.length > 0) {
+      redacted = redacted.split(secret).join(REDACTED)
+    }
+  }
+  return redacted
 }
 
 /** Resolve every deployment choice once, before a tool definition closes over it. */
@@ -86,10 +104,10 @@ export function resolveConfig(config = {}) {
   }
   positiveFinite(resolved.maxProductionCostUsd, 'maxProductionCostUsd')
   positiveFinite(resolved.maxEvaluationCostUsd, 'maxEvaluationCostUsd')
-  positiveFinite(resolved.timeoutMs, 'timeoutMs')
-  positiveFinite(resolved.processGraceMs, 'processGraceMs')
-  positiveFinite(resolved.outputCaptureBytes, 'outputCaptureBytes')
-  positiveFinite(resolved.maxEvidenceBytes, 'maxEvidenceBytes')
+  positiveInteger(resolved.timeoutMs, 'timeoutMs')
+  positiveInteger(resolved.processGraceMs, 'processGraceMs')
+  positiveInteger(resolved.outputCaptureBytes, 'outputCaptureBytes')
+  positiveInteger(resolved.maxEvidenceBytes, 'maxEvidenceBytes')
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(resolved.credentialEnv)) {
     throw new Error('credentialEnv must be a POSIX environment variable name')
   }
@@ -178,22 +196,27 @@ function workspaceOf(exec) {
   return resolve(typeof cwd === 'string' && cwd.length > 0 ? cwd : process.cwd())
 }
 
-function artifactHashes(evidence) {
+function artifactHashes(evidence, secrets) {
   if (evidence === null || typeof evidence !== 'object') return []
   const artifacts = evidence.artifacts
   if (artifacts === null || typeof artifacts !== 'object') return []
   return Object.entries(artifacts)
     .filter(([, sha256]) => typeof sha256 === 'string')
-    .map(([artifact, sha256]) => ({ artifact, sha256 }))
+    .map(([artifact, sha256]) => ({
+      artifact: redactSensitiveText(artifact, secrets),
+      sha256,
+    }))
 }
 
-function summarizeEvidence(evidence, fallback) {
+function summarizeEvidence(evidence, fallback, secrets) {
   const preflight = evidence?.preflight
   const plan = preflight?.call_plan
   const costs = preflight?.cost_estimates
   const inputs = evidence?.inputs
   const evidenceIssues = Array.isArray(evidence?.issues)
-    ? evidence.issues.filter(issue => typeof issue === 'string')
+    ? evidence.issues
+      .filter(issue => typeof issue === 'string')
+      .map(issue => redactSensitiveText(issue, secrets))
     : []
   const issues = [...new Set([...evidenceIssues, ...fallback.issues])]
   return {
@@ -237,7 +260,7 @@ function summarizeEvidence(evidence, fallback) {
       corpus: inputs?.corpus?.sha256 ?? '',
       code: inputs?.code?.sha256 ?? '',
     },
-    artifactHashes: artifactHashes(evidence),
+    artifactHashes: artifactHashes(evidence, secrets),
     ...fallback.stdoutTail.length === 0 ? {} : { stdoutTail: fallback.stdoutTail },
     ...fallback.stderrTail.length === 0 ? {} : { stderrTail: fallback.stderrTail },
   }
@@ -258,6 +281,11 @@ async function readEvidence(path, maxBytes) {
   return JSON.parse(await readFile(path, 'utf8'))
 }
 
+function capturedTail(captured, secrets) {
+  if (captured?.lossy === true) return '[captured output omitted after truncation]'
+  return redactSensitiveText(captured?.text ?? '', secrets)
+}
+
 async function executeValidation(ctx, args, exec, config) {
   const request = resolveRequest(args, config)
   const workspace = workspaceOf(exec)
@@ -265,22 +293,43 @@ async function executeValidation(ctx, args, exec, config) {
   const outputDir = join(runRoot, 'output')
   const evidencePath = join(runRoot, 'evidence.json')
   const reference = config.credentialEnv
-  const credentialInfo = await ctx.credentials.describe(reference)
+  let credentialInfo
+  try {
+    credentialInfo = await ctx.credentials.describe(reference)
+  } catch {
+    throw new Error(`failed to describe credential ${reference}`)
+  }
   const credentialConfigured = credentialInfo.configured === true
   const env = { UV_CACHE_DIR: config.uvCacheDir }
+  const secrets = []
   if (request.paid) {
-    const credential = await ctx.credentials.resolve(reference)
+    let credential
+    try {
+      credential = await ctx.credentials.resolve(reference)
+    } catch {
+      throw new Error(`failed to resolve credential ${reference}`)
+    }
     if (credential === undefined) {
       throw new Error(`paid validation requires configured credential ${config.credentialEnv}`)
     }
+    if (typeof credential.value !== 'string' || credential.value.length === 0) {
+      throw new Error(`paid validation requires non-empty credential ${config.credentialEnv}`)
+    }
+    secrets.push(credential.value)
     env[config.credentialEnv] = credential.value
   }
   exec.signal.throwIfAborted()
-  const executable = await ctx.subprocess.resolveExecutable(
-    config.uvExecutable,
-    env,
-    exec.signal,
-  )
+  let executable
+  try {
+    executable = await ctx.subprocess.resolveExecutable(
+      config.uvExecutable,
+      env,
+      exec.signal,
+    )
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    throw new Error(`failed to resolve validation executable: ${redactSensitiveText(detail, secrets)}`)
+  }
   const argv = [
     executable,
     'run',
@@ -322,24 +371,31 @@ async function executeValidation(ctx, args, exec, config) {
     : ctx.sandbox.confine(argv, policy)
   const timeoutSignal = AbortSignal.timeout(config.timeoutMs)
   const signal = AbortSignal.any([exec.signal, timeoutSignal])
-  const handle = ctx.subprocess.spawn({
-    argv: confined?.argv ?? argv,
-    cwd: workspace,
-    env,
-    stdio: {
-      stdin: 'ignore',
-      stdout: { maxBytes: config.outputCaptureBytes },
-      stderr: { maxBytes: config.outputCaptureBytes },
-    },
-    graceMs: config.processGraceMs,
-    signal,
-  })
-  const outcome = await handle.done
-  await handle.waitForExit()
+  let handle
+  let outcome
+  try {
+    handle = ctx.subprocess.spawn({
+      argv: confined?.argv ?? argv,
+      cwd: workspace,
+      env,
+      stdio: {
+        stdin: 'ignore',
+        stdout: { maxBytes: config.outputCaptureBytes },
+        stderr: { maxBytes: config.outputCaptureBytes },
+      },
+      graceMs: config.processGraceMs,
+      signal,
+    })
+    outcome = await handle.done
+    await handle.waitForExit()
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    throw new Error(`validation subprocess failed: ${redactSensitiveText(detail, secrets)}`)
+  }
   const stdout = handle.collected.stdout?.readFrom(0)
   const stderr = handle.collected.stderr?.readFrom(0)
-  const stdoutTail = stdout?.text ?? ''
-  const stderrTail = stderr?.text ?? ''
+  const stdoutTail = capturedTail(stdout, secrets)
+  const stderrTail = capturedTail(stderr, secrets)
   const timedOut = timeoutSignal.aborted && !exec.signal.aborted
   const aborted = exec.signal.aborted
   let evidence
@@ -353,6 +409,8 @@ async function executeValidation(ctx, args, exec, config) {
   if (evidence === undefined) fallbackIssues.push('missing-evidence')
   if (timedOut) fallbackIssues.push('plugin-runner-timeout')
   if (aborted) fallbackIssues.push('plugin-runner-aborted')
+  if (stdout?.lossy === true) fallbackIssues.push('plugin-runner-stdout-truncated')
+  if (stderr?.lossy === true) fallbackIssues.push('plugin-runner-stderr-truncated')
   const fallback = {
     phase: request.phase,
     exitCode: outcome.exitCode,
@@ -389,7 +447,7 @@ async function executeValidation(ctx, args, exec, config) {
       ...stderrTail.length === 0 ? {} : { stderrTail },
     }
   }
-  return summarizeEvidence(evidence, fallback)
+  return summarizeEvidence(evidence, fallback, secrets)
 }
 
 const OUTPUT_SCHEMA = {
@@ -500,7 +558,7 @@ export function apply(ctx, rawConfig = {}) {
           description: 'Benchmark phase whose fixed task split and call plan should be validated.',
         },
         repeats: {
-          type: 'number',
+          type: 'integer',
           description: 'Positive integer repeat count; defaults to 1.',
         },
         executePaidRun: {

@@ -37,7 +37,10 @@ uv run python validation/dsh/canonical_runner.py \
 uv run python experiments/run_real_v0_1.py \
   --phase dry-run \
   --output-dir /tmp/refractrouter-real-preflight
+npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
 dsh plugin --profile headless add ./validation/dsh/plugin
+dsh --profile headless --dump-config | rg -A6 refractrouter-validation
+python3 scripts/validate_dsh_plugin_lifecycle.py
 dsh --profile headless \
   'Call refractrouter_validate exactly once with {"phase":"final","executePaidRun":false}. Return the tool result unchanged.'
 ```
@@ -54,6 +57,8 @@ dsh --profile headless \
   检查数据集、模型快照、凭据是否存在、调用数量和成本估算，不调用 API。
 - `dsh plugin ...`：把 `dsh-refractrouter-validation` bundle 安装到 profile；之后通过
   `refractrouter_validate` 结构化工具运行验证，不让模型临时组装 shell 命令。
+- `python3 scripts/validate_dsh_plugin_lifecycle.py`：在临时 `DSH_HOME` 中验证插件安装、
+  配置覆盖、卸载、重装和启动；不会发起模型调用。
 
 ## Real-model benchmark
 
@@ -150,6 +155,11 @@ DeepSeek Harness 只作为外层验证环境，负责组合、工具调度、进
 `refractrouter_validate` 工具。插件通过 DSH 原生 service 运行固定 argv，并把 Python
 runner 的证据投影为结构化结果；评分、hash 与 gate 仍只有 Python runner 一份实现。
 
+v0.1 固定支持 DSH `0.1.1-rc.2`、Node `>=22.19.0 <23` 和 pnpm `10.15.0`，并在 CI 中
+验证 Node `22.19.0` 与最新 Node 22。插件暂按仓库路径或指定 commit 生成的 tarball 分发，
+不发布 registry package。安装、故障诊断、升级和回滚步骤见
+`validation/dsh/plugin/README.md`。
+
 真实阶段由插件调用 `validation/dsh/real_runner.py`。bundle 默认
 `allowPaidRuns: false`；付费执行必须由更高优先级的 profile patch 开启，并同时通过部署级
 与调用级两层生产/评审预算上限。凭证由 `ctx.credentials` 按次解析，只显式交给受控子进程，
@@ -204,7 +214,7 @@ reports/v0.1/            Generated baseline, Pareto, oracle gap, and run records
 2. dry run 通过后执行 10-task pilot，并复核实际 token、成本、失败率与 p95 延迟。
 3. 对预先冻结的 10% 样本完成人工抽检，并与独立 judge 结果对照。
 4. pilot 通过后执行 20-task final benchmark，并通过 DSH plugin tool call 复核。
-5. 将 DSH 验证加入 CI，发布最终 Pareto、failure taxonomy 与 Go/No-Go 结论。
+5. 汇总 DSH evidence，发布最终 Pareto、failure taxonomy 与 Go/No-Go 结论。
 
 ## Wiki
 
