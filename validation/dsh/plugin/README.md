@@ -34,7 +34,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.2.1.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.2.2.tgz
 ```
 
 The package contains only `index.js`, `cordis.patch.yml`, `README.md`, `CHANGELOG.md`, and
@@ -167,9 +167,15 @@ Then apply this profile override:
 The zero-cost preflight checks all four frozen `ark-plan` model routes and rejects any provider retry
 policy other than `normal` with zero retries. A paid run also opens the stdio bridge and invokes those
 models through `ctx.llm`; the Agent Plan key is not sent to Python. The runner's 120-second model
-timeout crosses the bridge and aborts the corresponding DSH stream independently of the whole-run
-deadline. The Agent Plan manifest caps every response at the same 1,200 tokens used by the AFP
-preflight estimate; paid execution rejects an estimate below the manifest's request cap.
+timeout crosses the bridge, locally races each stream read, and returns `timeout` even if a provider
+stream ignores its abort signal. The Agent Plan manifest caps every response at the same 1,200 tokens
+used by the AFP preflight estimate; paid execution rejects an estimate below the manifest's request
+cap.
+
+Paid DSH bridge runs create `bridge-progress.ndjson` beside `preflight.json`. Each request writes a
+prompt-free start record before dispatch and a finish record with status, latency, and token usage.
+This file identifies the current model during a long run without storing prompts, generated content,
+or credentials. It is included in the final evidence artifact hashes.
 
 When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coefficient candidate:
 

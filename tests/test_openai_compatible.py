@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import io
+import tempfile
 import unittest
+from pathlib import Path
 
 from refractrouter.adapters import OpenAICompatibleAdapter
 from refractrouter.openai_compatible import (
@@ -244,6 +246,58 @@ class OpenAICompatibleClientTests(unittest.TestCase):
         self.assertEqual(request["model"], "deepseek-v4-flash")
         self.assertEqual(request["timeout_ms"], 120_000)
         self.assertNotIn("CODEX_ARK_API_KEY", writer.getvalue())
+
+    def test_stdio_bridge_persists_prompt_free_progress(self) -> None:
+        reader = io.StringIO(
+            json.dumps(
+                {
+                    "protocol": "refractrouter-dsh-llm/v1",
+                    "type": "response",
+                    "id": "1",
+                    "ok": True,
+                    "content": "secret model output",
+                    "usage": {"input_tokens": 10, "output_tokens": 3},
+                }
+            )
+            + "\n"
+        )
+        writer = io.StringIO()
+        model = ModelSpec(
+            "ark-cheap",
+            "ark-plan",
+            0.05,
+            0.05,
+            0.7,
+            billing_unit="AFP",
+            api_model="deepseek-v4-flash",
+            api_key_env="CODEX_ARK_API_KEY",
+            wire_api="dsh-llm",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            progress_path = Path(directory) / "bridge-progress.ndjson"
+            bridge = DshStdioBridge(
+                reader=reader, writer=writer, progress_path=progress_path
+            )
+            bridge.complete(
+                model,
+                [{"role": "user", "content": "secret prompt"}],
+                json_mode=True,
+                timeout_seconds=120.0,
+            )
+            records = [
+                json.loads(line)
+                for line in progress_path.read_text(encoding="utf-8").splitlines()
+            ]
+
+        self.assertEqual([record["event"] for record in records], [
+            "request-start",
+            "request-finish",
+        ])
+        self.assertTrue(records[1]["ok"])
+        self.assertEqual(records[1]["usage"]["output_tokens"], 3)
+        serialized = json.dumps(records)
+        self.assertNotIn("secret prompt", serialized)
+        self.assertNotIn("secret model output", serialized)
 
 
 if __name__ == "__main__":

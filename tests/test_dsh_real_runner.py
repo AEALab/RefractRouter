@@ -7,13 +7,27 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from validation.dsh.real_runner import run_real_validation
+from validation.dsh.real_runner import _expected_artifacts, run_real_validation
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class DSHRealRunnerTests(unittest.TestCase):
+    def test_bridge_progress_is_required_only_for_paid_dsh_runs(self) -> None:
+        self.assertEqual(
+            _expected_artifacts(False, {"wire_api": "dsh-llm"}),
+            ("preflight.json",),
+        )
+        self.assertNotIn(
+            "bridge-progress.ndjson",
+            _expected_artifacts(True, {"wire_api": "chat-completions"}),
+        )
+        self.assertIn(
+            "bridge-progress.ndjson",
+            _expected_artifacts(True, {"wire_api": "dsh-llm"}),
+        )
+
     def test_preflight_captures_hashes_without_paid_calls(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

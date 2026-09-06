@@ -414,10 +414,21 @@ export async function callDshLlm(ctx, request, signal) {
     let content = ''
     let usage = {}
     let finish
-    for await (const chunk of ctx.llm.stream(options)) {
-      if (chunk.type === 'text-delta') content += chunk.text
-      if (chunk.type === 'usage') usage = chunk.usage ?? {}
-      if (chunk.type === 'finish') finish = chunk
+    const stream = ctx.llm.stream(options)
+    const iterator = stream[Symbol.asyncIterator]()
+    try {
+      while (true) {
+        const step = await nextWithSignal(iterator, callSignal)
+        if (step.done) break
+        const chunk = step.value
+        if (chunk.type === 'text-delta') content += chunk.text
+        if (chunk.type === 'usage') usage = chunk.usage ?? {}
+        if (chunk.type === 'finish') finish = chunk
+      }
+    } finally {
+      if (callSignal.aborted && typeof iterator.return === 'function') {
+        void Promise.resolve(iterator.return()).catch(() => {})
+      }
     }
     if (finish === undefined) throw new Error('DSH LLM stream ended without finish')
     if (finish.reason?.kind === 'error' || finish.reason?.kind === 'aborted') {
@@ -455,6 +466,27 @@ export async function callDshLlm(ctx, request, signal) {
       message: String(error instanceof Error ? error.message : error).slice(0, 300),
     }
   }
+}
+
+function nextWithSignal(iterator, signal) {
+  if (signal.aborted) return Promise.reject(signal.reason ?? new Error('aborted'))
+  return new Promise((resolveNext, rejectNext) => {
+    const onAbort = () => {
+      signal.removeEventListener('abort', onAbort)
+      rejectNext(signal.reason ?? new Error('aborted'))
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+    Promise.resolve(iterator.next()).then(
+      value => {
+        signal.removeEventListener('abort', onAbort)
+        resolveNext(value)
+      },
+      error => {
+        signal.removeEventListener('abort', onAbort)
+        rejectNext(error)
+      },
+    )
+  })
 }
 
 function tailCapture(maxBytes) {
@@ -589,6 +621,7 @@ async function executeValidation(ctx, args, exec, config) {
     }
     if (manifest.wireApi === 'dsh-llm') {
       env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
+      env.REFRACTROUTER_DSH_PROGRESS = join(outputDir, 'bridge-progress.ndjson')
     } else {
       let credential
       try {

@@ -507,13 +507,18 @@ test('DSH LLM bridge preserves content, disjoint usage, finish reason, and reque
 
 test('DSH LLM bridge enforces the per-request hard timeout', async () => {
   const keepAlive = setTimeout(() => {}, 100)
+  let returnCalled = false
   const ctx = {
     llm: {
-      async *stream(options) {
-        await new Promise((resolveWait, reject) => {
-          options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true })
-        })
-        yield { type: 'finish', reason: { kind: 'stop' } }
+      stream() {
+        return {
+          [Symbol.asyncIterator]() { return this },
+          next() { return new Promise(() => {}) },
+          async return() {
+            returnCalled = true
+            return { done: true }
+          },
+        }
       },
     },
   }
@@ -533,6 +538,8 @@ test('DSH LLM bridge enforces the per-request hard timeout', async () => {
 
     assert.equal(response.ok, false)
     assert.equal(response.failure_type, 'timeout')
+    await new Promise(resolveWait => setImmediate(resolveWait))
+    assert.equal(returnCalled, true)
   } finally {
     clearTimeout(keepAlive)
   }
