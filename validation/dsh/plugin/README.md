@@ -34,7 +34,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.2.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.2.1.tgz
 ```
 
 The package contains only `index.js`, `cordis.patch.yml`, `README.md`, `CHANGELOG.md`, and
@@ -123,7 +123,34 @@ the first model call and reserves one estimated call against the remaining ledge
 
 For the Agent Plan dry run, first configure a DSH provider route named `ark-plan` through ArkCLI
 Helper, the official `ark-plan-api` plugin, or the DSH Models UI. Use the Agent Plan endpoint and
-the same credential reference as the manifest. Then apply this profile override:
+the same credential reference as the manifest. The generic `llm-pi-ai` settings must disable its
+provider-owned retry policy and bound both the complete request and an idle provider read:
+
+```yaml
+llm-pi-ai:
+  providers:
+    ark-plan:
+      displayName: Ark Agent Plan
+      apiKeyEnv: CODEX_ARK_API_KEY
+      api: openai-responses
+      baseURL: https://ark.cn-beijing.volces.com/api/plan/v3
+      timeoutMs: 120000
+      streamIdleTimeoutMs: 120000
+      retryPolicy:
+        mode: normal
+        maxRetries: 0
+      models:
+        - id: deepseek-v4-flash
+          name: deepseek-v4-flash
+        - id: minimax-m3
+          name: minimax-m3
+        - id: deepseek-v4-pro
+          name: deepseek-v4-pro
+        - id: kimi-k3
+          name: kimi-k3
+```
+
+Then apply this profile override:
 
 ```yaml
 - id: refractrouter-validation
@@ -137,8 +164,11 @@ the same credential reference as the manifest. Then apply this profile override:
     credentialEnv: CODEX_ARK_API_KEY
 ```
 
-The zero-cost preflight checks all four frozen `ark-plan` model routes. A paid run also opens the
-stdio bridge and invokes those models through `ctx.llm`; the Agent Plan key is not sent to Python.
+The zero-cost preflight checks all four frozen `ark-plan` model routes and rejects any provider retry
+policy other than `normal` with zero retries. A paid run also opens the stdio bridge and invokes those
+models through `ctx.llm`; the Agent Plan key is not sent to Python. The runner's 120-second model
+timeout crosses the bridge and aborts the corresponding DSH stream independently of the whole-run
+deadline.
 When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coefficient candidate:
 
 ```yaml
@@ -199,6 +229,7 @@ Do not move to `pilot` or `final` until the preceding issue's evidence and budge
 | `requires configured credential` | Configure the manifest's credential reference in DSH; never put the value in a patch or tool call. |
 | `missing-llm-provider:ark-plan` | Configure the Agent Plan provider in the DSH profile, then repeat preflight. |
 | `unresolved-llm-model:*` | Ensure the DSH provider exposes every model frozen in the selected manifest. |
+| `llm-provider-retry-policy-not-zero:*` | Set the provider's nested `retryPolicy` to `mode: normal` and `maxRetries: 0`. |
 | `plugin-runner-timeout` / `plugin-runner-aborted` | Inspect the evidence and bounded stream tails, then adjust the deployment timeout only if the run plan justifies it. |
 | `plugin-runner-stdout-truncated` / `plugin-runner-stderr-truncated` | Increase the capture limit for diagnosis; truncation fails closed. |
 | `invalid-evidence` / `missing-evidence` | Verify runner paths, write access, evidence size, Python dependencies, and the child exit code. |

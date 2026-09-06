@@ -162,10 +162,11 @@ class OpenAICompatibleClientTests(unittest.TestCase):
 
     def test_dsh_bridge_model_does_not_require_key_in_child_environment(self) -> None:
         class Bridge:
-            def complete(self, model, messages, *, json_mode):
+            def complete(self, model, messages, *, json_mode, timeout_seconds):
                 self.model = model
                 self.messages = messages
                 self.json_mode = json_mode
+                self.timeout_seconds = timeout_seconds
                 return {
                     "ok": True,
                     "content": '{"requirements":"ok","sections":[],"constraints":[],"analysis":"ok"}',
@@ -200,6 +201,7 @@ class OpenAICompatibleClientTests(unittest.TestCase):
         self.assertEqual(response.reasoning_tokens, 4)
         self.assertEqual(model_response_cost(model, response), 0.006)
         self.assertTrue(bridge.json_mode)
+        self.assertEqual(bridge.timeout_seconds, 120.0)
 
     def test_stdio_bridge_uses_bounded_request_response_envelopes(self) -> None:
         reader = io.StringIO(
@@ -230,13 +232,17 @@ class OpenAICompatibleClientTests(unittest.TestCase):
         )
 
         response = bridge.complete(
-            model, [{"role": "user", "content": "test"}], json_mode=True
+            model,
+            [{"role": "user", "content": "test"}],
+            json_mode=True,
+            timeout_seconds=120.0,
         )
         request = json.loads(writer.getvalue())
 
         self.assertEqual(response["failure_type"], "rate-limit")
         self.assertEqual(request["provider"], "ark-plan")
         self.assertEqual(request["model"], "deepseek-v4-flash")
+        self.assertEqual(request["timeout_ms"], 120_000)
         self.assertNotIn("CODEX_ARK_API_KEY", writer.getvalue())
 
 
