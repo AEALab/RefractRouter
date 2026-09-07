@@ -41,6 +41,26 @@ issue #22 已补齐独立节点评审、三模型矩阵、配对比较，并完�
 [issue #29](https://github.com/AEALab/RefractRouter/issues/29) 记录候选拒绝与缺失评估的规则问题；
 issue #22 继续跟踪完整对照，issue #5 等待有效证据。
 
+现已补充 **C → A → B 三指标单模型离线选模**：先展示已有数据的质量、AFP 成本和
+关键路径 p95 取舍，再使用显式约束选成本最低者（A），或使用显式权重排序（B，支持
+叠加硬约束）。质量最高固定单模型与综合选择分别报告；无可行候选明确返回无解。
+参见 [选模规则](reports/model-selection/selection-rules.md) 和
+[v0.3 数据敏感性分析](reports/model-selection/v0.3-analysis/selection-analysis.md)。
+本次为同一任务三次重复的样本内分析，新增入口不发起模型调用。
+
+使用新的输出目录重现示例，三个权重依次为质量、成本、时延：
+
+```bash
+uv run python -m experiments.analyze_model_selection \
+  reports/v0.3-contract-recovery/repeated-agent-plan \
+  --output-dir /tmp/refractrouter-model-selection \
+  --quality-min 88 --cost-afp-max 6 --latency-p95-ms-max 80000 \
+  --weights 0.5 0.25 0.25
+```
+
+阈值与权重均须显式提供，示例不代表生产默认要求。A/B 选择函数可通过
+`refractrouter.model_selection.select_model` 调用；付费 runner 尚未接入这套离线规则。
+
 ## Quick Start
 
 ```bash
