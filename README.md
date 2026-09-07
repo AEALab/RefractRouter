@@ -47,6 +47,9 @@ issue #29 的统计口径修复现已实现：质量、生产成本和关键路�
 `all-candidates-required-v1`；用户已确认的新策略 `exclude-known-contract-rejections-v2` 可显式启用。
 v2 保留已知契约拒绝并选择其他合格候选，缺评估、无效上游或无合格候选仍阻断。
 DSH 工具参数为 `selectionPolicy`，Python 参数为 `--selection-policy`。
+[v2 单轮真实准入](reports/v0.4-known-rejections/admission-agent-plan/README.md)已完成：DSH pass，
+82/82 请求正常，21 格矩阵与所有最终评审完整，总计 143.6703 AFP。混合路线 89 分，
+本轮最佳单模型 Pro 96 分；仍为单轮 Insufficient-evidence，未启动 pilot。
 [独立离线复核与后续计划](reports/v0.4-cohort-review/README.md)保留历史证据不变，
 确认 node-oracle 两个有效轮次平均质量 91.5、平均成本 5.365025 AFP，仍无完整 Go 证据。
 

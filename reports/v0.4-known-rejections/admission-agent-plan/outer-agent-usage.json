@@ -1,0 +1,25 @@
+{
+  "provider": "ark-plan",
+  "model": "deepseek-v4-flash",
+  "billing_unit": "AFP",
+  "source": "Exact DSH assistant/message events; cache token categories included once",
+  "session_sha256": "f713fed52f3f5a317977a6a9afaf812f1846c4f59382065824b3d93e6fd46993",
+  "session_hash_basis": "decompressed NDJSON bytes",
+  "calls": [
+    {
+      "step": 1,
+      "usage": {
+        "inputTokens": 1783,
+        "outputTokens": 179
+      }
+    },
+    {
+      "step": 2,
+      "usage": {
+        "inputTokens": 2110,
+        "outputTokens": 53
+      }
+    }
+  ],
+  "estimated_cost": 0.20625
+}

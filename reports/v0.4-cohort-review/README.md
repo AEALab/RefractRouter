@@ -11,12 +11,14 @@
 |---|---|---|
 | #4、#9、#19 | 已关闭；dry run 截断问题与插件发布基础工作已完成 | 保留旧失败与修复后的证据 |
 | #25、#28 | 已关闭；中间契约修复和 Python／TypeScript 边界已合入 | 遵循现有语言分工 |
-| #29 | 开放；本轮修复比较口径并补充状态报告 | v2 已获确认并完成离线验收，接着做独立验证 |
+| #29 | 开放；本轮修复比较口径并补充状态报告 | v2 离线验收与单轮真实准入均完成，待 PR 合并 |
 | #22 | 开放；已有 63 格矩阵、9 份单模型评审，仍缺一条组合路线评审 | 需要三轮完整、可解释的对照 |
 | #5 | 未启动 pilot | 等待 #22 有效证据及 pilot 独立预算 |
 | #6 → #7 → #8 | final、人工抽检、最终报告均未完成 | 按顺序依赖 pilot、final 冻结产物与人工审阅 |
 
-本轮没有更新 GitHub 议题状态或发布 PR。来源为
+实现与证据见 [PR #33](https://github.com/AEALab/RefractRouter/pull/33)。
+[v2 单轮真实准入](../v0.4-known-rejections/admission-agent-plan/README.md)已通过，82/82 请求正常，
+总计 143.6703 AFP。#22 仍待完整三轮；GitHub 议题尚未关闭。来源为
 [主议题 #1](https://github.com/AEALab/RefractRouter/issues/1)、
 [#22](https://github.com/AEALab/RefractRouter/issues/22)、
 [#29](https://github.com/AEALab/RefractRouter/issues/29) 及其依赖议题，核对日期 2026-09-07。
