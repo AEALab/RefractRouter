@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shutil
@@ -81,6 +82,9 @@ def assert_default_config(dump: str) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate a built DSH bundle without model calls")
+    parser.add_argument("--packed", action="store_true", help="build, pack and install the tarball")
+    args = parser.parse_args()
     for executable in ("dsh", "node", "pnpm"):
         if shutil.which(executable) is None:
             raise RuntimeError(f"required executable is not on PATH: {executable}")
@@ -94,7 +98,15 @@ def main() -> int:
         env.pop("DEEPSEEK_API_KEY", None)
         versions = assert_compatible_tools(env, package)
 
-        add = ["dsh", "plugin", "--profile", "headless", "add", str(PLUGIN)]
+        install_path = PLUGIN
+        if args.packed:
+            packed = json.loads(run([
+                "npm", "pack", str(PLUGIN), "--pack-destination", str(dsh_home), "--json",
+            ], env=env))
+            install_path = dsh_home / packed[0]["filename"]
+        elif not (PLUGIN / str(package["main"])).is_file():
+            raise RuntimeError("build first: npm run --prefix validation/dsh/plugin build")
+        add = ["dsh", "plugin", "--profile", "headless", "add", str(install_path)]
         remove = ["dsh", "plugin", "--profile", "headless", "remove", PACKAGE_NAME]
         dump = ["dsh", "--profile", "headless", "--dump-config"]
         boot_help = ["dsh", "--profile", "headless", "--help"]
@@ -143,7 +155,7 @@ def main() -> int:
                 {
                     "status": "pass",
                     "profile": "headless",
-                    "install": "local-path",
+                    "install": "tarball" if args.packed else "local-path",
                     "lifecycle": ["install", "override", "remove", "reinstall", "boot"],
                     "versions": versions,
                     "paid_calls": 0,

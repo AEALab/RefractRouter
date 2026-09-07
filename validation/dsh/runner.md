@@ -17,6 +17,8 @@ checkout into a base-backed profile:
 
 ```bash
 npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+npm ci --prefix validation/dsh/plugin
+npm run --prefix validation/dsh/plugin build
 dsh plugin --profile headless add ./validation/dsh/plugin
 dsh --profile headless --dump-config | rg refractrouter-validation
 ```

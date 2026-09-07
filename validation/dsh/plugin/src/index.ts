@@ -1,3 +1,13 @@
+import type { Writable } from 'node:stream'
+import type {
+  BillingUnit, BridgeResponse, BridgeResponseBase, CapturedOutput, DshContext,
+  EvidenceFallback, FinishChunk, JsonSchema, LlmOptions, ModelRoute, Phase,
+  PluginConfig, ProcessHandle, TokenUsage, ToolExecution, ValidationRequest, ValidationResult,
+} from './contracts.js'
+import { decodeEvidence, type RunnerEvidence } from './evidence.js'
+
+export type { DshContext, PluginConfig, ToolArguments, ValidationResult } from './contracts.js'
+
 import { mkdtemp, readFile, stat } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { tmpdir } from 'node:os'
@@ -15,28 +25,44 @@ const REDACTED = '[REDACTED]'
 const DSH_BRIDGE_PROTOCOL = 'refractrouter-dsh-llm/v1'
 const AGENT_PLAN_BASE_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
 
-function positiveFinite(value, field) {
-  if (!Number.isFinite(value) || value <= 0) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function billingUnit(value: string): BillingUnit {
+  if (value !== 'USD' && value !== 'AFP') throw new Error('billingUnit must be USD or AFP')
+  return value
+}
+
+function phase(value: unknown): Phase {
+  if (value !== 'dry-run' && value !== 'pilot' && value !== 'final' && value !== 'contract-replay') {
+    throw new Error('phase must be dry-run, pilot, final, or contract-replay')
+  }
+  return value
+}
+
+function positiveFinite(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
     throw new Error(`${field} must be a positive finite number`)
   }
   return value
 }
 
-function positiveInteger(value, field) {
-  if (!Number.isSafeInteger(value) || value <= 0) {
+function positiveInteger(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${field} must be a positive safe integer`)
   }
   return value
 }
 
-function nonNegativeInteger(value, field) {
-  if (!Number.isSafeInteger(value) || value < 0) {
+function nonNegativeInteger(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
     throw new Error(`${field} must be a non-negative safe integer`)
   }
   return value
 }
 
-function configuredString(value, fallback, field) {
+function configuredString(value: unknown, fallback: string, field: string): string {
   const resolved = value ?? fallback
   if (typeof resolved !== 'string' || resolved.trim().length === 0) {
     throw new Error(`${field} must be a non-empty string`)
@@ -44,7 +70,7 @@ function configuredString(value, fallback, field) {
   return resolved
 }
 
-function redactSensitiveText(value, secrets) {
+function redactSensitiveText(value: unknown, secrets: readonly string[]): string {
   let redacted = typeof value === 'string' ? value : String(value ?? '')
   for (const secret of secrets) {
     if (typeof secret === 'string' && secret.length > 0) {
@@ -55,8 +81,8 @@ function redactSensitiveText(value, secrets) {
 }
 
 /** Resolve every deployment choice once, before a tool definition closes over it. */
-export function resolveConfig(config = {}) {
-  if (config === null || typeof config !== 'object' || Array.isArray(config)) {
+export function resolveConfig(config: unknown = {}): Readonly<PluginConfig> {
+  if (!isRecord(config)) {
     throw new Error('config must be an object')
   }
   const allowed = new Set([
@@ -80,10 +106,10 @@ export function resolveConfig(config = {}) {
   if (unknown.length > 0) throw new Error(`unknown config fields: ${unknown.join(', ')}`)
   const resolved = {
     allowPaidRuns: config.allowPaidRuns ?? false,
-    maxProductionCost: config.maxProductionCost ?? 2,
-    maxEvaluationCost: config.maxEvaluationCost ?? 1,
-    billingUnit: configuredString(config.billingUnit, 'USD', 'billingUnit').toUpperCase(),
-    maxRetries: config.maxRetries ?? 0,
+    maxProductionCost: positiveFinite(config.maxProductionCost ?? 2, 'maxProductionCost'),
+    maxEvaluationCost: positiveFinite(config.maxEvaluationCost ?? 1, 'maxEvaluationCost'),
+    billingUnit: billingUnit(configuredString(config.billingUnit, 'USD', 'billingUnit').toUpperCase()),
+    maxRetries: nonNegativeInteger(config.maxRetries ?? 0, 'maxRetries'),
     uvExecutable: configuredString(config.uvExecutable, 'uv', 'uvExecutable'),
     uvCacheDir: configuredString(
       config.uvCacheDir,
@@ -110,37 +136,34 @@ export function resolveConfig(config = {}) {
       'OPENAI_API_KEY',
       'credentialEnv',
     ),
-    timeoutMs: config.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    processGraceMs: config.processGraceMs ?? 5_000,
-    outputCaptureBytes: config.outputCaptureBytes ?? DEFAULT_OUTPUT_CAPTURE_BYTES,
-    maxEvidenceBytes: config.maxEvidenceBytes ?? DEFAULT_EVIDENCE_BYTES,
+    timeoutMs: positiveInteger(config.timeoutMs ?? DEFAULT_TIMEOUT_MS, 'timeoutMs'),
+    processGraceMs: positiveInteger(config.processGraceMs ?? 5_000, 'processGraceMs'),
+    outputCaptureBytes: positiveInteger(
+      config.outputCaptureBytes ?? DEFAULT_OUTPUT_CAPTURE_BYTES, 'outputCaptureBytes',
+    ),
+    maxEvidenceBytes: positiveInteger(
+      config.maxEvidenceBytes ?? DEFAULT_EVIDENCE_BYTES, 'maxEvidenceBytes',
+    ),
   }
   if (typeof resolved.allowPaidRuns !== 'boolean') {
     throw new Error('allowPaidRuns must be a boolean')
   }
-  if (!['USD', 'AFP'].includes(resolved.billingUnit)) {
-    throw new Error('billingUnit must be USD or AFP')
-  }
-  positiveFinite(resolved.maxProductionCost, 'maxProductionCost')
-  positiveFinite(resolved.maxEvaluationCost, 'maxEvaluationCost')
-  nonNegativeInteger(resolved.maxRetries, 'maxRetries')
-  positiveInteger(resolved.timeoutMs, 'timeoutMs')
-  positiveInteger(resolved.processGraceMs, 'processGraceMs')
-  positiveInteger(resolved.outputCaptureBytes, 'outputCaptureBytes')
-  positiveInteger(resolved.maxEvidenceBytes, 'maxEvidenceBytes')
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(resolved.credentialEnv)) {
     throw new Error('credentialEnv must be a POSIX environment variable name')
   }
-  return Object.freeze(resolved)
+  return Object.freeze({ ...resolved, allowPaidRuns: resolved.allowPaidRuns })
 }
 
-async function readExecutionManifest(path) {
-  const raw = JSON.parse(await readFile(path, 'utf8'))
-  if (raw?.schema_version !== 'v0.2' || !Array.isArray(raw.models)) {
+async function readExecutionManifest(path: string) {
+  const raw: unknown = JSON.parse(await readFile(path, 'utf8'))
+  if (!isRecord(raw) || raw.schema_version !== 'v0.2' || !Array.isArray(raw.models)) {
     throw new Error('plugin requires a v0.2 model manifest')
   }
-  const defaults = raw.defaults ?? {}
-  const models = raw.models.map(model => ({ ...defaults, ...model }))
+  const defaults = isRecord(raw.defaults) ? raw.defaults : {}
+  const models = raw.models.map((model: unknown) => {
+    if (!isRecord(model)) throw new Error('invalid model manifest entry')
+    return { ...defaults, ...model }
+  })
   if (models.length === 0) throw new Error('model manifest has no models')
   const billingUnits = new Set(models.map(model => String(model.billing_unit).toUpperCase()))
   const wireApis = new Set(models.map(model => String(model.wire_api)))
@@ -154,13 +177,13 @@ async function readExecutionManifest(path) {
   if (!['chat-completions', 'dsh-llm'].includes(wireApi)) {
     throw new Error(`unsupported manifest wire API: ${wireApi}`)
   }
-  const billingUnit = [...billingUnits][0]
+  const unit = billingUnit([...billingUnits][0])
   const baseURL = baseURLs.size === 1 ? [...baseURLs][0] : undefined
   if (wireApi === 'chat-completions' && (baseURL === undefined || baseURL.length === 0)) {
     throw new Error('chat-completions manifest requires one base URL')
   }
   if (
-    billingUnit === 'AFP'
+    unit === 'AFP'
     && (
       wireApi !== 'chat-completions'
       || baseURL !== AGENT_PLAN_BASE_URL
@@ -175,7 +198,7 @@ async function readExecutionManifest(path) {
     model: String(model.api_model),
   }))
   return {
-    billingUnit,
+    billingUnit: unit,
     wireApi,
     baseURL,
     credentialEnv: [...credentialEnvs][0],
@@ -186,9 +209,9 @@ async function readExecutionManifest(path) {
 /** Dependency-free Standard Schema keeps linked checkout bundles self-contained. */
 export const Config = {
   '~standard': {
-    version: 1,
+    version: 1 as const,
     vendor: 'dsh-refractrouter-validation',
-    validate(value) {
+    validate(value: unknown) {
       try {
         return { value: resolveConfig(value ?? {}) }
       } catch (error) {
@@ -200,8 +223,8 @@ export const Config = {
   },
 }
 
-function resolveRequest(args, config) {
-  if (args === null || typeof args !== 'object' || Array.isArray(args)) {
+function resolveRequest(args: unknown, config: Readonly<PluginConfig>): ValidationRequest {
+  if (!isRecord(args)) {
     throw new Error('tool arguments must be an object')
   }
   const allowed = new Set([
@@ -213,14 +236,12 @@ function resolveRequest(args, config) {
   ])
   const unknown = Object.keys(args).filter(key => !allowed.has(key))
   if (unknown.length > 0) throw new Error(`unknown tool arguments: ${unknown.join(', ')}`)
-  if (!['dry-run', 'pilot', 'final', 'contract-replay'].includes(args.phase)) {
-    throw new Error('phase must be dry-run, pilot, final, or contract-replay')
-  }
+  const requestedPhase = phase(args.phase)
   if (args.executePaidRun !== undefined && typeof args.executePaidRun !== 'boolean') {
     throw new Error('executePaidRun must be a boolean')
   }
   const repeats = args.repeats ?? 1
-  if (!Number.isInteger(repeats) || repeats <= 0) {
+  if (typeof repeats !== 'number' || !Number.isInteger(repeats) || repeats <= 0) {
     throw new Error('repeats must be a positive integer')
   }
   if (args.phase === 'contract-replay' && (repeats > 3 || config.maxRetries !== 0)) {
@@ -231,7 +252,7 @@ function resolveRequest(args, config) {
     if (args.maxProductionCost !== undefined || args.maxEvaluationCost !== undefined) {
       throw new Error('cost limits are valid only when executePaidRun is true')
     }
-    return { phase: args.phase, repeats, paid: false }
+    return { phase: requestedPhase, repeats, paid: false }
   }
   if (!config.allowPaidRuns) {
     throw new Error('paid validation is disabled by plugin config (allowPaidRuns: false)')
@@ -255,7 +276,7 @@ function resolveRequest(args, config) {
     )
   }
   return {
-    phase: args.phase,
+    phase: requestedPhase,
     repeats,
     paid: true,
     productionLimit,
@@ -263,24 +284,26 @@ function resolveRequest(args, config) {
   }
 }
 
-function workspaceOf(exec) {
+function workspaceOf(exec: ToolExecution): string {
   const cwd = exec.agent?.session?.header?.cwd
   return resolve(typeof cwd === 'string' && cwd.length > 0 ? cwd : process.cwd())
 }
 
-function artifactHashes(evidence, secrets) {
+function artifactHashes(evidence: RunnerEvidence, secrets: readonly string[]) {
   if (evidence === null || typeof evidence !== 'object') return []
   const artifacts = evidence.artifacts
   if (artifacts === null || typeof artifacts !== 'object') return []
   return Object.entries(artifacts)
-    .filter(([, sha256]) => typeof sha256 === 'string')
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
     .map(([artifact, sha256]) => ({
       artifact: redactSensitiveText(artifact, secrets),
       sha256,
     }))
 }
 
-function summarizeEvidence(evidence, fallback, secrets) {
+function summarizeEvidence(
+  evidence: RunnerEvidence, fallback: EvidenceFallback, secrets: readonly string[],
+): ValidationResult {
   const preflight = evidence?.preflight
   const plan = preflight?.call_plan
   const costs = preflight?.cost_estimates
@@ -303,7 +326,7 @@ function summarizeEvidence(evidence, fallback, secrets) {
     outputDir: fallback.outputDir,
     credentialConfigured: fallback.credentialConfigured,
     modelProviderConfigured: fallback.modelProviderConfigured,
-    billingUnit: String(preflight?.billing_unit ?? fallback.billingUnit),
+    billingUnit: preflight?.billing_unit ?? fallback.billingUnit,
     sandboxMode: fallback.sandboxMode,
     ...fallback.sandboxEnforcement === undefined
       ? {}
@@ -341,27 +364,27 @@ function summarizeEvidence(evidence, fallback, secrets) {
   }
 }
 
-async function readEvidence(path, maxBytes) {
+async function readEvidence(path: string, maxBytes: number): Promise<RunnerEvidence | undefined> {
   let info
   try {
     info = await stat(path)
   } catch (error) {
-    if (error?.code === 'ENOENT') return undefined
+    if (isRecord(error) && error.code === 'ENOENT') return undefined
     throw error
   }
   if (!info.isFile()) throw new Error(`evidence path is not a file: ${path}`)
   if (info.size > maxBytes) {
     throw new Error(`evidence exceeds configured ${String(maxBytes)} byte limit`)
   }
-  return JSON.parse(await readFile(path, 'utf8'))
+  return decodeEvidence(JSON.parse(await readFile(path, 'utf8')) as unknown)
 }
 
-function capturedTail(captured, secrets) {
+function capturedTail(captured: CapturedOutput | undefined, secrets: readonly string[]): string {
   if (captured?.lossy === true) return '[captured output omitted after truncation]'
   return redactSensitiveText(captured?.text ?? '', secrets)
 }
 
-function bridgeFailureType(code) {
+function bridgeFailureType(code: unknown): string {
   const normalized = String(code ?? '').toUpperCase()
   if (normalized.includes('AUTH') || normalized.includes('CREDENTIAL')) return 'authentication'
   if (normalized.includes('RATE_LIMIT')) return 'rate-limit'
@@ -372,17 +395,20 @@ function bridgeFailureType(code) {
   return 'provider-error'
 }
 
-function replayRequestId(replayState) {
+function replayRequestId(replayState: FinishChunk['replayState']) {
   const response = replayState?.response
-  if (response === null || typeof response !== 'object') return undefined
+  if (!isRecord(response)) return undefined
   const value = response.requestId ?? response.responseId ?? response.id
   return typeof value === 'string' && value.length > 0 ? value : undefined
 }
 
-export async function callDshLlm(ctx, request, signal) {
-  const id = String(request?.id ?? '')
-  const base = { protocol: DSH_BRIDGE_PROTOCOL, type: 'response', id }
-  let timeoutSignal
+export async function callDshLlm(
+  ctx: { llm: Pick<DshContext['llm'], 'stream'> }, rawRequest: unknown, signal?: AbortSignal,
+): Promise<BridgeResponse> {
+  const request = isRecord(rawRequest) ? rawRequest : {}
+  const id = String(request.id ?? '')
+  const base: BridgeResponseBase = { protocol: DSH_BRIDGE_PROTOCOL, type: 'response', id }
+  let timeoutSignal: AbortSignal | undefined
   try {
     if (
       request?.protocol !== DSH_BRIDGE_PROTOCOL
@@ -402,10 +428,10 @@ export async function callDshLlm(ctx, request, signal) {
     const callSignal = AbortSignal.any(signal === undefined
       ? [timeoutSignal]
       : [signal, timeoutSignal])
-    const system = []
-    const messages = []
-    for (const message of request.messages) {
-      if (message === null || typeof message !== 'object' || typeof message.content !== 'string') {
+    const system: string[] = []
+    const messages: LlmOptions['messages'] = []
+    for (const message of request.messages as unknown[]) {
+      if (!isRecord(message) || typeof message.content !== 'string') {
         throw new Error('invalid DSH bridge message')
       }
       if (message.role === 'system') {
@@ -421,7 +447,7 @@ export async function callDshLlm(ctx, request, signal) {
         throw new Error(`unsupported DSH bridge role: ${String(message.role)}`)
       }
     }
-    const options = {
+    const options: LlmOptions = {
       provider: request.provider,
       model: request.model,
       messages,
@@ -430,13 +456,14 @@ export async function callDshLlm(ctx, request, signal) {
       maxTokens: Number(request.max_tokens),
       signal: callSignal,
     }
-    const reasoningEffort = request.request_options?.reasoning_effort
+    const reasoningEffort = isRecord(request.request_options)
+      ? request.request_options.reasoning_effort : undefined
     if (typeof reasoningEffort === 'string' && reasoningEffort.length > 0) {
       options.reasoningEffort = reasoningEffort
     }
     let content = ''
-    let usage = {}
-    let finish
+    let usage: TokenUsage = {}
+    let finish: FinishChunk | undefined
     const stream = ctx.llm.stream(options)
     const iterator = stream[Symbol.asyncIterator]()
     try {
@@ -491,7 +518,7 @@ export async function callDshLlm(ctx, request, signal) {
   }
 }
 
-function nextWithSignal(iterator, signal) {
+function nextWithSignal<T>(iterator: AsyncIterator<T>, signal: AbortSignal): Promise<IteratorResult<T>> {
   if (signal.aborted) return Promise.reject(signal.reason ?? new Error('aborted'))
   return new Promise((resolveNext, rejectNext) => {
     const onAbort = () => {
@@ -512,11 +539,11 @@ function nextWithSignal(iterator, signal) {
   })
 }
 
-function tailCapture(maxBytes) {
+function tailCapture(maxBytes: number) {
   let buffer = Buffer.alloc(0)
   let lossy = false
   return {
-    append(text) {
+    append(text: string) {
       buffer = Buffer.concat([buffer, Buffer.from(text)])
       if (buffer.length > maxBytes) {
         buffer = buffer.subarray(buffer.length - maxBytes)
@@ -527,13 +554,15 @@ function tailCapture(maxBytes) {
   }
 }
 
-async function writeLine(stream, value) {
+async function writeLine(stream: Writable, value: BridgeResponse) {
   const line = `${JSON.stringify(value)}\n`
   if (stream.write(line)) return
-  await new Promise(resolveDrain => stream.once('drain', resolveDrain))
+  await new Promise<void>(resolveDrain => stream.once('drain', resolveDrain))
 }
 
-async function pumpDshBridge(ctx, handle, signal, routes, maxBytes) {
+async function pumpDshBridge(
+  ctx: DshContext, handle: ProcessHandle, signal: AbortSignal, routes: ModelRoute[], maxBytes: number,
+) {
   if (handle.stdout === undefined || handle.stdin === undefined) {
     throw new Error('DSH bridge requires piped child stdin and stdout')
   }
@@ -545,19 +574,19 @@ async function pumpDshBridge(ctx, handle, signal, routes, maxBytes) {
       if (Buffer.byteLength(line) > maxBytes) {
         throw new Error('DSH bridge request exceeds configured capture limit')
       }
-      let request
+      let request: unknown
       try {
         request = JSON.parse(line)
       } catch {
         capture.append(`${line}\n`)
         continue
       }
-      if (request?.protocol !== DSH_BRIDGE_PROTOCOL || request?.type !== 'request') {
+      if (!isRecord(request) || request.protocol !== DSH_BRIDGE_PROTOCOL || request.type !== 'request') {
         capture.append(`${line}\n`)
         continue
       }
       const route = `${String(request.provider)}\u0000${String(request.model)}`
-      const response = allowed.has(route)
+      const response: BridgeResponse = allowed.has(route)
         ? await callDshLlm(ctx, request, signal)
         : {
             protocol: DSH_BRIDGE_PROTOCOL,
@@ -575,7 +604,7 @@ async function pumpDshBridge(ctx, handle, signal, routes, maxBytes) {
   return capture.read()
 }
 
-async function dshProviderIssues(ctx, routes) {
+async function dshProviderIssues(ctx: DshContext, routes: ModelRoute[]): Promise<string[]> {
   const providers = new Set(ctx.llm.listProviders().map(provider => provider.id))
   const issues = []
   const checkedPolicies = new Set()
@@ -604,7 +633,9 @@ async function dshProviderIssues(ctx, routes) {
   return [...new Set(issues)]
 }
 
-async function executeValidation(ctx, args, exec, config) {
+async function executeValidation(
+  ctx: DshContext, args: unknown, exec: ToolExecution, config: Readonly<PluginConfig>,
+): Promise<ValidationResult> {
   const request = resolveRequest(args, config)
   const workspace = workspaceOf(exec)
   const manifestPath = resolve(workspace, config.manifestPath)
@@ -636,8 +667,8 @@ async function executeValidation(ctx, args, exec, config) {
     throw new Error(`failed to describe credential ${reference}`)
   }
   const credentialConfigured = credentialInfo.configured === true
-  const env = { UV_CACHE_DIR: config.uvCacheDir }
-  const secrets = []
+  const env: Record<string, string> = { UV_CACHE_DIR: config.uvCacheDir }
+  const secrets: string[] = []
   if (request.paid) {
     if (!credentialConfigured) {
       throw new Error(`paid validation requires configured credential ${config.credentialEnv}`)
@@ -769,7 +800,7 @@ async function executeValidation(ctx, args, exec, config) {
   if (aborted) fallbackIssues.push('plugin-runner-aborted')
   if (stdout?.lossy === true) fallbackIssues.push('plugin-runner-stdout-truncated')
   if (stderr?.lossy === true) fallbackIssues.push('plugin-runner-stderr-truncated')
-  const fallback = {
+  const fallback: EvidenceFallback = {
     phase: request.phase,
     exitCode: outcome.exitCode,
     signal: outcome.signal,
@@ -812,7 +843,7 @@ async function executeValidation(ctx, args, exec, config) {
   return summarizeEvidence(evidence, fallback, secrets)
 }
 
-const OUTPUT_SCHEMA = {
+const OUTPUT_SCHEMA: JsonSchema = {
   type: 'object',
   additionalProperties: false,
   required: [
@@ -907,7 +938,7 @@ const OUTPUT_SCHEMA = {
   },
 }
 
-export function apply(ctx, rawConfig = {}) {
+export function apply(ctx: DshContext, rawConfig: unknown = {}): void {
   const config = resolveConfig(rawConfig)
   ctx.tools.register({
     name: 'refractrouter_validate',

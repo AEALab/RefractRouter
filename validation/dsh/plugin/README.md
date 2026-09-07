@@ -41,11 +41,40 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.4.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.4.1.tgz
 ```
 
-The package contains only `index.js`, `cordis.patch.yml`, `README.md`, `CHANGELOG.md`, and
-`package.json`. It has no runtime npm dependencies or install scripts.
+The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,
+`README.md`, `CHANGELOG.md`, and `package.json`. It has no runtime npm dependencies or install
+scripts. `prepack` compiles the source before packing; first install the locked build dependencies
+with `npm ci --prefix validation/dsh/plugin` (all examples run from the repository root).
+
+## TypeScript source and build
+
+Version 0.4.1 migrates the plugin and its contracts to strict TypeScript. `src/index.ts` is the source
+entry; `src/contracts.ts` defines configuration, arguments, results and the consumed DSH host ports;
+`src/evidence.ts` decodes fields projected from the Python runner's JSON. Routing, scoring, cost
+accounting and Go / No-go remain in Python. Malformed evidence fields now fail as structured
+`invalid-evidence` diagnostics instead of being forwarded with incorrect types.
+
+```bash
+npm ci --prefix validation/dsh/plugin
+npm run --prefix validation/dsh/plugin typecheck
+npm test --prefix validation/dsh/plugin
+uv run pytest
+```
+
+`npm test` builds `src/` to `dist/`, compiles `tests/*.test.ts` to `.test-dist/`, and runs the compiled
+contracts against the generated plugin. Both compiler configurations enable `strict` and
+`noEmitOnError`. `main` and `exports` resolve to `dist/index.js`; `types` resolves to
+`dist/index.d.ts`. The generated directories are ignored by Git. Never edit them manually.
+A checkout must be built before installation; a packed tarball is ready to load without TypeScript.
+The package-content contract installs a tarball in isolation and imports its declared entry.
+
+The dependency-free structural host ports target DSH 0.1.1-rc.2. They are checked with typed fixtures
+and real profile loading; they do not vendor DSH implementations. New languages or duplicated
+cross-layer business logic require a documented architecture review and maintainer approval before
+merge. The repository's `docs/architecture.md` records the review requirements.
 
 ## Design boundary
 
@@ -68,6 +97,8 @@ Install the pinned CLI tools first. `dsh plugin` invokes `pnpm` from `PATH`.
 
 ```bash
 npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+npm ci --prefix validation/dsh/plugin
+npm run --prefix validation/dsh/plugin build
 dsh plugin --profile headless add ./validation/dsh/plugin
 dsh --profile headless --dump-config | rg -A6 refractrouter-validation
 dsh --profile headless --help
@@ -88,6 +119,7 @@ equivalent uses a disposable `DSH_HOME`:
 
 ```bash
 python3 scripts/validate_dsh_plugin_lifecycle.py
+python3 scripts/validate_dsh_plugin_lifecycle.py --packed
 ```
 
 ## Configuration

@@ -1,6 +1,6 @@
 {
   "name": "dsh-refractrouter-validation",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "DeepSeek Harness bundle for structured RefractRouter benchmark validation",
   "private": true,
   "license": "MIT",
@@ -21,14 +21,17 @@
     "validation"
   ],
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
-    "index.js",
+    "dist/",
     "cordis.patch.yml",
     "README.md",
     "CHANGELOG.md"
@@ -45,5 +48,17 @@
       "cli": "0.1.1-rc.2",
       "node": ">=22.19.0 <23"
     }
+  },
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "npm run build && npm run test:contracts",
+    "prepack": "npm run build",
+    "test:contracts": "tsc -p tsconfig.test.json && node --test .test-dist/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.15",
+    "typescript": "5.9.3"
   }
 }

@@ -1,20 +1,29 @@
+import type { Readable } from 'node:stream'
+import type {
+  BillingUnit, DshContext, LlmOptions, PluginConfig, ProcessOutcome, SandboxEnforcement,
+  SandboxMode, SpawnSpec, StreamChunk, ValidationTool,
+} from '../dist/contracts.js'
+
 import assert from 'node:assert/strict'
-import { spawn as spawnChild } from 'node:child_process'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { execFile, spawn as spawnChild } from 'node:child_process'
+import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
+import { promisify } from 'node:util'
 
-import { apply, callDshLlm } from '../validation/dsh/plugin/index.js'
+const execFileAsync = promisify(execFile)
 
-const ROOT = resolve(import.meta.dirname, '..')
+import { apply, callDshLlm, Config, resolveConfig } from '../dist/index.js'
+
+const ROOT = resolve(import.meta.dirname, '../../../..')
 
 function evidence({
   mode = 'preflight',
   issues = [],
   artifact = 'preflight.json',
   billingUnit = 'USD',
-} = {}) {
+}: { mode?: string; issues?: string[]; artifact?: string; billingUnit?: BillingUnit } = {}) {
   return {
     status: issues.length === 0 ? 'pass' : 'fail',
     mode,
@@ -44,6 +53,27 @@ function evidence({
   }
 }
 
+
+interface FixtureOptions {
+  config?: Partial<PluginConfig>
+  credential?: string
+  credentialConfigured?: boolean
+  mode?: SandboxMode
+  enforcement?: SandboxEnforcement
+  resultEvidence?: ReturnType<typeof evidence>
+  evidenceText?: string
+  stdout?: string
+  stderr?: string
+  stdoutLossy?: boolean
+  stderrLossy?: boolean
+  outcome?: ProcessOutcome
+  settleOnAbort?: boolean
+  spawnError?: Error
+  providers?: string[]
+  unresolvedModels?: string[]
+  providerRetryPolicy?: { mode: string; maxRetries: number }
+}
+
 function fakeContext({
   config = {},
   credential,
@@ -62,16 +92,16 @@ function fakeContext({
   providers = ['deepseek-official'],
   unresolvedModels = [],
   providerRetryPolicy = { mode: 'normal', maxRetries: 0 },
-} = {}) {
+}: FixtureOptions = {}) {
   const calls = {
     describe: 0,
     resolve: 0,
     confine: 0,
     spawn: 0,
-    spawnSpec: undefined,
+    spawnSpec: undefined as SpawnSpec | undefined,
   }
-  let tool
-  const ctx = {
+  let tool: ValidationTool | undefined
+  const ctx: DshContext = {
     tools: {
       register(spec) {
         tool = spec
@@ -88,6 +118,7 @@ function fakeContext({
       },
     },
     llm: {
+      stream() { throw new Error('unexpected LLM call') },
       listProviders() { return providers.map(id => ({ id, name: id })) },
       providerRetryPolicy() { return providerRetryPolicy },
       async resolveModelInfo(provider, model) {
@@ -123,7 +154,7 @@ function fakeContext({
           'utf8',
         )
         const done = settleOnAbort
-          ? new Promise(resolveOutcome => {
+          ? new Promise<ProcessOutcome>(resolveOutcome => {
             const keepAlive = setTimeout(() => {}, 1_000)
             spec.signal.addEventListener(
               'abort',
@@ -149,7 +180,7 @@ function fakeContext({
     },
   }
   apply(ctx, config)
-  return { calls, get tool() { return tool } }
+  return { calls, get tool() { assert.ok(tool); return tool } }
 }
 
 function execution(signal = new AbortController().signal) {
@@ -177,14 +208,14 @@ test('preflight registers a discoverable tool and uses DSH service seams', async
   assert.equal(fixture.calls.resolve, 0)
   assert.equal(fixture.calls.confine, 1)
   assert.equal(fixture.calls.spawn, 1)
-  assert.equal(fixture.calls.spawnSpec.env.OPENAI_API_KEY, undefined)
-  assert.equal(fixture.calls.spawnSpec.stdio.stdout.maxBytes, 262_144)
-  assert.equal(fixture.calls.spawnSpec.stdio.stderr.maxBytes, 262_144)
-  assert.equal(fixture.calls.spawnSpec.graceMs, 5_000)
-  const retryIndex = fixture.calls.spawnSpec.argv.indexOf('--max-retries')
+  assert.equal(fixture.calls.spawnSpec!.env.OPENAI_API_KEY, undefined)
+  assert.equal((fixture.calls.spawnSpec!.stdio.stdout as { maxBytes: number }).maxBytes, 262_144)
+  assert.equal(fixture.calls.spawnSpec!.stdio.stderr.maxBytes, 262_144)
+  assert.equal(fixture.calls.spawnSpec!.graceMs, 5_000)
+  const retryIndex = fixture.calls.spawnSpec!.argv.indexOf('--max-retries')
   assert.notEqual(retryIndex, -1)
-  assert.equal(fixture.calls.spawnSpec.argv[retryIndex + 1], '0')
-  assert.equal(fixture.calls.spawnSpec.argv.includes('--execute-paid-run'), false)
+  assert.equal(fixture.calls.spawnSpec!.argv[retryIndex + 1], '0')
+  assert.equal(fixture.calls.spawnSpec!.argv.includes('--execute-paid-run'), false)
 })
 
 test('danger-full-access bypasses sandbox wrapping', async () => {
@@ -198,7 +229,7 @@ test('danger-full-access bypasses sandbox wrapping', async () => {
 })
 
 test('Agent Plan uses only the dedicated direct endpoint and DSH-resolved credential', async () => {
-  const config = {
+  const config: Partial<PluginConfig> = {
     billingUnit: 'AFP',
     maxProductionCost: 200,
     maxEvaluationCost: 60,
@@ -232,14 +263,14 @@ test('Agent Plan uses only the dedicated direct endpoint and DSH-resolved creden
   }, execution())
   assert.equal(paidResult.status, 'pass')
   assert.equal(paid.calls.resolve, 1)
-  assert.equal(paid.calls.spawnSpec.env.CODEX_ARK_API_KEY, 'test-secret')
-  assert.equal(paid.calls.spawnSpec.env.REFRACTROUTER_DSH_BRIDGE, undefined)
+  assert.equal(paid.calls.spawnSpec!.env.CODEX_ARK_API_KEY, 'test-secret')
+  assert.equal(paid.calls.spawnSpec!.env.REFRACTROUTER_DSH_BRIDGE, undefined)
   assert.match(
-    paid.calls.spawnSpec.env.REFRACTROUTER_MODEL_PROGRESS,
+    paid.calls.spawnSpec!.env.REFRACTROUTER_MODEL_PROGRESS,
     /\/output\/model-progress\.ndjson$/,
   )
-  assert.equal(paid.calls.spawnSpec.stdio.stdin, 'ignore')
-  assert.equal(paid.calls.spawnSpec.stdio.stdout.maxBytes, 262_144)
+  assert.equal(paid.calls.spawnSpec!.stdio.stdin, 'ignore')
+  assert.equal((paid.calls.spawnSpec!.stdio.stdout as { maxBytes: number }).maxBytes, 262_144)
 })
 
 test('AFP execution rejects the ordinary Ark pay-as-you-go endpoint', async () => {
@@ -281,7 +312,7 @@ test('AFP execution rejects the ordinary Ark pay-as-you-go endpoint', async () =
 test('contract replay is bounded and retains paid deployment controls', async () => {
   const fixture = fakeContext()
   await fixture.tool.execute({ phase: 'contract-replay' }, execution())
-  assert.ok(fixture.calls.spawnSpec.argv.includes('contract-replay'))
+  assert.ok(fixture.calls.spawnSpec!.argv.includes('contract-replay'))
   assert.equal(fixture.calls.resolve, 0)
   await assert.rejects(
     fixture.tool.execute({ phase: 'contract-replay', repeats: 4 }, execution()),
@@ -352,8 +383,8 @@ test('paid diagnostics and evidence issues redact the resolved credential', asyn
   }, execution())
 
   assert.equal(fixture.calls.resolve, 1)
-  assert.equal(fixture.calls.spawnSpec.env.OPENAI_API_KEY, secret)
-  assert.equal(fixture.calls.spawnSpec.argv.includes('--execute-paid-run'), true)
+  assert.equal(fixture.calls.spawnSpec!.env.OPENAI_API_KEY, secret)
+  assert.equal(fixture.calls.spawnSpec!.argv.includes('--execute-paid-run'), true)
   assert.doesNotMatch(JSON.stringify(result), new RegExp(secret))
   assert.match(JSON.stringify(result), /\[REDACTED\]/)
 })
@@ -373,7 +404,8 @@ test('paid subprocess failures redact the resolved credential', async () => {
       maxProductionCost: 2,
       maxEvaluationCost: 1,
     }, execution()),
-    error => {
+    (error: unknown) => {
+      assert.ok(error instanceof Error)
       assert.doesNotMatch(error.message, new RegExp(secret))
       assert.match(error.message, /\[REDACTED\]/)
       return true
@@ -417,12 +449,12 @@ test('timeout returns structured failure and caller abort stops before spawn', a
   controller.abort()
   await assert.rejects(
     aborted.tool.execute({ phase: 'final' }, execution(controller.signal)),
-    error => error?.name === 'AbortError',
+    (error: unknown) => error instanceof Error && error.name === 'AbortError',
   )
   assert.equal(aborted.calls.spawn, 0)
 })
 
-function boundedCollector(stream, maxBytes) {
+function boundedCollector(stream: Readable, maxBytes: number) {
   let buffered = Buffer.alloc(0)
   let totalBytes = 0
   stream.on('data', chunk => {
@@ -439,12 +471,18 @@ function boundedCollector(stream, maxBytes) {
 }
 
 function localProcessContext() {
-  let tool
-  const ctx = {
+  let tool: ValidationTool | undefined
+  const ctx: DshContext = {
     tools: { register(spec) { tool = spec } },
     credentials: {
       async describe() { return { configured: false } },
       async resolve() { throw new Error('preflight must not resolve credentials') },
+    },
+    llm: {
+      stream() { throw new Error('unexpected LLM call') },
+      listProviders() { return [] },
+      providerRetryPolicy() { throw new Error('unexpected retry policy lookup') },
+      async resolveModelInfo() { throw new Error('unexpected model lookup') },
     },
     sandboxPolicy: {
       resolve() { return { mode: 'danger-full-access', workspaceRoot: ROOT } },
@@ -455,9 +493,9 @@ function localProcessContext() {
     subprocess: {
       async resolveExecutable(command) { return command },
       spawn(spec) {
-        const childEnv = {}
+        const childEnv: Record<string, string> = {}
         for (const [key, value] of Object.entries(process.env)) {
-          if (!/KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL/i.test(key) && !key.startsWith('DSH_')) {
+          if (value !== undefined && !/KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL/i.test(key) && !key.startsWith('DSH_')) {
             childEnv[key] = value
           }
         }
@@ -467,9 +505,10 @@ function localProcessContext() {
           env: childEnv,
           stdio: ['ignore', 'pipe', 'pipe'],
         })
-        const stdout = boundedCollector(child.stdout, spec.stdio.stdout.maxBytes)
+        assert.notEqual(spec.stdio.stdout, 'pipe')
+        const stdout = boundedCollector(child.stdout, (spec.stdio.stdout as { maxBytes: number }).maxBytes)
         const stderr = boundedCollector(child.stderr, spec.stdio.stderr.maxBytes)
-        const done = new Promise((resolveOutcome, reject) => {
+        const done = new Promise<ProcessOutcome>((resolveOutcome, reject) => {
           child.once('error', reject)
           child.once('close', (exitCode, signal) => resolveOutcome({ exitCode, signal }))
           spec.signal.addEventListener('abort', () => child.kill('SIGTERM'), { once: true })
@@ -483,7 +522,7 @@ function localProcessContext() {
     },
   }
   apply(ctx)
-  return { get tool() { return tool } }
+  return { get tool() { assert.ok(tool); return tool } }
 }
 
 test('the registered tool completes a real zero-cost Python preflight', async () => {
@@ -497,9 +536,9 @@ test('the registered tool completes a real zero-cost Python preflight', async ()
     assert.equal(result.mode, 'preflight')
     assert.equal(result.billingUnit, 'USD')
     assert.equal(result.credentialConfigured, false)
-    assert.equal(result.callPlan.totalModelCalls, 82)
-    assert.equal(result.costEstimate.billingUnit, 'USD')
-    assert.equal(result.costEstimate.total, 11.86)
+    assert.equal(result.callPlan!.totalModelCalls, 82)
+    assert.equal(result.costEstimate!.billingUnit, 'USD')
+    assert.equal(result.costEstimate!.total, 11.86)
     assert.equal(result.artifactHashes.length, 1)
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })
@@ -509,7 +548,7 @@ test('the registered tool completes a real zero-cost Python preflight', async ()
 test('DSH LLM bridge preserves content, disjoint usage, finish reason, and request id', async () => {
   const ctx = {
     llm: {
-      async *stream(options) {
+      async *stream(options: LlmOptions): AsyncGenerator<StreamChunk> {
         assert.equal(options.provider, 'ark-plan')
         assert.equal(options.model, 'deepseek-v4-flash')
         assert.equal(options.system, 'Return JSON.')
@@ -567,10 +606,10 @@ test('DSH LLM bridge enforces the per-request hard timeout', async () => {
       stream() {
         return {
           [Symbol.asyncIterator]() { return this },
-          next() { return new Promise(() => {}) },
+          next() { return new Promise<IteratorResult<StreamChunk>>(() => {}) },
           async return() {
             returnCalled = true
-            return { done: true }
+            return { done: true as const, value: undefined }
           },
         }
       },
@@ -596,5 +635,89 @@ test('DSH LLM bridge enforces the per-request hard timeout', async () => {
     assert.equal(returnCalled, true)
   } finally {
     clearTimeout(keepAlive)
+  }
+})
+
+
+test('config schema supplies safe defaults and rejects malformed host configuration', () => {
+  const valid = Config['~standard'].validate({})
+  assert.ok('value' in valid && valid.value)
+  assert.equal(valid.value.allowPaidRuns, false)
+  assert.equal(valid.value.maxRetries, 0)
+  assert.ok(Object.isFrozen(valid.value))
+  assert.equal(resolveConfig({ billingUnit: 'afp' }).billingUnit, 'AFP')
+  for (const value of [
+    { unexpected: true }, { timeoutMs: 1.5 }, { maxRetries: -1 },
+    { allowPaidRuns: 'true' }, { maxProductionCost: NaN },
+    { maxEvaluationCost: Infinity }, { maxProductionCost: true },
+    { credentialEnv: 'INVALID-KEY' }, [], 'config',
+  ]) {
+    const invalid = Config['~standard'].validate(value)
+    assert.ok('issues' in invalid && invalid.issues)
+    assert.equal(invalid.issues.length, 1)
+  }
+})
+
+test('malformed projected evidence fields fail as structured diagnostics', async () => {
+  for (const value of [null, [], { status: 'pass', preflight: { call_plan: {
+    training_model_calls: 0, production_model_calls: '56', judge_model_calls: 5, total_model_calls: 61,
+  } } }]) {
+    const fixture = fakeContext({ evidenceText: JSON.stringify(value) })
+    const result = await fixture.tool.execute({ phase: 'dry-run' }, execution())
+    assert.equal(result.status, 'fail')
+    assert.ok(result.issues.some(issue => issue.startsWith('invalid-evidence:')))
+  }
+})
+
+test('published tarball loads from its compiled export without source or build dependencies', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'refractrouter-package-'))
+  const pluginRoot = resolve(import.meta.dirname, '..')
+  try {
+    // npm test already built this package; the release command runs the same build via prepack.
+    const { stdout } = await execFileAsync('npm', [
+      'pack', pluginRoot, '--ignore-scripts', '--json', '--pack-destination', directory,
+      '--offline', '--cache', join(directory, 'npm-cache'),
+    ], { cwd: ROOT })
+    const packed: unknown = JSON.parse(stdout)
+    assert.ok(Array.isArray(packed) && packed.length === 1)
+    const metadata: unknown = packed[0]
+    assert.ok(metadata && typeof metadata === 'object' && 'files' in metadata && 'filename' in metadata)
+    assert.equal(typeof metadata.filename, 'string')
+    assert.ok(Array.isArray(metadata.files))
+    const files = metadata.files.map((entry: unknown) => {
+      assert.ok(entry && typeof entry === 'object' && 'path' in entry)
+      assert.equal(typeof entry.path, 'string')
+      return entry.path
+    })
+    assert.deepEqual(files.sort(), [
+      'CHANGELOG.md', 'README.md', 'cordis.patch.yml', 'package.json',
+      'dist/contracts.js', 'dist/contracts.d.ts', 'dist/evidence.js', 'dist/evidence.d.ts',
+      'dist/index.js', 'dist/index.d.ts',
+    ].sort())
+    await execFileAsync('npm', [
+      'install', '--prefix', directory, join(directory, String(metadata.filename)),
+      '--offline', '--ignore-scripts', '--no-audit', '--no-fund',
+      '--cache', join(directory, 'npm-cache'),
+    ])
+    await copyFile(join(import.meta.dirname, 'fixtures/package-smoke.js'), join(directory, 'smoke.mjs'))
+    await execFileAsync(process.execPath, [join(directory, 'smoke.mjs')], { cwd: directory })
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+test('both paid budgets are checked before credentials or process launch', async () => {
+  for (const limits of [
+    { maxProductionCost: 2.01, maxEvaluationCost: 1 },
+    { maxProductionCost: 2, maxEvaluationCost: 1.01 },
+    { maxProductionCost: 2, maxEvaluationCost: 0 },
+  ]) {
+    const fixture = fakeContext({ config: { allowPaidRuns: true }, credential: 'test-secret' })
+    await assert.rejects(fixture.tool.execute({
+      phase: 'dry-run', executePaidRun: true, ...limits,
+    }, execution()), /configured ceiling|positive finite number/)
+    assert.equal(fixture.calls.describe, 0)
+    assert.equal(fixture.calls.resolve, 0)
+    assert.equal(fixture.calls.spawn, 0)
   }
 })
