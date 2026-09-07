@@ -1,0 +1,73 @@
+{
+  "核对时间": "2026-09-07T15:57:29.490468+00:00",
+  "status": "pass",
+  "实际请求": 2,
+  "重试": 0,
+  "生产请求": 0,
+  "校准复核": {
+    "passed": true,
+    "reviewer": {
+      "kind": "model",
+      "id": "glm-5.3"
+    },
+    "negative_score": 28,
+    "positive_score": 91,
+    "simulation": false,
+    "说明": "必须识别缺乏实质比较；保留原始分数与有效分数。"
+  },
+  "样本": [
+    {
+      "样本": "missing-comparison",
+      "sample_id": "45ee764ca6e26f4d01cb031a",
+      "原始分": 28,
+      "有效分": 28,
+      "任务检查": {
+        "substantive_comparison": false,
+        "criteria_tradeoffs": false,
+        "supported_conclusion": false
+      },
+      "费用_AFP": 3.8007,
+      "耗时_ms": 48519
+    },
+    {
+      "样本": "substantive-report",
+      "sample_id": "0d1b01fa65f5645376429ca6",
+      "原始分": 91,
+      "有效分": 91,
+      "任务检查": {
+        "substantive_comparison": true,
+        "criteria_tradeoffs": true,
+        "supported_conclusion": true
+      },
+      "费用_AFP": 4.88475,
+      "耗时_ms": 52146
+    }
+  ],
+  "总费用_AFP": 8.68545,
+  "未使用额度_AFP": 16.31455,
+  "tokens": {
+    "input_tokens": 10500,
+    "output_tokens": 8801,
+    "cached_input_tokens": 1152,
+    "reasoning_tokens": 7780
+  },
+  "总调用耗时_ms": 100665,
+  "历史证据": [
+    {
+      "索引": "reports/v0.5-glm-calibration/archive-index.json",
+      "文件数": 11,
+      "哈希一致": true
+    },
+    {
+      "索引": "reports/v0.5-k3-baseline/archive-index.json",
+      "文件数": 21,
+      "哈希一致": true
+    },
+    {
+      "索引": "reports/v0.4-execution-modes/admission-agent-plan-zh-cn/archive-index.json",
+      "文件数": 39,
+      "哈希一致": true
+    }
+  ],
+  "说明": "原始字节及导入评分复核，不是额外模型评审；思考 token 已包含于输出，不重复计费。"
+}

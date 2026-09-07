@@ -1,0 +1,14 @@
+{
+  "authorized_at": "2026-09-07T15:54:28.529459+00:00",
+  "user_response": "授权",
+  "scope": "仅 GLM-5.3 两份独立校准样本，不启动生产对照",
+  "model": "glm-5.3",
+  "max_requests": 2,
+  "max_retries": 0,
+  "review_cost_limit": 25,
+  "billing_unit": "AFP",
+  "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3/chat/completions",
+  "preflight_sha256": "0d8a7c04f42c172cdf530756f8ac64c3ef6fb8f7b7a833fddb2919c3bf5c78a8",
+  "output_dir": "reports/v0.5-glm-calibration/paid-admission-1",
+  "on_failure": "停止并保留已发生调用的证据，不自动重试或更换模型"
+}
