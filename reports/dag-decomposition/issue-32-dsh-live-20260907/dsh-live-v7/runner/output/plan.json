@@ -1,0 +1,122 @@
+{
+  "nodes": [
+    {
+      "node_id": "cost_analysis",
+      "node_type": "generation",
+      "prompt_template": "基于材料A进行成本分析。材料A：试点方案投入24单位、覆盖4组；全面推广投入54单位、覆盖12组。请计算并比较两种方案的单位覆盖成本（总投入除以覆盖组数），保留总投入信息。输出JSON，字段为：cost_analysis_text，内容为成本分析正文，包含总投入、覆盖组数、单位覆盖成本计算过程与比较结论。",
+      "parents": [],
+      "contract": {
+        "objective": "计算并比较两种方案的单位覆盖成本，保留总投入信息",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "cost_analysis_text": "成本分析正文，包含试点与全面推广的总投入、覆盖组数、单位覆盖成本计算过程与比较结论"
+          }
+        },
+        "capability": {
+          "difficulty": "low",
+          "risk": "low",
+          "input_budget_tokens": 16384,
+          "expected_output_tokens": 500
+        },
+        "checks": [
+          "单位覆盖成本计算正确（试点24/4=6，全面推广54/12=4.5）",
+          "比较结论明确，保留总投入信息"
+        ],
+        "covers": [
+          0
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "risk_analysis",
+      "node_type": "generation",
+      "prompt_template": "基于材料B进行风险分析。材料B：试点可以按周调整培训；全面推广要求在上线前统一完成培训，目前尚未确认培训完成。请依据给定培训与调整条件分析风险，不虚构收益和风险概率。输出JSON，字段为：risk_analysis_text，内容为风险分析正文，说明试点因可调整培训而具有灵活性优势，全面推广因培训未确认而存在上线前培训未完成的风险，并指出风险概率未知。",
+      "parents": [],
+      "contract": {
+        "objective": "依据给定培训与调整条件分析风险，不虚构收益和风险概率",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "risk_analysis_text": "风险分析正文，包含试点可调整培训的灵活性、全面推广培训未确认的风险，并明确风险概率未知"
+          }
+        },
+        "capability": {
+          "difficulty": "low",
+          "risk": "low",
+          "input_budget_tokens": 16384,
+          "expected_output_tokens": 500
+        },
+        "checks": [
+          "风险分析基于材料B条件，未虚构收益或风险概率",
+          "明确指出全面推广培训未确认的风险"
+        ],
+        "covers": [
+          1
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "综合以下成本分析与风险分析，形成综合建议。成本分析：{cost_analysis_text}。风险分析：{risk_analysis_text}。请分别呈现成本分析、风险分析，再给出有条件的综合建议。综合建议必须基于给定条件，不虚构收益和风险概率；若培训未确认，建议条件性地选择方案。输出正文，不封装JSON。",
+      "parents": [
+        "cost_analysis",
+        "risk_analysis"
+      ],
+      "contract": {
+        "objective": "分别呈现成本分析与风险分析，并形成有条件的综合建议",
+        "inputs": {
+          "cost_analysis": {
+            "fields": [
+              "cost_analysis_text"
+            ],
+            "reason": "需要成本分析结果以呈现成本部分并用于综合建议"
+          },
+          "risk_analysis": {
+            "fields": [
+              "risk_analysis_text"
+            ],
+            "reason": "需要风险分析结果以呈现风险部分并用于综合建议"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终交付正文，包含成本分析、风险分析、综合建议三部分"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "low",
+          "input_budget_tokens": 65536,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "正文包含成本分析部分，含单位覆盖成本比较",
+          "正文包含风险分析部分，含培训未确认风险",
+          "综合建议有条件，不虚构收益和风险概率"
+        ],
+        "covers": [
+          0,
+          1
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "准确计算并比较两种方案的单位覆盖成本，保留总投入信息。",
+    "依据给定培训与调整条件分析风险，并给出有条件的综合建议，不虚构收益和风险概率。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "任务要求分别基于材料A做成本分析、基于材料B做风险分析，再综合建议。成本与风险分析相互独立，可并行执行以节省时间；综合节点需汇总两者结果并形成有条件建议。拆分收益：并行分析减少端到端时延，综合节点确保最终输出完整呈现两部分分析及建议。"
+}

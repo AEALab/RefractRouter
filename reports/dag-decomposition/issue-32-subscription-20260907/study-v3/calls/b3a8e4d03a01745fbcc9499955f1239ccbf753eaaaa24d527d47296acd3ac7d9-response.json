@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:2:risk:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案 A 总投入 8+4×5=28，方案 B 总投入 20+1×5=25，与上游 cost 节点一致。风险判断正确：A 超预算 26 缺口 2，B 低于预算 1，建议合理且与上游一致。输出为单个原始 JSON 对象，包含 result、evidence、assumptions 三个非空字段，未使用 Markdown 围栏，未虚构数据，未声称执行工具或检索新事实。证据明确标注为合成场景、数值来自任务描述，假设部分保留了限制（不考虑税费、现金流等），满足「保留证据与假设」「覆盖职责并明确限制」的检查要求。轻微不足：answer 未显式说明已消费并核对上游 cost 节点的一致性，且未引用上游原文（如使用「」引号），但不影响正确性与契约符合性。\"}",
+  "input_tokens": 1247,
+  "output_tokens": 215,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9719,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788790308418b531818cd979bd70c39b690ac6f23902c9bdf4"
+}

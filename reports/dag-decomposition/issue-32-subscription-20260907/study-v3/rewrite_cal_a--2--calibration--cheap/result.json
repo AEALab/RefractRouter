@@ -1,0 +1,131 @@
+{
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.496583990752697,
+      "start_ms": 20.790416980162263,
+      "end_ms": 1382.534833974205,
+      "queue_ms": 20.293832989409566,
+      "output": "{\"text\": \"若所有输入数据已备齐，我们计划于本周五前完成测试。\"}",
+      "latency_ms": 1359,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "{\"text\": \"若所有输入数据已备齐，我们计划于本周五前完成测试。\"}",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "改写文本「若所有输入数据已备齐，我们计划于本周五前完成测试。」完整保留了原句的核心要素：完成时限（本周五前）、条件（所有输入数据已准备好）以及主体动作（完成测试），同时显著精简了表达，将「前提条件是所有的输入数据已经全部准备好了」压缩为「若所有输入数据已备齐」，将「这项测试工作」简化为「测试」，符合简洁中文的要求且无信息遗漏。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "文本在保留「本周五前完成测试」的时限和「所有输入数据已准备好」的条件前提下，将原句的冗余表述（如「前提条件是」「这项...工作」）精简为更紧凑的「若...已备齐」结构，字数减少且语义完整。"
+      }
+    ]
+  },
+  "assignments": {
+    "answer": "cheap"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.4010419361293316,
+    "peak_running_nodes": 1,
+    "ended_ms": 1405.283416970633,
+    "wall_time_ms": 1404.885167023167
+  },
+  "calls": [
+    {
+      "label": "rewrite_cal_a--2--calibration--cheap:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.5036,
+      "charged": 0.01885,
+      "status": "billed",
+      "input_sha256": "13c65996bf4690cc02de83074bb40f24e1b1824d9c9cfc46662309941bac6473",
+      "dispatch_monotonic": 788479.754813416,
+      "input_tokens": 355,
+      "output_tokens": 22,
+      "latency_ms": 1359,
+      "request_id": "021788790482070534779bc6a83ab3f36a7a90c1e71ba35f510f4",
+      "finish_reason": "stop",
+      "output_sha256": "3c67da9d3438aa97d34f6b831e533d0032dbd025ad492c2b01ab696698b041bd"
+    },
+    {
+      "label": "rewrite_cal_a--2--calibration--cheap:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.501,
+      "charged": 0.491,
+      "status": "billed",
+      "input_sha256": "bf94bd1e26056ae21227260b6529b370a3bc21d12d8aa04bae5a7d2fd5828896",
+      "dispatch_monotonic": 788481.159202083,
+      "input_tokens": 284,
+      "output_tokens": 207,
+      "latency_ms": 9205,
+      "request_id": "0217887904835137d6713dc852f73f0cf900d2fbe3d4488cdf4e9",
+      "finish_reason": "stop",
+      "output_sha256": "294f0472239d5d0444b40973e8e0e35a2c75a1b44b160594863d7b8afb234f6f"
+    }
+  ],
+  "wall_time_ms": 10659.528416930698,
+  "critical_path_latency_ms": 1359,
+  "status": "completed"
+}

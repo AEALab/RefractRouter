@@ -1,8 +1,14 @@
-# RefractRouter DSH validation bundle
+# RefractRouter DSH 验证与接入插件
 
-This package contributes the structured `refractrouter_validate` tool to a base-backed DeepSeek
-Harness profile. The tool runs the repository's fixed Python validation entry point and projects its
-evidence into a bounded result.
+本包是 RefractRouter 的 DSH 宿主适配层，与核心保留在同一仓库，通过
+`validation/dsh/plugin/` 明确区分。Router 是项目核心；插件用于验证核心能力，
+“DSH + 插件连接核心 Router”也是未来产品化的实现形态之一。
+
+插件注册 `refractrouter_validate` 和 `refractrouter_task`，分别提供冻结基准验证和
+文本任务入口。任务规划、DAG 校验、节点选模、执行与评估由 Python 核心及运行时负责。
+当前连接方式是启动本地 Python runner，执行仍依赖匹配的 RefractRouter 源码环境；
+安装插件包不等于已安装独立 Router 服务。详见
+[项目架构](../../../docs/architecture.md) 和 [集成边界](../README.md)。
 
 Version 0.4.0 adds `phase: "contract-replay"` for the seven archived issue #25 writer failures.
 It defaults to preflight, permits at most three repeats, requires configured `maxRetries: 0`,
@@ -10,6 +16,24 @@ and stops on the first failed output contract. Paid calls retain the same deploy
 credential resolution, exact Agent Plan endpoint, and two budget ceilings. No judge is invoked;
 the tool still requires a positive evaluation ceiling for a paid request, but replay evaluation
 spend is zero. A replay pass establishes contract validity only, not semantic quality or Go.
+
+## 文本任务工具（0.7.0）
+
+`refractrouter_task` 通过 Python 核心规划和执行文本任务。模型规划使用
+`text-task-plan-v2`，节点须声明输入字段、依赖理由、输出契约、能力需求与验收覆盖。
+支持单节点和独立分支，并保存结构诊断；默认串行，可用 `maxConcurrency` 配置
+有界并发，并传递 `providerConcurrency`、`providerMinIntervalMs`。核心负责实际调度与
+预算原子预留；DSH stdio LLM 桥仍限串行。
+`acceptanceCriteria` 可传入 1 至 10 项不可由规划器改写的验收条件。
+
+`preflight` 使用单节点保守预览，`demo` 使用模拟产物；`plan` 调用真实规划器并返回
+路由，`run` 继续执行与独立评审。A 使用约束，B 还需显式三项权重。
+详细格式、例子和限制见 [DAG 拆分机制](../../../docs/dag-decomposition.md) 与
+[文本任务指南](../../../docs/text-task-routing.md)。
+
+`taskProfilePath` 默认为 `data/routing/demo-usd-v1.json`，仅用于预检和模拟。
+Agent Plan 可使用与 AFP 清单匹配的 `data/routing/report-transfer-v1.json`，但这仍是
+单一报告任务的迁移预测。付费模式保留部署开关、双预算、原生凭证和进程控制及零重试。
 
 ## Supported versions
 
@@ -41,7 +65,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.4.1.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.7.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,
@@ -76,20 +100,19 @@ and real profile loading; they do not vendor DSH implementations. New languages 
 cross-layer business logic require a documented architecture review and maintainer approval before
 merge. The repository's `docs/architecture.md` records the review requirements.
 
-## Design boundary
+## 职责边界
 
-- DSH owns composition, lifecycle, tool dispatch, model providers, credential resolution, process
-  confinement, and session evidence.
-- The plugin owns typed arguments, paid-run policy, budget ceilings, bounded diagnostics, and the
-  projection of Python evidence into a structured tool result.
-- `validation/dsh/real_runner.py` remains the only owner of benchmark execution, hashing, scoring,
-  and artifact validation.
-- The plugin launches a fixed argv through `ctx.subprocess`; it never asks a model to construct a
-  shell command.
-- Direct HTTP manifests resolve their credential once per paid operation, forward it only in the
-  scrubbed child environment, and redact it from diagnostics. AFP manifests additionally require
-  provider `ark-plan` and the exact Agent Plan `/api/plan/v3` base URL. Generic `dsh-llm` manifests
-  keep provider credentials inside DSH; a bounded stdio bridge carries prompts, results, and telemetry.
+- DSH 提供组合、生命周期、工具调度、模型 provider、凭证解析、进程隔离与会话证据。
+  DSH 外层助手的模型配置与 Router 对 DAG 节点的选模分别管理。
+- 插件负责参数类型、部署级付费开关与预算上限、受限诊断输出，以及 Python 证据到
+  结构化工具结果的转换。
+- `real_runner.py` 组织基准验证，`task_runner.py` 组织文本任务调用与证据落盘；
+  路由、评分和调用预算记账复用 Python 实现，不在插件中复制。
+- 插件通过 `ctx.subprocess` 启动固定参数列表，不让模型拼装 Shell 命令。
+- 直接 HTTP 清单在获准付费操作时解析凭证，仅传给经过筛选的子进程环境，并对诊断
+  脱敏。AFP 清单还要求 `ark-plan` 和精确的 Agent Plan `/api/plan/v3` 端点。
+  通用 `dsh-llm` 清单将凭证保留在 DSH 内，由受限 stdio 桥传递请求、结果和遥测；
+  桥接层执行核心已确定的模型调用，不作路由决策。
 
 ## Install, inspect, remove, and restore
 

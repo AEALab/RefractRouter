@@ -1,0 +1,12 @@
+{
+  "label": "rewrite_cal_a--1--calibration--mid:answer",
+  "content": "{\"node_id\":\"answer\",\"task\":\"将下句改写为简洁中文，保留完成时限与条件：我们计划在本周五之前完成这项测试工作，但前提条件是所有的输入数据已经全部准备好了。\",\"instruction\":\"把用户提供的句子改写得更简洁，保留原意\",\"upstream\":{},\"contract\":{\"objective\":\"把用户提供的句子改写得更简洁，保留原意\",\"inputs\":{},\"output\":{\"format\":\"text\",\"fields\":{\"text\":\"最终建议与可追溯依据\"}},\"capability\":{\"difficulty\":\"low\",\"risk\":\"low\",\"input_budget_tokens\":16384,\"expected_output_tokens\":1000},\"checks\":[\"保留证据与假设，不虚构数据\",\"覆盖本节点职责并明确限制\"],\"covers\":[0],\"execution\":\"text-model\",\"failure_policy\":\"stop\"},\"fields\":{\"text\":\"改写：本周五前完成测试，前提是输入数据已备齐。\\n\\n依据：原句包含两个关键信息——完成时限（本周五之前）与前提条件（输入数据全部准备好）。改写后将时限压缩为「本周五前」，条件保留为「输入数据已备齐」，语义未变，句式更简。\"}}",
+  "input_tokens": 493,
+  "output_tokens": 240,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5670,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178879043290308e37163f19fb200d5e116edcbda02b4af88c9"
+}

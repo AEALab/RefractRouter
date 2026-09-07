@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:1:risk:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，包含 result、evidence、assumptions 三个非空字符串字段，转义正确，无 Markdown 围栏或额外文字。内容忠实于材料：未虚构数据，未做成本测算，明确指出「两者单位成本相同」故不涉及成本差异；风险比较围绕覆盖规模与反馈速度展开，并给出条件式建议（认知不足时先试点、依据充分时全面推广并配套监测纠偏），符合节点职责。evidence 完整引用材料 A 与材料 B，assumptions 明确列出信息缺口（环境可比性、方案成熟度、监测纠偏能力等）与不确定性。轻微不足：evidence 字段直接复述原文而未使用「」中文引号标注引用，且未明确标注「材料 A」「材料 B」之外的来源标识细节，但整体满足检查要求。\"}",
+  "input_tokens": 1055,
+  "output_tokens": 204,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14671,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887890405503f04613060c95c0e1cb70b4f628471a9e6143a"
+}

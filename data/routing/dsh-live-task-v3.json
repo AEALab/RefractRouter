@@ -1,0 +1,21 @@
+{
+  "task": "材料 A：试点方案投入 24 单位、覆盖 4 组；全面推广投入 54 单位、覆盖 12 组。材料 B：试点可以按周调整培训；全面推广要求在上线前统一完成培训，目前尚未确认培训完成。成本分析与风险分析均直接依据各自材料，不需要消费对方结果。分别给出成本与风险分析，再形成综合建议；未给出的收益和风险概率不得虚构。",
+  "mode": "run",
+  "method": "A",
+  "qualityMin": 80,
+  "costMax": 100,
+  "latencyMaxMs": 300000,
+  "maxConcurrency": 2,
+  "providerConcurrency": {
+    "ark-plan": 2
+  },
+  "providerMinIntervalMs": {
+    "ark-plan": 100
+  },
+  "acceptanceCriteria": [
+    "准确计算并比较两种方案的单位覆盖成本，保留总投入信息。",
+    "依据给定培训与调整条件分析风险，并给出有条件的综合建议，不虚构收益和风险概率。"
+  ],
+  "maxProductionCost": 100,
+  "maxEvaluationCost": 200
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "plan-analysis-v1",
+  "ready_waves": [
+    [
+      "cost_analysis",
+      "risk_analysis"
+    ],
+    [
+      "synthesis"
+    ]
+  ],
+  "dependency_depth": 2,
+  "max_wave_size": 2,
+  "parallel_opportunities": [
+    [
+      "cost_analysis",
+      "risk_analysis"
+    ]
+  ],
+  "join_nodes": [
+    "synthesis"
+  ],
+  "downstream_counts": {
+    "cost_analysis": 1,
+    "risk_analysis": 1,
+    "synthesis": 0
+  },
+  "criterion_owners": {
+    "0": [
+      "cost_analysis",
+      "synthesis"
+    ],
+    "1": [
+      "risk_analysis",
+      "synthesis"
+    ]
+  },
+  "warnings": [
+    "review-join-context-and-conflict-handling"
+  ],
+  "semantic_dependencies_verified": false,
+  "execution_mode": "bounded-parallel",
+  "note": "就绪波次表示结构上的并行机会，不是实际并发或时延保证。"
+}

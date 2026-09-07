@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:answer:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为合法 JSON，包含 text、evidence、assumptions 三个非空字段，满足契约要求。计算正确：方案 A 总投入 28、超预算 2，方案 B 总投入 25、低于预算 1，与上游 cost、risk 两节点一致，并明确核对二者无冲突、无遗漏。证据字段清楚标注数值来源为任务描述与上游节点，未虚构数据，也未声称执行工具或检索新事实。建议合理（优先方案 B，若选 A 需追加至少 2 或压缩投入），并声明限制（仅基于资金可行性、未提供货币单位、不含隐性成本）。覆盖节点职责并明确限制，符合全部检查项。轻微不足：text 中提及「cost 与 risk 两个上游节点」属于对上游材料的合理引用，无问题；整体质量高。\"}",
+  "input_tokens": 1700,
+  "output_tokens": 208,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8918,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887901316903a391e43edef5299850de6066b8d72e283d5da"
+}

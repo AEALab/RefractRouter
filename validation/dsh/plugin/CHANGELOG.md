@@ -1,4 +1,28 @@
-# Changelog
+# 变更日志
+
+## 0.7.0
+
+- 文本任务新增有界并发、provider 并发上限及启动间隔参数；默认串行。
+- 结果增加执行模式、最大并发、观测峰值和预测时延，Python 负责调度与原子预算。
+- A/B 使用完整 DAG 调度时延；B 不再奖励对总耗时没有贡献的分支加速。
+- 支持分层 profile 与固定校准/测试协议，提供零调用预检及完整模拟对照。
+- 取消或失败后停止新派发并结算在途调用；真实组合收益仍待授权验证。
+
+## 0.6.0
+
+- 新增 `acceptanceCriteria`，原样转交 Python 核心并冻结规划验收条件。
+- 模型规划采用 `text-task-plan-v2`，明确依赖字段与理由、节点契约、能力需求和验收覆盖。
+  旧版显式计划仍可使用并标注缺少交接契约，模型生成计划不得降级。
+- 零调用预览改为单节点，避免把固定模板当成任务拆分；提供并行机会、依赖深度及汇总
+  诊断产物。运行时仍串行，质量 profile 仍是迁移预测。
+- 核心校验结构化交接输出，失败时保存原文与费用并阻止后续执行；插件只负责接入。
+
+## 0.5.0
+
+- Add `refractrouter_task` for bounded text DAG planning, per-node A/B routing, execution and
+  independent final judging through the Python runtime. Add `taskProfilePath` deployment config.
+- Keep preview/demo explicitly simulated and require empirical profiles, paid enablement and both
+  budgets for live modes. Preserve benchmark tooling and historical evidence.
 
 ## 0.4.1
 

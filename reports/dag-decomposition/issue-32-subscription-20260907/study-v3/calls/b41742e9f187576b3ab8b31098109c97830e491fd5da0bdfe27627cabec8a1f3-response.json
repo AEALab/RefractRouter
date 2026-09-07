@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:2:cost:mid:judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"答案完整覆盖节点职责：基于材料 A 与材料 B 对两个方案的成本、资源需求与交付特征进行了比较，并给出条件式建议。计算正确（18÷3=6，42÷7=6，42/18≈2.33），未虚构数据，evidence 字段明确标注了材料来源与推导过程，assumptions 字段清晰列出三条假设与信息缺口（单位成本一致性未独立验证、决策变量缺失、成本结构不可拆解、边际转换成本未知），符合「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」的检查要求。JSON 结构包含 contract 声明的全部字段（result、evidence、assumptions），值均为非空字符串，未声称执行工具或检索新事实。轻微扣分点：42÷7 实际精确等于 6，答案中写「约 6 单位」和「≈6」略有不必要的近似表述，但不影响正确性。\"}",
+  "input_tokens": 1247,
+  "output_tokens": 230,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10152,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887892494653d0449b03f13da7ad7c0359f0f1d760c318435"
+}

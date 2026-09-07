@@ -1,42 +1,44 @@
-# DSH Validation Boundary
+# DSH 验证与接入边界
 
-DeepSeek Harness is the outer validation environment for RefractRouter v0.1. The integration is an
-installable DSH bundle, not a natural-language request to assemble and execute a shell command.
+本目录集中存放 DSH 插件及其 Python 调用与验证入口，与 `src/refractrouter/` 核心
+保留在同一仓库。Router 是项目核心；DSH 插件用于验证核心功能的可行性，也是未来
+“DSH + 插件连接核心 Router”产品形态的适配层。
 
-## Responsibilities
+## 目录与职责
 
-- Start a reproducible experiment run.
-- Verify task package, model configuration, and source-pack hashes.
-- Capture execution evidence.
-- Run deterministic HTML and scoring checks.
-- Apply the DSH profile's credential, sandbox, lifecycle, and tool-dispatch policies.
+| 路径 | 用途 |
+|---|---|
+| `plugin/src/` | TypeScript 工具注册、参数与结果类型、宿主进程及凭证对接 |
+| `plugin/tests/` | 插件契约与打包测试 |
+| `task_runner.py` | 接收文本任务请求，调用 Python 核心任务运行时并保存证据 |
+| `real_runner.py` | 组织真实模型基准的预检、执行及证据验证 |
+| `canonical_runner.py` | 在隔离目录验证固定基准的五种策略及实验产物 |
+| `runner.py` | 调用固定 RefractRouter CLI，记录命令、退出状态、哈希及产物检查 |
 
-## Non-responsibilities
+任务规划、DAG 校验、节点选模、执行、评分和预算记账归属 Python 核心及运行时。
+插件只适配宿主请求、部署限制和结果；不能在 TypeScript 中复制这些业务决策。
+完整边界见 [项目架构](../../docs/architecture.md)。
 
-- DSH does not select models.
-- DSH does not replace the DeepAgents/LangGraph execution loop.
-- DSH does not own task decomposition.
+## 两种工具入口
 
-## Plugin contract
+- `refractrouter_validate`：冻结基准验证，默认预检；付费执行需部署开关、明确预算和凭证。
+- `refractrouter_task`：文本任务入口，调用核心完成 DAG 规划、节点选模、执行和评估。
+  `preflight` 使用标注的预览，`demo` 使用模拟输出，`plan` 和 `run` 会调用真实模型。
+  使用方式见 [文本任务与节点路由](../../docs/text-task-routing.md)。
 
-`validation/dsh/plugin/` is the `dsh-refractrouter-validation` bundle. Its `dsh.bundle` manifest
-contributes one Cordis plugin row, which registers the structured `refractrouter_validate` tool.
-The plugin:
+DSH 负责工具调度、会话、沙箱、进程生命周期和凭证服务。插件通过 `ctx.subprocess`
+启动固定参数列表，不让模型组装 Shell 命令。直接 HTTP 调用仅向受控子进程传递凭证；
+通用 `dsh-llm` 基准清单通过受限 stdio 桥使用 DSH provider，凭证留在宿主内。
+DSH 外层助手的模型配置与核心对 DAG 节点的选模分别管理。
 
-- uses `ctx.subprocess` for process ownership and bounded output;
-- uses `ctx.sandbox` and `ctx.sandboxPolicy` for the profile's file boundary;
-- uses `ctx.credentials` for credential readiness and direct-HTTP credential resolution;
-- uses `ctx.llm` only for manifests that explicitly select the generic DSH LLM bridge;
-- returns typed status, plan, cost, hashes, issues, and evidence paths;
-- defaults `allowPaidRuns` to false and enforces deployment-level production/evaluation ceilings.
+当前连接方式是本地 Python runner，执行时仍依赖匹配的 RefractRouter 源码环境。
+尚未提供独立部署的 Router 服务，也尚未实现脱离源码目录的完整安装体验。
 
-The v0.1 release contract supports DSH `0.1.1-rc.2`, Node `>=22.19.0 <23`, and pnpm `10.15.0`.
-The package is private and installed from the same repository commit as the Python runner; no
-registry publication is planned while DSH remains pre-release. Full installation, configuration,
-phase examples, troubleshooting, and rollback guidance live in
-[`plugin/README.md`](plugin/README.md).
+## 安装与验证
 
-Install it into a base-backed profile from this checkout:
+当前兼容范围为 DSH `0.1.1-rc.2`、Node `>=22.19.0 <23`、pnpm `10.15.0`。
+插件保持私有，按仓库路径或同一提交生成的 tarball 安装。完整配置、故障诊断、升级和
+回滚方法见 [插件指南](plugin/README.md)。以下命令从仓库根目录执行：
 
 ```bash
 npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
@@ -46,53 +48,27 @@ dsh plugin --profile headless add ./validation/dsh/plugin
 dsh --profile headless --dump-config | rg refractrouter-validation
 ```
 
-Validate install, override, removal, reinstall, and boot in a disposable profile:
+在临时 `DSH_HOME` 中验证安装、配置覆盖、卸载、重装和启动，不发起模型调用：
 
 ```bash
 python3 scripts/validate_dsh_plugin_lifecycle.py
+python3 scripts/validate_dsh_plugin_lifecycle.py --packed
 ```
 
-Run the real-model final preflight through the plugin:
+通过 DSH 调用基准预检：
 
 ```bash
 dsh --profile headless \
-  'Call refractrouter_validate exactly once with {"phase":"final","executePaidRun":false}. Return the tool result unchanged.'
+  '仅调用一次 refractrouter_validate，参数为 {"phase":"final","executePaidRun":false}，原样返回工具结果。'
 ```
 
-The DSH provider handles the short orchestration turn. The plugin launches a fixed argv rather than
-letting the model construct one. It never returns credential values.
+该工具预检不调用候选或评审模型；DSH 外层助手仍可能产生模型费用。运行 DSH 会话前，
+需获得向所配置外部模型发送仓库上下文的授权。执行器需要写入临时产物，应使用
+`workspace-write` 或明确授权的适当沙箱策略。
 
-## Python runner contract
+## Python 验证入口
 
-The deterministic runner accepts:
-
-```bash
-uv run python validation/dsh/runner.py \
-  --task data/tasks/report_001.json \
-  --strategy strong-all \
-  --output reports/v0.1/report_001-dsh.html \
-  --evidence reports/v0.1/dsh-evidence.json
-```
-
-It invokes the fixed RefractRouter CLI and emits a validation evidence record containing the
-exact command, exit code, standard streams, dependency versions, Git state, input hashes,
-generated HTML hash, and final-output source-trace issues. See `runner.md` for local runner and DSH
-plugin examples.
-
-`canonical_runner.py` is the experiment-level validator. It runs all five canonical strategies
-in an isolated output directory, requires every report artifact, cross-checks the node-oracle
-run record, and independently derives the oracle Go / No-Go result from the experiment summary.
-
-The bundle installation, composition and tool invocation have been exercised through DSH
-`0.1.1-rc.2` in disposable profiles. CI tests the oldest supported Node release and latest Node 22,
-including clean-profile lifecycle, package contents, service-seam behavior, output bounds,
-credential redaction, timeout/abort behavior, and a real zero-cost Python preflight through the
-registered tool. A read-only sandbox is insufficient because the runner must write temporary output;
-use the default `workspace-write` profile or an explicitly approved wider policy.
-
-## Real-model boundary
-
-`real_runner.py` wraps the 20-task real-model benchmark. Its default mode is a zero-cost preflight:
+无需启动 DSH，也可以直接运行同一 Python 验证入口，例如基准预检：
 
 ```bash
 uv run python validation/dsh/real_runner.py \
@@ -103,21 +79,34 @@ uv run python validation/dsh/real_runner.py \
   --evidence /tmp/refractrouter-real-preflight-evidence.json
 ```
 
-The preflight validates the dataset/model boundary, records corpus and code hashes, and calculates the
-call plan without invoking a candidate or judge model. A paid run additionally requires
-`--execute-paid-run`, both cost limits, and the manifest credential. A `dsh-llm` manifest also
-requires every frozen provider/model route to resolve in DSH; its requests pass through a bounded
-stdio bridge and its credential remains inside the DSH provider.
+默认预检验证数据集与模型边界、记录输入和代码哈希，并估算调用计划，不调用候选或评审
+模型。付费运行还要求 `--execute-paid-run`、生产和评审预算，以及清单指定的凭证。
+每次执行应使用新输出路径，保留已完成实验的原始证据。
 
-The issue #19 correction uses `data/model-manifests/volcengine-agent-plan.json`: three Agent Plan candidates,
-`kimi-k3` as the independent judge, AFP billing, proposed 400/90 AFP deployment ceilings, and zero retries.
-Its benchmark requests use the exact Agent Plan OpenAI-compatible base URL
-`https://ark.cn-beijing.volces.com/api/plan/v3`; the plugin rejects the ordinary Ark `/api/v3`
-endpoint for any AFP manifest. DSH resolves the plan credential and passes it only to the scrubbed
-Python child. The corrected 8,192-token cap yields a 456.47 AFP estimate. Its new budget and validation status
-are recorded in [`../../reports/v0.1/issue-19-output-truncation.md`](../../reports/v0.1/issue-19-output-truncation.md).
+AFP 清单要求 `ark-plan` 和精确的 Agent Plan `/api/plan/v3` 端点。
+部署预算、调用预算、重试策略与凭证要求见 [插件指南](plugin/README.md)。
+固定 CLI 的本地调用和证据格式另见 [runner 说明](runner.md)。
 
-DSH is still only the outer validator. It must not choose candidate models, change the frozen manifest,
-or replace the DeepAgents/LangGraph execution path. Before launching a DSH headless session, explicitly
-approve sending the repository context to the configured external DSH model. Before a paid run, also
-enable it in the higher-precedence profile patch and approve both cost ceilings.
+## 验收含义
+
+插件生命周期、契约与模拟执行验证的是宿主接入路径。核心路由收益必须通过真实组合执行
+及独立的质量、成本、时延对照评估判断，不能从插件成功安装或预检通过推导。
+本目录的验证结果用于支持研究和产品入口探索，不代表其他产品形态已交付。
+
+
+## 实际任务入口验证
+
+2026-09-07 已在隔离 DSH `0.1.1-rc.2`、插件 `0.7.0` 中验证一次完整自然任务：
+助手调用 `refractrouter_task`，请求不含预设 plan；Python 核心自动规划成本分析、风险分析
+和汇总三个节点，两个分支并行执行，最终独立模型评审通过（100 分）。
+会话证据确认参数原样传递且工具仅调用一次。详见
+[完整报告与原始证据](../../reports/dag-decomposition/issue-32-dsh-live-20260907/README.md)。
+
+该任务三个节点均由 A 选中 `cheap`，使用迁移 profile，不是任意任务的分层校准证明；
+完整路由收益和异构交接验收仍待完成。此前容量不足和最终交付遗漏的失败均已保留。
+本机 DSH 配置若仅需关闭外层推理，不应声明仅含 `off` 的 `reasoningEfforts` 字典；
+本次隔离路由使用 `reasoningEfforts: false`，不修改日常 DSH profile。
+
+DSH 进程退出码 0 仅表示助手完成回复；任务成功须同时核对工具 `status`、
+`task.status` 和 `task.evaluationPassed`。当前共享返回结构中的顶层 `phase: dry-run`
+来自基准入口占位，不能据此认定文本任务未调用模型；文本任务阶段以 `task.mode` 为准。

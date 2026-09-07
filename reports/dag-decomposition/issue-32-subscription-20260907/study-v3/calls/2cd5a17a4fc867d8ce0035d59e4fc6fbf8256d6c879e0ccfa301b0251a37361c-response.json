@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:cost:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案 A 总投入 8+4×5=28，超预算 2；方案 B 总投入 20+1×5=25，余 1。资金缺口判断与建议（优先 B、或压缩 A 的组数/单组投入）与计算一致且合理。evidence 明确标识数据来源为上游文本且未外推，assumptions 列出 7 条假设与不确定性（含固定投入是否重复计算、规模折扣、削减组数的边际效用未知等），满足「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」两项检查。输出为单个 JSON 对象，包含 result、evidence、assumptions 三个非空字符串字段，未声称执行工具。轻微不足：result 中建议部分较冗长，且假设 5 提出的重复计算疑问本可在 result 中更明确地提示对结论的潜在影响，但不影响正确性与完整性。\"}",
+  "input_tokens": 1359,
+  "output_tokens": 232,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9635,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887900507989255aa03547266d00c3fa3dce78057f1926caa"
+}

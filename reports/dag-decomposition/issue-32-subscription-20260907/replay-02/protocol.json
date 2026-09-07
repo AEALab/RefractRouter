@@ -1,0 +1,18 @@
+{
+  "schema_version": "text-handoff-replay-v1",
+  "purpose": "冻结真实风险节点的 JSON 转义失败；明确原文引号与字符串转义要求，字段契约不变。",
+  "source_result_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v2/compare_cal_a--2--calibration--mid/result.json",
+  "source_result_sha256": "ae887aa3346a49ca83d0698f44cd94751a705f0d36fda76d0a05dd67b191f42d",
+  "source_request_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v2/calls/9fa1d092140a22af488e5694fbecad6827750ab16d509a4bbaaef2f00dcd62e3-request.json",
+  "source_request_sha256": "416658c5cea16b9f26ba01d30666a7a27581df91844085ae601e4a4fac3bc98c",
+  "manifest_path": "../model-manifests/volcengine-agent-plan.json",
+  "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+  "node_id": "risk",
+  "model_ids": [
+    "cheap",
+    "mid",
+    "strong"
+  ],
+  "maximum_calls": 3,
+  "messages_sha256": "087a2a38f2bdb1927cb4ce66a7138296dcc12727233ca3b33a9faed2539a5708"
+}

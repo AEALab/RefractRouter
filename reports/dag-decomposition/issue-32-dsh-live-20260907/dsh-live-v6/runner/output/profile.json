@@ -1,0 +1,135 @@
+{
+  "schema_version": "node-routing-profile-v1",
+  "kind": "empirical",
+  "billing_unit": "AFP",
+  "scope": "Transfer estimates from report_001 fixed-source report generation, three repeats; not calibrated for arbitrary tasks.",
+  "provenance": "reports/v0.3-contract-recovery/repeated-agent-plan/node-quality-matrix.json",
+  "source_sha256": "29aa3b32465f8892acf92468a2f28b0a18c888c3eef0161a4b2f206db819f410",
+  "latency_statistic": "observed maximum",
+  "candidates": [
+    {
+      "node_type": "extraction",
+      "model_id": "cheap",
+      "samples": 3,
+      "quality": 93.66666666666667,
+      "cost": 0.10016666666666667,
+      "latency_ms": 8052
+    },
+    {
+      "node_type": "extraction",
+      "model_id": "mid",
+      "samples": 3,
+      "quality": 96.0,
+      "cost": 0.6450833333333333,
+      "latency_ms": 6059
+    },
+    {
+      "node_type": "extraction",
+      "model_id": "strong",
+      "samples": 3,
+      "quality": 91.33333333333333,
+      "cost": 1.3797666666666666,
+      "latency_ms": 15600
+    },
+    {
+      "node_type": "generation",
+      "model_id": "cheap",
+      "samples": 3,
+      "quality": 84,
+      "cost": 0.15893333333333334,
+      "latency_ms": 21810
+    },
+    {
+      "node_type": "generation",
+      "model_id": "mid",
+      "samples": 3,
+      "quality": 86.33333333333333,
+      "cost": 0.8195,
+      "latency_ms": 10627
+    },
+    {
+      "node_type": "generation",
+      "model_id": "strong",
+      "samples": 3,
+      "quality": 89,
+      "cost": 1.8214166666666667,
+      "latency_ms": 23681
+    },
+    {
+      "node_type": "planning",
+      "model_id": "cheap",
+      "samples": 6,
+      "quality": 92.66666666666667,
+      "cost": 0.041425000000000003,
+      "latency_ms": 5563
+    },
+    {
+      "node_type": "planning",
+      "model_id": "mid",
+      "samples": 6,
+      "quality": 92.0,
+      "cost": 0.2275,
+      "latency_ms": 4060
+    },
+    {
+      "node_type": "planning",
+      "model_id": "strong",
+      "samples": 6,
+      "quality": 88.66666666666667,
+      "cost": 0.43046666666666666,
+      "latency_ms": 4505
+    },
+    {
+      "node_type": "synthesis",
+      "model_id": "mid",
+      "samples": 3,
+      "quality": 84.66666666666667,
+      "cost": 0.5836666666666667,
+      "latency_ms": 11010
+    },
+    {
+      "node_type": "synthesis",
+      "model_id": "strong",
+      "samples": 3,
+      "quality": 79.66666666666667,
+      "cost": 1.2913999999999999,
+      "latency_ms": 20507
+    },
+    {
+      "node_type": "verification",
+      "model_id": "cheap",
+      "samples": 3,
+      "quality": 69.66666666666667,
+      "cost": 0.14553333333333335,
+      "latency_ms": 5092
+    },
+    {
+      "node_type": "verification",
+      "model_id": "mid",
+      "samples": 3,
+      "quality": 75.33333333333333,
+      "cost": 0.801,
+      "latency_ms": 6047
+    },
+    {
+      "node_type": "verification",
+      "model_id": "strong",
+      "samples": 3,
+      "quality": 83.66666666666667,
+      "cost": 1.5794166666666667,
+      "latency_ms": 2121
+    }
+  ],
+  "exclusions": [
+    {
+      "node_type": "synthesis",
+      "model_id": "cheap",
+      "reason": "incomplete-or-invalid-cohort"
+    }
+  ],
+  "model_bindings": {
+    "cheap": "deepseek-v4-flash",
+    "mid": "minimax-m3",
+    "strong": "deepseek-v4-pro"
+  }
+}

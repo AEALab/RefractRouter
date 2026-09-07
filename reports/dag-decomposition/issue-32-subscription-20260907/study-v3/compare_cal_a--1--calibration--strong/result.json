@@ -1,0 +1,286 @@
+{
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.5179170984774828,
+      "start_ms": 3.8877500919625163,
+      "end_ms": 7215.235333074816,
+      "queue_ms": 3.3698329934850335,
+      "output": "{\n  \"result\": \"试点方案投入12单位、覆盖2组，单位覆盖成本为6单位/组；全面推广方案投入40单位、覆盖8组，单位覆盖成本为5单位/组。仅从单位覆盖成本看，全面推广略优。但材料B指出试点便于修正错误，而全面推广存在培训不足风险，因此全面推广的低单位成本建立在更大规模铺开的基础上，若培训不足导致执行偏差，可能产生额外纠错成本。建议在明确培训能力、执行条件和纠错机制后再比较净成本与风险，不宜仅凭单位覆盖成本直接选择全面推广。\",\n  \"evidence\": \"材料A：试点投入12单位、覆盖2组；全面推广投入40单位、覆盖8组。材料B：试点便于修正错误；全面推广存在培训不足风险。\",\n  \"assumptions\": \"假设投入单位与覆盖组数可直接用于计算单位覆盖成本，且两组方案的目标组别具有可比性。材料未提供培训成本、纠错成本、时间周期、质量效果等数据，因此无法得出全面推广净成本必然更优的结论。\"\n}",
+      "latency_ms": 7208,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 3.940083086490631,
+      "start_ms": 7228.935125051066,
+      "end_ms": 12794.832917046733,
+      "queue_ms": 7224.995041964576,
+      "output": "{\n  \"result\": \"两方案在风险层面的主要差异是：试点方案投入规模较小、覆盖范围有限，便于在实施过程中发现并修正错误，风险可控性相对较高；全面推广方案投入规模较大、覆盖范围成倍扩大，但材料指出存在培训不足风险，可能影响执行质量和效果，风险敞口更大。因此，从风险角度不宜直接认定全面推广优于试点，应明确全面推广前需满足的条件，例如培训准备是否充分、试点经验是否可复制、执行能力是否匹配等。\",\n  \"evidence\": \"材料 A：试点投入 12 单位、覆盖 2 组；全面推广投入 40 单位、覆盖 8 组。材料 B：试点便于修正错误；全面推广存在培训不足风险。\",\n  \"assumptions\": \"本分析仅基于给定风险材料，不依赖成本测算，也不对成本效益作量化比较。材料未提供培训不足风险的发生概率、影响程度及试点错误修正的具体机制，因此无法判断风险等级或给出量化结论。\"\n}",
+      "latency_ms": 5565,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 12796.656833030283,
+      "start_ms": 12799.338583019562,
+      "end_ms": 21594.339208095334,
+      "queue_ms": 2.6817499892786145,
+      "output": "{\n  \"text\": \"综合成本与风险两方面分析，现有材料并不支持直接选择全面推广方案。成本分析显示，试点方案单位覆盖成本为6单位/组，全面推广方案为5单位/组，全面推广在单位覆盖成本上略优；但这一优势建立在更大规模铺开的基础上，材料B同时指出全面推广存在培训不足风险，可能带来执行偏差和额外纠错成本。风险分析也显示，试点方案投入规模较小、覆盖范围有限，便于修正错误，风险可控性相对较高；全面推广方案覆盖范围成倍扩大，培训不足风险可能影响执行质量和效果，风险敞口更大。两者在结论方向上一致，未发现明显冲突。\\n\\n主要遗漏在于：材料未提供培训成本、纠错成本、时间周期、质量效果、培训不足风险的发生概率与影响程度，以及试点经验是否可复制、执行能力是否匹配等条件。因此，当前只能判断全面推广的单位覆盖成本略低，但不能判断其净成本或综合风险更优。\\n\\n建议：不宜仅凭单位覆盖成本直接选择全面推广。应明确全面推广的前置条件，包括培训能力是否充分、试点经验是否可复制、执行能力是否匹配、纠错机制是否建立；在补充培训成本、纠错成本、质量效果和风险概率等数据后，再比较两方案的净成本与风险。若这些条件不能满足，应优先保留试点或采取分阶段扩大覆盖的方式。\\n\\n依据：材料A显示试点投入12单位、覆盖2组，全面推广投入40单位、覆盖8组；材料B显示试点便于修正错误，全面推广存在培训不足风险。上述建议基于给定材料，未虚构额外数据，并受限于材料未提供的成本、风险与执行条件信息。\"\n}",
+      "latency_ms": 8792,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "parents": [],
+        "contract": {
+          "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，当前执行器仍串行。"
+  },
+  "final_output": "{\n  \"text\": \"综合成本与风险两方面分析，现有材料并不支持直接选择全面推广方案。成本分析显示，试点方案单位覆盖成本为6单位/组，全面推广方案为5单位/组，全面推广在单位覆盖成本上略优；但这一优势建立在更大规模铺开的基础上，材料B同时指出全面推广存在培训不足风险，可能带来执行偏差和额外纠错成本。风险分析也显示，试点方案投入规模较小、覆盖范围有限，便于修正错误，风险可控性相对较高；全面推广方案覆盖范围成倍扩大，培训不足风险可能影响执行质量和效果，风险敞口更大。两者在结论方向上一致，未发现明显冲突。\\n\\n主要遗漏在于：材料未提供培训成本、纠错成本、时间周期、质量效果、培训不足风险的发生概率与影响程度，以及试点经验是否可复制、执行能力是否匹配等条件。因此，当前只能判断全面推广的单位覆盖成本略低，但不能判断其净成本或综合风险更优。\\n\\n建议：不宜仅凭单位覆盖成本直接选择全面推广。应明确全面推广的前置条件，包括培训能力是否充分、试点经验是否可复制、执行能力是否匹配、纠错机制是否建立；在补充培训成本、纠错成本、质量效果和风险概率等数据后，再比较两方案的净成本与风险。若这些条件不能满足，应优先保留试点或采取分阶段扩大覆盖的方式。\\n\\n依据：材料A显示试点投入12单位、覆盖2组，全面推广投入40单位、覆盖8组；材料B显示试点便于修正错误，全面推广存在培训不足风险。上述建议基于给定材料，未虚构额外数据，并受限于材料未提供的成本、风险与执行条件信息。\"\n}",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "答案正确计算了两个方案的单位覆盖成本（试点6单位/组，全面推广5单位/组），并比较了风险（试点便于修正错误、风险可控；全面推广存在培训不足风险、风险敞口更大）。建议部分明确指出了全面推广的前置条件（培训能力、试点经验可复制性、执行能力、纠错机制），并提出了分阶段扩大的替代方案，符合任务要求。答案基于给定材料，未虚构数据，且指出了材料遗漏的关键信息（培训成本、纠错成本、风险概率等）。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "答案明确计算并比较了单位覆盖成本：试点为12/2=6单位/组，全面推广为40/8=5单位/组，指出全面推广在单位成本上略优，同时说明了试点投入规模较小、覆盖范围有限，全面推广投入和覆盖范围更大。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "答案分析了风险：试点便于修正错误、风险可控性较高；全面推广存在培训不足风险，可能导致执行偏差和额外纠错成本。基于这些证据，建议明确全面推广的前置条件（培训能力、经验可复制性、执行能力、纠错机制），并在数据不足时优先保留试点或分阶段扩大，建议有证据支持且明确具体。"
+      }
+    ]
+  },
+  "assignments": {
+    "cost": "strong",
+    "risk": "strong",
+    "answer": "strong"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.48933306243270636,
+    "peak_running_nodes": 1,
+    "ended_ms": 21600.976000074297,
+    "wall_time_ms": 21600.49020894803
+  },
+  "calls": [
+    {
+      "label": "compare_cal_a--1--calibration--strong:cost",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.6342,
+      "charged": 0.35035,
+      "status": "billed",
+      "input_sha256": "2e5f33cc79e5458b0f7e70313542c36b1a57503fa00cbc057e997c57569d84a8",
+      "dispatch_monotonic": 786246.261102916,
+      "input_tokens": 400,
+      "output_tokens": 237,
+      "latency_ms": 7208,
+      "request_id": "021788788248593137f500080bf18603e76d17d12e7c43e46b7b6",
+      "finish_reason": "stop",
+      "output_sha256": "2aa85071f7912fc565b0847015576849df73e5577db9aee20c048be86fce64d8"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:risk",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.6672,
+      "charged": 0.34815,
+      "status": "billed",
+      "input_sha256": "087a2a38f2bdb1927cb4ce66a7138296dcc12727233ca3b33a9faed2539a5708",
+      "dispatch_monotonic": 786253.486150708,
+      "input_tokens": 412,
+      "output_tokens": 221,
+      "latency_ms": 5565,
+      "request_id": "0217887882558338878e6c95084a12b4d57c4d96cb06f1dbb33a0",
+      "finish_reason": "stop",
+      "output_sha256": "db0e2383ecb55d57ca14cbc0703a0efcf7c30cab4dcbd4cfab957b57a52ffcc3"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 6.935500000000001,
+      "charged": 0.70565,
+      "status": "billed",
+      "input_sha256": "3570e58f727bbeda212a9c471ee2c018d07d00e0e207f50eaab14c4c96d31824",
+      "dispatch_monotonic": 786259.056553458,
+      "input_tokens": 906,
+      "output_tokens": 377,
+      "latency_ms": 8792,
+      "request_id": "0217887882613945e054c6d0ba743fab13ed8d72af4b8b2f727bf",
+      "finish_reason": "stop",
+      "output_sha256": "103ea70f24cc82509cdc353bfe75223f2437cba1e2b719062483bd47e0c29ac6"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 11.367,
+      "charged": 0.988,
+      "status": "billed",
+      "input_sha256": "700bfdbecd4ea6fd1e51cead7c334545f6ab85812c35dad10fb5ea51e7e972f9",
+      "dispatch_monotonic": 786267.868633708,
+      "input_tokens": 665,
+      "output_tokens": 323,
+      "latency_ms": 12439,
+      "request_id": "0217887882702067093713527b8c530401a403eec8fc152871c0e",
+      "finish_reason": "stop",
+      "output_sha256": "02abdb4537d0470297e3aae3ffeb3eb251cad5dd204c467da71ef91c6344e889"
+    }
+  ],
+  "wall_time_ms": 34068.17079207394,
+  "critical_path_latency_ms": 16000,
+  "status": "completed"
+}

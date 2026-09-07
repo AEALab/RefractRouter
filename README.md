@@ -4,6 +4,23 @@
 
 RefractRouter 是一个面向**任务分解感知的异构 LLM 路由**研究项目。它研究的问题是：当复杂任务被表示为 DAG 后，如何在质量、成本和延迟之间为每个节点选择合适的模型，而不是只在整个请求层面选择一个模型。
 
+## 核心与 DSH 插件的定位
+
+本项目保留单仓库。**Router 是核心，DSH 插件是验证与接入核心的宿主适配层**。
+插件用于验证任务拆分、节点选模与组合执行的可行性；未来也可以通过
+“DSH + 插件连接核心 Router”提供实际任务入口，这是本项目产品化的实现形态之一。
+
+| 部分 | 目录 | 职责 |
+|---|---|---|
+| Router 核心与任务运行时 | `src/refractrouter/` | DAG 规划与校验、节点选模、执行、预算记账与评估 |
+| 实验与证据 | `experiments/`、`data/`、`reports/` | 冻结任务、对照实验与质量、成本、时延证据 |
+| DSH 插件 | `validation/dsh/plugin/` | 工具入口、宿主配置、凭证与进程对接、结构化结果展示 |
+| DSH 验证与调用入口 | `validation/dsh/` 下的 Python runner | 连接插件与核心、组织验证并保存证据 |
+
+当前插件通过本地 Python runner 调用核心，仍需要匹配的源码环境；独立 Router 服务与
+脱离源码目录的安装体验尚未交付。插件安装或模拟执行通过，不等于路由收益已获验证。
+完整边界见 [架构说明](docs/architecture.md) 和 [DSH 集成说明](validation/dsh/README.md)。
+
 ## 当前状态
 
 v0.1 已进入可运行原型阶段。当前实现包含：
@@ -59,7 +76,26 @@ uv run python -m experiments.analyze_model_selection \
 ```
 
 阈值与权重均须显式提供，示例不代表生产默认要求。A/B 选择函数可通过
-`refractrouter.model_selection.select_model` 调用；付费 runner 尚未接入这套离线规则。
+`refractrouter.model_selection.select_model` 调用；旧版冻结报告付费 runner 尚未接入这套离线规则；文本任务入口使用下述节点路由。
+
+## 文本任务入口
+
+插件 0.7.0 提供 `refractrouter_task`：接收任务描述，通过模型规划并校验最多 8 节点的 DAG，
+按节点质量预测、总成本和调度时延约束选择模型组合，再执行并独立评估最终答案。
+支持 A 约束式和 B 显式加权式；无可行路线时明确返回失败。
+
+`preflight` 使用标注的单节点预览，`demo` 使用模拟输出；`plan` 和 `run` 才会调用真实模型，
+须启用部署开关并提供两项预算。当前为文本生成能力，不执行节点中的浏览器、Shell 或外部
+工具动作。附带的真实路由 profile 来源于单个报告任务，只是迁移预测，不能保证任意任务质量。
+使用方式、DAG 格式、预算和示例见 [文本任务与节点路由](docs/text-task-routing.md)。
+
+按照 Issue #32，模型规划现使用 `text-task-plan-v2`：解释拆分理由、声明每条依赖消费的
+字段、节点输出契约、能力需求和验收覆盖。简单任务可不拆分，独立分支会显示为并行机会；
+默认串行，可配置最多 8 个并发节点及 provider 限制。核心会拦截非法交接并保留原文和费用，支持用 `acceptanceCriteria`
+固定验收条件。详见 [DAG 拆分机制与离线示例](docs/dag-decomposition.md)。
+
+分层 profile、校准/测试隔离和六组冻结对照已提供离线入口；真实收益仍待授权实验。
+实验任务、验收阈值及完整费用预检见 [多任务对照协议](docs/dag-study.md)。
 
 ## Quick Start
 
@@ -236,7 +272,7 @@ Canonical task 是 `data/tasks/report_001.json`，主题为“2026 年企业 LLM
 `report_002` 至 `report_020` 是明确标注的合成 benchmark brief，不代表现实供应商事实。
 每个任务包含 8 份独立 source pack，训练集与测试集按 task ID 隔离。
 
-## Architecture Boundary
+## 架构边界
 
 实现语言限定为 **Python + TypeScript**（[issue #28](https://github.com/AEALab/RefractRouter/issues/28)）。
 Python 负责 DAG、节点执行与模型分配、策略、评分评测、数据集、适配器、成本/时延统计和
@@ -261,12 +297,14 @@ Python 负责 DAG、节点执行与模型分配、策略、评分评测、数据
 - 路由策略、节点评分、任务评分。
 - 成本与关键路径延迟统计。
 
-### DSH
+### DSH 验证与产品接入
 
-DeepSeek Harness 作为外层验证环境，负责组合、工具调度、模型 provider、进程生命周期、
-sandbox、凭证解析和证据捕获；不参与模型选择，也不替换 DeepAgents/LangGraph 主执行循环。
+DeepSeek Harness 提供外层宿主环境，负责组合、工具调度、模型 provider、进程生命周期、
+sandbox、凭证解析和会话证据。Router 核心负责 DAG 节点的模型选择与执行。
 `validation/dsh/plugin/` 是可由 `dsh plugin` 安装的 bundle，向 Cordis 树贡献
-`refractrouter_validate` 工具。插件通过 DSH 原生 service 运行固定 argv，并把 Python
+`refractrouter_validate` 验证工具和 `refractrouter_task` 文本任务工具。
+前者组织冻结基准验证，后者探索实际任务的产品入口；两者调用同一项目的 Python 核心能力。
+插件通过 DSH 原生 service 运行固定 argv，并把 Python
 runner 的证据投影为结构化结果。Agent Plan benchmark 请求由受控 Python runner 直接调用
 专属 `/api/plan/v3/chat/completions`；外层 DSH agent 仍使用 `ark-plan` provider。评分、hash
 与 gate 仍只有 Python runner 一份实现。
@@ -276,7 +314,8 @@ v0.1 固定支持 DSH `0.1.1-rc.2`、Node `>=22.19.0 <23` 和 pnpm `10.15.0`，�
 不发布 registry package。安装、故障诊断、升级和回滚步骤见
 `validation/dsh/plugin/README.md`。
 
-真实阶段由插件调用 `validation/dsh/real_runner.py`。bundle 默认
+基准实验由插件调用 `validation/dsh/real_runner.py`，文本任务调用
+`validation/dsh/task_runner.py`。bundle 默认
 `allowPaidRuns: false`；付费执行必须由更高优先级的 profile patch 开启，并同时通过部署级
 与调用级两层生产/评审预算上限。直接 HTTP manifest 的凭证仅显式交给受控子进程；
 Agent Plan 还要求精确的专属 base URL。凭证不会出现在工具结果、请求进度或 evidence 中。

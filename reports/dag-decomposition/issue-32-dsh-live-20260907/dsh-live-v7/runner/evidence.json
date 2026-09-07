@@ -1,0 +1,61 @@
+{
+  "status": "pass",
+  "mode": "paid",
+  "invoked_by": "dsh-plugin",
+  "issues": [],
+  "artifacts": {
+    "answer.md": "ce7b5d2cb06cd47470545f90926da27a4e2a16a58a7a6787128a31261d58b770",
+    "manifest.json": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd",
+    "model-progress.ndjson": "0b865c9b025bee83e3fb118a24781bd4923eb0acbea3f1d5c53602e321d412fb",
+    "plan-analysis.json": "58537b3d8f44a0ab80b21b7192d81531d3dde1e893e9a257ce6c9a302ee61c8f",
+    "plan.json": "6f188a1ef3311e75e7c568bc325e9132f484e7fc639910295e3287419024bb0c",
+    "profile.json": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30",
+    "request.json": "279cc4da1b9a2683f72e22a7a61cac91bb90215f23e8a61ed8d8390679aa4098",
+    "routing.json": "e7e49ffbe996128f0396c43289f58efe2abf1cd3efe4b52d56b6aa1b905e7faf",
+    "task-result.json": "5ba09890eebca8e059dd78141df0c7a410b5e4dec12123abeaa030d1a8548958"
+  },
+  "task": {
+    "executionMode": "bounded-parallel",
+    "maxConcurrency": 2,
+    "peakActiveNodes": 2,
+    "predictedLatencyMs": 43720.0,
+    "status": "completed",
+    "mode": "run",
+    "planOrigin": "model",
+    "nodes": [
+      {
+        "nodeId": "cost_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "risk_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "answer",
+        "nodeType": "generation",
+        "parents": [
+          "cost_analysis",
+          "risk_analysis"
+        ],
+        "modelId": "cheap"
+      }
+    ],
+    "qualityScore": 100,
+    "evaluationPassed": true,
+    "outputPreview": "**成本分析**\n\n根据材料A，试点方案总投入为24单位，覆盖4组，单位覆盖成本为24÷4=6单位/组；全面推广方案总投入为54单位，覆盖12组，单位覆盖成本为54÷12=4.5单位/组。比较可知，全面推广的单位覆盖成本（4.5单位/组）低于试点方案（6单位/组），即全面推广在单位覆盖成本上更具经济性；但全面推广的总投入（54单位）高于试点方案（24单位）。\n\n**风险分析**\n\n根据材料B，试点方案允许按周调整培训，这为培训安排提供了灵活性优势，能够根据实际进展及时调整培训内容和节奏，从而降低因培训计划不合理或执行偏差导致的风险。相比之下，全面推广方案要求在上线前统一完成培训，但目前尚未确认培训是否已完成，这构成明确的风险点：若培训未能在上线前按时完成，可能导致人员准备不足、操作不熟练，进而影响推广的顺利实施。然而，关于该风险发生的具体概率，材料B中并未提供任何数据或信息，因此风险概率未知，无法量化评估。综上，试点因可调整培训而具备灵活性优势，全面推广则因培训未确认而存在上线前培训未完成的风险，但该风险的概率无法确定。\n\n**综合建议**\n\n基于上述成本与风险分析，综合建议如下：\n\n1. 若培训能在上线前确认完成，则建议选择全面推广方案。理由是该方案单位覆盖成本更低（4.5单位/组），且培训未确认的风险已消除，经济性优势可得以发挥。\n\n2. 若培训无法在短期内确认完成，则建议选择试点方案。理由是全面推广所依赖的“上线前统一完成培训”这一前提条件尚不满足，存在培训未完成导致推广受阻的风险；而试点方案允许按周调整培训，可灵活应对培训安排的不确定性，避免因人员准备不足造成更大损失。\n\n3. 若培训确认状态在决策前仍无法明确，则建议暂缓决策，优先确认培训完成情况后再做选择；在培训确认前不宜直接启动全面推广。\n\n以上建议仅基于给定材料中的成本数据和风险描述，未虚构任何收益或风险概率。",
+    "resultPath": "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-0mpVBK/output/task-result.json",
+    "productionCost": 0.24885000000000002,
+    "evaluationCost": 1.139,
+    "unconfirmedCost": 0,
+    "costIsSimulated": false,
+    "wallTimeMs": 35316
+  },
+  "preflight": {
+    "billing_unit": "AFP"
+  }
+}

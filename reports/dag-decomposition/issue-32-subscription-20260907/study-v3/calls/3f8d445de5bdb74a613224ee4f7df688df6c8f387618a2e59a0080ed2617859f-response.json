@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:answer:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确核对上游 cost 与 risk 节点，确认两方案总投入均为 22、预算结余 2、无已实现缺口，并给出与上游一致的建议（锁定 4 组时均可接受，存在变更风险时优先方案 B 并预留机动预算）。明确声明无外部证据、列出假设（同单位、未考虑税费等隐性成本）与限制（参数变化需重算），未虚构数据、未声称执行工具或检索。输出为单个原始 JSON 对象，仅含 text 字段，无非空字段缺失，转义正确。轻微不足：「资金不足风险为中等」为定性判断，未给出明确分级标准，但属于合理综合判断，不影响通过。\"}",
+  "input_tokens": 1739,
+  "output_tokens": 176,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7899,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788789901015fa871229fec4115dc08043e38393b8b5b73432"
+}

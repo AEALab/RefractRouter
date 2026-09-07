@@ -1,0 +1,45 @@
+[
+  {
+    "example": "parallel-analysis",
+    "status": "simulated",
+    "real_model_calls": 0,
+    "ready_waves": [
+      [
+        "cost",
+        "risk"
+      ],
+      [
+        "answer"
+      ]
+    ],
+    "execution_mode": "serial"
+  },
+  {
+    "example": "serial-analysis",
+    "status": "simulated",
+    "real_model_calls": 0,
+    "ready_waves": [
+      [
+        "cost"
+      ],
+      [
+        "risk"
+      ],
+      [
+        "answer"
+      ]
+    ],
+    "execution_mode": "serial"
+  },
+  {
+    "example": "single-answer",
+    "status": "simulated",
+    "real_model_calls": 0,
+    "ready_waves": [
+      [
+        "answer"
+      ]
+    ],
+    "execution_mode": "serial"
+  }
+]

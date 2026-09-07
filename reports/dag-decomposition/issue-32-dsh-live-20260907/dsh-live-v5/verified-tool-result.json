@@ -1,0 +1,106 @@
+{
+  "status": "fail",
+  "mode": "paid",
+  "phase": "dry-run",
+  "exitCode": 1,
+  "signal": null,
+  "timedOut": false,
+  "aborted": false,
+  "evidencePath": "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-OT9hmH/evidence.json",
+  "outputDir": "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-OT9hmH/output",
+  "credentialConfigured": true,
+  "modelProviderConfigured": true,
+  "billingUnit": "AFP",
+  "sandboxMode": "workspace-write",
+  "sandboxEnforcement": "full",
+  "issues": [
+    "quality-failed",
+    "plugin-runner-exit:1"
+  ],
+  "inputHashes": {
+    "dataset": "",
+    "manifest": "",
+    "corpus": "",
+    "code": ""
+  },
+  "artifactHashes": [
+    {
+      "artifact": "answer.md",
+      "sha256": "79e0746a19ba92661c4e21877ba192bd549011f76f4640faceb0ed33738f6b7b"
+    },
+    {
+      "artifact": "manifest.json",
+      "sha256": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd"
+    },
+    {
+      "artifact": "model-progress.ndjson",
+      "sha256": "0c88953e5b2666c45281754974983ee3b8a88a686fbffd0ef9605a33f6b56f0f"
+    },
+    {
+      "artifact": "plan-analysis.json",
+      "sha256": "9219f6e8bfc265d05a4cd6ae59312e07d05311425bdcfda921b2e322bcc3c872"
+    },
+    {
+      "artifact": "plan.json",
+      "sha256": "960a88cd1257f050985fa2384d0a500fc6f9d723648fc2e4f401dea69a1d220e"
+    },
+    {
+      "artifact": "profile.json",
+      "sha256": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30"
+    },
+    {
+      "artifact": "request.json",
+      "sha256": "279cc4da1b9a2683f72e22a7a61cac91bb90215f23e8a61ed8d8390679aa4098"
+    },
+    {
+      "artifact": "routing.json",
+      "sha256": "020fe076e4e205ba587c22c0f072666a934cd0ccfc66a3c040cc85faa221821a"
+    },
+    {
+      "artifact": "task-result.json",
+      "sha256": "ecbe04f6eec95e9fd737f4a7b37ed31ae82f90f4b90418816737aee7159ab4fa"
+    }
+  ],
+  "task": {
+    "executionMode": "bounded-parallel",
+    "maxConcurrency": 2,
+    "peakActiveNodes": 2,
+    "predictedLatencyMs": 43720,
+    "status": "quality-failed",
+    "mode": "run",
+    "planOrigin": "model",
+    "nodes": [
+      {
+        "nodeId": "cost_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "risk_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "synthesis",
+        "nodeType": "generation",
+        "parents": [
+          "cost_analysis",
+          "risk_analysis"
+        ],
+        "modelId": "cheap"
+      }
+    ],
+    "qualityScore": 82,
+    "evaluationPassed": false,
+    "outputPreview": "{\"text\": \"综合建议：成本上，全面推广单位覆盖成本4.5单位/组，低于试点的6单位/组，但总投入更高（54 vs 24单位）。风险上，试点可按周调整培训，灵活性高；全面推广要求上线前统一完成培训，目前尚未确认完成。因此建议：若培训能在上线前确认完成，则全面推广更经济；若培训存在延迟风险，则建议先试点以降低风险。风险概率未知，不进行量化。\"}",
+    "resultPath": "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-OT9hmH/output/task-result.json",
+    "productionCost": 0.24665,
+    "evaluationCost": 0.731,
+    "unconfirmedCost": 0,
+    "costIsSimulated": false,
+    "wallTimeMs": 32673
+  },
+  "stdoutTail": "{\"status\": \"fail\", \"evidence\": \"/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-OT9hmH/evidence.json\", \"issues\": [\"quality-failed\"]}\n"
+}

@@ -1,3 +1,4 @@
+import { decodeTaskSummary, registerTaskTool, TASK_SUMMARY_SCHEMA, type TaskArguments } from './task-tool.js'
 import type { Writable } from 'node:stream'
 import type {
   BillingUnit, BridgeResponse, BridgeResponseBase, CapturedOutput, DshContext,
@@ -8,7 +9,7 @@ import { decodeEvidence, type RunnerEvidence } from './evidence.js'
 
 export type { DshContext, PluginConfig, ToolArguments, ValidationResult } from './contracts.js'
 
-import { mkdtemp, readFile, stat } from 'node:fs/promises'
+import { mkdtemp, readFile, stat, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -94,6 +95,7 @@ export function resolveConfig(config: unknown = {}): Readonly<PluginConfig> {
     'uvExecutable',
     'uvCacheDir',
     'runnerPath',
+    'taskProfilePath',
     'datasetPath',
     'manifestPath',
     'credentialEnv',
@@ -121,6 +123,7 @@ export function resolveConfig(config: unknown = {}): Readonly<PluginConfig> {
       'validation/dsh/real_runner.py',
       'runnerPath',
     ),
+    taskProfilePath: configuredString(config.taskProfilePath, 'data/routing/demo-usd-v1.json', 'taskProfilePath'),
     datasetPath: configuredString(
       config.datasetPath,
       'data/benchmarks/v0.1.json',
@@ -359,6 +362,9 @@ function summarizeEvidence(
       code: inputs?.code?.sha256 ?? '',
     },
     artifactHashes: artifactHashes(evidence, secrets),
+    ...evidence.task === undefined ? {} : { task: decodeTaskSummary(
+      JSON.parse(redactSensitiveText(JSON.stringify(evidence.task), secrets)) as unknown,
+    ) },
     ...fallback.stdoutTail.length === 0 ? {} : { stdoutTail: fallback.stdoutTail },
     ...fallback.stderrTail.length === 0 ? {} : { stderrTail: fallback.stderrTail },
   }
@@ -634,9 +640,10 @@ async function dshProviderIssues(ctx: DshContext, routes: ModelRoute[]): Promise
 }
 
 async function executeValidation(
-  ctx: DshContext, args: unknown, exec: ToolExecution, config: Readonly<PluginConfig>,
+  ctx: DshContext, args: unknown, exec: ToolExecution, config: Readonly<PluginConfig>, taskInput?: TaskArguments,
 ): Promise<ValidationResult> {
   const request = resolveRequest(args, config)
+  if (taskInput && config.maxRetries !== 0) throw new Error('text tasks require zero retries')
   const workspace = workspaceOf(exec)
   const manifestPath = resolve(workspace, config.manifestPath)
   const manifest = await readExecutionManifest(manifestPath)
@@ -659,6 +666,8 @@ async function executeValidation(
   const runRoot = await mkdtemp(join(tmpdir(), 'refractrouter-dsh-plugin-'))
   const outputDir = join(runRoot, 'output')
   const evidencePath = join(runRoot, 'evidence.json')
+  const requestPath = join(runRoot, 'task-request.json')
+  if (taskInput) await writeFile(requestPath, JSON.stringify(taskInput), 'utf8')
   const reference = config.credentialEnv
   let credentialInfo
   try {
@@ -714,15 +723,13 @@ async function executeValidation(
     '--extra',
     'deepagents',
     'python',
-    resolve(workspace, config.runnerPath),
-    '--dataset',
-    resolve(workspace, config.datasetPath),
+    resolve(workspace, taskInput ? 'validation/dsh/task_runner.py' : config.runnerPath),
+    ...taskInput
+      ? ['--request-file', requestPath, '--profile', resolve(workspace, config.taskProfilePath)]
+      : ['--dataset', resolve(workspace, config.datasetPath), '--phase', request.phase,
+          '--repeats', String(request.repeats)],
     '--manifest',
     manifestPath,
-    '--phase',
-    request.phase,
-    '--repeats',
-    String(request.repeats),
     '--max-retries',
     String(config.maxRetries),
     '--output-dir',
@@ -747,7 +754,8 @@ async function executeValidation(
   const confined = policy.mode === 'danger-full-access'
     ? undefined
     : ctx.sandbox.confine(argv, policy)
-  const timeoutSignal = AbortSignal.timeout(config.timeoutMs)
+  const timeoutSignal = AbortSignal.timeout(taskInput && request.paid
+    ? Math.max(1, Math.ceil(Math.min(config.timeoutMs, taskInput.latencyMaxMs))) : config.timeoutMs)
   const signal = AbortSignal.any([exec.signal, timeoutSignal])
   let handle
   let outcome
@@ -796,6 +804,7 @@ async function executeValidation(
   }
   if (outcome.exitCode !== 0) fallbackIssues.push(`plugin-runner-exit:${String(outcome.exitCode)}`)
   if (evidence === undefined) fallbackIssues.push('missing-evidence')
+  if (taskInput && !evidence?.task) fallbackIssues.push('missing-task-result')
   if (timedOut) fallbackIssues.push('plugin-runner-timeout')
   if (aborted) fallbackIssues.push('plugin-runner-aborted')
   if (stdout?.lossy === true) fallbackIssues.push('plugin-runner-stdout-truncated')
@@ -933,6 +942,7 @@ const OUTPUT_SCHEMA: JsonSchema = {
         },
       },
     },
+    task: TASK_SUMMARY_SCHEMA,
     stdoutTail: { type: 'string' },
     stderrTail: { type: 'string' },
   },
@@ -991,4 +1001,8 @@ export function apply(ctx: DshContext, rawConfig: unknown = {}): void {
     },
     execute: (args, exec) => executeValidation(ctx, args, exec, config),
   })
+  registerTaskTool(ctx, OUTPUT_SCHEMA, (input, exec) => executeValidation(ctx, {
+    phase: 'dry-run', executePaidRun: input.mode === 'plan' || input.mode === 'run',
+    maxProductionCost: input.maxProductionCost, maxEvaluationCost: input.maxEvaluationCost,
+  }, exec, config, input))
 }

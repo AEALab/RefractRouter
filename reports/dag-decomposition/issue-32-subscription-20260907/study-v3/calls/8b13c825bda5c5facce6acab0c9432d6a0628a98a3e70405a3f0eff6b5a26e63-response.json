@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:1:risk:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，包含 result、evidence、assumptions 三个非空字符串字段，符合契约。result 基于材料 A/B 比较两方案，给出风险定性分析与条件式建议，未依赖成本测算，符合节点职责；evidence 引用原材料；assumptions 明确假设、不确定性与信息缺口，未虚构数据，也未声称执行工具或检索新事实。轻微不足：evidence 未使用「」中文引号标注原文（仅复述材料内容），且 result 中「反馈可能较慢」属对材料的合理外推而非直接证据，但已在 assumptions 中说明为定性推断，整体满足检查要求。\"}",
+  "input_tokens": 965,
+  "output_tokens": 168,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8107,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887890015345e054c6d0ba743fab13ed8d72af4b8b2366007"
+}

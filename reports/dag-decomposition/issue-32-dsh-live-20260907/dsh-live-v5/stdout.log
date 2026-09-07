@@ -1,0 +1,34 @@
+已按授权只调用一次 `refractrouter_task`（mode=run、method=A），结果为失败，原样报告如下（不重试、不改模式）：
+
+## 执行状态
+- **状态：fail**（失败）
+- **阶段：** dry-run（虽以 paid/run 模式请求，但插件 runner 在干跑阶段即以退出码 1 结束，未进入正式付费执行）
+- **原因（issues）：** `quality-failed`、`plugin-runner-exit:1`
+- **运行上下文：** 凭据已配置（credentialConfigured=true）、模型 Provider 已配置（modelProviderConfigured=true）、计费单位 AFP、沙箱 workspace-write
+- **耗时：** 约 32.7 秒（wallTimeMs=32673）
+
+## 模型分配（任务 DAG）
+规划来源为模型（planOrigin=model），共 3 个节点，全部路由到 **cheap** 模型：
+| 节点 | 类型 | 前置依赖 | 模型 |
+|---|---|---|---|
+| cost_analysis | generation | 无 | cheap |
+| risk_analysis | generation | 无 | cheap |
+| synthesis | generation | cost_analysis、risk_analysis | cheap |
+
+峰值并发 2 个节点（bounded-parallel，maxConcurrency=2），预测时延约 43.7 秒。
+
+## 最终评分
+- **qualityScore：82**（≥ qualityMin 80），但 **evaluationPassed：false**，独立评估判定未通过（quality-failed），因此整体判为失败。
+- 实际产出摘录（outputPreview）：正确比较了单位覆盖成本（试点 6 单位/组 vs 全面推广 4.5 单位/组）并保留总投入（24 vs 54），也依据培训与调整条件给出有条件的综合建议，并明确“风险概率未知，不进行量化”。
+
+## 产物路径
+- **证据文件：** `/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-OT9hmH/evidence.json`
+- **输出目录：** `/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-OT9hmH/output`
+- **任务结果：** `.../output/task-result.json`
+
+## 费用记账（模拟/实际成本）
+- 生产成本 productionCost：0.24665 AFP
+- 评估成本 evaluationCost：0.731 AFP
+- 未确认成本 unconfirmedCost：0，costIsSimulated=false
+
+**结论：工具调用失败。** 插件 runner 退出码 1 且最终评估未通过（quality-failed），未能完成正式付费执行；以上为失败结果原样汇报，未作任何替代执行或参数改写。

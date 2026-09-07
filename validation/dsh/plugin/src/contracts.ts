@@ -18,6 +18,7 @@ export interface PluginConfig {
   uvExecutable: string
   uvCacheDir: string
   runnerPath: string
+  taskProfilePath: string
   datasetPath: string
   manifestPath: string
   credentialEnv: string
@@ -118,7 +119,28 @@ export type BridgeResponse = BridgeResponseBase & (
   | { ok: false; failure_type: string; message: string; request_id?: string }
 )
 
+export interface TaskSummary {
+  executionMode: 'serial' | 'bounded-parallel'
+  maxConcurrency: number
+  peakActiveNodes: number | null
+  predictedLatencyMs: number | null
+  status: string
+  mode: string
+  planOrigin: string
+  nodes: Array<{ nodeId: string; nodeType: string; parents: string[]; modelId: string }>
+  qualityScore: number | null
+  evaluationPassed: boolean | null
+  outputPreview: string
+  resultPath: string
+  productionCost: number
+  evaluationCost: number
+  unconfirmedCost: number
+  costIsSimulated: boolean
+  wallTimeMs: number
+}
+
 export interface ValidationResult extends ProcessOutcome {
+  task?: TaskSummary
   status: 'pass' | 'fail'
   mode: 'preflight' | 'paid'
   phase: Phase

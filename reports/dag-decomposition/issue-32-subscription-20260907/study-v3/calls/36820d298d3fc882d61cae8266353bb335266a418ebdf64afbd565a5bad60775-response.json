@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案A总投入10+3×4=22，方案B总投入18+1×4=22，均未超过预算24，资金缺口为0，风险评估与建议合理且覆盖了节点职责（成本与资源需求分析）。evidence 字段明确说明无外部材料、数据来源于任务描述，assumptions 字段列出了组数固定、预算硬上限、未考虑其他成本等假设与信息缺口，符合「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」的检查要求。输出为单个原始 JSON 对象，包含 result、evidence、assumptions 三个声明字段且均为非空字符串，无 Markdown 围栏，无未转义的英文双引号，未声称执行工具或检索新事实。轻微扣分点：建议部分关于扩展性的推断虽已在 assumptions 中声明为推断，但略微超出「先计算总投入，再判断资金缺口风险并建议」的核心要求，属于可接受的合理延伸。\"}",
+  "input_tokens": 982,
+  "output_tokens": 237,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8011,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178878976937975251d478e5bf6426f4e0f08f6c1b2004c7234"
+}

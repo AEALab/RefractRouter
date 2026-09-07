@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:cost:cheap:judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"计算正确：方案A为8+4×5=28，超出预算26，缺口2；方案B为20+1×5=25，在预算内。建议合理且与计算一致。输出为单个原始JSON对象，包含contract要求的result、evidence、assumptions三个非空字符串字段；evidence明确说明无外部证据、基于任务给定数据，assumptions明确列出成本口径、组数固定、预算硬上限及未考虑其他成本收益，符合「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」。未发现不实工具执行声明。轻微扣分点是建议部分较简略，未展开风险等级或敏感性，但不影响通过。\"}",
+  "input_tokens": 866,
+  "output_tokens": 175,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7406,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887900341548df8e1a1401bb5aa62b5b494646ada58d544a1"
+}
