@@ -2,15 +2,20 @@
 from collections import defaultdict
 from statistics import mean, pstdev
 
+from .benchmark import comparison_exclusions
 
-def paired_comparisons(observations):
+
+def paired_comparisons(observations, *, expected_blocks=None):
     indexed = {}
     for item in observations:
         key = (item.task_id, item.repeat, item.strategy)
         if key in indexed:
             raise ValueError(f"Duplicate observation: {key}")
         indexed[key] = item
-    blocks = sorted({key[:2] for key in indexed})
+    observed_blocks = {key[:2] for key in indexed}
+    blocks = sorted(set(expected_blocks) if expected_blocks is not None else observed_blocks)
+    if observed_blocks - set(blocks):
+        raise ValueError("Observation outside expected task/repeat blocks")
     pairs = []
     summaries = {}
     for candidate in ("node-oracle", "node-type-rule"):
@@ -23,8 +28,8 @@ def paired_comparisons(observations):
                 for label, item in ((candidate, left), (baseline, right)):
                     if item is None:
                         errors.append(f"{label}:missing-run")
-                    elif item.judge is None or item.judge_error or item.result.failure_types:
-                        errors.append(f"{label}:incomplete-run")
+                    else:
+                        errors.extend(f"{label}:{reason}" for reason in comparison_exclusions(item))
                 row = dict(task_id=task_id, repeat=repeat, candidate=candidate,
                            baseline=baseline, included=not errors, exclusion_reasons=errors)
                 if left and right:
@@ -37,9 +42,9 @@ def paired_comparisons(observations):
                         baseline_quality=right.judge.final_score if right.judge and not right.judge_error else None,
                         quality_delta=left.judge.final_score - right.judge.final_score if not errors else None,
                         candidate_cost=a.total_cost, baseline_cost=b.total_cost,
-                        cost_delta=a.total_cost - b.total_cost,
-                        cost_reduction_percent=(b.total_cost-a.total_cost)/b.total_cost*100 if b.total_cost else None,
-                        latency_delta_ms=a.critical_path_latency_ms-b.critical_path_latency_ms,
+                        cost_delta=a.total_cost - b.total_cost if not errors else None,
+                        cost_reduction_percent=(b.total_cost-a.total_cost)/b.total_cost*100 if not errors and b.total_cost else None,
+                        latency_delta_ms=a.critical_path_latency_ms-b.critical_path_latency_ms if not errors else None,
                         identical_assignments=dict(a.model_assignments) == dict(b.model_assignments),
                         candidate_is_mixed=len(set(a.model_assignments.values())) > 1,
                         identical_output=a.final_output == b.final_output,
@@ -48,6 +53,9 @@ def paired_comparisons(observations):
                 rows.append(row)
             valid = [row for row in rows if row["included"]]
             stats = dict(pairs=len(valid), excluded_pairs=len(rows)-len(valid),
+                         included_blocks=[dict(task_id=r["task_id"], repeat=r["repeat"]) for r in valid],
+                         excluded_blocks=[dict(task_id=r["task_id"], repeat=r["repeat"],
+                                               reasons=r["exclusion_reasons"]) for r in rows if not r["included"]],
                          task_count=len({r["task_id"] for r in valid}),
                          repeats=sorted({r["repeat"] for r in valid}),
                          identical_assignment_pairs=sum(r["identical_assignments"] for r in valid),
@@ -81,6 +89,12 @@ def comparisons_markdown(report):
         lines.append(f"| {name} | {s['pairs']} / {s['excluded_pairs']} | {s['task_count']} | {s['repeats']} | "
                      f"{s['quality_delta_mean']} ± {s['quality_delta_stddev']} | "
                      f"{s['cost_delta_mean']} ± {s['cost_delta_stddev']} | {s['identical_assignment_pairs']} | {s['mixed_candidate_pairs']} |")
+    lines.extend(["", "Included cohorts (identical for every displayed delta):"])
+    for name, stats in report["summaries"].items():
+        blocks = ", ".join(f"{r['task_id']}/{r['repeat']}" for r in stats["included_blocks"]) or "none"
+        lines.append(f"- {name}: {blocks}.")
+        for row in stats["excluded_blocks"]:
+            lines.append(f"  Excluded {row['task_id']}/{row['repeat']}: {', '.join(row['reasons'])}.")
     lines.extend(["", "Positive quality Δ favors the candidate. Negative cost Δ means lower production cost.",
                   "Probe and judge expenses are reported separately in the run ledger.", ""])
     return "\n".join(lines)

@@ -721,3 +721,12 @@ test('both paid budgets are checked before credentials or process launch', async
     assert.equal(fixture.calls.spawn, 0)
   }
 })
+
+test('node selection policy is typed, validated and forwarded to Python', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
+  await assert.rejects(fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'invented' }, execution()), /unknown selectionPolicy/)
+  await assert.rejects(fixture.tool.execute({ phase: 'contract-replay', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution()), /does not select/)
+})

@@ -208,6 +208,10 @@ def test_three_repeat_run_persists_all_cells_singles_and_matched_comparisons(tmp
     summary = json.loads((tmp_path / 'benchmark-summary.json').read_text())
     assert summary['status'] == 'complete'
     assert summary['node_matrix'] == dict(expected_cells=63, recorded_cells=63)
+    assert len(summary['node_availability']) == 3
+    assert all(block['records_complete'] and block['evaluations_available']
+               and block['route_executed'] and block['route_judged']
+               for block in summary['node_availability'])
     # Equal semantic scores legitimately select the cheapest single model; never force a mixture.
     assert summary['oracle_gate']['decision'] == 'Insufficient-evidence'
     assert not summary['oracle_gate']['routing_change_observed']

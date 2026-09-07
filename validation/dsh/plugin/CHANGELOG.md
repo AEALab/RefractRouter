@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+- Add a typed `selectionPolicy` argument and forward it through the DSH runner to Python.
+- Preserve v1 defaults; expose explicit v2 known-rejection exclusion with fail-closed unknowns.
+- Keep policy semantics and comparison cohorts in Python; add argument contract regressions.
+
 ## 0.4.1
 
 - Migrate plugin and service contracts to strict TypeScript, with explicit host/config/tool/result

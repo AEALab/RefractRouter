@@ -62,7 +62,13 @@ def run_real_validation(
     max_evaluation_cost: float | None = None,
     max_retries: int = 2,
     invoked_by: str = "local",
+    selection_policy: str = "all-candidates-required-v1",
 ) -> int:
+    from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
+    if selection_policy not in SELECTION_POLICIES:
+        raise ValueError("Unknown node selection policy")
+    if phase == "contract-replay" and selection_policy != LEGACY_SELECTION_POLICY:
+        raise ValueError("contract-replay does not select node candidates")
     dataset_path = dataset_path.resolve()
     manifest_path = manifest_path.resolve()
     output_dir = output_dir.resolve()
@@ -86,6 +92,8 @@ def run_real_validation(
         "--max-retries",
         str(max_retries),
     ]
+    if phase != "contract-replay":
+        command.extend(["--selection-policy", selection_policy])
     if execute_paid_run:
         if max_production_cost is None or max_evaluation_cost is None:
             raise ValueError("Paid DSH validation requires both cost limits")
@@ -204,6 +212,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--evidence", required=True, type=Path)
     parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay"), default="dry-run")
     parser.add_argument("--repeats", type=int, default=1)
+    from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
+    parser.add_argument("--selection-policy", choices=SELECTION_POLICIES, default=LEGACY_SELECTION_POLICY)
     parser.add_argument("--execute-paid-run", action="store_true")
     parser.add_argument("--max-production-cost", type=float)
     parser.add_argument("--max-evaluation-cost", type=float)
@@ -226,6 +236,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         max_evaluation_cost=args.max_evaluation_cost,
         max_retries=args.max_retries,
         invoked_by=args.invoked_by,
+        selection_policy=args.selection_policy,
     )
 
 

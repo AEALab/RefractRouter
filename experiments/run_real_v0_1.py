@@ -27,6 +27,10 @@ from refractrouter.judge import IndependentJudge, apply_judge_score
 from refractrouter.judge import JudgeEvaluation
 from refractrouter.manifest import ModelManifest, load_model_manifest
 from refractrouter.model_registry import ModelRegistry
+from refractrouter.node_availability import (
+    matrix_availability, evaluation_state, select_available_candidates,
+    LEGACY_SELECTION_POLICY, REJECTION_SELECTION_POLICY, SELECTION_POLICIES,
+)
 from refractrouter.node_judge import IndependentNodeJudge, NodeJudgeError, NODE_RUBRIC_PATH, NODE_RUBRIC_VERSION
 from refractrouter.node_contracts import CONTRACT_FAILURES, prompt_contract_snapshot
 from refractrouter.scoring import NODE_CHECKS_VERSION, node_contract_checks
@@ -62,12 +66,14 @@ class TaskStrategyBundle:
     single_results: dict[str, TaskResult]
     node_matrix: tuple[dict, ...] = ()
     matrix_complete: bool = True
+    selection_decision: dict | None = None
 
 
 class NodeQualityRecorder:
     """Persist every cell, including failed/unevaluated candidates, before selection."""
 
-    def __init__(self, judge, ledger, output_dir, models=()):
+    def __init__(self, judge, ledger, output_dir, models=(), selection_policy=LEGACY_SELECTION_POLICY):
+        self.selection_policy = selection_policy
         self.judge = judge
         self.ledger = ledger
         self.output_dir = output_dir
@@ -127,7 +133,7 @@ class NodeQualityRecorder:
                    "rubric_sha256": self.judge.rubric_sha256, "rows": self.rows,
                    "raw_node_score_kind": "deterministic contract cap; use evaluation.final_score for selection",
                    "selection": "highest eligible semantic score, then lowest observed node cost",
-                   "selection_policy": "all-candidates-required-v1",
+                   "selection_policy": self.selection_policy,
                    "global_oracle": False}
         (self.output_dir / "node-quality-matrix.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -225,7 +231,12 @@ def build_task_strategy_bundle(
     include_learned: bool,
     node_evaluator=None,
     single_recorder=None,
+    selection_policy=LEGACY_SELECTION_POLICY,
 ) -> TaskStrategyBundle:
+    if selection_policy not in SELECTION_POLICIES:
+        raise ValueError(f"Unknown node selection policy: {selection_policy}")
+    if selection_policy == REJECTION_SELECTION_POLICY and node_evaluator is None:
+        raise ValueError("v2 selection requires independent node evaluations")
     executor = DeepAgentsGraphExecutor(task, adapter, registry)
     singles: dict[str, TaskResult] = {}
     for model in registry.list():
@@ -271,6 +282,11 @@ def build_task_strategy_bundle(
                     probes.append(_probe_result(task, replace(node_result, score=row["evaluation"]["final_score"])))
             else:
                 probes.append(_probe_result(task, node_result))
+    decision = None
+    if selection_policy == REJECTION_SELECTION_POLICY:
+        decision = select_available_candidates(matrix, task=task,
+                        model_ids=[model.model_id for model in registry.list()], policy=selection_policy)
+        matrix_complete = decision["route_executable"]
     if node_evaluator is not None and (not matrix_complete or len(eligible_nodes) != len(task.nodes)):
         matrix_complete = False
         node_assignments = {}
@@ -281,7 +297,7 @@ def build_task_strategy_bundle(
                                billing_unit=registry.cheapest().billing_unit,
                                failure_types=("node-quality-incomplete",))
     else:
-        node_assignments = node_oracle(task, registry, probes)
+        node_assignments = decision["assignments"] if decision else node_oracle(task, registry, probes)
         node_best = executor.execute(node_assignments, "node-oracle")
     for row in matrix:
         row["selected"] = row["eligible"] and node_assignments.get(row["node_id"]) == row["model_id"]
@@ -319,7 +335,7 @@ def build_task_strategy_bundle(
             statistical_q(task, registry, training_results),
             "statistical-q",
         )
-    return TaskStrategyBundle(results=results, single_results=singles, node_matrix=tuple(matrix), matrix_complete=matrix_complete)
+    return TaskStrategyBundle(results=results, single_results=singles, node_matrix=tuple(matrix), matrix_complete=matrix_complete, selection_decision=decision)
 
 
 def _retag(
@@ -458,6 +474,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument("--phase", choices=("dry-run", "pilot", "final"), default="dry-run")
     parser.add_argument("--repeats", type=int, default=1)
+    parser.add_argument("--selection-policy", choices=SELECTION_POLICIES, default=LEGACY_SELECTION_POLICY)
     parser.add_argument("--execute-paid-run", action="store_true")
     parser.add_argument("--max-production-cost", type=float)
     parser.add_argument("--max-evaluation-cost", type=float)
@@ -514,7 +531,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "checks_version": NODE_CHECKS_VERSION, "rubric_sha256": _sha256(NODE_RUBRIC_PATH),
             "selection": "blinded-independent-node-judge-with-contract-caps",
             "tie_break": "observed-node-cost", "global_oracle": False,
-            "selection_policy": "all-candidates-required-v1",
+            "selection_policy": args.selection_policy,
         },
         "node_output_contract": prompt_contract_snapshot(),
         "execution_policy": {
@@ -544,7 +561,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             os.environ.get(manifest.candidates[0].api_key_env or "")
         ),
     }
-    if args.execute_paid_run and (args.output_dir / "node-evaluations.ndjson").exists():
+    if args.execute_paid_run and args.output_dir.exists() and any(args.output_dir.iterdir()):
         parser.error("Use a fresh output directory for a paid run; existing node evidence cannot be overwritten")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "preflight.json").write_text(
@@ -593,7 +610,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     registry = manifest.candidate_registry()
 
     node_judge = IndependentNodeJudge(client, manifest.judge)
-    quality = NodeQualityRecorder(node_judge, ledger, args.output_dir, manifest.candidates)
+    quality = NodeQualityRecorder(node_judge, ledger, args.output_dir, manifest.candidates, args.selection_policy)
     training_results: list[TaskResult] = []
     for task in train_tasks:
         executor = DeepAgentsGraphExecutor(task, adapter, registry)
@@ -629,9 +646,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 training_results,
                 include_learned=include_learned,
                 single_recorder=checkpoint_single,
+                selection_policy=args.selection_policy,
                 node_evaluator=lambda task, node, result, context: quality.record(
                     task, node, result, context, repeat=repeat_index, stage="probe"),
             )
+            if bundle.selection_decision is not None:
+                (args.output_dir / f"selection-{task.task_id}-{repeat_index}.json").write_text(
+                    json.dumps(bundle.selection_decision, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             single_evaluations = {}
             single_errors = {}
             for model_id, single_result in bundle.single_results.items():
@@ -746,9 +767,11 @@ def _write_outputs(
             json.dumps(asdict(observation), ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-    summary = aggregate_observations(observations)
+    expected_blocks = [(task_id, repeat) for task_id in preflight["test_task_ids"]
+                       for repeat in range(1, args.repeats + 1)]
+    summary = aggregate_observations(observations, expected_blocks=expected_blocks)
     gate = oracle_gate(summary)
-    comparisons = paired_comparisons(observations)
+    comparisons = paired_comparisons(observations, expected_blocks=expected_blocks)
     failures = failure_taxonomy(observations)
     for row in node_rows:
         if row["node_result"]["status"] != "ok":
@@ -760,9 +783,34 @@ def _write_outputs(
     expected_cells = preflight["call_plan"]["node_judge_model_calls"]
     if len(node_rows) != expected_cells:
         failures["node-matrix:missing-cells"] = abs(expected_cells - len(node_rows))
-    model_run_complete = all(
-        float(values["judge_coverage"]) == 1.0 for values in summary.values()
-    ) and not failures
+    availability = []
+    for task_id, repeat in expected_blocks:
+        block = [item for item in observations if (item.task_id, item.repeat) == (task_id, repeat)]
+        nodes = sorted({node.node_id for item in block for node in item.result.node_results})
+        rows = [row for row in node_rows if (row["task_id"], row["repeat"]) == (task_id, repeat)
+                and row["stage"] == "probe"]
+        state = matrix_availability(rows, node_ids=nodes,
+                                    model_ids=[model.model_id for model in manifest.candidates])
+        route = next((item for item in block if item.strategy == "node-oracle"), None)
+        availability.append(dict(task_id=task_id, repeat=repeat, **state,
+                                 route_executed=bool(route and route.result.model_assignments),
+                                 route_judged=bool(route and route.judge and not route.judge_error)))
+    selection_policy = preflight["node_quality"]["selection_policy"]
+    blocking_failures = dict(failures)
+    if selection_policy == REJECTION_SELECTION_POLICY:
+        # Retain known rejections in the taxonomy and cost ledger, while allowing
+        # alternatives only when every cell is known and each route is executable.
+        for row in node_rows:
+            if row["stage"] == "probe" and evaluation_state(row) == "contract-rejected":
+                key = "node-probe:" + str(row["node_result"]["failure_type"])
+                if key in blocking_failures:
+                    blocking_failures[key] -= 1
+                    if blocking_failures[key] == 0:
+                        del blocking_failures[key]
+        if any(not block["evaluations_available"] or block["nodes_without_eligible_candidates"]
+               or not block["route_executed"] for block in availability):
+            blocking_failures["node-selection:unavailable"] = 1
+    model_run_complete = all(values["cohort"]["complete"] for values in summary.values()) and not blocking_failures
     comparison = comparisons["summaries"]["node-oracle vs task-oracle"]
     gate["routing_change_observed"] = comparison["pairs"] > comparison["identical_assignment_pairs"]
     gate["repeated"] = args.repeats >= 3
@@ -791,6 +839,9 @@ def _write_outputs(
         "strategies": summary,
         "comparisons": comparisons["summaries"],
         "node_matrix": {"expected_cells": expected_cells, "recorded_cells": len(node_rows)},
+        "selection_policy": selection_policy,
+        "node_availability": availability,
+        "blocking_failures": blocking_failures,
         "oracle_gate": gate,
         "failure_taxonomy": failures,
         "costs": {

@@ -1,0 +1,21 @@
+# Real-model baseline summary
+
+Quality, cost and latency use the same successful, independently judged task/repeat cohort.
+Success and judge coverage use all expected blocks; excluded costs remain in totals and the run ledger.
+Partial cohorts are descriptive; paired comparisons are the primary comparison evidence.
+
+| Strategy | Quality mean ± sd | Production cost mean ± sd (AFP) | p50 / p95 latency (ms) | Success | Judge coverage |
+|---|---:|---:|---:|---:|---:|
+| `node-oracle` | 91.500 ± 0.500 | 5.36502500 ± 1.16562500 | 68538 / 81017 | 66.67% | 66.67% |
+| `node-type-rule` | 91.333 ± 2.867 | 5.06706667 ± 0.46379246 | 59246 / 71355 | 100.00% | 100.00% |
+| `strong-all` | 84.333 ± 1.700 | 9.16153333 ± 2.26100598 | 73099 / 89691 | 100.00% | 100.00% |
+| `task-oracle` | 94.000 ± 4.320 | 2.12130000 ± 2.00127770 | 54299 / 77164 | 100.00% | 100.00% |
+| `weak-all` | 90.333 ± 7.760 | 0.66526667 ± 0.11678928 | 49213 / 76655 | 100.00% | 100.00% |
+
+Cohorts (task/repeat; same blocks for quality, cost and latency):
+- `node-oracle`: 2/3 blocks: report_001/2, report_001/3.
+  Excluded report_001/1: failed-execution, missing-final-output, missing-judge, judge:missing-final-output.
+- `node-type-rule`: 3/3 blocks: report_001/1, report_001/2, report_001/3.
+- `strong-all`: 3/3 blocks: report_001/1, report_001/2, report_001/3.
+- `task-oracle`: 3/3 blocks: report_001/1, report_001/2, report_001/3.
+- `weak-all`: 3/3 blocks: report_001/1, report_001/2, report_001/3.

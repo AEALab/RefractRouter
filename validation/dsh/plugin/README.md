@@ -11,6 +11,23 @@ credential resolution, exact Agent Plan endpoint, and two budget ceilings. No ju
 the tool still requires a positive evaluation ceiling for a paid request, but replay evaluation
 spend is zero. A replay pass establishes contract validity only, not semantic quality or Go.
 
+## Versioned node selection
+
+Version 0.5.0 adds the optional `selectionPolicy` argument, passed to Python as
+`--selection-policy`. Its default is `all-candidates-required-v1`.
+`exclude-known-contract-rejections-v2` retains known contract rejections in the exhaustive matrix
+and excludes them from candidate selection. Missing execution/judging, invalid reference context,
+missing/duplicate cells, or a node without eligible alternatives still stop composition.
+Python owns all selection and completeness rules. Contract replay accepts only the default policy.
+
+```json
+{"phase":"dry-run","repeats":1,"selectionPolicy":"exclude-known-contract-rejections-v2","executePaidRun":false}
+```
+
+The policy is recorded in preflight, matrix, summary and DSH evidence. A fresh paid output directory
+is mandatory. A v2 known probe rejection is preserved in `failure_taxonomy`; `blocking_failures`
+separately reports failures that invalidate the experiment. No final quality or Go threshold changes.
+
 ## Supported versions
 
 The v0.1 compatibility contract is intentionally narrow:
@@ -41,7 +58,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.4.1.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.5.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,
