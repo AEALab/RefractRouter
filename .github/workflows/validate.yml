@@ -13,12 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
           enable-cache: true
       - name: Install locked dependencies
         run: uv sync --frozen --extra dev --extra deepagents
+      - name: Install locked TypeScript dependencies
+        run: npm ci --prefix validation/dsh/plugin
+      - name: Type check DSH plugin
+        run: npm run --prefix validation/dsh/plugin typecheck
+      - name: Build DSH plugin
+        run: npm run --prefix validation/dsh/plugin build
       - name: Run tests
         run: uv run pytest
       - name: Validate canonical fake-model experiment
@@ -56,9 +65,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Install locked Python dependencies
+        run: uv sync --frozen --extra dev --extra deepagents
+      - name: Install locked TypeScript dependencies
+        run: npm ci --prefix validation/dsh/plugin
+      - name: Type check, build and test DSH plugin
+        run: |
+          npm run --prefix validation/dsh/plugin typecheck
+          npm test --prefix validation/dsh/plugin
       - name: Install pinned DSH plugin tooling
         run: npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
       - name: Validate clean-profile plugin lifecycle
         run: python3 scripts/validate_dsh_plugin_lifecycle.py
-      - name: Validate package contents
-        run: npm pack ./validation/dsh/plugin --dry-run --json
+      - name: Validate packaged plugin lifecycle
+        run: python3 scripts/validate_dsh_plugin_lifecycle.py --packed

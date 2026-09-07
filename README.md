@@ -64,7 +64,10 @@ uv run python -m experiments.analyze_model_selection \
 ## Quick Start
 
 ```bash
-uv sync --extra dev --extra deepagents
+uv sync --frozen --extra dev --extra deepagents
+npm ci --prefix validation/dsh/plugin
+npm run --prefix validation/dsh/plugin typecheck
+npm run --prefix validation/dsh/plugin build
 uv run pytest
 uv run refractrouter run \
   --task data/tasks/report_001.json \
@@ -88,8 +91,10 @@ dsh --profile headless \
 
 命令说明：
 
-- `uv sync --extra dev --extra deepagents`：安装测试依赖与 DeepAgents/LangGraph。
-- `uv run pytest`：运行完整测试套件。
+- `uv sync --frozen --extra dev --extra deepagents`：安装测试依赖与 DeepAgents/LangGraph。
+- `npm ci --prefix validation/dsh/plugin`：安装锁定的 TypeScript 开发工具。
+- `npm run --prefix validation/dsh/plugin typecheck` / `build`：严格类型检查和构建插件。
+- `uv run pytest`：运行 Python 全套测试及编译后的 TypeScript DSH 契约测试。
 - `uv run refractrouter run ...`：执行一次 canonical task 并输出 standalone HTML。
 - `uv run python experiments/run_v0_1.py`：运行五个策略并生成实验报告。
 - `uv run python validation/dsh/canonical_runner.py ...`：在隔离目录重跑完整实验、
@@ -232,6 +237,16 @@ Canonical task 是 `data/tasks/report_001.json`，主题为“2026 年企业 LLM
 每个任务包含 8 份独立 source pack，训练集与测试集按 task ID 隔离。
 
 ## Architecture Boundary
+
+实现语言限定为 **Python + TypeScript**（[issue #28](https://github.com/AEALab/RefractRouter/issues/28)）。
+Python 负责 DAG、节点执行与模型分配、策略、评分评测、数据集、适配器、成本/时延统计和
+实验 runner；TypeScript 负责 DSH 插件入口、配置与工具类型、宿主服务、进程与凭据边界、
+结构化结果及该层契约测试。新增实现语言或跨层复制业务逻辑须先记录架构提案，并在合并前
+取得维护者批准。完整职责、构建产物及评审要求见 [架构说明](docs/architecture.md)。
+
+插件源码位于 `validation/dsh/plugin/src/`，严格类型检查后编译到 `dist/`；包入口为
+`dist/index.js`，契约测试位于 `validation/dsh/plugin/tests/`。编译生成的 JavaScript
+仅作为运行产物，禁止新增手写 JavaScript 实现。安装 checkout 插件前需执行上述构建命令。
 
 ### DeepAgents / LangGraph
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Migrate plugin and service contracts to strict TypeScript, with explicit host/config/tool/result
+  types and validated Python evidence projection. Malformed evidence fields fail closed.
+- Build the ESM entry and declarations into `dist/`; pack only the runtime distribution, with no
+  runtime dependencies. Retain endpoint, credential, budget and replay safeguards.
+
 ## 0.4.0
 
 - Add `contract-replay` for the seven frozen issue #25 writer failures. Default to preflight,

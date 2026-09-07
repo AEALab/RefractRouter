@@ -11,12 +11,25 @@ PLUGIN = ROOT / "validation" / "dsh" / "plugin"
 
 
 class DSHPluginTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Never install from the test suite: clean checkouts install the locked dev tools first.
+        completed = subprocess.run(
+            ["npm", "run", "--prefix", str(PLUGIN), "build"],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(
+                "Build the TypeScript plugin after npm ci --prefix validation/dsh/plugin.\n"
+                f"{completed.stdout}\n{completed.stderr}"
+            )
+
     def test_bundle_manifest_and_safe_defaults(self) -> None:
         package = json.loads((PLUGIN / "package.json").read_text(encoding="utf-8"))
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.4.0")
+        self.assertEqual(package["version"], "0.4.1")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")
@@ -35,9 +48,9 @@ class DSHPluginTests(unittest.TestCase):
         self.assertIn("maxRetries: 0", patch)
 
     def test_plugin_is_valid_esm_and_uses_native_dsh_seams(self) -> None:
-        source = (PLUGIN / "index.js").read_text(encoding="utf-8")
+        source = (PLUGIN / "src" / "index.ts").read_text(encoding="utf-8")
         completed = subprocess.run(
-            ["node", "--check", str(PLUGIN / "index.js")],
+            ["node", "--check", str(PLUGIN / "dist" / "index.js")],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -53,31 +66,9 @@ class DSHPluginTests(unittest.TestCase):
         self.assertIn("ctx.credentials.resolve", source)
         self.assertNotIn("node:child_process", source)
 
-    def test_plugin_config_schema_defaults_and_rejects_unknown_fields(self) -> None:
-        program = """
-import { Config } from './validation/dsh/plugin/index.js'
-const valid = Config['~standard'].validate({})
-if (!('value' in valid) || valid.value.allowPaidRuns !== false || valid.value.maxRetries !== 0) process.exit(1)
-const invalid = Config['~standard'].validate({ unexpected: true })
-if (!('issues' in invalid) || invalid.issues.length !== 1) process.exit(2)
-const fractional = Config['~standard'].validate({ timeoutMs: 1.5 })
-if (!('issues' in fractional) || fractional.issues.length !== 1) process.exit(3)
-const retry = Config['~standard'].validate({ maxRetries: -1 })
-if (!('issues' in retry) || retry.issues.length !== 1) process.exit(4)
-"""
-        completed = subprocess.run(
-            ["node", "--input-type=module", "--eval", program],
-            cwd=ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-
     def test_node_service_contract(self) -> None:
         completed = subprocess.run(
-            ["node", "--test", "tests/dsh_plugin_contract.test.mjs"],
+            ["npm", "run", "--prefix", str(PLUGIN), "test:contracts"],
             cwd=ROOT,
             check=False,
             capture_output=True,
