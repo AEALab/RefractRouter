@@ -2,11 +2,14 @@
 
 ## 0.7.0
 
+- 新增 `refractrouter_task` 与 `taskProfilePath`，由 Python 完成文本 DAG 规划、A/B 选模、执行和独立评审。
+- 合并既有基准候选策略时按 runner 职责区分参数，避免将基准选模选项传入文本任务。
+
 - 文本任务新增有界并发、provider 并发上限及启动间隔参数；默认串行。
 - 结果增加执行模式、最大并发、观测峰值和预测时延，Python 负责调度与原子预算。
 - A/B 使用完整 DAG 调度时延；B 不再奖励对总耗时没有贡献的分支加速。
 - 支持分层 profile 与固定校准/测试协议，提供零调用预检及完整模拟对照。
-- 取消或失败后停止新派发并结算在途调用；真实组合收益仍待授权验证。
+- 取消或失败后停止新派发并结算在途调用；真实组合收益仍待完整对照验证。
 
 ## 0.6.0
 
@@ -19,10 +22,9 @@
 
 ## 0.5.0
 
-- Add `refractrouter_task` for bounded text DAG planning, per-node A/B routing, execution and
-  independent final judging through the Python runtime. Add `taskProfilePath` deployment config.
-- Keep preview/demo explicitly simulated and require empirical profiles, paid enablement and both
-  budgets for live modes. Preserve benchmark tooling and historical evidence.
+- 新增有类型的 `selectionPolicy`，经 DSH 基准 runner 原样传给 Python。
+- 保留 v1 默认行为，支持显式 v2 排除已知契约拒绝；未知失败继续阻断。
+- 选模语义与配对样本规则留在 Python，并补充参数契约回归。
 
 ## 0.4.1
 

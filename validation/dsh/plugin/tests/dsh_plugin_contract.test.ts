@@ -856,3 +856,21 @@ test('DSH 在派发前拒绝非法并发参数', async () => {
   }
   assert.equal(fixture.calls.spawn, 0)
 })
+
+test('node selection policy is typed, validated and forwarded to Python', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
+  await assert.rejects(fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'invented' }, execution()), /unknown selectionPolicy/)
+  await assert.rejects(fixture.tool.execute({ phase: 'contract-replay', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution()), /does not select/)
+})
+
+test('文本任务不接收基准专用候选策略参数', async () => {
+  const fixture = fakeContext({ toolName: 'refractrouter_task' })
+  await fixture.tool.execute(taskInput, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.ok(argv.some(value => value.endsWith('validation/dsh/task_runner.py')))
+  assert.equal(argv.includes('--selection-policy'), false)
+  assert.equal(argv.includes('--phase'), false)
+})

@@ -1,0 +1,577 @@
+{
+  "schema_version": "ark-agent-plan-catalog-v1",
+  "snapshot_date": "2026-09-07",
+  "provider": "ark-plan",
+  "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+  "billing_unit": "AFP",
+  "source_url": "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+  "user_reference_url": "https://console.volcengine.com/ark/region:cn-beijing/docs/82379/2366394?projectName=default&lang=zh",
+  "pricing_url": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+  "source_snapshots": [
+    {
+      "url": "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+      "sha256": "19b55606bc82f40154f32aa9975d54ba9f8a41d1b0c0b5c970994d02335f0ff6",
+      "format": "Jina Reader Markdown"
+    },
+    {
+      "url": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+      "sha256": "6e5aebe70fc3a3ce5ca4a27eef6747b5bb1ba824d50c9553fd672e0845c7b4f3",
+      "format": "Jina Reader Markdown"
+    }
+  ],
+  "account_plan_tier": null,
+  "usage_boundary": "Use through supported AI tools; documented availability is not account entitlement or runtime verification.",
+  "benchmark_manifest": "data/model-manifests/volcengine-agent-plan.json",
+  "models": [
+    {
+      "model_id": "doubao-seed-2.0-mini",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 256000,
+      "max_output_tokens": 128000,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 0.25,
+        "output_coefficient": 0.25
+      }
+    },
+    {
+      "model_id": "doubao-seed-2.0-lite",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 256000,
+      "max_output_tokens": 128000,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 0.5,
+        "output_coefficient": 0.5
+      }
+    },
+    {
+      "model_id": "deepseek-v4-flash",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 384000,
+      "integration": "text-manifest-required",
+      "live_verified": true,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 0.5,
+        "output_coefficient": 0.5
+      },
+      "thinking_policy": "disabled-in-frozen-manifest"
+    },
+    {
+      "model_id": "glm-5.3-flash",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 128000,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 0.5,
+        "output_coefficient": 0.5
+      },
+      "documented_image_input": true,
+      "promotional_pricing": {
+        "input_coefficient": 0.25,
+        "output_coefficient": 0.25,
+        "starts_at": "2026-08-28T00:00:00+08:00",
+        "ends_at": "2026-09-11T23:59:59+08:00",
+        "source": "https://www.volcengine.com/docs/82379/2533565"
+      }
+    },
+    {
+      "model_id": "doubao-seed-2.1-turbo",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 256000,
+      "max_output_tokens": 256000,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 2.5,
+        "output_coefficient": 2.5
+      }
+    },
+    {
+      "model_id": "doubao-seed-evolving",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 256000,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 2.5,
+        "output_coefficient": 2.5
+      }
+    },
+    {
+      "model_id": "minimax-m3",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 128000,
+      "integration": "text-manifest-required",
+      "live_verified": true,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 2.5,
+        "output_coefficient": 2.5
+      },
+      "thinking_policy": "disabled-in-frozen-manifest",
+      "json_mode_strategy": "prompt-only"
+    },
+    {
+      "model_id": "glm-5.3",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 128000,
+      "integration": "thinking-policy-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 4.5,
+        "output_coefficient": 4.5
+      },
+      "aliases": [
+        "glm-latest"
+      ],
+      "thinking_policy": "required-cannot-disable"
+    },
+    {
+      "model_id": "kimi-k2.7-code",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 256000,
+      "max_output_tokens": 32000,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 4.5,
+        "output_coefficient": 4.5
+      }
+    },
+    {
+      "model_id": "deepseek-v4-pro",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 384000,
+      "integration": "text-manifest-required",
+      "live_verified": true,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 5.5,
+        "output_coefficient": 5.5
+      },
+      "thinking_policy": "disabled-in-frozen-manifest"
+    },
+    {
+      "model_id": "kimi-k3",
+      "capability": "text-generation",
+      "plan_tiers": [
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 128000,
+      "integration": "text-manifest-required",
+      "live_verified": true,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 10,
+        "output_coefficient": 10
+      },
+      "thinking_policy": "disabled-in-frozen-manifest"
+    },
+    {
+      "model_id": "doubao-embedding-vision",
+      "capability": "embedding",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 128000,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 0.5,
+        "output_coefficient": 0.5
+      }
+    },
+    {
+      "model_id": "doubao-seedream-5.0-lite",
+      "capability": "image-generation",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-successful-image",
+        "coefficient": 99
+      }
+    },
+    {
+      "model_id": "doubao-seedance-1.5-pro",
+      "capability": "video-generation",
+      "plan_tiers": [
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "retiring",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "availability_notes": "The model table lists Medium, but the overview excludes video from Medium; verify entitlement before use.",
+      "pricing": {
+        "unit": "afp-per-10000-video-tokens",
+        "variants": [
+          {
+            "audio": false,
+            "coefficient": 36
+          },
+          {
+            "audio": true,
+            "coefficient": 72
+          }
+        ]
+      }
+    },
+    {
+      "model_id": "doubao-seedance-2.0",
+      "capability": "video-generation",
+      "plan_tiers": [
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-video-tokens",
+        "variants": [
+          {
+            "resolutions": [
+              "480p",
+              "720p"
+            ],
+            "input_video": true,
+            "coefficient": 140
+          },
+          {
+            "resolutions": [
+              "480p",
+              "720p"
+            ],
+            "input_video": false,
+            "coefficient": 230
+          },
+          {
+            "resolutions": [
+              "1080p"
+            ],
+            "input_video": true,
+            "coefficient": 155
+          },
+          {
+            "resolutions": [
+              "1080p"
+            ],
+            "input_video": false,
+            "coefficient": 255
+          },
+          {
+            "resolutions": [
+              "4k"
+            ],
+            "input_video": true,
+            "coefficient": 80
+          },
+          {
+            "resolutions": [
+              "4k"
+            ],
+            "input_video": false,
+            "coefficient": 130
+          }
+        ]
+      }
+    },
+    {
+      "model_id": "doubao-seedance-2.0-fast",
+      "capability": "video-generation",
+      "plan_tiers": [
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-video-tokens",
+        "variants": [
+          {
+            "input_video": true,
+            "coefficient": 110
+          },
+          {
+            "input_video": false,
+            "coefficient": 185
+          }
+        ]
+      }
+    },
+    {
+      "model_id": "doubao-seedance-2.0-mini",
+      "capability": "video-generation",
+      "plan_tiers": [
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-video-tokens",
+        "variants": [
+          {
+            "input_video": true,
+            "coefficient": 70
+          },
+          {
+            "input_video": false,
+            "coefficient": 115
+          }
+        ]
+      }
+    },
+    {
+      "model_id": "doubao-seed-tts-2.0",
+      "capability": "speech-synthesis",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-10000-characters",
+        "coefficient": 1350
+      }
+    },
+    {
+      "model_id": "doubao-seed-asr-2.0",
+      "capability": "speech-recognition",
+      "plan_tiers": [
+        "small",
+        "medium",
+        "large",
+        "max"
+      ],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": null,
+      "max_output_tokens": null,
+      "integration": "adapter-required",
+      "live_verified": false,
+      "sources": [
+        "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+        "https://www.volcengine.com/docs/82379/2516283?lang=zh"
+      ],
+      "pricing": {
+        "unit": "afp-per-audio-hour",
+        "coefficient": 450
+      }
+    }
+  ]
+}

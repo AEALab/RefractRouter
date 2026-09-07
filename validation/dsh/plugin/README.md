@@ -35,6 +35,22 @@ spend is zero. A replay pass establishes contract validity only, not semantic qu
 Agent Plan 可使用与 AFP 清单匹配的 `data/routing/report-transfer-v1.json`，但这仍是
 单一报告任务的迁移预测。付费模式保留部署开关、双预算、原生凭证和进程控制及零重试。
 
+## 基准候选选模策略
+
+0.5.0 加入的 `selectionPolicy` 参数继续保留，仅由 `refractrouter_validate` 传给
+Python 基准 runner 的 `--selection-policy`；默认 `all-candidates-required-v1`。
+显式 `exclude-known-contract-rejections-v2` 保留完整矩阵中的已知契约拒绝证据，
+但从候选选择中排除这些模型。执行或评分缺失、参考上下文无效、重复单元格和节点无可用
+候选仍会停止组合。Python 负责全部业务规则，契约回放只接受默认策略。
+
+```json
+{"phase":"dry-run","repeats":1,"selectionPolicy":"exclude-known-contract-rejections-v2","executePaidRun":false}
+```
+
+策略记录在预检、矩阵、总结和 DSH 证据中；新真实运行必须使用新目录。已知拒绝保留在
+`failure_taxonomy`，阻断实验的问题另列 `blocking_failures`；最终质量及 Go 阈值不变。
+文本任务工具使用自己的 A/B 路由参数，不向文本 runner 传递基准专用策略。
+
 ## Supported versions
 
 The v0.1 compatibility contract is intentionally narrow:
