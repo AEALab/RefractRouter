@@ -62,3 +62,22 @@ DSH outer calls, is 393.287 AFP; add the retained 16.192 AFP unsettled request e
 1.9742 AFP of the original outer allowance gives total admitted exposure 2441.4532 AFP,
 within the existing 2505-AFP approval. Per-request reservations remain estimates, and the
 existing budget checks stop new requests when the remaining allowance is insufficient.
+
+## Completed three-repeat run, 2026-09-07
+
+The prepared full run subsequently completed 237/237 requests on clean `3e9f99d`, without
+changing approval settings or repeating the seven-case replay. All 63 matrix cells are saved;
+62 are eligible, and the second/third repeats execute different mixed node-oracle routes.
+One first-repeat Flash synthesis probe omitted evidence, so the frozen all-candidates-required
+policy skipped that composed route. All nine single-model reports were independently judged.
+
+The two valid paired mixed routes score 7.5 points above all Pro and cost 3.734175 AFP less on
+average, but score 4.5 points below the paired best single model and cost 2.598275 AFP more.
+The complete three-repeat decision remains **Insufficient-evidence**. The selection policy
+has not been changed; [issue #29](https://github.com/AEALab/RefractRouter/issues/29) tracks the
+remaining rejection/availability distinction and aligned comparison cohorts.
+
+This run used 412.84970 AFP in model calls plus 1.19945 AFP for two outer DSH calls, totaling
+414.04915 AFP. Known cost across the original authorization is now 807.33615 AFP; including
+the retained 16.192-AFP unsettled estimate leaves 1681.47185 AFP of the approved 2505 AFP.
+The paid profile is disabled. See the [full report and audit](repeated-agent-plan/README.md).

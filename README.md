@@ -30,8 +30,16 @@ issue #22 已补齐独立节点评审、三模型矩阵、配对比较，并完�
 最终平均质量分别为 88.333、88.333、86.667。M3 的中间 JSON 契约失败及组合输出缺失
 证据字段导致 oracle 最终评审不完整，因此判定为 **Insufficient-evidence**。
 未评审的备用分数在核对版汇总中显示 N/A。
-完整结果见 [三轮复验证据](reports/v0.2-node-quality/repeated-agent-plan/README.md)；
-[issue #25](https://github.com/AEALab/RefractRouter/issues/25) 追踪修复，issue #5 等待有效对照。
+旧结果见 [v0.2 三轮复验证据](reports/v0.2-node-quality/repeated-agent-plan/README.md)。
+
+2026-09-07 在契约修复后完成新三轮复验：237/237 请求正常结束，63 格矩阵全部保存，
+62 格有效，九份单模型报告全部获得独立评分。第二、三轮 node-oracle 组成了不同的混合
+路线；相对全 Pro 的配对平均质量高 7.5 分、成本低 3.734175 AFP，但相对当轮最佳单模型
+质量低 4.5 分、成本高 2.598275 AFP。首轮因一个 Flash 分析候选缺少证据而被冻结选择规则
+跳过，因此完整三轮判定仍为 **Insufficient-evidence**，未启动 pilot。
+详见 [v0.3 三轮复验报告](reports/v0.3-contract-recovery/repeated-agent-plan/README.md)。
+[issue #29](https://github.com/AEALab/RefractRouter/issues/29) 记录候选拒绝与缺失评估的规则问题；
+issue #22 继续跟踪完整对照，issue #5 等待有效证据。
 
 ## Quick Start
 
@@ -99,8 +107,9 @@ output tokens、judge input 8,000 tokens，不计算缓存折扣；实际支出�
 旧归档中的“全部生产调用按最贵模型计算”估算仍作为历史记录保留。
 
 issue #22 的三轮复验已获得 2505 AFP 总预算批准并执行。修复过程中在总额内调整了
-生产/评审预留；含初次中断与 DSH 外层调用，已知费用为 386.27070 AFP，另保留一笔
-中断请求的 16.192 AFP 未结算估计。明细与实际准入限制见上述证据目录。
+生产/评审预留；截至 v0.3 三轮复验，含初次中断、七样本重放与 DSH 外层调用，已知费用为
+807.33615 AFP，另保留一笔中断请求的 16.192 AFP 未结算估计。合计占用 823.52815 AFP，
+剩余 1681.47185 AFP；明细见 [预算记录](reports/v0.3-contract-recovery/repeated-agent-plan/cost-accounting.json)。
 此次授权不自动扩展到后续 pilot。预算检查在每次调用前进行；输入 token 数仍是估算假设，
 单次请求结算可能超出预留，所以这些上限不能保证请求内精确硬停。
 
