@@ -53,6 +53,14 @@ DSH 工具参数为 `selectionPolicy`，Python 参数为 `--selection-policy`。
 [独立离线复核与后续计划](reports/v0.4-cohort-review/README.md)保留历史证据不变，
 确认 node-oracle 两个有效轮次平均质量 91.5、平均成本 5.365025 AFP，仍无完整 Go 证据。
 
+[v2 全新三轮对照](reports/v0.4-known-rejections/repeated-agent-plan/README.md)已执行：
+242/242 实际请求正常返回，63 格矩阵全部独立评审，三轮混合路线得分 94、90、92。
+第三轮 Flash 单模型分析输出遗漏 `evidence`，导致三个下游请求及一次最终评审未执行，
+最佳单模型对照仅前两轮有效。有效配对中混合路线质量低 2.5 分、成本高 1.985325 AFP；
+完整性与收益判定仍为 **Insufficient-evidence**，#22 继续开放，#5 pilot 未启动。
+[失败诊断](reports/v0.4-known-rejections/repeated-agent-plan/failure-diagnosis.json)确认上游证据
+存在，拒绝符合冻结契约；下一步先离线评估证据保留及完整路线失败的比较规则。
+
 复核工具现在要求历史证据目录之外的全新输出目录：
 
 ```bash
@@ -169,6 +177,12 @@ issue #22 的三轮复验已获得 2505 AFP 总预算批准并执行。修复过
 剩余 1681.47185 AFP；明细见 [预算记录](reports/v0.3-contract-recovery/repeated-agent-plan/cost-accounting.json)。
 此次授权不自动扩展到后续 pilot。预算检查在每次调用前进行；输入 token 数仍是估算假设，
 单次请求结算可能超出预留，所以这些上限不能保证请求内精确硬停。
+
+后续用户批准总额增至 **3000 AFP**，其中 v2 全新三轮额度为生产 730、评审 1270、
+外层 0.5 AFP。该轮实际用量 **376.10695 AFP**，含单轮准入等历史用量后的累计已知费用
+为 1327.1134 AFP；保留旧未结算 16.192 AFP 后尚余 **1656.6946 AFP**。
+参见 [最新账本](reports/v0.4-known-rejections/repeated-agent-plan/cost-accounting.json)。
+付费 profile 已关闭，没有自动重跑或启动 pilot。
 
 零费用三轮预检命令：
 

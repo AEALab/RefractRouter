@@ -1,0 +1,23 @@
+{
+  "approved": true,
+  "source": "User explicitly agreed in the current conversation to increase the total authorization from 2505 to 3000 AFP for one fresh three-repeat run.",
+  "scope": {
+    "task_ids": [
+      "report_001"
+    ],
+    "repeats": 3,
+    "production_limit": 730,
+    "evaluation_limit": 1270,
+    "outer_limit": 0.5,
+    "run_envelope": 2000.5,
+    "total_authorization": 3000
+  },
+  "excluded": [
+    "pilot",
+    "final benchmark",
+    "new-model/media admission",
+    "automatic rerun"
+  ],
+  "execution_commit": "34e1bd6ac8786c11a69ca32509d613b6a0bea39f",
+  "preparation": "../three-repeat-preflight/run-plan.json"
+}
