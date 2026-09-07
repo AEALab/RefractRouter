@@ -1,0 +1,2 @@
+用户已授权本次固定实验。只调用一次 refractrouter_validate，参数必须完全等于下列 JSON。不要调用任何其他工具，不要追加调用，不要重试；工具返回后只输出它的 status、outputDir 和 evidencePath 并立即结束。即使失败也直接汇报并结束。参数：
+{"phase": "k3-baseline", "stage": "prepare", "repeats": 1, "inputDir": "reports/v0.5-glm-calibration/main-preflight", "reviewsPath": "reports/v0.5-glm-calibration/paid-admission-1/reviews.json", "executePaidRun": true, "maxProductionCost": 132, "maxEvaluationCost": 0}

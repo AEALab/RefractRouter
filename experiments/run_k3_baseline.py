@@ -47,9 +47,11 @@ class RecordedAdapter:
 
     def __init__(self, delegate, path):
         self.delegate, self.path = delegate, path
+        self.results = []
 
     def invoke(self, task, node, prompt, context, model):
         result = self.delegate.invoke(task, node, prompt, context, model)
+        self.results.append(result)
         with self.path.open('a', encoding='utf-8') as stream:
             stream.write(json.dumps(asdict(result), ensure_ascii=False, allow_nan=False)+'\n')
             stream.flush()
@@ -153,7 +155,8 @@ def main(argv=None):
         if a.input_dir or a.reviews: p.error('完整模拟不接收真实输入材料')
         fixture = FixtureAdapter(registry)
         result = prepare(task,manifest,fixture,simulation=True)
-        result = compose(result,fixture_reviews(result['node_packet']),fixture,quality_floor=a.quality_floor,max_quality_gap=a.max_quality_gap)
+        if result['stage']=='node-review-ready':
+            result = compose(result,fixture_reviews(result['node_packet']),fixture,quality_floor=a.quality_floor,max_quality_gap=a.max_quality_gap)
         result.update(calibration=build_calibration(task,ROOT),config_sha256=digest(config))
         summary = (finalize(result,fixture_reviews(result['final_packet']),calibration_passed=False)
                    if result['stage']=='final-review-ready' else {'status':'blocked','simulation':True})
@@ -190,8 +193,12 @@ def main(argv=None):
     adapter=RecordedAdapter(BudgetedAdapter(OpenAICompatibleAdapter(client),ledger), a.output_dir/'production-results.ndjson')
     if a.stage=='prepare': result=prepare(task,manifest,adapter,simulation=False)
     else: result=compose(state,response['nodes'],adapter,quality_floor=a.quality_floor,max_quality_gap=a.max_quality_gap)
-    result.update(calibration=state['calibration'],calibration_result=calibration,config_sha256=digest(config),stage_production_cost=ledger.production_spent)
-    summary={'status':result['stage'],'simulation':False,'stage_production_cost':ledger.production_spent}
+    unknown = [{'node_id':r.node_id,'model_id':r.model_id,'failure_type':r.failure_type}
+               for r in adapter.results if r.status!='ok' and r.attempts>0 and r.input_tokens==r.output_tokens==0]
+    costs = {'stage_production_cost':None if unknown else ledger.production_spent,
+             'known_stage_production_cost':ledger.production_spent, 'unknown_usage_requests':unknown}
+    result.update(calibration=state['calibration'],calibration_result=calibration,config_sha256=digest(config),**costs)
+    summary={'status':result['stage'],'simulation':False,**costs}
     # 交接状态不冒充实验完成。
     write(a.output_dir/'benchmark-summary.json',summary)
     save_bundle(a.output_dir,result)

@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from refractrouter.schemas import NodeResult
 
 from experiments.run_k3_baseline import main, read_bundle
 from experiments.run_execution_modes import FixtureAdapter
@@ -179,3 +180,49 @@ def test_paid_without_review_is_blocked_before_client(tmp_path):
     with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client:
         with pytest.raises(SystemExit):main(['--execute-paid-run','--output-dir',str(tmp_path)])
     client.assert_not_called()
+
+
+@pytest.mark.parametrize('failure', ['timeout', 'invalid-html'])
+def test_baseline_failure_stops_before_any_reference_or_probe(failure):
+    task, manifest, _ = setup()
+    calls = []
+    class FailedBaseline:
+        def invoke(self, task, node, prompt, context, model):
+            calls.append(model.api_model)
+            return NodeResult(node.node_id,node.node_type,model.model_id,'',
+                0 if failure=='timeout' else 100, 0 if failure=='timeout' else 50,
+                0 if failure=='timeout' else .15,120000,status='failed',failure_type=failure,attempts=1)
+    state=prepare(task,manifest,FailedBaseline(),simulation=False)
+    assert calls==['kimi-k3']
+    assert state['stage']=='blocked' and state['reason']=='baseline-failed'
+    assert state['rows']==[] and state['reference'] is None and state['node_packet'] is None
+    assert state['prepare_cost']==(None if failure=='timeout' else .15)
+
+
+def test_timeout_cli_saves_unknown_cost_and_blocked_checkpoint(tmp_path, monkeypatch):
+    initial=tmp_path/'initial';main(['--output-dir',str(initial)])
+    state=read_bundle(initial)
+    calibration=fixture_reviews(state['calibration']['public'])
+    calibration['reviewer']={'kind':'human','id':'test-fixture'}
+    sid=next(s for s,k in state['calibration']['private']['sample_records'].items() if k=='missing-comparison')
+    next(r for r in calibration['reviews'] if r['sample_id']==sid)['task_checks']['substantive_comparison']=False
+    reviews=tmp_path/'reviews.json';reviews.write_text(json.dumps({'calibration':calibration}))
+    monkeypatch.setenv('REFRACTROUTER_K3_BASELINE_HOST','dsh-plugin')
+    monkeypatch.setenv('CODEX_ARK_API_KEY','test-only')
+    class Timeout:
+        calls=0
+        def invoke(self, task, node, prompt, context, model):
+            self.calls+=1
+            return NodeResult(node.node_id,node.node_type,model.model_id,'',0,0,0,120000,
+                              status='failed',failure_type='timeout',attempts=1)
+    adapter=Timeout()
+    with patch('experiments.run_k3_baseline.OpenAICompatibleClient'), patch(
+            'experiments.run_k3_baseline.OpenAICompatibleAdapter',return_value=adapter):
+        assert main(['--output-dir',str(tmp_path/'output'),'--input-dir',str(initial),
+            '--reviews',str(reviews),'--execute-paid-run','--max-production-cost','132',
+            '--max-evaluation-cost','0'])==1
+    saved=read_bundle(tmp_path/'output')
+    summary=json.loads((tmp_path/'output/benchmark-summary.json').read_text())
+    assert saved['stage']=='blocked' and saved['reason']=='baseline-failed' and adapter.calls==1
+    assert summary['stage_production_cost'] is None
+    assert summary['known_stage_production_cost']==0 and len(summary['unknown_usage_requests'])==1
