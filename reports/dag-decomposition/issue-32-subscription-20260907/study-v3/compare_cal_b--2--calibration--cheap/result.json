@@ -1,0 +1,286 @@
+{
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.9506250498816371,
+      "start_ms": 13.692624983377755,
+      "end_ms": 4943.935542018153,
+      "queue_ms": 12.741999933496118,
+      "output": "{\n  \"result\": \"试点投入 18 单位、覆盖 3 组，全面推广投入 42 单位、覆盖 7 组。两者单位成本相同，因此单位覆盖成本均为 6 单位/组（18/3=6，42/7=6）。试点反馈更快，全面推广交付更广。条件式建议：若优先验证效果并快速调整，选择试点；若需广泛覆盖且资源充足，选择全面推广。\",\n  \"evidence\": \"材料 A：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组。材料 B：两者单位成本相同；试点反馈更快，全面推广交付更广。\",\n  \"assumptions\": \"假设“单位成本相同”指每覆盖一组的成本相同，且投入与覆盖为线性关系；未提供其他成本构成（如固定成本、时间成本），也未说明资源上限或优先级，因此建议为条件式。\"\n}",
+      "latency_ms": 4927,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 13.747917022556067,
+      "start_ms": 4964.604999986477,
+      "end_ms": 10235.651541966945,
+      "queue_ms": 4950.857082963921,
+      "output": "{\n  \"result\": \"基于材料 A 和材料 B，试点投入 18 单位覆盖 3 组，全面推广投入 42 单位覆盖 7 组，且两者单位成本相同。试点反馈更快，全面推广交付更广。风险分析如下：试点方案风险较低，因其投入和覆盖范围较小，反馈快，便于及时调整；全面推广方案风险较高，因其投入和覆盖范围大，交付广，若存在问题影响面更广。条件式建议：若需快速验证和降低风险，优先选择试点；若已具备充分信心且追求广泛覆盖，可考虑全面推广，但需加强风险监控。\",\n  \"evidence\": \"材料 A：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组。材料 B：两者单位成本相同；试点反馈更快，全面推广交付更广。\",\n  \"assumptions\": \"假设单位成本相同意味着成本与投入成正比，但未提供具体成本数值，故不进行成本测算；风险仅基于投入规模、覆盖范围和反馈速度推断，未考虑其他潜在风险因素；信息缺口包括具体风险类型、失败概率和影响程度。\"\n}",
+      "latency_ms": 5268,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 10248.61587502528,
+      "start_ms": 10260.689457994886,
+      "end_ms": 16444.438125006855,
+      "queue_ms": 12.073582969605923,
+      "output": "{\"text\": \"综合 cost 与 risk 两个上游节点的分析，两者在关键事实上一致：试点投入 18 单位覆盖 3 组，全面推广投入 42 单位覆盖 7 组，单位覆盖成本均为 6 单位/组（18/3=6，42/7=6），且试点反馈更快、全面推广交付更广。未发现冲突或遗漏，证据均来源于材料 A 和材料 B，假设一致（单位成本相同指每覆盖一组成本相同，投入与覆盖线性关系，未考虑固定成本、时间成本、资源上限及具体风险类型）。基于此，建议如下：若优先目标是快速验证效果、降低风险并便于调整，选择试点方案；若已具备充分信心且追求广泛覆盖、资源充足，选择全面推广方案，但需加强风险监控。本建议为条件式，因材料未提供资源上限、优先级及具体风险概率，无法给出绝对选择。\", \"evidence\": \"材料 A：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组。材料 B：两者单位成本相同；试点反馈更快，全面推广交付更广。\", \"assumptions\": \"假设单位成本相同指每覆盖一组成本相同，且投入与覆盖为线性关系；未提供其他成本构成（如固定成本、时间成本），也未说明资源上限或优先级，因此建议为条件式。\", \"limitations\": \"未考虑具体风险类型、失败概率和影响程度，未提供资源上限或优先级信息，故无法给出非条件式建议。\"}",
+      "latency_ms": 6181,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "parents": [],
+        "contract": {
+          "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，当前执行器仍串行。"
+  },
+  "final_output": "{\"text\": \"综合 cost 与 risk 两个上游节点的分析，两者在关键事实上一致：试点投入 18 单位覆盖 3 组，全面推广投入 42 单位覆盖 7 组，单位覆盖成本均为 6 单位/组（18/3=6，42/7=6），且试点反馈更快、全面推广交付更广。未发现冲突或遗漏，证据均来源于材料 A 和材料 B，假设一致（单位成本相同指每覆盖一组成本相同，投入与覆盖线性关系，未考虑固定成本、时间成本、资源上限及具体风险类型）。基于此，建议如下：若优先目标是快速验证效果、降低风险并便于调整，选择试点方案；若已具备充分信心且追求广泛覆盖、资源充足，选择全面推广方案，但需加强风险监控。本建议为条件式，因材料未提供资源上限、优先级及具体风险概率，无法给出绝对选择。\", \"evidence\": \"材料 A：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组。材料 B：两者单位成本相同；试点反馈更快，全面推广交付更广。\", \"assumptions\": \"假设单位成本相同指每覆盖一组成本相同，且投入与覆盖为线性关系；未提供其他成本构成（如固定成本、时间成本），也未说明资源上限或优先级，因此建议为条件式。\", \"limitations\": \"未考虑具体风险类型、失败概率和影响程度，未提供资源上限或优先级信息，故无法给出非条件式建议。\"}",
+  "evaluation": {
+    "score": 92,
+    "passed": true,
+    "rationale": "被评估文本准确引用材料 A 与材料 B 的数据，正确计算单位成本（18/3=6、42/7=6），与材料 B「单位成本相同」一致；比较了成本、覆盖范围、反馈速度与交付广度，并给出基于证据的条件式建议，明确列出假设与局限。未发现不实工具执行声明或数据错误。轻微不足：建议中「需加强风险监控」在材料中无直接证据支撑，属于合理推断但未标注为推断；对「风险」的分析主要依赖材料 B 的定性描述，深度有限，但材料本身信息有限，故影响较小。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "文本明确比较了试点（18 单位/3 组）与全面推广（42 单位/7 组）的总投入与覆盖规模，计算并指出单位成本均为 6 单位/组，与材料 B 一致，同时指出资源需求差异（覆盖广度），比较完整且有证据。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "文本基于材料 B「试点反馈更快」分析风险维度（快速验证、降低风险、便于调整），并给出条件式建议（若优先验证选试点，若信心充分且资源充足选全面推广），建议与证据对应，且明确标注假设与局限。轻微瑕疵：「需加强风险监控」为无直接材料支撑的推断，且风险分析深度受限于材料，但整体满足要求。"
+      }
+    ]
+  },
+  "assignments": {
+    "cost": "cheap",
+    "risk": "cheap",
+    "answer": "cheap"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.8327920222654939,
+    "peak_running_nodes": 1,
+    "ended_ms": 16456.3233749941,
+    "wall_time_ms": 16455.492791021243
+  },
+  "calls": [
+    {
+      "label": "compare_cal_b--2--calibration--cheap:cost",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.5119,
+      "charged": 0.0305,
+      "status": "billed",
+      "input_sha256": "83240b09aded6f829a2ef359a6b64e7d25fa60fc015eae802c4de0565e05ebb7",
+      "dispatch_monotonic": 787103.451155166,
+      "input_tokens": 400,
+      "output_tokens": 210,
+      "latency_ms": 4927,
+      "request_id": "02178878910579178af8113c224ccdd69578c3b63d1e71ae232fd",
+      "finish_reason": "stop",
+      "output_sha256": "86472dfd75aac4075709fa6f762346768f9f6bc2b5f28abf5823d4865eb5a1a4"
+    },
+    {
+      "label": "compare_cal_b--2--calibration--cheap:risk",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.5149,
+      "charged": 0.0334,
+      "status": "billed",
+      "input_sha256": "1a64ceb7c776c29ec35dda8edbaa59068fe6c155b9008d78724cefd7cb6b782b",
+      "dispatch_monotonic": 787108.402066916,
+      "input_tokens": 412,
+      "output_tokens": 256,
+      "latency_ms": 5268,
+      "request_id": "0217887891107307820404c56ac6dd9ce215ba8b602495a4e747e",
+      "finish_reason": "stop",
+      "output_sha256": "13b66fff7a52ef2891c01393c490b6d3f25847d8e3aba4211161634201db5507"
+    },
+    {
+      "label": "compare_cal_b--2--calibration--cheap:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.6218,
+      "charged": 0.0627,
+      "status": "billed",
+      "input_sha256": "1b40d6516fc2947c8ad4d49db79a2b87c70e5119e2eabe5987876a9a68877245",
+      "dispatch_monotonic": 787113.698152291,
+      "input_tokens": 914,
+      "output_tokens": 340,
+      "latency_ms": 6181,
+      "request_id": "0217887891160277820404c56ac6dd9ce215ba8b602495afd7633",
+      "finish_reason": "stop",
+      "output_sha256": "2da1c1a5e66ef83714266e957a355976b4a644b1be42b3251895e95669427962"
+    },
+    {
+      "label": "compare_cal_b--2--calibration--cheap:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 11.033000000000001,
+      "charged": 0.99,
+      "status": "billed",
+      "input_sha256": "320ce4c036270738c9b5b480094c321eaae1e87cc9c3373db26d415496b020ef",
+      "dispatch_monotonic": 787119.90557075,
+      "input_tokens": 633,
+      "output_tokens": 357,
+      "latency_ms": 13665,
+      "request_id": "021788789122239f1aca4493aa6c7087a6ccfbfdb4be6159ed894",
+      "finish_reason": "stop",
+      "output_sha256": "9a080518fadefb4a41c9c6ed1c579420c9eb8675b21ff2a2ee2d2ed2a7af981e"
+    }
+  ],
+  "wall_time_ms": 30150.487583014183,
+  "critical_path_latency_ms": 11449,
+  "status": "completed"
+}

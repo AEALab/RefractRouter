@@ -1,0 +1,12 @@
+{
+  "label": "probe:rewrite_cal_a:1:answer:cheap:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"改写「若所有输入数据已备齐，我们计划于本周五前完成测试」完整保留了原句的完成时限（本周五前）与前提条件（所有输入数据已准备好），语义忠实、表达简洁，未虚构数据或添加新事实，符合「保留证据与假设，不虚构数据」的检查要求。answer 为单个原始 JSON 对象，字段 text 为非空字符串，无 Markdown 围栏，无未转义英文双引号，符合输出契约。轻微扣分点：「前提条件是……已经全部准备好」带有假设/不确定性意味，改写为「若……已备齐」虽保留了条件关系，但「已备齐」作为既定事实陈述，略弱化了原句中「前提条件」的假设语气；且未显式声明限制或不确定性，对「覆盖本节点职责并明确限制」一项的满足较为隐含。整体质量高，判定通过。\"}",
+  "input_tokens": 636,
+  "output_tokens": 217,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9560,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788790453375e4d5e3acd6b6d5c09c835e2d36b9596c1a1d4a"
+}

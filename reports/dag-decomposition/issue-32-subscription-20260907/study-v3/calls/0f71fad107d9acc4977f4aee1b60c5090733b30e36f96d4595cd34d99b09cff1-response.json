@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确计算了单位覆盖成本（试点6单位/组、全面推广5单位/组），与材料A数据一致；风险比较忠实于材料B，未虚构数据；建议明确条件（培训能力、执行条件、纠错机制）符合任务要求。evidence 字段完整引用原始材料，assumptions 字段明确了假设与信息缺口（风险概率、纠错成本、培训费用是否包含等），满足「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」的检查要求。输出为合法 JSON，包含全部声明字段且值为非空字符串，未声称执行工具。轻微不足：evidence 字段未使用「」中文引号包裹引用原文（契约建议优先使用中文引号），且答案主体直接使用了阿拉伯数字与斜杠表述，属可接受的格式变体；此外答案未明确标注材料来源为「材料A」「材料B」的引用方式略简，但证据字段已完整保留原文，整体质量高。\"}",
+  "input_tokens": 935,
+  "output_tokens": 236,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10566,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887883869488f4f8ecdaf0d8a16803f1d267b7ea40df9d601"
+}

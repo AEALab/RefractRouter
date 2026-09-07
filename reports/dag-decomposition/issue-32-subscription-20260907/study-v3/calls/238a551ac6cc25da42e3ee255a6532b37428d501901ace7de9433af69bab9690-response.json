@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:2:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案A总投入为8+4×5=28，超出预算26存在2的资金缺口；方案B总投入为20+1×5=25，在预算内无缺口。建议合理且基于计算结果。证据字段明确说明「本节点为合成场景，无外部原始材料来源」，未虚构外部数据。假设字段清晰列出了成本一次性、组数固定、未考虑其他成本等限制条件。输出为合法JSON，包含result、evidence、assumptions三个必需字段，无额外说明或Markdown围栏，符合契约要求。未声称执行工具或检索新事实。\"}",
+  "input_tokens": 886,
+  "output_tokens": 156,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7534,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788790262778fa871229fec4115dc08043e38393b8b5c4230f"
+}

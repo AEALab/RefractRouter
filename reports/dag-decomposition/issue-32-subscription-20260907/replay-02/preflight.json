@@ -1,0 +1,14 @@
+{
+  "status": "preflight",
+  "real_model_calls": 0,
+  "protocol_sha256": "ec149178afeb6cc4aa1795962eae47ea1372e91c90f0d09cbe5b18851ff19828",
+  "maximum_calls": 3,
+  "max_production_cost": 20.8896,
+  "max_evaluation_cost": 0,
+  "billing_unit": "AFP",
+  "messages_sha256": "087a2a38f2bdb1927cb4ce66a7138296dcc12727233ca3b33a9faed2539a5708",
+  "limitations": [
+    "只验证原始 JSON 输出契约，不运行下游或评审，不证明语义质量或路由收益。",
+    "每模型最多一次，零重试，首个失败停止；不自动重启完整实验。"
+  ]
+}

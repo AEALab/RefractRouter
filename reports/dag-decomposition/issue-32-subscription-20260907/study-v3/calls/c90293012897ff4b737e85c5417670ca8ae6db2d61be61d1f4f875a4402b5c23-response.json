@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:1:cost:cheap:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，包含 contract 声明的 result、evidence、assumptions 三个非空字符串字段，无 Markdown 围栏，转义正确。result 正确计算单位覆盖成本（18/3=6、42/7=6），与材料 B「两者单位成本相同」一致，比较了反馈速度与交付广度，并给出条件式建议，覆盖节点职责「分析两个方案的成本与资源需求」。evidence 完整引用材料 A 与材料 B 原文，未虚构数据。assumptions 明确说明「单位成本」的解读假设及时间、质量、风险数据缺口，符合「保留证据与假设」和「明确限制」的检查要求。轻微不足：assumptions 中「单位成本」的解读假设与材料 B 直接陈述「两者单位成本相同」略有重叠，且未明确将「试点反馈更快」作为材料证据在 evidence 中单独标注来源（材料 B），但总体证据链完整，无工具执行声明，无不实内容。\"}",
+  "input_tokens": 891,
+  "output_tokens": 243,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11509,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788788953938c237340934591b89d6de6b6a9271c1b9216dab"
+}

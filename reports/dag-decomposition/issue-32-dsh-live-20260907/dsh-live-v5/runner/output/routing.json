@@ -1,0 +1,157 @@
+{
+  "policy_version": "node-routing-v2",
+  "method": "A",
+  "status": "selected",
+  "assignments": {
+    "cost_analysis": "cheap",
+    "risk_analysis": "cheap",
+    "synthesis": "cheap"
+  },
+  "quality_min_per_node": 80,
+  "cost_max": 99.8824,
+  "latency_max_ms": 284585.6448339764,
+  "weights": null,
+  "normalized_weights": null,
+  "normalization_bounds": {
+    "cost_analysis": {
+      "quality": [
+        84,
+        89
+      ],
+      "cost": [
+        0.15893333333333334,
+        1.8214166666666667
+      ],
+      "latency_ms": [
+        10627,
+        23681
+      ]
+    },
+    "risk_analysis": {
+      "quality": [
+        84,
+        89
+      ],
+      "cost": [
+        0.15893333333333334,
+        1.8214166666666667
+      ],
+      "latency_ms": [
+        10627,
+        23681
+      ]
+    },
+    "synthesis": {
+      "quality": [
+        84,
+        89
+      ],
+      "cost": [
+        0.15893333333333334,
+        1.8214166666666667
+      ],
+      "latency_ms": [
+        10627,
+        23681
+      ]
+    }
+  },
+  "eligible_models": {
+    "cost_analysis": [
+      "cheap",
+      "mid",
+      "strong"
+    ],
+    "risk_analysis": [
+      "cheap",
+      "mid",
+      "strong"
+    ],
+    "synthesis": [
+      "cheap",
+      "mid",
+      "strong"
+    ]
+  },
+  "scheduled_latency_bounds_ms": [
+    21354.0,
+    47462.0
+  ],
+  "execution_policy": {
+    "policy_version": "topological-list-v1",
+    "max_concurrency": 2,
+    "provider_concurrency": {
+      "ark-plan": 2
+    },
+    "provider_min_interval_ms": {
+      "ark-plan": 100
+    }
+  },
+  "combinations": 27,
+  "feasible_combinations": 27,
+  "prediction": {
+    "cost": 0.4768,
+    "serial_latency_ms": 65430,
+    "scheduled_latency_ms": 43720.0,
+    "schedule": {
+      "makespan_ms": 43720.0,
+      "nodes": {
+        "cost_analysis": {
+          "start_ms": 0.0,
+          "end_ms": 21810.0,
+          "queue_ms": 0.0
+        },
+        "risk_analysis": {
+          "start_ms": 100.0,
+          "end_ms": 21910.0,
+          "queue_ms": 100.0
+        },
+        "synthesis": {
+          "start_ms": 21910.0,
+          "end_ms": 43720.0,
+          "queue_ms": 0.0
+        }
+      }
+    },
+    "mean_node_quality_proxy": 84.0,
+    "weighted_score": null
+  },
+  "nodes": {
+    "cost_analysis": {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "quality": 84,
+      "cost": 0.15893333333333334,
+      "latency_ms": 21810,
+      "samples": 3,
+      "difficulty": null,
+      "risk": null,
+      "input_min_tokens": null,
+      "input_max_tokens": null
+    },
+    "risk_analysis": {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "quality": 84,
+      "cost": 0.15893333333333334,
+      "latency_ms": 21810,
+      "samples": 3,
+      "difficulty": null,
+      "risk": null,
+      "input_min_tokens": null,
+      "input_max_tokens": null
+    },
+    "synthesis": {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "quality": 84,
+      "cost": 0.15893333333333334,
+      "latency_ms": 21810,
+      "samples": 3,
+      "difficulty": null,
+      "risk": null,
+      "input_min_tokens": null,
+      "input_max_tokens": null
+    }
+  }
+}

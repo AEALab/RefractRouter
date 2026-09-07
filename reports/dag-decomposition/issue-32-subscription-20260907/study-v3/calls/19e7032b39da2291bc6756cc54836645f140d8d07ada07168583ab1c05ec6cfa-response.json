@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:risk:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个 JSON 对象，包含契约要求的 result、evidence、assumptions 三个非空字符串字段，格式合规。计算正确：方案 A 总投入 = 10 + 3 × 4 = 22，方案 B 总投入 = 18 + 1 × 4 = 22，与上游 cost 节点一致；预算 24 对比得出结余 2、无资金缺口的判断正确，并给出了合理的风险提示与建议（预留机动预算、方案 B 边际投入更低）。evidence 明确说明合成场景无外部证据并标注数值来源，assumptions 列出了组数固定、同单位可比、未含隐性成本等限制，满足「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」的检查要求。未声称执行工具或检索新事实。轻微不足：evidence 中引用上游计算过程属于对上游材料的转述而非独立验证，且建议部分与上游内容高度重合，增量分析有限，但不影响正确性与合规性。\"}",
+  "input_tokens": 1370,
+  "output_tokens": 245,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10495,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788789852973031cf6218c12fc0ace26887030dd7ea8164bcd"
+}

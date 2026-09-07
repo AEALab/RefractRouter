@@ -1,0 +1,131 @@
+{
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.13479194603860378,
+      "start_ms": 15.66745899617672,
+      "end_ms": 1832.6798749621958,
+      "queue_ms": 15.532667050138116,
+      "output": "评审人员确认完成后，李明开始发布最终版本。",
+      "latency_ms": 1814,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "评审人员确认完成后，李明开始发布最终版本。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写句「评审人员确认完成后，李明开始发布最终版本」保留了责任人李明及评审确认在先、发布在后的先后顺序，语义与原句一致且更简洁，满足验收条目。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "原句核心信息为评审人员先完成确认、负责人李明随后进行最终版本发布；改写句完整保留这些要素，去除冗余表述，表达简洁且原意未变。"
+      }
+    ]
+  },
+  "assignments": {
+    "answer": "strong"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.12349989265203476,
+    "peak_running_nodes": 1,
+    "ended_ms": 1854.2040839092806,
+    "wall_time_ms": 1854.081750032492
+  },
+  "calls": [
+    {
+      "label": "rewrite_cal_b--1--calibration--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.531350000000001,
+      "charged": 0.2002,
+      "status": "billed",
+      "input_sha256": "21f3314904517e38701fcb578e7015acc349d6c7b087927959bac96f0b9f7f1b",
+      "dispatch_monotonic": 788565.447017208,
+      "input_tokens": 353,
+      "output_tokens": 11,
+      "latency_ms": 1814,
+      "request_id": "02178879056779675251d478e5bf6426f4e0f08f6c1b200bca4b5",
+      "finish_reason": "stop",
+      "output_sha256": "34899016e74afce7473aa0c54a9c81bdd24f4b00c4d8753e65eac21d8f4f38be"
+    },
+    {
+      "label": "rewrite_cal_b--1--calibration--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.45,
+      "charged": 0.392,
+      "status": "billed",
+      "input_sha256": "483ef750affe505566492ef9f0397cc829e58de8e7cb8c2048113ba0e8067eca",
+      "dispatch_monotonic": 788567.305534375,
+      "input_tokens": 271,
+      "output_tokens": 121,
+      "latency_ms": 5831,
+      "request_id": "021788790569628e4d5e3acd6b6d5c09c835e2d36b9596cd9709e",
+      "finish_reason": "stop",
+      "output_sha256": "46d26dee68aa4c0cd273436383c6aad676ed76f8d0bc31aa956d38f3fff06394"
+    }
+  ],
+  "wall_time_ms": 7730.257458984852,
+  "critical_path_latency_ms": 1814,
+  "status": "completed"
+}

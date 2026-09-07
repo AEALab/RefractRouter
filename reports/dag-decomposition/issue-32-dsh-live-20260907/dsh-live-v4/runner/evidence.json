@@ -1,0 +1,62 @@
+{
+  "status": "fail",
+  "mode": "paid",
+  "invoked_by": "dsh-plugin",
+  "issues": [
+    "node-input-budget-exceeded before cost_analysis"
+  ],
+  "artifacts": {
+    "manifest.json": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd",
+    "model-progress.ndjson": "6dd085c45f9140f3de4c92fa6ebc0618bb1ead1939abf12d17562742a3b0500f",
+    "plan-analysis.json": "58537b3d8f44a0ab80b21b7192d81531d3dde1e893e9a257ce6c9a302ee61c8f",
+    "plan.json": "a2f3a4c83b01eb8fbffc9739c0624ddfae7142241c59ce19889076f5bb81cfc1",
+    "profile.json": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30",
+    "request.json": "279cc4da1b9a2683f72e22a7a61cac91bb90215f23e8a61ed8d8390679aa4098",
+    "routing.json": "369ed2821d6390a0480d43490e0bd5f4d8b02d2c44a06ab8ba0701ecef47e33a",
+    "task-result.json": "4bf78d5ba6c7e79eda0298511250de9868e10de78b0976dadf5695d7d79ccf48"
+  },
+  "task": {
+    "executionMode": "bounded-parallel",
+    "maxConcurrency": 2,
+    "peakActiveNodes": 0,
+    "predictedLatencyMs": 43720.0,
+    "status": "failed",
+    "mode": "run",
+    "planOrigin": "model",
+    "nodes": [
+      {
+        "nodeId": "cost_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "risk_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "answer",
+        "nodeType": "generation",
+        "parents": [
+          "cost_analysis",
+          "risk_analysis"
+        ],
+        "modelId": "cheap"
+      }
+    ],
+    "qualityScore": null,
+    "evaluationPassed": null,
+    "outputPreview": "",
+    "resultPath": "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-b5mZt8/output/task-result.json",
+    "productionCost": 0.10045,
+    "evaluationCost": 0,
+    "unconfirmedCost": 0,
+    "costIsSimulated": false,
+    "wallTimeMs": 14323
+  },
+  "preflight": {
+    "billing_unit": "AFP"
+  }
+}

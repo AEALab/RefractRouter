@@ -6,7 +6,7 @@ import type {
 
 import assert from 'node:assert/strict'
 import { execFile, spawn as spawnChild } from 'node:child_process'
-import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import test from 'node:test'
@@ -55,6 +55,7 @@ function evidence({
 
 
 interface FixtureOptions {
+  toolName?: string
   config?: Partial<PluginConfig>
   credential?: string
   credentialConfigured?: boolean
@@ -75,6 +76,7 @@ interface FixtureOptions {
 }
 
 function fakeContext({
+  toolName = 'refractrouter_validate',
   config = {},
   credential,
   credentialConfigured = credential !== undefined,
@@ -104,7 +106,7 @@ function fakeContext({
   const ctx: DshContext = {
     tools: {
       register(spec) {
-        tool = spec
+        if (spec.name === toolName) tool = spec
       },
     },
     credentials: {
@@ -470,10 +472,10 @@ function boundedCollector(stream: Readable, maxBytes: number) {
   }
 }
 
-function localProcessContext() {
+function localProcessContext(toolName = 'refractrouter_validate') {
   let tool: ValidationTool | undefined
   const ctx: DshContext = {
-    tools: { register(spec) { tool = spec } },
+    tools: { register(spec) { if (spec.name === toolName) tool = spec } },
     credentials: {
       async describe() { return { configured: false } },
       async resolve() { throw new Error('preflight must not resolve credentials') },
@@ -692,7 +694,7 @@ test('published tarball loads from its compiled export without source or build d
     assert.deepEqual(files.sort(), [
       'CHANGELOG.md', 'README.md', 'cordis.patch.yml', 'package.json',
       'dist/contracts.js', 'dist/contracts.d.ts', 'dist/evidence.js', 'dist/evidence.d.ts',
-      'dist/index.js', 'dist/index.d.ts',
+      'dist/index.js', 'dist/index.d.ts', 'dist/task-tool.js', 'dist/task-tool.d.ts',
     ].sort())
     await execFileAsync('npm', [
       'install', '--prefix', directory, join(directory, String(metadata.filename)),
@@ -722,6 +724,139 @@ test('both paid budgets are checked before credentials or process launch', async
   }
 })
 
+const taskInput = { task: 'Compare two proposals and explain risks.', mode: 'preflight', method: 'B',
+  qualityMin: 80, costMax: 1, latencyMaxMs: 300000, weights: { quality: .5, cost: .25, latency: .25 } }
+
+test('task tool performs an actual zero-call Python preflight and returns DAG assignments', async () => {
+  const fixture = localProcessContext('refractrouter_task')
+  const result = await fixture.tool.execute(taskInput, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.ok(result.task)
+    assert.equal(result.task.status, 'preview')
+    assert.equal(result.task.planOrigin, 'template-preview')
+    assert.equal(result.task.nodes.length, 1)
+    assert.ok(result.task.nodes.every(n => n.modelId))
+    assert.equal(result.task.qualityScore, null)
+    assert.equal(result.task.productionCost, 0)
+    assert.equal(result.task.evaluationCost, 0)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('task demo returns clearly simulated outputs without live credentials', async () => {
+  const fixture = localProcessContext('refractrouter_task')
+  const result = await fixture.tool.execute({ ...taskInput, mode: 'demo' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.equal(result.task?.status, 'simulated')
+    assert.equal(result.task?.costIsSimulated, true)
+    assert.equal(result.task?.qualityScore, null)
+    assert.match(result.task?.outputPreview ?? '', /SIMULATED/)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('task live modes retain deployment and both budget gates', async () => {
+  for (const mode of ['plan', 'run']) {
+    const disabled = fakeContext({ toolName: 'refractrouter_task' })
+    await assert.rejects(disabled.tool.execute({ ...taskInput, mode,
+      maxProductionCost: 1, maxEvaluationCost: 1 }, execution()), /paid validation is disabled/)
+    assert.equal(disabled.calls.spawn, 0)
+    const enabled = fakeContext({ toolName: 'refractrouter_task', config: { allowPaidRuns: true } })
+    await assert.rejects(enabled.tool.execute({ ...taskInput, mode }, execution()), /positive finite number/)
+    await assert.rejects(enabled.tool.execute({ ...taskInput, mode,
+      maxProductionCost: 1, maxEvaluationCost: 1.1 }, execution()), /configured ceiling/)
+    assert.equal(enabled.calls.resolve, 0)
+  }
+})
+
+test('task text is a JSON request file and cannot become process arguments', async () => {
+  const fixture = fakeContext({ toolName: 'refractrouter_task' })
+  const dangerousText = 'literal task $(touch /tmp/never-create-this) --execute-paid-run'
+  const result = await fixture.tool.execute({ ...taskInput, task: dangerousText }, execution())
+  try {
+    const argv = fixture.calls.spawnSpec!.argv
+    assert.ok(argv.some(a => a.endsWith('/validation/dsh/task_runner.py')))
+    assert.equal(argv.includes(dangerousText), false)
+    assert.equal(argv.includes('--execute-paid-run'), false)
+    const requestPath = argv[argv.indexOf('--request-file') + 1]
+    const request: unknown = JSON.parse(await readFile(requestPath, 'utf8'))
+    assert.ok(request && typeof request === 'object' && 'task' in request)
+    assert.equal(request.task, dangerousText)
+    assert.ok(result.issues.includes('missing-task-result'))
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('invalid task arguments are rejected before process launch', async () => {
+  const fixture = fakeContext({ toolName: 'refractrouter_task' })
+  for (const invalid of [
+    { ...taskInput, weights: { quality: 0, cost: 0, latency: 0 } },
+    { ...taskInput, method: 'A' }, { ...taskInput, qualityMin: 101 },
+    { ...taskInput, mode: 'shell' }, { ...taskInput, command: 'ignored' },
+  ]) await assert.rejects(fixture.tool.execute(invalid, execution()))
+  assert.equal(fixture.calls.spawn, 0)
+})
+
+
+test('新版 DAG 与固定验收条件通过 DSH 原样进入 Python 核心', async () => {
+  const plan: Record<string, unknown> = JSON.parse(await readFile(join(ROOT, 'data/task-plans/parallel-analysis-v2.json'), 'utf8'))
+  const fixture = localProcessContext('refractrouter_task')
+  const result = await fixture.tool.execute({ ...taskInput, plan,
+    acceptanceCriteria: plan.acceptance_criteria }, execution())
+  try {
+    assert.equal(result.status, 'pass')
+    assert.equal(result.task?.nodes.length, 3)
+    const saved = JSON.parse(await readFile(result.task!.resultPath, 'utf8'))
+    assert.deepEqual(saved.plan, plan)
+    assert.deepEqual(saved.plan_analysis.parallel_opportunities, [['cost', 'risk']])
+    assert.equal(saved.plan_analysis.execution_mode, 'serial')
+    assert.ok(result.artifactHashes.some((artifact) => artifact.artifact === 'plan-analysis.json'))
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('非法固定验收条件在启动进程前拒绝', async () => {
+  const fixture = fakeContext({ toolName: 'refractrouter_task' })
+  for (const acceptanceCriteria of [[], [''], ['重复', '重复'], [1]]) {
+    await assert.rejects(fixture.tool.execute({ ...taskInput, acceptanceCriteria }, execution()), /acceptanceCriteria/)
+  }
+  assert.equal(fixture.calls.spawn, 0)
+})
+
+
+test('DSH 将并发和 Provider 限制传入核心并展示调度预测', async () => {
+  const plan = JSON.parse(await readFile(join(ROOT, 'data/task-plans/parallel-analysis-v2.json'), 'utf8'))
+  const fixture = localProcessContext('refractrouter_task')
+  const result = await fixture.tool.execute({ ...taskInput, plan, maxConcurrency: 2,
+    providerConcurrency: { openai: 2 }, providerMinIntervalMs: { openai: 20 } }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.equal(result.task?.executionMode, 'bounded-parallel')
+    assert.equal(result.task?.maxConcurrency, 2)
+    assert.equal(result.task?.peakActiveNodes, null)
+    assert.ok(result.task?.predictedLatencyMs)
+    const saved = JSON.parse(await readFile(result.task!.resultPath, 'utf8'))
+    assert.equal(saved.execution_policy.provider_min_interval_ms.openai, 20)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('DSH 在派发前拒绝非法并发参数', async () => {
+  const fixture = fakeContext({ toolName: 'refractrouter_task' })
+  for (const fields of [{ maxConcurrency: 9 }, { maxConcurrency: true },
+    { providerConcurrency: { openai: 0 } }, { providerMinIntervalMs: { openai: -1 } }]) {
+    await assert.rejects(fixture.tool.execute({ ...taskInput, ...fields }, execution()), /invalid/)
+  }
+  assert.equal(fixture.calls.spawn, 0)
+})
+
 test('node selection policy is typed, validated and forwarded to Python', async () => {
   const fixture = fakeContext()
   await fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution())
@@ -729,4 +864,13 @@ test('node selection policy is typed, validated and forwarded to Python', async 
   assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
   await assert.rejects(fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'invented' }, execution()), /unknown selectionPolicy/)
   await assert.rejects(fixture.tool.execute({ phase: 'contract-replay', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution()), /does not select/)
+})
+
+test('文本任务不接收基准专用候选策略参数', async () => {
+  const fixture = fakeContext({ toolName: 'refractrouter_task' })
+  await fixture.tool.execute(taskInput, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.ok(argv.some(value => value.endsWith('validation/dsh/task_runner.py')))
+  assert.equal(argv.includes('--selection-policy'), false)
+  assert.equal(argv.includes('--phase'), false)
 })

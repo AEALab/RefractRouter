@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:cost:strong:judge",
+  "content": "{\"score\": 100, \"passed\": true, \"rationale\": \"计算正确：方案 A 总投入 8+4×5=28，超出预算 26 达 2，存在缺口；方案 B 总投入 20+1×5=25，低于预算 1，无缺口，建议选 B 并为 A 提出追加预算或压缩投入的补救措施，逻辑完整。evidence 明确说明无上游材料、数据均来自任务给定条件，未虚构来源；assumptions 声明了组数固定、投入口径仅限固定与按组投入、不含隐性成本等限制与不确定性。三个字段均为非空字符串，JSON 结构符合契约，未声称执行工具或检索新事实，覆盖节点职责并明确限制。\"}",
+  "input_tokens": 968,
+  "output_tokens": 173,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8596,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887900661349255aa03547266d00c3fa3dce78057f1892628"
+}

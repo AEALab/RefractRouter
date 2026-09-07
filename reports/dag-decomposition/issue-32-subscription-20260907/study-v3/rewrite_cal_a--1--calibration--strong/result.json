@@ -1,0 +1,131 @@
+{
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.1283750170841813,
+      "start_ms": 14.696417027153075,
+      "end_ms": 2032.1683330694214,
+      "queue_ms": 14.568042010068893,
+      "output": "计划本周五前完成测试，前提是所有输入数据已备齐。",
+      "latency_ms": 2016,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "计划本周五前完成测试，前提是所有输入数据已备齐。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写文本「计划本周五前完成测试，前提是所有输入数据已备齐。」完整保留了原句的完成时限（本周五前）与条件（所有输入数据已准备好），且表达明显更简洁，无信息遗漏或添加，符合任务要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "改写保留了完成时限「本周五前」和前提条件「所有输入数据已备齐」，语义与原句一致，同时删减冗余措辞，表达更为简洁。"
+      }
+    ]
+  },
+  "assignments": {
+    "answer": "strong"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.1177079975605011,
+    "peak_running_nodes": 1,
+    "ended_ms": 2049.019749974832,
+    "wall_time_ms": 2048.903084010817
+  },
+  "calls": [
+    {
+      "label": "rewrite_cal_a--1--calibration--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.5396,
+      "charged": 0.2035,
+      "status": "billed",
+      "input_sha256": "13c65996bf4690cc02de83074bb40f24e1b1824d9c9cfc46662309941bac6473",
+      "dispatch_monotonic": 788441.999463208,
+      "input_tokens": 355,
+      "output_tokens": 15,
+      "latency_ms": 2016,
+      "request_id": "0217887904443257d6713dc852f73f0cf900d2fbe3d4488650046",
+      "finish_reason": "stop",
+      "output_sha256": "2017c08dd940324e8501b93045eeb79fa96c3937f3d7cd7a14e18ee55f96bfe4"
+    },
+    {
+      "label": "rewrite_cal_a--1--calibration--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.474,
+      "charged": 0.411,
+      "status": "billed",
+      "input_sha256": "dacd08fd4b73e882f17c28f22c3d301adb6fe780715eb70d302b758ffc86acbf",
+      "dispatch_monotonic": 788444.04477425,
+      "input_tokens": 278,
+      "output_tokens": 133,
+      "latency_ms": 5567,
+      "request_id": "0217887904463647424dba2bd6e77b99d402060a9cf8c0f72a25c",
+      "finish_reason": "stop",
+      "output_sha256": "d4cabbea45c1252d5176c73dd819ef112f5ef139698c4544ec60246a95c53874"
+    }
+  ],
+  "wall_time_ms": 7651.721667032689,
+  "critical_path_latency_ms": 2016,
+  "status": "completed"
+}

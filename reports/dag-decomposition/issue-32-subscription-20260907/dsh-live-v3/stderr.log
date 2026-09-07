@@ -1,0 +1,41 @@
+file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js:1187
+		throw new Error(`${binName}: ${stage}: ${detail}${stack}`, { cause });
+		      ^
+
+Error: dsh: plugin tree failed to load: failed to apply loader entry include (cordis:include): failed to apply loader entry llm-pi-ai (@deepseek-ai/dsh-llm-pi-ai): llm-pi-ai: provider "ark-plan" model "deepseek-v4-flash" reasoningEfforts offers no level beyond "off"; declare a thinking level, or set reasoningEfforts to false for a non-reasoning model
+Error: llm-pi-ai: provider "ark-plan" model "deepseek-v4-flash" reasoningEfforts offers no level beyond "off"; declare a thinking level, or set reasoningEfforts to false for a non-reasoning model
+    at invalid (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:505:8)
+    at resolveModelReasoning (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:549:52)
+    at file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:655:7
+    at Array.map (<anonymous>)
+    at resolveRouteModels (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:630:25)
+    at resolveProfiles (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:1016:19)
+    at profiles (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:2402:16)
+    at new apply (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:2407:2)
+    at Fiber.execute (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis/lib/index.js:1067:24)
+    at file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis/lib/index.js:1141:34
+    at boot (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js:1187:9)
+    at async runProfile (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/lib/profile-boot-DG5t9aNs.js:247:14)
+    at async file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/lib/bin.js:133:3 {
+  [cause]: Error: failed to apply loader entry include (cordis:include): failed to apply loader entry llm-pi-ai (@deepseek-ai/dsh-llm-pi-ai): llm-pi-ai: provider "ark-plan" model "deepseek-v4-flash" reasoningEfforts offers no level beyond "off"; declare a thinking level, or set reasoningEfforts to false for a non-reasoning model
+      at updateError (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:299:9)
+      at Entry._init (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:519:10) {
+    [cause]: Error: failed to apply loader entry llm-pi-ai (@deepseek-ai/dsh-llm-pi-ai): llm-pi-ai: provider "ark-plan" model "deepseek-v4-flash" reasoningEfforts offers no level beyond "off"; declare a thinking level, or set reasoningEfforts to false for a non-reasoning model
+        at updateError (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:299:9)
+        at Entry._init (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis-plugin-loader/lib/index.js:519:10) {
+      [cause]: Error: llm-pi-ai: provider "ark-plan" model "deepseek-v4-flash" reasoningEfforts offers no level beyond "off"; declare a thinking level, or set reasoningEfforts to false for a non-reasoning model
+          at invalid (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:505:8)
+          at resolveModelReasoning (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:549:52)
+          at file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:655:7
+          at Array.map (<anonymous>)
+          at resolveRouteModels (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:630:25)
+          at resolveProfiles (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:1016:19)
+          at profiles (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:2402:16)
+          at new apply (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js:2407:2)
+          at Fiber.execute (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis/lib/index.js:1067:24)
+          at file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/cordis/lib/index.js:1141:34
+    }
+  }
+}
+
+Node.js v22.22.3

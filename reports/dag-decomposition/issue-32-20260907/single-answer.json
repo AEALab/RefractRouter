@@ -1,0 +1,171 @@
+{
+  "schema_version": "task-run-v1",
+  "mode": "demo",
+  "status": "simulated",
+  "task": "基于给定材料完成计划要求；缺少事实时明确说明，不虚构证据。",
+  "plan_origin": "provided",
+  "planner_output": null,
+  "planner_prompt_sha256": "e0cbd68c6624266e9bed71398c4437ff0123d7aba0058655425f521128127a52",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 16000,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "plan_analysis": {
+    "schema_version": "plan-analysis-v1",
+    "ready_waves": [
+      [
+        "answer"
+      ]
+    ],
+    "dependency_depth": 1,
+    "max_wave_size": 1,
+    "parallel_opportunities": [],
+    "join_nodes": [],
+    "downstream_counts": {
+      "answer": 0
+    },
+    "criterion_owners": {
+      "0": [
+        "answer"
+      ]
+    },
+    "warnings": [],
+    "semantic_dependencies_verified": false,
+    "execution_mode": "serial",
+    "note": "就绪波次表示结构上的并行机会，不是实际并发或时延保证。"
+  },
+  "routing": {
+    "policy_version": "node-routing-v1",
+    "method": "A",
+    "status": "selected",
+    "assignments": {
+      "answer": "cheap"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 1,
+    "latency_max_ms": 300000,
+    "weights": null,
+    "normalized_weights": null,
+    "normalization_bounds": {
+      "answer": {
+        "quality": [
+          80,
+          95
+        ],
+        "cost": [
+          0.01,
+          0.1
+        ],
+        "latency_ms": [
+          1000,
+          3000
+        ]
+      }
+    },
+    "eligible_models": {
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "combinations": 3,
+    "feasible_combinations": 3,
+    "prediction": {
+      "cost": 0.01,
+      "serial_latency_ms": 2000,
+      "mean_node_quality_proxy": 80.0,
+      "weighted_score": null
+    },
+    "nodes": {
+      "answer": {
+        "model_id": "cheap",
+        "node_type": "generation",
+        "quality": 80,
+        "cost": 0.01,
+        "latency_ms": 2000,
+        "samples": 1
+      }
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "status": "ok",
+      "output": "[SIMULATED] {\"task\": \"基于给定材料完成计划要求；缺少事实时明确说明，不虚构证据。\", \"instruction\": \"把用户提供的句子改写得更简洁，保留原意\", \"upstream\": {}, \"contract\": {\"objective\": \"把用户提供的句子改写得更简洁，保留原意\", \"inputs\": {}, \"output\": {\"format\": \"text\", \"fields\": {\"text\": \"最终建议与可追溯依据\"}}, \"capability\": {\"difficulty\": \"medium\", \"risk\": \"high\", \"input_budget_tokens\": 16000, \"expected_output_tokens\": 1000}, \"checks\": [\"保留证据与假设，不虚构数据\", \"覆盖本节点职责并明确限制\"], \"covers\": [0], \"execution\": \"text-model\", \"failure_policy\": \"stop\"}}",
+      "latency_ms": 1,
+      "semantic_status": "not-evaluated",
+      "contract_status": "structure-valid"
+    }
+  ],
+  "final_output": "[SIMULATED] {\"task\": \"基于给定材料完成计划要求；缺少事实时明确说明，不虚构证据。\", \"instruction\": \"把用户提供的句子改写得更简洁，保留原意\", \"upstream\": {}, \"contract\": {\"objective\": \"把用户提供的句子改写得更简洁，保留原意\", \"inputs\": {}, \"output\": {\"format\": \"text\", \"fields\": {\"text\": \"最终建议与可追溯依据\"}}, \"capability\": {\"difficulty\": \"medium\", \"risk\": \"high\", \"input_budget_tokens\": 16000, \"expected_output_tokens\": 1000}, \"checks\": [\"保留证据与假设，不虚构数据\", \"覆盖本节点职责并明确限制\"], \"covers\": [0], \"execution\": \"text-model\", \"failure_policy\": \"stop\"}}",
+  "evaluation": null,
+  "billing_unit": "USD",
+  "charged": {
+    "production": 4.149999999999987e-05,
+    "evaluation": 0.0
+  },
+  "calls": [
+    {
+      "label": "answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.0105182,
+      "charged": 4.15e-05,
+      "status": "billed",
+      "input_tokens": 20,
+      "output_tokens": 30,
+      "latency_ms": 1,
+      "request_id": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "issues": [],
+  "profile_scope": "Synthetic demonstration only, not measured model performance.",
+  "profile_provenance": "Explicit deterministic fixture; never usable for live routing.",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "Execution is serial; graph critical-path latency is reported separately from wall time."
+  ],
+  "wall_time_ms": 0,
+  "critical_path_latency_ms": 1
+}

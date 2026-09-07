@@ -1,0 +1,387 @@
+{
+  "schema_version": "task-run-v1",
+  "mode": "demo",
+  "status": "simulated",
+  "task": "基于给定材料完成计划要求；缺少事实时明确说明，不虚构证据。",
+  "plan_origin": "provided",
+  "planner_output": null,
+  "planner_prompt_sha256": "e0cbd68c6624266e9bed71398c4437ff0123d7aba0058655425f521128127a52",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16000,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "根据成本测算评估资金不足风险",
+        "parents": [
+          "cost"
+        ],
+        "contract": {
+          "objective": "根据成本测算评估资金不足风险",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16000,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 16000,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。"
+  },
+  "plan_analysis": {
+    "schema_version": "plan-analysis-v1",
+    "ready_waves": [
+      [
+        "cost"
+      ],
+      [
+        "risk"
+      ],
+      [
+        "answer"
+      ]
+    ],
+    "dependency_depth": 3,
+    "max_wave_size": 1,
+    "parallel_opportunities": [],
+    "join_nodes": [
+      "answer"
+    ],
+    "downstream_counts": {
+      "cost": 2,
+      "risk": 1,
+      "answer": 0
+    },
+    "criterion_owners": {
+      "0": [
+        "cost",
+        "answer"
+      ],
+      "1": [
+        "risk",
+        "answer"
+      ]
+    },
+    "warnings": [
+      "review-join-context-and-conflict-handling"
+    ],
+    "semantic_dependencies_verified": false,
+    "execution_mode": "serial",
+    "note": "就绪波次表示结构上的并行机会，不是实际并发或时延保证。"
+  },
+  "routing": {
+    "policy_version": "node-routing-v1",
+    "method": "A",
+    "status": "selected",
+    "assignments": {
+      "cost": "cheap",
+      "risk": "cheap",
+      "answer": "cheap"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 1,
+    "latency_max_ms": 300000,
+    "weights": null,
+    "normalized_weights": null,
+    "normalization_bounds": {
+      "cost": {
+        "quality": [
+          80,
+          95
+        ],
+        "cost": [
+          0.01,
+          0.1
+        ],
+        "latency_ms": [
+          1000,
+          3000
+        ]
+      },
+      "risk": {
+        "quality": [
+          80,
+          95
+        ],
+        "cost": [
+          0.01,
+          0.1
+        ],
+        "latency_ms": [
+          1000,
+          3000
+        ]
+      },
+      "answer": {
+        "quality": [
+          80,
+          95
+        ],
+        "cost": [
+          0.01,
+          0.1
+        ],
+        "latency_ms": [
+          1000,
+          3000
+        ]
+      }
+    },
+    "eligible_models": {
+      "cost": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "risk": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "combinations": 27,
+    "feasible_combinations": 27,
+    "prediction": {
+      "cost": 0.03,
+      "serial_latency_ms": 6000,
+      "mean_node_quality_proxy": 80.0,
+      "weighted_score": null
+    },
+    "nodes": {
+      "cost": {
+        "model_id": "cheap",
+        "node_type": "synthesis",
+        "quality": 80,
+        "cost": 0.01,
+        "latency_ms": 2000,
+        "samples": 1
+      },
+      "risk": {
+        "model_id": "cheap",
+        "node_type": "synthesis",
+        "quality": 80,
+        "cost": 0.01,
+        "latency_ms": 2000,
+        "samples": 1
+      },
+      "answer": {
+        "model_id": "cheap",
+        "node_type": "generation",
+        "quality": 80,
+        "cost": 0.01,
+        "latency_ms": 2000,
+        "samples": 1
+      }
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "cheap",
+      "status": "ok",
+      "output": "{\"result\": \"[SIMULATED] 分析结果\", \"evidence\": \"[SIMULATED] 原始材料来源标识与证据；没有证据时明确说明\", \"assumptions\": \"[SIMULATED] 假设、不确定性与信息缺口；没有时明确说明\"}",
+      "latency_ms": 1,
+      "semantic_status": "not-evaluated",
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "cheap",
+      "status": "ok",
+      "output": "{\"result\": \"[SIMULATED] 分析结果\", \"evidence\": \"[SIMULATED] 原始材料来源标识与证据；没有证据时明确说明\", \"assumptions\": \"[SIMULATED] 假设、不确定性与信息缺口；没有时明确说明\"}",
+      "latency_ms": 1,
+      "semantic_status": "not-evaluated",
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "status": "ok",
+      "output": "[SIMULATED] {\"task\": \"基于给定材料完成计划要求；缺少事实时明确说明，不虚构证据。\", \"instruction\": \"综合分析结果，核对冲突、遗漏与证据，给出建议\", \"upstream\": {\"cost\": {\"result\": \"[SIMULATED] 分析结果\", \"evidence\": \"[SIMULATED] 原始材料来源标识与证据；没有证据时明确说明\", \"assumptions\": \"[SIMULATED] 假设、不确定性与信息缺口；没有时明确说明\"}, \"risk\": {\"result\": \"[SIMULATED] 分析结果\", \"evidence\": \"[SIMULATED] 原始材料来源标识与证据；没有证据时明确说明\", \"assumptions\": \"[SIMULATED] 假设、不确定性与信息缺口；没有时明确说明\"}}, \"contract\": {\"objective\": \"综合分析结果，核对冲突、遗漏与证据，给出建议\", \"inputs\": {\"cost\": {\"fields\": [\"result\", \"evidence\", \"assumptions\"], \"r",
+      "latency_ms": 1,
+      "semantic_status": "not-evaluated",
+      "contract_status": "structure-valid"
+    }
+  ],
+  "final_output": "[SIMULATED] {\"task\": \"基于给定材料完成计划要求；缺少事实时明确说明，不虚构证据。\", \"instruction\": \"综合分析结果，核对冲突、遗漏与证据，给出建议\", \"upstream\": {\"cost\": {\"result\": \"[SIMULATED] 分析结果\", \"evidence\": \"[SIMULATED] 原始材料来源标识与证据；没有证据时明确说明\", \"assumptions\": \"[SIMULATED] 假设、不确定性与信息缺口；没有时明确说明\"}, \"risk\": {\"result\": \"[SIMULATED] 分析结果\", \"evidence\": \"[SIMULATED] 原始材料来源标识与证据；没有证据时明确说明\", \"assumptions\": \"[SIMULATED] 假设、不确定性与信息缺口；没有时明确说明\"}}, \"contract\": {\"objective\": \"综合分析结果，核对冲突、遗漏与证据，给出建议\", \"inputs\": {\"cost\": {\"fields\": [\"result\", \"evidence\", \"assumptions\"], \"r",
+  "evaluation": null,
+  "billing_unit": "USD",
+  "charged": {
+    "production": 0.0001244999999999996,
+    "evaluation": 0.0
+  },
+  "calls": [
+    {
+      "label": "cost",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.010542600000000001,
+      "charged": 4.15e-05,
+      "status": "billed",
+      "input_tokens": 20,
+      "output_tokens": 30,
+      "latency_ms": 1,
+      "request_id": null,
+      "finish_reason": "stop"
+    },
+    {
+      "label": "risk",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.0106224,
+      "charged": 4.15e-05,
+      "status": "billed",
+      "input_tokens": 20,
+      "output_tokens": 30,
+      "latency_ms": 1,
+      "request_id": null,
+      "finish_reason": "stop"
+    },
+    {
+      "label": "answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.010682800000000001,
+      "charged": 4.15e-05,
+      "status": "billed",
+      "input_tokens": 20,
+      "output_tokens": 30,
+      "latency_ms": 1,
+      "request_id": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "issues": [],
+  "profile_scope": "Synthetic demonstration only, not measured model performance.",
+  "profile_provenance": "Explicit deterministic fixture; never usable for live routing.",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "Execution is serial; graph critical-path latency is reported separately from wall time."
+  ],
+  "wall_time_ms": 0,
+  "critical_path_latency_ms": 3
+}

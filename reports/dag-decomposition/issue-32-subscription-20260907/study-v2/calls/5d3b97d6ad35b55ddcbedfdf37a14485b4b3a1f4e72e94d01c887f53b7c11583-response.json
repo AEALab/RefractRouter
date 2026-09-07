@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案严格遵循输出契约：包含 result、evidence、assumptions 三个非空字段。成本计算正确（12/2=6、40/8=5），比较了单位覆盖成本与风险，建议明确列出适用条件，完全覆盖节点职责。证据字段标明材料来源与计算依据，未虚构数据；假设字段明确列出指标可比性、成本口径、风险来源等限制与不确定性。未声称执行工具或检索新事实。仅轻微不足：'3.3 倍'为 40/12 的近似值，表述可更精确，但不构成实质错误。\"}",
+  "input_tokens": 1049,
+  "output_tokens": 154,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6299,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887877333560b63b37cbca791937f2f41fb0469576d23a869"
+}

@@ -1,0 +1,35 @@
+工具调用已完成，结果如下：
+
+## 执行结果
+
+**状态**：`pass`（通过），无任何 issues；`exitCode 0`，未超时、未中断。
+
+**运行模式**：`run`（付费模式，billingUnit = AFP，credential 与 modelProvider 均已配置，成本非模拟）。
+
+## 模型分配
+
+规划器（planOrigin = `model`）生成了 3 节点的 DAG，执行方式为有界并行（bounded-parallel，maxConcurrency=2，实际峰值并发 2 节点）：
+
+| 节点 | 类型 | 依赖 | 模型分配 |
+|---|---|---|---|
+| `cost_analysis` | generation | 无 | cheap |
+| `risk_analysis` | generation | 无 | cheap |
+| `answer` | generation | cost_analysis、risk_analysis | cheap |
+
+两个分析节点并行执行（成本分析与风险分析互不依赖），随后由 `answer` 节点汇总形成综合建议。
+
+## 最终评分
+
+- **质量评分**：**100 分**（qualityScore=100），评审通过（evaluationPassed=true）
+- 两条验收标准均满足：单位覆盖成本计算对比准确（试点 6 单位/组 vs 全面推广 4.5 单位/组，保留总投入 24/54 单位）；风险分析基于给定培训条件给出有条件建议，未虚构收益与风险概率
+- 成本：生产 0.24885 AFP，评审 1.139 AFP，未确认成本 0
+- 耗时：35,316 ms（预测 43,720 ms），低于 300,000 ms 上限
+
+## 产物路径
+
+- 输出目录：`/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-0mpVBK/output`
+- 结果文件：`.../output/task-result.json`
+- 证据文件：`/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-0mpVBK/evidence.json`
+- 同时生成 plan.json、routing.json、profile.json、answer.md、model-progress.ndjson 等 9 个产物，均记录 sha256 哈希
+
+整体为一次成功的付费运行：任务按并行 DAG 执行、全部节点走 cheap 模型，质量满分通过评审。

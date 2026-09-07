@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from copy import copy
 import json
 import os
 import socket
 import sys
 import time
 from dataclasses import dataclass
+from threading import Lock
+from uuid import uuid4
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Mapping, Protocol, Sequence, TextIO
@@ -14,6 +17,8 @@ from urllib.request import Request, urlopen
 
 from .schemas import ModelSpec
 
+
+_PROGRESS_LOCK = Lock()
 
 DSH_BRIDGE_PROTOCOL = "refractrouter-dsh-llm/v1"
 
@@ -33,8 +38,9 @@ def _append_progress(path: Path | None, event: Mapping[str, object]) -> None:
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         **event,
     }
-    with path.open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+    with _PROGRESS_LOCK:
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 @dataclass(frozen=True, slots=True)
@@ -248,9 +254,18 @@ class OpenAICompatibleClient:
             Path(configured_progress) if configured_progress is not None else None
         )
         self.progress_request_id = 0
+        self.progress_request_prefix = ""
         self.dsh_bridge = dsh_bridge
         if self.dsh_bridge is None and self.environment.get("REFRACTROUTER_DSH_BRIDGE") == "stdio":
             self.dsh_bridge = DshStdioBridge()
+
+    def for_task_call(self, timeout_seconds):
+        """每次任务调用使用独立超时和请求 ID；不共享可变请求计数。"""
+        cloned = copy(self)
+        cloned.timeout_seconds = min(self.timeout_seconds, timeout_seconds)
+        cloned.progress_request_prefix = uuid4().hex + "-"
+        cloned.progress_request_id = 0
+        return cloned
 
     def complete(
         self,
@@ -274,7 +289,7 @@ class OpenAICompatibleClient:
                 0,
             )
         self.progress_request_id += 1
-        progress_request_id = str(self.progress_request_id)
+        progress_request_id = self.progress_request_prefix + str(self.progress_request_id)
         endpoint = f"{model.base_url}/chat/completions"
         _append_progress(
             self.progress_path,

@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确计算了单位覆盖成本（试点 6 单位/组、全面推广 5 单位/组），数据与材料 A 一致，未虚构数据；风险比较与材料 B 一致，建议明确了条件（培训保障与推广条件），符合任务要求。evidence 字段完整引用原始材料来源，assumptions 字段说明了计算方法假设、未考虑其他成本收益及风险未量化等信息缺口，保留了证据与假设。输出为单个原始 JSON 对象，包含 contract 声明的全部字段（result、evidence、assumptions），值均为非空字符串，字段类型正确，JSON 语法有效，无 Markdown 围栏或额外说明，未声称执行工具。轻微不足：evidence 字段引用原文时未使用「」中文引号（系统提示要求引用原文优先使用中文引号），但整体内容完整、正确，覆盖节点职责并明确限制，故判定通过。\"}",
+  "input_tokens": 862,
+  "output_tokens": 219,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8728,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788788286608137f500080bf18603e76d17d12e7c43efbce51"
+}
