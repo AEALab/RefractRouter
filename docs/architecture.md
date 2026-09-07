@@ -57,6 +57,10 @@ require a new architecture approval.
 
 ## Verification
 
+The explicit v0.4 [evidence-state experiment](evidence-state-execution-modes.md) keeps immutable
+extraction ownership, one-shot/DAG execution, comparison cohorts and accounting in Python. The DSH
+0.6.0 phase only forwards configuration and projects evidence. Existing v0.3 tasks remain the default.
+
 CI installs the locked Python and TypeScript dependencies, type checks and builds the plugin, and
 runs `uv run pytest`, which includes the compiled TypeScript contracts. The compatibility matrix
 boots DSH 0.1.1-rc.2 on Node 22.19.0 and latest Node 22, exercises install/override/remove/reinstall,

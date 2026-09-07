@@ -470,7 +470,7 @@ function boundedCollector(stream: Readable, maxBytes: number) {
   }
 }
 
-function localProcessContext() {
+function localProcessContext(config = {}) {
   let tool: ValidationTool | undefined
   const ctx: DshContext = {
     tools: { register(spec) { tool = spec } },
@@ -521,7 +521,7 @@ function localProcessContext() {
       },
     },
   }
-  apply(ctx)
+  apply(ctx, config)
   return { get tool() { assert.ok(tool); return tool } }
 }
 
@@ -540,6 +540,21 @@ test('the registered tool completes a real zero-cost Python preflight', async ()
     assert.equal(result.costEstimate!.billingUnit, 'USD')
     assert.equal(result.costEstimate!.total, 11.86)
     assert.equal(result.artifactHashes.length, 1)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('execution modes completes the native tool subprocess preflight with no credential access', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'execution-modes' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result, null, 2))
+    assert.equal(result.mode, 'preflight')
+    assert.equal(result.billingUnit, 'AFP')
+    assert.equal(result.callPlan!.totalModelCalls, 80)
+    assert.equal(result.costEstimate!.total, 655.76)
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })
   }
@@ -729,4 +744,17 @@ test('node selection policy is typed, validated and forwarded to Python', async 
   assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
   await assert.rejects(fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'invented' }, execution()), /unknown selectionPolicy/)
   await assert.rejects(fixture.tool.execute({ phase: 'contract-replay', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution()), /does not select/)
+})
+
+test('execution modes forwards the bounded v0.4 phase without enabling paid calls', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'execution-modes' }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--phase') + 1], 'execution-modes')
+  assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
+  assert.equal(fixture.calls.resolve, 0)
+  await assert.rejects(fixture.tool.execute({ phase: 'execution-modes', repeats: 4 }, execution()), /requires repeats/)
+  await assert.rejects(fixture.tool.execute({ phase: 'execution-modes', selectionPolicy: 'all-candidates-required-v1' }, execution()), /requires exclude/)
+  await assert.rejects(fixture.tool.execute({ phase: 'execution-modes', executePaidRun: true,
+    maxProductionCost: 210, maxEvaluationCost: 460 }, execution()), /paid validation is disabled/)
 })

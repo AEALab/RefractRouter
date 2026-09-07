@@ -10,6 +10,7 @@ CONTRACT_FAILURES = frozenset({
     "empty-output", "invalid-json", "invalid-html", "source-trace", "invalid-evidence",
     "invalid-planning-contract", "invalid-generation-contract", "missing-analysis",
     "incorrect-verification", "unresolved-citations",
+    "unexpected-evidence",
 })
 
 
@@ -22,7 +23,9 @@ def _array(items, minimum=0):
     return {"type": "array", "items": items, "minItems": minimum}
 
 
-def output_schema(node_type):
+def output_schema(node_type, version="v0.3"):
+    if version not in {"v0.3", "v0.4"}:
+        raise ValueError(f"Unknown output contract: {version}")
     text = {"type": "string", "minLength": 1}
     evidence = _array(_object({key: text for key in EVIDENCE_FIELDS}), 1)
     schemas = {
@@ -37,12 +40,16 @@ def output_schema(node_type):
     }
     if node_type == "rendering":
         return None
+    if version == "v0.4" and node_type in {"synthesis", "generation"}:
+        schema = schemas[node_type]
+        schema["required"].remove("evidence")
+        del schema["properties"]["evidence"]
     return schemas[node_type]
 
 
-def prompt_contract_snapshot():
-    contracts = {kind: output_schema(kind) for kind in (
+def prompt_contract_snapshot(version="v0.3"):
+    contracts = {kind: output_schema(kind, version) for kind in (
         "planning", "extraction", "synthesis", "generation", "rendering", "verification")}
-    return {"version": NODE_PROMPT_VERSION, "schema_sha256": hashlib.sha256(
+    return {"version": version, "schema_sha256": hashlib.sha256(
         json.dumps(contracts, sort_keys=True).encode()).hexdigest(),
         "enforcement": "prompt description and local checks; no provider schema guarantee"}

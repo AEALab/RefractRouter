@@ -42,6 +42,13 @@ def _expected_artifacts(
             return ("preflight.json", "replay-cases.json")
         return ("preflight.json", "replay-cases.json", "replay-results.ndjson",
                 "benchmark-summary.json", "evidence-index.json", MODEL_PROGRESS)
+    if isinstance(preflight, dict) and preflight.get("phase") == "execution-modes":
+        if not execute_paid_run:
+            return ("preflight.json",)
+        return ("preflight.json", "benchmark-summary.json", "baseline-table.md",
+                "failure-taxonomy.md", "evidence-index.json", "node-evaluations.ndjson",
+                "node-quality-matrix.json", "node-quality-matrix.md", "strategy-comparisons.json",
+                "strategy-comparisons.md", MODEL_PROGRESS)
     if not execute_paid_run:
         return REAL_ARTIFACTS[:1]
     if isinstance(preflight, dict) and preflight.get("wire_api") == "dsh-llm":
@@ -62,9 +69,11 @@ def run_real_validation(
     max_evaluation_cost: float | None = None,
     max_retries: int = 2,
     invoked_by: str = "local",
-    selection_policy: str = "all-candidates-required-v1",
+    selection_policy: str | None = None,
 ) -> int:
-    from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
+    from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY, REJECTION_SELECTION_POLICY
+    selection_policy = selection_policy or (
+        REJECTION_SELECTION_POLICY if phase == "execution-modes" else LEGACY_SELECTION_POLICY)
     if selection_policy not in SELECTION_POLICIES:
         raise ValueError("Unknown node selection policy")
     if phase == "contract-replay" and selection_policy != LEGACY_SELECTION_POLICY:
@@ -78,7 +87,8 @@ def run_real_validation(
     command = [
         sys.executable,
         str(ROOT / "experiments" / (
-            "replay_node_contracts.py" if phase == "contract-replay" else "run_real_v0_1.py")),
+            "replay_node_contracts.py" if phase == "contract-replay" else
+            "run_execution_modes.py" if phase == "execution-modes" else "run_real_v0_1.py")),
         "--dataset",
         str(dataset_path),
         "--manifest",
@@ -106,8 +116,13 @@ def run_real_validation(
                 str(max_evaluation_cost),
             ]
         )
+    child_env = os.environ.copy()
+    child_env.pop("REFRACTROUTER_EXECUTION_MODES_HOST", None)
+    if phase == "execution-modes" and invoked_by == "dsh-plugin":
+        child_env["REFRACTROUTER_EXECUTION_MODES_HOST"] = "dsh-plugin"
     completed = subprocess.run(
         command,
+        env=child_env,
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -210,10 +225,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--evidence", required=True, type=Path)
-    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay"), default="dry-run")
+    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay", "execution-modes"), default="dry-run")
     parser.add_argument("--repeats", type=int, default=1)
     from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
-    parser.add_argument("--selection-policy", choices=SELECTION_POLICIES, default=LEGACY_SELECTION_POLICY)
+    parser.add_argument("--selection-policy", choices=SELECTION_POLICIES)
     parser.add_argument("--execute-paid-run", action="store_true")
     parser.add_argument("--max-production-cost", type=float)
     parser.add_argument("--max-evaluation-cost", type=float)

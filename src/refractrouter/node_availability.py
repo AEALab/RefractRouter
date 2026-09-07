@@ -120,7 +120,9 @@ def select_available_candidates(rows, *, task, model_ids, policy=REJECTION_SELEC
         # Recheck each reference parent's actual contract, not just a reported status.
         from .scoring import node_contract_checks
         for parent in node.parents:
-            if not isinstance(upstream[parent], str) or node_contract_checks(task, nodes[parent], upstream[parent])["score_cap"] == 0:
+            if not isinstance(upstream[parent], str) or node_contract_checks(
+                task, nodes[parent], upstream[parent], upstream
+            )["score_cap"] == 0:
                 errors.append("invalid-reference-context")
         cost = result.get("cost")
         if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not isfinite(cost) or cost < 0:

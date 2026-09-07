@@ -35,8 +35,8 @@ function billingUnit(value: string): BillingUnit {
 }
 
 function phase(value: unknown): Phase {
-  if (value !== 'dry-run' && value !== 'pilot' && value !== 'final' && value !== 'contract-replay') {
-    throw new Error('phase must be dry-run, pilot, final, or contract-replay')
+  if (value !== 'dry-run' && value !== 'pilot' && value !== 'final' && value !== 'contract-replay' && value !== 'execution-modes') {
+    throw new Error('phase must be dry-run, pilot, final, contract-replay, or execution-modes')
   }
   return value
 }
@@ -238,12 +238,16 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
   const unknown = Object.keys(args).filter(key => !allowed.has(key))
   if (unknown.length > 0) throw new Error(`unknown tool arguments: ${unknown.join(', ')}`)
   const requestedPhase = phase(args.phase)
-  const selectionPolicy = args.selectionPolicy ?? 'all-candidates-required-v1'
+  const selectionPolicy = args.selectionPolicy ?? (requestedPhase === 'execution-modes'
+    ? 'exclude-known-contract-rejections-v2' : 'all-candidates-required-v1')
   if (selectionPolicy !== 'all-candidates-required-v1' && selectionPolicy !== 'exclude-known-contract-rejections-v2') {
     throw new Error('unknown selectionPolicy')
   }
   if (requestedPhase === 'contract-replay' && selectionPolicy !== 'all-candidates-required-v1') {
     throw new Error('contract-replay does not select node candidates')
+  }
+  if (requestedPhase === 'execution-modes' && selectionPolicy !== 'exclude-known-contract-rejections-v2') {
+    throw new Error('execution-modes requires exclude-known-contract-rejections-v2')
   }
   if (args.executePaidRun !== undefined && typeof args.executePaidRun !== 'boolean') {
     throw new Error('executePaidRun must be a boolean')
@@ -252,8 +256,8 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
   if (typeof repeats !== 'number' || !Number.isInteger(repeats) || repeats <= 0) {
     throw new Error('repeats must be a positive integer')
   }
-  if (args.phase === 'contract-replay' && (repeats > 3 || config.maxRetries !== 0)) {
-    throw new Error('contract-replay requires repeats <= 3 and configured maxRetries = 0')
+  if ((requestedPhase === 'contract-replay' || requestedPhase === 'execution-modes') && (repeats > 3 || config.maxRetries !== 0)) {
+    throw new Error(`${requestedPhase} requires repeats <= 3 and configured maxRetries = 0`)
   }
   const paid = args.executePaidRun ?? false
   if (!paid) {
@@ -879,7 +883,7 @@ const OUTPUT_SCHEMA: JsonSchema = {
   properties: {
     status: { type: 'string', enum: ['pass', 'fail'] },
     mode: { type: 'string', enum: ['preflight', 'paid'] },
-    phase: { type: 'string', enum: ['dry-run', 'pilot', 'final', 'contract-replay'] },
+    phase: { type: 'string', enum: ['dry-run', 'pilot', 'final', 'contract-replay', 'execution-modes'] },
     exitCode: { oneOf: [{ type: 'integer' }, { type: 'null' }] },
     signal: { oneOf: [{ type: 'string' }, { type: 'null' }] },
     timedOut: { type: 'boolean' },
@@ -964,8 +968,8 @@ export function apply(ctx: DshContext, rawConfig: unknown = {}): void {
       properties: {
         phase: {
           type: 'string',
-          enum: ['dry-run', 'pilot', 'final', 'contract-replay'],
-          description: 'Benchmark phase or bounded replay of the seven frozen issue #25 contract failures.',
+          enum: ['dry-run', 'pilot', 'final', 'contract-replay', 'execution-modes'],
+          description: 'Benchmark phase, bounded contract replay, or the explicit v0.4 A/B/C execution-modes comparison.',
         },
         repeats: {
           type: 'integer',

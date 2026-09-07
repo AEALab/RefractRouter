@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Add the typed `execution-modes` phase for Python's explicit v0.4 A/B/C report comparison.
+- Default that phase to v2 selection, require zero retries and at most three repeats, and retain
+  disabled paid runs, exact Agent Plan endpoint and both deployment ceilings.
+- Validate a real zero-call subprocess preflight through the registered tool. Evidence ownership,
+  experimental comparisons, accounting and judging remain in Python.
+
 ## 0.5.0
 
 - Add a typed `selectionPolicy` argument and forward it through the DSH runner to Python.

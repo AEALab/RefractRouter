@@ -14,6 +14,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DSHRealRunnerTests(unittest.TestCase):
+    def test_execution_modes_preflight_uses_versioned_runner(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            code = run_real_validation(
+                dataset_path=ROOT / 'data/benchmarks/v0.1.json',
+                manifest_path=ROOT / 'data/model-manifests/volcengine-agent-plan.json',
+                output_dir=root / 'output', evidence_path=root / 'evidence.json',
+                phase='execution-modes', repeats=1, max_retries=0, invoked_by='dsh-plugin')
+            evidence = json.loads((root / 'evidence.json').read_text())
+        self.assertEqual(code, 0)
+        self.assertEqual(evidence['status'], 'pass')
+        self.assertTrue(evidence['command'][1].endswith('run_execution_modes.py'))
+        self.assertEqual(evidence['preflight']['call_plan']['total_model_calls'], 80)
+        self.assertEqual(evidence['preflight']['selection_policy'], 'exclude-known-contract-rejections-v2')
+
     def test_contract_replay_preflight_selects_bounded_runner(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

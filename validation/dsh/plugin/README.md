@@ -30,6 +30,22 @@ separately reports failures that invalidate the experiment. No final quality or 
 
 ## Supported versions
 
+Version 0.6.0 adds `phase: "execution-modes"`, the explicit v0.4 evidence-state experiment.
+It defaults to v2 selection, accepts one to three repeats and requires configured `maxRetries: 0`.
+Configure the Agent Plan manifest, `billingUnit: "AFP"` and
+`credentialEnv: "CODEX_ARK_API_KEY"`, then invoke:
+
+```json
+{"phase":"execution-modes","repeats":1,"executePaidRun":false}
+```
+
+The zero-call preflight reports 80 planned requests for one task/repeat: three one-shot reports,
+three seven-node single-model reports, 21 node probes, one seven-node composed report, and 28 judges.
+Python owns the versioned evidence state, comparison cohorts and call ledger. The plugin only
+forwards this bounded phase. A paid execution needs fresh output, explicit scoped authorization,
+enabled deployment configuration, resolved Agent Plan credentials and both budget ceilings.
+See [the experiment design](../../../docs/evidence-state-execution-modes.md).
+
 The v0.1 compatibility contract is intentionally narrow:
 
 | Component | Supported | CI coverage |
@@ -58,7 +74,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.5.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.6.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,

@@ -6,7 +6,7 @@ import type { Readable, Writable } from 'node:stream'
  */
 export type BillingUnit = 'USD' | 'AFP'
 export type SelectionPolicy = 'all-candidates-required-v1' | 'exclude-known-contract-rejections-v2'
-export type Phase = 'dry-run' | 'pilot' | 'final' | 'contract-replay'
+export type Phase = 'dry-run' | 'pilot' | 'final' | 'contract-replay' | 'execution-modes'
 export type SandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access'
 export type SandboxEnforcement = 'full' | 'partial'
 

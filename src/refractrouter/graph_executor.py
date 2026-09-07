@@ -8,6 +8,7 @@ from .adapters import ModelAdapter
 from .model_registry import ModelRegistry
 from .schemas import NodeResult, TaskDAG, TaskResult
 from .scoring import score_node, score_task
+from .evidence_state import evidence_artifact, uses_evidence_state
 
 
 class GraphExecutor:
@@ -112,6 +113,14 @@ class GraphExecutor:
                 f"Missing upstream context for {node_id}: {', '.join(missing_parents)}"
             )
         model = self.registry.get(model_id)
+        if uses_evidence_state(self.task) and node.node_type in {
+                "synthesis", "generation", "rendering", "verification"}:
+            try:
+                evidence_artifact(self.task, context)
+            except ValueError as exc:
+                return NodeResult(node_id, node.node_type, model_id, "", 0, 0, 0, 0,
+                                  billing_unit=model.billing_unit, status="failed", attempts=0,
+                                  failure_type="invalid-reference-context", error_message=str(exc))
         prompt = self._build_prompt(node, dict(context))
         result = self.adapter.invoke(self.task, node, prompt, dict(context), model)
         return self._replace_score(result, score_node(self.task, node, result.output, context) if result.status == "ok" else 0.0)
