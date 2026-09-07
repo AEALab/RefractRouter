@@ -1,74 +1,59 @@
-# Evidence ownership and execution-mode comparison
+# 不可变证据与执行方式对照
 
-## Decision and scope
+## 决策与范围
 
-The third Flash single-model DAG run in the preceding three-repeat experiment returned synthesis
-analysis without the required evidence array. Its writer, renderer and verifier never ran. This is
-an observed v0.3 handoff failure; it does not establish that a one-call report would pass or cost less.
-The saved response and its original verdict remain unchanged.
+前次三轮实验中，Flash 的第三轮分析输出遗漏 evidence 数组，写作、渲染及验证未能继续。
+这一事实不证明一次调用一定更好或更省。历史原始输出、失败判定和已完成归档均保持不变。
 
-The explicit v0.4 protocol makes Python the owner of validated extraction evidence. It adds no
-implementation language or business logic to the TypeScript host. Existing task defaults, source
-files, v0.3 prompts and archived artifacts retain their original protocol. User approval on
-2026-09-07 covers this implementation and offline validation, not a new paid experiment or public
-publication of local evidence.
+v0.4 由 Python 持有验证后的抽取证据；TypeScript 只负责 DSH 参数、凭据和子进程边界。
+旧任务默认继续使用 v0.3。2026-09-07 用户已授权一轮新的付费对照，并要求输出文档使用简体中文。
+这不包含公共仓库发布或自动追加实验。
 
-## Evidence lifetime
+## 证据所有权
 
-`with_evidence_state` creates a task copy. It adds extraction as a direct parent of synthesis,
-generation, rendering and verification. `evidence_artifact` reads only the extraction node's raw
-output, validates source ID/title/hash and nonempty claims, and exposes frozen evidence items plus
-the raw output's SHA-256. A descendant cannot substitute its own evidence array. Snapshots persist
-each completed route's extraction record separately from raw model responses.
+应用复制任务并将抽取节点设为分析、写作、渲染和验证的直接依赖。
+证据记录只读取指定抽取节点的原始响应，校验来源标识、标题、哈希及非空断言，
+再构造冻结条目与原始响应 SHA-256。后续模型不能用自己的 evidence 数组替换它。
 
-Synthesis returns analysis with `[source_###]` citations. Generation returns a title and cited
-sections. Neither returns evidence arrays. Rendering reads the application-owned extraction record
-to construct the source trace. Missing or invalid extraction blocks dependent calls before spending;
-unknown or unextracted citations and replacement evidence arrays are rejected. The executor,
-adapter, node judge and selection validator use the same evidence rules and direct-parent context.
+分析返回带引用的 analysis；写作返回 title 与 sections。二者均不再转抄证据数组。
+渲染从应用证据记录构建来源追溯。无效或缺失抽取会在依赖节点调用前阻断；
+未知来源、未抽取来源的引用，以及后续返回替代证据数组，都会被拒绝。
+执行、评分、选路复查使用相同证据规则与上下文。
 
-The state validates provenance identity, not truth. An extraction claim can still misrepresent its
-source, and a citation can still fail to support an assertion. Independent semantic node judging
-uses rubric v0.4; final reports retain the same independent final rubric v0.1 for every arm.
-The state is reconstructed from immutable raw extraction in each check; it is not a mutable cache or
-a new model-generated summary. Evidence still occupies input tokens when consumers need it.
+身份一致不证明语义正确。抽取可能误读来源，引用可能不支持断言，仍需独立评审。
+节点使用 v0.4 评审规则；三组最终报告都使用相同的 v0.1 最终评审规则。
+应用状态并非新的模型摘要或缓存；消费者需要证据时，它仍占用输入 token。
 
-Alternatives were continued model-to-model copying, silently repairing missing arrays, and a global
-unversioned relaxation. Copying preserves the observed failure mode and spends output tokens on
-unchanged data. Repair would hide raw contract failures; a global relaxation would change historical
-interpretation. The chosen approach requires explicit dependencies and a new rubric. Roll back by
-using the original task and runner; never relabel v0.3 evidence as v0.4.
+继续转抄会保留遗漏风险；自动补齐会掩盖原始失败；全局放宽会改变历史解释。
+选择显式新版本的代价是增加依赖管理与版本维护。回滚使用原任务和原运行器，
+不能将旧输出重新标记为新协议成功。
 
-## Frozen A/B/C experiment
+## A/B/C 对照
 
-| Arm | Production per candidate / route | Purpose |
+| 组别 | 每个候选或路线的生产调用 | 用途 |
 |---|---:|---|
-| A: one-shot | 1 call per candidate | Full source pack to complete standalone HTML |
-| B: single-model DAG | 7 calls per candidate | Same model executes the complete v0.4 DAG |
-| C: composed DAG | 7 calls for the selected route | v2 independently judged node assignments |
+| A：一次调用 | 每模型 1 次 | 从完整冻结来源包直接生成完整 HTML |
+| B：单模型 DAG | 每模型 7 次 | 同一模型完成七节点任务 |
+| C：逐节点选模 DAG | 选定路线 7 次 | 根据独立节点评分组合路线 |
 
-The initial candidate pool remains Flash, M3 and Pro, with K3 excluded from routing and reserved as
-judge. The broader catalog is already separate from this frozen pool. Expanding candidates and
-changing decomposition simultaneously would make attribution harder and increase probe costs.
+候选池固定为 Flash、M3、Pro，K3 仅任独立评审。暂不同时扩大模型池，便于区分拆解和选模效果。
+同模型 B/A 比较拆解效果，C/B 比较选模效果。组内事后最佳基线要求所有候选执行成功且完成评审；
+任何候选缺失时，该基线不可用，不能只挑选幸存者。事后最佳基线不是可部署路由器。
 
-A and B are compared for each identical model and task/repeat; C is compared to every A and B as
-well as their complete family-best baselines. Family-best is post-hoc and unavailable if any member
-fails execution or judging. It is not a deployable router. C uses frozen strong-model reference
-contexts for 21 probes and reruns the selected assignments in its own DAG. All nodes may select the
-same model; no diversity is forced. Node-local selection does not prove globally optimal composition.
+C 使用强模型冻结参考上下文运行 21 个探针，再用选定模型执行自己的完整 DAG。
+所有节点允许选择同一模型，不强制混用；局部节点最优不等于全局组合最优。
 
-All arms use the same frozen task, sources, final requirements, independent final judge, temperature
-zero, thinking disabled, 8192-token output limit and no retries. A sees the full sources in its only
-call. B/C perform extraction and downstream writing separately; that is the intended intervention.
-Final semantic analysis scores do not depend on an intermediate synthesis node being present.
+三组使用相同任务、来源、最终要求和最终评审，温度为 0、关闭思考、输出上限 8192、零重试。
+本次共同将最终章节标题转换为简体中文，并要求标题、正文、说明使用简体中文；
+来源标识、哈希和机器接口字段保持原样。转换后的三组任务和语言要求写入新预检。
+这一语言变更适用于全部组别，不与历史英文标题的报告合并统计。
 
-One repeat has 52 production calls (3 A + 21 B + 21 probes + 7 C) and 28 judges (21 node + 7 final),
-80 total. Post-hoc baseline reuse incurs no new requests. Report per-route costs separately from
-probe and evaluation costs; the experimental selection overhead is not a zero-cost online router.
-Every delta uses its declared identical task/repeat pairs and reports missing pairs. One-task results
-cannot establish broad generalization. Fewer than three complete real repeats cannot pass Go.
+每轮生产调用为 52 次：3 次 A、21 次 B、21 次探针、7 次 C；
+评审为 28 次：21 次节点、7 次最终；合计 80 次。事后基线复用不产生新调用。
+路线费用和探针、评审费用分别展示。所有差值使用相同任务／轮次配对，缺失对明确报告。
+单任务不能证明广泛泛化能力；不足三次完整真实重复不能通过收益门槛。
 
-## Reproduction without paid calls
+## 离线复现
 
 ```bash
 uv run python experiments/run_execution_modes.py --output-dir /tmp/refractrouter-v04-preflight-new
@@ -76,27 +61,20 @@ uv run python experiments/run_execution_modes.py --mode offline --repeats 3 \
   --output-dir /tmp/refractrouter-v04-offline-new
 ```
 
-Both require fresh output directories. Offline uses deterministic synthetic report and judge
-fixtures, records zero network calls and zero actual paid cost, and labels every gate
-`Simulation-only`. Fixture scores and token estimates are not evidence of model quality or savings.
-The output includes frozen transformed tasks, code/input hashes, raw observations, extraction
-snapshots, exhaustive node matrix, selection decisions, paired comparisons and artifact hashes.
+输出目录必须全新。离线使用确定性模型和评审夹具，实际网络调用及付费费用为零。
+模拟分数不能作为真实质量或节费证据。产物包括冻结任务、输入与代码哈希、原始观察、
+证据快照、完整矩阵、选路决策、配对比较和文件哈希。新生成的 Markdown 使用简体中文。
 
-DSH plugin 0.6.0 adds `execution-modes` and forwards it to the fixed Python runner. TypeScript only
-validates tool arguments and deployment limits. Paid mode requires the native boundary marker,
-exact Agent Plan endpoint, configured credential and both ceilings; defaults remain paid-disabled.
-The marker is a local deployment guard, not a security boundary against arbitrary local code.
-Malformed/truncated final judge responses retain their paid usage and raw failure records rather
-than disappearing from the cost ledger. Any such response makes that observation unavailable.
+DSH 0.6.0 的 execution-modes 阶段只转发参数。付费默认关闭；真实运行需原生宿主、
+专用 Agent Plan 接口、有效凭据和双额度。宿主标记是部署防误用措施，不是对任意本地代码的安全边界。
+最终评审的无效或截断响应仍保留原始失败及费用，不能因为解析失败而漏记支出。
 
-## Next paid admission proposal
+## 本轮授权
 
-The one-repeat zero-call estimate is 202.39 production + 453.38 evaluation = **655.76 AFP** before
-outer DSH usage (total uses unrounded components). Assumptions are 4000 production input tokens,
-8000 judge input tokens and each model's 8192 output cap, with no cache discount. These input
-assumptions are estimates, not hard token bounds; call reservations and actual costs are tracked.
+单轮零调用预估为生产 202.39、评审 453.38，合计 655.76 AFP，不含外层。
+合计以未四舍五入的分项求和。假设生产输入 4000、评审输入 8000、输出上限 8192，
+不计缓存折扣；输入是假设而非严格上界，运行中同时跟踪逐次预留与实际费用。
 
-A concrete future envelope is 210 production + 460 evaluation + 0.5 outer = **670.5 AFP** for one
-fresh admission run. It is a proposal, not authorization. Inspect completeness, source grounding,
-per-model B/A quality-cost-latency pairs and C/B pairs before proposing any repeated paid experiment.
-No new live calls are part of the implementation validation.
+用户已同意生产 210、评审 460、外层 0.5，合计 670.5 AFP 的单轮额度。
+完成后先审计完整性、来源支持、B/A 与 C/B 的配对质量、成本、延迟，再提出后续建议。
+不得自动重跑、追加重复、扩展候选池或公开发布。

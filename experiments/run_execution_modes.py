@@ -17,10 +17,12 @@ else:
                              _evaluate_with_budget, build_task_strategy_bundle, estimate_costs)
 from refractrouter.adapters import FakeModelAdapter, OpenAICompatibleAdapter
 from refractrouter.benchmark import (
-    BenchmarkObservation, aggregate_observations, baseline_markdown,
-    failure_taxonomy, failure_taxonomy_markdown, oracle_gate,
+    BenchmarkObservation, aggregate_observations, failure_taxonomy, oracle_gate,
 )
-from refractrouter.comparisons import paired_comparisons, comparisons_markdown
+from refractrouter.comparisons import paired_comparisons
+from refractrouter.execution_reports import (
+    baseline_markdown, comparisons_markdown, failure_taxonomy_markdown, node_matrix_markdown,
+)
 from refractrouter.dataset import load_benchmark_dataset
 from refractrouter.evidence_state import evidence_artifact, with_evidence_state
 from refractrouter.execution_modes import one_shot_task, run_one_shot, execution_mode_call_plan, execution_mode_pairs
@@ -136,16 +138,15 @@ def run(task, manifest, adapter, client, ledger, output, repeats, *, simulation)
             write(output / 'evidence-state' / f'repeat-{repeat}' / f'{name}.json', record)
 
     recorder.write_matrix()
+    (output / 'node-quality-matrix.md').write_text(node_matrix_markdown(recorder.rows))
     blocks = [(task.task_id, repeat) for repeat in range(1, repeats + 1)]
     summary = aggregate_observations(observations, expected_blocks=blocks)
     comparison = paired_comparisons(observations, expected_blocks=blocks,
         comparison_pairs=execution_mode_pairs(models), interpretation=(
-            'Simulation only; no measured model-quality or cost benefit. ' if simulation else '') +
-        'A is one model invocation with the complete frozen source pack; B is seven DAG nodes with one model; '
-        'C is a composed node-local greedy route, which may select a single model. '
-        'Compare B/A for the same model to measure decomposition; compare C/B to measure assignment. '
-        'Oracles require every candidate in that family to succeed and be judged, are post-hoc, and are not deployable routers. '
-        'All displayed deltas use the same task/repeat pair set. Probe and judge costs are separate.')
+            '仅为模拟，不构成模型质量或节费的实测证据。' if simulation else '') +
+        'A 为完整来源包的一次调用；B 为单模型七节点；C 为按独立节点评分选出的路线，允许全程使用同一模型。'
+        '同模型 B/A 比较拆解效果，C/B 比较选模效果。组内最佳基线要求所有候选成功且完成评审；'
+        '它是事后选择，不是可部署路由器。所有差值使用相同任务／轮次配对，探针与评审费用另计。')
     complete = all(v['cohort']['complete'] for v in summary.values()) and all(
         s['records_complete'] and s['evaluations_available'] for s in availability)
     gates = {}
@@ -166,11 +167,11 @@ def run(task, manifest, adapter, client, ledger, output, repeats, *, simulation)
             production=round(ledger.production_spent, 8), evaluation=round(ledger.evaluation_spent, 8),
             node_evaluation=round(sum(r['evaluation']['cost'] for r in recorder.rows), 8),
             actual_paid_cost=0 if simulation else None,
-            accounting='All unique A/B/C and probe execution costs; each final judge billed once. Oracle reuse is not billed again.'))
+            accounting='包括所有唯一 A/B/C 路线与探针；最终评审只计费一次，事后最佳基线复用不重复计费。'))
     write(output / 'benchmark-summary.json', result)
     write(output / 'strategy-comparisons.json', comparison)
     (output / 'strategy-comparisons.md').write_text(comparisons_markdown(comparison))
-    (output / 'baseline-table.md').write_text(('Simulation only; not empirical evidence.\n\n' if simulation else '') + baseline_markdown(summary))
+    (output / 'baseline-table.md').write_text(('仅为模拟，不是实测证据。\n\n' if simulation else '') + baseline_markdown(summary))
     (output / 'failure-taxonomy.md').write_text(failure_taxonomy_markdown(failed))
     return result
 
@@ -202,7 +203,12 @@ def main(argv=None):
     matches = [task for task in dataset.all_tasks if task.task_id == args.task_id]
     if len(matches) != 1:
         parser.error('task-id must identify one frozen dataset task')
-    task = with_evidence_state(matches[0])
+    headings = {'Executive Summary': '执行摘要', 'Background': '背景', 'Selection Criteria': '选型标准',
+                'Platform Comparison': '平台比较', 'Risks': '风险', 'Conclusion': '结论', 'References': '参考资料'}
+    task = with_evidence_state(replace(matches[0],
+        required_sections=tuple(headings.get(s, s) for s in matches[0].required_sections),
+        output_constraints=(*matches[0].output_constraints,
+            '最终报告的标题、正文、说明及来源介绍必须使用简体中文；模型名、来源标识及哈希保持原样。')))
     output = args.output_dir.resolve()
     if output.exists() and any(output.iterdir()):
         parser.error('Use a fresh output directory; no evidence is overwritten')
@@ -214,7 +220,7 @@ def main(argv=None):
                      for p in base.rglob('*') if p.is_file() and p.suffix in {'.py', '.ts', '.json', '.md', '.yml'}
                      and not set(p.parts) & {'node_modules', 'dist', '.test-dist', '__pycache__'})
     preflight = dict(schema_version='execution-modes-v0.4', phase=args.phase, repeats=args.repeats,
-        task_id=task.task_id, mode='paid' if args.execute_paid_run else args.mode,
+        task_id=task.task_id, output_language='zh-CN', mode='paid' if args.execute_paid_run else args.mode,
         model_calls=0 if not args.execute_paid_run else None,
         provider='ark-plan', wire_api='chat-completions', billing_unit='AFP',
         base_url=manifest.candidates[0].base_url, credential_env=manifest.candidates[0].api_key_env,
