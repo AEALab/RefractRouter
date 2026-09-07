@@ -575,6 +575,19 @@ test('K3 baseline completes native zero-call preflight and exposes the prepare b
   }
 })
 
+test('baseline stage makes a one-call plan through the native subprocess', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'k3-baseline', stage: 'baseline' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.equal(result.callPlan!.totalModelCalls, 1)
+    assert.equal(result.costEstimate!.total, 12.19)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
 test('K3 review handoff arguments are typed and paid execution remains disabled', async () => {
   const fixture = fakeContext()
   await fixture.tool.execute({ phase: 'k3-baseline', stage: 'compose',

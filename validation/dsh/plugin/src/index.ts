@@ -259,12 +259,12 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
   if ((requestedPhase === 'contract-replay' || requestedPhase === 'execution-modes') && (repeats > 3 || config.maxRetries !== 0)) {
     throw new Error(`${requestedPhase} requires repeats <= 3 and configured maxRetries = 0`)
   }
-  let extra: { stage?: 'prepare' | 'compose'; inputDir?: string; reviewsPath?: string } = {}
+  let extra: { stage?: 'baseline' | 'prepare' | 'compose'; inputDir?: string; reviewsPath?: string } = {}
   if (requestedPhase === 'k3-baseline') {
     if (repeats !== 1 || config.maxRetries !== 0) throw new Error('k3-baseline requires one repeat and zero retries')
     if (args.selectionPolicy !== undefined) throw new Error('k3-baseline uses its frozen Python cost policy')
     const stage = args.stage ?? 'prepare'
-    if (stage !== 'prepare' && stage !== 'compose') throw new Error('invalid k3-baseline stage')
+    if (stage !== 'baseline' && stage !== 'prepare' && stage !== 'compose') throw new Error('invalid k3-baseline stage')
     extra = { stage }
     for (const key of ['inputDir', 'reviewsPath'] as const) {
       if (args[key] !== undefined) {
@@ -996,7 +996,7 @@ export function apply(ctx: DshContext, rawConfig: unknown = {}): void {
           type: 'integer',
           description: 'Positive integer repeat count; defaults to 1.',
         },
-        stage: { type: 'string', enum: ['prepare', 'compose'], description: 'K3 对照的执行阶段；默认为 prepare。' },
+        stage: { type: 'string', enum: ['baseline', 'prepare', 'compose'], description: 'baseline 仅执行 K3 一次并停止，等待上限 300 秒；默认为 prepare。' },
         inputDir: { type: 'string', description: '已冻结的上一阶段证据目录，仅用于 K3 对照。' },
         reviewsPath: { type: 'string', description: '独立评分与校准文件；Python 校验归属及完整性。' },
         selectionPolicy: {

@@ -34,7 +34,7 @@ def roles(manifest):
     return baseline, manifest.candidate_registry()
 
 
-def prepare(task, manifest, adapter, *, simulation):
+def prepare(task, manifest, adapter, *, simulation, baseline_only=False):
     baseline, registry = roles(manifest)
     a = run_one_shot(task, baseline.model_id, adapter, ModelRegistry([baseline]))
     if a.failure_types or not a.final_output or any(n.status != 'ok' for n in a.node_results):
@@ -45,6 +45,11 @@ def prepare(task, manifest, adapter, *, simulation):
             baseline_model=asdict(baseline), baseline=asdict(a), reference=None,
             rows=[], node_packet=None, node_mapping=None,
             prepare_cost=None if unknown_usage else a.total_cost, known_prepare_cost=a.total_cost)
+    if baseline_only:
+        return dict(version='k3-baseline-v1', stage='baseline-ready', simulation=simulation,
+            task=asdict(task), models=[asdict(m) for m in registry.list()], baseline_model=asdict(baseline),
+            baseline=asdict(a), reference=None, rows=[], node_packet=None, node_mapping=None,
+            prepare_cost=a.total_cost, known_prepare_cost=a.total_cost)
     executor = DeepAgentsGraphExecutor(task, adapter, registry)
     reference = executor.execute({n.node_id: registry.strongest().model_id for n in task.nodes}, 'reference')
     context = {n.node_id: n.output for n in reference.node_results}

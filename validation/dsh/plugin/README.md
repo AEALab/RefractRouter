@@ -1,5 +1,12 @@
 # RefractRouter DSH validation bundle
 
+## 0.8.0：仅执行 K3 基线
+
+`{"phase":"k3-baseline","stage":"baseline"}` 默认生成单次零调用预检。
+获批真实执行时，只生成 K3 整任务报告，等待上限 300 秒；成功后返回 `baseline-ready`，
+失败则返回 `blocked`，两者均不运行参考路线或探针。仍需冻结输入、已通过的校准、
+生产额度和显式付费开关。其他阶段的等待上限仍为 120 秒。
+
 ## 0.7.0：K3 整任务主对照
 
 新增 `phase: "k3-baseline"`，支持 `stage: "prepare" | "compose"`、`inputDir` 和
@@ -92,7 +99,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.7.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.8.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,

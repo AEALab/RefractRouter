@@ -176,6 +176,21 @@ def test_quality_floor_failure_stops_before_composed_calls(prepared):
     assert result['stage']=='blocked' and adapter.calls==29
 
 
+def test_baseline_only_never_runs_reference_or_probes(tmp_path):
+    task, manifest, adapter=setup()
+    state=prepare(task,manifest,adapter,simulation=True,baseline_only=True)
+    assert state['stage']=='baseline-ready' and adapter.calls==1
+    assert state['reference'] is None and state['rows']==[] and state['node_packet'] is None
+    with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client:
+        assert main(['--stage','baseline','--mode','offline','--output-dir',str(tmp_path)])==0
+    client.assert_not_called()
+    summary=json.loads((tmp_path/'benchmark-summary.json').read_text())
+    preflight=json.loads((tmp_path/'preflight.json').read_text())
+    assert summary['fixture_production_calls']==1 and summary['actual_paid_cost']==0
+    assert preflight['call_plan']['total_model_calls']==1
+    assert preflight['request_timeout_seconds']==300
+
+
 def test_paid_without_review_is_blocked_before_client(tmp_path):
     with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client:
         with pytest.raises(SystemExit):main(['--execute-paid-run','--output-dir',str(tmp_path)])
@@ -199,7 +214,8 @@ def test_baseline_failure_stops_before_any_reference_or_probe(failure):
     assert state['prepare_cost']==(None if failure=='timeout' else .15)
 
 
-def test_timeout_cli_saves_unknown_cost_and_blocked_checkpoint(tmp_path, monkeypatch):
+@pytest.mark.parametrize('stage,timeout', [('prepare',120),('baseline',300)])
+def test_timeout_cli_saves_unknown_cost_and_blocked_checkpoint(tmp_path, monkeypatch,stage,timeout):
     initial=tmp_path/'initial';main(['--output-dir',str(initial)])
     state=read_bundle(initial)
     calibration=fixture_reviews(state['calibration']['public'])
@@ -216,11 +232,12 @@ def test_timeout_cli_saves_unknown_cost_and_blocked_checkpoint(tmp_path, monkeyp
             return NodeResult(node.node_id,node.node_type,model.model_id,'',0,0,0,120000,
                               status='failed',failure_type='timeout',attempts=1)
     adapter=Timeout()
-    with patch('experiments.run_k3_baseline.OpenAICompatibleClient'), patch(
+    with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client, patch(
             'experiments.run_k3_baseline.OpenAICompatibleAdapter',return_value=adapter):
-        assert main(['--output-dir',str(tmp_path/'output'),'--input-dir',str(initial),
+        assert main(['--stage',stage,'--output-dir',str(tmp_path/'output'),'--input-dir',str(initial),
             '--reviews',str(reviews),'--execute-paid-run','--max-production-cost','132',
             '--max-evaluation-cost','0'])==1
+    assert client.call_args.kwargs['timeout_seconds']==timeout
     saved=read_bundle(tmp_path/'output')
     summary=json.loads((tmp_path/'output/benchmark-summary.json').read_text())
     assert saved['stage']=='blocked' and saved['reason']=='baseline-failed' and adapter.calls==1

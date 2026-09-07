@@ -95,7 +95,7 @@ def main(argv=None):
     p.add_argument('--manifest', type=Path, default=ROOT/'data/model-manifests/volcengine-agent-plan.json')
     p.add_argument('--dataset', type=Path, default=ROOT/'data/benchmarks/v0.1.json')
     p.add_argument('--phase', choices=['k3-baseline'], default='k3-baseline')
-    p.add_argument('--stage', choices=['prepare','compose','finalize'], default='prepare')
+    p.add_argument('--stage', choices=['baseline','prepare','compose','finalize'], default='prepare')
     p.add_argument('--mode', choices=['preflight','offline'], default='preflight')
     p.add_argument('--input-dir', type=Path)
     p.add_argument('--reviews', type=Path)
@@ -130,10 +130,12 @@ def main(argv=None):
     costs = {m.model_id:_estimated_invocation_cost(m,4000,cap) for m in (*registry.list(),baseline)}
     prepare_cost = costs[baseline.model_id]+7*costs[registry.strongest().model_id]+7*sum(costs[m.model_id] for m in registry.list())
     compose_cost = 7*max(costs[m.model_id] for m in registry.list())
-    count = 1+7+7*len(registry.list()) if a.stage=='prepare' else 7 if a.stage=='compose' else 0
-    estimated = prepare_cost if a.stage=='prepare' else compose_cost if a.stage=='compose' else 0
+    count = 1 if a.stage=='baseline' else 1+7+7*len(registry.list()) if a.stage=='prepare' else 7 if a.stage=='compose' else 0
+    estimated = costs[baseline.model_id] if a.stage=='baseline' else prepare_cost if a.stage=='prepare' else compose_cost if a.stage=='compose' else 0
+    request_timeout = 300 if a.stage=='baseline' else 120
     preflight = {'phase':'k3-baseline','stage':a.stage,'billing_unit':'AFP','output_language':'zh-CN',
         'model_calls':None if a.execute_paid_run else 0, 'credential_env':baseline.api_key_env, 'wire_api':baseline.wire_api,
+        'request_timeout_seconds':request_timeout,
         'call_plan':{'training_model_calls':0,'production_model_calls':count,'judge_model_calls':0,'total_model_calls':count},
         'cost_estimates':{'billing_unit':'AFP','production_upper_estimate':round(estimated,2),
             'evaluation_upper_estimate':0,'total_upper_estimate':round(estimated,2)},
@@ -154,12 +156,12 @@ def main(argv=None):
     if a.mode=='offline':
         if a.input_dir or a.reviews: p.error('完整模拟不接收真实输入材料')
         fixture = FixtureAdapter(registry)
-        result = prepare(task,manifest,fixture,simulation=True)
+        result = prepare(task,manifest,fixture,simulation=True,baseline_only=a.stage=='baseline')
         if result['stage']=='node-review-ready':
             result = compose(result,fixture_reviews(result['node_packet']),fixture,quality_floor=a.quality_floor,max_quality_gap=a.max_quality_gap)
         result.update(calibration=build_calibration(task,ROOT),config_sha256=digest(config))
         summary = (finalize(result,fixture_reviews(result['final_packet']),calibration_passed=False)
-                   if result['stage']=='final-review-ready' else {'status':'blocked','simulation':True})
+                   if result['stage']=='final-review-ready' else {'status':result['stage'],'simulation':True})
         # 模拟仅检查调用和数据流；不会伪造校准通过。
         summary.update(actual_network_calls=0,actual_paid_cost=0,fixture_production_calls=fixture.calls)
         save_bundle(a.output_dir,result,summary)
@@ -179,7 +181,7 @@ def main(argv=None):
         result=finalize(state,response['final'],calibration_passed=True)
         save_bundle(a.output_dir,{**state, 'stage':result['status']},result)
         return 0 if result['status']=='complete' else 1
-    expected_stage = 'preflight' if a.stage=='prepare' else 'node-review-ready'
+    expected_stage = 'preflight' if a.stage in {'baseline','prepare'} else 'node-review-ready'
     if state['stage']!=expected_stage: p.error('输入阶段不匹配')
     if a.stage=='compose' and response.get('nodes',{}).get('reviewer')!=calibration['reviewer']:
         p.error('节点评审身份与校准身份不一致')
@@ -188,10 +190,10 @@ def main(argv=None):
         p.error('必须声明覆盖预检的生产额度及评审额度')
     if os.environ.get('REFRACTROUTER_K3_BASELINE_HOST')!='dsh-plugin' or not os.environ.get(baseline.api_key_env or ''):
         p.error('付费执行必须通过 DSH 原生边界并配置凭据')
-    client=OpenAICompatibleClient(max_retries=0,environment={**os.environ,'REFRACTROUTER_MODEL_PROGRESS':str(a.output_dir/'model-progress.ndjson')})
+    client=OpenAICompatibleClient(max_retries=0,timeout_seconds=request_timeout,environment={**os.environ,'REFRACTROUTER_MODEL_PROGRESS':str(a.output_dir/'model-progress.ndjson')})
     ledger=CostLedger('AFP',a.max_production_cost,a.max_evaluation_cost,4000,8000,cap)
     adapter=RecordedAdapter(BudgetedAdapter(OpenAICompatibleAdapter(client),ledger), a.output_dir/'production-results.ndjson')
-    if a.stage=='prepare': result=prepare(task,manifest,adapter,simulation=False)
+    if a.stage in {'baseline','prepare'}: result=prepare(task,manifest,adapter,simulation=False,baseline_only=a.stage=='baseline')
     else: result=compose(state,response['nodes'],adapter,quality_floor=a.quality_floor,max_quality_gap=a.max_quality_gap)
     unknown = [{'node_id':r.node_id,'model_id':r.model_id,'failure_type':r.failure_type}
                for r in adapter.results if r.status!='ok' and r.attempts>0 and r.input_tokens==r.output_tokens==0]

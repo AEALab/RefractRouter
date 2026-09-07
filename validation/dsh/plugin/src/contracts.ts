@@ -31,7 +31,7 @@ export interface PluginConfig {
 export interface ToolArguments {
   phase: Phase
   repeats?: number
-  stage?: 'prepare' | 'compose'
+  stage?: 'baseline' | 'prepare' | 'compose'
   inputDir?: string
   reviewsPath?: string
   selectionPolicy?: SelectionPolicy
@@ -40,7 +40,7 @@ export interface ToolArguments {
   maxEvaluationCost?: number
 }
 
-export type ValidationRequest = { phase: Phase; repeats: number; selectionPolicy: SelectionPolicy; stage?: 'prepare' | 'compose'; inputDir?: string; reviewsPath?: string } & (
+export type ValidationRequest = { phase: Phase; repeats: number; selectionPolicy: SelectionPolicy; stage?: 'baseline' | 'prepare' | 'compose'; inputDir?: string; reviewsPath?: string } & (
   { paid: false } | { paid: true; productionLimit: number; evaluationLimit: number }
 )
 

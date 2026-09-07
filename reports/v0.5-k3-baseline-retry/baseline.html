@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 年企业 LLM Agent 平台选型研究报告</title>
+<style>
+  body { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif; margin: 0; padding: 0; color: #1a1a1a; line-height: 1.75; background: #f7f8fa; }
+  .container { max-width: 980px; margin: 0 auto; padding: 40px 28px 80px; background: #ffffff; }
+  h1 { font-size: 1.9em; border-bottom: 3px solid #2b5aa0; padding-bottom: 12px; color: #16345f; }
+  h2 { font-size: 1.45em; margin-top: 2.2em; border-left: 6px solid #2b5aa0; padding-left: 12px; color: #16345f; }
+  h3 { font-size: 1.15em; margin-top: 1.6em; color: #2b5aa0; }
+  table { border-collapse: collapse; width: 100%; margin: 18px 0; font-size: 0.95em; }
+  th, td { border: 1px solid #c9d2e0; padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: #eaf0f8; color: #16345f; }
+  tr:nth-child(even) td { background: #f6f8fb; }
+  .meta { color: #666; font-size: 0.9em; margin-bottom: 24px; }
+  .callout { background: #f0f5fc; border: 1px solid #c9d8ee; border-left: 5px solid #2b5aa0; padding: 14px 18px; margin: 18px 0; border-radius: 4px; }
+  .risk { background: #fdf3f2; border: 1px solid #f0cfc9; border-left: 5px solid #b3402f; padding: 14px 18px; margin: 18px 0; border-radius: 4px; }
+  a.cite { color: #2b5aa0; text-decoration: none; font-size: 0.82em; vertical-align: super; }
+  a.cite:hover { text-decoration: underline; }
+  .source-trace { font-size: 0.85em; color: #444; }
+  .source-trace li { margin-bottom: 8px; word-break: break-all; }
+  code { background: #eef1f5; padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>2026 年企业 LLM Agent 平台选型研究报告</h1>
+<p class="meta">报告编号：report_001 ｜ 面向场景：RefractRouter v0.1（任务 DAG 节点级模型路由）｜ 依据：冻结来源包（8 份）</p>
+
+<h2>一、执行摘要</h2>
+<p>本报告针对企业级 LLM Agent 平台在 <strong>RefractRouter v0.1</strong> 场景下的选型进行系统评估。RefractRouter 的核心研究问题是：现有 LLM 路由工作大多针对整个请求选择单一模型，而 RefractRouter 探索在任务 DAG 的<strong>每个节点上分别选择模型</strong>，能否改善质量—成本—延迟的帕累托前沿<a class="cite" href="#src5" data-cite-source-id="source_005">[source_005]</a>。</p>
+<p>基于冻结来源包中的证据，本报告得出如下核心结论：</p>
+<ul>
+  <li><strong>执行底座选 LangGraph</strong>：LangGraph 是面向复杂工作流的图状态机框架，支持显式节点、边、持久化状态与检查点，RefractRouter 将其用作固定任务 DAG 的底层执行基座<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a>。</li>
+  <li><strong>上层编排选 DeepAgents，但须收敛能力边界</strong>：DeepAgents 是基于 LangGraph 构建的 LangChain 编排壳（harness），提供规划、子代理、文件系统抽象与人机协同控制；在 RefractRouter v0.1 中可用作固定 DAG 执行壳，但其自主规划与动态子代理生成能力必须保持禁用<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a>。</li>
+  <li><strong>Pydantic AI 暂不纳入核心依赖</strong>：Pydantic AI 提供类型化工具定义与结构化模型输出，适用于严格 schema 场景；但 v0.1 阶段除非结构化输出解析成为瓶颈，否则不作为核心依赖<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a>。</li>
+  <li><strong>DeepSeek Harness（DSH）限定于外围验证环境</strong>：DSH 是一种"代理循环本身即插件"的代理壳，在 v0.1 中保留给外部验证环境使用，不进入核心路由循环<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a>。</li>
+</ul>
+<div class="callout"><strong>一句话结论：</strong>采用"LangGraph（执行基座）+ DeepAgents（受约束的编排壳）"的双层架构，Pydantic AI 作为条件性备选，DSH 隔离于验证侧——该组合最贴合"固定 DAG 输入 + 节点级模型选择"的 v0.1 边界定义<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a><a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a><a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。</div>
+
+<h2>二、背景</h2>
+<h3>2.1 问题域：从"请求级路由"到"节点级路由"</h3>
+<p>企业 LLM 应用的成本与延迟压力，使"为任务选择合适模型"成为平台选型的关键议题。然而，现有 LLM 路由研究大多为整个请求挑选单一模型，粒度偏粗。RefractRouter 提出的研究问题是：若在任务 DAG 的每个节点上独立选择模型，能否在质量、成本、延迟三者之间取得更优的帕累托权衡<a class="cite" href="#src5" data-cite-source-id="source_005">[source_005]</a>。这一研究定位直接决定了平台选型的技术前提：平台必须支持<strong>显式、固定的 DAG 结构</strong>与<strong>节点级执行控制</strong>，而非黑盒式的自主代理。</p>
+<h3>2.2 架构边界：静态分解归应用层，动态重拆分延后</h3>
+<p>选型必须尊重已冻结的架构边界：静态任务分解属于应用层职责，路由器接收 DAG 作为输入，专注于逐节点的模型选择；动态重拆分（dynamic re-splitting）在节点级路由得到验证之前予以延后<a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。这意味着平台评估的首要标准不是"自主规划能力有多强"，而是"能否在固定 DAG 上提供可控、可观测、可复现的执行"。</p>
+<h3>2.3 评估基础设施：基准与评分体系先行</h3>
+<p>选型的有效性依赖可复现的评估。一个有用的路由基准需要：固定任务 DAG、多个候选模型、逐节点与逐任务评分、成本核算以及关键路径延迟；首个基准应保持足够小以便复现<a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a>。同时，v0.1 评分细则对需求覆盖、证据准确性、分析深度、结构与可读性、HTML 有效性进行加权，且评分提示词与细则版本必须与运行记录一起版本化<a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a>。因此，所选平台必须能与该基准/评分体系协同，支持逐节点指标采集。</p>
+
+<h2>三、选型标准</h2>
+<p>依据上述背景，本报告提炼出六项选型标准。每项标准均可追溯至冻结来源：</p>
+<table>
+  <thead>
+    <tr><th>标准</th><th>内涵</th><th>依据来源</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C1 固定 DAG 执行能力</strong></td>
+      <td>支持显式节点与边、可持久化状态、可检查点恢复，确保固定任务 DAG 的确定性执行</td>
+      <td><a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C2 节点级路由适配性</strong></td>
+      <td>执行粒度可下沉到 DAG 节点，便于在每个节点上独立绑定模型，服务质量—成本—延迟帕累托优化</td>
+      <td><a class="cite" href="#src5" data-cite-source-id="source_005">[source_005]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C3 能力边界可控性</strong></td>
+      <td>自主规划、动态子代理等能力可禁用，避免破坏"DAG 由应用层静态给出"的边界</td>
+      <td><a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a><a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C4 结构化输出与类型安全</strong></td>
+      <td>在需要严格 schema 时提供类型化工具定义与结构化输出能力，但允许按需引入而非强制绑定</td>
+      <td><a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C5 验证环境可插拔性</strong></td>
+      <td>代理循环可替换/可插拔，便于在外围验证环境中独立评估不同执行策略而不污染核心路由循环</td>
+      <td><a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C6 可观测与可复现性</strong></td>
+      <td>支持逐节点/逐任务评分、成本核算、关键路径延迟采集，且评分资产可版本化</td>
+      <td><a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a><a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>四、平台比较</h2>
+<h3>4.1 候选平台总览</h3>
+<table>
+  <thead>
+    <tr><th>平台</th><th>定位</th><th>关键能力</th><th>在 RefractRouter v0.1 中的角色</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>LangGraph</strong></td>
+      <td>图状态机框架（底层）</td>
+      <td>显式节点/边、持久化状态、检查点<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+      <td>固定任务 DAG 的底层执行基座<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+    </tr>
+    <tr>
+      <td><strong>DeepAgents</strong></td>
+      <td>基于 LangGraph 的 LangChain 编排壳</td>
+      <td>规划、子代理、文件系统抽象、人机协同控制<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+      <td>固定 DAG 执行壳；自主规划与动态子代理生成须禁用<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+    </tr>
+    <tr>
+      <td><strong>Pydantic AI</strong></td>
+      <td>类型化代理框架</td>
+      <td>类型化工具定义、结构化模型输出<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+      <td>非核心依赖；仅当结构化输出解析成为瓶颈时引入<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+    </tr>
+    <tr>
+      <td><strong>DeepSeek Harness（DSH）</strong></td>
+      <td>代理循环可插拔的代理壳</td>
+      <td>代理循环本身即插件<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+      <td>保留给外围验证环境，不进入核心路由循环<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.2 按标准逐项比较</h3>
+<table>
+  <thead>
+    <tr><th>标准</th><th>LangGraph</th><th>DeepAgents</th><th>Pydantic AI</th><th>DSH</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C1 固定 DAG 执行</strong></td>
+      <td><strong>强</strong>：原生支持显式节点/边、持久化状态与检查点，被指定为执行基座<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+      <td><strong>可用</strong>：构建于 LangGraph 之上，可作固定 DAG 执行壳<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+      <td><strong>不相关</strong>：来源未提及其 DAG 执行能力，其价值在类型化与结构化输出<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+      <td><strong>不适用</strong>：被限定于验证环境，不承担核心执行<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C2 节点级路由适配</strong></td>
+      <td><strong>强</strong>：显式节点模型天然契合"每节点选模型"的研究问题<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a><a class="cite" href="#src5" data-cite-source-id="source_005">[source_005]</a></td>
+      <td><strong>中</strong>：作为壳层承接 DAG，但路由决策由 RefractRouter 完成<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+      <td><strong>弱</strong>：来源未表明其支持节点级路由<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+      <td><strong>弱</strong>：定位在外围验证，非核心路由循环<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C3 能力边界可控</strong></td>
+      <td><strong>强</strong>：作为底层框架不引入自主行为<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+      <td><strong>需治理</strong>：自主规划与动态子代理生成必须显式禁用，以符合静态分解边界<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a><a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a></td>
+      <td><strong>中性</strong>：来源未涉及自主能力治理<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+      <td><strong>中性</strong>：其"循环即插件"特性用于验证侧隔离<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C4 结构化输出</strong></td>
+      <td><strong>未覆盖</strong>：来源未提及其结构化输出能力<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+      <td><strong>未覆盖</strong>：来源未提及其结构化输出能力<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+      <td><strong>强</strong>：类型化工具定义与结构化输出是其核心价值<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+      <td><strong>未覆盖</strong>：来源未提及<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C5 验证环境可插拔</strong></td>
+      <td><strong>间接支持</strong>：作为基座可被不同壳层复用<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a></td>
+      <td><strong>中性</strong>：来源未强调其可插拔性<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+      <td><strong>中性</strong>：来源未涉及<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a></td>
+      <td><strong>强</strong>：代理循环本身即插件，天然适合外围验证环境<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+    <tr>
+      <td><strong>C6 可观测/可复现</strong></td>
+      <td><strong>支持</strong>：持久化状态与检查点为逐节点指标采集与复现提供基础<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a><a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a></td>
+      <td><strong>支持</strong>：人机协同控制有利于过程监督<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a></td>
+      <td><strong>间接支持</strong>：结构化输出便于评分管线解析<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a><a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a></td>
+      <td><strong>支持（验证侧）</strong>：在验证环境中支撑独立评估<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.3 取舍分析</h3>
+<p><strong>为什么是"LangGraph + DeepAgents"而非单一平台？</strong> LangGraph 提供的是底层图状态机能力（显式节点/边、持久化状态、检查点），它解决"确定性执行"问题，但不直接提供编排层的人机协同与文件系统抽象<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a>；DeepAgents 恰好构建于 LangGraph 之上，补齐编排壳层能力<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a>。二者是"基座—壳层"的互补关系，而非互斥替代。选择组合的代价是必须治理 DeepAgents 的自主能力：其自主规划与动态子代理生成与"静态分解归应用层"的边界相冲突，必须显式禁用<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a><a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。</p>
+<p><strong>为什么 Pydantic AI 不进入核心？</strong> 其价值（类型化工具定义、结构化输出）在严格 schema 场景下显著，但 v0.1 的首要矛盾是节点级路由而非输出解析；来源明确指出除非结构化输出解析成为瓶颈，否则不应作为核心依赖<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a>。提前引入会增加依赖面与认知负担，违背"首个基准保持足够小以便复现"的原则<a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a>。</p>
+<p><strong>为什么 DSH 被隔离到验证侧？</strong> DSH 的差异化在于"代理循环本身即插件"，这对验证环境极具价值——可在不触碰核心路由循环的前提下替换执行策略进行对照评估<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a>。但正因如此，它应被保留在外围，避免核心循环的执行语义被插件化机制稀释，从而保证基准的可复现性<a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a>。</p>
+
+<h2>五、风险</h2>
+<div class="risk">
+  <p><strong>R1 能力越界风险（高优先级）。</strong>若 DeepAgents 的自主规划或动态子代理生成被意外启用，DAG 结构将在运行期被改写，直接违反"静态任务分解属于应用层、路由器仅做逐节点选模型"的边界定义，使节点级路由实验失去对照意义<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a><a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。<strong>缓解：</strong>在平台接入层以配置与代码评审双重手段锁定相关能力，并将该约束纳入运行记录的版本化资产<a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a>。</p>
+</div>
+<div class="risk">
+  <p><strong>R2 指标不可复现风险。</strong>路由研究依赖固定 DAG、多候选模型、逐节点/逐任务评分、成本核算与关键路径延迟；若基准过大或评分资产未版本化，结论将无法复现<a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a><a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a>。<strong>缓解：</strong>首版基准保持小规模；评分提示词与细则版本随运行记录一并版本化<a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a><a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a>。</p>
+</div>
+<div class="risk">
+  <p><strong>R3 依赖膨胀风险。</strong>将 Pydantic AI 过早纳入核心依赖，会在尚未出现结构化输出瓶颈时增加系统复杂度<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a>。<strong>缓解：</strong>以"结构化输出解析是否成为瓶颈"为显式触发条件，按需引入<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a>。</p>
+</div>
+<div class="risk">
+  <p><strong>R4 验证环境污染风险。</strong>若 DSH 的插件化代理循环渗入核心路由循环，核心执行语义将随插件变化而漂移，损害实验稳定性<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a>。<strong>缓解：</strong>在架构上将 DSH 限定于外围验证环境，核心循环仅依赖 LangGraph 基座与受约束的 DeepAgents 壳<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a><a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a><a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a>。</p>
+</div>
+<div class="risk">
+  <p><strong>R5 范围蔓延风险。</strong>动态重拆分具有吸引力，但来源明确要求在节点级路由被验证之前予以延后；提前引入会混淆研究变量<a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。<strong>缓解：</strong>将动态重拆分列入 v0.1 之后的路线图，以节点级路由验证结果为前置条件<a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。</p>
+</div>
+
+<h3>5.1 本报告的局限性</h3>
+<ul>
+  <li>本报告仅基于 8 份冻结来源，未纳入各平台的性能基准实测数据、价格信息或社区生态指标；相关维度无法在来源内得到证据支持，故不作断言。</li>
+  <li>来源对 Pydantic AI 与 DSH 在 DAG 执行、可观测性等维度的能力描述有限，比较表中相应单元格标注为"未覆盖/不适用"，反映的是证据缺口而非平台缺陷<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a><a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a>。</li>
+  <li>结论的适用范围限定于 RefractRouter v0.1 的"固定 DAG + 节点级路由"场景；当动态重拆分被提上日程时，选型结论需重新评估<a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。</li>
+</ul>
+
+<h2>六、结论</h2>
+<p>综合六项选型标准与四平台证据，本报告给出如下有依据的结论：</p>
+<ol>
+  <li><strong>采用"LangGraph + DeepAgents"双层架构作为 v0.1 核心。</strong>LangGraph 作为固定任务 DAG 的底层执行基座，提供显式节点/边、持久化状态与检查点<a class="cite" href="#src2" data-cite-source-id="source_002">[source_002]</a>；DeepAgents 作为其上的编排壳，提供规划、子代理、文件系统抽象与人机协同控制，但其自主规划与动态子代理生成必须保持禁用<a class="cite" href="#src1" data-cite-source-id="source_001">[source_001]</a>。该组合直接服务于"在任务 DAG 每个节点上分别选择模型以优化质量—成本—延迟帕累托前沿"的研究目标<a class="cite" href="#src5" data-cite-source-id="source_005">[source_005]</a>。</li>
+  <li><strong>Pydantic AI 设为条件性备选。</strong>仅当结构化输出解析成为瓶颈时引入，利用其类型化工具定义与结构化输出能力；在此之前不作为核心依赖<a class="cite" href="#src3" data-cite-source-id="source_003">[source_003]</a>。</li>
+  <li><strong>DSH 固定于外围验证环境。</strong>利用其"代理循环即插件"的特性支撑对照验证，但不得进入核心路由循环<a class="cite" href="#src4" data-cite-source-id="source_004">[source_004]</a>。</li>
+  <li><strong>以小型可复现基准与版本化评分体系作为选型的验收闸门。</strong>基准须包含固定任务 DAG、多候选模型、逐节点/逐任务评分、成本核算与关键路径延迟，并保持足够小以便复现<a class="cite" href="#src7" data-cite-source-id="source_007">[source_007]</a>；评分细则（需求覆盖、证据准确性、分析深度、结构与可读性、HTML 有效性加权）及其提示词版本须随运行记录版本化<a class="cite" href="#src8" data-cite-source-id="source_008">[source_008]</a>。</li>
+  <li><strong>严守范围边界。</strong>静态任务分解留在应用层，动态重拆分延后至节点级路由验证之后<a class="cite" href="#src6" data-cite-source-id="source_006">[source_006]</a>。</li>
+</ol>
+
+<h2>七、参考资料</h2>
+<p>以下为本报告引用的全部冻结来源（来源溯源：data-source-id 与 data-content-hash 一一对应）：</p>
+<ol class="source-trace">
+  <li id="src1" data-source-id="source_001" data-content-hash="ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"><strong>[source_001] DeepAgents</strong> — DeepAgents 是基于 LangGraph 的 LangChain 编排壳，提供规划、子代理、文件系统抽象与人机协同控制；在 RefractRouter v0.1 中用作固定 DAG 执行壳，其自主规划与动态子代理生成应保持禁用。</li>
+  <li id="src2" data-source-id="source_002" data-content-hash="97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"><strong>[source_002] LangGraph</strong> — LangGraph 是面向复杂工作流的图状态机框架，支持显式节点、边、持久化状态与检查点；RefractRouter 将其用作固定任务 DAG 的底层执行基座。</li>
+  <li id="src3" data-source-id="source_003" data-content-hash="7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"><strong>[source_003] Pydantic AI</strong> — Pydantic AI 提供类型化工具定义与结构化模型输出，适用于严格 schema 场景；RefractRouter v0.1 除非结构化输出解析成为瓶颈，否则不将其作为核心依赖。</li>
+  <li id="src4" data-source-id="source_004" data-content-hash="b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"><strong>[source_004] DeepSeek Harness</strong> — DeepSeek Harness（DSH）是代理循环本身即插件的代理壳；在 RefractRouter v0.1 中保留给外围验证环境，不进入核心路由循环。</li>
+  <li id="src5" data-source-id="source_005" data-content-hash="418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"><strong>[source_005] LLM routing research gap</strong> — 现有 LLM 路由工作大多为整个请求选择单一模型；RefractRouter 研究在任务 DAG 每个节点上分别选择模型能否改善质量—成本—延迟帕累托前沿。</li>
+  <li id="src6" data-source-id="source_006" data-content-hash="96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"><strong>[source_006] Task decomposition boundary</strong> — 静态任务分解属于应用层；路由器接收 DAG 作为输入并专注于逐节点模型选择；动态重拆分延后至节点级路由验证之后。</li>
+  <li id="src7" data-source-id="source_007" data-content-hash="03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"><strong>[source_007] Benchmark design</strong> — 有用的路由基准需要固定任务 DAG、多候选模型、逐节点与逐任务评分、成本核算与关键路径延迟；首个基准应保持足够小以便复现。</li>
+  <li id="src8" data-source-id="source_008" data-content-hash="b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"><strong>[source_008] Scoring rubric</strong> — v0.1 评分细则对需求覆盖、证据准确性、分析深度、结构与可读性、HTML 有效性加权；评分提示词与细则版本必须与运行记录一起版本化。</li>
+</ol>
+
+</div>
+</body>
+</html>
