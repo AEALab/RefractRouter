@@ -231,12 +231,20 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
     'phase',
     'repeats',
     'executePaidRun',
+    'selectionPolicy',
     'maxProductionCost',
     'maxEvaluationCost',
   ])
   const unknown = Object.keys(args).filter(key => !allowed.has(key))
   if (unknown.length > 0) throw new Error(`unknown tool arguments: ${unknown.join(', ')}`)
   const requestedPhase = phase(args.phase)
+  const selectionPolicy = args.selectionPolicy ?? 'all-candidates-required-v1'
+  if (selectionPolicy !== 'all-candidates-required-v1' && selectionPolicy !== 'exclude-known-contract-rejections-v2') {
+    throw new Error('unknown selectionPolicy')
+  }
+  if (requestedPhase === 'contract-replay' && selectionPolicy !== 'all-candidates-required-v1') {
+    throw new Error('contract-replay does not select node candidates')
+  }
   if (args.executePaidRun !== undefined && typeof args.executePaidRun !== 'boolean') {
     throw new Error('executePaidRun must be a boolean')
   }
@@ -252,7 +260,7 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
     if (args.maxProductionCost !== undefined || args.maxEvaluationCost !== undefined) {
       throw new Error('cost limits are valid only when executePaidRun is true')
     }
-    return { phase: requestedPhase, repeats, paid: false }
+    return { phase: requestedPhase, repeats, selectionPolicy, paid: false }
   }
   if (!config.allowPaidRuns) {
     throw new Error('paid validation is disabled by plugin config (allowPaidRuns: false)')
@@ -278,6 +286,7 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
   return {
     phase: requestedPhase,
     repeats,
+    selectionPolicy,
     paid: true,
     productionLimit,
     evaluationLimit,
@@ -732,6 +741,9 @@ async function executeValidation(
     '--invoked-by',
     'dsh-plugin',
   ]
+  if (request.phase !== 'contract-replay') {
+    argv.push('--selection-policy', request.selectionPolicy)
+  }
   if (request.paid) {
     argv.push(
       '--execute-paid-run',
@@ -958,6 +970,11 @@ export function apply(ctx: DshContext, rawConfig: unknown = {}): void {
         repeats: {
           type: 'integer',
           description: 'Positive integer repeat count; defaults to 1.',
+        },
+        selectionPolicy: {
+          type: 'string',
+          enum: ['all-candidates-required-v1', 'exclude-known-contract-rejections-v2'],
+          description: 'Python node selection policy; defaults to the frozen v1 rule.',
         },
         executePaidRun: {
           type: 'boolean',

@@ -41,6 +41,26 @@ issue #22 已补齐独立节点评审、三模型矩阵、配对比较，并完�
 [issue #29](https://github.com/AEALab/RefractRouter/issues/29) 记录候选拒绝与缺失评估的规则问题；
 issue #22 继续跟踪完整对照，issue #5 等待有效证据。
 
+issue #29 的统计口径修复现已实现：质量、生产成本和关键路径延迟使用相同的成功且独立
+评审轮次，报告列出纳入／排除集合；全量费用与覆盖率另报。节点矩阵另列记录完整性、
+评估可用性、候选资格及路线可执行／已执行状态。冻结选择策略仍为
+`all-candidates-required-v1`；用户已确认的新策略 `exclude-known-contract-rejections-v2` 可显式启用。
+v2 保留已知契约拒绝并选择其他合格候选，缺评估、无效上游或无合格候选仍阻断。
+DSH 工具参数为 `selectionPolicy`，Python 参数为 `--selection-policy`。
+[v2 单轮真实准入](reports/v0.4-known-rejections/admission-agent-plan/README.md)已完成：DSH pass，
+82/82 请求正常，21 格矩阵与所有最终评审完整，总计 143.6703 AFP。混合路线 89 分，
+本轮最佳单模型 Pro 96 分；仍为单轮 Insufficient-evidence，未启动 pilot。
+[独立离线复核与后续计划](reports/v0.4-cohort-review/README.md)保留历史证据不变，
+确认 node-oracle 两个有效轮次平均质量 91.5、平均成本 5.365025 AFP，仍无完整 Go 证据。
+
+复核工具现在要求历史证据目录之外的全新输出目录：
+
+```bash
+uv run python experiments/review_node_quality_evidence.py \
+  reports/v0.3-contract-recovery/repeated-agent-plan \
+  --output-dir /tmp/refractrouter-cohort-review
+```
+
 现已补充 **C → A → B 三指标单模型离线选模**：先展示已有数据的质量、AFP 成本和
 关键路径 p95 取舍，再使用显式约束选成本最低者（A），或使用显式权重排序（B，支持
 叠加硬约束）。质量最高固定单模型与综合选择分别报告；无可行候选明确返回无解。
@@ -60,6 +80,18 @@ uv run python -m experiments.analyze_model_selection \
 
 阈值与权重均须显式提供，示例不代表生产默认要求。A/B 选择函数可通过
 `refractrouter.model_selection.select_model` 调用；付费 runner 尚未接入这套离线规则。
+
+## Ark Agent Plan 模型清单
+
+[官方模型清单的 2026-09-07 快照](docs/ark-agent-plan-model-catalog.md)记录 19 个模型，覆盖
+文本、向量化、图片、视频、语音合成与识别，包括 GLM-5.3、GLM-5.3-Flash、Kimi-K2.7-Code
+和 Doubao 系列。清单保存套餐档位、长度上限、AFP 计费单位、限时折扣和接入状态，
+可按能力及套餐筛选。它不改变已冻结的四模型实验 manifest，也不自动发起模型调用。
+
+```bash
+uv run python -m refractrouter.model_catalog
+uv run python -m refractrouter.model_catalog --capability text-generation --plan-tier large --json
+```
 
 ## Quick Start
 

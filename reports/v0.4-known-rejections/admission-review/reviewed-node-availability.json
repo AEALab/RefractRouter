@@ -1,0 +1,64 @@
+{
+  "selection_policy": "exclude-known-contract-rejections-v2",
+  "selection_changed": false,
+  "blocks": [
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "expected_cells": 21,
+      "recorded_cells": 21,
+      "records_complete": true,
+      "evaluations_available": true,
+      "reference_context_valid": true,
+      "evaluation_states": {
+        "judged": 21
+      },
+      "eligible_by_node": {
+        "build_outline": [
+          "cheap",
+          "mid",
+          "strong"
+        ],
+        "extract_evidence": [
+          "cheap",
+          "mid",
+          "strong"
+        ],
+        "parse_requirements": [
+          "cheap",
+          "mid",
+          "strong"
+        ],
+        "render_html": [
+          "cheap",
+          "mid",
+          "strong"
+        ],
+        "synthesize_analysis": [
+          "cheap",
+          "mid",
+          "strong"
+        ],
+        "verify_report": [
+          "cheap",
+          "mid",
+          "strong"
+        ],
+        "write_report": [
+          "cheap",
+          "mid",
+          "strong"
+        ]
+      },
+      "nodes_without_eligible_candidates": [],
+      "missing_cells": [],
+      "unexpected_cells": [],
+      "duplicate_cells": [],
+      "inconsistent_context_nodes": [],
+      "legacy_policy": "all-candidates-required-v1",
+      "legacy_route_executable": true,
+      "route_executed": true,
+      "route_judged": true
+    }
+  ]
+}
