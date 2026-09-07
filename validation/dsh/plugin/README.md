@@ -1,5 +1,13 @@
 # RefractRouter DSH validation bundle
 
+## 0.9.0：复用 K3 基线继续 DAG
+
+`stage: "resume"` 接收成功的 `baseline-ready` 输入目录，默认只执行零调用预检。
+获批后只运行 Pro 参考路线与三模型节点探针，最多 28 次，完成后等待节点评审。
+Python 验证原始索引、配置和代码兼容记录，并分别保存基线历史费用与本阶段新增费用。
+不重新生成 K3，不自动进入组合阶段。具体交接见
+[恢复准备记录](../../../reports/v0.5-k3-resume-readiness/README.md)。
+
 ## 0.8.0：仅执行 K3 基线
 
 `{"phase":"k3-baseline","stage":"baseline"}` 默认生成单次零调用预检。
@@ -99,7 +107,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.8.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.9.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,

@@ -168,7 +168,7 @@ def run_real_validation(
                 (output_dir / "benchmark-summary.json").read_text(encoding="utf-8")
             )
             expected_status = "awaiting-human-audit" if phase == "final" else "complete"
-            allowed_status = ({'baseline-ready'} if stage=='baseline' else {'node-review-ready'} if stage=='prepare' else {'final-review-ready'}) if phase=='k3-baseline' else {expected_status}
+            allowed_status = ({'baseline-ready'} if stage=='baseline' else {'node-review-ready'} if stage in {'prepare','resume'} else {'final-review-ready'}) if phase=='k3-baseline' else {expected_status}
             if summary.get("status") not in allowed_status:
                 issues.append("benchmark-incomplete")
         except (json.JSONDecodeError, AttributeError):
@@ -242,7 +242,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--evidence", required=True, type=Path)
     parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay", "execution-modes", "k3-baseline"), default="dry-run")
-    parser.add_argument('--stage', choices=['baseline','prepare','compose'], default='prepare')
+    parser.add_argument('--stage', choices=['baseline','resume','prepare','compose'], default='prepare')
     parser.add_argument('--input-dir', type=Path)
     parser.add_argument('--reviews', type=Path)
     parser.add_argument("--repeats", type=int, default=1)

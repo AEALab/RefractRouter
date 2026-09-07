@@ -607,6 +607,22 @@ test('K3 review handoff arguments are typed and paid execution remains disabled'
     maxProductionCost: 132, maxEvaluationCost: 0 }, execution()), /paid validation is disabled/)
 })
 
+test('resume reuses the frozen K3 baseline through a native zero-call subprocess', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'k3-baseline', stage: 'resume',
+    inputDir: 'reports/v0.5-k3-baseline-retry/output' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.equal(result.mode, 'preflight')
+    assert.equal(result.callPlan!.productionModelCalls, 28)
+    assert.equal(result.callPlan!.judgeModelCalls, 0)
+    assert.equal(result.costEstimate!.production, 119.48)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
 test('K3 accepts a zero internal evaluation budget after explicit deployment enablement', async () => {
   const fixture = fakeContext({ config: { allowPaidRuns: true, maxProductionCost: 200,
     billingUnit: 'AFP', manifestPath: 'data/model-manifests/volcengine-agent-plan.json',

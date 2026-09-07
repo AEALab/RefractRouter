@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "source_config_sha256": "7a82d52522a4d9dd8586e52c44b1a449bba923ed52638eea0ac22a02991fc6b8",
+      "target_config_sha256": "10a2b6264c8abbe63708c2db5fc405a9d7ad762f1a9c79a1dc80b7dd7bcdd69f",
+      "source_index_sha256": "a112a46285fa8953ae63ae0e3056a0223458d0ff59152008f35981b12756213a",
+      "source_bundle": "reports/v0.5-k3-baseline-retry/output",
+      "changed_code": {
+        "experiments/run_k3_baseline.py": {
+          "before": "2bfcc79d557c3bb89bbc8d0518a1648dee5a503220b9a2e2ca34699585bc04bd",
+          "after": "facd4c99c824133fa36fe99706a785488080140c8bc62929759ed31a22ebc554"
+        },
+        "src/refractrouter/k3_experiment.py": {
+          "before": "9ad88e064d257b815fa6e0ea99b05635ed5bcda3e63bdd02697d4829da0ce7cd",
+          "after": "a049f45cfb9c553c249c34926f94ed483b5767bec0ffb52def14c637064a5ca2"
+        }
+      },
+      "说明": "只允许这份成功基线恢复至本次精确代码快照。变化限于阶段恢复及费用汇总；整任务提示、模型、任务、适配器、执行器、契约与校准未变。索引保证完整性，不提供签名认证。"
+    }
+  ]
+}

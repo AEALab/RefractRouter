@@ -17,13 +17,14 @@ from refractrouter.adapters import OpenAICompatibleAdapter
 from refractrouter.blind_review import digest, template
 from refractrouter.dataset import load_benchmark_dataset
 from refractrouter.k3_experiment import (
-    chinese_task, roles, prepare, compose, finalize, fixture_reviews,
+    chinese_task, roles, prepare, resume_baseline, validate_baseline_checkpoint, compose, finalize, fixture_reviews,
 )
 from refractrouter.manifest import load_model_manifest
 from refractrouter.openai_compatible import OpenAICompatibleClient
 from refractrouter.review_calibration import build_calibration, check_calibration
 
 ROOT = Path(__file__).resolve().parents[1]
+BASELINE_COMPATIBILITY = ROOT/'data/benchmarks/k3-baseline-resume-compatibility.json'
 
 
 def write(path, value):
@@ -40,6 +41,34 @@ def read_bundle(directory):
         if not path.is_relative_to(directory.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             raise ValueError('输入证据哈希或路径非法')
     return json.loads((directory/'private/state.json').read_text())
+
+
+def bind_input(directory, state, config, stage):
+    """只有精确登记的旧基线允许跨代码版本恢复；其余阶段仍严格绑定快照。"""
+    previous = json.loads((directory/'preflight.json').read_text())['config']
+    if digest(previous) != state['config_sha256']:
+        raise ValueError('输入状态与其配置快照不一致')
+    current_hash = digest(config)
+    source_index = hashlib.sha256((directory/'evidence-index.json').read_bytes()).hexdigest()
+    migration = None
+    if state['config_sha256'] != current_hash:
+        if stage != 'resume' or digest({k:v for k,v in previous.items() if k!='code'}) != digest({
+                k:v for k,v in config.items() if k!='code'}):
+            raise ValueError('输入材料与当前冻结配置或代码不一致')
+        entries = json.loads(BASELINE_COMPATIBILITY.read_text())['entries'] if BASELINE_COMPATIBILITY.exists() else []
+        migration = next((row for row in entries if
+            row['source_config_sha256'] == state['config_sha256'] and
+            row['target_config_sha256'] == current_hash and
+            row['source_index_sha256'] == source_index), None)
+        if migration is None:
+            raise ValueError('旧基线没有匹配当前代码及原始索引的兼容记录')
+    if stage != 'resume':
+        return None
+    receipt = {'source_index_sha256':source_index, 'source_config_sha256':state['config_sha256'],
+        'target_config_sha256':current_hash, 'baseline_sha256':digest(state['baseline']),
+        'imported_production_cost':state['baseline']['total_cost'],
+        'compatibility_record':migration, 'previous_receipt':state.get('baseline_reuse')}
+    return receipt
 
 
 class RecordedAdapter:
@@ -95,7 +124,7 @@ def main(argv=None):
     p.add_argument('--manifest', type=Path, default=ROOT/'data/model-manifests/volcengine-agent-plan.json')
     p.add_argument('--dataset', type=Path, default=ROOT/'data/benchmarks/v0.1.json')
     p.add_argument('--phase', choices=['k3-baseline'], default='k3-baseline')
-    p.add_argument('--stage', choices=['baseline','prepare','compose','finalize'], default='prepare')
+    p.add_argument('--stage', choices=['baseline','resume','prepare','compose','finalize'], default='prepare')
     p.add_argument('--mode', choices=['preflight','offline'], default='preflight')
     p.add_argument('--input-dir', type=Path)
     p.add_argument('--reviews', type=Path)
@@ -124,14 +153,21 @@ def main(argv=None):
         'manifest_sha256': digest(a.manifest.read_text()), 'dataset_sha256': digest(a.dataset.read_text()),
         'code': code, 'quality_floor': a.quality_floor, 'max_quality_gap': a.max_quality_gap}
     state = read_bundle(a.input_dir) if a.input_dir else None
-    if state and state['config_sha256'] != digest(config): p.error('输入材料与当前冻结配置或代码不一致')
+    if a.stage == 'resume' and not state: p.error('恢复阶段必须提供成功基线目录')
+    try:
+        if a.stage == 'resume':
+            baseline_checks = validate_baseline_checkpoint(state, task, manifest, simulation=False)
+        reuse = bind_input(a.input_dir, state, config, a.stage) if state else None
+        if reuse: reuse['baseline_contract_checks'] = baseline_checks
+    except ValueError as error:
+        p.error(str(error))
     forbidden_models = [baseline.api_model, *(m.api_model for m in registry.list())]
     cap = max(m.max_output_tokens or 0 for m in manifest.models)
     costs = {m.model_id:_estimated_invocation_cost(m,4000,cap) for m in (*registry.list(),baseline)}
     prepare_cost = costs[baseline.model_id]+7*costs[registry.strongest().model_id]+7*sum(costs[m.model_id] for m in registry.list())
     compose_cost = 7*max(costs[m.model_id] for m in registry.list())
-    count = 1 if a.stage=='baseline' else 1+7+7*len(registry.list()) if a.stage=='prepare' else 7 if a.stage=='compose' else 0
-    estimated = costs[baseline.model_id] if a.stage=='baseline' else prepare_cost if a.stage=='prepare' else compose_cost if a.stage=='compose' else 0
+    count = 1 if a.stage=='baseline' else 7+7*len(registry.list()) if a.stage=='resume' else 1+7+7*len(registry.list()) if a.stage=='prepare' else 7 if a.stage=='compose' else 0
+    estimated = costs[baseline.model_id] if a.stage=='baseline' else prepare_cost-costs[baseline.model_id] if a.stage=='resume' else prepare_cost if a.stage=='prepare' else compose_cost if a.stage=='compose' else 0
     request_timeout = 300 if a.stage=='baseline' else 120
     preflight = {'phase':'k3-baseline','stage':a.stage,'billing_unit':'AFP','output_language':'zh-CN',
         'model_calls':None if a.execute_paid_run else 0, 'credential_env':baseline.api_key_env, 'wire_api':baseline.wire_api,
@@ -144,11 +180,14 @@ def main(argv=None):
             'independent_review_items':7*len(registry.list())+4,'external_review_cost':None,'outer_dsh_cost':None},
         '说明':'仅计本入口的生产调用；外部独立评审与外层费用未知。输入 4000 token 为估计，不是严格上界。',
         'config':config}
+    if reuse: preflight['baseline_reuse'] = reuse
     a.output_dir.mkdir(parents=True, exist_ok=True)
     write(a.output_dir/'preflight.json',preflight)
     if a.mode=='preflight' and not a.execute_paid_run and a.stage!='finalize':
         setup = state or {'stage':'preflight','simulation':False,'config_sha256':digest(config),
                          'calibration':build_calibration(task,ROOT)}
+        if reuse:
+            setup = {**setup, 'config_sha256':digest(config), 'baseline_reuse':reuse}
         save_bundle(a.output_dir,setup)
         print(json.dumps({'状态':'零调用预检','本阶段生产预估_AFP':round(estimated,2),'全实验':preflight['whole_experiment']},ensure_ascii=False))
         return 0
@@ -181,7 +220,7 @@ def main(argv=None):
         result=finalize(state,response['final'],calibration_passed=True)
         save_bundle(a.output_dir,{**state, 'stage':result['status']},result)
         return 0 if result['status']=='complete' else 1
-    expected_stage = 'preflight' if a.stage in {'baseline','prepare'} else 'node-review-ready'
+    expected_stage = 'baseline-ready' if a.stage=='resume' else 'preflight' if a.stage in {'baseline','prepare'} else 'node-review-ready'
     if state['stage']!=expected_stage: p.error('输入阶段不匹配')
     if a.stage=='compose' and response.get('nodes',{}).get('reviewer')!=calibration['reviewer']:
         p.error('节点评审身份与校准身份不一致')
@@ -194,12 +233,17 @@ def main(argv=None):
     ledger=CostLedger('AFP',a.max_production_cost,a.max_evaluation_cost,4000,8000,cap)
     adapter=RecordedAdapter(BudgetedAdapter(OpenAICompatibleAdapter(client),ledger), a.output_dir/'production-results.ndjson')
     if a.stage in {'baseline','prepare'}: result=prepare(task,manifest,adapter,simulation=False,baseline_only=a.stage=='baseline')
+    elif a.stage=='resume': result=resume_baseline(state,manifest,adapter,simulation=False)
     else: result=compose(state,response['nodes'],adapter,quality_floor=a.quality_floor,max_quality_gap=a.max_quality_gap)
     unknown = [{'node_id':r.node_id,'model_id':r.model_id,'failure_type':r.failure_type}
                for r in adapter.results if r.status!='ok' and r.attempts>0 and r.input_tokens==r.output_tokens==0]
     costs = {'stage_production_cost':None if unknown else ledger.production_spent,
              'known_stage_production_cost':ledger.production_spent, 'unknown_usage_requests':unknown}
     result.update(calibration=state['calibration'],calibration_result=calibration,config_sha256=digest(config),**costs)
+    if reuse:
+        result['baseline_reuse'] = reuse
+        costs.update(imported_production_cost=reuse['imported_production_cost'],
+            cumulative_prepare_cost=result['prepare_cost'], known_cumulative_prepare_cost=result['known_prepare_cost'])
     summary={'status':result['stage'],'simulation':False,**costs}
     # 交接状态不冒充实验完成。
     write(a.output_dir/'benchmark-summary.json',summary)

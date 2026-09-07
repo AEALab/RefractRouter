@@ -2,12 +2,14 @@
 from dataclasses import asdict, replace
 import hashlib
 import json
+import math
 
 from .blind_review import digest, packet, template, import_reviews, FINAL_LIMITS, NODE_LIMITS
+from .adapters import OpenAICompatibleAdapter
 from .cost_selection import select_cost_effective
 from .deepagents_executor import DeepAgentsGraphExecutor
 from .evidence_state import with_evidence_state
-from .execution_modes import run_one_shot
+from .execution_modes import run_one_shot, one_shot_task
 from .model_registry import ModelRegistry
 from .node_contracts import CONTRACT_FAILURES
 from .schemas import TaskDAG, NodeSpec, SourceDocument, NodeResult, ModelSpec
@@ -50,6 +52,48 @@ def prepare(task, manifest, adapter, *, simulation, baseline_only=False):
             task=asdict(task), models=[asdict(m) for m in registry.list()], baseline_model=asdict(baseline),
             baseline=asdict(a), reference=None, rows=[], node_packet=None, node_mapping=None,
             prepare_cost=a.total_cost, known_prepare_cost=a.total_cost)
+    return _prepare_nodes(task, manifest, adapter, asdict(a), simulation=simulation)
+
+
+def validate_baseline_checkpoint(state, task, manifest, *, simulation):
+    """恢复前验证成功基线及其所属任务；不调用模型。"""
+    baseline, registry = roles(manifest)
+    if (state.get('stage') != 'baseline-ready' or state.get('simulation') != simulation
+        or digest(state.get('task')) != digest(asdict(task))
+        or digest(state.get('models')) != digest([asdict(m) for m in registry.list()])
+        or digest(state.get('baseline_model')) != digest(asdict(baseline))
+        or state.get('reference') is not None or state.get('rows') != []):
+        raise ValueError('基线阶段、任务、模型或模拟标记不匹配')
+    result = state.get('baseline', {})
+    nodes = result.get('node_results', [])
+    if (len(nodes) != 1 or result.get('failure_types') not in ([], ())
+        or result.get('task_id') != task.task_id
+        or result.get('strategy') != 'one-shot:k3-baseline'
+        or result.get('model_assignments') != {'render_html': baseline.model_id}
+        or nodes[0].get('status') != 'ok' or nodes[0].get('failure_type') is not None
+        or nodes[0].get('model_id') != baseline.model_id or nodes[0].get('node_id') != 'render_html'
+        or not result.get('final_output') or nodes[0].get('output') != result['final_output']):
+        raise ValueError('必须提供完整成功的单次 K3 基线')
+    cost = result.get('total_cost')
+    if (type(cost) not in (int, float) or not math.isfinite(cost) or cost < 0
+        or nodes[0].get('cost') != cost or result.get('billing_unit') != 'AFP'
+        or state.get('prepare_cost') != cost or state.get('unknown_usage_requests')):
+        raise ValueError('基线费用不完整或不一致')
+    single = one_shot_task(task)
+    # 复用与首次生成采用同一硬契约；章节覆盖属于评分，不能在恢复时悄悄升级为硬门槛。
+    if OpenAICompatibleAdapter._output_failure(single, single.nodes[0], result['final_output'], {}):
+        raise ValueError('复用基线未通过当前输出契约')
+    return node_contract_checks(single, single.nodes[0], result['final_output'], {})
+
+
+def resume_baseline(state, manifest, adapter, *, simulation):
+    task = load_task(state['task'])
+    validate_baseline_checkpoint(state, task, manifest, simulation=simulation)
+    return _prepare_nodes(task, manifest, adapter, state['baseline'], simulation=simulation)
+
+
+def _prepare_nodes(task, manifest, adapter, baseline_result, *, simulation):
+    baseline, registry = roles(manifest)
     executor = DeepAgentsGraphExecutor(task, adapter, registry)
     reference = executor.execute({n.node_id: registry.strongest().model_id for n in task.nodes}, 'reference')
     context = {n.node_id: n.output for n in reference.node_results}
@@ -77,10 +121,14 @@ def prepare(task, manifest, adapter, *, simulation, baseline_only=False):
                 records.append(dict(record_id=f'{node.node_id}:{model.model_id}', output=result.output,
                     upstream=upstream, node_type=node.node_type, node_request=node.prompt_template))
     public, private = packet(task, records, kind='node')
+    results = [*reference.node_results, *(NodeResult(**r['node_result']) for r in rows)]
+    unknown_usage = any(n.status != 'ok' and n.attempts > 0 and n.input_tokens == n.output_tokens == 0
+                        for n in results)
+    known_cost = round(baseline_result['total_cost']+reference.total_cost+sum(r['node_result']['cost'] for r in rows), 8)
     return dict(version='k3-baseline-v1', stage='node-review-ready', simulation=simulation,
         task=asdict(task), models=[asdict(m) for m in registry.list()], baseline_model=asdict(baseline),
-        baseline=asdict(a), reference=asdict(reference), rows=rows, node_packet=public, node_mapping=private,
-        prepare_cost=round(a.total_cost+reference.total_cost+sum(r['node_result']['cost'] for r in rows), 8))
+        baseline=baseline_result, reference=asdict(reference), rows=rows, node_packet=public, node_mapping=private,
+        prepare_cost=None if unknown_usage else known_cost, known_prepare_cost=known_cost)
 
 
 def forbidden(state):
@@ -125,15 +173,16 @@ def finalize(state, reviews, *, calibration_passed):
     complete = all(not r['failure_types'] and r['final_output'] and all(n['status']=='ok' for n in r['node_results']) for r in [a,b])
     ready = complete and calibration_passed
     qa, qb = mapped['baseline']['final_score'], mapped['routed']['final_score']
-    setup = state['prepare_cost']-a['total_cost']
+    setup = state['prepare_cost']-a['total_cost'] if state['prepare_cost'] is not None else None
     reduction = (a['total_cost']-b['total_cost'])/a['total_cost']*100 if a['total_cost'] else None
-    first_use_reduction = (a['total_cost']-setup-b['total_cost'])/a['total_cost']*100 if a['total_cost'] else None
+    first_use_reduction = (a['total_cost']-setup-b['total_cost'])/a['total_cost']*100 if a['total_cost'] and setup is not None else None
     quality_acceptable = ready and qb >= qa-3
     return {'version': 'k3-baseline-v1', 'simulation': state['simulation'],
         'status': 'complete' if ready else 'incomplete', 'calibration_passed': calibration_passed,
         'baseline_quality': qa, 'routed_quality': qb, 'quality_delta': qb-qa if ready else None,
         'baseline_cost': a['total_cost'], 'routed_cost': b['total_cost'], 'selection_setup_cost': setup,
-        'routed_first_use_cost': setup+b['total_cost'], 'total_production_cost': state['prepare_cost']+b['total_cost'],
+        'routed_first_use_cost': setup+b['total_cost'] if setup is not None else None,
+        'total_production_cost': state['prepare_cost']+b['total_cost'] if state['prepare_cost'] is not None else None,
         'cost_reduction_percent': reduction if ready else None,
         'first_use_cost_reduction_percent': first_use_reduction if ready else None,
         'baseline_latency_ms': a['critical_path_latency_ms'], 'routed_latency_ms': b['critical_path_latency_ms'],

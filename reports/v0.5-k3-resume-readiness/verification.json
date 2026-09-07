@@ -1,0 +1,62 @@
+{
+  "pytest": {
+    "passed": 212,
+    "elapsed_seconds": 11.52
+  },
+  "typescript_typecheck": "通过",
+  "actual_model_calls": 0,
+  "actual_model_cost_afp": 0,
+  "calibration_recheck": {
+    "passed": true,
+    "reviewer": {
+      "kind": "model",
+      "id": "glm-5.3"
+    },
+    "negative_score": 28,
+    "positive_score": 91,
+    "simulation": false,
+    "说明": "必须识别缺乏实质比较；保留原始分数与有效分数。"
+  },
+  "baseline_byte_preserved": true,
+  "historical_integrity": [
+    {
+      "directory": "reports/v0.5-k3-prepare-admission",
+      "index_sha256": "ed02e365afae4ecc22cc2f48a960d7d21ca03ccd5666340336c3883d3ec76a85",
+      "verified_files": 19,
+      "passed": true
+    },
+    {
+      "directory": "reports/v0.5-k3-baseline-retry",
+      "index_sha256": "201aab281971971c9264e0c1569bb61624f3e9c7c9c209c19ac4757deb47dcbf",
+      "verified_files": 33,
+      "passed": true
+    }
+  ],
+  "native_plugin_contract": "通过；真实子进程以历史基线生成 28 次计划，不调用模型",
+  "paid_fixture_path": "baseline → resume → compose → finalize；模拟适配器证明 resume 新增 28 次且没有 K3",
+  "failure_coverage": [
+    "阶段、模拟标记、任务、模型、输出、费用异常在调用前拒绝",
+    "精确来源索引和目标代码兼容校验",
+    "未知探针费用保持为空且不产生首次使用收益信号"
+  ],
+  "baseline_contract_checks": {
+    "version": "v0.4",
+    "score_cap": 0.0,
+    "checks": {
+      "html_envelope": true,
+      "source_trace": true,
+      "missing_sections": [
+        "参考资料",
+        "平台比较",
+        "执行摘要",
+        "结论",
+        "背景",
+        "选型标准",
+        "风险"
+      ]
+    },
+    "issues": [
+      "missing-sections"
+    ]
+  }
+}

@@ -6,12 +6,12 @@ from unittest.mock import patch
 import pytest
 from refractrouter.schemas import NodeResult
 
-from experiments.run_k3_baseline import main, read_bundle
+from experiments.run_k3_baseline import main, read_bundle, save_bundle, bind_input
 from experiments.run_execution_modes import FixtureAdapter
-from refractrouter.blind_review import import_reviews, FINAL_LIMITS
+from refractrouter.blind_review import import_reviews, FINAL_LIMITS, digest
 from refractrouter.cost_selection import select_cost_effective
 from refractrouter.dataset import load_benchmark_dataset
-from refractrouter.k3_experiment import chinese_task, prepare, compose, finalize, fixture_reviews
+from refractrouter.k3_experiment import chinese_task, prepare, resume_baseline, compose, finalize, fixture_reviews
 from refractrouter.manifest import load_model_manifest
 from refractrouter.review_calibration import build_calibration, check_calibration
 
@@ -126,7 +126,8 @@ def test_preflight_and_offline_never_construct_network_client(tmp_path):
     with pytest.raises(ValueError):read_bundle(tmp_path/'offline')
 
 
-def test_real_stages_require_calibration_and_preserve_two_separate_review_handoffs(tmp_path,monkeypatch):
+@pytest.mark.parametrize('split_baseline', [False, True])
+def test_real_stages_require_calibration_and_preserve_two_separate_review_handoffs(tmp_path,monkeypatch,split_baseline):
     task,manifest,adapter=setup()
     initial=tmp_path/'initial'; main(['--output-dir',str(initial)])
     state=read_bundle(initial)
@@ -142,9 +143,24 @@ def test_real_stages_require_calibration_and_preserve_two_separate_review_handof
                      '--output-dir',str(output),*(['--execute-paid-run','--max-production-cost','200',
                      '--max-evaluation-cost','0'] if stage!='finalize' else [])])
     with patch('experiments.run_k3_baseline.OpenAICompatibleClient'), patch('experiments.run_k3_baseline.OpenAICompatibleAdapter',return_value=adapter):
-        assert run('prepare',initial,tmp_path/'prepared')==0
+        if split_baseline:
+            assert run('baseline',initial,tmp_path/'baseline')==0
+            baseline_state=read_bundle(tmp_path/'baseline')
+            assert adapter.calls==1
+            with patch.object(adapter,'invoke',wraps=adapter.invoke) as calls:
+                assert run('resume',tmp_path/'baseline',tmp_path/'prepared')==0
+            assert len(calls.call_args_list)==28
+            assert all(c.args[-1].api_model!='kimi-k3' for c in calls.call_args_list)
+            resumed=read_bundle(tmp_path/'prepared')
+            assert resumed['baseline']==baseline_state['baseline']
+            summary=json.loads((tmp_path/'prepared/benchmark-summary.json').read_text())
+            assert summary['imported_production_cost']==baseline_state['prepare_cost']
+            assert summary['cumulative_prepare_cost']==pytest.approx(
+                summary['imported_production_cost']+summary['stage_production_cost'])
+        else:
+            assert run('prepare',initial,tmp_path/'prepared')==0
         state=read_bundle(tmp_path/'prepared');assert state['stage']=='node-review-ready'
-        assert len((tmp_path/'prepared/production-results.ndjson').read_text().splitlines())==29
+        assert len((tmp_path/'prepared/production-results.ndjson').read_text().splitlines())==(28 if split_baseline else 29)
         nodes=fixture_reviews(state['node_packet']);nodes['reviewer']=calibration['reviewer']
         changed=deepcopy(calibration);changed['reviewer']['id']='different-reviewer'
         reviews.write_text(json.dumps({'calibration':changed,'nodes':nodes}))
@@ -243,3 +259,92 @@ def test_timeout_cli_saves_unknown_cost_and_blocked_checkpoint(tmp_path, monkeyp
     assert saved['stage']=='blocked' and saved['reason']=='baseline-failed' and adapter.calls==1
     assert summary['stage_production_cost'] is None
     assert summary['known_stage_production_cost']==0 and len(summary['unknown_usage_requests'])==1
+
+
+@pytest.mark.parametrize('damage', ['stage','simulation','model','cost','output','contract','task','unknown-cost'])
+def test_resume_rejects_invalid_checkpoint_before_model_calls(damage):
+    task, manifest, adapter=setup()
+    state=prepare(task,manifest,adapter,simulation=True,baseline_only=True)
+    if damage=='stage': state['stage']='node-review-ready'
+    elif damage=='simulation': state['simulation']=False
+    elif damage=='model': state['baseline']['node_results'][0]['model_id']='cheap'
+    elif damage=='cost': state['baseline']['total_cost']+=1
+    elif damage=='output': state['baseline']['final_output']=''
+    elif damage=='contract':
+        state['baseline']['final_output']='not HTML'
+        state['baseline']['node_results'][0]['output']='not HTML'
+    elif damage=='task': state['task']['task_id']='another-task'
+    else: state['unknown_usage_requests']=[{'request_id':'unresolved'}]
+    with pytest.raises(ValueError): resume_baseline(state,manifest,adapter,simulation=True)
+    assert adapter.calls==1
+
+
+def test_resume_migration_requires_exact_source_target_and_index(tmp_path,monkeypatch):
+    import hashlib
+    import experiments.run_k3_baseline as runner
+    initial=tmp_path/'initial';main(['--stage','baseline','--output-dir',str(initial)])
+    state=read_bundle(initial)
+    current=json.loads((initial/'preflight.json').read_text())['config']
+    old=deepcopy(current);old['code']['experiments/run_k3_baseline.py']='old-reviewed-code'
+    state['config_sha256']=digest(old)
+    state['baseline']={'total_cost':1}
+    p=json.loads((initial/'preflight.json').read_text());p['config']=old
+    (initial/'preflight.json').write_text(json.dumps(p));save_bundle(initial,state)
+    entry={'source_config_sha256':digest(old),'target_config_sha256':digest(current),
+        'source_index_sha256':hashlib.sha256((initial/'evidence-index.json').read_bytes()).hexdigest()}
+    policy=tmp_path/'compatibility.json';monkeypatch.setattr(runner,'BASELINE_COMPATIBILITY',policy)
+    with pytest.raises(ValueError): bind_input(initial,state,current,'resume')
+    policy.write_text(json.dumps({'entries':[entry]}))
+    assert bind_input(initial,state,current,'resume')['compatibility_record']==entry
+    with pytest.raises(ValueError): bind_input(initial,state,current,'prepare')
+    changed=deepcopy(current);changed['quality_floor']=84
+    with pytest.raises(ValueError): bind_input(initial,state,changed,'resume')
+    changed=deepcopy(current);changed['code']['src/refractrouter/adapters.py']='unexpected-new-code'
+    with pytest.raises(ValueError): bind_input(initial,state,changed,'resume')
+    (initial/'evidence-index.json').write_text((initial/'evidence-index.json').read_text()+'\n')
+    with pytest.raises(ValueError): bind_input(initial,state,current,'resume')
+
+
+def test_unknown_probe_usage_stays_unknown_after_resume_and_finalize():
+    task,manifest,adapter=setup()
+    state=prepare(task,manifest,adapter,simulation=True,baseline_only=True)
+    class TimeoutProbe:
+        def __init__(self): self.calls=0
+        def invoke(self,task,node,prompt,context,model):
+            self.calls+=1
+            if self.calls==8:
+                return NodeResult(node.node_id,node.node_type,model.model_id,'',0,0,0,120000,
+                    status='failed',failure_type='timeout',attempts=1)
+            return adapter.invoke(task,node,prompt,context,model)
+    resumed=resume_baseline(state,manifest,TimeoutProbe(),simulation=True)
+    assert resumed['prepare_cost'] is None and resumed['known_prepare_cost']>state['prepare_cost']
+    result=compose(resumed,fixture_reviews(resumed['node_packet']),adapter)
+    assert result['stage']=='blocked'
+    ready=prepare(task,manifest,adapter,simulation=True)
+    result=compose(ready,fixture_reviews(ready['node_packet']),adapter)
+    result['prepare_cost']=None
+    summary=finalize(result,fixture_reviews(result['final_packet']),calibration_passed=True)
+    assert summary['total_production_cost'] is None
+    assert summary['first_use_cost_reduction_percent'] is None
+    assert not summary['candidate_signal']
+
+
+def test_historical_baseline_preflight_migrates_without_network_or_source_edits(tmp_path):
+    import hashlib
+    original=ROOT/'reports/v0.5-k3-baseline-retry/output'
+    before={str(p.relative_to(original)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in original.rglob('*') if p.is_file()}
+    with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client:
+        assert main(['--stage','resume','--input-dir',str(original),'--output-dir',str(tmp_path/'preflight')])==0
+        assert main(['--stage','resume','--input-dir',str(tmp_path/'preflight'),
+                     '--output-dir',str(tmp_path/'next-preflight')])==0
+    client.assert_not_called()
+    state=read_bundle(tmp_path/'preflight')
+    assert state['baseline']==read_bundle(original)['baseline']
+    p=json.loads((tmp_path/'preflight/preflight.json').read_text())
+    assert p['model_calls']==0 and p['call_plan']['production_model_calls']==28
+    assert p['minimum_production_limit']==119.49
+    assert p['baseline_reuse']['imported_production_cost']==9.154
+    assert p['baseline_reuse']['compatibility_record']
+    assert before=={str(p.relative_to(original)):hashlib.sha256(p.read_bytes()).hexdigest()
+                   for p in original.rglob('*') if p.is_file()}
