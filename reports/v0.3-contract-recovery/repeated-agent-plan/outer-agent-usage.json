@@ -1,0 +1,27 @@
+{
+  "provider": "ark-plan",
+  "model": "deepseek-v4-flash",
+  "billing_unit": "AFP",
+  "source": "Exact DSH session assistant/message events; streaming duplicates excluded",
+  "session_sha256": "7161115ac75e49ee0cb6f7035746db4e3f04691eaccf02582054a300dd43911c",
+  "session_hash_basis": "decompressed NDJSON bytes",
+  "calls": [
+    {
+      "step": 1,
+      "usage": {
+        "inputTokens": 7568,
+        "outputTokens": 165,
+        "cacheReadTokens": 4096
+      }
+    },
+    {
+      "step": 2,
+      "usage": {
+        "inputTokens": 1751,
+        "outputTokens": 169,
+        "cacheReadTokens": 10240
+      }
+    }
+  ],
+  "estimated_cost": 1.19945
+}
