@@ -1,0 +1,25 @@
+{
+  "provider": "ark-plan",
+  "model": "deepseek-v4-flash",
+  "billing_unit": "AFP",
+  "说明": "从 DSH 会话事件逐次读取用量，各 token 类别只计费一次。",
+  "session_sha256": "0956b4bec0f37a6f222cf02333f65aba5b6a7b9e1b5c22f53faa6c5b6c1f4195",
+  "calls": [
+    {
+      "step": 1,
+      "usage": {
+        "inputTokens": 1843,
+        "outputTokens": 171
+      }
+    },
+    {
+      "step": 2,
+      "usage": {
+        "inputTokens": 2184,
+        "outputTokens": 236
+      }
+    }
+  ],
+  "estimated_cost": 0.2217,
+  "native_tool_calls": 1
+}

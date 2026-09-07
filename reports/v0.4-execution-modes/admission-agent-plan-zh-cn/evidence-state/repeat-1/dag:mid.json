@@ -1,0 +1,63 @@
+{
+  "available": true,
+  "artifact": {
+    "node_id": "extract_evidence",
+    "output_sha256": "643b4273244aeff8e089f60423dac16301b001a954b109eeff1aa277d1ca60f4",
+    "items": [
+      {
+        "source_id": "source_001",
+        "title": "DeepAgents",
+        "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39",
+        "claim": "DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls."
+      },
+      {
+        "source_id": "source_001",
+        "title": "DeepAgents",
+        "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39",
+        "claim": "For RefractRouter v0.1, DeepAgents serves as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled."
+      },
+      {
+        "source_id": "source_002",
+        "title": "LangGraph",
+        "content_hash": "97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960",
+        "claim": "LangGraph is a graph state machine framework supporting explicit nodes, edges, durable state, and check-pointing, and is used by RefractRouter as the lower-level execution substrate for a fixed task DAG."
+      },
+      {
+        "source_id": "source_003",
+        "title": "Pydantic AI",
+        "content_hash": "7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e",
+        "claim": "Pydantic AI provides typed tool definitions and structured model outputs, useful when strict schemas are required, but is not a core dependency for RefractRouter v0.1 unless structured-output parsing becomes a bottleneck."
+      },
+      {
+        "source_id": "source_004",
+        "title": "DeepSeek Harness",
+        "content_hash": "b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331",
+        "claim": "DSH (DeepSeek Harness) is an agent harness in which the agent loop itself is a plugin, and for RefractRouter v0.1 it is reserved for the outer validation environment rather than the core routing loop."
+      },
+      {
+        "source_id": "source_005",
+        "title": "LLM routing research gap",
+        "content_hash": "418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460",
+        "claim": "Existing LLM routing work mostly selects one model for an entire request, whereas RefractRouter investigates per-node model selection within a task DAG to improve the quality-cost-latency Pareto frontier."
+      },
+      {
+        "source_id": "source_006",
+        "title": "Task decomposition boundary",
+        "content_hash": "96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504",
+        "claim": "Static task decomposition is an application-layer concern; the router takes the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred until node-level routing is validated."
+      },
+      {
+        "source_id": "source_007",
+        "title": "Benchmark design",
+        "content_hash": "03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0",
+        "claim": "A useful routing benchmark requires fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency, and the first benchmark should stay small enough to reproduce."
+      },
+      {
+        "source_id": "source_008",
+        "title": "Scoring rubric",
+        "content_hash": "b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e",
+        "claim": "The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity, and scoring prompts and rubric versions must be versioned with run records."
+      }
+    ]
+  }
+}

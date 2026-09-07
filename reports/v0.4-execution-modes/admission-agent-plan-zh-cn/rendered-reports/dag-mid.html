@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>2026 年企业 LLM Agent 平台选型报告</title>
+</head>
+<body>
+<h1>2026 年企业 LLM Agent 平台选型报告</h1>
+
+<h2>执行摘要</h2>
+<p>本报告针对 RefractRouter v0.1 的执行底座与 Agent harness 选型展开权衡。建议内层采用 LangGraph 作为执行底座，并叠加 DeepAgents 作为固定 DAG 的执行 harness，同时关闭其自主规划与动态子代理生成以保证可控性 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a><a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。DSH 保留为外层验证环境，不进入核心路由循环 <a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。评估层面强调在固定 DAG 下同时报告质量、成本与关键路径时延，以推进节点级选模型的 Pareto 前沿 <a href="#source_005" data-cite-source-id="source_005">[source_005]</a><a href="#source_007" data-cite-source-id="source_007">[source_007]</a>。</p>
+
+<h2>背景</h2>
+<p>企业级 LLM Agent 平台在 2026 年面临从"请求级选模型"向"节点级选模型"演进。现有路由研究多以整请求为单位选型，难以同时优化质量、成本与时延；RefractRouter 将路由粒度下沉至任务 DAG 的每个节点，目标是在固定任务分解下推进质量-成本-时延 Pareto 前沿 <a href="#source_005" data-cite-source-id="source_005">[source_005]</a><a href="#source_006" data-cite-source-id="source_006">[source_006]</a>。静态任务分解属应用层职责，v0.1 路由只消费 DAG，动态重切分待节点级路由验证后再考虑 <a href="#source_006" data-cite-source-id="source_006">[source_006]</a>。</p>
+
+<h2>选型标准</h2>
+<p>选型从三个维度展开。其一为执行可控性，LangGraph 提供显式节点、边、持久化状态与 check-pointing，是固定任务 DAG 的天然下层执行基底 <a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。其二为 harness 边界，DSH 将 agent loop 插件化，在 v0.1 中仅作为外层验证环境，避免与核心路由职责混淆 <a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。其三为基准与评分，基准需固定 DAG、多模型并存、节点与任务级双粒度评分，并同时报告质量、成本与关键路径时延，规模须可复现；评分 rubric 覆盖需求、证据、深度、结构与 HTML 有效性，并随运行记录版本化 <a href="#source_007" data-cite-source-id="source_007">[source_007]</a><a href="#source_008" data-cite-source-id="source_008">[source_008]</a>。</p>
+
+<h2>平台比较</h2>
+<p>执行底座方面，LangGraph 提供节点、边、持久化状态与 check-pointing，适配固定任务 DAG <a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。DeepAgents 基于 LangGraph 构建，v0.1 阶段作为固定 DAG 的执行 harness，但需关闭自主规划与动态子代理生成以避免破坏节点级路由可控性 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a><a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。Pydantic AI 提供强类型工具与结构化输出，v0.1 尚非必需，可待结构化解析成为瓶颈时再纳入 <a href="#source_003" data-cite-source-id="source_003">[source_003]</a>。Agent harness 方面，DSH 把 agent loop 插件化，与 RefractRouter 的核心路由职责不同，v0.1 仅作外层验证 <a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。</p>
+
+<h2>风险</h2>
+<p>若开启 DeepAgents 的自主规划与动态子代理，将破坏节点级路由的可控性，导致路由策略失效 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a>。若将 DSH 引入核心路由循环，会与节点级路由职责边界模糊，弱化 DAG 固定性 <a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。若基准未同时覆盖质量、成本与关键路径时延，将无法反映节点级路由的 Pareto 收益 <a href="#source_007" data-cite-source-id="source_007">[source_007]</a>。若评分 rubric 与提示词未随运行记录版本化，将影响可复现性与审计追溯 <a href="#source_008" data-cite-source-id="source_008">[source_008]</a>。若在 v0.1 阶段过早引入动态任务重切分，会越过路由验证前提 <a href="#source_006" data-cite-source-id="source_006">[source_006]</a>。</p>
+
+<h2>结论</h2>
+<p>综合权衡后，建议 v0.1 采用 LangGraph + DeepAgents（关掉规划/子代理）作为内层执行与 harness，Pydantic AI 按需引入；DSH 留作外层验证环境。评估必须同时报告质量、成本与关键路径时延，坚持节点级粒度，待节点级路由稳定后再考虑动态任务重切分 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a><a href="#source_002" data-cite-source-id="source_002">[source_002]</a><a href="#source_003" data-cite-source-id="source_003">[source_003]</a><a href="#source_004" data-cite-source-id="source_004">[source_004]</a><a href="#source_006" data-cite-source-id="source_006">[source_006]</a><a href="#source_007" data-cite-source-id="source_007">[source_007]</a>。</p>
+
+<h2>参考资料</h2>
+<p>[source_001] DeepAgents，content_hash=ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39；[source_002] LangGraph，content_hash=97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960；[source_003] Pydantic AI，content_hash=7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e；[source_004] DeepSeek Harness，content_hash=b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331；[source_005] LLM routing research gap，content_hash=418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460；[source_006] Task decomposition boundary，content_hash=96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504；[source_007] Benchmark design，content_hash=03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0；[source_008] Scoring rubric，content_hash=b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e。</p>
+
+<hr>
+<h3>Source Trace</h3>
+<ul>
+<li data-source-id="source_001" data-content-hash="ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"><a id="source_001" name="source_001">source_001 — DeepAgents (ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39)</a></li>
+<li data-source-id="source_002" data-content-hash="97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"><a id="source_002" name="source_002">source_002 — LangGraph (97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960)</a></li>
+<li data-source-id="source_003" data-content-hash="7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"><a id="source_003" name="source_003">source_003 — Pydantic AI (7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e)</a></li>
+<li data-source-id="source_004" data-content-hash="b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"><a id="source_004" name="source_004">DeepSeek Harness (b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331)</a></li>
+<li data-source-id="source_005" data-content-hash="418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"><a id="source_005" name="source_005">LLM routing research gap (418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460)</a></li>
+<li data-source-id="source_006" data-content-hash="96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"><a id="source_006" name="source_006">Task decomposition boundary (96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504)</a></li>
+<li data-source-id="source_007" data-content-hash="03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"><a id="source_007" name="source_007">Benchmark design (03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0)</a></li>
+<li data-source-id="source_008" data-content-hash="b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"><a id="source_008" name="source_008">Scoring rubric (b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e)</a></li>
+</ul>
+</body>
+</html>

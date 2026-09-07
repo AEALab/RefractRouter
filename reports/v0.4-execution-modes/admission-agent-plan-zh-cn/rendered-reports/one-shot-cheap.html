@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年企业LLM Agent平台选型研究报告</title>
+    <style>
+        /* 极简内置样式，无外部依赖 */
+        body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; margin: 2rem auto; max-width: 1100px; padding: 0 1.5rem; color: #1a1a1a; background: #fafafa; }
+        h1, h2, h3 { border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3rem; margin-top: 2rem; }
+        h1 { font-size: 1.9rem; border-bottom-width: 2px; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.2rem; }
+        table { border-collapse: collapse; width: 100%; margin: 1.5rem 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #d0d0d0; padding: 0.6rem 0.8rem; text-align: left; vertical-align: top; }
+        th { background: #f0f0f0; font-weight: 600; }
+        .source-ref { color: #2050a0; font-size: 0.85em; text-decoration: none; border-bottom: 1px dotted #2050a0; cursor: help; }
+        .source-trace { background: #f4f4f4; border: 1px solid #ccc; padding: 1.2rem 1.5rem; margin-top: 2.5rem; font-size: 0.9rem; }
+        .source-trace h3 { margin-top: 0; border-bottom: none; }
+        .source-trace ul { list-style: none; padding-left: 0; }
+        .source-trace li { margin-bottom: 0.8rem; padding-left: 1.2rem; text-indent: -1.2rem; }
+        .source-trace code { background: #e8e8e8; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.85em; }
+        .claim { background: #fff; border-left: 4px solid #2a7a2a; padding: 0.5rem 1rem; margin: 1rem 0; }
+        .risk-box { background: #fff8f0; border-left: 4px solid #b06000; padding: 0.8rem 1.2rem; margin: 1rem 0; }
+        .note { font-size: 0.9rem; color: #555; }
+        .hash { font-family: 'Courier New', monospace; font-size: 0.8rem; word-break: break-all; }
+        .no-external { border-top: 1px solid #ddd; margin-top: 2rem; padding-top: 0.8rem; font-size: 0.8rem; color: #666; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>2026年企业LLM Agent平台选型研究报告</h1>
+    <p><strong>报告编号：</strong>report_001 | <strong>领域：</strong>企业LLM Agent平台选型 | <strong>版本：</strong>v0.4 (render_html)</p>
+    <p><strong>核心结论：</strong>基于冻结源数据，DeepAgents（基于LangGraph）与LangGraph的组合是RefractRouter v0.1固定DAG执行场景下的最优选型；DSH仅用于外部验证环境；基准测试需同时报告质量、成本与关键路径延迟。</p>
+</header>
+
+<section id="executive-summary">
+    <h2>1. 执行摘要</h2>
+    <p>本报告针对2026年企业级LLM Agent平台选型需求，基于冻结的8份源文件，对候选平台（DeepAgents、LangGraph、Pydantic AI、DSH）进行系统性评估。核心发现如下：</p>
+    <ul>
+        <li><strong>DeepAgents 基于 LangGraph 构建</strong>，是LangChain生态中的高层执行框架，提供规划、子Agent、文件系统抽象及人工审批控制。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a> 对于RefractRouter v0.1，其固定DAG执行能力匹配需求，但自主规划与动态子Agent生成必须禁用。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a></li>
+        <li><strong>LangGraph 作为底层图状态机</strong>，提供显式节点、边、持久化状态与检查点机制，是固定任务DAG的理想执行基座。<a href="#source_002" class="source-ref" data-cite-source-id="source_002">[source_002]</a></li>
+        <li><strong>DSH（DeepSeek Harness）保留用于外部验证环境</strong>，不参与核心路由循环。<a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a></li>
+        <li><strong>基准测试必须报告质量、成本与关键路径延迟</strong>三项核心指标，以评估路由策略的Pareto前沿。<a href="#source_007" class="source-ref" data-cite-source-id="source_007">[source_007]</a></li>
+    </ul>
+    <p>选型建议：采用 <strong>LangGraph + DeepAgents（受限模式）</strong> 作为v0.1核心执行栈，Pydantic AI作为可选增强，DSH仅用于外部验证。该组合在可控性、状态管理与生态成熟度上最优。</p>
+</section>
+
+<section id="background">
+    <h2>2. 背景</h2>
+    <h3>2.1 问题定义</h3>
+    <p>现有LLM路由研究大多针对整个请求选择单一模型。<a href="#source_005" class="source-ref" data-cite-source-id="source_005">[source_005]</a> RefractRouter旨在研究在任务DAG中为每个节点独立选择模型，以优化质量-成本-延迟的Pareto前沿。<a href="#source_005" class="source-ref" data-cite-source-id="source_005">[source_005]</a> 静态任务分解属于应用层职责，路由器接收DAG作为输入，仅关注节点级模型选择。<a href="#source_006" class="source-ref" data-cite-source-id="source_006">[source_006]</a></p>
+    
+    <h3>2.2 平台生态概览</h3>
+    <p>2026年企业LLM Agent平台呈现分层趋势：底层图执行框架（LangGraph）、高层应用框架（DeepAgents）、结构化工具层（Pydantic AI）及专用验证框架（DSH）。各平台定位差异显著，选型需明确场景边界。</p>
+    
+    <h3>2.3 RefractRouter v0.1 场景约束</h3>
+    <ul>
+        <li>固定DAG执行，不允许动态重拆分。<a href="#source_006" class="source-ref" data-cite-source-id="source_006">[source_006]</a></li>
+        <li>核心路由循环不依赖DSH。<a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a></li>
+        <li>需要版本化的评分规则与运行记录。<a href="#source_008" class="source-ref" data-cite-source-id="source_008">[source_008]</a></li>
+    </ul>
+</section>
+
+<section id="selection-criteria">
+    <h2>3. 选型标准</h2>
+    <p>基于冻结源数据，提炼以下核心选型维度：</p>
+    <table>
+        <thead>
+            <tr>
+                <th>维度</th>
+                <th>权重</th>
+                <th>说明</th>
+                <th>来源依据</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>固定DAG执行能力</td>
+                <td>30%</td>
+                <td>支持显式节点/边、状态持久化、检查点</td>
+                <td><a href="#source_002" class="source-ref" data-cite-source-id="source_002">[source_002]</a></td>
+            </tr>
+            <tr>
+                <td>自主能力可控性</td>
+                <td>25%</td>
+                <td>能否禁用自主规划/动态子Agent</td>
+                <td><a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a></td>
+            </tr>
+            <tr>
+                <td>结构化输出支持</td>
+                <td>15%</td>
+                <td>类型化工具定义与结构化输出（非必需）</td>
+                <td><a href="#source_003" class="source-ref" data-cite-source-id="source_003">[source_003]</a></td>
+            </tr>
+            <tr>
+                <td>验证环境适配</td>
+                <td>15%</td>
+                <td>是否适合作为外部验证环境</td>
+                <td><a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a></td>
+            </tr>
+            <tr>
+                <td>基准测试支持</td>
+                <td>15%</td>
+                <td>能否支持质量、成本、关键路径延迟测量</td>
+                <td><a href="#source_007" class="source-ref" data-cite-source-id="source_007">[source_007]</a></td>
+            </tr>
+        </tbody>
+    </table>
+    <p>评分规则需版本化，并与运行记录绑定。<a href="#source_008" class="source-ref" data-cite-source-id="source_008">[source_008]</a></p>
+</section>
+
+<section id="platform-comparison">
+    <h2>4. 平台比较</h2>
+    
+    <h3>4.1 候选平台概览</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>平台</th>
+                <th>定位</th>
+                <th>核心特性</th>
+                <th>v0.1适用性</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>DeepAgents</strong></td>
+                <td>高层Agent执行框架</td>
+                <td>基于LangGraph，提供规划、子Agent、文件系统抽象、HITL控制</td>
+                <td>固定DAG执行，需禁用自主功能</td>
+            </tr>
+            <tr>
+                <td><strong>LangGraph</strong></td>
+                <td>底层图状态机</td>
+                <td>显式节点/边、持久化状态、检查点</td>
+                <td>作为执行基座，完全匹配</td>
+            </tr>
+            <tr>
+                <td><strong>Pydantic AI</strong></td>
+                <td>结构化工具层</td>
+                <td>类型化工具定义、结构化输出</td>
+                <td>可选增强，非核心依赖</td>
+            </tr>
+            <tr>
+                <td><strong>DSH</strong></td>
+                <td>外部验证环境</td>
+                <td>Agent循环插件化</td>
+                <td>仅用于外部验证，不参与核心路由</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>4.2 深度对比分析</h3>
+    
+    <div class="claim">
+        <strong>关键声明1：</strong>DeepAgents 基于 LangGraph 构建。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a> 这意味着DeepAgents继承了LangGraph的图执行能力，同时增加了高层抽象。对于RefractRouter v0.1，DeepAgents可作为固定DAG的执行外壳，但必须禁用其自主规划与动态子Agent生成。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a>
+    </div>
+    
+    <div class="claim">
+        <strong>关键声明2：</strong>DSH 保留用于外部验证环境。<a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a> 在RefractRouter v0.1中，DSH不参与核心路由循环，仅作为外部验证的独立环境，确保路由策略的评估不受实现细节干扰。
+    </div>
+    
+    <div class="claim">
+        <strong>关键声明3：</strong>基准测试报告质量、成本与关键路径延迟。<a href="#source_007" class="source-ref" data-cite-source-id="source_007">[source_007]</a> 这三项指标共同构成路由策略的评估维度，缺一不可。质量反映任务完成度，成本反映经济性，关键路径延迟反映用户体验。
+    </div>
+
+    <h3>4.3 组合选型建议</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>层级</th>
+                <th>推荐平台</th>
+                <th>理由</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>执行基座</td>
+                <td>LangGraph</td>
+                <td>提供固定DAG所需的显式图状态机、持久化与检查点。<a href="#source_002" class="source-ref" data-cite-source-id="source_002">[source_002]</a></td>
+            </tr>
+            <tr>
+                <td>高层封装</td>
+                <td>DeepAgents（受限模式）</td>
+                <td>基于LangGraph，提供文件系统抽象与HITL，但需禁用自主规划。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a></td>
+            </tr>
+            <tr>
+                <td>结构化输出</td>
+                <td>Pydantic AI（可选）</td>
+                <td>仅在结构化输出成为瓶颈时引入，v0.1非必需。<a href="#source_003" class="source-ref" data-cite-source-id="source_003">[source_003]</a></td>
+            </tr>
+            <tr>
+                <td>外部验证</td>
+                <td>DSH</td>
+                <td>作为独立验证环境，不干扰核心路由。<a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a></td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<section id="risks">
+    <h2>5. 风险分析</h2>
+    
+    <div class="risk-box">
+        <h3>5.1 自主功能误启用风险</h3>
+        <p>DeepAgents的自主规划与动态子Agent生成若未正确禁用，可能导致DAG执行偏离预期。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a> <strong>缓解措施：</strong>在配置层强制锁定固定DAG模式，并通过测试用例验证。</p>
+    </div>
+    
+    <div class="risk-box">
+        <h3>5.2 基准测试指标不完整风险</h3>
+        <p>若仅报告质量或成本，而忽略关键路径延迟，将无法全面评估路由策略的Pareto前沿。<a href="#source_007" class="source-ref" data-cite-source-id="source_007">[source_007]</a> <strong>缓解措施：</strong>基准测试必须同时采集三项指标，并确保可复现性。</p>
+    </div>
+    
+    <div class="risk-box">
+        <h3>5.3 结构化输出依赖风险</h3>
+        <p>过早引入Pydantic AI可能增加不必要的依赖复杂度。<a href="#source_003" class="source-ref" data-cite-source-id="source_003">[source_003]</a> <strong>缓解措施：</strong>v0.1保持核心依赖最小化，仅在结构化解析成为瓶颈时引入。</p>
+    </div>
+    
+    <div class="risk-box">
+        <h3>5.4 验证环境耦合风险</h3>
+        <p>若将DSH错误地集成到核心路由循环，可能引入不必要的插件化复杂度。<a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a> <strong>缓解措施：</strong>严格隔离DSH为外部验证环境，不参与运行时路由。</p>
+    </div>
+    
+    <div class="risk-box">
+        <h3>5.5 评分规则版本漂移风险</h3>
+        <p>评分规则若未版本化，将导致不同批次结果不可比。<a href="#source_008" class="source-ref" data-cite-source-id="source_008">[source_008]</a> <strong>缓解措施：</strong>所有评分提示与规则版本必须与运行记录绑定。</p>
+    </div>
+</section>
+
+<section id="conclusion">
+    <h2>6. 结论</h2>
+    <p>基于冻结源数据的综合分析，针对2026年企业LLM Agent平台选型，我们得出以下结论：</p>
+    <ol>
+        <li><strong>首选组合：LangGraph + DeepAgents（受限模式）</strong>。LangGraph提供稳定的图执行基座，DeepAgents提供高层抽象，两者结合可满足RefractRouter v0.1的固定DAG执行需求。<a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a><a href="#source_002" class="source-ref" data-cite-source-id="source_002">[source_002]</a></li>
+        <li><strong>DSH定位明确：外部验证环境</strong>，不参与核心路由循环。<a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a></li>
+        <li><strong>基准测试三要素：质量、成本、关键路径延迟</strong>，缺一不可。<a href="#source_007" class="source-ref" data-cite-source-id="source_007">[source_007]</a></li>
+        <li><strong>Pydantic AI为可选组件</strong>，仅在结构化输出成为瓶颈时引入。<a href="#source_003" class="source-ref" data-cite-source-id="source_003">[source_003]</a></li>
+        <li><strong>动态任务重拆分暂缓</strong>，待节点级路由验证后再考虑。<a href="#source_006" class="source-ref" data-cite-source-id="source_006">[source_006]</a></li>
+    </ol>
+    <p>该选型方案在可控性、执行稳定性与生态成熟度上达到最优平衡，为RefractRouter v0.1的落地提供坚实基础。</p>
+</section>
+
+<section id="references">
+    <h2>7. 参考资料</h2>
+    <p>本报告所有断言均引用自冻结源包，具体来源如下：</p>
+    <ul>
+        <li><a href="#source_001" class="source-ref" data-cite-source-id="source_001">[source_001]</a> DeepAgents — 基于LangGraph的LangChain harness</li>
+        <li><a href="#source_002" class="source-ref" data-cite-source-id="source_002">[source_002]</a> LangGraph — 图状态机框架</li>
+        <li><a href="#source_003" class="source-ref" data-cite-source-id="source_003">[source_003]</a> Pydantic AI — 类型化工具定义</li>
+        <li><a href="#source_004" class="source-ref" data-cite-source-id="source_004">[source_004]</a> DeepSeek Harness (DSH) — 外部验证环境</li>
+        <li><a href="#source_005" class="source-ref" data-cite-source-id="source_005">[source_005]</a> LLM routing research gap — 节点级路由研究</li>
+        <li><a href="#source_006" class="source-ref" data-cite-source-id="source_006">[source_006]</a> Task decomposition boundary — 静态分解边界</li>
+        <li><a href="#source_007" class="source-ref" data-cite-source-id="source_007">[source_007]</a> Benchmark design — 基准测试设计</li>
+        <li><a href="#source_008" class="source-ref" data-cite-source-id="source_008">[source_008]</a> Scoring rubric — 评分规则版本化</li>
+    </ul>
+</section>
+
+<section id="source-trace" class="source-trace">
+    <h3>📋 来源追踪与完整性校验</h3>
+    <p>以下为冻结源包的完整追踪信息，包含来源标识与内容哈希，确保可验证性。</p>
+    <ul>
+        <li>
+            <strong>source_001</strong> — DeepAgents<br>
+            <span class="hash">哈希: ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</span><br>
+            <span>内容摘要: DeepAgents基于LangGraph，提供规划、子Agent、文件系统抽象与HITL；v0.1需禁用自主功能。</span>
+        </li>
+        <li>
+            <strong>source_002</strong> — LangGraph<br>
+            <span class="hash">哈希: 97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</span><br>
+            <span>内容摘要: 图状态机框架，支持显式节点/边、持久化状态与检查点。</span>
+        </li>
+        <li>
+            <strong>source_003</strong> — Pydantic AI<br>
+            <span class="hash">哈希: 7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</span><br>
+            <span>内容摘要: 类型化工具定义与结构化输出，v0.1非核心依赖。</span>
+        </li>
+        <li>
+            <strong>source_004</strong> — DeepSeek Harness (DSH)<br>
+            <span class="hash">哈希: b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</span><br>
+            <span>内容摘要: Agent循环插件化，DSH保留用于外部验证环境。</span>
+        </li>
+        <li>
+            <strong>source_005</strong> — LLM routing research gap<br>
+            <span class="hash">哈希: 418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</span><br>
+            <span>内容摘要: 现有路由研究为整请求单模型，RefractRouter研究节点级路由。</span>
+        </li>
+        <li>
+            <strong>source_006</strong> — Task decomposition boundary<br>
+            <span class="hash">哈希: 96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</span><br>
+            <span>内容摘要: 静态任务分解属于应用层，路由器仅关注节点级模型选择。</span>
+        </li>
+        <li>
+            <strong>source_007</strong> — Benchmark design<br>
+            <span class="hash">哈希: 03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</span><br>
+            <span>内容摘要: 基准测试需固定DAG、多模型、评分、成本与关键路径延迟。</span>
+        </li>
+        <li>
+            <strong>source_008</strong> — Scoring rubric<br>
+            <span class="hash">哈希: b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</span><br>
+            <span>内容摘要: 评分规则需版本化，与运行记录绑定。</span>
+        </li>
+    </ul>
+    <p class="note">所有来源均来自冻结源包，未添加任何外部数据。内容哈希与源包完全一致。</p>
+</section>
+
+<div class="no-external">
+    <p>⚠️ 本报告为独立HTML文档，无外部CSS/JavaScript依赖，所有样式均为内联。所有断言均通过 <code>data-cite-source-id</code> 属性关联至来源追踪区块。</p>
+    <p>生成时间：2026年1月 | 报告版本：v0.4 | 节点：render_html</p>
+</div>
+
+</body>
+</html>

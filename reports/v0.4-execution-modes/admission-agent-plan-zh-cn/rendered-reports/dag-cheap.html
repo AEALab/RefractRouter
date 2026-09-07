@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 年企业 LLM Agent 平台选型报告</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a202c;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            background-color: #f7fafc;
+        }
+        h1 {
+            font-size: 2rem;
+            border-bottom: 3px solid #2b6cb0;
+            padding-bottom: 0.5rem;
+            color: #2d3748;
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 1.5rem;
+            color: #2b6cb0;
+            margin-top: 2rem;
+            border-left: 4px solid #2b6cb0;
+            padding-left: 0.75rem;
+        }
+        p {
+            margin: 1rem 0;
+            text-align: justify;
+        }
+        a {
+            color: #2b6cb0;
+            text-decoration: none;
+            border-bottom: 1px dotted #2b6cb0;
+        }
+        a:hover {
+            color: #2c5282;
+            border-bottom-style: solid;
+        }
+        .source-trace {
+            background-color: #edf2f7;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+        .source-trace h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+        .source-trace ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0.5rem 0 0;
+        }
+        .source-trace li {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .source-trace li:last-child {
+            border-bottom: none;
+        }
+        .source-trace code {
+            background-color: #e2e8f0;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+        .source-trace .source-id {
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+        .source-trace .hash {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.8rem;
+        }
+        .footer-note {
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>2026 年企业 LLM Agent 平台选型报告</h1>
+
+    <h2>执行摘要</h2>
+    <p>本报告基于现有证据，评估 2026 年企业 LLM Agent 平台选型的关键维度。证据显示，DeepAgents 基于 LangGraph 构建 <a href="#source-001" data-cite-source-id="source_001">[source_001]</a>，其架构可能适合需要显式控制流的复杂任务。DSH 被保留用于外部验证环境 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a>，提示选型需考虑独立验证的兼容性。基准测试报告质量、成本和关键路径延迟 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a>，为比较提供了核心框架。然而，当前证据缺乏各平台在相同条件下的实测数据，无法进行量化排名。本报告建议后续补充基准结果，以支持具体推荐。</p>
+
+    <h2>背景</h2>
+    <p>随着企业加速采用 LLM Agent 平台，2026 年的选型决策需基于可靠的技术评估。现有证据仅确认了三个孤立声明：DeepAgents 的技术基础 <a href="#source-001" data-cite-source-id="source_001">[source_001]</a>、DSH 的验证角色 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a> 以及基准测试的维度 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a>。这些信息不足以全面描述市场背景，但揭示了评估框架的初步轮廓。企业需在质量、成本和延迟之间权衡，同时考虑外部验证环境的集成需求。本报告基于此有限证据，明确当前分析的局限性。</p>
+
+    <h2>选型标准</h2>
+    <p>选型标准应围绕基准测试报告的核心维度展开：质量、成本和关键路径延迟 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a>。质量反映 Agent 输出的准确性和可靠性；成本涉及部署和运营开销；关键路径延迟影响用户体验和实时性。此外，DSH 作为外部验证环境 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a>，要求平台能够与独立验证流程兼容，这可能成为集成复杂度的考量因素。DeepAgents 基于 LangGraph <a href="#source-001" data-cite-source-id="source_001">[source_001]</a>，暗示其可能支持显式控制流，但证据未提供其在这些标准上的具体表现。</p>
+
+    <h2>平台比较</h2>
+    <p>当前证据仅能确认 DeepAgents 的技术基础 <a href="#source-001" data-cite-source-id="source_001">[source_001]</a>，但缺乏与其他平台的直接比较数据。基准测试报告质量、成本和延迟 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a>，但未提供任何平台的具体数值或排名。DSH 被保留用于外部验证 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a>，表明其不参与生产比较，但可能影响平台集成方式。因此，本报告无法进行有意义的横向比较。建议后续节点补充各平台的基准输出和部署要求，以支持量化评估。</p>
+
+    <h2>风险</h2>
+    <p>主要风险在于证据不足导致的决策不确定性。缺乏各平台在质量、成本和延迟上的实测数据 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a>，可能使选型基于假设而非事实。DeepAgents 基于 LangGraph <a href="#source-001" data-cite-source-id="source_001">[source_001]</a>，但未验证其生产稳定性或可扩展性。DSH 作为外部验证环境 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a>，若平台不兼容，可能增加集成风险。此外，过度依赖单一基准框架可能忽略其他关键因素，如安全性和可维护性。</p>
+
+    <h2>结论</h2>
+    <p>基于现有证据，本报告无法推荐具体平台。DeepAgents 的技术基础 <a href="#source-001" data-cite-source-id="source_001">[source_001]</a> 和基准测试维度 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a> 提供了评估起点，但缺乏实测数据。DSH 的验证角色 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a> 提示选型需考虑外部验证兼容性。建议企业收集更多基准结果和平台规格，重点关注质量、成本和延迟的权衡。后续分析应补充数据，以形成可操作的选型建议。</p>
+
+    <h2>参考资料</h2>
+    <p>本报告引用的来源包括：source_001 描述 DeepAgents 基于 LangGraph 构建 <a href="#source-001" data-cite-source-id="source_001">[source_001]</a>；source_004 说明 DSH 保留用于外部验证环境 <a href="#source-004" data-cite-source-id="source_004">[source_004]</a>；source_007 定义基准测试报告质量、成本和关键路径延迟 <a href="#source-007" data-cite-source-id="source_007">[source_007]</a>。所有来源均为提取证据，未包含额外数据。</p>
+
+    <!-- 来源追踪（提取记录） -->
+    <div class="source-trace">
+        <h3>来源追踪（提取记录）</h3>
+        <ul>
+            <li>
+                <span class="source-id">source_001</span> — DeepAgents<br>
+                内容哈希：<code class="hash">ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</code><br>
+                声明：DeepAgents is built on LangGraph.
+            </li>
+            <li>
+                <span class="source-id">source_004</span> — DeepSeek Harness<br>
+                内容哈希：<code class="hash">b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</code><br>
+                声明：DSH is reserved for the outer validation environment.
+            </li>
+            <li>
+                <span class="source-id">source_007</span> — Benchmark design<br>
+                内容哈希：<code class="hash">03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</code><br>
+                声明：The benchmark reports quality, cost, and critical-path latency.
+            </li>
+        </ul>
+    </div>
+
+    <!-- 锚点定义（用于引用链接） -->
+    <span id="source-001" data-source-id="source_001" data-content-hash="ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39" style="display:none;"></span>
+    <span id="source-004" data-source-id="source_004" data-content-hash="b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331" style="display:none;"></span>
+    <span id="source-007" data-source-id="source_007" data-content-hash="03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0" style="display:none;"></span>
+
+    <div class="footer-note">
+        本报告由自动化流程生成，基于提取记录中的证据。所有引用均指向来源追踪部分。
+    </div>
+</body>
+</html>
