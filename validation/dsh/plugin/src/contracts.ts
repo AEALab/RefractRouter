@@ -6,7 +6,7 @@ import type { Readable, Writable } from 'node:stream'
  */
 export type BillingUnit = 'USD' | 'AFP'
 export type SelectionPolicy = 'all-candidates-required-v1' | 'exclude-known-contract-rejections-v2'
-export type Phase = 'dry-run' | 'pilot' | 'final' | 'contract-replay' | 'execution-modes'
+export type Phase = 'dry-run' | 'pilot' | 'final' | 'contract-replay' | 'execution-modes' | 'k3-baseline'
 export type SandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access'
 export type SandboxEnforcement = 'full' | 'partial'
 
@@ -31,13 +31,16 @@ export interface PluginConfig {
 export interface ToolArguments {
   phase: Phase
   repeats?: number
+  stage?: 'prepare' | 'compose'
+  inputDir?: string
+  reviewsPath?: string
   selectionPolicy?: SelectionPolicy
   executePaidRun?: boolean
   maxProductionCost?: number
   maxEvaluationCost?: number
 }
 
-export type ValidationRequest = { phase: Phase; repeats: number; selectionPolicy: SelectionPolicy } & (
+export type ValidationRequest = { phase: Phase; repeats: number; selectionPolicy: SelectionPolicy; stage?: 'prepare' | 'compose'; inputDir?: string; reviewsPath?: string } & (
   { paid: false } | { paid: true; productionLimit: number; evaluationLimit: number }
 )
 

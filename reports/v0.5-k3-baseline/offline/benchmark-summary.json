@@ -1,0 +1,69 @@
+{
+  "version": "k3-baseline-v1",
+  "simulation": true,
+  "status": "incomplete",
+  "calibration_passed": false,
+  "baseline_quality": 100,
+  "routed_quality": 100,
+  "quality_delta": null,
+  "baseline_cost": 1.53,
+  "routed_cost": 0.284,
+  "selection_setup_cost": 7.951999999999999,
+  "routed_first_use_cost": 8.235999999999999,
+  "total_production_cost": 9.766,
+  "cost_reduction_percent": null,
+  "first_use_cost_reduction_percent": null,
+  "baseline_latency_ms": 766,
+  "routed_latency_ms": 3365,
+  "first_use_latency_ms": 16825,
+  "external_review_cost": null,
+  "external_review_time_ms": null,
+  "decision": "Simulation-only",
+  "routed_only_candidate_signal": false,
+  "candidate_signal": false,
+  "说明": "单轮仅提供描述性候选信号；评审费用和人工等待时间未知，不计作零。选路开销不得隐藏。",
+  "final_reviews": {
+    "packet_sha256": "a72fe18110c1a8e8eda2814dff8853064b1a826a7ca6eeb6aa2749c6f950234a",
+    "reviewer": {
+      "kind": "fixture",
+      "id": "offline-only"
+    },
+    "reviews": [
+      {
+        "sample_id": "3cd7e29f7a07082c8cd06cf0",
+        "scores": {
+          "task_completion": 40,
+          "analysis": 25,
+          "grounding": 25,
+          "presentation": 10
+        },
+        "evidence_quote": "<!doctype html><html><head><me",
+        "rationale": "仅验证管线的离线夹具，不是真实评分。",
+        "task_checks": {
+          "substantive_comparison": true,
+          "criteria_tradeoffs": true,
+          "supported_conclusion": true
+        }
+      },
+      {
+        "sample_id": "4dab8e9850642b78f239a372",
+        "scores": {
+          "task_completion": 40,
+          "analysis": 25,
+          "grounding": 25,
+          "presentation": 10
+        },
+        "evidence_quote": "<!doctype html><html><head><me",
+        "rationale": "仅验证管线的离线夹具，不是真实评分。",
+        "task_checks": {
+          "substantive_comparison": true,
+          "criteria_tradeoffs": true,
+          "supported_conclusion": true
+        }
+      }
+    ]
+  },
+  "actual_network_calls": 0,
+  "actual_paid_cost": 0,
+  "fixture_production_calls": 36
+}

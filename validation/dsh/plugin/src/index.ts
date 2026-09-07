@@ -35,8 +35,8 @@ function billingUnit(value: string): BillingUnit {
 }
 
 function phase(value: unknown): Phase {
-  if (value !== 'dry-run' && value !== 'pilot' && value !== 'final' && value !== 'contract-replay' && value !== 'execution-modes') {
-    throw new Error('phase must be dry-run, pilot, final, contract-replay, or execution-modes')
+  if (value !== 'dry-run' && value !== 'pilot' && value !== 'final' && value !== 'contract-replay' && value !== 'execution-modes' && value !== 'k3-baseline') {
+    throw new Error('phase must be dry-run, pilot, final, contract-replay, execution-modes, or k3-baseline')
   }
   return value
 }
@@ -231,7 +231,7 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
     'phase',
     'repeats',
     'executePaidRun',
-    'selectionPolicy',
+    'selectionPolicy', 'stage', 'inputDir', 'reviewsPath',
     'maxProductionCost',
     'maxEvaluationCost',
   ])
@@ -259,12 +259,28 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
   if ((requestedPhase === 'contract-replay' || requestedPhase === 'execution-modes') && (repeats > 3 || config.maxRetries !== 0)) {
     throw new Error(`${requestedPhase} requires repeats <= 3 and configured maxRetries = 0`)
   }
+  let extra: { stage?: 'prepare' | 'compose'; inputDir?: string; reviewsPath?: string } = {}
+  if (requestedPhase === 'k3-baseline') {
+    if (repeats !== 1 || config.maxRetries !== 0) throw new Error('k3-baseline requires one repeat and zero retries')
+    if (args.selectionPolicy !== undefined) throw new Error('k3-baseline uses its frozen Python cost policy')
+    const stage = args.stage ?? 'prepare'
+    if (stage !== 'prepare' && stage !== 'compose') throw new Error('invalid k3-baseline stage')
+    extra = { stage }
+    for (const key of ['inputDir', 'reviewsPath'] as const) {
+      if (args[key] !== undefined) {
+        if (typeof args[key] !== 'string' || !args[key].trim()) throw new Error(`${key} must be a nonempty path`)
+        extra[key] = args[key]
+      }
+    }
+  } else if (args.stage !== undefined || args.inputDir !== undefined || args.reviewsPath !== undefined) {
+    throw new Error('review handoff arguments require k3-baseline')
+  }
   const paid = args.executePaidRun ?? false
   if (!paid) {
     if (args.maxProductionCost !== undefined || args.maxEvaluationCost !== undefined) {
       throw new Error('cost limits are valid only when executePaidRun is true')
     }
-    return { phase: requestedPhase, repeats, selectionPolicy, paid: false }
+    return { phase: requestedPhase, repeats, selectionPolicy, ...extra, paid: false }
   }
   if (!config.allowPaidRuns) {
     throw new Error('paid validation is disabled by plugin config (allowPaidRuns: false)')
@@ -273,7 +289,7 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
     args.maxProductionCost,
     'maxProductionCost',
   )
-  const evaluationLimit = positiveFinite(
+  const evaluationLimit = requestedPhase === 'k3-baseline' && args.maxEvaluationCost === 0 ? 0 : positiveFinite(
     args.maxEvaluationCost,
     'maxEvaluationCost',
   )
@@ -291,6 +307,7 @@ function resolveRequest(args: unknown, config: Readonly<PluginConfig>): Validati
     phase: requestedPhase,
     repeats,
     selectionPolicy,
+    ...extra,
     paid: true,
     productionLimit,
     evaluationLimit,
@@ -745,7 +762,11 @@ async function executeValidation(
     '--invoked-by',
     'dsh-plugin',
   ]
-  if (request.phase !== 'contract-replay') {
+  if (request.phase === 'k3-baseline') {
+    argv.push('--stage', request.stage ?? 'prepare')
+    if (request.inputDir) argv.push('--input-dir', resolve(workspace, request.inputDir))
+    if (request.reviewsPath) argv.push('--reviews', resolve(workspace, request.reviewsPath))
+  } else if (request.phase !== 'contract-replay') {
     argv.push('--selection-policy', request.selectionPolicy)
   }
   if (request.paid) {
@@ -883,7 +904,7 @@ const OUTPUT_SCHEMA: JsonSchema = {
   properties: {
     status: { type: 'string', enum: ['pass', 'fail'] },
     mode: { type: 'string', enum: ['preflight', 'paid'] },
-    phase: { type: 'string', enum: ['dry-run', 'pilot', 'final', 'contract-replay', 'execution-modes'] },
+    phase: { type: 'string', enum: ['dry-run', 'pilot', 'final', 'contract-replay', 'execution-modes', 'k3-baseline'] },
     exitCode: { oneOf: [{ type: 'integer' }, { type: 'null' }] },
     signal: { oneOf: [{ type: 'string' }, { type: 'null' }] },
     timedOut: { type: 'boolean' },
@@ -968,13 +989,16 @@ export function apply(ctx: DshContext, rawConfig: unknown = {}): void {
       properties: {
         phase: {
           type: 'string',
-          enum: ['dry-run', 'pilot', 'final', 'contract-replay', 'execution-modes'],
-          description: 'Benchmark phase, bounded contract replay, or the explicit v0.4 A/B/C execution-modes comparison.',
+          enum: ['dry-run', 'pilot', 'final', 'contract-replay', 'execution-modes', 'k3-baseline'],
+          description: '实验阶段；k3-baseline 为 K3 整任务基线与成本约束 DAG 对照，默认零调用预检。',
         },
         repeats: {
           type: 'integer',
           description: 'Positive integer repeat count; defaults to 1.',
         },
+        stage: { type: 'string', enum: ['prepare', 'compose'], description: 'K3 对照的执行阶段；默认为 prepare。' },
+        inputDir: { type: 'string', description: '已冻结的上一阶段证据目录，仅用于 K3 对照。' },
+        reviewsPath: { type: 'string', description: '独立评分与校准文件；Python 校验归属及完整性。' },
         selectionPolicy: {
           type: 'string',
           enum: ['all-candidates-required-v1', 'exclude-known-contract-rejections-v2'],

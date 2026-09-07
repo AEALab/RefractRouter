@@ -22,7 +22,7 @@ def evaluation_state(row):
     if (evaluation.get("method") == "deterministic-rejection" and score == 0
             and (failure in CONTRACT_FAILURES or evaluation.get("checks", {}).get("score_cap") == 0)):
         return "contract-rejected"
-    if (evaluation.get("method") == "independent-node-judge" and result.get("status") == "ok"
+    if (evaluation.get("method") in {"independent-node-judge", "independent-human-review"} and result.get("status") == "ok"
             and row.get("eligible") is True and 0 <= score <= 100):
         return "judged"
     return "unavailable"

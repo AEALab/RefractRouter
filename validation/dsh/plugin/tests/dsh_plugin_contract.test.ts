@@ -560,6 +560,53 @@ test('execution modes completes the native tool subprocess preflight with no cre
   }
 })
 
+test('K3 baseline completes native zero-call preflight and exposes the prepare budget', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'k3-baseline' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result, null, 2))
+    assert.equal(result.mode, 'preflight')
+    assert.equal(result.callPlan!.totalModelCalls, 29)
+    assert.equal(result.callPlan!.judgeModelCalls, 0)
+    assert.equal(result.costEstimate!.total, 131.67)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('K3 review handoff arguments are typed and paid execution remains disabled', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'k3-baseline', stage: 'compose',
+    inputDir: 'reports/prepared', reviewsPath: 'reviews.json' }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--stage') + 1], 'compose')
+  assert.equal(argv[argv.indexOf('--input-dir') + 1], resolve(ROOT, 'reports/prepared'))
+  assert.equal(argv[argv.indexOf('--reviews') + 1], resolve(ROOT, 'reviews.json'))
+  assert.equal(argv.includes('--selection-policy'), false)
+  assert.equal(fixture.calls.resolve, 0)
+  for (const args of [{ repeats: 2 }, { stage: 'finalize' }, { reviewsPath: ' ' },
+    { selectionPolicy: 'exclude-known-contract-rejections-v2' }]) {
+    await assert.rejects(fixture.tool.execute({ phase: 'k3-baseline', ...args }, execution()))
+  }
+  await assert.rejects(fixture.tool.execute({ phase: 'dry-run', stage: 'compose' }, execution()), /require k3-baseline/)
+  await assert.rejects(fixture.tool.execute({ phase: 'k3-baseline', executePaidRun: true,
+    maxProductionCost: 132, maxEvaluationCost: 0 }, execution()), /paid validation is disabled/)
+})
+
+test('K3 accepts a zero internal evaluation budget after explicit deployment enablement', async () => {
+  const fixture = fakeContext({ config: { allowPaidRuns: true, maxProductionCost: 200,
+    billingUnit: 'AFP', manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    credentialEnv: 'CODEX_ARK_API_KEY' }, credential: 'test-only',
+    resultEvidence: evidence({ billingUnit: 'AFP', mode: 'paid' }) })
+  await fixture.tool.execute({ phase: 'k3-baseline', executePaidRun: true,
+    inputDir: 'reports/prepared', reviewsPath: 'reviews.json',
+    maxProductionCost: 132, maxEvaluationCost: 0 }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--max-evaluation-cost') + 1], '0')
+  assert.equal(fixture.calls.resolve, 1)
+})
+
 test('DSH LLM bridge preserves content, disjoint usage, finish reason, and request id', async () => {
   const ctx = {
     llm: {

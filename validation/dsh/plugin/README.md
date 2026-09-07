@@ -1,5 +1,23 @@
 # RefractRouter DSH validation bundle
 
+## 0.7.0：K3 整任务主对照
+
+新增 `phase: "k3-baseline"`，支持 `stage: "prepare" | "compose"`、`inputDir` 和
+`reviewsPath`；路径相对工作区解析。默认零调用预检，单轮、零重试，付费开关保持关闭。
+本阶段采用 Python 冻结的质量达标后最低费用策略，不接收旧 `selectionPolicy`。
+真实执行必须先通过独立评审校准，阶段间校验冻结材料和同一评审身份。
+`prepare` 返回等待节点评审，`compose` 返回等待最终评审；工具 `pass` 仅表示该阶段
+交接完整，不代表实验完成或收益成立。最终汇总由 Python 纯读取入口完成。
+
+```json
+{"phase":"k3-baseline","stage":"prepare","executePaidRun":false}
+```
+
+配置 Agent Plan 清单、`billingUnit: "AFP"`、`credentialEnv: "CODEX_ARK_API_KEY"` 和
+`maxRetries: 0`。初始阶段计划 29 次生产调用，组合阶段最多 7 次；外部评审费用单列未知。
+新阶段无内部评审调用，获批付费请求的 `maxEvaluationCost` 可为零；其他阶段规则不变。
+完整说明见 [实验设计与交接方法](../../../docs/k3-baseline-comparison.md)。
+
 This package contributes the structured `refractrouter_validate` tool to a base-backed DeepSeek
 Harness profile. The tool runs the repository's fixed Python validation entry point and projects its
 evidence into a bounded result.
@@ -74,7 +92,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.6.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.7.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,

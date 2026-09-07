@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0
+
+- 新增 `k3-baseline` 类型化阶段及独立评审交接路径，支持准备、组合两个原生调用阶段。
+- 保持默认零调用、单轮零重试、Agent Plan 专用端点与部署额度限制。
+- 本阶段允许内部评审额度为零；外部评审费用另计，未知费用不按零处理。
+- 新增原生工具到 Python 的零调用验证；成本选模、评审校准、材料冻结和核算由 Python 负责。
+
 ## 0.6.0
 
 - Add the typed `execution-modes` phase for Python's explicit v0.4 A/B/C report comparison.

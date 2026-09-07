@@ -14,6 +14,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class DSHRealRunnerTests(unittest.TestCase):
+    def test_k3_preflight_reports_review_handoff_without_calls(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            code = run_real_validation(
+                dataset_path=ROOT / 'data/benchmarks/v0.1.json',
+                manifest_path=ROOT / 'data/model-manifests/volcengine-agent-plan.json',
+                output_dir=root / 'output', evidence_path=root / 'evidence.json',
+                phase='k3-baseline', repeats=1, max_retries=0, invoked_by='dsh-plugin')
+            evidence = json.loads((root / 'evidence.json').read_text())
+        self.assertEqual(code, 0)
+        self.assertEqual(evidence['status'], 'pass')
+        self.assertEqual(evidence['preflight']['model_calls'], 0)
+        self.assertEqual(evidence['preflight']['call_plan']['production_model_calls'], 29)
+        self.assertEqual(evidence['preflight']['whole_experiment']['production_calls'], 36)
+        self.assertNotIn('--selection-policy', evidence['command'])
+        self.assertIn('evidence-index.json', evidence['artifacts'])
+
     def test_execution_modes_preflight_uses_versioned_runner(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

@@ -29,7 +29,7 @@ class DSHPluginTests(unittest.TestCase):
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.6.0")
+        self.assertEqual(package["version"], "0.7.0")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")

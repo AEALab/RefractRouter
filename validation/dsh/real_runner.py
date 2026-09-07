@@ -37,6 +37,10 @@ MODEL_PROGRESS = "model-progress.ndjson"
 def _expected_artifacts(
     execute_paid_run: bool, preflight: object
 ) -> tuple[str, ...]:
+    if isinstance(preflight, dict) and preflight.get('phase') == 'k3-baseline':
+        return ('preflight.json', 'private/state.json', 'evidence-index.json', 'README.md') + (
+            ('benchmark-summary.json', 'production-results.ndjson', 'submitted-reviews.json',
+             'input-evidence-index.json', MODEL_PROGRESS) if execute_paid_run else ())
     if isinstance(preflight, dict) and preflight.get("phase") == "contract-replay":
         if not execute_paid_run:
             return ("preflight.json", "replay-cases.json")
@@ -70,6 +74,9 @@ def run_real_validation(
     max_retries: int = 2,
     invoked_by: str = "local",
     selection_policy: str | None = None,
+    stage: str = 'prepare',
+    input_dir: Path | None = None,
+    reviews: Path | None = None,
 ) -> int:
     from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY, REJECTION_SELECTION_POLICY
     selection_policy = selection_policy or (
@@ -88,7 +95,8 @@ def run_real_validation(
         sys.executable,
         str(ROOT / "experiments" / (
             "replay_node_contracts.py" if phase == "contract-replay" else
-            "run_execution_modes.py" if phase == "execution-modes" else "run_real_v0_1.py")),
+            "run_execution_modes.py" if phase == "execution-modes" else
+            "run_k3_baseline.py" if phase == "k3-baseline" else "run_real_v0_1.py")),
         "--dataset",
         str(dataset_path),
         "--manifest",
@@ -102,7 +110,11 @@ def run_real_validation(
         "--max-retries",
         str(max_retries),
     ]
-    if phase != "contract-replay":
+    if phase == 'k3-baseline':
+        command.extend(['--stage', stage])
+        if input_dir: command.extend(['--input-dir', str(input_dir.resolve())])
+        if reviews: command.extend(['--reviews', str(reviews.resolve())])
+    elif phase != "contract-replay":
         command.extend(["--selection-policy", selection_policy])
     if execute_paid_run:
         if max_production_cost is None or max_evaluation_cost is None:
@@ -118,8 +130,11 @@ def run_real_validation(
         )
     child_env = os.environ.copy()
     child_env.pop("REFRACTROUTER_EXECUTION_MODES_HOST", None)
+    child_env.pop('REFRACTROUTER_K3_BASELINE_HOST', None)
     if phase == "execution-modes" and invoked_by == "dsh-plugin":
         child_env["REFRACTROUTER_EXECUTION_MODES_HOST"] = "dsh-plugin"
+    if phase == 'k3-baseline' and invoked_by == 'dsh-plugin':
+        child_env['REFRACTROUTER_K3_BASELINE_HOST'] = 'dsh-plugin'
     completed = subprocess.run(
         command,
         env=child_env,
@@ -153,7 +168,8 @@ def run_real_validation(
                 (output_dir / "benchmark-summary.json").read_text(encoding="utf-8")
             )
             expected_status = "awaiting-human-audit" if phase == "final" else "complete"
-            if summary.get("status") != expected_status:
+            allowed_status = ({'node-review-ready'} if stage=='prepare' else {'final-review-ready'}) if phase=='k3-baseline' else {expected_status}
+            if summary.get("status") not in allowed_status:
                 issues.append("benchmark-incomplete")
         except (json.JSONDecodeError, AttributeError):
             issues.append("invalid-benchmark-summary")
@@ -225,7 +241,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--evidence", required=True, type=Path)
-    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay", "execution-modes"), default="dry-run")
+    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay", "execution-modes", "k3-baseline"), default="dry-run")
+    parser.add_argument('--stage', choices=['prepare','compose'], default='prepare')
+    parser.add_argument('--input-dir', type=Path)
+    parser.add_argument('--reviews', type=Path)
     parser.add_argument("--repeats", type=int, default=1)
     from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
     parser.add_argument("--selection-policy", choices=SELECTION_POLICIES)
@@ -252,6 +271,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         max_retries=args.max_retries,
         invoked_by=args.invoked_by,
         selection_policy=args.selection_policy,
+        stage=args.stage, input_dir=args.input_dir, reviews=args.reviews,
     )
 
 
