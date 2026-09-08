@@ -1,12 +1,15 @@
 """Installed application behavior; all execution tests use deterministic adapters."""
 from dataclasses import replace
+from functools import partial
 import json
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from refractrouter.agent import run_agent, plan_template, resource
+from refractrouter.agent import run_agent as configured_run_agent, plan_template, resource
+
+run_agent = partial(configured_run_agent, preset="ark-agent-plan")
 from refractrouter.agent_cli import main
 from tests.test_text_tasks import Client
 
@@ -92,7 +95,7 @@ def test_packaged_resources_are_runtime_inputs_and_match_their_source_snapshots(
 
 def test_cli_generates_safe_dsh_override_and_refuses_to_overwrite(tmp_path, capsys):
     output=tmp_path/'refractagent.json'
-    args=['dsh-config','--output',str(output),'--runs-dir',str(tmp_path/'runs'),'--mode','live']
+    args=['dsh-config','--output',str(output),'--runs-dir',str(tmp_path/'runs'),'--mode','live','--preset','ark-agent-plan']
     assert main(args)==0
     patch=json.loads(output.read_text())
     assert patch[0]['id']=='refractagent'

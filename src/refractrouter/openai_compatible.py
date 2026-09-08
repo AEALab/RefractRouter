@@ -113,7 +113,7 @@ class DshStdioBridge:
             "model": model.api_model,
             "messages": list(messages),
             "json_mode": json_mode,
-            "temperature": 0,
+            "temperature": model.request_options.get("temperature", 0),
             "max_tokens": min(model.max_output_tokens or 4096, 8192),
             "timeout_ms": max(1, round(timeout_seconds * 1000)),
             "request_options": dict(model.request_options),
@@ -278,12 +278,12 @@ class OpenAICompatibleClient:
     ) -> ChatResponse:
         if model.wire_api == "dsh-llm":
             return self._complete_dsh(model, messages, json_mode=json_mode)
-        if not model.base_url or not model.api_key_env or not model.api_model:
+        if not model.base_url or not model.api_model or (getattr(model, "authentication_required", True) and not model.api_key_env):
             raise ModelInvocationError(
                 "invalid-model-config", "Model is missing API configuration", 0, 0
             )
-        api_key = self.environment.get(model.api_key_env)
-        if not api_key:
+        api_key = self.environment.get(model.api_key_env) if model.api_key_env else None
+        if getattr(model, "authentication_required", True) and not api_key:
             raise ModelInvocationError(
                 "missing-api-key",
                 f"Required environment variable is not set: {model.api_key_env}",
@@ -308,14 +308,14 @@ class OpenAICompatibleClient:
             "model": model.api_model,
             "messages": list(messages),
             "temperature": 0,
-            "max_completion_tokens": min(model.max_output_tokens or 4096, 8192),
+            getattr(model, "token_limit_parameter", "max_completion_tokens"): min(model.max_output_tokens or 4096, 8192),
             **dict(model.request_options),
         }
         if json_mode and model.json_mode_strategy != "prompt-only":
             payload["response_format"] = {"type": "json_object"}
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            **({"Authorization": f"Bearer {api_key}"} if api_key else {}),
             "Content-Type": "application/json",
             "User-Agent": "refractrouter/0.1",
         }

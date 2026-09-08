@@ -71,7 +71,11 @@ DSH 集成位于 `validation/dsh/`。历史证据位于 `reports/`，必须保�
 Issue #32 后续独立样本实验可采用预先冻结的分层停止规则：节点错误停止该 DAG 的
 下游并结算在途调用，记录失败后继续其他独立样本；认证、用量未知、账本或证据写入
 异常停止整批。历史协议的整批首错停止规则保持原样，不追改历史结果。
-本项目的 Ark 调用必须使用 Agent Plan `/api/plan/v3` 端点。
+应用接受用户配置的 provider 和模型清单，Ark Agent Plan 是可选项。
+使用 Ark Agent Plan 预设或 provider 类型时必须使用 `/api/plan/v3` 端点；
+其他 provider 使用用户配置的接口或 DSH 宿主适配器。历史冻结实验继续遵循各自的清单与端点约束。
+provider/model 配置编译、候选选择与计费单位检查属于 Python；TypeScript 仅处理
+配置类型、凭证解析和 DSH 调用边界，不重复实现路由。
 
 ## 编码风格与命名
 

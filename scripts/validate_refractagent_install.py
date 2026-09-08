@@ -17,9 +17,117 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def validate_configured_providers(run, workspace, executable, runs, env):
+    """已安装 DSH + Python 的本机 HTTP 联调；不会请求外部模型服务。"""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from threading import Thread
+
+    calls = []
+    failures = []
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_POST(self):
+            try:
+                body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+                expected = 'Bearer refractrouter-fixture-' + self.path.split('/')[1]
+                assert self.headers.get('Authorization') == expected, 'wrong provider credential'
+                assert self.path.endswith('/chat/completions'), 'wrong endpoint'
+                last = body['messages'][-1]['content']
+                if isinstance(last, list):
+                    last = ''.join(b.get('text', '') for b in last)
+                payload = json.loads(last)
+                if body['model'] == 'fixture-review':
+                    content = {'score': 92, 'passed': True, 'rationale': '本机模拟评审',
+                        'criteria': [{'criterion': c, 'passed': True, 'rationale': '本机校验'} for c in payload['criteria']]}
+                else:
+                    content = {key: '本机模拟服务已收到用户任务。' for key in payload['contract']['output']['fields']}
+                answer = json.dumps(content, ensure_ascii=False)
+                usage = {'prompt_tokens': 100, 'completion_tokens': 80, 'total_tokens': 180}
+                calls.append({'path': self.path, 'model': body['model'], 'stream': body.get('stream', False)})
+                response = {'id': 'fixture-request', 'object': 'chat.completion', 'created': 1,
+                    'model': body['model'], 'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': answer},
+                    'finish_reason': 'stop'}], 'usage': usage}
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream' if body.get('stream') else 'application/json')
+                self.end_headers()
+                if body.get('stream'):
+                    first = {**response, 'object': 'chat.completion.chunk', 'choices': [{'index': 0,
+                        'delta': {'role': 'assistant', 'content': answer}, 'finish_reason': None}]}
+                    final = {**first, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'stop'}]}
+                    for chunk in (first, final):
+                        self.wfile.write(('data: '+json.dumps(chunk)+'\n\n').encode())
+                    self.wfile.write(b'data: [DONE]\n\n')
+                else:
+                    self.wfile.write(json.dumps(response).encode())
+            except Exception as exc:
+                failures.append(type(exc).__name__+': '+str(exc))
+                self.send_error(500, 'fixture request failed')
+
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base_url = f'http://127.0.0.1:{server.server_port}'
+    results = []
+    env['FIXTURE_DIRECT_KEY'] = 'refractrouter-fixture-direct'
+    env['FIXTURE_HOST_KEY'] = 'refractrouter-fixture-host'
+    try:
+        for kind in ('direct', 'native', 'mixed'):
+            providers = [
+                {'id': 'direct', 'type': 'openai-compatible', 'baseUrl': base_url+'/direct', 'credentialEnv': 'FIXTURE_DIRECT_KEY'},
+                {'id': 'host', 'type': 'dsh', 'dshProvider': 'fixture-host'},
+            ]
+            selected = {'direct': [providers[0]], 'native': [providers[1]], 'mixed': providers}[kind]
+            config = {'schemaVersion': 'refractagent-providers-v1', 'billingUnit': 'USD', 'providers': selected,
+                'models': [{'id': role, 'provider': selected[0 if role=='candidate' else -1]['id'],
+                    'model': 'fixture-answer' if role=='candidate' else 'fixture-review', 'role': role,
+                    'contextWindow': 131072, 'maxOutputTokens': 2048,
+                    'pricing': {'unit': 'USD', 'inputPer1k': .001, 'outputPer1k': .002},
+                    **({'routing': {'quality': 90, 'latencyMs': 1000}} if role=='candidate' else {})}
+                    for role in ('candidate', 'judge')]}
+            source = workspace/f'{kind}-providers.json'
+            source.write_text(json.dumps(config))
+            patch_file = workspace/f'{kind}-live.json'
+            run([executable, 'dsh-config', '--provider-config', source, '--output', patch_file,
+                 '--runs-dir', runs/kind, '--mode', 'live', '--production-budget', 2, '--evaluation-budget', 1])
+            patch = json.loads(patch_file.read_text())
+            next(p for p in patch if p['id']=='refractagent')['config']['allowPaidRuns'] = True
+            patch.append({'id': 'llm-pi-ai', 'config': {'providers': {'fixture-host': {
+                'displayName': 'Local fixture', 'apiKeyEnv': 'FIXTURE_HOST_KEY',
+                'api': 'openai-completions', 'baseURL': base_url+'/host',
+                'retryPolicy': {'mode': 'normal', 'maxRetries': 0},
+                'models': [{'id': mid, 'name': mid, 'contextWindow': 131072, 'maxTokens': 8192}
+                           for mid in ('fixture-answer', 'fixture-review')]}}}})
+            patch_file.write_text(json.dumps(patch))
+            start = len(calls)
+            answer = run(['dsh', '--profile', 'headless', '--patch', patch_file, '请用一句话比较两种方案。'])
+            summaries = [json.loads(p.read_text()) for p in (runs/kind).glob('*/summary.json')]
+            assert len(summaries)==1, answer[-1000:]
+            summary = summaries[0]
+            assert not failures, failures
+            assert summary['status']=='completed', (kind, summary['issues'], answer[-1000:])
+            assert summary['billing_unit']=='USD' and not summary['simulated']
+            assert len(calls)-start==2 and all(c['stream']==(c['path'].startswith('/host/')) for c in calls[start:])
+            expected_providers = ['fixture-host' if p['type']=='dsh' else p['id'] for p in selected]
+            assert summary['model_routes']['answer']['provider']==expected_providers[0]
+            assert summary['evaluation_model']['provider']==expected_providers[-1]
+            for artifact in (runs/kind).rglob('*.json'):
+                assert 'refractrouter-fixture-' not in artifact.read_text(), 'credential in task artifact'
+            results.append({'path': kind, 'status': summary['status'], 'model_routes': summary['model_routes'],
+                'evaluation_model': summary['evaluation_model'], 'calls': calls[start:],
+                'costs': summary['costs'], 'billing_unit': summary['billing_unit']})
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+    return {'scope': 'installed-dsh-and-python-local-http-fixtures', 'external_model_calls': 0, 'results': results}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--configured-providers', action='store_true', help='追加直接、DSH 原生及混合 provider 的本机 HTTP 联调')
     parser.add_argument('--packages-dir', type=Path, help='可选：在新目录保留本次验收的安装包')
     args = parser.parse_args()
     if args.output.exists():
@@ -78,7 +186,8 @@ def main():
             assert 'You are an AI agent' in request['payload']['context']
             # Preserve compact acceptance results, not temporary input/system-prompt dumps.
             results.append({k:summary[k] for k in ('strategy','models','status','simulated','costs')})
-        evidence = {'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        configured = validate_configured_providers(run, workspace, executable, runs, env) if args.configured_providers else None
+        evidence = {'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},

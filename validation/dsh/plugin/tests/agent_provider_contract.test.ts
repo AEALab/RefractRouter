@@ -88,7 +88,7 @@ test('live deployment gate rejects before credential access or subprocess',async
 })
 test('live resolves host credential only after enablement and preserves explicit limits',async()=>{
   const f=fixture({mode:'live',simulated:false,status:'completed'})
-  await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,maxProductionCost:7,maxEvaluationCost:9})))
+  await chunks(createAdapter(f.ctx,configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true,maxProductionCost:7,maxEvaluationCost:9})))
   assert.equal(f.credentials,1)
   assert.deepEqual(f.credentialReferences,['CODEX_ARK_API_KEY'])
   const spawn=f.spawns[0]!
@@ -96,7 +96,7 @@ test('live resolves host credential only after enablement and preserves explicit
   assert.equal(spawn.env.CODEX_ARK_API_KEY,'private-test-key')
   assert.ok(!spawn.argv.join(' ').includes('private-test-key'))
   const custom=fixture({mode:'live',simulated:false,status:'completed'})
-  await chunks(createAdapter(custom.ctx,configure({executionMode:'live',allowPaidRuns:true,credentialEnv:'TEAM_ARK_KEY'})))
+  await chunks(createAdapter(custom.ctx,configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true,credentialEnv:'TEAM_ARK_KEY'})))
   assert.deepEqual(custom.credentialReferences,['TEAM_ARK_KEY'])
   assert.equal(custom.spawns[0]!.env.CODEX_ARK_API_KEY,'private-test-key')
 })
@@ -111,7 +111,132 @@ test('malformed usage or mismatched strategy cannot become a successful model re
 })
 test('cancelled requests never emit a completed answer',async()=>{
   const f=fixture(); const controller=new AbortController();controller.abort()
-  await assert.rejects(async()=>{for await(const _ of createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true})).stream({...options,signal:controller.signal})){}},/cancelled/)
+  await assert.rejects(async()=>{for await(const _ of createAdapter(f.ctx,configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true})).stream({...options,signal:controller.signal})){}},/cancelled/)
   assert.equal(f.credentials,0)
   assert.equal(f.spawns.length,0)
+})
+
+function userConfiguration(native = false) {
+  return { schemaVersion:'refractagent-providers-v1',billingUnit:'USD',qualityMin:0,
+    providers: native ? [{id:'host',type:'dsh',dshProvider:'team-host'}] : [
+      {id:'one',type:'openai-compatible',baseUrl:'https://one.example/v1',credentialEnv:'FIRST_KEY'},
+      {id:'two',type:'openai-compatible',baseUrl:'https://two.example/v1',credentialEnv:'SECOND_KEY'},
+    ],
+    models:[
+      {id:'answer',provider:native?'host':'one',model:'production',role:'candidate',contextWindow:32768,
+       pricing:{unit:'USD',inputPer1k:.001,outputPer1k:.002},routing:{quality:90,latencyMs:1000}},
+      {id:'review',provider:native?'host':'two',model:'review',role:'judge',contextWindow:32768,
+       pricing:{unit:'USD',inputPer1k:.001,outputPer1k:.002}},
+    ] }
+}
+
+test('live cannot silently select Ark without a provider configuration or preset',async()=>{
+  const f=fixture()
+  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true}))),/configure providerConfig/)
+  assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
+})
+
+test('custom providers receive separate host credential references outside the task payload',async()=>{
+  const f=fixture({mode:'live',simulated:false,status:'completed',billing_unit:'USD'})
+  f.ctx.credentials.resolve=async reference=>{f.credentialReferences.push(reference);return {value:reference+'-secret'}}
+  await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration()})))
+  const spawn=f.spawns[0]!
+  assert.deepEqual(f.credentialReferences,['FIRST_KEY','SECOND_KEY'])
+  assert.deepEqual(JSON.parse(spawn.env.REFRACTROUTER_PROVIDER_CREDENTIALS!),{FIRST_KEY:'FIRST_KEY-secret',SECOND_KEY:'SECOND_KEY-secret'})
+  assert.equal(spawn.env.CODEX_ARK_API_KEY,undefined)
+  assert.equal(spawn.env.FIRST_KEY,undefined)
+  assert.deepEqual(JSON.parse(spawn.input()).providerConfig,userConfiguration())
+  assert.ok(!spawn.input().includes('-secret'))
+  assert.ok(!spawn.argv.includes('--preset'))
+})
+
+test('custom demo configuration never resolves provider credentials',async()=>{
+  const f=fixture({billing_unit:'USD'})
+  await chunks(createAdapter(f.ctx,configure({providerConfig:userConfiguration()})))
+  assert.equal(f.credentials,0)
+  assert.equal(f.spawns[0]!.env.REFRACTROUTER_PROVIDER_CREDENTIALS,undefined)
+  assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,userConfiguration())
+})
+
+test('provider configuration rejects raw secrets and recursion in the host boundary',()=>{
+  const recursive=userConfiguration(true)
+  recursive.providers=[{id:'host',type:'dsh',dshProvider:'refractagent'}]
+  assert.throws(()=>configure({providerConfig:recursive}),/recursive/)
+  const secrets=userConfiguration()
+  assert.throws(()=>configure({providerConfig:{...secrets,providers:[{...secrets.providers[0],apiKey:'secret'}]}}),/configuration fields/)
+  assert.throws(()=>configure({preset:'ark-agent-plan',providerConfig:userConfiguration()}),/mutually exclusive/)
+})
+
+test('DSH providers require zero host retries before any model dispatch',async()=>{
+  const f=fixture()
+  f.ctx.llm.listProviders=()=>[{id:'team-host'}]
+  f.ctx.llm.resolveModelInfo=async()=>({})
+  f.ctx.llm.providerRetryPolicy=()=>({mode:'normal',maxRetries:2})
+  f.ctx.llm.stream=async function*(){throw new Error('must not call')}
+  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration(true)}))),/retry-policy-not-zero/)
+  assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
+})
+
+test('native DSH routes reuse the host LLM bridge without exporting host credentials',async()=>{
+  const f=fixture()
+  let hostCalls=0
+  let childReply: Record<string,unknown> | undefined
+  let childEnvironment: Record<string,string> | undefined
+  f.ctx.llm.listProviders=()=>[{id:'team-host'}]
+  f.ctx.llm.resolveModelInfo=async()=>({})
+  f.ctx.llm.providerRetryPolicy=()=>({mode:'normal',maxRetries:0})
+  f.ctx.llm.stream=async function*(request){
+    hostCalls++
+    assert.equal(request.provider,'team-host');assert.equal(request.model,'production')
+    yield {type:'text-delta',text:'native answer'}
+    yield {type:'usage',usage:{inputTokens:10,outputTokens:3}}
+    yield {type:'finish',reason:{kind:'stop'}}
+  }
+  f.ctx.subprocess.spawn=spec=>{
+    assert.ok(spec.argv.includes('--host-stdio'))
+    childEnvironment=spec.env
+    const stdin=new PassThrough(),stdout=new PassThrough()
+    let finish: (value:{exitCode:number;signal:null})=>void
+    const done=new Promise<{exitCode:number;signal:null}>(resolve=>{finish=resolve})
+    let buffer=''
+    stdin.on('data',chunk=>{
+      buffer+=String(chunk)
+      let end: number
+      while((end=buffer.indexOf('\n'))>=0){
+        const message=JSON.parse(buffer.slice(0,end));buffer=buffer.slice(end+1)
+        if(message.providerConfig){
+          stdout.write(JSON.stringify({protocol:'refractrouter-dsh-llm/v1',type:'request',id:'1',provider:'team-host',model:'production',messages:[{role:'user',content:'native task'}],timeout_ms:1000,max_tokens:1000})+'\n')
+        } else {
+          childReply=message
+          stdout.end(JSON.stringify({schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',mode:'live',status:'completed',answer:'native answer',costs:{production:.01,evaluation:.01,unconfirmed:0},models:{answer:'production'},usage:{input_tokens:10,output_tokens:3},simulated:false,billing_unit:'USD',result_path:'/tmp/result.json',run_id:'native'})+'\n')
+          finish!({exitCode:0,signal:null})
+        }
+      }
+    })
+    return {stdin,stdout,done,async waitForExit(){},collected:{}}
+  }
+  const result=await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration(true)})))
+  assert.equal(hostCalls,1)
+  assert.equal(childReply?.ok,true)
+  assert.equal(childReply?.content,'native answer')
+  assert.equal(f.credentials,0)
+  assert.equal(childEnvironment?.REFRACTROUTER_PROVIDER_CREDENTIALS,undefined)
+  assert.equal(childEnvironment?.CODEX_ARK_API_KEY,undefined)
+  assert.equal(result.find(c=>c.type==='text-delta')?.text,'native answer')
+})
+
+
+test('all configured credentials are redacted from runner errors',async()=>{
+  const f=fixture({schema_version:'refractagent-error-v1',error:'FIRST_KEY-secret SECOND_KEY-secret'})
+  f.ctx.credentials.resolve=async reference=>({value:reference+'-secret'})
+  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration()}))),
+    (error: unknown)=>error instanceof Error && !error.message.includes('KEY-secret') && error.message.includes('[REDACTED]'))
+})
+
+test('configured provider snapshots cannot be changed after registration',()=>{
+  const input=userConfiguration()
+  const config=configure({providerConfig:input})
+  input.models[0]!.provider='two'
+  assert.equal(config.providerConfig!.models[0]!.provider,'one')
+  assert.throws(()=>{config.providerConfig!.models[0]!.provider='two'},TypeError)
 })

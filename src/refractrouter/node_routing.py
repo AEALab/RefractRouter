@@ -40,7 +40,7 @@ class NodeProfile:
         number(self.quality, "quality", maximum=100)
         number(self.cost, "cost")
         number(self.latency_ms, "latency_ms")
-        if isinstance(self.samples, bool) or not isinstance(self.samples, int) or self.samples < 1:
+        if isinstance(self.samples, bool) or not isinstance(self.samples, int) or self.samples < 0:
             raise ValueError("invalid profile samples")
 
         selector = (self.difficulty, self.risk, self.input_min_tokens, self.input_max_tokens)
@@ -78,8 +78,8 @@ def load_profile(raw, manifest):
         raise ValueError("unsupported routing profile")
     if raw.get("billing_unit") != manifest.billing_unit:
         raise ValueError("routing profile billing unit differs from manifest")
-    if raw.get("kind") not in {"empirical", "synthetic"}:
-        raise ValueError("profile kind must be empirical or synthetic")
+    if raw.get("kind") not in {"empirical", "synthetic", "configured"}:
+        raise ValueError("profile kind must be empirical, synthetic or configured")
     text(raw.get("scope"), "profile scope", 2000)
     text(raw.get("provenance"), "profile provenance", 2000)
     rows = raw.get("candidates")
@@ -97,7 +97,7 @@ def load_profile(raw, manifest):
         if not isinstance(mid, str) or mid not in known or not isinstance(kind, str) or kind not in NODE_TYPES:
             raise ValueError("unknown profile model/type")
         samples = row.get("samples")
-        if isinstance(samples, bool) or not isinstance(samples, int) or samples < 1:
+        if (type(samples) is not int or (samples != 0 if raw["kind"] == "configured" else samples < 1)):
             raise ValueError("invalid profile samples")
         fields = {"model_id", "node_type", "quality", "cost", "latency_ms", "samples"}
         selector = {}
