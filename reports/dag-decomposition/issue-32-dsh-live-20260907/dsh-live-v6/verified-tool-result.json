@@ -1,0 +1,103 @@
+{
+  "status": "pass",
+  "mode": "paid",
+  "phase": "dry-run",
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "aborted": false,
+  "evidencePath": "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-rr1VgK/evidence.json",
+  "outputDir": "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-rr1VgK/output",
+  "credentialConfigured": true,
+  "modelProviderConfigured": true,
+  "billingUnit": "AFP",
+  "sandboxMode": "workspace-write",
+  "sandboxEnforcement": "full",
+  "issues": [],
+  "inputHashes": {
+    "dataset": "",
+    "manifest": "",
+    "corpus": "",
+    "code": ""
+  },
+  "artifactHashes": [
+    {
+      "artifact": "answer.md",
+      "sha256": "aef0c91668b215ebb02fa1bbeb55cf17ab31457f89ff5e7ef822a4f438babefc"
+    },
+    {
+      "artifact": "manifest.json",
+      "sha256": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd"
+    },
+    {
+      "artifact": "model-progress.ndjson",
+      "sha256": "0d9cfbaf26a39c7fe566e537741dcf9c368a8039d8d2f03a1d8e1b3abeb5fa4b"
+    },
+    {
+      "artifact": "plan-analysis.json",
+      "sha256": "9219f6e8bfc265d05a4cd6ae59312e07d05311425bdcfda921b2e322bcc3c872"
+    },
+    {
+      "artifact": "plan.json",
+      "sha256": "6f40e1611f1218c58ed7a6b4468f6c6d33483fdba294bd26480beafa6bf42983"
+    },
+    {
+      "artifact": "profile.json",
+      "sha256": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30"
+    },
+    {
+      "artifact": "request.json",
+      "sha256": "279cc4da1b9a2683f72e22a7a61cac91bb90215f23e8a61ed8d8390679aa4098"
+    },
+    {
+      "artifact": "routing.json",
+      "sha256": "8ed62d279242be64b6296380109b1d565807317966cd416d0a63099160b18e11"
+    },
+    {
+      "artifact": "task-result.json",
+      "sha256": "7205da3f9c31cb340871d415d2032b7e6517dd6c9e0387466853df79f95bc0f5"
+    }
+  ],
+  "task": {
+    "executionMode": "bounded-parallel",
+    "maxConcurrency": 2,
+    "peakActiveNodes": 2,
+    "predictedLatencyMs": 43720,
+    "status": "completed",
+    "mode": "run",
+    "planOrigin": "model",
+    "nodes": [
+      {
+        "nodeId": "cost_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "risk_analysis",
+        "nodeType": "generation",
+        "parents": [],
+        "modelId": "cheap"
+      },
+      {
+        "nodeId": "synthesis",
+        "nodeType": "generation",
+        "parents": [
+          "cost_analysis",
+          "risk_analysis"
+        ],
+        "modelId": "cheap"
+      }
+    ],
+    "qualityScore": 100,
+    "evaluationPassed": true,
+    "outputPreview": "{\"text\": \"成本分析：根据材料 A，试点方案总投入为 24 单位，覆盖 4 组，单位覆盖成本为 24 ÷ 4 = 6 单位/组；全面推广方案总投入为 54 单位，覆盖 12 组，单位覆盖成本为 54 ÷ 12 = 4.5 单位/组。比较结论：全面推广方案的单位覆盖成本（4.5 单位/组）低于试点方案（6 单位/组），因此从单位覆盖成本角度看，全面推广方案更具成本效率。\\n\\n风险分析：试点方案的风险：试点方案可按周调整培训，灵活性较高，能够根据实际反馈及时调整培训内容和节奏，降低因培训不当导致的执行偏差风险。然而，这种灵活性也可能带来进度不确定的风险，因为频繁调整可能导致培训周期延长或资源分配变动，影响试点计划的稳定性。此外，试点方案的具体风险概率和潜在收益未在材料中明确，因此无法量化评估。全面推广方案的风险：全面推广方案要求在上线前统一完成培训，但目前尚未确认培训完成情况，这构成主要风险。若培训未能按时完成，可能导致上线延误，进而影响整体推广进度和资源调度。同时，统一培训模式可能缺乏灵活性，难以适应不同组别的个性化需求，增加执行不一致的风险。未知条件：培训完成的具体时间、培训质量、参与人员覆盖率以及可能影响培训进度的外部因素均未提供，这些未知条件使得风险无法精确评估。综上，试点方案风险在于进度不确定性，全面推广方案风险在于培训延误和灵活性不足，且两者均存在未明确的未知条件，需进一步确认培训完成状态以降低风险。\\n\\n综合建议：基于上述成本与风险分析，若培训能在上线前按时完成且质量得到确认，则推荐采用全面推广方案，因其单位覆盖成本更低（4.5 单位/组），且培训延误风险可控；若培训完成时间无法确认或存在延误可能，则建议先采用试点方案，利用其按周调整培训的灵活性来推进工作，同时密切监控培训进度，待培训完成状态明确后再评估是否转入全面推广。由于材料未提供收益数据和风险概率，本建议不涉及收益预测或风险量化，仅基于现有成本与风险信息作出有条件推荐。\"}",
+    "resultPath": "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-rr1VgK/output/task-result.json",
+    "productionCost": 0.28304999999999997,
+    "evaluationCost": 1.109,
+    "unconfirmedCost": 0,
+    "costIsSimulated": false,
+    "wallTimeMs": 35443
+  },
+  "stdoutTail": "{\"status\": \"pass\", \"evidence\": \"/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-rr1VgK/evidence.json\", \"issues\": []}\n"
+}

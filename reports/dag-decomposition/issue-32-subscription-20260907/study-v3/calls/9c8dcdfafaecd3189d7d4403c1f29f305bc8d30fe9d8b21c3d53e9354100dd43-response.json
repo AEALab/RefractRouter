@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:2:risk:mid:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，包含 result、evidence、assumptions 三个非空字符串字段，符合契约。分析基于材料 A 与 B：覆盖范围、反馈时效、投入规模、样本代表性、执行复杂度等风险维度均直接源于材料，未虚构数据；明确声明「不依赖成本测算」，与节点指令一致，并说明单位成本相同仅用于资源结构说明。条件式建议分情形给出，且对材料中未出现的中间档方案明确标注为可能性提示而非既定选项。evidence 字段完整引用原始材料，assumptions 字段列出 5 条假设与不确定性（如单点失败占比为近似估算、缺乏反馈周期数据等），满足「保留证据与假设」的检查要求。轻微扣分点：42/18≈2.33 的比例计算虽未在材料中直接给出，但属于材料数据的直接算术推导且已标注为近似，可接受；建议部分的分阶段扩展虽谨慎标注，仍略微超出纯材料范围，但已明确限制条件，整体符合职责与限制要求。\"}",
+  "input_tokens": 1344,
+  "output_tokens": 251,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12995,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788789301953b9f489096afc36acf45c00ec3935d23a9dd658"
+}

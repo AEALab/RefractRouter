@@ -1,0 +1,18 @@
+{
+  "schema_version": "text-handoff-replay-v1",
+  "purpose": "修复留出测试中输出多余 covers 字段的失败；原留出任务现已暴露，仅用于开发回放，不作为独立验收。",
+  "source_result_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/compare_test_a--3--dag-node-a/result.json",
+  "source_result_sha256": "836427f16be2ed5927cba0dbbec3b47b38a0412a162e5e0988dc368eab9f7594",
+  "source_request_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/calls/10e609e0aaa88aa9d0c2b8d431607fa15fd178d187a7b094da0944987c5f18cc-request.json",
+  "source_request_sha256": "01b163b29768a4903acd143875f4476aeff9d03a169c8ce28e3f4acb7fb79906",
+  "manifest_path": "../model-manifests/volcengine-agent-plan.json",
+  "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+  "node_id": "risk",
+  "model_ids": [
+    "cheap",
+    "mid",
+    "strong"
+  ],
+  "maximum_calls": 3,
+  "messages_sha256": "b6f499c1c199c3f8d038a2258f6c0f787716ec693f5364c6190f0abe91539117"
+}

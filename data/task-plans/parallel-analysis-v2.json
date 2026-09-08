@@ -1,0 +1,129 @@
+{
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，当前执行器仍串行。",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "node_type": "synthesis",
+      "parents": [],
+      "prompt_template": "分析两个方案的成本与资源需求",
+      "contract": {
+        "objective": "分析两个方案的成本与资源需求",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "result": "分析结果",
+            "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+            "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 16000,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "保留证据与假设，不虚构数据",
+          "覆盖本节点职责并明确限制"
+        ],
+        "covers": [
+          0
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "risk",
+      "node_type": "synthesis",
+      "parents": [],
+      "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+      "contract": {
+        "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "result": "分析结果",
+            "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+            "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 16000,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "保留证据与假设，不虚构数据",
+          "覆盖本节点职责并明确限制"
+        ],
+        "covers": [
+          1
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "parents": [
+        "cost",
+        "risk"
+      ],
+      "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+      "contract": {
+        "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "inputs": {
+          "cost": {
+            "fields": [
+              "result",
+              "evidence",
+              "assumptions"
+            ],
+            "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+          },
+          "risk": {
+            "fields": [
+              "result",
+              "evidence",
+              "assumptions"
+            ],
+            "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终建议与可追溯依据"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 16000,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "保留证据与假设，不虚构数据",
+          "覆盖本节点职责并明确限制"
+        ],
+        "covers": [
+          0,
+          1
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "比较两个方案的成本与资源需求",
+    "分析风险并给出有证据支持的建议"
+  ]
+}

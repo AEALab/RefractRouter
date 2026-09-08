@@ -1,0 +1,138 @@
+{
+  "schema_version": "node-routing-profile-v2",
+  "kind": "empirical",
+  "billing_unit": "AFP",
+  "scope": "按节点主要能力、难度、风险和声明输入预算分层；质量是条件预测，不能代替最终评估。",
+  "provenance": "固定校准上下文的完整候选矩阵；仅使用独立节点评分，禁止从整任务评分推断节点质量。",
+  "model_bindings": {
+    "cheap": "deepseek-v4-flash",
+    "mid": "minimax-m3",
+    "strong": "deepseek-v4-pro"
+  },
+  "candidates": [
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 92.0,
+      "cost": 0.018674999999999997,
+      "latency_ms": 1708,
+      "samples": 4
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 93.875,
+      "cost": 0.07124375,
+      "latency_ms": 9470,
+      "samples": 8
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "synthesis",
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 92.5,
+      "cost": 0.0375125,
+      "latency_ms": 7146,
+      "samples": 16
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 94.25,
+      "cost": 0.1278125,
+      "latency_ms": 7083,
+      "samples": 4
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 93.875,
+      "cost": 0.40221875,
+      "latency_ms": 11620,
+      "samples": 8
+    },
+    {
+      "model_id": "mid",
+      "node_type": "synthesis",
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 92.875,
+      "cost": 0.2911875,
+      "latency_ms": 76904,
+      "samples": 16
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 94.25,
+      "cost": 0.202125,
+      "latency_ms": 1806,
+      "samples": 4
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 94.625,
+      "cost": 0.75411875,
+      "latency_ms": 11769,
+      "samples": 8
+    },
+    {
+      "model_id": "strong",
+      "node_type": "synthesis",
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "quality": 95.1875,
+      "cost": 0.42563125,
+      "latency_ms": 10496,
+      "samples": 16
+    }
+  ],
+  "calibration_task_ids": [
+    "cash_cal_a",
+    "cash_cal_b",
+    "compare_cal_a",
+    "compare_cal_b",
+    "rewrite_cal_a",
+    "rewrite_cal_b"
+  ],
+  "held_out_task_ids": [
+    "cash_test_a",
+    "compare_test_a",
+    "rewrite_test_a"
+  ],
+  "observation_sha256": "13bd2919b0630a678c60661d50969f8e6a3e8e1ec9adb31494ae2472c4695dbf",
+  "aggregation_policy": "aligned-strata-mean-quality-cost-max-latency-v1",
+  "exclusions": []
+}

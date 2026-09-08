@@ -1,0 +1,32 @@
+{
+  "status": "严格交接失败，修复后格式回放通过，完整收益验收未通过",
+  "study_status": "failed",
+  "real_model_calls": 348,
+  "calibration_runs": 36,
+  "graded_test_runs": 16,
+  "planned_test_runs": 54,
+  "observed_test_tasks": 1,
+  "planned_test_tasks": 3,
+  "failure_label": "compare_test_a--3--dag-node-a:risk",
+  "expected_fields": [
+    "result",
+    "evidence",
+    "assumptions"
+  ],
+  "actual_fields": [
+    "result",
+    "evidence",
+    "assumptions",
+    "covers"
+  ],
+  "extra_fields": [
+    "covers"
+  ],
+  "output_sha256": "0c79eb8816a797b15acca2b35f5e7be292fdebf596cc7a2b9200d4c993641cb0",
+  "failure_handling": "两个已派发分支均结算；汇总 answer 未派发；没有最终评审，没有自动重试。",
+  "revision": "只改提示词以明确精确键集合与执行元数据边界；严格校验器和历史判定不变。",
+  "holdout_status": "该留出样本已被用于修复诊断和开发回放。下一轮独立验收须冻结新留出集；不得复用后冒充未观察样本。",
+  "baseline_limit": "已冻结单模型基线为质量优先，未作对称的单模型 A/B 优化。所有已评分 A/B 组合均为同一模型，不能归因于异构交接。",
+  "replay_protocol": "data/benchmarks/dag-handoff-replay-v3.json",
+  "replay_status": "contract-valid"
+}

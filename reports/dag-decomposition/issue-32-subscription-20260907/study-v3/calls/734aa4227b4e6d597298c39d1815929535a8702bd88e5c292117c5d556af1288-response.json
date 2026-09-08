@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:1:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案 A 总投入 10+3×4=22，方案 B 总投入 18+1×4=22，均低于预算 24，剩余 2，结论与建议（B 边际成本更低、抗组数波动更强）逻辑一致。输出为单个原始 JSON 对象，包含 result、evidence、assumptions 三个契约字段且均为非空字符串，无 Markdown 围栏，无未转义英文双引号。evidence 明确说明无上游材料并列出任务给定数值，assumptions 明确假设与信息缺口，未虚构数据，未声称执行工具或检索。轻微不足：建议部分「应进一步确认服务组数是否可能增加」表述略冗，且未量化组数增加时的具体缺口（如 A 增加 1 组即达 25 超预算，B 增加 2 组才达 24），但不影响正确性与完整性。\"}",
+  "input_tokens": 1007,
+  "output_tokens": 227,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12614,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788789545098d1a31addd6d38d14c8141e1e64f1efaa41d880"
+}

@@ -1,0 +1,15 @@
+{
+  "core_calls": 16,
+  "outer_calls": 8,
+  "core_afp_estimate": 3.8579999999999988,
+  "outer_afp_estimate": 5.945950000000001,
+  "total_afp_estimate": 9.80395,
+  "outer_usage": {
+    "inputTokens": 47490,
+    "outputTokens": 4869,
+    "cacheReadTokens": 66560
+  },
+  "outer_formula": "DSH inputTokens 不含缓存读入；inputTokens + cacheReadTokens + outputTokens，按冻结 cheap 输入/缓存/输出费率均为 0.05 AFP/千 token 估算。缓存写入为零。",
+  "verified_mapping": "本机 dsh-llm-pi-ai mapUsage 与 @earendil-works/pi-ai parseChunkUsage 已核对；外层不采用 DSH 未知单价下的零 cost。",
+  "note": "包含所有修复轮次；AFP 估算不等同订阅新增现金账单。"
+}

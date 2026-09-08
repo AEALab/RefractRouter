@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:2:cost:strong:judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"计算正确：方案 A 总投入 8+4×5=28，超预算 2，存在缺口；方案 B 总投入 20+1×5=25，低于预算 1，无缺口；建议合理（优先 B，或追加预算/减少组数/降低每组投入）。evidence 明确说明为合成场景、数值来自任务描述，assumptions 声明了确定性数值、预算范围、不考虑隐性成本等限制，未虚构数据、未声称工具执行。输出为单个原始 JSON 对象，包含 result/evidence/assumptions 三个非空字段，转义正确。轻微扣分：assumptions 中「服务组数不可拆分」属于额外假设，虽合理但非任务明示，整体仍满足检查要求。\"}",
+  "input_tokens": 918,
+  "output_tokens": 191,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11527,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887902933409c5625d6f49ce94e6eea0041d172c51cbfa90c"
+}

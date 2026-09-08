@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:2:cost:cheap:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"答案正确计算单位覆盖成本：试点 12/2=6 单位/组，全面推广 40/8=5 单位/组，数值与材料一致，未虚构数据。evidence 字段引用原材料 A、B，assumptions 明确计算口径假设及风险未量化的信息缺口，符合「保留证据与假设」检查项。result 覆盖成本比较、风险对比并给出带条件的建议（资源充足可接受培训风险则推广，否则先试点并明确培训保障），满足「建议应明确条件」与节点职责。输出为单个原始 JSON 对象，字段齐全且非空，无 Markdown 围栏，无未转义英文双引号，未声称执行工具。轻微不足：建议的条件可更具体（如培训资源阈值），且 evidence 未使用「」中文引号而是直接复述原文，但契约仅要求引用原文时优先使用中文引号，此处为转述来源标识，影响很小。\"}",
+  "input_tokens": 878,
+  "output_tokens": 231,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10278,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788788611021d1a31addd6d38d14c8141e1e64f1efaa8f53bf"
+}

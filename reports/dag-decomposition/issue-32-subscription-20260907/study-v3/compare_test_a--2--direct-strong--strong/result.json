@@ -1,0 +1,138 @@
+{
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.30441698618233204,
+      "start_ms": 19.23550001811236,
+      "end_ms": 13983.826291980222,
+      "queue_ms": 18.93108303193003,
+      "output": "基于材料 A 与材料 B，不能仅因全面推广的单位成本更低就判定应全面推广。\n\n**最终建议：优先维持试点或分阶段扩大，暂不直接全面推广；若决定推进，须先完成统一培训与撤回机制设计，并以试点组的实际效果、执行质量和风险敞口作为前置条件。**\n\n**依据与比较：**\n\n1. **成本比较**\n   - 试点：投入 15 单位，覆盖 3 组，单位成本为 15 ÷ 3 = 5 单位/组。\n   - 全面推广：投入 36 单位，覆盖 9 组，单位成本为 36 ÷ 9 = 4 单位/组。\n   - 全面推广的单位成本更低，但这是规模摊薄后的结果，不等于决策充分条件。\n\n2. **风险与可逆性比较**\n   - 试点投入规模小、覆盖范围有限，出现问题更容易撤回或纠偏。\n   - 全面推广投入更大、覆盖更广，一旦执行偏差或效果不及预期，撤回成本高、影响面大。\n\n3. **执行条件比较**\n   - 试点阶段未必需要统一培训即可运行。\n   - 全面推广需要统一培训，这会带来额外的时间、组织协调和执行一致性风险。材料 B 未给出统一培训的成本、周期和完成率，因此无法确认全面推广的真实总成本与可行性。\n\n**关键假设与不确定性：**\n- 假设材料 A 中的“投入”为总成本，且两组数据口径一致；若口径不同，单位成本比较可能失真。\n- 假设“覆盖组数”可代表受益或执行范围；若各组规模、难度不同，简单按组均摊会高估或低估真实单位成本。\n- 材料未提供试点效果数据、失败率、撤回成本、统一培训成本及时间，因此无法得出全面推广净收益更高的结论。\n\n**限制说明：**\n本结论仅基于给定材料进行成本与风险比较，不涉及外部数据检索或新事实核实；在缺少试点效果与培训成本信息的情况下，不建议把“单位成本更低”作为全面推广的充分理由。",
+      "latency_ms": 13963,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "直接完成原始任务，给出完整文本答案、证据与假设。",
+        "parents": [],
+        "contract": {
+          "objective": "一次模型调用完成原始任务",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务单次调用对照，不使用模型规划。"
+  },
+  "final_output": "基于材料 A 与材料 B，不能仅因全面推广的单位成本更低就判定应全面推广。\n\n**最终建议：优先维持试点或分阶段扩大，暂不直接全面推广；若决定推进，须先完成统一培训与撤回机制设计，并以试点组的实际效果、执行质量和风险敞口作为前置条件。**\n\n**依据与比较：**\n\n1. **成本比较**\n   - 试点：投入 15 单位，覆盖 3 组，单位成本为 15 ÷ 3 = 5 单位/组。\n   - 全面推广：投入 36 单位，覆盖 9 组，单位成本为 36 ÷ 9 = 4 单位/组。\n   - 全面推广的单位成本更低，但这是规模摊薄后的结果，不等于决策充分条件。\n\n2. **风险与可逆性比较**\n   - 试点投入规模小、覆盖范围有限，出现问题更容易撤回或纠偏。\n   - 全面推广投入更大、覆盖更广，一旦执行偏差或效果不及预期，撤回成本高、影响面大。\n\n3. **执行条件比较**\n   - 试点阶段未必需要统一培训即可运行。\n   - 全面推广需要统一培训，这会带来额外的时间、组织协调和执行一致性风险。材料 B 未给出统一培训的成本、周期和完成率，因此无法确认全面推广的真实总成本与可行性。\n\n**关键假设与不确定性：**\n- 假设材料 A 中的“投入”为总成本，且两组数据口径一致；若口径不同，单位成本比较可能失真。\n- 假设“覆盖组数”可代表受益或执行范围；若各组规模、难度不同，简单按组均摊会高估或低估真实单位成本。\n- 材料未提供试点效果数据、失败率、撤回成本、统一培训成本及时间，因此无法得出全面推广净收益更高的结论。\n\n**限制说明：**\n本结论仅基于给定材料进行成本与风险比较，不涉及外部数据检索或新事实核实；在缺少试点效果与培训成本信息的情况下，不建议把“单位成本更低”作为全面推广的充分理由。",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "答案正确计算并比较了试点与全面推广的单位成本（5单位/组 vs 4单位/组），同时分析了撤回成本、执行一致性风险及培训需求等风险因素，并明确指出不能将更低单位成本作为充分决策条件，符合任务核心要求。建议基于证据且逻辑严谨，同时声明了数据口径、组间差异及缺乏培训成本等关键假设与限制，体现了审慎的分析态度。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "答案详细计算了试点（15÷3=5单位/组）与全面推广（36÷9=4单位/组）的单位成本，并比较了总投入与覆盖范围，指出全面推广虽单位成本更低但属于规模摊薄结果，满足成本与资源需求比较的要求。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "答案从可逆性（撤回难度）、执行一致性（统一培训需求）及影响面等维度分析了风险，基于材料B指出全面推广存在撤回成本高、组织风险大的问题，并给出「优先维持试点或分阶段扩大」的明确建议，同时列举了关键假设与数据缺口作为证据支撑，符合风险分析与证据支持的要求。"
+      }
+    ]
+  },
+  "assignments": {
+    "answer": "strong"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.2839999506250024,
+    "peak_running_nodes": 1,
+    "ended_ms": 14001.758624915965,
+    "wall_time_ms": 14001.475583994761
+  },
+  "calls": [
+    {
+      "label": "compare_test_a--2--direct-strong--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.5682,
+      "charged": 0.4543,
+      "status": "billed",
+      "input_sha256": "903815cea29b336281b7c58a6006d4ab0a42b0d5536c72d971eae5c93008c671",
+      "dispatch_monotonic": 788842.174518375,
+      "input_tokens": 380,
+      "output_tokens": 446,
+      "latency_ms": 13963,
+      "request_id": "0217887908445009c5625d6f49ce94e6eea0041d172c51c2b39da",
+      "finish_reason": "stop",
+      "output_sha256": "e7a5afbe842e03c8a8b51d69e8492b2cec6a085dd902750005f09a68a6cb0a07"
+    },
+    {
+      "label": "compare_test_a--2--direct-strong--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 11.531,
+      "charged": 1.049,
+      "status": "billed",
+      "input_sha256": "5a2d17eafd92eb50e69f288d800d42ab6e9a6d2a2265140f06401bedc1f28685",
+      "dispatch_monotonic": 788856.179839791,
+      "input_tokens": 764,
+      "output_tokens": 285,
+      "latency_ms": 16854,
+      "request_id": "021788790858503fd0de7354b348b065f00b895e07126b82abbf1",
+      "finish_reason": "stop",
+      "output_sha256": "df252ce157725701f4b76f0ff146bf8179580e1040f29ee68134a7023d77427b"
+    }
+  ],
+  "wall_time_ms": 30894.361999933608,
+  "critical_path_latency_ms": 13963,
+  "status": "completed"
+}

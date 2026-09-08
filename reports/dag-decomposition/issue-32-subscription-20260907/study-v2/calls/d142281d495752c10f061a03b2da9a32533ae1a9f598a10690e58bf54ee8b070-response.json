@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确计算了单位覆盖成本（试点6单位/组，推广5单位/组），并基于材料B定性比较了风险，给出了明确条件的建议。输出符合契约（JSON格式，包含result、evidence、assumptions字段），保留了证据来源和假设，未虚构数据，覆盖了成本与资源分析职责。轻微不足：evidence字段直接复制了原始材料而非更简洁的标识，但内容准确；assumptions合理说明了计算方法和风险定性判断的限制。整体质量高。\"}",
+  "input_tokens": 833,
+  "output_tokens": 133,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7835,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178878771926189d0c17fc196b3c940c12dd7ad5b500baa470a"
+}

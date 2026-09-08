@@ -348,3 +348,17 @@ def test_historical_baseline_preflight_migrates_without_network_or_source_edits(
     assert p['baseline_reuse']['compatibility_record']
     assert before=={str(p.relative_to(original)):hashlib.sha256(p.read_bytes()).hexdigest()
                    for p in original.rglob('*') if p.is_file()}
+
+
+def test_main_integration_does_not_migrate_completed_node_reviews(tmp_path, capsys):
+    original = ROOT/'reports/v0.5-k3-resume-admission-2/output'
+    state = read_bundle(original)
+    assert state['stage'] == 'node-review-ready'
+    with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client:
+        with pytest.raises(SystemExit) as error:
+            main(['--stage', 'compose', '--input-dir', str(original),
+                  '--output-dir', str(tmp_path/'compose')])
+    assert error.value.code == 2
+    assert '输入材料与当前冻结配置或代码不一致' in capsys.readouterr().err
+    client.assert_not_called()
+    assert not (tmp_path/'compose').exists()

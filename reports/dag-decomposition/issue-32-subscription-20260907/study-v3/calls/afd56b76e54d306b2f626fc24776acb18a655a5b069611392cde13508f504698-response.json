@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:2:answer:cheap:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，包含 text、evidence、assumptions、limitations 四个非空字符串字段，满足并扩展了契约要求的 text 字段；数值计算正确（A=8+4×5=28，B=20+1×5=25，预算26，缺口2与余量1），与上游 cost、risk 两节点一致，并明确核对二者无冲突、无遗漏；证据来源标注为任务描述合成数值，未虚构数据，未声称执行工具或检索新事实；保留了上游假设并补充了限制说明，覆盖「保留证据与假设」「覆盖职责并明确限制」两项检查。轻微不足：evidence 字段称「本节点为合成场景，无上游原始材料」，表述易与实际存在上游 cost/risk 节点输入的事实混淆（其本意应为无外部原始材料），属措辞瑕疵而非实质错误；此外 output.contract 仅声明 text 字段，额外字段虽有助于满足 checks 但略超契约字面范围。整体正确、完整、可追溯。\"}",
+  "input_tokens": 1856,
+  "output_tokens": 245,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9767,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788790386213923718d11d313173fa258a554449eb87b31654"
+}

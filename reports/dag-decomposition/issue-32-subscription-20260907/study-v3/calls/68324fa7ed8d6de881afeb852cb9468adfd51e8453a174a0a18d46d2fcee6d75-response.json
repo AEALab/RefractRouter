@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:1:risk:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确（A：10+3×4=22；B：18+1×4=22；预算 24，余量 2），风险判断与建议合理且与上游一致。输出为单个原始 JSON 对象，包含 result/evidence/assumptions 三个非空字段，未虚构数据，明确说明无外部证据并列出假设与限制，未声称执行工具或检索新事实。轻微不足：evidence 中「上游 cost 节点计算结果与任务文本一致」属于对上游材料的复述而非独立核验证据，且建议中「优先选择方案 A」引入了固定成本弹性偏好，虽在假设中声明仅基于成本评估，但该偏好本身略带主观性；整体仍满足契约与检查要求。\"}",
+  "input_tokens": 1391,
+  "output_tokens": 184,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7869,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178878956321748e426867c3c446aaa68159641220ac1df23a5"
+}

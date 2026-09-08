@@ -1,0 +1,297 @@
+{
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.255958060733974,
+      "start_ms": 9.360042051412165,
+      "end_ms": 48017.6458330825,
+      "queue_ms": 9.104083990678191,
+      "output": "{\"result\":\"【方案A】总投入 = 固定投入 8 + 每组投入 4 × 服务 5 组 = 8 + 20 = 28；预算 26，资金缺口 = 28 − 26 = 2。【方案B】总投入 = 固定投入 20 + 每组投入 1 × 服务 5 组 = 20 + 5 = 25；预算 26，资金缺口 = 25 − 26 = −1（即节余 1）。【资金缺口风险】方案A存在 2 单位资金缺口，存在预算不足、无法完全覆盖成本的风险；方案B在预算内有余，预算超支风险低。【建议】在预算约束 26 的条件下优先选择方案B；若必须采用方案A，需追加至少 2 单位预算、削减服务规模（例如由 5 组减为 4 组可使总投入降至 8+4×4=24，落在预算内并保留 2 单位缓冲）、或争取外部资源补足缺口，方可降低资金断裂风险。【限制】以上比较仅基于题目给出的固定投入、每组投入、服务组数与总预算四项参数，未考虑时间周期、人员工时、机会成本、风险概率等额外维度，仅就预算缺口维度作出判断。\",\"evidence\":\"题目原文：方案 A 固定投入 8、每组投入 4、服务 5 组；方案 B 固定投入 20、每组投入 1、服务 5 组；可用预算 26。\",\"assumptions\":\"1) 所有数值均按题目给定的整数口径直接相加，不考虑税费、折扣或资金时间价值；2) 「每组投入」线性随服务组数变化，未设规模经济或边际成本递减；3) 仅做静态、单期预算比对，未引入多期现金流或不确定性分布；4) 削减组数对方案A的测算仅作示例性说明（4 组 → 总投入 24），并不修改方案原始设计。\"}",
+      "latency_ms": 48005,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 48031.57608304173,
+      "start_ms": 48042.058667051606,
+      "end_ms": 57592.957374989055,
+      "queue_ms": 10.482584009878337,
+      "output": "{\"result\":\"【资金缺口评估】依据上游成本测算：方案A总投入=8+4×5=28，预算26，资金缺口=2，存在预算超支风险；方案B总投入=20+1×5=25，预算26，节余=1，预算覆盖充足。【风险等级】方案A为「中风险（资金不足）」，在26的预算约束下会形成2单位硬性缺口，若无追加资金或规模调整，方案落地阶段将出现资金断裂或服务缩减风险；方案B为「低风险」，预算内可执行并保留1单位缓冲，抗小幅成本上行的能力较弱但无即时缺口。【建议】1）预算约束26下优先采用方案B，可立即执行且资金风险最低；2）若业务要求必须采用方案A，需三选一进行补位：追加至少2单位预算、削减服务规模（如将服务组数由5组降至4组，则总投入降至8+4×4=24，落入预算并保留2单位缓冲）、或引入外部资源/分期支付覆盖缺口；3）即便采用方案B，仍建议预留1-2单位应急金，以应对每组投入的轻微上行。【职责范围】本节点仅就预算缺口维度进行风险判断，不评估时间周期、人员工时、机会成本、风险概率等额外维度，结论受上游成本测算口径直接约束。\",\"evidence\":\"来源：上游cost.result与cost.evidence；原文逐字为：方案A固定投入8、每组投入4、服务5组；方案B固定投入20、每组投入1、服务5组；可用预算26。本节点未引入任何题目之外的数据。\",\"assumptions\":\"1) 数值按题目给定整数口径直接相加，未考虑税费、折扣、通胀或资金时间价值；2) 「每组投入」随组数线性变化，未设规模经济或边际成本递减；3) 仅做静态、单期预算比对，未引入多期现金流或不确定性分布；4) 方案A削减至4组的测算为示例性缓解方案，并不修改方案原始参数；5) 不确定性主要来自上游成本测算的静态假设，若实际每组投入或固定投入高于给定值，方案B的低风险结论可能上升为中风险。\"}",
+      "latency_ms": 9547,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 57612.49866709113,
+      "start_ms": 57631.516625056975,
+      "end_ms": 64573.17316706758,
+      "queue_ms": 19.01795796584338,
+      "output": "{\"text\":\"【综合结论】在预算26、两个方案均服务5组的既定参数下，方案B为更优选择，资金风险最低；方案A存在2单位硬性缺口，需追加预算、削减规模或外部补足方可落地。\\n\\n【数据核对】\\n· 方案A总投入：固定投入8 + 每组投入4 × 5组 = 8 + 20 = 28；预算26；缺口 = 28 − 26 = +2（超支）。\\n· 方案B总投入：固定投入20 + 每组投入1 × 5组 = 20 + 5 = 25；预算26；缺口 = 25 − 26 = −1（节余1）。\\n· 上游cost与risk节点对两方案总投入、预算缺口、风险等级、削减示例（4组→24）的测算完全一致，未发现数值冲突。\\n· 唯一可注意的表述差异：cost节点用「资金缺口=2 vs −1」，risk节点改用「资金缺口=2，超支；节余=1」，口径等价，无实质矛盾。\\n\\n【冲突与遗漏检查】\\n· 冲突：两节点核心数据与结论一致，无冲突。\\n· 遗漏：两节点均明确仅覆盖预算缺口单一维度，未评估时间周期、人员工时、机会成本、风险概率、服务质量差异等；本节点沿用此限定，不补做未授权的推断。\\n· 证据：两节点均回溯至题目原文「方案A固定投入8、每组投入4、服务5组；方案B固定投入20、每组投入1、服务5组；可用预算26」，证据链闭合。\\n· 假设一致性：均按整数线性、静态单期、无税费/折扣/时间价值处理，假设口径一致。\\n\\n【风险判断】\\n· 方案A：中风险，资金不足2单位，落地即可能资金断裂或被迫缩减服务。\\n· 方案B：低风险，预算内执行并留1单位缓冲，但缓冲较薄，对每组投入小幅上行的吸收能力有限。\\n\\n【最终建议】\\n1) 预算约束26下，优先选择方案B：立即可执行，资金风险最低。\\n2) 若业务要求必须采用方案A，须三选一进行补位：\\n   a. 追加至少2单位预算；\\n   b. 削减服务规模——示例：服务组数由5组降至4组，总投入降至8 + 4×4 = 24，落入预算并保留2单位缓冲；\\n   c. 引入外部资源或分期支付覆盖2单位缺口。\\n3) 即使采用方案B，也建议预留1–2单位应急金，以应对每组投入的轻微上行；并保留对方案A的备选评估，待追加预算到位后再行切换。\\n4) 后续如纳入时间周期、人员工时、机会成本、风险概率等维度，需另行单列分析，本结论不覆盖。\\n\\n【职责与限制】\\n本节点仅就预算缺口维度综合上游cost与risk的结论，未引入题目之外的数据，未做超出上游假设范围的推断；所有数字与判断均可回溯至题目原文及两节点原文。\"}",
+      "latency_ms": 6930,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "根据成本测算评估资金不足风险",
+        "parents": [
+          "cost"
+        ],
+        "contract": {
+          "objective": "根据成本测算评估资金不足风险",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确计算两个方案总投入",
+      "根据预算判断缺口并给出有条件建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。"
+  },
+  "final_output": "{\"text\":\"【综合结论】在预算26、两个方案均服务5组的既定参数下，方案B为更优选择，资金风险最低；方案A存在2单位硬性缺口，需追加预算、削减规模或外部补足方可落地。\\n\\n【数据核对】\\n· 方案A总投入：固定投入8 + 每组投入4 × 5组 = 8 + 20 = 28；预算26；缺口 = 28 − 26 = +2（超支）。\\n· 方案B总投入：固定投入20 + 每组投入1 × 5组 = 20 + 5 = 25；预算26；缺口 = 25 − 26 = −1（节余1）。\\n· 上游cost与risk节点对两方案总投入、预算缺口、风险等级、削减示例（4组→24）的测算完全一致，未发现数值冲突。\\n· 唯一可注意的表述差异：cost节点用「资金缺口=2 vs −1」，risk节点改用「资金缺口=2，超支；节余=1」，口径等价，无实质矛盾。\\n\\n【冲突与遗漏检查】\\n· 冲突：两节点核心数据与结论一致，无冲突。\\n· 遗漏：两节点均明确仅覆盖预算缺口单一维度，未评估时间周期、人员工时、机会成本、风险概率、服务质量差异等；本节点沿用此限定，不补做未授权的推断。\\n· 证据：两节点均回溯至题目原文「方案A固定投入8、每组投入4、服务5组；方案B固定投入20、每组投入1、服务5组；可用预算26」，证据链闭合。\\n· 假设一致性：均按整数线性、静态单期、无税费/折扣/时间价值处理，假设口径一致。\\n\\n【风险判断】\\n· 方案A：中风险，资金不足2单位，落地即可能资金断裂或被迫缩减服务。\\n· 方案B：低风险，预算内执行并留1单位缓冲，但缓冲较薄，对每组投入小幅上行的吸收能力有限。\\n\\n【最终建议】\\n1) 预算约束26下，优先选择方案B：立即可执行，资金风险最低。\\n2) 若业务要求必须采用方案A，须三选一进行补位：\\n   a. 追加至少2单位预算；\\n   b. 削减服务规模——示例：服务组数由5组降至4组，总投入降至8 + 4×4 = 24，落入预算并保留2单位缓冲；\\n   c. 引入外部资源或分期支付覆盖2单位缺口。\\n3) 即使采用方案B，也建议预留1–2单位应急金，以应对每组投入的轻微上行；并保留对方案A的备选评估，待追加预算到位后再行切换。\\n4) 后续如纳入时间周期、人员工时、机会成本、风险概率等维度，需另行单列分析，本结论不覆盖。\\n\\n【职责与限制】\\n本节点仅就预算缺口维度综合上游cost与risk的结论，未引入题目之外的数据，未做超出上游假设范围的推断；所有数字与判断均可回溯至题目原文及两节点原文。\"}",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本准确完成两项核心要求：方案A总投入28、方案B总投入25的计算正确，预算26下的缺口判断（A超支2、B节余1）正确，并给出有条件建议（优先B；若必须A则追加预算、削减至4组或外部补足）。未发现不实工具执行声明，证据链完整。",
+    "criteria": [
+      {
+        "criterion": "准确计算两个方案总投入",
+        "passed": true,
+        "rationale": "方案A：8+4×5=28；方案B：20+1×5=25，计算均正确且展示过程。"
+      },
+      {
+        "criterion": "根据预算判断缺口并给出有条件建议",
+        "passed": true,
+        "rationale": "明确判断A缺口+2（超支）、B节余1，建议优先选B；若必须选A则给出追加预算、削减规模至4组（总投入24）或外部补足三种有条件路径，并提示B缓冲较薄需预留应急金，建议完整且附条件。"
+      }
+    ]
+  },
+  "assignments": {
+    "cost": "mid",
+    "risk": "mid",
+    "answer": "mid"
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.22712501231580973,
+    "peak_running_nodes": 1,
+    "ended_ms": 64593.153792084195,
+    "wall_time_ms": 64592.92866697069
+  },
+  "calls": [
+    {
+      "label": "cash_cal_b--1--calibration--mid:cost",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.5564999999999998,
+      "charged": 0.23575,
+      "status": "billed",
+      "input_sha256": "d0f3cc22206ec008724bb48715bb31db2187c0e8a4230894e4c5d855a35d6989",
+      "dispatch_monotonic": 787927.982841875,
+      "input_tokens": 535,
+      "output_tokens": 408,
+      "latency_ms": 48005,
+      "request_id": "02178878993029948e426867c3c446aaa68159641220ac19e5c67",
+      "finish_reason": "stop",
+      "output_sha256": "6344173a1ce1073921bc6a212494db200cec86a2a1bfe6ca9384ce17c0b91907"
+    },
+    {
+      "label": "cash_cal_b--1--calibration--mid:risk",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 3.007,
+      "charged": 0.363,
+      "status": "billed",
+      "input_sha256": "97474df829ef2aad6a0f4fa484f591995563fb90c5135c502e65de9c7051e3a2",
+      "dispatch_monotonic": 787976.015540625,
+      "input_tokens": 983,
+      "output_tokens": 469,
+      "latency_ms": 9547,
+      "request_id": "02178878997834478af8113c224ccdd69578c3b63d1e71aade501",
+      "finish_reason": "stop",
+      "output_sha256": "49f7468f292339247e7c5e6f7bdf3a3037b4d9669742a6e3d5a0a65f3470c89d"
+    },
+    {
+      "label": "cash_cal_b--1--calibration--mid:answer",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 3.54075,
+      "charged": 0.54475,
+      "status": "billed",
+      "input_sha256": "be74236a80489611a15908d8ea15ddda8d0447a69fe7d700ff8d0c3d207c1d21",
+      "dispatch_monotonic": 787985.604999333,
+      "input_tokens": 1479,
+      "output_tokens": 700,
+      "latency_ms": 6930,
+      "request_id": "0217887899879454c81961e630bce638d970dc2753358733d540e",
+      "finish_reason": "stop",
+      "output_sha256": "8cc64daf3b46a2088a145ee17a18c1a895204f55e97057088e8a3225201393a9"
+    },
+    {
+      "label": "cash_cal_b--1--calibration--mid:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.273,
+      "charged": 1.241,
+      "status": "billed",
+      "input_sha256": "9f5129d19f26328fa04dae9e6af0eff5472acfb507df65224905417cb3c87987",
+      "dispatch_monotonic": 787992.584239208,
+      "input_tokens": 1012,
+      "output_tokens": 229,
+      "latency_ms": 8373,
+      "request_id": "021788789994908d6f60410e67e178f28d968f0420b51c3202a07",
+      "finish_reason": "stop",
+      "output_sha256": "7e68dafbcfee916ff122a01bd8bbe1fcadb9e93a4eeed5b73e822a691a468b10"
+    }
+  ],
+  "wall_time_ms": 73005.82325004507,
+  "critical_path_latency_ms": 64482,
+  "status": "completed"
+}

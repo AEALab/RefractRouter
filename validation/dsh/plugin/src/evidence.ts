@@ -1,9 +1,11 @@
-import type { BillingUnit } from './contracts.js'
+import { decodeTaskSummary } from './task-tool.js'
+import type { BillingUnit, TaskSummary } from './contracts.js'
 
 /** Only the Python evidence fields projected into the host tool result.
  * Scoring, hash verification, and benchmark decisions remain in Python.
  */
 export interface RunnerEvidence {
+  task?: TaskSummary
   status?: string
   mode?: string
   issues?: string[]
@@ -51,6 +53,7 @@ function unit(value: unknown): BillingUnit {
 export function decodeEvidence(value: unknown): RunnerEvidence {
   const raw = object(value)
   const result: RunnerEvidence = {}
+  if (raw.task !== undefined) result.task = decodeTaskSummary(raw.task)
   if (raw.status != null) result.status = text(raw.status)
   if (raw.mode != null) result.mode = text(raw.mode)
   if (Array.isArray(raw.issues)) {

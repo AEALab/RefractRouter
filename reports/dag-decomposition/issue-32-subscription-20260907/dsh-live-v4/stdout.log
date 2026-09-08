@@ -1,0 +1,38 @@
+调用已按原样执行一次，工具返回失败，按要求不重试、不改用其他模式，如实报告如下。
+
+## 执行结果：失败（fail）
+
+- **状态**：`fail`（paid run，执行阶段 dry-run 中止）
+- **退出码**：1
+- **阶段**：`phase: dry-run`，`mode: run`
+- **问题列表（issues）**：
+  - `node-input-budget-exceeded before cost_analysis`（在 `cost_analysis` 节点之前触发节点输入预算超限）
+  - `plugin-runner-exit:1`（插件本地 runner 以退出码 1 终止）
+
+## 模型分配（规划产物中的节点分配）
+
+规划已生成 3 节点 DAG，分配如下，但均未实际产出：
+- `cost_analysis`（成本分析，generation）→ 模型 `cheap`
+- `risk_analysis`（风险分析，generation）→ 模型 `cheap`
+- `answer`（综合建议，generation，父节点为上面两个）→ 模型 `cheap`
+
+执行模式为 `bounded-parallel`，`maxConcurrency: 2`，`peakActiveNodes: 0`（无节点实际进入执行），`planOrigin: model`。
+
+## 最终评分
+
+- **qualityScore**：`null`（未生成结果，未评分）
+- **evaluationPassed**：`null`
+- **outputPreview**：空
+- **productionCost**：0.10045（AFP，非模拟，为已发生的规划/生产开销）
+- **evaluationCost**：0
+- **wallTimeMs**：14323
+
+## 产物路径
+
+- 证据文件：`/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-b5mZt8/evidence.json`
+- 输出目录：`/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-b5mZt8/output`
+- 输出目录中已生成规划相关产物（manifest、plan、plan-analysis、routing、model-progress 等 8 个文件），但 **task-result.json 无有效结果**（未生成综合建议）
+
+## 结论
+
+任务在 `cost_analysis` 节点开始前即因节点输入预算超限被中止，属工具运行失败；未产生成本/风险分析或综合建议的最终结果，故无最终评分可报。如需继续，可在排查预算限额后另行发起新的授权调用，但按你的要求本次不代执行。

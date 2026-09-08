@@ -1,0 +1,18 @@
+{
+  "schema_version": "text-handoff-replay-v1",
+  "purpose": "原始任务与节点不变，仅明确要求输出裸 JSON；不剥离代码围栏，不放宽字段契约。",
+  "source_result_path": "../../reports/dag-decomposition/issue-32-paid-20260907/run-01/compare_cal_a--1--calibration--cheap/result.json",
+  "source_result_sha256": "a0aa7eb53c25d5478e8913f17d21b71ea2e4e6fcb095fed8f9a2abda7d8f5ce7",
+  "source_request_path": "../../reports/dag-decomposition/issue-32-paid-20260907/run-01/calls/5e6586c05344e8f60e7eb1dbe450fb924d46fdad8e954840f7ca88af2684c387-request.json",
+  "source_request_sha256": "5c8d62a200f20ed9fd5afb39fb50098f4d295dbf49febb6614b414129686ffb9",
+  "manifest_path": "../model-manifests/volcengine-agent-plan.json",
+  "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+  "node_id": "cost",
+  "model_ids": [
+    "cheap",
+    "mid",
+    "strong"
+  ],
+  "maximum_calls": 3,
+  "messages_sha256": "5b3c1adcd63a642085f37ee02ed593c9d9168f87e76a00e433feabee4c78d0f3"
+}

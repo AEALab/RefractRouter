@@ -1,0 +1,168 @@
+{
+  "schema_version": "dag-study-result-v1",
+  "status": "failed",
+  "simulated": false,
+  "runs": [],
+  "issues": [
+    "node-output-contract-invalid: expected JSON object"
+  ],
+  "preflight": {
+    "schema_version": "dag-study-preflight-v1",
+    "status": "preflight",
+    "real_model_calls": 0,
+    "protocol_sha256": "cf503dff0eb45c4aafe32fe386fc0d878fba8e088ad6a9f35721ca99e219afe4",
+    "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+    "planned_calls": {
+      "calibration_nodes": 84,
+      "calibration_probes": 84,
+      "node_judges": 84,
+      "final_judges": 90,
+      "test_nodes": 114
+    },
+    "maximum_calls": 456,
+    "test_runs": [
+      {
+        "task_id": "compare_test_a",
+        "method": "direct-strong",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "compare_test_a",
+        "method": "dag-strong-serial",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_test_a",
+        "method": "dag-strong-parallel",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_test_a",
+        "method": "dag-calibrated-single",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_test_a",
+        "method": "dag-node-a",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_test_a",
+        "method": "dag-node-b",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_test_a",
+        "method": "direct-strong",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "cash_test_a",
+        "method": "dag-strong-serial",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_test_a",
+        "method": "dag-strong-parallel",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_test_a",
+        "method": "dag-calibrated-single",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_test_a",
+        "method": "dag-node-a",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_test_a",
+        "method": "dag-node-b",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "rewrite_test_a",
+        "method": "direct-strong",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_test_a",
+        "method": "dag-strong-serial",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_test_a",
+        "method": "dag-strong-parallel",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_test_a",
+        "method": "dag-calibrated-single",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_test_a",
+        "method": "dag-node-a",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_test_a",
+        "method": "dag-node-b",
+        "repeats": 3,
+        "nodes_per_run": 1
+      }
+    ],
+    "budget": {
+      "billing_unit": "AFP",
+      "production": 3504.5376,
+      "evaluation": 15581.184,
+      "total": 19085.7216
+    },
+    "limits": [
+      "依据冻结价格和逐次输入/输出上限估算，无缓存折扣；实际费用按 usage 结算。",
+      "固定计划没有模型规划调用；校准观测和测试严格隔离。",
+      "不含真实 DSH 助手的外层调用；该项需独立预算，不能由此预检授权。",
+      "遇首个异常停止；调用数与预算是完整计划的上限，不表示已获准执行。"
+    ]
+  },
+  "charged": {
+    "production": 0.0275,
+    "evaluation": 0
+  },
+  "calls": [
+    {
+      "label": "compare_cal_a--1--calibration--cheap:cost",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.49375,
+      "charged": 0.0275,
+      "status": "billed",
+      "input_sha256": "694ce82822f846b4846d71d283e1b3f9abcafccc6da2fc1618d348d986053ca1",
+      "dispatch_monotonic": 780576.419113541,
+      "input_tokens": 314,
+      "output_tokens": 236,
+      "latency_ms": 5454,
+      "request_id": "021788782578757d1a31addd6d38d14c8141e1e64f1efaa15e967",
+      "finish_reason": "stop",
+      "output_sha256": "60db6817836550892924dbad8fb9ef3475393fef597e5d9a9c705d2f0bb9708d"
+    }
+  ]
+}

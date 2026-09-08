@@ -1,0 +1,41 @@
+{
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "parents": [],
+      "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+      "contract": {
+        "objective": "把用户提供的句子改写得更简洁，保留原意",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终建议与可追溯依据"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 16000,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "保留证据与假设，不虚构数据",
+          "覆盖本节点职责并明确限制"
+        ],
+        "covers": [
+          0
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "保留原意并使表达更简洁"
+  ]
+}
