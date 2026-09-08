@@ -8,6 +8,7 @@ from typing import Callable
 
 from .responses_api import output_token_limit
 from .model_selection import Weights
+from .routing_actions import action_identity
 from .node_routing import load_profile, number, route_nodes
 from .node_recovery import NodeRecovery, validate_fallback_limit
 from .openai_compatible import ChatResponse
@@ -130,6 +131,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                               "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"]}
     def persist():
         result["charged"], result["calls"] = budget.snapshot()
+        if configured_application:
+            actions = {m.model_id: action_identity(m) for m in manifest.models}
+            for call in result['calls']:
+                call['route'] = actions[call['model_id']]
         result["wall_time_ms"] = round((time.monotonic() - started) * 1000)
         checkpoint(result)
     budget.on_reserve = lambda reservation: persist()
@@ -173,6 +178,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             weights=Weights(**request["weights"]) if request["method"] == "B" else None,
             eligible_models=eligible_models, execution_policy=policy,
             model_providers={mid: model.provider for mid, model in candidates.items()})
+        if configured_application:
+            result['routing']['actions'] = {nid: action_identity(candidates[mid])
+                for nid, mid in result['routing']['assignments'].items()}
         if result["routing"]["status"] != "selected":
             result["status"] = "no-feasible-route"
             return result

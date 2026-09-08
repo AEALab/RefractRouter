@@ -18,6 +18,7 @@ from .application_config import compile_configuration, configured_profile, prepa
 from pathlib import Path
 from uuid import uuid4
 
+from .routing_actions import action_identity
 from .manifest import load_model_manifest
 from .node_routing import number
 from .openai_compatible import OpenAICompatibleClient
@@ -175,6 +176,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         conversation_context=context, configured_application=configured is not None)
     assignments = result.get('assignments', (result.get('routing') or {}).get('assignments', {}))
     models = {m.model_id: m.api_model for m in manifest.models}
+    actions = {m.model_id: action_identity(m) for m in manifest.models}
     if mode == 'demo' and result['final_output']:
         result['final_output'] = ('[SIMULATED] RefractAgent 安装演示，未调用真实模型。\n\n'
             + '策略：' + PRESETS[strategy]['name'] + '\n'
@@ -192,9 +194,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'strategy': strategy, 'strategy_name': PRESETS[strategy]['name'], 'policy_version': POLICY_VERSION,
         'status': result['status'], 'answer': result['final_output'], 'issues': result['issues'],
         'models': {nid: models[mid] for nid, mid in assignments.items()},
-        'model_routes': {nid: {'provider': next(m.provider for m in manifest.models if m.model_id==mid), 'model': models[mid]}
-                         for nid,mid in assignments.items()},
-        'evaluation_model': {'provider': manifest.judge.provider, 'model': manifest.judge.api_model},
+        'model_routes': {nid: actions[mid] for nid, mid in assignments.items()},
+        'evaluation_model': actions[manifest.judge.model_id],
         'configuration_source': 'user' if configured else 'manifest' if manifest_path else preset or 'bundled-demo',
         'quality': result['evaluation'], 'costs': totals, 'billing_unit': manifest.billing_unit,
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],

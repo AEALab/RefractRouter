@@ -11,6 +11,7 @@ from threading import Event
 
 from .agent import PRESETS, POLICY_VERSION, resource, run_agent
 from .application_config import SCHEMA, compile_configuration
+from .routing_actions import action_identity
 
 
 def example_configuration(kind):
@@ -105,7 +106,7 @@ def main(argv=None):
                             'description': '按用户配置的可用模型进行文本任务路由。'} for key,p in PRESETS.items()]}
             if args.provider_config:
                 compiled = compile_configuration(json.loads(args.provider_config.read_text()))
-                result['available_models'] = [{'id': m.model_id, 'provider': m.provider, 'model': m.api_model, 'role': m.role}
+                result['available_models'] = [{**action_identity(m), 'role': m.role}
                                               for m in compiled.manifest.models]
                 result['billing_unit'] = compiled.manifest.billing_unit
             print(json.dumps(result, ensure_ascii=False))

@@ -12,6 +12,7 @@ import json
 import re
 from urllib.parse import urlsplit
 
+from .configured_routing import compile_routing, configured_profile
 from .manifest import ModelManifest
 from .node_routing import number
 from .schemas import ModelSpec
@@ -111,7 +112,7 @@ def compile_configuration(raw):
     models, predictions, model_ids = [], {}, set()
     for row in model_rows:
         m = obj(row, {'id', 'provider', 'model', 'role', 'contextWindow', 'maxOutputTokens',
-                     'pricing', 'routing', 'requestOptions', 'jsonMode'}, 'model')
+                     'pricing', 'routing', 'requestOptions', 'jsonMode', 'reasoningEffort'}, 'model')
         mid = identifier(m.get('id'), 'model id')
         if mid in model_ids:
             raise ValueError('model ids must be unique')
@@ -135,7 +136,7 @@ def compile_configuration(raw):
                          128000 if p['type']=='openai-responses' else 8192)
         if context <= output:
             raise ValueError('contextWindow must leave space for model input')
-        options = m.get('requestOptions', {})
+        options = deepcopy(m.get('requestOptions', {}))
         allowed_options = ({'reasoning', 'text', 'temperature', 'top_p'} if p['type']=='openai-responses'
                            else {'temperature', 'top_p', 'thinking', 'reasoning_effort', 'seed'})
         obj(options, allowed_options, 'requestOptions')
@@ -167,10 +168,15 @@ def compile_configuration(raw):
             raise ValueError('jsonMode must be json-object-hint or prompt-only')
         if p['type'] == 'dsh' and set(options) - {'temperature', 'reasoning_effort'}:
             raise ValueError('DSH model options support temperature and reasoning_effort')
+        if 'reasoningEffort' in m:
+            effort = text(m['reasoningEffort'], 'reasoningEffort', 100)
+            native = (options.setdefault('reasoning', {}) if p['type'] == 'openai-responses' else options)
+            key = 'effort' if p['type'] == 'openai-responses' else 'reasoning_effort'
+            if key in native and native[key] != effort:
+                raise ValueError('reasoningEffort conflicts with requestOptions')
+            native[key] = effort
         if role == 'candidate':
-            prediction = obj(m.get('routing'), {'quality', 'latencyMs'}, 'routing prediction')
-            predictions[mid] = {'quality': number(prediction.get('quality'), 'configured quality', maximum=100),
-                                'latency_ms': number(prediction.get('latencyMs'), 'configured latency', positive=True)}
+            predictions[mid] = compile_routing(m.get('routing'), output)
         elif 'routing' in m:
             raise ValueError('judge model does not need routing predictions')
         models.append(ApplicationModelSpec(model_id=mid, provider=p.get('dshProvider', pid), api_model=api_model,
@@ -206,19 +212,3 @@ def prepare_configured_plan(request, context, *, explicit_plan, output_cap):
         size = len(json.dumps(messages).encode()) + 512 + len(spec.parents)*output_cap*8
         contract['capability']['input_budget_tokens'] = max(256, min(131072, size))
     request['plan'] = validate_plan(raw).to_dict()
-
-
-def configured_profile(configuration, manifest, plan):
-    plan = validate_plan(plan)
-    rows = []
-    for model in manifest.candidates:
-        for kind in sorted({node.node_type for node in plan.nodes}):
-            input_cap = max(plan.contracts.get(node.node_id, {}).get('capability', {}).get('input_budget_tokens', 131072)
-                            for node in plan.nodes if node.node_type==kind)
-            rows.append({'model_id': model.model_id, 'node_type': kind, 'samples': 0,
-                **configuration.predictions[model.model_id],
-                'cost': input_cap/1000*model.input_cost_per_1k + model.max_output_tokens/1000*model.output_cost_per_1k})
-    return {'schema_version': 'node-routing-profile-v1', 'kind': 'configured',
-        'billing_unit': manifest.billing_unit, 'scope': '用户配置的路由偏好；不是实测质量、时延或 SLA。',
-        'provenance': '本次 provider-config.json；无模型探测、无观测样本。', 'candidates': rows,
-        'model_bindings': {m.model_id:m.api_model for m in manifest.candidates}}

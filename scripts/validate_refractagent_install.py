@@ -6,6 +6,7 @@ This deliberately runs outside the checkout, using an installed wheel and tgz.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import hashlib
 import json
 import os
@@ -37,15 +38,17 @@ def validate_configured_providers(run, workspace, executable, runs, env):
                 assert responses or self.path.endswith('/chat/completions'), 'wrong endpoint'
                 if responses:
                     assert body['max_output_tokens']==32768 and body['store'] is False, f"unexpected output cap: {body.get('max_output_tokens')}"
-                    assert body['reasoning']=={'effort':'medium'} and 'temperature' not in body
+                    assert body['reasoning']['effort'] in {'low','medium','high'} and 'temperature' not in body
                     if body['model']=='fixture-review':
                         assert body['text']['format']=={'type':'json_object'}
-                    else:
-                        assert 'text' not in body
                 last = body['input' if responses else 'messages'][-1]['content']
                 if isinstance(last, list):
                     last = ''.join(b.get('text', '') for b in last)
                 payload = json.loads(last)
+                if responses:
+                    is_json = body['model']=='fixture-review' or payload['contract']['output']['format']=='json'
+                    if is_json: assert body['text']['format']=={'type':'json_object'}
+                    else: assert 'text' not in body
                 if body['model'] == 'fixture-review':
                     content = {'score': 92, 'passed': True, 'rationale': '本机模拟评审',
                         'criteria': [{'criterion': c, 'passed': True, 'rationale': '本机校验'} for c in payload['criteria']]}
@@ -53,7 +56,8 @@ def validate_configured_providers(run, workspace, executable, runs, env):
                     content = {key: '本机模拟服务已收到用户任务。' for key in payload['contract']['output']['fields']}
                 answer = json.dumps(content, ensure_ascii=False)
                 usage = {'prompt_tokens': 100, 'completion_tokens': 80, 'total_tokens': 180}
-                calls.append({'path': self.path, 'model': body['model'], 'stream': body.get('stream', False)})
+                calls.append({'path': self.path, 'model': body['model'], 'stream': body.get('stream', False),
+                              'reasoning_effort': body.get('reasoning', {}).get('effort')})
                 response = {'id': 'fixture-request', 'object': 'chat.completion', 'created': 1,
                     'model': body['model'], 'choices': [{'index': 0, 'message': {'role': 'assistant', 'content': answer},
                     'finish_reason': 'stop'}], 'usage': usage}
@@ -87,13 +91,14 @@ def validate_configured_providers(run, workspace, executable, runs, env):
     env['FIXTURE_DIRECT_KEY'] = 'refractrouter-fixture-direct'
     env['FIXTURE_HOST_KEY'] = 'refractrouter-fixture-host'
     try:
-        for kind in ('direct', 'native', 'mixed', 'responses'):
+        for kind in ('direct', 'native', 'mixed', 'responses', 'reasoning-dag'):
             providers = [
                 {'id': 'direct', 'type': 'openai-compatible', 'baseUrl': base_url+'/direct', 'credentialEnv': 'FIXTURE_DIRECT_KEY'},
                 {'id': 'host', 'type': 'dsh', 'dshProvider': 'fixture-host'},
             ]
             selected = {'direct': [providers[0]], 'native': [providers[1]], 'mixed': providers,
-                        'responses': [{**providers[0], 'type':'openai-responses'}]}[kind]
+                        'responses': [{**providers[0], 'type':'openai-responses'}],
+                        'reasoning-dag': [{**providers[0], 'type':'openai-responses'}]}[kind]
             config = {'schemaVersion': 'refractagent-providers-v1', 'billingUnit': 'USD', 'providers': selected,
                 'models': [{'id': role, 'provider': selected[0 if role=='candidate' else -1]['id'],
                     'model': 'fixture-answer' if role=='candidate' else 'fixture-review', 'role': role,
@@ -101,17 +106,32 @@ def validate_configured_providers(run, workspace, executable, runs, env):
                     'pricing': {'unit': 'USD', 'inputPer1k': .001, 'outputPer1k': .002},
                     **({'routing': {'quality': 90, 'latencyMs': 1000}} if role=='candidate' else {})}
                     for role in ('candidate', 'judge')]}
-            if kind == 'responses':
+            if kind in {'responses', 'reasoning-dag'}:
                 for model in config['models']:
                     model.update(maxOutputTokens=32768, requestOptions={'reasoning':{'effort':'medium'}})
+            if kind == 'reasoning-dag':
+                low, judge = config['models']
+                low.update(id='answer-low', reasoningEffort='low', requestOptions={}, contextWindow=262144)
+                low['routing'] = {'quality':60, 'latencyMs':1000, 'outputTokens':1000, 'profiles':[
+                    {'nodeType':'synthesis', 'difficulty':'medium', 'risk':'medium',
+                     'quality':92, 'latencyMs':1000, 'outputTokens':1000}]}
+                high = deepcopy(low)
+                high.update(id='answer-high', reasoningEffort='high')
+                high['routing'] = {'quality':96, 'latencyMs':8000, 'outputTokens':10000, 'profiles':[
+                    {'nodeType':'synthesis', 'difficulty':'medium', 'risk':'medium',
+                     'quality':90, 'latencyMs':8000, 'outputTokens':10000}]}
+                config['models'] = [low, high, judge]
+                config['qualityMin'] = 80
             source = workspace/f'{kind}-providers.json'
             source.write_text(json.dumps(config))
             patch_file = workspace/f'{kind}-live.json'
             run([executable, 'dsh-config', '--provider-config', source, '--output', patch_file,
                  '--runs-dir', runs/kind, '--mode', 'live', '--production-budget', 2, '--evaluation-budget', 1,
-                 '--max-output-tokens', 32768 if kind=='responses' else 2048])
+                 '--max-output-tokens', 32768 if kind in {'responses','reasoning-dag'} else 2048])
             patch = json.loads(patch_file.read_text())
             next(p for p in patch if p['id']=='refractagent')['config']['allowPaidRuns'] = True
+            if kind == 'reasoning-dag':
+                next(p for p in patch if p['id']=='refractagent')['config']['template'] = 'compare'
             patch.append({'id': 'llm-pi-ai', 'config': {'providers': {'fixture-host': {
                 'displayName': 'Local fixture', 'apiKeyEnv': 'FIXTURE_HOST_KEY',
                 'api': 'openai-completions', 'baseURL': base_url+'/host',
@@ -130,10 +150,19 @@ def validate_configured_providers(run, workspace, executable, runs, env):
             assert not failures, failures
             assert summary['status']=='completed', (kind, summary['issues'], answer[-1000:])
             assert summary['billing_unit']=='USD' and not summary['simulated']
-            if kind == 'responses':
-                assert summary['usage']['reasoning_tokens']==16000 and summary['usage']['output_tokens']==18000
+            if kind in {'responses', 'reasoning-dag'}:
+                assert summary['usage']['reasoning_tokens']==(32000 if kind=='reasoning-dag' else 16000)
+                assert summary['usage']['output_tokens']==(36000 if kind=='reasoning-dag' else 18000)
                 assert summary['costs']['unconfirmed']==0
-            assert len(calls)-start==2 and all(c['stream']==(c['path'].startswith('/host/')) for c in calls[start:])
+            assert len(calls)-start==(4 if kind=='reasoning-dag' else 2) and all(c['stream']==(c['path'].startswith('/host/')) for c in calls[start:])
+            if kind == 'reasoning-dag':
+                assert {nid: route['id'] for nid, route in summary['model_routes'].items()} == {
+                    'cost':'answer-low', 'risk':'answer-low', 'answer':'answer-high'}
+                assert [call['reasoning_effort'] for call in calls[start:]] == ['low','low','high','medium']
+                result = json.loads(Path(summary['result_path']).read_text())
+                assert all(call['reserved'] > .065 for call in result['calls'])
+            elif kind == 'responses':
+                assert [call['reasoning_effort'] for call in calls[start:]] == ['medium','medium']
             expected_providers = ['fixture-host' if p['type']=='dsh' else p['id'] for p in selected]
             assert summary['model_routes']['answer']['provider']==expected_providers[0]
             assert summary['evaluation_model']['provider']==expected_providers[-1]

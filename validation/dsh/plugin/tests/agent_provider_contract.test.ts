@@ -256,3 +256,23 @@ test('Responses provider configuration and reasoning envelope reach the Python c
   assert.equal(JSON.parse(spawn.input()).providerConfig.models[0].requestOptions.reasoning.effort,'high')
   assert.equal(spawn.env.CODEX_ARK_API_KEY,undefined)
 })
+
+
+test('node effort profiles pass to Python and selected efforts survive display and replay',async()=>{
+  const modelRoutes={cost:{id:'answer-low',provider:'one',model:'same',reasoning_effort:'low'},
+    answer:{id:'answer-high',provider:'one',model:'same',reasoning_effort:'high'}}
+  const evaluationModel={id:'review',provider:'one',model:'review',reasoning_effort:'medium'}
+  const f=fixture({billing_unit:'USD',model_routes:modelRoutes,evaluation_model:evaluationModel})
+  const config=userConfiguration()
+  const base=config.models[0]!
+  const variants=['low','high'].map(effort=>({...base,id:'answer-'+effort,model:'same',reasoningEffort:effort,
+    routing:{quality:90,latencyMs:2000,outputTokens:1000,profiles:[
+      {nodeType:'synthesis',difficulty:'low',risk:'low',quality:95,latencyMs:1000,outputTokens:1000}]}}))
+  const input={...config,models:[...variants,config.models[1]!]}
+  const output=await chunks(createAdapter(f.ctx,configure({providerConfig:input})))
+  assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,input)
+  assert.ok(String(output.find(c=>c.type==='reasoning-delta')?.text).includes(JSON.stringify(modelRoutes)))
+  const replay=output.at(-1)?.replayState as {response:{refractagent:{modelRoutes:unknown;evaluationModel:unknown}}}
+  assert.deepEqual(replay.response.refractagent.modelRoutes,modelRoutes)
+  assert.deepEqual(replay.response.refractagent.evaluationModel,evaluationModel)
+})

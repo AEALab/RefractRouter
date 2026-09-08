@@ -8,6 +8,7 @@ from dataclasses import dataclass, asdict
 from itertools import product
 import math
 
+from .routing_actions import action_binding
 from .model_selection import Weights
 from .task_plan import NODE_TYPES, TaskPlan, text
 from .task_scheduling import ExecutionPolicy, estimate_schedule
@@ -89,6 +90,10 @@ def load_profile(raw, manifest):
     bindings = raw.get("model_bindings")
     if not isinstance(bindings, dict) or any(bindings.get(m.model_id) != m.api_model for m in manifest.candidates):
         raise ValueError("profile model bindings differ from manifest")
+    action_bindings = raw.get('action_bindings')
+    if raw['kind'] == 'configured' or action_bindings is not None:
+        if action_bindings != {m.model_id: action_binding(m) for m in manifest.candidates}:
+            raise ValueError('profile action bindings differ from effective model settings')
     profiles = []
     for row in rows:
         if not isinstance(row, dict):

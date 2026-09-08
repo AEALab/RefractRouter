@@ -38,7 +38,7 @@ refractagent dsh-config --provider-config ./providers.json \
 
 `id` 是用户自己的 provider 标识。不同 provider 可以提供同名 API 模型；
 模型的 `id` 必须在本份配置中唯一，`model` 则是对应服务实际接收的模型 ID。
-结果的 `model_routes` 会同时保存 provider 和模型，避免同名模型混淆。
+结果的 `model_routes` 同时保存配置 ID、provider、模型和推理档位，避免同名候选混淆。
 
 `openai-compatible` 会在 `baseUrl` 后添加 `/chat/completions`。它不等于对全部厂商协议的支持；
 Responses API 使用单独的 `openai-responses` 类型，向 `/responses` 发请求；
@@ -169,6 +169,103 @@ JSON 模式转换为 `text.format`。每个节点发送独立的同步请求，�
 上面的 32768 是可调整示例，不是默认值或成功保证；未显式提高应用上限时默认仍是 2048。
 独立 CLI 可添加 `--max-output-tokens 32768`。过小上下文、未确认用量、拒绝或未完成响应
 均不会被当作成功结果，也不会自动改用 Chat Completions 重试。
+
+## 按 DAG 节点联合选择模型与 reasoning effort
+
+一个候选 `id` 代表一组可执行配置：provider、物理模型、推理档位及其他请求设置。
+同一物理模型使用多个档位时，增加多行候选并使用不同 `id`，例如 `answer-low` 和
+`answer-high`。核心对每个 DAG 节点同时比较这些候选和其他 provider 的模型。
+
+`reasoningEffort` 是可选的模型字段。Python 将其映射为 Responses 的 `reasoning.effort`，
+或 Chat Completions / DSH 的 `reasoning_effort`。只填写对应模型实际支持的值；核心不会
+探测服务端能力，也不会根据档位名称推断质量。已有 `requestOptions` 写法仍有效，
+两处同时配置时必须一致。省略表示交给 provider 默认行为，和显式 `"none"` 不同。
+
+每个候选的 `routing` 有一组默认预测，还可用 `profiles` 为不同节点声明完整预测：
+
+| 字段 | 含义 |
+| --- | --- |
+| `quality`、`latencyMs` | 必填，分别是质量预测和时延预测 |
+| `outputTokens` | 可选，预测输出总 token，包含推理与正文；省略时按有效 `maxOutputTokens` 预测 |
+| `profiles[].nodeType` | 节点类型，使用 DAG 支持的类型，例如 `synthesis`、`generation` |
+| `profiles[].difficulty`、`risk` | 均必填，取 `low`、`medium` 或 `high`；匹配节点契约 |
+| `profiles[].inputMinTokens`、`inputMaxTokens` | 可选，匹配契约的 `input_budget_tokens`；区间左闭右开，默认 `[256, 131073)` |
+
+每个 profile 必须完整填写自己的 `quality`、`latencyMs`；不继承默认 `outputTokens`，
+省略仍按有效输出上限。匹配到 profile 就使用该组预测，否则使用默认预测。同一候选的
+profile 不允许重叠，以免由配置顺序决定选路。无节点能力契约的旧版 DAG 不能使用这些分层预测。
+
+例如，将以下两行加入 Responses provider 的 `models`，并保留一个独立 `judge`。
+`team` 必须对应已配置的 provider，`YOUR_MODEL_ID` 需替换为账户支持这两个档位的模型。
+价格与预测都是演示值，不能当成厂商报价或实测性能：
+
+```json
+[
+  {
+    "id": "answer-low",
+    "provider": "team",
+    "model": "YOUR_MODEL_ID",
+    "role": "candidate",
+    "reasoningEffort": "low",
+    "contextWindow": 262144,
+    "maxOutputTokens": 32768,
+    "pricing": {"unit": "USD", "inputPer1k": 0.001, "outputPer1k": 0.002},
+    "routing": {
+      "quality": 60, "latencyMs": 1000, "outputTokens": 1000,
+      "profiles": [
+        {
+          "nodeType": "synthesis", "difficulty": "medium", "risk": "medium",
+          "quality": 92, "latencyMs": 1000, "outputTokens": 1000
+        }
+      ]
+    }
+  },
+  {
+    "id": "answer-high",
+    "provider": "team",
+    "model": "YOUR_MODEL_ID",
+    "role": "candidate",
+    "reasoningEffort": "high",
+    "contextWindow": 262144,
+    "maxOutputTokens": 32768,
+    "pricing": {"unit": "USD", "inputPer1k": 0.001, "outputPer1k": 0.002},
+    "routing": {
+      "quality": 96, "latencyMs": 8000, "outputTokens": 10000,
+      "profiles": [
+        {
+          "nodeType": "synthesis", "difficulty": "medium", "risk": "medium",
+          "quality": 90, "latencyMs": 8000, "outputTokens": 10000
+        }
+      ]
+    }
+  }
+]
+```
+
+以预设 `compare` DAG 和以上声明值运行质量优先策略，成本／风险分析节点会选 `low`，
+最终汇总节点会选 `high`。这是同一 DAG 内的联合选择；质量、成本和时延预测改变时，
+选择也可能改变。高档位不保证更高质量，未配置多个候选时也不会自动生成档位。
+DSH 覆盖配置中设置 `template: "compare"`，同时将插件 `maxOutputTokens` 设为 `32768`；
+独立 CLI 可先零调用检查：
+
+```bash
+refractagent run --task '比较方案 A/B 的成本与风险' \
+  --provider-config ./providers-openai.json --template compare --strategy quality \
+  --max-output-tokens 32768 --mode preflight
+```
+
+成本预测 = 节点输入包络 × 输入单价 + 预测输出总 token × 输出单价。
+**预测用于路由，硬预算仍按完整输出上限逐次预留，收到响应后按实际用量结算。**
+所以预测可行的路线仍可能在派发时因完整预留不足而停止；降低 `outputTokens` 不会放宽预算。
+若预测输出超过应用／DSH 实际输出上限，核心在创建任务记录前报错，不会截短预测后继续使用原质量值。
+
+配置预测仍是 `configured`、样本数为 0，不能冒充校准结果。每次生成的 profile 会绑定
+有效 provider、API 模型、effort、其他请求选项、输出容量及价格；重放时设置不一致会拒绝。
+修改配置时应重新核对预测，核心不会自动重测质量。
+
+`refractagent models`、任务 `model_routes`、独立评审 `evaluation_model`、调用记录和 DSH
+回放信息包含配置 `id` 与 `reasoning_effort`。这里记录的是实际发送的请求档位；服务端是否
+按预期实现仍需服务端支持。节点未执行时，路由结果只代表选定配置，不能当作已发生的调用。
 
 ## 复用 DSH 已配置的模型
 

@@ -20,7 +20,7 @@ interface ProviderConfiguration {
     baseUrl?: string; credentialEnv?: string; dshProvider?: string; maxTokensParameter?: string }>
   models: Array<{ id: string; provider: string; model: string; role?: 'candidate' | 'judge';
     contextWindow: number; maxOutputTokens?: number; pricing: Record<string, unknown>;
-    routing?: Record<string, unknown>; requestOptions?: Record<string, unknown>; jsonMode?: string }>
+    reasoningEffort?: string; routing?: Record<string, unknown>; requestOptions?: Record<string, unknown>; jsonMode?: string }>
 }
 interface Configuration {
   pythonExecutable: string
@@ -293,6 +293,7 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
         cacheReadTokens: usage.cache_read_tokens ?? 0, reasoningTokens: usage.reasoning_tokens ?? 0 } }
       yield { type: 'finish', reason: { kind: 'stop' }, replayState: { response: {
         refractagent: { runId: result.run_id, strategy: result.strategy, models: result.models,
+          modelRoutes: result.model_routes, evaluationModel: result.evaluation_model,
           status: result.status, costs: result.costs, simulated: result.simulated, resultPath: result.result_path },
       } } }
     },

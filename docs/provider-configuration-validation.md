@@ -33,8 +33,9 @@ python3 scripts/validate_refractagent_install.py --configured-providers \
 | DSH 原生 provider | DSH 原生 SSE 调用 | DSH 原生 SSE 调用 | 2 |
 | 混合 provider | Python Chat Completions | DSH 原生 SSE 调用 | 2 |
 | Responses | Python Responses | Python Responses | 2 |
+| 推理档位 DAG | Python Responses，两个分析节点 low、汇总节点 high | Python Responses medium | 4 |
 
-四种路径均完成答案、独立评审和 USD 用量归档，未确认费用为零。
+五种路径均完成答案、独立评审和 USD 用量归档，未确认费用为零。
 脚本核对请求端点、凭证归属、最终模型、调用次数与任务文件中没有凭证值。
 这些是本机模拟响应，外部模型调用为零，不是各厂商模型可用性或路由收益验收。
 
@@ -56,11 +57,22 @@ python3 scripts/validate_refractagent_install.py --configured-providers \
 - reasoning 条目与工具调用不会被拼入最终正文，未知工具输出不能当作成功文本节点。
 - 基础模型序列化和历史上限不变；追加仅适用于新协议代码快照的 K3 兼容记录。
 
+## 节点推理档位补充验证
+
+- 同一 DAG 可为相同物理模型选择不同 effort；切换策略后也能改选另一个 provider 的模型。
+- 节点类型、难度、风险与输入区间共同匹配对应候选预测；输入区间端点按左闭右开处理。
+- 冲突 effort、重复或重叠 profile、非法质量／时延／token 预测在创建任务记录前拒绝。
+- 请求设置、模型、provider、容量或价格变化后，原 action binding 不再有效；缺少绑定也会拒绝。
+- 低预测 token 不降低完整输出预留；预测预算可行但硬预留不足时，在调用前停止。
+- DSH 原样传递多个档位的配置与节点 profile，并在显示和回放中保留所选档位。
+- 已安装包新增 compare DAG 联调：真实 DSH 发起本机模拟请求，顺序为 low、low、high、medium。
+  三个生产节点使用同一物理模型，另行评审，完整预留、用量和档位记录均通过。
+
 ## 回归结果
 
-- `uv run --frozen pytest -q`：446 项测试、5 项子测试通过（53.34 秒）。
+- `uv run --frozen pytest -q`：476 项测试、5 项子测试通过（52.30 秒）。
 - `npm run --prefix validation/dsh/plugin typecheck`：严格类型检查通过。
-- 安装联调包含三策略演示及四种 provider 路径；所有外部模型调用数为零。
+- 安装联调包含三策略演示及五种 provider／DAG 路径；所有外部模型调用数为零。
 
 ## 验证边界
 

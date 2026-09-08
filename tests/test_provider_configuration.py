@@ -1,5 +1,6 @@
 """Configured provider routing, accounting and credential boundaries; no paid calls."""
 from copy import deepcopy
+from dataclasses import replace
 import json
 from pathlib import Path
 from unittest.mock import patch
@@ -38,8 +39,10 @@ def test_routes_across_providers_even_when_api_model_names_collide(tmp_path,stra
     result=run_agent({'task':'比较两种方案','strategy':strategy},provider_config=configuration(),
                      mode='live',execute_paid_run=True,runs_dir=tmp_path,client=client)
     assert result['status']=='completed',result['issues']
-    assert result['model_routes']=={'answer':{'provider':provider,'model':'shared-name'}}
-    assert result['evaluation_model']=={'provider':'second','model':'independent-review'}
+    assert result['model_routes']=={'answer':{'id':'fast' if strategy=='economy' else 'better',
+        'provider':provider,'model':'shared-name','reasoning_effort':None}}
+    assert result['evaluation_model']=={'id':'review','provider':'second',
+        'model':'independent-review','reasoning_effort':None}
     assert len(client.calls)==2 and client.calls[-1][0].provider=='second'
     assert result['configuration_source']=='user' and result['billing_unit']=='USD'
     profile=json.loads((Path(result['run_dir'])/'profile.json').read_text())
@@ -114,7 +117,9 @@ def test_configured_predictions_do_not_pass_legacy_empirical_gate(tmp_path):
     request['mode']='run'
     profile=json.loads((folder/'profile.json').read_text())
     with pytest.raises(ValueError,match='empirical'):
-        run_task(request,compile_configuration(config).manifest,profile,client=Client())
+        run_task(request,replace(compile_configuration(config).manifest, models=tuple(
+            replace(m, request_options={**m.request_options, 'temperature': 0}) if m.role=='candidate' else m
+            for m in compile_configuration(config).manifest.models)),profile,client=Client())
 
 
 def test_http_clients_use_each_provider_key_url_and_token_field(tmp_path):
