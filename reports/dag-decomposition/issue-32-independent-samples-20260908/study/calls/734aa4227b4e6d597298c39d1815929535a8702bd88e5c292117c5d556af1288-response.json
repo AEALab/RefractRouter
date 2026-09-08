@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:1:cost:strong:judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，且均为非空字符串，符合契约。计算正确：方案 A 总投入 10+3×4=22，方案 B 总投入 18+1×4=22，均低于预算 24，余量各为 2；据此判断当前无资金缺口，并指出余量小、成本上浮时可能突破预算，以及 A 对每组投入或组数更敏感、B 对固定投入更敏感，建议与节点职责一致。evidence 明确说明无上游原始材料、基于任务参数计算，assumptions 明确组数固定、成本确定、预算上限及未考虑隐性成本，满足保留证据与假设、不虚构数据和明确限制的检查要求。未发现不实工具执行声明；仅扣少量分是因为敏感性分析属于合理推断但未额外标注为推断。\"}",
+  "input_tokens": 1039,
+  "output_tokens": 218,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9466,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788800533179ed0e184fb98d17720dee9f0ee33ee7e1d6531e"
+}

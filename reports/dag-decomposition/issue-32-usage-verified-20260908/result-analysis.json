@@ -1,0 +1,1181 @@
+{
+  "status": "completed",
+  "real_calls": 252,
+  "confirmed_calls": 252,
+  "unconfirmed_calls": 0,
+  "call_categories": {
+    "production": 174,
+    "evaluation": 78
+  },
+  "charged": {
+    "production": 66.1215,
+    "evaluation": 74.425
+  },
+  "total_afp_estimate": 140.54649999999998,
+  "source_calibration_calls": 283,
+  "new_calibration_calls": 0,
+  "handoffs": [
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 1,
+      "method": "handoff",
+      "assignments": {
+        "cost": "cheap",
+        "risk": "mid",
+        "answer": "strong"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 2,
+      "method": "handoff",
+      "assignments": {
+        "cost": "cheap",
+        "risk": "strong",
+        "answer": "mid"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 3,
+      "method": "handoff",
+      "assignments": {
+        "cost": "mid",
+        "risk": "cheap",
+        "answer": "strong"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 4,
+      "method": "handoff",
+      "assignments": {
+        "cost": "mid",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 5,
+      "method": "handoff",
+      "assignments": {
+        "cost": "strong",
+        "risk": "cheap",
+        "answer": "mid"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 6,
+      "method": "handoff",
+      "assignments": {
+        "cost": "strong",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 92,
+      "delivered": true
+    }
+  ],
+  "test_results": [
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-single-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-node-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-single-b",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-node-b",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 1,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-single-b",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 88,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-node-b",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-single-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-node-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 2,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 96,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-single-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-single-b",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-node-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-node-b",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "repeat": 3,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 98,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 98,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-single-b",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-node-b",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-node-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-single-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 1,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-node-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-single-b",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-node-b",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 2,
+      "method": "dag-single-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-node-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-node-b",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "heterogeneous": true,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-single-b",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "cost": "strong",
+        "risk": "strong",
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "dag-single-a",
+      "assignments": {
+        "cost": "mid",
+        "risk": "mid",
+        "answer": "mid"
+      },
+      "heterogeneous": false,
+      "score": 98,
+      "delivered": true
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "repeat": 3,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-node-a",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-node-b",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-single-a",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-single-b",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 1,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-single-b",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-node-b",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-node-a",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 92,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 2,
+      "method": "dag-single-a",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-node-b",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-node-a",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-strong-parallel",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-strong-serial",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "direct-strong",
+      "assignments": {
+        "answer": "strong"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-calibrated-single",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-single-a",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 100,
+      "delivered": true
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "repeat": 3,
+      "method": "dag-single-b",
+      "assignments": {
+        "answer": "cheap"
+      },
+      "heterogeneous": false,
+      "score": 95,
+      "delivered": true
+    }
+  ],
+  "automatic_heterogeneous_test_runs": 12,
+  "verified_upstream_edges": 117,
+  "verified_artifacts": 591,
+  "comparisons": [
+    {
+      "candidate": "dag-strong-parallel",
+      "baseline": "dag-strong-serial",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": 1.2222222222222223,
+        "cost_saving": 0.040777718512462605,
+        "latency_ratio": 0.9572639509808997
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          0,
+          2.3333333333333335
+        ],
+        "cost_saving": [
+          0.008767285728173757,
+          0.06871378073048158
+        ],
+        "latency_ratio": [
+          0.7420334889228852,
+          1.2578287628198423
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-strong-serial",
+      "baseline": "direct-strong",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": -0.8888888888888888,
+        "cost_saving": -0.40227129980017706,
+        "latency_ratio": 1.383250901676806
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -3,
+          2.6666666666666665
+        ],
+        "cost_saving": [
+          -0.9647799780962392,
+          0.09018600291762517
+        ],
+        "latency_ratio": [
+          0.9194525205373661,
+          1.8355586844547553
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-a",
+      "baseline": "dag-calibrated-single",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": -1.7777777777777777,
+        "cost_saving": 0.18096846772136613,
+        "latency_ratio": 1.0627621366384343
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -2,
+          -1.6666666666666667
+        ],
+        "cost_saving": [
+          -0.009022695160636252,
+          0.2832168609925582
+        ],
+        "latency_ratio": [
+          1.0552899968548781,
+          1.0685557481953016
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-b",
+      "baseline": "dag-calibrated-single",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": -1.4444444444444444,
+        "cost_saving": 0.1258857967322076,
+        "latency_ratio": 1.0738156704449764
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -1.6666666666666667,
+          -1
+        ],
+        "cost_saving": [
+          -0.05219505619978145,
+          0.2905088305558674
+        ],
+        "latency_ratio": [
+          0.8484220479798341,
+          1.1995894511521856
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-a",
+      "baseline": "dag-strong-parallel",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": -2.888888888888889,
+        "cost_saving": 0.26038281560093796,
+        "latency_ratio": 1.0612230721451439
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -4.333333333333333,
+          -1.6666666666666667
+        ],
+        "cost_saving": [
+          0.23865953125831607,
+          0.2780518239413821
+        ],
+        "latency_ratio": [
+          0.9820369799563918,
+          1.161077015502929
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-b",
+      "baseline": "dag-strong-parallel",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": -2.5555555555555554,
+        "cost_saving": 0.2064324566552206,
+        "latency_ratio": 1.071804787874483
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -3.3333333333333335,
+          -1.6666666666666667
+        ],
+        "cost_saving": [
+          0.13317190293421077,
+          0.25228586410130305
+        ],
+        "latency_ratio": [
+          0.916268908445632,
+          1.153511576268325
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-a",
+      "baseline": "dag-single-a",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": -0.8888888888888888,
+        "cost_saving": 0.17979877247055018,
+        "latency_ratio": 1.0026051834014251
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -2,
+          1
+        ],
+        "cost_saving": [
+          0.019975617151476926,
+          0.29270740118944966
+        ],
+        "latency_ratio": [
+          0.9219235723756092,
+          1.1095442314495674
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-b",
+      "baseline": "dag-single-b",
+      "pairs": 9,
+      "mean": {
+        "quality_delta": 0.5555555555555556,
+        "cost_saving": 0.06214804488141003,
+        "latency_ratio": 1.1392175038565606
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -1.6666666666666667,
+          3.3333333333333335
+        ],
+        "cost_saving": [
+          -0.03487045289649778,
+          0.2378779129526677
+        ],
+        "latency_ratio": [
+          0.8492028131250857,
+          1.3598506638538563
+        ]
+      },
+      "exploratory_signal": false
+    }
+  ],
+  "limitation": "仅本轮冻结三任务、三类能力/风险组合与一个输入预算区间；同一 DAG 单模型对照不等于一次调用的优化整任务路由。"
+}

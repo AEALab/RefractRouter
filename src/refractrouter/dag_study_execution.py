@@ -8,7 +8,7 @@ import random
 import statistics
 import time
 
-from .dag_study import METHODS, study_preflight
+from .dag_study import study_methods, study_preflight
 from .model_selection import Weights
 from .node_routing import load_profile, route_nodes
 from .openai_compatible import ChatResponse
@@ -65,6 +65,8 @@ def compare_runs(runs, protocol, *, simulated):
     pairs = [('dag-strong-parallel', 'dag-strong-serial'), ('dag-strong-serial', 'direct-strong'),
              ('dag-node-a', 'dag-calibrated-single'), ('dag-node-b', 'dag-calibrated-single'),
              ('dag-node-a', 'dag-strong-parallel'), ('dag-node-b', 'dag-strong-parallel')]
+    if protocol['schema_version'] == 'dag-routing-study-v2':
+        pairs += [('dag-node-a', 'dag-single-a'), ('dag-node-b', 'dag-single-b')]
     for candidate, baseline in pairs:
         rows = []
         for tid, repeat in keys:
@@ -99,6 +101,10 @@ def compare_runs(runs, protocol, *, simulated):
 
 
 def run_study(protocol, manifest, output_dir, *, simulated=True, client=None, production_limit=None, evaluation_limit=None):
+    if protocol['schema_version'] == 'dag-routing-study-v3':
+        from .dag_batch_study import run_batch_study
+        return run_batch_study(protocol, manifest, output_dir, simulated=simulated, client=client,
+                               production_limit=production_limit, evaluation_limit=evaluation_limit)
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=False)
     preflight = study_preflight(protocol, manifest)
@@ -152,11 +158,12 @@ def run_study(protocol, manifest, output_dir, *, simulated=True, client=None, pr
                     if n.node_id in plan.contracts and
                        plan.contracts[n.node_id]['capability']['input_budget_tokens'] + min(model.max_output_tokens, 8192) <= model.context_window]
                     for n in plan.nodes}
-                routing = route_nodes(plan, profiles, method='A' if method == 'dag-node-a' else 'B',
+                routing = route_nodes(plan, profiles, method='A' if method in ('dag-node-a', 'dag-single-a') else 'B',
                     quality_min=cap['qualityMin'], cost_max=cap['costMax'], latency_max_ms=cap['latencyMaxMs'],
-                    weights=Weights(**cap['weights']) if method == 'dag-node-b' else None,
+                    weights=Weights(**cap['weights']) if method in ('dag-node-b', 'dag-single-b') else None,
                     eligible_models=eligible, execution_policy=current_policy,
-                    model_providers={mid: model.provider for mid, model in candidates.items()})
+                    model_providers={mid: model.provider for mid, model in candidates.items()},
+                    assignment_mode='single-model' if method.startswith('dag-single-') else 'per-node')
                 result['routing'] = routing
                 if routing['status'] != 'selected':
                     checkpoint()
@@ -256,7 +263,10 @@ def run_study(protocol, manifest, output_dir, *, simulated=True, client=None, pr
         write_json(out/'calibrated-single-models.json', frozen_models)
         for task in (t for t in protocol['tasks'] if t['split']=='test'):
             for repeat in range(1, protocol['test_repeats']+1):
-                for method in METHODS:
+                methods = list(study_methods(protocol))
+                if protocol['schema_version'] == 'dag-routing-study-v2':
+                    random.Random(f"{protocol['method_order_seed']}:{task['task_id']}:{repeat}").shuffle(methods)
+                for method in methods:
                     mid = protocol['reference_model_id'] if method in ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel') else (
                         frozen_models[task['family']] if method=='dag-calibrated-single' else None)
                     run_one(task, repeat, method, fixed_model=mid, profiles=profiles)

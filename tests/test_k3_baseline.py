@@ -329,6 +329,33 @@ def test_unknown_probe_usage_stays_unknown_after_resume_and_finalize():
     assert not summary['candidate_signal']
 
 
+def test_historical_k3_usage_keeps_content_tokens_and_cost_after_client_merge():
+    from refractrouter.k3_experiment import roles
+    from refractrouter.openai_compatible import OpenAICompatibleClient, TransportResponse, model_response_cost
+
+    original = read_bundle(ROOT/'reports/v0.5-k3-baseline-retry/output')
+    saved = original['baseline']['node_results'][0]
+    _, manifest, _ = setup()
+    model, _ = roles(manifest)
+    # 使用归档结果构造响应，只验证解析与计费兼容性，不宣称重放原始 HTTP 响应。
+    usage = {'prompt_tokens': saved['input_tokens'], 'completion_tokens': saved['output_tokens'],
+        'prompt_tokens_details': {'cached_tokens': saved['cached_input_tokens']},
+        'completion_tokens_details': {'reasoning_tokens': saved['reasoning_tokens']}}
+    body = {'choices': [{'message': {'content': saved['output']}, 'finish_reason': saved['finish_reason']}],
+        'usage': usage}
+    with patch('refractrouter.openai_compatible.UrllibTransport.post', return_value=TransportResponse(
+            200, {'X-Request-ID': saved['request_id']}, json.dumps(body).encode())) as post:
+        response = OpenAICompatibleClient(environment={model.api_key_env: 'test-only'}, max_retries=0).complete(
+            model, ({'role': 'user', 'content': '离线解析兼容验证'},), json_mode=False)
+    post.assert_called_once()
+    assert response.usage_available and response.raw_usage == usage
+    assert response.content == saved['output']
+    for field in ('input_tokens', 'output_tokens', 'cached_input_tokens', 'reasoning_tokens',
+                  'finish_reason', 'request_id', 'attempts'):
+        assert getattr(response, field) == saved[field]
+    assert model_response_cost(model, response) == saved['cost'] == 9.154
+
+
 def test_historical_baseline_preflight_migrates_without_network_or_source_edits(tmp_path):
     import hashlib
     original=ROOT/'reports/v0.5-k3-baseline-retry/output'

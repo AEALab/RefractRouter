@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-node-b:final-judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案A总投入46单位（22+4×6），余额2单位；方案B总投入49单位（37+2×6），缺口1单位。建议有条件且未引入未给出的优惠、收益或额外预算。轻微扣分因文本提到「综合上游 cost 与 risk 两节点」，暗示了未实际展示的工具或流程执行，但不影响任务实质完成。\", \"criteria\": [{\"criterion\": \"准确计算两个方案总投入\", \"passed\": true, \"rationale\": \"方案A：22+4×6=46单位；方案B：37+2×6=49单位，计算准确。\"}, {\"criterion\": \"根据预算判断缺口并给出有条件建议\", \"passed\": true, \"rationale\": \"正确指出A余额2单位可行，B缺口1单位不可行，并给出压缩成本、缩短周期或解决缺口等条件，未引入额外预算或优惠。\"}]}",
+  "input_tokens": 899,
+  "output_tokens": 222,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10687,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888060390997820404c56ac6dd9ce215ba8b602495a81468d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 222,
+    "prompt_tokens": 899,
+    "total_tokens": 1121,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "completed": 6,
+  "delivered": 6,
+  "runs": [
+    {
+      "permutation": 1,
+      "assignments": {
+        "cost": "cheap",
+        "risk": "mid",
+        "answer": "strong"
+      },
+      "quality": 95,
+      "delivered": true,
+      "exact_upstream_fields": true,
+      "peak_running_nodes": 2,
+      "wall_time_ms": 45002.79587507248,
+      "calls": 4,
+      "deployment_cost": 2.9375999999999998,
+      "result_path": "compare_cal_a--1--handoff/result.json",
+      "result_sha256": "aff2226ba8a3a7495e5acf839de44c44588371519fc58680379535ea4425fbdc",
+      "downstream_input_sha256": "73a3cc43b288d86987c1a52bc914aaf1b00327d3c0e5b1924059bb581c8ce950"
+    },
+    {
+      "permutation": 2,
+      "assignments": {
+        "cost": "cheap",
+        "risk": "strong",
+        "answer": "mid"
+      },
+      "quality": 92,
+      "delivered": true,
+      "exact_upstream_fields": true,
+      "peak_running_nodes": 2,
+      "wall_time_ms": 27790.37491697818,
+      "calls": 4,
+      "deployment_cost": 1.9541,
+      "result_path": "compare_cal_a--2--handoff/result.json",
+      "result_sha256": "ec74a4a6e956c9d93ffed2c4da3229ee284a22f770c45d411793733b96465a70",
+      "downstream_input_sha256": "4ee738196c22ee391bad670a9014ff884f06aa616782de607493a0f6e004e40e"
+    },
+    {
+      "permutation": 3,
+      "assignments": {
+        "cost": "mid",
+        "risk": "cheap",
+        "answer": "strong"
+      },
+      "quality": 95,
+      "delivered": true,
+      "exact_upstream_fields": true,
+      "peak_running_nodes": 2,
+      "wall_time_ms": 31758.618292049505,
+      "calls": 4,
+      "deployment_cost": 2.11495,
+      "result_path": "compare_cal_a--3--handoff/result.json",
+      "result_sha256": "2de7629b3cd442b37eead851cf797ab22da9be3999232423be19093f80af6566",
+      "downstream_input_sha256": "52611bb8ddf419d457e75a16256056c63f9a3546e144271e2a841e7d10851a87"
+    },
+    {
+      "permutation": 4,
+      "assignments": {
+        "cost": "mid",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "quality": 88,
+      "delivered": true,
+      "exact_upstream_fields": true,
+      "peak_running_nodes": 2,
+      "wall_time_ms": 34690.85141608957,
+      "calls": 4,
+      "deployment_cost": 2.06055,
+      "result_path": "compare_cal_a--4--handoff/result.json",
+      "result_sha256": "4cbc79be48b88f0e162fb1c359d524c97c13346462a1c1bd061b91ec11879940",
+      "downstream_input_sha256": "5ad6ed371f3ec254c71bab93194f36de6548379439ae918f740747c6a291799c"
+    },
+    {
+      "permutation": 5,
+      "assignments": {
+        "cost": "strong",
+        "risk": "cheap",
+        "answer": "mid"
+      },
+      "quality": 92,
+      "delivered": true,
+      "exact_upstream_fields": true,
+      "peak_running_nodes": 2,
+      "wall_time_ms": 25519.38691700343,
+      "calls": 4,
+      "deployment_cost": 1.86285,
+      "result_path": "compare_cal_a--5--handoff/result.json",
+      "result_sha256": "6c2efa26d0f605a758714b50438cfc6d77e2dc2d51abb0fcd6529512aca9986d",
+      "downstream_input_sha256": "7b1589ffacea1ca4e7e4710e43b8f3bf399da465979f3c81c3279a6787bed58c"
+    },
+    {
+      "permutation": 6,
+      "assignments": {
+        "cost": "strong",
+        "risk": "mid",
+        "answer": "cheap"
+      },
+      "quality": 95,
+      "delivered": true,
+      "exact_upstream_fields": true,
+      "peak_running_nodes": 2,
+      "wall_time_ms": 30140.335666947067,
+      "calls": 4,
+      "deployment_cost": 1.82065,
+      "result_path": "compare_cal_a--6--handoff/result.json",
+      "result_sha256": "c1b8dd243c197a109445807e35f1dccdf874e784d85211f32abb4375b2953cf5",
+      "downstream_input_sha256": "5621e1fc778efc035cafa833c97c0ce487ec776fc458c5f1e83fc3243818cd77"
+    }
+  ],
+  "limitation": "六种显式组合在这一校准任务上通过，不是自动选路或收益证明，也不代表任意任务可靠性。"
+}

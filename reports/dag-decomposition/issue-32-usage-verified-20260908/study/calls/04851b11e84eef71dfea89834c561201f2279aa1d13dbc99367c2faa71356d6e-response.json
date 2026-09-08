@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-single-a:final-judge",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本正确完成全部计算与判断：方案 A 总成本 22+4×6=46，余额 +2；方案 B 总成本 37+2×6=49，缺口 −1（超预算 1 单位）。在 48 单位硬预算下建议执行方案 A，并对方案 B 给出「须追加预算至至少 49 单位方可执行」的有条件建议，未引入任何未给出的优惠、收益或额外预算作为当前决策依据；盈亏平衡 7.5 周被明确标注为长期参考而非当前依据，处理恰当。两条验收标准均满足。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案 A：22+4×6=46 单位；方案 B：37+2×6=49 单位，算式与结果均正确，且全部数值可追溯至题设给定数据。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"正确判定方案 A 余额 +2 可执行、方案 B 缺口 1 单位在 48 单位硬预算下不可直接执行；建议为预算不变时选 A，若选 B 须先追加预算至至少 49 单位，属于合规的有条件建议，未虚构优惠或额外预算。\"}]}",
+  "input_tokens": 904,
+  "output_tokens": 306,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10526,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888060664983d0449b03f13da7ad7c0359f0f1d760cca2e42",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 306,
+    "prompt_tokens": 904,
+    "total_tokens": 1210,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

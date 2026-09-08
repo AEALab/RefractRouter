@@ -120,7 +120,10 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                 weights: Weights | None = None,
                 eligible_models: dict[str, list[str]] | None = None,
                 execution_policy: ExecutionPolicy | None = None,
-                model_providers: dict[str, str] | None = None):
+                model_providers: dict[str, str] | None = None,
+                assignment_mode: str = 'per-node'):
+    if assignment_mode not in {'per-node', 'single-model'}:
+        raise ValueError('unsupported assignment mode')
     if method not in {"A", "B"} or (method == "B" and weights is None) or (method == "A" and weights is not None):
         raise ValueError("A requires constraints; B also requires explicit weights")
     number(quality_min, "quality_min", maximum=100)
@@ -164,6 +167,9 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
     latency_bounds = (min(r[2] for r in records), max(r[2] for r in records)) if records else None
     best, best_key, feasible = None, None, 0
     for combination, cost, latency, quality in records:
+        # 对称单模型基线只限制分配空间；目标、归一化标尺、约束和调度均保持一致。
+        if assignment_mode == 'single-model' and len({p.model_id for p in combination}) != 1:
+            continue
         if any(p.quality < quality_min for p in combination) or cost > cost_max or latency > latency_max_ms:
             continue
         feasible += 1
@@ -176,6 +182,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         if best_key is None or key < best_key:
             best_key, best = key, (combination, cost, latency, quality, score)
     result = {"policy_version": "node-routing-v2", "method": method,
+              "assignment_mode": assignment_mode,
               "status": "selected" if best else "no-feasible-route", "assignments": {},
               "quality_min_per_node": quality_min, "cost_max": cost_max,
               "latency_max_ms": latency_max_ms, "weights": asdict(weights) if weights else None,

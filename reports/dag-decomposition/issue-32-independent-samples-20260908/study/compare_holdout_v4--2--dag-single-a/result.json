@@ -1,0 +1,444 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.5919579416513443,
+      "start_ms": 19.893832970410585,
+      "end_ms": 10606.285915942863,
+      "queue_ms": 19.30187502875924,
+      "output": "{\"result\":\"一、单位覆盖成本比较\\n小范围方案：投入 28 单位覆盖 7 组，单位覆盖成本约为 4.00 单位/组。\\n全量方案：投入 63 单位覆盖 9 组，单位覆盖成本约为 7.00 单位/组。\\n结论：小范围方案的单位覆盖成本约为全量方案的 57%，在覆盖效率上具有显著优势。\\n\\n二、总投入比较\\n小范围方案总投入 28 单位，全量方案总投入 63 单位，后者是前者的 2.25 倍，绝对投入差额为 35 单位。从总投入角度看，全量方案需要更多资源，对资源约束较紧的环境压力较大。\\n\\n三、调整风险比较\\n小范围方案：每周可收集反馈，具备短周期迭代能力，调整风险较低，能够及时发现并修正问题。\\n全量方案：只有在验收完成后才能调整，而验收时间尚未确定，这意味着在验收之前存在较长的「调整真空期」。在此期间若出现问题，将无法及时修正，调整风险相对较高，且风险持续时间具有不确定性。\\n\\n四、有条件建议\\n1. 若决策目标侧重于控制成本与降低调整风险，优先采用小范围方案。其单位覆盖成本更低，且具备持续反馈与快速调整机制。\\n2. 若决策目标必须实现对全部 9 组的覆盖，则不得不承担全量方案的较高投入与调整风险。建议在启动前明确验收时间表，并预先定义阶段性检查点，以缓解「调整真空期」带来的不确定性；若可分阶段推进（例如先覆盖若干组、形成子集后再扩展），可在保留覆盖目标的同时降低风险。\\n3. 若资源紧张或对调整时效有要求，应避免直接采用全量方案。\\n\\n五、限制说明\\n本分析仅基于材料 A 与材料 B 所提供的数据，未引入任何额外假设来编造收益、成功率或失败概率。\",\"evidence\":\"材料 A：小范围方案投入 28 单位、覆盖 7 组；全量方案投入 63 单位、覆盖 9 组。材料 B：小范围方案每周收集反馈；全量方案只有验收后才能调整，验收时间尚未确定。单位覆盖成本系由材料 A 中的投入与覆盖组数直接相除得出（28÷7≈4.00，63÷9≈7.00），未引入材料以外的数据。\",\"assumptions\":\"1. 「单位覆盖成本」按总投入÷覆盖组数计算，未考虑组间规模差异、时间成本或隐性投入；2. 「调整风险」的比较基于反馈周期长短与调整启动条件，未量化具体失败概率；3. 信息缺口：两组方案的具体覆盖目标是否等同未知，全量方案在验收前是否设有其他阶段性检查点未知；4. 材料未提供预期收益、成功率、失败概率等数据，本分析不予编造。\"}",
+      "latency_ms": 10585,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 19.931540940888226,
+      "start_ms": 173.49004093557596,
+      "end_ms": 6307.403499959037,
+      "queue_ms": 153.55849999468774,
+      "output": "{\"result\": \"两方案在调整风险维度存在结构性差异，需结合覆盖范围与验收节奏综合权衡。【小范围方案】投入 28 单位、覆盖 7 组，单位覆盖 4.0 单位投入（来源：材料 A）；每周可收集反馈，意味着偏差可被早期识别并修正，调整窗口密、纠偏成本可控，调整风险等级低。【全量方案】投入 63 单位、覆盖 9 组，单位覆盖 7.0 单位投入（来源：材料 A），单位投入更高且绝对规模约为小范围的 2.25 倍；同时调整仅发生在验收之后，而验收时间尚未确定（来源：材料 B），意味着偏差可能在长时间内未被察觉并持续累积，调整窗口不可控，调整风险等级高。两方案的差距集中体现在：① 调整时机是否前置；② 是否在偏差放大前获得信号。\\n\\n有条件建议：在全量方案验收时间明确、可被压缩或前置之前，优先采用小范围方案以保留每周反馈的调整通道；若必须采用全量方案，需以验收时间锁定与中途信号机制作为前置条件，否则应暂缓。\\n\\n说明：本节点不进行成本测算，亦未引入收益或失败概率数据。\",\"evidence\": \"材料 A（小范围投入 28 单位、覆盖 7 组；全量投入 63 单位、覆盖 9 组）；材料 B（小范围每周收集反馈；全量仅验收后可调整，验收时间未定）。\",\"assumptions\": \"1) 单位覆盖投入的差异仅作为投入强度的描述性参照，不构成成本结论；2) 调整风险的判断基于反馈频率与验收时点，不依赖未提供的成功/失败概率；3) 信息缺口：全量方案的验收时点、中途信号机制、偏差放大速率均未给出，相关建议因此为有条件建议；4) 信息缺口：两方案的产出指标与目标差异未提供，无法比较方案本身的优劣，仅就调整风险维度作出判断。\"}",
+      "latency_ms": 6132,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 10630.016957991756,
+      "start_ms": 10649.994165985845,
+      "end_ms": 20659.669415908866,
+      "queue_ms": 19.97720799408853,
+      "output": "综合分析与建议\n\n一、两个上游节点的一致性核对\n\n成本与风险两节点在事实层完全对齐：\n- 投入与覆盖数据均来自材料 A（小范围 28/7，全量 63/9），单位覆盖投入 4.0 与 7.0 为直接相除结果，未引入材料以外数据。\n- 调整机制均以材料 B 为据：小范围每周反馈、全量仅验收后可调且验收时间未定。\n- 两节点均明确声明未编造收益、成功率或失败概率。\n\n未见事实性冲突。需注意的差异是定位不同：成本节点把\"单位覆盖成本\"作为效率指标并给出量化比较（57%），风险节点仅将其作为\"投入强度\"的描述性参照而不下成本结论。两者的措辞分歧属于角色分工，不构成冲突。\n\n二、可能的遗漏\n\n1. 7 组与 9 组的语义是否等价不明。材料 A 仅给出组数，未说明两方案覆盖的\"组\"是否同一对象、同一规模。若全量方案覆盖的 9 组包含小范围的 7 组再加 2 组，则增量投入为 35 单位、增量覆盖为 2 组，单位增量覆盖成本高达 17.5 单位/组，效率差距被进一步放大；若是不同集合，则两方案不可比。\n2. 验收时间虽未定，但材料 B 未说明全量方案在验收前是否设有阶段性检查点、中途信号或里程碑式评估。若存在此类机制，\"调整真空期\"的判断需相应修正。\n3. 两方案在覆盖目标、产出指标上的差异未提供，因而无法在\"是否值得为多覆盖 2 组而承担 2.25 倍投入与更高调整风险\"这一权衡上给出量化结论。\n\n三、建议（有条件）\n\nA. 在验收时间未明确之前，优先采用小范围方案。\n依据：单位覆盖成本约低 43%（4.0 vs 7.0），且具备每周反馈的短周期调整通道，调整风险结构性更低。该建议适用于\"控制成本 + 降低调整风险\"的优先目标。\n\nB. 若覆盖全部 9 组为硬性目标，须采用全量方案时，应以三项前置条件为启动门槛，缺一则暂缓：\n  1. 验收时间表必须锁定，并尽量前置或分段；\n  2. 验收之前须设立中途信号机制（阶段性检查点、里程碑评估），以压缩\"调整真空期\"；\n  3. 增量覆盖（2 组）的额外 35 单位投入需有明确资源承担方。\n在满足上述条件前，不建议直接启动全量方案。\n\nC. 若资源紧张或对调整时效敏感，应避免直接采用全量方案。\n依据：绝对投入 2.25 倍且调整窗口不可控，两者叠加构成结构性风险。\n\n四、限制与不确定性\n\n- 本建议不涉及预期收益、成功率或失败概率，材料未提供，亦未编造。\n- \"组\"是否同质、是否可比，是悬而未决的关键假设；若 9 组与 7 组非同质集合，上述比较仅在投入强度层面成立，不构成对方案本身优劣的判断。\n- 全量方案在验收前是否设有中途检查点未知，相关风险描述因此为有条件判断。\n- 单位覆盖成本按\"总投入÷覆盖组数\"计算，未考虑组间规模、时间成本与隐性投入。",
+      "latency_ms": 10006,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "cost": "mid",
+    "risk": "mid",
+    "answer": "mid"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "parents": [],
+        "contract": {
+          "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。"
+  },
+  "final_output": "综合分析与建议\n\n一、两个上游节点的一致性核对\n\n成本与风险两节点在事实层完全对齐：\n- 投入与覆盖数据均来自材料 A（小范围 28/7，全量 63/9），单位覆盖投入 4.0 与 7.0 为直接相除结果，未引入材料以外数据。\n- 调整机制均以材料 B 为据：小范围每周反馈、全量仅验收后可调且验收时间未定。\n- 两节点均明确声明未编造收益、成功率或失败概率。\n\n未见事实性冲突。需注意的差异是定位不同：成本节点把\"单位覆盖成本\"作为效率指标并给出量化比较（57%），风险节点仅将其作为\"投入强度\"的描述性参照而不下成本结论。两者的措辞分歧属于角色分工，不构成冲突。\n\n二、可能的遗漏\n\n1. 7 组与 9 组的语义是否等价不明。材料 A 仅给出组数，未说明两方案覆盖的\"组\"是否同一对象、同一规模。若全量方案覆盖的 9 组包含小范围的 7 组再加 2 组，则增量投入为 35 单位、增量覆盖为 2 组，单位增量覆盖成本高达 17.5 单位/组，效率差距被进一步放大；若是不同集合，则两方案不可比。\n2. 验收时间虽未定，但材料 B 未说明全量方案在验收前是否设有阶段性检查点、中途信号或里程碑式评估。若存在此类机制，\"调整真空期\"的判断需相应修正。\n3. 两方案在覆盖目标、产出指标上的差异未提供，因而无法在\"是否值得为多覆盖 2 组而承担 2.25 倍投入与更高调整风险\"这一权衡上给出量化结论。\n\n三、建议（有条件）\n\nA. 在验收时间未明确之前，优先采用小范围方案。\n依据：单位覆盖成本约低 43%（4.0 vs 7.0），且具备每周反馈的短周期调整通道，调整风险结构性更低。该建议适用于\"控制成本 + 降低调整风险\"的优先目标。\n\nB. 若覆盖全部 9 组为硬性目标，须采用全量方案时，应以三项前置条件为启动门槛，缺一则暂缓：\n  1. 验收时间表必须锁定，并尽量前置或分段；\n  2. 验收之前须设立中途信号机制（阶段性检查点、里程碑评估），以压缩\"调整真空期\"；\n  3. 增量覆盖（2 组）的额外 35 单位投入需有明确资源承担方。\n在满足上述条件前，不建议直接启动全量方案。\n\nC. 若资源紧张或对调整时效敏感，应避免直接采用全量方案。\n依据：绝对投入 2.25 倍且调整窗口不可控，两者叠加构成结构性风险。\n\n四、限制与不确定性\n\n- 本建议不涉及预期收益、成功率或失败概率，材料未提供，亦未编造。\n- \"组\"是否同质、是否可比，是悬而未决的关键假设；若 9 组与 7 组非同质集合，上述比较仅在投入强度层面成立，不构成对方案本身优劣的判断。\n- 全量方案在验收前是否设有中途检查点未知，相关风险描述因此为有条件判断。\n- 单位覆盖成本按\"总投入÷覆盖组数\"计算，未考虑组间规模、时间成本与隐性投入。",
+  "evaluation": {
+    "score": 88,
+    "passed": true,
+    "rationale": "被评估文本正确完成了单位覆盖成本比较（28÷7=4.0、63÷9=7.0）、总投入比较（2.25 倍）与调整风险分析（每周反馈 vs 验收后调整且时间未定），并给出有条件建议（A 优先小范围、B 全量需满足前置条件、C 资源紧张时避免全量），且未编造收益或失败概率，符合任务要求。存在两处小的内部瑕疵：其一，开头用「57%」描述效率差距（(7-4)/4），后文建议 A 又用「约低 43%」（(7-4)/7），两个百分比基准不同且未加说明，虽数值各自成立但表述易混淆；其二，文本包含「两个上游节点的一致性核对」一节，引用了任务材料中不存在的「成本节点」「风险节点」等上游产物，属于超出材料范围的过程性叙述，但未引入事实性错误，且该节对材料 A、B 的复述本身准确。增量分析（35 单位/2 组=17.5 单位/组）明确标注为条件假设（「若全量方案覆盖的 9 组包含小范围的 7 组」），不构成编造。总体而言核心任务完成质量高，瑕疵不影响结论有效性。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "文本准确计算并比较了单位覆盖成本（小范围 4.0 单位/组 vs 全量 7.0 单位/组）与总投入（28 vs 63，2.25 倍），并进一步给出条件化的增量成本分析（35 单位换 2 组，17.5 单位/组），同时指出「组」是否同质这一关键可比性假设，比较全面且有据。唯一瑕疵是 57% 与 43% 两个百分比基准不一致且未说明，但不影响成本比较本身的正确性。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "风险分析紧扣材料 B：小范围每周反馈构成短周期调整通道，全量仅验收后可调且验收时间未定形成「调整真空期」，并谨慎指出材料未说明是否存在中途检查点，故相关判断为有条件判断。建议部分为典型的有条件建议（A/B/C 三情形），每条均标注依据并回溯到材料数据，且明确声明不涉及收益、成功率或失败概率，未编造任何材料外数据。「上游节点核对」一节虽引入任务外叙述，但不构成对风险与建议证据性的损害。"
+      }
+    ]
+  },
+  "routing": {
+    "policy_version": "node-routing-v2",
+    "method": "A",
+    "assignment_mode": "single-model",
+    "status": "selected",
+    "assignments": {
+      "cost": "mid",
+      "risk": "mid",
+      "answer": "mid"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 100,
+    "latency_max_ms": 300000,
+    "weights": null,
+    "normalized_weights": null,
+    "normalization_bounds": {
+      "cost": {
+        "quality": [
+          94.125,
+          94.75
+        ],
+        "cost": [
+          0.274296875,
+          0.452340625
+        ],
+        "latency_ms": [
+          9793,
+          11890
+        ]
+      },
+      "risk": {
+        "quality": [
+          94.125,
+          94.75
+        ],
+        "cost": [
+          0.274296875,
+          0.452340625
+        ],
+        "latency_ms": [
+          9793,
+          11890
+        ]
+      },
+      "answer": {
+        "quality": [
+          94.75,
+          94.75
+        ],
+        "cost": [
+          0.072625,
+          0.7392
+        ],
+        "latency_ms": [
+          9626,
+          14535
+        ]
+      }
+    },
+    "eligible_models": {
+      "cost": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "risk": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "scheduled_latency_bounds_ms": [
+      19519.0,
+      26525.0
+    ],
+    "execution_policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "combinations": 12,
+    "feasible_combinations": 2,
+    "prediction": {
+      "cost": 0.95059375,
+      "serial_latency_ms": 29212,
+      "scheduled_latency_ms": 19519.0,
+      "schedule": {
+        "makespan_ms": 19519.0,
+        "nodes": {
+          "cost": {
+            "start_ms": 0.0,
+            "end_ms": 9793.0,
+            "queue_ms": 0.0
+          },
+          "risk": {
+            "start_ms": 100.0,
+            "end_ms": 9893.0,
+            "queue_ms": 100.0
+          },
+          "answer": {
+            "start_ms": 9893.0,
+            "end_ms": 19519.0,
+            "queue_ms": 0.0
+          }
+        }
+      },
+      "mean_node_quality_proxy": 94.33333333333333,
+      "weighted_score": null
+    },
+    "nodes": {
+      "cost": {
+        "model_id": "mid",
+        "node_type": "synthesis",
+        "quality": 94.125,
+        "cost": 0.274296875,
+        "latency_ms": 9793,
+        "samples": 16,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      },
+      "risk": {
+        "model_id": "mid",
+        "node_type": "synthesis",
+        "quality": 94.125,
+        "cost": 0.274296875,
+        "latency_ms": 9793,
+        "samples": 16,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      },
+      "answer": {
+        "model_id": "mid",
+        "node_type": "generation",
+        "quality": 94.75,
+        "cost": 0.402,
+        "latency_ms": 9626,
+        "samples": 8,
+        "difficulty": "medium",
+        "risk": "high",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      }
+    }
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 2,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.5733749130740762,
+    "peak_running_nodes": 2,
+    "ended_ms": 20685.62274996657,
+    "wall_time_ms": 20685.05145807285
+  },
+  "calls": [
+    {
+      "label": "compare_holdout_v4--2--dag-single-a:cost",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.6502499999999998,
+      "charged": 0.29675,
+      "status": "billed",
+      "input_sha256": "0405714aed47575390b99e83bc17a29a06d82df0474ac557d8a580e1ed85067b",
+      "dispatch_monotonic": 800097.087679208,
+      "input_tokens": 600,
+      "output_tokens": 587,
+      "latency_ms": 10585,
+      "request_id": "02178880209942659e4692ee8689b9dc112ef0a7e12032fdb8549",
+      "finish_reason": "stop",
+      "output_sha256": "c5319686077b8c637f0651a001ed7ea03b7efa0051e0485507cabb02f4992e69"
+    },
+    {
+      "label": "compare_holdout_v4--2--dag-single-a:risk",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.66525,
+      "charged": 0.25275,
+      "status": "billed",
+      "input_sha256": "dbdb6f997e794342e5407504a1f35c0bfe68a43785ab8068e2d175f28984833b",
+      "dispatch_monotonic": 800097.241276041,
+      "input_tokens": 610,
+      "output_tokens": 401,
+      "latency_ms": 6132,
+      "request_id": "02178880209959359e4692ee8689b9dc112ef0a7e12032f5159d7",
+      "finish_reason": "stop",
+      "output_sha256": "fd0ed29c248dc114a15687a4260b7d6463cc200badc26524785665678e7cadb1"
+    },
+    {
+      "label": "compare_holdout_v4--2--dag-single-a:answer",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 3.76425,
+      "charged": 0.5625,
+      "status": "billed",
+      "input_sha256": "e27bcb189ad3f6178792d2e0cc21b6a77ec8fe6a87e10f1a27bd49f21f5c876f",
+      "dispatch_monotonic": 800107.717779708,
+      "input_tokens": 1549,
+      "output_tokens": 701,
+      "latency_ms": 10006,
+      "request_id": "02178880211005891be90b70b1bfc3059428bd07e108b7eb3be49",
+      "finish_reason": "stop",
+      "output_sha256": "660cf653c7f388bacda5f755f100574204b7e319c9323f1a466849c77ade8570"
+    },
+    {
+      "label": "compare_holdout_v4--2--dag-single-a:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.797,
+      "charged": 1.678,
+      "status": "billed",
+      "input_sha256": "f10b16e9d1615ca51b1741be7a2f0e0b229b226b9b420dbec32ffcbbc8a8c748",
+      "dispatch_monotonic": 800117.773745833,
+      "input_tokens": 1092,
+      "output_tokens": 586,
+      "latency_ms": 18377,
+      "request_id": "021788802120103682583ac3749be18cdf4b3a3844330372e2631",
+      "finish_reason": "stop",
+      "output_sha256": "8af7211e62b6c877b33cf6b9f81f089807059525d672a7a573616ccfe2b575af"
+    }
+  ],
+  "wall_time_ms": 39087.40316599142,
+  "critical_path_latency_ms": 20591
+}

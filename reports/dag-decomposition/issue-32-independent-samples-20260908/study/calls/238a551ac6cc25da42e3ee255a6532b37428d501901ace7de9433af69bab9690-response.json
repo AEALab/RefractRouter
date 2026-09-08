@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:2:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案A总投入28（8+4×5），方案B总投入25（20+1×5），预算26，A超支2，B在预算内；风险判断与建议合理且完整。证据字段明确说明数据来自任务描述、无外部来源，未虚构数据；假设字段列出一次性成本、固定组数、预算硬上限及仅基于成本维度的限制，符合「保留证据与假设」「覆盖职责并明确限制」的检查要求。输出为单个JSON对象，字段恰好为result/evidence/assumptions，均为非空字符串，无工具执行声明。轻微不足：建议中「服务4组时总投入为24」属于额外推算，虽正确但略微超出直接要求，且未明确标注为假设情景；不影响通过。\"}",
+  "input_tokens": 983,
+  "output_tokens": 194,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12391,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788801240595f1aca4493aa6c7087a6ccfbfdb4be615c65e06"
+}

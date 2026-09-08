@@ -1,0 +1,24 @@
+{
+  "label": "compare_holdout_v6--1--dag-node-b:cost",
+  "content": "{\n  \"result\": \"分区试行：投入35单位、覆盖5组，单位覆盖成本为7单位/组；整体上线：投入72单位、覆盖8组，单位覆盖成本为9单位/组。因此分区试行单位覆盖成本更低，总投入也更低。但分区试行覆盖范围较小，且材料B显示其流程可每周修订，调整更灵活；整体上线需等到首次验收后才允许调整，而验收日期尚未确定，调整时点存在不确定性。建议：若当前目标是控制成本并保留调整灵活性，优先选择分区试行；若必须尽快覆盖8组且能接受较高单位成本及验收前无法调整的限制，再考虑整体上线。该建议以材料A、B已给数据为条件，不虚构收益或风险概率。\",\n  \"evidence\": \"材料A：分区试行投入35单位、覆盖5组；整体上线投入72单位、覆盖8组。材料B：分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，验收日期尚未确定。\",\n  \"assumptions\": \"假设投入单位与覆盖组数可直接用于计算单位覆盖成本；未提供各组规模、实施周期、人力或其他资源差异，因此成本比较仅基于材料A给出的总投入和覆盖组数。验收日期未确定，无法估计整体上线调整延迟的具体时长或概率。\"\n}",
+  "input_tokens": 479,
+  "output_tokens": 285,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8000,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788805022726682583ac3749be18cdf4b3a38443303736dbfd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 285,
+    "prompt_tokens": 479,
+    "total_tokens": 764,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

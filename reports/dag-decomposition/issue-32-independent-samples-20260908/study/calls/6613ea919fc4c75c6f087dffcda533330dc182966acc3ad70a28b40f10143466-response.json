@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:risk:strong:judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的 result、evidence、assumptions，均为非空字符串，无多余字段或围栏。计算正确：方案 A 总投入 = 8 + 4 × 5 = 28，超预算 26 缺口 2；方案 B 总投入 = 20 + 1 × 5 = 25，结余 1，与上游 cost 节点一致，未虚构数据。evidence 明确标注合成场景无原始材料并引用任务与上游来源，assumptions 列出组数、成本构成、无单位等限制，满足「保留证据与假设」「覆盖职责并明确限制」的检查要求。未声称执行工具或检索新事实。仅微小措辞差异（如「低于可用预算 26，结余 1」表述略简），不影响正确性。\"}",
+  "input_tokens": 1297,
+  "output_tokens": 211,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8328,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888010553878878e6c95084a12b4d57c4d96cb06f1da3bef5"
+}

@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始JSON对象，键集合恰好为result、evidence、assumptions，均为非空字符串，符合输出契约。成本计算正确（12/2=6，40/8=5），覆盖成本与风险比较、条件化建议均覆盖节点职责。evidence保留原始材料来源，assumptions明确计算口径假设、信息缺口（培训成本、时间成本未提供）与风险未量化的不确定性，未虚构数据，未声称执行工具或检索新事实。字段值中未出现未转义的英文双引号。轻微不足：建议部分「优先考虑全面推广」的倾向性略强，但已明确以培训保障和风险控制条件为前提，符合「建议应明确条件」的要求。\"}",
+  "input_tokens": 921,
+  "output_tokens": 180,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8417,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788797368060d6f60410e67e178f28d968f0420b51c32e780c"
+}

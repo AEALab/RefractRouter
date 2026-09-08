@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-single-b:final-judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"计算准确：方案A总投入46单位（22+4×6），余额+2；方案B总投入49单位（37+2×6），缺口−1。预算判断与建议正确，明确仅A可在硬预算内执行，B超支1单位不建议直接采用；对B的调整建议（追加1单位或缩至5周）明确标注为超出题目给定条件、需另行确认，未引入未给出的优惠、收益或额外预算。约束说明完整。轻微问题：答案引用「上游cost、risk节点」等原始材料来源，属于任务未提供的上下文表述，但不影响计算与结论的正确性。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案A：22+4×6=46，余额+2；方案B：37+2×6=49，缺口−1，算式与数值均正确。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"正确判定A在预算内盈余2、B超支1；建议采用A，B需追加1单位预算或压缩周期（如5周为47）方可行，且明确该调整超出题目条件，符合不引入额外预算的要求。\"}]}",
+  "input_tokens": 741,
+  "output_tokens": 286,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10072,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788806006851640844006c495b97e3327b5d9afec8566616fe",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 286,
+    "prompt_tokens": 741,
+    "total_tokens": 1027,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

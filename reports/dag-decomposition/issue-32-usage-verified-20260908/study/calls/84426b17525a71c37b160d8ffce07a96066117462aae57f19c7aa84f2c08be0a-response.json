@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-strong-parallel--strong:cost",
+  "content": "{\n  \"result\": \"方案 A：固定投入 22 单位，6 周运行费为 4×6=24 单位，总投入为 22+24=46 单位。方案 B：固定投入 37 单位，6 周运行费为 2×6=12 单位，总投入为 37+12=49 单位。总预算为 48 单位。方案 A 预算余额为 48-46=2 单位，可满足预算约束。方案 B 预算缺口为 49-48=1 单位，超出预算 1 单位，不满足预算约束。建议：若必须满足 48 单位预算，应选择方案 A；方案 B 需压缩至少 1 单位成本或增加至少 1 单位预算后才能采用。本分析仅基于题目给出的固定投入、每周运行费、6 周运行期和 48 单位总预算，不引入任何未给出的优惠、收益或额外预算。\",\n  \"evidence\": \"题目文本：方案 A 固定投入 22 单位，每周运行费 4 单位；方案 B 固定投入 37 单位，每周运行费 2 单位；计划运行 6 周，总预算 48 单位。\",\n  \"assumptions\": \"假设 6 周内每周都产生完整运行费，无中断或减免；假设固定投入为一次性支出；假设预算仅用于覆盖固定投入和 6 周运行费。未给出其他成本项、优惠、收益或额外预算，因此未纳入计算。\"\n}",
+  "input_tokens": 475,
+  "output_tokens": 337,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6991,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178880613023240d92d5266a85c14e28416df297f1b20efdd1f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 337,
+    "prompt_tokens": 475,
+    "total_tokens": 812,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

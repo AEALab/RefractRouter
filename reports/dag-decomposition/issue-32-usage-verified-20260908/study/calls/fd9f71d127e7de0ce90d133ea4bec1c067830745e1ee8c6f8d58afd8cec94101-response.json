@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-strong-parallel--strong:final-judge",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本正确计算方案A总投入46单位、余额2单位，方案B总投入49单位、缺口1单位；明确说明6周每周计费、固定投入一次性、不引入未给出的优惠收益或额外预算，并给出A可执行、B不可直接执行及若采用B需调整条件的有条件建议。未发现错误、遗漏或不实工具执行声明。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案A为22+4×6=46单位，方案B为37+2×6=49单位，计算准确。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"相对48单位预算，A余额2单位，B缺口1单位；建议A可执行，B需压缩周数、降低投入或增加至少1单位预算，且未引入额外假设。\"}]}",
+  "input_tokens": 579,
+  "output_tokens": 210,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8944,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888059856127820404c56ac6dd9ce215ba8b602495a4eaa47",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 210,
+    "prompt_tokens": 579,
+    "total_tokens": 789,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

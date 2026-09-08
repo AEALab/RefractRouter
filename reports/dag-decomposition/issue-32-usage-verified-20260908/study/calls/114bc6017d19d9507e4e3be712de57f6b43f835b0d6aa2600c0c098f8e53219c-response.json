@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-strong-serial--strong:cost",
+  "content": "{\n  \"result\": \"方案 A：固定投入 22 单位，6 周运行费为 4×6=24 单位，总投入为 22+24=46 单位。总预算 48 单位，余额为 48-46=2 单位，满足预算约束。方案 B：固定投入 37 单位，6 周运行费为 2×6=12 单位，总投入为 37+12=49 单位。总预算 48 单位，缺口为 49-48=1 单位，不满足预算约束。建议：若必须运行 6 周且预算不可调整，应选择方案 A；方案 B 需压缩 1 单位成本、缩短运行时间或增加预算后方可执行。\",\n  \"evidence\": \"任务文本中给出的数据：方案 A 固定投入 22 单位、每周运行费 4 单位；方案 B 固定投入 37 单位、每周运行费 2 单位；计划运行 6 周；总预算 48 单位。未使用任何外部来源。\",\n  \"assumptions\": \"假设运行费在整个 6 周内按固定周费率线性累计，且固定投入为一次性支出；假设总预算 48 单位是两方案各自可用的同一预算上限；未考虑折扣、收益、资金时间价值或其他额外预算。\"\n}",
+  "input_tokens": 475,
+  "output_tokens": 295,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6200,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178880587540440d92d5266a85c14e28416df297f1b2017818b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 295,
+    "prompt_tokens": 475,
+    "total_tokens": 770,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "label": "cash_cal_b--1--calibration--strong:final-judge",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"方案 A 总投入=8+4×5=28，方案 B 总投入=20+1×5=25，计算均正确；与预算 26 比较得出 A 缺口 2、B 剩余 1，风险判断与有条件建议（优先 B；若选 A 需追加至少 2 或压缩成本）完整且一致。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"文本给出「方案 A：总投入 28」「方案 B：总投入 25」，与 8+4×5=28、20+1×5=25 相符，计算准确。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"文本指出 A 超过预算 26、缺口 2、风险较高不建议直接采用；B 低于预算、剩余 1、风险较低可优先采用；并给出若必须采用 A 需追加至少 2 预算或压缩投入的条件化建议，满足要求。\"}]}",
+  "input_tokens": 535,
+  "output_tokens": 241,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8462,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888009698194c81961e630bce638d970dc2753358735df968"
+}

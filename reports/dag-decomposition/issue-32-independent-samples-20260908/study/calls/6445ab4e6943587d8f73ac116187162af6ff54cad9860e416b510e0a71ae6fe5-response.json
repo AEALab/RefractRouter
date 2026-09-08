@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:2:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出严格遵循契约：JSON 键集合恰好为 result、evidence、assumptions，无额外字段，无 Markdown 围栏，字符串转义正确。成本计算正确（12/2=6，40/8=5），比较了单位覆盖成本并结合材料 B 的风险（试点便于纠错、全面推广培训不足），建议明确条件，符合任务要求。证据字段完整引用原材料，假设字段明确说明成本口径一致的假设及培训成本、纠错成本、时间周期等信息缺口，未虚构数据，未声称执行工具，覆盖了节点职责并明确限制。轻微不足：evidence 字段未显式标注「材料 A」「材料 B」的来源标识结构（虽然内容中包含了），以及 result 中引用原文时未使用「」中文引号（但字段值中未出现未转义英文双引号，未违反硬性要求）。整体质量高。\"}",
+  "input_tokens": 959,
+  "output_tokens": 212,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11648,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788799696146e4d5e3acd6b6d5c09c835e2d36b9596cdb86ef"
+}

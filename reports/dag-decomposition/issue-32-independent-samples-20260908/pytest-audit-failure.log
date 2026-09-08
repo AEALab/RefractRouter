@@ -1,0 +1,67 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/chun-hsianglee/.codex/worktrees/62ed/RefractRouter
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.12.1, anyio-4.15.0
+collected 272 items
+
+tests/test_benchmark.py .......                                          [  2%]
+tests/test_comparison_cohorts.py ..............                          [  7%]
+tests/test_contract_replay.py ................                           [ 13%]
+tests/test_dag_batch_study.py ...F                                       [ 15%]
+tests/test_dag_handoff.py ...                                            [ 16%]
+tests/test_dag_study.py ........                                         [ 19%]
+tests/test_dag_study_report.py ....                                      [ 20%]
+tests/test_dataset.py .                                                  [ 20%]
+tests/test_deepagents_executor.py .                                      [ 21%]
+tests/test_dsh_canonical_runner.py ..                                    [ 22%]
+tests/test_dsh_live_failures.py ..                                       [ 22%]
+tests/test_dsh_plugin.py ....                                            [ 24%]
+tests/test_dsh_real_runner.py ....                                       [ 25%]
+tests/test_dsh_runner.py .                                               [ 26%]
+tests/test_finalize_real.py .                                            [ 26%]
+tests/test_graph_executor.py ...                                         [ 27%]
+tests/test_judge.py ..                                                   [ 28%]
+tests/test_manifest.py ..                                                [ 29%]
+tests/test_model_catalog.py ...                                          [ 30%]
+tests/test_model_registry.py ..                                          [ 30%]
+tests/test_model_selection.py ...................                        [ 37%]
+tests/test_node_quality.py ................                              [ 43%]
+tests/test_node_selection_policy.py ............                         [ 48%]
+tests/test_openai_compatible.py ...........                              [ 52%]
+tests/test_oracles.py ..                                                 [ 52%]
+tests/test_profile_strata.py .............                               [ 57%]
+tests/test_real_runner.py ......                                         [ 59%]
+tests/test_report_renderer.py .                                          [ 60%]
+tests/test_routing.py ...                                                [ 61%]
+tests/test_scoring.py .....                                              [ 63%]
+tests/test_source_pack.py ...                                            [ 64%]
+tests/test_symmetric_routing.py ...                                      [ 65%]
+tests/test_task_concurrency.py ..................                        [ 72%]
+tests/test_task_decomposition.py ....................................... [ 86%]
+...                                                                      [ 87%]
+tests/test_text_handoff_replay.py ........                               [ 90%]
+tests/test_text_tasks.py ..........................                      [100%]
+
+=================================== FAILURES ===================================
+___ test_real_batch_keeps_failed_baseline_in_outcomes_but_not_quality_pairs ____
+
+    def test_real_batch_keeps_failed_baseline_in_outcomes_but_not_quality_pairs():
+        archive=ROOT/'reports/dag-decomposition/issue-32-independent-samples-20260908/study'
+        result=json.loads((archive/'study-result.json').read_text())
+        assert result['status']=='completed' and result['comparison']['complete']
+        tests=[r for r in result['runs'] if r['split']=='test']
+        assert len(tests)==72
+        failed=next(r for r in tests if (r['task_id'],r['repeat'],r['method'])==('cash_holdout_v4',2,'dag-single-b'))
+        assert failed['status']=='failed' and failed['score'] is None and not failed['delivered']
+        raw=json.loads((archive/failed['result_path']).read_text())
+        assert raw['execution']['not_started']==['risk','answer']
+        assert len(raw['calls'])==1 and raw['calls'][0]['status']=='billed'
+>       assert failed['deployment_cost']>0
+E       assert 0.0 > 0
+
+tests/test_dag_batch_study.py:107: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_dag_batch_study.py::test_real_batch_keeps_failed_baseline_in_outcomes_but_not_quality_pairs
+======================== 1 failed, 271 passed in 41.94s ========================

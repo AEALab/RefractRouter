@@ -1,0 +1,49 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/chun-hsianglee/.codex/worktrees/62ed/RefractRouter
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.12.1, anyio-4.15.0
+collected 301 items
+
+tests/test_benchmark.py .......                                          [  2%]
+tests/test_comparison_cohorts.py ..............                          [  6%]
+tests/test_contract_replay.py ................                           [ 12%]
+tests/test_dag_batch_study.py .....                                      [ 13%]
+tests/test_dag_handoff.py ...                                            [ 14%]
+tests/test_dag_study.py ........                                         [ 17%]
+tests/test_dag_study_report.py .....                                     [ 19%]
+tests/test_dataset.py .                                                  [ 19%]
+tests/test_deepagents_executor.py .                                      [ 19%]
+tests/test_dsh_canonical_runner.py ..                                    [ 20%]
+tests/test_dsh_live_failures.py ..                                       [ 21%]
+tests/test_dsh_plugin.py ....                                            [ 22%]
+tests/test_dsh_real_runner.py ....                                       [ 23%]
+tests/test_dsh_runner.py .                                               [ 24%]
+tests/test_finalize_real.py .                                            [ 24%]
+tests/test_graph_executor.py ...                                         [ 25%]
+tests/test_judge.py ..                                                   [ 26%]
+tests/test_manifest.py ..                                                [ 26%]
+tests/test_model_catalog.py ...                                          [ 27%]
+tests/test_model_registry.py ..                                          [ 28%]
+tests/test_model_selection.py ...................                        [ 34%]
+tests/test_node_quality.py ................                              [ 40%]
+tests/test_node_recovery.py ......................                       [ 47%]
+tests/test_node_selection_policy.py ............                         [ 51%]
+tests/test_openai_compatible.py ...........                              [ 55%]
+tests/test_oracles.py ..                                                 [ 55%]
+tests/test_profile_strata.py .............                               [ 60%]
+tests/test_real_runner.py ......                                         [ 62%]
+tests/test_report_renderer.py .                                          [ 62%]
+tests/test_routing.py ...                                                [ 63%]
+tests/test_scoring.py .....                                              [ 65%]
+tests/test_source_pack.py ...                                            [ 66%]
+tests/test_symmetric_routing.py ...                                      [ 67%]
+tests/test_task_concurrency.py ..................                        [ 73%]
+tests/test_task_decomposition.py ....................................... [ 86%]
+...                                                                      [ 87%]
+tests/test_text_handoff_replay.py ........                               [ 89%]
+tests/test_text_tasks.py ..........................                      [ 98%]
+tests/test_usage_integrity.py .....                                      [100%]
+
+============================= 301 passed in 46.72s =============================

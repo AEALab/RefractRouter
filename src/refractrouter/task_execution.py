@@ -7,6 +7,7 @@ import time
 from threading import Lock
 
 from .task_contracts import decode_output
+from .task_budget import InvalidModelOutput
 from .task_scheduling import available
 
 
@@ -45,7 +46,17 @@ def node_messages(task, node, contract, context):
 
 
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
-                  *, started, deadline, cancel_event=None, label_prefix=""):
+                  *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None):
+    if recovery is not None and production_cap is None:
+        production_cap = budget.limits['production']
+    assignments = dict(assignments)
+    attempted = {n.node_id: [] for n in plan.nodes}
+    if recovery is not None:
+        result['initial_assignments'] = dict(assignments)
+        result['assignments'] = assignments
+        result['node_attempts'] = []
+        result['recovery'] = {'policy_version': 'node-fallback-v1',
+                              'max_node_fallbacks': recovery.max_fallbacks, 'events': []}
     order = plan.order()
     nodes = {n.node_id: n for n in plan.nodes}
     pending, completed, active, futures = set(order), set(), {}, {}
@@ -55,6 +66,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
     actual_starts = {}
     execution = {'policy': policy.to_dict(), 'peak_active_nodes': 0, 'not_started': [],
                  'failure_policy': 'stop-dispatch-and-drain', 'started_ms': (time.monotonic() - started) * 1000}
+    if recovery is not None:
+        execution['failure_policy'] = 'bounded-node-fallback-then-stop-and-drain'
     result['execution'] = execution
 
     def elapsed():
@@ -81,6 +94,30 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
             return response, None, begin, elapsed()
         except Exception as exc:
             return None, exc, begin, elapsed()
+
+    def recover(nid, row, exc):
+        if (recovery is None or len(attempted[nid]) > recovery.max_fallbacks
+                or budget.stopped or time.monotonic() >= deadline
+                or (cancel_event is not None and cancel_event.is_set())):
+            return False
+        spent, calls = budget.snapshot()
+        if any(c['status'] == 'unknown-usage' and c['label'] == row['call_label'] for c in calls):
+            return False
+        messages = node_messages(task, nodes[nid], plan.contracts.get(nid), context)
+        input_bound = len(json.dumps(messages, ensure_ascii=False).encode()) + 256
+        mid = recovery.choose(nid, assignments, set(attempted[nid]), completed, active,
+            spent=spent['production'], cost_limit=min(budget.limits['production'], production_cap),
+            remaining_ms=max(0, (deadline-time.monotonic())*1000), input_bound=input_bound)
+        if mid is None:
+            row['recovery_status'] = 'no-feasible-replacement'
+            return False
+        result['recovery']['events'].append({'node_id': nid, 'from_model': assignments[nid],
+            'to_model': mid, 'reason': type(exc).__name__, 'after_attempt': len(attempted[nid])})
+        row['recovery_status'] = 'replacement-selected'
+        assignments[nid] = mid
+        pending.add(nid)
+        ready_at[nid] = elapsed()
+        return True
 
     def stop(exc):
         nonlocal failure
@@ -109,14 +146,22 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                     try:
                         contract = plan.contracts.get(nid)
                         messages = node_messages(task, nodes[nid], contract, context)
-                        reservation = budget.reserve(model, messages, label=label_prefix+nid,
-                            json_mode=bool(contract and contract['output']['format'] == 'json'))
+                        attempt = len(attempted[nid]) + 1
+                        label = label_prefix+nid+(f':attempt-{attempt}' if attempt > 1 else '')
+                        reservation = budget.reserve(model, messages, label=label,
+                            json_mode=bool(contract and contract['output']['format'] == 'json'),
+                            category_limit=production_cap)
                         row = {'node_id': nid, 'model_id': model.model_id, 'provider': model.provider,
                                'status': 'scheduled', 'semantic_status': 'not-evaluated', 'ready_ms': ready_at[nid]}
+                        attempted[nid].append(model.model_id)
+                        if recovery is not None:
+                            row.update(attempt=attempt, call_label=label)
+                            result['node_attempts'].append(row)
+                            result['nodes'][:] = [r for r in result['nodes'] if r['node_id'] != nid]
                         result['nodes'].append(row)
                         persist()  # 先保存预留，进程被宿主终止后仍能追踪未确认费用。
                         future = executor.submit(invoke, reservation)
-                        futures[future] = (nid, row)
+                        futures[future] = (nid, row, reservation)
                         pending.remove(nid)
                         active[nid] = model.provider
                         last_start[model.provider] = elapsed()
@@ -132,26 +177,31 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                 continue
             done, _ = wait(futures, timeout=.02, return_when=FIRST_COMPLETED)
             for future in sorted(done, key=lambda f: order.index(futures[f][0])):
-                nid, row = futures.pop(future)
+                nid, row, reservation = futures.pop(future)
                 del active[nid]
                 response, error, begin, end = future.result()
                 row.update(start_ms=begin, end_ms=end, queue_ms=max(0, begin - row['ready_ms']))
                 if error is not None:
                     row['status'] = 'cancelled-before-dispatch' if isinstance(error, CancelledError) else 'failed'
-                    stop(error)
+                    if not (isinstance(error, InvalidModelOutput) and reservation.row['status'] == 'billed'
+                            and recover(nid, row, error)):
+                        stop(error)
                 else:
                     row.update(status='invalid-output', output=response.content, latency_ms=response.latency_ms)
                     try:
                         contract = plan.contracts.get(nid)
                         context[nid] = decode_output(response.content, contract) if contract else response.content
                         row.update(status='ok', contract_status='structure-valid' if contract else 'legacy-unchecked')
-                        critical[nid] = max((critical[p] for p in nodes[nid].parents), default=0) + response.latency_ms
+                        failed_latency = sum(r['end_ms']-r['start_ms'] for r in result.get('node_attempts', [])
+                                             if r['node_id'] == nid and r is not row and 'end_ms' in r)
+                        critical[nid] = max((critical[p] for p in nodes[nid].parents), default=0) + response.latency_ms + failed_latency
                         completed.add(nid)
-                    except Exception as exc:
-                        stop(exc)
+                    except ValueError as exc:
+                        if not recover(nid, row, exc):
+                            stop(exc)
                 persist()
     count = peak = 0
-    events = sorted((timestamp, delta) for row in result['nodes'] if 'start_ms' in row and row['status'] != 'cancelled-before-dispatch'
+    events = sorted((timestamp, delta) for row in result.get('node_attempts', result['nodes']) if 'start_ms' in row and row['status'] != 'cancelled-before-dispatch'
                     for timestamp, delta in ((row['start_ms'], 1), (row['end_ms'], -1)))
     for _, delta in events:
         count += delta

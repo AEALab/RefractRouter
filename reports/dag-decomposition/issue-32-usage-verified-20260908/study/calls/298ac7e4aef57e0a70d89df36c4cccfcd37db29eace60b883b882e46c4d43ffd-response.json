@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-node-b:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入 46 单位，预算余额 2 单位；方案 B 总投入 49 单位，预算缺口 1 单位。在 6 周、总预算 48 单位的条件下，方案 A 可满足预算并剩余 2 单位；方案 B 超出预算 1 单位，不可直接执行。若必须采用方案 B，需要压缩运行周数、降低固定投入或增加预算，但题目未给出这些调整选项，因此不能假设其可行。\",\n  \"evidence\": \"上游 cost 节点 result 已给出两方案总投入及余额或缺口计算，且其 evidence 声明数据均来自任务文本：方案 A 固定投入 22 单位、每周运行费 4 单位；方案 B 固定投入 37 单位、每周运行费 2 单位；计划运行 6 周；总预算 48 单位。本节点未引入额外数据。\",\n  \"assumptions\": \"沿用上游 cost 节点假设：运行费按整周线性计算，固定投入为一次性支出；未考虑题目未给出的优惠、收益、折现、税费或额外预算。\"\n}",
+  "input_tokens": 808,
+  "output_tokens": 253,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4980,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888061094103f04613060c95c0e1cb70b4f628471a928b853",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 253,
+    "prompt_tokens": 808,
+    "total_tokens": 1061,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

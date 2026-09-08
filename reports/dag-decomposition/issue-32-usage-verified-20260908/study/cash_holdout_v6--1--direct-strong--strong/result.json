@@ -1,0 +1,138 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.056541990488767624,
+      "start_ms": 7.9142500180751085,
+      "end_ms": 7268.850416992791,
+      "queue_ms": 7.857708027586341,
+      "output": "方案 A：固定投入 22 单位，每周运行费 4 单位，计划运行 6 周。  \n总投入 = 22 + 4 × 6 = 22 + 24 = 46 单位。  \n总预算 48 单位，预算余额 = 48 - 46 = 2 单位。  \n因此方案 A 可行，运行 6 周后仍有 2 单位预算余额。\n\n方案 B：固定投入 37 单位，每周运行费 2 单位，计划运行 6 周。  \n总投入 = 37 + 2 × 6 = 37 + 12 = 49 单位。  \n总预算 48 单位，预算缺口 = 49 - 48 = 1 单位。  \n因此方案 B 不可行，按 6 周运行计算会超出预算 1 单位。\n\n约束与建议：  \n在总预算 48 单位、计划运行 6 周的前提下，方案 A 满足预算约束，且留有 2 单位余额；方案 B 不满足预算约束，存在 1 单位缺口。若只能选择方案 B，则需要缩短运行时间或降低固定投入、每周运行费，但题目未给出这些调整选项，因此不能假设存在优惠、额外收益或追加预算。基于现有数据，应优先选择方案 A。\n\n证据与假设：  \n计算仅基于题目给出的固定投入、每周运行费和计划运行周数，未引入任何未给出的优惠、收益或额外预算。总投入按“固定投入 + 每周运行费 × 周数”计算。",
+      "latency_ms": 7258,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "直接完成原始任务，给出完整文本答案、证据与假设。",
+        "parents": [],
+        "contract": {
+          "objective": "一次模型调用完成原始任务",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确计算两个方案总投入",
+      "根据预算判断缺口并给出有条件建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务单次调用对照，不使用模型规划。"
+  },
+  "final_output": "方案 A：固定投入 22 单位，每周运行费 4 单位，计划运行 6 周。  \n总投入 = 22 + 4 × 6 = 22 + 24 = 46 单位。  \n总预算 48 单位，预算余额 = 48 - 46 = 2 单位。  \n因此方案 A 可行，运行 6 周后仍有 2 单位预算余额。\n\n方案 B：固定投入 37 单位，每周运行费 2 单位，计划运行 6 周。  \n总投入 = 37 + 2 × 6 = 37 + 12 = 49 单位。  \n总预算 48 单位，预算缺口 = 49 - 48 = 1 单位。  \n因此方案 B 不可行，按 6 周运行计算会超出预算 1 单位。\n\n约束与建议：  \n在总预算 48 单位、计划运行 6 周的前提下，方案 A 满足预算约束，且留有 2 单位余额；方案 B 不满足预算约束，存在 1 单位缺口。若只能选择方案 B，则需要缩短运行时间或降低固定投入、每周运行费，但题目未给出这些调整选项，因此不能假设存在优惠、额外收益或追加预算。基于现有数据，应优先选择方案 A。\n\n证据与假设：  \n计算仅基于题目给出的固定投入、每周运行费和计划运行周数，未引入任何未给出的优惠、收益或额外预算。总投入按“固定投入 + 每周运行费 × 周数”计算。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本正确计算方案 A 总投入为 22+4×6=46，预算余额 2；方案 B 总投入为 37+2×6=49，缺口 1；并据此判断 A 可行、B 不可行，建议优先选择 A，同时明确未引入优惠、收益或额外预算。两项验收标准均满足。",
+    "criteria": [
+      {
+        "criterion": "准确计算两个方案总投入",
+        "passed": true,
+        "rationale": "方案 A 计算为「22 + 4 × 6 = 46」，方案 B 计算为「37 + 2 × 6 = 49」，与给定数据一致。"
+      },
+      {
+        "criterion": "根据预算判断缺口并给出有条件建议",
+        "passed": true,
+        "rationale": "文本明确方案 A 余额 2、方案 B 缺口 1，并说明在预算 48、运行 6 周约束下应优先选择 A；对 B 仅提出需缩短运行时间或降低投入/运行费，且强调题目未给这些选项，未假设优惠、收益或追加预算。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.03754207864403725,
+    "peak_running_nodes": 1,
+    "ended_ms": 7285.699375090189,
+    "wall_time_ms": 7285.66375002265
+  },
+  "calls": [
+    {
+      "label": "cash_holdout_v6--1--direct-strong--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.4802,
+      "charged": 0.3751,
+      "status": "billed",
+      "input_sha256": "2c602f9b0f6a92b9be8da1c9916e052638fc0933871a45c58c6012796b42aadf",
+      "dispatch_monotonic": 803705.0544355,
+      "input_tokens": 345,
+      "output_tokens": 337,
+      "latency_ms": 7258,
+      "request_id": "0217888057074057093713527b8c530401a403eec8fc152d2057e",
+      "finish_reason": "stop",
+      "output_sha256": "db1eb94b19f33036675b417b949748d7c0aa38031ed1607dd3bdbd904bc6791e"
+    },
+    {
+      "label": "cash_holdout_v6--1--direct-strong--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 10.809000000000001,
+      "charged": 0.92,
+      "status": "billed",
+      "input_sha256": "d33c4f69ec5767f6e104b52293caf070dee62b6e789bf3eff878516d5a93fde1",
+      "dispatch_monotonic": 803712.348174791,
+      "input_tokens": 672,
+      "output_tokens": 248,
+      "latency_ms": 9476,
+      "request_id": "021788805714683795aa3a4ba36fe885727fc31a219ca25533ef4",
+      "finish_reason": "stop",
+      "output_sha256": "17c5ecdd5413ceb129cb5ed3336e8cc304a8608a87bb35d98e9c39aca2c09549"
+    }
+  ],
+  "wall_time_ms": 16780.10625008028,
+  "critical_path_latency_ms": 7258
+}

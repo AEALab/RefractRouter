@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-calibrated-single--strong:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入为 46 单位，预算余额为 2 单位，可在 48 单位预算内完整执行 6 周。方案 B 总投入为 49 单位，预算缺口为 1 单位，在现有 48 单位预算下不可完整执行 6 周。资金不足风险集中在方案 B：若坚持采用方案 B，需要额外 1 单位预算，或缩短运行时间、降低每周运行费或调整固定投入；本分析不引入未给出的优惠、收益或额外预算来源。\",\n  \"evidence\": \"原始材料为任务文本及上游 cost 节点输出，未提供外部来源或额外证据。\",\n  \"assumptions\": \"假设 6 周为完整计划运行周期，每周运行费在 6 周内保持不变；假设总预算 48 单位覆盖固定投入与全部运行费；未考虑任何未给出的折扣、收益、追加预算或跨方案组合。\"\n}",
+  "input_tokens": 820,
+  "output_tokens": 211,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4667,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788805922874efca7158d8a072a352f4e6ec3154e35a2252e5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 211,
+    "prompt_tokens": 820,
+    "total_tokens": 1031,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

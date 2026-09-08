@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-calibrated-single--strong:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入为 46 单位，低于总预算 48 单位，预算余额为 2 单位，不存在资金不足风险。方案 B 总投入为 49 单位，高于总预算 48 单位，预算缺口为 1 单位，存在资金不足风险。约束条件为总预算 48 单位必须覆盖固定投入和 6 周运行费。建议优先选择方案 A；若必须采用方案 B，则需至少压缩 1 单位成本或另行解决 1 单位预算缺口，否则不可执行。\",\n  \"evidence\": \"本节点无上游原始材料，所有数值均来自任务描述中的给定数据：方案 A 固定投入 22、每周运行费 4；方案 B 固定投入 37、每周运行费 2；计划运行 6 周；总预算 48。上游 cost 节点已给出相同计算结果，本节点仅进行一致性检查与风险判断。\",\n  \"assumptions\": \"假设运行周数固定为 6 周，且每周运行费在 6 周内保持不变；假设总预算 48 单位覆盖固定投入与全部运行费；未考虑任何优惠、收益、折现或额外预算来源。\"\n}",
+  "input_tokens": 795,
+  "output_tokens": 269,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5238,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888061622267093713527b8c530401a403eec8fc152c6ddc3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 269,
+    "prompt_tokens": 795,
+    "total_tokens": 1064,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

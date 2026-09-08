@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:2:cost:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出严格遵循契约：JSON 对象键集合恰好为 {result, evidence, assumptions}，无额外字段，所有值为非空字符串，转义与中文引号使用规范。内容方面，成本计算正确（18÷3=6、42÷7=6，与材料 B「单位成本相同」一致），资源需求对比（42÷18≈2.33 倍）准确，基于材料 B 的风险收益特征与条件式建议均紧扣材料，未虚构数据。evidence 字段明确标注材料 A/B 来源及用途，assumptions 字段列出计量口径、信息缺口（时间跨度、组间规模、阈值缺失）等不确定性，满足「保留证据与假设」「覆盖职责并明确限制」的检查要求。未声称执行工具或检索新事实。轻微扣分点：42÷18 表述为「2.33 倍」为四舍五入近似值（实际约 2.333），虽不影响结论但精度可更严谨；此外「两阶段策略总投入上限 60 单位」属合理推断但材料未明确两阶段可叠加，已在假设限制范围内，整体质量高。\"}",
+  "input_tokens": 1445,
+  "output_tokens": 270,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11536,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178880025853996de9f55314d9c1d75ac853e3e9cad7e49d4fc"
+}

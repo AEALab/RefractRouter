@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--1--dag-node-a:final-judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"被评估文本准确完成了原始任务的全部要求：方案 A 总投入 22+6×4=46 单位、预算余额 2 单位，方案 B 总投入 37+6×2=49 单位、预算缺口 1 单位，计算正确；明确识别预算 48 单位为硬约束，给出有条件建议（选 A；若必须用 B 需削减至少 1 单位成本），且声明不引入未给出的优惠、收益或额外预算，并说明了假设与不确定性。文本中「综合核对上游 cost 与 risk 两个节点」的表述属于元叙述，但任务本身未禁止此类表述，且其内容与实际计算一致，不构成不实声明。两条验收标准均满足。\", \"criteria\": [{\"criterion\": \"准确计算两个方案总投入\", \"passed\": true, \"rationale\": \"方案 A 总投入 22+6×4=46 单位、方案 B 总投入 37+6×2=49 单位，计算准确，并给出余额 2 单位与缺口 1 单位。\"}, {\"criterion\": \"根据预算判断缺口并给出有条件建议\", \"passed\": true, \"rationale\": \"正确判断 A 在 48 单位预算内结余 2 单位、B 超支 1 单位不满足约束；建议选 A，若必须用 B 需削减至少 1 单位成本，属于有条件建议，且未引入额外预算或优惠。\"}]}",
+  "input_tokens": 755,
+  "output_tokens": 336,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12844,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888058070807093713527b8c530401a403eec8fc152dfff71",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 336,
+    "prompt_tokens": 755,
+    "total_tokens": 1091,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

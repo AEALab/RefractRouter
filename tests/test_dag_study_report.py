@@ -31,3 +31,20 @@ def test_partial_holdout_reports_observed_tasks_and_failed_attempt():
     assert '已保存结果的测试运行 17 次，其中执行失败 1 次' in text
     assert '| dag-node-a | 2/9 | 1 | 2 | 0 |' in text
     assert '配对证据不足' in text
+
+
+def test_symmetric_study_stopped_in_calibration_has_no_routing_conclusion():
+    text = summarize_study(ROOT/'reports/dag-decomposition/issue-32-fair-baselines-20260908/study')
+    assert '已取得评分的测试运行 0/72' in text
+    assert '| dag-single-a | 0/9 |' in text and '| dag-single-b | 0/9 |' in text
+    assert '4.04120000' in text and '9.02400000' in text
+    assert '不等于优化过的一次调用整任务路由' in text
+    assert '配对证据不足' in text and '达到探索性门槛' not in text
+
+
+def test_old_zero_usage_ledger_cannot_be_rendered_as_confirmed_free_calls():
+    text=summarize_study(ROOT/'reports/dag-decomposition/issue-32-independent-samples-20260908/study')
+    assert '1 次 billed 记录存在异常零用量' in text
+    assert '未知用量预留 2.63625000' in text
+    assert '存在计量审计异常，仅作描述，不作严格验收' in text
+    assert '| dag-single-b | 9/9 | 8/9 | 8 |' in text and '存在未确认用量' in text

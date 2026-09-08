@@ -19,6 +19,9 @@ def summarize_study(directory):
     protocol=json.loads((root/'protocol.json').read_text())
     if result['status'] not in ('failed','simulated','completed'):
         raise ValueError('study is still running')
+    if result.get('schema_version') == 'dag-batch-result-v1':
+        from experiments.summarize_dag_batch import summarize_batch
+        return summarize_batch(root, result, protocol)
     tasks=[t for t in protocol['tasks'] if t['split']=='test']
     expected={(t['task_id'],repeat,method) for t in tasks
               for repeat in range(1,protocol['test_repeats']+1) for method in protocol['methods']}
@@ -98,9 +101,13 @@ def summarize_study(directory):
             f"协议 SHA-256：`{result['preflight']['protocol_sha256']}`。原始产物哈希已逐项核对。",
             f"原始问题状态：`{json.dumps(result['issues'],ensure_ascii=False)}`。",
             '固定人工 DAG 不验证自动规划器的拆分质量；实际任务入口需另看 DSH 会话和核心产物。','']
-    lines+=['校准单模型基线按本任务族的校准质量优先选择；本轮没有对单模型路由进行对称的 A/B 优化。',
-            '因此只能判断相对这些冻结基线的结果，不能直接宣称优于成本或加权评分最优的整任务路由。',
-            '当节点 A/B 的实际分配全部为同一模型时，其差异也不能归因于异构交接。','']
+    if protocol['schema_version'] == 'dag-routing-study-v2':
+        lines+=['dag-single-a/b 只允许整图使用同一个模型，与节点 A/B 共用 profile、归一化标尺、约束和调度。',
+                '对称比较针对同一固定 DAG；不等于优化过的一次调用整任务路由。校准质量优先基线仍另列。']
+    else:
+        lines+=['校准单模型基线按本任务族的校准质量优先选择；本轮没有对单模型路由进行对称的 A/B 优化。',
+                '因此只能判断相对这些冻结基线的结果，不能直接宣称优于成本或加权评分最优的整任务路由。']
+    lines+=['当节点 A/B 的实际分配全部为同一模型时，其差异也不能归因于异构交接。','']
     return '\n'.join(lines)
 
 

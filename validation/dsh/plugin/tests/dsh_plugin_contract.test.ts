@@ -924,7 +924,7 @@ test('非法固定验收条件在启动进程前拒绝', async () => {
 test('DSH 将并发和 Provider 限制传入核心并展示调度预测', async () => {
   const plan = JSON.parse(await readFile(join(ROOT, 'data/task-plans/parallel-analysis-v2.json'), 'utf8'))
   const fixture = localProcessContext({}, 'refractrouter_task')
-  const result = await fixture.tool.execute({ ...taskInput, plan, maxConcurrency: 2,
+  const result = await fixture.tool.execute({ ...taskInput, plan, maxConcurrency: 2, maxNodeFallbacks: 1,
     providerConcurrency: { openai: 2 }, providerMinIntervalMs: { openai: 20 } }, execution())
   try {
     assert.equal(result.status, 'pass', JSON.stringify(result))
@@ -934,6 +934,7 @@ test('DSH 将并发和 Provider 限制传入核心并展示调度预测', async 
     assert.ok(result.task?.predictedLatencyMs)
     const saved = JSON.parse(await readFile(result.task!.resultPath, 'utf8'))
     assert.equal(saved.execution_policy.provider_min_interval_ms.openai, 20)
+    assert.equal(saved.recovery_policy.max_node_fallbacks, 1)
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })
   }
@@ -942,7 +943,8 @@ test('DSH 将并发和 Provider 限制传入核心并展示调度预测', async 
 test('DSH 在派发前拒绝非法并发参数', async () => {
   const fixture = fakeContext({ toolName: 'refractrouter_task' })
   for (const fields of [{ maxConcurrency: 9 }, { maxConcurrency: true },
-    { providerConcurrency: { openai: 0 } }, { providerMinIntervalMs: { openai: -1 } }]) {
+    { providerConcurrency: { openai: 0 } }, { providerMinIntervalMs: { openai: -1 } },
+    { maxNodeFallbacks: -1 }, { maxNodeFallbacks: 3 }, { maxNodeFallbacks: true }, { maxNodeFallbacks: 0.5 }]) {
     await assert.rejects(fixture.tool.execute({ ...taskInput, ...fields }, execution()), /invalid/)
   }
   assert.equal(fixture.calls.spawn, 0)

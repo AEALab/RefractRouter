@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，且均为非空字符串，符合契约。计算正确：12/2=6，40/8=5，并据此比较单位覆盖成本。风险部分忠实引用材料 B 的「便于修正错误」与「培训不足风险」，未虚构概率或额外数据。建议部分明确提出需先明确培训能力、纠错机制与推广条件，符合任务要求。evidence 字段完整保留原始材料来源，assumptions 字段明确列出可比性假设与信息缺口（风险概率、纠错成本、投入范围未知），满足「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」的检查要求。JSON 语法有效，无未转义英文双引号，未使用 Markdown 围栏，未声称执行工具。轻微不足：evidence 直接复制原文而未用「」引号标注引用，但契约未强制要求，且内容准确，故仅小幅扣分。\"}",
+  "input_tokens": 990,
+  "output_tokens": 240,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9015,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887994211404c81961e630bce638d970dc2753358736c093d"
+}

@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:answer:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确（A=10+3×4=22，B=18+1×4=22，预算24，结余2），与上游 cost 和 risk 节点一致并明确核对无冲突；完整保留证据来源（合成场景、数值来自任务文本）与关键假设（组数固定为4、同单位可比、未含税费等隐性成本），未虚构数据；建议覆盖职责（锁定4组时两方案均可、有变更风险时优先B、预留机动预算2），并含明确限制声明，未声称执行工具或检索新事实。仅个别表述（如「综合上游 cost 与 risk 两个节点」）属正常职责描述，无实质问题。\"}",
+  "input_tokens": 1939,
+  "output_tokens": 174,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7710,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888008548903d0449b03f13da7ad7c0359f0f1d760c4323db"
+}

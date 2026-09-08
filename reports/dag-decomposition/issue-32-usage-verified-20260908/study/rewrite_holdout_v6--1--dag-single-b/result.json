@@ -1,0 +1,223 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.2869580639526248,
+      "start_ms": 18.057416076771915,
+      "end_ms": 1915.4192080022767,
+      "queue_ms": 17.77045801281929,
+      "output": "林宁需于本月26日前提交核验报告。若合作方明细尚未收齐，请先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。",
+      "latency_ms": 1896,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "cheap"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "林宁需于本月26日前提交核验报告。若合作方明细尚未收齐，请先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写文本清楚、礼貌，完整保留了责任人「林宁」、时限「本月26日前」以及条件「若合作方明细尚未收齐，先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分」。未将工作日改为自然日，也未虚构日期或承诺，符合原任务要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "改写保留了原意，且表达简洁清楚，符合礼貌工作通知的要求。"
+      }
+    ]
+  },
+  "routing": {
+    "policy_version": "node-routing-v2",
+    "method": "B",
+    "assignment_mode": "single-model",
+    "status": "selected",
+    "assignments": {
+      "answer": "cheap"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 100,
+    "latency_max_ms": 300000,
+    "weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    },
+    "normalized_weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    },
+    "normalization_bounds": {
+      "answer": {
+        "quality": [
+          92.75,
+          94.25
+        ],
+        "cost": [
+          0.015675,
+          0.17228749999999998
+        ],
+        "latency_ms": [
+          2111,
+          3102
+        ]
+      }
+    },
+    "eligible_models": {
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "scheduled_latency_bounds_ms": [
+      2111.0,
+      3102.0
+    ],
+    "execution_policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "combinations": 3,
+    "feasible_combinations": 3,
+    "prediction": {
+      "cost": 0.015675,
+      "serial_latency_ms": 2204,
+      "scheduled_latency_ms": 2204.0,
+      "schedule": {
+        "makespan_ms": 2204.0,
+        "nodes": {
+          "answer": {
+            "start_ms": 0.0,
+            "end_ms": 2204.0,
+            "queue_ms": 0.0
+          }
+        }
+      },
+      "mean_node_quality_proxy": 94.25,
+      "weighted_score": 0.9765388496468214
+    },
+    "nodes": {
+      "answer": {
+        "model_id": "cheap",
+        "node_type": "generation",
+        "quality": 94.25,
+        "cost": 0.015675,
+        "latency_ms": 2204,
+        "samples": 4,
+        "difficulty": "low",
+        "risk": "low",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      }
+    }
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.27016608510166407,
+    "peak_running_nodes": 1,
+    "ended_ms": 1942.3282500356436,
+    "wall_time_ms": 1942.0597499702126
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v6--1--dag-single-b:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.49920000000000003,
+      "charged": 0.0187,
+      "status": "billed",
+      "input_sha256": "c85095cded6f2f263b20ea193c8ce94e082437dc387d3c5d64f8fceac3e577c0",
+      "dispatch_monotonic": 804335.9629765,
+      "input_tokens": 334,
+      "output_tokens": 40,
+      "latency_ms": 1896,
+      "request_id": "021788806338296b566464da517b102b4cb09cdfd60e7ee3109a8",
+      "finish_reason": "stop",
+      "output_sha256": "284899fcfac6bc148c3f9bd1591f015f2c379d75b00cc33ea7608761a6c5eedf"
+    },
+    {
+      "label": "rewrite_holdout_v6--1--dag-single-b:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.704,
+      "charged": 0.458,
+      "status": "billed",
+      "input_sha256": "b84f3415017fba82b6f8ad41b6a383ff8b0758f3f2c0954791e8e883c070dda3",
+      "dispatch_monotonic": 804337.90539775,
+      "input_tokens": 331,
+      "output_tokens": 127,
+      "latency_ms": 6052,
+      "request_id": "0217888063402410b63b37cbca791937f2f41fb0469576d506938",
+      "finish_reason": "stop",
+      "output_sha256": "46dd2000c0cdf500ed63762729ca703aba640974ee665bbefc99c36a47f85bfa"
+    }
+  ],
+  "wall_time_ms": 8013.459791080095,
+  "critical_path_latency_ms": 1896
+}

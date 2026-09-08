@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.0790000194683671,
+      "start_ms": 21.56654093414545,
+      "end_ms": 1675.351707963273,
+      "queue_ms": 21.487540914677083,
+      "output": "陈晨须在本月十八日前交付资料整理核对清单；若供应商记录未齐，先交已核对部分，并在记录收齐后第二个工作日补交其余内容。",
+      "latency_ms": 1651,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "陈晨须在本月十八日前交付资料整理核对清单；若供应商记录未齐，先交已核对部分，并在记录收齐后第二个工作日补交其余内容。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写后的文本简洁流畅，完整保留了责任人「陈晨」、期限「本月十八日前」以及例外情形（供应商记录未齐时先交已核对部分，并在记录收齐后第二个工作日补交其余内容），符合原意且更精炼。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "文本保留了所有关键信息：责任人陈晨、期限本月十八日、例外处理机制（先交已核对部分、记录收齐后第二个工作日补交），同时删减了冗余表述（如「负责资料整理的」简化为「资料整理核对清单」，「需要...之前」简化为「须在...前」），表达更为简洁。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.06279093213379383,
+    "peak_running_nodes": 1,
+    "ended_ms": 1700.6847909651697,
+    "wall_time_ms": 1700.623834040016
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v4--3--dag-strong-serial--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.478000000000001,
+      "charged": 0.19855,
+      "status": "billed",
+      "input_sha256": "83b15d449bef6a8dfdd2176df3eb4416275fce8617ab1536d7a2667c84135223",
+      "dispatch_monotonic": 801462.160797666,
+      "input_tokens": 324,
+      "output_tokens": 37,
+      "latency_ms": 1651,
+      "request_id": "021788803464500a6cdd8247c48d753298cd4bcf5eec90e447fad",
+      "finish_reason": "stop",
+      "output_sha256": "fe730609bfd9cf9a7c4b45c36ab41406a929dd61f30f51a50a5c297c7d04c2fd"
+    },
+    {
+      "label": "rewrite_holdout_v4--3--dag-strong-serial--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.681000000000001,
+      "charged": 0.492,
+      "status": "billed",
+      "input_sha256": "2b46cd40d6c09c73644d1e8a56baae4fd24572adb6da160f66f17900dc16e5c3",
+      "dispatch_monotonic": 801463.861414708,
+      "input_tokens": 323,
+      "output_tokens": 169,
+      "latency_ms": 8726,
+      "request_id": "0217888034661900e23c04e8b740c94d8512f0597aa5fa6fc381f",
+      "finish_reason": "stop",
+      "output_sha256": "d841e9bafcd25fea2d1105925ad11aaed919c4eccc47aeeb3fd420a5343ebf96"
+    }
+  ],
+  "wall_time_ms": 10449.915166012943,
+  "critical_path_latency_ms": 1651
+}

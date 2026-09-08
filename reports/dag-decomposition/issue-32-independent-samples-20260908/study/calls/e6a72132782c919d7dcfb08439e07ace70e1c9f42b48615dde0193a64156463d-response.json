@@ -1,0 +1,12 @@
+{
+  "label": "cash_cal_b--1--calibration--strong:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入为 28，超过可用预算 26，存在资金缺口 2，资金不足风险较高，不建议在现有预算下直接采用。方案 B 总投入为 25，低于可用预算 26，剩余 1，资金不足风险较低，可作为预算约束下的优先建议方案。\",\n  \"evidence\": \"本节点为合成场景，无外部原始材料来源；所有数值均来自任务描述中的给定条件，并参考上游 cost 节点的计算结果。\",\n  \"assumptions\": \"假设固定投入为一次性成本，每组投入按服务组数线性计算，且可用预算 26 为总预算上限；未考虑税费、时间成本、价格波动、执行风险及其他隐性成本。\"\n}",
+  "input_tokens": 660,
+  "output_tokens": 160,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3524,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788800960550f1aca4493aa6c7087a6ccfbfdb4be6156f7ff6"
+}

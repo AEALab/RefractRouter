@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-calibrated-single--strong:answer",
+  "content": "方案 A：固定投入 22 单位，6 周运行费为 4×6=24 单位，总投入为 22+24=46 单位。总预算 48 单位下，预算余额为 48-46=2 单位，满足预算约束。\n\n方案 B：固定投入 37 单位，6 周运行费为 2×6=12 单位，总投入为 37+12=49 单位。总预算 48 单位下，预算缺口为 49-48=1 单位，超出预算 1 单位，不满足预算约束。\n\n核对结果：上游 cost 与 risk 节点的计算和判断一致，未发现冲突或遗漏。两者均基于任务给定数据，未引入优惠、收益或额外预算。\n\n建议：在总预算 48 单位、计划运行 6 周的约束下，应选择方案 A。方案 B 需至少压缩 1 单位成本或另行解决 1 单位预算缺口后方可执行。\n\n依据：方案 A 固定投入 22 单位、每周运行费 4 单位；方案 B 固定投入 37 单位、每周运行费 2 单位；计划运行 6 周；总预算 48 单位。假设运行周数固定为 6 周，每周运行费保持不变，总预算覆盖固定投入与全部运行费；未考虑任何优惠、收益、折现或额外预算来源。",
+  "input_tokens": 971,
+  "output_tokens": 307,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5480,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788806167504d6f60410e67e178f28d968f0420b51c3c4b0b4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 307,
+    "prompt_tokens": 971,
+    "total_tokens": 1278,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

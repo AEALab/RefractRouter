@@ -1,0 +1,138 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.0802080612629652,
+      "start_ms": 21.24420797917992,
+      "end_ms": 10436.509749968536,
+      "queue_ms": 21.163999917916954,
+      "output": "方案 A  \n固定投入 17，每组投入 3，服务 7 组。  \n总投入 = 17 + 3 × 7 = 17 + 21 = 38。  \n可用预算 41，预算余额 = 41 - 38 = 3，即方案 A 在预算内，剩余 3。\n\n方案 B  \n固定投入 29，每组投入 2，服务 7 组。  \n总投入 = 29 + 2 × 7 = 29 + 14 = 43。  \n可用预算 41，预算缺口 = 43 - 41 = 2，即方案 B 超出预算 2。\n\n资金风险分析  \n方案 A 总投入 38，低于预算 41，资金风险较低；但余额只有 3，若执行中出现临时增项、价格上浮或服务组数增加，缓冲空间较小。  \n方案 B 总投入 43，高于预算 41，存在确定性资金缺口 2。除非能追加预算、压缩其他成本或调整服务组数，否则方案 B 在当前预算下不可直接执行。\n\n有条件建议  \n在未提供收益信息的情况下，不能仅凭投入高低判断哪个方案更优。  \n若必须控制在 41 预算内，建议优先选择方案 A，因为它可执行且仍有少量余额。  \n若方案 B 的预期收益或战略价值明显更高，并且能够追加至少 2 的预算，或通过降低固定投入、每组投入来消除缺口，则可考虑方案 B；否则不建议在当前预算下采用方案 B。\n\n证据与假设  \n证据：题目给定方案 A 固定投入 17、每组投入 3、服务 7 组；方案 B 固定投入 29、每组投入 2、服务 7 组；可用预算 41。  \n计算依据：总投入 = 固定投入 + 每组投入 × 服务组数。  \n假设：服务组数固定为 7 组；预算 41 为硬约束；未考虑收益、时间成本、质量差异和其他隐性成本。  \n限制：由于未提供收益信息，本结论仅基于资金投入与预算匹配情况，不构成对方案综合价值的最终判断。",
+      "latency_ms": 10413,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "直接完成原始任务，给出完整文本答案、证据与假设。",
+        "parents": [],
+        "contract": {
+          "objective": "一次模型调用完成原始任务",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确计算两个方案总投入",
+      "根据预算判断缺口并给出有条件建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务单次调用对照，不使用模型规划。"
+  },
+  "final_output": "方案 A  \n固定投入 17，每组投入 3，服务 7 组。  \n总投入 = 17 + 3 × 7 = 17 + 21 = 38。  \n可用预算 41，预算余额 = 41 - 38 = 3，即方案 A 在预算内，剩余 3。\n\n方案 B  \n固定投入 29，每组投入 2，服务 7 组。  \n总投入 = 29 + 2 × 7 = 29 + 14 = 43。  \n可用预算 41，预算缺口 = 43 - 41 = 2，即方案 B 超出预算 2。\n\n资金风险分析  \n方案 A 总投入 38，低于预算 41，资金风险较低；但余额只有 3，若执行中出现临时增项、价格上浮或服务组数增加，缓冲空间较小。  \n方案 B 总投入 43，高于预算 41，存在确定性资金缺口 2。除非能追加预算、压缩其他成本或调整服务组数，否则方案 B 在当前预算下不可直接执行。\n\n有条件建议  \n在未提供收益信息的情况下，不能仅凭投入高低判断哪个方案更优。  \n若必须控制在 41 预算内，建议优先选择方案 A，因为它可执行且仍有少量余额。  \n若方案 B 的预期收益或战略价值明显更高，并且能够追加至少 2 的预算，或通过降低固定投入、每组投入来消除缺口，则可考虑方案 B；否则不建议在当前预算下采用方案 B。\n\n证据与假设  \n证据：题目给定方案 A 固定投入 17、每组投入 3、服务 7 组；方案 B 固定投入 29、每组投入 2、服务 7 组；可用预算 41。  \n计算依据：总投入 = 固定投入 + 每组投入 × 服务组数。  \n假设：服务组数固定为 7 组；预算 41 为硬约束；未考虑收益、时间成本、质量差异和其他隐性成本。  \n限制：由于未提供收益信息，本结论仅基于资金投入与预算匹配情况，不构成对方案综合价值的最终判断。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本完整且正确地完成了任务。方案 A 总投入计算为 17 + 3 × 7 = 38，预算余额为 41 - 38 = 3；方案 B 总投入计算为 29 + 2 × 7 = 43，预算缺口为 43 - 41 = 2，计算均准确。文本据此分析了资金风险：方案 A 在预算内但缓冲仅 3，方案 B 存在确定性缺口 2，并给出了有条件建议——预算硬约束下优先方案 A，方案 B 仅在能追加至少 2 预算或压缩成本时可考虑。同时明确指出未提供收益信息，不能仅凭投入判断优劣，并列出了证据、计算依据、假设与限制。不存在不实工具执行声明或虚构数据。两项验收标准均满足。",
+    "criteria": [
+      {
+        "criterion": "准确计算两个方案总投入",
+        "passed": true,
+        "rationale": "方案 A 总投入 = 17 + 3 × 7 = 38，方案 B 总投入 = 29 + 2 × 7 = 43，两个计算过程与结果均正确，且明确给出了计算公式。"
+      },
+      {
+        "criterion": "根据预算判断缺口并给出有条件建议",
+        "passed": true,
+        "rationale": "正确判断方案 A 余额 3（预算内）、方案 B 缺口 2（超预算），并给出有条件建议：预算硬约束下优先方案 A；方案 B 仅在能追加至少 2 预算或降低成本消除缺口时才可考虑，同时声明因未提供收益信息，结论仅限于资金匹配层面。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.06266601849347353,
+    "peak_running_nodes": 1,
+    "ended_ms": 10456.273333053105,
+    "wall_time_ms": 10456.212167046033
+  },
+  "calls": [
+    {
+      "label": "cash_holdout_v4--2--direct-strong--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.4725,
+      "charged": 0.44055,
+      "status": "billed",
+      "input_sha256": "6e60f0bbeceea2af36fd940b02aa9b2ad60653cf14b6bf6c0446758798b50d5b",
+      "dispatch_monotonic": 800690.582226666,
+      "input_tokens": 340,
+      "output_tokens": 461,
+      "latency_ms": 10413,
+      "request_id": "021788802692921ff228b459645a66c98f2a46916338f8e5efabd",
+      "finish_reason": "stop",
+      "output_sha256": "1023b6207eb15c23771843f00e06ecaf1210a44a40396ece21efc280dc2c02b7"
+    },
+    {
+      "label": "cash_holdout_v4--2--direct-strong--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 11.350999999999999,
+      "charged": 1.151,
+      "status": "billed",
+      "input_sha256": "283607690310010f5eda83080e860dbb3ce3c2d087b4da4bf074efe6257052e2",
+      "dispatch_monotonic": 800701.036238416,
+      "input_tokens": 801,
+      "output_tokens": 350,
+      "latency_ms": 12719,
+      "request_id": "021788802703382e4d5e3acd6b6d5c09c835e2d36b9596cc7c59c",
+      "finish_reason": "stop",
+      "output_sha256": "6be7c52baecb6d5a1e801928c9d09a1f9e7e52c7f10909ff1103f31648b4fbe4"
+    }
+  ],
+  "wall_time_ms": 23201.366499997675,
+  "critical_path_latency_ms": 10413
+}

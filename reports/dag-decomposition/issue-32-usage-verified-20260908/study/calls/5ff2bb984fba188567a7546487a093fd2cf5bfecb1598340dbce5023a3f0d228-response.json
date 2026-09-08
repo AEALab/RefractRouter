@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-strong-serial--strong:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入为 46 单位，预算余额为 2 单位，满足预算约束；方案 B 总投入为 49 单位，预算缺口为 1 单位，不满足预算约束。资金不足风险集中在方案 B，若预算不可调整且必须运行 6 周，应选择方案 A；方案 B 需压缩 1 单位成本、缩短运行时间或增加预算后方可执行。\",\n  \"evidence\": \"基于上游 cost 节点的 result 与任务文本数据：方案 A 固定投入 22 单位、每周运行费 4 单位；方案 B 固定投入 37 单位、每周运行费 2 单位；计划运行 6 周；总预算 48 单位。未使用任何外部来源。\",\n  \"assumptions\": \"假设运行费在 6 周内按固定周费率线性累计，固定投入为一次性支出；假设总预算 48 单位是两方案各自可用的同一预算上限；未考虑折扣、收益、资金时间价值或其他额外预算。\"\n}",
+  "input_tokens": 802,
+  "output_tokens": 233,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4970,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888058816443a391e43edef5299850de6066b8d72e2b56787",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 233,
+    "prompt_tokens": 802,
+    "total_tokens": 1035,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

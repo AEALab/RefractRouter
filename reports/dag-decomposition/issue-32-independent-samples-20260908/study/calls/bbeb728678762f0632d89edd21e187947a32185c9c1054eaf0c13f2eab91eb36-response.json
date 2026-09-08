@@ -1,0 +1,12 @@
+{
+  "label": "probe:rewrite_cal_a:1:answer:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"改写结果「我们计划在本周五之前完成这项测试工作，前提是所有输入数据已全部准备好。」完整保留了原句的完成时限（本周五之前）与条件（所有输入数据已准备好），语义无增删、无虚构数据，且更为简洁，符合节点职责「把用户提供的句子改写得更简洁，保留原意」。输出为纯文本正文，未封装为 JSON 或代码围栏，符合输出契约。未声称执行工具或检索新事实。仅轻微扣分：「前提是所有输入数据已全部准备好」在严格逻辑上等价于原意，但「全部」与「已经」的合并表达略改变了原句「已经全部准备好了」的完成态强调，影响可忽略。\"}",
+  "input_tokens": 577,
+  "output_tokens": 174,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7469,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788801425745a6cdd8247c48d753298cd4bcf5eec90ed5414e"
+}

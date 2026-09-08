@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:risk:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案 A 总投入 28（8+4×5），超预算 2；方案 B 总投入 25（20+1×5），余量 1。风险判断与上游 cost 节点一致，建议具体可操作（追加预算 2、减至 4 组、每组降至 3.6 以下）。evidence 明确说明合成场景无外部材料、数值来源清晰；assumptions 列出线性成本、无税费折扣、货币单位未定、未考虑非财务因素等限制，满足「保留证据与假设，不虚构数据」与「覆盖职责并明确限制」两项检查。输出键集合恰为 result/evidence/assumptions，均为非空字符串，无未转义英文双引号，无工具执行声明。小瑕疵：「每组投入降至 3.6 以下」表述略不严谨——3.6 时总投入恰等于 26 并无缺口，严格说应为「降至 3.6 或以下」；且该阈值未在上游出现，属于本节点自行推导的补充建议，虽计算正确但略微超出上游证据范围。整体质量高。\"}",
+  "input_tokens": 1371,
+  "output_tokens": 273,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11325,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788801039417137f500080bf18603e76d17d12e7c43e8dbe99"
+}

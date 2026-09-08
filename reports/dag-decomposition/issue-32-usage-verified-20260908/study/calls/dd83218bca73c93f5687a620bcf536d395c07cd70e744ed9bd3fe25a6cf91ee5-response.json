@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--1--dag-single-b:risk",
+  "content": "{\"result\":\"方案 A 总投入 46 单位（固定投入 22 + 运行费 4×6=24），预算 48 单位，余额 2 单位，未超支，存在 2 单位缓冲；方案 B 总投入 49 单位（固定投入 37 + 运行费 2×6=12），预算 48 单位，缺口 1 单位，超支不可行。风险结论：在 48 单位硬上限、6 周运行期、且无追加预算的约束下，仅方案 A 可行；方案 B 存在资金不足风险，需下调 1 单位固定投入或将周运行费压至约 1.83 单位，否则需追加授权。建议优先采用方案 A 并保留 2 单位作为风险缓冲。\",\"evidence\":\"原始材料来源标识：任务文本给出的方案 A 固定投入 22、运行费 4；方案 B 固定投入 37、运行费 2；计划运行 6 周；总预算 48。所有计算均直接来自上述材料，未引入外部数据。\",\"assumptions\":\"未给出的优惠、收益、追加预算或运行周数变化均按零处理；总预算视为不可逾越的硬约束，不进行跨方案资金调剂或时间调整；方案选择假设为互斥而非叠加组合。\"}",
+  "input_tokens": 937,
+  "output_tokens": 261,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2174,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788805750543f0b662e0a22462bcc30964e8c71cc7667c5c20",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 261,
+    "prompt_tokens": 937,
+    "total_tokens": 1198,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

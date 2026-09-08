@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:mid:judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"输出为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的「result」「evidence」「assumptions」，无多余或缺失字段，所有值为非空字符串，JSON 语法正确且引号转义无误。内容层面：单位覆盖成本计算正确（12/2=6 单位/组，40/8=5 单位/组），并正确指出全面推广绝对投入约为试点的 3.33 倍；风险分析忠实于材料 B 的「试点便于修正错误」「全面推广存在培训不足风险」，未虚构数据；建议部分明确了条件（错误成本与可逆性、培训资源充足性、资金承受能力），符合任务「建议应明确条件」的要求。evidence 字段完整引用原始材料，assumptions 字段明确列出静态比较局限、未量化风险、阈值缺失等不确定性与信息缺口，满足「保留证据与假设」「覆盖职责并明确限制」的检查项。未声称执行工具或检索新事实。轻微不足：result 中「资源需求」的展开部分（如培训资源、管理能力）属于基于材料 B 的合理推断而非材料明示，但已在 assumptions 中说明隐性资源投入未纳入，处理得当，故仅小幅扣分。\"}",
+  "input_tokens": 1182,
+  "output_tokens": 283,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13946,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788797382489e78c31fe06d4434dfef0260629e4a08ba770e5"
+}

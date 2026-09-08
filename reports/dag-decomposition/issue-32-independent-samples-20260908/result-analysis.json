@@ -1,0 +1,335 @@
+{
+  "status": "completed",
+  "real_calls": 532,
+  "charged": {
+    "production": 113.2407,
+    "evaluation": 229.23499999999999
+  },
+  "phases": {
+    "handoff": {
+      "completed": 6
+    },
+    "calibration": {
+      "completed": 35,
+      "failed": 1
+    },
+    "test": {
+      "completed": 71,
+      "failed": 1
+    }
+  },
+  "node_observations": 84,
+  "independent_node_evaluations": 82,
+  "profile_candidates": 8,
+  "profile_exclusions": [
+    {
+      "model_id": "cheap",
+      "node_type": "synthesis",
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 8193,
+      "input_max_tokens": 32769,
+      "reason": "known-contract-rejection"
+    }
+  ],
+  "failures": [
+    {
+      "task_id": "cash_cal_b",
+      "repeat": 1,
+      "split": "calibration",
+      "method": "calibration",
+      "fixed_model": "cheap",
+      "issue": "node-output-contract-invalid: expected JSON object",
+      "not_started": [
+        "risk",
+        "answer"
+      ],
+      "billed_calls": 1,
+      "deployment_cost": 0.03745,
+      "result_path": "cash_cal_b--1--calibration--cheap/result.json"
+    },
+    {
+      "task_id": "cash_holdout_v4",
+      "repeat": 2,
+      "split": "test",
+      "method": "dag-single-b",
+      "fixed_model": null,
+      "issue": "node-output-contract-invalid: expected JSON object",
+      "not_started": [
+        "risk",
+        "answer"
+      ],
+      "billed_calls": 1,
+      "deployment_cost": null,
+      "result_path": "cash_holdout_v4--2--dag-single-b/result.json",
+      "raw_deployment_cost": 0.0,
+      "unconfirmed_reserve_afp": 2.63625
+    }
+  ],
+  "probe_rejections": [
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 1,
+      "node_id": "risk",
+      "model_id": "cheap",
+      "output_sha256": "86c2bd3cdd3472ab0fe1db9fec6a265dd54c371dc45169e133ed56dd9932cfc9"
+    },
+    {
+      "task_id": "cash_cal_a",
+      "repeat": 1,
+      "node_id": "cost",
+      "model_id": "cheap",
+      "output_sha256": "33b5e04ce7a8ebaede3d852872dac477e90172486a63a7a4b896176273f732dc"
+    }
+  ],
+  "automatic_assignments": {
+    "compare_holdout_v4:dag-node-a": [
+      {
+        "repeat": 1,
+        "assignments": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 2,
+        "assignments": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 3,
+        "assignments": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      }
+    ],
+    "compare_holdout_v4:dag-node-b": [
+      {
+        "repeat": 1,
+        "assignments": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 2,
+        "assignments": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 3,
+        "assignments": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      }
+    ],
+    "cash_holdout_v4:dag-node-a": [
+      {
+        "repeat": 1,
+        "assignments": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 2,
+        "assignments": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 3,
+        "assignments": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      }
+    ],
+    "cash_holdout_v4:dag-node-b": [
+      {
+        "repeat": 1,
+        "assignments": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 2,
+        "assignments": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      },
+      {
+        "repeat": 3,
+        "assignments": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "heterogeneous": true,
+        "delivered": true
+      }
+    ],
+    "rewrite_holdout_v4:dag-node-b": [
+      {
+        "repeat": 1,
+        "assignments": {
+          "answer": "cheap"
+        },
+        "heterogeneous": false,
+        "delivered": true
+      },
+      {
+        "repeat": 2,
+        "assignments": {
+          "answer": "cheap"
+        },
+        "heterogeneous": false,
+        "delivered": true
+      },
+      {
+        "repeat": 3,
+        "assignments": {
+          "answer": "cheap"
+        },
+        "heterogeneous": false,
+        "delivered": true
+      }
+    ],
+    "rewrite_holdout_v4:dag-node-a": [
+      {
+        "repeat": 1,
+        "assignments": {
+          "answer": "cheap"
+        },
+        "heterogeneous": false,
+        "delivered": true
+      },
+      {
+        "repeat": 2,
+        "assignments": {
+          "answer": "cheap"
+        },
+        "heterogeneous": false,
+        "delivered": true
+      },
+      {
+        "repeat": 3,
+        "assignments": {
+          "answer": "cheap"
+        },
+        "heterogeneous": false,
+        "delivered": true
+      }
+    ]
+  },
+  "automatic_heterogeneous_test_runs": 12,
+  "symmetric_comparisons": [
+    {
+      "candidate": "dag-node-a",
+      "baseline": "dag-single-a",
+      "outcome_pairs": 9,
+      "joint_graded_pairs": 9,
+      "mean": {
+        "quality_delta": 0.2222222222222222,
+        "cost_saving": 0.23066758674674157,
+        "latency_ratio": 0.788997352663215
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          -1,
+          2.3333333333333335
+        ],
+        "cost_saving": [
+          0.01211559394025922,
+          0.41938330627989434
+        ],
+        "latency_ratio": [
+          0.7121408602851422,
+          0.8320392850082767
+        ]
+      },
+      "exploratory_signal": false
+    },
+    {
+      "candidate": "dag-node-b",
+      "baseline": "dag-single-b",
+      "outcome_pairs": 9,
+      "joint_graded_pairs": 8,
+      "mean": {
+        "quality_delta": 0.625,
+        "cost_saving": 0.10429897100653014,
+        "latency_ratio": 1.1210888341795286
+      },
+      "conditional_interval_95": {
+        "quality_delta": [
+          0,
+          1
+        ],
+        "cost_saving": [
+          -0.04633395619489359,
+          0.23601132428465038
+        ],
+        "latency_ratio": [
+          0.7565587253164427,
+          1.6249684645033875
+        ]
+      },
+      "exploratory_signal": false
+    }
+  ],
+  "limitation": "采集完成且已记录失败，不等于通过收益门槛；三个任务、一个声明输入预算区间，不支持任意任务泛化。",
+  "usage_audit": "usage-audit.json",
+  "strict_protocol_validation": "未通过：未触发未知用量整批停止；原始观察与计算保留为带限制的描述。",
+  "raw_call_states": {
+    "billed": 532
+  },
+  "audited_call_states": {
+    "confirmed": 531,
+    "unconfirmed": 1
+  },
+  "raw_ledger_afp_estimate": 342.47569999999996,
+  "confirmed_afp_estimate": 342.4757,
+  "unconfirmed_reserve_afp": 2.63625
+}

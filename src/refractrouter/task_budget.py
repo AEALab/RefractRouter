@@ -13,6 +13,10 @@ from .node_routing import number
 from .openai_compatible import model_response_cost
 
 
+class InvalidModelOutput(ValueError):
+    """用量已结算，但模型返回空内容或非正常结束的输出。"""
+
+
 @dataclass
 class Reservation:
     model: object
@@ -43,7 +47,9 @@ class TaskCallBudget:
         with self.lock:
             return dict(self.charged), deepcopy(self.records)
 
-    def reserve(self, model, messages, *, category='production', label, json_mode=False):
+    def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None):
+        if category_limit is not None:
+            category_limit = number(category_limit, 'category limit')
         encoded = json.dumps(messages, ensure_ascii=False).encode()
         input_bound = len(encoded) + 256
         output_bound = min(model.max_output_tokens, 8192)
@@ -55,12 +61,14 @@ class TaskCallBudget:
                 raise CancelledError('task execution stopped')
             if self.max_calls is not None and len(self.records) >= self.max_calls:
                 raise ValueError('study-call-limit-exhausted')
-            if self.charged[category] + reserve > self.limits[category]:
+            if self.charged[category] + reserve > min(self.limits[category], category_limit if category_limit is not None else float('inf')):
                 raise ValueError(f'{category}-budget-exhausted before {label}')
             self.charged[category] += reserve
             row = {'label': label, 'model_id': model.model_id, 'category': category,
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
+            if category_limit is not None:
+                row['category_limit'] = category_limit
             if self.capture_payload:
                 row['request_messages'] = deepcopy(messages)
             self.records.append(row)
@@ -106,6 +114,8 @@ class TaskCallBudget:
             with self.lock:
                 row['response_output'] = response.content
         counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)
+        if not response.usage_available or (response.content.strip() and (response.input_tokens == 0 or response.output_tokens == 0)):
+            raise ValueError('missing or unconfirmed model usage; reservation retained')
         if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:
             raise ValueError('invalid model usage; reservation retained')
         actual = number(model_response_cost(model, response), 'model cost')
@@ -116,11 +126,11 @@ class TaskCallBudget:
                        request_id=response.request_id, finish_reason=response.finish_reason,
                        output_sha256=hashlib.sha256(response.content.encode()).hexdigest())
             if (actual > row['reserved'] + 1e-8
-                    or self.charged[row['category']] > self.limits[row['category']]):
+                    or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):
                 self.stop()
                 raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')
-        if response.finish_reason == 'length' or not response.content.strip():
-            raise ValueError(f"invalid or truncated output for {row['label']}")
+        if response.finish_reason != 'stop' or not response.content.strip():
+            raise InvalidModelOutput(f"invalid or truncated output for {row['label']}")
         return response
 
     def complete(self, model, messages, *, category='production', label, json_mode=False, timeout_seconds=None):

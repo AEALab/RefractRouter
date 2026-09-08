@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的 result、evidence、assumptions，且均为非空字符串，未添加对象外说明或代码围栏。计算正确：方案 A 总投入为 10+3×4=22，方案 B 总投入为 18+1×4=22，均低于预算 24，剩余均为 2，并据此判断当前无直接资金缺口但缓冲较小。建议覆盖了预算内可执行、应急缓冲、固定投入与服务组数控制，以及组数增加时方案 B 边际成本更低等职责。evidence 明确说明为合成场景、无外部原始材料来源，并列出任务给定数值；assumptions 明确组数固定、投入不变及未考虑税费等限制。未发现虚构数据或不实工具执行声明；仅建议部分对「优先选择方案 A」的表述略带条件性，可能被视为轻微主观，但整体仍与计算和风险判断一致。\"}",
+  "input_tokens": 1086,
+  "output_tokens": 233,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9111,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788800786914137f500080bf18603e76d17d12e7c43e19936f"
+}

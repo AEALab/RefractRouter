@@ -1,0 +1,297 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.15270907897502184,
+      "start_ms": 16.598292044363916,
+      "end_ms": 7010.286875069141,
+      "queue_ms": 16.445582965388894,
+      "output": "{\n  \"result\": \"方案 A：固定投入 22 单位，6 周运行费为 4×6=24 单位，总投入为 22+24=46 单位。方案 B：固定投入 37 单位，6 周运行费为 2×6=12 单位，总投入为 37+12=49 单位。总预算为 48 单位。方案 A 预算余额为 48-46=2 单位，可满足预算约束。方案 B 预算缺口为 49-48=1 单位，超出预算 1 单位，不满足预算约束。建议：若必须满足 48 单位预算，应选择方案 A；方案 B 需压缩至少 1 单位成本或增加至少 1 单位预算后才能采用。本分析仅基于题目给出的固定投入、每周运行费、6 周运行期和 48 单位总预算，不引入任何未给出的优惠、收益或额外预算。\",\n  \"evidence\": \"题目文本：方案 A 固定投入 22 单位，每周运行费 4 单位；方案 B 固定投入 37 单位，每周运行费 2 单位；计划运行 6 周，总预算 48 单位。\",\n  \"assumptions\": \"假设 6 周内每周都产生完整运行费，无中断或减免；假设固定投入为一次性支出；假设预算仅用于覆盖固定投入和 6 周运行费。未给出其他成本项、优惠、收益或额外预算，因此未纳入计算。\"\n}",
+      "latency_ms": 6991,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 7028.375250054523,
+      "start_ms": 7044.65362499468,
+      "end_ms": 13765.094417030923,
+      "queue_ms": 16.278374940156937,
+      "output": "{\n  \"result\": \"方案 A 总投入为 46 单位，低于总预算 48 单位，预算余额为 2 单位，不构成资金不足风险。方案 B 总投入为 49 单位，高于总预算 48 单位，预算缺口为 1 单位，存在资金不足风险。约束为：总预算 48 单位，计划运行 6 周，固定投入与每周运行费按题目给定值计算。建议：在仅考虑给定成本项且不引入优惠、收益或额外预算的前提下，应优先选择方案 A；方案 B 需压缩至少 1 单位成本或增加至少 1 单位预算后方可满足预算约束。\",\n  \"evidence\": \"上游 cost 节点 result 与 evidence 均引用题目文本：方案 A 固定投入 22 单位，每周运行费 4 单位；方案 B 固定投入 37 单位，每周运行费 2 单位；计划运行 6 周，总预算 48 单位。\",\n  \"assumptions\": \"假设 6 周内每周均产生完整运行费，无中断或减免；假设固定投入为一次性支出；假设预算仅用于覆盖固定投入和 6 周运行费。题目未给出其他成本项、优惠、收益或额外预算，因此未纳入计算。\"\n}",
+      "latency_ms": 6718,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 13783.18470902741,
+      "start_ms": 13800.07229198236,
+      "end_ms": 17953.195541980676,
+      "queue_ms": 16.88758295495063,
+      "output": "方案 A 总投入为 46 单位，低于总预算 48 单位，预算余额为 2 单位，满足预算约束。方案 B 总投入为 49 单位，高于总预算 48 单位，预算缺口为 1 单位，不满足预算约束。两方案计算均基于题目给出的固定投入、每周运行费、6 周运行期和 48 单位总预算，未引入未给出的优惠、收益或额外预算。\n\n约束为：总预算 48 单位，计划运行 6 周，固定投入与每周运行费按题目给定值计算。假设 6 周内每周均产生完整运行费，无中断或减免；固定投入为一次性支出；预算仅用于覆盖固定投入和 6 周运行费。\n\n建议：在仅考虑给定成本项且不引入优惠、收益或额外预算的前提下，应优先选择方案 A。方案 B 需压缩至少 1 单位成本或增加至少 1 单位预算后才能满足预算约束。",
+      "latency_ms": 4151,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "cost": "strong",
+    "risk": "strong",
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "根据成本测算评估资金不足风险",
+        "parents": [
+          "cost"
+        ],
+        "contract": {
+          "objective": "根据成本测算评估资金不足风险",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确计算两个方案总投入",
+      "根据预算判断缺口并给出有条件建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。"
+  },
+  "final_output": "方案 A 总投入为 46 单位，低于总预算 48 单位，预算余额为 2 单位，满足预算约束。方案 B 总投入为 49 单位，高于总预算 48 单位，预算缺口为 1 单位，不满足预算约束。两方案计算均基于题目给出的固定投入、每周运行费、6 周运行期和 48 单位总预算，未引入未给出的优惠、收益或额外预算。\n\n约束为：总预算 48 单位，计划运行 6 周，固定投入与每周运行费按题目给定值计算。假设 6 周内每周均产生完整运行费，无中断或减免；固定投入为一次性支出；预算仅用于覆盖固定投入和 6 周运行费。\n\n建议：在仅考虑给定成本项且不引入优惠、收益或额外预算的前提下，应优先选择方案 A。方案 B 需压缩至少 1 单位成本或增加至少 1 单位预算后才能满足预算约束。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "方案 A 总投入为 22+4×6=46 单位，余额 48-46=2 单位；方案 B 总投入为 37+2×6=49 单位，缺口 49-48=1 单位。计算正确，约束说明完整，建议合理且未引入额外假设。",
+    "criteria": [
+      {
+        "criterion": "准确计算两个方案总投入",
+        "passed": true,
+        "rationale": "方案 A 46 单位、方案 B 49 单位计算准确，余额与缺口数值正确。"
+      },
+      {
+        "criterion": "根据预算判断缺口并给出有条件建议",
+        "passed": true,
+        "rationale": "正确判断 A 满足预算、B 缺口 1 单位，建议选择 A 并对 B 提出压缩成本或增加预算的条件性建议，未引入未给出的优惠、收益或额外预算。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.12600002810359,
+    "peak_running_nodes": 1,
+    "ended_ms": 17971.192250028253,
+    "wall_time_ms": 17971.068209037185
+  },
+  "calls": [
+    {
+      "label": "cash_holdout_v6--3--dag-strong-parallel--strong:cost",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.80745,
+      "charged": 0.4466,
+      "status": "billed",
+      "input_sha256": "cf41f342a143658b180e58af6674fa9360113a585ee1fccec1ac053c9b49a9a9",
+      "dispatch_monotonic": 804127.896887958,
+      "input_tokens": 475,
+      "output_tokens": 337,
+      "latency_ms": 6991,
+      "request_id": "02178880613023240d92d5266a85c14e28416df297f1b20efdd1f",
+      "finish_reason": "stop",
+      "output_sha256": "4542ded6664c38c01d85a6c20e3b762da8b47d9aea21d9ca6aa654973db10c3c"
+    },
+    {
+      "label": "cash_holdout_v6--3--dag-strong-parallel--strong:risk",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 6.55545,
+      "charged": 0.6226,
+      "status": "billed",
+      "input_sha256": "9e7ab7d488e325f524cc08ca4d8eb7039f984c50bd9c3a6cff688845d11acb01",
+      "dispatch_monotonic": 804134.924944,
+      "input_tokens": 844,
+      "output_tokens": 288,
+      "latency_ms": 6718,
+      "request_id": "0217888061372688df8e1a1401bb5aa62b5b494646ada5874df9b",
+      "finish_reason": "stop",
+      "output_sha256": "c990662d3cf7b05e913662bdfde65b36064f970dd752d8d070413b2426c2a0e2"
+    },
+    {
+      "label": "cash_holdout_v6--3--dag-strong-parallel--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 6.947050000000001,
+      "charged": 0.6908,
+      "status": "billed",
+      "input_sha256": "89911dfab64ed6e337fd8a2399661df2ac00fe8616daa2661edb7483fece9024",
+      "dispatch_monotonic": 804141.680362,
+      "input_tokens": 1039,
+      "output_tokens": 217,
+      "latency_ms": 4151,
+      "request_id": "021788806144016f1aca4493aa6c7087a6ccfbfdb4be61589cb4e",
+      "finish_reason": "stop",
+      "output_sha256": "721ad83f760d951397f74646af335a6ee04a36c973da60c6f5d4ad3a210f5a07"
+    },
+    {
+      "label": "cash_holdout_v6--3--dag-strong-parallel--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 10.45,
+      "charged": 0.729,
+      "status": "billed",
+      "input_sha256": "82125cd149df40a9bebcf474e0a2c917fa28b469aabf9b749be388c60959ace7",
+      "dispatch_monotonic": 804145.867923583,
+      "input_tokens": 533,
+      "output_tokens": 196,
+      "latency_ms": 8090,
+      "request_id": "0217888061482213d0449b03f13da7ad7c0359f0f1d760cf3f408",
+      "finish_reason": "stop",
+      "output_sha256": "c51d55aaedb681630401533cdae6ceddac28083317fe1f50f9236f8b6d7f6cb3"
+    }
+  ],
+  "wall_time_ms": 26079.468250041828,
+  "critical_path_latency_ms": 17860
+}

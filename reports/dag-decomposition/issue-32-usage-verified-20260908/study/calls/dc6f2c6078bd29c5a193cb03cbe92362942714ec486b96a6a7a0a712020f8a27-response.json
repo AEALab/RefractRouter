@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--1--dag-single-b:cost",
+  "content": "{\"result\":\"方案 A：固定投入 22 单位 + 6 周运行费（4×6=24 单位）= 总投入 46 单位。预算 48 单位，余额 2 单位，方案 A 在 48 单位预算下可行。方案 B：固定投入 37 单位 + 6 周运行费（2×6=12 单位）= 总投入 49 单位。预算 48 单位，缺口 1 单位，方案 B 超支 1 单位不可行。约束说明：总预算 48 单位为硬上限，运行周数固定为 6 周，两方案均无未给出的优惠、收益或追加预算。建议：若必须严格不超支，应选择方案 A，剩余 2 单位可作为风险缓冲；若偏好方案 B 的运行费结构，需将总投入下调 1 单位（如压缩固定投入至 36 单位或运行费降至 1.83 单位/周），否则需明确说明超支并取得额外授权。\",\"evidence\":\"原始材料来源标识：任务文本中给出的数值——方案 A 固定投入 22、运行费 4；方案 B 固定投入 37、运行费 2；计划运行 6 周；总预算 48。所有计算均直接来自上述材料，未引入外部数据。\",\"assumptions\":\"未给出的优惠、收益、追加预算或运行周数变化均按零处理；总预算视为不可逾越的硬约束，不进行跨方案资金调剂或时间调整。\"}",
+  "input_tokens": 593,
+  "output_tokens": 304,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2868,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888057476358878e6c95084a12b4d57c4d96cb06f1de1f71a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 304,
+    "prompt_tokens": 593,
+    "total_tokens": 897,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

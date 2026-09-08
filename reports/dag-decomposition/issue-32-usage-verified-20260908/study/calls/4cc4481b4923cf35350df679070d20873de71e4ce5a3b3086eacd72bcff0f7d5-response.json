@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--direct-strong--strong:final-judge",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案正确计算方案 A 总投入 46 单位、余额 2 单位，方案 B 总投入 49 单位、缺口 1 单位；明确预算约束下 A 可行、B 不可行，并给出不引入未给出优惠、收益或额外预算的有条件建议。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案 A 为「22 + 4 × 6 = 46」单位，方案 B 为「37 + 2 × 6 = 49」单位，计算准确。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"答案指出 A 余额 2 单位、B 缺口 1 单位，并建议选 A；若必须选 B 则需调整周数、运行费或预算，同时说明题目未给这些选项，符合约束。\"}]}",
+  "input_tokens": 658,
+  "output_tokens": 215,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8845,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888062779450b63b37cbca791937f2f41fb0469576d674b89",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 215,
+    "prompt_tokens": 658,
+    "total_tokens": 873,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

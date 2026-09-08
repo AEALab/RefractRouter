@@ -221,6 +221,8 @@ class ChatResponse:
     attempts: int
     finish_reason: str | None
     request_id: str | None
+    usage_available: bool = True
+    raw_usage: object = None
 
 
 class ModelInvocationError(RuntimeError):
@@ -474,7 +476,8 @@ class OpenAICompatibleClient:
             data = json.loads(response.body.decode("utf-8"))
             choice = data["choices"][0]
             content = _message_content(choice["message"]["content"])
-            usage = data.get("usage", {})
+            raw_usage = data.get("usage")
+            usage = raw_usage if isinstance(raw_usage, dict) else {}
         except (UnicodeDecodeError, json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
             latency_ms = round((time.perf_counter() - started) * 1000)
             raise ModelInvocationError(
@@ -484,16 +487,21 @@ class OpenAICompatibleClient:
         completion_details = usage.get("completion_tokens_details") or usage.get("output_tokens_details") or {}
         latency_ms = round((time.perf_counter() - started) * 1000)
         headers = {key.lower(): value for key, value in response.headers.items()}
+        input_count = usage.get("prompt_tokens", usage.get("input_tokens"))
+        output_count = usage.get("completion_tokens", usage.get("output_tokens"))
+        usage_available = all(type(v) is int and v >= 0 for v in (input_count, output_count))
         return ChatResponse(
             content=content,
-            input_tokens=int(usage.get("prompt_tokens", usage.get("input_tokens", 0))),
-            output_tokens=int(usage.get("completion_tokens", usage.get("output_tokens", 0))),
+            input_tokens=input_count if type(input_count) is int else 0,
+            output_tokens=output_count if type(output_count) is int else 0,
             cached_input_tokens=int(prompt_details.get("cached_tokens", 0)),
             reasoning_tokens=int(completion_details.get("reasoning_tokens", 0)),
             latency_ms=latency_ms,
             attempts=attempts,
             finish_reason=choice.get("finish_reason"),
             request_id=headers.get("x-request-id") or data.get("id"),
+            usage_available=usage_available,
+            raw_usage=raw_usage,
         )
 
 

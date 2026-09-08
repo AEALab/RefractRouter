@@ -1,0 +1,66 @@
+{
+  "status": "failed",
+  "calls": 18,
+  "completed_combinations": [
+    {
+      "id": 1,
+      "assignments": {
+        "cost": "cheap",
+        "risk": "mid",
+        "answer": "strong"
+      },
+      "quality": 95,
+      "passed": true,
+      "exact_upstream_fields": true,
+      "downstream_input_sha256": "69d30f9cf412170715d63fe83dbb643448bfe0a60a5ca4275e56b46fe8ef326a"
+    },
+    {
+      "id": 2,
+      "assignments": {
+        "cost": "cheap",
+        "risk": "strong",
+        "answer": "mid"
+      },
+      "quality": 92,
+      "passed": true,
+      "exact_upstream_fields": true,
+      "downstream_input_sha256": "9e37735798895b74f988ff2e36725b454b19fe67c82d49d44c08234e0b1abd33"
+    },
+    {
+      "id": 3,
+      "assignments": {
+        "cost": "mid",
+        "risk": "cheap",
+        "answer": "strong"
+      },
+      "quality": 92,
+      "passed": true,
+      "exact_upstream_fields": true,
+      "downstream_input_sha256": "c8c3ea13887b9940bd353f725d1d3eb7da3920f152843bdfb7c09e33917c9fa1"
+    },
+    {
+      "id": 4,
+      "assignments": {
+        "cost": "mid",
+        "risk": "strong",
+        "answer": "cheap"
+      },
+      "quality": 95,
+      "passed": true,
+      "exact_upstream_fields": true,
+      "downstream_input_sha256": "7115fcb36e38605582c9a774cb4ef3adf7200fa699c256e9063b80e3311a05e7"
+    }
+  ],
+  "planned_combinations": 6,
+  "failure_id": 5,
+  "extra_fields": [
+    "assumptions_note"
+  ],
+  "not_started": [
+    "answer"
+  ],
+  "sixth_combination_dispatched": false,
+  "production_afp_estimate": 4.39955,
+  "evaluation_afp_estimate": 4.401,
+  "limitation": "四种显式组合成功证明有限范围的真实交接可行性；不是自动选模收益，也不是六种排列全部通过。"
+}
