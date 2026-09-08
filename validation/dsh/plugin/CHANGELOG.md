@@ -20,6 +20,34 @@
   诊断产物。运行时仍串行，质量 profile 仍是迁移预测。
 - 核心校验结构化交接输出，失败时保存原文与费用并阻止后续执行；插件只负责接入。
 
+## 0.9.0
+
+- 新增 `stage: "resume"`，复用已验证的 K3 基线，只执行参考路线与节点探针，最多 28 次。
+- Python 验证阶段、任务、模型、硬契约、费用和代码兼容记录；不改写历史产物。
+- 本阶段新增费用与已有 K3 费用分开留证；未知用量不计为零。
+- 增加真实历史基线的原生零调用恢复验证，默认仍关闭付费执行。
+
+## 0.8.0
+
+- 新增 `stage: "baseline"`，只执行一次 K3 整任务调用，成功或失败均不进入参考路线及探针。
+- Python 将该单次阶段的等待上限设为 300 秒，保留 8192 token 输出上限和零自动重试。
+- 增加原生子进程单次预检与成功／失败停止回归；其他阶段仍使用原有 120 秒时限。
+
+## 0.7.0
+
+- 新增 `k3-baseline` 类型化阶段及独立评审交接路径，支持准备、组合两个原生调用阶段。
+- 保持默认零调用、单轮零重试、Agent Plan 专用端点与部署额度限制。
+- 本阶段允许内部评审额度为零；外部评审费用另计，未知费用不按零处理。
+- 新增原生工具到 Python 的零调用验证；成本选模、评审校准、材料冻结和核算由 Python 负责。
+
+## 0.6.0
+
+- Add the typed `execution-modes` phase for Python's explicit v0.4 A/B/C report comparison.
+- Default that phase to v2 selection, require zero retries and at most three repeats, and retain
+  disabled paid runs, exact Agent Plan endpoint and both deployment ceilings.
+- Validate a real zero-call subprocess preflight through the registered tool. Evidence ownership,
+  experimental comparisons, accounting and judging remain in Python.
+
 ## 0.5.0
 
 - 新增有类型的 `selectionPolicy`，经 DSH 基准 runner 原样传给 Python。

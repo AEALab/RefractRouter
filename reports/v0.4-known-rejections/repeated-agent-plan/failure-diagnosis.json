@@ -1,0 +1,29 @@
+{
+  "scope": "Single-model cheap/Flash, report_001 repeat 3; this is not an isolated candidate probe.",
+  "failure_type": "invalid-evidence",
+  "failed_node": "synthesize_analysis",
+  "provider_request_id": "02178877250135848e426867c3c446aaa68159641220ac15f11e0",
+  "provider_finish_reason": "stop",
+  "attempts": 1,
+  "actual_keys": [
+    "analysis"
+  ],
+  "required_keys": [
+    "analysis",
+    "evidence"
+  ],
+  "missing_keys": [
+    "evidence"
+  ],
+  "upstream_evidence_items": 8,
+  "upstream_output_sha256": "f7e0aa59b4804795923a2275ea386043060d05e9ea4ab20d16bd3068e8c5ae3a",
+  "failed_output_sha256": "8956df36335646ed12764379246615e10c2b7efd0805d3c63945067f3a4ed6a8",
+  "downstream_failures": {
+    "write_report": "upstream-failure",
+    "render_html": "upstream-failure",
+    "verify_report": "upstream-failure"
+  },
+  "verified_conclusion": "The synthesis response omitted required evidence despite nonempty upstream evidence. The deterministic rejection follows the frozen v0.3 contract. No provider/API failure is needed to explain this failure.",
+  "interpretation_boundary": "Probe selection v2 does not repair a failed complete single-model route. Do not impute a semantic score, silently discard the failed baseline, or combine historical repeats to satisfy the gate.",
+  "model_calls_for_diagnosis": 0
+}

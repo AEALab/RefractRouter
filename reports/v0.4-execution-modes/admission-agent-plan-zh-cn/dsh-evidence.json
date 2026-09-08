@@ -1,0 +1,1307 @@
+{
+  "schema_version": "v0.2",
+  "status": "fail",
+  "mode": "paid",
+  "invoked_by": "dsh-plugin",
+  "recorded_at": "2026-09-07T14:53:14.561750+00:00",
+  "phase": "execution-modes",
+  "repeats": 1,
+  "command": [
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/.venv/bin/python3",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/experiments/run_execution_modes.py",
+    "--dataset",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/benchmarks/v0.1.json",
+    "--manifest",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+    "--output-dir",
+    "/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-lri3b2/output",
+    "--phase",
+    "execution-modes",
+    "--repeats",
+    "1",
+    "--max-retries",
+    "0",
+    "--selection-policy",
+    "exclude-known-contract-rejections-v2",
+    "--execute-paid-run",
+    "--max-production-cost",
+    "210.0",
+    "--max-evaluation-cost",
+    "460.0"
+  ],
+  "exit_code": 1,
+  "stdout": "{\"status\": \"incomplete\", \"simulation\": false, \"costs\": {\"billing_unit\": \"AFP\", \"simulated\": false, \"production\": 39.10205, \"evaluation\": 121.521, \"node_evaluation\": 78.716, \"actual_paid_cost\": null, \"accounting\": \"\\u5305\\u62ec\\u6240\\u6709\\u552f\\u4e00 A/B/C \\u8def\\u7ebf\\u4e0e\\u63a2\\u9488\\uff1b\\u6700\\u7ec8\\u8bc4\\u5ba1\\u53ea\\u8ba1\\u8d39\\u4e00\\u6b21\\uff0c\\u4e8b\\u540e\\u6700\\u4f73\\u57fa\\u7ebf\\u590d\\u7528\\u4e0d\\u91cd\\u590d\\u8ba1\\u8d39\\u3002\"}}\n",
+  "stderr": "",
+  "issues": [
+    "real-runner-exit:1",
+    "benchmark-incomplete"
+  ],
+  "preflight": {
+    "schema_version": "execution-modes-v0.4",
+    "phase": "execution-modes",
+    "repeats": 1,
+    "task_id": "report_001",
+    "output_language": "zh-CN",
+    "mode": "paid",
+    "model_calls": null,
+    "provider": "ark-plan",
+    "wire_api": "chat-completions",
+    "billing_unit": "AFP",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true,
+    "candidate_models": [
+      "deepseek-v4-flash",
+      "minimax-m3",
+      "deepseek-v4-pro"
+    ],
+    "judge_model": "kimi-k3",
+    "selection_policy": "exclude-known-contract-rejections-v2",
+    "output_contract": {
+      "version": "v0.4",
+      "schema_sha256": "e51aaf6d84206e95a6caf5a43425f582993f3808ff05dc17aabd95621ef24d65",
+      "enforcement": "prompt description and local checks; no provider schema guarantee"
+    },
+    "node_rubric_sha256": "923faee4fcdfe7fe6455a4d00b079a3448033c5fe147a32fd6dc5f424983d685",
+    "inputs": {
+      "dataset_sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17",
+      "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+      "tasks": {
+        "A": {
+          "task_id": "report_001",
+          "domain": "2026 年企业 LLM Agent 平台选型",
+          "nodes": [
+            {
+              "node_id": "render_html",
+              "node_type": "rendering",
+              "prompt_template": "Generate the complete research report directly from the frozen sources. Cover every required section with substantive analysis, comparisons, risks, and supported conclusions. Return only standalone HTML with source trace.",
+              "parents": [],
+              "expected_output": null
+            }
+          ],
+          "required_sections": [
+            "执行摘要",
+            "背景",
+            "选型标准",
+            "平台比较",
+            "风险",
+            "结论",
+            "参考资料"
+          ],
+          "output_constraints": [
+            "standalone HTML",
+            "all claims cite source_id",
+            "no external CSS or JavaScript",
+            "最终报告的标题、正文、说明及来源介绍必须使用简体中文；模型名、来源标识及哈希保持原样。"
+          ],
+          "source_pack_id": "report_001",
+          "scoring_rubric_version": "v0.1",
+          "expected_claims": [
+            "DeepAgents is built on LangGraph.",
+            "DSH is reserved for the outer validation environment.",
+            "The benchmark reports quality, cost, and critical-path latency."
+          ],
+          "source_documents": [
+            {
+              "source_id": "source_001",
+              "title": "DeepAgents",
+              "content": "DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.",
+              "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"
+            },
+            {
+              "source_id": "source_002",
+              "title": "LangGraph",
+              "content": "LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.",
+              "content_hash": "97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"
+            },
+            {
+              "source_id": "source_003",
+              "title": "Pydantic AI",
+              "content": "Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.",
+              "content_hash": "7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"
+            },
+            {
+              "source_id": "source_004",
+              "title": "DeepSeek Harness",
+              "content": "DeepSeek Harness, or DSH, is an agent harness where the agent loop itself is a plugin. For RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.",
+              "content_hash": "b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"
+            },
+            {
+              "source_id": "source_005",
+              "title": "LLM routing research gap",
+              "content": "Existing LLM routing work mostly selects one model for an entire request. RefractRouter studies whether selecting a model separately for each node in a task DAG can improve the quality-cost-latency Pareto frontier.",
+              "content_hash": "418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"
+            },
+            {
+              "source_id": "source_006",
+              "title": "Task decomposition boundary",
+              "content": "Static task decomposition belongs to the application layer. The router receives the DAG as input and focuses on per-node model selection. Dynamic re-splitting is deferred until node-level routing is validated.",
+              "content_hash": "96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"
+            },
+            {
+              "source_id": "source_007",
+              "title": "Benchmark design",
+              "content": "A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency. The first benchmark should stay small enough to reproduce.",
+              "content_hash": "03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"
+            },
+            {
+              "source_id": "source_008",
+              "title": "Scoring rubric",
+              "content": "The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity. Scoring prompts and rubric versions must be versioned with run records.",
+              "content_hash": "b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"
+            }
+          ],
+          "output_contract_version": "v0.4",
+          "execution_mode": "one-shot"
+        },
+        "B_C": {
+          "task_id": "report_001",
+          "domain": "2026 年企业 LLM Agent 平台选型",
+          "nodes": [
+            {
+              "node_id": "parse_requirements",
+              "node_type": "planning",
+              "prompt_template": "Extract the report topic, audience, required sections, and output constraints.",
+              "parents": [],
+              "expected_output": null
+            },
+            {
+              "node_id": "build_outline",
+              "node_type": "planning",
+              "prompt_template": "Build a section outline that covers every required section.",
+              "parents": [
+                "parse_requirements"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "extract_evidence",
+              "node_type": "extraction",
+              "prompt_template": "Extract the most relevant claims from the fixed source pack. Preserve source_id.",
+              "parents": [
+                "build_outline"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "synthesize_analysis",
+              "node_type": "synthesis",
+              "prompt_template": "Compare candidate platforms against the selection criteria and identify tradeoffs.",
+              "parents": [
+                "extract_evidence"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "write_report",
+              "node_type": "generation",
+              "prompt_template": "Write the full report body with every required section and citation.",
+              "parents": [
+                "synthesize_analysis",
+                "extract_evidence"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "render_html",
+              "node_type": "rendering",
+              "prompt_template": "Render the report as a standalone HTML document.",
+              "parents": [
+                "write_report",
+                "extract_evidence"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "verify_report",
+              "node_type": "verification",
+              "prompt_template": "Verify required sections, citations, HTML validity, and output constraints.",
+              "parents": [
+                "render_html",
+                "extract_evidence"
+              ],
+              "expected_output": null
+            }
+          ],
+          "required_sections": [
+            "执行摘要",
+            "背景",
+            "选型标准",
+            "平台比较",
+            "风险",
+            "结论",
+            "参考资料"
+          ],
+          "output_constraints": [
+            "standalone HTML",
+            "all claims cite source_id",
+            "no external CSS or JavaScript",
+            "最终报告的标题、正文、说明及来源介绍必须使用简体中文；模型名、来源标识及哈希保持原样。"
+          ],
+          "source_pack_id": "report_001",
+          "scoring_rubric_version": "v0.1",
+          "expected_claims": [
+            "DeepAgents is built on LangGraph.",
+            "DSH is reserved for the outer validation environment.",
+            "The benchmark reports quality, cost, and critical-path latency."
+          ],
+          "source_documents": [
+            {
+              "source_id": "source_001",
+              "title": "DeepAgents",
+              "content": "DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.",
+              "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"
+            },
+            {
+              "source_id": "source_002",
+              "title": "LangGraph",
+              "content": "LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.",
+              "content_hash": "97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"
+            },
+            {
+              "source_id": "source_003",
+              "title": "Pydantic AI",
+              "content": "Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.",
+              "content_hash": "7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"
+            },
+            {
+              "source_id": "source_004",
+              "title": "DeepSeek Harness",
+              "content": "DeepSeek Harness, or DSH, is an agent harness where the agent loop itself is a plugin. For RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.",
+              "content_hash": "b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"
+            },
+            {
+              "source_id": "source_005",
+              "title": "LLM routing research gap",
+              "content": "Existing LLM routing work mostly selects one model for an entire request. RefractRouter studies whether selecting a model separately for each node in a task DAG can improve the quality-cost-latency Pareto frontier.",
+              "content_hash": "418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"
+            },
+            {
+              "source_id": "source_006",
+              "title": "Task decomposition boundary",
+              "content": "Static task decomposition belongs to the application layer. The router receives the DAG as input and focuses on per-node model selection. Dynamic re-splitting is deferred until node-level routing is validated.",
+              "content_hash": "96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"
+            },
+            {
+              "source_id": "source_007",
+              "title": "Benchmark design",
+              "content": "A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency. The first benchmark should stay small enough to reproduce.",
+              "content_hash": "03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"
+            },
+            {
+              "source_id": "source_008",
+              "title": "Scoring rubric",
+              "content": "The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity. Scoring prompts and rubric versions must be versioned with run records.",
+              "content_hash": "b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"
+            }
+          ],
+          "output_contract_version": "v0.4",
+          "execution_mode": "dag"
+        }
+      },
+      "code": {
+        "experiments/analyze_model_selection.py": "8c65c031bbef1818a659988fa6efc4a43c5b42e843e417625b7b839da0e4cab6",
+        "experiments/finalize_real_v0_1.py": "6f70eae59cb5ebde1c00423a3ea532dd62b9937ac7a1da418ec80c118ed364fa",
+        "experiments/replay_node_contracts.py": "b5a203d487935757f42bd73dac90d608e5e92fc7b7c50e8b2d88c032de8d3cb2",
+        "experiments/review_node_quality_evidence.py": "c71900ad53671fadaa7c7a6b652aff4d5709f95588a3e7bbcbffc2530113cd36",
+        "experiments/run_execution_modes.py": "e562f9b52a1faf11b280c8c4e617ea4773547cacc184c4bae585f66f5910708a",
+        "experiments/run_real_v0_1.py": "2f838d83691731607c2d2dce5eaf641a49fb13a25acc967863fb5ddb7a68a469",
+        "experiments/run_v0_1.py": "82ce96e4d8ce47f835a654e678fe0ee2965e8f76c09440987c0c79afcc959446",
+        "src/refractrouter/__init__.py": "1ebb90221ab180b3804eaf36fddfaea1cfb5303f2f03e3299812041207e28a34",
+        "src/refractrouter/adapters.py": "43709152360d3079b816132ad8d3092b7f01398d78651cfe7e53dfb052c1f53d",
+        "src/refractrouter/benchmark.py": "9c9042519d21db15cff169e036e369187a7cf9a7b33d7794cc25c3de9b193c12",
+        "src/refractrouter/cli.py": "bfac0bf929a98acbddacd7c848f17650fb6dd9526c5f77895ca750cee033adee",
+        "src/refractrouter/comparisons.py": "baf75a5e94996e581887f7746f229eaefa28675bd9c102d3d7b5a0a3d1a249a1",
+        "src/refractrouter/dataset.py": "51f5138e84b515cdeee5f306f6bd8fed0f47eb74752748b52084c866598d749d",
+        "src/refractrouter/deepagents_executor.py": "e3e4e085d55f9792f7722681fccb5bdf1f45d6828749cfa274c07ddd88510f3b",
+        "src/refractrouter/evidence_state.py": "b10a1af5e06ff8251e9cae7879a7e86b340de0195652898f72b8816244e0b7d4",
+        "src/refractrouter/execution_modes.py": "cefeba1f1cb728433fa22c479c6886b2c6b5a94a8124d4ef3c9610b35fc8fac0",
+        "src/refractrouter/execution_reports.py": "0c37cfa4472545fdc60f0b3d62ed20edff02054469ccb88e8e8824eef0e7bf16",
+        "src/refractrouter/graph_executor.py": "56d744d24c9a76e8a896e9fd33213c291b4da7bb727fa07e21b027dcd1428f26",
+        "src/refractrouter/judge.py": "ce3c891d7b2dee30b16dd81c1efd98078eb58789b9aa12b1e6a0e0538448d3b8",
+        "src/refractrouter/manifest.py": "92c0490a5bdd362a7d9390ff5a842e08a0c9a5d7181c516a91c1aa327784354b",
+        "src/refractrouter/metrics.py": "1bfe2db5523c56bcefe456e23f62a507a1650f650fe07ee48ff7900b5dae350a",
+        "src/refractrouter/model_catalog.py": "158c7b5acc0dd13ed061099e298fd656b0ab93bd88dfe8b4ed526accaf9ca818",
+        "src/refractrouter/model_registry.py": "1f5d56244af42e918e594dd8434c49edba70ac50070314bef5eb09cc10868f8e",
+        "src/refractrouter/model_selection.py": "a23b611824b0ef432ee3c7933bd216879138d6901477048a433e20bf6a2f0793",
+        "src/refractrouter/node_availability.py": "5deb2df3a6b0d7c3141fe4bf96b3f643cbd0aad76de32ccdc6413d49947d43d5",
+        "src/refractrouter/node_contracts.py": "d34e64ab4a1d39d8028099ae0fbb1dc8ed434a7a3ed4249b6ec072575a915d62",
+        "src/refractrouter/node_judge.py": "d1dd5997921b47533d45a15566368ec0b6f1a5aee668a83e9c636e4f4cea1b9b",
+        "src/refractrouter/openai_compatible.py": "8e53ea3761648789aee49f2b25b93b70ef5310162bc99e00489f87c557060456",
+        "src/refractrouter/report_renderer.py": "a2b110b8fdea5afdd4369377b5bef1c753bc1e845076dd90e23dc17dc4ed464d",
+        "src/refractrouter/routing.py": "6b7c964f643fa30465d4e9d2a425f0732ebf3633f59f9dafe67968188f6e916f",
+        "src/refractrouter/schemas.py": "8acaf738edd6586135fa9e33f49ba15c1e21d3a7ae4def977fa03ba69771b08e",
+        "src/refractrouter/scoring.py": "2abb25786031dc996b64b6e94fdec6c86454898d67b19afa54193d6afb8a4dfe",
+        "src/refractrouter/source_pack.py": "cc515979db15bcd08133cf0af2ba7ce615c288ec09a661ca0d4ae34d3501fe7d",
+        "validation/dsh/README.md": "93a8be2bffcebc39e06a841c387e757090a64d2511deb46cb7a73e262ad5ab99",
+        "validation/dsh/__init__.py": "669612274d576b23e152f0751fcaee9914599a249376ebc89f2249a4068089f9",
+        "validation/dsh/canonical_runner.py": "93d2e88179fe64273a865fce66697cb0b10078f1d94a54b5c5158303cbbc2851",
+        "validation/dsh/plugin/CHANGELOG.md": "3005fbf6964b4f8d637e40264536b01b77f942148b6255fabbb6a861160d3eb2",
+        "validation/dsh/plugin/README.md": "24122b92e4bdf29ab3f1c9326f392ab8d8c5dd9b7a3f98e5da9063f514d2c51a",
+        "validation/dsh/plugin/cordis.patch.yml": "1e37591f6be5f1e832157f5ffbe37a9129ff2eacb17f1d5483ef54806fedba29",
+        "validation/dsh/plugin/package-lock.json": "41dcfe8231eeff22f0208a482eaa04e5ae880af06f64b995dfc3a5b09a9e654b",
+        "validation/dsh/plugin/package.json": "a0fa7fa5015f97100ab34ec92549e78f0b02d05b136b44c99b0a746c86cd94a0",
+        "validation/dsh/plugin/src/contracts.ts": "01ed991f9aab29e025b43ac7add3188d5a75d399feac1f1bf12edad259da75c1",
+        "validation/dsh/plugin/src/evidence.ts": "4f0c6bac2b2abd11b5d5ab8b1b0b21cfba0c486a55fcf506edfb34817a530943",
+        "validation/dsh/plugin/src/index.ts": "56fdc872d3ae2ecc1369a7a462e77f833fd0b658223ba968dedf596be7dd38f9",
+        "validation/dsh/plugin/tests/dsh_plugin_contract.test.ts": "a7b646562ec5ec1c0337c9a8671214bdf094df6403bec894126d3f4533d17ab2",
+        "validation/dsh/plugin/tests/fixtures/package-smoke.ts": "bbceb6fcfbe5e6ee1f2e03e229846b1dfe5082955d5b019de55b4deee60b7f64",
+        "validation/dsh/plugin/tsconfig.json": "279521c4a4d0a0696e4fb750bd19618a43eaabc84901e97c2763fd67946a6e03",
+        "validation/dsh/plugin/tsconfig.test.json": "4b7b8cfac065c9ab5d1f60f73bbb31f4cac60094f6c944cb4a38484f4b80588d",
+        "validation/dsh/real_runner.py": "082ba3d2edb4f04dd950e4cb4a667085dd59d282d1428d9f5c34579edb3892a9",
+        "validation/dsh/runner.md": "aef73f419d7a8cae688a740051648ba3e8e8d8b0a6fe625b3c5f0cacb391480d",
+        "validation/dsh/runner.py": "42bd5f9b80d365b5cf8bec650dc10ae799d77f276b474615a4e4b2fca952ef61"
+      }
+    },
+    "execution_policy": {
+      "max_retries": 0,
+      "temperature": 0,
+      "timeout_seconds": 120,
+      "models": [
+        {
+          "model_id": "cheap",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 0.05,
+          "output_cost_per_1k": 0.05,
+          "capability": 0.55,
+          "billing_unit": "AFP",
+          "tags": [
+            "standard",
+            "fast",
+            "afp-coefficient-0.5"
+          ],
+          "api_model": "deepseek-v4-flash",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 0.05,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "candidate",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "json-object-hint"
+        },
+        {
+          "model_id": "mid",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 0.25,
+          "output_cost_per_1k": 0.25,
+          "capability": 0.78,
+          "billing_unit": "AFP",
+          "tags": [
+            "advanced",
+            "balanced",
+            "afp-coefficient-2.5"
+          ],
+          "api_model": "minimax-m3",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 0.25,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "candidate",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "prompt-only"
+        },
+        {
+          "model_id": "strong",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 0.55,
+          "output_cost_per_1k": 0.55,
+          "capability": 0.92,
+          "billing_unit": "AFP",
+          "tags": [
+            "advanced",
+            "strong",
+            "afp-coefficient-5.5"
+          ],
+          "api_model": "deepseek-v4-pro",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 0.55,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "candidate",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "json-object-hint"
+        },
+        {
+          "model_id": "judge",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 1.0,
+          "output_cost_per_1k": 1.0,
+          "capability": 0.97,
+          "billing_unit": "AFP",
+          "tags": [
+            "advanced",
+            "independent-judge",
+            "afp-coefficient-10"
+          ],
+          "api_model": "kimi-k3",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 1.0,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "judge",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "json-object-hint"
+        }
+      ]
+    },
+    "call_plan": {
+      "training_model_calls": 0,
+      "one_shot_model_calls": 3,
+      "single_dag_model_calls": 21,
+      "probe_model_calls": 21,
+      "composed_model_calls": 7,
+      "fixed_calls_per_candidate": 15,
+      "production_model_calls": 52,
+      "node_judge_model_calls": 21,
+      "final_judge_model_calls": 7,
+      "judge_model_calls": 28,
+      "total_model_calls": 80
+    },
+    "cost_estimates": {
+      "billing_unit": "AFP",
+      "production_upper_estimate": 202.39,
+      "evaluation_upper_estimate": 453.38,
+      "total_upper_estimate": 655.76
+    },
+    "estimate_assumptions": {
+      "production_input_tokens": 4000,
+      "judge_input_tokens": 8000,
+      "output_tokens": 8192,
+      "cached_discount": false,
+      "outer_dsh_not_included": true,
+      "not_an_exact_input_bound": true
+    }
+  },
+  "summary": {
+    "schema_version": "execution-modes-v0.4",
+    "status": "incomplete",
+    "simulation": false,
+    "empirical_evidence": true,
+    "repeats": 1,
+    "candidate_models": [
+      "cheap",
+      "mid",
+      "strong"
+    ],
+    "strategies": {
+      "dag-oracle": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [
+            {
+              "task_id": "report_001",
+              "repeat": 1
+            }
+          ],
+          "excluded": [],
+          "complete": true
+        },
+        "comparison_runs": 1,
+        "quality_mean": 100.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 0.689,
+        "production_cost_stddev": 0.0,
+        "production_cost_p50": 0.689,
+        "production_cost_p95": 0.689,
+        "production_cost_total": 0.689,
+        "evaluation_cost_total": 4.451,
+        "critical_path_p50_ms": 67339,
+        "critical_path_p95_ms": 67339,
+        "critical_path_stddev_ms": 0,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "dag:cheap": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [
+            {
+              "task_id": "report_001",
+              "repeat": 1
+            }
+          ],
+          "excluded": [],
+          "complete": true
+        },
+        "comparison_runs": 1,
+        "quality_mean": 100.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 0.689,
+        "production_cost_stddev": 0.0,
+        "production_cost_p50": 0.689,
+        "production_cost_p95": 0.689,
+        "production_cost_total": 0.689,
+        "evaluation_cost_total": 4.451,
+        "critical_path_p50_ms": 67339,
+        "critical_path_p95_ms": 67339,
+        "critical_path_stddev_ms": 0,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "dag:mid": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [
+            {
+              "task_id": "report_001",
+              "repeat": 1
+            }
+          ],
+          "excluded": [],
+          "complete": true
+        },
+        "comparison_runs": 1,
+        "quality_mean": 95.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 5.01575,
+        "production_cost_stddev": 0.0,
+        "production_cost_p50": 5.01575,
+        "production_cost_p95": 5.01575,
+        "production_cost_total": 5.01575,
+        "evaluation_cost_total": 4.538,
+        "critical_path_p50_ms": 67581,
+        "critical_path_p95_ms": 67581,
+        "critical_path_stddev_ms": 0,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "dag:strong": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [
+            {
+              "task_id": "report_001",
+              "repeat": 1
+            }
+          ],
+          "excluded": [],
+          "complete": true
+        },
+        "comparison_runs": 1,
+        "quality_mean": 87.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 10.05345,
+        "production_cost_stddev": 0.0,
+        "production_cost_p50": 10.05345,
+        "production_cost_p95": 10.05345,
+        "production_cost_total": 10.05345,
+        "evaluation_cost_total": 6.339,
+        "critical_path_p50_ms": 112377,
+        "critical_path_p95_ms": 112377,
+        "critical_path_stddev_ms": 0,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "node-mixed": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [
+            {
+              "task_id": "report_001",
+              "repeat": 1
+            }
+          ],
+          "excluded": [],
+          "complete": true
+        },
+        "comparison_runs": 1,
+        "quality_mean": 91.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 4.33895,
+        "production_cost_stddev": 0.0,
+        "production_cost_p50": 4.33895,
+        "production_cost_p95": 4.33895,
+        "production_cost_total": 4.33895,
+        "evaluation_cost_total": 6.692,
+        "critical_path_p50_ms": 68058,
+        "critical_path_p95_ms": 68058,
+        "critical_path_stddev_ms": 0,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "one-shot-oracle": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [],
+          "excluded": [
+            {
+              "task_id": "report_001",
+              "repeat": 1,
+              "reasons": [
+                "failed-execution",
+                "missing-final-output",
+                "missing-judge",
+                "judge:incomplete-single-model-evaluations"
+              ]
+            }
+          ],
+          "complete": false
+        },
+        "comparison_runs": 0,
+        "quality_mean": null,
+        "quality_stddev": null,
+        "production_cost_mean": null,
+        "production_cost_stddev": null,
+        "production_cost_p50": null,
+        "production_cost_p95": null,
+        "production_cost_total": 0,
+        "evaluation_cost_total": 0,
+        "critical_path_p50_ms": null,
+        "critical_path_p95_ms": null,
+        "critical_path_stddev_ms": null,
+        "success_rate": 0.0,
+        "judge_coverage": 0.0,
+        "retry_rate": 0.0
+      },
+      "one-shot:cheap": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [],
+          "excluded": [
+            {
+              "task_id": "report_001",
+              "repeat": 1,
+              "reasons": [
+                "failed-execution"
+              ]
+            }
+          ],
+          "complete": false
+        },
+        "comparison_runs": 0,
+        "quality_mean": null,
+        "quality_stddev": null,
+        "production_cost_mean": null,
+        "production_cost_stddev": null,
+        "production_cost_p50": null,
+        "production_cost_p95": null,
+        "production_cost_total": 0.36275,
+        "evaluation_cost_total": 7.8,
+        "critical_path_p50_ms": null,
+        "critical_path_p95_ms": null,
+        "critical_path_stddev_ms": null,
+        "success_rate": 0.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "one-shot:mid": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [
+            {
+              "task_id": "report_001",
+              "repeat": 1
+            }
+          ],
+          "excluded": [],
+          "complete": true
+        },
+        "comparison_runs": 1,
+        "quality_mean": 94.0,
+        "quality_stddev": 0.0,
+        "production_cost_mean": 1.416,
+        "production_cost_stddev": 0.0,
+        "production_cost_p50": 1.416,
+        "production_cost_p95": 1.416,
+        "production_cost_total": 1.416,
+        "evaluation_cost_total": 6.207,
+        "critical_path_p50_ms": 32300,
+        "critical_path_p95_ms": 32300,
+        "critical_path_stddev_ms": 0,
+        "success_rate": 1.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      },
+      "one-shot:strong": {
+        "billing_unit": "AFP",
+        "runs": 1,
+        "expected_runs": 1,
+        "task_count": 1,
+        "cohort": {
+          "policy": "successful-independently-judged-v1",
+          "included": [],
+          "excluded": [
+            {
+              "task_id": "report_001",
+              "repeat": 1,
+              "reasons": [
+                "failed-execution"
+              ]
+            }
+          ],
+          "complete": false
+        },
+        "comparison_runs": 0,
+        "quality_mean": null,
+        "quality_stddev": null,
+        "production_cost_mean": null,
+        "production_cost_stddev": null,
+        "production_cost_p50": null,
+        "production_cost_p95": null,
+        "production_cost_total": 3.4045,
+        "evaluation_cost_total": 6.778,
+        "critical_path_p50_ms": null,
+        "critical_path_p95_ms": null,
+        "critical_path_stddev_ms": null,
+        "success_rate": 0.0,
+        "judge_coverage": 1.0,
+        "retry_rate": 0.0
+      }
+    },
+    "comparisons": {
+      "dag:cheap vs one-shot:cheap": {
+        "pairs": 0,
+        "excluded_pairs": 1,
+        "included_blocks": [],
+        "excluded_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1,
+            "reasons": [
+              "one-shot:cheap:failed-execution"
+            ]
+          }
+        ],
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      },
+      "dag:mid vs one-shot:mid": {
+        "pairs": 1,
+        "excluded_pairs": 0,
+        "included_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          }
+        ],
+        "excluded_blocks": [],
+        "task_count": 1,
+        "repeats": [
+          1
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 1,
+            "mean": 1.0,
+            "stddev": 0.0
+          }
+        },
+        "quality_delta_mean": 1.0,
+        "quality_delta_stddev": 0.0,
+        "cost_delta_mean": 3.59975,
+        "cost_delta_stddev": 0.0,
+        "cost_reduction_percent_mean": -254.21963277,
+        "cost_reduction_percent_stddev": 0.0,
+        "latency_delta_ms_mean": 35281,
+        "latency_delta_ms_stddev": 0.0
+      },
+      "dag:strong vs one-shot:strong": {
+        "pairs": 0,
+        "excluded_pairs": 1,
+        "included_blocks": [],
+        "excluded_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1,
+            "reasons": [
+              "one-shot:strong:failed-execution"
+            ]
+          }
+        ],
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      },
+      "node-mixed vs dag:cheap": {
+        "pairs": 1,
+        "excluded_pairs": 0,
+        "included_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          }
+        ],
+        "excluded_blocks": [],
+        "task_count": 1,
+        "repeats": [
+          1
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 1,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 1,
+            "mean": -9.0,
+            "stddev": 0.0
+          }
+        },
+        "quality_delta_mean": -9.0,
+        "quality_delta_stddev": 0.0,
+        "cost_delta_mean": 3.64995,
+        "cost_delta_stddev": 0.0,
+        "cost_reduction_percent_mean": -529.74600871,
+        "cost_reduction_percent_stddev": 0.0,
+        "latency_delta_ms_mean": 719,
+        "latency_delta_ms_stddev": 0.0
+      },
+      "node-mixed vs dag:mid": {
+        "pairs": 1,
+        "excluded_pairs": 0,
+        "included_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          }
+        ],
+        "excluded_blocks": [],
+        "task_count": 1,
+        "repeats": [
+          1
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 1,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 1,
+            "mean": -4.0,
+            "stddev": 0.0
+          }
+        },
+        "quality_delta_mean": -4.0,
+        "quality_delta_stddev": 0.0,
+        "cost_delta_mean": -0.6768,
+        "cost_delta_stddev": 0.0,
+        "cost_reduction_percent_mean": 13.49349549,
+        "cost_reduction_percent_stddev": 0.0,
+        "latency_delta_ms_mean": 477,
+        "latency_delta_ms_stddev": 0.0
+      },
+      "node-mixed vs dag:strong": {
+        "pairs": 1,
+        "excluded_pairs": 0,
+        "included_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          }
+        ],
+        "excluded_blocks": [],
+        "task_count": 1,
+        "repeats": [
+          1
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 1,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 1,
+            "mean": 4.0,
+            "stddev": 0.0
+          }
+        },
+        "quality_delta_mean": 4.0,
+        "quality_delta_stddev": 0.0,
+        "cost_delta_mean": -5.7145,
+        "cost_delta_stddev": 0.0,
+        "cost_reduction_percent_mean": 56.84118387,
+        "cost_reduction_percent_stddev": 0.0,
+        "latency_delta_ms_mean": -44319,
+        "latency_delta_ms_stddev": 0.0
+      },
+      "node-mixed vs one-shot:cheap": {
+        "pairs": 0,
+        "excluded_pairs": 1,
+        "included_blocks": [],
+        "excluded_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1,
+            "reasons": [
+              "one-shot:cheap:failed-execution"
+            ]
+          }
+        ],
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      },
+      "node-mixed vs one-shot:mid": {
+        "pairs": 1,
+        "excluded_pairs": 0,
+        "included_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          }
+        ],
+        "excluded_blocks": [],
+        "task_count": 1,
+        "repeats": [
+          1
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 1,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 1,
+            "mean": -3.0,
+            "stddev": 0.0
+          }
+        },
+        "quality_delta_mean": -3.0,
+        "quality_delta_stddev": 0.0,
+        "cost_delta_mean": 2.92295,
+        "cost_delta_stddev": 0.0,
+        "cost_reduction_percent_mean": -206.4230226,
+        "cost_reduction_percent_stddev": 0.0,
+        "latency_delta_ms_mean": 35758,
+        "latency_delta_ms_stddev": 0.0
+      },
+      "node-mixed vs one-shot:strong": {
+        "pairs": 0,
+        "excluded_pairs": 1,
+        "included_blocks": [],
+        "excluded_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1,
+            "reasons": [
+              "one-shot:strong:failed-execution"
+            ]
+          }
+        ],
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      },
+      "node-mixed vs dag-oracle": {
+        "pairs": 1,
+        "excluded_pairs": 0,
+        "included_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          }
+        ],
+        "excluded_blocks": [],
+        "task_count": 1,
+        "repeats": [
+          1
+        ],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 1,
+        "per_task_quality_delta": {
+          "report_001": {
+            "repeats": 1,
+            "mean": -9.0,
+            "stddev": 0.0
+          }
+        },
+        "quality_delta_mean": -9.0,
+        "quality_delta_stddev": 0.0,
+        "cost_delta_mean": 3.64995,
+        "cost_delta_stddev": 0.0,
+        "cost_reduction_percent_mean": -529.74600871,
+        "cost_reduction_percent_stddev": 0.0,
+        "latency_delta_ms_mean": 719,
+        "latency_delta_ms_stddev": 0.0
+      },
+      "node-mixed vs one-shot-oracle": {
+        "pairs": 0,
+        "excluded_pairs": 1,
+        "included_blocks": [],
+        "excluded_blocks": [
+          {
+            "task_id": "report_001",
+            "repeat": 1,
+            "reasons": [
+              "one-shot-oracle:failed-execution",
+              "one-shot-oracle:missing-final-output",
+              "one-shot-oracle:missing-judge",
+              "one-shot-oracle:judge:incomplete-single-model-evaluations"
+            ]
+          }
+        ],
+        "task_count": 0,
+        "repeats": [],
+        "identical_assignment_pairs": 0,
+        "mixed_candidate_pairs": 0,
+        "per_task_quality_delta": {},
+        "quality_delta_mean": null,
+        "quality_delta_stddev": null,
+        "cost_delta_mean": null,
+        "cost_delta_stddev": null,
+        "cost_reduction_percent_mean": null,
+        "cost_reduction_percent_stddev": null,
+        "latency_delta_ms_mean": null,
+        "latency_delta_ms_stddev": null
+      }
+    },
+    "go_gates": {
+      "dag-oracle": {
+        "quality_delta": -9.0,
+        "cost_reduction_percent": -529.746009,
+        "relative_cost_delta_percent": 529.746009,
+        "p95_latency_ratio": 1.010677,
+        "quality_path_pass": false,
+        "cost_path_pass": false,
+        "latency_pass": true,
+        "reliability_pass": true,
+        "judge_complete": true,
+        "comparison_complete": true,
+        "cohorts_aligned": true,
+        "decision": "Insufficient-evidence"
+      },
+      "one-shot-oracle": {
+        "quality_delta": null,
+        "cost_reduction_percent": null,
+        "relative_cost_delta_percent": null,
+        "p95_latency_ratio": null,
+        "quality_path_pass": false,
+        "cost_path_pass": false,
+        "latency_pass": false,
+        "reliability_pass": false,
+        "judge_complete": false,
+        "comparison_complete": false,
+        "cohorts_aligned": false,
+        "decision": "Insufficient-evidence"
+      }
+    },
+    "node_matrix": {
+      "expected_cells": 21,
+      "recorded_cells": 21
+    },
+    "node_availability": [
+      {
+        "task_id": "report_001",
+        "repeat": 1,
+        "expected_cells": 21,
+        "recorded_cells": 21,
+        "records_complete": true,
+        "evaluations_available": true,
+        "reference_context_valid": true,
+        "evaluation_states": {
+          "contract-rejected": 1,
+          "judged": 20
+        },
+        "eligible_by_node": {
+          "parse_requirements": [
+            "cheap",
+            "mid",
+            "strong"
+          ],
+          "build_outline": [
+            "cheap",
+            "mid",
+            "strong"
+          ],
+          "extract_evidence": [
+            "cheap",
+            "mid",
+            "strong"
+          ],
+          "synthesize_analysis": [
+            "cheap",
+            "mid",
+            "strong"
+          ],
+          "write_report": [
+            "cheap",
+            "strong"
+          ],
+          "render_html": [
+            "cheap",
+            "mid",
+            "strong"
+          ],
+          "verify_report": [
+            "cheap",
+            "mid",
+            "strong"
+          ]
+        },
+        "nodes_without_eligible_candidates": [],
+        "missing_cells": [],
+        "unexpected_cells": [],
+        "duplicate_cells": [],
+        "inconsistent_context_nodes": [],
+        "legacy_policy": "all-candidates-required-v1",
+        "legacy_route_executable": false
+      }
+    ],
+    "failure_taxonomy": {
+      "incomplete-single-model-evaluations": 1,
+      "invalid-html": 1,
+      "judge:incomplete-single-model-evaluations": 1,
+      "source-trace": 1
+    },
+    "costs": {
+      "billing_unit": "AFP",
+      "simulated": false,
+      "production": 39.10205,
+      "evaluation": 121.521,
+      "node_evaluation": 78.716,
+      "actual_paid_cost": null,
+      "accounting": "包括所有唯一 A/B/C 路线与探针；最终评审只计费一次，事后最佳基线复用不重复计费。"
+    }
+  },
+  "inputs": {
+    "dataset": {
+      "path": "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/benchmarks/v0.1.json",
+      "sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17"
+    },
+    "model_manifest": {
+      "path": "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+      "sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367"
+    },
+    "corpus": {
+      "paths": [
+        "data/tasks",
+        "data/source_packs"
+      ],
+      "sha256": "ca9d3919aed145177fcd15b8e55541df261de7273abfcdb174aea77356548157"
+    },
+    "code": {
+      "paths": [
+        "src/refractrouter",
+        "experiments",
+        "validation/dsh"
+      ],
+      "sha256": "b0cedf619bd6076aeb55fd21cf9369d905577c39fb9c9ebc2205351d093d2584"
+    }
+  },
+  "artifacts": {
+    "preflight.json": "b1091c2c200c04c5777ed408672f8c260813097c5bedee5972b057b5678a611c",
+    "benchmark-summary.json": "d8e10fed154763e5745a041908d99125a5dacb392a7ee83094256d49942c4e17",
+    "baseline-table.md": "7f2fbd08bc645a0c02d9f66ffe55ec3c1d3f292712af6c0a5890120fcfc77fb1",
+    "failure-taxonomy.md": "97b8348a4fd195b68f44c1ba4201af2df5d41296561c88ace38a7bcf224bf057",
+    "evidence-index.json": "47e92df70d21b75ef63cdc5177d368103018238bff47d6b2d907119af23ab292",
+    "node-evaluations.ndjson": "9fcdbe48c6684feddeb1ae25f4fcda73b9e58557f5c37791a2d315fcdb6ed5f5",
+    "node-quality-matrix.json": "859bf702a8decf9044bfbb427bfdc4a5575f89c9fbb3f2bd8bf5a3a619df03e0",
+    "node-quality-matrix.md": "81511d5ca5ad74b98cfe0bec2c66bdfd8073dd04a43d8dd0ff6b4fd5e7736a7c",
+    "strategy-comparisons.json": "5fd592776c5a0e01cd2d01b5d1e151630a7f045e94dd9a36bd6978cd93128bb6",
+    "strategy-comparisons.md": "179fdae9d9d95902a64c742bd79963161f5da6ab8d0610893b299ddc472c0c22",
+    "model-progress.ndjson": "7906efe3b6f6c337da30cb810256bce8fbbb8ed52f67f533b67577aa7a3aa035"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "git_commit": "51579a45f6a60568bf0e56614970492aa1f81f28",
+    "git_dirty": false,
+    "git_status": "",
+    "dsh": "0.1.1-rc.2",
+    "deepagents": "0.7.13",
+    "langgraph": "1.2.11",
+    "refractrouter": "0.1.0",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  }
+}

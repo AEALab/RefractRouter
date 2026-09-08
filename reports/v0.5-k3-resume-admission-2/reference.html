@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 年企业 LLM Agent 平台选型报告</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            background-color: #fafafa;
+        }
+        h1 {
+            font-size: 2rem;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+        h2 {
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 0.75rem;
+        }
+        p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+        a {
+            color: #2980b9;
+            text-decoration: none;
+            border-bottom: 1px dotted #2980b9;
+        }
+        a:hover {
+            color: #1a5276;
+            border-bottom: 1px solid #1a5276;
+        }
+        .source-trace {
+            margin-top: 2.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ccc;
+            font-size: 0.85rem;
+            color: #555;
+        }
+        .source-trace h3 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        .source-trace ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .source-trace li {
+            margin-bottom: 0.4rem;
+            word-break: break-all;
+        }
+        .source-trace code {
+            background-color: #eee;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>2026 年企业 LLM Agent 平台选型报告</h1>
+
+    <h2>执行摘要</h2>
+    <p>本报告针对 2026 年企业 LLM Agent 平台选型，聚焦于 RefractRouter v0.1 的固定任务 DAG 执行框架需求。候选平台包括 DeepAgents、LangGraph、Pydantic AI 和 DeepSeek Harness。分析表明，LangGraph 作为图状态机框架，天然匹配固定 DAG 的节点、边、持久状态和检查点需求，是核心执行基础 <a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。DeepAgents 功能丰富但自主性过强，需禁用自主规划后受限使用 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a>。Pydantic AI 和 DeepSeek Harness 仅在特定条件下作为可选插件引入 <a href="#source_003" data-cite-source-id="source_003">[source_003]</a><a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。综合取舍，建议以 LangGraph 为核心，其他平台按需集成，以平衡功能覆盖与系统复杂度。</p>
+
+    <h2>背景</h2>
+    <p>2026 年企业 LLM Agent 平台选型面临多样化需求，但 RefractRouter v0.1 采用固定任务 DAG 执行框架，要求平台支持显式节点、边和状态管理。现有 LLM 路由研究大多为整个请求选择一个模型，而 RefractRouter 需在任务 DAG 中按节点分别选择模型，以改善质量-成本-延迟的帕累托前沿 <a href="#source_005" data-cite-source-id="source_005">[source_005]</a>。静态任务分解属于应用层，路由器接收 DAG 并专注于逐节点模型选择，动态重新拆分推迟到节点级路由验证之后 <a href="#source_006" data-cite-source-id="source_006">[source_006]</a>。因此，平台选型必须聚焦于节点级执行和状态管理能力，而非自主规划或动态代理生成。</p>
+
+    <h2>选型标准</h2>
+    <p>选型标准基于 RefractRouter v0.1 的固定任务 DAG 执行需求，包括：固定 DAG 执行、逐节点模型选择、可复现基准和版本化评分。固定 DAG 执行要求平台支持显式节点、边和持久状态；逐节点模型选择要求平台能暴露节点级上下文和状态 <a href="#source_005" data-cite-source-id="source_005">[source_005]</a>。可复现基准要求固定任务 DAG、多个候选模型、逐节点和逐任务评分、成本核算及关键路径延迟 <a href="#source_007" data-cite-source-id="source_007">[source_007]</a>。版本化评分要求所有平台集成和评分提示与运行记录一起版本化 <a href="#source_008" data-cite-source-id="source_008">[source_008]</a>。这些标准共同确保选型过程可审计、可复现，并支持后续的节点级路由验证。</p>
+
+    <h2>平台比较</h2>
+    <p>LangGraph 作为图状态机框架，支持显式节点、边、持久状态和检查点，天然匹配固定任务 DAG 的底层执行需求，是 RefractRouter 的核心执行基础 <a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。DeepAgents 提供规划、子代理、文件系统抽象和人在环控制，但其自主规划和动态子代理生成与固定 DAG 约束冲突，因此仅作为固定 DAG 执行框架使用，需禁用自主能力 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a>。Pydantic AI 提供类型化工具定义和结构化模型输出，仅在严格模式需求下使用；除非结构化输出解析成为瓶颈，否则不作为核心依赖 <a href="#source_003" data-cite-source-id="source_003">[source_003]</a>。DeepSeek Harness 的代理循环本身是插件，保留用于外部验证环境而非核心路由循环，避免与固定 DAG 执行逻辑耦合 <a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。关键取舍在于：LangGraph 提供最直接的 DAG 执行支持，但缺乏内置的逐节点模型选择能力，需要 RefractRouter 在其上构建路由逻辑；DeepAgents 功能丰富但自主性过强，需额外约束；Pydantic AI 和 DeepSeek Harness 仅在特定条件下引入，以控制复杂度。</p>
+
+    <h2>风险</h2>
+    <p>主要风险包括：DeepAgents 的自主规划可能使版本追踪复杂化，影响评分标准版本化要求 <a href="#source_008" data-cite-source-id="source_008">[source_008]</a>；其文件系统抽象可能引入额外开销，影响可复现基准的关键路径延迟 <a href="#source_007" data-cite-source-id="source_007">[source_007]</a>。LangGraph 缺乏内置的逐节点模型选择能力，需要额外构建路由逻辑，可能增加开发复杂度 <a href="#source_002" data-cite-source-id="source_002">[source_002]</a>。Pydantic AI 和 DeepSeek Harness 作为可选插件，若集成不当可能引入依赖耦合，违背依赖最小化原则 <a href="#source_003" data-cite-source-id="source_003">[source_003]</a><a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。此外，现有 LLM 路由研究空白意味着按节点选择模型的实践缺乏成熟参考，可能面临未知的技术挑战 <a href="#source_005" data-cite-source-id="source_005">[source_005]</a>。</p>
+
+    <h2>结论</h2>
+    <p>综合比较与取舍分析，LangGraph 作为核心执行基础是最优选择，因其显式图结构便于审计和版本追踪，且检查点和持久状态有助于实现可复现基准 <a href="#source_002" data-cite-source-id="source_002">[source_002]</a><a href="#source_007" data-cite-source-id="source_007">[source_007]</a>。DeepAgents 仅在需要文件系统抽象或人在环控制的特定节点中受限使用，需禁用自主规划 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a>。Pydantic AI 和 DeepSeek Harness 作为可选插件，仅在严格模式需求或外部验证环境下引入，以平衡功能覆盖与系统复杂度 <a href="#source_003" data-cite-source-id="source_003">[source_003]</a><a href="#source_004" data-cite-source-id="source_004">[source_004]</a>。建议 RefractRouter v0.1 以 LangGraph 为核心，按需集成其他平台，并确保所有集成和评分提示与运行记录一起版本化 <a href="#source_008" data-cite-source-id="source_008">[source_008]</a>。</p>
+
+    <h2>参考资料</h2>
+    <p>本报告引用的来源包括：DeepAgents 平台文档 <a href="#source_001" data-cite-source-id="source_001">[source_001]</a>；LangGraph 框架文档 <a href="#source_002" data-cite-source-id="source_002">[source_002]</a>；Pydantic AI 工具文档 <a href="#source_003" data-cite-source-id="source_003">[source_003]</a>；DeepSeek Harness 插件说明 <a href="#source_004" data-cite-source-id="source_004">[source_004]</a>；LLM 路由研究空白分析 <a href="#source_005" data-cite-source-id="source_005">[source_005]</a>；任务分解边界说明 <a href="#source_006" data-cite-source-id="source_006">[source_006]</a>；基准设计要求 <a href="#source_007" data-cite-source-id="source_007">[source_007]</a>；评分标准版本化要求 <a href="#source_008" data-cite-source-id="source_008">[source_008]</a>。所有引用均基于提取证据中的声明，用于支持平台比较、取舍分析和结论。</p>
+
+    <div class="source-trace" id="source-trace">
+        <h3>来源追溯</h3>
+        <ul>
+            <li data-source-id="source_001" data-content-hash="ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"><strong>source_001</strong> — DeepAgents — <code>ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</code></li>
+            <li data-source-id="source_002" data-content-hash="97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"><strong>source_002</strong> — LangGraph — <code>97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</code></li>
+            <li data-source-id="source_003" data-content-hash="7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"><strong>source_003</strong> — Pydantic AI — <code>7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</code></li>
+            <li data-source-id="source_004" data-content-hash="b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"><strong>source_004</strong> — DeepSeek Harness — <code>b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</code></li>
+            <li data-source-id="source_005" data-content-hash="418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"><strong>source_005</strong> — LLM routing research gap — <code>418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</code></li>
+            <li data-source-id="source_006" data-content-hash="96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"><strong>source_006</strong> — Task decomposition boundary — <code>96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</code></li>
+            <li data-source-id="source_007" data-content-hash="03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"><strong>source_007</strong> — Benchmark design — <code>03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</code></li>
+            <li data-source-id="source_008" data-content-hash="b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"><strong>source_008</strong> — Scoring rubric — <code>b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</code></li>
+        </ul>
+    </div>
+
+</body>
+</html>

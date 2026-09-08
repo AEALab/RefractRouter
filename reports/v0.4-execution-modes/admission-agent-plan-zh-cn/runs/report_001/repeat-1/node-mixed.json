@@ -1,0 +1,228 @@
+{
+  "task_id": "report_001",
+  "repeat": 1,
+  "strategy": "node-mixed",
+  "result": {
+    "task_id": "report_001",
+    "strategy": "node-mixed",
+    "model_assignments": {
+      "parse_requirements": "mid",
+      "build_outline": "mid",
+      "extract_evidence": "strong",
+      "synthesize_analysis": "mid",
+      "write_report": "cheap",
+      "render_html": "cheap",
+      "verify_report": "mid"
+    },
+    "node_results": [
+      {
+        "node_id": "parse_requirements",
+        "node_type": "planning",
+        "model_id": "mid",
+        "output": "{\"requirements\":\"为企业 LLM Agent 平台选型生成结构化研究报告，目标是支持 2026 年企业决策，需覆盖主题、受众、必含章节与最终交付物约束。受众为企业技术决策者、平台架构师与采购评估方。最终交付物为独立 HTML，所有声明需引用 source_id，不得引入外部 CSS 或 JavaScript；标题、正文、说明及来源介绍使用简体中文，仅模型名、来源标识与哈希保持原样。报告须包含 DeepAgents 基于 LangGraph、DSH 预留给外层验证环境、基准报告质量/成本/关键路径时延三项关键声明。\",\"sections\":[\"执行摘要\",\"背景\",\"选型标准\",\"平台比较\",\"风险\",\"结论\",\"参考资料\"],\"constraints\":[\"最终输出为独立 HTML\",\"所有声明必须引用 source_id\",\"不得使用外部 CSS 或 JavaScript\",\"标题、正文、说明及来源介绍使用简体中文\",\"模型名、来源标识与哈希保持原样\",\"包含执行摘要、背景、选型标准、平台比较、风险、结论、参考资料七个章节\"],\"analysis\":\"任务为 2026 年企业 LLM Agent 平台选型，受众为企业技术决策者与架构师。需交付独立 HTML，禁用外部 CSS/JS，简体中文正文。三项关键声明分别涉及 DeepAgents 技术栈、DSH 环境分配与基准指标维度，须在正文显式呈现并绑定 source_id。\"}",
+        "input_tokens": 705,
+        "output_tokens": 285,
+        "cost": 0.2475,
+        "latency_ms": 3394,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 704,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178879264573875251d478e5bf6426f4e0f08f6c1b2003b7391",
+        "error_message": null
+      },
+      {
+        "node_id": "build_outline",
+        "node_type": "planning",
+        "model_id": "mid",
+        "output": "{\"requirements\":\"为企业 LLM Agent 平台选型生成 2026 年决策支持结构化研究报告。受众为企业技术决策者、平台架构师与采购评估方。需覆盖执行摘要、背景、选型标准、平台比较、风险、结论、参考资料七个章节，嵌入三项关键声明：DeepAgents 基于 LangGraph、DSH 预留给外层验证环境、基准报告质量/成本/关键路径时延。最终交付为独立 HTML，禁止外部 CSS 与 JavaScript，标题、正文、说明及来源介绍使用简体中文，模型名、来源标识与哈希保持原样，所有声明需引用 source_id。\",\"sections\":[\"执行摘要\",\"背景\",\"选型标准\",\"平台比较\",\"风险\",\"结论\",\"参考资料\"],\"constraints\":[\"七章结构与顺序固定\",\"每条事实声明须附 source_id\",\"不得使用外部 CSS 与 JavaScript\",\"简体中文正文，模型名/source_id/哈希原样\",\"最终交付为单一独立 HTML\",\"三项关键声明须显式出现并绑定来源\",\"同一 source_id 在全文中保持一致\",\"证据项保留 content_hash 与 claim 文本\"],\"analysis\":\"大纲按七章线性铺陈。执行摘要先给结论与三项关键声明指引；背景交代 2026 年企业 LLM Agent 选型语境与读者角色；选型标准围绕能力、基准维度与约束；平台比较并列候选并落地三项关键声明（DeepAgents 基于 LangGraph、DSH 预留给外层验证环境、基准覆盖质量/成本/关键路径时延）；风险列出技术与治理风险；结论给出选型建议；参考资料列出 source_id 与哈希。所有声明绑定 source_id，遵循简体中文与原样命名约束。\"}",
+        "input_tokens": 990,
+        "output_tokens": 345,
+        "cost": 0.33375,
+        "latency_ms": 4124,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887926491280b63b37cbca791937f2f41fb0469576d88281b",
+        "error_message": null
+      },
+      {
+        "node_id": "extract_evidence",
+        "node_type": "extraction",
+        "model_id": "strong",
+        "output": "{\"evidence\":[{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"DeepAgents is built on LangGraph.\"},{\"source_id\":\"source_002\",\"title\":\"LangGraph\",\"content_hash\":\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\"claim\":\"LangGraph is a graph state machine framework for complex workflows.\"},{\"source_id\":\"source_003\",\"title\":\"Pydantic AI\",\"content_hash\":\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\"claim\":\"Pydantic AI provides typed tool definitions and structured model outputs.\"},{\"source_id\":\"source_004\",\"title\":\"DeepSeek Harness\",\"content_hash\":\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\"claim\":\"DSH is reserved for the outer validation environment.\"},{\"source_id\":\"source_005\",\"title\":\"LLM routing research gap\",\"content_hash\":\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\"claim\":\"RefractRouter studies whether selecting a model separately for each node in a task DAG can improve the quality-cost-latency Pareto frontier.\"},{\"source_id\":\"source_006\",\"title\":\"Task decomposition boundary\",\"content_hash\":\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\"claim\":\"Static task decomposition belongs to the application layer.\"},{\"source_id\":\"source_007\",\"title\":\"Benchmark design\",\"content_hash\":\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\"claim\":\"The benchmark reports quality, cost, and critical-path latency.\"},{\"source_id\":\"source_008\",\"title\":\"Scoring rubric\",\"content_hash\":\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\"claim\":\"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity.\"}]}",
+        "input_tokens": 1850,
+        "output_tokens": 579,
+        "cost": 1.33595,
+        "latency_ms": 9751,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887926532639c5625d6f49ce94e6eea0041d172c51cda711f",
+        "error_message": null
+      },
+      {
+        "node_id": "synthesize_analysis",
+        "node_type": "synthesis",
+        "model_id": "mid",
+        "output": "{\"analysis\":\"本节按选型标准对候选平台进行横向对比，并指出关键权衡点。\\n\\n**架构基础对比**：DeepAgents 基于 LangGraph 构建 [source_001]，因此天然继承 LangGraph 的图状态机能力，可表达循环、分支与子图等复杂工作流 [source_002]。在多层 Agent 编排与跨会话状态管理方面，DeepAgents 相较仅提供线性流程的框架具备表达力优势，但代价是学习曲线更陡、调试复杂度更高。\\n\\n**工具与输出可控性**：Pydantic AI 强调类型化工具定义与结构化模型输出 [source_003]，适合对接口契约严格、需要 Schema 校验的下游系统接入。在合规审计、字段校验或与现有微服务强类型对接的场景下，其稳健性高于通用编排层；但其编排能力需要与上层框架结合才能覆盖复杂 DAG。\\n\\n**验证与基准**：DeepSeek Harness (DSH) 被保留用于外部验证环境 [source_004]，意味着平台选型与上线评估可以借助独立 harness 复现，避免自评偏差。该基准报告质量、成本与关键路径延迟三项指标 [source_007]，对应\\\"效果-经济性-响应性能\\\"三角，是平台对比的客观度量基础。\\n\\n**路由与成本控制**：路由类研究关注是否在 DAG 各节点上分别选模可改善质量-成本-延迟 Pareto 前沿 [source_005]，这意味着在多模型混合部署时，平台是否暴露节点级路由接口成为重要取舍点。\\n\\n**职责边界**：静态任务分解应归应用层而非平台层 [source_006]，提示在评估候选平台时应避免将其任务分解能力作为核心差异化指标，而应聚焦编排、状态、工具、路由与可观测性。\\n\\n**评分体系**：v0.1 评分量规对需求覆盖、证据准确、分析深度、结构可读性与 HTML 有效性赋权 [source_008]，提醒选型报告需保持证据-论断严格对应。\\n\\n**关键权衡**：表达力 vs 易用性（LangGraph 系 vs 轻编排）；强类型 vs 灵活性（Pydantic AI vs 通用）；自研路由 vs 平台托管；平台功能丰富度 vs 职责收敛。综合来看，单一平台难以同时最大化所有维度，建议采用 LangGraph 系作为编排骨架，以 Pydantic AI 约束工具与输出契约，并以 DSH [source_004][source_007] 做独立基准验证。\"}",
+        "input_tokens": 1098,
+        "output_tokens": 524,
+        "cost": 0.4055,
+        "latency_ms": 4353,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788792663031923718d11d313173fa258a554449eb87de6fad",
+        "error_message": null
+      },
+      {
+        "node_id": "write_report",
+        "node_type": "generation",
+        "model_id": "cheap",
+        "output": "{\n  \"title\": \"2026 年企业 LLM Agent 平台选型报告\",\n  \"sections\": [\n    {\n      \"heading\": \"执行摘要\",\n      \"paragraph\": \"本报告针对 2026 年企业级 LLM Agent 平台选型，提出以编排能力、工具契约、验证机制和成本控制为核心的评价框架。分析表明，DeepAgents 基于 LangGraph 构建 [source_001]，具备复杂工作流表达优势；Pydantic AI 提供强类型工具定义与结构化输出 [source_003]，适合严格接口场景。DeepSeek Harness (DSH) 被保留用于外部验证环境 [source_004]，其基准报告质量、成本与关键路径延迟 [source_007]，为客观对比提供基础。建议采用 LangGraph 系作为编排骨架，结合 Pydantic AI 约束工具契约，并以 DSH 进行独立验证。\"\n    },\n    {\n      \"heading\": \"背景\",\n      \"paragraph\": \"随着企业业务对多步骤、多模型协作的需求增长，LLM Agent 平台选型成为关键决策。当前平台在编排能力、类型安全、验证机制和成本控制方面差异显著。DeepAgents 基于 LangGraph 构建 [source_001]，LangGraph 作为图状态机框架支持复杂工作流 [source_002]。Pydantic AI 强调类型化工具定义与结构化输出 [source_003]。同时，DSH 被保留用于外部验证环境 [source_004]，其基准报告质量、成本与关键路径延迟 [source_007]，为选型提供量化依据。\"\n    },\n    {\n      \"heading\": \"选型标准\",\n      \"paragraph\": \"选型标准涵盖五个维度：架构表达力、工具与输出可控性、验证与基准、路由与成本控制、职责边界。架构表达力要求支持循环、分支与子图等复杂流程 [source_002]。工具与输出可控性强调类型化定义与结构化输出 [source_003]。验证与基准要求独立 harness 复现，DSH 被保留用于外部验证环境 [source_004]，基准报告质量、成本与关键路径延迟 [source_007]。路由与成本控制关注节点级选模对 Pareto 前沿的改善 [source_005]。职责边界明确静态任务分解属于应用层 [source_006]。\"\n    },\n    {\n      \"heading\": \"平台比较\",\n      \"paragraph\": \"DeepAgents 基于 LangGraph 构建 [source_001]，继承图状态机能力，适合复杂编排，但学习曲线陡峭。Pydantic AI 提供类型化工具定义与结构化输出 [source_003]，在强类型接口场景下稳健，但编排能力需上层框架补充。DSH 被保留用于外部验证环境 [source_004]，其基准报告质量、成本与关键路径延迟 [source_007]，可客观比较平台效果。路由研究显示节点级选模可能改善质量-成本-延迟 [source_005]，平台是否暴露路由接口成为关键差异。\"\n    },\n    {\n      \"heading\": \"风险\",\n      \"paragraph\": \"主要风险包括：过度依赖单一平台导致锁定效应；复杂编排带来调试与维护成本；强类型约束可能限制灵活性；自评偏差影响选型准确性。DSH 被保留用于外部验证环境 [source_004]，可降低自评偏差，但需确保基准指标覆盖质量、成本与关键路径延迟 [source_007]。此外，静态任务分解若错误归入平台层 [source_006]，可能导致职责混乱。评分量规强调证据准确与结构可读性 [source_008]，需在报告中严格对应。\"\n    },\n    {\n      \"heading\": \"结论\",\n      \"paragraph\": \"综合比较，建议采用 DeepAgents（基于 LangGraph [source_001]）作为编排骨架，利用其图状态机能力 [source_002]；结合 Pydantic AI 的类型化工具与结构化输出 [source_003] 约束接口契约。DSH 被保留用于外部验证环境 [source_004]，其基准报告质量、成本与关键路径延迟 [source_007]，作为上线评估依据。同时，将静态任务分解保留在应用层 [source_006]，并关注节点级路由优化 [source_005]。最终选型需平衡表达力与易用性，确保证据-论断严格对应 [source_008]。\"\n    },\n    {\n      \"heading\": \"参考资料\",\n      \"paragraph\": \"本报告引用以下来源：source_001 描述 DeepAgents 基于 LangGraph 构建；source_002 说明 LangGraph 为图状态机框架；source_003 介绍 Pydantic AI 的类型化工具与结构化输出；source_004 指出 DSH 被保留用于外部验证环境；source_005 研究节点级路由对 Pareto 前沿的影响；source_006 明确静态任务分解属于应用层；source_007 定义基准报告质量、成本与关键路径延迟；source_008 提供 v0.1 评分量规。所有来源均以哈希标识，确保可追溯性。\"\n    }\n  ]\n}",
+        "input_tokens": 1618,
+        "output_tokens": 1085,
+        "cost": 0.13515,
+        "latency_ms": 15657,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178879266736208e37163f19fb200d5e116edcbda02b4f96fe1",
+        "error_message": null
+      },
+      {
+        "node_id": "render_html",
+        "node_type": "rendering",
+        "model_id": "cheap",
+        "output": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>2026 年企业 LLM Agent 平台选型报告</title>\n    <style>\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif;\n            line-height: 1.6;\n            color: #1a202c;\n            max-width: 1200px;\n            margin: 0 auto;\n            padding: 2rem 1.5rem;\n            background-color: #f7fafc;\n        }\n        h1 {\n            font-size: 2rem;\n            font-weight: 700;\n            color: #2d3748;\n            border-bottom: 3px solid #4299e1;\n            padding-bottom: 0.5rem;\n            margin-bottom: 2rem;\n        }\n        h2 {\n            font-size: 1.5rem;\n            font-weight: 600;\n            color: #2d3748;\n            margin-top: 2.5rem;\n            margin-bottom: 1rem;\n            padding-left: 0.75rem;\n            border-left: 4px solid #4299e1;\n        }\n        p {\n            margin-bottom: 1.25rem;\n            text-align: justify;\n        }\n        .source-link {\n            color: #3182ce;\n            text-decoration: none;\n            font-size: 0.85em;\n            vertical-align: super;\n            line-height: 0;\n            margin-left: 2px;\n        }\n        .source-link:hover {\n            text-decoration: underline;\n            color: #2c5282;\n        }\n        .source-trace {\n            background-color: #edf2f7;\n            border: 1px solid #e2e8f0;\n            border-radius: 6px;\n            padding: 1rem 1.5rem;\n            margin-top: 2.5rem;\n            font-size: 0.9rem;\n        }\n        .source-trace h3 {\n            font-size: 1.1rem;\n            font-weight: 600;\n            color: #2d3748;\n            margin-top: 0;\n            margin-bottom: 0.75rem;\n        }\n        .source-trace ul {\n            list-style: none;\n            padding: 0;\n            margin: 0;\n        }\n        .source-trace li {\n            margin-bottom: 0.5rem;\n            padding: 0.5rem 0.75rem;\n            background-color: #fff;\n            border-radius: 4px;\n            border-left: 3px solid #4299e1;\n        }\n        .source-trace code {\n            background-color: #e2e8f0;\n            padding: 0.2rem 0.4rem;\n            border-radius: 3px;\n            font-size: 0.85em;\n            word-break: break-all;\n        }\n        .source-trace .source-id {\n            font-weight: 600;\n            color: #2b6cb0;\n        }\n        .source-trace .hash {\n            font-family: \"SF Mono\", \"Fira Code\", monospace;\n            font-size: 0.8em;\n            color: #4a5568;\n        }\n        .report-meta {\n            background-color: #ebf8ff;\n            border: 1px solid #bee3f8;\n            border-radius: 6px;\n            padding: 0.75rem 1rem;\n            margin-bottom: 2rem;\n            font-size: 0.9rem;\n            color: #2c5282;\n        }\n        .report-meta strong {\n            font-weight: 600;\n        }\n        .reference-list {\n            background-color: #fff;\n            border: 1px solid #e2e8f0;\n            border-radius: 6px;\n            padding: 1rem 1.5rem;\n        }\n        .reference-list p {\n            margin-bottom: 0.5rem;\n        }\n        .reference-list .ref-item {\n            margin-bottom: 0.5rem;\n            padding-left: 1rem;\n            border-left: 2px solid #cbd5e0;\n        }\n        .reference-list .ref-item .source-id {\n            font-weight: 600;\n            color: #2b6cb0;\n        }\n        .reference-list .ref-item .hash {\n            font-family: \"SF Mono\", \"Fira Code\", monospace;\n            font-size: 0.8em;\n            color: #718096;\n        }\n    </style>\n</head>\n<body>\n    <h1>2026 年企业 LLM Agent 平台选型报告</h1>\n\n    <div class=\"report-meta\">\n        <strong>报告编号：</strong>report_001 &nbsp;|&nbsp; <strong>领域：</strong>2026 年企业 LLM Agent 平台选型 &nbsp;|&nbsp; <strong>版本：</strong>v0.4\n    </div>\n\n    <h2>执行摘要</h2>\n    <p>\n        本报告针对 2026 年企业级 LLM Agent 平台选型，提出以编排能力、工具契约、验证机制和成本控制为核心的评价框架。分析表明，DeepAgents 基于 LangGraph 构建 <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>，具备复杂工作流表达优势；Pydantic AI 提供强类型工具定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>，适合严格接口场景。DeepSeek Harness (DSH) 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，为客观对比提供基础。建议采用 LangGraph 系作为编排骨架，结合 Pydantic AI 约束工具契约，并以 DSH 进行独立验证。\n    </p>\n\n    <h2>背景</h2>\n    <p>\n        随着企业业务对多步骤、多模型协作的需求增长，LLM Agent 平台选型成为关键决策。当前平台在编排能力、类型安全、验证机制和成本控制方面差异显著。DeepAgents 基于 LangGraph 构建 <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>，LangGraph 作为图状态机框架支持复杂工作流 <a href=\"#source-002\" class=\"source-link\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 强调类型化工具定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>。同时，DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，为选型提供量化依据。\n    </p>\n\n    <h2>选型标准</h2>\n    <p>\n        选型标准涵盖五个维度：架构表达力、工具与输出可控性、验证与基准、路由与成本控制、职责边界。架构表达力要求支持循环、分支与子图等复杂流程 <a href=\"#source-002\" class=\"source-link\" data-cite-source-id=\"source_002\">[source_002]</a>。工具与输出可控性强调类型化定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>。验证与基准要求独立 harness 复现，DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>。路由与成本控制关注节点级选模对 Pareto 前沿的改善 <a href=\"#source-005\" class=\"source-link\" data-cite-source-id=\"source_005\">[source_005]</a>。职责边界明确静态任务分解属于应用层 <a href=\"#source-006\" class=\"source-link\" data-cite-source-id=\"source_006\">[source_006]</a>。\n    </p>\n\n    <h2>平台比较</h2>\n    <p>\n        DeepAgents 基于 LangGraph 构建 <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>，继承图状态机能力，适合复杂编排，但学习曲线陡峭。Pydantic AI 提供类型化工具定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>，在强类型接口场景下稳健，但编排能力需上层框架补充。DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，可客观比较平台效果。路由研究显示节点级选模可能改善质量-成本-延迟 <a href=\"#source-005\" class=\"source-link\" data-cite-source-id=\"source_005\">[source_005]</a>，平台是否暴露路由接口成为关键差异。\n    </p>\n\n    <h2>风险</h2>\n    <p>\n        主要风险包括：过度依赖单一平台导致锁定效应；复杂编排带来调试与维护成本；强类型约束可能限制灵活性；自评偏差影响选型准确性。DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，可降低自评偏差，但需确保基准指标覆盖质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>。此外，静态任务分解若错误归入平台层 <a href=\"#source-006\" class=\"source-link\" data-cite-source-id=\"source_006\">[source_006]</a>，可能导致职责混乱。评分量规强调证据准确与结构可读性 <a href=\"#source-008\" class=\"source-link\" data-cite-source-id=\"source_008\">[source_008]</a>，需在报告中严格对应。\n    </p>\n\n    <h2>结论</h2>\n    <p>\n        综合比较，建议采用 DeepAgents（基于 LangGraph <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>）作为编排骨架，利用其图状态机能力 <a href=\"#source-002\" class=\"source-link\" data-cite-source-id=\"source_002\">[source_002]</a>；结合 Pydantic AI 的类型化工具与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a> 约束接口契约。DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，作为上线评估依据。同时，将静态任务分解保留在应用层 <a href=\"#source-006\" class=\"source-link\" data-cite-source-id=\"source_006\">[source_006]</a>，并关注节点级路由优化 <a href=\"#source-005\" class=\"source-link\" data-cite-source-id=\"source_005\">[source_005]</a>。最终选型需平衡表达力与易用性，确保证据-论断严格对应 <a href=\"#source-008\" class=\"source-link\" data-cite-source-id=\"source_008\">[source_008]</a>。\n    </p>\n\n    <h2>参考资料</h2>\n    <div class=\"reference-list\">\n        <p>本报告引用以下来源：</p>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_001</span> — DeepAgents 基于 LangGraph 构建<br>\n            <span class=\"hash\">哈希：ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_002</span> — LangGraph 为图状态机框架<br>\n            <span class=\"hash\">哈希：97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_003</span> — Pydantic AI 的类型化工具与结构化输出<br>\n            <span class=\"hash\">哈希：7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_004</span> — DSH 被保留用于外部验证环境<br>\n            <span class=\"hash\">哈希：b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_005</span> — 节点级路由对 Pareto 前沿的影响<br>\n            <span class=\"hash\">哈希：418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_006</span> — 静态任务分解属于应用层<br>\n            <span class=\"hash\">哈希：96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_007</span> — 基准报告质量、成本与关键路径延迟<br>\n            <span class=\"hash\">哈希：03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_008</span> — v0.1 评分量规<br>\n            <span class=\"hash\">哈希：b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</span>\n        </div>\n    </div>\n\n    <!-- 来源追踪区块（含 data-source-id 与 data-content-hash） -->\n    <div class=\"source-trace\">\n        <h3>来源追踪（提取记录）</h3>\n        <ul>\n            <li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">\n                <span class=\"source-id\">source_001</span> — DeepAgents 基于 LangGraph 构建<br>\n                <span class=\"hash\">内容哈希：ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</span>\n            </li>\n            <li data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\">\n                <span class=\"source-id\">source_002</span> — LangGraph 为图状态机框架<br>\n                <span class=\"hash\">内容哈希：97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</span>\n            </li>\n            <li data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\">\n                <span class=\"source-id\">source_003</span> — Pydantic AI 的类型化工具与结构化输出<br>\n                <span class=\"hash\">内容哈希：7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</span>\n            </li>\n            <li data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\">\n                <span class=\"source-id\">source_004</span> — DSH 被保留用于外部验证环境<br>\n                <span class=\"hash\">内容哈希：b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</span>\n            </li>\n            <li data-source-id=\"source_005\" data-content-hash=\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\">\n                <span class=\"source-id\">source_005</span> — 节点级路由对 Pareto 前沿的影响<br>\n                <span class=\"hash\">内容哈希：418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</span>\n            </li>\n            <li data-source-id=\"source_006\" data-content-hash=\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\">\n                <span class=\"source-id\">source_006</span> — 静态任务分解属于应用层<br>\n                <span class=\"hash\">内容哈希：96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</span>\n            </li>\n            <li data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\">\n                <span class=\"source-id\">source_007</span> — 基准报告质量、成本与关键路径延迟<br>\n                <span class=\"hash\">内容哈希：03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</span>\n            </li>\n            <li data-source-id=\"source_008\" data-content-hash=\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\">\n                <span class=\"source-id\">source_008</span> — v0.1 评分量规<br>\n                <span class=\"hash\">内容哈希：b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</span>\n            </li>\n        </ul>\n    </div>\n\n    <!-- 锚点定义（供引用链接跳转） -->\n    <div id=\"source-001\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-002\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-003\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-004\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-005\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-006\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-007\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-008\" style=\"position:absolute; top:-100px;\"></div>\n</body>\n</html>",
+        "input_tokens": 2013,
+        "output_tokens": 4949,
+        "cost": 0.3481,
+        "latency_ms": 28883,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788792683036ff228b459645a66c98f2a46916338f8eed7a8e",
+        "error_message": null
+      },
+      {
+        "node_id": "verify_report",
+        "node_type": "verification",
+        "model_id": "mid",
+        "output": "{\"valid\": true, \"issues\": [], \"summary\": \"All required sections are present (执行摘要、背景、选型标准、平台比较、风险、结论、参考资料). All claims in the rendered report are supported by the extraction evidence and each is accompanied by a citation with source_id; the three expected claims (DeepAgents is built on LangGraph [source_001]; DSH is reserved for the outer validation environment [source_004]; The benchmark reports quality, cost, and critical-path latency [source_007]) are correctly rendered and cited. HTML is standalone with no external CSS or JavaScript, and title/body/notes are in Simplified Chinese while model names, source identifiers, and content hashes are preserved verbatim. Content hashes in the source-trace block match the extraction record. No issues found.\"}",
+        "input_tokens": 5966,
+        "output_tokens": 166,
+        "cost": 1.533,
+        "latency_ms": 1896,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887927119373d3436761e68cde6bd2815b0b11060ac24be29",
+        "error_message": null
+      }
+    ],
+    "final_output": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>2026 年企业 LLM Agent 平台选型报告</title>\n    <style>\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif;\n            line-height: 1.6;\n            color: #1a202c;\n            max-width: 1200px;\n            margin: 0 auto;\n            padding: 2rem 1.5rem;\n            background-color: #f7fafc;\n        }\n        h1 {\n            font-size: 2rem;\n            font-weight: 700;\n            color: #2d3748;\n            border-bottom: 3px solid #4299e1;\n            padding-bottom: 0.5rem;\n            margin-bottom: 2rem;\n        }\n        h2 {\n            font-size: 1.5rem;\n            font-weight: 600;\n            color: #2d3748;\n            margin-top: 2.5rem;\n            margin-bottom: 1rem;\n            padding-left: 0.75rem;\n            border-left: 4px solid #4299e1;\n        }\n        p {\n            margin-bottom: 1.25rem;\n            text-align: justify;\n        }\n        .source-link {\n            color: #3182ce;\n            text-decoration: none;\n            font-size: 0.85em;\n            vertical-align: super;\n            line-height: 0;\n            margin-left: 2px;\n        }\n        .source-link:hover {\n            text-decoration: underline;\n            color: #2c5282;\n        }\n        .source-trace {\n            background-color: #edf2f7;\n            border: 1px solid #e2e8f0;\n            border-radius: 6px;\n            padding: 1rem 1.5rem;\n            margin-top: 2.5rem;\n            font-size: 0.9rem;\n        }\n        .source-trace h3 {\n            font-size: 1.1rem;\n            font-weight: 600;\n            color: #2d3748;\n            margin-top: 0;\n            margin-bottom: 0.75rem;\n        }\n        .source-trace ul {\n            list-style: none;\n            padding: 0;\n            margin: 0;\n        }\n        .source-trace li {\n            margin-bottom: 0.5rem;\n            padding: 0.5rem 0.75rem;\n            background-color: #fff;\n            border-radius: 4px;\n            border-left: 3px solid #4299e1;\n        }\n        .source-trace code {\n            background-color: #e2e8f0;\n            padding: 0.2rem 0.4rem;\n            border-radius: 3px;\n            font-size: 0.85em;\n            word-break: break-all;\n        }\n        .source-trace .source-id {\n            font-weight: 600;\n            color: #2b6cb0;\n        }\n        .source-trace .hash {\n            font-family: \"SF Mono\", \"Fira Code\", monospace;\n            font-size: 0.8em;\n            color: #4a5568;\n        }\n        .report-meta {\n            background-color: #ebf8ff;\n            border: 1px solid #bee3f8;\n            border-radius: 6px;\n            padding: 0.75rem 1rem;\n            margin-bottom: 2rem;\n            font-size: 0.9rem;\n            color: #2c5282;\n        }\n        .report-meta strong {\n            font-weight: 600;\n        }\n        .reference-list {\n            background-color: #fff;\n            border: 1px solid #e2e8f0;\n            border-radius: 6px;\n            padding: 1rem 1.5rem;\n        }\n        .reference-list p {\n            margin-bottom: 0.5rem;\n        }\n        .reference-list .ref-item {\n            margin-bottom: 0.5rem;\n            padding-left: 1rem;\n            border-left: 2px solid #cbd5e0;\n        }\n        .reference-list .ref-item .source-id {\n            font-weight: 600;\n            color: #2b6cb0;\n        }\n        .reference-list .ref-item .hash {\n            font-family: \"SF Mono\", \"Fira Code\", monospace;\n            font-size: 0.8em;\n            color: #718096;\n        }\n    </style>\n</head>\n<body>\n    <h1>2026 年企业 LLM Agent 平台选型报告</h1>\n\n    <div class=\"report-meta\">\n        <strong>报告编号：</strong>report_001 &nbsp;|&nbsp; <strong>领域：</strong>2026 年企业 LLM Agent 平台选型 &nbsp;|&nbsp; <strong>版本：</strong>v0.4\n    </div>\n\n    <h2>执行摘要</h2>\n    <p>\n        本报告针对 2026 年企业级 LLM Agent 平台选型，提出以编排能力、工具契约、验证机制和成本控制为核心的评价框架。分析表明，DeepAgents 基于 LangGraph 构建 <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>，具备复杂工作流表达优势；Pydantic AI 提供强类型工具定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>，适合严格接口场景。DeepSeek Harness (DSH) 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，为客观对比提供基础。建议采用 LangGraph 系作为编排骨架，结合 Pydantic AI 约束工具契约，并以 DSH 进行独立验证。\n    </p>\n\n    <h2>背景</h2>\n    <p>\n        随着企业业务对多步骤、多模型协作的需求增长，LLM Agent 平台选型成为关键决策。当前平台在编排能力、类型安全、验证机制和成本控制方面差异显著。DeepAgents 基于 LangGraph 构建 <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>，LangGraph 作为图状态机框架支持复杂工作流 <a href=\"#source-002\" class=\"source-link\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 强调类型化工具定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>。同时，DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，为选型提供量化依据。\n    </p>\n\n    <h2>选型标准</h2>\n    <p>\n        选型标准涵盖五个维度：架构表达力、工具与输出可控性、验证与基准、路由与成本控制、职责边界。架构表达力要求支持循环、分支与子图等复杂流程 <a href=\"#source-002\" class=\"source-link\" data-cite-source-id=\"source_002\">[source_002]</a>。工具与输出可控性强调类型化定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>。验证与基准要求独立 harness 复现，DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>。路由与成本控制关注节点级选模对 Pareto 前沿的改善 <a href=\"#source-005\" class=\"source-link\" data-cite-source-id=\"source_005\">[source_005]</a>。职责边界明确静态任务分解属于应用层 <a href=\"#source-006\" class=\"source-link\" data-cite-source-id=\"source_006\">[source_006]</a>。\n    </p>\n\n    <h2>平台比较</h2>\n    <p>\n        DeepAgents 基于 LangGraph 构建 <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>，继承图状态机能力，适合复杂编排，但学习曲线陡峭。Pydantic AI 提供类型化工具定义与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a>，在强类型接口场景下稳健，但编排能力需上层框架补充。DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，可客观比较平台效果。路由研究显示节点级选模可能改善质量-成本-延迟 <a href=\"#source-005\" class=\"source-link\" data-cite-source-id=\"source_005\">[source_005]</a>，平台是否暴露路由接口成为关键差异。\n    </p>\n\n    <h2>风险</h2>\n    <p>\n        主要风险包括：过度依赖单一平台导致锁定效应；复杂编排带来调试与维护成本；强类型约束可能限制灵活性；自评偏差影响选型准确性。DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，可降低自评偏差，但需确保基准指标覆盖质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>。此外，静态任务分解若错误归入平台层 <a href=\"#source-006\" class=\"source-link\" data-cite-source-id=\"source_006\">[source_006]</a>，可能导致职责混乱。评分量规强调证据准确与结构可读性 <a href=\"#source-008\" class=\"source-link\" data-cite-source-id=\"source_008\">[source_008]</a>，需在报告中严格对应。\n    </p>\n\n    <h2>结论</h2>\n    <p>\n        综合比较，建议采用 DeepAgents（基于 LangGraph <a href=\"#source-001\" class=\"source-link\" data-cite-source-id=\"source_001\">[source_001]</a>）作为编排骨架，利用其图状态机能力 <a href=\"#source-002\" class=\"source-link\" data-cite-source-id=\"source_002\">[source_002]</a>；结合 Pydantic AI 的类型化工具与结构化输出 <a href=\"#source-003\" class=\"source-link\" data-cite-source-id=\"source_003\">[source_003]</a> 约束接口契约。DSH 被保留用于外部验证环境 <a href=\"#source-004\" class=\"source-link\" data-cite-source-id=\"source_004\">[source_004]</a>，其基准报告质量、成本与关键路径延迟 <a href=\"#source-007\" class=\"source-link\" data-cite-source-id=\"source_007\">[source_007]</a>，作为上线评估依据。同时，将静态任务分解保留在应用层 <a href=\"#source-006\" class=\"source-link\" data-cite-source-id=\"source_006\">[source_006]</a>，并关注节点级路由优化 <a href=\"#source-005\" class=\"source-link\" data-cite-source-id=\"source_005\">[source_005]</a>。最终选型需平衡表达力与易用性，确保证据-论断严格对应 <a href=\"#source-008\" class=\"source-link\" data-cite-source-id=\"source_008\">[source_008]</a>。\n    </p>\n\n    <h2>参考资料</h2>\n    <div class=\"reference-list\">\n        <p>本报告引用以下来源：</p>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_001</span> — DeepAgents 基于 LangGraph 构建<br>\n            <span class=\"hash\">哈希：ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_002</span> — LangGraph 为图状态机框架<br>\n            <span class=\"hash\">哈希：97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_003</span> — Pydantic AI 的类型化工具与结构化输出<br>\n            <span class=\"hash\">哈希：7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_004</span> — DSH 被保留用于外部验证环境<br>\n            <span class=\"hash\">哈希：b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_005</span> — 节点级路由对 Pareto 前沿的影响<br>\n            <span class=\"hash\">哈希：418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_006</span> — 静态任务分解属于应用层<br>\n            <span class=\"hash\">哈希：96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_007</span> — 基准报告质量、成本与关键路径延迟<br>\n            <span class=\"hash\">哈希：03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</span>\n        </div>\n        <div class=\"ref-item\">\n            <span class=\"source-id\">source_008</span> — v0.1 评分量规<br>\n            <span class=\"hash\">哈希：b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</span>\n        </div>\n    </div>\n\n    <!-- 来源追踪区块（含 data-source-id 与 data-content-hash） -->\n    <div class=\"source-trace\">\n        <h3>来源追踪（提取记录）</h3>\n        <ul>\n            <li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">\n                <span class=\"source-id\">source_001</span> — DeepAgents 基于 LangGraph 构建<br>\n                <span class=\"hash\">内容哈希：ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</span>\n            </li>\n            <li data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\">\n                <span class=\"source-id\">source_002</span> — LangGraph 为图状态机框架<br>\n                <span class=\"hash\">内容哈希：97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</span>\n            </li>\n            <li data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\">\n                <span class=\"source-id\">source_003</span> — Pydantic AI 的类型化工具与结构化输出<br>\n                <span class=\"hash\">内容哈希：7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</span>\n            </li>\n            <li data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\">\n                <span class=\"source-id\">source_004</span> — DSH 被保留用于外部验证环境<br>\n                <span class=\"hash\">内容哈希：b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</span>\n            </li>\n            <li data-source-id=\"source_005\" data-content-hash=\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\">\n                <span class=\"source-id\">source_005</span> — 节点级路由对 Pareto 前沿的影响<br>\n                <span class=\"hash\">内容哈希：418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</span>\n            </li>\n            <li data-source-id=\"source_006\" data-content-hash=\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\">\n                <span class=\"source-id\">source_006</span> — 静态任务分解属于应用层<br>\n                <span class=\"hash\">内容哈希：96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</span>\n            </li>\n            <li data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\">\n                <span class=\"source-id\">source_007</span> — 基准报告质量、成本与关键路径延迟<br>\n                <span class=\"hash\">内容哈希：03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</span>\n            </li>\n            <li data-source-id=\"source_008\" data-content-hash=\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\">\n                <span class=\"source-id\">source_008</span> — v0.1 评分量规<br>\n                <span class=\"hash\">内容哈希：b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</span>\n            </li>\n        </ul>\n    </div>\n\n    <!-- 锚点定义（供引用链接跳转） -->\n    <div id=\"source-001\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-002\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-003\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-004\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-005\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-006\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-007\" style=\"position:absolute; top:-100px;\"></div>\n    <div id=\"source-008\" style=\"position:absolute; top:-100px;\"></div>\n</body>\n</html>",
+    "task_score": 100.0,
+    "total_cost": 4.33895,
+    "critical_path_latency_ms": 68058,
+    "billing_unit": "AFP",
+    "failure_types": []
+  },
+  "judge": {
+    "rubric_version": "v0.1",
+    "deterministic_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "judge_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 22.0,
+      "analysis_depth": 17.0,
+      "structure_readability": 14.0,
+      "html_validity": 13.0
+    },
+    "final_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 22.0,
+      "analysis_depth": 17.0,
+      "structure_readability": 14.0,
+      "html_validity": 13.0
+    },
+    "final_score": 91.0,
+    "claim_support": [
+      {
+        "claim": "DeepAgents is built on LangGraph.",
+        "source_ids": [
+          "source_001"
+        ],
+        "supported": true,
+        "explanation": "source_001 明确说明 'DeepAgents is a LangChain harness built on LangGraph'，报告在多处正确引用该来源。"
+      },
+      {
+        "claim": "DSH is reserved for the outer validation environment.",
+        "source_ids": [
+          "source_004"
+        ],
+        "supported": true,
+        "explanation": "source_004 明确说明 'DSH is reserved for the outer validation environment, not the core routing loop'，报告在多处正确引用该来源。"
+      },
+      {
+        "claim": "The benchmark reports quality, cost, and critical-path latency.",
+        "source_ids": [
+          "source_007"
+        ],
+        "supported": true,
+        "explanation": "source_007 明确说明 'A useful routing benchmark needs ... per-node and per-task scoring, cost accounting, and critical-path latency'，报告在多处正确引用该来源。"
+      }
+    ],
+    "rationale": "该报告在结构完整性方面表现优秀，包含所有必需章节（执行摘要、背景、选型标准、平台比较、风险、结论、参考资料），并提供了完整的来源追踪和哈希验证机制。三个关键论断均得到正确引用和支持，证据准确性较高。分析深度方面，报告提出了五维选型框架并进行了平台比较，但对各平台优缺点的量化分析略显不足，风险评估较为泛泛。HTML 结构基本规范，但存在使用绝对定位隐藏锚点（top:-100px）的做法，虽然功能可行但不够优雅，且部分内联样式可移至 CSS 类中。整体而言，这是一份结构清晰、证据链完整、具有实用价值的选型报告。",
+    "input_tokens": 6252,
+    "output_tokens": 440,
+    "cached_input_tokens": 0,
+    "reasoning_tokens": 0,
+    "cost": 6.692,
+    "latency_ms": 13289,
+    "attempts": 1,
+    "request_id": "021788792781194b531818cd979bd70c39b690ac6f239022d5dbb",
+    "billing_unit": "AFP"
+  },
+  "judge_error": null
+}

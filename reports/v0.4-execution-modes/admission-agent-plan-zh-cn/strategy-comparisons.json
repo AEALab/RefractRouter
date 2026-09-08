@@ -1,0 +1,725 @@
+{
+  "pairing": "task_id + repeat",
+  "summaries": {
+    "dag:cheap vs one-shot:cheap": {
+      "pairs": 0,
+      "excluded_pairs": 1,
+      "included_blocks": [],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1,
+          "reasons": [
+            "one-shot:cheap:failed-execution"
+          ]
+        }
+      ],
+      "task_count": 0,
+      "repeats": [],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 0,
+      "per_task_quality_delta": {},
+      "quality_delta_mean": null,
+      "quality_delta_stddev": null,
+      "cost_delta_mean": null,
+      "cost_delta_stddev": null,
+      "cost_reduction_percent_mean": null,
+      "cost_reduction_percent_stddev": null,
+      "latency_delta_ms_mean": null,
+      "latency_delta_ms_stddev": null
+    },
+    "dag:mid vs one-shot:mid": {
+      "pairs": 1,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 0,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 1,
+          "mean": 1.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": 1.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": 3.59975,
+      "cost_delta_stddev": 0.0,
+      "cost_reduction_percent_mean": -254.21963277,
+      "cost_reduction_percent_stddev": 0.0,
+      "latency_delta_ms_mean": 35281,
+      "latency_delta_ms_stddev": 0.0
+    },
+    "dag:strong vs one-shot:strong": {
+      "pairs": 0,
+      "excluded_pairs": 1,
+      "included_blocks": [],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1,
+          "reasons": [
+            "one-shot:strong:failed-execution"
+          ]
+        }
+      ],
+      "task_count": 0,
+      "repeats": [],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 0,
+      "per_task_quality_delta": {},
+      "quality_delta_mean": null,
+      "quality_delta_stddev": null,
+      "cost_delta_mean": null,
+      "cost_delta_stddev": null,
+      "cost_reduction_percent_mean": null,
+      "cost_reduction_percent_stddev": null,
+      "latency_delta_ms_mean": null,
+      "latency_delta_ms_stddev": null
+    },
+    "node-mixed vs dag:cheap": {
+      "pairs": 1,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 1,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 1,
+          "mean": -9.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": -9.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": 3.64995,
+      "cost_delta_stddev": 0.0,
+      "cost_reduction_percent_mean": -529.74600871,
+      "cost_reduction_percent_stddev": 0.0,
+      "latency_delta_ms_mean": 719,
+      "latency_delta_ms_stddev": 0.0
+    },
+    "node-mixed vs dag:mid": {
+      "pairs": 1,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 1,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 1,
+          "mean": -4.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": -4.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": -0.6768,
+      "cost_delta_stddev": 0.0,
+      "cost_reduction_percent_mean": 13.49349549,
+      "cost_reduction_percent_stddev": 0.0,
+      "latency_delta_ms_mean": 477,
+      "latency_delta_ms_stddev": 0.0
+    },
+    "node-mixed vs dag:strong": {
+      "pairs": 1,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 1,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 1,
+          "mean": 4.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": 4.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": -5.7145,
+      "cost_delta_stddev": 0.0,
+      "cost_reduction_percent_mean": 56.84118387,
+      "cost_reduction_percent_stddev": 0.0,
+      "latency_delta_ms_mean": -44319,
+      "latency_delta_ms_stddev": 0.0
+    },
+    "node-mixed vs one-shot:cheap": {
+      "pairs": 0,
+      "excluded_pairs": 1,
+      "included_blocks": [],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1,
+          "reasons": [
+            "one-shot:cheap:failed-execution"
+          ]
+        }
+      ],
+      "task_count": 0,
+      "repeats": [],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 0,
+      "per_task_quality_delta": {},
+      "quality_delta_mean": null,
+      "quality_delta_stddev": null,
+      "cost_delta_mean": null,
+      "cost_delta_stddev": null,
+      "cost_reduction_percent_mean": null,
+      "cost_reduction_percent_stddev": null,
+      "latency_delta_ms_mean": null,
+      "latency_delta_ms_stddev": null
+    },
+    "node-mixed vs one-shot:mid": {
+      "pairs": 1,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 1,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 1,
+          "mean": -3.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": -3.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": 2.92295,
+      "cost_delta_stddev": 0.0,
+      "cost_reduction_percent_mean": -206.4230226,
+      "cost_reduction_percent_stddev": 0.0,
+      "latency_delta_ms_mean": 35758,
+      "latency_delta_ms_stddev": 0.0
+    },
+    "node-mixed vs one-shot:strong": {
+      "pairs": 0,
+      "excluded_pairs": 1,
+      "included_blocks": [],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1,
+          "reasons": [
+            "one-shot:strong:failed-execution"
+          ]
+        }
+      ],
+      "task_count": 0,
+      "repeats": [],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 0,
+      "per_task_quality_delta": {},
+      "quality_delta_mean": null,
+      "quality_delta_stddev": null,
+      "cost_delta_mean": null,
+      "cost_delta_stddev": null,
+      "cost_reduction_percent_mean": null,
+      "cost_reduction_percent_stddev": null,
+      "latency_delta_ms_mean": null,
+      "latency_delta_ms_stddev": null
+    },
+    "node-mixed vs dag-oracle": {
+      "pairs": 1,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 1,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 1,
+          "mean": -9.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": -9.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": 3.64995,
+      "cost_delta_stddev": 0.0,
+      "cost_reduction_percent_mean": -529.74600871,
+      "cost_reduction_percent_stddev": 0.0,
+      "latency_delta_ms_mean": 719,
+      "latency_delta_ms_stddev": 0.0
+    },
+    "node-mixed vs one-shot-oracle": {
+      "pairs": 0,
+      "excluded_pairs": 1,
+      "included_blocks": [],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1,
+          "reasons": [
+            "one-shot-oracle:failed-execution",
+            "one-shot-oracle:missing-final-output",
+            "one-shot-oracle:missing-judge",
+            "one-shot-oracle:judge:incomplete-single-model-evaluations"
+          ]
+        }
+      ],
+      "task_count": 0,
+      "repeats": [],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 0,
+      "per_task_quality_delta": {},
+      "quality_delta_mean": null,
+      "quality_delta_stddev": null,
+      "cost_delta_mean": null,
+      "cost_delta_stddev": null,
+      "cost_reduction_percent_mean": null,
+      "cost_reduction_percent_stddev": null,
+      "latency_delta_ms_mean": null,
+      "latency_delta_ms_stddev": null
+    }
+  },
+  "pairs": [
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "dag:cheap",
+      "baseline": "one-shot:cheap",
+      "included": false,
+      "exclusion_reasons": [
+        "one-shot:cheap:failed-execution"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 100.0,
+      "baseline_quality": 69.0,
+      "quality_delta": null,
+      "candidate_cost": 0.689,
+      "baseline_cost": 0.36275,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": false,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "cheap",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "cheap",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "render_html": "cheap"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "dag:mid",
+      "baseline": "one-shot:mid",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 95.0,
+      "baseline_quality": 94.0,
+      "quality_delta": 1.0,
+      "candidate_cost": 5.01575,
+      "baseline_cost": 1.416,
+      "cost_delta": 3.59975,
+      "cost_reduction_percent": -254.21963276836158,
+      "latency_delta_ms": 35281,
+      "identical_assignments": false,
+      "candidate_is_mixed": false,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "render_html": "mid"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "dag:strong",
+      "baseline": "one-shot:strong",
+      "included": false,
+      "exclusion_reasons": [
+        "one-shot:strong:failed-execution"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 87.0,
+      "baseline_quality": 58.0,
+      "quality_delta": null,
+      "candidate_cost": 10.05345,
+      "baseline_cost": 3.4045,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": false,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      },
+      "baseline_assignments": {
+        "render_html": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "dag:cheap",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 100.0,
+      "quality_delta": -9.0,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 0.689,
+      "cost_delta": 3.6499499999999996,
+      "cost_reduction_percent": -529.7460087082728,
+      "latency_delta_ms": 719,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "cheap",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "cheap",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "dag:mid",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 95.0,
+      "quality_delta": -4.0,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 5.01575,
+      "cost_delta": -0.6768000000000001,
+      "cost_reduction_percent": 13.493495489208993,
+      "latency_delta_ms": 477,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "mid"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "dag:strong",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 87.0,
+      "quality_delta": 4.0,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 10.05345,
+      "cost_delta": -5.7145,
+      "cost_reduction_percent": 56.84118387220308,
+      "latency_delta_ms": -44319,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "one-shot:cheap",
+      "included": false,
+      "exclusion_reasons": [
+        "one-shot:cheap:failed-execution"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 69.0,
+      "quality_delta": null,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 0.36275,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "render_html": "cheap"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "one-shot:mid",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 94.0,
+      "quality_delta": -3.0,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 1.416,
+      "cost_delta": 2.9229499999999997,
+      "cost_reduction_percent": -206.42302259887003,
+      "latency_delta_ms": 35758,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "render_html": "mid"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "one-shot:strong",
+      "included": false,
+      "exclusion_reasons": [
+        "one-shot:strong:failed-execution"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 58.0,
+      "quality_delta": null,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 3.4045,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "render_html": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "dag-oracle",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": 100.0,
+      "quality_delta": -9.0,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 0.689,
+      "cost_delta": 3.6499499999999996,
+      "cost_reduction_percent": -529.7460087082728,
+      "latency_delta_ms": 719,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "cheap",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "cheap",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-mixed",
+      "baseline": "one-shot-oracle",
+      "included": false,
+      "exclusion_reasons": [
+        "one-shot-oracle:failed-execution",
+        "one-shot-oracle:missing-final-output",
+        "one-shot-oracle:missing-judge",
+        "one-shot-oracle:judge:incomplete-single-model-evaluations"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 91.0,
+      "baseline_quality": null,
+      "quality_delta": null,
+      "candidate_cost": 4.33895,
+      "baseline_cost": 0,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "mid"
+      },
+      "baseline_assignments": {}
+    }
+  ],
+  "interpretation": "A 为完整来源包的一次调用；B 为单模型七节点；C 为按独立节点评分选出的路线，允许全程使用同一模型。同模型 B/A 比较拆解效果，C/B 比较选模效果。组内最佳基线要求所有候选成功且完成评审；它是事后选择，不是可部署路由器。所有差值使用相同任务／轮次配对，探针与评审费用另计。"
+}

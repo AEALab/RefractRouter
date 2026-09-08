@@ -1,0 +1,116 @@
+[
+  {
+    "type": "assistant/chunk",
+    "seq": 136,
+    "time": 1788799052415,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "chunk": {
+        "type": "usage",
+        "usage": {
+          "inputTokens": 2004,
+          "outputTokens": 267
+        }
+      }
+    }
+  },
+  {
+    "type": "assistant/chunk",
+    "seq": 137,
+    "time": 1788799052416,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "response": {
+        "kind": "pi-ai",
+        "version": 2,
+        "api": "openai-responses",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "responseId": "resp_02178879904855378af8113c224ccdd69578c3b63d1e71a66343c",
+        "stopReason": "toolUse"
+      }
+    }
+  },
+  {
+    "type": "tool/call",
+    "seq": 139,
+    "time": 1788799052420,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "callId": "call_nv2wdg21xguz5bm8l7ovsp5j|fc_02178879905071100000000000000000000ffffac15819b5084e2",
+      "name": "refractrouter_validate",
+      "arguments": "{\"phase\":\"k3-baseline\",\"stage\":\"baseline\",\"repeats\":1,\"inputDir\":\"reports/v0.5-k3-baseline-retry/preflight\",\"reviewsPath\":\"reports/v0.5-glm-calibration/paid-admission-1/reviews.json\",\"executePaidRun\":true,\"maxProductionCost\":20,\"maxEvaluationCost\":0}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 140,
+    "time": 1788799281861,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "source": {
+          "kind": "tool",
+          "callId": "call_nv2wdg21xguz5bm8l7ovsp5j|fc_02178879905071100000000000000000000ffffac15819b5084e2"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "call_nv2wdg21xguz5bm8l7ovsp5j|fc_02178879905071100000000000000000000ffffac15819b5084e2",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\":\"pass\",\"mode\":\"paid\",\"phase\":\"k3-baseline\",\"billingUnit\":\"AFP\",\"issues\":[],\"callPlan\":{\"trainingModelCalls\":0,\"productionModelCalls\":1,\"judgeModelCalls\":0,\"totalModelCalls\":1},\"costEstimate\":{\"billingUnit\":\"AFP\",\"production\":12.19,\"evaluation\":0,\"total\":12.19},\"evidencePath\":\"/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractrouter-dsh-plugin-70GV3H/evidence.json\"}"
+              }
+            ],
+            "isError": false
+          }
+        ],
+        "role": "user",
+        "id": "f44ee43e-6850-4db1-bf59-dd6219da2c7e"
+      }
+    },
+    "sourceEventSeqs": [
+      139
+    ],
+    "surfaceOp": "append"
+  },
+  {
+    "type": "assistant/chunk",
+    "seq": 245,
+    "time": 1788799284224,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "chunk": {
+        "type": "usage",
+        "usage": {
+          "inputTokens": 2419,
+          "outputTokens": 98
+        }
+      }
+    }
+  },
+  {
+    "type": "assistant/chunk",
+    "seq": 246,
+    "time": 1788799284224,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "response": {
+        "kind": "pi-ai",
+        "version": 2,
+        "api": "openai-responses",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "responseId": "resp_021788799281990682583ac3749be18cdf4b3a384433037ee98dd",
+        "stopReason": "stop"
+      }
+    }
+  }
+]

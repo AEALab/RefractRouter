@@ -69,6 +69,9 @@ AFP 请求保留 `ark-plan` 与精确的 `/api/plan/v3` 端点。插件仅在启
 
 ## 实现语言与构建分发
 
+显式启用的 v0.4 [证据状态实验](evidence-state-execution-modes.md) 将不可变来源归属、
+整任务与 DAG 执行、对照分组和费用记账保留在 Python。DSH 仅传递配置并展示证据。
+
 实现语言边界为 Python + TypeScript。Markdown、JSON 和 YAML 用于文档与数据；
 TypeScript 编译生成的 JavaScript 是运行产物，不新增手写 JavaScript 实现。
 

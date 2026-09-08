@@ -5,6 +5,7 @@ import re
 from html.parser import HTMLParser
 
 from .schemas import NodeResult, NodeSpec, TaskDAG
+from .evidence_state import evidence_artifact, uses_evidence_state, validate_evidence
 
 
 _CITATION_PATTERN = re.compile(r"source_\d+", re.IGNORECASE)
@@ -131,6 +132,16 @@ class _HeadingParser(HTMLParser):
 def node_contract_checks(task: TaskDAG, node: NodeSpec, output: str, context=None) -> dict:
     """Deterministic validity/coverage caps, never a claim of semantic quality."""
     context = context or {}
+    version = task.output_contract_version
+    owned = uses_evidence_state(task) and node.node_type in {
+        "synthesis", "generation", "rendering", "verification"}
+    artifact = None
+    if owned:
+        try:
+            artifact = evidence_artifact(task, context)
+        except ValueError:
+            return {"version": version, "score_cap": 0.0, "checks": {},
+                    "issues": ["invalid-reference-context"]}
     issues: list[str] = []
     checks: dict[str, object] = {}
     cap = 100.0
@@ -141,7 +152,7 @@ def node_contract_checks(task: TaskDAG, node: NodeSpec, output: str, context=Non
         except (json.JSONDecodeError, TypeError):
             value = None
         if not isinstance(value, dict):
-            return {"version": NODE_CHECKS_VERSION, "score_cap": 0.0,
+            return {"version": version, "score_cap": 0.0,
                     "checks": {"json_object": False}, "issues": ["invalid-json"]}
         checks["json_object"] = True
 
@@ -182,6 +193,9 @@ def node_contract_checks(task: TaskDAG, node: NodeSpec, output: str, context=Non
             issues.append("invalid-html")
         if issues:
             cap = 0.0
+        if artifact and not traceable_source_ids(task, output) <= {x.source_id for x in artifact.items}:
+            issues.append("unresolved-citations")
+            cap = 0.0
     elif node.node_type == "verification":
         rendered = context.get("render_html", "")
         lowered = rendered.strip().lower()
@@ -209,36 +223,31 @@ def node_contract_checks(task: TaskDAG, node: NodeSpec, output: str, context=Non
         cap = min(cap, 100 * (len(required) - len(missing)) / len(required)) if required else cap
 
     if node.node_type in {"extraction", "synthesis", "generation"}:
-        evidence = value.get("evidence")
-        known = {x.source_id: x for x in task.source_documents}
-        valid_ids: set[str] = set()
-        seen_claims: set[tuple[str, str]] = set()
-        valid = isinstance(evidence, list) and bool(evidence)
-        for item in evidence if isinstance(evidence, list) else []:
-            sid = item.get("source_id") if isinstance(item, dict) else None
-            source = known.get(sid) if isinstance(sid, str) else None
-            if not source or item.get("content_hash") != source.content_hash or item.get("title") != source.title or not isinstance(item.get("claim"), str) or not item["claim"].strip():
-                valid = False
-            elif (sid, " ".join(item["claim"].split()).casefold()) in seen_claims:
-                valid = False
-            else:
-                valid_ids.add(sid)
-                seen_claims.add((sid, " ".join(item["claim"].split()).casefold()))
+        if artifact:
+            valid, valid_ids = True, {item.source_id for item in artifact.items}
+            checks["evidence_artifact"] = artifact.snapshot()
+            if "evidence" in value:
+                issues.append("unexpected-evidence")
+                cap = 0.0
+        else:
+            valid, valid_ids = validate_evidence(task, value.get("evidence"))
         checks["evidence_identity"] = valid
         checks["unique_sources"] = sorted(valid_ids)
         if not valid:
             issues.append("invalid-evidence")
             cap = 0.0
         # Literal source IDs must resolve; repetition never raises the score.
-        if node.node_type == "generation":
+        if node.node_type == "generation" or (artifact and node.node_type == "synthesis"):
             raw_sections = value.get("sections")
-            paragraphs = " ".join(x["paragraph"] for x in (raw_sections if isinstance(raw_sections, list) else []) if isinstance(x, dict) and isinstance(x.get("paragraph"), str))
+            paragraphs = (value.get("analysis", "") if node.node_type == "synthesis" else
+                " ".join(x["paragraph"] for x in (raw_sections if isinstance(raw_sections, list) else []) if isinstance(x, dict) and isinstance(x.get("paragraph"), str)))
+            paragraphs = paragraphs if isinstance(paragraphs, str) else ""
             citations = set(re.findall(r"\[(source_\d+)\]", paragraphs))
             checks["citations_resolve"] = bool(citations) and citations <= valid_ids
             if not checks["citations_resolve"]:
                 issues.append("unresolved-citations")
                 cap = 0.0
-    return {"version": NODE_CHECKS_VERSION, "score_cap": round(cap, 3), "checks": checks, "issues": issues}
+    return {"version": version, "score_cap": round(cap, 3), "checks": checks, "issues": issues}
 
 
 def score_node(task: TaskDAG, node: NodeSpec, output: str, context=None) -> float:

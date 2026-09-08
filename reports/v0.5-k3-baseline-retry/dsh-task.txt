@@ -1,0 +1,2 @@
+用户明确要求再试一次。本次仅调用一次 refractrouter_validate，严格使用以下 JSON 参数；只执行 baseline，禁止 prepare 或 compose，禁止调用其他工具或追加重试。该工具内的 K3 等待上限为 300 秒，请等待返回。返回后只输出 status、outputDir、evidencePath 并结束，无论成功或失败。
+{"phase": "k3-baseline", "stage": "baseline", "repeats": 1, "inputDir": "reports/v0.5-k3-baseline-retry/preflight", "reviewsPath": "reports/v0.5-glm-calibration/paid-admission-1/reviews.json", "executePaidRun": true, "maxProductionCost": 20, "maxEvaluationCost": 0}

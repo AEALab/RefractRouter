@@ -54,6 +54,8 @@ class TaskDAG:
     scoring_rubric_version: str = "v0.1"
     expected_claims: tuple[str, ...] = ()
     source_documents: tuple[SourceDocument, ...] = ()
+    output_contract_version: str = "v0.3"
+    execution_mode: str = "dag"
 
 
 @dataclass(frozen=True, slots=True)

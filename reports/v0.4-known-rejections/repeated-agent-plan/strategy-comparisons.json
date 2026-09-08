@@ -1,0 +1,646 @@
+{
+  "pairing": "task_id + repeat",
+  "summaries": {
+    "node-oracle vs strong-all": {
+      "pairs": 3,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        },
+        {
+          "task_id": "report_001",
+          "repeat": 2
+        },
+        {
+          "task_id": "report_001",
+          "repeat": 3
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1,
+        2,
+        3
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 3,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 3,
+          "mean": 3.666667,
+          "stddev": 3.299832
+        }
+      },
+      "quality_delta_mean": 3.66666667,
+      "quality_delta_stddev": 3.29983165,
+      "cost_delta_mean": -2.20173333,
+      "cost_delta_stddev": 2.04184032,
+      "cost_reduction_percent_mean": 25.61159975,
+      "cost_reduction_percent_stddev": 21.92102841,
+      "latency_delta_ms_mean": 6425,
+      "latency_delta_ms_stddev": 13673.90880473
+    },
+    "node-oracle vs task-oracle": {
+      "pairs": 2,
+      "excluded_pairs": 1,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        },
+        {
+          "task_id": "report_001",
+          "repeat": 2
+        }
+      ],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 3,
+          "reasons": [
+            "task-oracle:missing-judge",
+            "task-oracle:judge:incomplete-single-model-evaluations"
+          ]
+        }
+      ],
+      "task_count": 1,
+      "repeats": [
+        1,
+        2
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 2,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 2,
+          "mean": -2.5,
+          "stddev": 0.5
+        }
+      },
+      "quality_delta_mean": -2.5,
+      "quality_delta_stddev": 0.5,
+      "cost_delta_mean": 1.985325,
+      "cost_delta_stddev": 2.578025,
+      "cost_reduction_percent_mean": -403.76099045,
+      "cost_reduction_percent_stddev": 415.65901314,
+      "latency_delta_ms_mean": 35185.5,
+      "latency_delta_ms_stddev": 12393.5
+    },
+    "node-type-rule vs strong-all": {
+      "pairs": 3,
+      "excluded_pairs": 0,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        },
+        {
+          "task_id": "report_001",
+          "repeat": 2
+        },
+        {
+          "task_id": "report_001",
+          "repeat": 3
+        }
+      ],
+      "excluded_blocks": [],
+      "task_count": 1,
+      "repeats": [
+        1,
+        2,
+        3
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 3,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 3,
+          "mean": -2.666667,
+          "stddev": 1.247219
+        }
+      },
+      "quality_delta_mean": -2.66666667,
+      "quality_delta_stddev": 1.24721913,
+      "cost_delta_mean": -3.8019,
+      "cost_delta_stddev": 2.02371157,
+      "cost_reduction_percent_mean": 46.54852072,
+      "cost_reduction_percent_stddev": 16.97746276,
+      "latency_delta_ms_mean": -19997,
+      "latency_delta_ms_stddev": 25255.91060854
+    },
+    "node-type-rule vs task-oracle": {
+      "pairs": 2,
+      "excluded_pairs": 1,
+      "included_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 1
+        },
+        {
+          "task_id": "report_001",
+          "repeat": 2
+        }
+      ],
+      "excluded_blocks": [
+        {
+          "task_id": "report_001",
+          "repeat": 3,
+          "reasons": [
+            "task-oracle:missing-judge",
+            "task-oracle:judge:incomplete-single-model-evaluations"
+          ]
+        }
+      ],
+      "task_count": 1,
+      "repeats": [
+        1,
+        2
+      ],
+      "identical_assignment_pairs": 0,
+      "mixed_candidate_pairs": 2,
+      "per_task_quality_delta": {
+        "report_001": {
+          "repeats": 2,
+          "mean": -6.0,
+          "stddev": 0.0
+        }
+      },
+      "quality_delta_mean": -6.0,
+      "quality_delta_stddev": 0.0,
+      "cost_delta_mean": 1.3746,
+      "cost_delta_stddev": 1.4163,
+      "cost_reduction_percent_mean": -250.15606082,
+      "cost_reduction_percent_stddev": 250.99315808,
+      "latency_delta_ms_mean": 11186.5,
+      "latency_delta_ms_stddev": 6621.5
+    }
+  },
+  "pairs": [
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-oracle",
+      "baseline": "strong-all",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 94.0,
+      "baseline_quality": 91.0,
+      "quality_delta": 3.0,
+      "candidate_cost": 4.3888,
+      "baseline_cost": 6.55325,
+      "cost_delta": -2.1644500000000004,
+      "cost_reduction_percent": 33.02864990653493,
+      "latency_delta_ms": 9633,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "cheap",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "strong",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 2,
+      "candidate": "node-oracle",
+      "baseline": "strong-all",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 90.0,
+      "baseline_quality": 90.0,
+      "quality_delta": 0.0,
+      "candidate_cost": 5.12025,
+      "baseline_cost": 9.84115,
+      "cost_delta": -4.7209,
+      "cost_reduction_percent": 47.97101964709409,
+      "latency_delta_ms": -11694,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "strong",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 3,
+      "candidate": "node-oracle",
+      "baseline": "strong-all",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 92.0,
+      "baseline_quality": 84.0,
+      "quality_delta": 8.0,
+      "candidate_cost": 7.00665,
+      "baseline_cost": 6.7265,
+      "cost_delta": 0.2801499999999999,
+      "cost_reduction_percent": -4.164870289154834,
+      "latency_delta_ms": 21336,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "strong"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-oracle",
+      "baseline": "task-oracle",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 94.0,
+      "baseline_quality": 96.0,
+      "quality_delta": -2.0,
+      "candidate_cost": 4.3888,
+      "baseline_cost": 4.9815,
+      "cost_delta": -0.5926999999999998,
+      "cost_reduction_percent": 11.89802268393054,
+      "latency_delta_ms": 22792,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "cheap",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "strong",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "mid"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 2,
+      "candidate": "node-oracle",
+      "baseline": "task-oracle",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 90.0,
+      "baseline_quality": 93.0,
+      "quality_delta": -3.0,
+      "candidate_cost": 5.12025,
+      "baseline_cost": 0.5569,
+      "cost_delta": 4.563350000000001,
+      "cost_reduction_percent": -819.4200035913092,
+      "latency_delta_ms": 47579,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "strong",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "cheap",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "cheap",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 3,
+      "candidate": "node-oracle",
+      "baseline": "task-oracle",
+      "included": false,
+      "exclusion_reasons": [
+        "task-oracle:missing-judge",
+        "task-oracle:judge:incomplete-single-model-evaluations"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 92.0,
+      "baseline_quality": null,
+      "quality_delta": null,
+      "candidate_cost": 7.00665,
+      "baseline_cost": 4.89525,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "mid",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "strong"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "mid"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-type-rule",
+      "baseline": "strong-all",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 90.0,
+      "baseline_quality": 91.0,
+      "quality_delta": -1.0,
+      "candidate_cost": 4.9398,
+      "baseline_cost": 6.55325,
+      "cost_delta": -1.6134500000000003,
+      "cost_reduction_percent": 24.620608095219932,
+      "latency_delta_ms": 4649,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 2,
+      "candidate": "node-type-rule",
+      "baseline": "strong-all",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 87.0,
+      "baseline_quality": 90.0,
+      "quality_delta": -3.0,
+      "candidate_cost": 3.3478,
+      "baseline_cost": 9.84115,
+      "cost_delta": -6.493350000000001,
+      "cost_reduction_percent": 65.98161800196117,
+      "latency_delta_ms": -54708,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 3,
+      "candidate": "node-type-rule",
+      "baseline": "strong-all",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 80.0,
+      "baseline_quality": 84.0,
+      "quality_delta": -4.0,
+      "candidate_cost": 3.4276,
+      "baseline_cost": 6.7265,
+      "cost_delta": -3.2988999999999997,
+      "cost_reduction_percent": 49.043336058871624,
+      "latency_delta_ms": -9932,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "strong",
+        "build_outline": "strong",
+        "extract_evidence": "strong",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "strong",
+        "verify_report": "strong"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 1,
+      "candidate": "node-type-rule",
+      "baseline": "task-oracle",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 90.0,
+      "baseline_quality": 96.0,
+      "quality_delta": -6.0,
+      "candidate_cost": 4.9398,
+      "baseline_cost": 4.9815,
+      "cost_delta": -0.041699999999999626,
+      "cost_reduction_percent": 0.8370972598614801,
+      "latency_delta_ms": 17808,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "mid"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 2,
+      "candidate": "node-type-rule",
+      "baseline": "task-oracle",
+      "included": true,
+      "exclusion_reasons": [],
+      "billing_unit": "AFP",
+      "candidate_quality": 87.0,
+      "baseline_quality": 93.0,
+      "quality_delta": -6.0,
+      "candidate_cost": 3.3478,
+      "baseline_cost": 0.5569,
+      "cost_delta": 2.7908999999999997,
+      "cost_reduction_percent": -501.14921889028545,
+      "latency_delta_ms": 4565,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "cheap",
+        "build_outline": "cheap",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "cheap",
+        "write_report": "cheap",
+        "render_html": "cheap",
+        "verify_report": "cheap"
+      }
+    },
+    {
+      "task_id": "report_001",
+      "repeat": 3,
+      "candidate": "node-type-rule",
+      "baseline": "task-oracle",
+      "included": false,
+      "exclusion_reasons": [
+        "task-oracle:missing-judge",
+        "task-oracle:judge:incomplete-single-model-evaluations"
+      ],
+      "billing_unit": "AFP",
+      "candidate_quality": 80.0,
+      "baseline_quality": null,
+      "quality_delta": null,
+      "candidate_cost": 3.4276,
+      "baseline_cost": 4.89525,
+      "cost_delta": null,
+      "cost_reduction_percent": null,
+      "latency_delta_ms": null,
+      "identical_assignments": false,
+      "candidate_is_mixed": true,
+      "identical_output": false,
+      "candidate_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "cheap",
+        "synthesize_analysis": "strong",
+        "write_report": "strong",
+        "render_html": "mid",
+        "verify_report": "cheap"
+      },
+      "baseline_assignments": {
+        "parse_requirements": "mid",
+        "build_outline": "mid",
+        "extract_evidence": "mid",
+        "synthesize_analysis": "mid",
+        "write_report": "mid",
+        "render_html": "mid",
+        "verify_report": "mid"
+      }
+    }
+  ],
+  "interpretation": "Descriptive paired differences; repeats are nested within tasks. Identical assignments measure generation/judge variation, not a routing change. Task-oracle is the post-hoc best of all three judged single-model runs in that block. Node-oracle is a local greedy selection on fixed upstream probes, not a global upper bound."
+}

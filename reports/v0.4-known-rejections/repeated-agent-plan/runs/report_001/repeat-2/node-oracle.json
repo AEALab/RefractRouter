@@ -1,0 +1,229 @@
+{
+  "task_id": "report_001",
+  "repeat": 2,
+  "strategy": "node-oracle",
+  "result": {
+    "task_id": "report_001",
+    "strategy": "node-oracle",
+    "model_assignments": {
+      "parse_requirements": "mid",
+      "build_outline": "strong",
+      "extract_evidence": "mid",
+      "synthesize_analysis": "mid",
+      "write_report": "strong",
+      "render_html": "mid",
+      "verify_report": "cheap"
+    },
+    "node_results": [
+      {
+        "node_id": "parse_requirements",
+        "node_type": "planning",
+        "model_id": "mid",
+        "output": "{\"requirements\":\"Report topic: 2026 enterprise LLM Agent platform selection. Audience: enterprise decision-makers evaluating LLM Agent platforms. Output: standalone HTML research report with mandatory source citations (source_id) and no external CSS or JavaScript. Expected claims to substantiate: DeepAgents is built on LangGraph; DSH is reserved for the outer validation environment; the benchmark reports quality, cost, and critical-path latency.\",\"sections\":[\"Executive Summary\",\"Background\",\"Selection Criteria\",\"Platform Comparison\",\"Risks\",\"Conclusion\",\"References\"],\"constraints\":[\"final artifact must be standalone HTML\",\"all claims must cite source_id\",\"no external CSS allowed\",\"no external JavaScript allowed\",\"use flat section list\",\"preserve source_id, title, content_hash, claim in every evidence item\",\"do not invent sources\",\"do not use web search or outside knowledge\"],\"analysis\":\"The task frames a 2026 enterprise LLM Agent platform selection deliverable. The audience is enterprise decision-makers, so the report must balance technical depth with procurement-oriented criteria. Seven required sections are fixed in order; the HTML renderer must keep this exact flat sequence. Three anchor claims must be evidenced and cited via source_id. The HTML must be fully self-contained, which rules out CDN-hosted CSS frameworks and any client-side scripting, so styling must use inline attributes or a single embedded style block. Citations must be carried through from extraction to the final rendered HTML.\"}",
+        "input_tokens": 677,
+        "output_tokens": 280,
+        "cost": 0.23925,
+        "latency_ms": 4647,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887722306868f4f8ecdaf0d8a16803f1d267b7ea40d875a00",
+        "error_message": null
+      },
+      {
+        "node_id": "build_outline",
+        "node_type": "planning",
+        "model_id": "strong",
+        "output": "{\"requirements\":\"Report topic: 2026 enterprise LLM Agent platform selection. Audience: enterprise decision-makers evaluating LLM Agent platforms. Output: standalone HTML research report with mandatory source citations (source_id) and no external CSS or JavaScript. Expected claims to substantiate: DeepAgents is built on LangGraph; DSH is reserved for the outer validation environment; the benchmark reports quality, cost, and critical-path latency.\",\"sections\":[\"Executive Summary\",\"Background\",\"Selection Criteria\",\"Platform Comparison\",\"Risks\",\"Conclusion\",\"References\"],\"constraints\":[\"final artifact must be standalone HTML\",\"all claims must cite source_id\",\"no external CSS allowed\",\"no external JavaScript allowed\",\"use flat section list\",\"preserve source_id, title, content_hash, claim in every evidence item\",\"do not invent sources\",\"do not use web search or outside knowledge\"],\"analysis\":\"The outline mirrors the seven required sections in fixed order. Executive Summary will state the recommendation and anchor the three expected claims with source_id citations. Background will define LLM Agent platforms, the 2026 enterprise context, and introduce DeepAgents, LangGraph, and DSH. Selection Criteria will cover quality, cost, critical-path latency, governance, integration, and security. Platform Comparison will evaluate candidate platforms against those criteria, citing benchmark evidence. Risks will address lock-in, validation-environment separation, and operational failure modes. Conclusion will restate the recommendation. References will list all cited sources with source_id, title, and content_hash. The HTML renderer must keep this flat sequence and embed citations inline without external assets.\"}",
+        "input_tokens": 838,
+        "output_tokens": 321,
+        "cost": 0.63745,
+        "latency_ms": 7728,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788772235348c237340934591b89d6de6b6a9271c1b9776144",
+        "error_message": null
+      },
+      {
+        "node_id": "extract_evidence",
+        "node_type": "extraction",
+        "model_id": "mid",
+        "output": "{\"evidence\":[{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.\"},{\"source_id\":\"source_002\",\"title\":\"LangGraph\",\"content_hash\":\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\"claim\":\"LangGraph is a graph state machine framework for complex workflows, supporting explicit nodes, edges, durable state, and check-pointing.\"},{\"source_id\":\"source_003\",\"title\":\"Pydantic AI\",\"content_hash\":\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\"claim\":\"Pydantic AI provides typed tool definitions and structured model outputs for use cases requiring strict schemas.\"},{\"source_id\":\"source_004\",\"title\":\"DeepSeek Harness\",\"content_hash\":\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\"claim\":\"DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin, and DSH is reserved for the outer validation environment rather than the core routing loop.\"},{\"source_id\":\"source_005\",\"title\":\"LLM routing research gap\",\"content_hash\":\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\"claim\":\"Existing LLM routing work mostly selects one model for an entire request, while per-node model selection within a task DAG can improve the quality-cost-latency Pareto frontier.\"},{\"source_id\":\"source_006\",\"title\":\"Task decomposition boundary\",\"content_hash\":\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\"claim\":\"Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred.\"},{\"source_id\":\"source_007\",\"title\":\"Benchmark design\",\"content_hash\":\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\"claim\":\"A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency.\"},{\"source_id\":\"source_008\",\"title\":\"Scoring rubric\",\"content_hash\":\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\"claim\":\"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity, with scoring prompts and rubric versions versioned alongside run records.\"}]}",
+        "input_tokens": 1888,
+        "output_tokens": 706,
+        "cost": 0.6485,
+        "latency_ms": 31565,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788772243063640844006c495b97e3327b5d9afec856198687",
+        "error_message": null
+      },
+      {
+        "node_id": "synthesize_analysis",
+        "node_type": "synthesis",
+        "model_id": "mid",
+        "output": "{\"analysis\":\"Comparing the candidate platforms against the selection criteria (planning depth, typed tooling, harness flexibility, per-node routing, and benchmarkable structure) reveals clear tradeoffs. DeepAgents inherits LangGraph's graph state machine semantics, so it offers the strongest workflow primitives—explicit nodes/edges, durable state, and check-pointing—while layering planning, sub-agents, a filesystem abstraction, and human-in-the-loop on top. That makes it the most production-ready choice when a team needs durable, inspectable, multi-step agent execution, but it also commits the team to the LangChain ecosystem and its operational conventions. Pydantic AI is the opposite trade: it is lighter and excels where strict typed tool definitions and structured outputs dominate the requirements, but it does not provide a graph-level control plane, so durability, sub-agent orchestration, and human-in-the-loop must be built or bolted on. DeepSeek Harness (DSH) is explicitly carved out of the core routing loop and reserved for the outer validation environment; the agent loop is a plugin, which is attractive for evaluation harnesses and adversarial regression testing but is not the right substrate for the primary per-node routing engine. The research gap (per-node model selection inside a task DAG improving the quality-cost-latency Pareto frontier) pushes selection toward a platform that exposes a DAG as input rather than owning decomposition; per source_006, static decomposition belongs to the application layer and dynamic re-splitting is deferred, so the platform should consume DAGs cleanly. Source_007 further requires the platform to support fixed DAGs, per-node/per-task scoring, cost accounting, and critical-path latency, which LangGraph-based stacks satisfy most naturally. Net trade: DeepAgents maximizes workflow control and benchmarking fidelity at the cost of ecosystem lock-in; Pydantic AI maximizes schema rigor and lightness at the cost of orchestration depth; DSH is best as a validation harness around whichever platform is chosen, not as the core loop.\",\"evidence\":[{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.\"},{\"source_id\":\"source_002\",\"title\":\"LangGraph\",\"content_hash\":\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\"claim\":\"LangGraph is a graph state machine framework for complex workflows, supporting explicit nodes, edges, durable state, and check-pointing.\"},{\"source_id\":\"source_003\",\"title\":\"Pydantic AI\",\"content_hash\":\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\"claim\":\"Pydantic AI provides typed tool definitions and structured model outputs for use cases requiring strict schemas.\"},{\"source_id\":\"source_004\",\"title\":\"DeepSeek Harness\",\"content_hash\":\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\"claim\":\"DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin, and DSH is reserved for the outer validation environment rather than the core routing loop.\"},{\"source_id\":\"source_005\",\"title\":\"LLM routing research gap\",\"content_hash\":\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\"claim\":\"Existing LLM routing work mostly selects one model for an entire request, while per-node model selection within a task DAG can improve the quality-cost-latency Pareto frontier.\"},{\"source_id\":\"source_006\",\"title\":\"Task decomposition boundary\",\"content_hash\":\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\"claim\":\"Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred.\"},{\"source_id\":\"source_007\",\"title\":\"Benchmark design\",\"content_hash\":\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\"claim\":\"A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency.\"},{\"source_id\":\"source_008\",\"title\":\"Scoring rubric\",\"content_hash\":\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\"claim\":\"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity, with scoring prompts and rubric versions versioned alongside run records.\"}]}",
+        "input_tokens": 1411,
+        "output_tokens": 1098,
+        "cost": 0.62725,
+        "latency_ms": 12832,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788772274648e78c31fe06d4434dfef0260629e4a08b416bff",
+        "error_message": null
+      },
+      {
+        "node_id": "write_report",
+        "node_type": "generation",
+        "model_id": "strong",
+        "output": "{\"title\":\"2026 年企业 LLM Agent 平台选型\",\"sections\":[{\"heading\":\"Executive Summary\",\"paragraph\":\"DeepAgents is the strongest core platform for 2026 enterprise LLM agent deployment because it is built on LangGraph and inherits durable graph state machine semantics [source_001][source_002]. Pydantic AI suits schema-heavy workloads but lacks orchestration depth [source_003]. DeepSeek Harness (DSH) is reserved for the outer validation environment, not the primary routing loop [source_004]. The benchmark must report quality, cost, and critical-path latency [source_007].\"},{\"heading\":\"Background\",\"paragraph\":\"Existing LLM routing work mostly selects one model per request, leaving per-node model selection within a task DAG as an open research gap that can improve the quality-cost-latency Pareto frontier [source_005]. Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred [source_006]. This shapes platform requirements for 2026.\"},{\"heading\":\"Selection Criteria\",\"paragraph\":\"A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency [source_007]. The platform should consume DAGs cleanly rather than own decomposition [source_006]. Additional criteria include durable state, check-pointing, typed tooling, human-in-the-loop controls, and benchmarkable structure [source_002][source_003][source_001].\"},{\"heading\":\"Platform Comparison\",\"paragraph\":\"DeepAgents, built on LangGraph, offers planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls over explicit nodes, edges, durable state, and check-pointing [source_001][source_002]. Pydantic AI provides typed tool definitions and structured outputs but no graph-level control plane [source_003]. DSH is an agent harness where the agent loop is a plugin, reserved for the outer validation environment rather than the core routing loop [source_004].\"},{\"heading\":\"Risks\",\"paragraph\":\"Choosing DeepAgents commits the team to the LangChain ecosystem and its operational conventions [source_001]. Pydantic AI requires building or bolting on durability, sub-agent orchestration, and human-in-the-loop [source_003]. Using DSH as the core loop would misplace the validation harness inside production routing [source_004]. Benchmark fidelity depends on fixed DAGs and complete cost and latency accounting [source_007].\"},{\"heading\":\"Conclusion\",\"paragraph\":\"DeepAgents maximizes workflow control and benchmarking fidelity at the cost of ecosystem lock-in [source_001][source_002]. Pydantic AI maximizes schema rigor and lightness at the cost of orchestration depth [source_003]. DSH is best as a validation harness around whichever platform is chosen, not as the core loop [source_004]. The benchmark should report quality, cost, and critical-path latency [source_007].\"},{\"heading\":\"References\",\"paragraph\":\"Sources include DeepAgents [source_001], LangGraph [source_002], Pydantic AI [source_003], DeepSeek Harness [source_004], the LLM routing research gap [source_005], the task decomposition boundary [source_006], benchmark design [source_007], and the scoring rubric [source_008].\"}],\"evidence\":[{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.\"},{\"source_id\":\"source_002\",\"title\":\"LangGraph\",\"content_hash\":\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\"claim\":\"LangGraph is a graph state machine framework for complex workflows, supporting explicit nodes, edges, durable state, and check-pointing.\"},{\"source_id\":\"source_003\",\"title\":\"Pydantic AI\",\"content_hash\":\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\"claim\":\"Pydantic AI provides typed tool definitions and structured model outputs for use cases requiring strict schemas.\"},{\"source_id\":\"source_004\",\"title\":\"DeepSeek Harness\",\"content_hash\":\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\"claim\":\"DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin, and DSH is reserved for the outer validation environment rather than the core routing loop.\"},{\"source_id\":\"source_005\",\"title\":\"LLM routing research gap\",\"content_hash\":\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\"claim\":\"Existing LLM routing work mostly selects one model for an entire request, while per-node model selection within a task DAG can improve the quality-cost-latency Pareto frontier.\"},{\"source_id\":\"source_006\",\"title\":\"Task decomposition boundary\",\"content_hash\":\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\"claim\":\"Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred.\"},{\"source_id\":\"source_007\",\"title\":\"Benchmark design\",\"content_hash\":\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\"claim\":\"A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency.\"},{\"source_id\":\"source_008\",\"title\":\"Scoring rubric\",\"content_hash\":\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\"claim\":\"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity, with scoring prompts and rubric versions versioned alongside run records.\"}]}",
+        "input_tokens": 1823,
+        "output_tokens": 1423,
+        "cost": 1.7853,
+        "latency_ms": 21497,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788772287487137f500080bf18603e76d17d12e7c43e14a812",
+        "error_message": null
+      },
+      {
+        "node_id": "render_html",
+        "node_type": "rendering",
+        "model_id": "mid",
+        "output": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>2026 年企业 LLM Agent 平台选型</title>\n</head>\n<body>\n<h1>2026 年企业 LLM Agent 平台选型</h1>\n\n<h2>Executive Summary</h2>\n<p>DeepAgents is the strongest core platform for 2026 enterprise LLM agent deployment because it is built on LangGraph and inherits durable graph state machine semantics <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>. Pydantic AI suits schema-heavy workloads but lacks orchestration depth <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. DeepSeek Harness (DSH) is reserved for the outer validation environment, not the primary routing loop <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>. The benchmark must report quality, cost, and critical-path latency <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>.</p>\n\n<h2>Background</h2>\n<p>Existing LLM routing work mostly selects one model per request, leaving per-node model selection within a task DAG as an open research gap that can improve the quality-cost-latency Pareto frontier <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>. Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>. This shapes platform requirements for 2026.</p>\n\n<h2>Selection Criteria</h2>\n<p>A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>. The platform should consume DAGs cleanly rather than own decomposition <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>. Additional criteria include durable state, check-pointing, typed tooling, human-in-the-loop controls, and benchmarkable structure <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a><a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a><a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>.</p>\n\n<h2>Platform Comparison</h2>\n<p>DeepAgents, built on LangGraph, offers planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls over explicit nodes, edges, durable state, and check-pointing <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>. Pydantic AI provides typed tool definitions and structured outputs but no graph-level control plane <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. DSH is an agent harness where the agent loop is a plugin, reserved for the outer validation environment rather than the core routing loop <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>.</p>\n\n<h2>Risks</h2>\n<p>Choosing DeepAgents commits the team to the LangChain ecosystem and its operational conventions <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>. Pydantic AI requires building or bolting on durability, sub-agent orchestration, and human-in-the-loop <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. Using DSH as the core loop would misplace the validation harness inside production routing <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>. Benchmark fidelity depends on fixed DAGs and complete cost and latency accounting <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>.</p>\n\n<h2>Conclusion</h2>\n<p>DeepAgents maximizes workflow control and benchmarking fidelity at the cost of ecosystem lock-in <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>. Pydantic AI maximizes schema rigor and lightness at the cost of orchestration depth <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. DSH is best as a validation harness around whichever platform is chosen, not as the core loop <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>. The benchmark should report quality, cost, and critical-path latency <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>.</p>\n\n<h2>References</h2>\n<p>Sources include DeepAgents <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>, LangGraph <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>, Pydantic AI <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>, DeepSeek Harness <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>, the LLM routing research gap <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>, the task decomposition boundary <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>, benchmark design <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>, and the scoring rubric <a href=\"#source-source_008\" data-cite-source-id=\"source_008\">[source_008]</a>.</p>\n\n<h2>Source Trace</h2>\n<ul>\n<li id=\"source-source_001\" data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">DeepAgents: DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.</li>\n<li id=\"source-source_002\" data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\">LangGraph: LangGraph is a graph state machine framework for complex workflows, supporting explicit nodes, edges, durable state, and check-pointing.</li>\n<li id=\"source-source_003\" data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\">Pydantic AI: Pydantic AI provides typed tool definitions and structured model outputs for use cases requiring strict schemas.</li>\n<li id=\"source-source_004\" data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\">DeepSeek Harness: DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin, and DSH is reserved for the outer validation environment rather than the core routing loop.</li>\n<li id=\"source-source_005\" data-source-id=\"source_005\" data-content-hash=\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\">LLM routing research gap: Existing LLM routing work mostly selects one model for an entire request, while per-node model selection within a task DAG can improve the quality-cost-latency Pareto frontier.</li>\n<li id=\"source-source_006\" data-source-id=\"source_006\" data-content-hash=\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\">Task decomposition boundary: Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred.</li>\n<li id=\"source-source_007\" data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\">Benchmark design: A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency.</li>\n<li id=\"source-source_008\" data-source-id=\"source_008\" data-content-hash=\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\">Scoring rubric: The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity, with scoring prompts and rubric versions versioned alongside run records.</li>\n</ul>\n</body>\n</html>",
+        "input_tokens": 1977,
+        "output_tokens": 2190,
+        "cost": 1.04175,
+        "latency_ms": 17481,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887723089853f04613060c95c0e1cb70b4f628471a96286ac",
+        "error_message": null
+      },
+      {
+        "node_id": "verify_report",
+        "node_type": "verification",
+        "model_id": "cheap",
+        "output": "{\"valid\":true,\"issues\":[],\"summary\":\"All required sections are present, all claims are cited with source IDs, HTML is standalone with no external CSS/JS, and output constraints are satisfied.\"}",
+        "input_tokens": 2773,
+        "output_tokens": 42,
+        "cost": 0.14075,
+        "latency_ms": 1633,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178877232646978af8113c224ccdd69578c3b63d1e71ad024fc",
+        "error_message": null
+      }
+    ],
+    "final_output": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>2026 年企业 LLM Agent 平台选型</title>\n</head>\n<body>\n<h1>2026 年企业 LLM Agent 平台选型</h1>\n\n<h2>Executive Summary</h2>\n<p>DeepAgents is the strongest core platform for 2026 enterprise LLM agent deployment because it is built on LangGraph and inherits durable graph state machine semantics <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>. Pydantic AI suits schema-heavy workloads but lacks orchestration depth <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. DeepSeek Harness (DSH) is reserved for the outer validation environment, not the primary routing loop <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>. The benchmark must report quality, cost, and critical-path latency <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>.</p>\n\n<h2>Background</h2>\n<p>Existing LLM routing work mostly selects one model per request, leaving per-node model selection within a task DAG as an open research gap that can improve the quality-cost-latency Pareto frontier <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>. Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>. This shapes platform requirements for 2026.</p>\n\n<h2>Selection Criteria</h2>\n<p>A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>. The platform should consume DAGs cleanly rather than own decomposition <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>. Additional criteria include durable state, check-pointing, typed tooling, human-in-the-loop controls, and benchmarkable structure <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a><a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a><a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>.</p>\n\n<h2>Platform Comparison</h2>\n<p>DeepAgents, built on LangGraph, offers planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls over explicit nodes, edges, durable state, and check-pointing <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>. Pydantic AI provides typed tool definitions and structured outputs but no graph-level control plane <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. DSH is an agent harness where the agent loop is a plugin, reserved for the outer validation environment rather than the core routing loop <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>.</p>\n\n<h2>Risks</h2>\n<p>Choosing DeepAgents commits the team to the LangChain ecosystem and its operational conventions <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>. Pydantic AI requires building or bolting on durability, sub-agent orchestration, and human-in-the-loop <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. Using DSH as the core loop would misplace the validation harness inside production routing <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>. Benchmark fidelity depends on fixed DAGs and complete cost and latency accounting <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>.</p>\n\n<h2>Conclusion</h2>\n<p>DeepAgents maximizes workflow control and benchmarking fidelity at the cost of ecosystem lock-in <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>. Pydantic AI maximizes schema rigor and lightness at the cost of orchestration depth <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>. DSH is best as a validation harness around whichever platform is chosen, not as the core loop <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>. The benchmark should report quality, cost, and critical-path latency <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>.</p>\n\n<h2>References</h2>\n<p>Sources include DeepAgents <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>, LangGraph <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>, Pydantic AI <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>, DeepSeek Harness <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>, the LLM routing research gap <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>, the task decomposition boundary <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>, benchmark design <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>, and the scoring rubric <a href=\"#source-source_008\" data-cite-source-id=\"source_008\">[source_008]</a>.</p>\n\n<h2>Source Trace</h2>\n<ul>\n<li id=\"source-source_001\" data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">DeepAgents: DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.</li>\n<li id=\"source-source_002\" data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\">LangGraph: LangGraph is a graph state machine framework for complex workflows, supporting explicit nodes, edges, durable state, and check-pointing.</li>\n<li id=\"source-source_003\" data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\">Pydantic AI: Pydantic AI provides typed tool definitions and structured model outputs for use cases requiring strict schemas.</li>\n<li id=\"source-source_004\" data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\">DeepSeek Harness: DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin, and DSH is reserved for the outer validation environment rather than the core routing loop.</li>\n<li id=\"source-source_005\" data-source-id=\"source_005\" data-content-hash=\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\">LLM routing research gap: Existing LLM routing work mostly selects one model for an entire request, while per-node model selection within a task DAG can improve the quality-cost-latency Pareto frontier.</li>\n<li id=\"source-source_006\" data-source-id=\"source_006\" data-content-hash=\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\">Task decomposition boundary: Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred.</li>\n<li id=\"source-source_007\" data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\">Benchmark design: A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency.</li>\n<li id=\"source-source_008\" data-source-id=\"source_008\" data-content-hash=\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\">Scoring rubric: The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity, with scoring prompts and rubric versions versioned alongside run records.</li>\n</ul>\n</body>\n</html>",
+    "task_score": 90.0,
+    "total_cost": 5.12025,
+    "critical_path_latency_ms": 97383,
+    "billing_unit": "AFP",
+    "failure_types": []
+  },
+  "judge": {
+    "rubric_version": "v0.1",
+    "deterministic_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "judge_dimensions": {
+      "requirement_coverage": 24.0,
+      "evidence_accuracy": 22.0,
+      "analysis_depth": 17.0,
+      "structure_readability": 14.0,
+      "html_validity": 13.0
+    },
+    "final_dimensions": {
+      "requirement_coverage": 24.0,
+      "evidence_accuracy": 22.0,
+      "analysis_depth": 17.0,
+      "structure_readability": 14.0,
+      "html_validity": 13.0
+    },
+    "final_score": 90.0,
+    "claim_support": [
+      {
+        "claim": "DeepAgents is built on LangGraph.",
+        "source_ids": [
+          "source_001",
+          "source_002"
+        ],
+        "supported": true,
+        "explanation": "source_001 explicitly states DeepAgents is a LangChain harness built on LangGraph. source_002 provides the LangGraph substrate context. The report cites both sources for this claim in the Executive Summary and Platform Comparison sections."
+      },
+      {
+        "claim": "DSH is reserved for the outer validation environment.",
+        "source_ids": [
+          "source_004"
+        ],
+        "supported": true,
+        "explanation": "source_004 explicitly states 'DSH is reserved for the outer validation environment, not the core routing loop.' The report accurately reflects this in the Executive Summary, Platform Comparison, Risks, and Conclusion sections with proper citation."
+      },
+      {
+        "claim": "The benchmark reports quality, cost, and critical-path latency.",
+        "source_ids": [
+          "source_007"
+        ],
+        "supported": true,
+        "explanation": "source_007 states the benchmark needs 'per-node and per-task scoring, cost accounting, and critical-path latency.' The report correctly identifies these three metrics in the Executive Summary, Selection Criteria, and Conclusion, citing source_007."
+      }
+    ],
+    "rationale": "The report successfully includes all required sections (Executive Summary, Background, Selection Criteria, Platform Comparison, Risks, Conclusion, References) with clear heading structure. All three expected claims are accurately supported by the frozen sources with proper attribution. The HTML structure is valid with proper DOCTYPE, meta charset, and semantic heading hierarchy. However, the report lacks inline anchor targets for the citation links (the href=\"#source-source_XXX\" references point to IDs in the Source Trace section, which is correct, but the citation format could be more robust). The analysis demonstrates good depth in comparing platform trade-offs and risk assessment, though some sections could elaborate further on implementation specifics. Minor deductions for structure reflect the somewhat terse treatment of the References section as a narrative paragraph rather than a formatted list, and the HTML could benefit from additional semantic elements (nav, article) or validation attributes, though it is functionally valid.",
+    "input_tokens": 3420,
+    "output_tokens": 487,
+    "cached_input_tokens": 0,
+    "reasoning_tokens": 0,
+    "cost": 3.907,
+    "latency_ms": 17853,
+    "attempts": 1,
+    "request_id": "02178877246413478af8113c224ccdd69578c3b63d1e71a5676f5",
+    "billing_unit": "AFP"
+  },
+  "judge_error": null
+}

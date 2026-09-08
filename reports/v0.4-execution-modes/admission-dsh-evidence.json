@@ -1,0 +1,533 @@
+{
+  "schema_version": "v0.2",
+  "status": "pass",
+  "mode": "preflight",
+  "invoked_by": "dsh-plugin",
+  "recorded_at": "2026-09-07T13:55:31.043023+00:00",
+  "phase": "execution-modes",
+  "repeats": 1,
+  "command": [
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/.venv/bin/python3",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/experiments/run_execution_modes.py",
+    "--dataset",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/benchmarks/v0.1.json",
+    "--manifest",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+    "--output-dir",
+    "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/reports/v0.4-execution-modes/admission-preflight",
+    "--phase",
+    "execution-modes",
+    "--repeats",
+    "1",
+    "--max-retries",
+    "0",
+    "--selection-policy",
+    "exclude-known-contract-rejections-v2"
+  ],
+  "exit_code": 0,
+  "stdout": "{\"status\": \"preflight\", \"call_plan\": {\"training_model_calls\": 0, \"one_shot_model_calls\": 3, \"single_dag_model_calls\": 21, \"probe_model_calls\": 21, \"composed_model_calls\": 7, \"fixed_calls_per_candidate\": 15, \"production_model_calls\": 52, \"node_judge_model_calls\": 21, \"final_judge_model_calls\": 7, \"judge_model_calls\": 28, \"total_model_calls\": 80}, \"cost_estimates\": {\"billing_unit\": \"AFP\", \"production_upper_estimate\": 202.39, \"evaluation_upper_estimate\": 453.38, \"total_upper_estimate\": 655.76}}\n",
+  "stderr": "",
+  "issues": [],
+  "preflight": {
+    "schema_version": "execution-modes-v0.4",
+    "phase": "execution-modes",
+    "repeats": 1,
+    "task_id": "report_001",
+    "mode": "preflight",
+    "model_calls": 0,
+    "provider": "ark-plan",
+    "wire_api": "chat-completions",
+    "billing_unit": "AFP",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true,
+    "candidate_models": [
+      "deepseek-v4-flash",
+      "minimax-m3",
+      "deepseek-v4-pro"
+    ],
+    "judge_model": "kimi-k3",
+    "selection_policy": "exclude-known-contract-rejections-v2",
+    "output_contract": {
+      "version": "v0.4",
+      "schema_sha256": "e51aaf6d84206e95a6caf5a43425f582993f3808ff05dc17aabd95621ef24d65",
+      "enforcement": "prompt description and local checks; no provider schema guarantee"
+    },
+    "node_rubric_sha256": "923faee4fcdfe7fe6455a4d00b079a3448033c5fe147a32fd6dc5f424983d685",
+    "inputs": {
+      "dataset_sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17",
+      "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+      "tasks": {
+        "A": {
+          "task_id": "report_001",
+          "domain": "2026 年企业 LLM Agent 平台选型",
+          "nodes": [
+            {
+              "node_id": "render_html",
+              "node_type": "rendering",
+              "prompt_template": "Generate the complete research report directly from the frozen sources. Cover every required section with substantive analysis, comparisons, risks, and supported conclusions. Return only standalone HTML with source trace.",
+              "parents": [],
+              "expected_output": null
+            }
+          ],
+          "required_sections": [
+            "Executive Summary",
+            "Background",
+            "Selection Criteria",
+            "Platform Comparison",
+            "Risks",
+            "Conclusion",
+            "References"
+          ],
+          "output_constraints": [
+            "standalone HTML",
+            "all claims cite source_id",
+            "no external CSS or JavaScript"
+          ],
+          "source_pack_id": "report_001",
+          "scoring_rubric_version": "v0.1",
+          "expected_claims": [
+            "DeepAgents is built on LangGraph.",
+            "DSH is reserved for the outer validation environment.",
+            "The benchmark reports quality, cost, and critical-path latency."
+          ],
+          "source_documents": [
+            {
+              "source_id": "source_001",
+              "title": "DeepAgents",
+              "content": "DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.",
+              "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"
+            },
+            {
+              "source_id": "source_002",
+              "title": "LangGraph",
+              "content": "LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.",
+              "content_hash": "97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"
+            },
+            {
+              "source_id": "source_003",
+              "title": "Pydantic AI",
+              "content": "Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.",
+              "content_hash": "7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"
+            },
+            {
+              "source_id": "source_004",
+              "title": "DeepSeek Harness",
+              "content": "DeepSeek Harness, or DSH, is an agent harness where the agent loop itself is a plugin. For RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.",
+              "content_hash": "b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"
+            },
+            {
+              "source_id": "source_005",
+              "title": "LLM routing research gap",
+              "content": "Existing LLM routing work mostly selects one model for an entire request. RefractRouter studies whether selecting a model separately for each node in a task DAG can improve the quality-cost-latency Pareto frontier.",
+              "content_hash": "418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"
+            },
+            {
+              "source_id": "source_006",
+              "title": "Task decomposition boundary",
+              "content": "Static task decomposition belongs to the application layer. The router receives the DAG as input and focuses on per-node model selection. Dynamic re-splitting is deferred until node-level routing is validated.",
+              "content_hash": "96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"
+            },
+            {
+              "source_id": "source_007",
+              "title": "Benchmark design",
+              "content": "A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency. The first benchmark should stay small enough to reproduce.",
+              "content_hash": "03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"
+            },
+            {
+              "source_id": "source_008",
+              "title": "Scoring rubric",
+              "content": "The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity. Scoring prompts and rubric versions must be versioned with run records.",
+              "content_hash": "b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"
+            }
+          ],
+          "output_contract_version": "v0.4",
+          "execution_mode": "one-shot"
+        },
+        "B_C": {
+          "task_id": "report_001",
+          "domain": "2026 年企业 LLM Agent 平台选型",
+          "nodes": [
+            {
+              "node_id": "parse_requirements",
+              "node_type": "planning",
+              "prompt_template": "Extract the report topic, audience, required sections, and output constraints.",
+              "parents": [],
+              "expected_output": null
+            },
+            {
+              "node_id": "build_outline",
+              "node_type": "planning",
+              "prompt_template": "Build a section outline that covers every required section.",
+              "parents": [
+                "parse_requirements"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "extract_evidence",
+              "node_type": "extraction",
+              "prompt_template": "Extract the most relevant claims from the fixed source pack. Preserve source_id.",
+              "parents": [
+                "build_outline"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "synthesize_analysis",
+              "node_type": "synthesis",
+              "prompt_template": "Compare candidate platforms against the selection criteria and identify tradeoffs.",
+              "parents": [
+                "extract_evidence"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "write_report",
+              "node_type": "generation",
+              "prompt_template": "Write the full report body with every required section and citation.",
+              "parents": [
+                "synthesize_analysis",
+                "extract_evidence"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "render_html",
+              "node_type": "rendering",
+              "prompt_template": "Render the report as a standalone HTML document.",
+              "parents": [
+                "write_report",
+                "extract_evidence"
+              ],
+              "expected_output": null
+            },
+            {
+              "node_id": "verify_report",
+              "node_type": "verification",
+              "prompt_template": "Verify required sections, citations, HTML validity, and output constraints.",
+              "parents": [
+                "render_html",
+                "extract_evidence"
+              ],
+              "expected_output": null
+            }
+          ],
+          "required_sections": [
+            "Executive Summary",
+            "Background",
+            "Selection Criteria",
+            "Platform Comparison",
+            "Risks",
+            "Conclusion",
+            "References"
+          ],
+          "output_constraints": [
+            "standalone HTML",
+            "all claims cite source_id",
+            "no external CSS or JavaScript"
+          ],
+          "source_pack_id": "report_001",
+          "scoring_rubric_version": "v0.1",
+          "expected_claims": [
+            "DeepAgents is built on LangGraph.",
+            "DSH is reserved for the outer validation environment.",
+            "The benchmark reports quality, cost, and critical-path latency."
+          ],
+          "source_documents": [
+            {
+              "source_id": "source_001",
+              "title": "DeepAgents",
+              "content": "DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.",
+              "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"
+            },
+            {
+              "source_id": "source_002",
+              "title": "LangGraph",
+              "content": "LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.",
+              "content_hash": "97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"
+            },
+            {
+              "source_id": "source_003",
+              "title": "Pydantic AI",
+              "content": "Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.",
+              "content_hash": "7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"
+            },
+            {
+              "source_id": "source_004",
+              "title": "DeepSeek Harness",
+              "content": "DeepSeek Harness, or DSH, is an agent harness where the agent loop itself is a plugin. For RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.",
+              "content_hash": "b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"
+            },
+            {
+              "source_id": "source_005",
+              "title": "LLM routing research gap",
+              "content": "Existing LLM routing work mostly selects one model for an entire request. RefractRouter studies whether selecting a model separately for each node in a task DAG can improve the quality-cost-latency Pareto frontier.",
+              "content_hash": "418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"
+            },
+            {
+              "source_id": "source_006",
+              "title": "Task decomposition boundary",
+              "content": "Static task decomposition belongs to the application layer. The router receives the DAG as input and focuses on per-node model selection. Dynamic re-splitting is deferred until node-level routing is validated.",
+              "content_hash": "96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"
+            },
+            {
+              "source_id": "source_007",
+              "title": "Benchmark design",
+              "content": "A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency. The first benchmark should stay small enough to reproduce.",
+              "content_hash": "03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"
+            },
+            {
+              "source_id": "source_008",
+              "title": "Scoring rubric",
+              "content": "The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity. Scoring prompts and rubric versions must be versioned with run records.",
+              "content_hash": "b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"
+            }
+          ],
+          "output_contract_version": "v0.4",
+          "execution_mode": "dag"
+        }
+      },
+      "code": {
+        "experiments/analyze_model_selection.py": "8c65c031bbef1818a659988fa6efc4a43c5b42e843e417625b7b839da0e4cab6",
+        "experiments/finalize_real_v0_1.py": "6f70eae59cb5ebde1c00423a3ea532dd62b9937ac7a1da418ec80c118ed364fa",
+        "experiments/replay_node_contracts.py": "b5a203d487935757f42bd73dac90d608e5e92fc7b7c50e8b2d88c032de8d3cb2",
+        "experiments/review_node_quality_evidence.py": "c71900ad53671fadaa7c7a6b652aff4d5709f95588a3e7bbcbffc2530113cd36",
+        "experiments/run_execution_modes.py": "806f8fe4c6fa038878744f01aa9c04bb215a395668ebd71b72baba66b38dfc1c",
+        "experiments/run_real_v0_1.py": "2f838d83691731607c2d2dce5eaf641a49fb13a25acc967863fb5ddb7a68a469",
+        "experiments/run_v0_1.py": "82ce96e4d8ce47f835a654e678fe0ee2965e8f76c09440987c0c79afcc959446",
+        "src/refractrouter/__init__.py": "1ebb90221ab180b3804eaf36fddfaea1cfb5303f2f03e3299812041207e28a34",
+        "src/refractrouter/adapters.py": "43709152360d3079b816132ad8d3092b7f01398d78651cfe7e53dfb052c1f53d",
+        "src/refractrouter/benchmark.py": "9c9042519d21db15cff169e036e369187a7cf9a7b33d7794cc25c3de9b193c12",
+        "src/refractrouter/cli.py": "bfac0bf929a98acbddacd7c848f17650fb6dd9526c5f77895ca750cee033adee",
+        "src/refractrouter/comparisons.py": "baf75a5e94996e581887f7746f229eaefa28675bd9c102d3d7b5a0a3d1a249a1",
+        "src/refractrouter/dataset.py": "51f5138e84b515cdeee5f306f6bd8fed0f47eb74752748b52084c866598d749d",
+        "src/refractrouter/deepagents_executor.py": "e3e4e085d55f9792f7722681fccb5bdf1f45d6828749cfa274c07ddd88510f3b",
+        "src/refractrouter/evidence_state.py": "b10a1af5e06ff8251e9cae7879a7e86b340de0195652898f72b8816244e0b7d4",
+        "src/refractrouter/execution_modes.py": "cefeba1f1cb728433fa22c479c6886b2c6b5a94a8124d4ef3c9610b35fc8fac0",
+        "src/refractrouter/graph_executor.py": "56d744d24c9a76e8a896e9fd33213c291b4da7bb727fa07e21b027dcd1428f26",
+        "src/refractrouter/judge.py": "ce3c891d7b2dee30b16dd81c1efd98078eb58789b9aa12b1e6a0e0538448d3b8",
+        "src/refractrouter/manifest.py": "92c0490a5bdd362a7d9390ff5a842e08a0c9a5d7181c516a91c1aa327784354b",
+        "src/refractrouter/metrics.py": "1bfe2db5523c56bcefe456e23f62a507a1650f650fe07ee48ff7900b5dae350a",
+        "src/refractrouter/model_catalog.py": "158c7b5acc0dd13ed061099e298fd656b0ab93bd88dfe8b4ed526accaf9ca818",
+        "src/refractrouter/model_registry.py": "1f5d56244af42e918e594dd8434c49edba70ac50070314bef5eb09cc10868f8e",
+        "src/refractrouter/model_selection.py": "a23b611824b0ef432ee3c7933bd216879138d6901477048a433e20bf6a2f0793",
+        "src/refractrouter/node_availability.py": "5deb2df3a6b0d7c3141fe4bf96b3f643cbd0aad76de32ccdc6413d49947d43d5",
+        "src/refractrouter/node_contracts.py": "d34e64ab4a1d39d8028099ae0fbb1dc8ed434a7a3ed4249b6ec072575a915d62",
+        "src/refractrouter/node_judge.py": "d1dd5997921b47533d45a15566368ec0b6f1a5aee668a83e9c636e4f4cea1b9b",
+        "src/refractrouter/openai_compatible.py": "8e53ea3761648789aee49f2b25b93b70ef5310162bc99e00489f87c557060456",
+        "src/refractrouter/report_renderer.py": "a2b110b8fdea5afdd4369377b5bef1c753bc1e845076dd90e23dc17dc4ed464d",
+        "src/refractrouter/routing.py": "6b7c964f643fa30465d4e9d2a425f0732ebf3633f59f9dafe67968188f6e916f",
+        "src/refractrouter/schemas.py": "8acaf738edd6586135fa9e33f49ba15c1e21d3a7ae4def977fa03ba69771b08e",
+        "src/refractrouter/scoring.py": "2abb25786031dc996b64b6e94fdec6c86454898d67b19afa54193d6afb8a4dfe",
+        "src/refractrouter/source_pack.py": "cc515979db15bcd08133cf0af2ba7ce615c288ec09a661ca0d4ae34d3501fe7d",
+        "validation/dsh/README.md": "93a8be2bffcebc39e06a841c387e757090a64d2511deb46cb7a73e262ad5ab99",
+        "validation/dsh/__init__.py": "669612274d576b23e152f0751fcaee9914599a249376ebc89f2249a4068089f9",
+        "validation/dsh/canonical_runner.py": "93d2e88179fe64273a865fce66697cb0b10078f1d94a54b5c5158303cbbc2851",
+        "validation/dsh/plugin/CHANGELOG.md": "3005fbf6964b4f8d637e40264536b01b77f942148b6255fabbb6a861160d3eb2",
+        "validation/dsh/plugin/README.md": "24122b92e4bdf29ab3f1c9326f392ab8d8c5dd9b7a3f98e5da9063f514d2c51a",
+        "validation/dsh/plugin/cordis.patch.yml": "1e37591f6be5f1e832157f5ffbe37a9129ff2eacb17f1d5483ef54806fedba29",
+        "validation/dsh/plugin/package-lock.json": "41dcfe8231eeff22f0208a482eaa04e5ae880af06f64b995dfc3a5b09a9e654b",
+        "validation/dsh/plugin/package.json": "a0fa7fa5015f97100ab34ec92549e78f0b02d05b136b44c99b0a746c86cd94a0",
+        "validation/dsh/plugin/src/contracts.ts": "01ed991f9aab29e025b43ac7add3188d5a75d399feac1f1bf12edad259da75c1",
+        "validation/dsh/plugin/src/evidence.ts": "4f0c6bac2b2abd11b5d5ab8b1b0b21cfba0c486a55fcf506edfb34817a530943",
+        "validation/dsh/plugin/src/index.ts": "56fdc872d3ae2ecc1369a7a462e77f833fd0b658223ba968dedf596be7dd38f9",
+        "validation/dsh/plugin/tests/dsh_plugin_contract.test.ts": "a7b646562ec5ec1c0337c9a8671214bdf094df6403bec894126d3f4533d17ab2",
+        "validation/dsh/plugin/tests/fixtures/package-smoke.ts": "bbceb6fcfbe5e6ee1f2e03e229846b1dfe5082955d5b019de55b4deee60b7f64",
+        "validation/dsh/plugin/tsconfig.json": "279521c4a4d0a0696e4fb750bd19618a43eaabc84901e97c2763fd67946a6e03",
+        "validation/dsh/plugin/tsconfig.test.json": "4b7b8cfac065c9ab5d1f60f73bbb31f4cac60094f6c944cb4a38484f4b80588d",
+        "validation/dsh/real_runner.py": "082ba3d2edb4f04dd950e4cb4a667085dd59d282d1428d9f5c34579edb3892a9",
+        "validation/dsh/runner.md": "aef73f419d7a8cae688a740051648ba3e8e8d8b0a6fe625b3c5f0cacb391480d",
+        "validation/dsh/runner.py": "42bd5f9b80d365b5cf8bec650dc10ae799d77f276b474615a4e4b2fca952ef61"
+      }
+    },
+    "execution_policy": {
+      "max_retries": 0,
+      "temperature": 0,
+      "timeout_seconds": 120,
+      "models": [
+        {
+          "model_id": "cheap",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 0.05,
+          "output_cost_per_1k": 0.05,
+          "capability": 0.55,
+          "billing_unit": "AFP",
+          "tags": [
+            "standard",
+            "fast",
+            "afp-coefficient-0.5"
+          ],
+          "api_model": "deepseek-v4-flash",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 0.05,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "candidate",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "json-object-hint"
+        },
+        {
+          "model_id": "mid",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 0.25,
+          "output_cost_per_1k": 0.25,
+          "capability": 0.78,
+          "billing_unit": "AFP",
+          "tags": [
+            "advanced",
+            "balanced",
+            "afp-coefficient-2.5"
+          ],
+          "api_model": "minimax-m3",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 0.25,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "candidate",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "prompt-only"
+        },
+        {
+          "model_id": "strong",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 0.55,
+          "output_cost_per_1k": 0.55,
+          "capability": 0.92,
+          "billing_unit": "AFP",
+          "tags": [
+            "advanced",
+            "strong",
+            "afp-coefficient-5.5"
+          ],
+          "api_model": "deepseek-v4-pro",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 0.55,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "candidate",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "json-object-hint"
+        },
+        {
+          "model_id": "judge",
+          "provider": "ark-plan",
+          "input_cost_per_1k": 1.0,
+          "output_cost_per_1k": 1.0,
+          "capability": 0.97,
+          "billing_unit": "AFP",
+          "tags": [
+            "advanced",
+            "independent-judge",
+            "afp-coefficient-10"
+          ],
+          "api_model": "kimi-k3",
+          "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+          "api_key_env": "CODEX_ARK_API_KEY",
+          "cached_input_cost_per_1k": 1.0,
+          "context_window": 1024000,
+          "max_output_tokens": 8192,
+          "snapshot_date": "2026-09-06",
+          "role": "judge",
+          "wire_api": "chat-completions",
+          "request_options": {
+            "thinking": {
+              "type": "disabled"
+            }
+          },
+          "json_mode_strategy": "json-object-hint"
+        }
+      ]
+    },
+    "call_plan": {
+      "training_model_calls": 0,
+      "one_shot_model_calls": 3,
+      "single_dag_model_calls": 21,
+      "probe_model_calls": 21,
+      "composed_model_calls": 7,
+      "fixed_calls_per_candidate": 15,
+      "production_model_calls": 52,
+      "node_judge_model_calls": 21,
+      "final_judge_model_calls": 7,
+      "judge_model_calls": 28,
+      "total_model_calls": 80
+    },
+    "cost_estimates": {
+      "billing_unit": "AFP",
+      "production_upper_estimate": 202.39,
+      "evaluation_upper_estimate": 453.38,
+      "total_upper_estimate": 655.76
+    },
+    "estimate_assumptions": {
+      "production_input_tokens": 4000,
+      "judge_input_tokens": 8000,
+      "output_tokens": 8192,
+      "cached_discount": false,
+      "outer_dsh_not_included": true,
+      "not_an_exact_input_bound": true
+    }
+  },
+  "summary": null,
+  "inputs": {
+    "dataset": {
+      "path": "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/benchmarks/v0.1.json",
+      "sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17"
+    },
+    "model_manifest": {
+      "path": "/Users/chun-hsianglee/.codex/worktrees/4c12/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+      "sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367"
+    },
+    "corpus": {
+      "paths": [
+        "data/tasks",
+        "data/source_packs"
+      ],
+      "sha256": "ca9d3919aed145177fcd15b8e55541df261de7273abfcdb174aea77356548157"
+    },
+    "code": {
+      "paths": [
+        "src/refractrouter",
+        "experiments",
+        "validation/dsh"
+      ],
+      "sha256": "a2edea3d84919088d866235fb2af0408c47deb470fe3971937aca9f07c1dc5af"
+    }
+  },
+  "artifacts": {
+    "preflight.json": "13ce5ea21ec1441e45e80686d9e4d4f642c9facbc9fce2d2d5b2c3fab88b80a1"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "git_commit": "0568975ed1ac0bd926169a6f42a958961e315142",
+    "git_dirty": true,
+    "git_status": "M docs/architecture.md\n M experiments/run_real_v0_1.py\n M src/refractrouter/adapters.py\n M src/refractrouter/comparisons.py\n M src/refractrouter/graph_executor.py\n M src/refractrouter/judge.py\n M src/refractrouter/node_availability.py\n M src/refractrouter/node_contracts.py\n M src/refractrouter/node_judge.py\n M src/refractrouter/schemas.py\n M src/refractrouter/scoring.py\n M tests/test_dsh_plugin.py\n M tests/test_dsh_real_runner.py\n M validation/dsh/plugin/CHANGELOG.md\n M validation/dsh/plugin/README.md\n M validation/dsh/plugin/package-lock.json\n M validation/dsh/plugin/package.json\n M validation/dsh/plugin/src/contracts.ts\n M validation/dsh/plugin/src/index.ts\n M validation/dsh/plugin/tests/dsh_plugin_contract.test.ts\n M validation/dsh/real_runner.py\n?? data/judges/node-v0.4.md\n?? docs/evidence-state-execution-modes.md\n?? experiments/run_execution_modes.py\n?? reports/v0.4-execution-modes/\n?? src/refractrouter/evidence_state.py\n?? src/refractrouter/execution_modes.py\n?? tests/test_evidence_state.py\n?? tests/test_execution_modes.py",
+    "dsh": "0.1.1-rc.2",
+    "deepagents": "0.7.13",
+    "langgraph": "1.2.11",
+    "refractrouter": "0.1.0",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  }
+}

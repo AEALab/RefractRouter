@@ -1,0 +1,228 @@
+{
+  "task_id": "report_001",
+  "repeat": 1,
+  "strategy": "node-oracle",
+  "result": {
+    "task_id": "report_001",
+    "strategy": "node-oracle",
+    "model_assignments": {
+      "parse_requirements": "mid",
+      "build_outline": "cheap",
+      "extract_evidence": "mid",
+      "synthesize_analysis": "mid",
+      "write_report": "strong",
+      "render_html": "cheap",
+      "verify_report": "cheap"
+    },
+    "node_results": [
+      {
+        "node_id": "parse_requirements",
+        "node_type": "planning",
+        "model_id": "mid",
+        "output": "{\"requirements\":\"Report topic: 2026 enterprise LLM Agent platform selection. Audience: enterprise decision-makers evaluating LLM Agent platforms. Deliverable: standalone HTML report citing source_id for every claim, no external CSS or JavaScript, including claims that DeepAgents is built on LangGraph, DSH is reserved for the outer validation environment, and the benchmark reports quality, cost, and critical-path latency.\",\"sections\":[\"Executive Summary\",\"Background\",\"Selection Criteria\",\"Platform Comparison\",\"Risks\",\"Conclusion\",\"References\"],\"constraints\":[\"standalone HTML\",\"all claims cite source_id\",\"no external CSS\",\"no external JavaScript\"],\"analysis\":\"Parse the task and required sections directly. The report concerns 2026 enterprise LLM Agent platform selection aimed at decision-makers. Seven required sections are listed in the task. Final-artifact constraints are standalone HTML, mandatory source_id citations for every claim, and no external CSS or JavaScript. Three expected claims anchor the evidence: DeepAgents architecture, DSH reservation, and benchmark dimensions (quality, cost, critical-path latency). This node only records the parsed contract; downstream nodes will extract evidence, synthesize, and render HTML.\"}",
+        "input_tokens": 677,
+        "output_tokens": 229,
+        "cost": 0.2265,
+        "latency_ms": 6646,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788771098834fc7578b59e843c90e5af4aa62e8cfda98fe74f",
+        "error_message": null
+      },
+      {
+        "node_id": "build_outline",
+        "node_type": "planning",
+        "model_id": "cheap",
+        "output": "{\"requirements\":\"Report topic: 2026 enterprise LLM Agent platform selection. Audience: enterprise decision-makers evaluating LLM Agent platforms. Deliverable: standalone HTML report citing source_id for every claim, no external CSS or JavaScript, including claims that DeepAgents is built on LangGraph, DSH is reserved for the outer validation environment, and the benchmark reports quality, cost, and critical-path latency.\",\"sections\":[\"Executive Summary\",\"Background\",\"Selection Criteria\",\"Platform Comparison\",\"Risks\",\"Conclusion\",\"References\"],\"constraints\":[\"standalone HTML\",\"all claims cite source_id\",\"no external CSS\",\"no external JavaScript\"],\"analysis\":\"Parse the task and required sections directly. The report concerns 2026 enterprise LLM Agent platform selection aimed at decision-makers. Seven required sections are listed in the task. Final-artifact constraints are standalone HTML, mandatory source_id citations for every claim, and no external CSS or JavaScript. Three expected claims anchor the evidence: DeepAgents architecture, DSH reservation, and benchmark dimensions (quality, cost, critical-path latency). This node only records the parsed contract; downstream nodes will extract evidence, synthesize, and render HTML.\"}",
+        "input_tokens": 899,
+        "output_tokens": 237,
+        "cost": 0.0568,
+        "latency_ms": 3759,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178877110547108e37163f19fb200d5e116edcbda02b4dc966b",
+        "error_message": null
+      },
+      {
+        "node_id": "extract_evidence",
+        "node_type": "extraction",
+        "model_id": "mid",
+        "output": "{\"evidence\":[{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.\"},{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"For RefractRouter v0.1, DeepAgents serves as the fixed-DAG execution harness, with autonomous planning and dynamic sub-agent generation kept disabled.\"},{\"source_id\":\"source_002\",\"title\":\"LangGraph\",\"content_hash\":\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\"claim\":\"LangGraph is a graph state machine framework supporting explicit nodes, edges, durable state, and check-pointing, used by RefractRouter as the lower-level execution substrate for a fixed task DAG.\"},{\"source_id\":\"source_003\",\"title\":\"Pydantic AI\",\"content_hash\":\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\"claim\":\"Pydantic AI provides typed tool definitions and structured model outputs, useful when strict schemas are required, but is not a core dependency for RefractRouter v0.1 unless structured-output parsing becomes a bottleneck.\"},{\"source_id\":\"source_004\",\"title\":\"DeepSeek Harness\",\"content_hash\":\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\"claim\":\"DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin; for RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.\"},{\"source_id\":\"source_005\",\"title\":\"LLM routing research gap\",\"content_hash\":\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\"claim\":\"Existing LLM routing work mostly selects one model for an entire request; RefractRouter investigates whether selecting a model per node in a task DAG can improve the quality-cost-latency Pareto frontier.\"},{\"source_id\":\"source_006\",\"title\":\"Task decomposition boundary\",\"content_hash\":\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\"claim\":\"Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred until node-level routing is validated.\"},{\"source_id\":\"source_007\",\"title\":\"Benchmark design\",\"content_hash\":\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\"claim\":\"A useful routing benchmark requires fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency; the first benchmark should stay small enough to reproduce.\"},{\"source_id\":\"source_008\",\"title\":\"Scoring rubric\",\"content_hash\":\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\"claim\":\"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity; scoring prompts and rubric versions must be versioned with run records.\"}]}",
+        "input_tokens": 1807,
+        "output_tokens": 858,
+        "cost": 0.66625,
+        "latency_ms": 5680,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887711092219c5625d6f49ce94e6eea0041d172c51ce88ada",
+        "error_message": null
+      },
+      {
+        "node_id": "synthesize_analysis",
+        "node_type": "synthesis",
+        "model_id": "mid",
+        "output": "{\"analysis\":\"Four candidate platforms are evaluated against RefractRouter v0.1 selection criteria: per-node model selection over a fixed DAG, reproducibility, structured output, and separation between routing core and validation. DeepAgents (source_001) is a LangChain harness built on LangGraph, supplying planning, sub-agents, filesystem abstraction, and human-in-the-loop. For v0.1, however, autonomous planning and dynamic sub-agent generation are kept disabled, so DeepAgents effectively reduces to a fixed-DAG execution harness, which aligns directly with the static-decomposition decision in source_006 but adds surface area (planning, sub-agents) that is unused. LangGraph (source_002) is the lower-level graph state machine beneath DeepAgents; choosing it directly removes one abstraction layer and gives the most explicit control over nodes, edges, durable state, and check-pointing, which is preferable when the requirement is a fixed task DAG with reproducible execution and benchmark instrumentation (source_007). The tradeoff is more boilerplate and the loss of prebuilt agent conveniences. Pydantic AI (source_003) is not a DAG executor; it contributes typed tools and structured outputs. It is a non-core dependency unless schema-bound parsing becomes a bottleneck, making it a complementary add-on rather than a primary platform. DeepSeek Harness (DSH) (source_004) treats the agent loop as a plugin and is reserved for the outer validation environment, not the core routing loop; this avoids coupling benchmark harnesses to production routing and keeps the validation surface swappable. Against the benchmark criteria of fixed DAGs, per-node and per-task scoring, cost accounting, and critical-path latency (source_007), the most defensible core is LangGraph (with or without the DeepAgents wrapper), supplemented by Pydantic AI if structured output proves necessary, and with DSH used only externally for validation. Pydantic AI's structured outputs (source_003) and a versioned scoring rubric (source_008) are enablers rather than substitutes for a routing substrate. The principal tradeoff is abstraction versus control: DeepAgents offers a higher-level harness with unused features, LangGraph offers minimal substrate with more wiring, and DSH is deliberately excluded from the core loop.\",\"evidence\":[{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.\"},{\"source_id\":\"source_001\",\"title\":\"DeepAgents\",\"content_hash\":\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\"claim\":\"For RefractRouter v0.1, DeepAgents serves as the fixed-DAG execution harness, with autonomous planning and dynamic sub-agent generation kept disabled.\"},{\"source_id\":\"source_002\",\"title\":\"LangGraph\",\"content_hash\":\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\"claim\":\"LangGraph is a graph state machine framework supporting explicit nodes, edges, durable state, and check-pointing, used by RefractRouter as the lower-level execution substrate for a fixed task DAG.\"},{\"source_id\":\"source_003\",\"title\":\"Pydantic AI\",\"content_hash\":\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\"claim\":\"Pydantic AI provides typed tool definitions and structured model outputs, useful when strict schemas are required, but is not a core dependency for RefractRouter v0.1 unless structured-output parsing becomes a bottleneck.\"},{\"source_id\":\"source_004\",\"title\":\"DeepSeek Harness\",\"content_hash\":\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\"claim\":\"DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin; for RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.\"},{\"source_id\":\"source_005\",\"title\":\"LLM routing research gap\",\"content_hash\":\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\"claim\":\"Existing LLM routing work mostly selects one model for an entire request; RefractRouter investigates whether selecting a model per node in a task DAG can improve the quality-cost-latency Pareto frontier.\"},{\"source_id\":\"source_006\",\"title\":\"Task decomposition boundary\",\"content_hash\":\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\"claim\":\"Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred until node-level routing is validated.\"},{\"source_id\":\"source_007\",\"title\":\"Benchmark design\",\"content_hash\":\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\"claim\":\"A useful routing benchmark requires fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency; the first benchmark should stay small enough to reproduce.\"},{\"source_id\":\"source_008\",\"title\":\"Scoring rubric\",\"content_hash\":\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\"claim\":\"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity; scoring prompts and rubric versions must be versioned with run records.\"}]}",
+        "input_tokens": 1564,
+        "output_tokens": 1314,
+        "cost": 0.7195,
+        "latency_ms": 11128,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "02178877111491408e37163f19fb200d5e116edcbda02b432570b",
+        "error_message": null
+      },
+      {
+        "node_id": "write_report",
+        "node_type": "generation",
+        "model_id": "strong",
+        "output": "{\n  \"title\": \"2026 年企业 LLM Agent 平台选型\",\n  \"sections\": [\n    {\n      \"heading\": \"Executive Summary\",\n      \"paragraph\": \"本报告评估四个候选平台在 RefractRouter v0.1 固定 DAG 路由场景下的适用性。DeepAgents 是构建于 LangGraph 之上的 LangChain 封装，提供规划、子代理、文件系统抽象与人机协同控制 [source_001]。在 v0.1 中自主规划与动态子代理生成被禁用，DeepAgents 实际退化为固定 DAG 执行封装 [source_001]。LangGraph 作为底层图状态机，支持显式节点、边、持久状态与检查点，更适合固定任务 DAG 的可复现执行与基准测试插桩 [source_002]。Pydantic AI 提供类型化工具与结构化输出，仅在需要严格模式时作为补充 [source_003]。DeepSeek Harness 保留给外部验证环境，不进入核心路由循环 [source_004]。\"\n    },\n    {\n      \"heading\": \"Background\",\n      \"paragraph\": \"现有 LLM 路由研究大多为整个请求选择单一模型；RefractRouter 研究的是在任务 DAG 中按节点选择模型能否改善质量-成本-延迟的帕累托前沿 [source_005]。静态任务分解属于应用层，路由器接收 DAG 作为输入并专注于逐节点模型选择，动态再拆分推迟到节点级路由验证之后 [source_006]。这一边界决定了平台选型必须优先考虑固定 DAG 执行、逐节点模型选择、可复现性与基准测试插桩能力，而非自主规划或动态子代理生成。\"\n    },\n    {\n      \"heading\": \"Selection Criteria\",\n      \"paragraph\": \"选型标准来自 RefractRouter v0.1 的基准测试要求：固定任务 DAG、多个候选模型、逐节点与逐任务评分、成本核算以及关键路径延迟，且首个基准测试应保持足够小以便复现 [source_007]。此外，评分规则要求需求覆盖、证据准确性、分析深度、结构与可读性以及 HTML 有效性，评分提示与规则版本必须与运行记录一起版本化 [source_008]。平台需支持逐节点模型选择、持久状态与检查点、结构化输出以及核心路由与验证环境的分离。\"\n    },\n    {\n      \"heading\": \"Platform Comparison\",\n      \"paragraph\": \"DeepAgents 是构建于 LangGraph 之上的 LangChain 封装，提供规划、子代理、文件系统抽象与人机协同控制 [source_001]。在 v0.1 中它作为固定 DAG 执行封装，自主规划与动态子代理生成保持禁用 [source_001]。LangGraph 是图状态机框架，支持显式节点、边、持久状态与检查点，作为固定任务 DAG 的底层执行基座 [source_002]。Pydantic AI 提供类型化工具定义与结构化模型输出，在需要严格模式时有用，但除非结构化输出解析成为瓶颈，否则不是 v0.1 的核心依赖 [source_003]。DeepSeek Harness 的代理循环本身是插件，v0.1 中保留给外部验证环境，不进入核心路由循环 [source_004]。\"\n    },\n    {\n      \"heading\": \"Risks\",\n      \"paragraph\": \"选择 DeepAgents 会引入未使用的规划与子代理表面，增加维护负担，但其固定 DAG 执行模式与静态分解决策一致 [source_001][source_006]。直接使用 LangGraph 需要更多样板代码与接线工作，但换来对节点、边、持久状态与检查点的显式控制 [source_002]。Pydantic AI 若被误当作核心平台，会缺失 DAG 执行能力；它仅在结构化输出成为瓶颈时作为补充 [source_003]。将 DSH 引入核心循环会耦合基准测试与生产路由，破坏验证表面的可替换性 [source_004]。\"\n    },\n    {\n      \"heading\": \"Conclusion\",\n      \"paragraph\": \"针对固定 DAG、逐节点模型选择、可复现执行与基准测试插桩的要求 [source_007]，最稳健的核心选择是 LangGraph，直接使用其图状态机能力 [source_002]。DeepAgents 可作为更高层封装，但在 v0.1 中其规划与子代理功能被禁用，实际收益有限 [source_001]。Pydantic AI 仅在结构化输出解析成为瓶颈时引入 [source_003]。DeepSeek Harness 保留给外部验证环境，不进入核心路由循环 [source_004]。\"\n    },\n    {\n      \"heading\": \"References\",\n      \"paragraph\": \"本报告引用的来源包括：DeepAgents 平台说明 [source_001]、LangGraph 框架说明 [source_002]、Pydantic AI 工具说明 [source_003]、DeepSeek Harness 说明 [source_004]、LLM 路由研究缺口分析 [source_005]、任务分解边界说明 [source_006]、基准测试设计说明 [source_007] 以及评分规则说明 [source_008]。\"\n    }\n  ],\n  \"evidence\": [\n    {\n      \"source_id\": \"source_001\",\n      \"title\": \"DeepAgents\",\n      \"content_hash\": \"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\n      \"claim\": \"DeepAgents is a LangChain harness built on LangGraph, providing planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls.\"\n    },\n    {\n      \"source_id\": \"source_001\",\n      \"title\": \"DeepAgents\",\n      \"content_hash\": \"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\",\n      \"claim\": \"For RefractRouter v0.1, DeepAgents serves as the fixed-DAG execution harness, with autonomous planning and dynamic sub-agent generation kept disabled.\"\n    },\n    {\n      \"source_id\": \"source_002\",\n      \"title\": \"LangGraph\",\n      \"content_hash\": \"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\",\n      \"claim\": \"LangGraph is a graph state machine framework supporting explicit nodes, edges, durable state, and check-pointing, used by RefractRouter as the lower-level execution substrate for a fixed task DAG.\"\n    },\n    {\n      \"source_id\": \"source_003\",\n      \"title\": \"Pydantic AI\",\n      \"content_hash\": \"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\",\n      \"claim\": \"Pydantic AI provides typed tool definitions and structured model outputs, useful when strict schemas are required, but is not a core dependency for RefractRouter v0.1 unless structured-output parsing becomes a bottleneck.\"\n    },\n    {\n      \"source_id\": \"source_004\",\n      \"title\": \"DeepSeek Harness\",\n      \"content_hash\": \"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\",\n      \"claim\": \"DeepSeek Harness (DSH) is an agent harness where the agent loop itself is a plugin; for RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.\"\n    },\n    {\n      \"source_id\": \"source_005\",\n      \"title\": \"LLM routing research gap\",\n      \"content_hash\": \"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\",\n      \"claim\": \"Existing LLM routing work mostly selects one model for an entire request; RefractRouter investigates whether selecting a model per node in a task DAG can improve the quality-cost-latency Pareto frontier.\"\n    },\n    {\n      \"source_id\": \"source_006\",\n      \"title\": \"Task decomposition boundary\",\n      \"content_hash\": \"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\",\n      \"claim\": \"Static task decomposition belongs to the application layer; the router receives the DAG as input and focuses on per-node model selection, with dynamic re-splitting deferred until node-level routing is validated.\"\n    },\n    {\n      \"source_id\": \"source_007\",\n      \"title\": \"Benchmark design\",\n      \"content_hash\": \"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\",\n      \"claim\": \"A useful routing benchmark requires fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency; the first benchmark should stay small enough to reproduce.\"\n    },\n    {\n      \"source_id\": \"source_008\",\n      \"title\": \"Scoring rubric\",\n      \"content_hash\": \"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\",\n      \"claim\": \"The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity; scoring prompts and rubric versions must be versioned with run records.\"\n    }\n  ]\n}",
+        "input_tokens": 2036,
+        "output_tokens": 2106,
+        "cost": 2.2781,
+        "latency_ms": 34252,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "0217887711260353d3436761e68cde6bd2815b0b11060aca697b0",
+        "error_message": null
+      },
+      {
+        "node_id": "render_html",
+        "node_type": "rendering",
+        "model_id": "cheap",
+        "output": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<title>2026 年企业 LLM Agent 平台选型</title>\n</head>\n<body>\n<article>\n<h1>2026 年企业 LLM Agent 平台选型</h1>\n\n<section>\n<h2>Executive Summary</h2>\n<p>本报告评估四个候选平台在 RefractRouter v0.1 固定 DAG 路由场景下的适用性。DeepAgents 是构建于 LangGraph 之上的 LangChain 封装，提供规划、子代理、文件系统抽象与人机协同控制 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。在 v0.1 中自主规划与动态子代理生成被禁用，DeepAgents 实际退化为固定 DAG 执行封装 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。LangGraph 作为底层图状态机，支持显式节点、边、持久状态与检查点，更适合固定任务 DAG 的可复现执行与基准测试插桩 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 提供类型化工具与结构化输出，仅在需要严格模式时作为补充 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。DeepSeek Harness 保留给外部验证环境，不进入核心路由循环 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>Background</h2>\n<p>现有 LLM 路由研究大多为整个请求选择单一模型；RefractRouter 研究的是在任务 DAG 中按节点选择模型能否改善质量-成本-延迟的帕累托前沿 <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>。静态任务分解属于应用层，路由器接收 DAG 作为输入并专注于逐节点模型选择，动态再拆分推迟到节点级路由验证之后 <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>。这一边界决定了平台选型必须优先考虑固定 DAG 执行、逐节点模型选择、可复现性与基准测试插桩能力，而非自主规划或动态子代理生成。</p>\n</section>\n\n<section>\n<h2>Selection Criteria</h2>\n<p>选型标准来自 RefractRouter v0.1 的基准测试要求：固定任务 DAG、多个候选模型、逐节点与逐任务评分、成本核算以及关键路径延迟，且首个基准测试应保持足够小以便复现 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。此外，评分规则要求需求覆盖、证据准确性、分析深度、结构与可读性以及 HTML 有效性，评分提示与规则版本必须与运行记录一起版本化 <a href=\"#source-source_008\" data-cite-source-id=\"source_008\">[source_008]</a>。平台需支持逐节点模型选择、持久状态与检查点、结构化输出以及核心路由与验证环境的分离。</p>\n</section>\n\n<section>\n<h2>Platform Comparison</h2>\n<p>DeepAgents 是构建于 LangGraph 之上的 LangChain 封装，提供规划、子代理、文件系统抽象与人机协同控制 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。在 v0.1 中它作为固定 DAG 执行封装，自主规划与动态子代理生成保持禁用 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。LangGraph 是图状态机框架，支持显式节点、边、持久状态与检查点，作为固定任务 DAG 的底层执行基座 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 提供类型化工具定义与结构化模型输出，在需要严格模式时有用，但除非结构化输出解析成为瓶颈，否则不是 v0.1 的核心依赖 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。DeepSeek Harness 的代理循环本身是插件，v0.1 中保留给外部验证环境，不进入核心路由循环 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>Risks</h2>\n<p>选择 DeepAgents 会引入未使用的规划与子代理表面，增加维护负担，但其固定 DAG 执行模式与静态分解决策一致 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>。直接使用 LangGraph 需要更多样板代码与接线工作，但换来对节点、边、持久状态与检查点的显式控制 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 若被误当作核心平台，会缺失 DAG 执行能力；它仅在结构化输出成为瓶颈时作为补充 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。将 DSH 引入核心循环会耦合基准测试与生产路由，破坏验证表面的可替换性 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>Conclusion</h2>\n<p>针对固定 DAG、逐节点模型选择、可复现执行与基准测试插桩的要求 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>，最稳健的核心选择是 LangGraph，直接使用其图状态机能力 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。DeepAgents 可作为更高层封装，但在 v0.1 中其规划与子代理功能被禁用，实际收益有限 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。Pydantic AI 仅在结构化输出解析成为瓶颈时引入 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。DeepSeek Harness 保留给外部验证环境，不进入核心路由循环 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>References</h2>\n<p>本报告引用的来源包括：DeepAgents 平台说明 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>、LangGraph 框架说明 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>、Pydantic AI 工具说明 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>、DeepSeek Harness 说明 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>、LLM 路由研究缺口分析 <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>、任务分解边界说明 <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>、基准测试设计说明 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a> 以及评分规则说明 <a href=\"#source-source_008\" data-cite-source-id=\"source_008\">[source_008]</a>。</p>\n</section>\n\n<section>\n<h2>Source Trace</h2>\n<ul>\n<li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">source_001 — DeepAgents — ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</li>\n<li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">source_001 — DeepAgents — ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</li>\n<li data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\">source_002 — LangGraph — 97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</li>\n<li data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\">source_003 — Pydantic AI — 7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</li>\n<li data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\">source_004 — DeepSeek Harness — b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</li>\n<li data-source-id=\"source_005\" data-content-hash=\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\">source_005 — LLM routing research gap — 418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</li>\n<li data-source-id=\"source_006\" data-content-hash=\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\">source_006 — Task decomposition boundary — 96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</li>\n<li data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\">source_007 — Benchmark design — 03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</li>\n<li data-source-id=\"source_008\" data-content-hash=\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\">source_008 — Scoring rubric — b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</li>\n</ul>\n</section>\n</article>\n</body>\n</html>",
+        "input_tokens": 2552,
+        "output_tokens": 2797,
+        "cost": 0.26745,
+        "latency_ms": 20301,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788771160291e4d5e3acd6b6d5c09c835e2d36b9596c15e88c",
+        "error_message": null
+      },
+      {
+        "node_id": "verify_report",
+        "node_type": "verification",
+        "model_id": "cheap",
+        "output": "{\"valid\":true,\"issues\":[],\"summary\":\"All required sections (Executive Summary, Background, Selection Criteria, Platform Comparison, Risks, Conclusion, References) are present. All claims are cited with source_id attributes and anchors. HTML is standalone with no external CSS or JavaScript. Expected claims are covered: DeepAgents built on LangGraph, DSH reserved for outer validation environment, benchmark reports quality/cost/critical-path latency. Source trace includes all cited sources with content hashes.\"}",
+        "input_tokens": 3385,
+        "output_tokens": 99,
+        "cost": 0.1742,
+        "latency_ms": 2798,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "021788771180626de824baea9702e17bffa39e9c3bdc4f6d6f7af",
+        "error_message": null
+      }
+    ],
+    "final_output": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<title>2026 年企业 LLM Agent 平台选型</title>\n</head>\n<body>\n<article>\n<h1>2026 年企业 LLM Agent 平台选型</h1>\n\n<section>\n<h2>Executive Summary</h2>\n<p>本报告评估四个候选平台在 RefractRouter v0.1 固定 DAG 路由场景下的适用性。DeepAgents 是构建于 LangGraph 之上的 LangChain 封装，提供规划、子代理、文件系统抽象与人机协同控制 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。在 v0.1 中自主规划与动态子代理生成被禁用，DeepAgents 实际退化为固定 DAG 执行封装 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。LangGraph 作为底层图状态机，支持显式节点、边、持久状态与检查点，更适合固定任务 DAG 的可复现执行与基准测试插桩 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 提供类型化工具与结构化输出，仅在需要严格模式时作为补充 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。DeepSeek Harness 保留给外部验证环境，不进入核心路由循环 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>Background</h2>\n<p>现有 LLM 路由研究大多为整个请求选择单一模型；RefractRouter 研究的是在任务 DAG 中按节点选择模型能否改善质量-成本-延迟的帕累托前沿 <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>。静态任务分解属于应用层，路由器接收 DAG 作为输入并专注于逐节点模型选择，动态再拆分推迟到节点级路由验证之后 <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>。这一边界决定了平台选型必须优先考虑固定 DAG 执行、逐节点模型选择、可复现性与基准测试插桩能力，而非自主规划或动态子代理生成。</p>\n</section>\n\n<section>\n<h2>Selection Criteria</h2>\n<p>选型标准来自 RefractRouter v0.1 的基准测试要求：固定任务 DAG、多个候选模型、逐节点与逐任务评分、成本核算以及关键路径延迟，且首个基准测试应保持足够小以便复现 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>。此外，评分规则要求需求覆盖、证据准确性、分析深度、结构与可读性以及 HTML 有效性，评分提示与规则版本必须与运行记录一起版本化 <a href=\"#source-source_008\" data-cite-source-id=\"source_008\">[source_008]</a>。平台需支持逐节点模型选择、持久状态与检查点、结构化输出以及核心路由与验证环境的分离。</p>\n</section>\n\n<section>\n<h2>Platform Comparison</h2>\n<p>DeepAgents 是构建于 LangGraph 之上的 LangChain 封装，提供规划、子代理、文件系统抽象与人机协同控制 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。在 v0.1 中它作为固定 DAG 执行封装，自主规划与动态子代理生成保持禁用 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。LangGraph 是图状态机框架，支持显式节点、边、持久状态与检查点，作为固定任务 DAG 的底层执行基座 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 提供类型化工具定义与结构化模型输出，在需要严格模式时有用，但除非结构化输出解析成为瓶颈，否则不是 v0.1 的核心依赖 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。DeepSeek Harness 的代理循环本身是插件，v0.1 中保留给外部验证环境，不进入核心路由循环 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>Risks</h2>\n<p>选择 DeepAgents 会引入未使用的规划与子代理表面，增加维护负担，但其固定 DAG 执行模式与静态分解决策一致 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a><a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>。直接使用 LangGraph 需要更多样板代码与接线工作，但换来对节点、边、持久状态与检查点的显式控制 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。Pydantic AI 若被误当作核心平台，会缺失 DAG 执行能力；它仅在结构化输出成为瓶颈时作为补充 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。将 DSH 引入核心循环会耦合基准测试与生产路由，破坏验证表面的可替换性 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>Conclusion</h2>\n<p>针对固定 DAG、逐节点模型选择、可复现执行与基准测试插桩的要求 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a>，最稳健的核心选择是 LangGraph，直接使用其图状态机能力 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>。DeepAgents 可作为更高层封装，但在 v0.1 中其规划与子代理功能被禁用，实际收益有限 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>。Pydantic AI 仅在结构化输出解析成为瓶颈时引入 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>。DeepSeek Harness 保留给外部验证环境，不进入核心路由循环 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>。</p>\n</section>\n\n<section>\n<h2>References</h2>\n<p>本报告引用的来源包括：DeepAgents 平台说明 <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a>、LangGraph 框架说明 <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a>、Pydantic AI 工具说明 <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a>、DeepSeek Harness 说明 <a href=\"#source-source_004\" data-cite-source-id=\"source_004\">[source_004]</a>、LLM 路由研究缺口分析 <a href=\"#source-source_005\" data-cite-source-id=\"source_005\">[source_005]</a>、任务分解边界说明 <a href=\"#source-source_006\" data-cite-source-id=\"source_006\">[source_006]</a>、基准测试设计说明 <a href=\"#source-source_007\" data-cite-source-id=\"source_007\">[source_007]</a> 以及评分规则说明 <a href=\"#source-source_008\" data-cite-source-id=\"source_008\">[source_008]</a>。</p>\n</section>\n\n<section>\n<h2>Source Trace</h2>\n<ul>\n<li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">source_001 — DeepAgents — ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</li>\n<li data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\">source_001 — DeepAgents — ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39</li>\n<li data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\">source_002 — LangGraph — 97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960</li>\n<li data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\">source_003 — Pydantic AI — 7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e</li>\n<li data-source-id=\"source_004\" data-content-hash=\"b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331\">source_004 — DeepSeek Harness — b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331</li>\n<li data-source-id=\"source_005\" data-content-hash=\"418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460\">source_005 — LLM routing research gap — 418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460</li>\n<li data-source-id=\"source_006\" data-content-hash=\"96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504\">source_006 — Task decomposition boundary — 96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504</li>\n<li data-source-id=\"source_007\" data-content-hash=\"03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0\">source_007 — Benchmark design — 03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0</li>\n<li data-source-id=\"source_008\" data-content-hash=\"b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e\">source_008 — Scoring rubric — b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e</li>\n</ul>\n</section>\n</article>\n</body>\n</html>",
+    "task_score": 94.0,
+    "total_cost": 4.3888,
+    "critical_path_latency_ms": 84564,
+    "billing_unit": "AFP",
+    "failure_types": []
+  },
+  "judge": {
+    "rubric_version": "v0.1",
+    "deterministic_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "judge_dimensions": {
+      "requirement_coverage": 24.0,
+      "evidence_accuracy": 24.0,
+      "analysis_depth": 18.0,
+      "structure_readability": 14.0,
+      "html_validity": 14.0
+    },
+    "final_dimensions": {
+      "requirement_coverage": 24.0,
+      "evidence_accuracy": 24.0,
+      "analysis_depth": 18.0,
+      "structure_readability": 14.0,
+      "html_validity": 14.0
+    },
+    "final_score": 94.0,
+    "claim_support": [
+      {
+        "claim": "DeepAgents is built on LangGraph.",
+        "source_ids": [
+          "source_001"
+        ],
+        "supported": true,
+        "explanation": "The report states in Executive Summary and Platform Comparison that DeepAgents is a LangChain harness built on LangGraph, citing source_001. Source_001 explicitly confirms: 'DeepAgents is a LangChain harness built on LangGraph.'"
+      },
+      {
+        "claim": "DSH is reserved for the outer validation environment.",
+        "source_ids": [
+          "source_004"
+        ],
+        "supported": true,
+        "explanation": "The report states in Executive Summary, Platform Comparison, and Conclusion that DeepSeek Harness (DSH) is reserved for the outer validation environment and not the core routing loop, citing source_004. Source_004 explicitly confirms: 'DSH is reserved for the outer validation environment, not the core routing loop.'"
+      },
+      {
+        "claim": "The benchmark reports quality, cost, and critical-path latency.",
+        "source_ids": [
+          "source_007"
+        ],
+        "supported": true,
+        "explanation": "The report states in Selection Criteria that the benchmark requires per-node and per-task scoring (quality), cost accounting, and critical-path latency, citing source_007. Source_007 explicitly confirms the need for 'per-node and per-task scoring, cost accounting, and critical-path latency.'"
+      }
+    ],
+    "rationale": "The report demonstrates excellent coverage of all required sections (Executive Summary, Background, Selection Criteria, Platform Comparison, Risks, Conclusion, References) with an additional Source Trace section. All three expected claims are accurately supported by the cited sources with proper attribution. The analysis shows deep understanding of the trade-offs between platforms, particularly regarding fixed DAG execution versus autonomous capabilities. The HTML structure is valid with proper semantic markup, though the duplicate entry for source_001 in the Source Trace section is a minor structural flaw. The report maintains high evidence accuracy throughout, with all factual claims properly cited to the frozen sources. Minor deductions were made for the duplicate source entry and slight verbosity in the References section, but overall this is a high-quality, well-structured report that meets the requirements.",
+    "input_tokens": 3912,
+    "output_tokens": 522,
+    "cached_input_tokens": 0,
+    "reasoning_tokens": 0,
+    "cost": 4.434,
+    "latency_ms": 23194,
+    "attempts": 1,
+    "request_id": "02178877134248091be90b70b1bfc3059428bd07e108b7ea5d0ab",
+    "billing_unit": "AFP"
+  },
+  "judge_error": null
+}

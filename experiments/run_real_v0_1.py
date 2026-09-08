@@ -24,7 +24,7 @@ from refractrouter.comparisons import paired_comparisons, comparisons_markdown
 from refractrouter.dataset import BenchmarkDataset, load_benchmark_dataset
 from refractrouter.deepagents_executor import DeepAgentsGraphExecutor
 from refractrouter.judge import IndependentJudge, apply_judge_score
-from refractrouter.judge import JudgeEvaluation
+from refractrouter.judge import JudgeEvaluation, JudgeResponseError
 from refractrouter.manifest import ModelManifest, load_model_manifest
 from refractrouter.model_registry import ModelRegistry
 from refractrouter.node_availability import (
@@ -129,7 +129,7 @@ class NodeQualityRecorder:
         return row
 
     def write_matrix(self):
-        payload = {"rubric_version": NODE_RUBRIC_VERSION,
+        payload = {"rubric_version": self.judge.rubric_version,
                    "rubric_sha256": self.judge.rubric_sha256, "rows": self.rows,
                    "raw_node_score_kind": "deterministic contract cap; use evaluation.final_score for selection",
                    "selection": "highest eligible semantic score, then lowest observed node cost",
@@ -232,6 +232,7 @@ def build_task_strategy_bundle(
     node_evaluator=None,
     single_recorder=None,
     selection_policy=LEGACY_SELECTION_POLICY,
+    include_rule: bool = True,
 ) -> TaskStrategyBundle:
     if selection_policy not in SELECTION_POLICIES:
         raise ValueError(f"Unknown node selection policy: {selection_policy}")
@@ -318,7 +319,7 @@ def build_task_strategy_bundle(
         "rendering": middle,
         "verification": weak_id,
     }
-    rule = executor.execute(node_type_rule(task, registry, rules), "node-type-rule")
+    rule = executor.execute(node_type_rule(task, registry, rules), "node-type-rule") if include_rule else None
     results = {
         "weak-all": weak,
         "strong-all": strong,
@@ -326,6 +327,8 @@ def build_task_strategy_bundle(
         "task-oracle": task_best,
         "node-oracle": node_best,
     }
+    if not include_rule:
+        del results["node-type-rule"]
     if include_learned:
         results["task-level-router"] = executor.execute(
             task_level_router(task, registry, training_results),
@@ -731,6 +734,7 @@ def _evaluate_with_budget(
     task: TaskDAG,
     result: TaskResult,
     ledger: CostLedger,
+    error_recorder=None,
 ):
     if not result.final_output:
         return None, "missing-final-output"
@@ -743,6 +747,11 @@ def _evaluate_with_budget(
         return None, "evaluation-budget-exhausted"
     try:
         evaluation = judge.evaluate(task, result)
+    except JudgeResponseError as exc:
+        ledger.evaluation_spent += exc.telemetry["cost"]
+        if error_recorder is not None:
+            error_recorder({"error": exc.failure_type, **exc.telemetry})
+        return None, exc.failure_type
     except (ModelInvocationError, ValueError, json.JSONDecodeError) as exc:
         return None, getattr(exc, "failure_type", type(exc).__name__)
     ledger.evaluation_spent += evaluation.cost
