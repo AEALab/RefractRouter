@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:2:risk:mid:judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"输出为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的 result、evidence、assumptions，均为非空字符串，无多余字段、无 Markdown 围栏、无对象外说明，字符串内未见未转义的英文双引号或反斜杠问题。计算正确：方案 A 总投入 8+4×5=28，超预算 2；方案 B 总投入 20+1×5=25，低于预算 1；风险判断与建议（优先 B、A 需追加至少 2 或调减）与上游 cost.result 一致且完整覆盖节点职责。evidence 明确说明合成场景无原始材料、数值来自任务描述并与上游一致，未虚构数据；assumptions 保留了上游假设并明确限制（不含税费人力等隐性成本、仅静态数值比较、未做现金流与应急储备分析），满足两条 checks。未声称执行工具或检索新事实。轻微扣分点：evidence 中「数值与上游 cost.result 完全一致，未做改动」表述略冗余，且 result 综合判断部分与上游建议几乎复述，独立增量分析有限，但不影响正确性与契约符合性。\"}",
+  "input_tokens": 1372,
+  "output_tokens": 275,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11126,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788801299763f1aca4493aa6c7087a6ccfbfdb4be615e5da29"
+}

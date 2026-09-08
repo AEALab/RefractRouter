@@ -1,0 +1,223 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.2862500259652734,
+      "start_ms": 17.429040977731347,
+      "end_ms": 1947.8334999876097,
+      "queue_ms": 17.142790951766074,
+      "output": "林宁：请于本月二十六日前提交核验报告。若合作方明细尚未收齐，可先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。",
+      "latency_ms": 1928,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "cheap"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "林宁：请于本月二十六日前提交核验报告。若合作方明细尚未收齐，可先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "被评估文本完整保留了责任人「林宁」、时限「本月二十六日前」、条件「若合作方明细尚未收齐」及补交要求「明细收齐后的第三个工作日」，未将工作日改为自然日，也未虚构日期或承诺。表达清楚、礼貌，符合工作通知的语体，且较原文更简洁。唯一可斟酌之处是称呼后直接使用冒号、正文连续书写，略显紧凑，但不影响清楚性与礼貌性，整体满足任务要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "原意中的责任人、截止时限、先交已核验部分的条件以及收齐后第三个工作日补交剩余部分均被准确保留；表述由口语化指令改为清楚礼貌的通知句式，且更加简洁，无信息遗漏或添加。"
+      }
+    ]
+  },
+  "routing": {
+    "policy_version": "node-routing-v2",
+    "method": "B",
+    "assignment_mode": "per-node",
+    "status": "selected",
+    "assignments": {
+      "answer": "cheap"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 100,
+    "latency_max_ms": 300000,
+    "weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    },
+    "normalized_weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    },
+    "normalization_bounds": {
+      "answer": {
+        "quality": [
+          92.75,
+          94.25
+        ],
+        "cost": [
+          0.015675,
+          0.17228749999999998
+        ],
+        "latency_ms": [
+          2111,
+          3102
+        ]
+      }
+    },
+    "eligible_models": {
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "scheduled_latency_bounds_ms": [
+      2111.0,
+      3102.0
+    ],
+    "execution_policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "combinations": 3,
+    "feasible_combinations": 3,
+    "prediction": {
+      "cost": 0.015675,
+      "serial_latency_ms": 2204,
+      "scheduled_latency_ms": 2204.0,
+      "schedule": {
+        "makespan_ms": 2204.0,
+        "nodes": {
+          "answer": {
+            "start_ms": 0.0,
+            "end_ms": 2204.0,
+            "queue_ms": 0.0
+          }
+        }
+      },
+      "mean_node_quality_proxy": 94.25,
+      "weighted_score": 0.9765388496468214
+    },
+    "nodes": {
+      "answer": {
+        "model_id": "cheap",
+        "node_type": "generation",
+        "quality": 94.25,
+        "cost": 0.015675,
+        "latency_ms": 2204,
+        "samples": 4,
+        "difficulty": "low",
+        "risk": "low",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      }
+    }
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.2663329942151904,
+    "peak_running_nodes": 1,
+    "ended_ms": 1968.6724999919534,
+    "wall_time_ms": 1968.4084170730785
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v6--1--dag-node-b:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.49920000000000003,
+      "charged": 0.01875,
+      "status": "billed",
+      "input_sha256": "c85095cded6f2f263b20ea193c8ce94e082437dc387d3c5d64f8fceac3e577c0",
+      "dispatch_monotonic": 804302.365470541,
+      "input_tokens": 334,
+      "output_tokens": 41,
+      "latency_ms": 1928,
+      "request_id": "021788806304712b566464da517b102b4cb09cdfd60e7eed1d1fa",
+      "finish_reason": "stop",
+      "output_sha256": "0c72f16fcd0552e9c4b6eef07ec63fd6a540dc1d14a6525e4f6a45b8ff94c268"
+    },
+    {
+      "label": "rewrite_holdout_v6--1--dag-node-b:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.714,
+      "charged": 0.535,
+      "status": "billed",
+      "input_sha256": "5ad8e1a17a4477172c838b972e623bf73a9c45af4d0e85fd97b8ef6e21461abe",
+      "dispatch_monotonic": 804304.33399725,
+      "input_tokens": 331,
+      "output_tokens": 204,
+      "latency_ms": 12144,
+      "request_id": "0217888063066593d3436761e68cde6bd2815b0b11060ac50b656",
+      "finish_reason": "stop",
+      "output_sha256": "716d2bba07ec33257511032848fa57c30200952b293fbdcf5df48504850caa0a"
+    }
+  ],
+  "wall_time_ms": 14131.739791017026,
+  "critical_path_latency_ms": 1928
+}

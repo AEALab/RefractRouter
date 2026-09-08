@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:2:risk:mid:judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"输出为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的 result、evidence、assumptions，无多余或缺失字段，所有值为非空字符串，JSON 语法正确且未使用 Markdown 围栏。内容层面：result 基于材料 A（投入 18/42 单位、覆盖 3/7 组）与材料 B（单位成本相同、试点反馈更快、全面推广交付更广）进行覆盖广度与反馈周期两维度的风险比较，并给出四条条件式建议，符合「基于材料比较并给出条件式建议」的任务要求，且明确声明不依赖成本测算、不做定量概率/损失评估，划清了职责边界与限制，满足 checks 中「覆盖本节点职责并明确限制」。evidence 字段引用了原始材料并给出 7÷3≈2.33 与 42÷18≈2.33 的一致性核验，证据来源清晰；assumptions 字段列出四条假设并明确信息缺口（无风险事件类型、概率、历史失败率等），满足「保留证据与假设，不虚构数据」。未发现虚构数据或不实工具执行声明。轻微扣分点：假设 1 以投入比等于覆盖比来「支持」线性对应假设，属于用待证假设自我印证，表述上略有循环意味，但已明确标注为假设而非事实，影响很小；另覆盖倍数「约为试点的 2.3 倍」表述准确。整体质量高。\"}",
+  "input_tokens": 1513,
+  "output_tokens": 334,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12831,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788800316239b566464da517b102b4cb09cdfd60e7eec8dc58"
+}

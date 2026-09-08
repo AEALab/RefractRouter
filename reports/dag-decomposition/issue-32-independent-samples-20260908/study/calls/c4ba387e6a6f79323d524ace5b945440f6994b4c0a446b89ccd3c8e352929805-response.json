@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:1:risk:mid:judge",
+  "content": "{\"score\":92,\"passed\":true,\"rationale\":\"输出为单个原始JSON对象，键集合恰好为contract.output.fields声明的result、evidence、assumptions，无多余或缺失字段，所有值为非空字符串，字符串内未出现未转义的英文双引号，符合输出契约。算术正确：方案A=10+3×4=22，方案B=18+1×4=22，预算24、余量2，与上游cost节点一致；敏感性推演（组数增至5时A=25、B=23；单价上浮20%时A=24.4、B=22.8）计算无误，且明确标注为推演示例而非预测。证据字段如实说明数据来自任务文本与上游cost.result，无外部检索，未虚构来源，未声称执行任何工具；假设字段清晰列出线性成本、不含间接费用、不考虑时间价值等限制，并声明不重复核验上游算术，满足「保留证据与假设，不虚构数据」与「覆盖本节点职责并明确限制」两项检查。建议部分（优先方案A、预留缓冲、设定上限、触发复核）与风险判断逻辑自洽。轻微扣分点：result中「弹性约4×3=12」等表述为分析性概括而非严格定义，且9.1%余量占比等派生数字虽正确但属自行扩展，略微超出上游已给信息，不过均有标注为推演，整体质量高。\"}",
+  "input_tokens": 1699,
+  "output_tokens": 319,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12358,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788800563340de824baea9702e17bffa39e9c3bdc4f61ac487"
+}

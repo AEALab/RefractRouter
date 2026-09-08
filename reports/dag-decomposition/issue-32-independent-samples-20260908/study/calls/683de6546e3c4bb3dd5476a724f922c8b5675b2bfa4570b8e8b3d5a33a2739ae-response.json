@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:1:answer:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确计算两方案总投入均为 22，与预算 24 相比剩余 2，无资金缺口但缓冲较薄；建议优先选择方案 A 并保留应急缓冲，逻辑一致。答案明确保留了证据来源（任务文本与上游节点）和假设（组数固定、线性成本、不含间接费用等），未虚构数据，未声称执行工具或检索新事实。覆盖节点职责：核对冲突、遗漏与证据，给出建议，并说明限制。仅 minor 改进点：可更明确指出「与上游 cost/risk 节点完全一致」的核对过程，但已满足要求。\"}",
+  "input_tokens": 1861,
+  "output_tokens": 156,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7197,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178880061744578af8113c224ccdd69578c3b63d1e71ab31bc5"
+}

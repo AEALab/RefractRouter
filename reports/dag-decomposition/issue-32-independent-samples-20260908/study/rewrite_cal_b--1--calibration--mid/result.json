@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.051040900871157646,
+      "start_ms": 16.770874965004623,
+      "end_ms": 1215.2138749370351,
+      "queue_ms": 16.719834064133465,
+      "output": "评审人员确认后，负责人李明将发布最终版本。",
+      "latency_ms": 1197,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "mid"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "评审人员确认后，负责人李明将发布最终版本。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写后的文本「评审人员确认后，负责人李明将发布最终版本」完整保留了原句的责任人（评审人员、负责人李明）和先后顺序（先确认，后发布），同时删除了「完成确认工作之后」「开始进行」「工作」等冗余表达，符合简洁中文的要求，满足验收条目「保留原意并使表达更简洁」。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "原句核心信息为评审人员先完成确认、负责人李明随后发布最终版本；改写句以「确认后」衔接两个动作，明确先后顺序，保留「负责人李明」责任人信息，并将「进行最终版本的发布工作」简化为「发布最终版本」，语义完整且显著更简洁。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.04112499300390482,
+    "peak_running_nodes": 1,
+    "ended_ms": 1228.6047498928383,
+    "wall_time_ms": 1228.5647909156978
+  },
+  "calls": [
+    {
+      "label": "rewrite_cal_b--1--calibration--mid:answer",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.46,
+      "charged": 0.11275,
+      "status": "billed",
+      "input_sha256": "cb6f7602e5aa18f0302ae1c570b56b1a8c287bcc5a29a05957dd60acd956551a",
+      "dispatch_monotonic": 799499.786112291,
+      "input_tokens": 438,
+      "output_tokens": 13,
+      "latency_ms": 1197,
+      "request_id": "02178880150212278af8113c224ccdd69578c3b63d1e71adf5999",
+      "finish_reason": "stop",
+      "output_sha256": "547fcf65f9870c249b5af014ddeb967807983dbb923fed67cf48ee29b3bd42f0"
+    },
+    {
+      "label": "rewrite_cal_b--1--calibration--mid:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.45,
+      "charged": 0.459,
+      "status": "billed",
+      "input_sha256": "5adf5334f8b638ba6bbefa6c7009796f9be2b4083ab9896793fe5488da9ceb4a",
+      "dispatch_monotonic": 799501.0094015,
+      "input_tokens": 272,
+      "output_tokens": 187,
+      "latency_ms": 9461,
+      "request_id": "021788801503337f0b662e0a22462bcc30964e8c71cc766dbc4a6",
+      "finish_reason": "stop",
+      "output_sha256": "308058f5e498e57f7be958ede1376fbbde88c54652a7646a818565a65ee45f16"
+    }
+  ],
+  "wall_time_ms": 10705.031457939185,
+  "critical_path_latency_ms": 1197
+}

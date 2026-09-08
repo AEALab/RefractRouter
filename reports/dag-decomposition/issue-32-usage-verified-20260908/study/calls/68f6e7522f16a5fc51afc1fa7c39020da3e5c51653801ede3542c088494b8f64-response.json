@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--1--dag-single-a:final-judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"计算正确：方案A总投入=22+4×6=46，余额+2；方案B总投入=37+2×6=49，缺口−1。建议与约束一致：在48单位硬预算下推荐A，B因1单位缺口不可直接执行，并明确不引入额外预算、优惠或收益。两处小瑕疵：(1)答案引用了「上游cost与risk模块」的核对内容，而原始任务中并不存在这些上游模块，属于虚构的上下文引用（但未影响任何数字与结论）；(2)「追加工量最低」表述略含混，应为「追加预算最少」。整体满足两条验收标准。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案A：22+4×6=46单位；方案B：37+2×6=49单位，列式与结果均正确，且以表格清晰呈现固定投入、运行费与总投入。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"正确判断A余额+2、B缺口−1；在48单位硬约束下推荐A为唯一可执行方案，对B给出「若允许微调预算则为次优候选、否则放弃」的有条件建议，并提示A安全垫仅2单位的风险，未引入未给出的优惠、收益或额外预算。\"}]}",
+  "input_tokens": 1065,
+  "output_tokens": 314,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13203,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888058375515e054c6d0ba743fab13ed8d72af4b8b24b8dbb",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 314,
+    "prompt_tokens": 1065,
+    "total_tokens": 1379,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

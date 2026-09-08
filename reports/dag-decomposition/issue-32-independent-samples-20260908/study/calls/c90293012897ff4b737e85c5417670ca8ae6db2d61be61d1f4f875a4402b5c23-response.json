@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:1:cost:cheap:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，均为非空字符串，符合契约。计算正确：18/3=6 单位/组，42/7=6 单位/组，与材料B「两者单位成本相同」一致，未虚构数据。给出了条件式建议（验证效果选试点、扩大覆盖选全面推广），覆盖了「分析成本与资源需求」的节点职责。evidence 字段完整保留两则材料来源，assumptions 字段明确了单位成本含义假设及反馈速度、交付广度无法量化等信息缺口，符合「保留证据与假设」「明确限制」的检查要求。轻微不足：建议部分对「反馈更快」与「交付更广」的权衡可更具体（如资源充足时的组合策略），且未显式说明总投入差异（42 vs 18）对资源约束决策的影响，但不影响整体正确性与完整性。\"}",
+  "input_tokens": 916,
+  "output_tokens": 222,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9333,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788799951753923718d11d313173fa258a554449eb8745c2b5"
+}

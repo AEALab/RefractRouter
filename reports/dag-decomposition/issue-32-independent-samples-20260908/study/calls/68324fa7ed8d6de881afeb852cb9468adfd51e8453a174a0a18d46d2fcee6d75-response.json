@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:1:risk:cheap:judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的「result」「evidence」「assumptions」，无缺失或多余字段，所有值均为非空字符串。计算正确：方案 A 总投入 10+3×4=22，方案 B 总投入 18+1×4=22，均未超预算 24，剩余 2，与上游 cost 节点一致。风险评估覆盖节点职责：指出当前无直接资金缺口但余量小、存在转为缺口的风险，并给出优先方案 A 及预留缓冲的建议。evidence 明确说明合成场景无外部证据、数值来源；assumptions 列出线性成本、不含间接成本、不考虑时间价值等限制，满足「保留证据与假设，不虚构数据」与「覆盖本节点职责并明确限制」两项检查。无虚构数据，无工具执行或检索声明，未复制 execution、covers 等元数据。唯一轻微瑕疵是答案与上游 cost 节点内容几乎完全重复，独立增量分析有限，但契约未禁止且语义正确，故仅小幅扣分。\"}",
+  "input_tokens": 1400,
+  "output_tokens": 258,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10041,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888005456593d763aaa7a5e423f9e5323a8c500bc9f56deba"
+}

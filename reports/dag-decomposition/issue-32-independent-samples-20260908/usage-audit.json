@@ -1,0 +1,19 @@
+{
+  "status": "用量审计发现协议执行偏差",
+  "raw_ledger_billed_calls": 532,
+  "audited_confirmed_calls": 531,
+  "unconfirmed_calls": [
+    {
+      "label": "cash_holdout_v4--2--dag-single-b:cost",
+      "request_id": "0217888027161384c81961e630bce638d970dc275335873b68a51",
+      "reason": "非空未闭合内容、空 finish_reason、输入/输出 token 记录均为零；旧解析器缺失字段默认补零，归档无法区分缺失与原端零。",
+      "raw_charged": 0.0,
+      "conservative_reserve": 2.63625
+    }
+  ],
+  "confirmed_afp_estimate": 342.4757,
+  "unconfirmed_reserve_afp": 2.63625,
+  "protocol_deviation": "v5 对此异常误标 billed，没有触发预先声明的未知用量整批停止。后续观察保留但不能作为严格遵循 v5 停止规则的验证。",
+  "unaffected_calibration": "该异常发生在留出测试；36 次校准整图及 84 条独立探针所涉及调用的必要用量均为正且结束原因为 stop，可单独核验复用。",
+  "treatment": "不改写原始索引或旧零值；新增审计披露未确认预留。使用修复后的解析/记账和新留出集重新冻结 v6。"
+}

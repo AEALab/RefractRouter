@@ -77,7 +77,7 @@ def main():
             dump(args.output_dir / 'routing.json', result['routing'])
         if result['final_output']:
             (args.output_dir / 'answer.md').write_text(result['final_output'])
-        assignments = result['routing']['assignments'] if result['routing'] else {}
+        assignments = result.get('assignments', result['routing']['assignments'] if result['routing'] else {})
         evidence.update(status='pass' if result['status'] in {'preview', 'planned', 'simulated', 'completed'} else 'fail',
             mode='paid' if live else 'preflight', issues=result['issues'],
             task={

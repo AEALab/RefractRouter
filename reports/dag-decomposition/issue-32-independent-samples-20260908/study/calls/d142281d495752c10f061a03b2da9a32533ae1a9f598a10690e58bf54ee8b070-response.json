@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_a:1:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好等于 contract.output.fields 声明的 result、evidence、assumptions，无缺失或多余字段，所有值均为非空字符串，JSON 语法有效且未使用 Markdown 围栏。result 正确计算单位覆盖成本（试点 12/2=6 单位/组，推广 40/8=5 单位/组），比较了成本差异与培训不足风险，并给出明确条件的建议，覆盖节点职责「分析两个方案的成本与资源需求」。evidence 明确引用材料 A 与材料 B 原文并说明无外部证据；assumptions 清楚列出计算方法假设、可比性假设及信息缺口（风险概率与损失未量化、试点纠错收益未说明），未虚构数据。未发现不实工具执行声明。轻微不足：建议中「培训资源充足、方案成熟度高」等条件虽已在 assumptions 中声明为推断，但仍属基于材料的合理外推，整体符合检查要求。\"}",
+  "input_tokens": 1074,
+  "output_tokens": 233,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11651,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217887993888128878e6c95084a12b4d57c4d96cb06f1dfcb54b"
+}

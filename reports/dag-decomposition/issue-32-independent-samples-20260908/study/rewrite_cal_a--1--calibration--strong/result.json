@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.11620798613876104,
+      "start_ms": 16.342416987754405,
+      "end_ms": 1467.449166928418,
+      "queue_ms": 16.226209001615644,
+      "output": "我们计划在本周五前完成这项测试，前提是所有输入数据已准备齐全。",
+      "latency_ms": 1447,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "我们计划在本周五前完成这项测试，前提是所有输入数据已准备齐全。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写文本「我们计划在本周五前完成这项测试，前提是所有输入数据已准备齐全。」完整保留了原句的完成时限（本周五前）与条件（所有输入数据已准备好），同时将「之前」简化为「前」、「前提条件是……已经全部准备好了」精简为「前提是……已准备齐全」，表达更简洁且原意无损失。满足唯一验收条目。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "改写保留了完成时限「本周五前」和前提条件「所有输入数据已准备齐全」，语义与原句一致；删去「工作」「已经」等冗余成分，句式更紧凑，符合简洁要求。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.07641699630767107,
+    "peak_running_nodes": 1,
+    "ended_ms": 1484.272166970186,
+    "wall_time_ms": 1484.1972909634933
+  },
+  "calls": [
+    {
+      "label": "rewrite_cal_a--1--calibration--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.42025,
+      "charged": 0.1749,
+      "status": "billed",
+      "input_sha256": "c44120a1b6995d1cb5fbea3f193061ff4798973ab890ba7b76cc02dd8ae5be16",
+      "dispatch_monotonic": 799393.945224208,
+      "input_tokens": 301,
+      "output_tokens": 17,
+      "latency_ms": 1447,
+      "request_id": "021788801396272c237340934591b89d6de6b6a9271c1b9eac193",
+      "finish_reason": "stop",
+      "output_sha256": "2a5640fecd5149c594d3aa97791a42ef72843f0eb44cd835e1abc1bb3ca52548"
+    },
+    {
+      "label": "rewrite_cal_a--1--calibration--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.495000000000001,
+      "charged": 0.456,
+      "status": "billed",
+      "input_sha256": "92c63e77def00925615c15e24af932e4bc96dce8e68bc0add2790bc61fb60d3c",
+      "dispatch_monotonic": 799395.42469075,
+      "input_tokens": 280,
+      "output_tokens": 176,
+      "latency_ms": 6932,
+      "request_id": "021788801397750e78c31fe06d4434dfef0260629e4a08bf363e6",
+      "finish_reason": "stop",
+      "output_sha256": "3309fe0ef49e78c9abaa610c7ad5197a1786d394a4cb2c70096377bc5416e037"
+    }
+  ],
+  "wall_time_ms": 8430.318749975413,
+  "critical_path_latency_ms": 1447
+}

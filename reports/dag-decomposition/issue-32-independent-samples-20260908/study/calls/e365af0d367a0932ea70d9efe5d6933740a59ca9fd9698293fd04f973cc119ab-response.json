@@ -1,0 +1,12 @@
+{
+  "label": "probe:rewrite_cal_b:2:answer:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"改写「评审人员确认后，李明发布最终版本。」简洁地保留了原句核心语义：责任人「李明」明确保留，先后顺序「确认→发布」通过「后」字正确表达，未虚构数据或添加假设。输出为纯文本，符合 contract 的 text 格式要求，未封装为 JSON 或使用代码围栏。唯一轻微不足是省略了「负责人」这一身份说明，但任务核心要求是保留责任人和先后顺序，此省略不影响核心语义完整性。\"}",
+  "input_tokens": 564,
+  "output_tokens": 127,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6646,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888015917769255aa03547266d00c3fa3dce78057f14a6bb4"
+}

@@ -1,0 +1,66 @@
+{
+  "kind": "deterministic-fault-injection",
+  "real_model_calls": 0,
+  "cases": [
+    {
+      "case": "disabled",
+      "status": "failed",
+      "simulated_calls": 1,
+      "models_tried_at_cost": [
+        "cheap"
+      ],
+      "checks_passed": true
+    },
+    {
+      "case": "switch-a",
+      "status": "simulated",
+      "simulated_calls": 4,
+      "models_tried_at_cost": [
+        "cheap",
+        "mid"
+      ],
+      "checks_passed": true
+    },
+    {
+      "case": "switch-b",
+      "status": "simulated",
+      "simulated_calls": 4,
+      "models_tried_at_cost": [
+        "mid",
+        "strong"
+      ],
+      "checks_passed": true
+    },
+    {
+      "case": "exhausted",
+      "status": "failed",
+      "simulated_calls": 3,
+      "models_tried_at_cost": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "checks_passed": true
+    },
+    {
+      "case": "unknown-usage",
+      "status": "failed",
+      "simulated_calls": 1,
+      "models_tried_at_cost": [
+        "cheap"
+      ],
+      "checks_passed": true
+    },
+    {
+      "case": "truncated",
+      "status": "simulated",
+      "simulated_calls": 4,
+      "models_tried_at_cost": [
+        "cheap",
+        "mid"
+      ],
+      "checks_passed": true
+    }
+  ],
+  "limitation": "只验证恢复机制和模拟账本；不评估模型真实质量、可靠性或回退收益。"
+}

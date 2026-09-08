@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-strong-serial--strong:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入为 46 单位，在总预算 48 单位下预算余额为 2 单位，满足预算约束但缓冲较小；方案 B 总投入为 49 单位，在总预算 48 单位下预算缺口为 1 单位，不可按当前预算执行。约束与建议：方案 A 可执行，但需注意余额仅 2 单位，抗波动能力有限；方案 B 需压缩固定投入、降低每周运行费、缩短运行周数或增加至少 1 单位预算，否则存在资金不足风险。\",\n  \"evidence\": \"无上游原始材料；本结果仅依据上游 cost 节点给出的数值计算，并与其结论一致。\",\n  \"assumptions\": \"假设 6 周为完整运行周期，每周运行费在整个周期内保持不变；假设总预算 48 单位用于覆盖固定投入与全部运行费；未考虑任何优惠、收益或额外预算。\"\n}",
+  "input_tokens": 761,
+  "output_tokens": 211,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4929,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788806216512ff228b459645a66c98f2a46916338f8e7511bc",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 211,
+    "prompt_tokens": 761,
+    "total_tokens": 972,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

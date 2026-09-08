@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--1--dag-calibrated-single--strong:final-judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"计算正确：方案 A 22+4×6=46，余额 2；方案 B 37+2×6=49，缺口 1。预算判断与建议符合约束，未引入未给出的优惠、收益或额外预算。开头「方案 A 与方案 B 的计算结果一致」表述略易误解，但后文数据明确区分两者，不影响正确性。\", \"criteria\": [{\"criterion\": \"准确计算两个方案总投入\", \"passed\": true, \"rationale\": \"方案 A 固定投入 22 加每周运行费 4 乘 6 周等于 46；方案 B 固定投入 37 加每周运行费 2 乘 6 周等于 49，计算准确。\"}, {\"criterion\": \"根据预算判断缺口并给出有条件建议\", \"passed\": true, \"rationale\": \"正确指出方案 A 低于预算 2 单位可执行但缓冲小，方案 B 超出预算 1 单位不可直接执行，并给出压缩固定投入、降低每周运行费、缩短周数或调整预算等有条件建议，且未引入未给出的优惠、收益或额外预算。\"}]}",
+  "input_tokens": 528,
+  "output_tokens": 272,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8031,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888057395698df8e1a1401bb5aa62b5b494646ada585a2c2d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 272,
+    "prompt_tokens": 528,
+    "total_tokens": 800,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

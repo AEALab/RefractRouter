@@ -8,6 +8,7 @@ from typing import Callable
 
 from .model_selection import Weights
 from .node_routing import load_profile, number, route_nodes
+from .node_recovery import NodeRecovery, validate_fallback_limit
 from .openai_compatible import ChatResponse
 from .task_budget import TaskCallBudget
 from .task_scheduling import ExecutionPolicy
@@ -23,10 +24,11 @@ AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
-               "maxConcurrency", "providerConcurrency", "providerMinIntervalMs"}
+               "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     ExecutionPolicy.from_request(raw)
+    validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
     text(raw.get("task"), "task")
     mode = raw.get("mode", "preflight")
     if mode not in {"preflight", "demo", "plan", "run"}:
@@ -165,12 +167,17 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if result["routing"]["status"] != "selected":
             result["status"] = "no-feasible-route"
             return result
+        fallback_limit = request.get('maxNodeFallbacks', 0)
+        result['recovery_policy'] = {'policy_version': 'node-fallback-v1', 'max_node_fallbacks': fallback_limit}
+        recovery = NodeRecovery(plan, profiles, candidates, result['routing'], policy,
+                                max_fallbacks=fallback_limit) if fallback_limit else None
         if mode in {"preflight", "plan"}:
             result["status"] = "preview" if mode == "preflight" else "planned"
             return result
         result["final_output"] = execute_nodes(plan, request["task"], result["routing"]["assignments"],
             candidates, budget, policy, result, persist, started=started,
-            deadline=started + deadline_ms / 1000, cancel_event=cancel_event)
+            deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
+            production_cap=request["costMax"] if recovery else None)
         if live:
             before_call()
             judged = evaluate_text(budget, manifest.judge, request["task"], result["final_output"],

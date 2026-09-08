@@ -1,0 +1,570 @@
+{
+  "schema_version": "dag-study-result-v1",
+  "status": "failed",
+  "simulated": false,
+  "runs": [
+    {
+      "task_id": "compare_cal_a",
+      "family": "comparison",
+      "split": "calibration",
+      "repeat": 1,
+      "method": "calibration",
+      "fixed_model": "cheap",
+      "score": 92,
+      "passed": true,
+      "production_cost": 0.13555,
+      "evaluation_cost": 1.342,
+      "deployment_cost": 1.4775500000000001,
+      "wall_time_ms": 28906.832833075896,
+      "result_path": "compare_cal_a--1--calibration--cheap/result.json"
+    },
+    {
+      "task_id": "compare_cal_a",
+      "family": "comparison",
+      "split": "calibration",
+      "repeat": 1,
+      "method": "calibration",
+      "fixed_model": "mid",
+      "score": 95,
+      "passed": true,
+      "production_cost": 1.3045,
+      "evaluation_cost": 1.565,
+      "deployment_cost": 2.8695,
+      "wall_time_ms": 53466.967541957274,
+      "result_path": "compare_cal_a--1--calibration--mid/result.json"
+    },
+    {
+      "task_id": "compare_cal_a",
+      "family": "comparison",
+      "split": "calibration",
+      "repeat": 1,
+      "method": "calibration",
+      "fixed_model": "strong",
+      "score": 85,
+      "passed": true,
+      "production_cost": 1.5042499999999999,
+      "evaluation_cost": 1.025,
+      "deployment_cost": 2.5292499999999998,
+      "wall_time_ms": 34558.46029194072,
+      "result_path": "compare_cal_a--1--calibration--strong/result.json"
+    }
+  ],
+  "issues": [
+    "node-output-contract-invalid: expected JSON object"
+  ],
+  "preflight": {
+    "schema_version": "dag-study-preflight-v1",
+    "status": "preflight",
+    "real_model_calls": 0,
+    "protocol_sha256": "21b7c4d35a02f54d844fcb79cc24c7a789247bfd1aabddc4e453f1856bc93db2",
+    "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+    "planned_calls": {
+      "calibration_nodes": 84,
+      "calibration_probes": 84,
+      "node_judges": 84,
+      "final_judges": 108,
+      "test_nodes": 156
+    },
+    "maximum_calls": 516,
+    "test_runs": [
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "direct-strong",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-strong-serial",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-strong-parallel",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-calibrated-single",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-node-a",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-node-b",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-single-a",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "compare_holdout_v4",
+        "method": "dag-single-b",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "direct-strong",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-strong-serial",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-strong-parallel",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-calibrated-single",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-node-a",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-node-b",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-single-a",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "cash_holdout_v4",
+        "method": "dag-single-b",
+        "repeats": 3,
+        "nodes_per_run": 3
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "direct-strong",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-strong-serial",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-strong-parallel",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-calibrated-single",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-node-a",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-node-b",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-single-a",
+        "repeats": 3,
+        "nodes_per_run": 1
+      },
+      {
+        "task_id": "rewrite_holdout_v4",
+        "method": "dag-single-b",
+        "repeats": 3,
+        "nodes_per_run": 1
+      }
+    ],
+    "budget": {
+      "billing_unit": "AFP",
+      "production": 4234.4448,
+      "evaluation": 16908.288,
+      "total": 21142.7328
+    },
+    "limits": [
+      "依据冻结价格和逐次输入/输出上限估算，无缓存折扣；实际费用按 usage 结算。",
+      "固定计划没有模型规划调用；校准观测和测试严格隔离。",
+      "不含真实 DSH 助手的外层调用；该项需独立预算，不能由此预检授权。",
+      "遇首个异常停止；调用数与预算是完整计划的上限，不表示已获准执行。"
+    ]
+  },
+  "charged": {
+    "production": 4.0412,
+    "evaluation": 9.024000000000001
+  },
+  "calls": [
+    {
+      "label": "compare_cal_a--1--calibration--cheap:cost",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.52495,
+      "charged": 0.0324,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 795244.355974375,
+      "input_tokens": 455,
+      "output_tokens": 193,
+      "latency_ms": 3572,
+      "request_id": "02178879724669820244bbcebb250bf80b1bc04ef46401721bceb",
+      "finish_reason": "stop",
+      "output_sha256": "9a6648f6921013ddf766c4310a559f0696c2fa2b64b826f7bb8804d2ca83946e"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--cheap:risk",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.52795,
+      "charged": 0.03115,
+      "status": "billed",
+      "input_sha256": "3bec9b8076a47482829d39fa24ffa0eeb85c44696202c6eb084df85033daf961",
+      "dispatch_monotonic": 795247.944820541,
+      "input_tokens": 467,
+      "output_tokens": 156,
+      "latency_ms": 3715,
+      "request_id": "0217887972502958df8e1a1401bb5aa62b5b494646ada582f389c",
+      "finish_reason": "stop",
+      "output_sha256": "c8ed220a51778bf95e199107f9c7008dbf118cc609aed816b302174b04a5e586"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--cheap:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.5893,
+      "charged": 0.072,
+      "status": "billed",
+      "input_sha256": "151b9da74edb18f485205fd93502957bf8fdba928e51d0ed43d21f94c3726069",
+      "dispatch_monotonic": 795251.678602333,
+      "input_tokens": 748,
+      "output_tokens": 692,
+      "latency_ms": 7993,
+      "request_id": "021788797254012e78c31fe06d4434dfef0260629e4a08b9ba6a0",
+      "finish_reason": "stop",
+      "output_sha256": "f30ca64b7bf5ecf4814e25a6371f2aef051f54b2e244f2962ecfe3a50407fe9c"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--cheap:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.754000000000001,
+      "charged": 1.342,
+      "status": "billed",
+      "input_sha256": "cb7b38d0aae8d8973f4caf0a44d6851a8d865114149e090d1eb55179a2cd4c8f",
+      "dispatch_monotonic": 795259.694734916,
+      "input_tokens": 991,
+      "output_tokens": 351,
+      "latency_ms": 13556,
+      "request_id": "0217887972620237820404c56ac6dd9ce215ba8b602495ac1e10d",
+      "finish_reason": "stop",
+      "output_sha256": "4ae98cce60ef469b72eb0db2d3cdac05f4dd94fca78e9639f16407e74f56e33d"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--mid:cost",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.62475,
+      "charged": 0.348,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 795273.271493208,
+      "input_tokens": 579,
+      "output_tokens": 813,
+      "latency_ms": 11720,
+      "request_id": "021788797275616e78c31fe06d4434dfef0260629e4a08bd3ca75",
+      "finish_reason": "stop",
+      "output_sha256": "97dd61557f2cea5cf34e5093685648ba820de1d977babe1fb353cdeac98a91ae"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--mid:risk",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.6397500000000003,
+      "charged": 0.28825,
+      "status": "billed",
+      "input_sha256": "3bec9b8076a47482829d39fa24ffa0eeb85c44696202c6eb084df85033daf961",
+      "dispatch_monotonic": 795285.008373541,
+      "input_tokens": 589,
+      "output_tokens": 564,
+      "latency_ms": 12169,
+      "request_id": "021788797287360a6cdd8247c48d753298cd4bcf5eec90e8314c1",
+      "finish_reason": "stop",
+      "output_sha256": "ac2128f29d810db36b9742f039a6097d8a50f311660cec8797d8fa4c0cab1ea7"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--mid:answer",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 4.17925,
+      "charged": 0.66825,
+      "status": "billed",
+      "input_sha256": "4ee7a8d5856bd795df32965d54dac304f3f7487fcec0bb922a7e9a80015b6b7a",
+      "dispatch_monotonic": 795297.195644208,
+      "input_tokens": 1917,
+      "output_tokens": 756,
+      "latency_ms": 11381,
+      "request_id": "0217887972995408df8e1a1401bb5aa62b5b494646ada588b4ccf",
+      "finish_reason": "stop",
+      "output_sha256": "cdf5a62efe664b22ecde6da4b75804da7fe8e577343db9f7ad761efd2305a506"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--mid:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 13.251000000000001,
+      "charged": 1.565,
+      "status": "billed",
+      "input_sha256": "83ec0c1017e372459e200060276ca1e95de71b502a53f240345d9020282f61f1",
+      "dispatch_monotonic": 795308.582055208,
+      "input_tokens": 1111,
+      "output_tokens": 454,
+      "latency_ms": 18144,
+      "request_id": "02178879731090739b5b0f4b57789945865e795386c3530b7a130",
+      "finish_reason": "stop",
+      "output_sha256": "1a0bc3c0085dd07ab2f2fb78d7cb1bc2eb3123e09355d37b9090c24d8b60827d"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:cost",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.77445,
+      "charged": 0.39985,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 795326.747037458,
+      "input_tokens": 455,
+      "output_tokens": 272,
+      "latency_ms": 6576,
+      "request_id": "0217887973290755e054c6d0ba743fab13ed8d72af4b8b26e35c7",
+      "finish_reason": "stop",
+      "output_sha256": "d425190935299d5787f20cc078c636106d76c84b8c5d8bb838e206c09910fbd0"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:risk",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.80745,
+      "charged": 0.4037,
+      "status": "billed",
+      "input_sha256": "3bec9b8076a47482829d39fa24ffa0eeb85c44696202c6eb084df85033daf961",
+      "dispatch_monotonic": 795333.355865916,
+      "input_tokens": 467,
+      "output_tokens": 267,
+      "latency_ms": 6677,
+      "request_id": "0217887973356993f04613060c95c0e1cb70b4f628471a93eb05c",
+      "finish_reason": "stop",
+      "output_sha256": "fab9ce52e48b82846d334311e356f0e46f21d33cf4d4a3eb7ceafa478122ffb0"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 7.019100000000001,
+      "charged": 0.7007,
+      "status": "billed",
+      "input_sha256": "d75a806846e64b9431b9f3bf84a9fec9d1e3a63942e83344a78504de963e61be",
+      "dispatch_monotonic": 795340.051020875,
+      "input_tokens": 933,
+      "output_tokens": 341,
+      "latency_ms": 8154,
+      "request_id": "0217887973423964c81961e630bce638d970dc2753358737af7a1",
+      "finish_reason": "stop",
+      "output_sha256": "11bbf0465ca08611b8d3c92362fcac1d31678dea8c2bdd5a541319627e54462b"
+    },
+    {
+      "label": "compare_cal_a--1--calibration--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 11.228,
+      "charged": 1.025,
+      "status": "billed",
+      "input_sha256": "ace652bde850bfb0cafe10d1b9d2b6d94e2ae43a1273cca5c14f27b8f3108893",
+      "dispatch_monotonic": 795348.22283775,
+      "input_tokens": 634,
+      "output_tokens": 391,
+      "latency_ms": 13069,
+      "request_id": "0217887973505513d0449b03f13da7ad7c0359f0f1d760ce5c709",
+      "finish_reason": "stop",
+      "output_sha256": "2b792d43d0538cfa6ca4cc45f87ef1ab608bca4bc1a9b261da289277391bc26e"
+    },
+    {
+      "label": "probe:compare_cal_a:1:cost:cheap",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.52495,
+      "charged": 0.0318,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 795361.312804208,
+      "input_tokens": 455,
+      "output_tokens": 181,
+      "latency_ms": 4397,
+      "request_id": "021788797363633d6f60410e67e178f28d968f0420b51c3e79d3f",
+      "finish_reason": "stop",
+      "output_sha256": "415bbb6ed06b8f8ef4491b2cec87d5a47bd2fabf974d782cc7efe130c4acaf11"
+    },
+    {
+      "label": "probe:compare_cal_a:1:cost:cheap:judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.443000000000001,
+      "charged": 1.101,
+      "status": "billed",
+      "input_sha256": "6cf494abe600b9b921ad44ebe492ea05427d21c174315c111053155d65fe9a6a",
+      "dispatch_monotonic": 795365.722562541,
+      "input_tokens": 921,
+      "output_tokens": 180,
+      "latency_ms": 8417,
+      "request_id": "021788797368060d6f60410e67e178f28d968f0420b51c32e780c",
+      "finish_reason": "stop",
+      "output_sha256": "9f419d4cf1c61a4c571316bde425b34893f3b9de439048c1f4d6885578a4e6a5"
+    },
+    {
+      "label": "probe:compare_cal_a:1:cost:mid",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.62475,
+      "charged": 0.24825,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 795374.149224083,
+      "input_tokens": 579,
+      "output_tokens": 414,
+      "latency_ms": 6015,
+      "request_id": "021788797376480f1aca4493aa6c7087a6ccfbfdb4be61531ac1b",
+      "finish_reason": "stop",
+      "output_sha256": "e24a9532b4d58f222ca6359a10eca8314686917f9e45337257566a6a36d37cdd"
+    },
+    {
+      "label": "probe:compare_cal_a:1:cost:mid:judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 13.673,
+      "charged": 1.465,
+      "status": "billed",
+      "input_sha256": "46cf1879ca47b07a35109b4c2cb0dcf88db02e66037284abdbd5210526e05be0",
+      "dispatch_monotonic": 795380.16819925,
+      "input_tokens": 1182,
+      "output_tokens": 283,
+      "latency_ms": 13946,
+      "request_id": "021788797382489e78c31fe06d4434dfef0260629e4a08ba770e5",
+      "finish_reason": "stop",
+      "output_sha256": "08598a8c5ebd47163e4c00668606c82f5565a765d3b4830927c0787d255589b0"
+    },
+    {
+      "label": "probe:compare_cal_a:1:cost:strong",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.77445,
+      "charged": 0.3839,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 795394.1260585,
+      "input_tokens": 455,
+      "output_tokens": 243,
+      "latency_ms": 6091,
+      "request_id": "0217887973964719255aa03547266d00c3fa3dce78057f15a5d2e",
+      "finish_reason": "stop",
+      "output_sha256": "1616f07e01afca1423a1b14362256238d3c4ee5f85413e4913c15d7b61713b02"
+    },
+    {
+      "label": "probe:compare_cal_a:1:cost:strong:judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.689,
+      "charged": 1.219,
+      "status": "billed",
+      "input_sha256": "c32a3bcba1991ae1dbc5e28e4781d584da10090977f6ba3ee22d4d42c46f3502",
+      "dispatch_monotonic": 795400.230074375,
+      "input_tokens": 988,
+      "output_tokens": 231,
+      "latency_ms": 10991,
+      "request_id": "021788797402566137f500080bf18603e76d17d12e7c43e52cc96",
+      "finish_reason": "stop",
+      "output_sha256": "04237747149b3c5d1fd12a6b7d1922e0a5171b8ad4bd5ead1f853d3646d9e161"
+    },
+    {
+      "label": "probe:compare_cal_a:1:risk:cheap",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.52795,
+      "charged": 0.03645,
+      "status": "billed",
+      "input_sha256": "3bec9b8076a47482829d39fa24ffa0eeb85c44696202c6eb084df85033daf961",
+      "dispatch_monotonic": 795411.233208,
+      "input_tokens": 467,
+      "output_tokens": 262,
+      "latency_ms": 6008,
+      "request_id": "021788797413574b9f489096afc36acf45c00ec3935d23a46f812",
+      "finish_reason": "stop",
+      "output_sha256": "9ee1b6df7602b11243a9298726566b191d1a49951a931c910c58df5308c0690b"
+    },
+    {
+      "label": "probe:compare_cal_a:1:risk:cheap:judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.932,
+      "charged": 1.307,
+      "status": "billed",
+      "input_sha256": "b51105b8261d2cc932d61e3cac3859497cdfc31b0adf5de6429b056aef6d7a2d",
+      "dispatch_monotonic": 795417.256224916,
+      "input_tokens": 1010,
+      "output_tokens": 297,
+      "latency_ms": 15488,
+      "request_id": "0217887974196293d0449b03f13da7ad7c0359f0f1d760cdabd94",
+      "finish_reason": "stop",
+      "output_sha256": "af9bbdd4c076a2b954e0497bac599b402297f9c67ec8a0041da6c8bbf111f6ba"
+    },
+    {
+      "label": "probe:compare_cal_a:1:risk:mid",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.6397500000000003,
+      "charged": 0.3965,
+      "status": "billed",
+      "input_sha256": "3bec9b8076a47482829d39fa24ffa0eeb85c44696202c6eb084df85033daf961",
+      "dispatch_monotonic": 795432.756511,
+      "input_tokens": 589,
+      "output_tokens": 997,
+      "latency_ms": 16024,
+      "request_id": "0217887974350978878e6c95084a12b4d57c4d96cb06f1d12272e",
+      "finish_reason": "stop",
+      "output_sha256": "340582fbb898c325ae57b4ec1db383576981dee6718c0eaf082a6f97c810fbeb"
+    }
+  ]
+}

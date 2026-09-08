@@ -1,0 +1,444 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.7050839485600591,
+      "start_ms": 15.247375005856156,
+      "end_ms": 8947.527874959633,
+      "queue_ms": 14.542291057296097,
+      "output": "{\"result\":\"【单位覆盖成本】分区试行：35 单位 ÷ 5 组 = 7 单位/组；整体上线：72 单位 ÷ 8 组 = 9 单位/组。分区试行的单位覆盖成本低于整体上线约 2 单位/组（低约 22%）。【总投入】分区试行总投入 35 单位，整体上线总投入 72 单位，整体上线比分区试行多 37 单位（约为分区试行的 2.06 倍）。【调整风险】分区试行支持每周修订流程，调整窗口密集，单次调整的反馈与回滚成本相对较低；整体上线必须等到首次验收之后才允许调整，而验收日期尚未确定，这意味着在验收之前不具备流程调整窗口，调整风险（变更延迟、合规偏离、需求漂移等）的暴露期不可控。【条件性建议】1) 若目标是快速验证流程并允许高频迭代，优先选择分区试行，理由是其单位覆盖成本更低、调整窗口更密、试错代价更小。2) 若选择整体上线，必须以「首次验收日期已确定」为前置条件；在该条件满足前，方案本身因调整窗口未明而存在不可控的调整风险，应视为不满足启动门槛。3) 若坚持整体上线但验收日期尚未确定，建议先以分区试行积累证据与基线，再视验收排期切换，但需注意此举会把总投入由 72 单位延展为「35 + 切换增量」，切换增量的具体数值在材料中未给出。4) 本结论仅基于材料 A（投入与覆盖）与材料 B（调整机制）所给数字，不涉及收益、风险概率或回收周期，因材料未提供这些信息，故不进行量化推断。\",\"evidence\":\"材料 A：分区试行投入 35 单位、覆盖 5 组；整体上线投入 72 单位、覆盖 8 组。材料 B：分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，验收日期尚未确定。单位覆盖成本与总投入均由材料 A 直接相除/比较得出；调整风险描述直接来源于材料 B 关于修订节奏与验收日期的表述。\",\"assumptions\":\"1) 「单位」与「组」在两个方案中口径一致，可直接横向比较；2) 材料 A 中的 35 与 72 仅为投入/资源消耗量，不含收益或回收信息，故未做 ROI 推断；3) 「调整风险」仅依据材料 B 给出的修订机制与验收时点进行定性描述，未引入未提供的风险概率或后果量化数据；4) 整体上线切换增量、分区试行的扩展成本、验收通过的概率等关键变量在材料中缺失，构成信息缺口。\"}",
+      "latency_ms": 8930,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 15.303791966289282,
+      "start_ms": 147.33529195655137,
+      "end_ms": 10135.75008395128,
+      "queue_ms": 132.0314999902621,
+      "output": "{\"result\": \"比较单位覆盖成本、总投入与调整风险：\\n\\n一、单位覆盖成本比较（材料 A）\\n- 分区试行：投入 35 单位，覆盖 5 组，单位覆盖成本 = 35 ÷ 5 = 7 单位/组。\\n- 整体上线：投入 72 单位，覆盖 8 组，单位覆盖成本 = 72 ÷ 8 = 9 单位/组。\\n按材料 A 推算，分区试行的单位覆盖成本低于整体上线，差额为 2 单位/组。\\n\\n二、总投入与覆盖范围比较（材料 A）\\n- 分区试行总投入 35 单位，整体上线总投入 72 单位，整体上线总投入约为分区试行的 2.06 倍；同时整体上线覆盖组数（8 组）多于分区试行（5 组）。\\n- 这意味着整体上线在单位覆盖成本更高的情况下，仍需投入更多资源才能完成更广的覆盖，资源不可恢复性更强。\\n\\n三、调整风险比较（材料 B）\\n- 分区试行：流程支持每周修订，调整频率高、反馈循环短，纠错窗口前置，发现问题后可快速迭代；调整成本随周期被摊薄，单次修订的暴露面有限。\\n- 整体上线：需等到首次验收通过之后才允许调整，且验收日期尚未确定。这意味着在验收前存在一段「调整冻结期」，该期间内若发现问题，无法通过正式流程修订，只能积累到验收后统一处理，调整滞后风险显著高于分区试行。\\n\\n四、附明确条件的建议\\n- 条件一（资源可恢复性）：若项目要求在投入后仍能保留中途回收或转作他用的余地，分区试行的低单位覆盖成本与较小总投入更利于止损。\\n- 条件二（调整窗口必要性）：若业务或流程在首次验收前高度可能需要修订（例如合规口径未稳定、上下游依赖未确认），则应优先选择分区试行，以规避整体上线「冻结期」内的调整滞后风险。\\n- 条件三（覆盖目标刚性）：若覆盖 8 组为不可推迟的硬性目标，且组织能够承受 72 单位的一次性投入与验收前无法调整的代价，则整体上线在覆盖广度上不可替代。\\n- 综合倾向：在验收日期未确定、调整窗口未明确的前提下，分区试行在单位覆盖成本、总投入可逆性、调整灵活性三项上均优于整体上线，建议优先采用分区试行，并以分阶段滚动方式逐步逼近 8 组覆盖目标，而非一次性整体上线。\\n- 不建议情形：当存在强制性截止日期要求在验收冻结期内完成全部 8 组覆盖、且无法接受分阶段推进时，分区试行的迭代节奏可能不满足时间约束，需重新评估。\\n\\n五、本节点未做事项\\n- 本节点仅依据材料 A 与材料 B 进行风险比较，未引入材料外的成本测算、概率估计或收益预测，不对最终 ROI 负责。\", \"evidence\": \"材料 A：分区试行投入 35 单位、覆盖 5 组；整体上线投入 72 单位、覆盖 8 组。材料 B：分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，验收日期尚未确定。两份材料均为唯一证据来源。\", \"assumptions\": \"假设一：材料 A 中的「单位」与「组」在两方案下口径一致，单位覆盖成本可直接相除比较；若口径不一致，比较结果不成立。假设二：材料 B 中「验收日期尚未确定」意味着冻结期长度不可预测，本节点按其下限（即至少存在一次完整冻结期）处理调整滞后风险。信息缺口一：未提供 35 单位与 72 单位的成本性质（沉没 vs 可回收），故「总投入可逆性」为推断性表述。信息缺口二：未提供两方案下问题发现概率或修订成功率，节点不虚构任何风险概率或收益数据。\"}",
+      "latency_ms": 9987,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 10148.110916954465,
+      "start_ms": 10162.07487497013,
+      "end_ms": 18449.527416960336,
+      "queue_ms": 13.963958015665412,
+      "output": "综合结论与建议\n\n一、综合结论\n\n综合 cost 节点与 risk 节点的分析、证据与假设，两节点在以下要点上结论一致且互为印证：\n- 单位覆盖成本：分区试行 7 单位/组 < 整体上线 9 单位/组（差额 2 单位/组，材料 A 直接相除得出）。\n- 总投入：整体上线 72 单位 ≈ 2.06 倍于分区试行 35 单位（材料 A 直接比较得出）。\n- 调整风险：分区试行支持每周修订，纠错窗口前置；整体上线在首次验收前存在不可预测长度的「调整冻结期」，滞后风险显著更高（材料 B 直接描述）。\n- 资源可逆性：材料 A 仅给出投入量，未注明沉没/可回收性质；两节点均据此把「总投入可逆性」列为推断性表述而非定论。\n\n二、核对冲突\n\n未发现两节点之间的结论冲突。两节点在单位覆盖成本、总投入比较、调整机制对比上的描述相互一致，证据均回溯到材料 A 与材料 B。\n\n三、核对遗漏与信息缺口\n\n- 35 与 72 单位的成本性质（沉没 vs 可回收）未提供，cost 节点与 risk 节点均已声明该缺口，本建议沿用「推断性表述」处理。\n- 整体上线由分区试行切换的「切换增量」未给出。\n- 验收日期、验收通过概率、问题发现概率、修订成功率、收益或回收周期等关键变量均未提供。\n- 上述缺口意味着：本建议只能基于材料 A、B 的成本与调整机制维度，不就收益、风险概率、ROI、回收周期作任何量化推断。\n\n四、附明确条件的建议\n\n1) 优先采用分区试行的情况：\n   - 条件：业务或流程在首次验收前可能需要修订（合规口径未稳定、上下游依赖未确认）；或组织希望保留中途止损与转向余地。\n   - 依据：单位覆盖成本更低（7 vs 9 单位/组）、总投入更小（35 vs 72 单位）、调整窗口更密（每周修订）。\n\n2) 整体上线不满足启动门槛的情况：\n   - 条件：首次验收日期尚未确定。\n   - 依据：材料 B 明确「整体上线需等到首次验收之后才允许调整」，在验收日期未明前，调整冻结期长度不可控，方案本身存在不可控的调整风险，应视为不满足启动门槛。\n\n3) 必须采用整体上线的情况：\n   - 条件 A：覆盖 8 组为不可推迟的硬性目标，且组织能够承受 72 单位的一次性投入；\n   - 条件 B：首次验收日期已确定且可接受验收前的调整冻结期；\n   - 条件 C：业务规则在验收前已稳定，无需高频修订。\n   - 三个条件须同时满足；任一不满足，则建议回到分区试行路径。\n\n4) 折中路径：先分区试行、后视验收排期切换。\n   - 适用条件：组织认可分区试行的成本与调整优势，但中长期仍需覆盖至 8 组。\n   - 注意：此举会令总投入由 72 单位延展为「35 + 切换增量」；切换增量在材料中未给出，建议在决策前补齐该数据再行推进。\n   - 不适用情形：存在强制性截止日期要求在验收冻结期内一次性完成全部 8 组覆盖、且无法接受分阶段推进时。\n\n五、本建议的限制\n\n本建议仅基于材料 A（投入与覆盖）与材料 B（调整机制）所给信息，不引入、未推断、未虚构任何收益数字、风险概率、回收周期或 ROI 结论。涉及成本性质、切换增量、验收排期等关键变量未由材料提供，相关判断以条件形式给出，需在补齐证据后再作最终决策。",
+      "latency_ms": 8285,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "cost": "mid",
+    "risk": "mid",
+    "answer": "mid"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "parents": [],
+        "contract": {
+          "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。"
+  },
+  "final_output": "综合结论与建议\n\n一、综合结论\n\n综合 cost 节点与 risk 节点的分析、证据与假设，两节点在以下要点上结论一致且互为印证：\n- 单位覆盖成本：分区试行 7 单位/组 < 整体上线 9 单位/组（差额 2 单位/组，材料 A 直接相除得出）。\n- 总投入：整体上线 72 单位 ≈ 2.06 倍于分区试行 35 单位（材料 A 直接比较得出）。\n- 调整风险：分区试行支持每周修订，纠错窗口前置；整体上线在首次验收前存在不可预测长度的「调整冻结期」，滞后风险显著更高（材料 B 直接描述）。\n- 资源可逆性：材料 A 仅给出投入量，未注明沉没/可回收性质；两节点均据此把「总投入可逆性」列为推断性表述而非定论。\n\n二、核对冲突\n\n未发现两节点之间的结论冲突。两节点在单位覆盖成本、总投入比较、调整机制对比上的描述相互一致，证据均回溯到材料 A 与材料 B。\n\n三、核对遗漏与信息缺口\n\n- 35 与 72 单位的成本性质（沉没 vs 可回收）未提供，cost 节点与 risk 节点均已声明该缺口，本建议沿用「推断性表述」处理。\n- 整体上线由分区试行切换的「切换增量」未给出。\n- 验收日期、验收通过概率、问题发现概率、修订成功率、收益或回收周期等关键变量均未提供。\n- 上述缺口意味着：本建议只能基于材料 A、B 的成本与调整机制维度，不就收益、风险概率、ROI、回收周期作任何量化推断。\n\n四、附明确条件的建议\n\n1) 优先采用分区试行的情况：\n   - 条件：业务或流程在首次验收前可能需要修订（合规口径未稳定、上下游依赖未确认）；或组织希望保留中途止损与转向余地。\n   - 依据：单位覆盖成本更低（7 vs 9 单位/组）、总投入更小（35 vs 72 单位）、调整窗口更密（每周修订）。\n\n2) 整体上线不满足启动门槛的情况：\n   - 条件：首次验收日期尚未确定。\n   - 依据：材料 B 明确「整体上线需等到首次验收之后才允许调整」，在验收日期未明前，调整冻结期长度不可控，方案本身存在不可控的调整风险，应视为不满足启动门槛。\n\n3) 必须采用整体上线的情况：\n   - 条件 A：覆盖 8 组为不可推迟的硬性目标，且组织能够承受 72 单位的一次性投入；\n   - 条件 B：首次验收日期已确定且可接受验收前的调整冻结期；\n   - 条件 C：业务规则在验收前已稳定，无需高频修订。\n   - 三个条件须同时满足；任一不满足，则建议回到分区试行路径。\n\n4) 折中路径：先分区试行、后视验收排期切换。\n   - 适用条件：组织认可分区试行的成本与调整优势，但中长期仍需覆盖至 8 组。\n   - 注意：此举会令总投入由 72 单位延展为「35 + 切换增量」；切换增量在材料中未给出，建议在决策前补齐该数据再行推进。\n   - 不适用情形：存在强制性截止日期要求在验收冻结期内一次性完成全部 8 组覆盖、且无法接受分阶段推进时。\n\n五、本建议的限制\n\n本建议仅基于材料 A（投入与覆盖）与材料 B（调整机制）所给信息，不引入、未推断、未虚构任何收益数字、风险概率、回收周期或 ROI 结论。涉及成本性质、切换增量、验收排期等关键变量未由材料提供，相关判断以条件形式给出，需在补齐证据后再作最终决策。",
+  "evaluation": {
+    "score": 92,
+    "passed": true,
+    "rationale": "答案完整覆盖原任务要求：单位覆盖成本（35/5=7 单位/组 vs 72/8=9 单位/组）、总投入比较（72≈2.06×35）与调整风险（每周修订 vs 验收前调整冻结期且验收日期未定）均有材料 A、B 直接证据支持；建议以明确条件形式给出（优先分区试行条件、整体上线三项并列启动门槛、折中路径及其「35+切换增量」的成本提示与不适用情形），未虚构收益、风险概率、ROI 或回收周期，并明确声明信息缺口（成本沉没/可回收性质、切换增量、验收排期）。轻微瑕疵：文中引用「cost 节点」「risk 节点」等未在任务中出现的上游分析痕迹，属表述冗余但不影响正确性与结论；「72≈2.06 倍」计算正确（72/35≈2.057）。两条验收标准均满足。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "正确计算并比较单位覆盖成本（7 vs 9 单位/组，差额 2 单位/组）与总投入（35 vs 72 单位，约 2.06 倍），并指出成本沉没/可回收性质与切换增量属材料未提供的资源维度缺口，比较完整且有证据回溯。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "基于材料 B 指出整体上线在验收日期未定前存在不可控长度的调整冻结期，分区试行每周修订使纠错窗口前置；建议附明确条件（整体上线须同时满足三条件、折中路径的适用与不适用情形），且明确不虚构收益与风险概率，证据均回溯至材料 A、B。"
+      }
+    ]
+  },
+  "routing": {
+    "policy_version": "node-routing-v2",
+    "method": "A",
+    "assignment_mode": "single-model",
+    "status": "selected",
+    "assignments": {
+      "cost": "mid",
+      "risk": "mid",
+      "answer": "mid"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 100,
+    "latency_max_ms": 300000,
+    "weights": null,
+    "normalized_weights": null,
+    "normalization_bounds": {
+      "cost": {
+        "quality": [
+          94.125,
+          94.75
+        ],
+        "cost": [
+          0.274296875,
+          0.452340625
+        ],
+        "latency_ms": [
+          9793,
+          11890
+        ]
+      },
+      "risk": {
+        "quality": [
+          94.125,
+          94.75
+        ],
+        "cost": [
+          0.274296875,
+          0.452340625
+        ],
+        "latency_ms": [
+          9793,
+          11890
+        ]
+      },
+      "answer": {
+        "quality": [
+          94.75,
+          94.75
+        ],
+        "cost": [
+          0.072625,
+          0.7392
+        ],
+        "latency_ms": [
+          9626,
+          14535
+        ]
+      }
+    },
+    "eligible_models": {
+      "cost": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "risk": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "scheduled_latency_bounds_ms": [
+      19519.0,
+      26525.0
+    ],
+    "execution_policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "combinations": 12,
+    "feasible_combinations": 2,
+    "prediction": {
+      "cost": 0.95059375,
+      "serial_latency_ms": 29212,
+      "scheduled_latency_ms": 19519.0,
+      "schedule": {
+        "makespan_ms": 19519.0,
+        "nodes": {
+          "cost": {
+            "start_ms": 0.0,
+            "end_ms": 9793.0,
+            "queue_ms": 0.0
+          },
+          "risk": {
+            "start_ms": 100.0,
+            "end_ms": 9893.0,
+            "queue_ms": 100.0
+          },
+          "answer": {
+            "start_ms": 9893.0,
+            "end_ms": 19519.0,
+            "queue_ms": 0.0
+          }
+        }
+      },
+      "mean_node_quality_proxy": 94.33333333333333,
+      "weighted_score": null
+    },
+    "nodes": {
+      "cost": {
+        "model_id": "mid",
+        "node_type": "synthesis",
+        "quality": 94.125,
+        "cost": 0.274296875,
+        "latency_ms": 9793,
+        "samples": 16,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      },
+      "risk": {
+        "model_id": "mid",
+        "node_type": "synthesis",
+        "quality": 94.125,
+        "cost": 0.274296875,
+        "latency_ms": 9793,
+        "samples": 16,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      },
+      "answer": {
+        "model_id": "mid",
+        "node_type": "generation",
+        "quality": 94.75,
+        "cost": 0.402,
+        "latency_ms": 9626,
+        "samples": 8,
+        "difficulty": "medium",
+        "risk": "high",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      }
+    }
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 2,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.6856669206172228,
+    "peak_running_nodes": 2,
+    "ended_ms": 18466.159874922596,
+    "wall_time_ms": 18465.475792065263
+  },
+  "calls": [
+    {
+      "label": "compare_holdout_v6--2--dag-single-a:cost",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.6555,
+      "charged": 0.2895,
+      "status": "billed",
+      "input_sha256": "7eac5b925af3d2fc1798789f42a6ff802d36409f13b558d3f562c92595f06689",
+      "dispatch_monotonic": 803276.46290025,
+      "input_tokens": 602,
+      "output_tokens": 556,
+      "latency_ms": 8930,
+      "request_id": "021788805278806fd0de7354b348b065f00b895e07126b843e3fe",
+      "finish_reason": "stop",
+      "output_sha256": "cbe525508ef6893019bd0823508a5df4931c103baf9bfd8b5a06e189a09cd0c2"
+    },
+    {
+      "label": "compare_holdout_v6--2--dag-single-a:risk",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.6705,
+      "charged": 0.36,
+      "status": "billed",
+      "input_sha256": "58289002d43c1f977d10c2221817a5cc53e5c361c25b132dcb86d2ae5e177fe0",
+      "dispatch_monotonic": 803276.594988,
+      "input_tokens": 612,
+      "output_tokens": 828,
+      "latency_ms": 9987,
+      "request_id": "02178880527895189d0c17fc196b3c940c12dd7ad5b500ba4b7db",
+      "finish_reason": "stop",
+      "output_sha256": "12516ceb53c446795b26b226c012792ab12f14bf76e5bc15af0729642149617c"
+    },
+    {
+      "label": "compare_holdout_v6--2--dag-single-a:answer",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 4.1739999999999995,
+      "charged": 0.6865,
+      "status": "billed",
+      "input_sha256": "750435ca762df46769d394e20a63d2e096273320efa9991e1bddb4b1125e045e",
+      "dispatch_monotonic": 803286.609727583,
+      "input_tokens": 1947,
+      "output_tokens": 799,
+      "latency_ms": 8285,
+      "request_id": "021788805288949534779bc6a83ab3f36a7a90c1e71ba35afdc83",
+      "finish_reason": "stop",
+      "output_sha256": "daa2287dadb3fcfd972e19680a16076d0db14c339d561df606abbf30bd011349"
+    },
+    {
+      "label": "compare_holdout_v6--2--dag-single-a:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 13.264,
+      "charged": 1.596,
+      "status": "billed",
+      "input_sha256": "71fa94f32283a37d666a56398c432a82d792bfbae2bf52cd341697511d240d6c",
+      "dispatch_monotonic": 803294.927875166,
+      "input_tokens": 1181,
+      "output_tokens": 415,
+      "latency_ms": 13673,
+      "request_id": "021788805297283e4d5e3acd6b6d5c09c835e2d36b9596cdf0f2c",
+      "finish_reason": "stop",
+      "output_sha256": "90899a71015d90ffeca4996d1894022e99fc9f6763e12b13515c7841b69ee73b"
+    }
+  ],
+  "wall_time_ms": 32155.998250003904,
+  "critical_path_latency_ms": 18272
+}

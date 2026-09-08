@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-single-b:risk",
+  "content": "{\"result\": \"资金不足风险评估：方案 A 总投入 22+4×6=46 单位，在 48 单位预算内，盈余 2 单位，无资金不足风险；方案 B 总投入 37+2×6=49 单位，超出 48 单位预算 1 单位，存在资金缺口风险。约束：预算硬性上限 48 单位，不允许追加，6 周运行周期为既定条件，未引入题目以外的优惠、收益或追加预算。建议：在严格不超预算前提下仅方案 A 可行；如必须采用方案 B，可考虑压缩运行周数至 5 周（37+2×5=47 单位，落入预算内），但此调整改变了运行周期假设，超出题目给定的 6 周条件，需在决策时另行确认。\", \"evidence\": \"原始材料：方案 A 固定投入 22 单位、运行费 4 单位/周；方案 B 固定投入 37 单位、运行费 2 单位/周；运行 6 周；总预算 48 单位。上述数值均来自上游 cost 节点提供的原始材料，未引入外部数据。\", \"assumptions\": \"假设运行费按周线性累计，无折扣、税费、通胀、停机补偿或残值；预算为硬性 48 单位上限，不允许追加；题目仅给出 6 周一种运行周期，未给出 B 方案在压缩周数下的其他成本变化，因此 5 周调整方案仅为说明性建议而非题目给定条件；两方案的产出与收益未给定，故仅做成本与预算对比，不评估性价比。\"}",
+  "input_tokens": 938,
+  "output_tokens": 324,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3872,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788805998618e78c31fe06d4434dfef0260629e4a08bfdb786",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 324,
+    "prompt_tokens": 938,
+    "total_tokens": 1262,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

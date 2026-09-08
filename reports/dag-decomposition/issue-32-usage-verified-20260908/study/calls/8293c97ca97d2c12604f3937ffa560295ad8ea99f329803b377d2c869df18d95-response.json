@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-strong-parallel--strong:final-judge",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"方案 A 总投入为 22+4×6=46 单位，余额 48-46=2 单位；方案 B 总投入为 37+2×6=49 单位，缺口 49-48=1 单位。计算正确，约束说明完整，建议合理且未引入额外假设。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案 A 46 单位、方案 B 49 单位计算准确，余额与缺口数值正确。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"正确判断 A 满足预算、B 缺口 1 单位，建议选择 A 并对 B 提出压缩成本或增加预算的条件性建议，未引入未给出的优惠、收益或额外预算。\"}]}",
+  "input_tokens": 533,
+  "output_tokens": 196,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8090,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888061482213d0449b03f13da7ad7c0359f0f1d760cf3f408",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 196,
+    "prompt_tokens": 533,
+    "total_tokens": 729,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

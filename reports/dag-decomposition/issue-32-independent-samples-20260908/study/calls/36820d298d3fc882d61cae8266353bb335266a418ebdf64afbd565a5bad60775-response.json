@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"计算正确：方案A总投入=10+3×4=22，方案B总投入=18+1×4=22，均未超预算24，缺口判断与风险建议合理。输出契约符合：键集合恰为result、evidence、assumptions，均为非空字符串，未复制covers/checks等元数据，JSON语法正确。证据明确说明无外部材料、基于任务给定数据，假设清晰列出线性累加、预算上限等限制，未虚构数据、未声称执行工具或检索。轻微不足：两方案成本相同时的建议略显笼统，但已说明需结合其他因素，符合职责范围。\"}",
+  "input_tokens": 964,
+  "output_tokens": 162,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7246,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788800754690e78c31fe06d4434dfef0260629e4a08b1a5e4f"
+}

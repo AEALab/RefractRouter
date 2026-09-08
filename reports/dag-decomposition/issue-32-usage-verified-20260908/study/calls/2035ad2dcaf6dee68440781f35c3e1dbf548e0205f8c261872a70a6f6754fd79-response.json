@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--3--dag-strong-parallel--strong:answer",
+  "content": "方案 A 总投入为 46 单位，低于总预算 48 单位，预算余额为 2 单位，满足预算约束。方案 B 总投入为 49 单位，高于总预算 48 单位，预算缺口为 1 单位，不满足预算约束。两方案计算均基于题目给出的固定投入、每周运行费、6 周运行期和 48 单位总预算，未引入未给出的优惠、收益或额外预算。\n\n约束为：总预算 48 单位，计划运行 6 周，固定投入与每周运行费按题目给定值计算。假设 6 周内每周均产生完整运行费，无中断或减免；固定投入为一次性支出；预算仅用于覆盖固定投入和 6 周运行费。\n\n建议：在仅考虑给定成本项且不引入优惠、收益或额外预算的前提下，应优先选择方案 A。方案 B 需压缩至少 1 单位成本或增加至少 1 单位预算后才能满足预算约束。",
+  "input_tokens": 1039,
+  "output_tokens": 217,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4151,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788806144016f1aca4493aa6c7087a6ccfbfdb4be61589cb4e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 217,
+    "prompt_tokens": 1039,
+    "total_tokens": 1256,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

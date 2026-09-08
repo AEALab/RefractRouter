@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.07925007957965136,
+      "start_ms": 14.938750071451068,
+      "end_ms": 2325.8779160678387,
+      "queue_ms": 14.859499991871417,
+      "output": "通知\n\n林宁：\n\n请于本月二十六日前提交核验报告。\n\n如合作方明细尚未收齐，请先提交已核验部分；剩余部分请在明细收齐后的第三个工作日补交。\n\n以上时限均按工作日计算，不按自然日执行。",
+      "latency_ms": 2309,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "直接完成原始任务，给出完整文本答案、证据与假设。",
+        "parents": [],
+        "contract": {
+          "objective": "一次模型调用完成原始任务",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务单次调用对照，不使用模型规划。"
+  },
+  "final_output": "通知\n\n林宁：\n\n请于本月二十六日前提交核验报告。\n\n如合作方明细尚未收齐，请先提交已核验部分；剩余部分请在明细收齐后的第三个工作日补交。\n\n以上时限均按工作日计算，不按自然日执行。",
+  "evaluation": {
+    "score": 92,
+    "passed": true,
+    "rationale": "改写后的通知清楚礼貌，保留了责任人「林宁」、时限「本月二十六日前」以及条件「合作方明细尚未收齐时先交已核验部分，明细收齐后第三个工作日补交剩余部分」，并明确「按工作日计算，不按自然日执行」，未虚构日期或承诺。轻微瑕疵：「以上时限均按工作日计算」表述略宽泛——原文仅「第三个工作日」明确为工作日，「本月二十六日」是具体日期而非工作日/自然日之争；但此补充并未改成自然日，也未虚构内容，属于可接受的澄清性表述，不影响通过。验收条目「保留原意并使表达更简洁」已满足：原意完整保留，表达更清楚简洁。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "责任人、时限、条件均完整保留，未改成自然日、未虚构日期或承诺；行文由原句改写为分条通知，更清楚简洁、语气礼貌。「以上时限均按工作日计算」略有延伸但属合理澄清，不改变原意。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.056458055041730404,
+    "peak_running_nodes": 1,
+    "ended_ms": 2345.935541088693,
+    "wall_time_ms": 2345.8808750147
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v6--2--direct-strong--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.487900000000001,
+      "charged": 0.2134,
+      "status": "billed",
+      "input_sha256": "3f2fc0fdece2dba85ec84853c0903e310faf647e7a7b518569f9980a49f17828",
+      "dispatch_monotonic": 804426.156015833,
+      "input_tokens": 332,
+      "output_tokens": 56,
+      "latency_ms": 2309,
+      "request_id": "0217888064284773d3436761e68cde6bd2815b0b11060aca78084",
+      "finish_reason": "stop",
+      "output_sha256": "8cd33b582fefe79d7ffb43c325b49f74096547f5ac6420c0ec05427fcab5218b"
+    },
+    {
+      "label": "rewrite_holdout_v6--2--direct-strong--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.804,
+      "charged": 0.61,
+      "status": "billed",
+      "input_sha256": "ea30e6787635935263c13864a75ddeaa4c03e18dd7ab079c43c1a733ca253ccc",
+      "dispatch_monotonic": 804428.505085458,
+      "input_tokens": 353,
+      "output_tokens": 257,
+      "latency_ms": 9902,
+      "request_id": "021788806430844fc7578b59e843c90e5af4aa62e8cfda9785264",
+      "finish_reason": "stop",
+      "output_sha256": "f82c9d72a4d42063b22be4312768b45faaaba08daeb43a6886c4ee4e4354e0c7"
+    }
+  ],
+  "wall_time_ms": 12268.846624996513,
+  "critical_path_latency_ms": 2309
+}

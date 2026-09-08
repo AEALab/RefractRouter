@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-single-b:cost",
+  "content": "{\"result\":\"方案 A：固定投入 22 单位 + 6 周运行费 4×6=24 单位，合计总投入 46 单位；总预算 48 单位，预算余额 48−46=2 单位（盈余）。方案 B：固定投入 37 单位 + 6 周运行费 2×6=12 单位，合计总投入 49 单位；总预算 48 单位，预算缺口 49−48=1 单位（超支）。约束与建议：在 48 单位预算上限内，方案 A 可全额覆盖并剩余 2 单位，方案 B 超支 1 单位。若须严格不超预算，仅方案 A 可行；若可调整预算或压缩运行周数（例如将 B 的运行周数降至 5 周，则 37+2×5=47 单位，可在预算内），方案 B 经调整后也可行，否则不建议采用方案 B。所有计算仅使用题目给出的固定投入、运行费率、6 周周期和 48 单位预算，未引入任何额外优惠、收益或追加预算。\",\"evidence\":\"原始材料：方案 A 固定投入 22、运行费 4/周；方案 B 固定投入 37、运行费 2/周；运行 6 周；总预算 48。\",\"assumptions\":\"运行费按周线性累计，无折扣、无一次性额外开支；预算为硬性 48 单位上限，不允许追加；未给出通胀、税率、停机补偿或残值。\"}",
+  "input_tokens": 593,
+  "output_tokens": 305,
+  "cached_input_tokens": 512,
+  "reasoning_tokens": 0,
+  "latency_ms": 3988,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888059946013f04613060c95c0e1cb70b4f628471a9da3d42",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 305,
+    "prompt_tokens": 593,
+    "total_tokens": 898,
+    "prompt_tokens_details": {
+      "cached_tokens": 512
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.22404093760997057,
+      "start_ms": 18.32137501332909,
+      "end_ms": 1808.222332969308,
+      "queue_ms": 18.097334075719118,
+      "output": "评审人员确认后，由负责人李明发布最终版本。",
+      "latency_ms": 1787,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "评审人员确认后，由负责人李明发布最终版本。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写文本「评审人员确认后，由负责人李明发布最终版本。」完整保留了原句的责任人（评审人员、负责人李明）与先后顺序（先确认后发布），语义一致且表达更简洁，满足任务要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "文本保留了「评审人员完成确认」在前、「负责人李明发布最终版本」在后的顺序与责任人信息，无信息遗漏或歪曲，且较原句明显简洁。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.06400002166628838,
+    "peak_running_nodes": 1,
+    "ended_ms": 1831.5309159224853,
+    "wall_time_ms": 1831.469291006215
+  },
+  "calls": [
+    {
+      "label": "rewrite_cal_b--2--calibration--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.412,
+      "charged": 0.17105,
+      "status": "billed",
+      "input_sha256": "cb6f7602e5aa18f0302ae1c570b56b1a8c287bcc5a29a05957dd60acd956551a",
+      "dispatch_monotonic": 799562.282387541,
+      "input_tokens": 299,
+      "output_tokens": 12,
+      "latency_ms": 1787,
+      "request_id": "0217888015646323a391e43edef5299850de6066b8d72e2a5ba52",
+      "finish_reason": "stop",
+      "output_sha256": "172ca9116766150d0cf201c76a075ccfbad5ee1d0c5276accbcd216d09777a0d"
+    },
+    {
+      "label": "rewrite_cal_b--2--calibration--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.45,
+      "charged": 0.399,
+      "status": "billed",
+      "input_sha256": "f75aebf1bdb88bd3e122ca775e2653454a5ca0ceb0f97079b0c7346684501ecc",
+      "dispatch_monotonic": 799564.113995416,
+      "input_tokens": 272,
+      "output_tokens": 127,
+      "latency_ms": 6586,
+      "request_id": "0217888015664569255aa03547266d00c3fa3dce78057f1be7cf2",
+      "finish_reason": "stop",
+      "output_sha256": "0c2c127cd18276e3d24ece4de195030ddf42c4f45235bba67f57dec0f8f67117"
+    }
+  ],
+  "wall_time_ms": 8438.43504099641,
+  "critical_path_latency_ms": 1787
+}

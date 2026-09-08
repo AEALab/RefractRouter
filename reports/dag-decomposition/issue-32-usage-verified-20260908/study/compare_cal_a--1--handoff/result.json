@@ -1,0 +1,287 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.05383300594985485,
+      "start_ms": 1.2086250353604555,
+      "end_ms": 4075.0798750668764,
+      "queue_ms": 1.1547920294106007,
+      "output": "{\"result\": \"材料A显示：试点投入12单位覆盖2组，单位覆盖成本为6单位/组；全面推广投入40单位覆盖8组，单位覆盖成本为5单位/组。从单位覆盖成本看，全面推广（5单位/组）略低于试点（6单位/组），但差距不大。材料B指出：试点便于修正错误，而全面推广存在培训不足风险。综合比较，全面推广虽单位成本略低，但伴随培训不足风险；试点成本略高但具备纠错优势。建议：若条件允许，应先以试点验证并完善培训方案，再推进全面推广；若必须直接全面推广，应明确培训保障条件以降低风险。\", \"evidence\": \"材料A：试点投入12单位、覆盖2组；全面推广投入40单位、覆盖8组。材料B：试点便于修正错误；全面推广存在培训不足风险。\", \"assumptions\": \"假设单位覆盖成本按投入除以覆盖组数计算；未提供培训不足风险的具体量化数据，风险影响程度存在不确定性；未说明两组与八组在规模或性质上是否可比，可能影响成本比较的有效性。\"}",
+      "latency_ms": 4070,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 1.2766249710693955,
+      "start_ms": 114.12283300887793,
+      "end_ms": 9222.18016604893,
+      "queue_ms": 112.84620803780854,
+      "output": "{\"result\":\"基于风险材料分析，试点方案与全面推广方案的风险特征如下：\\n\\n一、试点方案（投入12单位、覆盖2组）的风险分析\\n1.可控性强、纠错成本低：材料B明确指出「试点便于修正错误」，意味着在小范围实施过程中能够及时发现方案设计缺陷并快速调整，降低了方案偏差在全局扩散的风险。\\n2.代表性风险：试点仅覆盖2组，样本量较小，存在试点结果能否充分代表整体情况的不确定性，若试点组与未覆盖群体差异较大，可能导致经验推广时出现适配性问题。\\n3.经验沉淀风险：试点过程形成的修正经验需要系统化记录与传递，若知识管理不到位，全面推广阶段可能重复已识别的问题。\\n\\n二、全面推广方案（投入40单位、覆盖8组）的风险分析\\n1.培训不足风险：材料B明确指出「全面推广存在培训不足风险」，覆盖面由2组扩大至8组，实施主体数量显著增加，对培训资源、师资力量、培训周期的需求同步上升，若培训覆盖度或质量不达标，执行偏差风险将被放大。\\n2.统一性风险：8组同时实施要求方案标准化程度高，方案本身若存在模糊地带或地方适配需求未预留空间，会引发执行不一致。\\n3.问题放大化风险：与试点阶段不同，全面推广阶段任一执行环节出错，影响面广，纠错成本与协调难度均显著上升。\\n4.资源到位风险：投入规模扩大对配套资源（人员、经费、物资、管理支持）的及时到位提出更高要求，存在资源错配或到位延迟的风险。\\n\\n三、风险比较与建议方向\\n试点方案的核心优势在于风险可逆性与可修正性；全面推广方案的核心风险来源于规模放大后的执行保障压力，特别是培训能力与方案标准化。是否采用全面推广，应明确以下条件：培训资源是否充分、方案是否已具备足够的标准化与可操作性、是否有阶段性推进或分区推广的安排，以缓冲规模放大带来的风险。建议以试点为风险验证环节，在确认培训体系与执行规范完备后，再向更大范围扩展。\",\"evidence\":\"材料B明确陈述「试点便于修正错误」与「全面推广存在培训不足风险」；材料A提供的试点与全面推广的投入单位（12/40）和覆盖组数（2/8）用于界定两方案的实施范围与规模差异，未进行单位覆盖成本的量化测算。\",\"assumptions\":\"未对成本进行测算（遵循指令要求）；假设试点经验能够被系统化总结并向全面推广阶段传递；假设培训不足风险可通过前置条件明确加以约束；信息缺口：缺少两方案的具体实施周期、组别特征、培训资源现状及历史相似项目的风险数据，相关分析基于材料提供的有限信息进行。\"}",
+      "latency_ms": 9106,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 9227.201582980342,
+      "start_ms": 9236.873875022866,
+      "end_ms": 24312.3292500386,
+      "queue_ms": 9.672292042523623,
+      "output": "综合分析成本与风险两个上游结果后，核对情况如下：\n\n一、冲突核对  \n成本分析认为：全面推广单位覆盖成本为5单位/组，略低于试点的6单位/组，因此从成本效率看全面推广略有优势。  \n风险分析认为：试点核心优势是风险可逆、便于修正；全面推广核心风险是培训不足、执行偏差放大、纠错成本高。  \n两者并不构成直接矛盾，而是分别从“效率”和“安全”两个维度得出不同倾向。成本优势是边际性的，风险劣势则可能具有系统性影响，因此不能仅以单位成本略低为由直接选择全面推广。\n\n二、遗漏核对  \n1. 成本分析未纳入风险成本。若全面推广因培训不足产生执行偏差，其实际纠错成本可能抵消甚至超过单位覆盖成本上的优势。  \n2. 风险分析未量化培训不足风险的发生概率与影响程度，也未说明试点经验能否有效迁移至8组。  \n3. 两份分析均未说明试点2组与全面推广8组在规模、性质、实施条件上是否可比，这会影响成本与风险结论的可靠性。  \n4. 未提供培训资源、实施周期、配套管理能力等信息，因此无法判断全面推广条件是否已经具备。\n\n三、证据核对  \n现有证据仅来自材料A和材料B：  \n材料A：试点投入12单位、覆盖2组；全面推广投入40单位、覆盖8组。  \n材料B：试点便于修正错误；全面推广存在培训不足风险。  \n上游分析未虚构额外数据，结论均基于上述材料推导。但材料本身信息有限，无法支撑“全面推广一定更优”或“试点一定更优”的强结论。\n\n四、综合建议  \n1. 不应仅凭单位覆盖成本略低就选择全面推广。全面推广的5单位/组与试点的6单位/组差距较小，而培训不足风险可能带来更高的纠错成本。  \n2. 建议将试点作为风险验证和方案完善环节，在试点阶段重点解决培训方案、操作规范、经验沉淀与传递问题。  \n3. 若确需推进全面推广，应明确前置条件：培训资源是否充分、培训质量是否可保障、方案是否已标准化、是否具备分阶段或分区推广安排。  \n4. 在条件不明确时，优先选择“试点—完善—再推广”的路径，以降低规模放大后的执行风险。\n\n五、限制说明  \n本建议仅基于材料A和材料B提供的有限信息，未获得培训不足风险的具体量化数据、组别特征、实施周期及历史相似项目数据。因此，关于风险影响程度和成本比较有效性的判断存在不确定性，最终决策应结合更完整的实施条件评估。",
+      "latency_ms": 15072,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "cost": "cheap",
+    "risk": "mid",
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "parents": [],
+        "contract": {
+          "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。"
+  },
+  "final_output": "综合分析成本与风险两个上游结果后，核对情况如下：\n\n一、冲突核对  \n成本分析认为：全面推广单位覆盖成本为5单位/组，略低于试点的6单位/组，因此从成本效率看全面推广略有优势。  \n风险分析认为：试点核心优势是风险可逆、便于修正；全面推广核心风险是培训不足、执行偏差放大、纠错成本高。  \n两者并不构成直接矛盾，而是分别从“效率”和“安全”两个维度得出不同倾向。成本优势是边际性的，风险劣势则可能具有系统性影响，因此不能仅以单位成本略低为由直接选择全面推广。\n\n二、遗漏核对  \n1. 成本分析未纳入风险成本。若全面推广因培训不足产生执行偏差，其实际纠错成本可能抵消甚至超过单位覆盖成本上的优势。  \n2. 风险分析未量化培训不足风险的发生概率与影响程度，也未说明试点经验能否有效迁移至8组。  \n3. 两份分析均未说明试点2组与全面推广8组在规模、性质、实施条件上是否可比，这会影响成本与风险结论的可靠性。  \n4. 未提供培训资源、实施周期、配套管理能力等信息，因此无法判断全面推广条件是否已经具备。\n\n三、证据核对  \n现有证据仅来自材料A和材料B：  \n材料A：试点投入12单位、覆盖2组；全面推广投入40单位、覆盖8组。  \n材料B：试点便于修正错误；全面推广存在培训不足风险。  \n上游分析未虚构额外数据，结论均基于上述材料推导。但材料本身信息有限，无法支撑“全面推广一定更优”或“试点一定更优”的强结论。\n\n四、综合建议  \n1. 不应仅凭单位覆盖成本略低就选择全面推广。全面推广的5单位/组与试点的6单位/组差距较小，而培训不足风险可能带来更高的纠错成本。  \n2. 建议将试点作为风险验证和方案完善环节，在试点阶段重点解决培训方案、操作规范、经验沉淀与传递问题。  \n3. 若确需推进全面推广，应明确前置条件：培训资源是否充分、培训质量是否可保障、方案是否已标准化、是否具备分阶段或分区推广安排。  \n4. 在条件不明确时，优先选择“试点—完善—再推广”的路径，以降低规模放大后的执行风险。\n\n五、限制说明  \n本建议仅基于材料A和材料B提供的有限信息，未获得培训不足风险的具体量化数据、组别特征、实施周期及历史相似项目数据。因此，关于风险影响程度和成本比较有效性的判断存在不确定性，最终决策应结合更完整的实施条件评估。",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "被评估文本准确计算并比较了两个方案的单位覆盖成本（试点6单位/组、全面推广5单位/组），并指出差距较小；同时基于材料B分析了试点便于修正错误与全面推广培训不足风险，明确说明证据仅来自材料A和材料B，未虚构数据，并给出带前置条件的建议。两条验收标准均满足。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "文本明确比较了试点投入12单位覆盖2组与全面推广投入40单位覆盖8组，并正确得出单位覆盖成本分别为6单位/组和5单位/组，同时指出成本优势仅为边际性。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "文本基于材料B分析试点可修正错误、全面推广存在培训不足及纠错成本放大风险，并明确建议采用「试点—完善—再推广」路径，且说明若推进全面推广需满足培训资源、培训质量、方案标准化和分阶段推广等前置条件。"
+      }
+    ]
+  },
+  "assignment_origin": "frozen-validation-permutations",
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 2,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.04245806485414505,
+    "peak_running_nodes": 2,
+    "ended_ms": 24319.263249984942,
+    "wall_time_ms": 24319.22229193151
+  },
+  "calls": [
+    {
+      "label": "compare_cal_a--1--handoff:cost",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.52495,
+      "charged": 0.0409,
+      "status": "billed",
+      "input_sha256": "1352eef007ae7389af17a1430329091fe990399e6d6d2e95c9eefbc727b325e9",
+      "dispatch_monotonic": 802683.527599958,
+      "input_tokens": 572,
+      "output_tokens": 246,
+      "latency_ms": 4070,
+      "request_id": "021788804686898846a816464a9af9c0791e0f68a2ce03cff7305",
+      "finish_reason": "stop",
+      "output_sha256": "d88486c4ec07df010ef61320e5739ded2ad2025209307dfad5853eb76dacd377"
+    },
+    {
+      "label": "compare_cal_a--1--handoff:risk",
+      "model_id": "mid",
+      "category": "production",
+      "reserved": 2.6397500000000003,
+      "charged": 0.2915,
+      "status": "billed",
+      "input_sha256": "3bec9b8076a47482829d39fa24ffa0eeb85c44696202c6eb084df85033daf961",
+      "dispatch_monotonic": 802683.640514416,
+      "input_tokens": 589,
+      "output_tokens": 577,
+      "latency_ms": 9106,
+      "request_id": "02178880468598039b5b0f4b57789945865e795386c3530cd5bbf",
+      "finish_reason": "stop",
+      "output_sha256": "76a6cc4aa60ccdef2163d38420bed77e4b3718692d406b25fcddefe97488660a"
+    },
+    {
+      "label": "compare_cal_a--1--handoff:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 7.886450000000001,
+      "charged": 1.0076,
+      "status": "billed",
+      "input_sha256": "cb218b913134d065e1d4c7278cfa5767ccaf7af3fffd2648d6ad802d924c29e6",
+      "dispatch_monotonic": 802692.763266666,
+      "input_tokens": 1252,
+      "output_tokens": 580,
+      "latency_ms": 15072,
+      "request_id": "02178880469510496de9f55314d9c1d75ac853e3e9cad7e10c5da",
+      "finish_reason": "stop",
+      "output_sha256": "157d75ecb5b5c294855712f56398fc649afdd32252c2aabe9b36e9308a69d78a"
+    },
+    {
+      "label": "compare_cal_a--1--handoff:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 12.259,
+      "charged": 1.141,
+      "status": "billed",
+      "input_sha256": "6c25eb3e3de7346b9ee6371da682279ce2665b57ffdb17c8baca5f25ff73d1d3",
+      "dispatch_monotonic": 802707.853572333,
+      "input_tokens": 898,
+      "output_tokens": 243,
+      "latency_ms": 9276,
+      "request_id": "021788804710209b531818cd979bd70c39b690ac6f23902efc469",
+      "finish_reason": "stop",
+      "output_sha256": "0ac57db9664c864545952561c71f6d266dffdc4c79f44bd09eef92ed4c9cf7b8"
+    }
+  ],
+  "wall_time_ms": 33605.98574997857,
+  "critical_path_latency_ms": 24178
+}

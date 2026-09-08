@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.041041988879442215,
+      "start_ms": 9.070875006727874,
+      "end_ms": 2948.4885840211064,
+      "queue_ms": 9.029833017848432,
+      "output": "【工作通知】\n\n请林宁于本月二十六日前提交核验报告。\n\n如合作方明细尚未收齐，可先提交已完成核验的部分；剩余部分请在合作方明细收齐后的第三个工作日补交。\n\n说明：\n- 上述“第三个工作日”按工作日计算，不按自然日计算。\n- 本通知未新增或虚构具体日期，仅按原要求转述时限与条件。",
+      "latency_ms": 2938,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "直接完成原始任务，给出完整文本答案、证据与假设。",
+        "parents": [],
+        "contract": {
+          "objective": "一次模型调用完成原始任务",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务单次调用对照，不使用模型规划。"
+  },
+  "final_output": "【工作通知】\n\n请林宁于本月二十六日前提交核验报告。\n\n如合作方明细尚未收齐，可先提交已完成核验的部分；剩余部分请在合作方明细收齐后的第三个工作日补交。\n\n说明：\n- 上述“第三个工作日”按工作日计算，不按自然日计算。\n- 本通知未新增或虚构具体日期，仅按原要求转述时限与条件。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本完整保留了责任人「林宁」、时限「本月二十六日前」及条件「明细收齐后的第三个工作日补交」，且明确未改为自然日、未虚构日期；表达清楚、礼貌、简洁，符合原任务要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "改写后的通知保留了原意，结构清晰，语言简洁礼貌，无信息遗漏或添加。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.031125033274292946,
+    "peak_running_nodes": 1,
+    "ended_ms": 2961.2655420787632,
+    "wall_time_ms": 2961.236083996482
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v6--1--direct-strong--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.487900000000001,
+      "charged": 0.2299,
+      "status": "billed",
+      "input_sha256": "3f2fc0fdece2dba85ec84853c0903e310faf647e7a7b518569f9980a49f17828",
+      "dispatch_monotonic": 804343.982995708,
+      "input_tokens": 332,
+      "output_tokens": 86,
+      "latency_ms": 2938,
+      "request_id": "0217888063463113d763aaa7a5e423f9e5323a8c500bc9ffd1173",
+      "finish_reason": "stop",
+      "output_sha256": "a5bc46e4684c6a3877e288cf6e153f40e9860688e6fb5ea0855d4bf3dedce8dc"
+    },
+    {
+      "label": "rewrite_holdout_v6--1--direct-strong--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.94,
+      "charged": 0.502,
+      "status": "billed",
+      "input_sha256": "f79930e15ae064f7072b27e24f83d5f3ee4edb0b02056db6896979fb872afdff",
+      "dispatch_monotonic": 804346.955140666,
+      "input_tokens": 386,
+      "output_tokens": 116,
+      "latency_ms": 5590,
+      "request_id": "021788806349300fc7578b59e843c90e5af4aa62e8cfda9908d6b",
+      "finish_reason": "stop",
+      "output_sha256": "3a01afc9bfdcd33fecd3662914c3a2e647c347edc8eb453c1f41c7aca396fda9"
+    }
+  ],
+  "wall_time_ms": 8573.533709044568,
+  "critical_path_latency_ms": 2938
+}

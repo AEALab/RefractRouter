@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:cost:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确计算了方案A总投入28（8+4×5）和方案B总投入25（20+1×5），准确识别方案A超支2单位存在资金缺口、方案B在预算内，并给出合理建议。输出严格符合契约要求：仅包含result、evidence、assumptions三个字段，均为非空字符串；evidence明确说明数据来源于任务描述且无外部证据；assumptions清晰列出了成本计算假设和限制条件。未发现虚构数据或不实工具执行声明。\"}",
+  "input_tokens": 1042,
+  "output_tokens": 136,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10520,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888009845234c81961e630bce638d970dc2753358735bb352"
+}

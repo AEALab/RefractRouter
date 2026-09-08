@@ -1,0 +1,134 @@
+{
+  "schema_version": "node-routing-profile-v1",
+  "kind": "synthetic",
+  "billing_unit": "USD",
+  "scope": "Synthetic demonstration only, not measured model performance.",
+  "provenance": "Explicit deterministic fixture; never usable for live routing.",
+  "model_bindings": {
+    "cheap": "gpt-5.4-nano-2026-03-17",
+    "mid": "gpt-5.4-mini-2026-03-17",
+    "strong": "gpt-5.4-2026-03-05"
+  },
+  "candidates": [
+    {
+      "model_id": "cheap",
+      "node_type": "planning",
+      "quality": 96,
+      "cost": 0.01,
+      "latency_ms": 2000,
+      "samples": 1
+    },
+    {
+      "model_id": "mid",
+      "node_type": "planning",
+      "quality": 90,
+      "cost": 0.04,
+      "latency_ms": 1000,
+      "samples": 1
+    },
+    {
+      "model_id": "strong",
+      "node_type": "planning",
+      "quality": 95,
+      "cost": 0.1,
+      "latency_ms": 3000,
+      "samples": 1
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "extraction",
+      "quality": 96,
+      "cost": 0.01,
+      "latency_ms": 2000,
+      "samples": 1
+    },
+    {
+      "model_id": "mid",
+      "node_type": "extraction",
+      "quality": 90,
+      "cost": 0.04,
+      "latency_ms": 1000,
+      "samples": 1
+    },
+    {
+      "model_id": "strong",
+      "node_type": "extraction",
+      "quality": 95,
+      "cost": 0.1,
+      "latency_ms": 3000,
+      "samples": 1
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "synthesis",
+      "quality": 80,
+      "cost": 0.01,
+      "latency_ms": 2000,
+      "samples": 1
+    },
+    {
+      "model_id": "mid",
+      "node_type": "synthesis",
+      "quality": 90,
+      "cost": 0.04,
+      "latency_ms": 1000,
+      "samples": 1
+    },
+    {
+      "model_id": "strong",
+      "node_type": "synthesis",
+      "quality": 95,
+      "cost": 0.1,
+      "latency_ms": 3000,
+      "samples": 1
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "quality": 80,
+      "cost": 0.01,
+      "latency_ms": 2000,
+      "samples": 1
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "quality": 90,
+      "cost": 0.04,
+      "latency_ms": 1000,
+      "samples": 1
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "quality": 95,
+      "cost": 0.1,
+      "latency_ms": 3000,
+      "samples": 1
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "verification",
+      "quality": 80,
+      "cost": 0.01,
+      "latency_ms": 2000,
+      "samples": 1
+    },
+    {
+      "model_id": "mid",
+      "node_type": "verification",
+      "quality": 90,
+      "cost": 0.04,
+      "latency_ms": 1000,
+      "samples": 1
+    },
+    {
+      "model_id": "strong",
+      "node_type": "verification",
+      "quality": 95,
+      "cost": 0.1,
+      "latency_ms": 3000,
+      "samples": 1
+    }
+  ]
+}

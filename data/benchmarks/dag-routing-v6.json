@@ -1,0 +1,1307 @@
+{
+  "schema_version": "dag-routing-study-v3",
+  "status": "frozen-preflight",
+  "description": "保留未知用量预留，复用已完整核验的校准，只对新留出任务采集八组结果。",
+  "manifest_path": "../model-manifests/volcengine-agent-plan.json",
+  "manifest_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+  "calibration_repeats": 2,
+  "test_repeats": 3,
+  "reference_model_id": "strong",
+  "methods": [
+    "direct-strong",
+    "dag-strong-serial",
+    "dag-strong-parallel",
+    "dag-calibrated-single",
+    "dag-node-a",
+    "dag-node-b",
+    "dag-single-a",
+    "dag-single-b"
+  ],
+  "execution_policy": {
+    "maxConcurrency": 2,
+    "providerConcurrency": {
+      "ark-plan": 2
+    },
+    "providerMinIntervalMs": {
+      "ark-plan": 100
+    }
+  },
+  "constraints": {
+    "qualityMin": 80,
+    "costMax": 100,
+    "latencyMaxMs": 300000,
+    "weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    }
+  },
+  "input_caps": {
+    "final_judge": 65536,
+    "node_judge": 98304
+  },
+  "acceptance": {
+    "minimum_final_quality": 80,
+    "maximum_mean_quality_loss": 3,
+    "minimum_cost_saving_fraction": 0.1,
+    "maximum_latency_ratio": 1.0,
+    "bootstrap_unit": "task_id",
+    "bootstrap_repeats": 2000,
+    "bootstrap_seed": 32,
+    "interpretation": "仅探索性信号；要求完整配对与区间达标，3 个测试任务不构成泛化证明。"
+  },
+  "failure_policy": "isolate-observation-stop-on-infrastructure",
+  "tasks": [
+    {
+      "task_id": "compare_cal_a",
+      "family": "comparison",
+      "split": "calibration",
+      "task": "材料 A：试点投入 12 单位、覆盖 2 组；全面推广投入 40 单位、覆盖 8 组。材料 B：试点便于修正错误；全面推广存在培训不足风险。比较单位覆盖成本与风险，建议应明确条件。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析两个方案的成本与资源需求",
+            "contract": {
+              "objective": "分析两个方案的成本与资源需求",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+            "contract": {
+              "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+            "contract": {
+              "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "high",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "比较两个方案的成本与资源需求",
+          "分析风险并给出有证据支持的建议"
+        ]
+      }
+    },
+    {
+      "task_id": "compare_cal_b",
+      "family": "comparison",
+      "split": "calibration",
+      "task": "材料 A：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组。材料 B：两者单位成本相同；试点反馈更快，全面推广交付更广。基于材料比较并给出条件式建议。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析两个方案的成本与资源需求",
+            "contract": {
+              "objective": "分析两个方案的成本与资源需求",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+            "contract": {
+              "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+            "contract": {
+              "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "high",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "比较两个方案的成本与资源需求",
+          "分析风险并给出有证据支持的建议"
+        ]
+      }
+    },
+    {
+      "task_id": "compare_holdout_v6",
+      "family": "comparison",
+      "split": "test",
+      "task": "材料 A：分区试行投入 35 单位、覆盖 5 组；整体上线投入 72 单位、覆盖 8 组。材料 B：分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，验收日期尚未确定。比较单位覆盖成本、总投入与调整风险，给出附明确条件的建议，不虚构收益或风险概率。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析两个方案的成本与资源需求",
+            "contract": {
+              "objective": "分析两个方案的成本与资源需求",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+            "contract": {
+              "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+            "contract": {
+              "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "high",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "比较两个方案的成本与资源需求",
+          "分析风险并给出有证据支持的建议"
+        ]
+      }
+    },
+    {
+      "task_id": "cash_cal_a",
+      "family": "cash_constraint",
+      "split": "calibration",
+      "task": "合成场景：方案 A 固定投入 10、每组投入 3、服务 4 组；方案 B 固定投入 18、每组投入 1、服务 4 组。可用预算 24。先计算总投入，再据此判断资金缺口风险并建议。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析两个方案的成本与资源需求",
+            "contract": {
+              "objective": "分析两个方案的成本与资源需求",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [
+              "cost"
+            ],
+            "prompt_template": "根据成本测算评估资金不足风险",
+            "contract": {
+              "objective": "根据成本测算评估资金不足风险",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+            "contract": {
+              "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "high",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "准确计算两个方案总投入",
+          "根据预算判断缺口并给出有条件建议"
+        ]
+      }
+    },
+    {
+      "task_id": "cash_cal_b",
+      "family": "cash_constraint",
+      "split": "calibration",
+      "task": "合成场景：方案 A 固定投入 8、每组投入 4、服务 5 组；方案 B 固定投入 20、每组投入 1、服务 5 组。可用预算 26。先计算总投入，再据此判断资金缺口风险并建议。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析两个方案的成本与资源需求",
+            "contract": {
+              "objective": "分析两个方案的成本与资源需求",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [
+              "cost"
+            ],
+            "prompt_template": "根据成本测算评估资金不足风险",
+            "contract": {
+              "objective": "根据成本测算评估资金不足风险",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+            "contract": {
+              "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "high",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "准确计算两个方案总投入",
+          "根据预算判断缺口并给出有条件建议"
+        ]
+      }
+    },
+    {
+      "task_id": "cash_holdout_v6",
+      "family": "cash_constraint",
+      "split": "test",
+      "task": "方案 A 固定投入 22 单位，每周运行费 4 单位；方案 B 固定投入 37 单位，每周运行费 2 单位。计划运行 6 周，总预算 48 单位。计算两方案总投入及预算余额或缺口，说明约束与建议，不引入未给出的优惠、收益或额外预算。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析两个方案的成本与资源需求",
+            "contract": {
+              "objective": "分析两个方案的成本与资源需求",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [
+              "cost"
+            ],
+            "prompt_template": "根据成本测算评估资金不足风险",
+            "contract": {
+              "objective": "根据成本测算评估资金不足风险",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+            "contract": {
+              "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "high",
+                "input_budget_tokens": 32768,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "准确计算两个方案总投入",
+          "根据预算判断缺口并给出有条件建议"
+        ]
+      }
+    },
+    {
+      "task_id": "rewrite_cal_a",
+      "family": "rewrite",
+      "split": "calibration",
+      "task": "将下句改写为简洁中文，保留完成时限与条件：我们计划在本周五之前完成这项测试工作，但前提条件是所有的输入数据已经全部准备好了。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。",
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [],
+            "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+            "contract": {
+              "objective": "把用户提供的句子改写得更简洁，保留原意",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "保留原意并使表达更简洁"
+        ]
+      }
+    },
+    {
+      "task_id": "rewrite_cal_b",
+      "family": "rewrite",
+      "split": "calibration",
+      "task": "将下句改写为简洁中文，保留责任人和先后顺序：在评审人员完成确认工作之后，负责人李明将会开始进行最终版本的发布工作。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。",
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [],
+            "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+            "contract": {
+              "objective": "把用户提供的句子改写得更简洁，保留原意",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "保留原意并使表达更简洁"
+        ]
+      }
+    },
+    {
+      "task_id": "rewrite_holdout_v6",
+      "family": "rewrite",
+      "split": "test",
+      "task": "请改写为清楚、礼貌的工作通知，保留责任人、时限和条件：林宁需在本月二十六日前提交核验报告；若合作方明细尚未收齐，先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。不得改成自然日，也不得虚构日期或承诺。",
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。",
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [],
+            "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+            "contract": {
+              "objective": "把用户提供的句子改写得更简洁，保留原意",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "保留原意并使表达更简洁"
+        ]
+      }
+    }
+  ],
+  "revision": "v6-verified-usage-reused-calibration",
+  "revision_reason": "风险节点三候选真实回放均通过后，冻结 JSON 转义和中文引用要求；规划与评审也明确裸 JSON 及转义要求，语义标准与任务/数据划分不变。",
+  "supersedes_protocol_sha256": "b00899f12e7942e80dd07c42a742f893b5dc78259f1162c4acbe4a5c28669b3f",
+  "implementation_sha256": {
+    "__init__.py": "1ebb90221ab180b3804eaf36fddfaea1cfb5303f2f03e3299812041207e28a34",
+    "adapters.py": "0647838c0819a274bc6504aa3879a1b69e4e299da83877525f234b395fd3288a",
+    "benchmark.py": "9c9042519d21db15cff169e036e369187a7cf9a7b33d7794cc25c3de9b193c12",
+    "cli.py": "bfac0bf929a98acbddacd7c848f17650fb6dd9526c5f77895ca750cee033adee",
+    "comparisons.py": "ee6fd87e5463e8a523937a85fbb2c342c4190d3dc0e70751080762966d6214a9",
+    "dag_batch_study.py": "a257d98d47bc68627ed019d1e07cefac513882ea7e3ea54f7bb83ef43ed661d2",
+    "dag_study.py": "dab8f2e074ddfa5ab46c16f7c8e7b705d2c1b36a4a8242ff8eebdef23dbe7161",
+    "dag_study_execution.py": "2c29d750ce6a08079ad4c85dc727d3cad28185966cabecb7359c0bb2ba046f3d",
+    "dataset.py": "51f5138e84b515cdeee5f306f6bd8fed0f47eb74752748b52084c866598d749d",
+    "deepagents_executor.py": "e3e4e085d55f9792f7722681fccb5bdf1f45d6828749cfa274c07ddd88510f3b",
+    "graph_executor.py": "eb629b4d7546f07ff3d7f5b80ce47f3d076f8564b4f41d062a2a60fb4c94a853",
+    "handoff_validation.py": "74c527214f10e1ead75a5b957ce373ce9037d24ee10841880cffa29c67cd7709",
+    "judge.py": "7dfd119c5353b284e93fd37538894dcdb37c08326faa69f6a87836cade2ad6e1",
+    "manifest.py": "92c0490a5bdd362a7d9390ff5a842e08a0c9a5d7181c516a91c1aa327784354b",
+    "metrics.py": "1bfe2db5523c56bcefe456e23f62a507a1650f650fe07ee48ff7900b5dae350a",
+    "model_catalog.py": "158c7b5acc0dd13ed061099e298fd656b0ab93bd88dfe8b4ed526accaf9ca818",
+    "model_registry.py": "1f5d56244af42e918e594dd8434c49edba70ac50070314bef5eb09cc10868f8e",
+    "model_selection.py": "a23b611824b0ef432ee3c7933bd216879138d6901477048a433e20bf6a2f0793",
+    "node_availability.py": "5ad1080943010d893ebcd1f9900846b02df132d3ac0675a94e691e50e34b08a4",
+    "node_contracts.py": "fcbd35e200dec7f14537aa8fe8dfeeb26cece6aa27d71cce5f25611dd5a0e2ec",
+    "node_judge.py": "3a56d66ba73ea1069e4a584557e7097b8816ffc58d6c8c5b03c0ddea2fb6fe65",
+    "node_routing.py": "48a271f90f1bb2d065e0acdbeb011e3d3b72674e4b1cf5cc67490e2aa2ea679f",
+    "openai_compatible.py": "8c602f81e83401632f84599851e216f2fadf1c93b1645a7932d4addc7299b539",
+    "profile_calibration.py": "55cc0435b82737af287a3ee134d417c8af77ac897c16de8557f1edbc1fcdccaf",
+    "report_renderer.py": "a2b110b8fdea5afdd4369377b5bef1c753bc1e845076dd90e23dc17dc4ed464d",
+    "routing.py": "6b7c964f643fa30465d4e9d2a425f0732ebf3633f59f9dafe67968188f6e916f",
+    "schemas.py": "8157af768ef52338e3c9884a607d8819814f24c0b13d004ac31833a1c8a70519",
+    "scoring.py": "7a2be97790dc452f101ebdc5a6bed98e0247cdfa1b6f777c6197b8d2c23b87d0",
+    "source_pack.py": "cc515979db15bcd08133cf0af2ba7ce615c288ec09a661ca0d4ae34d3501fe7d",
+    "task_budget.py": "daa9f52411ae3abe36f0f24c7752fb2c3e761ba962f139564a58c53117801a00",
+    "task_contract_replay.py": "9fa02697d015b4a7eb9c59147fd578493e69cd19cca5549bf5959d4f4b427685",
+    "task_contracts.py": "7e794a3e6e0416958677163e254b83a869a59c10a172aa35a83e670442da95ff",
+    "task_evaluation.py": "e8f6718a8a01050c4da73c4bc1332326fe8ee191be43a97d3e208561a644cb6f",
+    "task_execution.py": "4103e3601f384d7cc53e6abdde841bf754dc196820191f3c3f0e10c833f67de4",
+    "task_plan.py": "732e897980298e5006e46c083e6f5e8fb061597a7ea1c52d6a86ad68d8643b11",
+    "task_runtime.py": "17d98fb49382bcd3139c44092a190d6bdd954d08bba849ca57f70e2d1ee652d8",
+    "task_scheduling.py": "407c91b0b6d79fb2ef5e0e89fbd740ef242cd6815a0fa0a016c30c661487b414"
+  },
+  "method_order_seed": 32,
+  "holdout_amendment": "旧 v1-v3 留出材料已用于诊断，不计入本轮；新任务在本协议冻结前无模型调用。仍仅三个任务，结果为探索性。",
+  "outcome_policy": "all-trial-delivery-rate-and-joint-graded-metrics-v1",
+  "handoff_task_id": "compare_cal_a",
+  "probe_contexts": [
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 1,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/compare_cal_a--1--calibration--strong/result.json",
+      "source_sha256": "43c7d8e23f3bddc7a77d5ae501a9fffc55c1b8a03dd7d58b6ff31116a833cd31",
+      "context": {
+        "cost": {
+          "result": "试点方案投入12单位、覆盖2组，单位覆盖成本为6单位/组；全面推广方案投入40单位、覆盖8组，单位覆盖成本为5单位/组。仅从单位覆盖成本看，全面推广略优。但材料B指出试点便于修正错误，而全面推广存在培训不足风险，因此全面推广的低单位成本建立在更大规模铺开的基础上，若培训不足导致执行偏差，可能产生额外纠错成本。建议在明确培训能力、执行条件和纠错机制后再比较净成本与风险，不宜仅凭单位覆盖成本直接选择全面推广。",
+          "evidence": "材料A：试点投入12单位、覆盖2组；全面推广投入40单位、覆盖8组。材料B：试点便于修正错误；全面推广存在培训不足风险。",
+          "assumptions": "假设投入单位与覆盖组数可直接用于计算单位覆盖成本，且两组方案的目标组别具有可比性。材料未提供培训成本、纠错成本、时间周期、质量效果等数据，因此无法得出全面推广净成本必然更优的结论。"
+        },
+        "risk": {
+          "result": "两方案在风险层面的主要差异是：试点方案投入规模较小、覆盖范围有限，便于在实施过程中发现并修正错误，风险可控性相对较高；全面推广方案投入规模较大、覆盖范围成倍扩大，但材料指出存在培训不足风险，可能影响执行质量和效果，风险敞口更大。因此，从风险角度不宜直接认定全面推广优于试点，应明确全面推广前需满足的条件，例如培训准备是否充分、试点经验是否可复制、执行能力是否匹配等。",
+          "evidence": "材料 A：试点投入 12 单位、覆盖 2 组；全面推广投入 40 单位、覆盖 8 组。材料 B：试点便于修正错误；全面推广存在培训不足风险。",
+          "assumptions": "本分析仅基于给定风险材料，不依赖成本测算，也不对成本效益作量化比较。材料未提供培训不足风险的发生概率、影响程度及试点错误修正的具体机制，因此无法判断风险等级或给出量化结论。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合成本与风险两方面分析，现有材料并不支持直接选择全面推广方案。成本分析显示，试点方案单位覆盖成本为6单位/组，全面推广方案为5单位/组，全面推广在单位覆盖成本上略优；但这一优势建立在更大规模铺开的基础上，材料B同时指出全面推广存在培训不足风险，可能带来执行偏差和额外纠错成本。风险分析也显示，试点方案投入规模较小、覆盖范围有限，便于修正错误，风险可控性相对较高；全面推广方案覆盖范围成倍扩大，培训不足风险可能影响执行质量和效果，风险敞口更大。两者在结论方向上一致，未发现明显冲突。\\n\\n主要遗漏在于：材料未提供培训成本、纠错成本、时间周期、质量效果、培训不足风险的发生概率与影响程度，以及试点经验是否可复制、执行能力是否匹配等条件。因此，当前只能判断全面推广的单位覆盖成本略低，但不能判断其净成本或综合风险更优。\\n\\n建议：不宜仅凭单位覆盖成本直接选择全面推广。应明确全面推广的前置条件，包括培训能力是否充分、试点经验是否可复制、执行能力是否匹配、纠错机制是否建立；在补充培训成本、纠错成本、质量效果和风险概率等数据后，再比较两方案的净成本与风险。若这些条件不能满足，应优先保留试点或采取分阶段扩大覆盖的方式。\\n\\n依据：材料A显示试点投入12单位、覆盖2组，全面推广投入40单位、覆盖8组；材料B显示试点便于修正错误，全面推广存在培训不足风险。上述建议基于给定材料，未虚构额外数据，并受限于材料未提供的成本、风险与执行条件信息。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "compare_cal_a",
+      "repeat": 2,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/compare_cal_a--2--calibration--strong/result.json",
+      "source_sha256": "843876c5ded5da7d0e609dcda6a6c57895279381f4c5019a53a4d917712870e8",
+      "context": {
+        "cost": {
+          "result": "试点方案投入12单位、覆盖2组，单位覆盖成本为6单位/组；全面推广方案投入40单位、覆盖8组，单位覆盖成本为5单位/组。因此，从单位覆盖成本看，全面推广略优于试点。但材料B指出，试点便于在较小范围内修正错误，而全面推广存在培训不足风险。综合比较，全面推广的单位成本更低，但实施风险更高；试点单位成本略高，但风险更可控。建议在采用全面推广前明确培训、执行和纠错条件，否则可先以试点方式验证并降低风险。",
+          "evidence": "材料A：试点投入12单位、覆盖2组；全面推广投入40单位、覆盖8组。材料B：试点便于修正错误；全面推广存在培训不足风险。",
+          "assumptions": "假设投入单位与覆盖组数可直接用于计算单位覆盖成本，且两组方案的目标和覆盖质量具有可比性。材料未提供培训不足风险的发生概率、影响程度及纠错成本，也未说明试点与全面推广在时间、人员、质量等方面的其他差异，因此风险比较仅为定性判断。"
+        },
+        "risk": {
+          "result": "两方案在风险层面的主要差异是：试点方案因投入规模小、覆盖范围有限，即使出现错误也便于及时修正，整体风险可控；全面推广方案投入规模更大、覆盖范围更广，但材料 B 指出存在培训不足风险，一旦在更大范围内实施，培训不足可能被放大，导致执行偏差或效果不达预期。因此，从风险角度看，试点方案更有利于控制错误和降低不确定性，全面推广方案则需要在培训等配套条件具备后再推进。建议在决定全面推广前明确培训到位、人员能力匹配等前提条件，避免在条件不成熟时扩大实施范围。",
+          "evidence": "材料 A：试点投入 12 单位、覆盖 2 组；全面推广投入 40 单位、覆盖 8 组。材料 B：试点便于修正错误；全面推广存在培训不足风险。",
+          "assumptions": "本分析仅基于材料 A 和材料 B 提供的风险相关信息，不依赖成本测算，也不对成本效益进行量化比较。材料未提供培训不足的具体表现、影响程度或发生概率，因此无法评估该风险的严重性和可能性；也未说明试点阶段是否已经出现培训相关问题。全面推广的培训不足风险是否必然发生、是否可通过补充培训缓解，均需进一步信息确认。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合成本与风险两个维度的分析，可以形成以下判断与建议。\n\n一、冲突核对\n\n成本维度与风险维度之间不存在直接矛盾，但存在取舍关系。成本分析显示，全面推广的单位覆盖成本为 5 单位/组，低于试点的 6 单位/组，因此从单位成本看，全面推广略优。风险分析则显示，试点因规模小、覆盖范围有限，更便于修正错误，风险更可控；全面推广存在培训不足风险，且该风险可能因覆盖范围扩大而被放大。两者并不冲突，而是说明：全面推广在成本效率上占优，但在实施风险上更高；试点在风险控制上更优，但单位成本略高。\n\n二、遗漏核对\n\n现有分析主要遗漏了以下信息：培训不足风险的发生概率、影响程度和可缓解性；试点阶段是否已经暴露培训或执行问题；全面推广是否存在规模效应之外的额外管理成本或协调成本；两方案在时间、人员、质量、目标一致性等方面是否可比。由于这些信息缺失，当前只能对风险作定性判断，无法进行成本与风险之间的量化权衡。\n\n三、证据核对\n\n成本结论依据材料 A 的投入和覆盖数据，计算逻辑清晰，证据可追溯。风险结论依据材料 B 的定性描述，即试点便于修正错误、全面推广存在培训不足风险，证据可追溯。两个维度的证据均来自给定材料，未发现虚构数据或超出材料范围的断言。但风险分析中关于培训不足可能被放大的判断属于合理推断，应作为假设而非事实对待。\n\n四、综合建议\n\n建议现阶段不直接以全面推广替代试点，而是将全面推广设定为有条件推进的方案。具体而言：\n\n1. 若培训、执行和纠错条件能够事先明确并落实，则可以考虑采用全面推广，因为其单位覆盖成本更低。\n2. 若培训到位情况、人员能力匹配和纠错机制尚不明确，则建议先维持或扩大试点，在较小范围内验证培训效果和执行质量，降低风险后再决定是否全面推广。\n3. 在决策前应补充培训不足风险的发生概率、影响程度、补救成本，以及试点阶段是否已出现培训或执行问题等信息，以便在成本效率与风险控制之间作出更可靠的权衡。\n\n限制说明：本建议仅基于材料 A 和材料 B 提供的信息，未引入外部数据，也未对培训不足风险进行量化评估。全面推广的单位成本优势是否足以抵消其更高的实施风险，仍需依赖补充信息进一步判断。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "compare_cal_b",
+      "repeat": 1,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/compare_cal_b--1--calibration--strong/result.json",
+      "source_sha256": "f636cf7a0ff395c510fc6e5947d8f90f00ae5e7ee065d8221d3aacc3242b8fd6",
+      "context": {
+        "cost": {
+          "result": "试点方案投入18单位、覆盖3组，单位成本为6单位/组；全面推广方案投入42单位、覆盖7组，单位成本同为6单位/组。两者单位成本相同，因此从纯成本效率看无差异。资源需求上，全面推广的绝对投入更高，但覆盖范围也更大。试点方案资源占用更少、反馈更快，适合先验证效果或控制风险；全面推广交付更广，适合在效果已较明确时快速扩大覆盖。条件式建议：若当前不确定性较高或预算有限，优先选择试点方案；若已具备较充分的效果依据且需要尽快扩大交付范围，则选择全面推广方案。",
+          "evidence": "材料A：试点投入18单位、覆盖3组；全面推广投入42单位、覆盖7组。材料B：两者单位成本相同；试点反馈更快，全面推广交付更广。",
+          "assumptions": "假设材料A中的投入单位与材料B中的单位成本口径一致，且覆盖组数可直接用于计算单位成本。材料未提供时间周期、人力配置、质量差异、固定成本与变动成本拆分等信息，因此无法判断规模效应或长期成本变化。"
+        },
+        "risk": {
+          "result": "两方案在给定材料下均不涉及成本差异，风险比较主要取决于覆盖规模与反馈速度的权衡。试点方案投入18单位、覆盖3组，规模较小、反馈更快，风险表现为：单组覆盖强度较高但总覆盖有限，若试点结论外推至全面推广可能存在代表性不足或局部偏差风险；同时因覆盖组数少，对异常或局部问题的暴露面较小，但发现系统性问题的机会也较少。全面推广方案投入42单位、覆盖7组，交付更广，风险表现为：覆盖范围扩大可降低局部偏差影响、提高结果代表性，但一旦方案设计或执行存在问题，影响面更大、纠偏成本更高；反馈速度较慢可能延迟风险识别与调整。条件式建议：若当前不确定性较高、需要快速验证方案可行性或控制早期纠偏成本，优先选择试点方案；若方案已较为成熟、更关注结果代表性和广泛交付，且能接受较慢反馈与较大影响面，则选择全面推广方案。",
+          "evidence": "材料A：试点投入18单位、覆盖3组；全面推广投入42单位、覆盖7组。材料B：两者单位成本相同；试点反馈更快，全面推广交付更广。未提供其他风险数据。",
+          "assumptions": "假设投入单位与覆盖组数可反映方案规模及影响范围；假设反馈速度与风险识别和纠偏能力相关；假设两组方案在质量、执行能力和外部环境上无其他差异。信息缺口：缺少失败概率、历史同类方案表现、各组异质性、具体风险事件类型及严重程度等数据，因此无法进行量化风险排序。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合成本与风险两个维度的分析，两方案在给定材料下单位成本相同，均为6单位/组，因此成本效率本身不构成选择依据。差异主要体现在资源占用、反馈速度和交付广度上：试点方案投入18单位、覆盖3组，资源占用少、反馈更快，适合在不确定性较高或预算有限时先验证效果、控制早期纠偏成本；全面推广方案投入42单位、覆盖7组，交付更广、代表性更强，但影响面更大、反馈较慢，一旦存在问题，纠偏成本更高。\\n\\n冲突核对：成本分析认为两者单位成本相同、纯成本效率无差异；风险分析也认为两方案在给定材料下不涉及成本差异，风险比较取决于覆盖规模与反馈速度的权衡。两者在成本判断上一致，未发现冲突。\\n\\n遗漏核对：材料未提供时间周期、人力配置、质量差异、固定成本与变动成本拆分、失败概率、历史同类方案表现、各组异质性、具体风险事件类型及严重程度等信息，因此无法判断规模效应、长期成本变化或进行量化风险排序。现有结论均基于材料A和材料B的有限信息，未虚构数据。\\n\\n证据核对：成本与风险分析均引用材料A的投入和覆盖数据，以及材料B的单位成本相同、试点反馈更快、全面推广交付更广。证据来源一致，未发现超出材料范围的证据。\\n\\n条件式建议：若当前不确定性较高、预算有限或需要快速验证方案可行性并控制早期纠偏成本，优先选择试点方案；若方案已较为成熟、已具备较充分的效果依据，且更关注结果代表性和广泛交付，并能接受较慢反馈与较大影响面，则选择全面推广方案。\\n\\n限制说明：本建议仅基于材料A和材料B提供的信息，未考虑时间周期、人力配置、质量差异、固定成本与变动成本拆分、失败概率、历史表现、各组异质性及具体风险事件等缺失因素，因此不能用于量化排序或替代更完整的评估。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "compare_cal_b",
+      "repeat": 2,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/compare_cal_b--2--calibration--strong/result.json",
+      "source_sha256": "3bb5c1fb25aa5444d605b066d4aac876590ea989367e571fbb94b2c85e2b5f6d",
+      "context": {
+        "cost": {
+          "result": "试点方案投入18单位、覆盖3组，单位成本为6单位/组；全面推广方案投入42单位、覆盖7组，单位成本同为6单位/组。两者单位成本相同，因此从纯成本效率看无差异。资源需求上，全面推广的绝对投入更高，但覆盖范围也更大；试点投入较低，适合先验证效果或控制初期风险。条件式建议：若当前阶段需要快速获得反馈、控制预算或降低不确定性，优先选择试点方案；若已具备较充分依据、需要更广交付范围且可承担更高绝对投入，则选择全面推广方案。",
+          "evidence": "材料A：试点投入18单位、覆盖3组；全面推广投入42单位、覆盖7组。材料B：两者单位成本相同；试点反馈更快，全面推广交付更广。",
+          "assumptions": "假设材料中的单位成本相同可直接用于比较，且覆盖组数可作为交付范围的衡量指标。信息缺口：未提供两组方案的时间周期、质量差异、风险水平及反馈速度的具体量化数据，因此无法判断综合效益优劣。"
+        },
+        "risk": {
+          "result": "两方案在单位成本相同的条件下，风险差异主要来自覆盖规模与反馈速度的权衡。试点方案投入 18 单位、覆盖 3 组，规模较小、反馈更快，风险表现为：局部问题暴露更及时，但样本代表性有限，可能遗漏全面推广中才会出现的系统性风险；若试点结论被过度外推，存在决策偏差风险。全面推广方案投入 42 单位、覆盖 7 组，交付更广，风险表现为：一旦出现问题，影响范围更大、纠错成本更高；反馈相对更慢，可能延迟风险识别与响应。条件式建议：若当前不确定性较高、需要快速验证方案可行性或风险承受能力较低，优先选择试点方案，以较小暴露换取更快反馈；若方案已较为成熟、风险点较明确且需要尽快扩大交付范围，可选择全面推广方案，但应配套更密集的监测与快速纠错机制。",
+          "evidence": "材料 A：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组。材料 B：两者单位成本相同；试点反馈更快，全面推广交付更广。未提供其他风险数据或历史表现证据。",
+          "assumptions": "假设单位成本相同意味着两方案在资源效率上无差异，风险比较仅基于覆盖规模与反馈速度；假设覆盖组数越多，问题暴露后的影响范围越大；假设反馈速度影响风险识别与纠错时效。信息缺口：缺少两方案的具体风险类型、历史失败率、质量控制措施、外部环境变化及实施团队能力等数据，因此无法进行更精确的风险概率或影响评估。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合成本与风险两个维度的分析，可以形成以下判断与建议。\n\n一、冲突核对\n\n成本分析与风险分析在核心事实上没有冲突。两者都确认：试点方案投入 18 单位、覆盖 3 组；全面推广方案投入 42 单位、覆盖 7 组；两者单位成本相同；试点反馈更快，全面推广交付更广。成本分析强调两方案在单位成本上无差异，风险分析则进一步指出，在单位成本相同的条件下，差异主要体现在覆盖规模与反馈速度带来的风险特征上。两者结论互补，不构成矛盾。\n\n二、遗漏核对\n\n现有材料未提供以下关键信息：两方案的时间周期、实施质量差异、历史失败率、风险类型、质量控制措施、外部环境变化、实施团队能力、反馈速度的具体量化数据，以及试点结论外推到全面推广时的适用性。因此，当前只能基于单位成本、覆盖规模和反馈速度进行条件式判断，无法对综合效益或风险概率作出精确排序。\n\n三、证据核对\n\n现有证据仅来自材料 A 和材料 B：试点投入 18 单位、覆盖 3 组；全面推广投入 42 单位、覆盖 7 组；两者单位成本相同；试点反馈更快，全面推广交付更广。除此之外，没有其他数据支持更进一步的结论。因此，建议必须保持条件式表达，不能声称某一方案绝对更优。\n\n四、条件式建议\n\n1. 若当前阶段不确定性较高、需要快速验证方案可行性、控制初期预算或降低风险暴露，优先选择试点方案。理由：试点投入较低、覆盖范围较小，反馈更快，便于及时发现问题并调整，纠错成本相对较低。但需注意试点样本代表性有限，不宜将试点结论直接外推为全面推广的确定性依据。\n\n2. 若方案已较为成熟、风险点较明确、需要尽快扩大交付范围，且能够承担更高的绝对投入，可选择全面推广方案。理由：在单位成本相同的条件下，全面推广能以同等单位成本覆盖更多组，交付更广。但需配套更密集的监测与快速纠错机制，以应对影响范围更大、反馈相对更慢带来的风险。\n\n五、限制说明\n\n本建议仅基于材料 A 和材料 B 提供的有限信息，未引入新的外部事实或数据。由于缺少时间、质量、历史表现和具体风险数据，无法判断两方案的综合效益优劣，也无法给出非条件式的绝对推荐。最终决策应结合实施目标、预算约束、时间要求和风险承受能力进一步评估。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "cash_cal_a",
+      "repeat": 1,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/cash_cal_a--1--calibration--strong/result.json",
+      "source_sha256": "cc6fd69da647ae1fa2d6f4cdb8e3e5021ffa2fc9675c4dd42007aa11dfdc2bc9",
+      "context": {
+        "cost": {
+          "result": "方案 A：固定投入 10，每组投入 3，服务 4 组，总投入 = 10 + 3 × 4 = 22。方案 B：固定投入 18，每组投入 1，服务 4 组，总投入 = 18 + 1 × 4 = 22。两方案总投入均为 22，可用预算为 24，因此均未超预算，剩余预算均为 2。资金缺口风险：两方案当前均无直接资金缺口，但预算余量较小，若后续出现范围增加、组数增加、单价上浮或不可预见费用，可能迅速转为缺口风险。建议优先选择方案 A：在相同总投入下，方案 A 固定投入更低、资源弹性更高，且对固定成本波动的敏感度低于方案 B；同时应预留至少 2 的应急缓冲，并控制服务组数或单价变动。",
+          "evidence": "本节点为合成场景，无上游原始材料或外部证据。所有数值均来自任务文本：方案 A 固定投入 10、每组投入 3、服务 4 组；方案 B 固定投入 18、每组投入 1、服务 4 组；可用预算 24。",
+          "assumptions": "假设服务组数固定为 4 组，且每组投入为线性成本，不包含税费、管理费、折旧或其他间接成本；假设预算 24 为可全部用于方案投入的资金上限；未考虑资金时间价值、付款节奏或跨期支出。"
+        },
+        "risk": {
+          "result": "两方案总投入均为 22，可用预算为 24，当前均未超预算，剩余预算均为 2。资金缺口风险：当前无直接资金缺口，但预算余量较小，若出现服务组数增加、每组单价上浮、范围扩大或不可预见费用，可能迅速转为资金不足。建议优先选择方案 A：在相同总投入下，方案 A 固定投入更低、资源弹性更高，对固定成本波动的敏感度低于方案 B；同时应预留至少 2 的应急缓冲，并严格控制服务组数或单价变动。",
+          "evidence": "本节点为合成场景，无上游原始材料或外部证据。数值来自任务文本及上游 cost 结果：方案 A 固定投入 10、每组投入 3、服务 4 组，总投入 = 10 + 3 × 4 = 22；方案 B 固定投入 18、每组投入 1、服务 4 组，总投入 = 18 + 1 × 4 = 22；可用预算 24。上游 cost 的 evidence 与 assumptions 已核对，未发现与本节点计算不一致之处。",
+          "assumptions": "假设服务组数固定为 4 组，每组投入为线性成本，不包含税费、管理费、折旧或其他间接成本；假设预算 24 为可全部用于方案投入的资金上限；未考虑资金时间价值、付款节奏或跨期支出。资金缺口判断仅基于当前静态测算，不构成对后续实际执行中预算变动的保证。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合 cost 与 risk 两节点结果，未发现冲突或遗漏。两节点均得出：方案 A 总投入 = 10 + 3 × 4 = 22；方案 B 总投入 = 18 + 1 × 4 = 22；可用预算 24；剩余预算均为 2。当前均未超预算，无直接资金缺口，但预算余量较小，若出现服务组数增加、每组单价上浮、范围扩大或不可预见费用，可能迅速转为资金不足。建议优先选择方案 A：在相同总投入下，方案 A 固定投入更低、资源弹性更高，对固定成本波动的敏感度低于方案 B；同时应预留至少 2 的应急缓冲，并严格控制服务组数或单价变动。依据：本场景为合成数据，无外部证据；数值来自任务文本及上游 cost、risk 结果，证据与假设已核对一致。限制：该判断仅基于当前静态测算，假设服务组数固定为 4 组、每组投入为线性成本、预算 24 为可全部用于方案投入的资金上限，未考虑税费、管理费、折旧、资金时间价值、付款节奏或跨期支出，不构成对后续实际执行中预算变动的保证。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "cash_cal_a",
+      "repeat": 2,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/cash_cal_a--2--calibration--strong/result.json",
+      "source_sha256": "fb78ce524672fbbcf9569a2d4c9dd520b27bd6a583b0728f0453054cd1abb727",
+      "context": {
+        "cost": {
+          "result": "方案 A：固定投入 10，每组投入 3，服务 4 组，总投入 = 10 + 3 × 4 = 22。方案 B：固定投入 18，每组投入 1，服务 4 组，总投入 = 18 + 1 × 4 = 22。两方案总投入均为 22，可用预算为 24，因此均未超预算，预算结余为 2。资金缺口风险：在给定参数下两方案均无资金缺口，但预算余量较小，若服务组数、每组投入或固定投入出现小幅上浮，可能立即产生缺口。建议优先选择方案 A 或 B 时同步预留至少 2 的机动预算，并确认服务组数不会超过 4 组；若存在变更风险，方案 B 的每组边际投入更低，扩展服务组数时的追加成本压力小于方案 A。",
+          "evidence": "本节点为合成场景，无上游原始材料或外部证据；所有数值均来自任务文本中给出的条件：方案 A 固定投入 10、每组投入 3、服务 4 组；方案 B 固定投入 18、每组投入 1、服务 4 组；可用预算 24。",
+          "assumptions": "假设服务组数固定为 4 组，且固定投入、每组投入和可用预算均为同单位可直接比较；未考虑税费、折扣、人工、时间成本或其他隐性成本。若实际服务组数或单价发生变化，结论需要重新计算。"
+        },
+        "risk": {
+          "result": "两方案总投入均为 22，可用预算为 24，预算结余为 2，当前参数下均未超预算，不存在已实现的资金缺口。但预算余量较小，资金不足风险为中等：若服务组数、每组投入或固定投入出现小幅上浮，任一方案都可能立即产生缺口。方案 A 的每组边际投入为 3，方案 B 为 1，因此在服务组数可能增加的情况下，方案 B 的抗变更能力更强，追加成本压力更小。建议：若服务组数严格锁定为 4 组，两方案均可接受；若存在扩展或变更风险，优先选择方案 B，并预留至少 2 的机动预算，同时确认服务组数不会超过 4 组。",
+          "evidence": "本节点为合成场景，无上游原始材料或外部证据。所有数值均来自任务文本及上游 cost 节点给出的条件：方案 A 固定投入 10、每组投入 3、服务 4 组，总投入 = 10 + 3 × 4 = 22；方案 B 固定投入 18、每组投入 1、服务 4 组，总投入 = 18 + 1 × 4 = 22；可用预算 24。上游 cost 节点已给出相同计算结果，本节点未发现计算不一致。",
+          "assumptions": "假设服务组数固定为 4 组，固定投入、每组投入和可用预算均为同单位且可直接比较；未考虑税费、折扣、人工、时间成本、价格波动或其他隐性成本。资金缺口风险判断基于当前给定参数，若实际服务组数、单价或固定投入发生变化，需重新计算。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合 cost 与 risk 两个节点的结果，未发现计算冲突或遗漏。两节点均得出：方案 A 总投入 = 10 + 3 × 4 = 22；方案 B 总投入 = 18 + 1 × 4 = 22；可用预算为 24，预算结余为 2，当前参数下两方案均未超预算，不存在已实现的资金缺口。证据来源一致，均为任务文本给出的合成条件，无外部原始材料；假设也一致，均限定服务组数为 4 组、各投入与预算同单位可比，且未考虑税费、折扣、人工、时间成本或其他隐性成本。\n\n主要风险在于预算余量较小，资金不足风险为中等。若服务组数、每组投入或固定投入出现小幅上浮，任一方案都可能立即产生缺口。方案 A 每组边际投入为 3，方案 B 每组边际投入为 1，因此在服务组数可能增加的情况下，方案 B 的抗变更能力更强，追加成本压力更小。\n\n建议：若服务组数严格锁定为 4 组，方案 A 与方案 B 均可接受；若存在扩展或变更风险，优先选择方案 B，并预留至少 2 的机动预算，同时确认服务组数不会超过 4 组。若实际服务组数、单价或固定投入发生变化，需重新计算总投入和缺口风险。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "cash_cal_b",
+      "repeat": 1,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/cash_cal_b--1--calibration--strong/result.json",
+      "source_sha256": "e052e8cb87b6e02c2ebc41f608edcc8b150832ec9572c9f6f81655758fa5111a",
+      "context": {
+        "cost": {
+          "result": "方案 A：固定投入 8，每组投入 4，服务 5 组，总投入 = 8 + 4 × 5 = 28。方案 B：固定投入 20，每组投入 1，服务 5 组，总投入 = 20 + 1 × 5 = 25。可用预算 26。方案 A 总投入 28，超出预算 2，存在资金缺口风险；方案 B 总投入 25，低于预算 1，无资金缺口风险。建议优先选择方案 B；若必须采用方案 A，需追加至少 2 的预算或减少服务组数/降低每组投入。",
+          "evidence": "本节点为合成场景，无上游原始材料。所有数值均来自任务描述：方案 A 固定投入 8、每组投入 4、服务 5 组；方案 B 固定投入 20、每组投入 1、服务 5 组；可用预算 26。",
+          "assumptions": "假设服务组数均为 5 组，且总投入仅由固定投入与按组投入构成，不考虑税费、折扣、人力时间成本或其他隐性成本。未提供货币单位，结果仅按数值比较。"
+        },
+        "risk": {
+          "result": "方案 A 总投入为 28，超出可用预算 26，存在资金缺口风险，缺口为 2；方案 B 总投入为 25，低于可用预算 26，无资金缺口风险。建议优先选择方案 B；若必须采用方案 A，需追加至少 2 的预算，或减少服务组数、降低每组投入。",
+          "evidence": "本节点为合成场景，无上游原始材料。所有数值均来自任务描述：方案 A 固定投入 8、每组投入 4、服务 5 组；方案 B 固定投入 20、每组投入 1、服务 5 组；可用预算 26。上游 cost 节点给出的计算为：方案 A 总投入 = 8 + 4 × 5 = 28；方案 B 总投入 = 20 + 1 × 5 = 25。经核对，计算与任务描述一致。",
+          "assumptions": "假设服务组数均为 5 组，且总投入仅由固定投入与按组投入构成，不考虑税费、折扣、人力时间成本或其他隐性成本。未提供货币单位，结果仅按数值比较。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合 cost 与 risk 两个上游节点的结果，未发现计算冲突或遗漏。方案 A 总投入为 28，超出可用预算 26，资金缺口为 2，存在资金缺口风险；方案 B 总投入为 25，低于可用预算 26，无资金缺口风险。两节点对总投入、预算比较及风险判断一致，证据均来自任务描述中的数值，假设也一致：服务组数均为 5 组，总投入仅由固定投入与按组投入构成，不考虑税费、折扣、人力时间成本或其他隐性成本，且未提供货币单位，仅按数值比较。建议优先选择方案 B；若必须采用方案 A，需追加至少 2 的预算，或减少服务组数、降低每组投入。本结论仅适用于当前合成场景，不涉及外部事实或额外数据。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "cash_cal_b",
+      "repeat": 2,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/cash_cal_b--2--calibration--strong/result.json",
+      "source_sha256": "3d353162f9b4f7e4c1f399608e9a1dcf1ddd12ebf22f60fe73f66fa309a7af04",
+      "context": {
+        "cost": {
+          "result": "方案 A：固定投入 8，每组投入 4，服务 5 组，总投入 = 8 + 4 × 5 = 28。方案 B：固定投入 20，每组投入 1，服务 5 组，总投入 = 20 + 1 × 5 = 25。可用预算 26。方案 A 总投入 28，超出预算 2，存在资金缺口风险；方案 B 总投入 25，低于预算 1，在当前预算内可覆盖，资金缺口风险较低。建议优先选择方案 B；若必须采用方案 A，需追加至少 2 的预算或减少服务组数/降低每组投入。",
+          "evidence": "本节点为合成场景，无上游原始材料。所有数值均来自任务描述：方案 A 固定投入 8、每组投入 4、服务 5 组；方案 B 固定投入 20、每组投入 1、服务 5 组；可用预算 26。",
+          "assumptions": "假设服务组数均为 5 组，且总投入仅由固定投入与按组投入构成，不考虑税费、人力、时间、维护、折扣或其他隐性成本。资金缺口风险仅基于总投入与可用预算的数值比较，未进行现金流、支付节奏或应急储备分析。"
+        },
+        "risk": {
+          "result": "方案 A 总投入为 28，超出可用预算 26，资金缺口为 2，存在资金不足风险；方案 B 总投入为 25，低于可用预算 26，当前预算内可覆盖，资金不足风险较低。建议优先选择方案 B；若必须采用方案 A，需至少追加预算 2，或通过减少服务组数、降低每组投入等方式压缩总投入至 26 以内。",
+          "evidence": "本节点为合成场景，无上游原始材料。成本测算结果来自上游 cost 节点：方案 A 固定投入 8、每组投入 4、服务 5 组，总投入 = 8 + 4 × 5 = 28；方案 B 固定投入 20、每组投入 1、服务 5 组，总投入 = 20 + 1 × 5 = 25；可用预算 26。经复核，上述计算与任务描述一致。",
+          "assumptions": "假设服务组数均为 5 组，总投入仅由固定投入与按组投入构成，不考虑税费、人力、时间、维护、折扣或其他隐性成本。资金不足风险仅基于总投入与可用预算的数值比较，未进行现金流、支付节奏或应急储备分析。若实际服务组数、每组投入或预算口径发生变化，风险判断需相应调整。"
+        },
+        "answer": {
+          "text": "{\n  \"text\": \"综合成本与风险两个节点的结果，未发现数值冲突或遗漏。方案 A 总投入 28，超出可用预算 26，资金缺口为 2，存在资金不足风险；方案 B 总投入 25，低于可用预算 26，当前预算内可覆盖，资金不足风险较低。建议优先选择方案 B。若必须采用方案 A，需至少追加预算 2，或通过减少服务组数、降低每组投入等方式将总投入压缩至 26 以内。该判断基于合成场景中的给定数值，并沿用上游假设：服务组数均为 5 组，总投入仅由固定投入与按组投入构成，不考虑税费、人力、时间、维护、折扣或其他隐性成本；资金缺口风险仅基于总投入与可用预算的数值比较，未进行现金流、支付节奏或应急储备分析。若实际服务组数、每组投入或预算口径发生变化，结论需相应调整。\"\n}"
+        }
+      }
+    },
+    {
+      "task_id": "rewrite_cal_a",
+      "repeat": 1,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/rewrite_cal_a--1--calibration--strong/result.json",
+      "source_sha256": "8bddc5197dc9ee9d693202e21adc5c9b81b0fc74412bd0213f4c9660f627608a",
+      "context": {
+        "answer": {
+          "text": "计划本周五前完成测试，前提是所有输入数据已备齐。"
+        }
+      }
+    },
+    {
+      "task_id": "rewrite_cal_a",
+      "repeat": 2,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/rewrite_cal_a--2--calibration--strong/result.json",
+      "source_sha256": "b2c7cff86e1fe9fbb850eb92d8a435a6477a734edfad95209251f136e3edac59",
+      "context": {
+        "answer": {
+          "text": "计划本周五前完成测试，前提是所有输入数据已备齐。"
+        }
+      }
+    },
+    {
+      "task_id": "rewrite_cal_b",
+      "repeat": 1,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/rewrite_cal_b--1--calibration--strong/result.json",
+      "source_sha256": "becf1def72053987e8d5eb76c7e0415c78bddbd1d7db166ef8f4babddf384a3c",
+      "context": {
+        "answer": {
+          "text": "评审人员确认完成后，李明开始发布最终版本。"
+        }
+      }
+    },
+    {
+      "task_id": "rewrite_cal_b",
+      "repeat": 2,
+      "source_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/rewrite_cal_b--2--calibration--strong/result.json",
+      "source_sha256": "4ffe0e49478e4793a5cfa3db19136809c6640c12a7605a8a90d8e90c7c483d93",
+      "context": {
+        "answer": {
+          "text": "评审确认后，李明发布最终版本。"
+        }
+      }
+    }
+  ],
+  "context_source_protocol_path": "../../reports/dag-decomposition/issue-32-subscription-20260907/study-v3/protocol.json",
+  "context_source_protocol_sha256": "c8d26a2b968f93e0e0c15a63982722177a31efaaa568f0c0bedad4481a82762d",
+  "calibration_source": {
+    "repository_path": "reports/dag-decomposition/issue-32-independent-samples-20260908/study",
+    "index_sha256": "6e0c2a782fb8221a0a9a46d9b4a1ea670c47543d41fad02f82c9c67949b7e84c",
+    "purpose": "只复用本轮完整且用量有效的校准结果；原留出中存在一笔计量异常，不复用其评分或费用作为新测试。"
+  }
+}

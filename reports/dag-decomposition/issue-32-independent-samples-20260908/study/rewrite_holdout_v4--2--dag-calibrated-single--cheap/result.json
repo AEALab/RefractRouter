@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.08387502748519182,
+      "start_ms": 22.430457989685237,
+      "end_ms": 1406.7547080339864,
+      "queue_ms": 22.346582962200046,
+      "output": "陈晨负责资料整理，需在本月18日前交付核对清单；若供应商记录未到齐，则先交已核对部分，并在记录收齐后第二个工作日补交其余内容。",
+      "latency_ms": 1382,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "cheap"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "陈晨负责资料整理，需在本月18日前交付核对清单；若供应商记录未到齐，则先交已核对部分，并在记录收齐后第二个工作日补交其余内容。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "改写后的文本保留了责任人陈晨、期限本月18日前（与「本月十八日之前」同义）以及例外情形：供应商记录未到齐时先提交已核对部分，并在记录收齐后第二个工作日补交其余内容。表达较原句更简洁，无信息遗漏或歪曲。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "责任人、期限与例外条款均完整保留，句式更紧凑简洁，原意未变。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.06374996155500412,
+    "peak_running_nodes": 1,
+    "ended_ms": 1436.6039580199867,
+    "wall_time_ms": 1436.5412080660462
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v4--2--dag-calibrated-single--cheap:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.498,
+      "charged": 0.01825,
+      "status": "billed",
+      "input_sha256": "83b15d449bef6a8dfdd2176df3eb4416275fce8617ab1536d7a2667c84135223",
+      "dispatch_monotonic": 801394.615873916,
+      "input_tokens": 324,
+      "output_tokens": 41,
+      "latency_ms": 1382,
+      "request_id": "021788803396968f0b662e0a22462bcc30964e8c71cc766630272",
+      "finish_reason": "stop",
+      "output_sha256": "74a3e70242db00c6d695de787737c5b83db16ee3096b8c6c1cf8aeb51a63fc27"
+    },
+    {
+      "label": "rewrite_holdout_v4--2--dag-calibrated-single--cheap:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.692,
+      "charged": 0.461,
+      "status": "billed",
+      "input_sha256": "7b6e59c7145435a198687e2f9113e4d6c2414b70d11b846f4738cc3f41041585",
+      "dispatch_monotonic": 801396.05367775,
+      "input_tokens": 326,
+      "output_tokens": 135,
+      "latency_ms": 9048,
+      "request_id": "02178880339839348e426867c3c446aaa68159641220ac175f5c6",
+      "finish_reason": "stop",
+      "output_sha256": "b4cef814c65e31dcaf69b15519123064c1fdc9120c1a5068776c95795ec0ddc5"
+    }
+  ],
+  "wall_time_ms": 10509.649457992055,
+  "critical_path_latency_ms": 1382
+}

@@ -1,0 +1,25 @@
+{
+  "status": "failed",
+  "calls": 21,
+  "billed_calls": 21,
+  "calibration_runs": 3,
+  "calibrated_node_observations": 5,
+  "graded_test_runs": 0,
+  "planned_test_runs": 72,
+  "failed_label": "probe:compare_cal_a:1:risk:mid",
+  "failed_response_path": "calls/41b845b8252e7e4daa999893b59f5610f661b9df20d4eaf3a7eb335128bb3bbd-response.json",
+  "failed_output_sha256": "340582fbb898c325ae57b4ec1db383576981dee6718c0eaf082a6f97c810fbeb",
+  "json_error": {
+    "message": "Expecting ',' delimiter",
+    "line": 1,
+    "column": 581,
+    "position": 580
+  },
+  "finish_reason": "stop",
+  "attempts": 1,
+  "charged": {
+    "production": 4.0412,
+    "evaluation": 9.024000000000001
+  },
+  "conclusion": "校准阶段失败，未形成完整分层 profile，未进入留出测试，无配对收益结论。"
+}

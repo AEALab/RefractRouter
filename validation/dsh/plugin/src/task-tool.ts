@@ -9,6 +9,7 @@ export interface TaskArguments {
   latencyMaxMs: number
   weights?: { quality: number; cost: number; latency: number }
   plan?: Record<string, unknown>
+  maxNodeFallbacks?: number
   maxConcurrency?: number
   providerConcurrency?: Record<string, number>
   providerMinIntervalMs?: Record<string, number>
@@ -28,7 +29,7 @@ function finite(value: unknown, field: string): number {
 export function taskArguments(raw: unknown): TaskArguments {
   if (!record(raw)) throw new Error('task arguments must be an object')
   const allowed = new Set(['task', 'mode', 'method', 'qualityMin', 'costMax', 'latencyMaxMs',
-    'weights', 'plan', 'plannerModelId', 'maxProductionCost', 'maxEvaluationCost', 'acceptanceCriteria', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs'])
+    'weights', 'plan', 'plannerModelId', 'maxProductionCost', 'maxEvaluationCost', 'acceptanceCriteria', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxNodeFallbacks'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown task argument')
   if (typeof raw.task !== 'string' || !raw.task.trim() || raw.task.length > 12000) throw new Error('task must contain 1..12000 characters')
   const mode = raw.mode ?? 'preflight'
@@ -47,6 +48,11 @@ export function taskArguments(raw: unknown): TaskArguments {
     const sum = args.weights.quality + args.weights.cost + args.weights.latency
     if (!Number.isFinite(sum) || sum <= 0) throw new Error('invalid weight sum')
   } else if (raw.weights !== undefined) throw new Error('A does not accept weights')
+  if (raw.maxNodeFallbacks !== undefined) {
+    const value = finite(raw.maxNodeFallbacks, 'maxNodeFallbacks')
+    if (!Number.isInteger(value) || value > 2) throw new Error('invalid maxNodeFallbacks')
+    args.maxNodeFallbacks = value
+  }
   if (raw.maxConcurrency !== undefined) {
     const value = finite(raw.maxConcurrency, 'maxConcurrency')
     if (!Number.isInteger(value) || value < 1 || value > 8) throw new Error('invalid maxConcurrency')
@@ -147,7 +153,8 @@ export function registerTaskTool(ctx: DshContext, outputSchema: JsonSchema,
     description: '通过 Python 核心规划带交接契约的文本 DAG 并按节点选模。'
       + '规划器识别真实独立分支、解释拆分收益，简单任务可保留单节点；支持显式有界并发及 Provider 派发间隔。'
       + 'preflight 使用单节点预览；demo 返回模拟产物；plan 付费规划；run 执行并独立评审。'
-      + 'acceptanceCriteria 可固定验收条件；详细契约和结构诊断保存在任务产物中。'
+      + 'acceptanceCriteria 可固定验收条件；maxNodeFallbacks 默认为 0，可设 1 或 2，在已结算的节点输出失败后换模型。'
+      + '详细契约、每次尝试和结构诊断保存在任务产物中。'
       + 'plan/run 需要部署开关和双预算。迁移 profile 不保证质量；不执行外部工具动作。',
     parameters: { type: 'object', additionalProperties: false,
       required: ['task', 'method', 'qualityMin', 'costMax', 'latencyMaxMs'], properties: {
@@ -156,6 +163,7 @@ export function registerTaskTool(ctx: DshContext, outputSchema: JsonSchema,
         costMax: { type: 'number' }, latencyMaxMs: { type: 'number' },
         weights: { type: 'object', additionalProperties: false, required: ['quality', 'cost', 'latency'],
           properties: { quality: { type: 'number' }, cost: { type: 'number' }, latency: { type: 'number' } } },
+        maxNodeFallbacks: { type: 'number' },
         maxConcurrency: { type: 'number' }, providerConcurrency: { type: 'object', additionalProperties: true },
         providerMinIntervalMs: { type: 'object', additionalProperties: true },
         acceptanceCriteria: { type: 'array', items: { type: 'string' } },

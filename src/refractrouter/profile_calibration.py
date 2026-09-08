@@ -12,7 +12,8 @@ from .task_contracts import decode_output, nonempty
 INPUT_BANDS = ((256, 8193), (8193, 32769), (32769, 131073))
 
 
-def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_ids, min_samples=3):
+def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_ids, min_samples=3,
+                             allow_unavailable_evaluation=False):
     if (not isinstance(raw, dict) or raw.get('schema_version') != 'node-observations-v1'
             or raw.get('kind') not in ('empirical', 'synthetic')):
         raise ValueError('invalid observation corpus')
@@ -51,12 +52,14 @@ def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_i
         seen.add((*context, mid))
         input_text, output = row.get('input'), row.get('output')
         nonempty(input_text, 'input', 1000000)
-        nonempty(output, 'output', 1000000)
+        if not (allow_unavailable_evaluation and output == ''):
+            nonempty(output, 'output', 1000000)
         input_hash = hashlib.sha256(input_text.encode()).hexdigest()
         output_hash = hashlib.sha256(output.encode()).hexdigest()
         if row.get('input_sha256') != input_hash or row.get('output_sha256') != output_hash:
             raise ValueError('observation hash mismatch')
-        if row.get('status') != 'completed' or row.get('finish_reason') != 'stop':
+        execution_available = row.get('status') == 'completed' and row.get('finish_reason') == 'stop'
+        if not execution_available and not allow_unavailable_evaluation:
             raise ValueError('unavailable execution cannot become a quality score')
         f = row.get('features')
         if not isinstance(f, dict) or set(f) != {'node_type', 'difficulty', 'risk', 'input_budget_tokens'}:
@@ -74,7 +77,7 @@ def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_i
                 or contract.get('format') not in ('json', 'text') or not isinstance(contract.get('fields'), dict)
                 or not contract['fields'] or (contract['format'] == 'text' and set(contract['fields']) != {'text'})):
             raise ValueError('invalid observed output contract')
-        contract_valid = True
+        contract_valid = execution_available
         try:
             decode_output(output, {'output': contract})
         except ValueError:
@@ -82,15 +85,21 @@ def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_i
         judge = row.get('evaluation')
         if not isinstance(judge, dict) or judge.get('input_sha256') != input_hash or judge.get('output_sha256') != output_hash:
             raise ValueError('missing or mismatched independent node evaluation')
-        score = number(judge.get('score'), 'node quality', maximum=100)
-        if contract_valid:
+        unavailable = (allow_unavailable_evaluation and judge.get('status') == 'unavailable'
+                       and judge.get('method') == 'unavailable-independent-evaluation' and judge.get('score') is None)
+        if unavailable:
+            rejected[key] = 'missing-independent-evaluation'
+            score = None
+        else:
+            score = number(judge.get('score'), 'node quality', maximum=100)
+        if contract_valid and not unavailable:
             if judge.get('method') != 'independent-text-node-v1' or judge.get('status') != 'completed':
                 raise ValueError('missing independent node quality')
             if type(judge.get('passed')) is not bool:
                 raise ValueError('missing semantic pass state')
             if not judge['passed']:
                 rejected[key] = 'semantic-criterion-failure'
-        elif judge.get('method') != 'deterministic-rejection' or score != 0:
+        elif not contract_valid and (judge.get('method') != 'deterministic-rejection' or score != 0):
             raise ValueError('known contract rejection requires explicit zero and rejection method')
         telemetry = row.get('usage')
         if not isinstance(telemetry, dict):
@@ -127,5 +136,6 @@ def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_i
         'calibration_task_ids': sorted(allowed), 'held_out_task_ids': sorted(held_out),
         'observation_sha256': hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
         'aggregation_policy': 'aligned-strata-mean-quality-cost-max-latency-v1', 'exclusions': exclusions}
-    load_profile(profile, manifest)
+    if candidates or not allow_unavailable_evaluation:
+        load_profile(profile, manifest)
     return profile

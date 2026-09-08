@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_b:1:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案严格遵循输出契约：输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，且均为非空字符串。计算正确：方案 A 总投入 8+4×5=28，方案 B 总投入 20+1×5=25；与预算 26 比较后得出 A 超支 2、B 结余 1 的结论，资金缺口风险判断与建议（优先 B，或追加预算/压缩投入）合理且覆盖任务要求。evidence 明确说明无上游原始材料、基于任务给定数值计算，未虚构外部证据；assumptions 明确列出货币单位一致、组数固定、预算为上限及未考虑隐性成本等限制，符合「保留证据与假设，不虚构数据」和「覆盖本节点职责并明确限制」的检查标准。未发现不实工具执行声明。轻微扣分点：建议部分可更明确量化压缩方案（如每组投入降至 3.6 以下），但不影响整体正确性与完整性。\"}",
+  "input_tokens": 963,
+  "output_tokens": 244,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9043,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788801016139d1a31addd6d38d14c8141e1e64f1efaa5c8b2b"
+}

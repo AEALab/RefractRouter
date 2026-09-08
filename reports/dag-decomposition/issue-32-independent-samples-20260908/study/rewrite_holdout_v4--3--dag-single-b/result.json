@@ -1,0 +1,223 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.23141701240092516,
+      "start_ms": 22.014084039255977,
+      "end_ms": 1777.5707920081913,
+      "queue_ms": 21.78266702685505,
+      "output": "陈晨负责资料整理，需在本月18日前交付核对清单；若供应商记录未到齐，则先交已核对部分，并在记录收齐后第二个工作日补交其余内容。",
+      "latency_ms": 1753,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "cheap"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "陈晨负责资料整理，需在本月18日前交付核对清单；若供应商记录未到齐，则先交已核对部分，并在记录收齐后第二个工作日补交其余内容。",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "改写保留了责任人（陈晨）、期限（本月18日前）及例外情形（供应商记录未到齐时先交已核对部分，收齐后第二个工作日补交其余内容），表达简洁清晰。仅「十八日」改写为「18日」属于数字格式变化，语义不变，不影响任务要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "原句所有关键信息（责任人陈晨、期限本月十八日前、例外条件及补交时限）均完整保留，句式更紧凑简洁，无遗漏或曲解。"
+      }
+    ]
+  },
+  "routing": {
+    "policy_version": "node-routing-v2",
+    "method": "B",
+    "assignment_mode": "single-model",
+    "status": "selected",
+    "assignments": {
+      "answer": "cheap"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 100,
+    "latency_max_ms": 300000,
+    "weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    },
+    "normalized_weights": {
+      "quality": 0.5,
+      "cost": 0.25,
+      "latency": 0.25
+    },
+    "normalization_bounds": {
+      "answer": {
+        "quality": [
+          92.75,
+          94.25
+        ],
+        "cost": [
+          0.015675,
+          0.17228749999999998
+        ],
+        "latency_ms": [
+          2111,
+          3102
+        ]
+      }
+    },
+    "eligible_models": {
+      "answer": [
+        "cheap",
+        "mid",
+        "strong"
+      ]
+    },
+    "scheduled_latency_bounds_ms": [
+      2111.0,
+      3102.0
+    ],
+    "execution_policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "combinations": 3,
+    "feasible_combinations": 3,
+    "prediction": {
+      "cost": 0.015675,
+      "serial_latency_ms": 2204,
+      "scheduled_latency_ms": 2204.0,
+      "schedule": {
+        "makespan_ms": 2204.0,
+        "nodes": {
+          "answer": {
+            "start_ms": 0.0,
+            "end_ms": 2204.0,
+            "queue_ms": 0.0
+          }
+        }
+      },
+      "mean_node_quality_proxy": 94.25,
+      "weighted_score": 0.9765388496468214
+    },
+    "nodes": {
+      "answer": {
+        "model_id": "cheap",
+        "node_type": "generation",
+        "quality": 94.25,
+        "cost": 0.015675,
+        "latency_ms": 2204,
+        "samples": 4,
+        "difficulty": "low",
+        "risk": "low",
+        "input_min_tokens": 8193,
+        "input_max_tokens": 32769
+      }
+    }
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.21470896899700165,
+    "peak_running_nodes": 1,
+    "ended_ms": 1803.5822920501232,
+    "wall_time_ms": 1803.3690410666168
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v4--3--dag-single-b:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.498,
+      "charged": 0.01825,
+      "status": "billed",
+      "input_sha256": "83b15d449bef6a8dfdd2176df3eb4416275fce8617ab1536d7a2667c84135223",
+      "dispatch_monotonic": 801515.94098125,
+      "input_tokens": 324,
+      "output_tokens": 41,
+      "latency_ms": 1753,
+      "request_id": "021788803518282640844006c495b97e3327b5d9afec856e8636c",
+      "finish_reason": "stop",
+      "output_sha256": "74a3e70242db00c6d695de787737c5b83db16ee3096b8c6c1cf8aeb51a63fc27"
+    },
+    {
+      "label": "rewrite_holdout_v4--3--dag-single-b:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.692,
+      "charged": 0.48,
+      "status": "billed",
+      "input_sha256": "7b6e59c7145435a198687e2f9113e4d6c2414b70d11b846f4738cc3f41041585",
+      "dispatch_monotonic": 801517.744693583,
+      "input_tokens": 326,
+      "output_tokens": 154,
+      "latency_ms": 9142,
+      "request_id": "0217888035201033f04613060c95c0e1cb70b4f628471a944bfb6",
+      "finish_reason": "stop",
+      "output_sha256": "53ed6d52af9785eac6c6cb4f3f8a65675a1f94d82604d7dc65ba8b453aa6b176"
+    }
+  ],
+  "wall_time_ms": 10969.882959034294,
+  "critical_path_latency_ms": 1753
+}

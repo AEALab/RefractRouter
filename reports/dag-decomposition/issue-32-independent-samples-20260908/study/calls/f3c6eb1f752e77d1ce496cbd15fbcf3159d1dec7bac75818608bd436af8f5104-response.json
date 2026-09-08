@@ -1,0 +1,12 @@
+{
+  "label": "probe:compare_cal_b:2:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始JSON对象，键集合恰好为result、evidence、assumptions，且均为非空字符串。计算正确：18/3=6，42/7=6，与材料B「两者单位成本相同」一致；比较覆盖投入、覆盖规模、反馈速度与交付范围，并给出条件式建议，符合节点职责。evidence保留材料A/B来源，assumptions说明口径一致与信息缺口，未虚构数据，也未声称执行工具或检索新事实。轻微扣分点是「交付周期或反馈速度相对较慢」表述略超出材料B中「试点反馈更快」的明确范围，但整体仍属合理推断且未改变结论。\"}",
+  "input_tokens": 996,
+  "output_tokens": 169,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16790,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178880027710591be90b70b1bfc3059428bd07e108b7ed8bb55"
+}

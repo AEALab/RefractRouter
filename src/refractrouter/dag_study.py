@@ -15,6 +15,15 @@ from .task_runtime import validate_models
 
 METHODS = ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel',
            'dag-calibrated-single', 'dag-node-a', 'dag-node-b')
+SYMMETRIC_METHODS = METHODS + ('dag-single-a', 'dag-single-b')
+
+
+def study_methods(raw):
+    expected = {'dag-routing-study-v1': METHODS, 'dag-routing-study-v2': SYMMETRIC_METHODS,
+                'dag-routing-study-v3': SYMMETRIC_METHODS}.get(raw.get('schema_version'))
+    if expected is None or tuple(raw.get('methods', [])) != expected:
+        raise ValueError('unsupported study protocol')
+    return expected
 
 
 def implementation_fingerprint():
@@ -31,8 +40,9 @@ def validate_implementation(raw):
 def load_study(path):
     path = Path(path)
     raw = json.loads(path.read_text())
-    if raw.get('schema_version') != 'dag-routing-study-v1' or tuple(raw.get('methods', [])) != METHODS:
-        raise ValueError('unsupported study protocol')
+    study_methods(raw)
+    if raw['schema_version'] != 'dag-routing-study-v1' and type(raw.get('method_order_seed')) is not int:
+        raise ValueError('v2 study requires a frozen method order seed')
     validate_implementation(raw)
     manifest_path = (path.parent / raw['manifest_path']).resolve()
     if hashlib.sha256(manifest_path.read_bytes()).hexdigest() != raw.get('manifest_sha256'):
@@ -71,8 +81,13 @@ def load_study(path):
         cap = raw['input_caps'][key]
         if type(cap) is not int or not 256 <= cap <= 262144:
             raise ValueError('invalid judge input cap')
-    if raw.get('failure_policy') != 'stop-on-first-unavailable-or-invalid-result':
+    failure_policy = ('isolate-observation-stop-on-infrastructure' if raw['schema_version'] == 'dag-routing-study-v3'
+                      else 'stop-on-first-unavailable-or-invalid-result')
+    if raw.get('failure_policy') != failure_policy:
         raise ValueError('unsupported experiment failure policy')
+    if raw['schema_version'] == 'dag-routing-study-v3':
+        from .dag_batch_study import validate_batch_protocol
+        validate_batch_protocol(raw, manifest, path.parent)
     for key in ('minimum_final_quality', 'maximum_mean_quality_loss', 'minimum_cost_saving_fraction', 'maximum_latency_ratio'):
         number(raw['acceptance'][key], key)
     if (raw['acceptance']['bootstrap_unit'] != 'task_id' or type(raw['acceptance']['bootstrap_repeats']) is not int
@@ -95,6 +110,8 @@ def study_preflight(raw, manifest):
     for task in raw['tasks']:
         caps = [n['contract']['capability']['input_budget_tokens'] for n in task['plan']['nodes']]
         if task['split'] == 'calibration':
+            if raw.get('calibration_source'):
+                continue
             repeats = raw['calibration_repeats']
             n = len(caps) * len(manifest.candidates) * repeats
             calls['calibration_nodes'] += n
@@ -105,7 +122,7 @@ def study_preflight(raw, manifest):
             evaluation += n * cost(manifest.judge, raw['input_caps']['node_judge'])
             evaluation += len(manifest.candidates) * repeats * cost(manifest.judge, raw['input_caps']['final_judge'])
         else:
-            for method in METHODS:
+            for method in study_methods(raw):
                 selected_caps = [max(caps)] if method == 'direct-strong' else caps
                 repeats = raw['test_repeats']
                 if method in ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel'):
@@ -118,6 +135,13 @@ def study_preflight(raw, manifest):
                 calls['final_judges'] += repeats
                 runs.append({'task_id': task['task_id'], 'method': method, 'repeats': repeats,
                              'nodes_per_run': len(selected_caps)})
+    if raw['schema_version'] == 'dag-routing-study-v3':
+        task = next(t for t in raw['tasks'] if t['task_id'] == raw['handoff_task_id'])
+        caps = [n['contract']['capability']['input_budget_tokens'] for n in task['plan']['nodes']]
+        calls['handoff_nodes'] = 6 * len(caps)
+        calls['final_judges'] += 6
+        production += 6 * sum(max(cost(m, cap) for m in manifest.candidates) for cap in caps)
+        evaluation += 6 * cost(manifest.judge, raw['input_caps']['final_judge'])
     return {'schema_version': 'dag-study-preflight-v1', 'status': 'preflight', 'real_model_calls': 0,
         'protocol_sha256': hashlib.sha256(json.dumps(raw, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
         'manifest_sha256': raw['manifest_sha256'], 'planned_calls': calls,
@@ -127,4 +151,5 @@ def study_preflight(raw, manifest):
         'limits': ['依据冻结价格和逐次输入/输出上限估算，无缓存折扣；实际费用按 usage 结算。',
                    '固定计划没有模型规划调用；校准观测和测试严格隔离。',
                    '不含真实 DSH 助手的外层调用；该项需独立预算，不能由此预检授权。',
-                   '遇首个异常停止；调用数与预算是完整计划的上限，不表示已获准执行。']}
+                   ('样本失败隔离并继续；基础设施异常停止整批。' if raw['schema_version'] == 'dag-routing-study-v3'
+                    else '遇首个异常停止；调用数与预算是完整计划的上限，不表示已获准执行。')]}

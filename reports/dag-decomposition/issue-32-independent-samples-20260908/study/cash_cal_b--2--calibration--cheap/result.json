@@ -1,0 +1,297 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.27479196432977915,
+      "start_ms": 17.912582959979773,
+      "end_ms": 5528.306499938481,
+      "queue_ms": 17.637790995649993,
+      "output": "{\"result\": \"方案A总投入为固定投入8加上每组投入4乘以服务5组，即8+4×5=28；方案B总投入为固定投入20加上每组投入1乘以服务5组，即20+1×5=25。可用预算为26。方案A总投入28超出预算2，存在资金缺口风险；方案B总投入25在预算内，无资金缺口。建议：若必须选择方案A，需追加预算2或减少服务组数（如服务4组时总投入为24，在预算内）；若预算固定为26，方案B更稳妥，且剩余1单位预算可用于其他用途。\",\"evidence\":\"本节点为合成场景，无外部原始材料来源；所有数值由任务描述直接提供，计算过程基于给定公式（总投入=固定投入+每组投入×服务组数）。\",\"assumptions\":\"假设固定投入和每组投入均为一次性直接成本，无其他隐藏费用或变动因素；假设服务组数5为实际需求，不可随意减少；假设预算26为硬性上限，不可超支；未考虑时间价值、规模效应或方案质量差异，仅从成本角度分析。\"}",
+      "latency_ms": 5508,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 5548.084291978739,
+      "start_ms": 5564.773667021655,
+      "end_ms": 11188.221582910046,
+      "queue_ms": 16.689375042915344,
+      "output": "{\"result\": \"基于上游成本测算，方案A总投入28超出可用预算26，存在2单位的资金缺口风险；方案B总投入25在预算内，无资金缺口。建议：若预算26为硬性上限且不可追加，应优先选择方案B，其剩余1单位预算可用于其他用途；若必须选择方案A，则需追加预算2或减少服务组数（如服务4组时总投入为24，在预算内），但减少服务组数可能影响服务覆盖范围，需结合实际需求权衡。\", \"evidence\": \"本节点为合成场景，无外部原始材料来源；所有数值由任务描述直接提供，计算过程基于给定公式（总投入=固定投入+每组投入×服务组数），上游cost节点已给出方案A总投入28、方案B总投入25及预算26的对比结果，本节点据此进行风险判断。\", \"assumptions\": \"假设固定投入和每组投入均为一次性直接成本，无其他隐藏费用或变动因素；假设服务组数5为实际需求，但减少组数可能影响服务质量或覆盖范围，需业务确认；假设预算26为硬性上限，不可超支；未考虑时间价值、规模效应或方案质量差异，仅从成本角度分析；方案A超出预算2的具体弥补方式（追加预算或减少组数）需决策者根据实际情况选择。\"}",
+      "latency_ms": 5621,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 11205.440792022273,
+      "start_ms": 11221.9341249438,
+      "end_ms": 15540.96962499898,
+      "queue_ms": 16.493332921527326,
+      "output": "综合上游成本测算与风险判断，两个节点的计算结果一致，无冲突：方案A总投入为28（固定投入8 + 每组投入4 × 5组），超出可用预算26共2个单位；方案B总投入为25（固定投入20 + 每组投入1 × 5组），在预算内并剩余1个单位。两节点均基于同一公式（总投入=固定投入+每组投入×服务组数）和任务描述直接提供的数值，证据来源一致，未发现遗漏或矛盾。\n\n**最终建议：**\n\n1. **若预算26为硬性上限且不可追加**，应优先选择方案B。其总投入25在预算内，无资金缺口风险，且剩余1单位预算可用于其他用途，资金使用更稳妥。\n\n2. **若必须选择方案A**，则需明确资金缺口弥补方式：一是追加预算2单位，使可用资金达到28；二是减少服务组数至4组（总投入为8+4×4=24，在预算内），但此举将减少服务覆盖范围，需业务确认是否可接受。\n\n3. **决策限制与不确定性**：本分析仅基于成本维度，未考虑方案A与方案B在服务质量、实施效果、长期收益等方面的差异；假设固定投入和每组投入为一次性直接成本，无隐藏费用；假设服务组数5为初始需求，减少组数的影响需结合实际业务评估。若存在其他成本因素或方案质量差异，建议补充相关信息后再做最终决策。",
+      "latency_ms": 4316,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "cost": "cheap",
+    "risk": "cheap",
+    "answer": "cheap"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "根据成本测算评估资金不足风险",
+        "parents": [
+          "cost"
+        ],
+        "contract": {
+          "objective": "根据成本测算评估资金不足风险",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确计算两个方案总投入",
+      "根据预算判断缺口并给出有条件建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "本任务要求基于成本测算评估资金不足风险；风险节点必须等待成本节点，不能删除此真实依赖。"
+  },
+  "final_output": "综合上游成本测算与风险判断，两个节点的计算结果一致，无冲突：方案A总投入为28（固定投入8 + 每组投入4 × 5组），超出可用预算26共2个单位；方案B总投入为25（固定投入20 + 每组投入1 × 5组），在预算内并剩余1个单位。两节点均基于同一公式（总投入=固定投入+每组投入×服务组数）和任务描述直接提供的数值，证据来源一致，未发现遗漏或矛盾。\n\n**最终建议：**\n\n1. **若预算26为硬性上限且不可追加**，应优先选择方案B。其总投入25在预算内，无资金缺口风险，且剩余1单位预算可用于其他用途，资金使用更稳妥。\n\n2. **若必须选择方案A**，则需明确资金缺口弥补方式：一是追加预算2单位，使可用资金达到28；二是减少服务组数至4组（总投入为8+4×4=24，在预算内），但此举将减少服务覆盖范围，需业务确认是否可接受。\n\n3. **决策限制与不确定性**：本分析仅基于成本维度，未考虑方案A与方案B在服务质量、实施效果、长期收益等方面的差异；假设固定投入和每组投入为一次性直接成本，无隐藏费用；假设服务组数5为初始需求，减少组数的影响需结合实际业务评估。若存在其他成本因素或方案质量差异，建议补充相关信息后再做最终决策。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本正确计算方案A总投入为28（8+4×5）、方案B总投入为25（20+1×5），与任务给定参数一致；并据此判断方案A超预算2单位存在资金缺口、方案B在预算内剩余1单位，且给出有条件建议（硬预算选B；若选A需追加2单位或减至4组使总投入24），同时说明仅基于成本维度的限制。两条验收标准均满足，未发现不实工具执行声明或证据矛盾。",
+    "criteria": [
+      {
+        "criterion": "准确计算两个方案总投入",
+        "passed": true,
+        "rationale": "文本明确给出方案A总投入28、方案B总投入25，计算过程「固定投入8 + 每组投入4 × 5组」「固定投入20 + 每组投入1 × 5组」正确。"
+      },
+      {
+        "criterion": "根据预算判断缺口并给出有条件建议",
+        "passed": true,
+        "rationale": "文本以预算26为基准判断A缺口2单位、B剩余1单位，并提出硬预算选B、选A需追加预算或减组至4组等有条件建议，符合要求。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.2110829809680581,
+    "peak_running_nodes": 1,
+    "ended_ms": 15565.08029194083,
+    "wall_time_ms": 15564.871834008954
+  },
+  "calls": [
+    {
+      "label": "cash_cal_b--2--calibration--cheap:cost",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.52405,
+      "charged": 0.03535,
+      "status": "billed",
+      "input_sha256": "8978c72e233bd84159ff5ac1d3229d9bc8f28307c03e0ac060ea9cb4620f63f4",
+      "dispatch_monotonic": 799133.215917791,
+      "input_tokens": 458,
+      "output_tokens": 249,
+      "latency_ms": 5508,
+      "request_id": "021788801135561137f500080bf18603e76d17d12e7c43eb1f889",
+      "finish_reason": "stop",
+      "output_sha256": "73b05b3a1d171c4293cb5ad32e362d1b1a8c9061f0c30274c58b27d9199b05c2"
+    },
+    {
+      "label": "cash_cal_b--2--calibration--cheap:risk",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.58535,
+      "charged": 0.05195,
+      "status": "billed",
+      "input_sha256": "c62531c95bd5d08cbc0560d9f5937aa56c0f23c62aa664a320c50636e1829259",
+      "dispatch_monotonic": 799138.762779375,
+      "input_tokens": 748,
+      "output_tokens": 291,
+      "latency_ms": 5621,
+      "request_id": "0217888011410928df8e1a1401bb5aa62b5b494646ada582dbd22",
+      "finish_reason": "stop",
+      "output_sha256": "a9e4de1a26a972bb5d365c3828dc9c8f2b0f4a232ef8dc24df3589e56ba2c9ed"
+    },
+    {
+      "label": "cash_cal_b--2--calibration--cheap:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.6314,
+      "charged": 0.06335,
+      "status": "billed",
+      "input_sha256": "e060f21c92fd90989ae394b149a72df88963607382a11003ea32f127da5606f0",
+      "dispatch_monotonic": 799144.419939208,
+      "input_tokens": 951,
+      "output_tokens": 316,
+      "latency_ms": 4316,
+      "request_id": "0217888011467659255aa03547266d00c3fa3dce78057f119c77d",
+      "finish_reason": "stop",
+      "output_sha256": "59f233b40201e9fba9c31a73a5162f32f42311ac9f0b92270156e0e7830b971e"
+    },
+    {
+      "label": "cash_cal_b--2--calibration--cheap:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 10.895,
+      "charged": 0.879,
+      "status": "billed",
+      "input_sha256": "8e33b0e18a7510d85a46242934d4223714feb817304a832a77950ba777d950f5",
+      "dispatch_monotonic": 799148.778075041,
+      "input_tokens": 619,
+      "output_tokens": 260,
+      "latency_ms": 23732,
+      "request_id": "021788801151133c237340934591b89d6de6b6a9271c1b98bdb94",
+      "finish_reason": "stop",
+      "output_sha256": "95b6e2190548c6e6aa42ff3cc7339658a39f6413c9689927b66c7e97405d9f75"
+    }
+  ],
+  "wall_time_ms": 39317.93212494813,
+  "critical_path_latency_ms": 15445
+}

@@ -1,0 +1,12 @@
+{
+  "label": "cash_holdout_v4--1--dag-strong-parallel--strong:risk",
+  "content": "{\n  \"result\": \"方案 A 总投入为 38，预算余额为 3，处于预算内但缓冲较薄；方案 B 总投入为 43，预算缺口为 2，已超出可用预算。资金不足风险主要集中在方案 B，其当前成本结构不可直接执行；方案 A 虽可执行，但对组数、单价或固定投入的小幅上浮敏感，存在突破预算的边际风险。未提供收益信息，无法比较性价比，只能从成本与预算可行性角度判断。\",\n  \"evidence\": \"无上游原始材料。本节点基于任务描述中的合成场景数据及上游 cost 节点给出的计算结果进行复核，未引用外部证据。\",\n  \"assumptions\": \"假设服务组数固定为 7 组，固定投入和每组投入均为确定值，可用预算 41 为硬约束；未考虑税费、时间成本、价格波动、执行风险溢价及收益因素。\"\n}",
+  "input_tokens": 827,
+  "output_tokens": 200,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4494,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178880263788059e4692ee8689b9dc112ef0a7e12032fc6dc02"
+}

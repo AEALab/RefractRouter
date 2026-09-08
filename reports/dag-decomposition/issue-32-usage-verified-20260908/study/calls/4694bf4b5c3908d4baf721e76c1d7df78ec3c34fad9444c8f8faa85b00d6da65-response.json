@@ -1,0 +1,24 @@
+{
+  "label": "cash_holdout_v6--2--dag-calibrated-single--strong:final-judge",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本准确完成任务：方案 A 固定投入 22 单位加每周运行费 4 单位乘 6 周，等于 22+24=46 单位，预算 48 单位下余额 2 单位；方案 B 固定投入 37 单位加每周运行费 2 单位乘 6 周，等于 37+12=49 单位，超出预算 1 单位。文本明确说明方案 A 可在预算内完整运行 6 周，方案 B 无法在现有预算下完整执行，并给出优先采用方案 A 的建议；对若必须采用方案 B 的情形，仅提出需要额外 1 单位预算或缩短运行时间、降低每周运行费、调整固定投入等条件性方向，同时声明不引入未给出的优惠、收益或额外预算来源，符合任务约束。未发现计算错误、遗漏或不实工具执行声明。\",\"criteria\":[{\"criterion\":\"准确计算两个方案总投入\",\"passed\":true,\"rationale\":\"方案 A 总投入计算为 22+4×6=46 单位，方案 B 总投入计算为 37+2×6=49 单位，均准确。\"},{\"criterion\":\"根据预算判断缺口并给出有条件建议\",\"passed\":true,\"rationale\":\"正确判断方案 A 余额 2 单位、方案 B 缺口 1 单位；建议优先采用方案 A，并对必须采用方案 B 的情形给出需额外 1 单位预算或调整运行时间、每周运行费、固定投入等有条件建议，且未引入未给出的优惠、收益或额外预算。\"}]}",
+  "input_tokens": 527,
+  "output_tokens": 361,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10763,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888059318373a391e43edef5299850de6066b8d72e26983c7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 361,
+    "prompt_tokens": 527,
+    "total_tokens": 888,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

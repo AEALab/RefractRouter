@@ -1,0 +1,12 @@
+{
+  "label": "probe:rewrite_cal_a:1:answer:mid:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"改写结果「本周五前完成测试，前提是输入数据全部就绪。」准确保留了原句的完成时限（本周五之前）与前提条件（输入数据全部准备好），语义完整且显著更简洁，未虚构任何数据或引入新信息，符合「保留证据与假设，不虚构数据」的检查要求。输出为纯文本正文，未封装为 JSON 或使用代码围栏，遵守了输出契约，也未声称执行工具或检索新事实。轻微扣分点：「本周五前」相比「本周五之前」在严格语义上可能略含歧义（是否包含周五当天），但日常中文中两者基本等价，影响很小；另「覆盖本节点职责并明确限制」一项，改写任务本身无需额外声明限制，故不构成实质缺陷。\"}",
+  "input_tokens": 572,
+  "output_tokens": 189,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9750,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788801413936d1a31addd6d38d14c8141e1e64f1efaaf7a56d"
+}

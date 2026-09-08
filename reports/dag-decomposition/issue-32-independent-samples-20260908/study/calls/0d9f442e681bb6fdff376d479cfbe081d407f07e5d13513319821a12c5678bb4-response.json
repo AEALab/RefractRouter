@@ -1,0 +1,12 @@
+{
+  "label": "probe:cash_cal_a:2:risk:mid:judge",
+  "content": "{\"score\": 96, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好等于 contract.output.fields 的 {result, evidence, assumptions}，所有值为非空字符串，未复制 covers/checks/capability/inputs 等执行元数据，JSON 语法与转义正确，未使用 Markdown 围栏或对象外说明。计算正确：A=10+3×4=22，B=18+1×4=22，均低于预算 24，结余 2；与上游 cost 节点结果一致，未虚构数据，evidence 明确说明无外部证据且数值来源为任务文本，assumptions 完整列出组数固定、同单位、不含隐性成本等限制与不确定性。职责覆盖到位：先算总投入，再判断缺口风险（无缺口但缓冲仅 2），并给出建议（预留机动资金、锁定组数与单价、组数可扩展时倾向 B）。未声称执行工具或检索。轻微扣分点：建议中「额外预留至少 2 的机动资金」的「至少 2」缺乏定量推导依据（2 恰为当前结余，预留后总占用达 24 即无缓冲，逻辑上略欠严谨），属于定性建议的小瑕疵，不影响整体正确性。\"}",
+  "input_tokens": 1527,
+  "output_tokens": 288,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10860,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217888008159947093713527b8c530401a403eec8fc15210f9be"
+}

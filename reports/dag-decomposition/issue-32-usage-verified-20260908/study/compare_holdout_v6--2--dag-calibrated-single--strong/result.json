@@ -1,0 +1,286 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "cost",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.1338329166173935,
+      "start_ms": 7.086874917149544,
+      "end_ms": 8001.552707981318,
+      "queue_ms": 6.95304200053215,
+      "output": "{\n  \"result\": \"分区试行：投入35单位、覆盖5组，单位覆盖成本为7单位/组；整体上线：投入72单位、覆盖8组，单位覆盖成本为9单位/组。因此分区试行单位覆盖成本更低，总投入也更低。调整风险方面，分区试行允许每周修订流程，调整灵活性更高；整体上线需等到首次验收后才允许调整，而验收日期尚未确定，存在调整时点不确定的风险。建议：若当前目标是控制成本并保留流程调整空间，优先选择分区试行；若必须追求一次性覆盖8组且可接受更高单位成本及验收后才能调整的限制，再考虑整体上线。该建议以材料A、B提供的数据和规则为条件，不虚构收益或风险概率。\",\n  \"evidence\": \"材料A：分区试行投入35单位、覆盖5组；整体上线投入72单位、覆盖8组。材料B：分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，验收日期尚未确定。\",\n  \"assumptions\": \"假设投入单位与覆盖组数可直接用于计算单位覆盖成本，且两组方案除材料所述差异外其他条件可比。信息缺口：未提供首次验收预计日期、各方案实施周期、人力或时间成本、质量或效果差异，因此无法评估除单位覆盖成本、总投入和调整规则以外的风险或收益。\"\n}",
+      "latency_ms": 7993,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risk",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 7.119667017832398,
+      "start_ms": 136.43974997103214,
+      "end_ms": 11924.249458010308,
+      "queue_ms": 129.32008295319974,
+      "output": "{\n  \"result\": \"两方案在给定材料下的风险比较如下：单位覆盖成本方面，分区试行投入35单位覆盖5组，折合7单位/组；整体上线投入72单位覆盖8组，折合9单位/组，分区试行单位覆盖成本更低。总投入方面，分区试行35单位低于整体上线72单位，但分区试行覆盖范围也较小，不能直接推断整体上线效率差，只能说明在材料给出的投入口径下分区试行绝对投入更少。调整风险方面，分区试行可以每周修订流程，调整窗口更短、更灵活；整体上线需等到首次验收之后才允许调整，而验收日期尚未确定，意味着调整时点存在不确定性，若首次验收延迟，则流程调整也会相应延后。综合来看，在材料仅提供投入、覆盖组数和调整规则的情况下，分区试行在单位覆盖成本、绝对投入和调整灵活性上均表现更优；整体上线的主要不确定性来自验收日期未定导致的调整受限。建议若追求更早、更频繁的流程修订且希望控制前期投入，可优先考虑分区试行；若必须采用整体上线，则应先明确首次验收日期，否则不宜承诺调整时间。本分析不虚构收益或风险概率，也不对未提供的成本构成、实施效果、质量或业务收益作推断。\",\n  \"evidence\": \"材料A：分区试行投入35单位、覆盖5组；整体上线投入72单位、覆盖8组。材料B：分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，验收日期尚未确定。单位覆盖成本由材料A数据计算：35/5=7单位/组，72/8=9单位/组。\",\n  \"assumptions\": \"假设材料A中的投入单位与覆盖组数可直接用于计算单位覆盖成本，且两组方案的成本口径一致；材料未提供投入的具体构成、时间跨度、实施质量、风险概率或收益数据，因此无法评估成本效益以外的风险维度。整体上线验收日期未确定，调整风险只能定性描述，不能给出概率或具体延迟时长。\"\n}",
+      "latency_ms": 11786,
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 11936.782332952134,
+      "start_ms": 11947.047916939482,
+      "end_ms": 18169.895957922563,
+      "queue_ms": 10.265583987347782,
+      "output": "综合来看，分区试行在单位覆盖成本、总投入和调整灵活性上均优于整体上线，但覆盖范围较小；整体上线覆盖更广，却存在单位成本更高、总投入更大，以及因首次验收日期未定而导致的调整时点不确定。\n\n建议：若当前目标是控制前期投入、保留每周修订流程的调整空间，应优先选择分区试行。若必须一次性覆盖 8 组，则需先明确首次验收日期，并接受 9 单位/组的单位覆盖成本和验收后才能调整的限制，否则不宜承诺调整时间。\n\n依据：材料 A 显示，分区试行投入 35 单位、覆盖 5 组，单位覆盖成本为 7 单位/组；整体上线投入 72 单位、覆盖 8 组，单位覆盖成本为 9 单位/组。材料 B 显示，分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，而验收日期尚未确定。\n\n限制：以上判断仅基于材料 A、B 提供的投入、覆盖组数和调整规则，不虚构收益或风险概率。未提供首次验收预计日期、实施周期、人力或时间成本、质量或效果差异，因此无法评估成本效益以外的风险或收益。",
+      "latency_ms": 6221,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "cost": "strong",
+    "risk": "strong",
+    "answer": "strong"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "分析两个方案的成本与资源需求",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的成本与资源需求",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk",
+        "node_type": "synthesis",
+        "prompt_template": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+        "parents": [],
+        "contract": {
+          "objective": "基于提供的风险材料分析两方案风险，不依赖成本测算",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "result": "分析结果",
+              "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+              "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+        "parents": [
+          "cost",
+          "risk"
+        ],
+        "contract": {
+          "objective": "综合分析结果，核对冲突、遗漏与证据，给出建议",
+          "inputs": {
+            "cost": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+            },
+            "risk": {
+              "fields": [
+                "result",
+                "evidence",
+                "assumptions"
+              ],
+              "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 32768,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0,
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "比较两个方案的成本与资源需求",
+      "分析风险并给出有证据支持的建议"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "成本与风险都可直接使用原始材料独立分析；最后汇总冲突与证据。两条分支表达并行机会，运行器按冻结并发策略执行。"
+  },
+  "final_output": "综合来看，分区试行在单位覆盖成本、总投入和调整灵活性上均优于整体上线，但覆盖范围较小；整体上线覆盖更广，却存在单位成本更高、总投入更大，以及因首次验收日期未定而导致的调整时点不确定。\n\n建议：若当前目标是控制前期投入、保留每周修订流程的调整空间，应优先选择分区试行。若必须一次性覆盖 8 组，则需先明确首次验收日期，并接受 9 单位/组的单位覆盖成本和验收后才能调整的限制，否则不宜承诺调整时间。\n\n依据：材料 A 显示，分区试行投入 35 单位、覆盖 5 组，单位覆盖成本为 7 单位/组；整体上线投入 72 单位、覆盖 8 组，单位覆盖成本为 9 单位/组。材料 B 显示，分区试行可以每周修订流程；整体上线需等到首次验收之后才允许调整，而验收日期尚未确定。\n\n限制：以上判断仅基于材料 A、B 提供的投入、覆盖组数和调整规则，不虚构收益或风险概率。未提供首次验收预计日期、实施周期、人力或时间成本、质量或效果差异，因此无法评估成本效益以外的风险或收益。",
+  "evaluation": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本完整覆盖原任务要求：基于材料 A 计算并比较单位覆盖成本（35/5=7 单位/组，72/8=9 单位/组）与总投入（35 对 72），基于材料 B 比较调整风险（分区试行可每周修订；整体上线需等首次验收且日期未定，存在调整时点不确定），并给出附明确条件的建议（控制前期投入与保留调整空间时优先分区试行；必须一次覆盖 8 组时需先明确首次验收日期并接受 9 单位/组与验收后调整限制）。文本明确声明不虚构收益或风险概率，并列出未提供信息的限制，未发现不实工具执行声明或证据外断言。",
+    "criteria": [
+      {
+        "criterion": "比较两个方案的成本与资源需求",
+        "passed": true,
+        "rationale": "明确比较总投入 35 单位对 72 单位、覆盖 5 组对 8 组，并正确计算单位覆盖成本 7 单位/组对 9 单位/组；同时指出分区试行覆盖范围较小、整体上线覆盖更广。"
+      },
+      {
+        "criterion": "分析风险并给出有证据支持的建议",
+        "passed": true,
+        "rationale": "依据材料 B 指出分区试行可每周修订，整体上线受首次验收后方能调整且验收日期未定带来的调整时点不确定；建议附条件且仅引用材料 A、B，不虚构收益或风险概率。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 2,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.1129999291151762,
+    "peak_running_nodes": 2,
+    "ended_ms": 18183.7480829563,
+    "wall_time_ms": 18183.637958019972
+  },
+  "calls": [
+    {
+      "label": "compare_holdout_v6--2--dag-calibrated-single--strong:cost",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.8421,
+      "charged": 0.4246,
+      "status": "billed",
+      "input_sha256": "7eac5b925af3d2fc1798789f42a6ff802d36409f13b558d3f562c92595f06689",
+      "dispatch_monotonic": 803183.0487505,
+      "input_tokens": 479,
+      "output_tokens": 293,
+      "latency_ms": 7993,
+      "request_id": "021788805185376770d3492782dd10cc0a489fec0a72eadda42f1",
+      "finish_reason": "stop",
+      "output_sha256": "8243216ef6b7750558e6b1382514cc887aacc399c49f6827922dcb409d917446"
+    },
+    {
+      "label": "compare_holdout_v6--2--dag-calibrated-single--strong:risk",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 5.875100000000001,
+      "charged": 0.51205,
+      "status": "billed",
+      "input_sha256": "58289002d43c1f977d10c2221817a5cc53e5c361c25b132dcb86d2ae5e177fe0",
+      "dispatch_monotonic": 803183.17810375,
+      "input_tokens": 491,
+      "output_tokens": 440,
+      "latency_ms": 11786,
+      "request_id": "021788805185511a77e5a4c9aa25c0e7eca6d226bba90a0c949cb",
+      "finish_reason": "stop",
+      "output_sha256": "0f0728fa42154a1807d43aaabf8fa7b3d96070fd1ae4e4c1e16fa0b1f7b475c4"
+    },
+    {
+      "label": "compare_holdout_v6--2--dag-calibrated-single--strong:answer",
+      "model_id": "strong",
+      "category": "production",
+      "reserved": 7.62355,
+      "charged": 0.7766,
+      "status": "billed",
+      "input_sha256": "0fe8f55af2f731f1efd7019ea56c10eb896ebfed8b48fe5b5ae77867e85366a2",
+      "dispatch_monotonic": 803194.988711291,
+      "input_tokens": 1151,
+      "output_tokens": 261,
+      "latency_ms": 6221,
+      "request_id": "0217888051973247424dba2bd6e77b99d402060a9cf8c0f99a447",
+      "finish_reason": "stop",
+      "output_sha256": "49eba27132cc00b557dba48c485863ba877ea40e3639ddb8a8cd14f621ffbc4f"
+    },
+    {
+      "label": "compare_holdout_v6--2--dag-calibrated-single--strong:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 10.842,
+      "charged": 0.895,
+      "status": "billed",
+      "input_sha256": "7706ca747776fc60aa2dcce9cead4e6663a044401ed5f0727e109a6ee7bf5f7d",
+      "dispatch_monotonic": 803201.2412205,
+      "input_tokens": 576,
+      "output_tokens": 319,
+      "latency_ms": 10816,
+      "request_id": "021788805203582add9fca5277b8939d33af9a0f1789d6cdddbf2",
+      "finish_reason": "stop",
+      "output_sha256": "2f211394a9f5f16f2c7c332503f68a727fe77324a4432c389ec426379983b662"
+    }
+  ],
+  "wall_time_ms": 29019.302791915834,
+  "critical_path_latency_ms": 18007
+}

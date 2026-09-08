@@ -1,0 +1,131 @@
+{
+  "status": "completed",
+  "nodes": [
+    {
+      "node_id": "answer",
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 0.09541702456772327,
+      "start_ms": 17.870667041279376,
+      "end_ms": 1450.4694170318544,
+      "queue_ms": 17.775250016711652,
+      "output": "林宁：请于本月二十六日前提交核验报告。若合作方明细尚未收齐，可先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。",
+      "latency_ms": 1430,
+      "contract_status": "structure-valid"
+    }
+  ],
+  "assignments": {
+    "answer": "cheap"
+  },
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "把用户提供的句子改写得更简洁，保留原意",
+        "parents": [],
+        "contract": {
+          "objective": "把用户提供的句子改写得更简洁，保留原意",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终建议与可追溯依据"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 16384,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "保留证据与假设，不虚构数据",
+            "覆盖本节点职责并明确限制"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "保留原意并使表达更简洁"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "只需把给定句子改写为更简洁的中文，交接与汇总开销没有依据，保留单节点。"
+  },
+  "final_output": "林宁：请于本月二十六日前提交核验报告。若合作方明细尚未收齐，可先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分。",
+  "evaluation": {
+    "score": 95,
+    "passed": true,
+    "rationale": "改写后的文本保留了责任人「林宁」、时限「本月二十六日前」以及条件「若合作方明细尚未收齐，先提交已核验部分，并在明细收齐后的第三个工作日补交剩余部分」，未改成自然日，也未虚构日期或承诺。表达清楚、礼貌，符合工作通知要求。",
+    "criteria": [
+      {
+        "criterion": "保留原意并使表达更简洁",
+        "passed": true,
+        "rationale": "文本保留了原意，包括责任人、时限和条件，且表达简洁清楚。"
+      }
+    ]
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 2,
+      "provider_concurrency": {
+        "ark-plan": 2
+      },
+      "provider_min_interval_ms": {
+        "ark-plan": 100
+      }
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 0.06479199510067701,
+    "peak_running_nodes": 1,
+    "ended_ms": 1469.2205419996753,
+    "wall_time_ms": 1469.1577079938725
+  },
+  "calls": [
+    {
+      "label": "rewrite_holdout_v6--1--dag-calibrated-single--cheap:answer",
+      "model_id": "cheap",
+      "category": "production",
+      "reserved": 0.49920000000000003,
+      "charged": 0.01875,
+      "status": "billed",
+      "input_sha256": "c85095cded6f2f263b20ea193c8ce94e082437dc387d3c5d64f8fceac3e577c0",
+      "dispatch_monotonic": 804352.584182333,
+      "input_tokens": 334,
+      "output_tokens": 41,
+      "latency_ms": 1430,
+      "request_id": "021788806354927770d3492782dd10cc0a489fec0a72eadc2e217",
+      "finish_reason": "stop",
+      "output_sha256": "0c72f16fcd0552e9c4b6eef07ec63fd6a540dc1d14a6525e4f6a45b8ff94c268"
+    },
+    {
+      "label": "rewrite_holdout_v6--1--dag-calibrated-single--cheap:final-judge",
+      "model_id": "judge",
+      "category": "evaluation",
+      "reserved": 9.714,
+      "charged": 0.467,
+      "status": "billed",
+      "input_sha256": "5ad8e1a17a4477172c838b972e623bf73a9c45af4d0e85fd97b8ef6e21461abe",
+      "dispatch_monotonic": 804354.053702291,
+      "input_tokens": 331,
+      "output_tokens": 136,
+      "latency_ms": 8082,
+      "request_id": "021788806356400b531818cd979bd70c39b690ac6f23902b51925",
+      "finish_reason": "stop",
+      "output_sha256": "0ebef2aaf882c4d8f90d1b25663f8bdbfb5d3c10bb3f116c05b3c994bfcd06e6"
+    }
+  ],
+  "wall_time_ms": 9572.060166974552,
+  "critical_path_latency_ms": 1430
+}
