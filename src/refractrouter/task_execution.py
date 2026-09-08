@@ -105,9 +105,13 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
             return False
         messages = node_messages(task, nodes[nid], plan.contracts.get(nid), context)
         input_bound = len(json.dumps(messages, ensure_ascii=False).encode()) + 256
+        now_ms = elapsed()
+        previous_starts = {provider: max(scheduled, (actual_starts.get(provider, started) - started) * 1000) - now_ms
+                           for provider, scheduled in last_start.items()}
         mid = recovery.choose(nid, assignments, set(attempted[nid]), completed, active,
             spent=spent['production'], cost_limit=min(budget.limits['production'], production_cap),
-            remaining_ms=max(0, (deadline-time.monotonic())*1000), input_bound=input_bound)
+            remaining_ms=max(0, (deadline-time.monotonic())*1000), input_bound=input_bound,
+            last_start=previous_starts)
         if mid is None:
             row['recovery_status'] = 'no-feasible-replacement'
             return False

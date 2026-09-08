@@ -1,0 +1,95 @@
+{
+  "status": "pass",
+  "scope": "final-installed-native-dsh-web-three-strategy-demo",
+  "live_calls": 0,
+  "task": "请比较方案 A/B 的成本与风险。",
+  "results": [
+    {
+      "run_id": "20260908T081113Z-0eda7ff6e775",
+      "strategy": "economy",
+      "models": {
+        "answer": "deepseek-v4-flash"
+      },
+      "status": "simulated",
+      "simulated": true,
+      "answer": "[SIMULATED] RefractAgent 安装演示，未调用真实模型。\n\n策略：省成本\n模型分配：{\"answer\": \"deepseek-v4-flash\"}\n任务：请比较方案 A/B 的成本与风险。\n\n安装、选路和结果保存已完成；启用真实执行后才会生成该任务的答案与独立评审。",
+      "costs": {
+        "production": 0.0025,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "artifact_hashes": {
+        "answer.md": "2a09c50dfc81d41a4c2314c59a361813b6d545dfe467c29101a1282fdcc16841",
+        "manifest.json": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd",
+        "profile.json": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30",
+        "request.json": "9a633f6d66b80b9e722780eac339062348f7d542b3af8dd0892949a4869ffb36",
+        "result.json": "c7e0f7784a091ca18f6d6c542f0b027c2a166113a773d1252f89ac730396d8d3"
+      },
+      "screenshot": "economy-demo-v3.png",
+      "screenshot_sha256": "829eaff821c21437953f5c36e94d7d93ed2ace1b3ca379f8edcc096a1e4a90d6"
+    },
+    {
+      "run_id": "20260908T081114Z-4b7501970542",
+      "strategy": "balanced",
+      "models": {
+        "answer": "minimax-m3"
+      },
+      "status": "simulated",
+      "simulated": true,
+      "answer": "[SIMULATED] RefractAgent 安装演示，未调用真实模型。\n\n策略：均衡\n模型分配：{\"answer\": \"minimax-m3\"}\n任务：请比较方案 A/B 的成本与风险。\n\n安装、选路和结果保存已完成；启用真实执行后才会生成该任务的答案与独立评审。",
+      "costs": {
+        "production": 0.0125,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "artifact_hashes": {
+        "answer.md": "62d8486f41cfa9eca4608597b59b3f7ee8de7128ae8454bd36d8eab68c9e06f5",
+        "manifest.json": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd",
+        "profile.json": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30",
+        "request.json": "76a9d227a51c6beb52d79217351004ba5d777ff4544b7a9797cf21579cf39c21",
+        "result.json": "78b556c96bce901e4d1dd4723c21a58151b9a4f0ea84a73a34c26813c4cfd5c4"
+      },
+      "screenshot": "balanced-demo-v3.png",
+      "screenshot_sha256": "b44cf53d8360a0b9775a7f6b04c8e2815c2304e5ef173c4cd6c631a56ebfa5a4"
+    },
+    {
+      "run_id": "20260908T081114Z-089e3342a714",
+      "strategy": "quality",
+      "models": {
+        "answer": "deepseek-v4-pro"
+      },
+      "status": "simulated",
+      "simulated": true,
+      "answer": "[SIMULATED] RefractAgent 安装演示，未调用真实模型。\n\n策略：质量优先\n模型分配：{\"answer\": \"deepseek-v4-pro\"}\n任务：请比较方案 A/B 的成本与风险。\n\n安装、选路和结果保存已完成；启用真实执行后才会生成该任务的答案与独立评审。",
+      "costs": {
+        "production": 0.0275,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "artifact_hashes": {
+        "answer.md": "1d0e82ec09b83428a7b7ac286d0e7fe77f69c421761a942e288efcb6949fae7f",
+        "manifest.json": "8b26c28e9101c917d16c50e118ffc3bfc34c0ddac70b34748196e93939e842dd",
+        "profile.json": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30",
+        "request.json": "ea70befa139fdca96ce580233f7301dc47fcf4a1b5929cea7701397b7e62f9a3",
+        "result.json": "8ab800c998bef729902ba13b47be156262b2b1c07afb8966ba598054af22ed59"
+      },
+      "screenshot": "quality-demo-v3.png",
+      "screenshot_sha256": "a6ef09e83d67119fe9232b8a3f73c75b923e0777a831f36aabe461a7a6f83a13"
+    }
+  ],
+  "directory_picker": "DSH 自带的 browse host/client 组合",
+  "package_sha256": {
+    "dsh-refractrouter-validation-0.10.0.tgz": "db30e4fa60d1f541661d0e2d9f58a1ad7957f3d8e57da915f3cd60d79612706a",
+    "refractrouter-0.2.0-py3-none-any.whl": "a602a27bfc1b1223e8fb36e827d0df88b61f1e3f7eb899b8d293918b3dce5e53"
+  },
+  "installed_provider_sha256": "ffc5729e9d59a94e7779e0b5f0721ff7da28a1c8c25700c2fef6628c59f49f20",
+  "checks": {
+    "installed_web_and_headless_match_final_tgz": true,
+    "web_server_restarted_with_final_package": true,
+    "each_model_selected_in_web": true,
+    "each_task_preserved": true,
+    "each_answer_visibly_simulated": true,
+    "live_execution_disabled": true,
+    "screenshots_visually_reviewed": true
+  }
+}

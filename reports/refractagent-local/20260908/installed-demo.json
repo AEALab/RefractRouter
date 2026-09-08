@@ -1,0 +1,251 @@
+{
+  "status": "pass",
+  "scope": "installed-wheel-and-tgz-native-dsh-demo",
+  "paid_model_calls": 0,
+  "live_acceptance": false,
+  "catalog": {
+    "provider": "refractagent",
+    "policy_version": "refractagent-presets-v1",
+    "models": [
+      {
+        "id": "economy",
+        "name": "RefractAgent · 省成本",
+        "description": "文本任务路由；质量为预测偏好，实际结果单独评估。"
+      },
+      {
+        "id": "balanced",
+        "name": "RefractAgent · 均衡",
+        "description": "文本任务路由；质量为预测偏好，实际结果单独评估。"
+      },
+      {
+        "id": "quality",
+        "name": "RefractAgent · 质量优先",
+        "description": "文本任务路由；质量为预测偏好，实际结果单独评估。"
+      }
+    ]
+  },
+  "results": [
+    {
+      "strategy": "economy",
+      "models": {
+        "answer": "deepseek-v4-flash"
+      },
+      "status": "simulated",
+      "simulated": true,
+      "costs": {
+        "production": 0.0025,
+        "evaluation": 0,
+        "unconfirmed": 0
+      }
+    },
+    {
+      "strategy": "balanced",
+      "models": {
+        "answer": "minimax-m3"
+      },
+      "status": "simulated",
+      "simulated": true,
+      "costs": {
+        "production": 0.0125,
+        "evaluation": 0,
+        "unconfirmed": 0
+      }
+    },
+    {
+      "strategy": "quality",
+      "models": {
+        "answer": "deepseek-v4-pro"
+      },
+      "status": "simulated",
+      "simulated": true,
+      "costs": {
+        "production": 0.0275,
+        "evaluation": 0,
+        "unconfirmed": 0
+      }
+    }
+  ],
+  "versions": {
+    "dsh": "0.1.1-rc.2",
+    "node": "v22.22.3"
+  },
+  "artifacts": {
+    "refractrouter-0.2.0-py3-none-any.whl": "a602a27bfc1b1223e8fb36e827d0df88b61f1e3f7eb899b8d293918b3dce5e53",
+    "dsh-refractrouter-validation-0.10.0.tgz": "db30e4fa60d1f541661d0e2d9f58a1ad7957f3d8e57da915f3cd60d79612706a"
+  },
+  "commands": [
+    {
+      "command": [
+        "uv",
+        "build",
+        "--wheel",
+        "--out-dir",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/packages"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "npm",
+        "pack",
+        "/Users/chun-hsianglee/.codex/worktrees/9933/RefractRouter/validation/dsh/plugin",
+        "--pack-destination",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/packages",
+        "--json"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "uv",
+        "tool",
+        "install",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/packages/refractrouter-0.2.0-py3-none-any.whl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/bin/refractagent",
+        "models"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "plugin",
+        "--profile",
+        "headless",
+        "add",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/packages/dsh-refractrouter-validation-0.10.0.tgz"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/bin/refractagent",
+        "dsh-config",
+        "--output",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/economy.json",
+        "--runs-dir",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/runs",
+        "--mode",
+        "demo",
+        "--strategy",
+        "economy"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "--patch",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/economy.json",
+        "--dump-config"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "--patch",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/economy.json",
+        "请用两句话比较小规模试点和全面推广。"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/bin/refractagent",
+        "dsh-config",
+        "--output",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/balanced.json",
+        "--runs-dir",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/runs",
+        "--mode",
+        "demo",
+        "--strategy",
+        "balanced"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "--patch",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/balanced.json",
+        "--dump-config"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "--patch",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/balanced.json",
+        "请用两句话比较小规模试点和全面推广。"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/bin/refractagent",
+        "dsh-config",
+        "--output",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/quality.json",
+        "--runs-dir",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/runs",
+        "--mode",
+        "demo",
+        "--strategy",
+        "quality"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "--patch",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/quality.json",
+        "--dump-config"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--profile",
+        "headless",
+        "--patch",
+        "/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/refractagent-package-check-8gqev12p/workspace/quality.json",
+        "请用两句话比较小规模试点和全面推广。"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "dsh",
+        "--version"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

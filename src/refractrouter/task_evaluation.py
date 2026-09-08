@@ -43,6 +43,7 @@ def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, inp
             if not isinstance(row, dict) or row.get('criterion') != expected or type(row.get('passed')) is not bool:
                 raise ValueError('invalid final judge criterion')
             text(row.get('rationale'), 'criterion rationale')
-        if result['passed'] != all(row['passed'] for row in rows):
+        # Listed criteria are necessary, but may omit an original task requirement.
+        if result['passed'] and not all(row['passed'] for row in rows):
             raise ValueError('inconsistent final judge verdict')
     return result

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "refractrouter"
-version = "0.1.0"
-description = "Task-decomposition-aware heterogeneous LLM routing research harness"
+version = "0.2.0"
+description = "Local task routing with RefractAgent strategy models and DSH integration"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
@@ -21,9 +21,13 @@ deepagents = [
 
 [project.scripts]
 refractrouter = "refractrouter.cli:main"
+refractagent = "refractrouter.agent_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+refractrouter = ["resources/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -17,7 +17,8 @@ class NodeRecovery:
         self.profiles = {(n.node_id, p.model_id): p for n in plan.nodes for p in profiles
                          if p.matches(n, plan) and p.model_id in routing['eligible_models'][n.node_id]}
 
-    def choose(self, nid, assignments, attempted, completed, active, *, spent, cost_limit, remaining_ms, input_bound):
+    def choose(self, nid, assignments, attempted, completed, active, *, spent, cost_limit, remaining_ms, input_bound,
+               last_start=None):
         """在途调用的费用已预留，时延按完整预测保守计入；不更换其他节点。"""
         options = []
         for (node_id, mid), candidate in self.profiles.items():
@@ -35,7 +36,8 @@ class NodeRecovery:
                 continue
             duration = {key: 0 if key in completed else p.latency_ms for key, p in rows.items()}
             latency = estimate_schedule(self.plan, duration,
-                {key: self.candidates[chosen[key]].provider for key in rows}, self.policy)['makespan_ms']
+                {key: self.candidates[chosen[key]].provider for key in rows}, self.policy,
+                completed=completed, active=active, last_start=last_start)['makespan_ms']
             if latency > remaining_ms:
                 continue
             quality = sum(p.quality for p in rows.values()) / len(rows)

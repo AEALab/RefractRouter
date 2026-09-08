@@ -109,6 +109,8 @@ def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_i
                 raise ValueError('invalid billed usage')
         if telemetry['cached_input_tokens'] > telemetry['input_tokens']:
             raise ValueError('invalid cached usage')
+        if output.strip() and (telemetry['input_tokens'] == 0 or telemetry['output_tokens'] == 0):
+            raise ValueError('missing billed usage for nonempty output')
         latency = number(row.get('latency_ms'), 'latency_ms')
         response = ChatResponse(output, telemetry['input_tokens'], telemetry['output_tokens'],
             telemetry['cached_input_tokens'], telemetry['reasoning_tokens'], latency, 1, 'stop', None)

@@ -82,3 +82,12 @@ jobs:
         run: python3 scripts/validate_dsh_plugin_lifecycle.py
       - name: Validate packaged plugin lifecycle
         run: python3 scripts/validate_dsh_plugin_lifecycle.py --packed
+      - name: Validate installed RefractAgent models without paid calls
+        run: python3 scripts/validate_refractagent_install.py --output "${RUNNER_TEMP}/refractagent-install"
+      - name: Upload RefractAgent installation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refractagent-install-${{ matrix.node-version }}
+          path: ${{ runner.temp }}/refractagent-install/acceptance.json
+          if-no-files-found: warn

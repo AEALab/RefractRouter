@@ -1,0 +1,37 @@
+{
+  "schema_version": "refractagent-local-live-acceptance-v1",
+  "task": "请仅依据以下材料，用简体中文比较方案 A/B。A：一次性部署费 12000 元，每月维护费 800 元，部署需 2 周，数据可留在本机。B：一次性部署费 3000 元，每月维护费 1800 元，部署需 3 天，数据由外部服务托管。团队预算上限 16000 元，试点期 3 个月，可接受 2 周部署，包含不能交给外部服务的内部材料。请计算两方案三个月总成本，说明预算和数据约束，给出选择建议与一个风险。控制在 250 字以内，不搜索、不调用工具、不编造缺失数据。",
+  "strategies": [
+    "economy",
+    "balanced",
+    "quality"
+  ],
+  "template": "single",
+  "max_production_calls": 3,
+  "max_evaluation_calls": 3,
+  "max_total_calls": 6,
+  "production_budget_per_task_afp": 40,
+  "evaluation_budget_per_task_afp": 80,
+  "production_budget_total_afp": 120,
+  "evaluation_budget_total_afp": 240,
+  "timeout_ms_per_task": 300000,
+  "max_output_tokens": 2048,
+  "http_retries": 0,
+  "node_fallbacks": 0,
+  "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3",
+  "stop_on_unknown_usage_or_infrastructure_failure": true,
+  "authorization_status": "authorized",
+  "expected_checks": [
+    "A 三个月总成本 14400 元，B 为 8400 元",
+    "两者均符合预算；B 不符合内部材料约束",
+    "基于完整约束推荐 A，并给出材料支持的风险",
+    "不声称执行工具或引用外部资料"
+  ],
+  "package_sha256": {
+    "dsh-refractrouter-validation-0.10.0.tgz": "db30e4fa60d1f541661d0e2d9f58a1ad7957f3d8e57da915f3cd60d79612706a",
+    "refractrouter-0.2.0-py3-none-any.whl": "a602a27bfc1b1223e8fb36e827d0df88b61f1e3f7eb899b8d293918b3dce5e53"
+  },
+  "revision": 3,
+  "authorization_user_reply": "执行",
+  "change_from_authorized_revision": "Only native DSH credential reference was corrected; task, strategy, budgets and maximum call count are unchanged. Context is reduced according to live-payload-review.json."
+}

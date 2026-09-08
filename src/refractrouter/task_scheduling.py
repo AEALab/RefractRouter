@@ -46,7 +46,7 @@ def available(node_id, provider, active, last_start, now, policy):
             and now >= last_start.get(provider, -math.inf) + policy.interval(provider))
 
 
-def estimate_schedule(plan, durations, providers, policy):
+def estimate_schedule(plan, durations, providers, policy, *, completed=(), active=(), last_start=None):
     """无调度/网络开销的列表调度预测，不是任务 p95 或 SLA。"""
     order = plan.order()
     parents = {n.node_id: n.parents for n in plan.nodes}
@@ -54,8 +54,16 @@ def estimate_schedule(plan, durations, providers, policy):
         raise ValueError('schedule requires every node duration and provider')
     if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 for v in durations.values()):
         raise ValueError('invalid schedule duration')
-    pending, completed, running, starts, ends = set(order), set(), {}, {}, {}
-    last_start, now = {}, 0.0
+    completed, active = set(completed), set(active)
+    if not (completed | active) <= set(order) or completed & active:
+        raise ValueError('invalid residual schedule state')
+    # Residual prediction uses now=0. Completed nodes consume neither a slot nor
+    # a new provider start; in-flight calls retain a conservative full duration.
+    pending = set(order) - completed - active
+    running = {nid: providers[nid] for nid in active}
+    starts = {nid: 0.0 for nid in completed | active}
+    ends = {nid: 0.0 if nid in completed else durations[nid] for nid in completed | active}
+    last_start, now = dict(last_start or {}), 0.0
     while pending or running:
         for nid in list(running):
             if ends[nid] <= now:
