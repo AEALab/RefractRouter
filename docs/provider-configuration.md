@@ -27,11 +27,12 @@ refractagent dsh-config --provider-config ./providers.json \
 以上 2 / 1 是示例每任务生产／评审上限，单位来自 `billingUnit`。
 完整安装与启动命令见 [安装指南](refractagent-local-quickstart.md)。
 
-## 三种 provider 接入方式
+## Provider 接入方式
 
 | `type` | 用途 | 配置 |
 | --- | --- | --- |
 | `openai-compatible` | 由 Python 直连支持 Chat Completions 的服务，包括本机服务 | `baseUrl`；需要认证时填写 `credentialEnv` |
+| `openai-responses` | 由 Python 直连 Responses API，支持推理模型 | 默认 `https://api.openai.com/v1`；`credentialEnv` 填凭证引用 |
 | `dsh` | 复用当前 DSH profile 已配置的 provider、模型与凭证 | `dshProvider` 填宿主 provider ID；省略时使用 `id` |
 | `ark-agent-plan` | 用户选择的方舟 Agent Plan 订阅 | 固定 `/api/plan/v3`；需要认证时填写 `credentialEnv` |
 
@@ -40,6 +41,7 @@ refractagent dsh-config --provider-config ./providers.json \
 结果的 `model_routes` 会同时保存 provider 和模型，避免同名模型混淆。
 
 `openai-compatible` 会在 `baseUrl` 后添加 `/chat/completions`。它不等于对全部厂商协议的支持；
+Responses API 使用单独的 `openai-responses` 类型，向 `/responses` 发请求；
 其他原生协议应通过已安装的 DSH provider 适配器接入。
 `baseUrl` 不接受用户名、密码、查询参数或片段；API Key 放在凭证服务或环境变量中。
 
@@ -95,23 +97,78 @@ refractagent dsh-config --provider-config ./providers.json \
 | 字段 | 含义 |
 | --- | --- |
 | `contextWindow` | 输入和输出共享的上下文容量；核心在调用前检查实际输入包络 |
-| `maxOutputTokens` | 1000–8192；实际还受应用和 DSH 请求输出上限限制 |
+| `maxOutputTokens` | Chat Completions / DSH 类型为 1000–8192；Responses 为 1000–128000，包含推理和正文；还受应用及 DSH 请求上限限制 |
 | `routing.quality` | 用户配置的 0–100 质量预测；候选必填 |
 | `routing.latencyMs` | 用户配置的正数时延预测；候选必填 |
 | `qualityMin` | 选路质量预测底线，默认 0；不等于最终评审通过分数 |
 | `pricing` | 每 1000 token 的输入、输出价格；`cachedInputPer1k` 可选，默认输入价格 |
 | `jsonMode` | `json-object-hint` 发送 JSON 格式提示；`prompt-only` 仅依靠提示词约束 |
-| `requestOptions` | 可选 `temperature`、`top_p`、`thinking`、`reasoning_effort`、`seed`；需目标服务支持 |
+| `requestOptions` | Chat Completions 可用 `temperature`、`top_p`、`thinking`、`reasoning_effort`、`seed`；Responses 见下节；均需模型支持 |
 | `maxTokensParameter` | HTTP provider 可选 `max_completion_tokens` 或 `max_tokens` |
 
 DSH 模式只传递 `temperature` 和 `reasoning_effort`，其他模型选项在宿主配置中管理。
-应用请求的 temperature 会覆盖生产候选的配置值；评审模型保留自身配置。
+Chat Completions 与 DSH 候选使用应用请求的 temperature；评审保留自身配置。
+Responses 只发送模型 `requestOptions` 中显式声明的采样参数，不自动注入 temperature。
 没有配置实测数据时，三个策略以这些声明值做预测；保存的 profile 标记为 `configured`、
 观测样本为 0，不能称为实测效果或 SLA。最终评审是另外一次调用。
 
 所有价格必须使用同一个 `billingUnit`，例如 USD、CNY 或 AFP。核心不自动换算汇率或把
 AFP 与现金相加。混用单位会拒绝执行；跨 provider 比较前由用户按明确口径配置共同单位。
 订阅的比较价格可设为零，但这时成本策略无法区分这些同价模型。
+
+## OpenAI Responses 与推理模型
+
+OpenAI 推理模型的接入采用 **Responses API**。官方参数和返回结构见
+[Responses 迁移说明](https://developers.openai.com/api/docs/guides/migrate-to-responses)。
+生成模板后填写自己账户可用的模型 ID、实际价格和上下文容量：
+
+```bash
+refractagent config-example --provider-type openai-responses --output ./providers-openai.json
+refractagent models --provider-config ./providers-openai.json
+refractagent dsh-config --provider-config ./providers-openai.json \
+  --output ./refractagent-openai.json --mode live --max-output-tokens 32768 \
+  --production-budget 2 --evaluation-budget 1
+```
+
+模板中的模型、价格和容量需要用户核对；2 / 1 仍是示例任务上限。
+DSH 解析 `OPENAI_API_KEY`，首次启用时将覆盖配置中的 `allowPaidRuns` 改为 `true`。
+一个 provider 的配置示例如下，可与其他协议的候选或评审组合：
+
+```json
+{
+  "id": "openai",
+  "type": "openai-responses",
+  "baseUrl": "https://api.openai.com/v1",
+  "credentialEnv": "OPENAI_API_KEY"
+}
+```
+
+对应模型的 `provider` 填 `openai`，可使用以下 `requestOptions`：
+
+```json
+{
+  "reasoning": {"effort": "medium"},
+  "text": {"verbosity": "low"}
+}
+```
+
+支持 `reasoning.effort`、可选 `reasoning.summary`，以及 `text.verbosity`。
+具体模型支持的 effort 和参数组合，以该模型的官方说明为准；核心不根据模型名字猜测能力。
+Responses 不使用 Chat Completions 的 `reasoning_effort` 或 `maxTokensParameter`。
+采样参数 `temperature` / `top_p` 仅在模型配置中显式填写时发送，需确认该模型支持。
+
+JSON 模式转换为 `text.format`。每个节点发送独立的同步请求，使用 `store: false`；
+当前不串接 `previous_response_id`、不携带加密推理状态，也不启用服务端工具或 background 轮询。
+多轮对话仍由应用传入可见上下文，DSH 中的最终回答展示方式保持一致。
+
+`max_output_tokens` 包括正文和 reasoning tokens；达到上限可能只产生推理、没有正文。
+该情况按未完成输出处理并结算已知用量。输入缓存和推理明细会保存，推理不重复加到
+`output_tokens` 上计费。依据见 [官方推理用量说明](https://developers.openai.com/api/docs/guides/reasoning)。
+
+配置中的模型 `maxOutputTokens`、插件 `maxOutputTokens` 和 DSH 请求上限共同约束调用。
+上面的 32768 是可调整示例，不是默认值或成功保证；未显式提高应用上限时默认仍是 2048。
+独立 CLI 可添加 `--max-output-tokens 32768`。过小上下文、未确认用量、拒绝或未完成响应
+均不会被当作成功结果，也不会自动改用 Chat Completions 重试。
 
 ## 复用 DSH 已配置的模型
 

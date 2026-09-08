@@ -16,6 +16,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .schemas import ModelSpec
+from .responses_api import decode_response, request_payload
 
 
 _PROGRESS_LOCK = Lock()
@@ -292,7 +293,7 @@ class OpenAICompatibleClient:
             )
         self.progress_request_id += 1
         progress_request_id = self.progress_request_prefix + str(self.progress_request_id)
-        endpoint = f"{model.base_url}/chat/completions"
+        endpoint = f"{model.base_url}/" + ("responses" if model.wire_api == "responses" else "chat/completions")
         _append_progress(
             self.progress_path,
             {
@@ -313,6 +314,8 @@ class OpenAICompatibleClient:
         }
         if json_mode and model.json_mode_strategy != "prompt-only":
             payload["response_format"] = {"type": "json_object"}
+        if model.wire_api == "responses":
+            payload = request_payload(model, messages, json_mode=json_mode)
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         headers = {
             **({"Authorization": f"Bearer {api_key}"} if api_key else {}),
@@ -334,7 +337,8 @@ class OpenAICompatibleClient:
                 )
                 if 200 <= response.status < 300:
                     try:
-                        parsed = self._parse_response(response, attempts, started)
+                        parsed = (self._parse_responses(response, attempts, started) if model.wire_api == "responses"
+                                  else self._parse_response(response, attempts, started))
                     except ModelInvocationError as exc:
                         _append_progress(
                             self.progress_path,
@@ -465,6 +469,19 @@ class OpenAICompatibleClient:
             break
         latency_ms = round((time.perf_counter() - started) * 1000)
         raise ModelInvocationError(last_failure, last_message, attempts, latency_ms)
+
+    @staticmethod
+    def _parse_responses(response, attempts, started):
+        latency_ms = round((time.perf_counter() - started) * 1000)
+        try:
+            data = json.loads(response.body.decode('utf-8'))
+            decoded = decode_response(data)
+        except (UnicodeDecodeError, ValueError, TypeError) as exc:
+            raise ModelInvocationError('invalid-response', 'Invalid Responses API response',
+                                       attempts, latency_ms) from exc
+        headers = {key.lower(): value for key, value in response.headers.items()}
+        return ChatResponse(**decoded, attempts=attempts, latency_ms=latency_ms,
+                            request_id=headers.get('x-request-id') or data.get('id'))
 
     @staticmethod
     def _parse_response(

@@ -25,6 +25,11 @@ def example_configuration(kind):
             'role': role, 'contextWindow': 32768, 'maxOutputTokens': 2048,
             'pricing': {'unit': 'USD', 'inputPer1k': .001, 'outputPer1k': .002},
             **({'routing': {'quality': 85, 'latencyMs': 10000}} if role=='candidate' else {})})
+    if kind == 'openai-responses':
+        provider.update(baseUrl='https://api.openai.com/v1', credentialEnv='OPENAI_API_KEY')
+        for model in models:
+            model.update(contextWindow=131072, maxOutputTokens=32768,
+                         requestOptions={'reasoning': {'effort': 'medium'}})
     unit = 'USD'
     if kind == 'ark-agent-plan':
         source = json.loads(resource('agent-plan.json').read_text())
@@ -49,7 +54,7 @@ def main(argv=None):
     models.add_argument('--provider-config', type=Path)
     example = commands.add_parser('config-example', help='生成可编辑的 provider/model 配置示例')
     example.add_argument('--output', type=Path, required=True)
-    example.add_argument('--provider-type', choices=['openai-compatible', 'dsh', 'ark-agent-plan'], default='openai-compatible')
+    example.add_argument('--provider-type', choices=['openai-compatible', 'openai-responses', 'dsh', 'ark-agent-plan'], default='openai-compatible')
     run = commands.add_parser('run', help='执行文本任务，默认零调用预检')
     source = run.add_mutually_exclusive_group(required=True)
     source.add_argument('--task')
@@ -82,6 +87,7 @@ def main(argv=None):
     setup_config = setup.add_mutually_exclusive_group()
     setup_config.add_argument('--provider-config', type=Path)
     setup_config.add_argument('--preset', choices=['ark-agent-plan'])
+    setup.add_argument('--max-output-tokens', type=int, default=2048)
     setup.add_argument('--credential-env', help='仅覆盖 Ark 预设的凭证引用')
     args = parser.parse_args(argv)
     try:
@@ -111,8 +117,11 @@ def main(argv=None):
             from .node_routing import number
             number(args.production_budget, 'production budget', positive=True)
             number(args.evaluation_budget, 'evaluation budget', positive=True)
+            if not 1000 <= args.max_output_tokens <= 128000:
+                raise ValueError('output cap must be an integer in 1000..128000')
             config = {'pythonExecutable': sys.executable, 'executionMode': args.mode,
                       'runsDir': str(args.runs_dir.expanduser().resolve()), 'allowPaidRuns': False,
+                      'maxOutputTokens': args.max_output_tokens,
                       'maxProductionCost': args.production_budget, 'maxEvaluationCost': args.evaluation_budget}
             if args.provider_config:
                 raw = json.loads(args.provider_config.read_text())

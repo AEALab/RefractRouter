@@ -16,7 +16,7 @@ interface ProviderConfiguration {
   schemaVersion: 'refractagent-providers-v1'
   billingUnit: string
   qualityMin?: number
-  providers: Array<{ id: string; type: 'openai-compatible' | 'ark-agent-plan' | 'dsh';
+  providers: Array<{ id: string; type: 'openai-compatible' | 'openai-responses' | 'ark-agent-plan' | 'dsh';
     baseUrl?: string; credentialEnv?: string; dshProvider?: string; maxTokensParameter?: string }>
   models: Array<{ id: string; provider: string; model: string; role?: 'candidate' | 'judge';
     contextWindow: number; maxOutputTokens?: number; pricing: Record<string, unknown>;
@@ -98,8 +98,8 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (result.template !== 'single' && result.template !== 'compare') throw new Error('invalid template')
   if (typeof result.allowPaidRuns !== 'boolean') throw new Error('allowPaidRuns must be boolean')
   for (const key of ['maxProductionCost', 'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens'] as const) positive(result[key], key)
-  if (!Number.isInteger(result.maxOutputTokens) || result.maxOutputTokens < 1000 || result.maxOutputTokens > 8192) {
-    throw new Error('maxOutputTokens must be an integer in 1000..8192')
+  if (!Number.isInteger(result.maxOutputTokens) || result.maxOutputTokens < 1000 || result.maxOutputTokens > 128000) {
+    throw new Error('maxOutputTokens must be an integer in 1000..128000')
   }
   if (!Number.isInteger(result.timeoutMs) || result.timeoutMs > 7200000) throw new Error('invalid timeoutMs')
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(result.credentialEnv)) throw new Error('invalid credentialEnv')
@@ -113,7 +113,7 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
       throw new Error('invalid providerConfig; use refractagent config-example')
     }
     for (const p of config.providers) {
-      if (!object(p) || typeof p.id !== 'string' || !['openai-compatible','ark-agent-plan','dsh'].includes(String(p.type))
+      if (!object(p) || typeof p.id !== 'string' || !['openai-compatible','openai-responses','ark-agent-plan','dsh'].includes(String(p.type))
         || Object.keys(p).some(k=>!['id','type','baseUrl','credentialEnv','dshProvider','maxTokensParameter'].includes(k))) {
         throw new Error('invalid provider configuration fields')
       }

@@ -73,8 +73,8 @@ def compile_configuration(raw):
         if pid in providers:
             raise ValueError('provider ids must be unique')
         kind = p.get('type')
-        if kind not in {'openai-compatible', 'ark-agent-plan', 'dsh'}:
-            raise ValueError('provider type must be openai-compatible, ark-agent-plan or dsh')
+        if kind not in {'openai-compatible', 'openai-responses', 'ark-agent-plan', 'dsh'}:
+            raise ValueError('provider type must be openai-compatible, openai-responses, ark-agent-plan or dsh')
         if kind == 'dsh':
             if set(p) - {'id', 'type', 'dshProvider'}:
                 raise ValueError('DSH providers use host configuration and credentials')
@@ -88,7 +88,8 @@ def compile_configuration(raw):
         key = p.get('credentialEnv')
         if key is not None and (not isinstance(key, str) or not _ENV.fullmatch(key)):
             raise ValueError('HTTP providers require a credentialEnv reference, never a key value')
-        url = p.get('baseUrl', ARK_PLAN_URL if kind == 'ark-agent-plan' else None)
+        url = p.get('baseUrl', ARK_PLAN_URL if kind == 'ark-agent-plan' else
+                    'https://api.openai.com/v1' if kind == 'openai-responses' else None)
         if not isinstance(url, str) or not url:
             raise ValueError('HTTP providers require baseUrl')
         parsed = urlsplit(url)
@@ -98,6 +99,8 @@ def compile_configuration(raw):
         url = url.rstrip('/')
         if kind == 'ark-agent-plan' and url != ARK_PLAN_URL:
             raise ValueError('Ark Agent Plan requires its /api/plan/v3 endpoint')
+        if kind == 'openai-responses' and 'maxTokensParameter' in p:
+            raise ValueError('Responses uses max_output_tokens; omit maxTokensParameter')
         parameter = p.get('maxTokensParameter', 'max_completion_tokens')
         if parameter not in {'max_tokens', 'max_completion_tokens'}:
             raise ValueError('invalid maxTokensParameter')
@@ -128,11 +131,24 @@ def compile_configuration(raw):
         out = number(pricing.get('outputPer1k'), 'output price')
         cached = number(pricing.get('cachedInputPer1k', inp), 'cached input price', maximum=inp)
         context = integer(m.get('contextWindow'), 'contextWindow', 1024, 10_000_000)
-        output = integer(m.get('maxOutputTokens', 2048), 'maxOutputTokens', 1000, 8192)
+        output = integer(m.get('maxOutputTokens', 2048), 'maxOutputTokens', 1000,
+                         128000 if p['type']=='openai-responses' else 8192)
         if context <= output:
             raise ValueError('contextWindow must leave space for model input')
         options = m.get('requestOptions', {})
-        obj(options, {'temperature', 'top_p', 'thinking', 'reasoning_effort', 'seed'}, 'requestOptions')
+        allowed_options = ({'reasoning', 'text', 'temperature', 'top_p'} if p['type']=='openai-responses'
+                           else {'temperature', 'top_p', 'thinking', 'reasoning_effort', 'seed'})
+        obj(options, allowed_options, 'requestOptions')
+        if 'reasoning' in options:
+            reasoning = obj(options['reasoning'], {'effort', 'summary'}, 'Responses reasoning')
+            if 'effort' in reasoning:
+                text(reasoning['effort'], 'reasoning.effort', 100)
+            if 'summary' in reasoning and reasoning['summary'] not in {'auto', 'concise', 'detailed'}:
+                raise ValueError('invalid reasoning.summary')
+        if 'text' in options:
+            text_options = obj(options['text'], {'verbosity'}, 'Responses text')
+            if text_options.get('verbosity') not in {'low', 'medium', 'high'}:
+                raise ValueError('invalid text.verbosity')
         for key in ('temperature', 'top_p'):
             if key in options:
                 number(options[key], key, maximum=2 if key=='temperature' else 1)
@@ -162,7 +178,7 @@ def compile_configuration(raw):
             billing_unit=unit, input_cost_per_1k=inp, cached_input_cost_per_1k=cached,
             output_cost_per_1k=out, base_url=p.get('baseUrl'), api_key_env=p.get('credentialEnv'),
             context_window=context, max_output_tokens=output, snapshot_date=date.today().isoformat(),
-            wire_api='dsh-llm' if p['type']=='dsh' else 'chat-completions',
+            wire_api='dsh-llm' if p['type']=='dsh' else 'responses' if p['type']=='openai-responses' else 'chat-completions',
             request_options=deepcopy(options), json_mode_strategy=json_mode,
             token_limit_parameter=p.get('maxTokensParameter', 'max_completion_tokens'),
             authentication_required=p.get('credentialEnv') is not None))

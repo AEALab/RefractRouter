@@ -167,6 +167,7 @@ refractagent config-example --provider-type openai-compatible --output ./provide
 
 编辑 `providers.json`，填写实际端点、凭证引用、候选和评审模型 ID、容量、价格及路由预测。
 已有 DSH provider 时可将命令中的类型换成 `dsh`；Ark 订阅用户可换成 `ark-agent-plan`。
+OpenAI Responses 推理模型使用 `openai-responses`，并按配置指南显式设置包含推理的输出额度。
 至少配置一个候选与一个评审模型。完整字段和多 provider 示例见
 [自定义 provider 与模型](https://github.com/AEALab/RefractRouter/blob/main/docs/provider-configuration.md)。
 

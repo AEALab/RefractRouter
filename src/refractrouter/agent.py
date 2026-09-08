@@ -106,8 +106,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')
     number(evaluation_budget, 'evaluation budget', positive=True)
-    if type(max_output_tokens) is not int or not 1000 <= max_output_tokens <= 8192:
-        raise ValueError('output cap must be an integer in 1000..8192')
+    if type(max_output_tokens) is not int or not 1000 <= max_output_tokens <= 128000:
+        raise ValueError('output cap must be an integer in 1000..128000')
     strategy, request, context = build_request(payload, mode=mode, production_budget=production_budget,
                                                timeout_ms=timeout_ms)
     if preset not in {None, 'ark-agent-plan'}:
@@ -134,7 +134,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     manifest = replace(manifest, models=tuple(replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
                                              for m in manifest.models))
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
-                                             if m.role == 'candidate' else m for m in manifest.models))
+                                             if m.role == 'candidate' and m.wire_api != 'responses' else m for m in manifest.models))
     if configured:
         manifest_data = {'schema_version': manifest.schema_version, 'billing_unit': manifest.billing_unit,
                          'models': [asdict(m) for m in manifest.models]}

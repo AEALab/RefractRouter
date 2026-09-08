@@ -16,7 +16,8 @@ RefractRouter 是面向团队集中路由的应用项目。RefractAgent 提供�
 3. 配置自己的 providers、models 与凭证，启用真实执行并启动 DSH。
 4. 在 DSH 选择 RefractAgent 的省成本、均衡或质量优先，输入文本任务。
 
-Ark Agent Plan 是可选 provider，也可直连其他兼容服务或复用 DSH 已配置的模型。
+Ark Agent Plan 是可选 provider，也可直连 Chat Completions、OpenAI Responses 推理接口，
+或复用 DSH 已配置的模型。
 字段与示例见 [自定义 providers 与 models](docs/provider-configuration.md)。
 
 **当前运行方式：DSH 按请求启动本机 Python 核心，无需单独启动 Router HTTP 服务。**

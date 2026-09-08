@@ -6,6 +6,7 @@ import json
 import time
 from typing import Callable
 
+from .responses_api import output_token_limit
 from .model_selection import Weights
 from .node_routing import load_profile, number, route_nodes
 from .node_recovery import NodeRecovery, validate_fallback_limit
@@ -163,8 +164,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         for node in plan.nodes:
             capability = plan.contracts.get(node.node_id, {}).get("capability")
             eligible_models[node.node_id] = [mid for mid, model in candidates.items() if not capability or (
-                capability["input_budget_tokens"] + min(model.max_output_tokens, 8192) <= model.context_window
-                and capability["expected_output_tokens"] <= min(model.max_output_tokens, 8192))]
+                capability["input_budget_tokens"] + output_token_limit(model) <= model.context_window
+                and capability["expected_output_tokens"] <= output_token_limit(model))]
         remaining_cost = min(request["costMax"], budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started) * 1000) if live else deadline_ms
         result["routing"] = route_nodes(plan, profiles, method=request["method"],

@@ -481,6 +481,139 @@
         }
       },
       "说明": "用户配置 provider/model 的应用版本兼容记录，仅绑定本条成功基线及精确目标快照。K3 的任务、模型序列化、提示、契约、价格、校准和执行器保持一致；应用新增字段位于专用子类型，共享 HTTP 客户端对历史模型仍要求认证并使用 max_completion_tokens，DSH 温度未指定时仍为零。仅允许 baseline-ready 的 resume，不迁移已完成节点评审，不修改历史证据。见 docs/provider-configuration-validation.md。"
+    },
+    {
+      "source_config_sha256": "7a82d52522a4d9dd8586e52c44b1a449bba923ed52638eea0ac22a02991fc6b8",
+      "target_config_sha256": "71cae74ccfe824e66c116b0cacb99c976c6e5f0ab9b29ddad51b65d351bfdb0d",
+      "source_index_sha256": "a112a46285fa8953ae63ae0e3056a0223458d0ff59152008f35981b12756213a",
+      "source_bundle": "reports/v0.5-k3-baseline-retry/output",
+      "changed_code": {
+        "experiments/build_node_routing_profile.py": {
+          "before": null,
+          "after": "e2ba259af25387c3b83c934cd2a671f279ab9403660da254ded95f83d1d011d0"
+        },
+        "experiments/build_stratified_routing_profile.py": {
+          "before": null,
+          "after": "3e065b6832e55f2f3419008b5446c1e4c898bf6378f3ebefed07ad130e7d251a"
+        },
+        "experiments/preflight_dag_study.py": {
+          "before": null,
+          "after": "012630efdc31f7ad65d6192855708b3ae4fa06be05fca3b63392944dd7a5cca5"
+        },
+        "experiments/replay_text_node_contract.py": {
+          "before": null,
+          "after": "02759799773437ab064bc8274ec05ccf83794f10368348052f80fd5e15f8f829"
+        },
+        "experiments/run_dag_handoff.py": {
+          "before": null,
+          "after": "2eaf2fe20aa1134cc615ad78483a4e1cb365b6f4018bd8221c50e0d6029d9b06"
+        },
+        "experiments/run_dag_study.py": {
+          "before": null,
+          "after": "a419ce069d294a05036072fd58af8040657d571d7fd511517cd0bc3c3c8225f7"
+        },
+        "experiments/run_k3_baseline.py": {
+          "before": "2bfcc79d557c3bb89bbc8d0518a1648dee5a503220b9a2e2ca34699585bc04bd",
+          "after": "facd4c99c824133fa36fe99706a785488080140c8bc62929759ed31a22ebc554"
+        },
+        "experiments/summarize_dag_batch.py": {
+          "before": null,
+          "after": "ebcd556574598e18944516680254f4154e9a32ab964130b39d8f93ac0df576cf"
+        },
+        "experiments/summarize_dag_study.py": {
+          "before": null,
+          "after": "7ee3a6569341c5b91eaa5b0d1f3c588a30f767fd9b1b6436331a78b639a3f390"
+        },
+        "experiments/validate_node_recovery.py": {
+          "before": null,
+          "after": "2eeeba2ca3bba00ae57392936b72abed113b7012c098a69613f81be14379522a"
+        },
+        "src/refractrouter/agent.py": {
+          "before": null,
+          "after": "7eb6e3215529921e60574bb4793fbe6018002e34384ec4f249d691613a4d2281"
+        },
+        "src/refractrouter/agent_cli.py": {
+          "before": null,
+          "after": "7a7fc0d1f10e1a5870036e958550c3c33277c4a6f3b0d64a9b77e27b54b7d7a7"
+        },
+        "src/refractrouter/application_config.py": {
+          "before": null,
+          "after": "bcdb03fd1c3b3dca664c3a0b9902aad4c45efcd44ee5fe2be5adf49ba5559523"
+        },
+        "src/refractrouter/dag_batch_study.py": {
+          "before": null,
+          "after": "6a8758d32373d9217141cd6b8149ff1488cbce8a22c03ad5f2fcb5379df40240"
+        },
+        "src/refractrouter/dag_study.py": {
+          "before": null,
+          "after": "fc60a1099e6df4105bce93ba384895205b331f3778fa5c2166e268cdad60cefb"
+        },
+        "src/refractrouter/dag_study_execution.py": {
+          "before": null,
+          "after": "c1e5ce9ae06f671299923ddf90f757f5cdb26fb98f650fc18e115dd280207659"
+        },
+        "src/refractrouter/handoff_validation.py": {
+          "before": null,
+          "after": "d493a2efdaddb15909782866d9b2ea7bffea3300230a97dfc136a30c48503422"
+        },
+        "src/refractrouter/k3_experiment.py": {
+          "before": "9ad88e064d257b815fa6e0ea99b05635ed5bcda3e63bdd02697d4829da0ce7cd",
+          "after": "a049f45cfb9c553c249c34926f94ed483b5767bec0ffb52def14c637064a5ca2"
+        },
+        "src/refractrouter/node_recovery.py": {
+          "before": null,
+          "after": "32c4256f23f59a4a32e7c797f20d818a2e6041284e6bb39cbfc33de7875d068c"
+        },
+        "src/refractrouter/node_routing.py": {
+          "before": null,
+          "after": "7cb10cf35c1c0527b075c425fd8db9dd21f1e051d6d7b7ebc38122de1ced47fb"
+        },
+        "src/refractrouter/openai_compatible.py": {
+          "before": "1a48e91689a77e54136a4e2724cc09ea856067998f003fa2c9abec529b58eb59",
+          "after": "8f8b2c574337d479036a5b7ed7f1b414c1bf5cb2f24d173ce700b7b2f7243bba"
+        },
+        "src/refractrouter/profile_calibration.py": {
+          "before": null,
+          "after": "a360a8a9c0ee8c7bedbab39e9785c50c97dd7b196bb3af22fd4db92fe0760f2f"
+        },
+        "src/refractrouter/responses_api.py": {
+          "before": null,
+          "after": "c9973560ea25916d13c2891a9f5e8e22baa58f5320a81105e77bc5d5f0fbba3a"
+        },
+        "src/refractrouter/task_budget.py": {
+          "before": null,
+          "after": "69aa22989cfa47fc414699c918d2de7b58bc7745c6f43b04b42ae4895501aa63"
+        },
+        "src/refractrouter/task_contract_replay.py": {
+          "before": null,
+          "after": "c9122a6ceaa01760521bb062df63cbf27380d7fa045e831739ce0c5cf6269d87"
+        },
+        "src/refractrouter/task_contracts.py": {
+          "before": null,
+          "after": "8516a1e0f0d41dc2c803609c46250d021fd2eb5b14325b0384a9b34f73f4fd95"
+        },
+        "src/refractrouter/task_evaluation.py": {
+          "before": null,
+          "after": "b1a0fe6693ac127fed762651bcbf575f67a2c8c68e1a3e409afbd2eb5c9c78c8"
+        },
+        "src/refractrouter/task_execution.py": {
+          "before": null,
+          "after": "8e0dbe3556c9b90ac457e7dfeef6ba70d3145e5472e5df6e251dde12bca86162"
+        },
+        "src/refractrouter/task_plan.py": {
+          "before": null,
+          "after": "ac7b6e53c010990abc67e7e5de8b2d3711a5e3e5bb1f3ee4fb19de7332b396f1"
+        },
+        "src/refractrouter/task_runtime.py": {
+          "before": null,
+          "after": "deb0b0c7f05c691971746b94a4d39b0c9054a7278acc12bb58895175a09fc722"
+        },
+        "src/refractrouter/task_scheduling.py": {
+          "before": null,
+          "after": "c6bb822938b9c0adde91a62512dc1eb6f0c847f5aef7f4a826a63ee1f12f60ad"
+        }
+      },
+      "说明": "Responses API 扩展的应用版本兼容记录，仅绑定本条成功基线及精确目标快照。K3 的任务、模型序列化、提示、契约、价格、校准和执行器保持一致；仅 responses wire_api 走新协议并提高推理输出上限；历史协议的选路、预留、恢复和发送仍使用 8192，历史模型仍要求认证并使用 max_completion_tokens。仅允许 baseline-ready 的 resume，不迁移已完成节点评审，不修改历史证据。见 docs/provider-configuration-validation.md。"
     }
   ]
 }

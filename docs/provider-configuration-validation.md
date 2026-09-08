@@ -32,8 +32,9 @@ python3 scripts/validate_refractagent_install.py --configured-providers \
 | 直接 provider | Python Chat Completions | Python Chat Completions | 2 |
 | DSH 原生 provider | DSH 原生 SSE 调用 | DSH 原生 SSE 调用 | 2 |
 | 混合 provider | Python Chat Completions | DSH 原生 SSE 调用 | 2 |
+| Responses | Python Responses | Python Responses | 2 |
 
-三种路径均完成答案、独立评审和 USD 用量归档，未确认费用为零。
+四种路径均完成答案、独立评审和 USD 用量归档，未确认费用为零。
 脚本核对请求端点、凭证归属、最终模型、调用次数与任务文件中没有凭证值。
 这些是本机模拟响应，外部模型调用为零，不是各厂商模型可用性或路由收益验收。
 
@@ -47,14 +48,22 @@ python3 scripts/validate_refractagent_install.py --configured-providers \
 恢复测试验证零模型调用和原始证据哈希不变；未登记代码仍被拒绝，已完成节点材料的
 跨版本 compose/finalize 仍被拒绝。没有修改历史任务、价格、评审或实验结果。
 
+## Responses 补充验证
+
+- Responses 请求使用 `input`、`reasoning`、`text.format` 与 `max_output_tokens`，不自动注入采样参数。
+- 大于 8192 的推理用量按完整输出上限预留并结算；推理明细不重复计费。
+- 截断、拒绝和失败先结算已知用量，再拒绝作为成功正文；缺失或非法用量保留未确认预留。
+- reasoning 条目与工具调用不会被拼入最终正文，未知工具输出不能当作成功文本节点。
+- 基础模型序列化和历史上限不变；追加仅适用于新协议代码快照的 K3 兼容记录。
+
 ## 回归结果
 
-- `uv run --frozen pytest -q`：422 项测试、5 项子测试通过（51.08 秒）。
+- `uv run --frozen pytest -q`：446 项测试、5 项子测试通过（53.34 秒）。
 - `npm run --prefix validation/dsh/plugin typecheck`：严格类型检查通过。
-- 安装联调包含三策略演示及三种 provider 路径；所有外部模型调用数为零。
+- 安装联调包含三策略演示及四种 provider 路径；所有外部模型调用数为零。
 
 ## 验证边界
 
 单元与契约测试不调用付费模型；安装联调仅调用本机模拟服务。
-新增配置未对外部厂商逐一做真实调用验证。直接接口限 Chat Completions；
+新增配置未对外部厂商逐一做真实调用验证。直接接口支持 Chat Completions 与 Responses；
 其他协议通过 DSH provider 适配，RefractAgent 仍只处理文本任务。

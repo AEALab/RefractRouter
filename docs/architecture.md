@@ -66,13 +66,15 @@ DSH 提供会话、工具调度、进程生命周期、沙箱和凭证服务。�
 不能替代经验数据；历史研究运行时仍要求实测 profile，不能直接借用应用配置绕过该条件。
 
 Ark Agent Plan 是可选 provider 类型或显式预设。其他 provider 可由 Python 通过
-Chat Completions 接口调用，或通过 DSH 原生模型服务适配。目标 provider 和模型均由
+Chat Completions / Responses 接口调用，或通过 DSH 原生模型服务适配。目标 provider 和模型均由
 核心选定；插件只建立允许调用的宿主模型清单、传递请求并检查调用边界。
 直接 HTTP 凭证通过专用子进程环境传递，宿主原生凭证保留在 DSH 中。
 不同 provider 的同名模型由 provider 与模型 ID 共同标识，禁止回调 RefractAgent 自身。
 
 价格必须使用用户声明的共同单位，Python 校验并记账，不自动换算货币或 AFP。
 应用模型类型继承基础模型类型以增加 HTTP 认证和 token 参数选项，历史模型序列化保持原样。
+Responses 的推理和正文共用输出包络，选路、预算预留与发送参数使用同一个上限；
+历史协议仍保持 8192。解析器将正文、结束状态和用量转换为核心结果，不把推理条目当作答案。
 完整配置见 [provider 与模型说明](provider-configuration.md)。
 
 ## 当前交付边界

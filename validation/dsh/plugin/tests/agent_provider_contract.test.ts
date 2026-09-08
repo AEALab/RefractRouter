@@ -240,3 +240,19 @@ test('configured provider snapshots cannot be changed after registration',()=>{
   assert.equal(config.providerConfig!.models[0]!.provider,'one')
   assert.throws(()=>{config.providerConfig!.models[0]!.provider='two'},TypeError)
 })
+
+
+test('Responses provider configuration and reasoning envelope reach the Python core',async()=>{
+  const f=fixture({mode:'live',status:'completed',simulated:false,billing_unit:'USD'})
+  const config={...userConfiguration(),providers:[{id:'one',type:'openai-responses',credentialEnv:'OPENAI_API_KEY'}]}
+  for(const model of config.models)model.provider='one'
+  const models=config.models.map(model=>({...model,maxOutputTokens:32768,contextWindow:131072,
+    requestOptions:{reasoning:{effort:'high'}}}))
+  await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,
+    maxOutputTokens:32768,providerConfig:{...config,models}})))
+  const spawn=f.spawns[0]!
+  assert.ok(spawn.argv.includes('32768'))
+  assert.deepEqual(f.credentialReferences,['OPENAI_API_KEY'])
+  assert.equal(JSON.parse(spawn.input()).providerConfig.models[0].requestOptions.reasoning.effort,'high')
+  assert.equal(spawn.env.CODEX_ARK_API_KEY,undefined)
+})
