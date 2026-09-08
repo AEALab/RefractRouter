@@ -22,12 +22,16 @@ class NodeJudgeError(ValueError):
 
 
 class IndependentNodeJudge:
-    def __init__(self, client, model):
+    def __init__(self, client, model, *, contract_version="v0.3"):
         if model.role != "judge":
             raise ValueError("Node quality evaluation requires an independent judge model")
         self.client = client
         self.judge_model = model
-        self.rubric = NODE_RUBRIC_PATH.read_text(encoding="utf-8")
+        if contract_version not in {"v0.3", "v0.4"}:
+            raise ValueError("Unknown node judge contract")
+        self.rubric_version = "v0.4" if contract_version == "v0.4" else NODE_RUBRIC_VERSION
+        self.rubric_path = NODE_RUBRIC_PATH.with_name("node-v0.4.md") if contract_version == "v0.4" else NODE_RUBRIC_PATH
+        self.rubric = self.rubric_path.read_text(encoding="utf-8")
         self.rubric_sha256 = hashlib.sha256(self.rubric.encode()).hexdigest()
 
     def evaluate(self, task, node, result, context):
@@ -99,7 +103,7 @@ class IndependentNodeJudge:
         if assessments:
             effective["grounding"] = min(scores["grounding"], 30 * sum(x["supported"] for x in assessments) / len(assessments))
         return {
-            "rubric_version": NODE_RUBRIC_VERSION, "rubric_sha256": self.rubric_sha256,
+            "rubric_version": self.rubric_version, "rubric_sha256": self.rubric_sha256,
             "checks": checks, "semantic_dimensions": scores, "effective_dimensions": effective,
             "final_score": round(min(checks["score_cap"], sum(effective.values())), 3),
             "source_assessments": assessments, "rationale": rationale, **telemetry,

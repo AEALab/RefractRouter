@@ -1,0 +1,53 @@
+{
+  "status": "node-review-ready",
+  "native_status": "pass",
+  "production_requests": 28,
+  "new_k3_requests": 0,
+  "judge_requests": 0,
+  "native_tool_calls": 1,
+  "automatic_retries": 0,
+  "reference_requests": 7,
+  "probe_requests": 21,
+  "reference_failures": [],
+  "eligible_review_items": 21,
+  "ineligible_items": 0,
+  "independent_quality_review_completed": false,
+  "production_cost_afp": 27.7086,
+  "known_production_cost_afp": 27.7086,
+  "unknown_usage_requests": [],
+  "reference_cost_afp": 10.93785,
+  "probe_cost_afp": 16.77075,
+  "imported_baseline_cost_afp": 9.154,
+  "cumulative_prepare_cost_afp": 36.8626,
+  "outer_requests": 2,
+  "outer_cost_afp": 0.2371,
+  "outer_provider_responses": [
+    {
+      "kind": "pi-ai",
+      "version": 2,
+      "api": "openai-responses",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-flash",
+      "responseId": "resp_021788829623663fc7578b59e843c90e5af4aa62e8cfda98fcbcc",
+      "stopReason": "toolUse"
+    },
+    {
+      "kind": "pi-ai",
+      "version": 2,
+      "api": "openai-responses",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-flash",
+      "responseId": "resp_0217888299732400e23c04e8b740c94d8512f0597aa5fa696be90",
+      "stopReason": "stop"
+    }
+  ],
+  "this_execution_known_cost_afp": 27.9457,
+  "this_execution_cost_afp": 27.9457,
+  "prior_unknown_production_requests": 2,
+  "prior_unknown_outer_steps": 1,
+  "all_history_total_cost_afp": null,
+  "provider_elapsed_ms": 343184,
+  "first_request_at": "2026-09-08T01:07:08.778248+00:00",
+  "last_request_at": "2026-09-08T01:12:52.144373+00:00",
+  "说明": "本次费用按冻结清单与返回用量核算；缓存 token 是输入子集，不重复相加。外层重启前失败步骤费用与历史两笔生产费用仍未知。节点契约通过仅表示可交给独立评审，不表示质量达标。"
+}

@@ -1,0 +1,31 @@
+{
+  "authorized": true,
+  "user_request": "再试一次？",
+  "interpretation": "一次 K3 整任务基线重试，不重新运行参考路线与探针",
+  "inherited_authorization": "reports/v0.5-k3-prepare-admission/authorization.json",
+  "original_production_ceiling_afp": 132,
+  "original_outer_ceiling_afp": 0.5,
+  "retry_production_ceiling_afp": 20,
+  "production_requests": 1,
+  "automatic_retries": 0,
+  "timeout_seconds": 300,
+  "previous_timeout_seconds": 120,
+  "output_token_limit": 8192,
+  "known_prior_production_cost_afp": 4.87135,
+  "known_prior_outer_cost_afp": 0.1118,
+  "prior_unknown_requests": 2,
+  "prior_unknown_cost_afp": null,
+  "recorded_at": "2026-09-07T16:37:14.442496+00:00",
+  "arguments": {
+    "phase": "k3-baseline",
+    "stage": "baseline",
+    "repeats": 1,
+    "inputDir": "reports/v0.5-k3-baseline-retry/preflight",
+    "reviewsPath": "reports/v0.5-glm-calibration/paid-admission-1/reviews.json",
+    "executePaidRun": true,
+    "maxProductionCost": 20,
+    "maxEvaluationCost": 0
+  },
+  "preflight_index_sha256": "835ca16c02cc014c17ed1ec06a83c7a39004ab399ff1235015b30b23cbdc7e83",
+  "说明": "此前两次未知费用继续单列；不视为零费用或释放余额。不增加此前总额度，不自动继续其他阶段。"
+}

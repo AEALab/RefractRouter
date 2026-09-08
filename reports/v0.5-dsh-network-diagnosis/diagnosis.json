@@ -1,0 +1,36 @@
+{
+  "recorded_at": "2026-09-08T01:08:09.350872+00:00",
+  "diagnostic_model_calls": 0,
+  "sandbox_python": {
+    "localhost": "解析成功",
+    "ark_domain": "gaierror errno 8",
+    "example_com": "gaierror errno 8",
+    "tcp_1_1_1_1_443": "PermissionError errno 1: Operation not permitted",
+    "environment_proxy": "未设置",
+    "system_proxy": "空配置"
+  },
+  "sandbox_node": {
+    "dns": {
+      "code": "ENOTFOUND",
+      "syscall": "getaddrinfo"
+    },
+    "tcp_numeric_ip": {
+      "code": "EPERM",
+      "syscall": "connect"
+    },
+    "fetch_head": {
+      "message": "fetch failed",
+      "cause_code": "ENOTFOUND"
+    }
+  },
+  "escalated_python": {
+    "dns_resolved": true,
+    "unauthenticated_head_http_status": 401
+  },
+  "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3/models",
+  "diagnostic_method": "HEAD",
+  "authorization_header_used": false,
+  "conclusion": "普通沙箱禁止外部网络访问；扩展权限下 DNS、TCP/TLS 和 HTTP 可达。DSH 的泛化 TRANSPORT 文本隐藏了底层 ENOTFOUND/EPERM。",
+  "limits": "401 来自无密钥检查，说明 HTTP 可达，不用于判断真实密钥有效性或模型可用性。此前自动审批为何超时没有服务内部证据；本次扩展权限检查已成功放行。",
+  "remediation": "已授权付费 DSH 任务通过扩展权限执行；文件监听使用官方支持的轮询。保留全部原始失败目录，后续从新目录执行，不修改 DSH 或依赖源码。"
+}

@@ -1,0 +1,228 @@
+{
+  "task_id": "report_001",
+  "repeat": 2,
+  "strategy": "dag-oracle",
+  "result": {
+    "task_id": "report_001",
+    "strategy": "dag-oracle",
+    "model_assignments": {
+      "parse_requirements": "cheap",
+      "build_outline": "cheap",
+      "extract_evidence": "cheap",
+      "synthesize_analysis": "cheap",
+      "write_report": "cheap",
+      "render_html": "cheap",
+      "verify_report": "cheap"
+    },
+    "node_results": [
+      {
+        "node_id": "parse_requirements",
+        "node_type": "planning",
+        "model_id": "cheap",
+        "output": "{\"requirements\": \"2026 \\u5e74\\u4f01\\u4e1a LLM Agent \\u5e73\\u53f0\\u9009\\u578b\", \"sections\": [\"Executive Summary\", \"Background\", \"Selection Criteria\", \"Platform Comparison\", \"Risks\", \"Conclusion\", \"References\"], \"constraints\": [\"standalone HTML\", \"all claims cite source_id\", \"no external CSS or JavaScript\"], \"analysis\": \"Frozen report requirements.\"}",
+        "input_tokens": 64,
+        "output_tokens": 87,
+        "cost": 0.00755,
+        "latency_ms": 421,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      },
+      {
+        "node_id": "build_outline",
+        "node_type": "planning",
+        "model_id": "cheap",
+        "output": "{\"requirements\": \"2026 \\u5e74\\u4f01\\u4e1a LLM Agent \\u5e73\\u53f0\\u9009\\u578b\", \"sections\": [\"Executive Summary\", \"Background\", \"Selection Criteria\", \"Platform Comparison\", \"Risks\", \"Conclusion\", \"References\"], \"constraints\": [\"standalone HTML\", \"all claims cite source_id\", \"no external CSS or JavaScript\"], \"analysis\": \"Frozen report requirements.\"}",
+        "input_tokens": 108,
+        "output_tokens": 87,
+        "cost": 0.00975,
+        "latency_ms": 421,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      },
+      {
+        "node_id": "extract_evidence",
+        "node_type": "extraction",
+        "model_id": "cheap",
+        "output": "{\"evidence\": [{\"claim\": \"DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.\", \"content_hash\": \"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\", \"source_id\": \"source_001\", \"title\": \"DeepAgents\"}, {\"claim\": \"LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.\", \"content_hash\": \"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\", \"source_id\": \"source_002\", \"title\": \"LangGraph\"}, {\"claim\": \"Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.\", \"content_hash\": \"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\", \"source_id\": \"source_003\", \"title\": \"Pydantic AI\"}]}",
+        "input_tokens": 112,
+        "output_tokens": 308,
+        "cost": 0.021,
+        "latency_ms": 477,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      },
+      {
+        "node_id": "synthesize_analysis",
+        "node_type": "synthesis",
+        "model_id": "cheap",
+        "output": "{\"analysis\": \"comparison table; tradeoff summary; recommendation [source_001] [source_002] [source_003]\"}",
+        "input_tokens": 334,
+        "output_tokens": 32,
+        "cost": 0.0183,
+        "latency_ms": 406,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      },
+      {
+        "node_id": "write_report",
+        "node_type": "generation",
+        "model_id": "cheap",
+        "output": "{\"sections\": [{\"heading\": \"Executive Summary\", \"paragraph\": \"DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. [source_001]\"}, {\"heading\": \"Background\", \"paragraph\": \"LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG. [source_002]\"}, {\"heading\": \"Selection Criteria\", \"paragraph\": \"Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck. [source_003]\"}, {\"heading\": \"Platform Comparison\", \"paragraph\": \"DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. [source_001]\"}, {\"heading\": \"Risks\", \"paragraph\": \"LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG. [source_002]\"}, {\"heading\": \"Conclusion\", \"paragraph\": \"Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck. [source_003]\"}, {\"heading\": \"References\", \"paragraph\": \"DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. [source_001]\"}], \"title\": \"2026 年企业 LLM Agent 平台选型\"}",
+        "input_tokens": 363,
+        "output_tokens": 581,
+        "cost": 0.0472,
+        "latency_ms": 545,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      },
+      {
+        "node_id": "render_html",
+        "node_type": "rendering",
+        "model_id": "cheap",
+        "output": "<!doctype html><html><head><meta charset=\"utf-8\"><title>report_001</title></head><body><h1>2026 年企业 LLM Agent 平台选型</h1><section><h2>Executive Summary</h2><p>DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a></p></section><section><h2>Background</h2><p>LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG. <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a></p></section><section><h2>Selection Criteria</h2><p>Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck. <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a></p></section><section><h2>Platform Comparison</h2><p>DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a></p></section><section><h2>Risks</h2><p>LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG. <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a></p></section><section><h2>Conclusion</h2><p>Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck. <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a></p></section><section><h2>References</h2><p>DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a></p></section><aside aria-label=\"Source trace\"><h3>Source trace</h3><ol><li id=\"source-source_001\" data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"><strong>DeepAgents</strong>: DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.</li><li id=\"source-source_002\" data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\"><strong>LangGraph</strong>: LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.</li><li id=\"source-source_003\" data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\"><strong>Pydantic AI</strong>: Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.</li></ol></aside></body></html>",
+        "input_tokens": 911,
+        "output_tokens": 1061,
+        "cost": 0.0986,
+        "latency_ms": 665,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      },
+      {
+        "node_id": "verify_report",
+        "node_type": "verification",
+        "model_id": "cheap",
+        "output": "{\"valid\": true, \"issues\": [], \"summary\": \"Checked source trace and HTML.\"}",
+        "input_tokens": 1398,
+        "output_tokens": 32,
+        "cost": 0.0715,
+        "latency_ms": 404,
+        "billing_unit": "AFP",
+        "score": 100.0,
+        "status": "ok",
+        "failure_type": null,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "attempts": 1,
+        "finish_reason": null,
+        "request_id": null,
+        "error_message": null
+      }
+    ],
+    "final_output": "<!doctype html><html><head><meta charset=\"utf-8\"><title>report_001</title></head><body><h1>2026 年企业 LLM Agent 平台选型</h1><section><h2>Executive Summary</h2><p>DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a></p></section><section><h2>Background</h2><p>LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG. <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a></p></section><section><h2>Selection Criteria</h2><p>Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck. <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a></p></section><section><h2>Platform Comparison</h2><p>DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a></p></section><section><h2>Risks</h2><p>LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG. <a href=\"#source-source_002\" data-cite-source-id=\"source_002\">[source_002]</a></p></section><section><h2>Conclusion</h2><p>Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck. <a href=\"#source-source_003\" data-cite-source-id=\"source_003\">[source_003]</a></p></section><section><h2>References</h2><p>DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled. <a href=\"#source-source_001\" data-cite-source-id=\"source_001\">[source_001]</a></p></section><aside aria-label=\"Source trace\"><h3>Source trace</h3><ol><li id=\"source-source_001\" data-source-id=\"source_001\" data-content-hash=\"ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39\"><strong>DeepAgents</strong>: DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.</li><li id=\"source-source_002\" data-source-id=\"source_002\" data-content-hash=\"97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960\"><strong>LangGraph</strong>: LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.</li><li id=\"source-source_003\" data-source-id=\"source_003\" data-content-hash=\"7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e\"><strong>Pydantic AI</strong>: Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.</li></ol></aside></body></html>",
+    "task_score": 100.0,
+    "total_cost": 0.2739,
+    "critical_path_latency_ms": 3339,
+    "billing_unit": "AFP",
+    "failure_types": []
+  },
+  "judge": {
+    "rubric_version": "v0.1",
+    "deterministic_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "judge_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "final_dimensions": {
+      "requirement_coverage": 25.0,
+      "evidence_accuracy": 25.0,
+      "analysis_depth": 20.0,
+      "structure_readability": 15.0,
+      "html_validity": 15.0
+    },
+    "final_score": 100.0,
+    "claim_support": [
+      {
+        "claim": "DeepAgents is built on LangGraph.",
+        "source_ids": [
+          "source_001"
+        ],
+        "supported": true,
+        "explanation": "Fixture assumption."
+      },
+      {
+        "claim": "DSH is reserved for the outer validation environment.",
+        "source_ids": [
+          "source_001"
+        ],
+        "supported": true,
+        "explanation": "Fixture assumption."
+      },
+      {
+        "claim": "The benchmark reports quality, cost, and critical-path latency.",
+        "source_ids": [
+          "source_001"
+        ],
+        "supported": true,
+        "explanation": "Fixture assumption."
+      }
+    ],
+    "rationale": "Synthetic fixture, not a semantic judgment.",
+    "input_tokens": 100,
+    "output_tokens": 100,
+    "cached_input_tokens": 0,
+    "reasoning_tokens": 0,
+    "cost": 0.2,
+    "latency_ms": 1,
+    "attempts": 1,
+    "request_id": "fixture-judge-53",
+    "billing_unit": "AFP"
+  },
+  "judge_error": null
+}

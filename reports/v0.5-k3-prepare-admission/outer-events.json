@@ -1,0 +1,51 @@
+[
+  {
+    "type": "assistant/chunk",
+    "seq": 135,
+    "time": 1788798014599,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "chunk": {
+        "type": "usage",
+        "usage": {
+          "inputTokens": 1970,
+          "outputTokens": 266
+        }
+      }
+    }
+  },
+  {
+    "type": "assistant/chunk",
+    "seq": 136,
+    "time": 1788798014600,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "finish_reason": {
+        "kind": "tool-calls"
+      },
+      "response": {
+        "kind": "pi-ai",
+        "version": 2,
+        "api": "openai-responses",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "responseId": "resp_021788798010966d6f60410e67e178f28d968f0420b51c3285aea",
+        "stopReason": "toolUse"
+      }
+    }
+  },
+  {
+    "type": "tool/call",
+    "seq": 138,
+    "time": 1788798014607,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "callId": "call_nl7zigzsm6xh8898nhimob09|fc_02178879801297200000000000000000000ffffac154817eb9462",
+      "name": "refractrouter_validate",
+      "arguments": "{\"phase\":\"k3-baseline\",\"stage\":\"prepare\",\"repeats\":1,\"inputDir\":\"reports/v0.5-glm-calibration/main-preflight\",\"reviewsPath\":\"reports/v0.5-glm-calibration/paid-admission-1/reviews.json\",\"executePaidRun\":true,\"maxProductionCost\":132,\"maxEvaluationCost\":0}"
+    }
+  }
+]

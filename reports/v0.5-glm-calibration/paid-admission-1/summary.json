@@ -1,0 +1,65 @@
+{
+  "status": "calibration-passed",
+  "calibration": {
+    "passed": true,
+    "reviewer": {
+      "kind": "model",
+      "id": "glm-5.3"
+    },
+    "negative_score": 28,
+    "positive_score": 91,
+    "simulation": false,
+    "说明": "必须识别缺乏实质比较；保留原始分数与有效分数。"
+  },
+  "submitted_reviews": {
+    "calibration": {
+      "packet_sha256": "dd22ad04fbf66a2dd8ac2a3e3db73fb29084604eb6002e232fcd66bf50768350",
+      "reviewer": {
+        "kind": "model",
+        "id": "glm-5.3"
+      },
+      "reviews": [
+        {
+          "sample_id": "45ee764ca6e26f4d01cb031a",
+          "scores": {
+            "task_completion": 5,
+            "analysis": 2,
+            "grounding": 13,
+            "presentation": 8
+          },
+          "evidence_quote": "因此，本报告无法进行有意义的横向比较。建议后续节点补充各平台的基准输出和部署要求，以支持量化评估。",
+          "rationale": "报告具备全部规定章节，HTML 独立完整、无外部 CSS/JS、标题正文为简体中文，且已引用的 source_001/004/007 内容基本准确。但核心任务未完成：'平台比较'一节明确写道'本报告无法进行有意义的横向比较'，未对任何平台做实质比较。报告声称'现有证据仅确认了三个孤立声明'，这与所附来源不符——source_002（LangGraph 作为固定任务 DAG 的底层执行基座）、source_003（Pydantic AI 非核心依赖、仅在结构化输出解析成为瓶颈时考虑）、source_005（按节点选模型的研究缺口）、source_006（静态分解属应用层）、source_008 均未被使用，而这些来源恰恰包含选型取舍所需信息（如 DeepAgents 用作固定 DAG 执行框架但须禁用自主规划与动态子代理、DSH 仅保留用于外部验证环境、Pydantic AI 在 v0.1 可排除）。取舍分析缺失：仅罗列质量/成本/延迟三个维度，未解释为何选或不选某平台。结论'基于现有证据，本报告无法推荐具体平台'建立在'证据不足'这一与来源相悖的前提上，不属于有依据的结论。另有未引用来源的推测（'如安全性和可维护性'）。故三项任务检查均不通过，任务完成度封顶 10 分、分析封顶 5 分；已引用部分准确，但整体遗漏五个来源且核心断言不实，来源支撑给 13/25；呈现规范、结构清晰但内容重复冗余，给 8/10。",
+          "task_checks": {
+            "substantive_comparison": false,
+            "criteria_tradeoffs": false,
+            "supported_conclusion": false
+          }
+        },
+        {
+          "sample_id": "0d1b01fa65f5645376429ca6",
+          "scores": {
+            "task_completion": 37,
+            "analysis": 22,
+            "grounding": 23,
+            "presentation": 9
+          },
+          "evidence_quote": "核心结论如下：LangGraph 应作为底层执行基底，承担固定任务 DAG 的状态机管理；DeepAgents 作为 LangChain 衍生的执行外壳，在 v0.1 阶段应禁用其自主规划与动态子代理生成能力，仅保留固定 DAG 执行能力；Pydantic AI 在结构化输出成为瓶颈时按需引入，而非作为核心依赖；DSH（DeepSeek Harness）则保留给外层验证环境，不进入核心路由回路",
+          "rationale": "报告完整包含执行摘要、背景、选型标准、平台比较、风险、结论、参考资料全部七个必需章节，为独立合法 HTML，无外部 CSS/JS，标题与正文均为简体中文。平台比较部分以表格加叙述对 LangGraph、DeepAgents、Pydantic AI、DSH 四个平台进行实质比较，并提出\"分层 + 边界\"的架构取舍分析；选型标准列出五项并逐项对应来源；结论给出三点建议且均有引用支撑；风险部分识别规划层变量污染、依赖膨胀、回路耦合等五项风险并解释成因。引用与来源核对基本准确：source_001 的\"禁用自主规划与动态子代理生成\"、source_002 的\"显式节点与边、持久化状态、检查点\"、source_007 的基准要素、source_008 的打分维度均忠实转述，且全部八个来源均被使用并附 content_hash 溯源表。扣分点：背景开篇\"2026 年企业级 LLM Agent 的落地形态，正在从……演进\"的行业趋势断言未附引用；比较表\"主要限制\"列中\"对简单任务属于过度工程化\"\"作为核心执行回路会引入额外抽象成本\"\"不直接提供子代理/规划能力，需上层封装\"等属于推断而非来源直接支持；分析虽综合到位，但结论框架 largely 沿袭来源已给出的定位（如 DSH 留外层、Pydantic AI 按需），独立批判性深度有限。",
+          "task_checks": {
+            "substantive_comparison": true,
+            "criteria_tradeoffs": true,
+            "supported_conclusion": true
+          }
+        }
+      ]
+    }
+  },
+  "known_cost": 8.68545,
+  "total_cost": 8.68545,
+  "billing_unit": "AFP",
+  "completed_responses": 2,
+  "failure": null,
+  "production_calls": 0,
+  "说明": "两例校准通过仍不是评审可靠性的充分证据；不会自动启动生产实验。",
+  "review_cost_limit": 25.0
+}

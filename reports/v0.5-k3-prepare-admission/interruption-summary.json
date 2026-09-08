@@ -1,0 +1,52 @@
+{
+  "status": "interrupted-baseline-failed",
+  "decision": "Insufficient-evidence",
+  "production_requests_started": 7,
+  "successful_production_responses": 5,
+  "baseline_status": "timeout",
+  "reference_status": "incomplete",
+  "probe_requests": 0,
+  "node_reviews": 0,
+  "composed_requests": 0,
+  "outer_model_requests": 1,
+  "native_tool_calls": 1,
+  "known_production_cost": 4.87135,
+  "known_outer_cost": 0.1118,
+  "known_total_cost": 4.98315,
+  "total_cost": null,
+  "billing_unit": "AFP",
+  "unknown_usage_requests": [
+    {
+      "local_request_id": "1",
+      "model": "kimi-k3",
+      "started_at": "2026-09-07T16:20:16.780697+00:00",
+      "state": "timeout",
+      "cost": null,
+      "finish": {
+        "schema_version": "v0.1",
+        "recorded_at": "2026-09-07T16:22:16.868458+00:00",
+        "event": "request-finish",
+        "request_id": "1",
+        "provider": "ark-plan",
+        "model": "kimi-k3",
+        "ok": false,
+        "failure_type": "timeout",
+        "latency_ms": 120086,
+        "attempts": 1
+      }
+    },
+    {
+      "local_request_id": "7",
+      "model": "deepseek-v4-pro",
+      "started_at": "2026-09-07T16:23:14.622753+00:00",
+      "state": "interrupted-in-flight",
+      "cost": null,
+      "finish": null
+    }
+  ],
+  "production_limit": 132,
+  "outer_limit": 0.5,
+  "retry_count": 0,
+  "profile_paid_disabled": true,
+  "说明": "尚有两次请求费用未知；不把适配器的失败占位 cost=0 当作零费用，也不将宿主退出码 0 当作实验成功。"
+}

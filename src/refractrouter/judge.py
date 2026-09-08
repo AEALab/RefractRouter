@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, replace
 from typing import Mapping
 
@@ -37,6 +38,15 @@ class JudgeEvaluation:
     attempts: int
     request_id: str | None
     billing_unit: str = "USD"
+
+
+class JudgeResponseError(ValueError):
+    """A billed final-judge response that cannot be accepted as an evaluation."""
+
+    def __init__(self, reason, telemetry):
+        super().__init__(reason)
+        self.failure_type = reason
+        self.telemetry = telemetry
 
 
 class IndependentJudge:
@@ -85,6 +95,22 @@ class IndependentJudge:
             ),
             json_mode=True,
         )
+        telemetry = {"cost": model_response_cost(self.judge_model, response),
+                     "billing_unit": self.judge_model.billing_unit,
+                     "response_content": response.content,
+                     "input_tokens": response.input_tokens, "output_tokens": response.output_tokens,
+                     "cached_input_tokens": response.cached_input_tokens,
+                     "reasoning_tokens": response.reasoning_tokens, "latency_ms": response.latency_ms,
+                     "attempts": response.attempts, "request_id": response.request_id,
+                     "finish_reason": response.finish_reason}
+        if response.finish_reason == "length":
+            raise JudgeResponseError("final-judge-output-truncated", telemetry)
+        try:
+            return self._evaluate_response(task, result, response)
+        except (ValueError, TypeError, KeyError, AttributeError) as exc:
+            raise JudgeResponseError("invalid-final-judge-response", telemetry) from exc
+
+    def _evaluate_response(self, task, result, response):
         data = _parse_judge_response(response.content)
         judge_dimensions = _validate_dimensions(data.get("scores"))
         deterministic = score_task_dimensions(
@@ -158,7 +184,7 @@ def _validate_dimensions(value: object) -> dict[str, float]:
     dimensions: dict[str, float] = {}
     for name, limit in DIMENSION_LIMITS.items():
         score = float(value[name])
-        if score < 0 or score > limit:
+        if not math.isfinite(score) or score < 0 or score > limit:
             raise ValueError(f"Judge dimension out of range: {name}={score}")
         dimensions[name] = score
     return dimensions

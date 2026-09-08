@@ -1,5 +1,38 @@
 # RefractRouter DSH 验证与接入插件
 
+## 0.9.0：复用 K3 基线继续 DAG
+
+`stage: "resume"` 接收成功的 `baseline-ready` 输入目录，默认只执行零调用预检。
+获批后只运行 Pro 参考路线与三模型节点探针，最多 28 次，完成后等待节点评审。
+Python 验证原始索引、配置和代码兼容记录，并分别保存基线历史费用与本阶段新增费用。
+不重新生成 K3，不自动进入组合阶段。具体交接见
+[恢复准备记录](../../../reports/v0.5-k3-resume-readiness/README.md)。
+
+## 0.8.0：仅执行 K3 基线
+
+`{"phase":"k3-baseline","stage":"baseline"}` 默认生成单次零调用预检。
+获批真实执行时，只生成 K3 整任务报告，等待上限 300 秒；成功后返回 `baseline-ready`，
+失败则返回 `blocked`，两者均不运行参考路线或探针。仍需冻结输入、已通过的校准、
+生产额度和显式付费开关。其他阶段的等待上限仍为 120 秒。
+
+## 0.7.0：K3 整任务主对照
+
+新增 `phase: "k3-baseline"`，支持 `stage: "prepare" | "compose"`、`inputDir` 和
+`reviewsPath`；路径相对工作区解析。默认零调用预检，单轮、零重试，付费开关保持关闭。
+本阶段采用 Python 冻结的质量达标后最低费用策略，不接收旧 `selectionPolicy`。
+真实执行必须先通过独立评审校准，阶段间校验冻结材料和同一评审身份。
+`prepare` 返回等待节点评审，`compose` 返回等待最终评审；工具 `pass` 仅表示该阶段
+交接完整，不代表实验完成或收益成立。最终汇总由 Python 纯读取入口完成。
+
+```json
+{"phase":"k3-baseline","stage":"prepare","executePaidRun":false}
+```
+
+配置 Agent Plan 清单、`billingUnit: "AFP"`、`credentialEnv: "CODEX_ARK_API_KEY"` 和
+`maxRetries: 0`。初始阶段计划 29 次生产调用，组合阶段最多 7 次；外部评审费用单列未知。
+新阶段无内部评审调用，获批付费请求的 `maxEvaluationCost` 可为零；其他阶段规则不变。
+完整说明见 [实验设计与交接方法](../../../docs/k3-baseline-comparison.md)。
+
 本包是 RefractRouter 的 DSH 宿主适配层，与核心保留在同一仓库，通过
 `validation/dsh/plugin/` 明确区分。Router 是项目核心；插件用于验证核心能力，
 “DSH + 插件连接核心 Router”也是未来产品化的实现形态之一。
@@ -53,6 +86,22 @@ Python 基准 runner 的 `--selection-policy`；默认 `all-candidates-required-
 
 ## Supported versions
 
+Version 0.6.0 adds `phase: "execution-modes"`, the explicit v0.4 evidence-state experiment.
+It defaults to v2 selection, accepts one to three repeats and requires configured `maxRetries: 0`.
+Configure the Agent Plan manifest, `billingUnit: "AFP"` and
+`credentialEnv: "CODEX_ARK_API_KEY"`, then invoke:
+
+```json
+{"phase":"execution-modes","repeats":1,"executePaidRun":false}
+```
+
+The zero-call preflight reports 80 planned requests for one task/repeat: three one-shot reports,
+three seven-node single-model reports, 21 node probes, one seven-node composed report, and 28 judges.
+Python owns the versioned evidence state, comparison cohorts and call ledger. The plugin only
+forwards this bounded phase. A paid execution needs fresh output, explicit scoped authorization,
+enabled deployment configuration, resolved Agent Plan credentials and both budget ceilings.
+See [the experiment design](../../../docs/evidence-state-execution-modes.md).
+
 The v0.1 compatibility contract is intentionally narrow:
 
 | Component | Supported | CI coverage |
@@ -81,7 +130,7 @@ For an immutable handoff, create a tarball from that commit and install the resu
 ```bash
 mkdir -p /tmp/refractrouter-plugin
 npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.7.0.tgz
+dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.9.0.tgz
 ```
 
 The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,

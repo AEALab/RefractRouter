@@ -1,0 +1,25 @@
+{
+  "historical_integrity": [
+    {
+      "directory": "reports/v0.5-k3-baseline-retry",
+      "index_sha256": "201aab281971971c9264e0c1569bb61624f3e9c7c9c209c19ac4757deb47dcbf",
+      "verified_files": 33,
+      "passed": true
+    },
+    {
+      "directory": "reports/v0.5-k3-resume-readiness",
+      "index_sha256": "bffb6c8a6c6ca8dec0338825caca4b846a441fd03c89bc65b0d6838925c24520",
+      "verified_files": 10,
+      "passed": true
+    }
+  ],
+  "paid_switch": false,
+  "native_tool_calls": 0,
+  "production_requests": 0,
+  "source_code_changes": false,
+  "tests": "本轮只改变隔离运行配置与执行记录，未改代码，未重复运行已有 212 项离线测试。",
+  "craft_wiki": {
+    "status": "skipped",
+    "reason": "轮询只验证了宿主启动，真实连接仍失败；没有新的完整修复结论可晋升。"
+  }
+}

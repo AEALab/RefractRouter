@@ -37,11 +37,22 @@ MODEL_PROGRESS = "model-progress.ndjson"
 def _expected_artifacts(
     execute_paid_run: bool, preflight: object
 ) -> tuple[str, ...]:
+    if isinstance(preflight, dict) and preflight.get('phase') == 'k3-baseline':
+        return ('preflight.json', 'private/state.json', 'evidence-index.json', 'README.md') + (
+            ('benchmark-summary.json', 'production-results.ndjson', 'submitted-reviews.json',
+             'input-evidence-index.json', MODEL_PROGRESS) if execute_paid_run else ())
     if isinstance(preflight, dict) and preflight.get("phase") == "contract-replay":
         if not execute_paid_run:
             return ("preflight.json", "replay-cases.json")
         return ("preflight.json", "replay-cases.json", "replay-results.ndjson",
                 "benchmark-summary.json", "evidence-index.json", MODEL_PROGRESS)
+    if isinstance(preflight, dict) and preflight.get("phase") == "execution-modes":
+        if not execute_paid_run:
+            return ("preflight.json",)
+        return ("preflight.json", "benchmark-summary.json", "baseline-table.md",
+                "failure-taxonomy.md", "evidence-index.json", "node-evaluations.ndjson",
+                "node-quality-matrix.json", "node-quality-matrix.md", "strategy-comparisons.json",
+                "strategy-comparisons.md", MODEL_PROGRESS)
     if not execute_paid_run:
         return REAL_ARTIFACTS[:1]
     if isinstance(preflight, dict) and preflight.get("wire_api") == "dsh-llm":
@@ -62,9 +73,14 @@ def run_real_validation(
     max_evaluation_cost: float | None = None,
     max_retries: int = 2,
     invoked_by: str = "local",
-    selection_policy: str = "all-candidates-required-v1",
+    selection_policy: str | None = None,
+    stage: str = 'prepare',
+    input_dir: Path | None = None,
+    reviews: Path | None = None,
 ) -> int:
-    from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
+    from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY, REJECTION_SELECTION_POLICY
+    selection_policy = selection_policy or (
+        REJECTION_SELECTION_POLICY if phase == "execution-modes" else LEGACY_SELECTION_POLICY)
     if selection_policy not in SELECTION_POLICIES:
         raise ValueError("Unknown node selection policy")
     if phase == "contract-replay" and selection_policy != LEGACY_SELECTION_POLICY:
@@ -78,7 +94,9 @@ def run_real_validation(
     command = [
         sys.executable,
         str(ROOT / "experiments" / (
-            "replay_node_contracts.py" if phase == "contract-replay" else "run_real_v0_1.py")),
+            "replay_node_contracts.py" if phase == "contract-replay" else
+            "run_execution_modes.py" if phase == "execution-modes" else
+            "run_k3_baseline.py" if phase == "k3-baseline" else "run_real_v0_1.py")),
         "--dataset",
         str(dataset_path),
         "--manifest",
@@ -92,7 +110,11 @@ def run_real_validation(
         "--max-retries",
         str(max_retries),
     ]
-    if phase != "contract-replay":
+    if phase == 'k3-baseline':
+        command.extend(['--stage', stage])
+        if input_dir: command.extend(['--input-dir', str(input_dir.resolve())])
+        if reviews: command.extend(['--reviews', str(reviews.resolve())])
+    elif phase != "contract-replay":
         command.extend(["--selection-policy", selection_policy])
     if execute_paid_run:
         if max_production_cost is None or max_evaluation_cost is None:
@@ -106,8 +128,16 @@ def run_real_validation(
                 str(max_evaluation_cost),
             ]
         )
+    child_env = os.environ.copy()
+    child_env.pop("REFRACTROUTER_EXECUTION_MODES_HOST", None)
+    child_env.pop('REFRACTROUTER_K3_BASELINE_HOST', None)
+    if phase == "execution-modes" and invoked_by == "dsh-plugin":
+        child_env["REFRACTROUTER_EXECUTION_MODES_HOST"] = "dsh-plugin"
+    if phase == 'k3-baseline' and invoked_by == 'dsh-plugin':
+        child_env['REFRACTROUTER_K3_BASELINE_HOST'] = 'dsh-plugin'
     completed = subprocess.run(
         command,
+        env=child_env,
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -138,7 +168,8 @@ def run_real_validation(
                 (output_dir / "benchmark-summary.json").read_text(encoding="utf-8")
             )
             expected_status = "awaiting-human-audit" if phase == "final" else "complete"
-            if summary.get("status") != expected_status:
+            allowed_status = ({'baseline-ready'} if stage=='baseline' else {'node-review-ready'} if stage in {'prepare','resume'} else {'final-review-ready'}) if phase=='k3-baseline' else {expected_status}
+            if summary.get("status") not in allowed_status:
                 issues.append("benchmark-incomplete")
         except (json.JSONDecodeError, AttributeError):
             issues.append("invalid-benchmark-summary")
@@ -210,10 +241,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--evidence", required=True, type=Path)
-    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay"), default="dry-run")
+    parser.add_argument("--phase", choices=("dry-run", "pilot", "final", "contract-replay", "execution-modes", "k3-baseline"), default="dry-run")
+    parser.add_argument('--stage', choices=['baseline','resume','prepare','compose'], default='prepare')
+    parser.add_argument('--input-dir', type=Path)
+    parser.add_argument('--reviews', type=Path)
     parser.add_argument("--repeats", type=int, default=1)
     from refractrouter.node_availability import SELECTION_POLICIES, LEGACY_SELECTION_POLICY
-    parser.add_argument("--selection-policy", choices=SELECTION_POLICIES, default=LEGACY_SELECTION_POLICY)
+    parser.add_argument("--selection-policy", choices=SELECTION_POLICIES)
     parser.add_argument("--execute-paid-run", action="store_true")
     parser.add_argument("--max-production-cost", type=float)
     parser.add_argument("--max-evaluation-cost", type=float)
@@ -237,6 +271,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         max_retries=args.max_retries,
         invoked_by=args.invoked_by,
         selection_policy=args.selection_policy,
+        stage=args.stage, input_dir=args.input_dir, reviews=args.reviews,
     )
 
 

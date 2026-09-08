@@ -472,7 +472,7 @@ function boundedCollector(stream: Readable, maxBytes: number) {
   }
 }
 
-function localProcessContext(toolName = 'refractrouter_validate') {
+function localProcessContext(config = {}, toolName = 'refractrouter_validate') {
   let tool: ValidationTool | undefined
   const ctx: DshContext = {
     tools: { register(spec) { if (spec.name === toolName) tool = spec } },
@@ -523,7 +523,7 @@ function localProcessContext(toolName = 'refractrouter_validate') {
       },
     },
   }
-  apply(ctx)
+  apply(ctx, config)
   return { get tool() { assert.ok(tool); return tool } }
 }
 
@@ -545,6 +545,97 @@ test('the registered tool completes a real zero-cost Python preflight', async ()
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })
   }
+})
+
+test('execution modes completes the native tool subprocess preflight with no credential access', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'execution-modes' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result, null, 2))
+    assert.equal(result.mode, 'preflight')
+    assert.equal(result.billingUnit, 'AFP')
+    assert.equal(result.callPlan!.totalModelCalls, 80)
+    assert.equal(result.costEstimate!.total, 655.76)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('K3 baseline completes native zero-call preflight and exposes the prepare budget', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'k3-baseline' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result, null, 2))
+    assert.equal(result.mode, 'preflight')
+    assert.equal(result.callPlan!.totalModelCalls, 29)
+    assert.equal(result.callPlan!.judgeModelCalls, 0)
+    assert.equal(result.costEstimate!.total, 131.67)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('baseline stage makes a one-call plan through the native subprocess', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'k3-baseline', stage: 'baseline' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.equal(result.callPlan!.totalModelCalls, 1)
+    assert.equal(result.costEstimate!.total, 12.19)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('K3 review handoff arguments are typed and paid execution remains disabled', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'k3-baseline', stage: 'compose',
+    inputDir: 'reports/prepared', reviewsPath: 'reviews.json' }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--stage') + 1], 'compose')
+  assert.equal(argv[argv.indexOf('--input-dir') + 1], resolve(ROOT, 'reports/prepared'))
+  assert.equal(argv[argv.indexOf('--reviews') + 1], resolve(ROOT, 'reviews.json'))
+  assert.equal(argv.includes('--selection-policy'), false)
+  assert.equal(fixture.calls.resolve, 0)
+  for (const args of [{ repeats: 2 }, { stage: 'finalize' }, { reviewsPath: ' ' },
+    { selectionPolicy: 'exclude-known-contract-rejections-v2' }]) {
+    await assert.rejects(fixture.tool.execute({ phase: 'k3-baseline', ...args }, execution()))
+  }
+  await assert.rejects(fixture.tool.execute({ phase: 'dry-run', stage: 'compose' }, execution()), /require k3-baseline/)
+  await assert.rejects(fixture.tool.execute({ phase: 'k3-baseline', executePaidRun: true,
+    maxProductionCost: 132, maxEvaluationCost: 0 }, execution()), /paid validation is disabled/)
+})
+
+test('resume reuses the frozen K3 baseline through a native zero-call subprocess', async () => {
+  const fixture = localProcessContext({ manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    billingUnit: 'AFP', credentialEnv: 'CODEX_ARK_API_KEY' })
+  const result = await fixture.tool.execute({ phase: 'k3-baseline', stage: 'resume',
+    inputDir: 'reports/v0.5-k3-baseline-retry/output' }, execution())
+  try {
+    assert.equal(result.status, 'pass', JSON.stringify(result))
+    assert.equal(result.mode, 'preflight')
+    assert.equal(result.callPlan!.productionModelCalls, 28)
+    assert.equal(result.callPlan!.judgeModelCalls, 0)
+    assert.equal(result.costEstimate!.production, 119.48)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('K3 accepts a zero internal evaluation budget after explicit deployment enablement', async () => {
+  const fixture = fakeContext({ config: { allowPaidRuns: true, maxProductionCost: 200,
+    billingUnit: 'AFP', manifestPath: 'data/model-manifests/volcengine-agent-plan.json',
+    credentialEnv: 'CODEX_ARK_API_KEY' }, credential: 'test-only',
+    resultEvidence: evidence({ billingUnit: 'AFP', mode: 'paid' }) })
+  await fixture.tool.execute({ phase: 'k3-baseline', executePaidRun: true,
+    inputDir: 'reports/prepared', reviewsPath: 'reviews.json',
+    maxProductionCost: 132, maxEvaluationCost: 0 }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--max-evaluation-cost') + 1], '0')
+  assert.equal(fixture.calls.resolve, 1)
 })
 
 test('DSH LLM bridge preserves content, disjoint usage, finish reason, and request id', async () => {
@@ -728,7 +819,7 @@ const taskInput = { task: 'Compare two proposals and explain risks.', mode: 'pre
   qualityMin: 80, costMax: 1, latencyMaxMs: 300000, weights: { quality: .5, cost: .25, latency: .25 } }
 
 test('task tool performs an actual zero-call Python preflight and returns DAG assignments', async () => {
-  const fixture = localProcessContext('refractrouter_task')
+  const fixture = localProcessContext({}, 'refractrouter_task')
   const result = await fixture.tool.execute(taskInput, execution())
   try {
     assert.equal(result.status, 'pass', JSON.stringify(result))
@@ -746,7 +837,7 @@ test('task tool performs an actual zero-call Python preflight and returns DAG as
 })
 
 test('task demo returns clearly simulated outputs without live credentials', async () => {
-  const fixture = localProcessContext('refractrouter_task')
+  const fixture = localProcessContext({}, 'refractrouter_task')
   const result = await fixture.tool.execute({ ...taskInput, mode: 'demo' }, execution())
   try {
     assert.equal(result.status, 'pass', JSON.stringify(result))
@@ -805,7 +896,7 @@ test('invalid task arguments are rejected before process launch', async () => {
 
 test('新版 DAG 与固定验收条件通过 DSH 原样进入 Python 核心', async () => {
   const plan: Record<string, unknown> = JSON.parse(await readFile(join(ROOT, 'data/task-plans/parallel-analysis-v2.json'), 'utf8'))
-  const fixture = localProcessContext('refractrouter_task')
+  const fixture = localProcessContext({}, 'refractrouter_task')
   const result = await fixture.tool.execute({ ...taskInput, plan,
     acceptanceCriteria: plan.acceptance_criteria }, execution())
   try {
@@ -832,7 +923,7 @@ test('非法固定验收条件在启动进程前拒绝', async () => {
 
 test('DSH 将并发和 Provider 限制传入核心并展示调度预测', async () => {
   const plan = JSON.parse(await readFile(join(ROOT, 'data/task-plans/parallel-analysis-v2.json'), 'utf8'))
-  const fixture = localProcessContext('refractrouter_task')
+  const fixture = localProcessContext({}, 'refractrouter_task')
   const result = await fixture.tool.execute({ ...taskInput, plan, maxConcurrency: 2, maxNodeFallbacks: 1,
     providerConcurrency: { openai: 2 }, providerMinIntervalMs: { openai: 20 } }, execution())
   try {
@@ -866,6 +957,19 @@ test('node selection policy is typed, validated and forwarded to Python', async 
   assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
   await assert.rejects(fixture.tool.execute({ phase: 'dry-run', selectionPolicy: 'invented' }, execution()), /unknown selectionPolicy/)
   await assert.rejects(fixture.tool.execute({ phase: 'contract-replay', selectionPolicy: 'exclude-known-contract-rejections-v2' }, execution()), /does not select/)
+})
+
+test('execution modes forwards the bounded v0.4 phase without enabling paid calls', async () => {
+  const fixture = fakeContext()
+  await fixture.tool.execute({ phase: 'execution-modes' }, execution())
+  const argv = fixture.calls.spawnSpec!.argv
+  assert.equal(argv[argv.indexOf('--phase') + 1], 'execution-modes')
+  assert.equal(argv[argv.indexOf('--selection-policy') + 1], 'exclude-known-contract-rejections-v2')
+  assert.equal(fixture.calls.resolve, 0)
+  await assert.rejects(fixture.tool.execute({ phase: 'execution-modes', repeats: 4 }, execution()), /requires repeats/)
+  await assert.rejects(fixture.tool.execute({ phase: 'execution-modes', selectionPolicy: 'all-candidates-required-v1' }, execution()), /requires exclude/)
+  await assert.rejects(fixture.tool.execute({ phase: 'execution-modes', executePaidRun: true,
+    maxProductionCost: 210, maxEvaluationCost: 460 }, execution()), /paid validation is disabled/)
 })
 
 test('文本任务不接收基准专用候选策略参数', async () => {
