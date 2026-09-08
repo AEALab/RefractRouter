@@ -1,0 +1,14 @@
+node:internal/fs/watchers:214
+      const error = new UVException({
+                    ^
+
+Error: EMFILE: too many open files, watch
+    at FSWatcher._handle.onchange (node:internal/fs/watchers:214:21)
+    at FSEvent.callbackTrampoline (node:internal/async_hooks:130:17) {
+  errno: -24,
+  syscall: 'watch',
+  code: 'EMFILE',
+  filename: null
+}
+
+Node.js v22.22.3

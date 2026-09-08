@@ -1,0 +1,30 @@
+{
+  "source_code_changed": false,
+  "prior_offline_tests": 212,
+  "paid_switch": false,
+  "baseline_preserved": true,
+  "native_args_match_authorization": true,
+  "production_within_limit": true,
+  "outer_known_cost_within_limit": true,
+  "historical_integrity": [
+    {
+      "directory": "reports/v0.5-k3-baseline-retry",
+      "verified_files": 33,
+      "index_sha256": "201aab281971971c9264e0c1569bb61624f3e9c7c9c209c19ac4757deb47dcbf",
+      "passed": true
+    },
+    {
+      "directory": "reports/v0.5-k3-resume-readiness",
+      "verified_files": 10,
+      "index_sha256": "bffb6c8a6c6ca8dec0338825caca4b846a441fd03c89bc65b0d6838925c24520",
+      "passed": true
+    },
+    {
+      "directory": "reports/v0.5-k3-resume-admission",
+      "verified_files": 18,
+      "index_sha256": "9fea07b88ff76cccfec9375566ecf57b4e5c10e93a1e028b92eb31febf397137",
+      "passed": true
+    }
+  ],
+  "artifact_hashes": "全部通过"
+}

@@ -1,0 +1,31 @@
+{
+  "status": "blocked-before-native-tool",
+  "recorded_at": "2026-09-07T17:33:46.606621+00:00",
+  "authorized": true,
+  "production_requests": 0,
+  "native_tool_calls": 0,
+  "outer_model_steps": 1,
+  "outer_failures": [
+    {
+      "message": "Connection error.",
+      "code": "TRANSPORT"
+    }
+  ],
+  "outer_reported_usage": [
+    {
+      "inputTokens": 0,
+      "outputTokens": 0
+    }
+  ],
+  "production_cost_afp": 0,
+  "known_outer_cost_afp": 0,
+  "outer_cost_afp": null,
+  "total_cost_afp": null,
+  "paid_switch_after_exit": false,
+  "approval_review": "两次扩展权限启动均因自动审批超时被拒绝，未创建进程。",
+  "sandbox_attempts": [
+    "第一次 DSH 因文件监听 EMFILE 在会话创建前退出",
+    "启用 Chokidar 官方支持的轮询后帮助命令成功；正式任务的外层模型 TRANSPORT 连接失败"
+  ],
+  "说明": "没有参考路线、探针、K3 或评审生产请求。外层连接失败仅有零值 usage，缺少服务端 request id 和计费凭证，费用保留未知。用户授权保留，禁止自动重复本次失败会话。"
+}

@@ -1,0 +1,406 @@
+{
+  "phase": "k3-baseline",
+  "stage": "resume",
+  "billing_unit": "AFP",
+  "output_language": "zh-CN",
+  "model_calls": null,
+  "credential_env": "CODEX_ARK_API_KEY",
+  "wire_api": "chat-completions",
+  "request_timeout_seconds": 120,
+  "call_plan": {
+    "training_model_calls": 0,
+    "production_model_calls": 28,
+    "judge_model_calls": 0,
+    "total_model_calls": 28
+  },
+  "cost_estimates": {
+    "billing_unit": "AFP",
+    "production_upper_estimate": 119.48,
+    "evaluation_upper_estimate": 0,
+    "total_upper_estimate": 119.48
+  },
+  "minimum_production_limit": 119.49,
+  "whole_experiment": {
+    "production_calls": 36,
+    "production_estimate": 178.61,
+    "independent_review_items": 25,
+    "external_review_cost": null,
+    "outer_dsh_cost": null
+  },
+  "说明": "仅计本入口的生产调用；外部独立评审与外层费用未知。输入 4000 token 为估计，不是严格上界。",
+  "config": {
+    "task": {
+      "task_id": "report_001",
+      "domain": "2026 年企业 LLM Agent 平台选型",
+      "nodes": [
+        {
+          "node_id": "parse_requirements",
+          "node_type": "planning",
+          "prompt_template": "Extract the report topic, audience, required sections, and output constraints.",
+          "parents": [],
+          "expected_output": null
+        },
+        {
+          "node_id": "build_outline",
+          "node_type": "planning",
+          "prompt_template": "Build a section outline that covers every required section.",
+          "parents": [
+            "parse_requirements"
+          ],
+          "expected_output": null
+        },
+        {
+          "node_id": "extract_evidence",
+          "node_type": "extraction",
+          "prompt_template": "Extract the most relevant claims from the fixed source pack. Preserve source_id.",
+          "parents": [
+            "build_outline"
+          ],
+          "expected_output": null
+        },
+        {
+          "node_id": "synthesize_analysis",
+          "node_type": "synthesis",
+          "prompt_template": "Compare candidate platforms against the selection criteria and identify tradeoffs.",
+          "parents": [
+            "extract_evidence"
+          ],
+          "expected_output": null
+        },
+        {
+          "node_id": "write_report",
+          "node_type": "generation",
+          "prompt_template": "Write the full report body with every required section and citation.",
+          "parents": [
+            "synthesize_analysis",
+            "extract_evidence"
+          ],
+          "expected_output": null
+        },
+        {
+          "node_id": "render_html",
+          "node_type": "rendering",
+          "prompt_template": "Render the report as a standalone HTML document.",
+          "parents": [
+            "write_report",
+            "extract_evidence"
+          ],
+          "expected_output": null
+        },
+        {
+          "node_id": "verify_report",
+          "node_type": "verification",
+          "prompt_template": "Verify required sections, citations, HTML validity, and output constraints.",
+          "parents": [
+            "render_html",
+            "extract_evidence"
+          ],
+          "expected_output": null
+        }
+      ],
+      "required_sections": [
+        "执行摘要",
+        "背景",
+        "选型标准",
+        "平台比较",
+        "风险",
+        "结论",
+        "参考资料"
+      ],
+      "output_constraints": [
+        "standalone HTML",
+        "all claims cite source_id",
+        "no external CSS or JavaScript",
+        "标题及正文使用简体中文；利用相关来源完成实质比较、取舍分析与有依据的结论。"
+      ],
+      "source_pack_id": "report_001",
+      "scoring_rubric_version": "v0.1",
+      "expected_claims": [],
+      "source_documents": [
+        {
+          "source_id": "source_001",
+          "title": "DeepAgents",
+          "content": "DeepAgents is a LangChain harness built on LangGraph. It provides planning, sub-agents, a filesystem abstraction, and human-in-the-loop controls. For RefractRouter v0.1, DeepAgents is useful as the fixed-DAG execution harness, but its autonomous planning and dynamic sub-agent generation should remain disabled.",
+          "content_hash": "ed7d5a479cc077720b641eb8ecf4a25c3af32701fc8403138c57532c6dd03d39"
+        },
+        {
+          "source_id": "source_002",
+          "title": "LangGraph",
+          "content": "LangGraph is a graph state machine framework for complex workflows. It supports explicit nodes, edges, durable state, and check-pointing. RefractRouter uses LangGraph as the lower-level execution substrate for a fixed task DAG.",
+          "content_hash": "97960ed618df652ae16f900a1ea677e257684118f5eab68686b2f8713ae74960"
+        },
+        {
+          "source_id": "source_003",
+          "title": "Pydantic AI",
+          "content": "Pydantic AI provides typed tool definitions and structured model outputs. It is useful when strict schemas are required, but RefractRouter v0.1 does not need it as a core dependency unless structured-output parsing becomes a bottleneck.",
+          "content_hash": "7edd7c4a831f8cb06e0c9fc8b17911818ad63ff686b7d7245b176c46a3cea42e"
+        },
+        {
+          "source_id": "source_004",
+          "title": "DeepSeek Harness",
+          "content": "DeepSeek Harness, or DSH, is an agent harness where the agent loop itself is a plugin. For RefractRouter v0.1, DSH is reserved for the outer validation environment, not the core routing loop.",
+          "content_hash": "b06d562fa3e636b8ffb02c1578e300033ae7f23672b90445a9489bbe65b57331"
+        },
+        {
+          "source_id": "source_005",
+          "title": "LLM routing research gap",
+          "content": "Existing LLM routing work mostly selects one model for an entire request. RefractRouter studies whether selecting a model separately for each node in a task DAG can improve the quality-cost-latency Pareto frontier.",
+          "content_hash": "418b6cda722a8338f10fa145fb4f4f5c3f188ff413651e4d73aa2949b4e07460"
+        },
+        {
+          "source_id": "source_006",
+          "title": "Task decomposition boundary",
+          "content": "Static task decomposition belongs to the application layer. The router receives the DAG as input and focuses on per-node model selection. Dynamic re-splitting is deferred until node-level routing is validated.",
+          "content_hash": "96a837f9788f5d0c6d9ab2cc9633775c42dc5569afc70b1782dc1d6d7a198504"
+        },
+        {
+          "source_id": "source_007",
+          "title": "Benchmark design",
+          "content": "A useful routing benchmark needs fixed task DAGs, multiple candidate models, per-node and per-task scoring, cost accounting, and critical-path latency. The first benchmark should stay small enough to reproduce.",
+          "content_hash": "03e9443028f0065ae41218c422efdcebe73225465468098c9ba49f03596be4d0"
+        },
+        {
+          "source_id": "source_008",
+          "title": "Scoring rubric",
+          "content": "The v0.1 scoring rubric weights requirement coverage, evidence accuracy, analysis depth, structure and readability, and HTML validity. Scoring prompts and rubric versions must be versioned with run records.",
+          "content_hash": "b669e75265f9d0997a8f62659ca6526b2911a6d4af1f2c9ed956870c166a816e"
+        }
+      ],
+      "output_contract_version": "v0.4",
+      "execution_mode": "dag"
+    },
+    "models": [
+      {
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 0.05,
+        "output_cost_per_1k": 0.05,
+        "capability": 0.55,
+        "billing_unit": "AFP",
+        "tags": [
+          "standard",
+          "fast",
+          "afp-coefficient-0.5"
+        ],
+        "api_model": "deepseek-v4-flash",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 0.05,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "candidate",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "json-object-hint"
+      },
+      {
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 0.25,
+        "output_cost_per_1k": 0.25,
+        "capability": 0.78,
+        "billing_unit": "AFP",
+        "tags": [
+          "advanced",
+          "balanced",
+          "afp-coefficient-2.5"
+        ],
+        "api_model": "minimax-m3",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 0.25,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "candidate",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "prompt-only"
+      },
+      {
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 0.55,
+        "output_cost_per_1k": 0.55,
+        "capability": 0.92,
+        "billing_unit": "AFP",
+        "tags": [
+          "advanced",
+          "strong",
+          "afp-coefficient-5.5"
+        ],
+        "api_model": "deepseek-v4-pro",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 0.55,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "candidate",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "json-object-hint"
+      },
+      {
+        "model_id": "k3-baseline",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 1.0,
+        "output_cost_per_1k": 1.0,
+        "capability": 0.97,
+        "billing_unit": "AFP",
+        "tags": [
+          "advanced",
+          "independent-judge",
+          "afp-coefficient-10"
+        ],
+        "api_model": "kimi-k3",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 1.0,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "baseline",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "json-object-hint"
+      }
+    ],
+    "manifest_sha256": "9ddb4395ad73dcf259f665a4b8ded034d5936eb6b2e81c992f0f38f5fef8f63c",
+    "dataset_sha256": "c5fd2ccad9ca2d4da9232bb82a838e6b443267c80df859ae543baa2ebb59eba6",
+    "code": {
+      "src/refractrouter/__init__.py": "3b997102abed6cde3606d4c272ed2cb94789815259d3e8cd41af57c36a8654d6",
+      "src/refractrouter/adapters.py": "ce43b50d6f7d005c466fcfa0096fb73d1c2d5fa550b6ab78c3e22278cc1ab30f",
+      "src/refractrouter/benchmark.py": "1c3f63aee95ae9ca1cdfcbbef3d3dc7f5235c8ed86835b991d3d67bfb1f79294",
+      "src/refractrouter/blind_review.py": "d2ea6e202ae5ccc0689ebfff20d95abba2e3b4202209884895defd70caeb433d",
+      "src/refractrouter/calibration_runner.py": "d7f79c15a36908eedadedd136d49af5d1a1f94418cab817605739506d70d62c9",
+      "src/refractrouter/cli.py": "73efb44e7681b974ad2dc1e69ac1a15a3e40ed499a27eb7d5ddf480bad100ce9",
+      "src/refractrouter/comparisons.py": "a9455b5744ef162b685735105afd9d69dd608e22400db3cdce654f5507fe6c38",
+      "src/refractrouter/cost_selection.py": "0409a046134f8739b0e5a15aeabff942ee545ce2b86332bc4931847a4b5012c3",
+      "src/refractrouter/dataset.py": "395e94bc6d1610047835ce007d3411a2c76820c953f300f70f1087fa3f21b19e",
+      "src/refractrouter/deepagents_executor.py": "93424847d970e1548454984843633e4f5680927eac52eee965c072520847505f",
+      "src/refractrouter/evidence_state.py": "0bfc1aff60a9b02d5186ac03d60428a47abfbf25637d1c91dea6638150aa1500",
+      "src/refractrouter/execution_modes.py": "e99dddee777567a34e7497974078b65831656cd71921d6f5778c83a0e3400885",
+      "src/refractrouter/execution_reports.py": "9b1489bd577db1ec417fc62e08c8058c855fd22ad9d966f6237674dc56259606",
+      "src/refractrouter/graph_executor.py": "40724a40143bcb923cb6933a0618f3b8ea66738d8ea8c7b60f9bb0657bf1ced9",
+      "src/refractrouter/judge.py": "09c7aee1b5eae4ff5bc9e21dfd68eb9b1aa1361ac4064b28ec40ca1b2bdc0410",
+      "src/refractrouter/k3_experiment.py": "a049f45cfb9c553c249c34926f94ed483b5767bec0ffb52def14c637064a5ca2",
+      "src/refractrouter/manifest.py": "3a31d53272946dc9f5fc1cad4b181d3f3578f973d7b99848e9f9794378989760",
+      "src/refractrouter/metrics.py": "bc03504e6915e188b4152e19f6293596b878124fb16922e989100839d0d12f2e",
+      "src/refractrouter/model_catalog.py": "c21465aad58227a4ad475ef441a734c435ef4ec9000ed1ae959ef6ae09dfe506",
+      "src/refractrouter/model_registry.py": "8fd0017a09bca165e91112022eb5c091b188e6f8d24014eb5e29a86e355b6845",
+      "src/refractrouter/model_selection.py": "067c5cf371ffa83d52bf66eb483c2d0b398f607d32d3d650f8a611f125572a7e",
+      "src/refractrouter/node_availability.py": "50c53b0caa8701b2db79bf68ff97ccfad909cee84f81469efa7847763358038e",
+      "src/refractrouter/node_contracts.py": "63f8a296248e82a7395d906b53cf3d004850c8a7ff7670a792b6400006ae47e2",
+      "src/refractrouter/node_judge.py": "abecdd4aeed9fd59be2ece02f5b620338c70c36519a2bad2d0cdd1fa27e29f64",
+      "src/refractrouter/openai_compatible.py": "1a48e91689a77e54136a4e2724cc09ea856067998f003fa2c9abec529b58eb59",
+      "src/refractrouter/report_renderer.py": "b65e306d2726f7effb091b13d1a227499e90ed4a4a10b56a836e5262eabd9a6c",
+      "src/refractrouter/review_calibration.py": "90e67c97e3503ac04de6ab613ba9792a47bb9d033c0486ca1a8530a09992093c",
+      "src/refractrouter/routing.py": "14f21634d97e482d932ec1d3555c1a58491fba8d9615feeedaaeab416b8b33db",
+      "src/refractrouter/schemas.py": "53dd30e35c219f04189a47251af0bf030cb5494d3dfcad91f87dd19899f80777",
+      "src/refractrouter/scoring.py": "871cc5cbb33180b6f2edb17c4c8c28babe8fbc01be61991d3d40a64e14ea7e93",
+      "src/refractrouter/source_pack.py": "8f8e4e3724110e80b89851407f3f67e8a7ea268d6335e8d3741e7fc4812fc59a",
+      "experiments/analyze_model_selection.py": "c3ec92adb704bbb16b6c7af84f8691244f217121180765cf3ec8e4a0682d4585",
+      "experiments/finalize_real_v0_1.py": "3c9a65bace407a9fa1646676b0c5c5789cbb2983cfe5c62774e46778de951501",
+      "experiments/replay_node_contracts.py": "9711cb0ff47d2fae39353a23a58de108a7c4325bb1112f074330e224530f8608",
+      "experiments/review_node_quality_evidence.py": "086eaaea76d3a544be078f43588fbbca62baf1ab227e2d979a1372a8bdadfb6a",
+      "experiments/run_blind_calibration.py": "80aa05d41f314c1fc3195d971772f2b4082b0bead3474c2a774105ad89f3f8a4",
+      "experiments/run_execution_modes.py": "220449d72d792834d6e3ed664ae3c072b6e5479dc8dd0206600234989c0ad291",
+      "experiments/run_k3_baseline.py": "facd4c99c824133fa36fe99706a785488080140c8bc62929759ed31a22ebc554",
+      "experiments/run_real_v0_1.py": "97a59527e57b239d6d55f0db3a001e673e7898a9ac727d8b9c53b5ccf74b1280",
+      "experiments/run_v0_1.py": "0dd8494ad8b59ae7f28a0059fc16e3c34659bbcbbf4c645d808712adcf8b1975"
+    },
+    "quality_floor": 85,
+    "max_quality_gap": 5
+  },
+  "baseline_reuse": {
+    "source_index_sha256": "acc27a59fe60f4164930c51125c0b200c8df7bdab0e59df0bfee95e03d633754",
+    "source_config_sha256": "10a2b6264c8abbe63708c2db5fc405a9d7ad762f1a9c79a1dc80b7dd7bcdd69f",
+    "target_config_sha256": "10a2b6264c8abbe63708c2db5fc405a9d7ad762f1a9c79a1dc80b7dd7bcdd69f",
+    "baseline_sha256": "3f4be8aa8b03656c69242c2fd7f35d874e0b50809c1bd1d0708d3b9d8641820c",
+    "imported_production_cost": 9.154,
+    "compatibility_record": null,
+    "previous_receipt": {
+      "source_index_sha256": "a112a46285fa8953ae63ae0e3056a0223458d0ff59152008f35981b12756213a",
+      "source_config_sha256": "7a82d52522a4d9dd8586e52c44b1a449bba923ed52638eea0ac22a02991fc6b8",
+      "target_config_sha256": "10a2b6264c8abbe63708c2db5fc405a9d7ad762f1a9c79a1dc80b7dd7bcdd69f",
+      "baseline_sha256": "3f4be8aa8b03656c69242c2fd7f35d874e0b50809c1bd1d0708d3b9d8641820c",
+      "imported_production_cost": 9.154,
+      "compatibility_record": {
+        "source_config_sha256": "7a82d52522a4d9dd8586e52c44b1a449bba923ed52638eea0ac22a02991fc6b8",
+        "target_config_sha256": "10a2b6264c8abbe63708c2db5fc405a9d7ad762f1a9c79a1dc80b7dd7bcdd69f",
+        "source_index_sha256": "a112a46285fa8953ae63ae0e3056a0223458d0ff59152008f35981b12756213a",
+        "source_bundle": "reports/v0.5-k3-baseline-retry/output",
+        "changed_code": {
+          "experiments/run_k3_baseline.py": {
+            "before": "2bfcc79d557c3bb89bbc8d0518a1648dee5a503220b9a2e2ca34699585bc04bd",
+            "after": "facd4c99c824133fa36fe99706a785488080140c8bc62929759ed31a22ebc554"
+          },
+          "src/refractrouter/k3_experiment.py": {
+            "before": "9ad88e064d257b815fa6e0ea99b05635ed5bcda3e63bdd02697d4829da0ce7cd",
+            "after": "a049f45cfb9c553c249c34926f94ed483b5767bec0ffb52def14c637064a5ca2"
+          }
+        },
+        "说明": "只允许这份成功基线恢复至本次精确代码快照。变化限于阶段恢复及费用汇总；整任务提示、模型、任务、适配器、执行器、契约与校准未变。索引保证完整性，不提供签名认证。"
+      },
+      "previous_receipt": null,
+      "baseline_contract_checks": {
+        "version": "v0.4",
+        "score_cap": 0.0,
+        "checks": {
+          "html_envelope": true,
+          "source_trace": true,
+          "missing_sections": [
+            "参考资料",
+            "平台比较",
+            "执行摘要",
+            "结论",
+            "背景",
+            "选型标准",
+            "风险"
+          ]
+        },
+        "issues": [
+          "missing-sections"
+        ]
+      }
+    },
+    "baseline_contract_checks": {
+      "version": "v0.4",
+      "score_cap": 0.0,
+      "checks": {
+        "html_envelope": true,
+        "source_trace": true,
+        "missing_sections": [
+          "参考资料",
+          "平台比较",
+          "执行摘要",
+          "结论",
+          "背景",
+          "选型标准",
+          "风险"
+        ]
+      },
+      "issues": [
+        "missing-sections"
+      ]
+    }
+  }
+}
