@@ -2,7 +2,15 @@
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
-RefractRouter 是一个面向**任务分解感知的异构 LLM 路由**研究项目。它研究的问题是：当复杂任务被表示为 DAG 后，如何在质量、成本和延迟之间为每个节点选择合适的模型，而不是只在整个请求层面选择一个模型。
+RefractRouter 是面向团队集中路由的应用项目。RefractAgent 提供本机任务入口，按质量、成本和时延偏好选择模型，支持整任务处理及 DAG 节点分配，并保存结果与费用。
+
+## RefractAgent 本机应用入口
+
+安装 Python 核心与 DSH 插件后，可在 DSH 模型选择器中选择“省成本／均衡／质量优先”。
+核心通过 `refractagent` 命令运行，安装包名称仍为 `refractrouter`。
+参见 [本机安装与使用](docs/refractagent-local-quickstart.md)。默认模拟演示，真实执行需要明确的预算与配置。
+本机第一阶段已完成安装、原生 DSH 三策略选择与真实文本执行；
+6 次真实调用和已知长度控制限制见 [应用验收记录](reports/refractagent-local/20260908/README.md)。
 
 ## 核心与 DSH 插件的定位
 
@@ -17,8 +25,9 @@ RefractRouter 是一个面向**任务分解感知的异构 LLM 路由**研究项
 | DSH 插件 | `validation/dsh/plugin/` | 工具入口、宿主配置、凭证与进程对接、结构化结果展示 |
 | DSH 验证与调用入口 | `validation/dsh/` 下的 Python runner | 连接插件与核心、组织验证并保存证据 |
 
-当前插件通过本地 Python runner 调用核心，仍需要匹配的源码环境；独立 Router 服务与
-脱离源码目录的安装体验尚未交付。插件安装或模拟执行通过，不等于路由收益已获验证。
+RefractAgent 模型入口使用已安装的 Python 核心，脱离源码目录的安装和执行已通过验收。
+历史验证工具继续需要匹配的源码环境；团队集中 Router 服务留待后续阶段。
+本机应用验收不代表跨任务路由收益已获验证。
 完整边界见 [架构说明](docs/architecture.md) 和 [DSH 集成说明](validation/dsh/README.md)。
 
 ## 当前状态

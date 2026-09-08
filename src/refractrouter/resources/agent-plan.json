@@ -1,0 +1,72 @@
+{
+  "schema_version": "v0.2",
+  "pricing_snapshot_date": "2026-09-06",
+  "documentation_urls": [
+    "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+    "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+    "https://www.volcengine.com/docs/82379/2123434?lang=zh",
+    "https://www.volcengine.com/docs/82379/2637928?lang=zh",
+    "https://github.com/MiniMax-AI/MiniMax-Provider-Verifier/blob/main/m3_format_check/docs/m3_text_cases.md"
+  ],
+  "defaults": {
+    "provider": "ark-plan",
+    "billing_unit": "AFP",
+    "wire_api": "chat-completions",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "api_key_env": "CODEX_ARK_API_KEY",
+    "context_window": 1024000,
+    "max_output_tokens": 8192,
+    "request_options": {
+      "thinking": {
+        "type": "disabled"
+      }
+    }
+  },
+  "models": [
+    {
+      "model_id": "cheap",
+      "api_model": "deepseek-v4-flash",
+      "snapshot_date": "2026-09-06",
+      "role": "candidate",
+      "capability": 0.55,
+      "input_cost_per_1k": 0.05,
+      "cached_input_cost_per_1k": 0.05,
+      "output_cost_per_1k": 0.05,
+      "tags": ["standard", "fast", "afp-coefficient-0.5"]
+    },
+    {
+      "model_id": "mid",
+      "api_model": "minimax-m3",
+      "json_mode_strategy": "prompt-only",
+      "snapshot_date": "2026-09-06",
+      "role": "candidate",
+      "capability": 0.78,
+      "input_cost_per_1k": 0.25,
+      "cached_input_cost_per_1k": 0.25,
+      "output_cost_per_1k": 0.25,
+      "tags": ["advanced", "balanced", "afp-coefficient-2.5"]
+    },
+    {
+      "model_id": "strong",
+      "api_model": "deepseek-v4-pro",
+      "snapshot_date": "2026-09-06",
+      "role": "candidate",
+      "capability": 0.92,
+      "input_cost_per_1k": 0.55,
+      "cached_input_cost_per_1k": 0.55,
+      "output_cost_per_1k": 0.55,
+      "tags": ["advanced", "strong", "afp-coefficient-5.5"]
+    },
+    {
+      "model_id": "judge",
+      "api_model": "kimi-k3",
+      "snapshot_date": "2026-09-06",
+      "role": "judge",
+      "capability": 0.97,
+      "input_cost_per_1k": 1.0,
+      "cached_input_cost_per_1k": 1.0,
+      "output_cost_per_1k": 1.0,
+      "tags": ["advanced", "independent-judge", "afp-coefficient-10"]
+    }
+  ]
+}

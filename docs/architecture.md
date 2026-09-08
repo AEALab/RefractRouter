@@ -61,11 +61,15 @@ AFP 请求保留 `ark-plan` 与精确的 `/api/plan/v3` 端点。插件仅在启
 
 ## 当前交付边界
 
+- RefractAgent 0.2.0 提供可安装的 Python 应用命令和随包资源。
+  DSH 插件 0.10.0 的 `refractagent` provider 注册省成本、均衡、质量优先三个模型接口，
+  通过原生子进程服务调用已安装核心，传入会话与部署上限；策略及记账仍完全由 Python 决定。
+  该入口支持文本任务，不生成 DSH 工具调用，使用方式见
+  [本机安装说明](refractagent-local-quickstart.md)。
 - `refractrouter_validate` 调用基准验证入口；`refractrouter_task` 调用文本任务入口。
-- 当前插件通过本地子进程连接核心，仍依赖匹配的 Python 源码环境和配置数据。
-  可安装插件包尚不等于脱离源码目录即可执行任务，也不代表已有独立 Router 服务。
-- 后续产品化应在核心接口上完善运行器安装、配置路径和版本兼容，继续将 DSH 作为
-  一种宿主接入方式。是否采用本地进程或独立服务，留待部署需求明确后决定。
+  这两个历史工具仍依赖匹配的 Python 源码环境和配置数据。
+- RefractAgent 模型入口可脱离源码目录运行；当前仍是本机执行，没有独立 Router 服务。
+  后续团队服务继续复用核心接口，DSH 保持为一种宿主接入方式。
 
 ## 实现语言与构建分发
 
@@ -91,7 +95,8 @@ DSH 使用 pnpm `10.15.0` 安装 profile；npm 管理插件开发工具链。
 私有插件包包含生成的 `dist/`、`package.json`、`cordis.patch.yml`、`README.md` 和
 `CHANGELOG.md`。测试单独编译到忽略的 `.test-dist/` 并针对 `dist/` 执行，两个生成
 目录都不提交。`npm pack` 通过 `prepack` 构建；安装源码目录前需要显式构建。
-插件包没有运行时 npm 依赖，也不在安装时编译，但执行仍需要匹配的 Python 源码环境。
+插件包没有运行时 npm 依赖，也不在安装时编译。RefractAgent 模型接口需要安装匹配的
+Python 核心包；历史验证工具仍需要匹配的源码环境。
 
 ## 架构评审规则
 

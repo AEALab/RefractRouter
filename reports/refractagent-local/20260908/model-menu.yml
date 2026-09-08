@@ -1,0 +1,65 @@
+- generic [ref=f2e4]:
+  - generic [ref=f2e7]:
+    - generic [ref=f2e8]:
+      - button "New session" [ref=f2e9] [cursor=pointer]
+      - button "Collapse sidebar" [ref=f2e38] [cursor=pointer]
+    - button "New session" [ref=f2e41] [cursor=pointer]:
+      - generic [ref=f2e44]: New Session
+    - generic [ref=f2e47]:
+      - generic [ref=f2e48]:
+        - generic [ref=f2e49]: Workspaces
+        - generic [ref=f2e51]:
+          - button "Search sessions" [ref=f2e52] [cursor=pointer]
+          - textbox "Search sessions..."
+        - generic [ref=f2e56]:
+          - button "View options" [ref=f2e58] [cursor=pointer]
+          - button "Add workspace" [ref=f2e61] [cursor=pointer]
+      - tree "Sessions" [ref=f2e67]:
+        - generic [ref=f2e299]:
+          - treeitem "workspace" [expanded] [ref=f2e301] [cursor=pointer]
+          - treeitem "New Session" [selected] [ref=f2e309] [cursor=pointer]
+    - button "Settings" [ref=f2e72] [cursor=pointer]
+  - generic [ref=f2e86]:
+    - generic [ref=f2e89]:
+      - generic [ref=f2e94]: Into the Unknown
+      - generic [ref=f2e95]: Preview
+    - generic [ref=f2e96]:
+      - button "Choose workspace" [ref=f2e97] [cursor=pointer]:
+        - generic [ref=f2e100]: workspace
+      - button "Standard mode" [ref=f2e105] [cursor=pointer]
+    - generic [ref=f2e115]:
+      - textbox "Describe what you want to build" [ref=f2e315]
+      - generic [ref=f2e119]:
+        - generic [ref=f2e120]:
+          - button "Commands" [ref=f2e316] [cursor=pointer]
+          - 'button "Access mode, current: Workspace Write" [ref=f2e321] [cursor=pointer]':
+            - generic [ref=f2e329]: Workspace Write
+        - generic [ref=f2e121]:
+          - generic [ref=f2e334]:
+            - button "Select model, current RefractAgent · 均衡（模拟）" [expanded] [ref=f2e335] [cursor=pointer]:
+              - generic [ref=f2e336]: RefractAgent · 均衡（模拟）
+            - menu "Model and reasoning effort" [ref=f2e349]:
+              - generic [ref=f2e355]:
+                - group "DeepSeek" [ref=f2e356]:
+                  - menuitemradio "DeepSeek-V4-Flash" [ref=f2e358] [cursor=pointer]
+                  - menuitemradio "DeepSeek-V4-Pro" [ref=f2e361] [cursor=pointer]
+                  - menuitemradio "DeepSeek-V4-Flash-Vision-Exp" [ref=f2e364] [cursor=pointer]
+                - group "RefractAgent 本地路由" [ref=f2e367]:
+                  - menuitemradio "RefractAgent · 省成本（模拟） 文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。" [ref=f2e369] [cursor=pointer]:
+                    - generic [ref=f2e370]:
+                      - generic [ref=f2e371]: RefractAgent · 省成本（模拟）
+                      - generic [ref=f2e372]: 文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。
+                  - menuitemradio "RefractAgent · 均衡（模拟） 文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。" [checked] [ref=f2e373] [cursor=pointer]:
+                    - generic [ref=f2e374]:
+                      - generic [ref=f2e375]: RefractAgent · 均衡（模拟）
+                      - generic [ref=f2e376]: 文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。
+                  - menuitemradio "RefractAgent · 质量优先（模拟） 文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。" [ref=f2e380] [cursor=pointer]:
+                    - generic [ref=f2e381]:
+                      - generic [ref=f2e382]: RefractAgent · 质量优先（模拟）
+                      - generic [ref=f2e383]: 文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。
+          - button "Send message" [disabled] [ref=f2e339]
+  - generic [ref=f2e343]:
+    - generic [ref=f2e344]:
+      - generic: Details
+      - button "Close details" [ref=f2e345] [cursor=pointer]
+    - generic [ref=f2e348]: Click a tool row in the message flow to view its details

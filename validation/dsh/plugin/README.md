@@ -1,5 +1,32 @@
 # RefractRouter DSH 验证与接入插件
 
+## 0.10.0：RefractAgent 本机策略模型
+
+安装 Python 核心 `refractrouter` 0.2.0 和本插件后，DSH 模型列表增加
+`refractagent/economy`（省成本）、`refractagent/balanced`（均衡）和
+`refractagent/quality`（质量优先）。它们调用同一 Python 核心，支持文本任务、
+对话上下文、整任务与预设 DAG；当前模型接口不生成 DSH 工具调用。
+
+收到核心 wheel 和插件 tgz 后，可在任务工作目录执行：
+
+```bash
+uv tool install /absolute/path/refractrouter-0.2.0-py3-none-any.whl
+dsh plugin --profile web add /absolute/path/dsh-refractrouter-validation-0.10.0.tgz
+refractagent dsh-config --output ./refractagent-demo.json \
+  --runs-dir ./.refractagent/runs --mode demo --strategy balanced
+dsh --profile web --patch ./refractagent-demo.json
+```
+
+在模型选择器中选择三个 RefractAgent 模型之一。默认是带 `[SIMULATED]` 标记的零调用演示。
+真实执行需生成 `--mode live` 配置，设置生产与评审预算，显式开启 `allowPaidRuns`，
+并由宿主解析 `CODEX_ARK_API_KEY`；密钥不写入配置。Ark 固定使用 Agent Plan `/api/plan/v3`。
+安装环境要求 Python 3.11+、Node 22.19+（22.x）、DSH `0.1.1-rc.2`。
+
+核心安装包自带运行所需的清单、profile 和计划，新模型入口可脱离源码目录运行。
+答案与模型、状态、费用记录分开返回，`refractagent show RUN_DIRECTORY` 可查看保存的结果。
+完整构建、headless、真实执行和故障处理见
+[本机安装说明](../../../docs/refractagent-local-quickstart.md)。
+
 ## 0.9.0：复用 K3 基线继续 DAG
 
 `stage: "resume"` 接收成功的 `baseline-ready` 输入目录，默认只执行零调用预检。
@@ -39,8 +66,8 @@ Python 验证原始索引、配置和代码兼容记录，并分别保存基线�
 
 插件注册 `refractrouter_validate` 和 `refractrouter_task`，分别提供冻结基准验证和
 文本任务入口。任务规划、DAG 校验、节点选模、执行与评估由 Python 核心及运行时负责。
-当前连接方式是启动本地 Python runner，执行仍依赖匹配的 RefractRouter 源码环境；
-安装插件包不等于已安装独立 Router 服务。详见
+上述两个历史工具通过本地 Python runner 执行，仍依赖匹配的 RefractRouter 源码环境；
+0.10.0 的 RefractAgent 模型入口另由已安装核心提供。当前没有独立 Router 服务。详见
 [项目架构](../../../docs/architecture.md) 和 [集成边界](../README.md)。
 
 Version 0.4.0 adds `phase: "contract-replay"` for the seven archived issue #25 writer failures.

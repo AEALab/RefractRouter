@@ -1,0 +1,210 @@
+{
+  "status": "three-strategy-live-execution-verified-with-known-output-length-limitation",
+  "native_host": "DSH 0.1.1-rc.2 headless",
+  "task": "请仅依据以下材料，用简体中文比较方案 A/B。A：一次性部署费 12000 元，每月维护费 800 元，部署需 2 周，数据可留在本机。B：一次性部署费 3000 元，每月维护费 1800 元，部署需 3 天，数据由外部服务托管。团队预算上限 16000 元，试点期 3 个月，可接受 2 周部署，包含不能交给外部服务的内部材料。请计算两方案三个月总成本，说明预算和数据约束，给出选择建议与一个风险。控制在 250 字以内，不搜索、不调用工具、不编造缺失数据。",
+  "strategy_runs": 3,
+  "model_calls": 6,
+  "production_calls": 3,
+  "evaluation_calls": 3,
+  "production_afp": 1.4509,
+  "evaluation_afp": 5.609,
+  "total_afp": 7.0599,
+  "unconfirmed_usage": 0,
+  "automatic_http_retries": 0,
+  "judge_model": "kimi-k3",
+  "accounting_note": "Provider token usage multiplied by manifest AFP rates. These values are not evidence of extra cash charged outside the subscription.",
+  "scope": "Proves installed native DSH interfaces execute all three strategies and persist real results; does not prove quality ordering or broad routing savings.",
+  "results": [
+    {
+      "run_id": "20260908T081345Z-7e668124a711",
+      "strategy": "economy",
+      "models": {
+        "answer": "deepseek-v4-flash"
+      },
+      "status": "completed",
+      "simulated": false,
+      "costs": {
+        "production": 0.0841,
+        "evaluation": 1.828,
+        "unconfirmed": 0
+      },
+      "quality": {
+        "score": 100,
+        "passed": true,
+        "rationale": "答案正确计算了三个月总成本（A：12000+800×3=14400元；B：3000+1800×3=8400元），说明两者均未超16000元预算，指出内部材料不能交给外部服务的数据约束使B不可行，部署时间A的2周在可接受范围内，建议选择A并给出一个合理风险（部署周期长压缩试点评估时间）。全文简体中文，未调用工具或搜索，未编造数据，字数在250字以内，完整满足任务要求。",
+        "criteria": [
+          {
+            "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。",
+            "passed": true,
+            "rationale": "答案涵盖成本计算、预算说明、数据约束、选择建议与一个风险，计算准确（A 14400元、B 8400元，均低于16000元），建议选A且理由与材料一致，字数约200字，未超250字限制，未使用工具或编造数据。"
+          }
+        ]
+      },
+      "wall_time_ms": 20310,
+      "answer": "方案A：总成本=12000+800×3=14400元。方案B：总成本=3000+1800×3=8400元。两方案均未超预算上限16000元。数据约束上，A数据留本机，B由外部托管；材料明确包含不能交给外部服务的内部材料，因此B不满足数据约束。部署时间上，A需2周，在可接受范围内；B仅3天更快。综合来看，虽然B成本更低，但因内部材料不能外部托管，应选择方案A。风险：A部署周期较长（2周），若试点期时间紧张，可能压缩实际使用与评估时间。",
+      "dsh_exit_code": 0,
+      "calls": [
+        {
+          "model_id": "cheap",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.0841,
+          "input_tokens": 1540,
+          "output_tokens": 142,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0
+        },
+        {
+          "model_id": "judge",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 1.828,
+          "input_tokens": 1604,
+          "output_tokens": 224,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0
+        }
+      ],
+      "answer_characters": 218,
+      "answer_characters_excluding_whitespace": 218,
+      "manual_review": {
+        "cost_calculations_correct": true,
+        "recommendation_matches_data_and_budget_constraints": true,
+        "risk_grounded_in_supplied_material": true,
+        "no_tool_execution_claim": true,
+        "within_250_characters_excluding_whitespace": true
+      },
+      "source_result_sha256": "11fecc9a9ba691282a85f4e58e7813e78bbcb8126ce26ec79b13d9292e35e55f",
+      "archived_result": "/Users/chun-hsianglee/.codex/worktrees/9933/RefractRouter/.refractagent/verification/live-acceptance-20260908-r3/economy/20260908T081345Z-7e668124a711/result.json"
+    },
+    {
+      "run_id": "20260908T081406Z-fd59f53c0d84",
+      "strategy": "balanced",
+      "models": {
+        "answer": "minimax-m3"
+      },
+      "status": "completed",
+      "simulated": false,
+      "costs": {
+        "production": 0.4395,
+        "evaluation": 1.958,
+        "unconfirmed": 0
+      },
+      "quality": {
+        "score": 95,
+        "passed": true,
+        "rationale": "被评估文本完整回答了用户任务：正确计算两方案三个月总成本（A：12000+800×3=14400元；B：3000+1800×3=8400元），说明预算约束（均未超16000元）和数据约束（内部材料不能交给外部服务，A本机留存满足、B外部托管存在风险），给出选择建议（选A）与一个风险（A前期投入高、试点终止后沉淀成本难回收）。使用简体中文，未调用工具或搜索，未编造数据。字数经估算约200字，在250字以内。小瑕疵：「成本虽高于B约6000元」精确差值为6000元整，「约」字略不精确；引号使用半角双引号而非中文引号，但此为原文标点风格，不构成实质问题。整体满足验收标准。",
+        "criteria": [
+          {
+            "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。",
+            "passed": true,
+            "rationale": "回答涵盖成本计算、预算说明、数据约束、选择建议与风险，计算正确（A=14400元、B=8400元），使用简体中文，未搜索或调用工具，未编造数据，字数约200字符合250字以内要求。仅「约6000元」表述略欠精确（实际恰为6000元），不影响整体合规。"
+          }
+        ]
+      },
+      "wall_time_ms": 16253,
+      "answer": "方案A三月总成本：12000 + 800×3 = 14400 元；方案B：3000 + 1800×3 = 8400 元，两方案均未超 16000 元预算。\n\n部署时间A为2周、B为3天，均在\"可接受2周\"范围内。\n\n数据约束：团队含有不能交给外部服务的内部材料。A方案数据可留在本机，满足该约束；B方案由外部服务托管，存在违规风险。\n\n建议：选择方案A。其部署时间符合要求，数据本地留存满足安全约束，成本虽高于B约6000元，但仍在预算内，且规避了合规与泄密风险。\n\n风险：方案A前期一次性投入12000元较高，若3个月试点后项目终止或转向云端，沉淀成本将难以回收。",
+      "dsh_exit_code": 0,
+      "calls": [
+        {
+          "model_id": "mid",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.4395,
+          "input_tokens": 1594,
+          "output_tokens": 164,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0
+        },
+        {
+          "model_id": "judge",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 1.958,
+          "input_tokens": 1649,
+          "output_tokens": 309,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0
+        }
+      ],
+      "answer_characters": 283,
+      "answer_characters_excluding_whitespace": 263,
+      "manual_review": {
+        "cost_calculations_correct": true,
+        "recommendation_matches_data_and_budget_constraints": true,
+        "risk_grounded_in_supplied_material": true,
+        "no_tool_execution_claim": true,
+        "within_250_characters_excluding_whitespace": false
+      },
+      "source_result_sha256": "00a6cee953115bec22ded8d281a49bd1528fd8b36a70d414066a0185164b4d95",
+      "archived_result": "/Users/chun-hsianglee/.codex/worktrees/9933/RefractRouter/.refractagent/verification/live-acceptance-20260908-r3/balanced/20260908T081406Z-fd59f53c0d84/result.json"
+    },
+    {
+      "run_id": "20260908T081423Z-5a1c77485c9a",
+      "strategy": "quality",
+      "models": {
+        "answer": "deepseek-v4-pro"
+      },
+      "status": "completed",
+      "simulated": false,
+      "costs": {
+        "production": 0.9273,
+        "evaluation": 1.823,
+        "unconfirmed": 0
+      },
+      "quality": {
+        "score": 98,
+        "passed": true,
+        "rationale": "答案完整覆盖了任务所有要求：正确计算两方案三个月总成本（A 14400 元、B 8400 元），说明预算约束（均未超 16000 元）与数据约束（B 外部托管不满足内部材料要求，A 满足），提及部署时间约束，给出选择 A 的建议及一个合理风险（前期投入沉没成本）。全文简体中文，约 170 字，在 250 字以内，未调用工具、未搜索、未编造数据，完全依据所给材料。无实质缺陷。",
+        "criteria": [
+          {
+            "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。",
+            "passed": true,
+            "rationale": "答案逐项完成成本计算、预算与数据约束说明、选择建议和风险提示，语言为简体中文，字数在 250 以内，未使用工具或编造数据，符合全部约束。"
+          }
+        ]
+      },
+      "wall_time_ms": 11786,
+      "answer": "A：12000 + 800×3 = 14400 元；B：3000 + 1800×3 = 8400 元。预算上限 16000 元，两方案均未超支。数据约束：材料含不能交给外部服务的内部材料，B 由外部托管，不满足；A 数据留在本机，满足。部署约束：A 需 2 周，可接受；B 需 3 天，更快。建议选 A，因其满足数据留在本机的要求，且三个月总成本在预算内。风险：A 一次性部署费较高，若试点效果不佳，前期投入沉没成本较大。",
+      "dsh_exit_code": 0,
+      "calls": [
+        {
+          "model_id": "strong",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.9273,
+          "input_tokens": 1543,
+          "output_tokens": 143,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0
+        },
+        {
+          "model_id": "judge",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 1.823,
+          "input_tokens": 1609,
+          "output_tokens": 214,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0
+        }
+      ],
+      "answer_characters": 211,
+      "answer_characters_excluding_whitespace": 189,
+      "manual_review": {
+        "cost_calculations_correct": true,
+        "recommendation_matches_data_and_budget_constraints": true,
+        "risk_grounded_in_supplied_material": true,
+        "no_tool_execution_claim": true,
+        "within_250_characters_excluding_whitespace": true
+      },
+      "source_result_sha256": "829714510a294d73ca37c427b0eaf0191ce5adada2dbdd0e0ca918f991d09eaa",
+      "archived_result": "/Users/chun-hsianglee/.codex/worktrees/9933/RefractRouter/.refractagent/verification/live-acceptance-20260908-r3/quality/20260908T081423Z-5a1c77485c9a/result.json"
+    }
+  ],
+  "package_sha256": {
+    "dsh-refractrouter-validation-0.10.0.tgz": "db30e4fa60d1f541661d0e2d9f58a1ad7957f3d8e57da915f3cd60d79612706a",
+    "refractrouter-0.2.0-py3-none-any.whl": "a602a27bfc1b1223e8fb36e827d0df88b61f1e3f7eb899b8d293918b3dce5e53"
+  },
+  "known_limitation": "Independent judge passed all three answers, but MiniMax M3 returned 283 characters (including whitespace), exceeding a strict 250-character interpretation. All raw outputs and the overly permissive judge verdict are preserved."
+}

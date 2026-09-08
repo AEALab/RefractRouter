@@ -1,6 +1,6 @@
 {
   "name": "dsh-refractrouter-validation",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "DeepSeek Harness bundle for structured RefractRouter benchmark validation",
   "private": true,
   "license": "MIT",
@@ -28,6 +28,10 @@
       "import": "./dist/index.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
+    "./agent": {
+      "types": "./dist/agent-provider.d.ts",
+      "import": "./dist/agent-provider.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

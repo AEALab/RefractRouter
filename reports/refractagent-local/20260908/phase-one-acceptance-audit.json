@@ -1,0 +1,71 @@
+{
+  "status": "requested-local-application-workflow-verified",
+  "requirements": [
+    {
+      "requirement": "Install RefractAgent core and DSH plugin independently of checkout",
+      "status": "verified",
+      "evidence": [
+        "installed-demo.json"
+      ]
+    },
+    {
+      "requirement": "Start local DSH with installed plugin",
+      "status": "verified",
+      "evidence": [
+        "web-demo.json"
+      ]
+    },
+    {
+      "requirement": "Select economy, balanced and quality interfaces in native web UI",
+      "status": "verified",
+      "evidence": [
+        "web-demo.json",
+        "economy-demo-v3.png",
+        "balanced-demo-v3.png",
+        "quality-demo-v3.png"
+      ]
+    },
+    {
+      "requirement": "Preserve user task and save strategy, physical model, execution status and replay records",
+      "status": "verified",
+      "evidence": [
+        "web-demo.json",
+        "installed-demo.json",
+        "regression.txt",
+        "live-results.json"
+      ]
+    },
+    {
+      "requirement": "Run real task and independent evaluation for each strategy, verify actual answer and usage within approved budgets",
+      "status": "verified",
+      "evidence": [
+        "live-results.json",
+        "live-answers.md",
+        "live-acceptance-execution-request.json"
+      ]
+    },
+    {
+      "requirement": "Full regression, plugin typecheck/build and installation documentation",
+      "status": "verified",
+      "evidence": [
+        "regression.txt",
+        "installed-demo.json",
+        "../../../docs/refractagent-local-quickstart.md"
+      ]
+    }
+  ],
+  "model_calls": 6,
+  "known_limitations": [
+    {
+      "item": "M3 output length and judge false positive",
+      "detail": "The task asked for <=250 characters. M3 returned 263 non-whitespace characters; model judge passed it. This specific formatting requirement failed and remains documented; it is not claimed as passed.",
+      "scope": "Known output-quality limitation; the requested installation, selection, execution and result-recording workflow is verified."
+    }
+  ],
+  "user_delivery": {
+    "native_live_ui": "live-web-ready.json",
+    "startup_instructions": "/Users/chun-hsianglee/.codex/worktrees/9933/RefractRouter/.refractagent/启动说明.md",
+    "code_state": "uncommitted worktree",
+    "centralized_service": "next stage, outside current local-install objective"
+  }
+}

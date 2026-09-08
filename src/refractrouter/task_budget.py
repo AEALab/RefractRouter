@@ -122,7 +122,8 @@ class TaskCallBudget:
         with self.lock:
             self.charged[row['category']] += actual - row['charged']
             row.update(charged=actual, status='billed', input_tokens=response.input_tokens,
-                       output_tokens=response.output_tokens, latency_ms=response.latency_ms,
+                       output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,
+                       reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,
                        request_id=response.request_id, finish_reason=response.finish_reason,
                        output_sha256=hashlib.sha256(response.content.encode()).hexdigest())
             if (actual > row['reserved'] + 1e-8

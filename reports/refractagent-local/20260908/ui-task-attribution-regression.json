@@ -1,0 +1,31 @@
+{
+  "scope": "web-demo-task-attribution-regression",
+  "live_calls": 0,
+  "observed_failure": "最后一条 user-role 消息来自宿主技能目录，被错误当作用户任务。",
+  "messages": [
+    {
+      "role": "user",
+      "source_kind": "user",
+      "text_bytes": 54
+    },
+    {
+      "role": "user",
+      "source_kind": "agent-instructions",
+      "text_bytes": 6816
+    },
+    {
+      "role": "user",
+      "source_kind": "plugin",
+      "text_bytes": 522
+    },
+    {
+      "role": "user",
+      "source_kind": "skill-catalog",
+      "text_bytes": 13655
+    }
+  ],
+  "actual_user_task": "请用两句话比较小规模试点和全面推广。",
+  "incorrect_task_source_kind": "skill-catalog",
+  "fix": "保留完整上下文，依据 source.kind=user 选择最新用户任务；无来源字段的兼容输入沿用 user role。",
+  "regression_test": "validation/dsh/plugin/tests/agent_provider_contract.test.ts: host-injected user-role context cannot replace the latest actual user task"
+}
