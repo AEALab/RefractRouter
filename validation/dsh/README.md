@@ -4,6 +4,13 @@
 保留在同一仓库。Router 是项目核心；DSH 插件用于验证核心功能的可行性，也是未来
 “DSH + 插件连接核心 Router”产品形态的适配层。
 
+## 用户安装入口
+
+普通用户请从 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 开始，
+或阅读 [仓库内同版说明](../../docs/refractagent-local-quickstart.md)。
+RefractAgent 模型入口安装 wheel 和插件 tgz 后即可使用，不需要单独启动 Router HTTP 服务。
+本页其余内容主要说明开发集成与历史工具验证。
+
 ## 目录与职责
 
 | 路径 | 用途 |
@@ -31,8 +38,9 @@ DSH 负责工具调度、会话、沙箱、进程生命周期和凭证服务。�
 通用 `dsh-llm` 基准清单通过受限 stdio 桥使用 DSH provider，凭证留在宿主内。
 DSH 外层助手的模型配置与核心对 DAG 节点的选模分别管理。
 
-当前连接方式是本地 Python runner，执行时仍依赖匹配的 RefractRouter 源码环境。
-尚未提供独立部署的 Router 服务，也尚未实现脱离源码目录的完整安装体验。
+上述历史工具仍依赖匹配的 RefractRouter 源码环境。RefractAgent 三策略模型入口使用
+已安装的 Python 核心，已支持脱离源码目录执行。两类入口均由 DSH 启动本地 Python 进程；
+当前尚未提供独立部署的 Router HTTP 服务。
 
 ## 安装与验证
 

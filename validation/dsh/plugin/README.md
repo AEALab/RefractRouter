@@ -1,5 +1,9 @@
 # RefractRouter DSH 验证与接入插件
 
+首次安装请阅读 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 或
+[仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
+Ark 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
+
 ## 0.10.0：RefractAgent 本机策略模型
 
 安装 Python 核心 `refractrouter` 0.2.0 和本插件后，DSH 模型列表增加

@@ -4,13 +4,35 @@
 
 RefractRouter 是面向团队集中路由的应用项目。RefractAgent 提供本机任务入口，按质量、成本和时延偏好选择模型，支持整任务处理及 DAG 节点分配，并保存结果与费用。
 
-## RefractAgent 本机应用入口
+## 安装与启动
 
-安装 Python 核心与 DSH 插件后，可在 DSH 模型选择器中选择“省成本／均衡／质量优先”。
-核心通过 `refractagent` 命令运行，安装包名称仍为 `refractrouter`。
-参见 [本机安装与使用](docs/refractagent-local-quickstart.md)。默认模拟演示，真实执行需要明确的预算与配置。
-本机第一阶段已完成安装、原生 DSH 三策略选择与真实文本执行；
-6 次真实调用和已知长度控制限制见 [应用验收记录](reports/refractagent-local/20260908/README.md)。
+**首次使用请按 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 操作**，
+也可阅读 [仓库内同版文档](docs/refractagent-local-quickstart.md)。
+指南从环境准备、构建安装包开始，完整覆盖 DSH 插件安装、Ark Key 配置、
+模拟演示、真实任务、日常重启及常见故障。
+
+1. 安装 Python 核心 `refractrouter` 和 DSH 插件。
+2. 在固定工作目录生成配置，先用模拟任务确认安装成功。
+3. 配置 Ark Agent Plan Key，启用真实执行并启动 DSH。
+4. 在 DSH 选择 RefractAgent 的省成本、均衡或质量优先，输入文本任务。
+
+**当前运行方式：DSH 按请求启动本机 Python 核心，无需单独启动 Router HTTP 服务。**
+`refractagent` 是应用命令；DSH 提供网页和会话入口。团队集中后端仍在后续开发范围内。
+
+完成指南中的安装与真实模式配置、设置 Key 后，日常启动命令为：
+
+```bash
+export DSH_HOME="$HOME/.local/share/refractagent/dsh"
+cd "$HOME/RefractAgentWorkspace"
+dsh --profile web --patch ./refractagent-live.json \
+  --host 127.0.0.1 --port 53611
+```
+
+访问 [本机 DSH 页面](http://127.0.0.1:53611/)。如安装时沿用原 DSH 配置，启动时也沿用
+同一 `DSH_HOME`。默认演示结果带 `[SIMULATED]`；启用真实配置后需发送新的 Query。
+当前支持文本分析与生成；RefractAgent 模型入口暂不执行 DSH 工具或生成图片、视频。
+本机三策略已通过 6 次真实调用验收，证据及已知长度控制限制见
+[应用验收记录](reports/refractagent-local/20260908/README.md)。
 
 ## 核心与 DSH 插件的定位
 
@@ -30,7 +52,7 @@ RefractAgent 模型入口使用已安装的 Python 核心，脱离源码目录�
 本机应用验收不代表跨任务路由收益已获验证。
 完整边界见 [架构说明](docs/architecture.md) 和 [DSH 集成说明](validation/dsh/README.md)。
 
-## 当前状态
+## 研究与验证记录
 
 新的 [K3 整任务基线对照](docs/k3-baseline-comparison.md)已实现零调用预检、
 独立评审交接及成本约束选模：Kimi-K3 一次完成任务，对比七节点 DAG 的达标最低费用路线。
@@ -158,7 +180,9 @@ uv run python -m refractrouter.model_catalog
 uv run python -m refractrouter.model_catalog --capability text-generation --plan-tier large --json
 ```
 
-## Quick Start
+## 开发与实验验证（可选）
+
+以下命令用于开发和历史实验验证。普通用户安装与运行应用请使用顶部的安装指南。
 
 ```bash
 uv sync --frozen --extra dev --extra deepagents
