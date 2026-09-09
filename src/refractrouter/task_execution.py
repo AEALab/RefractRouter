@@ -12,6 +12,10 @@ from .task_budget import InvalidModelOutput
 from .task_scheduling import available
 
 
+class RecoveryEligibleFailure(ValueError):
+    """实验专用：全部在途请求已结算，且停止原因仅为模型输出不合法。"""
+
+
 def node_messages(task, node, contract, context, *, output_constraints=None):
     upstream = {p: ({key: context[p][key] for key in contract['inputs'][p]['fields']}
                     if contract else context[p]) for p in node.parents}
@@ -51,7 +55,7 @@ def node_messages(task, node, contract, context, *, output_constraints=None):
 
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
                   *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
-                  output_constraints=None):
+                  output_constraints=None, classify_failure=False, dispatch_history=None):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
@@ -68,7 +72,9 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
     context, critical, ready_at, last_start = {}, {}, {}, {}
     failure = None
     dispatch_locks = {model.provider: Lock() for model in candidates.values()}
-    actual_starts = {}
+    actual_starts = dispatch_history if dispatch_history is not None else {}
+    last_start.update({p: (t - started) * 1000 for p, t in actual_starts.items()})
+    recoverable_stops = []
     execution = {'policy': policy.to_dict(), 'peak_active_nodes': 0, 'not_started': [],
                  'failure_policy': 'stop-dispatch-and-drain', 'started_ms': (time.monotonic() - started) * 1000}
     if recovery is not None:
@@ -129,8 +135,9 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
         ready_at[nid] = elapsed()
         return True
 
-    def stop(exc):
+    def stop(exc, *, recoverable=False):
         nonlocal failure
+        recoverable_stops.append(recoverable)
         if failure is None:
             failure = exc
             execution['dispatch_stopped'] = True
@@ -194,9 +201,16 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                 row.update(start_ms=begin, end_ms=end, queue_ms=max(0, begin - row['ready_ms']))
                 if error is not None:
                     row['status'] = 'cancelled-before-dispatch' if isinstance(error, CancelledError) else 'failed'
+                    if classify_failure:
+                        row['error_type'] = type(error).__name__
                     if not (isinstance(error, InvalidModelOutput) and reservation.row['status'] == 'billed'
                             and recover(nid, row, error)):
-                        stop(error)
+                        stopped_sibling = (isinstance(error, CancelledError) and failure is not None
+                            and all(recoverable_stops) and reservation.row['status'] == 'cancelled-before-dispatch'
+                            and not (cancel_event is not None and cancel_event.is_set())
+                            and time.monotonic() < deadline)
+                        stop(error, recoverable=stopped_sibling or (isinstance(error, InvalidModelOutput)
+                             and reservation.row['status'] == 'billed'))
                 else:
                     row.update(status='invalid-output', output=response.content, latency_ms=response.latency_ms)
                     try:
@@ -208,8 +222,10 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         critical[nid] = max((critical[p] for p in nodes[nid].parents), default=0) + response.latency_ms + failed_latency
                         completed.add(nid)
                     except ValueError as exc:
+                        if classify_failure:
+                            row['error_type'] = type(exc).__name__
                         if not recover(nid, row, exc):
-                            stop(exc)
+                            stop(exc, recoverable=True)
                 persist()
     count = peak = 0
     events = sorted((timestamp, delta) for row in result.get('node_attempts', result['nodes']) if 'start_ms' in row and row['status'] != 'cancelled-before-dispatch'
@@ -223,6 +239,11 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
     result['nodes'].sort(key=lambda row: order.index(row['node_id']))
     persist()
     if failure is not None:
+        _, calls = budget.snapshot()
+        if (classify_failure and recoverable_stops and all(recoverable_stops)
+                and all(c['status'] in ('billed', 'cancelled-before-dispatch')
+                        and c['charged'] <= c['reserved'] + 1e-8 for c in calls)):
+            raise RecoveryEligibleFailure(type(failure).__name__) from failure
         raise failure
     result['critical_path_latency_ms'] = max(critical.values())
     return context[plan.final_node_id]['text'] if plan.contracts else context[plan.final_node_id]

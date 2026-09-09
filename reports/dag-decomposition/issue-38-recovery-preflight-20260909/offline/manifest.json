@@ -1,0 +1,112 @@
+{
+  "schema_version": "v0.2",
+  "pricing_snapshot_date": "2026-09-05",
+  "billing_unit": "USD",
+  "models": [
+    {
+      "model_id": "cheap",
+      "provider": "openai",
+      "input_cost_per_1k": 0.0002,
+      "output_cost_per_1k": 0.00125,
+      "capability": 0.55,
+      "billing_unit": "USD",
+      "tags": [
+        "cheap",
+        "extraction"
+      ],
+      "api_model": "gpt-5.4-nano-2026-03-17",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "cached_input_cost_per_1k": 2e-05,
+      "context_window": 400000,
+      "max_output_tokens": 8192,
+      "snapshot_date": "2026-03-17",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "reasoning_effort": "none"
+      },
+      "json_mode_strategy": "json-object-hint"
+    },
+    {
+      "model_id": "mid",
+      "provider": "openai",
+      "input_cost_per_1k": 0.00075,
+      "output_cost_per_1k": 0.0045,
+      "capability": 0.78,
+      "billing_unit": "USD",
+      "tags": [
+        "balanced",
+        "generation"
+      ],
+      "api_model": "gpt-5.4-mini-2026-03-17",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "cached_input_cost_per_1k": 7.5e-05,
+      "context_window": 400000,
+      "max_output_tokens": 8192,
+      "snapshot_date": "2026-03-17",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "reasoning_effort": "none"
+      },
+      "json_mode_strategy": "json-object-hint"
+    },
+    {
+      "model_id": "strong",
+      "provider": "openai",
+      "input_cost_per_1k": 0.0025,
+      "output_cost_per_1k": 0.015,
+      "capability": 0.92,
+      "billing_unit": "USD",
+      "tags": [
+        "strong",
+        "synthesis"
+      ],
+      "api_model": "gpt-5.4-2026-03-05",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "cached_input_cost_per_1k": 0.00025,
+      "context_window": 400000,
+      "max_output_tokens": 8192,
+      "snapshot_date": "2026-03-05",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "reasoning_effort": "none"
+      },
+      "json_mode_strategy": "json-object-hint"
+    },
+    {
+      "model_id": "judge",
+      "provider": "openai",
+      "input_cost_per_1k": 0.005,
+      "output_cost_per_1k": 0.03,
+      "capability": 0.97,
+      "billing_unit": "USD",
+      "tags": [
+        "independent-judge"
+      ],
+      "api_model": "gpt-5.5-2026-04-23",
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "cached_input_cost_per_1k": 0.0005,
+      "context_window": 1050000,
+      "max_output_tokens": 8192,
+      "snapshot_date": "2026-04-23",
+      "role": "judge",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "reasoning_effort": "none"
+      },
+      "json_mode_strategy": "json-object-hint"
+    }
+  ],
+  "documentation_urls": [
+    "https://developers.openai.com/api/docs/models/gpt-5.4-nano",
+    "https://developers.openai.com/api/docs/models/gpt-5.4-mini",
+    "https://developers.openai.com/api/docs/models/gpt-5.4",
+    "https://developers.openai.com/api/docs/models/gpt-5.5"
+  ]
+}
