@@ -787,6 +787,7 @@ test('published tarball loads from its compiled export without source or build d
       'dist/contracts.js', 'dist/contracts.d.ts', 'dist/evidence.js', 'dist/evidence.d.ts',
       'dist/index.js', 'dist/index.d.ts', 'dist/task-tool.js', 'dist/task-tool.d.ts',
       'dist/agent-provider.js', 'dist/agent-provider.d.ts',
+      'dist/output-constraints.js', 'dist/output-constraints.d.ts',
     ].sort())
     await execFileAsync('npm', [
       'install', '--prefix', directory, join(directory, String(metadata.filename)),
@@ -846,6 +847,22 @@ test('task demo returns clearly simulated outputs without live credentials', asy
     assert.equal(result.task?.costIsSimulated, true)
     assert.equal(result.task?.qualityScore, null)
     assert.match(result.task?.outputPreview ?? '', /SIMULATED/)
+  } finally {
+    await rm(dirname(result.evidencePath), { recursive: true, force: true })
+  }
+})
+
+test('task tool forwards explicit length constraints to Python without claiming preflight acceptance', async () => {
+  const fixture = localProcessContext({}, 'refractrouter_task')
+  const outputConstraints = {maxLength:250,unit:'unicode-code-points',countWhitespace:false}
+  const result = await fixture.tool.execute({...taskInput,outputConstraints},execution())
+  try {
+    assert.equal(result.status,'pass',JSON.stringify(result))
+    assert.equal(result.task?.generationStatus,'not-started')
+    assert.equal(result.task?.formatValidation?.status,'not-evaluated')
+    assert.equal(result.task?.formatValidation?.passed,null)
+    assert.deepEqual(result.task?.formatValidation?.constraints,outputConstraints)
+    assert.equal(result.task?.productionCost,0)
   } finally {
     await rm(dirname(result.evidencePath), { recursive: true, force: true })
   }

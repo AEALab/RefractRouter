@@ -286,7 +286,9 @@ refractagent show /absolute/path/to/run-directory
 ```
 
 关注 `status`、`simulated`、`model_routes`、`evaluation_model`、`quality`、`costs` 和 `billing_unit`。
-`quality-failed` 或评审不可用会保留已有答案；严格字数和格式仍需检查。
+`quality-failed` 或评审不可用会保留已有答案。可选的 `outputConstraints` 提供确定性长度检查，
+无默认字数上限；通过 `generation_status`、`quality`、`format_validation` 分别查看生成、
+语义评审及长度状态，详见[输出长度检查](output-constraints.md)。
 取消或超时后先看记录，已经派发的模型请求仍可能结算，重新提交会创建新任务。
 
 ## 8. 无网页模式与独立运行 Python 核心
@@ -369,7 +371,8 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 
 自定义配置使用用户声明的质量与时延预测，样本数为 0；Ark 随包预设保留固定报告任务的
 实测 profile。两者均不能保证对所有任务准确预测。
-模型评审可能漏掉字数超限，确定性约束改进由
+模型评审可能漏掉字数超限；结构化 `outputConstraints` 的使用方法见
+[输出长度检查](output-constraints.md)，原始问题由
 [#42](https://github.com/AEALab/RefractRouter/issues/42) 跟踪。
 
 ## 相关文档

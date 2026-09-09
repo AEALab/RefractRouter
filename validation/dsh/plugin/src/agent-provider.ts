@@ -2,6 +2,7 @@
 import { resolve } from 'node:path'
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
 import { dshProviderIssues, pumpDshBridge } from './index.js'
+import { decodeOutputConstraints, decodeFormatValidation, formatValidationSummary, type OutputConstraints } from './output-constraints.js'
 
 export const name = 'refractagent'
 export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials']
@@ -35,6 +36,7 @@ interface Configuration {
   preset?: 'ark-agent-plan'
   providerConfig?: ProviderConfiguration
   template: 'single' | 'compare'
+  outputConstraints?: OutputConstraints
 }
 interface ModelOptions {
   provider: string
@@ -87,9 +89,9 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
     allowPaidRuns: false, maxProductionCost: 40, maxEvaluationCost: 80,
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
-    preset: undefined as unknown, providerConfig: undefined as unknown, ...raw }
+    preset: undefined as unknown, providerConfig: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
-    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig'])
+    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'outputConstraints'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
     if (typeof result[key] !== 'string' || !result[key].trim()) throw new Error(`invalid ${key}`)
@@ -104,6 +106,7 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (!Number.isInteger(result.timeoutMs) || result.timeoutMs > 7200000) throw new Error('invalid timeoutMs')
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(result.credentialEnv)) throw new Error('invalid credentialEnv')
   if (result.preset !== undefined && result.preset !== 'ark-agent-plan') throw new Error('unknown provider preset')
+  if (raw.outputConstraints !== undefined) result.outputConstraints = decodeOutputConstraints(raw.outputConstraints)
   if (result.providerConfig !== undefined) {
     if (result.preset !== undefined) throw new Error('providerConfig and preset are mutually exclusive')
     const config = result.providerConfig
@@ -160,6 +163,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.preset) throw new Error('configure providerConfig or explicitly choose preset: ark-agent-plan')
   const payload = { ...conversation(options), strategy: options.model, template: config.template,
+    ...(config.outputConstraints ? { outputConstraints: config.outputConstraints } : {}),
     temperature: options.temperature ?? 0, ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}) }
   const routes: ModelRoute[] = []
   for (const model of config.providerConfig?.models ?? []) {
@@ -252,6 +256,14 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     }
     if (result.strategy !== options.model || result.mode !== config.executionMode
       || result.simulated !== !live) throw new Error('RefractAgent returned a different strategy or execution mode')
+    if (result.format_validation !== undefined) {
+      const check = decodeFormatValidation(result.format_validation)
+      if (config.outputConstraints && JSON.stringify(check.constraints) !== JSON.stringify(config.outputConstraints)) {
+        throw new Error('installed core returned different output constraints')
+      }
+      result.format_validation = check
+    }
+    else if (config.outputConstraints) throw new Error('installed core did not return output constraint validation')
     return result
   } catch (error) {
     const message = error instanceof Error ? error.message : 'RefractAgent execution failed'
@@ -280,6 +292,8 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
       const result = await invoke(ctx, config, options)
       const info = `${result.simulated ? '【模拟演示，无真实模型调用】' : ''}策略：${String(result.strategy_name)}；`
         + `模型：${JSON.stringify(result.model_routes ?? result.models)}；状态：${String(result.status)}；`
+        + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${object(result.quality) ? JSON.stringify({ passed: result.quality.passed, score: result.quality.score }) : '未评审'}；`
+        + `长度检查：${formatValidationSummary(result.format_validation)}；`
         + `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}；记录：${String(result.result_path)}`
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
       yield { type: 'block-start', index: 0, blockType: 'reasoning' }
@@ -294,7 +308,9 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
       yield { type: 'finish', reason: { kind: 'stop' }, replayState: { response: {
         refractagent: { runId: result.run_id, strategy: result.strategy, models: result.models,
           modelRoutes: result.model_routes, evaluationModel: result.evaluation_model,
-          status: result.status, costs: result.costs, simulated: result.simulated, resultPath: result.result_path },
+          status: result.status, generationStatus: result.generation_status, quality: result.quality,
+          formatValidation: result.format_validation,
+          costs: result.costs, simulated: result.simulated, resultPath: result.result_path },
       } } }
     },
   }

@@ -16,6 +16,7 @@ from .task_budget import TaskCallBudget
 from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
 from .task_evaluation import evaluate_text
+from .output_constraints import check_output_constraints, validate_output_constraints
 from concurrent.futures import CancelledError
 from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
 from .task_contracts import decode_output, string_list
@@ -26,11 +27,13 @@ AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
-               "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks"}
+               "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     ExecutionPolicy.from_request(raw)
     validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
+    if 'outputConstraints' in raw:
+        validate_output_constraints(raw['outputConstraints'])
     text(raw.get("task"), "task")
     mode = raw.get("mode", "preflight")
     if mode not in {"preflight", "demo", "plan", "run"}:
@@ -125,6 +128,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
               "conversation_context_sha256": hashlib.sha256(conversation_context.encode()).hexdigest(),
               "billing_unit": manifest.billing_unit, "charged": {},
               "calls": [], "issues": [], "profile_scope": profile["scope"],
+              "generation_status": "not-started",
+              "format_validation": check_output_constraints(request.get('outputConstraints')),
               "profile_provenance": profile["provenance"],
               "limitations": ["Text generation only; no shell, retrieval or filesystem actions.",
                               "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
@@ -191,20 +196,31 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if mode in {"preflight", "plan"}:
             result["status"] = "preview" if mode == "preflight" else "planned"
             return result
+        result['generation_status'] = 'running'
         result["final_output"] = execute_nodes(plan, execution_task, result["routing"]["assignments"],
             candidates, budget, policy, result, persist, started=started,
             deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
-            production_cap=request["costMax"] if recovery else None)
+            production_cap=request["costMax"] if recovery else None,
+            output_constraints=request.get('outputConstraints'))
+        result['generation_status'] = 'completed' if live else 'simulated'
         if live:
+            result['format_validation'] = check_output_constraints(request.get('outputConstraints'), result['final_output'])
+            if result['format_validation']['passed'] is False:
+                result['issues'].append('output-length-exceeded')
+            persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
             before_call()
             judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
                 criteria=plan.acceptance_criteria, label="final-judge", deadline=started + deadline_ms / 1000)
             result["evaluation"] = judged
             result["status"] = "completed" if judged["passed"] else "quality-failed"
+            if result['format_validation']['passed'] is False:
+                result['status'] = 'output-constraint-failed'
         else:
             result["status"] = "simulated"
         before_call()  # Detect a final response that arrived after the task deadline.
     except Exception as exc:
+        if result['generation_status'] == 'running':
+            result['generation_status'] = 'failed'
         result["status"] = "cancelled" if isinstance(exc, CancelledError) else "failed"
         # Provider exception strings may contain credentials or response bodies.
         detail = str(exc) if isinstance(exc, (ValueError, json.JSONDecodeError, CancelledError)) else type(exc).__name__
