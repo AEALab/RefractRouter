@@ -1,0 +1,36 @@
+{
+  "implementation_commit": "a65209e",
+  "pytest": {
+    "passed": 566,
+    "typescript_contracts": 55,
+    "command": "uv run pytest"
+  },
+  "typecheck": "pass",
+  "build": "pass",
+  "dsh_local_preflights": {
+    "dsh-dry-run-preflight.json": {
+      "status": "pass",
+      "mode": "preflight",
+      "issues": []
+    },
+    "dsh-final-preflight.json": {
+      "status": "pass",
+      "mode": "preflight",
+      "issues": []
+    },
+    "dsh-pilot-preflight.json": {
+      "status": "pass",
+      "mode": "preflight",
+      "issues": []
+    }
+  },
+  "historical_index_counts": [
+    12,
+    10,
+    39
+  ],
+  "historical_index_hashes": "pass",
+  "review_preflight_code_binding": "pass",
+  "new_model_calls": 0,
+  "note": "DSH evidence 来自本地包装器，invoked_by=local；不是新的真实 DSH headless 模型会话。"
+}

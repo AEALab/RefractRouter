@@ -1,0 +1,179 @@
+{
+  "schema_version": "v0.2",
+  "status": "pass",
+  "mode": "preflight",
+  "invoked_by": "local",
+  "recorded_at": "2026-09-09T16:10:29.840061+00:00",
+  "phase": "pilot",
+  "repeats": 3,
+  "command": [
+    "/Users/chun-hsianglee/.codex/worktrees/826c/RefractRouter/.venv/bin/python",
+    "/Users/chun-hsianglee/.codex/worktrees/826c/RefractRouter/experiments/run_real_v0_1.py",
+    "--dataset",
+    "/Users/chun-hsianglee/.codex/worktrees/826c/RefractRouter/data/benchmarks/v0.1.json",
+    "--manifest",
+    "/Users/chun-hsianglee/.codex/worktrees/826c/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+    "--output-dir",
+    "/private/tmp/refractrouter-backlog-dsh-pilot-20260910",
+    "--phase",
+    "pilot",
+    "--repeats",
+    "3",
+    "--max-retries",
+    "0",
+    "--selection-policy",
+    "exclude-known-contract-rejections-v2"
+  ],
+  "exit_code": 0,
+  "stdout": "{\n  \"schema_version\": \"v0.2\",\n  \"phase\": \"pilot\",\n  \"repeats\": 3,\n  \"train_task_ids\": [\n    \"report_001\",\n    \"report_002\",\n    \"report_003\",\n    \"report_004\",\n    \"report_005\"\n  ],\n  \"test_task_ids\": [\n    \"report_011\",\n    \"report_012\",\n    \"report_013\",\n    \"report_014\",\n    \"report_015\"\n  ],\n  \"human_audit_task_ids\": [\n    \"report_011\",\n    \"report_020\"\n  ],\n  \"candidate_models\": [\n    \"deepseek-v4-flash\",\n    \"minimax-m3\",\n    \"deepseek-v4-pro\"\n  ],\n  \"judge_model\": \"kimi-k3\",\n  \"pricing_snapshot_date\": \"2026-09-06\",\n  \"billing_unit\": \"AFP\",\n  \"wire_api\": \"chat-completions\",\n  \"base_url\": \"https://ark.cn-beijing.volces.com/api/plan/v3\",\n  \"provider\": \"ark-plan\",\n  \"node_quality\": {\n    \"rubric_version\": \"v0.2\",\n    \"checks_version\": \"v0.3\",\n    \"rubric_sha256\": \"c35a5ac78c5801120be16b905ca09dc23d6e601dedf486caa6c2815fb630c71f\",\n    \"selection\": \"blinded-independent-node-judge-with-contract-caps\",\n    \"tie_break\": \"observed-node-cost\",\n    \"global_oracle\": false,\n    \"selection_policy\": \"exclude-known-contract-rejections-v2\"\n  },\n  \"node_output_contract\": {\n    \"version\": \"v0.3\",\n    \"schema_sha256\": \"671e43c2eda7db3280aba7a514d5f6a62e4093d2a66e5b51a26f3c3278aa8716\",\n    \"enforcement\": \"prompt description and local checks; no provider schema guarantee\"\n  },\n  \"execution_policy\": {\n    \"temperature\": 0,\n    \"timeout_seconds\": 120.0,\n    \"max_retries\": 0,\n    \"json_mode_by_model\": {\n      \"deepseek-v4-flash\": \"json-object-hint\",\n      \"minimax-m3\": \"prompt-only\",\n      \"deepseek-v4-pro\": \"json-object-hint\",\n      \"kimi-k3\": \"json-object-hint\"\n    },\n    \"request_options_by_model\": {\n      \"deepseek-v4-flash\": {\n        \"thinking\": {\n          \"type\": \"disabled\"\n        }\n      },\n      \"minimax-m3\": {\n        \"thinking\": {\n          \"type\": \"disabled\"\n        }\n      },\n      \"deepseek-v4-pro\": {\n        \"thinking\": {\n          \"type\": \"disabled\"\n        }\n      },\n      \"kimi-k3\": {\n        \"thinking\": {\n          \"type\": \"disabled\"\n        }\n      }\n    }\n  },\n  \"call_plan\": {\n    \"training_model_calls\": 105,\n    \"production_model_calls\": 1155,\n    \"fixed_calls_per_candidate\": 245,\n    \"node_judge_model_calls\": 420,\n    \"final_judge_model_calls\": 105,\n    \"judge_model_calls\": 525,\n    \"total_model_calls\": 1680\n  },\n  \"cost_estimate_assumptions\": {\n    \"production_assignment_bound\": \"fixed candidate sweeps at each model's price; remaining calls at maximum per-call price\",\n    \"input_tokens_per_production_call\": 4000,\n    \"input_tokens_per_judge_call\": 8000,\n    \"output_tokens_per_call\": 8192,\n    \"manifest_max_output_tokens\": 8192,\n    \"cached_input_discount_assumed\": false\n  },\n  \"cost_estimates\": {\n    \"billing_unit\": \"AFP\",\n    \"production_upper_estimate\": 5355.34,\n    \"evaluation_upper_estimate\": 8500.8,\n    \"total_upper_estimate\": 13856.14\n  },\n  \"credential_env\": \"CODEX_ARK_API_KEY\",\n  \"credential_available\": true\n}\n",
+  "stderr": "",
+  "issues": [],
+  "preflight": {
+    "schema_version": "v0.2",
+    "phase": "pilot",
+    "repeats": 3,
+    "train_task_ids": [
+      "report_001",
+      "report_002",
+      "report_003",
+      "report_004",
+      "report_005"
+    ],
+    "test_task_ids": [
+      "report_011",
+      "report_012",
+      "report_013",
+      "report_014",
+      "report_015"
+    ],
+    "human_audit_task_ids": [
+      "report_011",
+      "report_020"
+    ],
+    "candidate_models": [
+      "deepseek-v4-flash",
+      "minimax-m3",
+      "deepseek-v4-pro"
+    ],
+    "judge_model": "kimi-k3",
+    "pricing_snapshot_date": "2026-09-06",
+    "billing_unit": "AFP",
+    "wire_api": "chat-completions",
+    "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+    "provider": "ark-plan",
+    "node_quality": {
+      "rubric_version": "v0.2",
+      "checks_version": "v0.3",
+      "rubric_sha256": "c35a5ac78c5801120be16b905ca09dc23d6e601dedf486caa6c2815fb630c71f",
+      "selection": "blinded-independent-node-judge-with-contract-caps",
+      "tie_break": "observed-node-cost",
+      "global_oracle": false,
+      "selection_policy": "exclude-known-contract-rejections-v2"
+    },
+    "node_output_contract": {
+      "version": "v0.3",
+      "schema_sha256": "671e43c2eda7db3280aba7a514d5f6a62e4093d2a66e5b51a26f3c3278aa8716",
+      "enforcement": "prompt description and local checks; no provider schema guarantee"
+    },
+    "execution_policy": {
+      "temperature": 0,
+      "timeout_seconds": 120.0,
+      "max_retries": 0,
+      "json_mode_by_model": {
+        "deepseek-v4-flash": "json-object-hint",
+        "minimax-m3": "prompt-only",
+        "deepseek-v4-pro": "json-object-hint",
+        "kimi-k3": "json-object-hint"
+      },
+      "request_options_by_model": {
+        "deepseek-v4-flash": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "minimax-m3": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "deepseek-v4-pro": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "kimi-k3": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      }
+    },
+    "call_plan": {
+      "training_model_calls": 105,
+      "production_model_calls": 1155,
+      "fixed_calls_per_candidate": 245,
+      "node_judge_model_calls": 420,
+      "final_judge_model_calls": 105,
+      "judge_model_calls": 525,
+      "total_model_calls": 1680
+    },
+    "cost_estimate_assumptions": {
+      "production_assignment_bound": "fixed candidate sweeps at each model's price; remaining calls at maximum per-call price",
+      "input_tokens_per_production_call": 4000,
+      "input_tokens_per_judge_call": 8000,
+      "output_tokens_per_call": 8192,
+      "manifest_max_output_tokens": 8192,
+      "cached_input_discount_assumed": false
+    },
+    "cost_estimates": {
+      "billing_unit": "AFP",
+      "production_upper_estimate": 5355.34,
+      "evaluation_upper_estimate": 8500.8,
+      "total_upper_estimate": 13856.14
+    },
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  },
+  "summary": null,
+  "inputs": {
+    "dataset": {
+      "path": "/Users/chun-hsianglee/.codex/worktrees/826c/RefractRouter/data/benchmarks/v0.1.json",
+      "sha256": "8b5e6842132bd02928a8b5db52d40b24c98f098d6ecc975eaf25f8b26f62df17"
+    },
+    "model_manifest": {
+      "path": "/Users/chun-hsianglee/.codex/worktrees/826c/RefractRouter/data/model-manifests/volcengine-agent-plan.json",
+      "sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367"
+    },
+    "corpus": {
+      "paths": [
+        "data/tasks",
+        "data/source_packs"
+      ],
+      "sha256": "ca9d3919aed145177fcd15b8e55541df261de7273abfcdb174aea77356548157"
+    },
+    "code": {
+      "paths": [
+        "src/refractrouter",
+        "experiments",
+        "validation/dsh"
+      ],
+      "sha256": "dc19f1a9a3971e3e250136a800454e619ae43bdade01a57b20528748fde3e45b"
+    }
+  },
+  "artifacts": {
+    "preflight.json": "85324b5df777279f8ca74280f96098a20222be137514abd9e716725b725d3b93"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "git_commit": "a65209ef97313b9f93fd6c538430a795921fa5c4",
+    "git_dirty": true,
+    "git_status": "?? reports/issue-backlog-20260910/",
+    "dsh": "0.1.1-rc.2",
+    "deepagents": "0.7.13",
+    "langgraph": "1.2.11",
+    "refractrouter": "0.3.0",
+    "credential_env": "CODEX_ARK_API_KEY",
+    "credential_available": true
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "source": "reports/v0.4-known-rejections/repeated-agent-plan",
+  "source_progress_sha256": "f567d00a24e8a9736e8b12f2739ed887bbebcb27911bef38dba6de559f3266ea",
+  "actual_new_model_calls": 0,
+  "per_model_observations": {
+    "deepseek-v4-flash": {
+      "calls": 50,
+      "known_cost": 4.81765,
+      "mean_cost": 0.096353,
+      "input_tokens_p50": 1207,
+      "input_tokens_p95": 2779,
+      "output_tokens_p50": 202,
+      "output_tokens_p95": 1717
+    },
+    "minimax-m3": {
+      "calls": 62,
+      "known_cost": 37.8755,
+      "mean_cost": 0.6108951612903226,
+      "input_tokens_p50": 1473,
+      "input_tokens_p95": 2875,
+      "output_tokens_p50": 744,
+      "output_tokens_p95": 2293
+    },
+    "deepseek-v4-pro": {
+      "calls": 53,
+      "known_cost": 61.4328,
+      "mean_cost": 1.159109433962264,
+      "input_tokens_p50": 1218,
+      "input_tokens_p95": 2561,
+      "output_tokens_p50": 523,
+      "output_tokens_p95": 2106
+    },
+    "kimi-k3": {
+      "calls": 77,
+      "known_cost": 271.772,
+      "mean_cost": 3.5295064935064935,
+      "input_tokens_p50": 2849,
+      "input_tokens_p95": 5029,
+      "output_tokens_p50": 501,
+      "output_tokens_p95": 801
+    }
+  },
+  "phases": {
+    "issue22": {
+      "call_plan": {
+        "training_model_calls": 0,
+        "production_model_calls": 168,
+        "fixed_calls_per_candidate": 42,
+        "node_judge_model_calls": 63,
+        "final_judge_model_calls": 15,
+        "judge_model_calls": 78,
+        "total_model_calls": 246
+      },
+      "admission_estimate": {
+        "billing_unit": "AFP",
+        "production_upper_estimate": 716.89,
+        "evaluation_upper_estimate": 1262.98,
+        "total_upper_estimate": 1979.87
+      },
+      "historical_mean_scenario": {
+        "production": 127.06962,
+        "evaluation": 275.30151,
+        "total": 402.37112,
+        "billing_unit": "AFP"
+      }
+    },
+    "pilot": {
+      "call_plan": {
+        "training_model_calls": 105,
+        "production_model_calls": 1155,
+        "fixed_calls_per_candidate": 245,
+        "node_judge_model_calls": 420,
+        "final_judge_model_calls": 105,
+        "judge_model_calls": 525,
+        "total_model_calls": 1680
+      },
+      "admission_estimate": {
+        "billing_unit": "AFP",
+        "production_upper_estimate": 5355.34,
+        "evaluation_upper_estimate": 8500.8,
+        "total_upper_estimate": 13856.14
+      },
+      "historical_mean_scenario": {
+        "production": 944.08357,
+        "evaluation": 1852.99091,
+        "total": 2797.07448,
+        "billing_unit": "AFP"
+      }
+    },
+    "final": {
+      "call_plan": {
+        "training_model_calls": 210,
+        "production_model_calls": 2310,
+        "fixed_calls_per_candidate": 490,
+        "node_judge_model_calls": 840,
+        "final_judge_model_calls": 210,
+        "judge_model_calls": 1050,
+        "total_model_calls": 3360
+      },
+      "admission_estimate": {
+        "billing_unit": "AFP",
+        "production_upper_estimate": 10710.67,
+        "evaluation_upper_estimate": 17001.6,
+        "total_upper_estimate": 27712.27
+      },
+      "historical_mean_scenario": {
+        "production": 1888.16715,
+        "evaluation": 3705.98182,
+        "total": 5594.14896,
+        "billing_unit": "AFP"
+      }
+    }
+  },
+  "formulas": {
+    "production": "fixed_calls_per_candidate × 各候选历史均费之和 + 其余生产调用 × 候选最高历史均费",
+    "evaluation": "judge_model_calls × 历史 judge 每请求均费"
+  },
+  "limitations": [
+    "仅一个任务的三次重复；新任务上下文、输出长度与缓存可能变化。",
+    "历史均费情景不是上界或授权，不降低冻结输出 token 上限，不修改 runner 准入预留。",
+    "生产与评审分列，DSH 外层未计入；新独立评审 GLM 不使用历史 K3 judge 均费。",
+    "pilot 测试任务 report_011 至 report_015 包含于 final 测试集；不得据此声称全部 final 样本未观察。"
+  ]
+}

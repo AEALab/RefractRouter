@@ -1,0 +1,116 @@
+{
+  "schema_version": "v0.2",
+  "phase": "final",
+  "repeats": 3,
+  "train_task_ids": [
+    "report_001",
+    "report_002",
+    "report_003",
+    "report_004",
+    "report_005",
+    "report_006",
+    "report_007",
+    "report_008",
+    "report_009",
+    "report_010"
+  ],
+  "test_task_ids": [
+    "report_011",
+    "report_012",
+    "report_013",
+    "report_014",
+    "report_015",
+    "report_016",
+    "report_017",
+    "report_018",
+    "report_019",
+    "report_020"
+  ],
+  "human_audit_task_ids": [
+    "report_011",
+    "report_020"
+  ],
+  "candidate_models": [
+    "deepseek-v4-flash",
+    "minimax-m3",
+    "deepseek-v4-pro"
+  ],
+  "judge_model": "kimi-k3",
+  "pricing_snapshot_date": "2026-09-06",
+  "billing_unit": "AFP",
+  "wire_api": "chat-completions",
+  "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+  "provider": "ark-plan",
+  "node_quality": {
+    "rubric_version": "v0.2",
+    "checks_version": "v0.3",
+    "rubric_sha256": "c35a5ac78c5801120be16b905ca09dc23d6e601dedf486caa6c2815fb630c71f",
+    "selection": "blinded-independent-node-judge-with-contract-caps",
+    "tie_break": "observed-node-cost",
+    "global_oracle": false,
+    "selection_policy": "exclude-known-contract-rejections-v2"
+  },
+  "node_output_contract": {
+    "version": "v0.3",
+    "schema_sha256": "671e43c2eda7db3280aba7a514d5f6a62e4093d2a66e5b51a26f3c3278aa8716",
+    "enforcement": "prompt description and local checks; no provider schema guarantee"
+  },
+  "execution_policy": {
+    "temperature": 0,
+    "timeout_seconds": 120.0,
+    "max_retries": 0,
+    "json_mode_by_model": {
+      "deepseek-v4-flash": "json-object-hint",
+      "minimax-m3": "prompt-only",
+      "deepseek-v4-pro": "json-object-hint",
+      "kimi-k3": "json-object-hint"
+    },
+    "request_options_by_model": {
+      "deepseek-v4-flash": {
+        "thinking": {
+          "type": "disabled"
+        }
+      },
+      "minimax-m3": {
+        "thinking": {
+          "type": "disabled"
+        }
+      },
+      "deepseek-v4-pro": {
+        "thinking": {
+          "type": "disabled"
+        }
+      },
+      "kimi-k3": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  },
+  "call_plan": {
+    "training_model_calls": 210,
+    "production_model_calls": 2310,
+    "fixed_calls_per_candidate": 490,
+    "node_judge_model_calls": 840,
+    "final_judge_model_calls": 210,
+    "judge_model_calls": 1050,
+    "total_model_calls": 3360
+  },
+  "cost_estimate_assumptions": {
+    "production_assignment_bound": "fixed candidate sweeps at each model's price; remaining calls at maximum per-call price",
+    "input_tokens_per_production_call": 4000,
+    "input_tokens_per_judge_call": 8000,
+    "output_tokens_per_call": 8192,
+    "manifest_max_output_tokens": 8192,
+    "cached_input_discount_assumed": false
+  },
+  "cost_estimates": {
+    "billing_unit": "AFP",
+    "production_upper_estimate": 10710.67,
+    "evaluation_upper_estimate": 17001.6,
+    "total_upper_estimate": 27712.27
+  },
+  "credential_env": "CODEX_ARK_API_KEY",
+  "credential_available": true
+}
