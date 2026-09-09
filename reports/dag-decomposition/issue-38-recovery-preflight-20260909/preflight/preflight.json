@@ -1,0 +1,161 @@
+{
+  "schema_version": "recovery-preflight-v1",
+  "real_model_calls": 0,
+  "protocol_sha256": "d84b9573b8e57ddba34cc44f1175c96e49d0d0ad1afeee9b98efb1ed98a3038c",
+  "runs": [
+    {
+      "task_id": "recovery38_storage_v1",
+      "repeat": 1,
+      "arm": "no-recovery",
+      "production_ceiling": 22.528,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "recovery38_storage_v1",
+      "repeat": 2,
+      "arm": "no-recovery",
+      "production_ceiling": 22.528,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "recovery38_storage_v1",
+      "repeat": 1,
+      "arm": "local-node-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_storage_v1",
+      "repeat": 2,
+      "arm": "local-node-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_storage_v1",
+      "repeat": 1,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_storage_v1",
+      "repeat": 2,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_translation_v1",
+      "repeat": 1,
+      "arm": "no-recovery",
+      "production_ceiling": 22.528,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "recovery38_translation_v1",
+      "repeat": 2,
+      "arm": "no-recovery",
+      "production_ceiling": 22.528,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "recovery38_translation_v1",
+      "repeat": 1,
+      "arm": "local-node-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_translation_v1",
+      "repeat": 2,
+      "arm": "local-node-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_translation_v1",
+      "repeat": 1,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_translation_v1",
+      "repeat": 2,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_support_v1",
+      "repeat": 1,
+      "arm": "no-recovery",
+      "production_ceiling": 22.528,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "recovery38_support_v1",
+      "repeat": 2,
+      "arm": "no-recovery",
+      "production_ceiling": 22.528,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "recovery38_support_v1",
+      "repeat": 1,
+      "arm": "local-node-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_support_v1",
+      "repeat": 2,
+      "arm": "local-node-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_support_v1",
+      "repeat": 1,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    },
+    {
+      "task_id": "recovery38_support_v1",
+      "repeat": 2,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 72.0896,
+      "evaluation_ceiling": 40.96,
+      "maximum_calls": 7
+    }
+  ],
+  "maximum_calls": 108,
+  "budget": {
+    "billing_unit": "AFP",
+    "production": 1000.2432,
+    "evaluation": 737.28
+  },
+  "limitations": [
+    "调用包络不等于执行授权；预留失败也计入调用次数上限。",
+    "两恢复组均按每节点最多遍历全部冻结模型估算；每个样本最多一次独立最终评审。"
+  ]
+}

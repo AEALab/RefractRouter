@@ -1,0 +1,41 @@
+{
+  "schema_version": "recovery-preflight-v1",
+  "real_model_calls": 0,
+  "protocol_sha256": "2da9c4b41b4f68e12bf559469099455e89f3ca1c6bf3280594b896dea3bfeca2",
+  "runs": [
+    {
+      "task_id": "deterministic",
+      "repeat": 1,
+      "arm": "no-recovery",
+      "production_ceiling": 0.04032,
+      "evaluation_ceiling": 0.5734400000000001,
+      "maximum_calls": 4
+    },
+    {
+      "task_id": "deterministic",
+      "repeat": 1,
+      "arm": "local-node-switch",
+      "production_ceiling": 0.675552,
+      "evaluation_ceiling": 0.5734400000000001,
+      "maximum_calls": 10
+    },
+    {
+      "task_id": "deterministic",
+      "repeat": 1,
+      "arm": "whole-dag-switch",
+      "production_ceiling": 0.675552,
+      "evaluation_ceiling": 0.5734400000000001,
+      "maximum_calls": 10
+    }
+  ],
+  "maximum_calls": 24,
+  "budget": {
+    "billing_unit": "USD",
+    "production": 1.391424,
+    "evaluation": 1.72032
+  },
+  "limitations": [
+    "调用包络不等于执行授权；预留失败也计入调用次数上限。",
+    "两恢复组均按每节点最多遍历全部冻结模型估算；每个样本最多一次独立最终评审。"
+  ]
+}
