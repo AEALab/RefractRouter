@@ -338,15 +338,29 @@ Agent Plan 专属 Key，并只交给受控且诊断输出会脱敏的 benchmark 
 三轮只提供描述性波动观察，不构成跨任务泛化或统计显著性的证明。
 
 
-final phase 即使模型和 judge 全部成功，也只会标记为 `awaiting-human-audit`。复制
-`data/judges/human-audit-template-v0.1.json`、填写冻结的两项任务及两种 oracle 策略后，
-运行以下命令；人工分与 judge 分差距超过 10 分时，最终结论强制为 No-go：
+final phase 即使模型和 judge 全部成功，也只会标记为 `awaiting-human-audit`。
+先从冻结产物生成绑定索引与运行哈希的 v0.2 人工审核模板：
 
 ```bash
 uv run python experiments/finalize_real_v0_1.py \
   --output-dir reports/v0.1-real/final \
-  --audit /path/to/completed-human-audit.json
+  --prepare-audit --result-dir /tmp/refractrouter-human-audit-template
 ```
+
+人工填写四个样本的维度分、总分、逐条主张核对、原文依据、理由、审核者及带时区的时间。
+使用新目录保存审核结果；历史 v0.1 空白模板保留作历史记录，不再用于最终确认。
+人工分与 judge 分差超过固定的 10 分，或审核发现严重事实错误时，审核不通过。
+oracle 证据不足时，最终状态保留 `incomplete`：
+
+```bash
+uv run python experiments/finalize_real_v0_1.py \
+  --output-dir reports/v0.1-real/final \
+  --audit /path/to/completed-human-audit.json \
+  --result-dir /tmp/refractrouter-human-audit-result
+```
+
+原始 benchmark 不作修改。审核流程和七项 Issue 的依赖见
+[历史基准验证交接](docs/benchmark-validation-handoff.md)。
 
 ## v0.1 Scope
 
