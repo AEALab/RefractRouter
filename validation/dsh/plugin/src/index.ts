@@ -596,8 +596,8 @@ async function writeLine(stream: Writable, value: BridgeResponse) {
   await new Promise<void>(resolveDrain => stream.once('drain', resolveDrain))
 }
 
-async function pumpDshBridge(
-  ctx: DshContext, handle: ProcessHandle, signal: AbortSignal, routes: ModelRoute[], maxBytes: number,
+export async function pumpDshBridge(
+  ctx: Pick<DshContext, 'llm'>, handle: ProcessHandle, signal: AbortSignal, routes: ModelRoute[], maxBytes: number,
 ) {
   if (handle.stdout === undefined || handle.stdin === undefined) {
     throw new Error('DSH bridge requires piped child stdin and stdout')
@@ -640,7 +640,7 @@ async function pumpDshBridge(
   return capture.read()
 }
 
-async function dshProviderIssues(ctx: DshContext, routes: ModelRoute[]): Promise<string[]> {
+export async function dshProviderIssues(ctx: Pick<DshContext, 'llm'>, routes: ModelRoute[]): Promise<string[]> {
   const providers = new Set(ctx.llm.listProviders().map(provider => provider.id))
   const issues = []
   const checkedPolicies = new Set()

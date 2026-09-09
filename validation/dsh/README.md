@@ -9,6 +9,8 @@
 普通用户请从 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 开始，
 或阅读 [仓库内同版说明](../../docs/refractagent-local-quickstart.md)。
 RefractAgent 模型入口安装 wheel 和插件 tgz 后即可使用，不需要单独启动 Router HTTP 服务。
+用户可通过插件的 `providerConfig` 自行配置 providers 与 models，Ark Agent Plan 为可选项；
+详见 [配置指南](../../docs/provider-configuration.md)。
 本页其余内容主要说明开发集成与历史工具验证。
 
 ## 目录与职责

@@ -1,5 +1,14 @@
 # 变更日志
 
+## 0.11.0
+
+- 增加 OpenAI Responses 协议、推理参数和独立用量明细，正确结算无正文截断响应。
+
+- 支持用户配置 providers 与 models，Ark Agent Plan 改为显式可选预设。
+- 复用 DSH 原生 provider 和凭证，或按 provider 解析直接 HTTP 凭证。
+- Python 统一编译配置、校验计费单位与选模；结果保留 provider 和实际模型。
+- 真实模式迁移需添加 `providerConfig` 或 `preset: "ark-agent-plan"`，配合核心 0.3.0。
+
 ## 0.10.0
 
 - 新增 `refractagent` 原生模型提供方，提供省成本、均衡与质量优先三个文本任务接口。

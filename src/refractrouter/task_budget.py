@@ -9,6 +9,7 @@ import json
 from threading import RLock
 import time
 
+from .responses_api import output_token_limit
 from .node_routing import number
 from .openai_compatible import model_response_cost
 
@@ -52,7 +53,7 @@ class TaskCallBudget:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps(messages, ensure_ascii=False).encode()
         input_bound = len(encoded) + 256
-        output_bound = min(model.max_output_tokens, 8192)
+        output_bound = output_token_limit(model)
         if input_bound + output_bound > model.context_window:
             raise ValueError('request exceeds conservative context bound')
         reserve = input_bound / 1000 * model.input_cost_per_1k + output_bound / 1000 * model.output_cost_per_1k

@@ -2,7 +2,27 @@
 
 首次安装请阅读 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 或
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
-Ark 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
+provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
+
+## 0.11.0：用户配置 provider 与模型
+
+配合 Python 核心 0.3.0，`refractagent` 配置新增 `providerConfig`：
+用户声明候选和评审模型，可组合 Chat Completions、OpenAI Responses 推理接口、
+DSH 宿主模型与可选 Ark Agent Plan。
+完整字段、凭证、计费单位及迁移步骤见
+[provider 与模型配置](../../../docs/provider-configuration.md)。
+
+```bash
+refractagent config-example --provider-type dsh --output ./providers.json
+# 编辑清单，填写当前 DSH profile 已注册的 provider 和模型
+refractagent models --provider-config ./providers.json
+refractagent dsh-config --provider-config ./providers.json \
+  --output ./refractagent-live.json --mode live --production-budget 2 --evaluation-budget 1
+```
+
+首次部署将覆盖文件中的 `allowPaidRuns` 改为 `true` 并重启 DSH。
+真实模式必须有 `providerConfig` 或显式 `preset: "ark-agent-plan"`。
+从 0.10.0 升级的 Ark 配置需补上该预设字段。以下版本记录及验证工具的清单规则属于历史入口。
 
 ## 0.10.0：RefractAgent 本机策略模型
 

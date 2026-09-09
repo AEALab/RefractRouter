@@ -1,7 +1,7 @@
 # RefractRouter 安装、启动与 DSH 使用指南
 
 本指南帮助首次接触项目的用户安装 Python 核心、为 DSH 安装插件，并提交真实文本任务。
-适用版本：RefractRouter `0.2.0`、DSH 插件 `0.10.0`；核对日期：2026-09-08。
+适用版本：RefractRouter `0.3.0`、DSH 插件 `0.11.0`；核对日期：2026-09-08。
 
 项目名称为 **RefractRouter**；用户命令和 DSH 模型入口名称为 **RefractAgent（析衡）**。
 
@@ -16,7 +16,7 @@ flowchart LR
     U[浏览器输入任务] --> D[DSH 网页服务]
     D --> P[RefractAgent 插件]
     P --> R[本机 RefractRouter Python 进程]
-    R --> A[Ark Agent Plan 模型]
+    R --> A[用户配置的 providers 与 models]
     R --> F[答案、评审和本地记录]
     F --> D
 ```
@@ -25,7 +25,7 @@ flowchart LR
 | --- | --- | --- |
 | RefractRouter 核心 | 插件自动调用；也可独立运行 CLI | `refractagent`，没有 HTTP 监听端口 |
 | DSH 网页服务 | 在终端运行本指南的启动命令 | 本指南指定 `http://127.0.0.1:53611/` |
-| Ark 模型服务 | 核心使用 Agent Plan Key 请求云端 | `https://ark.cn-beijing.volces.com/api/plan/v3` |
+| 模型服务 | 核心直连用户配置的 HTTP provider，或经 DSH 调用已配置模型 | 用户的模型 API；Ark Agent Plan 可选 |
 
 当前没有 `refractrouter serve`、独立 REST API 或已交付的团队集中后端。
 不能将 DSH 网页地址填写为 OpenAI-compatible 模型 API 地址。
@@ -58,7 +58,7 @@ dsh --version
 ```
 
 已有可用 DSH 时先核对版本。DSH 的预览版本之间可能改变插件接口，升级时应重新验证。
-模拟演示无需模型 Key；真实任务需要已开通的 Ark Agent Plan 账户和对应 Key。
+模拟演示无需模型 Key；真实任务使用用户自行配置的 provider 和模型；Ark Agent Plan 是可选项。
 
 ## 3. 获取源码并构建两个安装包
 
@@ -80,8 +80,8 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 
 生成以下文件：
 
-- `dist/refractrouter-0.2.0-py3-none-any.whl`：Python 核心及其内置配置。
-- `dist/dsh-refractrouter-validation-0.10.0.tgz`：DSH 插件及已编译的 TypeScript 产物。
+- `dist/refractrouter-0.3.0-py3-none-any.whl`：Python 核心及其内置配置。
+- `dist/dsh-refractrouter-validation-0.11.0.tgz`：DSH 插件及已编译的 TypeScript 产物。
 
 `npm pack` 会先构建插件；不要跳过依赖安装，也不要手动修改 `dist/index.js`。
 普通使用者无需安装 DeepAgents 测试依赖、运行 benchmark 或复制整个实验报告目录。
@@ -94,7 +94,7 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 接着在同一终端执行：
 
 ```bash
-uv tool install "$REFRACT_REPO/dist/refractrouter-0.2.0-py3-none-any.whl"
+uv tool install "$REFRACT_REPO/dist/refractrouter-0.3.0-py3-none-any.whl"
 export PATH="$(uv tool dir --bin):$PATH"
 refractagent models
 ```
@@ -110,7 +110,7 @@ refractagent models
 
 ```bash
 export DSH_HOME="$HOME/.local/share/refractagent/dsh"
-dsh plugin --profile web add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.10.0.tgz"
+dsh plugin --profile web add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.11.0.tgz"
 ```
 
 已有 DSH、希望沿用原有插件和会话的用户，可以沿用现有 `DSH_HOME`，不执行上面的
@@ -120,7 +120,7 @@ dsh plugin --profile web add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.
 `web` 与 `headless` 分别管理插件；需要无网页模式时额外安装：
 
 ```bash
-dsh plugin --profile headless add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.10.0.tgz"
+dsh plugin --profile headless add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.11.0.tgz"
 ```
 
 ## 5. 创建固定工作目录，先跑模拟演示
@@ -155,23 +155,47 @@ dsh --profile web --patch ./refractagent-demo.json \
 
 配置生成器不覆盖已有文件。再次启动直接复用 JSON；需要重新生成时使用新文件名。
 
-## 6. 配置 Ark 并启动真实任务
+## 6. 配置自己的模型并启动真实任务
 
-### 生成真实执行配置
+### 创建 provider 和模型清单
 
 在相同工作目录执行：
 
 ```bash
-refractagent dsh-config --output ./refractagent-live.json \
-  --runs-dir ./.refractagent/runs --mode live --strategy balanced \
-  --production-budget 40 --evaluation-budget 80
+refractagent config-example --provider-type openai-compatible --output ./providers.json
 ```
 
-生成器始终将 `allowPaidRuns` 设为 `false`。首次部署将它改为 `true`；可用文本编辑器修改，
-也可以直接执行下面的脚本：
+编辑 `providers.json`，填写实际端点、凭证引用、候选和评审模型 ID、容量、价格及路由预测。
+已有 DSH provider 时可将命令中的类型换成 `dsh`；Ark 订阅用户可换成 `ark-agent-plan`。
+OpenAI Responses 推理模型使用 `openai-responses`，并按配置指南显式设置包含推理的输出额度。
+至少配置一个候选与一个评审模型。完整字段和多 provider 示例见
+[自定义 provider 与模型](https://github.com/AEALab/RefractRouter/blob/main/docs/provider-configuration.md)。
 
 ```bash
-python3 - <<'PY'
+refractagent models --provider-config ./providers.json
+refractagent dsh-config --provider-config ./providers.json \
+  --output ./refractagent-live.json --runs-dir ./.refractagent/runs \
+  --mode live --strategy balanced --production-budget 2 --evaluation-budget 1
+```
+
+2 / 1 是每任务生产／评审上限示例，使用配置中的 `billingUnit`，请按自己服务调整。
+生成器将清单嵌入插件的 `providerConfig`，之后修改源文件不会自动更新覆盖配置。
+希望直接使用随包 Ark 预设时，可改用：
+
+```bash
+refractagent dsh-config --preset ark-agent-plan --output ./refractagent-ark.json \
+  --mode live --production-budget 40 --evaluation-budget 80
+```
+
+两种方式择一使用。Ark 示例的 AFP 是订阅用量折算口径，不能与 USD 价格直接相加。
+使用 Ark 覆盖文件时，下文启动命令中的文件名也改为 `refractagent-ark.json`。
+
+### 启用真实执行并设置凭证
+
+生成器将 `allowPaidRuns` 设为 `false`。首次部署在覆盖文件中改为 `true`，例如：
+
+```bash
+python3 - <<'PYCONF'
 import json
 from pathlib import Path
 
@@ -179,34 +203,27 @@ path = Path("refractagent-live.json")
 patch = json.loads(path.read_text())
 next(item for item in patch if item["id"] == "refractagent")["config"]["allowPaidRuns"] = True
 path.write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n")
-PY
+PYCONF
 ```
 
-这是一次性部署开关。启用后，RefractAgent 不会逐次弹出预算确认；DSH 自身的宿主权限机制
-仍由 DSH 管理。40 / 80 AFP 是每任务生产／评审用量的上限示例，不是预计消耗或账户余额。
-Ark 订阅账户中的 AFP 作为用量折算记录，不能直接理解为额外现金扣费。
-
-### 设置 Key 并启动
-
-使用 **Ark Agent Plan 专用 Key**。在同一终端输入，密钥不会回显，也不作为字面值写入命令历史：
+这是一次性部署开关，启用后不会逐次弹出预算确认。DSH 自身的宿主权限机制由 DSH 管理。
+直接 HTTP provider 的凭证由 DSH 解析；可在启动终端设置与 `credentialEnv` 同名的变量。
+以下对应默认模板的 `TEAM_MODEL_KEY`，密钥不会回显：
 
 ```bash
-printf 'Ark Agent Plan API Key: '
-read -r -s CODEX_ARK_API_KEY
+printf 'Model API Key: '
+read -r -s TEAM_MODEL_KEY
 printf '\n'
-export CODEX_ARK_API_KEY
+export TEAM_MODEL_KEY
 
 dsh --profile web --patch ./refractagent-live.json \
   --host 127.0.0.1 --port 53611
 ```
 
-已通过 DSH 凭证服务配置 `CODEX_ARK_API_KEY` 的用户可以直接启动。
-配置项 `credentialEnv` 填环境变量名，不加 `env:` 前缀；Key 不写入覆盖 JSON、Git 或 Wiki。
-更换终端后，未持久化到凭证服务的环境变量需要重新设置。
-
-当前内置生产候选包含 DeepSeek V4 Flash、MiniMax M3、DeepSeek V4 Pro，独立评审使用 Kimi-K3。
-Key 需要具有实际选中模型和评审模型的调用权限。核心固定使用
-`https://ark.cn-beijing.volces.com/api/plan/v3`，不使用普通方舟 `/api/v3` 端点。
+已由 DSH 凭证服务管理时无需重新输入。多个 HTTP provider 可以使用不同凭证引用。
+`dsh` 类型复用宿主原有凭证，并要求目标 provider 的自动重试为零。
+Ark 预设默认引用 `CODEX_ARK_API_KEY`，使用 `/api/plan/v3`；启动前设置该变量或同名 DSH 凭证。
+密钥不要写入 JSON、Git 或 Wiki。
 
 ### 在 DSH 提交第一项真实任务
 
@@ -259,7 +276,8 @@ dsh --profile web --patch ./refractagent-live.json \
 | `summary.json` | 策略、模型、状态、质量和用量摘要 |
 | `request.json` | 本次任务、模式与上下文 |
 | `result.json` | 完整执行结果 |
-| `manifest.json`、`profile.json` | 本次实际采用的模型和路由配置 |
+| `manifest.json`、`profile.json` | 本次采用的模型和路由配置 |
+| `provider-config.json` | 自定义 provider/model 声明；仅保存凭证引用 |
 
 在 DSH 运行说明中复制任务目录，查看摘要：
 
@@ -267,7 +285,7 @@ dsh --profile web --patch ./refractagent-live.json \
 refractagent show /absolute/path/to/run-directory
 ```
 
-关注 `status`、`simulated`、`models`、`quality`、`costs`。
+关注 `status`、`simulated`、`model_routes`、`evaluation_model`、`quality`、`costs` 和 `billing_unit`。
 `quality-failed` 或评审不可用会保留已有答案；严格字数和格式仍需检查。
 取消或超时后先看记录，已经派发的模型请求仍可能结算，重新提交会创建新任务。
 
@@ -295,11 +313,12 @@ refractagent run --task "根据材料比较 A/B 的成本与风险。" \
 
 ```bash
 refractagent run --task "根据材料比较 A/B 的成本与风险。" \
-  --strategy balanced --mode live --execute-paid-run \
-  --production-budget 40 --evaluation-budget 80 \
+  --strategy balanced --provider-config ./providers.json --mode live --execute-paid-run \
+  --production-budget 2 --evaluation-budget 1 \
   --runs-dir ./.refractagent/runs
 ```
 
+CLI 的真实模式支持直接 HTTP provider；含 DSH provider 时须通过插件执行。
 CLI 执行完退出，没有需要额外启动的后端守护进程。
 默认 `--template single` 直接处理整项任务；`--template compare` 使用已校验的三节点比较计划。
 DSH 对应在 `refractagent` 的配置中设置 `"template": "compare"`，修改后重启。
@@ -319,6 +338,8 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 插件更新使用 `dsh plugin --profile web add /absolute/path/to/new-plugin.tgz`。
 这两个路径是说明用占位符，需替换成构建出来的完整文件名；同时使用 headless 时也要更新它。
 安装后生成一份新配置，核对 Python 路径并带上原有真实模式、用量上限设置，再重启 DSH。
+从 0.10.0 升级时，原来的 Ark 真实模式必须明确增加 `"preset": "ark-agent-plan"`，
+或改用 `providerConfig`；0.11.0 不会隐式选择 Ark。
 
 移动或删除源码目录不影响已安装的核心，但本地插件安装清单会记住 tgz 路径，
 请保留安装包。迁移时先把 tgz 复制到新目录，在旧路径仍存在时从新路径重新执行
@@ -334,7 +355,7 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 | `npm` 报 Node 版本不兼容 | 本插件要求 Node 22.19+ 的 22.x，切换 Node 后重新安装构建工具 |
 | 看不到 RefractAgent 模型 | 核对安装和启动时的 `DSH_HOME`、`web` / `headless` 是否相同；重启 DSH |
 | Python not found / 找不到核心模块 | 执行 `refractagent models`；用正确的已安装 CLI 重新生成 `dsh-config` |
-| `Missing RefractAgent credential` | 在启动终端设置 `CODEX_ARK_API_KEY` 或通过 DSH 凭证服务保存；重启 DSH |
+| `Missing RefractAgent credential` | 设置相应 provider 的 `credentialEnv` 引用，或通过 DSH 凭证服务保存；重启 DSH |
 | `paid execution is disabled` | 同时确认 `executionMode: live` 和 `allowPaidRuns: true` |
 | `[SIMULATED]` 或模型名带“模拟” | 启动时仍在使用 demo JSON；切换 live 后新建会话发送新任务 |
 | 端口被占用 / 页面打不开 | 查看终端是否仍运行，核对地址；换空闲 `--port`，不要停掉不明进程 |
@@ -346,7 +367,8 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 | 更新策略后旧会话没变 | 在会话中切换模型或新建会话；历史答案不会重新生成 |
 | 超时 / 取消 | 先核对本次记录和未确认用量，再决定是否重新提交 |
 
-当前质量 profile 来自固定报告任务，不能保证对所有任务都准确预测。
+自定义配置使用用户声明的质量与时延预测，样本数为 0；Ark 随包预设保留固定报告任务的
+实测 profile。两者均不能保证对所有任务准确预测。
 模型评审可能漏掉字数超限，确定性约束改进由
 [#42](https://github.com/AEALab/RefractRouter/issues/42) 跟踪。
 

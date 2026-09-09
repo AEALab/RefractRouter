@@ -1,6 +1,7 @@
 """节点局部切换：保持原始 profile 标尺，按剩余资源选择未尝试的可行模型。"""
 from __future__ import annotations
 
+from .responses_api import output_token_limit
 from .task_scheduling import estimate_schedule
 
 
@@ -25,7 +26,7 @@ class NodeRecovery:
             if node_id != nid or mid in attempted or candidate.quality < self.routing['quality_min_per_node']:
                 continue
             model = self.candidates[mid]
-            output_bound = min(model.max_output_tokens, 8192)
+            output_bound = output_token_limit(model)
             reserve = input_bound/1000*model.input_cost_per_1k + output_bound/1000*model.output_cost_per_1k
             if input_bound + output_bound > model.context_window or spent + reserve > cost_limit:
                 continue
