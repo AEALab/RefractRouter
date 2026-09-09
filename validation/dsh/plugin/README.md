@@ -4,6 +4,14 @@
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
 provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
 
+## 未发布：可选输出长度检查
+
+本分支的匹配核心和插件支持显式 `outputConstraints`，无默认字数限制。
+`refractrouter_task` 可逐任务设置，`refractagent` 原生模型可在专用插件实例中配置。
+Python 执行最终正文的确定性计数；插件分别展示生成、语义评审和长度检查状态，
+保留完整答案、费用及回放，不因超限自动修复。
+详见[输出长度检查](../../../docs/output-constraints.md)。
+
 ## 0.11.0：用户配置 provider 与模型
 
 配合 Python 核心 0.3.0，`refractagent` 配置新增 `providerConfig`：

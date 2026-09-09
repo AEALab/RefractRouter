@@ -57,9 +57,45 @@ test('demo uses installed core through native sandboxed subprocess and preserves
   assert.ok(!spawn.argv.includes('--execute-paid-run'))
   assert.equal(spawn.env.PYTHONPATH,undefined)
   assert.ok(JSON.parse(spawn.input()).context.includes('保留系统要求'))
+  assert.equal(JSON.parse(spawn.input()).outputConstraints, undefined)
   assert.deepEqual(result.at(-1)?.reason,{kind:'stop'})
   assert.equal(result.filter(c=>c.type==='finish').length,1)
   assert.equal(result.find(c=>c.type==='text-delta')?.text,'[SIMULATED] answer')
+})
+
+test('explicit length constraints reach Python and failed checks preserve answer and replay verdicts', async()=>{
+  const constraint = {maxLength:250, unit:'unicode-code-points', countWhitespace:false}
+  const validation = {schema_version:'output-length-check-v1',status:'failed',constraints:{...constraint},
+    passed:false,actual_length:263,output_sha256:'a'.repeat(64)}
+  const answer = '长'.repeat(263)
+  const quality = {score:95,passed:true,rationale:'模型误判长度通过'}
+  const f = fixture({mode:'live',simulated:false,status:'output-constraint-failed',answer,
+    generation_status:'completed',format_validation:validation,quality})
+  const config = configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan',outputConstraints:constraint})
+  constraint.maxLength=1000
+  const result = await chunks(createAdapter(f.ctx,config))
+  assert.equal((JSON.parse(f.spawns[0]!.input()).outputConstraints).maxLength,250)
+  assert.equal(f.spawns.length,1)
+  assert.equal(result.find(c=>c.type==='text-delta')?.text,answer)
+  const info = String(result.find(c=>c.type==='reasoning-delta')?.text)
+  assert.match(info,/生成：completed/)
+  assert.match(info,/语义评审：.*"passed":true/)
+  assert.match(info,/长度检查：未通过，263\/250 Unicode 码点（不计空白）/)
+  const replay = result.at(-1)?.replayState as {response:{refractagent:Record<string,unknown>}}
+  assert.deepEqual(replay.response.refractagent.formatValidation,validation)
+  assert.deepEqual(replay.response.refractagent.quality,quality)
+  assert.equal(replay.response.refractagent.generationStatus,'completed')
+})
+
+test('explicit checks cannot silently disappear with an older installed core',async()=>{
+  const f=fixture()
+  await assert.rejects(chunks(createAdapter(f.ctx,configure({outputConstraints:{
+    maxLength:250,unit:'unicode-code-points',countWhitespace:false}}))),/did not return/)
+  for (const outputConstraints of [null,{}, {maxLength:250},
+    {maxLength:250,unit:'tokens',countWhitespace:false},
+    {maxLength:250,unit:'unicode-code-points',countWhitespace:'false'}]) {
+    assert.throws(()=>configure({outputConstraints}),/invalid outputConstraints/)
+  }
 })
 test('host-injected user-role context cannot replace the latest actual user task',async()=>{
   const f=fixture()

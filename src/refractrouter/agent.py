@@ -22,6 +22,7 @@ from .routing_actions import action_identity
 from .manifest import load_model_manifest
 from .node_routing import number
 from .openai_compatible import OpenAICompatibleClient
+from .output_constraints import validate_output_constraints
 from .task_plan import text, validate_plan
 from .task_runtime import run_task
 
@@ -77,7 +78,7 @@ def plan_template(name, criteria=None):
 
 
 def build_request(payload, *, mode, production_budget, timeout_ms):
-    if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature'}:
+    if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints'}:
         raise ValueError('invalid RefractAgent request fields')
     strategy = payload.get('strategy', 'balanced')
     if not isinstance(strategy, str) or strategy not in PRESETS:
@@ -92,6 +93,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
                'maxConcurrency': 1, 'maxNodeFallbacks': 0, 'plan': plan}
     del request['name']
+    if 'outputConstraints' in payload:
+        request['outputConstraints'] = validate_output_constraints(payload['outputConstraints'])
     context = payload.get('context', '')
     if not isinstance(context, str) or len(context.encode()) > MAX_CONTEXT_BYTES:
         raise ValueError('conversation context exceeds the RefractAgent input limit')
@@ -198,6 +201,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'evaluation_model': actions[manifest.judge.model_id],
         'configuration_source': 'user' if configured else 'manifest' if manifest_path else preset or 'bundled-demo',
         'quality': result['evaluation'], 'costs': totals, 'billing_unit': manifest.billing_unit,
+        'generation_status': result['generation_status'], 'format_validation': result['format_validation'],
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],
         'result_path': str(result_path), 'run_dir': str(directory),
         'usage': {'input_tokens': sum(c.get('input_tokens', 0)-c.get('cached_input_tokens', 0) for c in calls if c['status'] == 'billed'),

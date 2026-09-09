@@ -1,4 +1,6 @@
 import type { DshContext, JsonSchema, TaskSummary, ToolExecution, ValidationResult } from './contracts.js'
+import { decodeOutputConstraints, decodeFormatValidation, OUTPUT_CONSTRAINTS_SCHEMA,
+  FORMAT_VALIDATION_SCHEMA, type OutputConstraints } from './output-constraints.js'
 
 export interface TaskArguments {
   task: string
@@ -10,6 +12,7 @@ export interface TaskArguments {
   weights?: { quality: number; cost: number; latency: number }
   plan?: Record<string, unknown>
   maxNodeFallbacks?: number
+  outputConstraints?: OutputConstraints
   maxConcurrency?: number
   providerConcurrency?: Record<string, number>
   providerMinIntervalMs?: Record<string, number>
@@ -29,7 +32,7 @@ function finite(value: unknown, field: string): number {
 export function taskArguments(raw: unknown): TaskArguments {
   if (!record(raw)) throw new Error('task arguments must be an object')
   const allowed = new Set(['task', 'mode', 'method', 'qualityMin', 'costMax', 'latencyMaxMs',
-    'weights', 'plan', 'plannerModelId', 'maxProductionCost', 'maxEvaluationCost', 'acceptanceCriteria', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxNodeFallbacks'])
+    'weights', 'plan', 'plannerModelId', 'maxProductionCost', 'maxEvaluationCost', 'acceptanceCriteria', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxNodeFallbacks', 'outputConstraints'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown task argument')
   if (typeof raw.task !== 'string' || !raw.task.trim() || raw.task.length > 12000) throw new Error('task must contain 1..12000 characters')
   const mode = raw.mode ?? 'preflight'
@@ -53,6 +56,7 @@ export function taskArguments(raw: unknown): TaskArguments {
     if (!Number.isInteger(value) || value > 2) throw new Error('invalid maxNodeFallbacks')
     args.maxNodeFallbacks = value
   }
+  if (raw.outputConstraints !== undefined) args.outputConstraints = decodeOutputConstraints(raw.outputConstraints)
   if (raw.maxConcurrency !== undefined) {
     const value = finite(raw.maxConcurrency, 'maxConcurrency')
     if (!Number.isInteger(value) || value < 1 || value > 8) throw new Error('invalid maxConcurrency')
@@ -110,6 +114,7 @@ export const TASK_SUMMARY_SCHEMA: JsonSchema = {
       } } },
     qualityScore: { oneOf: [{ type: 'number' }, { type: 'null' }] },
     evaluationPassed: { oneOf: [{ type: 'boolean' }, { type: 'null' }] },
+    generationStatus: { type: 'string' }, formatValidation: FORMAT_VALIDATION_SCHEMA,
     outputPreview: { type: 'string' }, resultPath: { type: 'string' },
     productionCost: { type: 'number' }, evaluationCost: { type: 'number' },
     unconfirmedCost: { type: 'number' }, costIsSimulated: { type: 'boolean' }, wallTimeMs: { type: 'number' },
@@ -126,6 +131,7 @@ export function decodeTaskSummary(raw: unknown): TaskSummary {
   if (raw.qualityScore !== null) finite(raw.qualityScore, 'qualityScore')
   if (raw.evaluationPassed !== null && typeof raw.evaluationPassed !== 'boolean') throw new Error('invalid evaluationPassed')
   if (typeof raw.costIsSimulated !== 'boolean') throw new Error('invalid costIsSimulated')
+  if (raw.generationStatus !== undefined && typeof raw.generationStatus !== 'string') throw new Error('invalid generationStatus')
   if (raw.executionMode !== 'serial' && raw.executionMode !== 'bounded-parallel') throw new Error('invalid executionMode')
   const concurrency = finite(raw.maxConcurrency, 'maxConcurrency')
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 8) throw new Error('invalid maxConcurrency')
@@ -141,6 +147,8 @@ export function decodeTaskSummary(raw: unknown): TaskSummary {
       return { nodeId: node.nodeId, nodeType: node.nodeType, parents: node.parents as string[], modelId: node.modelId }
     }), qualityScore: raw.qualityScore === null ? null : finite(raw.qualityScore, 'qualityScore'),
     evaluationPassed: raw.evaluationPassed, outputPreview: str('outputPreview'), resultPath: str('resultPath'),
+    ...(raw.generationStatus === undefined ? {} : { generationStatus: raw.generationStatus as string }),
+    ...(raw.formatValidation === undefined ? {} : { formatValidation: decodeFormatValidation(raw.formatValidation) }),
     productionCost: finite(raw.productionCost, 'productionCost'), evaluationCost: finite(raw.evaluationCost, 'evaluationCost'),
     unconfirmedCost: finite(raw.unconfirmedCost, 'unconfirmedCost'), costIsSimulated: raw.costIsSimulated, wallTimeMs: finite(raw.wallTimeMs, 'wallTimeMs'),
   }
@@ -154,6 +162,7 @@ export function registerTaskTool(ctx: DshContext, outputSchema: JsonSchema,
       + '规划器识别真实独立分支、解释拆分收益，简单任务可保留单节点；支持显式有界并发及 Provider 派发间隔。'
       + 'preflight 使用单节点预览；demo 返回模拟产物；plan 付费规划；run 执行并独立评审。'
       + 'acceptanceCriteria 可固定验收条件；maxNodeFallbacks 默认为 0，可设 1 或 2，在已结算的节点输出失败后换模型。'
+      + '仅用户明确要求长度上限时填写 outputConstraints，明确码点/UTF-8 字节及空白口径；不设置默认字数上限。'
       + '详细契约、每次尝试和结构诊断保存在任务产物中。'
       + 'plan/run 需要部署开关和双预算。迁移 profile 不保证质量；不执行外部工具动作。',
     parameters: { type: 'object', additionalProperties: false,
@@ -164,6 +173,7 @@ export function registerTaskTool(ctx: DshContext, outputSchema: JsonSchema,
         weights: { type: 'object', additionalProperties: false, required: ['quality', 'cost', 'latency'],
           properties: { quality: { type: 'number' }, cost: { type: 'number' }, latency: { type: 'number' } } },
         maxNodeFallbacks: { type: 'number' },
+        outputConstraints: OUTPUT_CONSTRAINTS_SCHEMA,
         maxConcurrency: { type: 'number' }, providerConcurrency: { type: 'object', additionalProperties: true },
         providerMinIntervalMs: { type: 'object', additionalProperties: true },
         acceptanceCriteria: { type: 'array', items: { type: 'string' } },

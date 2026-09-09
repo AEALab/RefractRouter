@@ -1,4 +1,5 @@
 import type { Readable, Writable } from 'node:stream'
+import type { FormatValidation } from './output-constraints.js'
 
 /** The host surface consumed by this bundle, matched to DSH 0.1.1-rc.2.
  * These structural ports keep DSH supplied by the host, with no runtime npm dependencies.
@@ -135,6 +136,8 @@ export interface TaskSummary {
   nodes: Array<{ nodeId: string; nodeType: string; parents: string[]; modelId: string }>
   qualityScore: number | null
   evaluationPassed: boolean | null
+  generationStatus?: string
+  formatValidation?: FormatValidation
   outputPreview: string
   resultPath: string
   productionCost: number

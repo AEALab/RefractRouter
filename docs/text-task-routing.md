@@ -163,6 +163,13 @@ v2 的输入预算分层为 `[256,8193)`、`[8193,32769)`、`[32769,131073)`，�
 评审失败仍保留答案、原始评审响应和账目，质量标为不可用。模型生成的 Markdown 和
 交接内容均是不可信材料，不应作为系统指令执行。
 
+## 最终输出长度约束
+
+请求可显式添加 `outputConstraints`，提供 `maxLength`、`unit` 和 `countWhitespace`。
+核心只对最终正文检查，结果保存在 `format_validation`；DSH 摘要对应 `formatValidation`。
+未配置时没有默认字数上限。模型评审通过不能覆盖超限结果，也不会因此自动修复或换模型。
+计数口径、请求示例及独立状态说明见[可选的最终输出长度检查](output-constraints.md)。
+
 ## 节点失败后切换模型
 
 Python `run_task` 与 DSH `refractrouter_task` 均接受 `maxNodeFallbacks`：默认 `0`，

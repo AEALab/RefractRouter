@@ -90,6 +90,7 @@ def main():
                            'modelId': assignments.get(n['node_id'], '')} for n in (result['plan'] or {}).get('nodes', [])],
                 'qualityScore': result['evaluation']['score'] if result['evaluation'] else None,
                 'evaluationPassed': result['evaluation']['passed'] if result['evaluation'] else None,
+                'generationStatus': result['generation_status'], 'formatValidation': result['format_validation'],
                 'outputPreview': result['final_output'][:12000], 'resultPath': str(result_path.resolve()),
                 'productionCost': sum(c['charged'] for c in result['calls'] if c['category'] == 'production' and c['status'] == 'billed'),
                 'evaluationCost': sum(c['charged'] for c in result['calls'] if c['category'] == 'evaluation' and c['status'] == 'billed'),

@@ -7,16 +7,20 @@ import time
 from threading import Lock
 
 from .task_contracts import decode_output
+from .output_constraints import output_constraint_instruction
 from .task_budget import InvalidModelOutput
 from .task_scheduling import available
 
 
-def node_messages(task, node, contract, context):
+def node_messages(task, node, contract, context, *, output_constraints=None):
     upstream = {p: ({key: context[p][key] for key in contract['inputs'][p]['fields']}
                     if contract else context[p]) for p in node.parents}
     payload = {'node_id': node.node_id, 'task': task, 'instruction': node.prompt_template, 'upstream': upstream}
     if contract:
         payload['contract'] = contract
+    if output_constraints is not None:
+        payload['output_constraints'] = output_constraints
+        payload['output_constraint_instruction'] = output_constraint_instruction(output_constraints)
     messages = [
         {'role': 'system', 'content': '完成文本任务的一个节点。遵循给定的输入输出契约和语义检查要求。'
          'json 输出必须是单个原始 JSON 对象，键集合必须恰好等于 contract.output.fields 的键集合，'
@@ -46,7 +50,8 @@ def node_messages(task, node, contract, context):
 
 
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
-                  *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None):
+                  *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
+                  output_constraints=None):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
@@ -103,7 +108,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
         spent, calls = budget.snapshot()
         if any(c['status'] == 'unknown-usage' and c['label'] == row['call_label'] for c in calls):
             return False
-        messages = node_messages(task, nodes[nid], plan.contracts.get(nid), context)
+        messages = node_messages(task, nodes[nid], plan.contracts.get(nid), context,
+            output_constraints=output_constraints if nid == plan.final_node_id else None)
         input_bound = len(json.dumps(messages, ensure_ascii=False).encode()) + 256
         now_ms = elapsed()
         previous_starts = {provider: max(scheduled, (actual_starts.get(provider, started) - started) * 1000) - now_ms
@@ -149,7 +155,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         continue
                     try:
                         contract = plan.contracts.get(nid)
-                        messages = node_messages(task, nodes[nid], contract, context)
+                        messages = node_messages(task, nodes[nid], contract, context,
+                            output_constraints=output_constraints if nid == plan.final_node_id else None)
                         attempt = len(attempted[nid]) + 1
                         label = label_prefix+nid+(f':attempt-{attempt}' if attempt > 1 else '')
                         reservation = budget.reserve(model, messages, label=label,
