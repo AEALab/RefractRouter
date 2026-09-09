@@ -1,0 +1,24 @@
+{
+  "label": "wai-chart-auto-cold:plan-review",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"该拆分计划为单节点方案，完整覆盖原始任务的三部分交付（简短替代文本、可见长说明、发布检查项），并在 prompt 与 checks 中明确保留数值、时间、纵轴从0开始、单位为千次、甲递减乙稳定，且禁止推断下降原因与声称已通过辅助技术测试。上下文充分且可追溯（材料摘要与任务信息内嵌），无虚构数据。无依赖边，符合单节点不拆分的合理性；节点能力与 token 预算声明合理。checks 的「covers」字段含义不够透明，但不影响对验收条件的覆盖判断。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"三部分交付均在 prompt_template 与 contract.checks 中明确要求，且保留数值、趋势、单位、纵轴起点及两项禁止性约束，未降低原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"单节点无依赖边，不存在虚构或无意义的串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt 内嵌官方材料摘要与全部任务数据，来源 S1 在任务描述中给出，节点无需虚构任何缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点，职责唯一无重复；decomposition_reason 合理说明三部分高度耦合、共享小规模材料，不拆分可避免一致性问题；输出汇总了原始任务全部所需内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"difficulty 与 risk 标为 low，input_budget_tokens 16384、expected_output_tokens 1200 对短文本生成任务合理，单节点拆分与任务高耦合度相符。\"}]}",
+  "input_tokens": 1315,
+  "output_tokens": 472,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16653,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969433544b531818cd979bd70c39b690ac6f23902ac4099",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 472,
+    "prompt_tokens": 1315,
+    "total_tokens": 1787,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

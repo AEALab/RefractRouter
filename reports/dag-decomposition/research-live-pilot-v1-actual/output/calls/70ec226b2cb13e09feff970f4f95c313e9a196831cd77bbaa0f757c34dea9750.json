@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-auto-cold:final-review",
+  "content": "{\"score\": 100, \"passed\": true, \"rationale\": \"答案正确指出原顺序会被 groupby 分为 A、B、A、B 四组，并说明各组迭代器共享底层输入、外层推进会使未消费的先前组内容不可用，因而循环结束后再 list 会丢失内容。修正版先按首元素排序，再在 groupby 循环内立即消费当前组求和，给出期望输出 {'A': 5, 'B': 12}，且未声称实际运行代码。\", \"criteria\": [{\"criterion\": \"指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\", \"passed\": true, \"rationale\": \"明确列出四组 A:[(\\\"A\\\",2)]、B:[(\\\"B\\\",5)]、A:[(\\\"A\\\",3)]、B:[(\\\"B\\\",7)]，并说明组迭代器共享底层输入、外层推进导致前一个组未消费数据不可用。\"}, {\"criterion\": \"修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\", \"passed\": true, \"rationale\": \"代码先 sorted(data, key=itemgetter(0))，再在 for key, group in groupby(...) 内立即 sum(value for _, value in group)，输出 {'A': 5, 'B': 12}；全文使用「期望输出」，未声明已执行。\"}]}",
+  "input_tokens": 930,
+  "output_tokens": 320,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12371,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969305714a6cdd8247c48d753298cd4bcf5eec90edebc20",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 320,
+    "prompt_tokens": 930,
+    "total_tokens": 1250,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

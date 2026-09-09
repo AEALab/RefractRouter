@@ -178,3 +178,17 @@ def test_complete_rehearsal_is_offline_and_bounded(tmp_path):
     assert len(result['observations']['observations']) == 27
     assert result['node_profile']['kind'] == 'synthetic'
     assert set(result['node_profile']['calibration_task_ids']).isdisjoint(result['node_profile']['held_out_task_ids'])
+
+
+@pytest.mark.parametrize('mode', ['direct', 'manual', 'probe'])
+def test_all_execution_inputs_include_original_acceptance_criteria(setup, mode):
+    task, factory = setup
+    session = factory()
+    if mode == 'probe':
+        session.probe_node(task, 'cost', 'strong')
+    else:
+        session.run_trial(task, 'criteria', mode=mode, fixed_model='strong')
+    for call in session.budget.records:
+        if call['category'] == 'production':
+            payload = json.loads(call['request_messages'][-1]['content'])
+            assert all(criterion in payload['task'] for criterion in task['criteria'])

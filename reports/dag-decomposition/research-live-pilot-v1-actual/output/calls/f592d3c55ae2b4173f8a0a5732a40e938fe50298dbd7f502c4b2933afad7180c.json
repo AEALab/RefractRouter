@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-auto-cold:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务要求逐条问题、正确操作顺序和即时/延迟外键区别，三者共享同一份材料且相互关联，拆分会增加交接与汇总开销，单节点直接生成完整答复即可。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"你是数据库迁移方案审核助手。只依据以下已核对的官方材料摘要，不联网、不执行工具、不声称执行数据库。\\n\\n来源 S1：https://www.sqlite.org/foreignkeys.html\\n摘要：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\\n\\n任务：为一个使用两个连接的应用审核如下迁移方案：连接甲先 BEGIN 再 PRAGMA foreign_keys=ON；连接乙直接写入，认为甲的设置会共享。团队希望先写子记录再补父记录，并在 COMMIT 前补齐。\\n\\n请直接输出最终正文，依次包含以下部分，不要封装为 JSON：\\n1. 逐条问题：逐条指出方案中的错误或风险，包括但不限于连接设置不共享、事务内启用无效且不报错、连接乙未启用外键、先写子记录再补父记录可能触发即时约束违例等。\\n2. 正确操作顺序：给出每个连接在事务外启用外键并读取状态确认的步骤，以及写入顺序和提交条件。\\n3. 即时与延迟外键的区别：说明即时约束在语句结束检查、延迟约束可到提交事务时检查，以及未解决的延迟违例使提交失败；结合「先写子记录再补父记录并在 COMMIT 前补齐」说明两种模式下补齐父记录与提交条件。\\n\\n要求：只依据给定材料，不把事务内无效设置写成已生效；未知条件保持未知或写成条件判断；不声称执行数据库。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"依据给定材料生成迁移方案审核正文，逐条指出问题、给出正确操作顺序，并说明即时与延迟外键的区别。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"最终交付的审核正文，依次包含逐条问题、正确操作顺序、即时与延迟外键区别三部分。\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 16384,\n          \"expected_output_tokens\": 1500\n        },\n        \"checks\": [\n          \"正文明确指出连接设置不共享，连接乙不会因连接甲设置而启用外键。\",\n          \"正文明确指出多语句事务内修改 foreign_keys 无效且不报错，不把该设置写成已生效。\",\n          \"正文给出每个连接在事务外启用外键并读取状态确认的步骤。\",\n          \"正文区分即时约束在语句结束检查与延迟约束可到提交事务时检查，并说明未解决的延迟违例使提交失败。\",\n          \"正文结合先写子记录再补父记录并在 COMMIT 前补齐，说明两种模式下的补齐父记录与提交条件。\",\n          \"正文不声称执行数据库，不引入材料未说明的事实。\"\n        ],\n        \"covers\": [\n          0,\n          1\n        ],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。\",\n    \"区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。\"\n  ]\n}",
+  "input_tokens": 1357,
+  "output_tokens": 879,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14305,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969097899b9f489096afc36acf45c00ec3935d23afab6de",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 879,
+    "prompt_tokens": 1357,
+    "total_tokens": 2236,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-manual:answer",
+  "content": "实际连续分组与延迟消费问题分析：\n\nitertools.groupby 只对输入中相邻且键相等的连续元素合并为一组，不会把后面再次出现的相同键并入前面的组。给定 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]，按首元素分组会依次产生四个连续组：(\"A\",[2])、(\"B\",[5])、(\"A\",[3])、(\"B\",[7])，因此 A 不会合计为 5，B 也不会合计为 12。\n\n同事先保存全部 (key, group_iterator)，循环结束后才分别 list(group_iterator) 还存在延迟消费问题：每个组迭代器共享同一个底层输入迭代器，外层 groupby 向后推进以生成后续组时，前一个组尚未消费的数据会失效；循环结束后再消费，通常只能得到空列表或残缺数据，无法可靠还原各组元素。\n\n可保留结果的 Python 修正版：\n\ndata = [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]\ndata_sorted = sorted(data, key=lambda x: x[0])\nresult = {k: sum(v for _, v in g) for k, g in groupby(data_sorted, key=lambda x: x[0])}\n\n期望输出：\n\n{\"A\": 5, \"B\": 12}\n\n依据与限制：\n\n来源 S1：https://docs.python.org/3.13/library/itertools.html。摘要指出：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合；如需按键聚合所有元素，可先按相同键排序；每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\n\n假设输入顺序保持题目给定的 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]，且修正版只使用标准库 itertools.groupby 与内置 sorted、sum。未声称实际运行代码；若输入顺序或键类型不同，需相应调整排序键。",
+  "input_tokens": 1487,
+  "output_tokens": 445,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6048,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217889692561927820404c56ac6dd9ce215ba8b602495a1d12f9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 445,
+    "prompt_tokens": 1487,
+    "total_tokens": 1932,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

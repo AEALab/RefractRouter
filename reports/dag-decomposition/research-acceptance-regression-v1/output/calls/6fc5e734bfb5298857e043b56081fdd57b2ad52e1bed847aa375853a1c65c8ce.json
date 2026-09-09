@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fixed-manual:risk",
+  "content": "{\n  \"result\": \"在即时外键约束下，先写子记录再补父记录不可行：子记录插入或更新语句结束时即检查外键，父记录尚不存在会立即报错，事务无法继续到补齐阶段。在延迟外键约束下，先写子记录再补父记录可行，但必须满足：外键约束被定义为 DEFERRABLE INITIALLY DEFERRED 或 DEFERRABLE，且当前事务中该约束处于延迟检查状态；在 COMMIT 前完成父记录补齐，使提交时不存在未解决的延迟违例，否则提交失败。\",\n  \"evidence\": \"来源 S1：https://www.sqlite.org/foreignkeys.html。摘要指出：即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\",\n  \"assumptions\": \"材料未提供具体表结构、外键定义是否包含 DEFERRABLE 及连接乙的 PRAGMA foreign_keys 状态；上述结论以子表外键约束已定义为可延迟且连接已正确启用外键为前提。若外键定义为 NOT DEFERRABLE，则即使希望延迟检查也不可行。\"\n}",
+  "input_tokens": 662,
+  "output_tokens": 252,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6439,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969661171b566464da517b102b4cb09cdfd60e7ee5977c9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 252,
+    "prompt_tokens": 662,
+    "total_tokens": 914,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

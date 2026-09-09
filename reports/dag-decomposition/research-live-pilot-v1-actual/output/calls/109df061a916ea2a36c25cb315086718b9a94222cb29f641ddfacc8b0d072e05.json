@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-auto-cold:answer",
+  "content": "问题分析\n\n原输入顺序为：\n\n```text\n[(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]\n```\n\n`itertools.groupby` 只对相邻连续且键相等的元素分组，因此按首元素分组时，实际会形成四组：\n\n```text\nA: [(\"A\",2)]\nB: [(\"B\",5)]\nA: [(\"A\",3)]\nB: [(\"B\",7)]\n```\n\n也就是说，结果不是全局的 A、B 两组，而是 A、B、A、B 四组。\n\n同事先保存全部 `(key, group_iterator)`，循环结束才分别执行 `list(group_iterator)`。由于 `groupby` 返回的每个组迭代器共享底层输入，外层迭代器向后推进时，前一个组尚未消费的数据会变得不可用。因此延后消费会导致前面组的内容丢失，无法得到期待的 A 合计 5、B 合计 12。\n\n修正版\n\n要按键聚合所有元素，应先按相同键排序，再使用 `groupby`，并且必须在当前组仍然有效时立即消费组迭代器，例如当场转为列表或直接求和。\n\n```python\nfrom itertools import groupby\nfrom operator import itemgetter\n\ndata = [(\"A\", 2), (\"B\", 5), (\"A\", 3), (\"B\", 7)]\n\n# 先按首元素排序，使相同键相邻\nsorted_data = sorted(data, key=itemgetter(0))\n\nresult = {}\nfor key, group in groupby(sorted_data, key=itemgetter(0)):\n    # 在当前组有效时立即消费，避免共享迭代器推进后丢失内容\n    result[key] = sum(value for _, value in group)\n\nprint(result)\n```\n\n期望输出\n\n```text\n{'A': 5, 'B': 12}\n```\n\n其中 A 的值为 `2 + 3 = 5`，B 的值为 `5 + 7 = 12`。",
+  "input_tokens": 825,
+  "output_tokens": 423,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7219,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969298465c237340934591b89d6de6b6a9271c1b9f15be8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 423,
+    "prompt_tokens": 825,
+    "total_tokens": 1248,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

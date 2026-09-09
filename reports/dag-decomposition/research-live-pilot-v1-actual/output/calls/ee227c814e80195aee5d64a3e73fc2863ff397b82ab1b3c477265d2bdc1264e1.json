@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-auto-cold:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划针对封闭材料任务采用单节点设计，合理且完整。计划将原始任务的所有要求（分析连续分组问题、解释共享迭代器延迟消费、给出修正版代码及期望输出、不声称运行代码）整合在一个生成节点中，通过 prompt_template 和 checks 明确覆盖。由于任务各部分内容强耦合（问题分析与代码修正紧密相关），单节点避免了不必要的拆分 overhead，符合任务低难度、低风险的特性。输入材料（S1 摘要）在 prompt 中完整提供，上下文充分可追溯。节点能力声明（low difficulty、文本生成、token 预算）与任务实际需求匹配。验收标准与 checks 对应原始任务要求，未降低标准。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点 prompt_template 完整包含原始任务所有要素：分析连续分组、解释延迟消费、给出修正版及期望输出、不声称运行代码。checks 列表明确对应这些要求，未降低标准。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"单节点无父节点（parents 为空），无依赖边，不存在无意义串行依赖。所有必要输入（S1 摘要）直接嵌入 prompt。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 中包含完整来源标识（S1 URL）和材料摘要，输入数据 [(\\\"A\\\",2),(\\\"B\\\",5),(\\\"A\\\",3),(\\\"B\\\",7)] 明确给出，上下文充分且可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点设计，无职责重复。decomposition_reason 合理说明不拆分原因（内容强耦合、篇幅短小）。节点输出要求包含问题分析、修正版代码及期望输出，汇总完整。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明为 low difficulty、low risk、text-model，input_budget_tokens 16384 和 expected_output_tokens 1200 与简单代码分析任务匹配。单节点设计符合任务强耦合特性。\"}]}",
+  "input_tokens": 1167,
+  "output_tokens": 550,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19573,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896927888240d92d5266a85c14e28416df297f1b20d60722",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 550,
+    "prompt_tokens": 1167,
+    "total_tokens": 1717,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

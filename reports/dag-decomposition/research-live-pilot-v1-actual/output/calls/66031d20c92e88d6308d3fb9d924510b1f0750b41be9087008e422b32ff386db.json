@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-auto-cold:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务为单一封闭材料分析，需同时解释连续分组、共享迭代器延迟消费问题，并给出修正代码与期望输出。这些内容强耦合且篇幅短小，拆分会增加交接与汇总开销，无并行收益，故单节点完成。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"只依据以下已核对的官方材料摘要，不联网或执行工具。\\n来源 S1：https://docs.python.org/3.13/library/itertools.html\\n摘要：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合。如需按键聚合所有元素，可先按相同键排序。每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\\n\\n任务：输入为 [(\\\"A\\\",2),(\\\"B\\\",5),(\\\"A\\\",3),(\\\"B\\\",7)]。同事用 groupby 按首元素分组，先保存全部 (key, group_iterator)，循环结束才分别 list(group_iterator)，期待 A 合计5、B合计12。请分析实际连续分组和延迟消费的问题，给出可保留结果的 Python 修正版及期望输出，不声称运行代码。\\n\\n要求：\\n1. 指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\\n2. 修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\\n3. 最终正文直接输出，不封装为 JSON；分别呈现问题分析和修正版及期望输出。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"依据给定材料分析 groupby 连续分组与延迟消费问题，并给出可保留结果的修正版及期望输出。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"包含问题分析、修正版 Python 代码及期望输出的最终正文\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"low\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 16384,\n          \"expected_output_tokens\": 1200\n        },\n        \"checks\": [\n          \"明确指出原顺序产生 A、B、A、B 四组\",\n          \"解释共享迭代器导致延后消费丢失内容\",\n          \"修正版先按相同键排序并在当前组有效时消费\",\n          \"给出 A=5、B=12 的期望输出\",\n          \"不声称已运行代码\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\",\n    \"修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\"\n  ]\n}",
+  "input_tokens": 1393,
+  "output_tokens": 725,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 10352,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217889692685168878e6c95084a12b4d57c4d96cb06f1d8c3d67",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 725,
+    "prompt_tokens": 1393,
+    "total_tokens": 2118,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

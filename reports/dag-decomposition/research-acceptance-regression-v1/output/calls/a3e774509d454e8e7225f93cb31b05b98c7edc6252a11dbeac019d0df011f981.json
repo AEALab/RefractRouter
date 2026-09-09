@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fixed-manual:cost",
+  "content": "{\n  \"result\": \"该迁移方案存在两个核心问题。第一，SQLite 的 foreign_keys 是连接级设置，连接甲通过 PRAGMA foreign_keys=ON 启用的外键约束不会共享给连接乙；连接乙直接写入时，其自身连接的外键设置仍取决于该连接的实际状态，不能依赖连接甲的设置。第二，连接甲在 BEGIN 之后执行 PRAGMA foreign_keys=ON 属于事务内修改，依据材料，多语句事务内修改 foreign_keys 无效且不报错，因此连接甲在该事务中实际上并未启用外键约束。正确操作顺序应为：在每个连接上、事务开始之前执行 PRAGMA foreign_keys=ON，并通过 PRAGMA foreign_keys 读取返回值为 1 来确认已启用，然后再开始事务和写入操作。对于先写子记录再补父记录的需求：如果使用即时外键约束，则在每条语句结束时立即检查，先写子记录时父记录尚不存在，该语句会立即失败，无法等到 COMMIT 前补齐；如果使用延迟外键约束，则可以先写子记录，在事务提交前补齐父记录，提交时再统一检查，只要提交时所有外键关系已满足即可成功提交。若延迟约束在提交时仍未解决，则提交会失败。\",\n  \"evidence\": \"来源 S1：https://www.sqlite.org/foreignkeys.html。摘要明确：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\",\n  \"assumptions\": \"假设连接乙未在自身连接上另行启用外键，因此其写入不受连接甲设置影响；若连接乙已单独启用外键，则其行为按自身设置执行。材料未提供连接乙的具体 PRAGMA 状态，也未说明所用外键约束在表定义中是即时还是延迟，因此即时与延迟两种情况均按材料规则分别说明。\"\n}",
+  "input_tokens": 654,
+  "output_tokens": 441,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9190,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896966108259e4692ee8689b9dc112ef0a7e12032faafb25",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 441,
+    "prompt_tokens": 654,
+    "total_tokens": 1095,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

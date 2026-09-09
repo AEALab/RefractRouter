@@ -30,6 +30,12 @@ class EvidenceFailure(RuntimeError):
     """证据写入异常必须停止整批，不能作为模型输出失败继续。"""
 
 
+def delivery_task(task):
+    """把评分所用原始条目显式传给每条执行路线，避免规划路线独享条件。"""
+    return task['task'] + '\n\n固定交付验收条件（按节点职责处理，最终交付须全部满足）：\n' + '\n'.join(
+        f'{index}. {criterion}' for index, criterion in enumerate(task['criteria'], 1))
+
+
 class ResearchSession:
     """顺序编排样本，样本内允许有界并发；所有尝试共用一个预算。"""
 
@@ -245,7 +251,7 @@ class ResearchSession:
                 row['assignments'] = row['routing']['assignments']
             row['routing_finished_ms'] = self._time()
             row['phase'] = 'execution'
-            row['final_output'] = execute_nodes(plan, task['task'], row['assignments'], self.models,
+            row['final_output'] = execute_nodes(plan, delivery_task(task), row['assignments'], self.models,
                 self.budget, self.policy, row, self.persist, started=start, deadline=deadline,
                 label_prefix=run_id + ':', classify_failure=True, dispatch_history=self.history,
                 production_cap=row['production_limit'])
@@ -268,7 +274,7 @@ class ResearchSession:
         plan = validate_plan(task['plan'], require_v2=True)
         node = next(n for n in plan.nodes if n.node_id == node_id)
         contract = plan.contracts[node_id]
-        messages = node_messages(task['task'], node, contract, task['reference_context'])
+        messages = node_messages(delivery_task(task), node, contract, task['reference_context'])
         label = f"probe:{task['task_id']}:{node_id}:{model_id}"
         if any(r['label'] == label for r in self.budget.records):
             raise ValueError('duplicate node probe')

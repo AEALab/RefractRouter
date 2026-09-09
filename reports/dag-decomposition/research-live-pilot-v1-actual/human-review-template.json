@@ -1,0 +1,1032 @@
+{
+  "scope": "先导问题诊断，不充抵完整矩阵的人工抽检",
+  "contains_model_grades": false,
+  "rows": [
+    {
+      "review_id": "07e85459b4e1",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://www.sqlite.org/foreignkeys.html\n摘要：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n任务：为一个使用两个连接的应用审核如下迁移方案：连接甲先 BEGIN 再 PRAGMA foreign_keys=ON；连接乙直接写入，认为甲的设置会共享。团队希望先写子记录再补父记录，并在 COMMIT 前补齐。给出逐条问题、正确操作顺序，以及选择即时或延迟外键时的区别，不声称执行数据库。",
+      "acceptance_criteria": [
+        "指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。",
+        "区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。"
+      ],
+      "plan": {
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "prompt_template": "你是数据库迁移方案审核助手。只依据以下已核对的官方材料摘要，不联网、不执行工具、不声称执行数据库。\n\n来源 S1：https://www.sqlite.org/foreignkeys.html\n摘要：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n\n任务：为一个使用两个连接的应用审核如下迁移方案：连接甲先 BEGIN 再 PRAGMA foreign_keys=ON；连接乙直接写入，认为甲的设置会共享。团队希望先写子记录再补父记录，并在 COMMIT 前补齐。\n\n请直接输出最终正文，依次包含以下部分，不要封装为 JSON：\n1. 逐条问题：逐条指出方案中的错误或风险，包括但不限于连接设置不共享、事务内启用无效且不报错、连接乙未启用外键、先写子记录再补父记录可能触发即时约束违例等。\n2. 正确操作顺序：给出每个连接在事务外启用外键并读取状态确认的步骤，以及写入顺序和提交条件。\n3. 即时与延迟外键的区别：说明即时约束在语句结束检查、延迟约束可到提交事务时检查，以及未解决的延迟违例使提交失败；结合「先写子记录再补父记录并在 COMMIT 前补齐」说明两种模式下补齐父记录与提交条件。\n\n要求：只依据给定材料，不把事务内无效设置写成已生效；未知条件保持未知或写成条件判断；不声称执行数据库。",
+            "parents": [],
+            "contract": {
+              "objective": "依据给定材料生成迁移方案审核正文，逐条指出问题、给出正确操作顺序，并说明即时与延迟外键的区别。",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终交付的审核正文，依次包含逐条问题、正确操作顺序、即时与延迟外键区别三部分。"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1500
+              },
+              "checks": [
+                "正文明确指出连接设置不共享，连接乙不会因连接甲设置而启用外键。",
+                "正文明确指出多语句事务内修改 foreign_keys 无效且不报错，不把该设置写成已生效。",
+                "正文给出每个连接在事务外启用外键并读取状态确认的步骤。",
+                "正文区分即时约束在语句结束检查与延迟约束可到提交事务时检查，并说明未解决的延迟违例使提交失败。",
+                "正文结合先写子记录再补父记录并在 COMMIT 前补齐，说明两种模式下的补齐父记录与提交条件。",
+                "正文不声称执行数据库，不引入材料未说明的事实。"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。",
+          "区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。"
+        ],
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "任务要求逐条问题、正确操作顺序和即时/延迟外键区别，三者共享同一份材料且相互关联，拆分会增加交接与汇总开销，单节点直接生成完整答复即可。"
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "476e4b256ea2",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://www.w3.org/WAI/tutorials/images/complex/\n摘要：复杂图像需要能识别图像的简短替代文本，以及表达关键信息的详细文本说明。详细说明可包括数值、比例尺、关系、趋势；图像结构有意义时也应解释。详细说明宜让所有读者可访问，例如放在主内容中，并可在图像附近提供说明链接。\n任务：为一张季度访问量柱状图准备无障碍发布稿。站点甲一月至三月为120、90、60，站点乙为80、80、80；纵轴从0开始，单位为千次。现有 alt=\"访问量图\"，详细数据仅在鼠标悬浮时显示。输出简短替代文本、可见长说明和发布检查项，保留数值及趋势，不推断下降原因或声称已通过辅助技术测试。",
+      "acceptance_criteria": [
+        "给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。",
+        "准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。"
+      ],
+      "plan": {
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "prompt_template": "你是无障碍内容编辑。只依据以下已核对材料摘要工作，不联网、不执行工具、不推断材料未说明的事实。\n\n材料摘要：\n来源 S1：https://www.w3.org/WAI/tutorials/images/complex/\n摘要：复杂图像需要能识别图像的简短替代文本，以及表达关键信息的详细文本说明。详细说明可包括数值、比例尺、关系、趋势；图像结构有意义时也应解释。详细说明宜让所有读者可访问，例如放在主内容中，并可在图像附近提供说明链接。\n\n任务：为一张季度访问量柱状图准备无障碍发布稿。站点甲一月至三月为120、90、60，站点乙为80、80、80；纵轴从0开始，单位为千次。现有 alt=\"访问量图\"，详细数据仅在鼠标悬浮时显示。\n\n请直接输出最终发布稿正文，依次包含以下三部分，并保留各部分标题：\n1. 简短替代文本：给出适合识别该图像的简短替代文本，替换现有 alt=\"访问量图\"。\n2. 可见长说明：给出可访问的详细文本说明，放在主内容中供所有读者阅读，不能只依赖鼠标悬浮；保留两个站点各月数值、时间范围、纵轴从0开始、单位为千次，并指出站点甲逐月递减、站点乙保持稳定；不推断下降原因。\n3. 发布检查项：列出发布前应检查的事项，包括但不限于替代文本是否识别图像、详细说明是否可见且不依赖鼠标悬浮、数值与单位是否准确、是否避免虚构原因或声称已通过辅助技术测试。\n\n约束：不得声称已通过辅助技术测试；不得推断站点甲下降原因；不得使用材料未说明的条件作为事实。",
+            "parents": [],
+            "contract": {
+              "objective": "依据给定材料生成包含简短替代文本、可见长说明和发布检查项的完整无障碍发布稿。",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终发布稿正文，依次包含简短替代文本、可见长说明、发布检查项三部分。"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1200
+              },
+              "checks": [
+                "正文依次包含简短替代文本、可见长说明、发布检查项三部分。",
+                "简短替代文本能识别该季度访问量柱状图，且不是笼统的「访问量图」。",
+                "可见长说明保留站点甲120、90、60与站点乙80、80、80，并说明一月至三月、纵轴从0开始、单位为千次。",
+                "可见长说明指出站点甲逐月递减、站点乙保持稳定，且未推断下降原因。",
+                "发布检查项覆盖替代文本、可见长说明不依赖鼠标悬浮、数值与单位准确、不虚构原因或声称已通过辅助技术测试。"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。",
+          "准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。"
+        ],
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "任务规模小且材料单一，核心工作是从给定摘要中提取无障碍要求并生成三部分发布稿。拆分不会带来质量或并行收益，反而增加交接与汇总开销，因此采用单节点直接生成。"
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "517caac61f61",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://www.sqlite.org/foreignkeys.html\n摘要：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n任务：为一个使用两个连接的应用审核如下迁移方案：连接甲先 BEGIN 再 PRAGMA foreign_keys=ON；连接乙直接写入，认为甲的设置会共享。团队希望先写子记录再补父记录，并在 COMMIT 前补齐。给出逐条问题、正确操作顺序，以及选择即时或延迟外键时的区别，不声称执行数据库。",
+      "acceptance_criteria": [
+        "指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。",
+        "区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。"
+      ],
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "分别核查连接级启用规则和事务级约束时机。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "核查两个连接的外键启用顺序和问题。",
+            "contract": {
+              "objective": "核查两个连接的外键启用顺序和问题。",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "分析即时与延迟约束下先子后父的可行条件。",
+            "contract": {
+              "objective": "分析即时与延迟约束下先子后父的可行条件。",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合上游与原始材料，逐条满足原始交付要求，保留来源与限制。",
+            "contract": {
+              "objective": "综合上游与原始材料，逐条满足原始交付要求，保留来源与限制。",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。",
+          "区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。"
+        ]
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "51936a9fb1d8",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://docs.python.org/3.13/library/itertools.html\n摘要：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合。如需按键聚合所有元素，可先按相同键排序。每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\n任务：输入为 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]。同事用 groupby 按首元素分组，先保存全部 (key, group_iterator)，循环结束才分别 list(group_iterator)，期待 A 合计5、B合计12。分析实际连续分组和延迟消费的问题，给出可保留结果的 Python 修正版及期望输出，不声称运行代码。",
+      "acceptance_criteria": [
+        "指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。",
+        "修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。"
+      ],
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "先解释迭代语义，再据此核验修正代码和输出。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "解释相邻分组及共享底层输入的语义。",
+            "contract": {
+              "objective": "解释相邻分组及共享底层输入的语义。",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [
+              "cost"
+            ],
+            "prompt_template": "根据上游语义逐步核对错误并构造修正代码与输出。",
+            "contract": {
+              "objective": "根据上游语义逐步核对错误并构造修正代码与输出。",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合上游与原始材料，逐条满足原始交付要求，保留来源与限制。",
+            "contract": {
+              "objective": "综合上游与原始材料，逐条满足原始交付要求，保留来源与限制。",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。",
+          "修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。"
+        ]
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "622b96de6614",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://www.w3.org/WAI/tutorials/images/complex/\n摘要：复杂图像需要能识别图像的简短替代文本，以及表达关键信息的详细文本说明。详细说明可包括数值、比例尺、关系、趋势；图像结构有意义时也应解释。详细说明宜让所有读者可访问，例如放在主内容中，并可在图像附近提供说明链接。\n任务：为一张季度访问量柱状图准备无障碍发布稿。站点甲一月至三月为120、90、60，站点乙为80、80、80；纵轴从0开始，单位为千次。现有 alt=\"访问量图\"，详细数据仅在鼠标悬浮时显示。输出简短替代文本、可见长说明和发布检查项，保留数值及趋势，不推断下降原因或声称已通过辅助技术测试。",
+      "acceptance_criteria": [
+        "给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。",
+        "准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。"
+      ],
+      "plan": {
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "数据与趋势核查、文本替代方案可独立设计，再汇总发布稿。",
+        "nodes": [
+          {
+            "node_id": "cost",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "核对图表数值、尺度和趋势。",
+            "contract": {
+              "objective": "核对图表数值、尺度和趋势。",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "risk",
+            "node_type": "synthesis",
+            "parents": [],
+            "prompt_template": "依据材料设计简短替代文本、长说明和发布检查。",
+            "contract": {
+              "objective": "依据材料设计简短替代文本、长说明和发布检查。",
+              "inputs": {},
+              "output": {
+                "format": "json",
+                "fields": {
+                  "result": "分析结果",
+                  "evidence": "原始材料来源标识与证据；没有证据时明确说明",
+                  "assumptions": "假设、不确定性与信息缺口；没有时明确说明"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          },
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "parents": [
+              "cost",
+              "risk"
+            ],
+            "prompt_template": "综合上游与原始材料，逐条满足原始交付要求，保留来源与限制。",
+            "contract": {
+              "objective": "综合上游与原始材料，逐条满足原始交付要求，保留来源与限制。",
+              "inputs": {
+                "cost": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 cost 的分析、证据与假设，检查一致性后形成判断"
+                },
+                "risk": {
+                  "fields": [
+                    "result",
+                    "evidence",
+                    "assumptions"
+                  ],
+                  "reason": "消费 risk 的分析、证据与假设，检查一致性后形成判断"
+                }
+              },
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终建议与可追溯依据"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1000
+              },
+              "checks": [
+                "保留证据与假设，不虚构数据",
+                "覆盖本节点职责并明确限制"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。",
+          "准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。"
+        ]
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "63f1d56807e9",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://www.w3.org/WAI/tutorials/images/complex/\n摘要：复杂图像需要能识别图像的简短替代文本，以及表达关键信息的详细文本说明。详细说明可包括数值、比例尺、关系、趋势；图像结构有意义时也应解释。详细说明宜让所有读者可访问，例如放在主内容中，并可在图像附近提供说明链接。\n任务：为一张季度访问量柱状图准备无障碍发布稿。站点甲一月至三月为120、90、60，站点乙为80、80、80；纵轴从0开始，单位为千次。现有 alt=\"访问量图\"，详细数据仅在鼠标悬浮时显示。输出简短替代文本、可见长说明和发布检查项，保留数值及趋势，不推断下降原因或声称已通过辅助技术测试。",
+      "acceptance_criteria": [
+        "给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。",
+        "准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。"
+      ],
+      "plan": {
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "prompt_template": "你是无障碍内容编辑。只依据以下已核对的官方材料摘要和任务信息，不联网、不执行工具、不推断材料未说明的原因或测试结论。\n\n材料摘要：复杂图像需要能识别图像的简短替代文本，以及表达关键信息的详细文本说明。详细说明可包括数值、比例尺、关系、趋势；图像结构有意义时也应解释。详细说明宜让所有读者可访问，例如放在主内容中，并可在图像附近提供说明链接。\n\n任务信息：为一张季度访问量柱状图准备无障碍发布稿。站点甲一月至三月为120、90、60，站点乙为80、80、80；纵轴从0开始，单位为千次。现有 alt=\"访问量图\"，详细数据仅在鼠标悬浮时显示。\n\n请直接输出无障碍发布稿正文，依次包含以下三部分，并保留各部分标题：\n1. 简短替代文本：给出适合放在 alt 属性中的简短文本，用于识别图像；不得只写「访问量图」。\n2. 可见长说明：给出所有读者可访问的详细文本说明，保留两个站点一月至三月的全部数值、时间、纵轴从0开始、单位为千次，并指出站点甲逐月递减、站点乙保持稳定；不得推断下降原因，不得声称已通过辅助技术测试。\n3. 发布检查项：列出发布前应检查的事项，包括但不限于替代文本已更新、详细说明可见且不依赖鼠标悬浮、数值与单位准确、纵轴从0开始、趋势表述准确、未虚构原因或测试结论。\n\n约束：不得声称已通过辅助技术测试；不得推断站点甲下降原因；不得使用材料未提供的外部信息。",
+            "parents": [],
+            "contract": {
+              "objective": "依据给定材料生成包含简短替代文本、可见长说明和发布检查项的无障碍发布稿正文。",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终无障碍发布稿正文，依次包含简短替代文本、可见长说明、发布检查项三部分。"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1200
+              },
+              "checks": [
+                "正文依次包含简短替代文本、可见长说明、发布检查项三部分。",
+                "简短替代文本能识别图像，且不是仅写「访问量图」。",
+                "可见长说明保留站点甲120、90、60和站点乙80、80、80，标明一月至三月、纵轴从0开始、单位为千次。",
+                "可见长说明指出站点甲逐月递减、站点乙保持稳定。",
+                "未推断站点甲下降原因，未声称已通过辅助技术测试。",
+                "发布检查项覆盖替代文本更新、说明可见且不依赖鼠标悬浮、数值单位准确、纵轴从0开始、趋势准确、未虚构原因或测试结论。"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。",
+          "准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。"
+        ],
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "任务包含三个紧密关联的交付部分：简短替代文本、可见长说明和发布检查项。三者共享同一份小规模材料，拆分不会带来并行收益，反而增加交接与一致性核对开销；单节点直接生成可保证数值、趋势和限制条件一致。"
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "68ca88e09bd3",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://www.sqlite.org/foreignkeys.html\n摘要：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n任务：为一个使用两个连接的应用审核如下迁移方案：连接甲先 BEGIN 再 PRAGMA foreign_keys=ON；连接乙直接写入，认为甲的设置会共享。团队希望先写子记录再补父记录，并在 COMMIT 前补齐。给出逐条问题、正确操作顺序，以及选择即时或延迟外键时的区别，不声称执行数据库。",
+      "acceptance_criteria": [
+        "指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。",
+        "区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。"
+      ],
+      "plan": {
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "prompt_template": "你是数据库迁移方案审核助手。只依据以下已核对的官方材料摘要，不联网、不执行工具、不声称执行数据库。\n\n来源 S1：https://www.sqlite.org/foreignkeys.html\n摘要：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n\n任务：为一个使用两个连接的应用审核如下迁移方案：连接甲先 BEGIN 再 PRAGMA foreign_keys=ON；连接乙直接写入，认为甲的设置会共享。团队希望先写子记录再补父记录，并在 COMMIT 前补齐。\n\n请直接输出最终正文，依次包含以下部分，并保留各部分标题：\n1. 逐条问题：逐条指出方案中的问题，包括但不限于连接设置不共享、事务内启用无效、连接乙未启用外键、先写子记录再补父记录的风险。\n2. 正确操作顺序：给出每个连接在事务外启用外键并读取状态确认的步骤，以及写入顺序和提交条件。\n3. 即时或延迟外键的区别：说明即时约束与延迟约束的检查时机、补齐父记录与提交条件的不同；不要把事务内无效设置写成已生效。\n\n要求：结论必须严格来自给定材料；材料未说明的条件保持未知或写成条件判断；不得声称执行数据库。",
+            "parents": [],
+            "contract": {
+              "objective": "依据给定材料生成迁移方案审核正文，逐条指出问题、给出正确操作顺序，并说明即时与延迟外键的区别。",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终交付的审核正文，依次包含逐条问题、正确操作顺序、即时或延迟外键的区别三部分。"
+                }
+              },
+              "capability": {
+                "difficulty": "medium",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1200
+              },
+              "checks": [
+                "正文明确说明连接设置不共享，连接乙不会因连接甲设置而启用外键。",
+                "正文明确说明多语句事务内修改 foreign_keys 无效且不报错，并给出事务外启用及读取状态的步骤。",
+                "正文区分即时约束在语句结束检查与延迟约束可到提交事务时检查，并说明补齐父记录与提交条件。",
+                "正文未将事务内无效设置写成已生效，未声称执行数据库。"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。",
+          "区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。"
+        ],
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "任务要求逐条问题、正确操作顺序以及即时/延迟外键区别，三者共享同一份已核对材料且相互关联，拆分会增加交接与汇总开销，且无独立并行分支收益，因此采用单节点直接生成完整答案。"
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "9ea0e9abd08f",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://docs.python.org/3.13/library/itertools.html\n摘要：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合。如需按键聚合所有元素，可先按相同键排序。每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\n任务：输入为 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]。同事用 groupby 按首元素分组，先保存全部 (key, group_iterator)，循环结束才分别 list(group_iterator)，期待 A 合计5、B合计12。分析实际连续分组和延迟消费的问题，给出可保留结果的 Python 修正版及期望输出，不声称运行代码。",
+      "acceptance_criteria": [
+        "指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。",
+        "修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。"
+      ],
+      "plan": {
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "prompt_template": "只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://docs.python.org/3.13/library/itertools.html\n摘要：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合。如需按键聚合所有元素，可先按相同键排序。每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\n\n任务：输入为 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]。同事用 groupby 按首元素分组，先保存全部 (key, group_iterator)，循环结束才分别 list(group_iterator)，期待 A 合计5、B合计12。请分析实际连续分组和延迟消费的问题，给出可保留结果的 Python 修正版及期望输出，不声称运行代码。\n\n要求：\n1. 指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\n2. 修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\n3. 最终正文直接输出，不封装为 JSON；按上述两部分分别呈现分析正文与修正建议。",
+            "parents": [],
+            "contract": {
+              "objective": "分析 groupby 连续分组与延迟消费问题，并给出可保留结果的 Python 修正版及期望输出。",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "最终交付正文：分别呈现连续分组与延迟消费分析、修正版代码及期望输出。"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1200
+              },
+              "checks": [
+                "明确指出原顺序产生 A、B、A、B 四组而非两组",
+                "解释共享底层迭代器导致延后 list(group_iterator) 丢失前组内容",
+                "修正版先按首元素排序，并在当前组有效时立即消费或转为列表",
+                "给出期望输出 A=5、B=12",
+                "不声称已运行代码"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。",
+          "修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。"
+        ],
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "任务为单一封闭材料分析：需同时解释连续分组与延迟消费问题，并给出修正代码与期望输出。两部分共享同一材料与同一代码上下文，拆分会产生交接与汇总开销，且无并行收益，故单节点完成。"
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    },
+    {
+      "review_id": "b8d1c086d55e",
+      "task": "封闭材料任务，只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://docs.python.org/3.13/library/itertools.html\n摘要：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合。如需按键聚合所有元素，可先按相同键排序。每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\n任务：输入为 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]。同事用 groupby 按首元素分组，先保存全部 (key, group_iterator)，循环结束才分别 list(group_iterator)，期待 A 合计5、B合计12。分析实际连续分组和延迟消费的问题，给出可保留结果的 Python 修正版及期望输出，不声称运行代码。",
+      "acceptance_criteria": [
+        "指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。",
+        "修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。"
+      ],
+      "plan": {
+        "nodes": [
+          {
+            "node_id": "answer",
+            "node_type": "generation",
+            "prompt_template": "只依据以下已核对的官方材料摘要，不联网或执行工具。\n来源 S1：https://docs.python.org/3.13/library/itertools.html\n摘要：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合。如需按键聚合所有元素，可先按相同键排序。每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\n\n任务：输入为 [(\"A\",2),(\"B\",5),(\"A\",3),(\"B\",7)]。同事用 groupby 按首元素分组，先保存全部 (key, group_iterator)，循环结束才分别 list(group_iterator)，期待 A 合计5、B合计12。请分析实际连续分组和延迟消费的问题，给出可保留结果的 Python 修正版及期望输出，不声称运行代码。\n\n要求：\n1. 指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\n2. 修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\n3. 最终正文直接输出，不封装为 JSON；分别呈现问题分析和修正版及期望输出。",
+            "parents": [],
+            "contract": {
+              "objective": "依据给定材料分析 groupby 连续分组与延迟消费问题，并给出可保留结果的修正版及期望输出。",
+              "inputs": {},
+              "output": {
+                "format": "text",
+                "fields": {
+                  "text": "包含问题分析、修正版 Python 代码及期望输出的最终正文"
+                }
+              },
+              "capability": {
+                "difficulty": "low",
+                "risk": "low",
+                "input_budget_tokens": 16384,
+                "expected_output_tokens": 1200
+              },
+              "checks": [
+                "明确指出原顺序产生 A、B、A、B 四组",
+                "解释共享迭代器导致延后消费丢失内容",
+                "修正版先按相同键排序并在当前组有效时消费",
+                "给出 A=5、B=12 的期望输出",
+                "不声称已运行代码"
+              ],
+              "covers": [
+                0,
+                1
+              ],
+              "execution": "text-model",
+              "failure_policy": "stop"
+            }
+          }
+        ],
+        "final_node_id": "answer",
+        "acceptance_criteria": [
+          "指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。",
+          "修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。"
+        ],
+        "schema_version": "text-task-plan-v2",
+        "decomposition_reason": "任务为单一封闭材料分析，需同时解释连续分组、共享迭代器延迟消费问题，并给出修正代码与期望输出。这些内容强耦合且篇幅短小，拆分会增加交接与汇总开销，无并行收益，故单节点完成。"
+      },
+      "reviewer": null,
+      "reviewed_at": null,
+      "human_reviewed": false,
+      "checks": [
+        {
+          "criterion": "职责是否覆盖全部原始交付要求",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "每条依赖是否有实际消费且必要依赖未遗漏",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "上下文和来源是否充分、没有虚构材料",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "是否存在重复或过度拆分、能否合理不拆分",
+          "passed": null,
+          "rationale": null
+        },
+        {
+          "criterion": "节点输入容量声明是否合理",
+          "passed": null,
+          "rationale": null
+        }
+      ],
+      "overall": null
+    }
+  ]
+}

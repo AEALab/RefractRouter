@@ -1,0 +1,24 @@
+{
+  "label": "setup:sqlite-fk:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划采用单节点直接生成，与任务强耦合、无并行收益的特点相符。计划完整覆盖了原始任务的全部交付条件：逐条问题、正确操作顺序、即时/延迟外键区别，且 checks 与 acceptance_criteria 对应了连接级设置不共享、事务内修改无效且不报错、事务外启用并读取状态、即时与延迟检查时机、补齐父记录与提交条件、不得声称执行数据库等关键点。材料摘要被完整嵌入 prompt_template，来源 S1 可追溯，无需虚构数据。无父节点依赖，符合单节点场景，不存在无意义串行边。能力声明（medium/low、16384 输入预算、1200 输出 tokens）合理。轻微不足：covers 字段 [0,1] 的索引语义未在计划中显式说明其指向，但不影响职责覆盖的完整性；验收条目虽少于 checks，但 checks 已补足遗漏要求。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"原始任务要求逐条问题、正确操作顺序、即时/延迟区别、不声称执行数据库。prompt_template 明确列出三部分及标题保留，checks 逐条覆盖连接不共享、事务内无效、事务外启用并读取状态、即时/延迟检查时机与提交条件、不得把无效设置写成已生效、不得声称执行数据库，未降低任何要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"单节点无 parents，final_node_id 指向 answer，无边声明，因此不存在无意义串行依赖或虚假字段消费。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 内嵌来源 S1 的 URL 与完整摘要，并明确要求结论严格来自给定材料、材料未说明的条件保持未知或写成条件判断，可追溯且不虚构。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"decomposition_reason 合理说明三部分共享同一材料且相互关联、拆分增加交接成本，单节点职责唯一无重复，输出即最终正文，包含原始任务所需全部内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"difficulty medium、risk low、input_budget_tokens 16384、expected_output_tokens 1200 与任务规模匹配；execution 为 text-model，failure_policy stop 合理；不拆分与任务高耦合、无并行收益的程度相符。\"}]}",
+  "input_tokens": 1202,
+  "output_tokens": 617,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 25082,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217889691661208878e6c95084a12b4d57c4d96cb06f1d27c9d7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 617,
+    "prompt_tokens": 1202,
+    "total_tokens": 1819,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

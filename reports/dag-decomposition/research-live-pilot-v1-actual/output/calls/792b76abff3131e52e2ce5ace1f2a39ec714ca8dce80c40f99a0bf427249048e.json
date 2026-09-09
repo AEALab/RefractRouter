@@ -1,0 +1,24 @@
+{
+  "label": "setup:wai-chart:plan-review",
+  "content": "{\"score\": 96, \"passed\": true, \"rationale\": \"该拆分计划为单节点直接生成方案，与任务规模小、材料单一的特点相符。节点 prompt 完整复述了封闭材料摘要、数据事实与输出要求，checks 覆盖了简短替代文本、可见长说明、发布检查项、数值与单位、趋势描述及禁止推断原因和声称测试等原始交付条件；acceptance_criteria 与 checks 一致且未降低要求。无依赖边，因此不存在虚构依赖；上下文可追溯至 S1 摘要；单节点职责无重复，汇总内容完整；能力与输入容量声明合理。轻微不足是 checks 未显式列出「可在图像附近提供说明链接」这一材料建议，但任务本身未强制要求链接，故不构成失败。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"节点 contract 的 objective、output 与 checks 覆盖了原始任务的全部交付条件：简短替代文本、可见长说明、发布检查项、保留数值与趋势、不推断下降原因、不声称已通过辅助技术测试，且未改写或降低任何条件。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"计划仅含一个节点，parents 为空，未声明任何依赖边，因此不存在无意义串行依赖或虚构字段消费。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 完整包含来源 S1 的 URL 与已核对摘要，以及任务所需的全部数据（两站点各月数值、纵轴起点、单位、现有 alt 与悬浮限制），无需虚构缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点生成，decomposition_reason 合理说明了不拆分的理由；节点职责单一无重复，输出要求依次包含三部分，汇总内容覆盖原始任务所需全部交付物。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明 difficulty 与 risk 均为 low，input_budget_tokens 16384 与 expected_output_tokens 1200 对该封闭材料短文本生成任务而言合理；任务各部分耦合度高，单节点符合耦合程度。\"}]}",
+  "input_tokens": 1304,
+  "output_tokens": 555,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 20911,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969479962de824baea9702e17bffa39e9c3bdc4f6bbdf18",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 555,
+    "prompt_tokens": 1304,
+    "total_tokens": 1859,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-direct:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案正确解释了 groupby 按相邻连续且键相等元素分组，指出原输入会形成 A、B、A、B 四组，并说明共享底层迭代器导致外层推进后先前组未消费数据失效。修正版先按相同键排序，再在循环内立即 list(group) 保存，给出 A=5、B=12，且明确不声称运行代码。\",\"criteria\":[{\"criterion\":\"指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\",\"passed\":true,\"rationale\":\"答案明确列出四组为 (\\\"A\\\", [(\\\"A\\\",2)])、(\\\"B\\\", [(\\\"B\\\",5)])、(\\\"A\\\", [(\\\"A\\\",3)])、(\\\"B\\\", [(\\\"B\\\",7)])，并说明各组迭代器共享底层输入，外层推进会使前一个组未保留数据不再可用，循环结束后才 list 可能得到空列表或错误结果。\"},{\"criterion\":\"修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\",\"passed\":true,\"rationale\":\"修正代码使用 sorted(data, key=itemgetter(0)) 后用 groupby，并在字典推导中立即 list(group)，随后计算 totals，期望输出为 A 合计 5、B 合计 12；文末明确「不声称实际运行代码」。\"}]}",
+  "input_tokens": 1175,
+  "output_tokens": 317,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11583,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969227797d6f60410e67e178f28d968f0420b51c31a98fc",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 317,
+    "prompt_tokens": 1175,
+    "total_tokens": 1492,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

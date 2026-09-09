@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-direct:final-review",
+  "content": "{\"score\":88,\"passed\":false,\"rationale\":\"答案正确指出外键启用是连接级设置、不能共享，也说明事务内修改 foreign_keys 无效且不报错，并区分了即时与延迟外键的检查时点和提交失败条件，整体未声称执行数据库。主要缺口是未明确给出「读取状态」的验证步骤（例如 PRAGMA foreign_keys 查询确认每个连接已启用），而这正是验收条目明确要求的一部分；此外对连接乙的直接写入虽推断其未启用外键，但未把「逐连接启用后读取确认」作为操作顺序的一步。\",\"criteria\":[{\"criterion\":\"指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。\",\"passed\":false,\"rationale\":\"答案正确指出「外键启用属于连接级设置，不能依赖默认值」「连接甲开启外键只影响连接甲自身」，并指出「多语句事务内修改 foreign_keys 无效且不报错」，要求连接甲先 PRAGMA foreign_keys=ON 再 BEGIN、连接乙同样处理。但操作顺序中缺少「读取状态」步骤，未建议通过查询 PRAGMA foreign_keys 确认每个连接实际已启用，因此未完整满足该条目。\"},{\"criterion\":\"区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。\",\"passed\":true,\"rationale\":\"答案明确说明即时约束在语句结束检查、先写子记录会立即失败；延迟约束可到提交时检查、未解决的延迟违例使提交失败，并强调延迟方案下必须在 COMMIT 前补齐父记录。同时反复强调事务内的 PRAGMA 设置「不会在事务内生效」，未将其误述为已生效。\"}]}",
+  "input_tokens": 1043,
+  "output_tokens": 371,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13835,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896904595778af8113c224ccdd69578c3b63d1e71aa02fc9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 371,
+    "prompt_tokens": 1043,
+    "total_tokens": 1414,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

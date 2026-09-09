@@ -1,0 +1,24 @@
+{
+  "label": "wai-chart-auto-reuse:final-review",
+  "content": "{\"score\": 100, \"passed\": true, \"rationale\": \"交付文本完整满足任务与验收要求：简短替代文本识别了图像内容（站点、时间范围、图表类型、单位），替代了原先笼统的「访问量图」；可见长说明放在主内容中、不依赖鼠标悬浮，准确保留了站点甲120、90、60与站点乙80、80、80的数值、一月至三月的时间、纵轴从0开始及千次单位，并指出甲逐月递减、乙保持稳定；明确声明不推断下降原因，检查项亦要求避免虚构原因与声称已通过辅助技术测试。未发现不实工具执行声明或超出封闭材料的推断。\", \"criteria\": [{\"criterion\": \"给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。\", \"passed\": true, \"rationale\": \"替代文本具体识别了图像（两站点、一月至三月、柱状图、单位千次），长说明为可见文本且检查项明确要求说明可见、置于主内容、不依赖鼠标悬浮。\"}, {\"criterion\": \"准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。\", \"passed\": true, \"rationale\": \"数值（甲120/90/60，乙80/80/80）、时间（一月至三月）、纵轴从0开始、单位千次均准确保留；趋势表述为甲逐月递减、乙保持稳定；明确不推断下降原因，且未声称通过辅助技术测试。\"}]}",
+  "input_tokens": 696,
+  "output_tokens": 337,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12927,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896950534359e4692ee8689b9dc112ef0a7e12032ff1eeba",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 337,
+    "prompt_tokens": 696,
+    "total_tokens": 1033,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
