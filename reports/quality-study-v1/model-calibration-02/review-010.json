@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"材料明确：甲有效且只能早班，乙有效且只能晚班，丙过期不可用；两班各需1人且资格有效，唯一可行安排为早班甲、晚班乙，feasible=true，与参考检查一致，来源s1、s2对应正确。任务输入未预先给出结论，需自行推导。验收条件覆盖资格、可用性与每班一人的全局约束。难度与业务代表性属作者构造的简短样例，单份材料可支持其作为基础排班资格核验任务的代表性，未发现错漏或歧义。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1规定每班1人须持有效培训，s2明确甲只能早班、乙只能晚班、丙过期；无歧义，无需保留未知。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"morning=甲、evening=乙、feasible=true与材料推导一致，required_sources均为s1、s2，对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks覆盖三个输出字段，semantic_criteria要求同时核验资格、可用时间与班次限制，覆盖关键错误与每班一人的全局约束。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction与materials仅给出规则与人员条件，未直接给出morning/evening/feasible结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pass\",\"rationale\":\"任务需先做资格过滤再做唯一分配，体现资格核验加约束分配的基础排班场景；作为作者构造的简短样例，该难度与代表性可由材料本身支持，未发现反证。\"}]}",
+  "input_tokens": 767,
+  "output_tokens": 415,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14903,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056588221b9f489096afc36acf45c00ec3935d23a7cb976",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 415,
+    "prompt_tokens": 767,
+    "total_tokens": 1182,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

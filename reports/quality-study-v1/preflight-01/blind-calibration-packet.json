@@ -1,0 +1,2451 @@
+[
+  {
+    "case_id": "case-0001",
+    "task": {
+      "instruction": "先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "要求",
+          "text": "每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。"
+        },
+        {
+          "source_id": "s2",
+          "title": "人员",
+          "text": "甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。"
+        }
+      ],
+      "requested_findings": {
+        "morning": "早班人员",
+        "evening": "晚班人员",
+        "feasible": "是否存在符合全部条件安排"
+      },
+      "semantic_criteria": [
+        "有空不能替代资格；不得额外安排丙作为合格替补。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "8d0c6b95ab50960aef93dd3337579f45fa91890753d8c308d3785f53445de066",
+      "checks": [
+        {
+          "field": "morning",
+          "op": "equal",
+          "expected": "甲",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "evening",
+          "op": "equal",
+          "expected": "乙",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "feasible",
+          "op": "equal",
+          "expected": true,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "有空不能替代资格；不得额外安排丙作为合格替补。"
+      ],
+      "author_reference": {
+        "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+        "findings": [
+          {
+            "id": "morning",
+            "value": "甲",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "evening",
+            "value": "乙",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "feasible",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+      "findings": [
+        {
+          "id": "morning",
+          "value": "甲",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "evening",
+          "value": "乙",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "feasible",
+          "value": true,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "有空不能替代资格；不得额外安排丙作为合格替补。"
+      ],
+      "task_sha256": "8d0c6b95ab50960aef93dd3337579f45fa91890753d8c308d3785f53445de066",
+      "output_sha256": "b3ae90006d80b5c877f3578abb94c439aee774965f8d10dde18759255163fb06"
+    }
+  },
+  {
+    "case_id": "case-0002",
+    "task": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+      "findings": [
+        {
+          "id": "allowed_now",
+          "value": [
+            "签名"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "blocked_now",
+          "value": [
+            "发布"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "required_edge",
+          "value": [
+            "签名",
+            "发布"
+          ],
+          "sources": [
+            "s1"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "output_sha256": "abeb7c21620233f40646c152c862b3efbb43cc8414f65204468f5d6db878f97f"
+    }
+  },
+  {
+    "case_id": "case-0003",
+    "task": {
+      "instruction": "依据规则判断此次申请能否全数批准。输出 remaining、requested、full_approval。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "规则",
+          "text": "每位成员最多同时持有5件设备；归还只有办理签收后才从持有数扣除。"
+        },
+        {
+          "source_id": "s2",
+          "title": "申请",
+          "text": "申请者已签出3件，另称有1件已放回但尚未签收；本次申请3件。"
+        }
+      ],
+      "requested_findings": {
+        "remaining": "现在可新增借用数",
+        "requested": "此次请求数",
+        "full_approval": "是否可全数批准"
+      },
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "checks": [
+        {
+          "field": "remaining",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "requested",
+          "op": "equal",
+          "expected": 3,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "full_approval",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "author_reference": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "full_approval",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+      "findings": [
+        {
+          "id": "remaining",
+          "value": 2,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "requested",
+          "value": 3,
+          "sources": [
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "output_sha256": "16420c663d29e9a916145143fb308448d08077a189b936e4287a6139838b7f4c"
+    }
+  },
+  {
+    "case_id": "case-0004",
+    "task": {
+      "instruction": "分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "需求与打印",
+          "text": "需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。"
+        },
+        {
+          "source_id": "s2",
+          "title": "配送与预算",
+          "text": "须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。"
+        }
+      ],
+      "requested_findings": {
+        "printer": "所选打印商",
+        "delivery": "配送方案",
+        "total_cost": "总价元"
+      },
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "checks": [
+        {
+          "field": "printer",
+          "op": "equal",
+          "expected": "P",
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "delivery",
+          "op": "equal",
+          "expected": "D",
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "total_cost",
+          "op": "equal",
+          "expected": 380,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "author_reference": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 380,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+      "findings": [
+        {
+          "id": "printer",
+          "value": "P",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "delivery",
+          "value": "D",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "total_cost",
+          "value": 380,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "output_sha256": "60daa5f6fd86ba5537614ece60792c18d369bca2e8822a4790231a0e1f1715b7"
+    }
+  },
+  {
+    "case_id": "case-0005",
+    "task": {
+      "instruction": "依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "进出记录",
+          "text": "月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。"
+        },
+        {
+          "source_id": "s2",
+          "title": "盘点记录",
+          "text": "月末实盘59件；单据仍有2份待核对，未提供对应数量。无监控或责任调查结果。"
+        }
+      ],
+      "requested_findings": {
+        "expected_stock": "应存件数",
+        "observed_gap": "实盘减应存",
+        "theft_proven": "材料是否已经证明失窃"
+      },
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "checks": [
+        {
+          "field": "expected_stock",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "observed_gap",
+          "op": "equal",
+          "expected": -1,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "theft_proven",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "author_reference": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+      "findings": [
+        {
+          "id": "expected_stock",
+          "value": 60.0,
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "observed_gap",
+          "value": -1.0,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "theft_proven",
+          "value": false,
+          "sources": [
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "output_sha256": "fe9093fc3414265a0f5b2abae4e6728a2c9a6d9946e58014a417e3d7061c4bbe"
+    }
+  },
+  {
+    "case_id": "case-0006",
+    "task": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+      "findings": [
+        {
+          "id": "allowed_now",
+          "value": [
+            "签名"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "blocked_now",
+          "value": [
+            "发布"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "required_edge",
+          "value": [
+            "签名",
+            "发布"
+          ],
+          "sources": [
+            "s1"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "output_sha256": "abeb7c21620233f40646c152c862b3efbb43cc8414f65204468f5d6db878f97f"
+    }
+  },
+  {
+    "case_id": "case-0007",
+    "task": {
+      "instruction": "依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "进出记录",
+          "text": "月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。"
+        },
+        {
+          "source_id": "s2",
+          "title": "盘点记录",
+          "text": "月末实盘59件；单据仍有2份待核对，未提供对应数量。无监控或责任调查结果。"
+        }
+      ],
+      "requested_findings": {
+        "expected_stock": "应存件数",
+        "observed_gap": "实盘减应存",
+        "theft_proven": "材料是否已经证明失窃"
+      },
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "checks": [
+        {
+          "field": "expected_stock",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "observed_gap",
+          "op": "equal",
+          "expected": -1,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "theft_proven",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "author_reference": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+      "findings": [
+        {
+          "id": "expected_stock",
+          "value": 60,
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "observed_gap",
+          "value": -1,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "theft_proven",
+          "value": false,
+          "sources": [
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "output_sha256": "068eb17a5e7e14c4edbaacba933b9ef6e4fda2167bd134aaffea5ed5dfd93d80"
+    }
+  },
+  {
+    "case_id": "case-0008",
+    "task": {
+      "instruction": "分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "需求与打印",
+          "text": "需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。"
+        },
+        {
+          "source_id": "s2",
+          "title": "配送与预算",
+          "text": "须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。"
+        }
+      ],
+      "requested_findings": {
+        "printer": "所选打印商",
+        "delivery": "配送方案",
+        "total_cost": "总价元"
+      },
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "checks": [
+        {
+          "field": "printer",
+          "op": "equal",
+          "expected": "P",
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "delivery",
+          "op": "equal",
+          "expected": "D",
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "total_cost",
+          "op": "equal",
+          "expected": 380,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "author_reference": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 380,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+      "findings": [
+        {
+          "id": "printer",
+          "value": "P",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "delivery",
+          "value": "D",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "total_cost",
+          "value": 240,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "output_sha256": "8460d306e49bcf7a800124a401643faafe95fe2161acfa5dcc296657e892032a"
+    }
+  },
+  {
+    "case_id": "case-0009",
+    "task": {
+      "instruction": "分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "问卷",
+          "text": "自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。"
+        },
+        {
+          "source_id": "s2",
+          "title": "客服",
+          "text": "同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。"
+        }
+      ],
+      "requested_findings": {
+        "survey_negative": "问卷不满意份数",
+        "service_complaints": "投诉工单条数",
+        "can_pool": "能否合成全体客户不满意率"
+      },
+      "semantic_criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "a23dd467584e035bb121af43795aeb3b1be1916fd7fa00581c2d5287a5d9d1aa",
+      "checks": [
+        {
+          "field": "survey_negative",
+          "op": "equal",
+          "expected": 14,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "service_complaints",
+          "op": "equal",
+          "expected": 20,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "can_pool",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "author_reference": {
+        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "findings": [
+          {
+            "id": "survey_negative",
+            "value": 14,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "service_complaints",
+            "value": 20,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "can_pool",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+      "findings": [
+        {
+          "id": "survey_negative",
+          "value": 14.0,
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "service_complaints",
+          "value": 20.0,
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "can_pool",
+          "value": false,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "task_sha256": "a23dd467584e035bb121af43795aeb3b1be1916fd7fa00581c2d5287a5d9d1aa",
+      "output_sha256": "772cbf845cf5149c80582367b0535dd3eb3483c59298976a10a12140018c88a4"
+    }
+  },
+  {
+    "case_id": "case-0010",
+    "task": {
+      "instruction": "依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "进出记录",
+          "text": "月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。"
+        },
+        {
+          "source_id": "s2",
+          "title": "盘点记录",
+          "text": "月末实盘59件；单据仍有2份待核对，未提供对应数量。无监控或责任调查结果。"
+        }
+      ],
+      "requested_findings": {
+        "expected_stock": "应存件数",
+        "observed_gap": "实盘减应存",
+        "theft_proven": "材料是否已经证明失窃"
+      },
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "checks": [
+        {
+          "field": "expected_stock",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "observed_gap",
+          "op": "equal",
+          "expected": -1,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "theft_proven",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "author_reference": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+      "findings": [
+        {
+          "id": "expected_stock",
+          "value": 64,
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "observed_gap",
+          "value": -1,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "theft_proven",
+          "value": false,
+          "sources": [
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "output_sha256": "892d7c24e6fb09e485b9331ba0f9c63230ef42d42b94f98a94e1ea803328905a"
+    }
+  },
+  {
+    "case_id": "case-0011",
+    "task": {
+      "instruction": "依据规则判断此次申请能否全数批准。输出 remaining、requested、full_approval。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "规则",
+          "text": "每位成员最多同时持有5件设备；归还只有办理签收后才从持有数扣除。"
+        },
+        {
+          "source_id": "s2",
+          "title": "申请",
+          "text": "申请者已签出3件，另称有1件已放回但尚未签收；本次申请3件。"
+        }
+      ],
+      "requested_findings": {
+        "remaining": "现在可新增借用数",
+        "requested": "此次请求数",
+        "full_approval": "是否可全数批准"
+      },
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "checks": [
+        {
+          "field": "remaining",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "requested",
+          "op": "equal",
+          "expected": 3,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "full_approval",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "author_reference": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "full_approval",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+      "findings": [
+        {
+          "id": "remaining",
+          "value": 2,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "requested",
+          "value": 3,
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "full_approval",
+          "value": false,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "output_sha256": "e60a29f36d92c074e25aabb3c3203e04a2ecddc39b83e04501ec9620e7af0718"
+    }
+  },
+  {
+    "case_id": "case-0012",
+    "task": {
+      "instruction": "依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "进出记录",
+          "text": "月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。"
+        },
+        {
+          "source_id": "s2",
+          "title": "盘点记录",
+          "text": "月末实盘59件；单据仍有2份待核对，未提供对应数量。无监控或责任调查结果。"
+        }
+      ],
+      "requested_findings": {
+        "expected_stock": "应存件数",
+        "observed_gap": "实盘减应存",
+        "theft_proven": "材料是否已经证明失窃"
+      },
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "checks": [
+        {
+          "field": "expected_stock",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "observed_gap",
+          "op": "equal",
+          "expected": -1,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "theft_proven",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "author_reference": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+      "findings": [
+        {
+          "id": "expected_stock",
+          "value": 60,
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "observed_gap",
+          "value": -1,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "theft_proven",
+          "value": false,
+          "sources": [
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "output_sha256": "0705a30d1503ae6dc39a53805bccc12595bdb0e156376f2b3643f3a2c12e81c1"
+    }
+  },
+  {
+    "case_id": "case-0013",
+    "task": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+      "findings": [
+        {
+          "id": "allowed_now",
+          "value": [
+            "签名"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "blocked_now",
+          "value": [
+            "发布"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "required_edge",
+          "value": [
+            "发布",
+            "签名"
+          ],
+          "sources": [
+            "s1"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "output_sha256": "27dd6e4eafd2e79c3c967abe0d49dbc199657e2b8ab3c311ed1d06a48011c5f6"
+    }
+  },
+  {
+    "case_id": "case-0014",
+    "task": {
+      "instruction": "先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "要求",
+          "text": "每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。"
+        },
+        {
+          "source_id": "s2",
+          "title": "人员",
+          "text": "甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。"
+        }
+      ],
+      "requested_findings": {
+        "morning": "早班人员",
+        "evening": "晚班人员",
+        "feasible": "是否存在符合全部条件安排"
+      },
+      "semantic_criteria": [
+        "有空不能替代资格；不得额外安排丙作为合格替补。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "8d0c6b95ab50960aef93dd3337579f45fa91890753d8c308d3785f53445de066",
+      "checks": [
+        {
+          "field": "morning",
+          "op": "equal",
+          "expected": "甲",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "evening",
+          "op": "equal",
+          "expected": "乙",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "feasible",
+          "op": "equal",
+          "expected": true,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "有空不能替代资格；不得额外安排丙作为合格替补。"
+      ],
+      "author_reference": {
+        "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+        "findings": [
+          {
+            "id": "morning",
+            "value": "甲",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "evening",
+            "value": "乙",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "feasible",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+      "findings": [
+        {
+          "id": "morning",
+          "value": "甲",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "evening",
+          "value": "乙",
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "feasible",
+          "value": true,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "有空不能替代资格；不得额外安排丙作为合格替补。"
+      ],
+      "task_sha256": "8d0c6b95ab50960aef93dd3337579f45fa91890753d8c308d3785f53445de066",
+      "output_sha256": "b3ae90006d80b5c877f3578abb94c439aee774965f8d10dde18759255163fb06"
+    }
+  },
+  {
+    "case_id": "case-0015",
+    "task": {
+      "instruction": "分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "需求与打印",
+          "text": "需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。"
+        },
+        {
+          "source_id": "s2",
+          "title": "配送与预算",
+          "text": "须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。"
+        }
+      ],
+      "requested_findings": {
+        "printer": "所选打印商",
+        "delivery": "配送方案",
+        "total_cost": "总价元"
+      },
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "checks": [
+        {
+          "field": "printer",
+          "op": "equal",
+          "expected": "P",
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "delivery",
+          "op": "equal",
+          "expected": "D",
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "total_cost",
+          "op": "equal",
+          "expected": 380,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "author_reference": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 380,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+      "findings": [
+        {
+          "id": "printer",
+          "value": "P",
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "delivery",
+          "value": "D",
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "total_cost",
+          "value": 380.0,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "output_sha256": "6dc401e16f6d7913df91f14c1a8b06dec59d27cddfdfcdbfb251df8590323f6f"
+    }
+  },
+  {
+    "case_id": "case-0016",
+    "task": {
+      "instruction": "依据规则判断此次申请能否全数批准。输出 remaining、requested、full_approval。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "规则",
+          "text": "每位成员最多同时持有5件设备；归还只有办理签收后才从持有数扣除。"
+        },
+        {
+          "source_id": "s2",
+          "title": "申请",
+          "text": "申请者已签出3件，另称有1件已放回但尚未签收；本次申请3件。"
+        }
+      ],
+      "requested_findings": {
+        "remaining": "现在可新增借用数",
+        "requested": "此次请求数",
+        "full_approval": "是否可全数批准"
+      },
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "checks": [
+        {
+          "field": "remaining",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "requested",
+          "op": "equal",
+          "expected": 3,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "full_approval",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "author_reference": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "full_approval",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+      "findings": [
+        {
+          "id": "remaining",
+          "value": 2.0,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "requested",
+          "value": 3.0,
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "full_approval",
+          "value": false,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "output_sha256": "aa1033a36d5e632d8f156dc3813fb2a4d7b33889b3ea0601f6f6a2a2d152142c"
+    }
+  },
+  {
+    "case_id": "case-0017",
+    "task": {
+      "instruction": "分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "问卷",
+          "text": "自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。"
+        },
+        {
+          "source_id": "s2",
+          "title": "客服",
+          "text": "同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。"
+        }
+      ],
+      "requested_findings": {
+        "survey_negative": "问卷不满意份数",
+        "service_complaints": "投诉工单条数",
+        "can_pool": "能否合成全体客户不满意率"
+      },
+      "semantic_criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "a23dd467584e035bb121af43795aeb3b1be1916fd7fa00581c2d5287a5d9d1aa",
+      "checks": [
+        {
+          "field": "survey_negative",
+          "op": "equal",
+          "expected": 14,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "service_complaints",
+          "op": "equal",
+          "expected": 20,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "can_pool",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "author_reference": {
+        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "findings": [
+          {
+            "id": "survey_negative",
+            "value": 14,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "service_complaints",
+            "value": 20,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "can_pool",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+      "findings": [
+        {
+          "id": "survey_negative",
+          "value": 14,
+          "sources": [
+            "s1"
+          ]
+        },
+        {
+          "id": "service_complaints",
+          "value": 20,
+          "sources": [
+            "s2"
+          ]
+        },
+        {
+          "id": "can_pool",
+          "value": false,
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "task_sha256": "a23dd467584e035bb121af43795aeb3b1be1916fd7fa00581c2d5287a5d9d1aa",
+      "output_sha256": "74ff104527e08867e7933319c4bf9e3b0880379d3769b9cd0c48b8ba52c5c4ee"
+    }
+  },
+  {
+    "case_id": "case-0018",
+    "task": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "可以立即发布，发布完成后才需要签名。",
+      "findings": [
+        {
+          "id": "allowed_now",
+          "value": [
+            "签名"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "blocked_now",
+          "value": [
+            "发布"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "required_edge",
+          "value": [
+            "签名",
+            "发布"
+          ],
+          "sources": [
+            "s1"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "output_sha256": "c6aa5e004f0ee3fad5a32b04107cc7b477fd37621086b85ffb5b0699eb3f94e1"
+    }
+  }
+]

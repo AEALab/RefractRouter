@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pending\",\"rationale\":\"参考事实与算术核对无误（1200/200=6，900/100=9，按每开放小时口径恶化故 efficiency_improved=false，来源 s1、s2 对应正确），任务未预先透露结论，语义约束覆盖分母变化与因果解释限制；但单份作者构造材料无法证明跨样本独立性、来源真实性及业务代表性，相关标准证据不足，保留 pending。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"材料给出两期电量与开放小时，面积相同，人数与天气明确标注未提供；任务要求比较每开放小时用电量并评价因果论断，口径清晰，未知因素已保留。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"before=1200/200=6，after=900/100=9，efficiency_improved=false（归一化后恶化），三项均引用 s1、s2，与 reference_checks 一致。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks 锁定三个关键数值与结论，semantic_criteria 要求写清分母改变且不得把归一化恶化解释为因果证明，覆盖主要错误模式与输出契约。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"材料仅给出原始电量与小时数，未给出每小时数值或效率结论，需自行归一化推导。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"仅有作者自构造的简短样例，无跨样本独立性、来源真实性或真实业务分布证据，无法判定代表性，按范围要求保留 pending。\"}]}",
+  "input_tokens": 770,
+  "output_tokens": 394,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13848,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905602097040d92d5266a85c14e28416df297f1b207e17b8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 394,
+    "prompt_tokens": 770,
+    "total_tokens": 1164,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

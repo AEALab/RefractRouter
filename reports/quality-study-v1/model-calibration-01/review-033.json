@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pending\",\"rationale\":\"参考事实核算正确：A满足12人、无障碍、450元≤500且为合格中最低价；B容量不足、C无通道为硬条件不合格；D合格但较贵，不应列入rejected_ids，语义区分正确。任务无歧义，验收条件覆盖了D误判等关键错误。但单份作者构造材料无法证明跨样本独立性与业务代表性，相关项保留pending。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1硬要求（12人、无障碍、预算500、满足后选最低价）与s2各房间属性清晰，A唯一合格且最低价，无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"selected=A、cost=450、rejected_ids={B,C}与材料一致；B仅10人、C无通道为不合格；D合格但480>450属合格未选，未被误判；required_sources对应合理。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"三项reference_checks覆盖选择、费用、拒绝集合，且semantic_criteria明确区分不合格与合格未选，防止把D判为违反预算。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction与requested_findings仅描述输出键与规则，未直接给出A/450/{B,C}结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"仅一份作者构造的简短材料，无法证明跨样本独立性、来源真实性或业务代表性，证据不足。\"}]}",
+  "input_tokens": 766,
+  "output_tokens": 378,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14000,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056214057d6f60410e67e178f28d968f0420b51c38892a8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 378,
+    "prompt_tokens": 766,
+    "total_tokens": 1144,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

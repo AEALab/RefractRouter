@@ -1,0 +1,23 @@
+{
+  "content": "{\n  \"verdict\": \"pending\",\n  \"rationale\": \"参考事实与算术正确，来源对应无误，任务输入未泄露结论，验收条件覆盖关键错误；但单份构造材料无法证明任务难度与目标业务的代表性，故该标准保留 pending。\",\n  \"criteria\": [\n    {\n      \"criterion\": \"材料与任务要求无歧义或明确保留未知\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"材料明确给出东站随机对照数据（s1）和西站自愿选择且无对照结果（s2），任务要求对不可计算项填 unknown，对跨站点合并给出判断，无歧义。\"\n    },\n    {\n      \"criterion\": \"参考事实、算术及来源对应正确\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"east_change: (32/40 - 24/40) × 100 = 20 个百分点，来源 s1 正确；west_change: 西站无旧流程对照组结果，无法计算相对差异，expected 为 unknown，来源 s2 正确；pooled_effect_supported: 西站非随机、人群不同且数据缺失，不支持统一推广效果估计，expected 为 false，来源 s1、s2 正确。\"\n    },\n    {\n      \"criterion\": \"验收条件覆盖关键错误和全局约束\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"reference_checks 分别约束了 east_change 的算术正确性、west_change 的不可计算性以及 pooled_effect_supported 的跨站点合并限制，覆盖了关键错误和全局约束。\"\n    },\n    {\n      \"criterion\": \"公共任务输入没有预先透露应推导的结论\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"instruction 和 requested_findings 仅要求分别总结并判断能否统一推广，未预先给出具体数值或结论。\"\n    },\n    {\n      \"criterion\": \"有证据支持任务难度与目标业务的代表性\",\n      \"verdict\": \"pending\",\n      \"rationale\": \"材料为作者构造的简短候选材料，单份材料无法证明跨样本独立性、来源真实性或业务代表性，证据不足以支持该标准。\"\n    }\n  ]\n}",
+  "input_tokens": 771,
+  "output_tokens": 473,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17025,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056552353640844006c495b97e3327b5d9afec8568a9386",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 473,
+    "prompt_tokens": 771,
+    "total_tokens": 1244,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

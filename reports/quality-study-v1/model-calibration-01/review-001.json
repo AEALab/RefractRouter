@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案正确给出14/50不满意、20条工单、不可合并，并指出工单非独立客户与无法去重；但任务要求分别分析问卷与客服记录，并说明抽样与重叠限制，正文未说明问卷为自愿填写、未覆盖未填写者、未记录是否联系客服等抽样/重叠限制，也未明确4条追问导致客户数小于20，故关键限制说明不足。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文符合材料数值并给出不能合成结论，但未满足“分别分析”和说明问卷自愿抽样、未填写者未知、是否联系客服未记录等限制的任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 survey_negative=14(s1)、service_complaints=20(s2)、can_pool=false(s1,s2) 与正文一致；未把工单反写为客户数，也未声称可代表全体客户。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出且数值/布尔正确；14与20分别由s1、s2支持，can_pool=false由两来源无法对应及工单含同一客户追问支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"fail\",\"rationale\":\"正文说“工单不是独立客户”和“无法去重”，但未分别展开两来源限制：问卷仅自愿50份、未记录未填写者与是否联系客服；客服20条中4条为同一客户追问，唯一客户数未知且可能小于20。抽样与重叠限制说明不完整。\"}]}",
+  "input_tokens": 737,
+  "output_tokens": 399,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17847,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789055766104b9f489096afc36acf45c00ec3935d23a6923be",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 399,
+    "prompt_tokens": 737,
+    "total_tokens": 1136,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

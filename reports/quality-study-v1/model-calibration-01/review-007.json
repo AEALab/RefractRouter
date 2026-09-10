@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案的事实与数值均正确，工单未被当作客户数，也正确指出不能合并；但任务要求“分别分析问卷与客服记录”并说明抽样限制，正文未指出问卷为自愿填写、未覆盖未填写者这一关键抽样限制，故不完全满足全部硬约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"任务要求分别分析两来源并说明抽样限制；正文未提及问卷为自愿填写50份且未记录未填写者，存在自选样本与非响应覆盖缺失，抽样限制说明不完整。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文14/50、20条工单、不能合并与findings一致；未把工单当客户数，未声称可对应身份，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"survey_negative=14引s1，service_complaints=20引s2，can_pool=false引s1、s2；材料明确无法与问卷身份对应且未记录是否联系客服，足以支持不可合并。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"fail\",\"rationale\":\"已说明工单含4条同一客户追问、不是独立客户且无法去重，重叠限制成立；但分别分析不完整，未说明问卷自愿填写与未填写者未记录的抽样限制。\"}]}",
+  "input_tokens": 733,
+  "output_tokens": 348,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15903,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789055839980c237340934591b89d6de6b6a9271c1b9c0bb8a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 348,
+    "prompt_tokens": 733,
+    "total_tokens": 1081,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

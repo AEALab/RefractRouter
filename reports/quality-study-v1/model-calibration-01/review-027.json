@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pending\",\"rationale\":\"材料规则明确：普通申请须在购买后7天内（含第7天）；有登记故障的可延至30天内（含第30天）；超过30天不受理。据此，甲（第7天，无故障）符合普通规则边界，乙（第30天，有故障）符合例外规则边界，丙（第31天，有故障）超期，故 eligible_ids=[甲,乙]、ineligible_ids=[丙] 与参考一致，来源对应 s1、s2 正确。任务未在输入中预先透露结论，需依据规则推导。验收条件覆盖关键边界与全局约束。但单份构造材料无法证明跨样本独立性、来源真实性或业务代表性，难度与目标业务代表性证据不足，按指示保留 pending。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1 明确普通7天（含第7天）、故障30天（含第30天）、超30天不受理；s2 明确三人天数与故障状态，无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"甲第7天含边界符合、乙第30天含边界符合、丙第31天超期；eligible=[甲,乙]、ineligible=[丙] 与 reference_checks 一致，来源 s1、s2 对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks 对 eligible_ids 与 ineligible_ids 均做 set_equal 校验并要求 s1、s2，覆盖第7/30天包含边界与超30天不受理的关键错误及全局约束。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction 与 materials 仅给规则与申请事实，未直接给出 eligible/ineligible 名单，结论需推导得出。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"仅一份作者构造的简短材料，无法证明跨样本独立性、来源真实性或业务代表性，证据不足，保留 pending。\"}]}",
+  "input_tokens": 736,
+  "output_tokens": 482,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16339,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890561066923f04613060c95c0e1cb70b4f628471a93f2ed9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 482,
+    "prompt_tokens": 736,
+    "total_tokens": 1218,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文分别分析两来源：问卷14/50不满意且仅限自愿填写者，客服20条工单含4条同一客户追问，明确工单不等于客户数，并说明身份无法对应、不能去重、不能合成全体不满意率。findings三项数值与来源均与材料一致，can_pool=false有据。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文覆盖结论、依据与限制，数值14/50、20条、4条追问均与s1、s2一致，未超出材料。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中14、20、false与正文表述一致，未把工单当客户数，未声称可合并。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"survey_negative=14引s1，service_complaints=20引s2，can_pool=false引s1+s2，引用足以支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"明确指出工单条数不等于客户数，问卷系自愿样本且未填写者未知，两来源身份无法对应、无法去重。\"}]}",
+  "input_tokens": 779,
+  "output_tokens": 308,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12524,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056445984efca7158d8a072a352f4e6ec3154e35ad94fba",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 308,
+    "prompt_tokens": 779,
+    "total_tokens": 1087,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

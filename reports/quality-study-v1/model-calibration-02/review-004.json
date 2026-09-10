@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"数值与 findings 正确，但正文未分别分析两来源，也未说明问卷为自愿填写样本、未覆盖未填写者等抽样限制，未完整满足分别分析与限制说明要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"任务要求分别分析问卷与客服记录并指出限制；正文只合并简述，未说明问卷自愿填写50份、未记录未填写者及身份无法对应之外的抽样限制，未充分体现分别分析。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文14/50、20条工单、不能合成全体不满意率与 findings 一致，未把工单当客户数，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"survey_negative=14 引 s1，service_complaints=20 引 s2，can_pool=false 引 s1、s2，均有材料依据。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"fail\",\"rationale\":\"正文说明工单不是独立客户且无法去重，满足重叠限制；但未分别展开两来源，也未说明问卷自愿样本、未记录未填写者导致的抽样限制。\"}]}",
+  "input_tokens": 733,
+  "output_tokens": 310,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14014,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905648857540d92d5266a85c14e28416df297f1b20331151",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 310,
+    "prompt_tokens": 733,
+    "total_tokens": 1043,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

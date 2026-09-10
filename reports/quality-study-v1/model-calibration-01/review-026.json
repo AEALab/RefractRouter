@@ -1,0 +1,23 @@
+{
+  "content": "{\n  \"verdict\": \"pass\",\n  \"rationale\": \"任务材料与要求清晰，参考事实正确，验收条件覆盖关键错误，输入未预先透露结论，难度与目标业务场景相符。\",\n  \"criteria\": [\n    {\n      \"criterion\": \"材料与任务要求无歧义或明确保留未知\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"材料明确说明了流程顺序（打包→签名→发布）和现状（打包完成、签名未执行、要求直接发布），任务要求核对步骤执行状态，无歧义。\"\n    },\n    {\n      \"criterion\": \"参考事实、算术及来源对应正确\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"根据材料，签名是当前唯一可执行步骤（allowed_now），发布被阻塞（blocked_now），发布直接前置边是签名→发布（required_edge），与参考检查一致，来源对应正确。\"\n    },\n    {\n      \"criterion\": \"验收条件覆盖关键错误和全局约束\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"验收条件通过语义标准和参考检查覆盖了依赖顺序、直接发布错误等关键错误，并强调了来源对应，符合全局约束。\"\n    },\n    {\n      \"criterion\": \"公共任务输入没有预先透露应推导的结论\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"任务输入仅提供材料和请求，未直接给出allowed_now、blocked_now或required_edge的具体值，需要推导得出。\"\n    },\n    {\n      \"criterion\": \"有证据支持任务难度与目标业务的代表性\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"任务涉及流程依赖分析和状态核对，与软件发布或业务流程管理中的常见问题相符，具有代表性；材料提供了足够证据支持难度。\"\n    }\n  ]\n}",
+  "input_tokens": 745,
+  "output_tokens": 391,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13489,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890560931868df8e1a1401bb5aa62b5b494646ada588c3e3d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 391,
+    "prompt_tokens": 745,
+    "total_tokens": 1136,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

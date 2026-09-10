@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文结论 P+D=380 元正确且满足全部硬约束，但 findings 中 total_cost 为 240，与正文及材料计算（300+80=380）矛盾，属事实错误，导致正文与结构化结论不一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选 P（300 元，双面彩色，s1）+D（80 元，周四送达，s2），总价 380 元，满足彩色双面、周五前送达及 400 元预算，并正确排除 Q、E。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"findings 的 total_cost=240 与正文 380 元矛盾，也与 s1、s2 报价之和（300+80=380）不符，结构化结论与正文不一致。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"printer、delivery 正确且引用充分，但 total_cost=240 无材料支持，与所引 s1、s2 数据矛盾，事实错误。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"正文未贪便宜选 Q（仅黑白）或 E（周六送达），正确选择满足全部硬约束的 P+D 组合。\"}]}",
+  "input_tokens": 716,
+  "output_tokens": 334,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12446,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789055868976e78c31fe06d4434dfef0260629e4a08b54b3e6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 334,
+    "prompt_tokens": 716,
+    "total_tokens": 1050,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
