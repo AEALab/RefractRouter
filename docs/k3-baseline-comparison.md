@@ -5,6 +5,9 @@
 21 份节点探针，状态为 `node-review-ready`，尚未形成独立质量对照。
 首次超时的[停止记录](../reports/v0.5-k3-prepare-admission/README.md)与后续
 [成功恢复证据](../reports/v0.5-k3-resume-admission-2/README.md)均保留。
+2026-09-10 获批的独立节点评审在第二次请求超时后停止，仅完成一份有效评分，
+已知费用 2.2194 AFP，另有一次未知用量；见
+[评审停止记录](../reports/issue36-node-reviews-20260910/README.md)。
 此前的 ABC 对照及原始评分保留为历史证据，不能当作本实验的结果。
 
 ## 固定主对照
