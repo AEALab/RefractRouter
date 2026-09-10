@@ -1,0 +1,420 @@
+{
+  "schema_version": "aligned-cohort-review-v1",
+  "source": "Immutable run and judge records; successful independently judged cohort for all metrics",
+  "source_hashes": {
+    "baseline-table.md": "429e635c652fee845cf1bf1637c747c90f30a292e589fdb649439e76e98a555d",
+    "benchmark-summary.json": "2227a20edb9b71a5ebd29ae904efeca2331dc1470fc840d276f27efcb1a1c17a",
+    "failure-taxonomy.md": "0fa4e62e6666967be7c7eb8a6a0ef153fb11a264075a932ee41f51fd11fa66f8",
+    "model-progress.ndjson": "f567d00a24e8a9736e8b12f2739ed887bbebcb27911bef38dba6de559f3266ea",
+    "node-evaluations.ndjson": "40d89e52697c844b9868355f4978a31a4856a6605f761b0586edcc5d1afdcaf6",
+    "node-quality-matrix.json": "7e20aa06c4f2c22faf497e2d13a9cccc352358eb747b330c446c46f0694f5149",
+    "node-quality-matrix.md": "12ab4b4feb921a043a5543eee4028cd0527feaca79d5300bad1bd2a95c496f0e",
+    "oracle-gap.md": "bc5dbbfa609dc20dfbf1315515f648e6828b416221554f5e9a62d6ba71eee0e6",
+    "pareto-front.md": "549fc994338817b611bb3dc410e963593ce5ee767e28930f031bf053c2999481",
+    "preflight.json": "f15dca9c230f0c7d9ac1fc5d0a58d4df0cef018e244ec0f171e301e31dcdab4a",
+    "runs/report_001/repeat-1/node-oracle.json": "c58f771a2e9e1a90f53ad030c35ae07274daee30d20d9e200f870bcc5afc1833",
+    "runs/report_001/repeat-1/node-type-rule.json": "457fff36bfdf4be2726e943df77fc3d0196916590b4e25d35c1420ec3004c50e",
+    "runs/report_001/repeat-1/strong-all.json": "88b8a877bd98a1f19103e1c7b76d10ec2dea568ae9003e1c94f565c7677f1f3a",
+    "runs/report_001/repeat-1/task-oracle.json": "a075d8791de04ef3d8dfb0d726e5c057b81954e41fc6800f70a85e12e6d88e67",
+    "runs/report_001/repeat-1/weak-all.json": "c57daa5e2657bd468f843d8accdbe331f2b8cfc4d78c89b3afa8c81a2169a09b",
+    "runs/report_001/repeat-2/node-oracle.json": "091f089864adcab51d9eb1a88fc2d7198a9a8ccea0e357ed43740e0d26e3e2ac",
+    "runs/report_001/repeat-2/node-type-rule.json": "e97b7d41e777ef4f3259cbc9f324a1a1a736209e5c79cb6ddf8dfb75fd68d167",
+    "runs/report_001/repeat-2/strong-all.json": "2408af41d124633c0277ac6712079678ae40a052a96c28ba050c5dcfca2f4f42",
+    "runs/report_001/repeat-2/task-oracle.json": "e46ae6949567f17553a4bcf21d6cb31f7c28be375ad81cea6e04cc63b69f8e43",
+    "runs/report_001/repeat-2/weak-all.json": "0a67bfa160b6353c36e0a4df0f8cb6e0a2209a0935c0161c39affb371c333d99",
+    "runs/report_001/repeat-3/node-oracle.json": "fdd26244211d73736404886b6d1093acc228e5a43440a93134b2e2af5962afe6",
+    "runs/report_001/repeat-3/node-type-rule.json": "93a1fa52613881622b1be45d3aabc97121ffa27ee7e80efafeb4137a1cf2ee1d",
+    "runs/report_001/repeat-3/strong-all.json": "286a98cb4985c9c6e1257ba9d3490c395d158d3884764daa27f5714277b907c3",
+    "runs/report_001/repeat-3/task-oracle.json": "0b1ca2e367933e6fee3607e769ee62e553912f280d4eb96c313e2725db79e502",
+    "runs/report_001/repeat-3/weak-all.json": "f973d49fb4803130c2d2cd5cf973d8790385b0915e86e76ba3d7559ccb97d21b",
+    "selection-report_001-1.json": "e40860093d8bac99e9c10b57aa01515393b4e437f7bbad7d3155a23a61bf6d59",
+    "selection-report_001-2.json": "549320ef852c0e6b83cb7f30f7346a565b3bd8c03229fb747db9ceff7b04d4d3",
+    "selection-report_001-3.json": "69e16f793cc0641152f789a506e15a053d60d770d55f51c35428fc47e707d064",
+    "single-models/report_001/repeat-1/cheap.json": "f21d37654a5bcb5224851c573ded8c7a60a1586b2a77dd473675e6a4be88ff30",
+    "single-models/report_001/repeat-1/mid.json": "8ae118f98e8efbc2c1c30b9609233950be2261841ea9c4d7acfc2dfb296dfe9f",
+    "single-models/report_001/repeat-1/strong.json": "d9eaf2140b5839cc832e3782c8f6f3b7fa53923a0c044300dcad5c5fa9e8df03",
+    "single-models/report_001/repeat-2/cheap.json": "693c7215735a6c4bfb0a461ef3885d37450ef098edb193db072944cb7d615f5d",
+    "single-models/report_001/repeat-2/mid.json": "d4413d29551c831a9391e74a6bf77aa598470638326ee93a71d35921f439efc2",
+    "single-models/report_001/repeat-2/strong.json": "0806cd10488981981f8ba56dad777444e24a288c39488641d6c95872dcc973ec",
+    "single-models/report_001/repeat-3/cheap.json": "e41dd183c6856b2b6347903111d6df910f11cbcfbe4b7d648e8104176a297654",
+    "single-models/report_001/repeat-3/mid.json": "3a8db3bd9dd3d9617f1b8a6f926ede6ac027cc8e3d18ea593bd125ce4af35470",
+    "single-models/report_001/repeat-3/strong.json": "ef0d3cf738f3acc0bc9bcb2b50eadbdf9c0afb1b1e93e9163f6692958fea5776",
+    "strategy-comparisons.json": "a60104b41ade813b5c7b9dbe104cb43223d14798210b6b7879df4dce310a84e5",
+    "strategy-comparisons.md": "6e899c40aff33613e1ac649ffccf1308b55637c5fbcea01a75863147d20cf22e"
+  },
+  "model_calls": 0,
+  "status": "incomplete",
+  "strategies": {
+    "node-oracle": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 3
+          }
+        ],
+        "excluded": [],
+        "complete": true
+      },
+      "comparison_runs": 3,
+      "quality_mean": 92.0,
+      "quality_stddev": 1.633,
+      "production_cost_mean": 5.50523333,
+      "production_cost_stddev": 1.10285804,
+      "production_cost_p50": 5.12025,
+      "production_cost_p95": 6.81801,
+      "production_cost_total": 16.5157,
+      "evaluation_cost_total": 12.309,
+      "critical_path_p50_ms": 91402,
+      "critical_path_p95_ms": 96785,
+      "critical_path_stddev_ms": 5237,
+      "success_rate": 1.0,
+      "judge_coverage": 1.0,
+      "retry_rate": 0.0
+    },
+    "node-type-rule": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 3
+          }
+        ],
+        "excluded": [],
+        "complete": true
+      },
+      "comparison_runs": 3,
+      "quality_mean": 85.667,
+      "quality_stddev": 4.19,
+      "production_cost_mean": 3.90506667,
+      "production_cost_stddev": 0.73239189,
+      "production_cost_p50": 3.4276,
+      "production_cost_p95": 4.78858,
+      "production_cost_total": 11.7152,
+      "evaluation_cost_total": 10.396,
+      "critical_path_p50_ms": 60134,
+      "critical_path_p95_ms": 77635,
+      "critical_path_stddev_ms": 10786,
+      "success_rate": 1.0,
+      "judge_coverage": 1.0,
+      "retry_rate": 0.0
+    },
+    "strong-all": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 3
+          }
+        ],
+        "excluded": [],
+        "complete": true
+      },
+      "comparison_runs": 3,
+      "quality_mean": 88.333,
+      "quality_stddev": 3.091,
+      "production_cost_mean": 7.70696667,
+      "production_cost_stddev": 1.51075208,
+      "production_cost_p50": 6.7265,
+      "production_cost_p95": 9.529685,
+      "production_cost_total": 23.1209,
+      "evaluation_cost_total": 11.466,
+      "critical_path_p50_ms": 74931,
+      "critical_path_p95_ms": 105662,
+      "critical_path_stddev_ms": 17357,
+      "success_rate": 1.0,
+      "judge_coverage": 1.0,
+      "retry_rate": 0.0
+    },
+    "task-oracle": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          }
+        ],
+        "excluded": [
+          {
+            "task_id": "report_001",
+            "repeat": 3,
+            "reasons": [
+              "missing-judge",
+              "judge:incomplete-single-model-evaluations"
+            ]
+          }
+        ],
+        "complete": false
+      },
+      "comparison_runs": 2,
+      "quality_mean": 94.5,
+      "quality_stddev": 1.5,
+      "production_cost_mean": 2.7692,
+      "production_cost_stddev": 2.2123,
+      "production_cost_p50": 2.7692,
+      "production_cost_p95": 4.76027,
+      "production_cost_total": 10.43365,
+      "evaluation_cost_total": 7.401,
+      "critical_path_p50_ms": 55788,
+      "critical_path_p95_ms": 61174,
+      "critical_path_stddev_ms": 5984,
+      "success_rate": 1.0,
+      "judge_coverage": 0.6667,
+      "retry_rate": 0.0
+    },
+    "weak-all": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          }
+        ],
+        "excluded": [
+          {
+            "task_id": "report_001",
+            "repeat": 3,
+            "reasons": [
+              "failed-execution",
+              "missing-final-output",
+              "missing-judge",
+              "judge:missing-final-output"
+            ]
+          }
+        ],
+        "complete": false
+      },
+      "comparison_runs": 2,
+      "quality_mean": 90.5,
+      "quality_stddev": 2.5,
+      "production_cost_mean": 0.568325,
+      "production_cost_stddev": 0.011425,
+      "production_cost_p50": 0.568325,
+      "production_cost_p95": 0.5786075,
+      "production_cost_total": 1.41215,
+      "evaluation_cost_total": 6.27,
+      "critical_path_p50_ms": 48699,
+      "critical_path_p95_ms": 49694,
+      "critical_path_stddev_ms": 1105,
+      "success_rate": 0.6667,
+      "judge_coverage": 0.6667,
+      "retry_rate": 0.0
+    }
+  },
+  "single_models": {
+    "cheap": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          }
+        ],
+        "excluded": [
+          {
+            "task_id": "report_001",
+            "repeat": 3,
+            "reasons": [
+              "failed-execution",
+              "missing-final-output",
+              "missing-judge",
+              "judge:missing-final-output"
+            ]
+          }
+        ],
+        "complete": false
+      },
+      "comparison_runs": 2,
+      "quality_mean": 90.5,
+      "quality_stddev": 2.5,
+      "production_cost_mean": 0.568325,
+      "production_cost_stddev": 0.011425,
+      "production_cost_p50": 0.568325,
+      "production_cost_p95": 0.5786075,
+      "production_cost_total": 1.41215,
+      "evaluation_cost_total": 6.27,
+      "critical_path_p50_ms": 48699,
+      "critical_path_p95_ms": 49694,
+      "critical_path_stddev_ms": 1105,
+      "success_rate": 0.6667,
+      "judge_coverage": 0.6667,
+      "retry_rate": 0.0
+    },
+    "mid": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 3
+          }
+        ],
+        "excluded": [],
+        "complete": true
+      },
+      "comparison_runs": 3,
+      "quality_mean": 92.333,
+      "quality_stddev": 2.625,
+      "production_cost_mean": 4.84641667,
+      "production_cost_stddev": 0.13473127,
+      "production_cost_p50": 4.89525,
+      "production_cost_p95": 4.972875,
+      "production_cost_total": 14.53925,
+      "evaluation_cost_total": 12.886,
+      "critical_path_p50_ms": 55977,
+      "critical_path_p95_ms": 61192,
+      "critical_path_stddev_ms": 2793,
+      "success_rate": 1.0,
+      "judge_coverage": 1.0,
+      "retry_rate": 0.0
+    },
+    "strong": {
+      "billing_unit": "AFP",
+      "runs": 3,
+      "expected_runs": 3,
+      "task_count": 1,
+      "cohort": {
+        "policy": "successful-independently-judged-v1",
+        "included": [
+          {
+            "task_id": "report_001",
+            "repeat": 1
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 2
+          },
+          {
+            "task_id": "report_001",
+            "repeat": 3
+          }
+        ],
+        "excluded": [],
+        "complete": true
+      },
+      "comparison_runs": 3,
+      "quality_mean": 88.333,
+      "quality_stddev": 3.091,
+      "production_cost_mean": 7.70696667,
+      "production_cost_stddev": 1.51075208,
+      "production_cost_p50": 6.7265,
+      "production_cost_p95": 9.529685,
+      "production_cost_total": 23.1209,
+      "evaluation_cost_total": 11.466,
+      "critical_path_p50_ms": 74931,
+      "critical_path_p95_ms": 105662,
+      "critical_path_stddev_ms": 17357,
+      "success_rate": 1.0,
+      "judge_coverage": 1.0,
+      "retry_rate": 0.0
+    }
+  },
+  "oracle_gate": {
+    "quality_delta": null,
+    "cost_reduction_percent": null,
+    "relative_cost_delta_percent": null,
+    "p95_latency_ratio": null,
+    "quality_path_pass": false,
+    "cost_path_pass": false,
+    "latency_pass": false,
+    "reliability_pass": false,
+    "judge_complete": false,
+    "comparison_complete": false,
+    "cohorts_aligned": false,
+    "decision": "Insufficient-evidence",
+    "routing_change_observed": true,
+    "repeated": true,
+    "matrix_complete": false
+  },
+  "costs": {
+    "node_evaluation": 218.445,
+    "final_evaluation": 53.327,
+    "billing_unit": "AFP",
+    "production": 104.12595,
+    "evaluation": 271.772
+  },
+  "failure_taxonomy": {
+    "invalid-evidence": 1,
+    "judge:incomplete-single-model-evaluations": 1,
+    "judge:missing-final-output": 1,
+    "upstream-failure": 3
+  }
+}

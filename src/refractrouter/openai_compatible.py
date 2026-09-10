@@ -6,7 +6,7 @@ import os
 import socket
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from threading import Lock
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -49,6 +49,31 @@ class TransportResponse:
     status: int
     headers: Mapping[str, str]
     body: bytes
+    diagnostics: Mapping[str, object] = field(default_factory=dict)
+
+
+def _response_diagnostics(status, headers):
+    lowered = {key.lower(): value for key, value in headers.items()}
+    result = {"http_status": status}
+    for key in ("x-request-id", "x-tt-logid", "request-id"):
+        value = lowered.get(key)
+        if value:
+            result["provider_request_id"] = "".join(
+                char for char in value[:256] if char.isprintable()
+            )
+            break
+    return result
+
+
+class TransportFailure(RuntimeError):
+    """仅携带诊断白名单，不记录请求正文、认证头或原始异常文本。"""
+
+    def __init__(self, cause, diagnostics):
+        reason = cause.reason if isinstance(cause, URLError) else cause
+        self.failure_type = "timeout" if isinstance(reason, TimeoutError) else "transport-error"
+        self.diagnostics = {**diagnostics, "failure_origin": "transport",
+                            "exception_type": type(reason).__name__}
+        super().__init__(type(reason).__name__)
 
 
 class HttpTransport(Protocol):
@@ -196,19 +221,27 @@ class UrllibTransport:
         timeout_seconds: float,
     ) -> TransportResponse:
         request = Request(url, data=body, headers=dict(headers), method="POST")
+        started = time.perf_counter()
+        diagnostics = {"phase": "connect-or-response-headers"}
         try:
-            with urlopen(request, timeout=timeout_seconds) as response:
+            try:
+                response = urlopen(request, timeout=timeout_seconds)
+            except HTTPError as exc:
+                response = exc
+            with response:
+                response_headers = dict(response.headers.items()) if response.headers else {}
+                diagnostics.update(_response_diagnostics(response.status, response_headers))
+                diagnostics.update(phase="response-body",
+                                   time_to_headers_ms=round((time.perf_counter() - started) * 1000))
+                response_body = response.read()
                 return TransportResponse(
                     status=response.status,
-                    headers=dict(response.headers.items()),
-                    body=response.read(),
+                    headers=response_headers,
+                    body=response_body,
+                    diagnostics={**diagnostics, "phase": "complete"},
                 )
-        except HTTPError as exc:
-            return TransportResponse(
-                status=exc.code,
-                headers=dict(exc.headers.items()) if exc.headers else {},
-                body=exc.read(),
-            )
+        except (OSError, URLError) as exc:
+            raise TransportFailure(exc, diagnostics) from exc
 
 
 @dataclass(frozen=True, slots=True)
@@ -227,11 +260,13 @@ class ChatResponse:
 
 
 class ModelInvocationError(RuntimeError):
-    def __init__(self, failure_type: str, message: str, attempts: int, latency_ms: int):
+    def __init__(self, failure_type: str, message: str, attempts: int, latency_ms: int,
+                 *, diagnostics: Mapping[str, object] | None = None):
         super().__init__(message)
         self.failure_type = failure_type
         self.attempts = attempts
         self.latency_ms = latency_ms
+        self.diagnostics = dict(diagnostics or {})
 
 
 class OpenAICompatibleClient:
@@ -326,6 +361,7 @@ class OpenAICompatibleClient:
         attempts = 0
         last_failure = "transport-error"
         last_message = "Model request failed"
+        last_diagnostics = {}
         while attempts <= self.max_retries:
             attempts += 1
             try:
@@ -340,6 +376,9 @@ class OpenAICompatibleClient:
                         parsed = (self._parse_responses(response, attempts, started) if model.wire_api == "responses"
                                   else self._parse_response(response, attempts, started))
                     except ModelInvocationError as exc:
+                        exc.diagnostics = {**response.diagnostics,
+                            **_response_diagnostics(response.status, response.headers),
+                            "failure_origin": "response-validation"}
                         _append_progress(
                             self.progress_path,
                             {
@@ -349,6 +388,7 @@ class OpenAICompatibleClient:
                                 "model": model.api_model,
                                 "ok": False,
                                 "failure_type": exc.failure_type,
+                                "diagnostics": exc.diagnostics,
                                 "latency_ms": exc.latency_ms,
                                 "attempts": attempts,
                             },
@@ -365,6 +405,7 @@ class OpenAICompatibleClient:
                             "latency_ms": parsed.latency_ms,
                             "attempts": attempts,
                             "provider_request_id": parsed.request_id,
+                            "diagnostics": dict(response.diagnostics),
                             "finish_reason": parsed.finish_reason,
                             "usage": {
                                 "input_tokens": parsed.input_tokens,
@@ -377,14 +418,25 @@ class OpenAICompatibleClient:
                     return parsed
                 last_failure = _http_failure_type(response.status)
                 last_message = _safe_error_message(response.status, response.body)
+                last_diagnostics = {**response.diagnostics,
+                    **_response_diagnostics(response.status, response.headers),
+                    "failure_origin": "http"}
                 if response.status not in {408, 409, 429} and response.status < 500:
                     break
+            except TransportFailure as exc:
+                last_failure = exc.failure_type
+                last_message = str(exc)
+                last_diagnostics = exc.diagnostics
             except (TimeoutError, socket.timeout) as exc:
                 last_failure = "timeout"
                 last_message = type(exc).__name__
+                last_diagnostics = {"failure_origin": "transport", "phase": "unknown",
+                                    "exception_type": type(exc).__name__}
             except URLError as exc:
-                last_failure = "transport-error"
+                last_failure = "timeout" if isinstance(exc.reason, TimeoutError) else "transport-error"
                 last_message = type(exc.reason).__name__
+                last_diagnostics = {"failure_origin": "transport", "phase": "unknown",
+                                    "exception_type": type(exc.reason).__name__}
             if attempts <= self.max_retries:
                 self.sleep(min(2 ** (attempts - 1), 4))
         latency_ms = round((time.perf_counter() - started) * 1000)
@@ -397,11 +449,13 @@ class OpenAICompatibleClient:
                 "model": model.api_model,
                 "ok": False,
                 "failure_type": last_failure,
+                "diagnostics": last_diagnostics,
                 "latency_ms": latency_ms,
                 "attempts": attempts,
             },
         )
-        raise ModelInvocationError(last_failure, last_message, attempts, latency_ms)
+        raise ModelInvocationError(last_failure, last_message, attempts, latency_ms,
+                                   diagnostics=last_diagnostics)
 
     def _complete_dsh(
         self,

@@ -1,36 +1,188 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "RefractRouter Human Audit",
+  "title": "RefractRouter 冻结人工审核",
   "type": "object",
   "required": [
     "schema_version",
     "rubric_version",
     "agreement_threshold_points",
-    "records"
+    "records",
+    "evidence_index_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "v0.1"},
-    "rubric_version": {"type": "string"},
+    "schema_version": {
+      "const": "v0.2"
+    },
+    "rubric_version": {
+      "const": "v0.1"
+    },
     "agreement_threshold_points": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 100
+      "const": 10
     },
     "records": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 4,
       "items": {
         "type": "object",
-        "required": ["task_id", "strategy", "human_score", "reviewer", "notes"],
+        "required": [
+          "task_id",
+          "strategy",
+          "human_score",
+          "reviewer",
+          "notes",
+          "repeat",
+          "run_sha256",
+          "reviewed_at",
+          "dimensions",
+          "serious_factual_error",
+          "evidence_quote",
+          "claim_checks"
+        ],
         "properties": {
-          "task_id": {"type": "string"},
-          "strategy": {"enum": ["task-oracle", "node-oracle"]},
-          "human_score": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
-          "reviewer": {"type": ["string", "null"]},
-          "notes": {"type": "string"}
+          "task_id": {
+            "enum": [
+              "report_011",
+              "report_020"
+            ]
+          },
+          "strategy": {
+            "enum": [
+              "task-oracle",
+              "node-oracle"
+            ]
+          },
+          "human_score": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reviewer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          },
+          "repeat": {
+            "const": 1
+          },
+          "run_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dimensions": {
+            "type": "object",
+            "properties": {
+              "requirement_coverage": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 25
+              },
+              "evidence_accuracy": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 25
+              },
+              "analysis_depth": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 20
+              },
+              "structure_readability": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 15
+              },
+              "html_validity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 15
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "requirement_coverage",
+              "evidence_accuracy",
+              "analysis_depth",
+              "structure_readability",
+              "html_validity"
+            ]
+          },
+          "serious_factual_error": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "evidence_quote": {
+            "type": "string"
+          },
+          "claim_checks": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "claim",
+                "source_ids",
+                "supported",
+                "notes"
+              ],
+              "properties": {
+                "claim": {
+                  "type": "string"
+                },
+                "source_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "supported": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "notes": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
         },
         "additionalProperties": false
-      }
+      },
+      "maxItems": 4
+    },
+    "evidence_index_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "additionalProperties": false

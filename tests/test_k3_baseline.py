@@ -356,23 +356,18 @@ def test_historical_k3_usage_keeps_content_tokens_and_cost_after_client_merge():
     assert model_response_cost(model, response) == saved['cost'] == 9.154
 
 
-def test_historical_baseline_preflight_migrates_without_network_or_source_edits(tmp_path):
+def test_historical_baseline_rejects_unregistered_code_without_source_edits(tmp_path, capsys):
     import hashlib
     original=ROOT/'reports/v0.5-k3-baseline-retry/output'
     before={str(p.relative_to(original)):hashlib.sha256(p.read_bytes()).hexdigest()
             for p in original.rglob('*') if p.is_file()}
     with patch('experiments.run_k3_baseline.OpenAICompatibleClient') as client:
-        assert main(['--stage','resume','--input-dir',str(original),'--output-dir',str(tmp_path/'preflight')])==0
-        assert main(['--stage','resume','--input-dir',str(tmp_path/'preflight'),
-                     '--output-dir',str(tmp_path/'next-preflight')])==0
+        with pytest.raises(SystemExit) as error:
+            main(['--stage','resume','--input-dir',str(original),'--output-dir',str(tmp_path/'preflight')])
     client.assert_not_called()
-    state=read_bundle(tmp_path/'preflight')
-    assert state['baseline']==read_bundle(original)['baseline']
-    p=json.loads((tmp_path/'preflight/preflight.json').read_text())
-    assert p['model_calls']==0 and p['call_plan']['production_model_calls']==28
-    assert p['minimum_production_limit']==119.49
-    assert p['baseline_reuse']['imported_production_cost']==9.154
-    assert p['baseline_reuse']['compatibility_record']
+    assert error.value.code == 2
+    assert '旧基线没有匹配当前代码及原始索引的兼容记录' in capsys.readouterr().err
+    assert not (tmp_path/'preflight').exists()
     assert before=={str(p.relative_to(original)):hashlib.sha256(p.read_bytes()).hexdigest()
                    for p in original.rglob('*') if p.is_file()}
 
