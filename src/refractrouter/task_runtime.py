@@ -228,6 +228,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result["plan_analysis"] = plan.diagnostics()
         result["plan_analysis"]["execution_mode"] = "bounded-parallel" if policy.max_concurrency > 1 else "serial"
         result["execution_policy"] = policy.to_dict()
+        persist()
         eligible_models = {}
         for node in plan.nodes:
             capability = plan.contracts.get(node.node_id, {}).get("capability")
@@ -248,6 +249,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if configured_application:
             result['routing']['actions'] = {nid: action_identity(candidates[mid])
                 for nid, mid in result['routing']['assignments'].items()}
+        persist()
         if result["routing"]["status"] != "selected":
             result["status"] = "no-feasible-route"
             for nid, row in result.get('plan_admission', {}).items():

@@ -76,6 +76,7 @@ def main(argv=None):
     run_config.add_argument('--provider-config', type=Path)
     run_config.add_argument('--preset', choices=['ark-agent-plan'])
     run.add_argument('--execute-paid-run', action='store_true')
+    run.add_argument('--progress-stdio', action='store_true', help='输出脱敏节点进度 NDJSON，最后一行为完整结果')
     inspect = commands.add_parser('show', help='查看已保存任务的策略、模型、结果和费用')
     inspect.add_argument('run_dir', type=Path)
     setup = commands.add_parser('dsh-config', help='生成 DSH 配置覆盖文件；不修改现有用户配置')
@@ -164,7 +165,9 @@ def main(argv=None):
                 timeout_ms=args.timeout_ms, max_output_tokens=args.max_output_tokens,
                 manifest_path=args.manifest, profile_path=args.profile,
                 execute_paid_run=args.execute_paid_run, cancel_event=cancelled,
-                provider_config=provider_config, preset=args.preset)
+                provider_config=provider_config, preset=args.preset,
+                progress=(lambda event: print(json.dumps(event, ensure_ascii=False), flush=True))
+                         if args.progress_stdio else None)
         finally:
             for sig, handler in previous.items():
                 signal.signal(sig, handler)
