@@ -1,0 +1,609 @@
+{
+  "schema_version": "bound-quality-study-v1",
+  "study_protocol_sha256": "dd058548c861e72e26a04bc398c95f088777632ccbdacba3b73a22913bad1d75",
+  "selection": {
+    "task_ids": [
+      "rules-02"
+    ],
+    "arms": [
+      "direct-cheap",
+      "direct-mid",
+      "direct-strong",
+      "task-selector",
+      "random-mixture",
+      "shared-single-1",
+      "shared-single-2",
+      "shared-heterogeneous-1",
+      "shared-heterogeneous-2",
+      "auto-single",
+      "auto-heterogeneous",
+      "direct-or-dag"
+    ],
+    "repeats": 1
+  },
+  "implementation": {
+    "src/refractrouter/__init__.py": "1ebb90221ab180b3804eaf36fddfaea1cfb5303f2f03e3299812041207e28a34",
+    "src/refractrouter/adapters.py": "43709152360d3079b816132ad8d3092b7f01398d78651cfe7e53dfb052c1f53d",
+    "src/refractrouter/agent.py": "80fd65b8789cea033d71beffdc8316f75e915791170b270362ca0e75d40872da",
+    "src/refractrouter/agent_cli.py": "b5c26470db99c0aa78fbfd1e9fb1adb94e8a0036cd755e7a3770f1767af1985e",
+    "src/refractrouter/agent_progress.py": "bf14f27d4c8e5c3fa5cdeabb3aef94f0e652ee3f2f6ba8313381c3136e64e641",
+    "src/refractrouter/application_config.py": "49b777254aff7fceea204067245851b61474bb2d687bf2ce439d7613d1c51594",
+    "src/refractrouter/benchmark.py": "9c9042519d21db15cff169e036e369187a7cf9a7b33d7794cc25c3de9b193c12",
+    "src/refractrouter/blind_review.py": "a52c29f7c47f8dc30dbf4aa928a2055b63fd55ff980a023c8d3d7059333d5bed",
+    "src/refractrouter/calibration_runner.py": "5d8a15bbf818022c0eee690c2d391813614539ab8d2a4a9dc0f1453c61bce0f9",
+    "src/refractrouter/cli.py": "bfac0bf929a98acbddacd7c848f17650fb6dd9526c5f77895ca750cee033adee",
+    "src/refractrouter/compact_planning.py": "7dfa7b34971a6c5c959a86f0eb81e908fa1171e662d78b01a5088a6639c506eb",
+    "src/refractrouter/comparisons.py": "baf75a5e94996e581887f7746f229eaefa28675bd9c102d3d7b5a0a3d1a249a1",
+    "src/refractrouter/configured_routing.py": "759fddb9f5c401b329a6ea3d78000fb2f65833a6adb1258a26c66358cbe20670",
+    "src/refractrouter/cost_selection.py": "c4b5e676b60ab190e6c6584bb7c4b0bfda2be59389f4777f2eb9591f75916461",
+    "src/refractrouter/dag_batch_study.py": "a257d98d47bc68627ed019d1e07cefac513882ea7e3ea54f7bb83ef43ed661d2",
+    "src/refractrouter/dag_study.py": "dab8f2e074ddfa5ab46c16f7c8e7b705d2c1b36a4a8242ff8eebdef23dbe7161",
+    "src/refractrouter/dag_study_execution.py": "2c29d750ce6a08079ad4c85dc727d3cad28185966cabecb7359c0bb2ba046f3d",
+    "src/refractrouter/dataset.py": "51f5138e84b515cdeee5f306f6bd8fed0f47eb74752748b52084c866598d749d",
+    "src/refractrouter/deepagents_executor.py": "e3e4e085d55f9792f7722681fccb5bdf1f45d6828749cfa274c07ddd88510f3b",
+    "src/refractrouter/dependency_guard.py": "d8f4eb3a08a3a65afa45b350f0e9c7782dedd76aef8be86bee97e38b0c7ea6c9",
+    "src/refractrouter/dynamic_decomposition.py": "54b596a45793834ac0097f17b07c866c929055ee8d509279da99175401dba76e",
+    "src/refractrouter/evidence_state.py": "b10a1af5e06ff8251e9cae7879a7e86b340de0195652898f72b8816244e0b7d4",
+    "src/refractrouter/execution_modes.py": "cefeba1f1cb728433fa22c479c6886b2c6b5a94a8124d4ef3c9610b35fc8fac0",
+    "src/refractrouter/execution_reports.py": "0c37cfa4472545fdc60f0b3d62ed20edff02054469ccb88e8e8824eef0e7bf16",
+    "src/refractrouter/graph_executor.py": "56d744d24c9a76e8a896e9fd33213c291b4da7bb727fa07e21b027dcd1428f26",
+    "src/refractrouter/handoff_validation.py": "74c527214f10e1ead75a5b957ce373ce9037d24ee10841880cffa29c67cd7709",
+    "src/refractrouter/joint_research.py": "f0f1f12c5488107682ec8de1c2d3b4f6767baf7e757cbe1d5074e2fe6f013dcf",
+    "src/refractrouter/judge.py": "ce3c891d7b2dee30b16dd81c1efd98078eb58789b9aa12b1e6a0e0538448d3b8",
+    "src/refractrouter/k3_experiment.py": "68e3fcc60a27f68a3f6cf65c33eba32f292b50330b9168a46faf0281a2a9a94d",
+    "src/refractrouter/k3_review_runner.py": "50c6e2fbb52bba5be011c2267b95c37642a8942c1aea96d78b35150ba471d621",
+    "src/refractrouter/manifest.py": "92c0490a5bdd362a7d9390ff5a842e08a0c9a5d7181c516a91c1aa327784354b",
+    "src/refractrouter/metrics.py": "1bfe2db5523c56bcefe456e23f62a507a1650f650fe07ee48ff7900b5dae350a",
+    "src/refractrouter/model_catalog.py": "158c7b5acc0dd13ed061099e298fd656b0ab93bd88dfe8b4ed526accaf9ca818",
+    "src/refractrouter/model_registry.py": "1f5d56244af42e918e594dd8434c49edba70ac50070314bef5eb09cc10868f8e",
+    "src/refractrouter/model_selection.py": "a23b611824b0ef432ee3c7933bd216879138d6901477048a433e20bf6a2f0793",
+    "src/refractrouter/node_availability.py": "b39ab5a1f7e4376992b528eb1e7a2872ee4ae1b5ed367b398d49b1a28c17b4fb",
+    "src/refractrouter/node_contracts.py": "d34e64ab4a1d39d8028099ae0fbb1dc8ed434a7a3ed4249b6ec072575a915d62",
+    "src/refractrouter/node_judge.py": "d1dd5997921b47533d45a15566368ec0b6f1a5aee668a83e9c636e4f4cea1b9b",
+    "src/refractrouter/node_recovery.py": "71c3da6863ab06e6f3b885280265dd0de5d5fcceb56658aa8bdbfa3c75038f9e",
+    "src/refractrouter/node_routing.py": "f533105a37d86de8a4ec745d3050b54201d27b98e27755897640432339225062",
+    "src/refractrouter/openai_compatible.py": "d3d6c6cb0f8ccdb21c9a3b2eb88aa8475ff61ee17be7e7f2f24531d3dd9f5e8f",
+    "src/refractrouter/output_constraints.py": "942285767ffc53b72fbc84bea9c32d6f5b41d37cab2a5d752d82cbf32979cea4",
+    "src/refractrouter/planning_support.py": "b80edfad6e0befb6e30b770f5583d59155a3c0bf48088e44987c7ac16f49616e",
+    "src/refractrouter/profile_calibration.py": "1257df3f9ff010fb50ad0916e3fb9e70efa56e7fd81250675fa9ce694f21765a",
+    "src/refractrouter/quality_calibration.py": "cbf33827880892e02e17b813b10d51b43648db6408a8233386a298779a3c13b1",
+    "src/refractrouter/quality_material_audit.py": "88b6163792caf6ddcb7872a782dce0c95fe7d8609aa2ffb3b139188f4eaba48a",
+    "src/refractrouter/quality_runtime.py": "8fb2963da356d121398940f1e26f0fc8c40c9e6794d0fb72a48271a2d66e62ef",
+    "src/refractrouter/quality_statistics.py": "ecc87decdc936861374b4b2ce22a681f111590b6e07236e9a2a031aa7a40c666",
+    "src/refractrouter/quality_study.py": "29b5e2ce72366e18612e8823d1606debca98f951e1ca66095736fe719219b363",
+    "src/refractrouter/recovery_study.py": "9b33dfd32ef1a0da8942f545ce4af7648f9225f6712c295624ea2a6ffe0d372d",
+    "src/refractrouter/report_renderer.py": "a2b110b8fdea5afdd4369377b5bef1c753bc1e845076dd90e23dc17dc4ed464d",
+    "src/refractrouter/research_analysis.py": "5fc0aa0fc374e35da4b4d0318a51eb25e688cadab3261b7b73ccbdad182fc8f9",
+    "src/refractrouter/research_calibration.py": "e17463504738892de2b6b35dac1e8f508d9290544ff19dc2ea5e24aeba83ccd7",
+    "src/refractrouter/research_execution.py": "8b51dd3c9d5d76f0b534cd9c967243b95f4b8a67e184f6f5c8f217adafaa3af6",
+    "src/refractrouter/research_protocol.py": "17fdb6dbd26b68ef43721d07fcbbc90f0e2ac5dded37236fb528f1429276db80",
+    "src/refractrouter/responses_api.py": "e5aefd3b8e70f26a8819a9ab09751e416d7a95966513bd5339d7fdd573f675fa",
+    "src/refractrouter/review_calibration.py": "ab42222950af33ad40d60ff65c80ebeef1f54ee2a97a065f92ca975eaa602d2c",
+    "src/refractrouter/routing.py": "6b7c964f643fa30465d4e9d2a425f0732ebf3633f59f9dafe67968188f6e916f",
+    "src/refractrouter/routing_actions.py": "65fc2d33b0f30c3b8909ec5f27b91c09ecdb37c0d49b10ed8cb12534e13539dc",
+    "src/refractrouter/schemas.py": "8acaf738edd6586135fa9e33f49ba15c1e21d3a7ae4def977fa03ba69771b08e",
+    "src/refractrouter/scoring.py": "2abb25786031dc996b64b6e94fdec6c86454898d67b19afa54193d6afb8a4dfe",
+    "src/refractrouter/source_pack.py": "cc515979db15bcd08133cf0af2ba7ce615c288ec09a661ca0d4ae34d3501fe7d",
+    "src/refractrouter/task_budget.py": "93a96aaa4d1f0b94b0c93d47682e1fd8d3fa26bd3f61f02b238bbac7c4046b84",
+    "src/refractrouter/task_contract_replay.py": "9fa02697d015b4a7eb9c59147fd578493e69cd19cca5549bf5959d4f4b427685",
+    "src/refractrouter/task_contracts.py": "7e794a3e6e0416958677163e254b83a869a59c10a172aa35a83e670442da95ff",
+    "src/refractrouter/task_evaluation.py": "bf7a59658313acd0abb519c75c1e2f383469fe1bac60167af0349f19b9e91530",
+    "src/refractrouter/task_execution.py": "20a1bc5618207d26b5b8ed165ba4f2b15855b6a0654a3b4716a2378eb3549f68",
+    "src/refractrouter/task_inputs.py": "cc0a528fba7db6853fe0d87ad3438c2a6426b5c6f6e4918890f4f8181b1bc57b",
+    "src/refractrouter/task_plan.py": "732e897980298e5006e46c083e6f5e8fb061597a7ea1c52d6a86ad68d8643b11",
+    "src/refractrouter/task_runtime.py": "1af451e4da8613d81225daf7ef39ff557d4b1a888c9c1642fa33f413b56ae09e",
+    "src/refractrouter/task_scheduling.py": "f42143c117de757bea3c133df8780985c5b7d963953aa85ba9fbcf1f5fed5777",
+    "experiments/analyze_bound_quality_study.py": "7dc6f47160db64d4d4bf17f1173f55de2b0c04f62bcf969572f73573e61ac090",
+    "experiments/freeze_quality_protocol.py": "568f1201b3022b391d6830b438dc6553e245a314b1fe8856b170f8be28366eb8",
+    "experiments/preflight_quality_study.py": "eb266366ab7f1c4376a29761f42608663ca45f3211e1eaf61bde5d6cb0de4263",
+    "experiments/review_node_quality_evidence.py": "c71900ad53671fadaa7c7a6b652aff4d5709f95588a3e7bbcbffc2530113cd36",
+    "experiments/run_bound_quality_study.py": "99b30ec06f376f6fd57b284d0adc37ae9327a513566def6126a6f60b7ac5a542",
+    "experiments/run_quality_calibration.py": "4c40ea8c28b42a22af0d6692c3e3d266a01744bfb3e76458bf74a73d4e49a7ff"
+  },
+  "manifest": {
+    "schema_version": "v0.2",
+    "pricing_snapshot_date": "2026-09-06",
+    "billing_unit": "AFP",
+    "models": [
+      {
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 0.05,
+        "output_cost_per_1k": 0.05,
+        "capability": 0.55,
+        "billing_unit": "AFP",
+        "tags": [
+          "standard",
+          "fast",
+          "afp-coefficient-0.5"
+        ],
+        "api_model": "deepseek-v4-flash",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 0.05,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "candidate",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "json-object-hint"
+      },
+      {
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 0.25,
+        "output_cost_per_1k": 0.25,
+        "capability": 0.78,
+        "billing_unit": "AFP",
+        "tags": [
+          "advanced",
+          "balanced",
+          "afp-coefficient-2.5"
+        ],
+        "api_model": "minimax-m3",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 0.25,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "candidate",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "prompt-only"
+      },
+      {
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 0.55,
+        "output_cost_per_1k": 0.55,
+        "capability": 0.92,
+        "billing_unit": "AFP",
+        "tags": [
+          "advanced",
+          "strong",
+          "afp-coefficient-5.5"
+        ],
+        "api_model": "deepseek-v4-pro",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 0.55,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "candidate",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "json-object-hint"
+      },
+      {
+        "model_id": "judge",
+        "provider": "ark-plan",
+        "input_cost_per_1k": 1.0,
+        "output_cost_per_1k": 1.0,
+        "capability": 0.97,
+        "billing_unit": "AFP",
+        "tags": [
+          "advanced",
+          "independent-judge",
+          "afp-coefficient-10"
+        ],
+        "api_model": "kimi-k3",
+        "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+        "api_key_env": "CODEX_ARK_API_KEY",
+        "cached_input_cost_per_1k": 1.0,
+        "context_window": 1024000,
+        "max_output_tokens": 8192,
+        "snapshot_date": "2026-09-06",
+        "role": "judge",
+        "wire_api": "chat-completions",
+        "request_options": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "json_mode_strategy": "json-object-hint"
+      }
+    ],
+    "documentation_urls": [
+      "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+      "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+      "https://www.volcengine.com/docs/82379/2123434?lang=zh",
+      "https://www.volcengine.com/docs/82379/2637928?lang=zh",
+      "https://github.com/MiniMax-AI/MiniMax-Provider-Verifier/blob/main/m3_format_check/docs/m3_text_cases.md"
+    ]
+  },
+  "public_tasks": {
+    "rules-02": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    }
+  },
+  "task_bindings": {
+    "rules-02": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256"
+  },
+  "splits": {
+    "rules-02": "development"
+  },
+  "caps": {
+    "selector": {
+      "input": 32768,
+      "output": 1200,
+      "seconds": 12
+    },
+    "planner": {
+      "input": 32768,
+      "output": 1200,
+      "seconds": 12
+    },
+    "worker": {
+      "input": 65536,
+      "output": 2048,
+      "seconds": 45
+    },
+    "final": {
+      "input": 131072,
+      "output": 8192,
+      "seconds": 90
+    },
+    "delivery-judge": {
+      "input": 131072,
+      "output": 2048,
+      "seconds": 45
+    },
+    "research-judge": {
+      "input": 131072,
+      "output": 2048,
+      "seconds": 45
+    }
+  },
+  "http_retries": 0,
+  "max_node_fallbacks": 0,
+  "max_dynamic_splits": 0,
+  "prompt_hashes": {
+    "planner": "9a38b468c6a4f9cd46bf48f33cbd3ec1ca6e94b1fa5190424d8a298aa5c4e641",
+    "final": "a8f343fde69a7cfb80faf6ae37ea0aebb81dad4ff47b1162415073d17a5e54e7",
+    "selector": "fa02f6e9d9fb0aa936b6a1dfc1f0365da62ad3627f126471f0d99434f1c567e2",
+    "judge": "07a200206a4369db8f94a57a405d89be3fc72b8ca18f777620c00d4a99591a05"
+  },
+  "envelopes": {
+    "direct-cheap": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1
+      },
+      "online_afp_ceiling": 140.0832,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 135,
+      "max_concurrency": 1
+    },
+    "direct-mid": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1
+      },
+      "online_afp_ceiling": 167.936,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 135,
+      "max_concurrency": 1
+    },
+    "direct-strong": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1
+      },
+      "online_afp_ceiling": 209.7152,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 135,
+      "max_concurrency": 1
+    },
+    "task-selector": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "selector": 1
+      },
+      "online_afp_ceiling": 211.4136,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 147,
+      "max_concurrency": 2
+    },
+    "random-mixture": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1
+      },
+      "online_afp_ceiling": 209.7152,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 135,
+      "max_concurrency": 2
+    },
+    "shared-single-1": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 395.5712,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 360,
+      "max_concurrency": 1
+    },
+    "shared-single-2": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 395.5712,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 360,
+      "max_concurrency": 2
+    },
+    "shared-heterogeneous-1": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 395.5712,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 360,
+      "max_concurrency": 1
+    },
+    "shared-heterogeneous-2": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 395.5712,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 360,
+      "max_concurrency": 2
+    },
+    "auto-single": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "planner": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 397.2696,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 372,
+      "max_concurrency": 2
+    },
+    "auto-heterogeneous": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "planner": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 397.2696,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 372,
+      "max_concurrency": 2
+    },
+    "direct-or-dag": {
+      "stages": {
+        "final": 1,
+        "delivery-judge": 1,
+        "research-judge": 1,
+        "selector": 1,
+        "planner": 1,
+        "worker": 5
+      },
+      "online_afp_ceiling": 398.968,
+      "offline_afp_ceiling": 133.12,
+      "online_deadline_seconds": 384,
+      "max_concurrency": 2
+    }
+  },
+  "setups": [
+    {
+      "task_id": "rules-02",
+      "planner_afp_ceiling": 1.6984000000000001
+    }
+  ],
+  "schedule": [
+    {
+      "run_id": "rules-02-r1-auto-heterogeneous",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "auto-heterogeneous",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-random-mixture",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "random-mixture",
+      "mixture_model": "cheap"
+    },
+    {
+      "run_id": "rules-02-r1-direct-or-dag",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "direct-or-dag",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-task-selector",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "task-selector",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-shared-heterogeneous-2",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "shared-heterogeneous-2",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-shared-heterogeneous-1",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "shared-heterogeneous-1",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-auto-single",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "auto-single",
+      "mixture_model": "cheap"
+    },
+    {
+      "run_id": "rules-02-r1-direct-mid",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "direct-mid",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-direct-strong",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "direct-strong",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-direct-cheap",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "direct-cheap",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-shared-single-2",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "shared-single-2",
+      "mixture_model": "strong"
+    },
+    {
+      "run_id": "rules-02-r1-shared-single-1",
+      "task_id": "rules-02",
+      "repeat": 1,
+      "arm": "shared-single-1",
+      "mixture_model": "cheap"
+    }
+  ],
+  "max_calls": 77,
+  "online_afp_ceiling": 3714.6552,
+  "offline_afp_ceiling": 1599.1384,
+  "offline_setup": {
+    "training_calls": 0,
+    "profile_probe_calls": 0,
+    "search_calls": 0,
+    "reason": "首轮为固定规则选模消融，不使用学习画像或离线最优搜索；共享图每任务生成一次并单独记账。",
+    "historical_quality_calibration_afp": 52.19,
+    "amortization_reuses": [
+      1,
+      3,
+      10,
+      100
+    ]
+  },
+  "routing_rule": "异构：最终节点或高难度/高风险使用 strong，其他 medium 使用 mid，其余 cheap；这是无训练的显式规则对照，不称实测质量最优。",
+  "statistics_policy": {
+    "schema_version": "quality-statistics-v1",
+    "study_tier": "controlled-exploratory",
+    "confirmatory_population_claims": false,
+    "repeats": 3,
+    "pass_rate_floor": 0.9,
+    "noninferiority_margin": 0.05,
+    "threshold_meaning": "研究操作门槛：至少九成任务三次均确认通过；非劣容忍五个百分点。不是用户可接受性的实证结论，真人用途确认单独待办。",
+    "quality_unit": "task:all-frozen-repeats-confirmed-pass",
+    "familywise_alpha": 0.05,
+    "quality_tail_alpha": 0.003125,
+    "primary_pairs": [
+      [
+        "direct-or-dag",
+        "direct-strong"
+      ],
+      [
+        "direct-or-dag",
+        "task-selector"
+      ]
+    ],
+    "quality_interval": "精确二项下界；配对差使用正负不一致概率的精确上下界及并集界。",
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 52053,
+    "performance_interval": "先在任务内汇总全部重复，再按来源族配对百分位重采样；只作探索诊断。",
+    "minimum_useful_relative_gain": 0.1,
+    "sample_size": {
+      "development": 6,
+      "holdout_candidate": 12,
+      "purpose": "固定控制题的有限候选探索，不为总体非劣、SLA或p95提供把握度保证。"
+    },
+    "failures": "失败及pending留在预定分母；费用和时延使用同一完整任务集合；缺失或未知阻止比较。",
+    "human_gate": "真人语义判定与用途门槛确认未完成前，不生成确认质量可行的前沿。",
+    "sources": [
+      "https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm",
+      "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html"
+    ]
+  },
+  "claims": {
+    "tier": "controlled-exploratory",
+    "population_generalization": false,
+    "formal_human_acceptance": false,
+    "pareto_verified": false
+  },
+  "human_pending": [
+    "材料及来源/模板独立性审核",
+    "用途质量门槛确认",
+    "最终答案匿名语义审查与分歧裁决"
+  ]
+}
