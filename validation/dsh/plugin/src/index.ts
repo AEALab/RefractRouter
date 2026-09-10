@@ -597,7 +597,8 @@ async function writeLine(stream: Writable, value: BridgeResponse) {
 }
 
 export async function pumpDshBridge(
-  ctx: Pick<DshContext, 'llm'>, handle: ProcessHandle, signal: AbortSignal, routes: ModelRoute[], maxBytes: number,
+  ctx: Pick<DshContext, 'llm'> | undefined, handle: ProcessHandle, signal: AbortSignal, routes: ModelRoute[], maxBytes: number,
+  onProgress?: (record: unknown) => void,
 ) {
   if (handle.stdout === undefined || handle.stdin === undefined) {
     throw new Error('DSH bridge requires piped child stdin and stdout')
@@ -617,10 +618,15 @@ export async function pumpDshBridge(
         capture.append(`${line}\n`)
         continue
       }
+      if (onProgress && isRecord(request) && request.protocol === 'refractagent-progress/v1') {
+        onProgress(request)
+        continue
+      }
       if (!isRecord(request) || request.protocol !== DSH_BRIDGE_PROTOCOL || request.type !== 'request') {
         capture.append(`${line}\n`)
         continue
       }
+      if (!ctx) throw new Error('unexpected DSH request from direct HTTP process')
       const route = `${String(request.provider)}\u0000${String(request.model)}`
       const response: BridgeResponse = allowed.has(route)
         ? await callDshLlm(ctx, request, signal)

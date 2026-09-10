@@ -232,6 +232,14 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                 # 只有派发间隔暂时阻塞就绪节点时才会进入此分支。
                 time.sleep(min(.01, max(0, deadline - time.monotonic())))
                 continue
+            # 由调度线程保存进度，避免并发检查点写入。
+            changed = False
+            for _, row, reservation in futures.values():
+                if row['status'] == 'scheduled' and reservation.row.get('dispatch_monotonic') is not None:
+                    row['status'] = 'running'
+                    changed = True
+            if changed:
+                persist()
             done, _ = wait(futures, timeout=.02, return_when=FIRST_COMPLETED)
             for future in sorted(done, key=lambda f: order.index(futures[f][0])):
                 nid, row, reservation = futures.pop(future)

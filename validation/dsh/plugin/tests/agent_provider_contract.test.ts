@@ -26,8 +26,11 @@ function fixture(result: Record<string, unknown> = {}) {
         const output = { schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',
           mode:'demo',status:'simulated',answer:'[SIMULATED] answer',costs:{production:0,evaluation:0,unconfirmed:0},
           models:{answer:'physical-model'},usage:{input_tokens:20,output_tokens:30},simulated:true,
+          dag:{phase:'finished',status:'simulated',simulated:true,reason:'模拟',nodes:[]},
           billing_unit:'AFP',result_path:'/tmp/agent-contract/runs/id/result.json',run_id:'id',...result }
-        return {stdin,done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
+        const stdout = new PassThrough()
+        stdin.on('finish', () => stdout.end(JSON.stringify(output)+'\n'))
+        return {stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
           collected:{stdout:{readFrom:()=>({text:JSON.stringify(output),lossy:false})}} }
       },
     },
@@ -337,4 +340,72 @@ test('automatic mode reports progress before spawning and forwards bounded plann
   assert.equal(payload.maxDynamicSplits,1)
   assert.equal(payload.maxConcurrency,3)
   assert.equal(payload.verifyDependencies,true)
+})
+
+function progressHarness() {
+  const f = fixture()
+  let finish: (() => void) | undefined
+  let aborted = false
+  const node = {id:'answer',objective:'整理结论',parents:[],state:'running',attempt:1,
+    model:{id:'cheap',provider:'ark-plan',model:'flash',reasoning_effort:null},recovery:null}
+  const view = {phase:'executing',status:'started',simulated:false,reason:'独立处理',nodes:[node]}
+  f.ctx.subprocess.spawn = spec => {
+    assert.ok(spec.argv.includes('--progress-stdio'))
+    const stdin = new PassThrough(), stdout = new PassThrough()
+    let resolve!: (value:{exitCode:number;signal:null})=>void
+    const done = new Promise<{exitCode:number;signal:null}>(r=>{resolve=r})
+    const send = (sequence:number, snapshot:unknown) => stdout.write(JSON.stringify({protocol:'refractagent-progress/v1',run_id:'live',sequence,elapsed_ms:sequence,...snapshot as object})+'\n')
+    stdin.on('finish', () => {
+      send(1,{...view,nodes:[],phase:'planning'})
+      send(2,{...view,reason:'private-test-key <img src=x> [打开](https://example.invalid)'})
+    })
+    finish = () => {
+      const dag = {...view,phase:'finished',status:'completed',nodes:[{...node,state:'ok'}]}
+      send(3,dag)
+      stdout.end(JSON.stringify({schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',
+        mode:'live',status:'completed',answer:'最终答案',simulated:false,dag,plan_origin:'model',plan:{nodes:[node]},
+        costs:{production:0,evaluation:0,unconfirmed:0},models:{answer:'flash'},usage:{input_tokens:1,output_tokens:1},
+        billing_unit:'AFP',result_path:'/tmp/run/result.json'})+'\n')
+      resolve({exitCode:0,signal:null})
+    }
+    spec.signal.addEventListener('abort',()=>{aborted=true;stdout.end();resolve({exitCode:1,signal:null})},{once:true})
+    return {stdin,stdout,done,collected:{},async waitForExit(){}}
+  }
+  const stream = createAdapter(f.ctx,configure({template:'auto',executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})).stream(options)[Symbol.asyncIterator]()
+  return {stream,finish:()=>finish!(),get aborted(){return aborted}}
+}
+
+test('节点表在模型完成前显示且运行记录保留完整进度，敏感值与 Markdown 被转义', {timeout:3000}, async()=>{
+  const h = progressHarness()
+  let seen = ''
+  while (!seen.includes('answer ·')) {
+    const chunk = await h.stream.next()
+    assert.equal(chunk.done,false)
+    if (chunk.value?.type==='reasoning-delta') seen += String(chunk.value.text)
+  }
+  assert.match(seen,/依赖：/)
+  assert.match(seen,/运行中/)
+  assert.match(seen,/ark-plan\/flash/)
+  assert.ok(!seen.includes('private-test-key') && !seen.includes('<img'))
+  assert.ok(seen.includes('REDACTED') && seen.includes('‹img'))
+  h.finish()
+  const chunks:Record<string,unknown>[]=[]
+  while(true){const item=await h.stream.next();if(item.done)break;chunks.push(item.value!)}
+  const block=chunks.find(c=>c.type==='block-end'&&c.index===0)!.block as {text:string}
+  assert.match(block.text,/运行中/)
+  assert.match(block.text,/已完成/)
+  assert.equal(chunks.find(c=>c.type==='text-delta')?.text,'最终答案')
+  const replay=chunks.at(-1)!.replayState as {response:{refractagent:{dag:{nodes:Array<{state:string}>}}}}
+  assert.equal(replay.response.refractagent.dag.nodes[0]!.state,'ok')
+})
+
+test('停止消费进度时取消子进程，不产生伪完成答案', {timeout:3000}, async()=>{
+  const h=progressHarness()
+  let seen=''
+  while(!seen.includes('answer ·')){
+    const chunk=await h.stream.next()
+    if(chunk.value?.type==='reasoning-delta')seen+=String(chunk.value.text)
+  }
+  await h.stream.return?.()
+  assert.equal(h.aborted,true)
 })

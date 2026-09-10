@@ -25,6 +25,7 @@ from .openai_compatible import OpenAICompatibleClient
 from .output_constraints import validate_output_constraints
 from .task_plan import text, validate_plan, preview_plan
 from .task_runtime import run_task
+from .agent_progress import ProgressRecorder, dag_snapshot
 
 PRESETS = {
     'economy': {'name': '省成本', 'method': 'A', 'qualityMin': 80},
@@ -125,7 +126,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
 def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               evaluation_budget=80, timeout_ms=300000, max_output_tokens=2048,
               manifest_path=None, profile_path=None, execute_paid_run=False,
-              client=None, cancel_event=None, provider_config=None, preset=None):
+              client=None, cancel_event=None, provider_config=None, preset=None, progress=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     if (mode == 'live') != execute_paid_run:
@@ -198,10 +199,14 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if configured:
         atomic_json(directory / 'provider-config.json', configured.snapshot)
     result_path = directory / 'result.json'
+    recorder = ProgressRecorder(directory, manifest, progress)
+    def checkpoint(value):
+        atomic_json(result_path, value)
+        recorder.record(value)
     result = run_task(request, manifest, profile,
         client=client if mode == 'live' else None,
         production_limit=production_budget, evaluation_limit=evaluation_budget,
-        checkpoint=lambda value: atomic_json(result_path, value), cancel_event=cancel_event,
+        checkpoint=checkpoint, cancel_event=cancel_event,
         conversation_context=context, configured_application=configured is not None, configuration=configured)
     if result.get('routing_profile'):
         profile = result['routing_profile']
@@ -234,7 +239,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'quality': result['evaluation'], 'costs': totals, 'billing_unit': manifest.billing_unit,
         'generation_status': result['generation_status'], 'format_validation': result['format_validation'],
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],
-        'plan_origin': result['plan_origin'], 'plan': result['plan'],
+        'plan_origin': result['plan_origin'], 'plan': result['plan'], 'dag': dag_snapshot(result, manifest),
         'plan_admission': result.get('plan_admission'),
         'planner': result.get('planner_selection'), 'plan_ready_ms': result.get('plan_ready_ms'),
         'content_validation': result.get('content_validation'),

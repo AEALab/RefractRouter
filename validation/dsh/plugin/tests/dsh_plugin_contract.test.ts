@@ -786,6 +786,7 @@ test('published tarball loads from its compiled export without source or build d
       'dist/index.js', 'dist/index.d.ts', 'dist/task-tool.js', 'dist/task-tool.d.ts',
       'dist/agent-provider.js', 'dist/agent-provider.d.ts',
       'dist/output-constraints.js', 'dist/output-constraints.d.ts',
+      'dist/dag-progress.js', 'dist/dag-progress.d.ts',
     ].sort())
     await execFileAsync('npm', [
       'install', '--prefix', directory, join(directory, String(metadata.filename)),

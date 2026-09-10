@@ -1,3 +1,4 @@
+import { decodeDag, decodeProgress, progressText, runSummary, type ProgressEvent } from './dag-progress.js'
 /** Native DSH virtual models. Python owns presets, routing and all cost accounting. */
 import { resolve } from 'node:path'
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
@@ -170,7 +171,7 @@ function conversation(options: ModelOptions): { task: string; context: string } 
   return { task, context }
 }
 
-async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions): Promise<Record<string, unknown>> {
+async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions, onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
   const live = config.executionMode === 'live'
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
@@ -187,6 +188,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     if (provider.type === 'dsh') routes.push({provider: provider.dshProvider ?? provider.id, model: model.model})
   }
   const useBridge = live && routes.length > 0
+  const progressEnabled = config.template === 'auto'
+  const piped = useBridge || progressEnabled
   let host: { llm: LlmService } | undefined
   if (useBridge) {
     if (!ctx.llm.stream || !ctx.llm.listProviders || !ctx.llm.providerRetryPolicy || !ctx.llm.resolveModelInfo) {
@@ -229,13 +232,13 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   const argv = [python, '-m', 'refractrouter.agent_cli', 'run', useBridge ? '--host-stdio' : '--request-stdin', '--mode', config.executionMode,
     '--runs-dir', runsDir, '--production-budget', String(config.maxProductionCost),
     '--evaluation-budget', String(config.maxEvaluationCost), '--timeout-ms', String(config.timeoutMs),
-    '--max-output-tokens', String(outputCap), ...(live ? ['--execute-paid-run'] : []),
+    '--max-output-tokens', String(outputCap), ...(live ? ['--execute-paid-run'] : []), ...(progressEnabled ? ['--progress-stdio'] : []),
     ...(config.preset ? ['--preset', config.preset] : [])]
   const confined = ctx.sandbox.confine(argv, policy)
   let handle: ProcessHandle | undefined
   try {
     handle = ctx.subprocess.spawn({ argv: confined.argv, cwd: policy.workspaceRoot, env,
-      stdio: { stdin: 'pipe', stdout: useBridge ? 'pipe' : { maxBytes: 2097152 }, stderr: { maxBytes: 16384 } },
+      stdio: { stdin: 'pipe', stdout: piped ? 'pipe' : { maxBytes: 2097152 }, stderr: { maxBytes: 16384 } },
       signal, graceMs: 2000 })
     if (!handle.stdin) throw new Error('RefractAgent process has no input channel')
     await new Promise<void>((done, reject) => {
@@ -244,10 +247,13 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       else handle!.stdin!.end(JSON.stringify(payload), done)
     })
     const [outcome, bridged] = await Promise.all([handle.done,
-      useBridge ? pumpDshBridge(host!, handle, signal, routes, 2097152) : Promise.resolve(undefined)])
+      piped ? pumpDshBridge(host, handle, signal, routes, 2097152, progressEnabled ? record => {
+        const clean = JSON.parse(secrets.reduce((text, secret) => text.split(secret).join('[REDACTED]'), JSON.stringify(record)))
+        onProgress?.(decodeProgress(clean))
+      } : undefined) : Promise.resolve(undefined)])
     await handle.waitForExit()
     if (signal.aborted) throw new Error('RefractAgent task cancelled or timed out; check the saved ledger before resubmitting')
-    const stdout = useBridge ? bridged : handle.collected.stdout?.readFrom(0)
+    const stdout = piped ? bridged : handle.collected.stdout?.readFrom(0)
     if (!stdout || stdout.lossy) throw new Error('RefractAgent result is missing or exceeds the output limit')
     let result: unknown
     try { result = JSON.parse(stdout.text) }
@@ -276,6 +282,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
       throw new Error('installed core did not return an automatically generated DAG')
     }
+    if (progressEnabled) result.dag = decodeDag(result.dag)
     if (result.format_validation !== undefined) {
       const check = decodeFormatValidation(result.format_validation)
       if (config.outputConstraints && JSON.stringify(check.constraints) !== JSON.stringify(config.outputConstraints)) {
@@ -315,8 +322,47 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
         yield { type: 'block-start', index: 0, blockType: 'reasoning' }
         yield { type: 'reasoning-delta', index: 0, text: pending }
       }
-      const result = await invoke(ctx, config, options)
-      const info = `${result.simulated ? '【模拟演示，无真实模型调用】' : ''}策略：${String(result.strategy_name)}；`
+      const queue: string[] = []
+      let wake: (() => void) | undefined
+      let ended = false, failure: unknown
+      let result: Record<string, unknown> | undefined
+      let previous: ProgressEvent | undefined
+      let transcript = pending
+      const cancelled = new AbortController()
+      const work = invoke(ctx, config, { ...options, signal: AbortSignal.any([cancelled.signal, ...(options.signal ? [options.signal] : [])]) }, event => {
+        if (previous && (event.run_id !== previous.run_id || event.sequence <= previous.sequence)) throw new Error('DAG progress sequence mismatch')
+        const text = progressText(event, previous)
+        previous = event
+        if (text) {
+          if (queue.length >= 128) throw new Error('DAG progress queue exceeded')
+          queue.push(text)
+          wake?.()
+        }
+      }).then(value => { result = value }, error => { failure = error }).finally(() => { ended = true; wake?.() })
+      try {
+        while (!ended || queue.length) {
+          if (queue.length) {
+            const text = queue.shift()!
+            transcript += text
+            yield { type: 'reasoning-delta', index: 0, text }
+          } else await new Promise<void>(resolve => { wake = resolve })
+        }
+        await work
+        if (failure) throw failure
+        if (!result) throw new Error('missing RefractAgent result')
+      } catch (error) {
+        if (pending) {
+          const text = '\n执行已中断；以上为最后收到的节点状态，请核对运行记录中的用量。\n'
+          yield { type: 'reasoning-delta', index: 0, text }
+          yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + text } }
+        }
+        throw error
+      } finally {
+        cancelled.abort()
+        await work
+      }
+
+      const info = pending ? runSummary(result) + `长度检查：${formatValidationSummary(result.format_validation)}\n` : `${result.simulated ? '【模拟演示，无真实模型调用】' : ''}策略：${String(result.strategy_name)}；`
         + `模型：${JSON.stringify(result.model_routes ?? result.models)}；状态：${String(result.status)}；`
         + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${object(result.quality) ? JSON.stringify({ passed: result.quality.passed, score: result.quality.score }) : '未评审'}；`
         + `长度检查：${formatValidationSummary(result.format_validation)}；`
@@ -329,7 +375,7 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
       if (!pending) yield { type: 'block-start', index: 0, blockType: 'reasoning' }
       yield { type: 'reasoning-delta', index: 0, text: info }
-      yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: pending + info } }
+      yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + info } }
       yield { type: 'block-start', index: 1, blockType: 'text' }
       yield { type: 'text-delta', index: 1, text: result.answer }
       yield { type: 'block-end', index: 1, block: { type: 'text', text: result.answer } }
@@ -341,7 +387,7 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
           modelRoutes: result.model_routes, evaluationModel: result.evaluation_model,
           status: result.status, generationStatus: result.generation_status, quality: result.quality,
           formatValidation: result.format_validation,
-          plan: result.plan, planOrigin: result.plan_origin, wallTimeMs: result.wall_time_ms,
+          dag: result.dag, plan: result.plan, planOrigin: result.plan_origin, wallTimeMs: result.wall_time_ms,
           planner: result.planner, planReadyMs: result.plan_ready_ms,
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
