@@ -50,6 +50,7 @@ def test_existing_material_preflight_never_constructs_client(tmp_path):
     client.assert_not_called()
     plan = json.loads((tmp_path / 'preflight/preflight.json').read_text())['plan']
     assert plan['max_calls'] == 21 and plan['production_calls'] == plan['max_retries'] == 0
+    assert plan['timeout_seconds'] == 600
     assert 'private' not in plan['requests'][0]['messages'][1]['content']
 
 
@@ -69,7 +70,8 @@ def test_first_error_retains_partial_evidence_and_stops(case, failure):
     if failure == 'json': responses[1] = replace(first, content='bad')
     elif failure == 'length': responses[1] = replace(first, finish_reason='length')
     elif failure == 'unknown': responses[1] = replace(first, input_tokens=0, output_tokens=0)
-    elif failure == 'timeout': responses[1] = ModelInvocationError('timeout', '测试', 1, 100)
+    elif failure == 'timeout': responses[1] = ModelInvocationError('timeout', '测试', 1, 100,
+        diagnostics={'failure_origin': 'transport', 'phase': 'connect-or-response-headers'})
     else:
         row = json.loads(first.content)
         row['sample_id' if failure == 'wrong-id' else 'evidence_quote'] = '不存在'
@@ -79,6 +81,10 @@ def test_first_error_retains_partial_evidence_and_stops(case, failure):
     assert result['scores'] is None and len(result['partial_reviews']['reviews']) == 1
     assert len((output / 'responses.ndjson').read_text().splitlines()) == 2
     assert (result['total_cost'] is None) == (failure in {'unknown', 'timeout'})
+    if failure == 'timeout':
+        record = json.loads((output / 'responses.ndjson').read_text().splitlines()[-1])
+        assert record['latency_ms'] == 100
+        assert record['diagnostics'] == responses[1].diagnostics
 
 
 def test_plan_mutation_and_invalid_budget_cannot_call_models(case):
@@ -116,6 +122,28 @@ def test_approved_cli_saves_import_bundle(case, tmp_path):
     saved = json.loads((tmp_path / 'live/reviews.json').read_text())
     assert set(saved) == {'calibration', 'nodes'}
     assert saved['nodes']['packet_sha256'] == digest(read_bundle(SOURCE)['node_packet'])
+    assert factory.call_args.kwargs['timeout_seconds'] == 600
+    assert factory.call_args.kwargs['max_retries'] == 0
+
+
+def test_timeout_change_requires_matching_preflight(tmp_path):
+    args = ['--input-dir', str(SOURCE), '--calibration-reviews', str(CALIBRATION)]
+    main([*args, '--timeout-seconds', '120', '--output-dir', str(tmp_path / 'preflight')])
+    frozen = tmp_path / 'preflight/preflight.json'
+    assert json.loads(frozen.read_text())['plan']['timeout_seconds'] == 120
+    with patch('experiments.review_k3_outputs.OpenAICompatibleClient') as factory:
+        with pytest.raises(SystemExit):
+            main([*args, '--timeout-seconds', '600', '--output-dir', str(tmp_path / 'live'),
+                  '--execute-paid-run', '--max-review-cost', '210', '--approved-preflight', str(frozen)])
+        factory.assert_not_called()
+    assert not (tmp_path / 'live').exists()
+
+
+@pytest.mark.parametrize('timeout', [True, None, 0, -1, 601, float('inf'), float('nan')])
+def test_invalid_timeout_cannot_create_plan(case, timeout):
+    public, forbidden, *_ = case
+    with pytest.raises(ValueError):
+        review_plan(public, forbidden, timeout_seconds=timeout)
 
 
 def test_final_review_reuses_identity_and_keeps_task_completion_cap(case):

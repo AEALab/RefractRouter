@@ -26,13 +26,18 @@ def main(argv=None):
     parser.add_argument('--approved-preflight', type=Path)
     parser.add_argument('--execute-paid-run', action='store_true')
     parser.add_argument('--max-review-cost', type=float)
+    parser.add_argument('--timeout-seconds', type=float, default=600.0,
+                        help='非流式评审的 socket 等待时间，默认 600 秒，必须随预检冻结')
     args = parser.parse_args(argv)
     if args.output_dir.exists():
         parser.error('必须使用不存在的新输出目录')
     state = read_bundle(args.input_dir)
     calibration = json.loads(args.calibration_reviews.read_text())['calibration']
     public, key, forbidden = validate_review_input(state, calibration)
-    plan = review_plan(public, forbidden)
+    try:
+        plan = review_plan(public, forbidden, timeout_seconds=args.timeout_seconds)
+    except ValueError as exc:
+        parser.error(str(exc))
     code = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for base in (ROOT / 'src/refractrouter', ROOT / 'experiments') for p in sorted(base.glob('*.py'))}
     preflight = {'plan': plan, 'code_sha256': digest(code),

@@ -9,7 +9,10 @@ pilot、final 或正式人工抽检。应用集成、#32 与 #38 的结果保留
 一份评分有效，第二次在 120 秒后超时并停止，余下 19 次没有派发。
 已知费用 2.2194 AFP，超时用量未知，不能计算本阶段完整总额或进入选模。
 详见[独立评审停止记录](../reports/issue36-node-reviews-20260910/README.md)。
-以下命令保留为本次冻结流程说明，不表示允许自动重跑已结束的批次。
+随后检查确认 120 秒来自评审入口写死的客户端等待值；旧日志不足以确定本地超时还是
+HTTP 408。现已改为可冻结的等待参数（默认 600 秒），并补齐错误来源和请求阶段，见
+[超时诊断](../reports/issue36-timeout-diagnosis-20260910/README.md)。
+以下命令说明当前预检流程，不表示允许自动重跑已结束的批次。
 
 ## 依赖与完成条件
 
@@ -52,6 +55,7 @@ DSH 原生插件入口；独立评审工具在开发版本读取原始材料，�
 uv run python experiments/review_k3_outputs.py \
   --input-dir reports/v0.5-k3-resume-admission-2/output \
   --calibration-reviews reports/v0.5-glm-calibration/paid-admission-1/reviews.json \
+  --timeout-seconds 600 \
   --output-dir /tmp/k3-node-review-preflight
 ```
 
@@ -62,11 +66,14 @@ uv run python experiments/review_k3_outputs.py \
   --input-dir reports/v0.5-k3-resume-admission-2/output \
   --calibration-reviews reports/v0.5-glm-calibration/paid-admission-1/reviews.json \
   --approved-preflight /tmp/k3-node-review-preflight/preflight.json \
+  --timeout-seconds 600 \
   --execute-paid-run --max-review-cost 210 \
   --output-dir /tmp/k3-node-reviews
 ```
 
-范围为最多 21 次 GLM-5.3 `/api/plan/v3` 独立节点评审，串行、120 秒超时、底层零重试。
+范围为最多 21 次 GLM-5.3 `/api/plan/v3` 独立节点评审，串行、底层零重试。
+当前默认 socket 等待为 600 秒，不代表总墙钟截止时间；该值必须与获批预检一致。
+历史批次冻结的 120 秒配置和原始证据保持不变，不能把旧预检直接交给新版本执行。
 预留 209.72025 AFP，建议额度 210 AFP；按请求 UTF-8 字节数加余量计算输入预留，
 输出上限 8192。额度检查不能取代服务端用量控制。当前文档和预检不构成调用授权。
 

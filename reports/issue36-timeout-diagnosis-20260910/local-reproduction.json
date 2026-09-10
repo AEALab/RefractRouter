@@ -1,0 +1,54 @@
+{
+  "actual_model_calls": 0,
+  "records": [
+    {
+      "scenario": "headers",
+      "timeout_seconds": 0.05,
+      "failure_type": "timeout",
+      "diagnostics": {
+        "phase": "connect-or-response-headers",
+        "failure_origin": "transport",
+        "exception_type": "TimeoutError"
+      },
+      "latency_ms": 52
+    },
+    {
+      "scenario": "headers",
+      "timeout_seconds": 1,
+      "http_status": 200,
+      "diagnostics": {
+        "phase": "complete",
+        "http_status": 200,
+        "provider_request_id": "local-test",
+        "time_to_headers_ms": 201
+      },
+      "latency_ms": 201
+    },
+    {
+      "scenario": "body",
+      "timeout_seconds": 0.05,
+      "failure_type": "timeout",
+      "diagnostics": {
+        "phase": "response-body",
+        "http_status": 200,
+        "provider_request_id": "local-test",
+        "time_to_headers_ms": 0,
+        "failure_origin": "transport",
+        "exception_type": "TimeoutError"
+      },
+      "latency_ms": 52
+    },
+    {
+      "scenario": "http408",
+      "timeout_seconds": 1,
+      "http_status": 408,
+      "diagnostics": {
+        "phase": "complete",
+        "http_status": 408,
+        "provider_request_id": "local-test",
+        "time_to_headers_ms": 0
+      },
+      "latency_ms": 0
+    }
+  ]
+}

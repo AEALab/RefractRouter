@@ -34,7 +34,10 @@ def validate_review_input(state, calibration):
     return public, key, forbidden
 
 
-def review_plan(public, forbidden_models):
+def review_plan(public, forbidden_models, *, timeout_seconds=600.0):
+    if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))
+            or not math.isfinite(timeout_seconds) or not 0 < timeout_seconds <= 600):
+        raise ValueError('评审等待时间必须为大于 0、至多 600 秒的有限数值')
     model = reviewer_model()
     normalize = lambda value: value.strip().lower().split('/')[-1]
     if normalize(model.api_model) in {normalize(m) for m in forbidden_models}:
@@ -62,9 +65,9 @@ def review_plan(public, forbidden_models):
         requests.append({'sample_id': sample['sample_id'], 'messages': messages,
                          'reserved_input_tokens': tokens,
                          'reserved_cost': round((tokens + model.max_output_tokens) * .45 / 1000, 8)})
-    return {'version': 'k3-independent-review-v1', 'kind': public['kind'],
+    return {'version': 'k3-independent-review-v2', 'kind': public['kind'],
             'packet_sha256': digest(public), 'model': asdict(model),
-            'max_calls': len(requests), 'max_retries': 0, 'timeout_seconds': 120,
+            'max_calls': len(requests), 'max_retries': 0, 'timeout_seconds': float(timeout_seconds),
             'requests': requests, 'reserved_cost': round(sum(r['reserved_cost'] for r in requests), 8),
             'billing_unit': 'AFP', 'production_calls': 0,
             '说明': '复用校准；逐样本串行，首错停止。输入按字节加余量预留，不是服务端账单硬上界。'}
@@ -74,7 +77,8 @@ def run_reviews(public, plan, client, output_dir, *, limit, forbidden_models):
     if (isinstance(limit, bool) or not isinstance(limit, (int, float))
             or not math.isfinite(limit) or limit < plan['reserved_cost']):
         raise ValueError('必须提供覆盖冻结计划的有限评审额度')
-    if digest(plan) != digest(review_plan(public, forbidden_models)):
+    if digest(plan) != digest(review_plan(public, forbidden_models,
+                                         timeout_seconds=plan.get('timeout_seconds'))):
         raise ValueError('评审请求与冻结预检不一致')
     model = reviewer_model()
     response = {'packet_sha256': digest(public), 'reviewer': {'kind': 'model', 'id': model.api_model},
@@ -91,7 +95,8 @@ def run_reviews(public, plan, client, output_dir, *, limit, forbidden_models):
         except ModelInvocationError as exc:
             failure, unknown = exc.failure_type, True
             record = {'sample_id': sample['sample_id'], 'failure': failure,
-                      'attempts': exc.attempts, 'cost': None}
+                      'attempts': exc.attempts, 'latency_ms': exc.latency_ms,
+                      'diagnostics': exc.diagnostics, 'cost': None}
         else:
             completed += 1
             valid_usage = result.usage_available and all(
