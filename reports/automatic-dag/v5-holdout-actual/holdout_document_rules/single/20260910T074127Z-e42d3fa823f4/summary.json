@@ -1,0 +1,144 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T074127Z-e42d3fa823f4",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "甲：可以查公开目录。公开目录任何人可查，您无需会员证即可使用。\n\n乙：目前暂不能提供扫描件。扫描件需要有效会员证，未满 16 岁还须有监护人书面同意；您的会员证有效，但监护人书面同意尚未收到，请补齐后再申请。\n\n丙：今天不能借走原件。原件须提前两个工作日预约，且仅在馆内查阅，不能外借；您未预约，同时原件也不提供外借服务。建议您先预约，并在馆内使用。\n\n丁：可以申请扫描件。您已年满 16 岁，且会员证有效，符合扫描件提供条件。",
+  "issues": [],
+  "models": {
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "四个申请均给出正确结论与规则依据：甲可查公开目录；乙因未满16岁且监护人书面同意未收到而暂不能提供扫描件；丙同时指出未预约与原件不外借且仅限馆内查阅；丁年满16岁且会员证有效，可申请扫描件。说明简短友好，未添加收费、证件类别或其他未列限制。",
+    "criteria": [
+      {
+        "criterion": "四个申请分别给出正确结论及相应规则理由。",
+        "passed": true,
+        "rationale": "甲、乙、丙、丁均分别给出可或不可的结论，并对应公开目录、扫描件年龄与监护人同意、原件预约与馆内查阅等规则理由。"
+      },
+      {
+        "criterion": "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+        "passed": true,
+        "rationale": "乙明确因监护人书面同意尚未收到而暂不能提供扫描件；丙同时说明未预约和原件不能外借、仅馆内查阅。"
+      },
+      {
+        "criterion": "说明清楚友好，不添加材料未列出的限制或收费。",
+        "passed": true,
+        "rationale": "措辞清楚友好，未引入收费、特定证件类别或其他材料外限制。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 0.3586,
+    "evaluation": 0.883,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 14537,
+  "plan_origin": "provided",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+        "parents": [],
+        "contract": {
+          "objective": "完整回答当前用户任务，保留要求的输出格式。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终答案"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 4022,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "四个申请分别给出正确结论及相应规则理由。",
+            "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+            "说明清楚友好，不添加材料未列出的限制或收费。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "四个申请分别给出正确结论及相应规则理由。",
+      "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+      "说明清楚友好，不添加材料未列出的限制或收费。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+  },
+  "plan_admission": null,
+  "cost_breakdown": {
+    "planning": 0,
+    "execution": 0.3586,
+    "evaluation": 0.883
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/single/20260910T074127Z-e42d3fa823f4/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/single/20260910T074127Z-e42d3fa823f4",
+  "usage": {
+    "input_tokens": 1115,
+    "output_tokens": 420,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "565cba1a8b68224f877bbc10d8869c7ab139c2d127e51d81c4ac4d21603d7b93",
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "plan.json": "093caa1eb1c4109bc1604979a1c749e6fd196e61fab9a7fd8a5cbf1add43e14b",
+    "profile.json": "335ef8989e31a0ec79c408ead2c8eb1c708485c36e99079866be8ad9510d61a1",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "875e2bd41bd5a5d5a136d9ed1f87692eb4f752150114bb32f7ee0c41bb0c1434",
+    "result.json": "e54c6ee3dc1c0df70387f8b97d075755968761733b5ce04dca396e2ce3d7f2da"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "schema_version": "refractagent-providers-v1",
+  "billing_unit": "AFP",
+  "models": [
+    {
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "input_cost_per_1k": 0.05,
+      "output_cost_per_1k": 0.05,
+      "capability": 0.55,
+      "billing_unit": "AFP",
+      "tags": [],
+      "api_model": "deepseek-v4-flash",
+      "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "api_key_env": "CODEX_ARK_API_KEY",
+      "cached_input_cost_per_1k": 0.05,
+      "context_window": 1024000,
+      "max_output_tokens": 4096,
+      "snapshot_date": "2026-09-10",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "thinking": {
+          "type": "disabled"
+        },
+        "temperature": 0
+      },
+      "json_mode_strategy": "json-object-hint",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": true
+    },
+    {
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "input_cost_per_1k": 0.25,
+      "output_cost_per_1k": 0.25,
+      "capability": 0.78,
+      "billing_unit": "AFP",
+      "tags": [],
+      "api_model": "minimax-m3",
+      "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "api_key_env": "CODEX_ARK_API_KEY",
+      "cached_input_cost_per_1k": 0.25,
+      "context_window": 1024000,
+      "max_output_tokens": 4096,
+      "snapshot_date": "2026-09-10",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "thinking": {
+          "type": "disabled"
+        },
+        "temperature": 0
+      },
+      "json_mode_strategy": "prompt-only",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": true
+    },
+    {
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "input_cost_per_1k": 0.55,
+      "output_cost_per_1k": 0.55,
+      "capability": 0.92,
+      "billing_unit": "AFP",
+      "tags": [],
+      "api_model": "deepseek-v4-pro",
+      "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "api_key_env": "CODEX_ARK_API_KEY",
+      "cached_input_cost_per_1k": 0.55,
+      "context_window": 1024000,
+      "max_output_tokens": 4096,
+      "snapshot_date": "2026-09-10",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "thinking": {
+          "type": "disabled"
+        },
+        "temperature": 0
+      },
+      "json_mode_strategy": "json-object-hint",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": true
+    },
+    {
+      "model_id": "judge",
+      "provider": "ark-plan",
+      "input_cost_per_1k": 1.0,
+      "output_cost_per_1k": 1.0,
+      "capability": 1.0,
+      "billing_unit": "AFP",
+      "tags": [],
+      "api_model": "kimi-k3",
+      "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "api_key_env": "CODEX_ARK_API_KEY",
+      "cached_input_cost_per_1k": 1.0,
+      "context_window": 1024000,
+      "max_output_tokens": 4096,
+      "snapshot_date": "2026-09-10",
+      "role": "judge",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "thinking": {
+          "type": "disabled"
+        }
+      },
+      "json_mode_strategy": "json-object-hint",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": true
+    }
+  ]
+}

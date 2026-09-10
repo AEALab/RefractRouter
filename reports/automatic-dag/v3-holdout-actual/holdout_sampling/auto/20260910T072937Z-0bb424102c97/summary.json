@@ -1,0 +1,69 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T072937Z-0bb424102c97",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "failed",
+  "answer": "",
+  "issues": [
+    "unsupported text node_type"
+  ],
+  "models": {},
+  "model_routes": {},
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": null,
+  "costs": {
+    "production": 0.15025,
+    "evaluation": 0,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "not-started",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 15530,
+  "plan_origin": "model",
+  "plan": null,
+  "plan_admission": null,
+  "cost_breakdown": {
+    "planning": 0.15025,
+    "execution": 0,
+    "evaluation": 0
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v3-holdout-actual/holdout_sampling/auto/20260910T072937Z-0bb424102c97/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v3-holdout-actual/holdout_sampling/auto/20260910T072937Z-0bb424102c97",
+  "usage": {
+    "input_tokens": 1735,
+    "output_tokens": 1270,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "profile.json": "34586d84aaedc21c4847d8ef57c0a0bbb6e103562d15e4bfc7d112bdf08d3729",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "dc7ca393d199be14b9119e8e03277fb9403971b2722a07a53b80479534545486",
+    "result.json": "f2a3e9d5d2c699a95b50b95c40e32ec2f4830e7f09a45df1608885ad41b097ac"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "将以下内容改写成一则清楚、友好的通知：岭北读书会原定 10 月 14 日下午两点的活动改为 10 月 17 日下午三点，地点仍为杉树厅。已报名者无需再次报名，不能参加者请在 10 月 12 日晚上八点前联系周宁。不要增加原因、联系方式或其他安排。",
+    "acceptanceCriteria": [
+      "准确写明原时间、新时间和地点不变。",
+      "保留无需再次报名，以及取消参加的截止时间和联系人。",
+      "不添加材料中没有的信息。"
+    ],
+    "strategy": "economy",
+    "template": "auto"
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "将以下内容改写成一则清楚、友好的通知：岭北读书会原定 10 月 14 日下午两点的活动改为 10 月 17 日下午三点，地点仍为杉树厅。已报名者无需再次报名，不能参加者请在 10 月 12 日晚上八点前联系周宁。不要增加原因、联系方式或其他安排。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 2,
+    "maxNodeFallbacks": 0,
+    "acceptanceCriteria": [
+      "准确写明原时间、新时间和地点不变。",
+      "保留无需再次报名，以及取消参加的截止时间和联系人。",
+      "不添加材料中没有的信息。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 4096
+}

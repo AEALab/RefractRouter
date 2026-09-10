@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+      "parents": [],
+      "contract": {
+        "objective": "完整回答当前用户任务，保留要求的输出格式。",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终答案"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 3686,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "正确计算两个方案的全年成本并比较 5000 元预算。",
+          "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+          "最终答案同时包含成本、维护风险与有条件建议。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "正确计算两个方案的全年成本并比较 5000 元预算。",
+    "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+    "最终答案同时包含成本、维护风险与有条件建议。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+}

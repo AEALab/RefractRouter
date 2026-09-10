@@ -35,7 +35,7 @@ interface Configuration {
   credentialEnv: string
   preset?: 'ark-agent-plan'
   providerConfig?: ProviderConfiguration
-  template: 'single' | 'compare'
+  template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
 }
 interface ModelOptions {
@@ -97,7 +97,7 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     if (typeof result[key] !== 'string' || !result[key].trim()) throw new Error(`invalid ${key}`)
   }
   if (result.executionMode !== 'demo' && result.executionMode !== 'live') throw new Error('invalid executionMode')
-  if (result.template !== 'single' && result.template !== 'compare') throw new Error('invalid template')
+  if (!['single', 'compare', 'auto'].includes(result.template)) throw new Error('invalid template')
   if (typeof result.allowPaidRuns !== 'boolean') throw new Error('allowPaidRuns must be boolean')
   for (const key of ['maxProductionCost', 'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens'] as const) positive(result[key], key)
   if (!Number.isInteger(result.maxOutputTokens) || result.maxOutputTokens < 1000 || result.maxOutputTokens > 128000) {
@@ -256,6 +256,10 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     }
     if (result.strategy !== options.model || result.mode !== config.executionMode
       || result.simulated !== !live) throw new Error('RefractAgent returned a different strategy or execution mode')
+    if (live && config.template === 'auto' && (result.plan_origin !== 'model'
+      || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
+      throw new Error('installed core did not return an automatically generated DAG')
+    }
     if (result.format_validation !== undefined) {
       const check = decodeFormatValidation(result.format_validation)
       if (config.outputConstraints && JSON.stringify(check.constraints) !== JSON.stringify(config.outputConstraints)) {
@@ -278,7 +282,7 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
     const entry = MODELS.find(m => m.id === model)
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
     return { ...entry, provider, name: entry.name + (config.executionMode === 'demo' ? '（模拟）' : ''),
-      description: '文本分析与生成；可选整任务或预设 DAG，工具执行暂不支持。',
+      description: '文本分析与生成；支持整任务、预设 DAG 和自动拆分，工具执行暂不支持。',
       inputModalities: ['text'], context: { contextWindow: 24000 }, defaultMaxTokens: config.maxOutputTokens }
   }
   const adapter: AgentAdapter = {
@@ -294,6 +298,9 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
         + `模型：${JSON.stringify(result.model_routes ?? result.models)}；状态：${String(result.status)}；`
         + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${object(result.quality) ? JSON.stringify({ passed: result.quality.passed, score: result.quality.score }) : '未评审'}；`
         + `长度检查：${formatValidationSummary(result.format_validation)}；`
+        + (object(result.plan) && Array.isArray(result.plan.nodes) ? `计划：${String(result.plan_origin)}，${result.plan.nodes.length} 个节点；` : '')
+        + (typeof result.wall_time_ms === 'number' ? `总耗时：${(result.wall_time_ms / 1000).toFixed(2)} 秒；` : '')
+        + (object(result.cost_breakdown) ? `规划／执行／评审：${JSON.stringify(result.cost_breakdown)} ${String(result.billing_unit)}；` : '')
         + `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}；记录：${String(result.result_path)}`
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
       yield { type: 'block-start', index: 0, blockType: 'reasoning' }
@@ -310,6 +317,8 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
           modelRoutes: result.model_routes, evaluationModel: result.evaluation_model,
           status: result.status, generationStatus: result.generation_status, quality: result.quality,
           formatValidation: result.format_validation,
+          plan: result.plan, planOrigin: result.plan_origin, wallTimeMs: result.wall_time_ms,
+          costBreakdown: result.cost_breakdown,
           costs: result.costs, simulated: result.simulated, resultPath: result.result_path },
       } } }
     },

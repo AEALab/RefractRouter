@@ -1,0 +1,79 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "为虚构的社区手工教室写一份采购建议。方案松：设备费 2800 元，耗材每月 150 元；方案竹：设备费 3900 元，耗材每月 70 元。按使用 12 个月计算，总预算 5000 元。松需要每月由志愿者清洁，负责人尚未确定；竹由供应商季度维护，合同是否包含上门费尚未确认。请分别呈现全年成本核算和维护执行风险，最后给出有条件的选择建议。只用给定信息，不推断设备质量。本次需要分工式处理：成本核算与维护风险各自独立分析，再由汇总步骤整合交付。",
+    "acceptanceCriteria": [
+      "正确计算两个方案的全年成本并比较 5000 元预算。",
+      "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+      "最终答案同时包含成本、维护风险与有条件建议。"
+    ],
+    "strategy": "economy",
+    "template": "single"
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "为虚构的社区手工教室写一份采购建议。方案松：设备费 2800 元，耗材每月 150 元；方案竹：设备费 3900 元，耗材每月 70 元。按使用 12 个月计算，总预算 5000 元。松需要每月由志愿者清洁，负责人尚未确定；竹由供应商季度维护，合同是否包含上门费尚未确认。请分别呈现全年成本核算和维护执行风险，最后给出有条件的选择建议。只用给定信息，不推断设备质量。本次需要分工式处理：成本核算与维护风险各自独立分析，再由汇总步骤整合交付。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 1,
+    "maxNodeFallbacks": 0,
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 3908,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确计算两个方案的全年成本并比较 5000 元预算。",
+              "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+              "最终答案同时包含成本、维护风险与有条件建议。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确计算两个方案的全年成本并比较 5000 元预算。",
+        "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+        "最终答案同时包含成本、维护风险与有条件建议。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "acceptanceCriteria": [
+      "正确计算两个方案的全年成本并比较 5000 元预算。",
+      "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+      "最终答案同时包含成本、维护风险与有条件建议。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 4096
+}

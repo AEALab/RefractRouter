@@ -1,0 +1,144 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T072155Z-bce4b05e6b9b",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "方案松：全年成本 = 设备费 2800 元 + 耗材 150 元/月 × 12 个月 = 2800 + 1800 = 4600 元。  \n5000 元预算内剩余 400 元。\n\n方案竹：全年成本 = 设备费 3900 元 + 耗材 70 元/月 × 12 个月 = 3900 + 840 = 4740 元。  \n5000 元预算内剩余 260 元。\n\n两个方案都在 5000 元预算内。方案松比方案竹低 140 元。\n\n维护执行风险：\n\n方案松  \n- 已知需要每月由志愿者清洁。  \n- 负责人尚未确定，因此清洁工作能否按时、持续执行存在不确定性。  \n- 如果找不到固定负责人，可能出现清洁延期或遗漏，但材料中未说明不清洁会带来什么后果，因此不能推断具体设备影响。\n\n方案竹  \n- 已知由供应商季度维护。  \n- 合同是否包含上门费尚未确认。  \n- 如果上门费另计，实际维护成本会高于当前 4740 元；如果已包含在合同内，则不会增加额外费用。当前无法判断是否会影响 5000 元预算。\n\n有条件的选择建议：\n\n- 如果社区能尽快确定方案松的每月清洁负责人，且愿意承担志愿者协调工作，方案松成本更低，可优先选择。  \n- 如果无法确定固定负责人，或希望减少日常维护协调，方案竹的供应商季度维护更省心，但需要先确认上门费是否包含在合同内。  \n- 在方案竹的上门费未确认前，不建议直接认定其总成本一定在 5000 元以内；若上门费另计并导致总成本超过 5000 元，则应重新评估。  \n- 若两个方案均需满足 5000 元硬预算，方案松当前更稳妥；方案竹只有在确认无额外上门费后才具备同等确定性。",
+  "issues": [],
+  "models": {
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "交付文本正确计算了两个方案的全年成本（松：2800+150×12=4600 元，竹：3900+70×12=4740 元），并与 5000 元预算进行了比较，指出松低 140 元。维护风险部分分别分析了松的负责人未定和竹的上门费未确认两个未知条件，未编造已确认事实，也未推断设备质量。最终答案同时包含成本核算、维护风险与有条件的选择建议，满足全部验收条目。",
+    "criteria": [
+      {
+        "criterion": "正确计算两个方案的全年成本并比较 5000 元预算。",
+        "passed": true,
+        "rationale": "松 4600 元、竹 4740 元计算正确，均与 5000 元预算比较并给出差额（剩余 400 元、260 元，松低 140 元）。"
+      },
+      {
+        "criterion": "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+        "passed": true,
+        "rationale": "分别讨论了松的志愿者清洁负责人未定带来的执行不确定性，以及竹的上门费是否包含未确认对成本的影响，明确标注未知项，未虚构已确认事实。"
+      },
+      {
+        "criterion": "最终答案同时包含成本、维护风险与有条件建议。",
+        "passed": true,
+        "rationale": "答案包含完整成本核算、两方案维护风险分析，以及以负责人确定情况和上门费确认情况为条件的选择建议。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 0.4972,
+    "evaluation": 1.222,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 24444,
+  "plan_origin": "provided",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+        "parents": [],
+        "contract": {
+          "objective": "完整回答当前用户任务，保留要求的输出格式。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终答案"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 3686,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "正确计算两个方案的全年成本并比较 5000 元预算。",
+            "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+            "最终答案同时包含成本、维护风险与有条件建议。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "正确计算两个方案的全年成本并比较 5000 元预算。",
+      "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+      "最终答案同时包含成本、维护风险与有条件建议。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+  },
+  "plan_admission": null,
+  "cost_breakdown": {
+    "planning": 0,
+    "execution": 0.4972,
+    "evaluation": 1.222
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v1-development-actual/dev_workshop/single/20260910T072155Z-bce4b05e6b9b/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v1-development-actual/dev_workshop/single/20260910T072155Z-bce4b05e6b9b",
+  "usage": {
+    "input_tokens": 1367,
+    "output_tokens": 759,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "f8b987777d9fcf9c4a8c76e29f95071e90e4f7a0ccb7f54d37d17dfadb63ed74",
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "plan.json": "8ccc76b7d3f99f77a409c167ff7ec8f50068501899a90fef816809d8ee2172e7",
+    "profile.json": "2d72d23b2c3a0f77d5e0a81e0602a4e81c44d6fbe3505f01ce0e8f22fcc7155c",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "d727fa669793422450d571a2c76aa076edf2d34bfc0a8ed0183db1be5529d1d9",
+    "result.json": "50832e43e78ada35f060b932f5cf3326b00e1b93f76a5ef7b2ff5b7ea665b005"
+  }
+}

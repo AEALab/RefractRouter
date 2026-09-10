@@ -1,0 +1,157 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T074103Z-72dc86d337fc",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "甲：可以查公开目录。公开目录任何人可查，您无需会员证即可使用。\n\n乙：目前暂不能提供扫描件。扫描件虽对有效会员提供，但您未满 16 岁，还须有监护人书面同意；待我们收到监护人书面同意后，即可为您办理。\n\n丙：目前不能借走原件。原件须提前两个工作日预约，且仅在馆内查阅，不能外借；会员资格不能替代预约。建议您先预约，并在馆内使用。\n\n丁：可以申请扫描件。您已年满 16 岁，且持有有效会员证，符合扫描件提供条件。",
+  "issues": [],
+  "models": {
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "四个申请均给出正确结论并附规则理由：甲可公开查目录；乙因未满16岁需待监护人书面同意；丙同时指出未提前两个工作日预约与原件不能外借、仅限馆内查阅，且说明会员资格不替代预约；丁年满16岁且会员证有效，可申请扫描件。说明简短友好，未添加收费、证件类别或其他限制。",
+    "criteria": [
+      {
+        "criterion": "四个申请分别给出正确结论及相应规则理由。",
+        "passed": true,
+        "rationale": "甲、乙、丙、丁均分别给出可/暂不可/不能/可以的结论，并对应引用公开目录、扫描件年龄与监护人同意、原件预约与馆内查阅、扫描件会员条件等规则理由。"
+      },
+      {
+        "criterion": "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+        "passed": true,
+        "rationale": "乙明确「待我们收到监护人书面同意后」办理；丙同时说明「须提前两个工作日预约」和「仅在馆内查阅，不能外借」，并补充会员资格不能替代预约。"
+      },
+      {
+        "criterion": "说明清楚友好，不添加材料未列出的限制或收费。",
+        "passed": true,
+        "rationale": "措辞清楚且可直接发送，使用了「建议您先预约」等友好表达；未引入收费、证件类别或其他未列限制。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 1.8436000000000001,
+    "evaluation": 0.897,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 23762,
+  "plan_origin": "model",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "请按以下虚构资料馆规则审核四个申请，并给出可直接发送给申请人的简短说明。规则：公开目录任何人可查；扫描件仅对持有效会员证者提供，但未满 16 岁还须监护人书面同意；原件须提前两个工作日预约且仅在馆内查阅，会员资格不替代预约。申请甲：非会员，只查公开目录。乙：15 岁，会员证有效，申请扫描件，监护人同意尚未收到。丙：20 岁，会员证有效，希望今天借走原件，未预约。丁：17 岁，会员证有效，申请扫描件。不得添加收费、证件类别或其他规则。\n\n最终交付必须满足：\n四个申请分别给出正确结论及相应规则理由。\n乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。\n说明清楚友好，不添加材料未列出的限制或收费。\n\n请直接输出最终说明正文，分别呈现甲、乙、丙、丁四个申请的结论及规则理由，语言清楚友好。",
+        "parents": [],
+        "contract": {
+          "objective": "审核四个申请并输出可直接发送给申请人的简短说明，分别给出结论及规则理由。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终交付的简短说明正文，分别呈现甲、乙、丙、丁四个申请的结论及规则理由。"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 3668,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "四个申请分别给出正确结论及相应规则理由。",
+            "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+            "说明清楚友好，不添加材料未列出的限制或收费。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "四个申请分别给出正确结论及相应规则理由。",
+      "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+      "说明清楚友好，不添加材料未列出的限制或收费。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "任务为四个独立申请的规则审核，规则简单且材料短小，拆分会增加交接与汇总开销而收益有限；单节点可直接完成全部审核并输出最终说明。"
+  },
+  "plan_admission": {
+    "answer": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 3635,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 3667,
+        "forecast_input_tokens": 3667
+      }
+    }
+  },
+  "cost_breakdown": {
+    "planning": 1.3541,
+    "execution": 0.4895,
+    "evaluation": 0.897
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/auto/20260910T074103Z-72dc86d337fc/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/auto/20260910T074103Z-72dc86d337fc",
+  "usage": {
+    "input_tokens": 2155,
+    "output_tokens": 1070,
+    "cache_read_tokens": 1024,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "b915c8f85482b6f4fadb2bcf67930fee75d4feab06d5b24b2dae86b19ba0c807",
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "plan.json": "d7bd2b2aee2a772a4dcbbd68b8aae3385ba1d745a3f380deba692fcf2c3694b7",
+    "profile.json": "1b324250c741155727573c5b90ba567666fb5c7ff8130eceb2e50b3e35d75ce7",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "b1815ccca1ec5905d9d2aa8a3a959b6ada79e61b0fe304b89f288472803fb5f6",
+    "result.json": "7846b06cee70813a4f77f2ef7657101f8ad6b7c67b7252f794e271f294d0e825"
+  }
+}

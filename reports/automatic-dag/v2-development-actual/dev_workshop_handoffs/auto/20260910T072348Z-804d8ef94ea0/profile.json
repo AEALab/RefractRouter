@@ -1,0 +1,180 @@
+{
+  "schema_version": "node-routing-profile-v2",
+  "kind": "configured",
+  "billing_unit": "AFP",
+  "scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "provenance": "本次 provider-config.json；无模型探测、无观测样本。",
+  "candidates": [
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 0.37835,
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 3471,
+      "input_max_tokens": 3472
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 0.38195,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 3543,
+      "input_max_tokens": 3544
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 3.6609500000000006,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 69123,
+      "input_max_tokens": 69124
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 1.89175,
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 3471,
+      "input_max_tokens": 3472
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 1.90975,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 3543,
+      "input_max_tokens": 3544
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 18.304750000000002,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 69123,
+      "input_max_tokens": 69124
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 4.16185,
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 3471,
+      "input_max_tokens": 3472
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 4.20145,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 3543,
+      "input_max_tokens": 3544
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 40.270450000000004,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 69123,
+      "input_max_tokens": 69124
+    }
+  ],
+  "forecast_basis": {
+    "cost_analysis": {
+      "cheap": {
+        "input_tokens": 3471,
+        "output_tokens": 4096,
+        "source": "default"
+      },
+      "mid": {
+        "input_tokens": 3471,
+        "output_tokens": 4096,
+        "source": "default"
+      },
+      "strong": {
+        "input_tokens": 3471,
+        "output_tokens": 4096,
+        "source": "default"
+      }
+    },
+    "risk_analysis": {
+      "cheap": {
+        "input_tokens": 3543,
+        "output_tokens": 4096,
+        "source": "default"
+      },
+      "mid": {
+        "input_tokens": 3543,
+        "output_tokens": 4096,
+        "source": "default"
+      },
+      "strong": {
+        "input_tokens": 3543,
+        "output_tokens": 4096,
+        "source": "default"
+      }
+    },
+    "answer": {
+      "cheap": {
+        "input_tokens": 69123,
+        "output_tokens": 4096,
+        "source": "default"
+      },
+      "mid": {
+        "input_tokens": 69123,
+        "output_tokens": 4096,
+        "source": "default"
+      },
+      "strong": {
+        "input_tokens": 69123,
+        "output_tokens": 4096,
+        "source": "default"
+      }
+    }
+  },
+  "model_bindings": {
+    "cheap": "deepseek-v4-flash",
+    "mid": "minimax-m3",
+    "strong": "deepseek-v4-pro"
+  },
+  "action_bindings": {
+    "cheap": "2cf33b29ad1b08116917ec36adaae04e504e5e0c6737600cae7c7d8584eb994f",
+    "mid": "425176931653585a456be6c8cfbbd24d352458c252093032840b067d3c8b0ac2",
+    "strong": "ed7f8a3208c230325970397a9ebfb6d456186e9808f7d5a8b72e11abffa6cd8b"
+  }
+}

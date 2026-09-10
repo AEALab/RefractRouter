@@ -1,0 +1,245 @@
+{
+  "protocol": {
+    "version": "automatic-dag-acceptance-v2",
+    "scope": "虚构封闭材料上的应用可执行性验收；不替代 #40 的历史研究、人工复核或综合收益验收。",
+    "provider_preset": "ark-agent-plan",
+    "strategy": "economy",
+    "quality_min": 80,
+    "max_output_tokens": 4096,
+    "production_budget": 40,
+    "evaluation_budget": 40,
+    "timeout_ms": 300000,
+    "http_retries": 0,
+    "node_fallbacks": 0,
+    "planner_repairs": 0,
+    "order": [
+      "auto",
+      "single"
+    ],
+    "tasks": [
+      {
+        "id": "dev_workshop_handoffs",
+        "split": "development",
+        "task": "为虚构的社区手工教室写一份采购建议。方案松：设备费 2800 元，耗材每月 150 元；方案竹：设备费 3900 元，耗材每月 70 元。按使用 12 个月计算，总预算 5000 元。松需要每月由志愿者清洁，负责人尚未确定；竹由供应商季度维护，合同是否包含上门费尚未确认。请分别呈现全年成本核算和维护执行风险，最后给出有条件的选择建议。只用给定信息，不推断设备质量。本次需要分工式处理：成本核算与维护风险各自独立分析，再由汇总步骤整合交付。",
+        "criteria": [
+          "正确计算两个方案的全年成本并比较 5000 元预算。",
+          "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+          "最终答案同时包含成本、维护风险与有条件建议。"
+        ],
+        "reference": "松 4600 元，余额 400；竹 4740 元，余额 260。两者均在给定已知费用预算内；清洁负责人和上门费用分别待确认。"
+      },
+      {
+        "id": "holdout_notice",
+        "split": "holdout",
+        "task": "将以下内容改写成一则清楚、友好的通知：岭北读书会原定 10 月 14 日下午两点的活动改为 10 月 17 日下午三点，地点仍为杉树厅。已报名者无需再次报名，不能参加者请在 10 月 12 日晚上八点前联系周宁。不要增加原因、联系方式或其他安排。",
+        "criteria": [
+          "准确写明原时间、新时间和地点不变。",
+          "保留无需再次报名，以及取消参加的截止时间和联系人。",
+          "不添加材料中没有的信息。"
+        ],
+        "reference": "原 10 月 14 日 14 时，新 10 月 17 日 15 时，杉树厅；已报名无需再次报名，不能参加在 10 月 12 日 20 时前联系周宁。"
+      },
+      {
+        "id": "holdout_sampling",
+        "split": "holdout",
+        "task": "虚构的自然观察小组要采购采样记录设备。方案甲首次采购 4200 元，每月维护 180 元；方案乙首次采购 6800 元，每月维护 60 元。使用期 12 个月，可用预算 7000 元，不计任何未提供的费用。甲需要现场人员每次出发前校准，人员是否完成培训尚未确认；乙由供应商远程协助，山地网络覆盖尚未确认。分别分析全年费用和两种维护方式的执行风险，然后给出当前预算下可执行的有条件建议。不得推断测量精度、网络可用或培训已完成。",
+        "criteria": [
+          "正确计算全年费用和相对预算的余额或缺口。",
+          "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+          "同时给出成本、风险和有条件建议，不虚构设备性能。"
+        ],
+        "reference": "甲 6360 元，余额 640；乙 7520 元，缺口 520。按已知费用只有甲在预算内，但须确认培训；乙须补预算并确认网络。"
+      },
+      {
+        "id": "holdout_exhibition",
+        "split": "holdout",
+        "task": "为一个虚构展览制定准备建议。第 0 天开始，手续 A 需要 2 天；运输 B 需要 3 天且必须等 A 完成；版面设计 C 需要 4 天，可在第 0 天独立开始；布展 D 需要 2 天，必须等 B 和 C 都完成；验收 E 需要 1 天，必须等 D 完成。各项连续执行，不考虑周末。费用为采购 1200 元、运输 800 元、布展 1500 元、设计 900 元，总预算 4600 元。分别给出最早开始和完成时间、决定总工期的依赖链、预算核算，最后说明如果 C 额外延误 2 天会怎样。没有给定的费用不得虚构。",
+        "criteria": [
+          "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+          "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+          "正确核算费用和预算余额，最终交付包含排程与费用。"
+        ],
+        "reference": "A 0–2，B 2–5，C 0–4，D 5–7，E 7–8；总工期 8 天，关键链 A-B-D-E。C 多 2 天后于第 6 天完成，D 6–8，E 8–9，总工期 9 天。费用 4400 元，余额 200 元。"
+      }
+    ]
+  },
+  "split": "development",
+  "provider_configuration": {
+    "schemaVersion": "refractagent-providers-v1",
+    "billingUnit": "AFP",
+    "qualityMin": 80,
+    "providers": [
+      {
+        "id": "ark-plan",
+        "type": "ark-agent-plan",
+        "credentialEnv": "CODEX_ARK_API_KEY"
+      }
+    ],
+    "models": [
+      {
+        "id": "cheap",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 4096,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.05,
+          "outputPer1k": 0.05,
+          "cachedInputPer1k": 0.05
+        },
+        "routing": {
+          "quality": 55,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "mid",
+        "provider": "ark-plan",
+        "model": "minimax-m3",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 4096,
+        "jsonMode": "prompt-only",
+        "requestOptions": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.25,
+          "outputPer1k": 0.25,
+          "cachedInputPer1k": 0.25
+        },
+        "routing": {
+          "quality": 78,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 4096,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.55,
+          "outputPer1k": 0.55,
+          "cachedInputPer1k": 0.55
+        },
+        "routing": {
+          "quality": 92,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "judge",
+        "provider": "ark-plan",
+        "model": "kimi-k3",
+        "role": "judge",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 4096,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "disabled"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 1.0,
+          "outputPer1k": 1.0,
+          "cachedInputPer1k": 1.0
+        }
+      }
+    ]
+  },
+  "source_hashes": {
+    "src/refractrouter/__init__.py": "1ebb90221ab180b3804eaf36fddfaea1cfb5303f2f03e3299812041207e28a34",
+    "src/refractrouter/adapters.py": "43709152360d3079b816132ad8d3092b7f01398d78651cfe7e53dfb052c1f53d",
+    "src/refractrouter/agent.py": "a2b56de8e07c3281ae7740ddb04097f1ee44dede029dc5d7a0c2bb25d195e615",
+    "src/refractrouter/agent_cli.py": "7a64d83c692b96efc33c8732d23bb93d2aa7ee548b15a5633278fe09049abada",
+    "src/refractrouter/application_config.py": "469b5ae6d8925c34b909c0defed0fea258b3f080a121893f7ec6d3e855e1f636",
+    "src/refractrouter/benchmark.py": "9c9042519d21db15cff169e036e369187a7cf9a7b33d7794cc25c3de9b193c12",
+    "src/refractrouter/blind_review.py": "a52c29f7c47f8dc30dbf4aa928a2055b63fd55ff980a023c8d3d7059333d5bed",
+    "src/refractrouter/calibration_runner.py": "5d8a15bbf818022c0eee690c2d391813614539ab8d2a4a9dc0f1453c61bce0f9",
+    "src/refractrouter/cli.py": "bfac0bf929a98acbddacd7c848f17650fb6dd9526c5f77895ca750cee033adee",
+    "src/refractrouter/comparisons.py": "baf75a5e94996e581887f7746f229eaefa28675bd9c102d3d7b5a0a3d1a249a1",
+    "src/refractrouter/configured_routing.py": "135f904ec461acdff4237813b72e08a18f32183a140506dfa27cccd2110ebfe0",
+    "src/refractrouter/cost_selection.py": "c4b5e676b60ab190e6c6584bb7c4b0bfda2be59389f4777f2eb9591f75916461",
+    "src/refractrouter/dag_batch_study.py": "a257d98d47bc68627ed019d1e07cefac513882ea7e3ea54f7bb83ef43ed661d2",
+    "src/refractrouter/dag_study.py": "dab8f2e074ddfa5ab46c16f7c8e7b705d2c1b36a4a8242ff8eebdef23dbe7161",
+    "src/refractrouter/dag_study_execution.py": "2c29d750ce6a08079ad4c85dc727d3cad28185966cabecb7359c0bb2ba046f3d",
+    "src/refractrouter/dataset.py": "51f5138e84b515cdeee5f306f6bd8fed0f47eb74752748b52084c866598d749d",
+    "src/refractrouter/deepagents_executor.py": "e3e4e085d55f9792f7722681fccb5bdf1f45d6828749cfa274c07ddd88510f3b",
+    "src/refractrouter/evidence_state.py": "b10a1af5e06ff8251e9cae7879a7e86b340de0195652898f72b8816244e0b7d4",
+    "src/refractrouter/execution_modes.py": "cefeba1f1cb728433fa22c479c6886b2c6b5a94a8124d4ef3c9610b35fc8fac0",
+    "src/refractrouter/execution_reports.py": "0c37cfa4472545fdc60f0b3d62ed20edff02054469ccb88e8e8824eef0e7bf16",
+    "src/refractrouter/graph_executor.py": "56d744d24c9a76e8a896e9fd33213c291b4da7bb727fa07e21b027dcd1428f26",
+    "src/refractrouter/handoff_validation.py": "74c527214f10e1ead75a5b957ce373ce9037d24ee10841880cffa29c67cd7709",
+    "src/refractrouter/joint_research.py": "f0f1f12c5488107682ec8de1c2d3b4f6767baf7e757cbe1d5074e2fe6f013dcf",
+    "src/refractrouter/judge.py": "ce3c891d7b2dee30b16dd81c1efd98078eb58789b9aa12b1e6a0e0538448d3b8",
+    "src/refractrouter/k3_experiment.py": "68e3fcc60a27f68a3f6cf65c33eba32f292b50330b9168a46faf0281a2a9a94d",
+    "src/refractrouter/k3_review_runner.py": "50c6e2fbb52bba5be011c2267b95c37642a8942c1aea96d78b35150ba471d621",
+    "src/refractrouter/manifest.py": "92c0490a5bdd362a7d9390ff5a842e08a0c9a5d7181c516a91c1aa327784354b",
+    "src/refractrouter/metrics.py": "1bfe2db5523c56bcefe456e23f62a507a1650f650fe07ee48ff7900b5dae350a",
+    "src/refractrouter/model_catalog.py": "158c7b5acc0dd13ed061099e298fd656b0ab93bd88dfe8b4ed526accaf9ca818",
+    "src/refractrouter/model_registry.py": "1f5d56244af42e918e594dd8434c49edba70ac50070314bef5eb09cc10868f8e",
+    "src/refractrouter/model_selection.py": "a23b611824b0ef432ee3c7933bd216879138d6901477048a433e20bf6a2f0793",
+    "src/refractrouter/node_availability.py": "b39ab5a1f7e4376992b528eb1e7a2872ee4ae1b5ed367b398d49b1a28c17b4fb",
+    "src/refractrouter/node_contracts.py": "d34e64ab4a1d39d8028099ae0fbb1dc8ed434a7a3ed4249b6ec072575a915d62",
+    "src/refractrouter/node_judge.py": "d1dd5997921b47533d45a15566368ec0b6f1a5aee668a83e9c636e4f4cea1b9b",
+    "src/refractrouter/node_recovery.py": "71c3da6863ab06e6f3b885280265dd0de5d5fcceb56658aa8bdbfa3c75038f9e",
+    "src/refractrouter/node_routing.py": "f533105a37d86de8a4ec745d3050b54201d27b98e27755897640432339225062",
+    "src/refractrouter/openai_compatible.py": "d3d6c6cb0f8ccdb21c9a3b2eb88aa8475ff61ee17be7e7f2f24531d3dd9f5e8f",
+    "src/refractrouter/output_constraints.py": "942285767ffc53b72fbc84bea9c32d6f5b41d37cab2a5d752d82cbf32979cea4",
+    "src/refractrouter/planning_support.py": "b2aee0b36721c8d79be085eb02579171242b6673bd9b9f26eda26ec92391795d",
+    "src/refractrouter/profile_calibration.py": "1257df3f9ff010fb50ad0916e3fb9e70efa56e7fd81250675fa9ce694f21765a",
+    "src/refractrouter/recovery_study.py": "9b33dfd32ef1a0da8942f545ce4af7648f9225f6712c295624ea2a6ffe0d372d",
+    "src/refractrouter/report_renderer.py": "a2b110b8fdea5afdd4369377b5bef1c753bc1e845076dd90e23dc17dc4ed464d",
+    "src/refractrouter/research_analysis.py": "5fc0aa0fc374e35da4b4d0318a51eb25e688cadab3261b7b73ccbdad182fc8f9",
+    "src/refractrouter/research_calibration.py": "e17463504738892de2b6b35dac1e8f508d9290544ff19dc2ea5e24aeba83ccd7",
+    "src/refractrouter/research_execution.py": "8b51dd3c9d5d76f0b534cd9c967243b95f4b8a67e184f6f5c8f217adafaa3af6",
+    "src/refractrouter/research_protocol.py": "17fdb6dbd26b68ef43721d07fcbbc90f0e2ac5dded37236fb528f1429276db80",
+    "src/refractrouter/responses_api.py": "e5aefd3b8e70f26a8819a9ab09751e416d7a95966513bd5339d7fdd573f675fa",
+    "src/refractrouter/review_calibration.py": "ab42222950af33ad40d60ff65c80ebeef1f54ee2a97a065f92ca975eaa602d2c",
+    "src/refractrouter/routing.py": "6b7c964f643fa30465d4e9d2a425f0732ebf3633f59f9dafe67968188f6e916f",
+    "src/refractrouter/routing_actions.py": "65fc2d33b0f30c3b8909ec5f27b91c09ecdb37c0d49b10ed8cb12534e13539dc",
+    "src/refractrouter/schemas.py": "8acaf738edd6586135fa9e33f49ba15c1e21d3a7ae4def977fa03ba69771b08e",
+    "src/refractrouter/scoring.py": "2abb25786031dc996b64b6e94fdec6c86454898d67b19afa54193d6afb8a4dfe",
+    "src/refractrouter/source_pack.py": "cc515979db15bcd08133cf0af2ba7ce615c288ec09a661ca0d4ae34d3501fe7d",
+    "src/refractrouter/task_budget.py": "93a96aaa4d1f0b94b0c93d47682e1fd8d3fa26bd3f61f02b238bbac7c4046b84",
+    "src/refractrouter/task_contract_replay.py": "9fa02697d015b4a7eb9c59147fd578493e69cd19cca5549bf5959d4f4b427685",
+    "src/refractrouter/task_contracts.py": "7e794a3e6e0416958677163e254b83a869a59c10a172aa35a83e670442da95ff",
+    "src/refractrouter/task_evaluation.py": "bf7a59658313acd0abb519c75c1e2f383469fe1bac60167af0349f19b9e91530",
+    "src/refractrouter/task_execution.py": "445ccab8a15304550d655b2fb1a54f17a200dfb9a9dff91079bcb99aaddd2416",
+    "src/refractrouter/task_plan.py": "732e897980298e5006e46c083e6f5e8fb061597a7ea1c52d6a86ad68d8643b11",
+    "src/refractrouter/task_runtime.py": "a7e396cf4f0120238d041144f4c31d8492283ee1ce38ee135092ebfda3fe5261",
+    "src/refractrouter/task_scheduling.py": "f42143c117de757bea3c133df8780985c5b7d963953aa85ba9fbcf1f5fed5777",
+    "experiments/run_automatic_dag_acceptance.py": "3092fdfef98b80ecab8b8bfc01e7a17854e94d1c392092e859e78cba19aa3765"
+  },
+  "maximum_calls": 12,
+  "maximum_runs": 2,
+  "budget": {
+    "production": 80,
+    "evaluation": 80
+  },
+  "scope": "不修改冻结历史；自动路线不提供手写计划；直接路线使用同一候选池和策略。配置预测不是实测画像。",
+  "sha256": "ea25f602e587abda8a43524c7fbf981ddf53894b8350a88c060dc435bc9cbac4"
+}

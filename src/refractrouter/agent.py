@@ -23,7 +23,7 @@ from .manifest import load_model_manifest
 from .node_routing import number
 from .openai_compatible import OpenAICompatibleClient
 from .output_constraints import validate_output_constraints
-from .task_plan import text, validate_plan
+from .task_plan import text, validate_plan, preview_plan
 from .task_runtime import run_task
 
 PRESETS = {
@@ -78,20 +78,32 @@ def plan_template(name, criteria=None):
 
 
 def build_request(payload, *, mode, production_budget, timeout_ms):
-    if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints'}:
+    if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs'}:
         raise ValueError('invalid RefractAgent request fields')
     strategy = payload.get('strategy', 'balanced')
     if not isinstance(strategy, str) or strategy not in PRESETS:
         raise ValueError('strategy must be economy, balanced or quality')
     task = text(payload.get('task'), 'task')
     criteria = payload.get('acceptanceCriteria')
-    plan = (validate_plan(payload['plan'], required_criteria=criteria).to_dict() if 'plan' in payload
+    automatic = payload.get('template') == 'auto' and 'plan' not in payload
+    plan = (None if automatic else validate_plan(payload['plan'], required_criteria=criteria).to_dict() if 'plan' in payload
             else plan_template(payload.get('template', 'single'), criteria))
     request = {**deepcopy(PRESETS[strategy]), 'task': task,
                'mode': {'preflight': 'preflight', 'demo': 'demo', 'live': 'run'}[mode],
                'costMax': number(production_budget, 'production budget', positive=True),
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
-               'maxConcurrency': 1, 'maxNodeFallbacks': 0, 'plan': plan}
+               'maxConcurrency': 1, 'maxNodeFallbacks': 0}
+    if plan is not None:
+        request['plan'] = plan
+    if automatic:
+        repairs = payload.get('maxPlanRepairs', 1)
+        if type(repairs) is not int or not 0 <= repairs <= 1:
+            raise ValueError('maxPlanRepairs must be an integer in 0..1')
+        request['maxPlanRepairs'] = repairs
+    elif 'maxPlanRepairs' in payload:
+        raise ValueError('maxPlanRepairs requires the automatic template')
+    if criteria is not None:
+        request['acceptanceCriteria'] = criteria
     del request['name']
     if 'outputConstraints' in payload:
         request['outputConstraints'] = validate_output_constraints(payload['outputConstraints'])
@@ -128,7 +140,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if configured:
         manifest = configured.manifest
         request['qualityMin'] = configured.quality_min
-        prepare_configured_plan(request, context, explicit_plan='plan' in payload, output_cap=max_output_tokens)
+        if 'plan' in request:
+            prepare_configured_plan(request, context, explicit_plan='plan' in payload, output_cap=max_output_tokens)
 
     else:
         manifest_file = Path(manifest_path) if manifest_path else Path(str(resource('agent-plan.json')))
@@ -139,10 +152,13 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                                              for m in manifest.models))
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
                                              if m.role == 'candidate' and m.wire_api != 'responses' else m for m in manifest.models))
+    if payload.get('template') == 'auto' and 'plan' not in payload:
+        request['maxConcurrency'] = 1 if any(m.wire_api == 'dsh-llm' for m in manifest.models) else 2
     if configured:
         manifest_data = {'schema_version': manifest.schema_version, 'billing_unit': manifest.billing_unit,
                          'models': [asdict(m) for m in manifest.models]}
-    profile = (configured_profile(configured, manifest, request['plan']) if configured else
+    profile = (configured_profile(configured, manifest, request.get('plan') or preview_plan(request['task'],
+                   required_criteria=request.get('acceptanceCriteria')).to_dict()) if configured else
                json.loads(Path(profile_path).read_text() if profile_path else resource('report-profile.json').read_text()))
     if mode == 'live' and client is None and any(m.wire_api == 'dsh-llm' for m in manifest.models):
         if os.environ.get('REFRACTROUTER_DSH_BRIDGE') != 'stdio':
@@ -176,7 +192,12 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         client=client if mode == 'live' else None,
         production_limit=production_budget, evaluation_limit=evaluation_budget,
         checkpoint=lambda value: atomic_json(result_path, value), cancel_event=cancel_event,
-        conversation_context=context, configured_application=configured is not None)
+        conversation_context=context, configured_application=configured is not None, configuration=configured)
+    if result.get('routing_profile'):
+        profile = result['routing_profile']
+        atomic_json(directory / 'profile.json', profile)
+    if result.get('plan'):
+        atomic_json(directory / 'plan.json', result['plan'])
     assignments = result.get('assignments', (result.get('routing') or {}).get('assignments', {}))
     models = {m.model_id: m.api_model for m in manifest.models}
     actions = {m.model_id: action_identity(m) for m in manifest.models}
@@ -203,6 +224,13 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'quality': result['evaluation'], 'costs': totals, 'billing_unit': manifest.billing_unit,
         'generation_status': result['generation_status'], 'format_validation': result['format_validation'],
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],
+        'plan_origin': result['plan_origin'], 'plan': result['plan'],
+        'plan_admission': result.get('plan_admission'),
+        'cost_breakdown': {
+            'planning': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] in {'planner','planner-repair'}),
+            'execution': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] not in {'planner','planner-repair'}),
+            'evaluation': sum(c['charged'] for c in calls if c['category']=='evaluation'),
+        },
         'result_path': str(result_path), 'run_dir': str(directory),
         'usage': {'input_tokens': sum(c.get('input_tokens', 0)-c.get('cached_input_tokens', 0) for c in calls if c['status'] == 'billed'),
                   'output_tokens': sum(c.get('output_tokens', 0) for c in calls if c['status'] == 'billed'),

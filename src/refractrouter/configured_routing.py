@@ -36,7 +36,7 @@ def compile_routing(raw, output_cap):
     return {**default, 'profiles': profiles}
 
 
-def configured_profile(configuration, manifest, plan):
+def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
     plan = validate_plan(plan)
     stratified = bool(plan.contracts)
     rows, basis = {}, {}
@@ -54,17 +54,22 @@ def configured_profile(configuration, manifest, plan):
             index, forecast = matches[0] if matches else (None, default)
             capability = plan.contracts.get(node.node_id, {}).get('capability', {})
             input_cap = capability.get('input_budget_tokens', 131072)
+            input_forecast = input_cap if input_forecasts is None else input_forecasts[node.node_id]
+            number(input_forecast, 'forecast input', maximum=input_cap, positive=True)
             output = forecast['output_tokens'] if forecast['output_tokens'] is not None else model.max_output_tokens
             selector = ({'difficulty': capability['difficulty'], 'risk': capability['risk'],
                 'input_min_tokens': input_cap, 'input_max_tokens': input_cap + 1} if stratified else {})
             row = {'model_id': model.model_id, 'node_type': node.node_type, 'samples': 0,
                 'quality': forecast['quality'], 'latency_ms': forecast['latency_ms'],
-                'cost': input_cap / 1000 * model.input_cost_per_1k + output / 1000 * model.output_cost_per_1k,
+                'cost': input_forecast / 1000 * model.input_cost_per_1k + output / 1000 * model.output_cost_per_1k,
                 **selector}
             key = (model.model_id, node.node_type, *selector.values())
             rows[key] = row
-            basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': input_cap,
+            basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': input_forecast,
                 'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]'}
+            if input_forecasts is not None:
+                basis[node.node_id][model.model_id].update(input_capacity=input_cap,
+                    input_forecast_source='serialized-input-and-planned-parent-output')
     return {'schema_version': 'node-routing-profile-v2' if stratified else 'node-routing-profile-v1',
         'kind': 'configured', 'billing_unit': manifest.billing_unit,
         'scope': '用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。',

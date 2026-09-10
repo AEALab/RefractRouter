@@ -1,0 +1,141 @@
+{
+  "nodes": [
+    {
+      "node_id": "schedule_analysis",
+      "node_type": "generation",
+      "prompt_template": "根据以下虚构展览准备任务，独立核对排程：第 0 天开始，手续 A 需要 2 天；运输 B 需要 3 天且必须等 A 完成；版面设计 C 需要 4 天，可在第 0 天独立开始；布展 D 需要 2 天，必须等 B 和 C 都完成；验收 E 需要 1 天，必须等 D 完成。各项连续执行，不考虑周末。请给出：1）五项工作 A、B、C、D、E 的最早开始和结束时间，明确写出 B、C 汇合条件对 D 开始时间的约束；2）总工期；3）决定总工期的关键依赖链；4）如果 C 额外延误 2 天，对总工期和关键链的影响。只依据给定条件计算，不得虚构额外工作或费用。",
+      "parents": [],
+      "contract": {
+        "objective": "独立完成排程分析，给出五项工作最早开始/结束时间、总工期、关键依赖链及 C 延误 2 天的影响。",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "schedule": "五项工作最早开始和结束时间的完整排程说明，包含 B、C 汇合条件",
+            "total_duration": "总工期天数",
+            "critical_chain": "决定总工期的关键依赖链",
+            "delay_impact": "C 额外延误 2 天对总工期和关键链的影响"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 4073,
+          "expected_output_tokens": 1200
+        },
+        "checks": [
+          "排程结果包含 A、B、C、D、E 五项工作的最早开始和结束时间",
+          "明确说明 D 必须等 B 和 C 都完成，不遗漏汇合条件",
+          "总工期和关键依赖链与给定依赖关系一致",
+          "C 延误 2 天的影响计算正确"
+        ],
+        "covers": [
+          0,
+          1
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "cost_analysis",
+      "node_type": "generation",
+      "prompt_template": "根据以下虚构展览准备任务，独立核算费用：采购 1200 元、运输 800 元、布展 1500 元、设计 900 元，总预算 4600 元。请给出：1）各项费用明细；2）费用合计；3）预算余额。没有给定的费用不得虚构。只依据给定费用核算。",
+      "parents": [],
+      "contract": {
+        "objective": "独立核算展览准备费用，给出各项费用、合计和预算余额。",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "cost_items": "各项费用明细",
+            "total_cost": "费用合计",
+            "budget_balance": "预算余额"
+          }
+        },
+        "capability": {
+          "difficulty": "low",
+          "risk": "low",
+          "input_budget_tokens": 3361,
+          "expected_output_tokens": 600
+        },
+        "checks": [
+          "费用明细包含采购、运输、布展、设计四项给定费用",
+          "费用合计计算正确",
+          "预算余额计算正确",
+          "未虚构任何未给定费用"
+        ],
+        "covers": [
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "synthesis",
+      "prompt_template": "你是一名展览准备规划师。请综合以下独立分析结果，形成最终安排建议。\n\n排程分析结果：\n{{schedule_analysis.schedule}}\n总工期：{{schedule_analysis.total_duration}}\n关键依赖链：{{schedule_analysis.critical_chain}}\nC 延误 2 天影响：{{schedule_analysis.delay_impact}}\n\n费用分析结果：\n{{cost_analysis.cost_items}}\n费用合计：{{cost_analysis.total_cost}}\n预算余额：{{cost_analysis.budget_balance}}\n\n最终交付必须满足：\n1. 正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。\n2. 给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。\n3. 正确核算费用和预算余额，最终交付包含排程与费用。\n\n请直接输出最终正文，依次包含以下部分：\n一、最早开始和完成时间：分别列出 A、B、C、D、E 的最早开始和结束时间，并说明 B、C 汇合条件。\n二、总工期和关键依赖链：给出总工期、关键依赖链，并说明如果 C 额外延误 2 天会怎样。\n三、预算核算：列出采购、运输、布展、设计各项费用、费用合计和预算余额。\n四、最终安排：综合排程与费用给出最终安排建议。\n\n注意核对排程与费用之间是否存在冲突或遗漏；不得虚构未给定费用；最终正文必须完整呈现上述所有部分。",
+      "parents": [
+        "schedule_analysis",
+        "cost_analysis"
+      ],
+      "contract": {
+        "objective": "综合排程与费用分析，输出完整最终安排，包含最早开始和完成时间、总工期和关键依赖链、C 延误影响、预算核算及最终安排建议。",
+        "inputs": {
+          "schedule_analysis": {
+            "fields": [
+              "schedule",
+              "total_duration",
+              "critical_chain",
+              "delay_impact"
+            ],
+            "reason": "最终交付必须使用排程分析的五项工作时间、总工期、关键链和延误影响。"
+          },
+          "cost_analysis": {
+            "fields": [
+              "cost_items",
+              "total_cost",
+              "budget_balance"
+            ],
+            "reason": "最终交付必须使用费用明细、合计和预算余额。"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终交付正文，依次包含最早开始和完成时间、总工期和关键依赖链及 C 延误影响、预算核算、最终安排"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 70484,
+          "expected_output_tokens": 2000
+        },
+        "checks": [
+          "最终正文包含五项工作的最早开始和结束时间，并说明 B、C 汇合条件",
+          "最终正文给出总工期和关键依赖链，并正确说明 C 延误 2 天的影响",
+          "最终正文包含费用明细、费用合计和预算余额",
+          "最终正文包含排程与费用的综合最终安排",
+          "未虚构任何未给定费用"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+    "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+    "正确核算费用和预算余额，最终交付包含排程与费用。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "任务要求分步骤执行：先独立核对排程和费用，再综合两者给出最终安排。排程与费用相互独立，可并行分析；最终节点必须汇总并完整呈现排程、费用、关键链及延误影响。拆分为两个独立分析节点和一个综合节点，净收益是避免单一节点同时处理两类计算时遗漏汇合条件或费用核算，且最终交付结构更清晰。"
+}

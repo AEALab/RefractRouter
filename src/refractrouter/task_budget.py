@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from concurrent.futures import CancelledError
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import hashlib
 import json
 from threading import RLock
@@ -114,6 +114,7 @@ class TaskCallBudget:
         if self.capture_payload:
             with self.lock:
                 row['response_output'] = response.content
+                row['response'] = asdict(response)
         counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)
         if not response.usage_available or (response.content.strip() and (response.input_tokens == 0 or response.output_tokens == 0)):
             raise ValueError('missing or unconfirmed model usage; reservation retained')
@@ -135,6 +136,6 @@ class TaskCallBudget:
             raise InvalidModelOutput(f"invalid or truncated output for {row['label']}")
         return response
 
-    def complete(self, model, messages, *, category='production', label, json_mode=False, timeout_seconds=None):
-        return self.invoke(self.reserve(model, messages, category=category, label=label, json_mode=json_mode),
+    def complete(self, model, messages, *, category='production', label, json_mode=False, timeout_seconds=None, category_limit=None):
+        return self.invoke(self.reserve(model, messages, category=category, label=label, json_mode=json_mode, category_limit=category_limit),
                            timeout_seconds=timeout_seconds)

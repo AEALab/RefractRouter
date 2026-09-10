@@ -1,0 +1,35 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "虚构的陶艺活动筛选参与者。资格要求同时满足：至少参加过两次基础课、能参加周日上午、已归还借用工具。名单：沈禾，3 次，能参加，已归还；江柯，1 次，能参加，已归还；陆晴，2 次，不能参加，已归还；顾原，4 次，能参加，未归还；唐澄，2 次，能参加，已归还；齐岚，2 次，能参加，归还情况未记录。请列出当前明确符合资格的人、明确不符合的人及原因、信息不足需确认的人。只依据名单，不推断缺失情况。",
+    "acceptanceCriteria": [
+      "准确区分明确符合、明确不符合及待确认三类人员。",
+      "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+      "不遗漏六人，也不新增信息。"
+    ],
+    "strategy": "economy",
+    "template": "auto",
+    "maxPlanRepairs": 1
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "虚构的陶艺活动筛选参与者。资格要求同时满足：至少参加过两次基础课、能参加周日上午、已归还借用工具。名单：沈禾，3 次，能参加，已归还；江柯，1 次，能参加，已归还；陆晴，2 次，不能参加，已归还；顾原，4 次，能参加，未归还；唐澄，2 次，能参加，已归还；齐岚，2 次，能参加，归还情况未记录。请列出当前明确符合资格的人、明确不符合的人及原因、信息不足需确认的人。只依据名单，不推断缺失情况。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 2,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 1,
+    "acceptanceCriteria": [
+      "准确区分明确符合、明确不符合及待确认三类人员。",
+      "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+      "不遗漏六人，也不新增信息。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 4096
+}

@@ -14,7 +14,7 @@ REPORT = ROOT / 'reports/dag-decomposition/issue-32-dsh-live-20260907'
 
 
 @pytest.mark.parametrize('version,status,count', [
-    ('v4', 'failed', 1),
+    ('v4', 'no-feasible-route', 1),
     ('v5', 'quality-failed', 5),
 ])
 def test_recorded_dsh_failure_is_not_promoted_to_success(version, status, count):
@@ -41,7 +41,9 @@ def test_recorded_dsh_failure_is_not_promoted_to_success(version, status, count)
     assert len(result['calls']) == count
     assert all(row['status'] == 'billed' for row in result['calls'])
     if version == 'v4':
-        assert result['issues'] == ['node-input-budget-exceeded before cost_analysis']
+        # 新运行时提前检查全图容量；原归档仍然是 failed，不修改历史产物。
+        assert recorded['status'] == 'failed'
+        assert result['plan_admission']['cost_analysis']['reason'] == 'input-or-output-capacity'
         assert result['nodes'] == [] and result['evaluation'] is None
     else:
         assert result['evaluation']['score'] == 82

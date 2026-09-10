@@ -59,6 +59,11 @@ RefractAgent 模型入口使用已安装的 Python 核心，脱离源码目录�
 
 ## 研究与验证记录
 
+新增 [自动拆分应用入口](docs/automatic-dag.md)：`refractagent run --template auto`
+或 DSH 配置 `template: "auto"`。规划、节点执行及评审费用和总耗时分别可查。
+[新任务验收](reports/automatic-dag/README.md)已在独立安装包中跑通单节点和三节点流程；
+正文复核仍发现错误依赖及模型评审误判，不能把执行完成解释为内容可靠性或综合收益通过。
+
 2026-09-10 的 [#39/#40 联合实测](reports/dag-decomposition/joint-39-40-v1-analysis/结项评估.md)
 已完成 430 次真实调用与 104 个预定条件，消耗 1085.01 AFP，账本及文件审计通过。
 现有配置未验证综合收益；自动计划虽有语义审查通过者，但没有执行节点。

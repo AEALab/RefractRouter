@@ -62,6 +62,13 @@ test('demo uses installed core through native sandboxed subprocess and preserves
   assert.equal(result.filter(c=>c.type==='finish').length,1)
   assert.equal(result.find(c=>c.type==='text-delta')?.text,'[SIMULATED] answer')
 })
+test('automatic decomposition is passed to Python without a fabricated plan',async()=>{
+  const f=fixture()
+  await chunks(createAdapter(f.ctx,configure({template:'auto'})))
+  const payload=JSON.parse(f.spawns[0]!.input())
+  assert.equal(payload.template,'auto')
+  assert.equal(payload.plan,undefined)
+})
 
 test('explicit length constraints reach Python and failed checks preserve answer and replay verdicts', async()=>{
   const constraint = {maxLength:250, unit:'unicode-code-points', countWhitespace:false}

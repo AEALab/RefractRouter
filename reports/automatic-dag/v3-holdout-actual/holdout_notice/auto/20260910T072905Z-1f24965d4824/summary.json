@@ -1,0 +1,158 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T072905Z-1f24965d4824",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "岭北读书会的各位朋友：\n\n原定于 10 月 14 日下午两点的活动，现调整为 10 月 17 日下午三点举行，地点仍为杉树厅。\n\n已报名的朋友无需再次报名。如届时不能参加，请在 10 月 12 日晚上八点前联系周宁。",
+  "issues": [],
+  "models": {
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "交付文本准确写明原时间「10 月 14 日下午两点」、新时间「10 月 17 日下午三点」，并明确「地点仍为杉树厅」；保留了「已报名的朋友无需再次报名」以及取消参加的截止时间「10 月 12 日晚上八点前」和联系人「周宁」；未添加原因、联系方式或其他安排等材料中没有的信息。称呼「各位朋友」仅为通知的友好语气，不构成新增实质信息。",
+    "criteria": [
+      {
+        "criterion": "准确写明原时间、新时间和地点不变。",
+        "passed": true,
+        "rationale": "文本写明「原定于 10 月 14 日下午两点的活动，现调整为 10 月 17 日下午三点举行，地点仍为杉树厅」，原时间、新时间及地点不变均准确呈现。"
+      },
+      {
+        "criterion": "保留无需再次报名，以及取消参加的截止时间和联系人。",
+        "passed": true,
+        "rationale": "文本包含「已报名的朋友无需再次报名」及「如届时不能参加，请在 10 月 12 日晚上八点前联系周宁」，完整保留了无需再次报名、截止时间和联系人。"
+      },
+      {
+        "criterion": "不添加材料中没有的信息。",
+        "passed": true,
+        "rationale": "文本未添加改期原因、联系方式或其他安排；「各位朋友」等仅为通知礼貌用语，未引入材料外的实质信息。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 0.5225500000000001,
+    "evaluation": 0.749,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 19578,
+  "plan_origin": "model",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "请将以下内容改写成一则清楚、友好的通知，严格遵循要求：\n\n原始内容：岭北读书会原定 10 月 14 日下午两点的活动改为 10 月 17 日下午三点，地点仍为杉树厅。已报名者无需再次报名，不能参加者请在 10 月 12 日晚上八点前联系周宁。\n\n要求：\n1. 准确写明原时间（10 月 14 日下午两点）、新时间（10 月 17 日下午三点）和地点不变（杉树厅）。\n2. 保留无需再次报名，以及取消参加的截止时间（10 月 12 日晚上八点前）和联系人（周宁）。\n3. 不添加材料中没有的信息，如原因、联系方式或其他安排。\n\n请直接输出改写后的通知正文，不要添加任何额外说明。",
+        "parents": [],
+        "contract": {
+          "objective": "将原始活动变更信息改写为清楚、友好的通知，完整保留所有必要信息且不添加额外内容。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "改写后的通知正文"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 3119,
+            "expected_output_tokens": 200
+          },
+          "checks": [
+            "通知中准确包含原时间 10 月 14 日下午两点、新时间 10 月 17 日下午三点和地点杉树厅不变。",
+            "通知中明确保留无需再次报名、取消参加的截止时间 10 月 12 日晚上八点前和联系人周宁。",
+            "通知中未添加任何材料之外的信息，如原因、额外联系方式或其他安排。",
+            "通知语气清楚、友好，符合通知文体。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确写明原时间、新时间和地点不变。",
+      "保留无需再次报名，以及取消参加的截止时间和联系人。",
+      "不添加材料中没有的信息。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "该任务为单一改写任务，内容简短且要求明确，无需拆分即可直接生成最终通知，避免不必要的节点开销。"
+  },
+  "plan_admission": {
+    "answer": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 3086,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 3118,
+        "forecast_input_tokens": 3118
+      }
+    }
+  },
+  "cost_breakdown": {
+    "planning": 0.11445,
+    "execution": 0.4081,
+    "evaluation": 0.749
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v3-holdout-actual/holdout_notice/auto/20260910T072905Z-1f24965d4824/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v3-holdout-actual/holdout_notice/auto/20260910T072905Z-1f24965d4824",
+  "usage": {
+    "input_tokens": 2888,
+    "output_tokens": 892,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "5d0e22ce824c6ef566c937a75b4fd9142e75dde4a92955c26e2c0cd3d8364bcd",
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "plan.json": "41dea4ea7f5e9d02b68e0ac15500469fc18b9b1a9dc6c860c12f07e1f9291e4d",
+    "profile.json": "1b113cdb45c80a2f8d053eb4900fe06ba2419fba3897453ec47da4b24299368c",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "c257144be0043dfbe913e3740decd8399d4bbb51d1b80786cf9bf8a9878f9279",
+    "result.json": "6999328e919acd0feddc01630f951ed6c1bd3642d3afa14606ded76ce4388815"
+  }
+}

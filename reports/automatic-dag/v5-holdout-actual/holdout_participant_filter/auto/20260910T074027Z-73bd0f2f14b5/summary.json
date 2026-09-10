@@ -1,0 +1,158 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T074027Z-73bd0f2f14b5",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "1. 当前明确符合资格的人：  \n沈禾、唐澄。\n\n2. 明确不符合的人及原因：  \n- 江柯：仅参加过 1 次基础课，未达到至少 2 次的要求。  \n- 陆晴：不能参加周日上午。  \n- 顾原：借用工具未归还。\n\n3. 信息不足需确认的人：  \n- 齐岚：归还情况未记录，无法判断是否已归还借用工具。",
+  "issues": [],
+  "models": {
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "答案正确将沈禾、唐澄列为明确符合；江柯（仅1次基础课）、陆晴（不能参加周日上午）、顾原（工具未归还）列为明确不符合并给出具体原因；齐岚因归还情况未记录列为需确认，未将未记录当作已归还或未归还。六人全部覆盖，未新增任何信息。",
+    "criteria": [
+      {
+        "criterion": "准确区分明确符合、明确不符合及待确认三类人员。",
+        "passed": true,
+        "rationale": "三类划分准确：符合为沈禾、唐澄；不符合为江柯、陆晴、顾原；待确认为齐岚。"
+      },
+      {
+        "criterion": "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+        "passed": true,
+        "rationale": "江柯因次数不足、陆晴因时间冲突、顾原因未归还工具，原因具体；齐岚的未记录状态被正确处理为需确认而非推断。"
+      },
+      {
+        "criterion": "不遗漏六人，也不新增信息。",
+        "passed": true,
+        "rationale": "沈禾、江柯、陆晴、顾原、唐澄、齐岚六人均被涵盖，且未添加名单之外的任何信息。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 1.83425,
+    "evaluation": 0.828,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 21916,
+  "plan_origin": "model",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "根据以下虚构陶艺活动筛选规则和名单，完成参与者资格分类。\n\n资格要求需同时满足：至少参加过两次基础课、能参加周日上午、已归还借用工具。\n\n名单：\n沈禾，3 次，能参加，已归还；\n江柯，1 次，能参加，已归还；\n陆晴，2 次，不能参加，已归还；\n顾原，4 次，能参加，未归还；\n唐澄，2 次，能参加，已归还；\n齐岚，2 次，能参加，归还情况未记录。\n\n请只依据名单，不推断缺失情况，不把未记录当作已归还或未归还。\n\n最终交付正文必须依次包含以下三部分：\n1. 当前明确符合资格的人；\n2. 明确不符合的人及原因；\n3. 信息不足需确认的人。\n\n要求：准确区分三类人员；给出各不符合人员的具体原因；不遗漏六人，也不新增信息。",
+        "parents": [],
+        "contract": {
+          "objective": "依据给定规则和名单，准确分类六名参与者的资格状态并输出完整正文。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "依次包含明确符合资格的人、明确不符合的人及原因、信息不足需确认的人三部分的最终交付正文"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 3543,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "明确符合资格的人仅包含同时满足三项条件的名单人员",
+            "明确不符合的人均给出具体原因，且不将未记录推断为已归还或未归还",
+            "信息不足需确认的人仅包含因归还情况未记录而无法判断的人员",
+            "六人全部被归入且仅归入一个类别，未新增名单外人员"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "准确区分明确符合、明确不符合及待确认三类人员。",
+      "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+      "不遗漏六人，也不新增信息。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "任务为六人名单的规则筛选，材料短小、规则明确，拆分不会带来质量或并行收益，反而增加交接与汇总开销，因此使用单节点直接完成。"
+  },
+  "plan_admission": {
+    "answer": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 3510,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 3542,
+        "forecast_input_tokens": 3542
+      }
+    }
+  },
+  "cost_breakdown": {
+    "planning": 1.3563,
+    "execution": 0.47795,
+    "evaluation": 0.828
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_participant_filter/auto/20260910T074027Z-73bd0f2f14b5/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_participant_filter/auto/20260910T074027Z-73bd0f2f14b5",
+  "usage": {
+    "input_tokens": 2119,
+    "output_tokens": 1020,
+    "cache_read_tokens": 1024,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "ebd0192d2e41ab073af65955a868b06993bd7aa8cb84fe2c5667ebc00965d897",
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "plan.json": "2556c0acfc725c1b7fca04261f6d44b62a44097b5a0ba9efcc7aac8b1b263b08",
+    "profile.json": "7882344a1ed9b8245ecca322da0f4d2c86b49a1b3d4d5c0ccd92736d0a806c0f",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "e9a9d5e66e324e2295580e0f32df6247fe3edeeeaf2e435c8a7bb0de46175ada",
+    "result.json": "9313aad36e6c23da7ef099244ecc632195ba3f8fdbe243b9d2735f965da6dca2"
+  }
+}
