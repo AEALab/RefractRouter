@@ -1,6 +1,7 @@
 """将冻结会话转成中文复核摘要；不重新选模或修改评分。"""
 from collections import Counter
 import json
+import html
 from pathlib import Path
 import statistics
 
@@ -33,7 +34,7 @@ def main():
             lines += [f"- 整任务 {cell}："+'；'.join(f"{method} = {value.get('selected_model') or '无可用模型'}" for method,value in selections.items())]
     handoff=json.loads((HERE/'handoff-audit.json').read_text())['rows']
     lines += ['',f"逐边核对实际下游请求，共验证 {sum(h['verified_edges'] for h in handoff)} 条被消费依赖，其中跨模型 {sum(h['cross_model_edges'] for h in handoff)} 条。",
-        '节点输出的结构通过不等于内容正确；最终交付单独评审。','',
+        '交接核验指字段确实进入下游请求；不能单凭传参成功证明模型充分理解或使用了内容。最终交付单独评审。','',
         '| 校准任务 / 模型 | 固定参考下最终节点独立分 | 同模型完整 DAG 最终分 | 完整交付 |',
         '| --- | ---: | ---: | --- |']
     observations=r.get('observations',{}).get('observations',[])
@@ -47,7 +48,7 @@ def main():
     lines += ['', '节点探测使用冻结参考上游，组合使用实际上游。上表不同调用的差异还包含生成随机性，不能单独归因于交接。', '',
         '## 全计划分母与主比较','',
         '下表均值仅描述已有评分或已执行记录，不替代共同配对结论；缺评审不补零。','',
-        '| 条件 | 计划 | 记录 | 通过 | 有效评分数 / 均分 | 完整运行 AFP | 已执行墙钟均值（秒） |',
+        '| 条件 | 计划 | 记录 | 通过 | 有效评分数 / 均分 | 完整运行 AFP | 已记录尝试墙钟均值（秒） |',
         '| --- | ---: | ---: | ---: | ---: | ---: | ---: |']
     for arm in dict.fromkeys(x['arm'] for x in r['planned_runs']):
         rows=[x for x in tests if x['arm']==arm];graded=[x['score'] for x in rows if x['score'] is not None]
@@ -65,16 +66,31 @@ def main():
                 for name,m in c['metrics'].items():
                     lines += [f"  {name}：均值 {m['mean_delta']}，97.5% 区间 {m['interval_97_5']}。"]
     lines += ['', '质量差为左减右；节省比例为 1−左/右，时延比为左/右。',
+        '三个单节点短任务中，同一方法的节点路由与同图单模型路线实际选模相同；整任务直接回答 A/B 也都选择 M3。',
+        '这些重复调用仍有生成与评审波动，不能把分数差异都归因于选模策略。只有调查任务的节点路线形成不同于全图单模型的异构分配。',
         '确认性门槛为全部计划配对交付、质量下界 ≥ −3 分、费用节省下界 ≥ 20%、时延比上界 ≤ 1.1。',
         '分层样本仅四个，区间为目的性选题条件内的近似描述，不报告总体 p95。辅助比较见原始 analysis。','',
         '## 规划、失败与实际时序','']
     statuses=Counter(x['status'] for x in tests)
-    lines += [f"测试状态计数：`{dict(statuses)}`。",'']
+    lines += [f"测试状态计数：`{dict(statuses)}`。",
+        '测试失败数不等于规划请求失败数；缓存计划失败会传播到复用条件，但没有重新发起规划。','']
     plans=[x for x in tests if x['arm'].startswith('auto-cold')]+r['plan_setups']
     counts=Counter(len(x['plan']['nodes']) for x in plans if x.get('plan'))
     lines += [f"自动冷计划与缓存设置共 {len(plans)} 条；结构合法计划节点数分布：`{dict(counts)}`。",
         f"有效语义评分 {sum('plan_review' in x for x in plans)} 条，通过 {sum(x.get('plan_review',{}).get('passed',False) for x in plans)} 条。",
         '缺失语义评审与语义不通过分开保留；缓存复用原评分不算新的独立计划评分。','']
+    support=[]
+    for row in plans:
+        for n in row.get('plan',{}).get('nodes',[]):
+            f=n['contract']['capability']
+            matching=[p['model_id'] for p in profile.get('candidates',[]) if p['node_type']==n['node_type']
+                and p['difficulty']==f['difficulty'] and p['risk']==f['risk']
+                and p['input_min_tokens']<=f['input_budget_tokens']<p['input_max_tokens']]
+            support.append({'plan_id':row.get('run_id',row.get('cache_id')),'node_id':n['node_id'],
+                'node_type':n['node_type'],'capability':f,'calibrated_models_in_same_stratum':matching})
+    (HERE/'automatic-capability-coverage.json').write_text(json.dumps(support,ensure_ascii=False,indent=2)+'\n')
+    lines += [f"结构合法自动计划中，共 {sum(not x['calibrated_models_in_same_stratum'] for x in support)} 个节点没有同能力层的校准模型。",
+        '详见 [automatic-capability-coverage.json](automatic-capability-coverage.json)。缺少匹配层说明准入证据不足，不能直接推断模型在该层能力差。','']
     timing=[]
     for x in tests:
         start=x['started_ms'];pf=x.get('planning_finished_ms');sf=x.get('structural_check_finished_ms');pr=x.get('plan_review_finished_ms')
@@ -94,7 +110,18 @@ def main():
     lines += ['', '| 分析范围 | 运行 AFP | 共享设置 AFP | 首次合计 AFP |', '| --- | ---: | ---: | ---: |']
     for issue,analysis in r['analysis']['issues'].items():
         lines += [f"| #{issue} | {analysis['runtime_cost']} | {analysis['setup_cost']} | {analysis['first_use_cost']} |"]
-    lines += ['', '上述首次合计是对应实验矩阵及共同设置的完整费用，不是单次用户请求的报价；两项共享设置不能相加。', '',
+    allocation={'shared_material_node_and_handoff':0.,'issue39_whole_dag_calibration':0.,'issue40_direct_and_cache_setup':0.}
+    for c in r['calls']:
+        label=c['label']
+        key=('shared_material_node_and_handoff' if label.startswith(('material-review:','probe:','handoff-')) else
+            'issue39_whole_dag_calibration' if label.startswith('cal-dag-') else
+            'issue40_direct_and_cache_setup' if label.startswith(('cal-direct-','setup:')) else None)
+        if key and c['status']=='billed':allocation[key]+=c['charged']
+    lines += ['', '上述首次合计使用联合批次全部设置费用，包含另一项研究专用开销，是完整实验视图，不是单项部署报价；两项设置不能相加。',
+        '以下按原始调用用途拆解已确认设置费用，只作费用归属说明，不改变冻结的主比较或选择：','',
+        '| 设置用途 | 已确认 AFP |','| --- | ---: |']
+    for key,value in allocation.items():lines += [f'| {key} | {value:.4f} |']
+    lines += ['',
         '| 缓存 | 一次设置 AFP | 复用执行 AFP | 该计划首次使用 AFP |', '| --- | ---: | ---: | ---: |']
     for setup in r['plan_setups']:
         trial=next((x for x in tests if x.get('cache_id')==setup['cache_id']),None)
@@ -105,10 +132,38 @@ def main():
         '本地选模计算无模型 AFP；校准结束至首个缓存设置的间隔可作包含持久化的准备时间上界，不冒充纯 CPU 用时。',
         '没有调用 DSH 外层，费用为零。保留生产与评审原始分类，便于按其他部署口径另行分析。','',
         '## 人工复核与关闭状态','',
-        '真人复核未完成。[复核包](human-review-packet.json)按事前规则抽样，隐藏模型、路线和自动分数；',
+        '结项判断见[结项评估](结项评估.md)。真人复核未完成，可先阅读[按题目整理的阅读版](human-review.md)。',
+        '[复核包](human-review-packet.json)按事前规则抽样，隐藏模型、路线和自动分数；',
         '映射另存，评审者须填写身份、日期、判断与理由，不能用模型评审代替。',
         '本报告不自动关闭 #39 或 #40：须分别核对采集完整性、合并交付及 #40 真人复核，再回填 #1，关联 #22、#8。']
     (HERE/'README.md').write_text('\n'.join(lines)+'\n')
+    packet=json.loads((HERE/'human-review-packet.json').read_text())
+    review=['# 真人复核阅读版','',
+        '本页按题目集中材料，保留随机复核编号。阅读后在 JSON 复核包填写，或按编号提供判断与理由。',
+        '模型、路线和自动分数已隐藏；节点命名与风格仍可能透露生成方式。空白项须由真人填写。','']
+    for i,task in enumerate(dict.fromkeys(x['task'] for x in packet['rows']),1):
+        samples=[x for x in packet['rows'] if x['task']==task]
+        review += [f'## 题目 {i}','', '<details><summary>查看原始题目与材料</summary>',
+            '<pre>'+html.escape(task)+'</pre>','</details>','',
+            '**原始验收：** '+'；'.join(samples[0]['criteria']),'',
+            '<details><summary>查看冻结参考（长材料已独立重算）</summary>',
+            '<pre>'+html.escape(samples[0]['reference_for_review'])+'</pre>','</details>','']
+        for row in samples:
+            review += [f"### {row['review_id']}",'']
+            if row['plan']:
+                review += ['| 节点 | 类型 | 上游 | 职责 |','| --- | --- | --- | --- |']
+                for node in row['plan']['nodes']:
+                    clean=lambda v:str(v).replace('|','／').replace('\n',' ')
+                    review += ['| '+' | '.join(map(clean,(node['node_id'],node['node_type'],','.join(node['parents']) or '无',node['contract']['objective'])))+' |']
+            else:
+                review += ['没有结构合法的计划；仍需记录缺失 / 失败及其理由。']
+            details={'plan':row['plan'],'raw_plan_if_unparsed':row['raw_plan_if_unparsed'],
+                'planner_response_status':row['planner_response_status'],
+                'execution_trace':row['execution_trace'],'final_output':row['final_output']}
+            review += ['', '<details><summary>查看完整契约、节点输出和最终交付</summary>',
+                '<pre>'+html.escape(json.dumps(details,ensure_ascii=False,indent=2))+'</pre>','</details>','',
+                '待填：拆分适当、计划覆盖原始要求、依赖正确、并行适当、交接风险、实际执行观察、计划总体判断、具体理由。','']
+    (HERE/'human-review.md').write_text('\n'.join(review)+'\n')
 
 
 if __name__=='__main__':main()

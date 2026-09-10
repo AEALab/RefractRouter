@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:cost:strong:judge",
+  "content": "{\"score\": 15, \"passed\": false, \"rationale\": \"输出在结构形式上满足契约：JSON 键集合恰好为「result」「evidence」「assumptions」，均为非空字符串，未声明工具执行。但核心事实与计算严重错误，违反「事实和计算与材料一致」及「不虚构数据」。材料中每组各25条（甲乙丙丁循环），而被评文本声称每组20条；按区间18至24端点合格，异常值仅为17、25、26。正确分布应为：甲组25条中异常为25（L008、L028、L048、L068、L088）与17（L020、L040、L060、L080、L100）共10条、合格15条；乙组异常为26（L009、L029、L049、L069、L089）共5条、合格20条；丙组异常为25（L018、L038、L058、L078、L098）与17（L010、L030、L050、L070、L090）共10条、合格15条；丁组异常为26（L019、L039、L059、L079、L099）共5条、合格20条。整批异常30条、合格70条，合格率70.0%，仍低于90%门槛故批次不合格；被评文本写成合格48条、48.0%，与材料不符。证据字段虽列出部分异常编号，但重复且未清晰逐组对应，亦未据此得出正确汇总。批次结论方向偶然一致，不能弥补分组计数、整批合格数与比例的关键错误。\"}",
+  "input_tokens": 8066,
+  "output_tokens": 364,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15490,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890137634688f4f8ecdaf0d8a16803f1d267b7ea40d145b18",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 364,
+    "prompt_tokens": 8066,
+    "total_tokens": 8430,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

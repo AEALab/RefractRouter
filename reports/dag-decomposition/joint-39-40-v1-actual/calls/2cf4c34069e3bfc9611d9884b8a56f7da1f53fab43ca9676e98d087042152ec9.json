@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-dag-node-b:final-review",
+  "content": "{\"score\": 70, \"passed\": false, \"rationale\": \"交付文本保留了协调员、六份、下周三上午十点前、会务组，也保留了核对完成后提交草稿与有冲突时标明来源并按时提交待确认版本两个分支，且未添加理由或分析章节；但它几乎只是删去原通知开头的「材料核对完成后，」这一条件触发语，没有完成「改写成一段更简洁的通知」的压缩改写要求，因此不能判为通过。\", \"criteria\": [{\"criterion\": \"用一段简洁通知保留原角色、数量、截止时间、接收方和全部条件分支，不添加分析章节。\", \"passed\": false, \"rationale\": \"角色、数量、截止时间、接收方和两个条件分支均保留，且为一段通知、无分析章节；但文本基本是原文照抄并删去「材料核对完成后，」，未体现更简洁的压缩改写，甚至弱化了原触发条件，故不满足。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"未新增材料外事实、原因、数据，也未声称联网或执行工具；内容均来自给定通知。\"}]}",
+  "input_tokens": 451,
+  "output_tokens": 273,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9377,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901462279075251d478e5bf6426f4e0f08f6c1b200e19dbe",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 273,
+    "prompt_tokens": 451,
+    "total_tokens": 724,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

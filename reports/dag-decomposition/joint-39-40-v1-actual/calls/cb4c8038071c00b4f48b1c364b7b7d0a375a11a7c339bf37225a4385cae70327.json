@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-direct-b:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本为一段简洁通知，完整保留了协调员、六份、下周三上午十点前、会务组四个冻结要素，并保留两个条件分支：核对完成后提交草稿，以及有冲突时先标明冲突来源并在同一截止时间提交待确认版本。未添加理由、分析章节或虚构信息，未声称执行工具。\",\"criteria\":[{\"criterion\":\"用一段简洁通知保留原角色、数量、截止时间、接收方和全部条件分支，不添加分析章节。\",\"passed\":true,\"rationale\":\"文本为单段通知，包含「协调员」「六份」「下周三上午十点前」「会务组」，并完整呈现核对完成提交草稿与有冲突时标明来源、按时交待确认版本两个分支，无额外章节。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"文本仅复述原材料内容，未引入新事实、原因或数据，未声称联网或执行任何操作。\"}]}",
+  "input_tokens": 459,
+  "output_tokens": 236,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9808,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014679300ed0e184fb98d17720dee9f0ee33ee7e119f494",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 236,
+    "prompt_tokens": 459,
+    "total_tokens": 695,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

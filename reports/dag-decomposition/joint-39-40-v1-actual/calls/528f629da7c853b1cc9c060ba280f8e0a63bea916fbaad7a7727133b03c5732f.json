@@ -1,0 +1,24 @@
+{
+  "label": "test_energy-auto-cold-a:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划完整覆盖原始任务交付要求，四个校区核验节点并行处理符合「各校区可独立分析」的约束，汇总节点正确依赖四个核验结果并承担整体汇总、一致性核对、有限结论和补充数据需求职责。所有声明的依赖边均有真实字段消费，节点职责无重复，上下文充分可追溯，能力与容量声明合理，未虚构数据或执行工具。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"计划覆盖全部交付条件：四个 verify 节点分别负责「并行核验各校区记录」；answer 节点负责「汇总整体变化、增加单元数和减少单元数」（整体基准合计、本期合计、净变化、增加/减少单元数）、「给出有限结论」（明确总体减少不保证每个校区减少、不能认定措施有效、不能归一化）以及「补充数据需求」（气温、面积、人数等）。未降低任何原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer 节点声明依赖 verify_jia、verify_yi、verify_bing、verify_ding，并在 inputs 中明确消费各节点的 campus、records、baseline_total、current_total、net_change、increase_count、decrease_count、unchanged_count 字段，用于汇总整体指标和分校区呈现。四个 verify 节点之间无依赖，符合并行核验要求，无无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"各 verify 节点 prompt 明确要求「逐条列出记录，保留来源编号」，answer 节点要求「保留来源编号」并「只使用原始材料和四个校区核验结果」。计划未要求虚构气温、面积、人数等缺失数据，反而在 checks 中禁止虚构，确保上下文可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用四分支加一汇总的拆分结构，四个 verify 节点职责独立（各负责一个校区），无重复；answer 节点统一负责整体汇总、一致性核对、有限结论和补充数据需求，包含原始任务所需的全部汇总内容。拆分符合任务耦合程度，未过度拆分。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"verify 节点声明 difficulty 为 low、risk 为 low、input_budget_tokens 为 32768、expected_output_tokens 为 3000，与处理 25 条记录的计算任务匹配；answer 节点声明 difficulty 为 medium、risk 为 medium、input_budget_tokens 为 65536、expected_output_tokens 为 5000，与汇总四个校区结果并生成综合报告的任务匹配。拆分粒度与任务耦合程度一致。\"}]}",
+  "input_tokens": 6517,
+  "output_tokens": 669,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19127,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016952835add9fca5277b8939d33af9a0f1789d6c80696d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 669,
+    "prompt_tokens": 6517,
+    "total_tokens": 7186,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

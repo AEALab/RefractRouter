@@ -1,0 +1,24 @@
+{
+  "label": "cal-direct-3-cheap:final-review",
+  "content": "{\"score\": 62, \"passed\": false, \"rationale\": \"交付结构完整、保留来源编号、按线路列出并说明了数据不能回答的运营问题，且未把需求超过容量表述为实际超载；但关键汇总数字与材料不一致。按材料逐条核算，甲组需求合计应为1293、乙组1284、丙组1287、丁组1247，总计5111；未满足需求分别为甲182、乙182、丙184、丁156，总计704。答案把甲乙丙丁需求合计写成1298、1294、1307、1297、总计5196，需求总量错误；同时各组超出/未超出班次数也与材料不符，材料应为甲10/15、乙14/11、丙14/11、丁14/11，而答案写成甲10/15、乙14/11、丙14/11、丁13/12。由于核心事实和计算错误，不能判定通过。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"保留了来源编号并按线路列结果，但汇总事实和计算不一致：甲、乙、丙、丁需求合计及总需求均错误；丁组超过/未超过容量班次数也错误。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"答案明确说明不能判断实际超载、延误原因、跨组调配、时间分布等未知事项，未声称联网或执行工具，也未虚构延误原因。\"}]}",
+  "input_tokens": 7162,
+  "output_tokens": 363,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19912,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901290300296de9f55314d9c1d75ac853e3e9cad7e2e105b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 363,
+    "prompt_tokens": 7162,
+    "total_tokens": 7525,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-auto-cold-a:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该拆分计划针对单段短文本改写任务采用单节点直接生成，决策合理。节点契约完整覆盖了原任务的角色、数量、截止时间、接收方和两个条件分支等要求，checks 与 covers 字段对应明确；无多余边或串行依赖；输入材料 N1 完整嵌入 prompt_template，来源可追溯；单节点无职责重复，final_node_id 指向正确；能力与容量声明（low 难度、16384 输入预算、1000 输出预算）与任务规模匹配。轻微不足：验收标准第二条「区分已知事实、建议和未知事项」对纯改写任务略显宽泛，且 contract.inputs 为空对象而非显式列出 N1，但不影响实际可执行性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点 contract.objective 与 checks 明确要求保留协调员角色、六份数量、下周三上午十点前截止时间、会务组接收方及两个条件分支（核对完成后提交、冲突时标明来源并提交待确认版本），且禁止添加理由或分析章节，未降低任何原始交付条件。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"计划仅含一个节点，parents 为空，不存在任何边，因此无虚假依赖或无意义串行；任务本身为原子改写，无需拆分依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 内完整嵌入原始材料 N1 与交付要求，来源可追溯；checks 明确禁止虚构材料中不存在的原因、数据或已执行操作。唯一小瑕疵是 contract.inputs 为空对象，未显式声明 N1 字段，但 prompt 已自包含，不影响充分性。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"decomposition_reason 合理说明了不拆分的原因（单段短文本、拆分增加交接与一致性风险）；单节点职责唯一无重复；final_node_id 指向 answer，其输出即为原始任务所需的改写通知全文。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明 difficulty 与 risk 均为 low，input_budget_tokens 16384 远超实际材料长度，expected_output_tokens 1000 对一段通知而言充裕；execution 为 text-model，failure_policy 为 stop，均与高度耦合的短文本改写任务匹配。\"}]}",
+  "input_tokens": 920,
+  "output_tokens": 606,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19745,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014551553ca3041a3a8c2b7f648d1ff1a7e90ae3f7824b3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 606,
+    "prompt_tokens": 920,
+    "total_tokens": 1526,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "test_seating-auto-cold-b:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该拆分计划完整覆盖原始交付要求：summarize 节点负责按组统计申请、有资格、无资格人数及席位缺口并保留100条来源编号明细，answer 节点负责核对并输出含按组统计、两阶段分班建议、约束说明的最终正文。依赖边真实消费 summarize 的 group_summary、record_details、assumptions 字段；上下文与材料可追溯，未虚构数据；节点职责不重复，汇总内容覆盖原始任务所需；能力与输入容量声明合理，两节点拆分符合中等数据量、强耦合的统计与生成任务。验收条目未显式列出「不联网或执行工具」及「两阶段建议仅限补充席位或调整时段」，但节点 prompt 与 checks 已实质覆盖这些约束，按计划评估标准不影响通过。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"summarize 节点覆盖按组计算申请、有资格、无资格人数与席位缺口；answer 节点覆盖两阶段分班建议（第一阶段安排有资格人员，第二阶段针对缺口提出补充席位或调整时段）及约束说明（不能跨组调剂、未授权代报名、不用总申请冒充有资格需求）。交付要求各项均有明确职责归属，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer 节点声明消费 summarize 的 group_summary、record_details、assumptions 三个字段，并在 inputs 中说明理由（核对一致性、保留来源编号、明确统计口径），均为真实字段消费，无无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"summarize 节点明确要求仅使用 test_seating-L001 至 L100 共100条记录，保留每条来源编号与组别、申请人数、完成前置课程人数的对应关系，record_details 覆盖全部100条来源编号，来源可追溯，无需虚构缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"拆分为汇总与生成两节点，职责清晰不重复：summarize 只做结构化统计与缺口计算，answer 只做核对与正文生成。汇总内容包含四组申请、有资格、无资格人数、席位、席位缺口及100条明细，覆盖原始任务所需全部统计内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"两节点 difficulty 均为 medium、risk 均为 low，input_budget_tokens 65536 足以容纳100条记录，expected_output_tokens 4096 与输出规模匹配。汇总与比较强耦合、数据量中等，两节点拆分避免多分支交接的重复读取与一致性风险，拆分粒度与任务耦合程度相符。\"}]}",
+  "input_tokens": 5586,
+  "output_tokens": 666,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19855,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890159851209c5625d6f49ce94e6eea0041d172c51cc5d7d5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 666,
+    "prompt_tokens": 5586,
+    "total_tokens": 6252,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

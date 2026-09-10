@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-dag-quality:final-review",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"答案是一段简洁通知，保留了协调员、六份、下周三上午十点前、会务组，并保留核对完成后提交草稿与有冲突时标明来源且同截止时间交待确认版本两个分支；未添加理由或分析章节，也未虚构事实或声称执行工具。唯一小瑕疵是未显式复述「材料核对完成后」这一前置条件，但「若材料仍有冲突」与整体语义已隐含该流程，且冻结参考未强制逐字保留该短语。\",\"criteria\":[{\"criterion\":\"用一段简洁通知保留原角色、数量、截止时间、接收方和全部条件分支，不添加分析章节。\",\"passed\":true,\"rationale\":\"文本为一段通知，包含协调员、六份、下周三上午十点前、会务组；两个条件分支均保留，且无分析章节。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"未新增材料外事实、原因或数据，未声称联网或执行工具；内容仅重组自给定通知。\"}]}",
+  "input_tokens": 454,
+  "output_tokens": 250,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10473,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014667544682583ac3749be18cdf4b3a384433037ee953b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 250,
+    "prompt_tokens": 454,
+    "total_tokens": 704,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

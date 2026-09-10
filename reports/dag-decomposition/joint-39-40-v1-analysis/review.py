@@ -6,7 +6,7 @@ from pathlib import Path
 
 HERE=Path(__file__).resolve().parent
 FIELDS={'reviewer','reviewed_at','decomposition_appropriate','original_delivery_covered',
-    'dependencies_correct','parallelism_appropriate','handoff_risks','overall_passed','rationale'}
+    'dependencies_correct','parallelism_appropriate','handoff_risks','execution_findings','overall_passed','rationale'}
 BOOLS={'decomposition_appropriate','original_delivery_covered','dependencies_correct','parallelism_appropriate','overall_passed'}
 
 

@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-dag-single-a:risk",
+  "content": "{\n  \"result\": \"两份报告各自能支持的结论有限。S1仅能支持「在春季、50位到访者自愿填答且题目未公开的情况下，甲站报告80%满意」这一描述性结论，不能推断甲站全体到访者或全体用户的满意度，也不能与乙站直接比较。S2仅能支持「在秋季、200位会员随机抽样且题目未公开的情况下，乙站报告70%满意」这一描述性结论，不能推断乙站全体会员或全体用户的满意度，也不能与甲站直接比较。由于调查时间、对象、抽样方式、问卷题目均不同，且两份报告都未给出未回应人数、总体规模或原始答卷，不能依据百分比直接认定甲服务更好。\",\n  \"evidence\": \"S1：甲站报告80%满意，来自50位到访者的自愿问卷；S2：乙站报告70%满意，来自200位会员的随机抽样；S3：调查时间分别为春季和秋季，问卷题目不同；S4：两份报告都没有给出未回应人数、总体规模或原始答卷。\",\n  \"assumptions\": \"假设S1、S2、S3、S4所述信息准确且完整；未假设自愿问卷与随机抽样的偏差方向或大小；未假设未回应人数、总体规模或原始答卷的具体数值；未假设问卷题目的具体内容或测量口径一致。信息缺口包括：两份调查的未回应人数、总体规模、原始答卷、问卷题目与选项、抽样框、执行过程、满意度的定义与测量方式、春季与秋季差异对结果的可能影响。\"\n}",
+  "input_tokens": 641,
+  "output_tokens": 342,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6666,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015475673b9f489096afc36acf45c00ec3935d23ab6405e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 342,
+    "prompt_tokens": 641,
+    "total_tokens": 983,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

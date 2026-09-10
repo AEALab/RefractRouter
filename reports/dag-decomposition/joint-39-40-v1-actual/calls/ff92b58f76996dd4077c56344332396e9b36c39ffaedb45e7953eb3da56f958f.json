@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-auto-cold-b:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划采用单节点直接生成完整交付正文，符合任务耦合程度高、材料封闭且需保留统一来源编号的特点。计划覆盖了分别核验、比较结论和补充数据清单的全部交付要求，明确禁止虚构数据，并合理说明了不拆分的理由。验收标准与原始任务一致，未发现降低要求或虚构执行的情况。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"计划通过单节点合同和提示模板覆盖了原始任务的全部交付要求：分别核验两份报告、比较结论、补充数据清单，以及禁止据百分比直接认定甲服务更好。验收标准与原始任务一致，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"计划采用单节点结构，无父节点和边依赖，避免了无意义串行依赖。所有必要信息均在单节点内处理，符合任务特性。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"提示模板完整嵌入了 S1-S4 的原始材料，要求保留来源编号，并明确区分已知事实、可合理推断的结论、建议和未知事项。补充数据清单仅列出条件性需求，不虚构数据存在。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"计划明确允许单节点，并解释了不拆分的合理性（任务短、材料封闭、强耦合于同一组来源编号）。单节点职责完整覆盖核验、比较和清单，无重复。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"声明的难度、风险和输入输出容量与任务实际相符。单节点设计符合任务强耦合于同一组封闭材料的特点，避免了并行节点带来的交接开销。\"}]}",
+  "input_tokens": 1336,
+  "output_tokens": 463,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12140,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015578495a6cdd8247c48d753298cd4bcf5eec90ef89800",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 463,
+    "prompt_tokens": 1336,
+    "total_tokens": 1799,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

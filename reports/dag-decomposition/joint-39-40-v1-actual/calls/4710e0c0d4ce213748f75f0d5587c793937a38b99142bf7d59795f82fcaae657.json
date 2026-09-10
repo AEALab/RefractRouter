@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:answer:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确完成了档案盘点任务。逐项核验：A类33条（锁定11条：L009、L018、L027、L036、L045、L054、L063、L072、L081、L090、L099），待审批16条（年龄400天的L003、L015、L039、L051、L075、L087共6条，年龄120天的L006、L030、L042、L066、L078共5条，年龄45天的L021、L033、L057、L069、L093共5条），与冻结参考一致；B类34条、锁定0、待审批16条（年龄400天9条加年龄120天7条），一致；C类33条、锁定0、待审批8条（年龄400天），一致；合计40条正确。边界核对说明了严格大于规则、锁定排除规则及超期不等于删除，符合A2、A3要求。输出使用匿名编号，未声称执行删除或外部动作，保留了假设与限制声明，未虚构数据。轻微不足：未引用上游cost节点的「第一列总和/第二列总和」等汇总字段进行交叉验证，且「11条锁定记录需先解锁后方可重新评估」略带推断性（材料未说明解锁流程），但整体事实、计算与材料完全一致，职责覆盖完整。\"}",
+  "input_tokens": 8882,
+  "output_tokens": 312,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9968,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014395719fa871229fec4115dc08043e38393b8b52609ee",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 312,
+    "prompt_tokens": 8882,
+    "total_tokens": 9194,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

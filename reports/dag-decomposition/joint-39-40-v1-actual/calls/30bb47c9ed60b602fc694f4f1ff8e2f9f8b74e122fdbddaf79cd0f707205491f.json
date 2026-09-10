@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_recruit:risk:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"被评估文本在事实与计算上与材料一致：线下12人（20-12=8候补）、远程12人（16-12=4候补），总24人，满足R3至少各10人的目标，且未改变研究目标。正确识别了R4的匿名化要求（待联系表本地保管、不贴公开报告）及信息缺口（无随机抽样或同意确认记录）。明确区分了已知事实与未知事项，未虚构数据或声称已执行工具。输出格式符合契约要求（单个原始JSON对象，键集合正确，使用「」中文引号）。仅轻微不足：对「误判风险」的说明虽正确但略显简略，未详细展开候补者参与不确定性对最终人数的具体影响程度，但不影响整体正确性。\"}",
+  "input_tokens": 1410,
+  "output_tokens": 189,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12232,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012729833682583ac3749be18cdf4b3a38443303730b113",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 189,
+    "prompt_tokens": 1410,
+    "total_tokens": 1599,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

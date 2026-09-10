@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_seating-b:plan-review",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"该拆分计划完整覆盖了原始交付要求：extract_group_summary 节点负责按组汇总申请、有资格、无资格人数并保留来源编号，answer 节点负责席位比较、两阶段分班建议及约束声明。依赖关系真实（answer 消费上游的 group_summary 字段），上下文充分（输入材料完整且可追溯），节点职责无重复，能力声明合理。轻微不足在于 acceptance_criteria 未显式提及「两阶段分班建议」这一具体交付物，但节点 checks 和 prompt_template 已明确覆盖，不影响整体通过。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"extract_group_summary 覆盖按组统计与来源编号保留；answer 覆盖席位缺口计算、两阶段分班建议（第一阶段按有资格人数安排，第二阶段针对缺口提出补充席位或调整时段建议）及「不能跨组调剂」「未授权代报名」约束，未降低原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer 节点明确声明消费 extract_group_summary 的 group_summary 字段，用于席位比较与建议生成，依赖关系真实必要，无冗余串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"extract_group_summary 要求逐条核对来源编号并附每组来源编号列表；answer 要求保留来源编号并区分已知事实、建议和未知事项，确保数据可追溯且禁止虚构。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"两节点职责清晰分离：extract_group_summary 专注数据提取与汇总，answer 专注分析、建议生成与约束声明，无重复劳动；汇总内容涵盖原始任务所需的申请、有资格、无资格人数及席位比较。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"input_budget_tokens 65536 足以容纳 100 条材料，expected_output_tokens 2000/3000 符合输出规模；任务本身为「先汇总后分析」的强耦合流程，拆分为提取与生成两阶段符合耦合程度，降低了单节点计算遗漏风险。\"}]}",
+  "input_tokens": 5393,
+  "output_tokens": 547,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16412,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890157342863a391e43edef5299850de6066b8d72e2a13f71",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 547,
+    "prompt_tokens": 5393,
+    "total_tokens": 5940,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

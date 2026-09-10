@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:answer:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出正确完成了逐组汇总：甲组25条（合格15、异常10，60%）、乙组25条（合格20、异常5，80%）、丙组25条（合格15、异常10，60%）、丁组25条（合格20、异常5，80%），整批100条中合格70条（70%），低于90%门槛，判定批次不通过，与冻结参考数据完全一致。端点18与24按Q1计入合格，异常记录未删除重算，符合Q3。报告保留了来源编号（cal_sensor-L001至L100），明确区分了证据与假设，声明了不可推断事项（不推断设备故障原因、不归因组间差异等），满足Q2及两项语义检查要求，未虚构数据或声称执行工具。轻微瑕疵：甲组来源编号列表中混入了「及其余归属甲组的25条记录」这一冗余表述（实际已列满25条），且各组异常值分布（如甲组「25℃×5条、17℃×5条」）未逐条列明来源编号对应关系，但不影响事实与计算的正确性和完整性。\"}",
+  "input_tokens": 9022,
+  "output_tokens": 271,
+  "cached_input_tokens": 3584,
+  "reasoning_tokens": 0,
+  "latency_ms": 10728,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901387532648e426867c3c446aaa68159641220ac1153adf",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 271,
+    "prompt_tokens": 9022,
+    "total_tokens": 9293,
+    "prompt_tokens_details": {
+      "cached_tokens": 3584
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

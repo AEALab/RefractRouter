@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_surveys-a:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该拆分计划完整覆盖原始交付要求：两个并行节点分别核验甲站（verify_s1）与乙站（verify_s2），最终节点（answer）汇总并撰写比较结论与补充数据清单，职责无重复。依赖关系真实必要，answer 节点通过 {{verify_s1.text}} 与 {{verify_s2.text}} 消费上游字段，符合「先分别核验、再比较」的逻辑顺序。上下文传递充分，各节点 prompt 均完整保留 S1-S4 材料与来源编号要求，无需虚构数据。节点能力声明（text-model、token 预算）与任务难度匹配，拆分符合「独立核验可并行、比较结论需串行」的耦合程度。验收标准明确禁止据百分比直接认定甲服务更好，并强制区分已知事实、建议与未知事项，符合原始任务约束。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"计划通过 verify_s1、verify_s2 分别覆盖「核验甲站报告」与「核验乙站报告」的要求，answer 节点覆盖「比较结论」与「补充数据清单」，且明确禁止据百分比直接认定甲服务更好，未降低原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer 节点声明依赖 verify_s1 与 verify_s2，并在 prompt_template 中通过 {{verify_s1.text}} 和 {{verify_s2.text}} 实际消费上游输出，依赖关系真实必要；verify_s1 与 verify_s2 之间无依赖，可并行，无无意义串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"所有节点 prompt 均完整包含 S1-S4 原始材料，并明确要求保留来源编号（S1、S2、S3、S4），确保上下文可追溯；同时要求不得虚构未回应人数、总体规模等缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"节点职责划分清晰：verify_s1 仅核验甲站，verify_s2 仅核验乙站，answer 负责汇总与比较，无职责重叠；汇总节点明确包含分别核验、比较结论和补充数据清单，覆盖原始任务全部内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"各节点均声明为 text-model，input_budget_tokens（16384/65536）与 expected_output_tokens（1200/2400）符合文本生成任务需求；将相互独立的核验任务并行拆分、将依赖二者的比较任务串行汇总，符合任务耦合程度。\"}]}",
+  "input_tokens": 2277,
+  "output_tokens": 652,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18993,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015258851b9f489096afc36acf45c00ec3935d23a96e621",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 652,
+    "prompt_tokens": 2277,
+    "total_tokens": 2929,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

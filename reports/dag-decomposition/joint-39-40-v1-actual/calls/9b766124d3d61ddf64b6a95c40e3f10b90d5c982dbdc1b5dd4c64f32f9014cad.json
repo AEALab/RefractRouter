@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_seating-a:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务为封闭材料下的确定性统计与建议生成：需先按组汇总100条记录，再与席位比较并形成两阶段建议。汇总与比较强耦合且数据量中等，拆成两个节点即可：第一个节点完成按组统计与席位缺口计算，第二个节点基于统计结果撰写最终交付正文。拆分净收益是让统计节点专注核对数据、最终节点专注呈现约束与建议，避免单节点同时承担大量计数和成文导致遗漏；并行机会有限，串行依赖清晰，交接开销小。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"stats\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"根据原始任务中的100条来源记录（test_seating-L001 至 test_seating-L100），严格按材料规则完成统计：\\n1. 对每条记录，仅将「已完成前置课程人数」计为有资格人数；申请人数与已完成前置课程人数之差为无资格人数。\\n2. 按甲、乙、丙、丁四组分别汇总：申请总人数、有资格总人数、无资格总人数。\\n3. 将各组有资格总人数与席位比较：甲70、乙90、丙110、丁130。席位缺口=有资格总人数-席位；正数表示缺席位，负数或零表示席位有余。\\n4. 不得跨组相抵，不得用申请总人数冒充有资格需求。\\n5. 保留每条记录来源编号与关键数字的对应关系，便于核对。\\n输出 JSON，字段要求：\\n- group_summary：按组给出申请总人数、有资格总人数、无资格总人数、席位、席位缺口的汇总说明，需包含每组来源编号范围及关键计数依据。\\n- calculation_notes：说明统计口径、是否发现异常或需要核对的记录、以及未在材料中说明的未知事项。\\n- evidence：列出用于核对的关键来源编号及对应数字，确保可追溯。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"按组汇总100条记录的申请、有资格、无资格人数，并计算各组席位缺口，保留来源编号与计算依据。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"json\",\n          \"fields\": {\n            \"group_summary\": \"按甲、乙、丙、丁四组分别说明申请总人数、有资格总人数、无资格总人数、席位及席位缺口的汇总结果与依据。\",\n            \"calculation_notes\": \"说明统计口径、异常或需核对记录、材料未说明的未知事项。\",\n            \"evidence\": \"列出用于核对的关键来源编号及对应数字。\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"medium\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 3000\n        },\n        \"checks\": [\n          \"各组申请总人数、有资格总人数、无资格总人数与材料逐条记录一致。\",\n          \"席位缺口按有资格总人数与对应席位计算，未跨组相抵。\",\n          \"保留来源编号，未虚构材料外的数据或原因。\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    },\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"基于原始任务和统计节点提供的 group_summary、calculation_notes、evidence，撰写最终交付正文。要求：\\n1. 按甲、乙、丙、丁四组分别呈现：申请总人数、有资格总人数、无资格总人数、席位、席位缺口。\\n2. 形成两阶段分班建议：第一阶段先筛资格再分配，仅已完成前置课程者有资格安排；第二阶段在资格筛选后按组比较席位，只建议补充席位或调整时段。\\n3. 明确保留约束：各组时段相互冲突，剩余席位不能跨组相抵；不能用总申请人数冒充有资格需求；没有授权替任何人报名。\\n4. 区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\\n5. 保留来源编号，确保事实和计算与材料一致。\\n直接输出正文，不封装为 JSON。\",\n      \"parents\": [\"stats\"],\n      \"contract\": {\n        \"objective\": \"基于统计结果撰写最终交付正文，按组呈现统计与席位缺口，并形成两阶段分班建议，同时保留材料约束。\",\n        \"inputs\": {\n          \"stats\": {\n            \"fields\": [\"group_summary\", \"calculation_notes\", \"evidence\"],\n            \"reason\": \"最终正文需要消费按组汇总结果、计算口径与来源证据，才能准确呈现统计、缺口和建议，并保持可追溯性。\"\n          }\n        },\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"最终交付正文，按组呈现申请、有资格、无资格人数与席位缺口，并给出两阶段分班建议及约束说明。\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"medium\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 4000\n        },\n        \"checks\": [\n          \"正文按甲、乙、丙、丁四组分别呈现申请、有资格、无资格人数与席位缺口。\",\n          \"两阶段分班建议完整，先筛资格再分配，并只建议补充席位或调整时段。\",\n          \"明确保留不能跨组调剂和未授权代报名的约束。\",\n          \"区分已知事实、建议和未知事项，保留来源编号，不虚构数据或已执行操作。\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\n    \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\"\n  ]\n}",
+  "input_tokens": 5541,
+  "output_tokens": 1396,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 19486,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901567570339b5b0f4b57789945865e795386c35308c3c0b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 1396,
+    "prompt_tokens": 5541,
+    "total_tokens": 6937,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

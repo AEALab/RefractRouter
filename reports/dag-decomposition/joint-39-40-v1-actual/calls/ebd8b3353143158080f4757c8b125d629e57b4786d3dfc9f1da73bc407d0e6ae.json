@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-dag-strong-serial:final-review",
+  "content": "{\"score\": 12, \"passed\": false, \"rationale\": \"答案未使用所给100条工单数据，也未按W1定义（实际减计划）计算；各组计划/实际合计、总偏差、超计划数、净偏差与正超时量均与材料及冻结参考不一致，且未保留来源编号。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"按材料与冻结参考，各组计划/实际合计应为甲950/1025、乙975/1080、丙1000/1050、丁1025/1020，总计3950/4120，总偏差+170，超计划工单47条，正超时量603；答案却给出每组400/400、总计4000/4000、总偏差0、超计划50、正超时500，且未引用test_workorders-L001至L100等来源编号。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": false, \"rationale\": \"答案虚构了与材料不符的汇总数字，并声称「逐条核对」「分组与总计均按上述来源逐条核对」，属于不实的数据与核对声明；限制说明本身虽未推断责任，但整体数据虚构导致该条不通过。\"}]}",
+  "input_tokens": 4790,
+  "output_tokens": 312,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9824,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016183948fc7578b59e843c90e5af4aa62e8cfda9b203b9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 312,
+    "prompt_tokens": 4790,
+    "total_tokens": 5102,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

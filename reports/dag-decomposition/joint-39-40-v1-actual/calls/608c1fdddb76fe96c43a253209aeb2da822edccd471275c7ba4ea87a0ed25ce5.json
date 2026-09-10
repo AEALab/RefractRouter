@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_workorders-a:plan-review",
+  "content": "{\"score\": 88, \"passed\": false, \"rationale\": \"该拆分计划将100条工单按甲乙丙丁四组并行提取统计，再由单一汇总节点生成月报，整体结构合理，覆盖了原始任务的核心交付要求（各组总工时、总偏差、超计划工单数、净偏差与正超时量分列、来源追溯、不虚构原因）。但存在两处不足：其一，汇总节点缺少对「分组汇总与总计相等」的独立交叉验证机制，仅依赖单一文本生成节点自检，而该节点同时承担撰写与核对职责，存在自我确认风险；其二，「限制说明」虽在提示词中提及，但未在输出契约中明确定义为独立字段，验收标准亦未将其列为必须逐项检查的硬性条目，可能导致最终交付遗漏该要素。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": false, \"rationale\": \"计划基本覆盖了各组总工时、总偏差、超计划工单数、净偏差与正超时量分列等核心要求，但「限制说明」仅在汇总节点的提示词中提及，未在输出契约中明确定义为独立必填字段，存在职责覆盖不够明确的风险。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"四个提取节点并行无依赖，汇总节点明确消费全部四个上游节点的统计字段，依赖关系真实必要，无冗余串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"各提取节点要求保留来源编号并逐条列出明细，汇总节点要求保留来源编号，能够支撑数据追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"按组拆分职责清晰不重复，汇总节点职责为综合四组结果生成月报，符合任务耦合程度。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"输入预算32768/65536 tokens足以容纳100条工单文本，预期输出3000/6000 tokens符合统计与月报生成需求，难度与风险评级合理。\"}]}",
+  "input_tokens": 6196,
+  "output_tokens": 519,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16247,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016032602e4d5e3acd6b6d5c09c835e2d36b9596cea0f3e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 519,
+    "prompt_tokens": 6196,
+    "total_tokens": 6715,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

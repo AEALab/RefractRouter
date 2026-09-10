@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-dag-strong-serial:risk",
+  "content": "{\n  \"result\": \"未收到上游结果，无法据其完成判断。本节点仅能基于给定材料进行约束核验与缺口识别。材料为100条工单记录，字段包括工单号、组别、计划分钟、实际分钟，并明确无人员评价或故障归因材料。可核验的约束包括：正偏差定义为实际减计划；最终报告需包含各组总工时、全部工单总偏差、超计划工单数及限制；不得因耗时推断责任；不得只复制一条分支摘要。材料未提供故障原因、人员绩效证据或已执行操作，因此无法核验任何关于原因或责任的结论。信息缺口包括：无上游结果、无故障原因、无人员评价、无除计划与实际分钟外的其他数据。可能的误判风险包括：将正偏差与正超时量混淆、将耗时差异归因于人员或故障、忽略分组汇总与总计相等要求。\",\n  \"evidence\": \"来源 test_workorders-L001 至 test_workorders-L100，共100条工单记录；每条均标注「无人员评价或故障归因材料」。任务说明 W1、W2、W3 及交付要求、固定交付验收条件。未提供上游结果。\",\n  \"assumptions\": \"假设材料中的计划分钟与实际分钟均为准确且可直接用于计算；假设「正超时量」指正偏差中实际大于计划的部分之和，而「净偏差」指全部工单实际减计划之和；假设「各组总工时」指各组实际分钟之和。信息缺口：无上游结果、无故障原因、无人员绩效证据、无除工单号/组别/计划分钟/实际分钟外的其他字段。\"\n}",
+  "input_tokens": 4447,
+  "output_tokens": 366,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7180,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890161688879c5625d6f49ce94e6eea0041d172c51cce1c1a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 366,
+    "prompt_tokens": 4447,
+    "total_tokens": 4813,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

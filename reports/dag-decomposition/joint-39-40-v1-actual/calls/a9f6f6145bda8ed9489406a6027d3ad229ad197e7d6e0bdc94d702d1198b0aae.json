@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-dag-strong-parallel:final-review",
+  "content": "{\"score\": 0, \"passed\": false, \"rationale\": \"被评估文本完全未交付任务要求的月报，反而虚构了一个不存在的「上游 cost 结果」（声称其给出每组计划760、实际800、总偏差160、超计划50单等数据），并围绕该虚构对象进行所谓核对，违反「不虚构数据」约束；未给出任何正确的分组汇总（正确值应为甲计划950/实际1025、乙975/1080、丙1000/1050、丁1025/1020，总计计划3950、实际4175，净偏差+225，正超时量603，超计划工单49单）；未分别报告净偏差与正超时量；未保留来源编号于汇总中；未满足W2全部必备内容。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"文本未形成完整月报，缺少各组总工时、全部工单总偏差、超计划工单数及限制等W2必备内容；虚构「上游 cost 结果」及其数值（760/800/160/50单），与材料可核验的正确汇总（甲950/1025、乙975/1080、丙1000/1050、丁1025/1020、净偏差+225、正超时量603、超计划49单）完全不符；未分别报告净偏差与正超时量；未在汇总中保留来源编号。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": false, \"rationale\": \"文本虚构了材料中不存在的「上游 cost 结果」及其具体数值，并声称对其进行核对，属于虚构数据与已执行的操作；虽声明不推断责任，但整体建立在虚构输入之上，未能正确区分已知事实与虚构内容。\"}]}",
+  "input_tokens": 5417,
+  "output_tokens": 419,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 21967,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016219507534779bc6a83ab3f36a7a90c1e71ba352f2cad",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 419,
+    "prompt_tokens": 5417,
+    "total_tokens": 5836,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

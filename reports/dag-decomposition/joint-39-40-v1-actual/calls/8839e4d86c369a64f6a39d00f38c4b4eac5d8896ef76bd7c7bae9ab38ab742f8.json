@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-3-strong:risk",
+  "content": "{\n  \"result\": \"本节点为风险核验节点，未收到上游结果，无法据上游结果完成判断。基于给定材料可确认：全部100条记录均为独立单次需求，供给容量固定为48人；需求超过48人的班次应记为未满足需求，但不能据此认定车辆实际超载，也不能推断延误原因。材料未提供任何关于实际发车、车辆核载、运营延误或处置措施的信息，因此无法回答运营层面的问题。\",\n  \"evidence\": \"来源 cal_transit-L001 至 cal_transit-L100；其中需求大于48人的记录包括 L003、L004、L005、L006、L009、L010、L011、L012、L015、L016、L017、L018、L022、L023、L024、L028、L029、L030、L034、L035、L036、L040、L041、L042、L046、L047、L048、L049、L052、L053、L054、L055、L058、L059、L060、L061、L065、L066、L067、L071、L072、L073、L077、L078、L079、L083、L084、L085、L089、L090、L091、L092、L095、L096、L097、L098。\",\n  \"assumptions\": \"假设每条记录代表一班独立需求，不与其他组或班次抵消；假设容量48人为固定供给上限。信息缺口：材料未提供实际乘车人数、车辆实际核载标准、发车执行情况、延误原因或运营处置记录，因此无法判断是否存在实际超载或延误，也无法回答运营问题。\"\n}",
+  "input_tokens": 4627,
+  "output_tokens": 372,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6306,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013118662b531818cd979bd70c39b690ac6f23902945801",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 372,
+    "prompt_tokens": 4627,
+    "total_tokens": 4999,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

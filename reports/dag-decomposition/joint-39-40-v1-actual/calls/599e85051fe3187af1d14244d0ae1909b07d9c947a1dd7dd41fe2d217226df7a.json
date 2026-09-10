@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-dag-strong-parallel:risk",
+  "content": "{\n  \"result\": \"本节点为核验节点，未收到任何上游结果，无法据上游结果完成判断。基于给定材料与交付要求，核验结论如下：材料仅包含100条工单的计划分钟与实际分钟，以及组别信息；未提供故障原因、人员绩效或责任归因材料，因此不能从耗时差异推断责任。材料满足计算各组总工时、全部工单总偏差、超计划工单数及限制所需的基础数据，但未提供「限制」的具体定义或阈值，存在信息缺口。可能的误判风险包括：将正偏差直接等同于责任或故障、混淆净偏差与正超时量、未核对分组汇总与总计相等。\",\n  \"evidence\": \"来源 test_workorders-L001 至 test_workorders-L100：每条均给出组别、计划分钟、实际分钟，并注明「无人员评价或故障归因材料」。交付要求：综合全表形成完整月报，核对分组汇总与总计相等，分别报告净偏差及正超时量，不混淆两者。固定交付验收条件：事实和计算与材料一致，保留来源编号；区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\n  \"assumptions\": \"假设「限制」指超计划工单数或偏差的约束条件，但材料未明确其具体含义或阈值，需在最终报告中说明该不确定性。信息缺口：无故障原因、人员绩效、责任归因材料；无「限制」的具体定义；无上游结果可供核验。\"\n}",
+  "input_tokens": 4447,
+  "output_tokens": 332,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 6148,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016194258de824baea9702e17bffa39e9c3bdc4f6a3466c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 332,
+    "prompt_tokens": 4447,
+    "total_tokens": 4779,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

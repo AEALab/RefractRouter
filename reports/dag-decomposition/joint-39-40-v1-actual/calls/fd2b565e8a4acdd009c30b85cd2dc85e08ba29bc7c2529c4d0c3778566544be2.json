@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-dag-strong-serial:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本逐项核对三个硬条件，结论与冻结参考一致：只有乙同时满足；甲缺远程且G3修改仅属未证明声称；丙45单位超预算5单位，且未因更快而忽略预算。文本保留G1、G2、G3来源编号，明确区分已知事实、建议和未知事项，未把口头承诺当作既成事实，也未虚构数据或声称执行工具。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"同时检查六周内完成、支出不超过40单位、向所有参与者提供远程途径三项硬条件；推荐当前有证据可行的方案乙；说明甲需补混合方式排程与报价、丙需把预算调整至不超过40单位并确认其他条件不变。事实与计算同材料一致，并引用G1、G2、G3。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"明确将G2列为已知事实，将推荐乙和补证要求列为建议，将甲混合方式是否属实、丙调整后是否仍满足条件列为未知；未把G3口头声称视为既成事实，未虚构原因、数据或已执行操作。\"}]}",
+  "input_tokens": 1089,
+  "output_tokens": 305,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10618,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890151312840e23c04e8b740c94d8512f0597aa5fa66259cf",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 305,
+    "prompt_tokens": 1089,
+    "total_tokens": 1394,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

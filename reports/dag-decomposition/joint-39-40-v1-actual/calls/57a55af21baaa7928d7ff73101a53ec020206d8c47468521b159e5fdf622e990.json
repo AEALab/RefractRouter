@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:risk:strong",
+  "content": "{\n  \"result\": \"本节点为风险核验节点，未收到上游结果，无法据上游结果完成判断。基于给定材料可确认：全部100条记录均为独立单次需求，供给容量固定为48人；需求超过48人的班次应记为未满足需求，但不能据此认定车辆实际超载，也不能推断延误原因。材料未提供各线路的班次数量、实际运营安排、车辆数、发车时间、延误或超载证据，因此无法回答运营层面的因果问题。\",\n  \"evidence\": \"来源 cal_transit-L001 至 cal_transit-L100；T1、T2、T3 约束说明。\",\n  \"assumptions\": \"假设每条记录对应一班独立需求，容量均为48人；未满足需求仅按需求减容量计算。信息缺口包括：未提供上游结果、未提供线路汇总表、未提供实际运营数据，无法核验线路级结果或运营问题。\"\n}",
+  "input_tokens": 4627,
+  "output_tokens": 204,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 5409,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013321864f1aca4493aa6c7087a6ccfbfdb4be615fa8479",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 204,
+    "prompt_tokens": 4627,
+    "total_tokens": 4831,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

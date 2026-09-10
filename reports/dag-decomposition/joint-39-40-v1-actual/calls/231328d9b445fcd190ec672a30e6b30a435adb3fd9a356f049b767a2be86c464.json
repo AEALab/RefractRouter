@@ -1,0 +1,24 @@
+{
+  "label": "handoff-1:risk",
+  "content": "{\n  \"result\": \"上游结果整体与材料一致，但存在一处表述需修正：其将「表面重复」计为130，其中包含记录a整体100。严格说，记录a的100是被版本2替代的旧版样本，属于按D3规则删除的旧版，不是与保留记录之间的重复样本；将其与D2披露的30个重叠样本并列计入「表面重复」可能造成概念混淆。更稳妥的表述是：删除旧版a扣除100；保留记录b与c之间已知重叠30，因此已知去重后总量为120+80-30=170。最终数值170正确，但应区分「旧版替代删除」与「保留记录间已知重叠」两类扣除，不宜都称为重复。\",\n  \"evidence\": \"D1：记录a来源X版本1样本100；记录b来源X版本2样本120，明确替代版本1。D2：记录c来源Y样本80，其中30个样本与X版本2重叠。D3：内部规则只采用各来源最新版；允许按已知重叠计算去重总量，未知重叠不得推定为零。\",\n  \"assumptions\": \"上游假设「替代」关系在D3规则下足以直接删除旧版，材料支持该判断，无需额外重叠证明。信息缺口包括：来源X版本2与来源Y之间除D2披露的30样本外是否还有其他重叠未知；记录b内部是否存在重复未知；来源Y是否存在除c外的其他版本未知。因此170应视为已知重叠下的上限，实际去重后总量可能更小，但幅度无法确定。\"\n}",
+  "input_tokens": 1313,
+  "output_tokens": 340,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6301,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012447368d6f60410e67e178f28d968f0420b51c3485059",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 340,
+    "prompt_tokens": 1313,
+    "total_tokens": 1653,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

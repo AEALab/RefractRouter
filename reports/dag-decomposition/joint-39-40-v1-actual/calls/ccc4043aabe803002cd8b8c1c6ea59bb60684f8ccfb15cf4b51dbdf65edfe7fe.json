@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-auto-cold-b:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务规模小、材料仅三条且交付物简短，拆分会引入交接与汇总开销而无质量或时延收益，故采用单节点直接生成。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"这是独立编写的虚构封闭场景「会议行动项整理」，不代表真实机构或法律规则。只用以下材料，不联网或执行工具。\\nM1：周一例会决定：设备组负责在周五前给出检查清单。M2：运营组只负责汇总现场反馈，完成日期尚未确定。M3：某成员建议周三试运行，但会议未表决，不能列成已批准决定。\\n\\n交付要求：仅输出一张简短行动项表和一条待确认事项；区分决定与建议，不把未知期限补成周五。\\n\\n请直接输出最终正文，包含：\\n1. 行动项表：区分「已批准决定」与「建议」，保留来源编号；设备组检查清单的期限按材料写周五前；运营组汇总现场反馈的完成日期写尚未确定；周三试运行列为建议且注明未表决。\\n2. 待确认事项：仅一条，写明运营组汇总现场反馈的完成日期尚未确定，需待确认。\\n不要补充材料未说明的原因、数据或已执行操作。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"根据三条虚构会议材料生成简短行动项表和一条待确认事项，区分决定与建议并保留来源编号。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"最终交付正文：行动项表加一条待确认事项\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"low\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 16384,\n          \"expected_output_tokens\": 1000\n        },\n        \"checks\": [\n          \"行动项表区分已批准决定与建议，并保留 M1、M2、M3 来源编号\",\n          \"设备组检查清单期限写周五前，运营组汇总现场反馈期限写尚未确定\",\n          \"周三试运行列为建议并注明会议未表决\",\n          \"待确认事项仅一条，且不把未知期限补成周五\",\n          \"不虚构材料未说明的原因、数据或已执行操作\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\n    \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\"\n  ]\n}",
+  "input_tokens": 1294,
+  "output_tokens": 646,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 8710,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890148338107424dba2bd6e77b99d402060a9cf8c0f68f7b7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 646,
+    "prompt_tokens": 1294,
+    "total_tokens": 1940,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

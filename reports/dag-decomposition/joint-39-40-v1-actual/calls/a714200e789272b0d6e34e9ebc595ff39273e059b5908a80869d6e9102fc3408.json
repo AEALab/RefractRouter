@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-5-strong:final-review",
+  "content": "{\"score\": 45, \"passed\": false, \"rationale\": \"交付文本在汇总数字、锁定归属和待审批数量上均与材料及冻结参考不一致，且未按任务要求用匿名编号给出待审批清单。A类锁定数应为11而非9，A类待审批应为16而非24，B类应为16而非17，C类应为8而非17，合计应为40而非58。文本还声称「经逐条核对，锁定记录实际为11件，且均归属A类」，但又说差异来自上游统计口径，表述自相矛盾；同时列出锁定编号却没有列出符合待审批条件的匿名编号，未完整满足交付要求。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"汇总结果与材料和冻结参考不一致：A类锁定数写成9件而实际为11件；A类待审批写成24件而应为16件；B类待审批写成17件而应为16件；C类待审批写成17件而应为8件；合计待审批写成58件而应为40件。虽然保留了来源编号范围 cal_archive-L001 至 cal_archive-L100，并列出了锁定记录编号，但未按任务要求用匿名编号给出符合待审批条件的清单，且存在「锁定记录实际为11件，且均归属A类」与「A类锁定9件」并存的内部矛盾。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": false, \"rationale\": \"文本未虚构已执行删除或审批，也说明了仅作盘点与建议，这一点符合约束；但其声称「经逐条核对」后仍给出与材料逐条事实不一致的锁定归属和数量，并把差异归因于「上游统计口径」，在封闭材料场景下属于无依据解释，且造成事实性错误，因此不满足该条。\"}]}",
+  "input_tokens": 4296,
+  "output_tokens": 433,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14149,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014200975de824baea9702e17bffa39e9c3bdc4f69e27a1",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 433,
+    "prompt_tokens": 4296,
+    "total_tokens": 4729,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

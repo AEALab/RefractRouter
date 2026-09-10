@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_catalog:risk:strong",
+  "content": "{\n  \"result\": \"上游结果基本正确：应保留记录b和记录c，排除记录a。已知去重总量为170，即120+80-30；不能将旧版记录a的100加入，也不能对未给出的其他来源或未知重叠作任何推定。\",\n  \"evidence\": \"D1：记录a为来源X版本1，样本100；记录b为来源X版本2，样本120，并明确替代版本1。D2：记录c为来源Y，样本80，其中30个样本与X版本2重叠。D3：内部规则只采用各来源最新版；允许按已知重叠计算去重总量，未知重叠不得推定为零。\",\n  \"assumptions\": \"仅依据给定虚构材料判断；未对真实机构、法律规则、外部数据或已执行操作作推断。信息缺口包括：来源Y内部是否存在其他版本、来源X与来源Y之间除已知30个重叠外是否还有其他重叠、是否存在其他来源，均不得推定。\"\n}",
+  "input_tokens": 829,
+  "output_tokens": 214,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4070,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012369328846a816464a9af9c0791e0f68a2ce03ca92b63",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 214,
+    "prompt_tokens": 829,
+    "total_tokens": 1043,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

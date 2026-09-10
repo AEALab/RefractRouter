@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-auto-cold-b:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务为单一短文本改写，材料仅一段通知，无并行分析或汇总需求；拆分会增加交接开销且不提升质量，故使用单节点直接生成。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"根据以下虚构封闭场景材料，改写通知。\\n\\n材料：\\nN1：原通知：材料核对完成后，协调员应在下周三上午十点前将六份议程草稿交给会务组；若材料仍有冲突，应先标明冲突来源，并在同一截止时间提交待确认版本。\\n\\n交付要求：改写成一段更简洁的通知，保留角色、数量、截止时间与两个条件分支，不增加理由或分析章节。\\n\\n请直接输出改写后的一段通知正文，不要添加标题、说明或分析。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"将原通知改写为一段更简洁的通知，保留角色、数量、截止时间、接收方和两个条件分支，不添加分析章节。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"改写后的一段简洁通知正文\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"low\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 16384,\n          \"expected_output_tokens\": 300\n        },\n        \"checks\": [\n          \"输出为一段通知正文，无分析、理由或额外章节\",\n          \"保留协调员角色、六份议程草稿数量、下周三上午十点前截止时间、会务组接收方\",\n          \"保留两个条件分支：材料核对完成后的提交要求；材料仍有冲突时标明冲突来源并提交待确认版本\",\n          \"未虚构材料未说明的原因、数据或已执行操作\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"用一段简洁通知保留原角色、数量、截止时间、接收方和全部条件分支，不添加分析章节。\",\n    \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\"\n  ]\n}",
+  "input_tokens": 1295,
+  "output_tokens": 539,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 7076,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014580079fc7578b59e843c90e5af4aa62e8cfda93c8a3c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 539,
+    "prompt_tokens": 1295,
+    "total_tokens": 1834,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

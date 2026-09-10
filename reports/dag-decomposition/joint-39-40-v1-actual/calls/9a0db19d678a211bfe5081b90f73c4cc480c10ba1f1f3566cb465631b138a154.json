@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_catalog:cost:cheap",
+  "content": "{\n  \"result\": \"根据材料，保留记录a（来源X，版本1，样本100）和记录c（来源Y，样本80），删除记录b（来源X，版本2，样本120）。理由：内部规则只采用各来源最新版，来源X中版本2明确替代版本1，因此保留版本2，删除版本1；来源Y仅有版本1，故保留记录c。已知去重规模：记录c中30个样本与来源X版本2重叠，因此去重总量为30。未知重叠限制：除已知的30个重叠外，其他样本间是否存在重叠未知，不得推定为零，因此去重总量仅计已知的30，不额外假设。\",\n  \"evidence\": \"D1：记录a（来源X，版本1，样本100）；记录b（来源X，版本2，样本120，明确替代版本1）。D2：记录c（来源Y，样本80，其中30个样本与X版本2重叠）。D3：内部规则只采用各来源最新版；允许按已知重叠计算去重总量，未知重叠不得推定为零。\",\n  \"assumptions\": \"假设「各来源最新版」指每个来源中版本号最高或明确替代关系的版本，且来源X的版本2为最新版；来源Y仅有一个版本，视为最新版。未知重叠包括但不限于记录a与记录c之间、记录a与记录b之间、以及记录c中除已知30个外的其他样本与来源X版本2的重叠情况，这些均未提供数据，故不进行推定。\"\n}",
+  "input_tokens": 639,
+  "output_tokens": 334,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6508,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901227542740d92d5266a85c14e28416df297f1b2034ac5e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 334,
+    "prompt_tokens": 639,
+    "total_tokens": 973,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

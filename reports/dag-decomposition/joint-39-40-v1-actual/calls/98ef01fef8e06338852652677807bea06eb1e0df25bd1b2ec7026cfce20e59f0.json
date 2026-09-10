@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:answer:strong",
+  "content": "按组汇总如下：\n\n甲组：共25条记录，合格15条，异常10条。异常来源：cal_sensor-L008、L020、L028、L040、L048、L060、L068、L080、L088、L100。\n\n乙组：共25条记录，合格20条，异常5条。异常来源：cal_sensor-L009、L029、L049、L069、L089。\n\n丙组：共25条记录，合格15条，异常10条。异常来源：cal_sensor-L010、L030、L050、L070、L090、L018、L038、L058、L078、L098。\n\n丁组：共25条记录，合格20条，异常5条。异常来源：cal_sensor-L019、L039、L059、L079、L099。\n\n整批共100条记录，合格70条，异常30条，合格比例为70%。\n\n批次判断：不满足至少90%记录合格的批次门槛。\n\n不可推断的事项：材料未提供异常原因、校正记录或设备故障说明，因此不能推断设备故障原因、是否已执行校正、异常是否由设备、环境或操作导致，也不能推断未记录的外部情况。",
+  "input_tokens": 4151,
+  "output_tokens": 261,
+  "cached_input_tokens": 3072,
+  "reasoning_tokens": 0,
+  "latency_ms": 4940,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890138861460e23c04e8b740c94d8512f0597aa5fa6f2ee95",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 261,
+    "prompt_tokens": 4151,
+    "total_tokens": 4412,
+    "prompt_tokens_details": {
+      "cached_tokens": 3072
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-dag-quality:final-review",
+  "content": "{\"score\":98,\"passed\":true,\"rationale\":\"交付文本完整满足任务要求：分别核验了甲、乙两站报告能支持的结论，明确限定结论仅适用于各自样本（50位自愿到访者、200位随机抽样会员），未外推至总体；比较结论部分正确指出不能据百分比直接认定甲服务更好，并完整列举了四项差异（抽样方式、样本量、时间、题目）及三项缺失数据（未回应人数、总体规模、原始答卷）；补充数据清单覆盖了S4缺失的三项关键数据及影响可比性的背景信息。全文保留了S1-S4来源编号，事实与材料一致，未虚构数据或执行工具，正确区分了已知事实与未知事项。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"分别核验了两份报告能支持的结论（甲：80%满意限于50位自愿到访者；乙：70%满意限于200位随机抽样会员），比较结论明确「不能据百分比认定甲站服务更好」并列出四项差异和三项缺失，补充数据清单包含5项（3项直接缺失+2项背景信息）。全文保留S1、S2、S3、S4来源编号，事实与材料完全一致。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"严格区分已知事实（如「80%的受访者表示满意」）与未知事项（如「无法计算回应率」），未虚构未回应人数、总体规模或原始答卷数据，未声称执行任何工具或计算置信区间，对缺失信息明确标注「S4缺失」或「未提供」。\"}]}",
+  "input_tokens": 857,
+  "output_tokens": 385,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11880,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015430565640844006c495b97e3327b5d9afec856666259",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 385,
+    "prompt_tokens": 857,
+    "total_tokens": 1242,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

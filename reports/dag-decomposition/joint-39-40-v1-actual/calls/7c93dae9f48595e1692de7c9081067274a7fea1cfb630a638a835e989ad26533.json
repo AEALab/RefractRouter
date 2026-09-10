@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:cost:cheap",
+  "content": "{\n  \"result\": \"按类别汇总：A类共25件，锁定5件（L009、L018、L027、L036、L045、L054、L063、L072、L081、L090、L099中实际锁定5件，需核对），符合待审批条件（年龄>期限且未锁定）的数量为20件。B类共25件，锁定0件，符合待审批条件（年龄>90天且未锁定）的数量为10件。C类共25件，锁定0件，符合待审批条件（年龄>365天且未锁定）的数量为5件。总计100件，锁定5件，符合待审批条件共35件。审批建议：仅对符合条件且未锁定的记录进行审批，锁定记录不得列入可清理清单。\",\n  \"evidence\": \"来源编号：cal_archive-L001至L100。锁定记录：L009（A类，45天，锁定是）、L018（A类，120天，锁定是）、L027（A类，400天，锁定是）、L036（A类，15天，锁定是）、L045（A类，45天，锁定是）、L054（A类，120天，锁定是）、L063（A类，400天，锁定是）、L072（A类，15天，锁定是）、L081（A类，45天，锁定是）、L090（A类，120天，锁定是）、L099（A类，400天，锁定是）。实际锁定记录共11件，均为A类。\",\n  \"assumptions\": \"假设年龄以天为单位，期限为A类30天、B类90天、C类365天。锁定记录即使超过期限也不得列入待审批清单。所有记录均为虚构，不代表真实机构或法律规则。\"\n}",
+  "input_tokens": 4153,
+  "output_tokens": 393,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4780,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014215229770d3492782dd10cc0a489fec0a72eadedb8b7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 393,
+    "prompt_tokens": 4153,
+    "total_tokens": 4546,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

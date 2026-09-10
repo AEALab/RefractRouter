@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_recruit:cost:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"被评估答案正确完成了名额分配计算：线下12人获名额、8人候补，远程12人获名额、4人候补，总计24人，与冻结参考完全一致；明确核对了R3目标（各至少10人）并指出无需为满额改变研究目标；涵盖了R4匿名化要求（匿名编号、待联系表本地保管、不贴公开报告）以及未核实前提（无随机抽样或同意确认记录）。输出契约方面，键集合恰好为result、evidence、assumptions，所有值为非空字符串，未复制covers、checks等元数据字段，JSON语法有效。答案未声称执行工具或检索新事实，假设部分合理标注了不确定性（如报名互斥理解、筛选规则未虚构）。轻微不足：evidence字段完整复述了R1-R4但未以「R1」「R2」等编号显式标注各句来源（尽管内容中保留了编号），且引用原文时使用了「：」而非「」中文引号，但这些不影响事实正确性与契约合规性。\"}",
+  "input_tokens": 1428,
+  "output_tokens": 247,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15065,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012711310a77e5a4c9aa25c0e7eca6d226bba90a02c798c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 247,
+    "prompt_tokens": 1428,
+    "total_tokens": 1675,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:answer:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出完整满足交付要求：按类别汇总了总数（A33/B34/C33）、锁定数（11/0/0）及待审批数（16/16/8），与冻结参考及上游 cost.result 完全一致；合计 100 件、待审批 40 件、锁定 11 件均核对无误。明确引用 A1–A3 规则与 cal_archive-L001 至 L100 证据，区分了已知事实、审批建议与未知事项（锁定原因、解除条件等），未虚构数据，未声称执行删除或外部动作，符合「保留证据与假设，不虚构数据」「覆盖本节点职责并明确限制」的检查要求。轻微不足：第三节中「第一列（年龄）总和」「第二列（数量）总和」的表述沿用了上游 cost 的含糊命名，未在材料中明确定义两列含义（第二列总和 11 恰好等于锁定数，易生歧义）；此外边界核对称「逐条核验」但未列出具体边界案例（如年龄等于期限的情形），不过材料中本无年龄恰好等于期限的记录，结论正确。整体为高质量交付。\"}",
+  "input_tokens": 8694,
+  "output_tokens": 268,
+  "cached_input_tokens": 3584,
+  "reasoning_tokens": 0,
+  "latency_ms": 9164,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014413870fa871229fec4115dc08043e38393b8b562c4e6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 268,
+    "prompt_tokens": 8694,
+    "total_tokens": 8962,
+    "prompt_tokens_details": {
+      "cached_tokens": 3584
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

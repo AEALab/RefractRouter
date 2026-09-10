@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-dag-node-b:final-review",
+  "content": "{\n  \"score\": 100,\n  \"passed\": true,\n  \"rationale\": \"被评估文本完整满足了原始任务的所有交付要求。它仅输出了一张简短的行动项表和一条待确认事项，格式清晰。文本明确区分了已批准的决定（M1, M2）和未表决的建议（M3），并且没有将运营组未知的完成期限错误地补充为周五。所有信息均与给定材料一致，并保留了来源编号。文本未虚构任何信息，也未声称执行了任何工具。\",\n  \"criteria\": [\n    {\n      \"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\n      \"passed\": true,\n      \"rationale\": \"文本以表格形式清晰列出了两个行动项，并单独列出了一条待确认事项，完全符合交付要求。行动项内容与材料M1、M2一致，待确认事项与M3一致。所有条目均正确标注了来源编号。\"\n    },\n    {\n      \"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\n      \"passed\": true,\n      \"rationale\": \"文本严格遵守了材料约束。它正确地将M1和M2识别为会议决定，将M3识别为未表决的建议。对于运营组的未知期限，文本如实标注为「尚未确定」，没有进行任何虚构或补充。文本内容完全基于所给材料，未添加任何外部信息或声称执行了任何操作。\"\n    }\n  ]\n}",
+  "input_tokens": 613,
+  "output_tokens": 334,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10022,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014887460795aa3a4ba36fe885727fc31a219ca2584acf2",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 334,
+    "prompt_tokens": 613,
+    "total_tokens": 947,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

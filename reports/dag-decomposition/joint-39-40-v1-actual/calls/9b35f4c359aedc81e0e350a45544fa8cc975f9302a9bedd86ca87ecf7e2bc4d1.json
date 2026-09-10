@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:answer:strong:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"被评估文本正确识别了上游汇总中的关键错误：A类待审批数应为13而非16，因为第24、48、60件年龄为15天，未超过A类30天期限；修正后总数为37件，且B类16件、C类8件与材料一致。锁定记录11件全部正确列出并排除，未声称执行删除或外部动作，保留了来源编号、假设与未知事项，满足节点职责与限制要求。扣分原因：输出先给出错误汇总表（A类16件、合计40件），随后才修正为13件和37件，前后不一致可能误导读者；此外输出使用了Markdown标题与表格，而节点契约要求直接输出正文文本，虽非JSON封装，但格式合规性存在轻微瑕疵。整体事实核对严谨、证据链完整，故判定通过。\"}",
+  "input_tokens": 10209,
+  "output_tokens": 203,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7145,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014446269e4d5e3acd6b6d5c09c835e2d36b9596c115f20",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 203,
+    "prompt_tokens": 10209,
+    "total_tokens": 10412,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

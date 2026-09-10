@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_workshop:cost:strong:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，且均为非空字符串，符合契约。时间与设备核对正确：依据 L1、L2、L4 判定修复讲座只能在周二14至16时执行，2小时连续、投影周二可用、18人不超过20人，结论与冻结参考一致。容量与分场核对也基本正确：周二仅2小时不满足摄影单场连续3小时，周四14至17时可容纳一场3小时，但24人超过20人；并指出材料未给每场人数分配、无额外场地，因此不能确认覆盖24人的可执行安排，符合不虚构场地和保留不确定性的要求。扣分点在于表述可更明确：虽然说了「无法……确认可执行安排」，但未同样直白地落成「当前资源不能覆盖24人、摄影工作坊整体无法执行」的最终分类；另外假设中部分内容是重复约束而非真正缺口，略有冗余。\"}",
+  "input_tokens": 1391,
+  "output_tokens": 226,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11496,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901192997989d0c17fc196b3c940c12dd7ad5b500bfcb6ec",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 226,
+    "prompt_tokens": 1391,
+    "total_tokens": 1617,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

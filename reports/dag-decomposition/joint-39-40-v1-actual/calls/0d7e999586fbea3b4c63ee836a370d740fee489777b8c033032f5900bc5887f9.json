@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_workshop:answer:cheap:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确执行了排程分析：修复讲座安排于周二14至16时（满足L1时间、L2两小时及投影需求、L4投影可用、18人未超20人容量）；摄影工作坊因24人超20人上限需分两场（L3），但周四14至17时仅容一场3小时（L1），周二仅2小时无法安排（L1），故判定无法完整执行。答案完整保留了证据来源（L1-L4编号），明确区分了可执行与无法执行安排，并单独列出假设与不确定性（未虚构额外场地或原因），符合「保留证据与假设，不虚构数据」及「覆盖本节点职责并明确限制」的验收标准。仅微小瑕疵：第五部分假设中提及「设备故障」作为未推断原因的示例，虽为否定性陈述，但略显冗余，不影响整体正确性。\"}",
+  "input_tokens": 1962,
+  "output_tokens": 212,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8341,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901201638796de9f55314d9c1d75ac853e3e9cad7ee769fc",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 212,
+    "prompt_tokens": 1962,
+    "total_tokens": 2174,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

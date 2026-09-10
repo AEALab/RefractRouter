@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-dag-single-a:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本完整满足交付要求：同时核对三个硬条件，推荐当前有证据可行的方案乙，说明甲需补排程/报价/远程安排且不把口头承诺当既成事实，说明丙需调整预算至40单位内并确认仍满足周期与远程。事实与材料一致：甲五周38单位仅线下、乙六周40单位提供远程、丙四周45单位提供远程；丙超支5单位。文本保留来源编号（G1/G2/G3），区分已知事实、建议与不确定性，并声明未执行工具或检索，与任务约束一致。未发现虚构数据、原因或不实工具执行声明。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"三个硬条件均逐项检查；推荐乙；对甲、丙分别说明需补证据或调整；事实和计算与G1-G3一致，丙超支5单位；文中引用G1、G2、G3。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"明确仅基于给定材料，未假设额外信息；将甲的混合承诺标记为未证实主张；列出假设与不确定性；声明未执行任何工具或检索，无虚构操作。\"}]}",
+  "input_tokens": 934,
+  "output_tokens": 314,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16034,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890150220504c81961e630bce638d970dc2753358736724a4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 314,
+    "prompt_tokens": 934,
+    "total_tokens": 1248,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

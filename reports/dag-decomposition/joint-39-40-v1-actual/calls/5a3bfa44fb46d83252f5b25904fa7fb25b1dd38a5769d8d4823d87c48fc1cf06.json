@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:answer:cheap:judge",
+  "content": "{\"score\": 78, \"passed\": true, \"rationale\": \"答案正确汇总了四条线路的需求总和（甲1293、乙1284、丙1287、丁1247）、容量总和（各1200）与正缺口（182、182、184、156），与冻结参考一致，合计704人、56班超容量也正确；保留了来源编号范围，并明确说明需求超容量不等于实际超载、无延误原因证据等限制，未虚构数据或声称执行工具。主要扣分点：甲组「需求未超过容量的班次数：11班（含需求等于容量的L064）」与冻结参考「第二列较大记录数：10」存在口径歧义——若「未超过」含等于则11班可自洽，但参考将等于容量的L064单独归类，表述易引发混淆；乙组同样把等于容量的L021列入「需求超过容量」名单却又在「未超过」中含它，存在自相矛盾；此外未明确保留上游cost/risk的假设声明（如「仅依据给定虚构材料」的显式假设段落），证据保留可更完整。\"}",
+  "input_tokens": 10660,
+  "output_tokens": 248,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 10857,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890133442050e23c04e8b740c94d8512f0597aa5fa6b27543",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 248,
+    "prompt_tokens": 10660,
+    "total_tokens": 10908,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

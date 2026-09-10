@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-dag-strong-parallel:final-review",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"被评估文本完整满足交付要求：分别核验了甲、乙两份报告能支持的结论，明确指出甲站80%仅适用于50位自愿回应的到访者、乙站70%仅适用于200位被抽中并回应的会员；比较结论部分正确指出不能依据百分比直接认定甲服务更好，并列举了样本来源、抽样方法、时间、题目不同及缺少未回应人数、总体规模、原始答卷等关键限制；补充数据清单具体且相关。文本严格区分了已知事实（S1-S4）与未知事项，未虚构数据或执行工具，保留了来源编号。唯一可改进之处是补充清单中「置信区间或误差范围」与冻结参考中「不编置信区间」的表述略有张力，但文本将其列为需要补充的数据而非自行计算，未违反约束。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": true, \"rationale\": \"文本完整覆盖交付要求：分别核验两份报告、撰写比较结论与补充数据清单；事实与S1-S4一致（80%/50/自愿/到访者、70%/200/随机/会员、春秋时间差异、题目不同、缺少未回应与总体规模等）；明确保留来源编号S1、S2、S3、S4；未直接认定甲服务更好。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"文本严格基于S1-S4材料，明确区分已知事实（如样本量、百分比）与未知事项（如总体规模、回应率、原始答卷）；未虚构任何数据或原因；未声称执行工具或联网；假设与限制部分清晰界定了信息边界。\"}]}",
+  "input_tokens": 1071,
+  "output_tokens": 412,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18331,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890155454624c81961e630bce638d970dc27533587355d9ee",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 412,
+    "prompt_tokens": 1071,
+    "total_tokens": 1483,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

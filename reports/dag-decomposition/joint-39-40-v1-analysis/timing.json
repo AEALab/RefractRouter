@@ -1,0 +1,3271 @@
+[
+  {
+    "run_id": "test_notice-dag-strong-serial",
+    "wall_time_ms": 9460.723542026244,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.786874935030937,
+    "execution_and_queue_ms": 1701.4287080382928,
+    "final_review_and_persist_ms": 7755.50795905292,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.12504204642027617,
+      "peak_running_nodes": 1,
+      "ended_ms": 1660.7764590298757,
+      "wall_time_ms": 1660.6529999990016
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.17970905173569918,
+        "start_ms": 46.44470906350762,
+        "end_ms": 1618.8897090032697,
+        "queue_ms": 46.26500001177192,
+        "latency_ms": 1571,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-auto-cold-a",
+    "wall_time_ms": 26948.731833021156,
+    "planning_ms": 7096.409916062839,
+    "structural_check_ms": 52.76062502525747,
+    "plan_review_ms": 19778.785166912712,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_notice-dag-strong-parallel",
+    "wall_time_ms": 8583.005915977992,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.7845829501748085,
+    "execution_and_queue_ms": 2093.8006670912728,
+    "final_review_and_persist_ms": 6485.4206659365445,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.11066603474318981,
+      "peak_running_nodes": 1,
+      "ended_ms": 2066.5916660800576,
+      "wall_time_ms": 2066.4817499928176
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.16499997582286596,
+        "start_ms": 44.282125076279044,
+        "end_ms": 2016.1248750519007,
+        "queue_ms": 44.11712510045618,
+        "latency_ms": 1970,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-auto-cold-b",
+    "wall_time_ms": 27457.523666904308,
+    "planning_ms": 7109.157916973345,
+    "structural_check_ms": 51.37825000565499,
+    "plan_review_ms": 20267.817875021137,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_notice-dag-single-b",
+    "wall_time_ms": 13333.491958095692,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.433333106338978,
+    "execution_and_queue_ms": 1917.9597079055384,
+    "final_review_and_persist_ms": 11410.098917083815,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 1.722124987281859,
+      "peak_running_nodes": 1,
+      "ended_ms": 1897.5152079947293,
+      "wall_time_ms": 1895.7936250371858
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 2.1187079837545753,
+        "start_ms": 51.40691704582423,
+        "end_ms": 1870.9333749720827,
+        "queue_ms": 49.288209062069654,
+        "latency_ms": 1819,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-dag-node-b",
+    "wall_time_ms": 11199.060666956939,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.068041918799281,
+    "execution_and_queue_ms": 1776.4022080227733,
+    "final_review_and_persist_ms": 9418.590417015366,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.17633393872529268,
+      "peak_running_nodes": 1,
+      "ended_ms": 1751.9543749513105,
+      "wall_time_ms": 1751.7787910765037
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.18762494437396526,
+        "start_ms": 45.92658393085003,
+        "end_ms": 1726.689292001538,
+        "queue_ms": 45.738958986476064,
+        "latency_ms": 1680,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-direct-a",
+    "wall_time_ms": 14454.99433297664,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.970207995735109,
+    "execution_and_queue_ms": 3811.7994170170277,
+    "final_review_and_persist_ms": 10639.224707963876,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.15291699673980474,
+      "peak_running_nodes": 1,
+      "ended_ms": 3781.0129169374704,
+      "wall_time_ms": 3780.8626670157537
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.21108402870595455,
+        "start_ms": 46.278666937723756,
+        "end_ms": 3727.4201669497415,
+        "queue_ms": 46.0675829090178,
+        "latency_ms": 3678,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-auto-reuse-b",
+    "wall_time_ms": 9.426166070625186,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_notice-dag-node-a",
+    "wall_time_ms": 9435.153541970067,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.743042005226016,
+    "execution_and_queue_ms": 1681.3328330172226,
+    "final_review_and_persist_ms": 7750.077666947618,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.16004208009690046,
+      "peak_running_nodes": 1,
+      "ended_ms": 1654.5894580194727,
+      "wall_time_ms": 1654.4304579729214
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.1674580853432417,
+        "start_ms": 47.70262504462153,
+        "end_ms": 1614.4637920660898,
+        "queue_ms": 47.535166959278286,
+        "latency_ms": 1565,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-auto-reuse-a",
+    "wall_time_ms": 9.815291967242956,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_notice-dag-single-a",
+    "wall_time_ms": 10013.319290941581,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.933624946512282,
+    "execution_and_queue_ms": 2012.221624958329,
+    "final_review_and_persist_ms": 7997.16404103674,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.19658298697322607,
+      "peak_running_nodes": 1,
+      "ended_ms": 1984.8325420171022,
+      "wall_time_ms": 1984.6374170156196
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.509207951836288,
+        "start_ms": 49.171000020578504,
+        "end_ms": 1930.3309170063585,
+        "queue_ms": 48.661792068742216,
+        "latency_ms": 1879,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-dag-quality",
+    "wall_time_ms": 11556.688125012442,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.993915976025164,
+    "execution_and_queue_ms": 1044.0934170037508,
+    "final_review_and_persist_ms": 10508.600792032667,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.0854170648381114,
+      "peak_running_nodes": 1,
+      "ended_ms": 1020.833000075072,
+      "wall_time_ms": 1020.7484170095995
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.09525008499622345,
+        "start_ms": 45.03362509422004,
+        "end_ms": 994.1347920102999,
+        "queue_ms": 44.93837500922382,
+        "latency_ms": 949,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_notice-direct-b",
+    "wall_time_ms": 11041.297749965452,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.41354198846966,
+    "execution_and_queue_ms": 1186.100458027795,
+    "final_review_and_persist_ms": 9850.783749949187,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.6017499836161733,
+      "peak_running_nodes": 1,
+      "ended_ms": 1161.895165918395,
+      "wall_time_ms": 1161.2943329382688
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.8157499833032489,
+        "start_ms": 46.74291599076241,
+        "end_ms": 1133.5023329593241,
+        "queue_ms": 45.927166007459164,
+        "latency_ms": 1086,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-auto-cold-a",
+    "wall_time_ms": 26080.04437503405,
+    "planning_ms": 9100.158332963474,
+    "structural_check_ms": 54.60766702890396,
+    "plan_review_ms": 16900.617916951887,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_minutes-direct-b",
+    "wall_time_ms": 13650.471625034697,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.176542046479881,
+    "execution_and_queue_ms": 4271.217999979854,
+    "final_review_and_persist_ms": 9375.077083008364,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1341670285910368,
+      "peak_running_nodes": 1,
+      "ended_ms": 4241.645917063579,
+      "wall_time_ms": 4241.512833046727
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.2037090016528964,
+        "start_ms": 51.54879204928875,
+        "end_ms": 4180.024292087182,
+        "queue_ms": 51.34508304763585,
+        "latency_ms": 4125,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-auto-reuse-a",
+    "wall_time_ms": 10.106166009791195,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_minutes-dag-single-b",
+    "wall_time_ms": 18568.57941695489,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 3.950958955101669,
+    "execution_and_queue_ms": 3886.108041042462,
+    "final_review_and_persist_ms": 14678.520416957326,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.18854206427931786,
+      "peak_running_nodes": 1,
+      "ended_ms": 3857.9847920918837,
+      "wall_time_ms": 3857.7969999751076
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.24733308237046003,
+        "start_ms": 51.195875043049455,
+        "end_ms": 3802.2600420517847,
+        "queue_ms": 50.948541960678995,
+        "latency_ms": 3749,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-dag-strong-parallel",
+    "wall_time_ms": 12821.578084025532,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.39470901619643,
+    "execution_and_queue_ms": 4692.864291020669,
+    "final_review_and_persist_ms": 8124.3190839886665,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1054159365594387,
+      "peak_running_nodes": 1,
+      "ended_ms": 4666.14679095801,
+      "wall_time_ms": 4666.041834047064
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.1290829386562109,
+        "start_ms": 54.24883298110217,
+        "end_ms": 4633.986082975753,
+        "queue_ms": 54.11975004244596,
+        "latency_ms": 4579,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-direct-a",
+    "wall_time_ms": 17877.247749944218,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.309082985855639,
+    "execution_and_queue_ms": 4345.168084022589,
+    "final_review_and_persist_ms": 13527.770582935773,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1206250162795186,
+      "peak_running_nodes": 1,
+      "ended_ms": 4315.817584050819,
+      "wall_time_ms": 4315.697834012099
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.14158396515995264,
+        "start_ms": 49.72999996971339,
+        "end_ms": 4262.255541980267,
+        "queue_ms": 49.58841600455344,
+        "latency_ms": 4211,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-auto-cold-b",
+    "wall_time_ms": 23785.914583015256,
+    "planning_ms": 8742.303833016194,
+    "structural_check_ms": 54.54033298883587,
+    "plan_review_ms": 14965.557083953172,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_minutes-dag-node-a",
+    "wall_time_ms": 14315.690249903128,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.311583004891872,
+    "execution_and_queue_ms": 2239.5902919815853,
+    "final_review_and_persist_ms": 12071.78837491665,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1920410431921482,
+      "peak_running_nodes": 1,
+      "ended_ms": 2210.6371249537915,
+      "wall_time_ms": 2210.4467089520767
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.2383330138400197,
+        "start_ms": 51.28979100845754,
+        "end_ms": 2156.9663749542087,
+        "queue_ms": 51.05145799461752,
+        "latency_ms": 2104,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-dag-quality",
+    "wall_time_ms": 11901.663374970667,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.321707994677126,
+    "execution_and_queue_ms": 3079.328834079206,
+    "final_review_and_persist_ms": 8818.012832896784,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.09887490887194872,
+      "peak_running_nodes": 1,
+      "ended_ms": 3049.894707975909,
+      "wall_time_ms": 3049.7969170100987
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.12208300177007914,
+        "start_ms": 55.81879196688533,
+        "end_ms": 2995.0720419874415,
+        "queue_ms": 55.69670896511525,
+        "latency_ms": 2938,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-dag-node-b",
+    "wall_time_ms": 13476.176167023368,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.47691697627306,
+    "execution_and_queue_ms": 3402.875208063051,
+    "final_review_and_persist_ms": 10068.824041984044,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.19049993716180325,
+      "peak_running_nodes": 1,
+      "ended_ms": 3373.2006669742987,
+      "wall_time_ms": 3373.011084040627
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.19883399363607168,
+        "start_ms": 52.15779202990234,
+        "end_ms": 3319.4893340114504,
+        "queue_ms": 51.95895803626627,
+        "latency_ms": 3265,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-dag-strong-serial",
+    "wall_time_ms": 16655.18499992322,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.401082987897098,
+    "execution_and_queue_ms": 3452.7085840236396,
+    "final_review_and_persist_ms": 13198.075332911685,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.14566699974238873,
+      "peak_running_nodes": 1,
+      "ended_ms": 3418.1117499247193,
+      "wall_time_ms": 3417.96762496233
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.20416697952896357,
+        "start_ms": 50.758249941281974,
+        "end_ms": 3368.520166957751,
+        "queue_ms": 50.55408296175301,
+        "latency_ms": 3316,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_minutes-auto-reuse-b",
+    "wall_time_ms": 10.664291097782552,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_minutes-dag-single-a",
+    "wall_time_ms": 10619.048333028331,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.075750010088086,
+    "execution_and_queue_ms": 1361.008874955587,
+    "final_review_and_persist_ms": 9253.963708062656,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1469579292461276,
+      "peak_running_nodes": 1,
+      "ended_ms": 1325.4037079168484,
+      "wall_time_ms": 1325.258625089191
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.16091694124042988,
+        "start_ms": 49.49966701678932,
+        "end_ms": 1281.910500023514,
+        "queue_ms": 49.33875007554889,
+        "latency_ms": 1232,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-auto-cold-b",
+    "wall_time_ms": 31094.551375019364,
+    "planning_ms": 9732.210542075336,
+    "structural_check_ms": 58.15016699489206,
+    "plan_review_ms": 21280.801916029304,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_grant-dag-single-a",
+    "wall_time_ms": 25706.51820790954,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.531166981905699,
+    "execution_and_queue_ms": 9616.634791018441,
+    "final_review_and_persist_ms": 16085.352249909192,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1925829565152526,
+      "peak_running_nodes": 1,
+      "ended_ms": 9584.406582987867,
+      "wall_time_ms": 9584.215250099078
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.2548330230638385,
+        "start_ms": 50.62700004782528,
+        "end_ms": 9526.828416041099,
+        "queue_ms": 50.37216702476144,
+        "latency_ms": 9474,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-dag-single-b",
+    "wall_time_ms": 21876.65258301422,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.686208092607558,
+    "execution_and_queue_ms": 8997.031082981266,
+    "final_review_and_persist_ms": 12874.935291940346,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.2537500113248825,
+      "peak_running_nodes": 1,
+      "ended_ms": 8965.55600001011,
+      "wall_time_ms": 8965.303541976027
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.3114169230684638,
+        "start_ms": 55.09066698141396,
+        "end_ms": 8909.213708946481,
+        "queue_ms": 54.7792500583455,
+        "latency_ms": 8852,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-auto-reuse-b",
+    "wall_time_ms": 11.29766704980284,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_grant-dag-node-b",
+    "wall_time_ms": 18299.57499995362,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.22024994622916,
+    "execution_and_queue_ms": 8507.894000038505,
+    "final_review_and_persist_ms": 9787.460749968886,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.16312499064952135,
+      "peak_running_nodes": 1,
+      "ended_ms": 8477.751041064039,
+      "wall_time_ms": 8477.588540990837
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.18329103477299213,
+        "start_ms": 51.5132499858737,
+        "end_ms": 8419.3105410086,
+        "queue_ms": 51.32995895110071,
+        "latency_ms": 8366,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-direct-b",
+    "wall_time_ms": 14355.200250050984,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.734375048428774,
+    "execution_and_queue_ms": 5643.723582965322,
+    "final_review_and_persist_ms": 8706.742292037234,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.3351670457050204,
+      "peak_running_nodes": 1,
+      "ended_ms": 5610.9765419969335,
+      "wall_time_ms": 5610.64216599334
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.4570829914882779,
+        "start_ms": 58.98916709702462,
+        "end_ms": 5540.516583016142,
+        "queue_ms": 58.53208410553634,
+        "latency_ms": 5479,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-auto-cold-a",
+    "wall_time_ms": 28810.55337493308,
+    "planning_ms": 10215.96162498463,
+    "structural_check_ms": 59.3302920460701,
+    "plan_review_ms": 18510.02904190682,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_grant-auto-reuse-a",
+    "wall_time_ms": 10.897875064983964,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_grant-dag-strong-serial",
+    "wall_time_ms": 19933.91583301127,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.242624971084297,
+    "execution_and_queue_ms": 9260.491708060727,
+    "final_review_and_persist_ms": 10669.181499979459,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.07683294825255871,
+      "peak_running_nodes": 1,
+      "ended_ms": 9229.026874992996,
+      "wall_time_ms": 9228.950958000496
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.12816593516618013,
+        "start_ms": 53.63516591023654,
+        "end_ms": 9169.72858295776,
+        "queue_ms": 53.50699997507036,
+        "latency_ms": 9113,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-direct-a",
+    "wall_time_ms": 27975.66470899619,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.710458917543292,
+    "execution_and_queue_ms": 10989.24625001382,
+    "final_review_and_persist_ms": 16981.708000064828,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.16691605560481548,
+      "peak_running_nodes": 1,
+      "ended_ms": 10958.392250002362,
+      "wall_time_ms": 10958.226750022732
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.23183308076113462,
+        "start_ms": 55.00150006264448,
+        "end_ms": 10886.884625069797,
+        "queue_ms": 54.76966698188335,
+        "latency_ms": 10829,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-dag-node-a",
+    "wall_time_ms": 18052.127874922007,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.865332972258329,
+    "execution_and_queue_ms": 6199.00287501514,
+    "final_review_and_persist_ms": 11848.25966693461,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.35058404318988323,
+      "peak_running_nodes": 1,
+      "ended_ms": 6168.193917023018,
+      "wall_time_ms": 6167.844249983318
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.4543750546872616,
+        "start_ms": 51.412833970971406,
+        "end_ms": 6109.403874957934,
+        "queue_ms": 50.958458916284144,
+        "latency_ms": 6054,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-dag-strong-parallel",
+    "wall_time_ms": 24948.34016705863,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.542708047665656,
+    "execution_and_queue_ms": 8833.251249976456,
+    "final_review_and_persist_ms": 16110.54620903451,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.09775010403245687,
+      "peak_running_nodes": 1,
+      "ended_ms": 8801.915917079896,
+      "wall_time_ms": 8801.819124957547
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.1128750154748559,
+        "start_ms": 57.569249998778105,
+        "end_ms": 8747.355458093807,
+        "queue_ms": 57.45637498330325,
+        "latency_ms": 8685,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_grant-dag-quality",
+    "wall_time_ms": 21437.23875004798,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.7157080844044685,
+    "execution_and_queue_ms": 12003.812666982412,
+    "final_review_and_persist_ms": 9428.710374981165,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1311670057475567,
+      "peak_running_nodes": 1,
+      "ended_ms": 11972.18766703736,
+      "wall_time_ms": 11972.057625069283
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.17950008623301983,
+        "start_ms": 55.107375024817884,
+        "end_ms": 11915.176667040214,
+        "queue_ms": 54.927874938584864,
+        "latency_ms": 11859,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-direct-b",
+    "wall_time_ms": 20712.38866704516,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.004500038921833,
+    "execution_and_queue_ms": 10911.301166983321,
+    "final_review_and_persist_ms": 9796.083000022918,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.16958406195044518,
+      "peak_running_nodes": 1,
+      "ended_ms": 10877.540084067732,
+      "wall_time_ms": 10877.37137498334
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.2238750457763672,
+        "start_ms": 56.40379199758172,
+        "end_ms": 10822.975125047378,
+        "queue_ms": 56.17991695180535,
+        "latency_ms": 10762,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-dag-node-b",
+    "wall_time_ms": 39699.49979195371,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.495874909684062,
+    "execution_and_queue_ms": 23954.28979198914,
+    "final_review_and_persist_ms": 15739.714125054888,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.6557090673595667,
+      "peak_running_nodes": 2,
+      "ended_ms": 23922.085167025216,
+      "wall_time_ms": 23921.43137496896
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.7008750690147281,
+        "start_ms": 61.63500004913658,
+        "end_ms": 14894.885209039785,
+        "queue_ms": 60.93412498012185,
+        "latency_ms": 14830,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 61.7727090138942,
+        "start_ms": 240.19258399493992,
+        "end_ms": 7510.314916959032,
+        "queue_ms": 178.41987498104572,
+        "latency_ms": 7269,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 14957.051959005184,
+        "start_ms": 15017.359249992296,
+        "end_ms": 23861.496167024598,
+        "queue_ms": 60.30729098711163,
+        "latency_ms": 8842,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-auto-reuse-b",
+    "wall_time_ms": 12.205625069327652,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_surveys-dag-strong-serial",
+    "wall_time_ms": 36944.98012494296,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.579583997838199,
+    "execution_and_queue_ms": 23906.863957992755,
+    "final_review_and_persist_ms": 13033.536582952365,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.12879096902906895,
+      "peak_running_nodes": 1,
+      "ended_ms": 23872.586915967986,
+      "wall_time_ms": 23872.45929206256
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.18766592256724834,
+        "start_ms": 56.33720802143216,
+        "end_ms": 8788.44366595149,
+        "queue_ms": 56.14954209886491,
+        "latency_ms": 8725,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 56.59149994608015,
+        "start_ms": 8914.588875020854,
+        "end_ms": 17207.760915975086,
+        "queue_ms": 8857.997375074774,
+        "latency_ms": 8292,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 17250.795707921498,
+        "start_ms": 17311.996583011933,
+        "end_ms": 23810.358125017956,
+        "queue_ms": 61.20087509043515,
+        "latency_ms": 6496,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-dag-quality",
+    "wall_time_ms": 25971.609957981855,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.939625039696693,
+    "execution_and_queue_ms": 14033.792292000726,
+    "final_review_and_persist_ms": 11932.878040941432,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.16129098366945982,
+      "peak_running_nodes": 2,
+      "ended_ms": 13999.034165986814,
+      "wall_time_ms": 13998.873875010759
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.18400000408291817,
+        "start_ms": 59.18845802079886,
+        "end_ms": 5550.004624994472,
+        "queue_ms": 59.004458016715944,
+        "latency_ms": 5489,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 59.34670800343156,
+        "start_ms": 251.1180000146851,
+        "end_ms": 3599.7083749389276,
+        "queue_ms": 191.77129201125354,
+        "latency_ms": 3347,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 5609.948249999434,
+        "start_ms": 5677.102540968917,
+        "end_ms": 13941.519999993034,
+        "queue_ms": 67.15429096948355,
+        "latency_ms": 8262,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-dag-single-b",
+    "wall_time_ms": 32773.54133396875,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.2215419709682465,
+    "execution_and_queue_ms": 18784.672458074056,
+    "final_review_and_persist_ms": 13983.647333923727,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.4385829670354724,
+      "peak_running_nodes": 2,
+      "ended_ms": 18750.18137495499,
+      "wall_time_ms": 18749.74491703324
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.49591599963605404,
+        "start_ms": 65.20820793230087,
+        "end_ms": 7789.047707919963,
+        "queue_ms": 64.71229193266481,
+        "latency_ms": 7720,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 66.41274993307889,
+        "start_ms": 259.4507079338655,
+        "end_ms": 8018.348790938035,
+        "queue_ms": 193.0379580007866,
+        "latency_ms": 7755,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 8086.633374914527,
+        "start_ms": 8153.856457909569,
+        "end_ms": 18695.677374955267,
+        "queue_ms": 67.2230829950422,
+        "latency_ms": 10540,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-dag-single-a",
+    "wall_time_ms": 27666.260416037403,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.506416084244847,
+    "execution_and_queue_ms": 16937.65329197049,
+    "final_review_and_persist_ms": 10723.100707982667,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.5328339757397771,
+      "peak_running_nodes": 2,
+      "ended_ms": 16903.563916916028,
+      "wall_time_ms": 16903.032290982082
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.6465419428423047,
+        "start_ms": 66.5845419280231,
+        "end_ms": 9108.527584001422,
+        "queue_ms": 65.9379999851808,
+        "latency_ms": 9040,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 66.67224992997944,
+        "start_ms": 260.74529194738716,
+        "end_ms": 6929.236999945715,
+        "queue_ms": 194.07304201740772,
+        "latency_ms": 6666,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 9170.980499940924,
+        "start_ms": 9232.622958952561,
+        "end_ms": 16838.50845892448,
+        "queue_ms": 61.642459011636674,
+        "latency_ms": 7604,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-direct-a",
+    "wall_time_ms": 25394.947750028223,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 4.942000028677285,
+    "execution_and_queue_ms": 13576.24125003349,
+    "final_review_and_persist_ms": 11813.764499966055,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1317920396104455,
+      "peak_running_nodes": 1,
+      "ended_ms": 13543.785084038973,
+      "wall_time_ms": 13543.654082925059
+    },
+    "nodes": [
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.1473750453442335,
+        "start_ms": 58.66270896513015,
+        "end_ms": 13497.531999950297,
+        "queue_ms": 58.51533391978592,
+        "latency_ms": 13437,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-auto-reuse-a",
+    "wall_time_ms": 13.149208039976656,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_surveys-dag-strong-parallel",
+    "wall_time_ms": 35073.52712505963,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.28270797803998,
+    "execution_and_queue_ms": 16689.808209077455,
+    "final_review_and_persist_ms": 18378.436208004132,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1360001042485237,
+      "peak_running_nodes": 2,
+      "ended_ms": 16654.00895802304,
+      "wall_time_ms": 16653.875374933705
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.151375075802207,
+        "start_ms": 61.015999992378056,
+        "end_ms": 7517.70550000947,
+        "queue_ms": 60.86462491657585,
+        "latency_ms": 7454,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 61.04829104151577,
+        "start_ms": 256.91800005733967,
+        "end_ms": 8065.444790991023,
+        "queue_ms": 195.8697090158239,
+        "latency_ms": 7807,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 8130.007875035517,
+        "start_ms": 8194.356625084765,
+        "end_ms": 16595.582875073887,
+        "queue_ms": 64.34875004924834,
+        "latency_ms": 8389,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_surveys-auto-cold-b",
+    "wall_time_ms": 26766.921041999012,
+    "planning_ms": 14489.638208062388,
+    "structural_check_ms": 71.76158402580768,
+    "plan_review_ms": 12183.569165994413,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_surveys-auto-cold-a",
+    "wall_time_ms": 48722.73445897736,
+    "planning_ms": 28077.017624978907,
+    "structural_check_ms": 66.0510000307113,
+    "plan_review_ms": 20557.34420893714,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_surveys-dag-node-a",
+    "wall_time_ms": 36035.908209043555,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.351875093765557,
+    "execution_and_queue_ms": 22052.584916935302,
+    "final_review_and_persist_ms": 13977.971417014487,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.38341700565069914,
+      "peak_running_nodes": 2,
+      "ended_ms": 22019.36204195954,
+      "wall_time_ms": 22018.97920796182
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.44845801312476397,
+        "start_ms": 64.53658291138709,
+        "end_ms": 11159.11008301191,
+        "queue_ms": 64.08812489826232,
+        "latency_ms": 11093,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 64.83641697559506,
+        "start_ms": 262.8878749674186,
+        "end_ms": 5480.197416967712,
+        "queue_ms": 198.05145799182355,
+        "latency_ms": 5215,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "cheap",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 11220.246166922152,
+        "start_ms": 11287.598624941893,
+        "end_ms": 21951.46604196634,
+        "queue_ms": 67.35245801974088,
+        "latency_ms": 10656,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_seating-direct-a",
+    "wall_time_ms": 12.924040900543332,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-dag-single-a",
+    "wall_time_ms": 12.899291003122926,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-dag-single-b",
+    "wall_time_ms": 12.884124997071922,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-dag-quality",
+    "wall_time_ms": 50345.165250007994,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.0141249084845185,
+    "execution_and_queue_ms": 34846.45483305212,
+    "final_review_and_persist_ms": 15493.696292047389,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.12883299496024847,
+      "peak_running_nodes": 1,
+      "ended_ms": 34809.295290964656,
+      "wall_time_ms": 34809.16820792481
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.18104095943272114,
+        "start_ms": 66.61570793949068,
+        "end_ms": 7518.090249970555,
+        "queue_ms": 66.43466698005795,
+        "latency_ms": 7449,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 7582.646457944065,
+        "start_ms": 7652.008415898308,
+        "end_ms": 19311.80774990935,
+        "queue_ms": 69.36195795424283,
+        "latency_ms": 11652,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 19380.84545789752,
+        "start_ms": 19451.102415914647,
+        "end_ms": 34742.29558289517,
+        "queue_ms": 70.25695801712573,
+        "latency_ms": 15289,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_seating-dag-node-a",
+    "wall_time_ms": 12.558666057884693,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-auto-cold-a",
+    "wall_time_ms": 72101.43033298664,
+    "planning_ms": null,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-dag-strong-parallel",
+    "wall_time_ms": 48818.39566701092,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.743333022110164,
+    "execution_and_queue_ms": 34720.49550001975,
+    "final_review_and_persist_ms": 14092.156833969057,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.27891702484339476,
+      "peak_running_nodes": 1,
+      "ended_ms": 34684.058999991976,
+      "wall_time_ms": 34683.78104199655
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.34479203168302774,
+        "start_ms": 68.79229203332216,
+        "end_ms": 19114.180583972484,
+        "queue_ms": 68.44750000163913,
+        "latency_ms": 19043,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 19180.09729194455,
+        "start_ms": 19251.31437496748,
+        "end_ms": 27436.874166945927,
+        "queue_ms": 71.21708302292973,
+        "latency_ms": 8184,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 27501.13783404231,
+        "start_ms": 27572.21162505448,
+        "end_ms": 34645.40279202629,
+        "queue_ms": 71.07379101216793,
+        "latency_ms": 7073,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_seating-dag-strong-serial",
+    "wall_time_ms": 43783.87195907999,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.448583979159594,
+    "execution_and_queue_ms": 27337.259000050835,
+    "final_review_and_persist_ms": 16441.164375049993,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.17741706687957048,
+      "peak_running_nodes": 1,
+      "ended_ms": 27296.357042039745,
+      "wall_time_ms": 27296.180916950107
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.19229203462600708,
+        "start_ms": 81.94904203992337,
+        "end_ms": 11760.991625022143,
+        "queue_ms": 81.75675000529736,
+        "latency_ms": 11676,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 11833.45204195939,
+        "start_ms": 11908.591000013985,
+        "end_ms": 19458.76508404035,
+        "queue_ms": 75.1389580545947,
+        "latency_ms": 7548,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 19523.99154205341,
+        "start_ms": 19593.27591699548,
+        "end_ms": 27233.16458403133,
+        "queue_ms": 69.28437494207174,
+        "latency_ms": 7636,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_seating-dag-node-b",
+    "wall_time_ms": 12.924415990710258,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-direct-b",
+    "wall_time_ms": 13.695041998289526,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-auto-reuse-a",
+    "wall_time_ms": 14.215625007636845,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-auto-cold-b",
+    "wall_time_ms": 38220.30904109124,
+    "planning_ms": 18225.437415996566,
+    "structural_check_ms": 68.75033408869058,
+    "plan_review_ms": 19898.592332960106,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_seating-auto-reuse-b",
+    "wall_time_ms": 13.315332937054336,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-dag-node-a",
+    "wall_time_ms": 22.144375019706786,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-dag-single-a",
+    "wall_time_ms": 13.599415891803801,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-direct-b",
+    "wall_time_ms": 12.932832934893668,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-auto-reuse-a",
+    "wall_time_ms": 13.783040922135115,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-dag-node-b",
+    "wall_time_ms": 13.28712492249906,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-dag-single-b",
+    "wall_time_ms": 13.099499978125095,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-dag-quality",
+    "wall_time_ms": 83274.36729101464,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.577874951995909,
+    "execution_and_queue_ms": 55398.823000025004,
+    "final_review_and_persist_ms": 27869.96641603764,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.14350004494190216,
+      "peak_running_nodes": 2,
+      "ended_ms": 55358.29912498593,
+      "wall_time_ms": 55358.15641703084
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.1609170576557517,
+        "start_ms": 78.36487505119294,
+        "end_ms": 29015.194709063508,
+        "queue_ms": 78.20395799353719,
+        "latency_ms": 28931,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 78.57170898932964,
+        "start_ms": 286.68904199730605,
+        "end_ms": 7092.0306670013815,
+        "queue_ms": 208.1173330079764,
+        "latency_ms": 6803,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 29089.672542060725,
+        "start_ms": 29165.088167064823,
+        "end_ms": 55261.196459061466,
+        "queue_ms": 75.41562500409782,
+        "latency_ms": 26093,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_workorders-dag-strong-serial",
+    "wall_time_ms": 34167.90050000418,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.595958908088505,
+    "execution_and_queue_ms": 24283.91558304429,
+    "final_review_and_persist_ms": 9878.3889580518,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.17854105681180954,
+      "peak_running_nodes": 1,
+      "ended_ms": 24246.682583005168,
+      "wall_time_ms": 24246.504958951846
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.22745796013623476,
+        "start_ms": 66.99433305766433,
+        "end_ms": 9106.790250050835,
+        "queue_ms": 66.7668750975281,
+        "latency_ms": 9035,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 67.03287502750754,
+        "start_ms": 9262.048583012074,
+        "end_ms": 16443.588125053793,
+        "queue_ms": 9195.015707984567,
+        "latency_ms": 7180,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 16507.55004095845,
+        "start_ms": 16584.134749951772,
+        "end_ms": 24176.890083006583,
+        "queue_ms": 76.58470899332315,
+        "latency_ms": 7591,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_workorders-auto-reuse-b",
+    "wall_time_ms": 11.736875050701201,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-dag-strong-parallel",
+    "wall_time_ms": 46889.80716699734,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.652999971061945,
+    "execution_and_queue_ms": 24857.514000032097,
+    "final_review_and_persist_ms": 22026.640166994184,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1865830272436142,
+      "peak_running_nodes": 2,
+      "ended_ms": 24807.873375015333,
+      "wall_time_ms": 24807.68824997358
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.23687502834945917,
+        "start_ms": 73.36270797532052,
+        "end_ms": 7248.4722919762135,
+        "queue_ms": 73.12583294697106,
+        "latency_ms": 7174,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 73.57224996667355,
+        "start_ms": 287.04354201909155,
+        "end_ms": 6436.421375023201,
+        "queue_ms": 213.471292052418,
+        "latency_ms": 6148,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 7316.462332964875,
+        "start_ms": 7389.741624938324,
+        "end_ms": 24746.82495801244,
+        "queue_ms": 73.27929197344929,
+        "latency_ms": 17356,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_workorders-auto-cold-b",
+    "wall_time_ms": 58655.999165959656,
+    "planning_ms": 38759.5845409669,
+    "structural_check_ms": 74.39900003373623,
+    "plan_review_ms": 19787.187124951743,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-direct-a",
+    "wall_time_ms": 14.208666980266571,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_workorders-auto-cold-a",
+    "wall_time_ms": 60892.33808289282,
+    "planning_ms": 36493.5072499793,
+    "structural_check_ms": 80.39945794735104,
+    "plan_review_ms": 24289.612708962522,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-dag-node-b",
+    "wall_time_ms": 13.868041918613017,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-auto-reuse-a",
+    "wall_time_ms": 11.053417110815644,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-dag-quality",
+    "wall_time_ms": 22077.986458898522,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 9.102791897021234,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [
+        "answer"
+      ],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.12495811097323895,
+      "dispatch_stopped": true,
+      "stop_reason": "ValueError",
+      "peak_running_nodes": 2,
+      "ended_ms": 22021.032208111137,
+      "wall_time_ms": 22020.908666891046
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.13533304445445538,
+        "start_ms": 76.48025010712445,
+        "end_ms": 21949.229625053704,
+        "queue_ms": 76.34491706266999,
+        "latency_ms": 21870,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "invalid-output",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 76.6531660920009,
+        "start_ms": 303.81729104556143,
+        "end_ms": 15768.098291009665,
+        "queue_ms": 227.16412495356053,
+        "latency_ms": 15463,
+        "error_type": "ValueError"
+      }
+    ]
+  },
+  {
+    "run_id": "test_shipments-direct-a",
+    "wall_time_ms": 13.827834045514464,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-dag-node-a",
+    "wall_time_ms": 14.176458003930748,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-dag-single-b",
+    "wall_time_ms": 14.19337501283735,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-auto-reuse-b",
+    "wall_time_ms": 14.135707984678447,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-auto-cold-a",
+    "wall_time_ms": 66058.7393330643,
+    "planning_ms": 65970.66416603047,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-dag-single-a",
+    "wall_time_ms": 13.997041969560087,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-dag-strong-serial",
+    "wall_time_ms": 59613.243374973536,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.65470801666379,
+    "execution_and_queue_ms": 36310.87316700723,
+    "final_review_and_persist_ms": 23296.71549994964,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.14183297753334045,
+      "peak_running_nodes": 1,
+      "ended_ms": 36268.34583294112,
+      "wall_time_ms": 36268.20487505756
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.21129194647073746,
+        "start_ms": 79.61462496314198,
+        "end_ms": 10496.068667038344,
+        "queue_ms": 79.40333301667124,
+        "latency_ms": 10415,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 80.15554200392216,
+        "start_ms": 10662.607167032547,
+        "end_ms": 21028.998041991144,
+        "queue_ms": 10582.451625028625,
+        "latency_ms": 10364,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 21107.629667036235,
+        "start_ms": 21199.624000000767,
+        "end_ms": 36190.642292029224,
+        "queue_ms": 91.99433296453208,
+        "latency_ms": 14989,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_shipments-dag-strong-parallel",
+    "wall_time_ms": 36275.65708302427,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 5.760374944657087,
+    "execution_and_queue_ms": 17180.322000058368,
+    "final_review_and_persist_ms": 19089.574708021246,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1812500413507223,
+      "peak_running_nodes": 2,
+      "ended_ms": 17138.015917036682,
+      "wall_time_ms": 17137.83554197289
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.22525002714246511,
+        "start_ms": 78.6930420435965,
+        "end_ms": 5616.56812496949,
+        "queue_ms": 78.46779201645404,
+        "latency_ms": 5536,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 79.55550006590784,
+        "start_ms": 284.8555420059711,
+        "end_ms": 9466.17062506266,
+        "queue_ms": 205.30004194006324,
+        "latency_ms": 9179,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 9539.870625012554,
+        "start_ms": 9620.24758302141,
+        "end_ms": 17084.44495801814,
+        "queue_ms": 80.37695800885558,
+        "latency_ms": 7463,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_shipments-direct-b",
+    "wall_time_ms": 15.364333055913448,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_shipments-auto-cold-b",
+    "wall_time_ms": 23740.942875039764,
+    "planning_ms": 23629.290917073376,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-auto-cold-b",
+    "wall_time_ms": 59570.39691694081,
+    "planning_ms": 38772.300541982986,
+    "structural_check_ms": 76.4938750071451,
+    "plan_review_ms": 20691.845958004706,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-dag-node-b",
+    "wall_time_ms": 18.265999970026314,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-auto-cold-a",
+    "wall_time_ms": 57768.70741590392,
+    "planning_ms": 38469.44708295632,
+    "structural_check_ms": 82.1771250339225,
+    "plan_review_ms": 19189.907416934147,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-direct-a",
+    "wall_time_ms": 14.35920805670321,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-direct-b",
+    "wall_time_ms": 14.43341700360179,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-dag-strong-parallel",
+    "wall_time_ms": 38413.71749993414,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 6.007332936860621,
+    "execution_and_queue_ms": 18106.770750018768,
+    "final_review_and_persist_ms": 20300.93941697851,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.1688329502940178,
+      "peak_running_nodes": 2,
+      "ended_ms": 18063.537125010043,
+      "wall_time_ms": 18063.36954201106
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.22704096045345068,
+        "start_ms": 84.69070796854794,
+        "end_ms": 8327.206832938828,
+        "queue_ms": 84.46366700809449,
+        "latency_ms": 8242,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 84.96424998156726,
+        "start_ms": 308.90070798341185,
+        "end_ms": 8159.597999998368,
+        "queue_ms": 223.93645800184458,
+        "latency_ms": 7848,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 8381.748332991265,
+        "start_ms": 8471.945415949449,
+        "end_ms": 17990.60925003141,
+        "queue_ms": 90.19708295818418,
+        "latency_ms": 9516,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_energy-dag-quality",
+    "wall_time_ms": 69202.45474996045,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 6.160374963656068,
+    "execution_and_queue_ms": 42604.670291999355,
+    "final_review_and_persist_ms": 26591.62408299744,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 2,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 2,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.19662489648908377,
+      "peak_running_nodes": 2,
+      "ended_ms": 42561.60829192959,
+      "wall_time_ms": 42561.412917100824
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.2497079549357295,
+        "start_ms": 84.73237499129027,
+        "end_ms": 30125.41999993846,
+        "queue_ms": 84.48266703635454,
+        "latency_ms": 30033,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 85.00187494792044,
+        "start_ms": 310.1124999811873,
+        "end_ms": 11771.673957933672,
+        "queue_ms": 225.11062503326684,
+        "latency_ms": 11457,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "mid",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 30206.771582947113,
+        "start_ms": 30293.875957955606,
+        "end_ms": 42481.78349994123,
+        "queue_ms": 87.10437500849366,
+        "latency_ms": 12183,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_energy-dag-single-b",
+    "wall_time_ms": 14.783916063606739,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-dag-strong-serial",
+    "wall_time_ms": 46304.08124998212,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": 6.021582987159491,
+    "execution_and_queue_ms": 27317.973083932884,
+    "final_review_and_persist_ms": 18980.086583062075,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 1,
+        "provider_concurrency": {
+          "ark-plan": 2
+        },
+        "provider_min_interval_ms": {
+          "ark-plan": 100
+        }
+      },
+      "peak_active_nodes": 1,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 0.14033389743417501,
+      "peak_running_nodes": 1,
+      "ended_ms": 27275.08470893372,
+      "wall_time_ms": 27274.94508307427
+    },
+    "nodes": [
+      {
+        "node_id": "cost",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 0.15608395915478468,
+        "start_ms": 78.99008400272578,
+        "end_ms": 6497.668416937813,
+        "queue_ms": 78.834000043571,
+        "latency_ms": 6417,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "risk",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 79.16562492027879,
+        "start_ms": 6665.818166919053,
+        "end_ms": 14480.212249909528,
+        "queue_ms": 6586.652541998774,
+        "latency_ms": 7812,
+        "contract_status": "structure-valid"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "strong",
+        "provider": "ark-plan",
+        "status": "ok",
+        "semantic_status": "not-evaluated",
+        "ready_ms": 14539.22779194545,
+        "start_ms": 14625.117458985187,
+        "end_ms": 27201.84287498705,
+        "queue_ms": 85.8896670397371,
+        "latency_ms": 12575,
+        "contract_status": "structure-valid"
+      }
+    ]
+  },
+  {
+    "run_id": "test_energy-auto-reuse-a",
+    "wall_time_ms": 11.864874977618456,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-auto-reuse-b",
+    "wall_time_ms": 11.99504197575152,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-dag-node-a",
+    "wall_time_ms": 15.147833968512714,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  },
+  {
+    "run_id": "test_energy-dag-single-a",
+    "wall_time_ms": 15.29362506698817,
+    "planning_ms": 0,
+    "structural_check_ms": null,
+    "plan_review_ms": null,
+    "routing_and_persist_ms": null,
+    "execution_and_queue_ms": null,
+    "final_review_and_persist_ms": null,
+    "execution": null,
+    "nodes": []
+  }
+]

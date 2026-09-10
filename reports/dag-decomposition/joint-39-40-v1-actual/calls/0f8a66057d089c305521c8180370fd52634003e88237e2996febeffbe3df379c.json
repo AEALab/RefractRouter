@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_seating-b:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务为封闭材料下的确定性统计与建议生成：需先按组汇总资格人数，再与席位比较并形成两阶段建议。材料较长且计算量大，拆分为按组并行提取汇总与最终综合生成两个阶段，可降低单节点计算遗漏风险，并在最终节点统一核对冲突、保留来源编号和约束。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"extract_group_summary\",\n      \"node_type\": \"extraction\",\n      \"prompt_template\": \"根据以下材料，按甲、乙、丙、丁四组分别汇总：申请人数、已完成前置课程人数（即有资格人数）、无资格人数。逐条核对来源编号，不得用总申请人数冒充有资格需求。输出 JSON，字段为 group_summary，内容要求：在字符串中按「甲组：申请X人，有资格Y人，无资格Z人；乙组：申请X人，有资格Y人，无资格Z人；丙组：申请X人，有资格Y人，无资格Z人；丁组：申请X人，有资格Y人，无资格Z人」格式给出，并附每组涉及来源编号列表。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"按组准确汇总申请人数、有资格人数和无资格人数，并保留来源编号。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"json\",\n          \"fields\": {\n            \"group_summary\": \"按甲、乙、丙、丁四组分别列出申请人数、有资格人数、无资格人数，并附每组来源编号列表\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"medium\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 2000\n        },\n        \"checks\": [\n          \"四组申请人数、有资格人数、无资格人数均与材料一致\",\n          \"每组来源编号完整且无遗漏\",\n          \"未将无资格人数计入有资格需求\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    },\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"根据上游按组汇总结果，完成「培训分班容量分析」最终交付。要求：1）按组分别呈现申请人数、有资格人数、无资格人数；2）将各组有资格人数与甲70、乙90、丙110、丁130的组席位比较，计算各组席位缺口或剩余；3）形成两阶段分班建议：第一阶段按有资格人数安排，第二阶段针对缺口提出补充席位或调整时段建议；4）明确保留约束：各组时段相互冲突，剩余席位不能跨组相抵；不能用总申请人数冒充有资格需求；只建议补充席位或调整时段，没有授权替任何人报名；5）保留来源编号，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。直接输出正文，不封装为 JSON。\",\n      \"parents\": [\"extract_group_summary\"],\n      \"contract\": {\n        \"objective\": \"生成完整的两阶段分班建议正文，按组呈现统计、席位比较、建议和约束。\",\n        \"inputs\": {\n          \"extract_group_summary\": {\n            \"fields\": [\"group_summary\"],\n            \"reason\": \"最终正文需要基于按组汇总的申请、有资格、无资格人数和来源编号进行席位比较与建议。\"\n          }\n        },\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"最终交付正文，包含按组统计、席位缺口、两阶段分班建议、约束说明和来源编号\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"medium\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 3000\n        },\n        \"checks\": [\n          \"按组分别呈现申请、有资格、无资格人数和席位缺口\",\n          \"两阶段分班建议完整且符合材料约束\",\n          \"保留来源编号，区分事实、建议和未知事项\",\n          \"明确不能跨组调剂和未授权代报名约束\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\n    \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\"\n  ]\n}",
+  "input_tokens": 5541,
+  "output_tokens": 1061,
+  "cached_input_tokens": 5120,
+  "reasoning_tokens": 0,
+  "latency_ms": 13814,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015720347c237340934591b89d6de6b6a9271c1b9375db2",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 1061,
+    "prompt_tokens": 5541,
+    "total_tokens": 6602,
+    "prompt_tokens_details": {
+      "cached_tokens": 5120
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

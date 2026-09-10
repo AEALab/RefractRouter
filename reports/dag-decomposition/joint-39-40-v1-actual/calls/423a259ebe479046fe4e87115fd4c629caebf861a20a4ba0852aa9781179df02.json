@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_minutes-b:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务为短小封闭场景，材料仅三条，需同时完成事实提取、决定与建议区分、未知期限保留及表格化交付。拆分为提取与生成两个节点可让生成节点获得结构化事实，降低漏项和混淆风险；但材料很短，进一步拆分收益不足。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"extract\",\n      \"node_type\": \"extraction\",\n      \"prompt_template\": \"阅读以下虚构封闭场景材料，提取行动项相关信息。只依据材料，不联网、不执行工具、不补充外部知识。\\n\\n材料：\\nM1：周一例会决定：设备组负责在周五前给出检查清单。M2：运营组只负责汇总现场反馈，完成日期尚未确定。M3：某成员建议周三试运行，但会议未表决，不能列成已批准决定。\\n\\n请输出结构化提取结果，保留来源编号，区分「已批准决定」「建议」「未知事项」。对每个行动项给出：负责方、事项内容、期限状态（明确期限/未确定/不适用）、来源编号。不要将建议写成决定，不要将未知期限补成周五。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"从材料中提取行动项、建议和未知事项，保留来源编号并区分事实状态\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"json\",\n          \"fields\": {\n            \"decisions\": \"已批准决定的内容，逐项列出负责方、事项、期限状态和来源编号\",\n            \"suggestions\": \"建议但未批准的内容，逐项列出建议内容、状态和来源编号\",\n            \"unknowns\": \"材料中明确未确定或未说明的事项，逐项列出并保留来源编号\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"low\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 16384,\n          \"expected_output_tokens\": 800\n        },\n        \"checks\": [\n          \"已批准决定仅包含M1内容，且保留来源编号M1\",\n          \"M2的完成日期保持未确定，不写成周五或其他具体日期\",\n          \"M3被列为建议而非决定，并注明未表决\",\n          \"所有输出字段均为非空字符串\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    },\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"根据以下提取结果，输出最终交付内容。只依据提取结果和原始材料，不联网、不执行工具、不补充外部知识。\\n\\n原始材料：\\nM1：周一例会决定：设备组负责在周五前给出检查清单。M2：运营组只负责汇总现场反馈，完成日期尚未确定。M3：某成员建议周三试运行，但会议未表决，不能列成已批准决定。\\n\\n提取结果：\\n{extract}\\n\\n交付要求：仅输出一张简短行动项表和一条待确认事项；区分决定与建议，不把未知期限补成周五。表格需包含负责方、事项、期限状态和来源编号；待确认事项单独列出。直接输出正文，不要封装为JSON。\",\n      \"parents\": [\"extract\"],\n      \"contract\": {\n        \"objective\": \"生成一张简短行动项表和一条待确认事项，区分决定与建议并保留来源编号\",\n        \"inputs\": {\n          \"extract\": {\n            \"fields\": [\"decisions\", \"suggestions\", \"unknowns\"],\n            \"reason\": \"需要消费提取出的决定、建议和未知事项，才能准确生成区分状态并保留来源编号的行动项表和待确认事项\"\n          }\n        },\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"最终交付的行动项表和待确认事项正文\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"low\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 1000\n        },\n        \"checks\": [\n          \"输出仅包含一张简短行动项表和一条待确认事项\",\n          \"行动项表区分已批准决定和建议，M3不列为已批准决定\",\n          \"M2的完成日期保持未确定，不写成周五或其他具体日期\",\n          \"保留来源编号M1、M2、M3\",\n          \"直接输出正文，不封装为JSON\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\n    \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\"\n  ]\n}",
+  "input_tokens": 1294,
+  "output_tokens": 1112,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 15844,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014712522b566464da517b102b4cb09cdfd60e7ee1275ba",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 1112,
+    "prompt_tokens": 1294,
+    "total_tokens": 2406,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

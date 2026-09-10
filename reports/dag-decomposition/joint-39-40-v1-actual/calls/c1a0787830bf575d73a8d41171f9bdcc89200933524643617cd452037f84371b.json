@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_notice-a:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划采用单节点处理简单文本改写任务，符合任务低耦合度的特点。计划完整保留了原任务的角色、数量、截止时间和两个条件分支要求，验收标准与交付要求一致，未虚构数据或制造无意义依赖。唯一可改进之处在于输入字段（inputs）为空而非显式引用N1，但鉴于提示模板已完整包含原材料，不影响可追溯性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点合约的objective和checks明确覆盖了原任务所有要求：保留协调员角色、六份数量、下周三上午十点前截止时间、会务组接收方，以及「材料核对完成后正常提交」和「材料仍有冲突时标明来源并提交待确认版本」两个条件分支，且要求不添加理由或分析章节，未降低任何交付条件。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"该计划为单节点，无父节点（parents为空），无需声明边。任务本身为单一短文本改写，无拆分必要，因此不存在无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"提示模板（prompt_template）中完整包含了原材料N1的全文，模型可直接获取所需信息，无需虚构缺失数据。虽然inputs字段为空，但材料已通过提示模板直接提供，来源可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"计划明确允许单节点（decomposition_reason说明「采用单节点」），节点职责单一明确（文本改写），无重复。最终节点输出即为原始任务所需的一段简洁通知，汇总内容完整。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability声明合理：difficulty和risk均为low，符合简单文本改写特征；input_budget_tokens 16384和expected_output_tokens 300与任务规模匹配。拆分决策（不拆分）符合任务低耦合度的特点，decomposition_reason正确指出拆分会增加交接开销且不提升质量。\"}]}",
+  "input_tokens": 890,
+  "output_tokens": 530,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16440,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014500107b566464da517b102b4cb09cdfd60e7eedfa6a7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 530,
+    "prompt_tokens": 890,
+    "total_tokens": 1420,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

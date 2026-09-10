@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_recruit:risk:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"答案正确且完整：名额分配为线下12、远程12，总24；候补线下8（20-12）、远程4（16-12），与冻结参考完全一致；目标核对明确线下12≥10、远程12≥10，满足R3且声明未改变研究目标；匿名化与待联系表本地保管均对应R4；未核实前提明确列出未提供随机抽样与同意确认记录，未声称已执行抽样或取得同意，符合「不虚构已执行操作」。契约方面：输出为单个原始JSON对象，键集合恰好为result、evidence、assumptions，均为非空字符串，未复制covers/checks等元数据，字符串内使用「」中文引号，换行以\\\\n转义，JSON语法有效。evidence保留R1-R4来源编号，assumptions区分了建议（候补按报名时间排序）与未知事项（重复报名、抽样与同意记录），并列出信息缺口。轻微扣分点：答案中「分配时默认按其自报方式归属」这一默认处理虽标注为默认，但略带推断色彩；以及「材料未提供为达成目标而调整名额的记录，与R3一致」的表述略绕，但不构成事实错误。整体满足全部验收条件。\"}",
+  "input_tokens": 1745,
+  "output_tokens": 291,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13691,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012749699e4d5e3acd6b6d5c09c835e2d36b9596ca7f7ad",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 291,
+    "prompt_tokens": 1745,
+    "total_tokens": 2036,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

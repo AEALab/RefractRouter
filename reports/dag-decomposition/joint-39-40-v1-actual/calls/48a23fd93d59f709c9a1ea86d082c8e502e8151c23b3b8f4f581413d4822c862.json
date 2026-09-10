@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_minutes-b:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划将任务分为提取与生成两个节点，结构清晰且符合任务耦合度。提取节点负责从封闭材料中结构化分离决定、建议与未知事项；生成节点消费提取结果并输出最终表格与待确认事项。所有原始交付条件均有明确覆盖，依赖关系真实（生成节点确实需要提取结果），上下文充分且可追溯，节点职责不重复，能力与容量声明合理。计划明确禁止将建议列为决定、禁止将未知期限补成周五，符合材料约束。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"提取节点负责区分决定/建议/未知并保留来源编号；生成节点负责输出简短行动项表和一条待确认事项。两者完整覆盖原始交付要求，未降低标准。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer节点明确声明消费extract节点的decisions、suggestions、unknowns字段，用于生成最终表格，依赖关系真实必要，无无意义串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"两个节点的prompt_template均包含完整原始材料M1、M2、M3，且要求保留来源编号，确保上下文充分且可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"拆分为提取与生成两个节点职责分明不重复，生成节点汇总提取结果形成最终交付，包含原始任务所需全部内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"任务为低难度低风险，声明的difficulty和risk均为low合理；input_budget_tokens和expected_output_tokens设置符合短文本处理需求；两节点拆分符合先提取后生成本任务的逻辑耦合度。\"}]}",
+  "input_tokens": 1414,
+  "output_tokens": 466,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15843,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901472841891be90b70b1bfc3059428bd07e108b7e6be65c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 466,
+    "prompt_tokens": 1414,
+    "total_tokens": 1880,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

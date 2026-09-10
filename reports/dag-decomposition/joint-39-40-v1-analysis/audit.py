@@ -86,6 +86,35 @@ def main():
         for category,total in totals.items():assert math.isclose(total,session['charged'][category],abs_tol=1e-8)
     observed=[r for r in session['runs'] if r.get('split')=='test']
     calls={c['label']:c for c in session['calls']}
+    digest=lambda value:hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+    if not session['simulated']:
+        assert session['config']==protocol
+        assert digest(session['manifest'])==protocol['manifest_sha256']
+    if 'calibration_frozen_sha256' in session:
+        assert digest({'direct':session['direct_calibration'],'profile':session['node_profile'],
+            'quality':session['quality_baselines']})==session['calibration_frozen_sha256']
+        assert digest(session['observations'])==session['node_profile']['observation_sha256']
+        assert all(x['task_id'].startswith('cal_') for x in session['observations']['observations'])
+        positions={c['label']:i for i,c in enumerate(session['calls'])}
+        cal=[i for label,i in positions.items() if label.startswith(('cal-','probe:','handoff-'))]
+        test=[i for label,i in positions.items() if label.startswith(('test_','setup:'))]
+        if cal and test:assert max(cal)<min(test)
+    for row in session['runs']:
+        if row.get('execution'):
+            events=sorted((timestamp,delta) for n in row['nodes']
+                if 'start_ms' in n and n['status']!='cancelled-before-dispatch'
+                for timestamp,delta in ((n['start_ms'],1),(n['end_ms'],-1)))
+            active=peak=0
+            for _,delta in events:active+=delta;peak=max(peak,active)
+            assert active==0 and peak==row['execution']['peak_running_nodes']
+            limit=row['execution']['policy']['max_concurrency']
+            assert peak<=limit
+            if row.get('arm')=='dag-strong-serial':assert limit==1
+        if row.get('evaluation'):
+            grade=json.loads(calls[row['run_id']+':final-review']['response_output'])
+            assert row['evaluation']==grade and row['score']==grade['score']
+            assert row['judge_passed']==grade['passed']
+            assert row['delivered']==(grade['passed'] and grade['score']>=session['config']['constraints']['qualityMin'])
     handoffs=[]
     for row in session['runs']:
         if not row.get('plan'):continue
@@ -94,6 +123,7 @@ def main():
         for node in row['nodes']:
             call=calls.get(row['run_id']+':'+node['node_id'])
             if not call:continue
+            assert call['model_id']==row['assignments'][node['node_id']]
             payload=json.loads(call['request_messages'][-1]['content'])
             for parent,actual in payload['upstream'].items():
                 upstream=calls[row['run_id']+':'+parent]
@@ -124,23 +154,28 @@ def main():
         candidates.append((tid,'manual',tasks[tid]['plan'],None,trace))
     for row in observed:
         if row['arm'].startswith('auto-cold') and (row['task_id'] in selected or row['status']=='planner-failed'):
-            candidates.append((row['task_id'],row['run_id'],row.get('plan'),row.get('planner_output'),row))
+            raw=row.get('planner_output') or calls.get(row['run_id']+':planner',{}).get('response_output')
+            candidates.append((row['task_id'],row['run_id'],row.get('plan'),raw,row))
     for row in session['plan_setups']:
         tid=row['cache_id'][:-2]
         if tid in selected or row['status']=='planner-failed':
             trace=next((r for r in observed if r['task_id']==tid and r['arm']=='auto-reuse-'+row['cache_id'][-1]),None)
-            candidates.append((tid,'cache:'+row['cache_id'],row.get('plan'),row.get('planner_output'),trace))
+            raw=row.get('planner_output') or calls.get('setup:'+row['cache_id']+':planner',{}).get('response_output')
+            candidates.append((tid,'cache:'+row['cache_id'],row.get('plan'),raw,trace))
     random.Random(394010).shuffle(candidates)
     packet=[];mapping={}
     for i,(tid,origin,plan,raw,trace) in enumerate(candidates,1):
         rid=f'P{i:03d}';mapping[rid]={'task_id':tid,'origin':origin}
+        planning_call=calls.get(('setup:'+origin[6:] if origin.startswith('cache:') else origin)+':planner',{})
         packet.append({'review_id':rid,'task':tasks[tid]['task'],'criteria':tasks[tid]['criteria'],
             'reference_for_review':tasks[tid]['evaluation_reference'],
             'plan':plan,'raw_plan_if_unparsed':raw if plan is None else None,
+            'planner_response_status':{k:planning_call.get(k) for k in ('status','finish_reason','output_tokens')} if planning_call else None,
             'execution_trace':[{'node_id':n['node_id'],'output':n.get('output')} for n in (trace or {}).get('nodes',[])],
             'final_output':(trace or {}).get('final_output'),
             'reviewer':None,'reviewed_at':None,'decomposition_appropriate':None,'original_delivery_covered':None,
-            'dependencies_correct':None,'parallelism_appropriate':None,'handoff_risks':None,'overall_passed':None,'rationale':None})
+            'dependencies_correct':None,'parallelism_appropriate':None,'handoff_risks':None,
+            'execution_findings':None,'overall_passed':None,'rationale':None})
     write('human-review-packet.json',{'scope':'真人复核；不得由自动评分或模型填表替代。','rows':packet})
     write('human-review-mapping.json',mapping)
     print(json.dumps(report,ensure_ascii=False))

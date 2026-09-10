@@ -1,0 +1,24 @@
+{
+  "label": "test_energy-dag-strong-serial:cost",
+  "content": "{\n  \"result\": \"按校区汇总基准用量与本期用量（单位：千瓦时）：甲校区共20个单元，基准合计1880，本期合计1900，净变化+20，增加单元12个，减少单元8个；乙校区共20个单元，基准合计1880，本期合计1900，净变化+20，增加单元12个，减少单元8个；丙校区共20个单元，基准合计1880，本期合计1900，净变化+20，增加单元12个，减少单元8个；丁校区共20个单元，基准合计1880，本期合计1900，净变化+20，增加单元12个，减少单元8个。整体共80个单元，基准合计7520，本期合计7600，净变化+80，增加单元48个，减少单元32个。整体净变化为增加80千瓦时，总体增加不保证每个校区或每个单元都减少；材料未提供气温、面积或人数，不能按人均或面积归一化，也不能根据用量变化直接认定措施有效。\",\n  \"evidence\": \"来源 test_energy-L001 至 test_energy-L100，共100条记录，覆盖甲、乙、丙、丁四个校区，每条记录均注明未包含人数、面积与气温。\",\n  \"assumptions\": \"假设各单元记录独立且单位均为千瓦时；材料未提供气温、面积、人数及措施信息，无法判断用量变化原因或措施有效性。\"\n}",
+  "input_tokens": 4437,
+  "output_tokens": 315,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 6417,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789017080293ed0e184fb98d17720dee9f0ee33ee7e1fa3534",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 315,
+    "prompt_tokens": 4437,
+    "total_tokens": 4752,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

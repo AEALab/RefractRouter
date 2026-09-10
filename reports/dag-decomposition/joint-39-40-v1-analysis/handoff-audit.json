@@ -1,0 +1,299 @@
+{
+  "method": "逐条对比下游请求实际字段与上游原始响应，统计真实跨模型边。",
+  "rows": [
+    {
+      "run_id": "cal-dag-0-cheap",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-0-mid",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-0-strong",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "handoff-0",
+      "verified_edges": 2,
+      "cross_model_edges": 2,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-1-cheap",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-1-mid",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-1-strong",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "handoff-1",
+      "verified_edges": 3,
+      "cross_model_edges": 3,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-2-cheap",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-2-mid",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-2-strong",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "handoff-2",
+      "verified_edges": 2,
+      "cross_model_edges": 2,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-3-cheap",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-3-mid",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-3-strong",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "handoff-3",
+      "verified_edges": 2,
+      "cross_model_edges": 2,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-4-cheap",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-4-mid",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-4-strong",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "handoff-4",
+      "verified_edges": 3,
+      "cross_model_edges": 3,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "cal-dag-5-cheap",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-5-mid",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "cal-dag-5-strong",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "handoff-5",
+      "verified_edges": 2,
+      "cross_model_edges": 2,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_surveys-dag-node-b",
+      "verified_edges": 2,
+      "cross_model_edges": 1,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_surveys-dag-strong-serial",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_surveys-dag-quality",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_surveys-dag-single-b",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_surveys-dag-single-a",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_surveys-dag-strong-parallel",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_surveys-dag-node-a",
+      "verified_edges": 2,
+      "cross_model_edges": 1,
+      "delivered": true,
+      "status": "completed"
+    },
+    {
+      "run_id": "test_seating-dag-quality",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_seating-dag-strong-parallel",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_seating-dag-strong-serial",
+      "verified_edges": 3,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_workorders-dag-quality",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_workorders-dag-strong-serial",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_workorders-dag-strong-parallel",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_shipments-dag-strong-serial",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "evaluation-unavailable"
+    },
+    {
+      "run_id": "test_shipments-dag-strong-parallel",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_energy-dag-strong-parallel",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_energy-dag-quality",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    },
+    {
+      "run_id": "test_energy-dag-strong-serial",
+      "verified_edges": 2,
+      "cross_model_edges": 0,
+      "delivered": false,
+      "status": "quality-failed"
+    }
+  ]
+}

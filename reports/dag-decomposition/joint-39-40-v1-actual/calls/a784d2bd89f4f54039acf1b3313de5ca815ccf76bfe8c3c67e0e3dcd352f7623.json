@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-auto-cold-a:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"拆分计划整体合理：四个分组提取节点覆盖全部100条工单且编号枚举正确，汇总节点消费全部字段并强制核对分组与总计相等，满足原始交付要求。主要瑕疵是甲、乙、丙、丁四组枚举编号后均加「等」字，虽实际枚举完整，但措辞上可能引入不确定性；此外各节点未显式声明「不联网、不执行工具」的约束，仅靠 execution 类型隐含。这些不构成实质性缺陷，故判定通过但酌情扣分。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"原始任务要求：各组总工时、全部工单总偏差、超计划工单数及限制、净偏差与正超时量分别报告、分组汇总与总计核对相等、保留来源编号、不虚构原因。四个提取节点分别计算各组 planned_total、actual_total、total_deviation、positive_overrun_sum、overrun_count 并保留 detail_records；answer 节点明确要求核对四组之和等于全表总计、同时包含各组总工时、全部工单总偏差、超计划工单数及限制、净偏差与正超时量分别报告，且禁止推断故障原因或人员绩效。所有交付条件均有明确职责覆盖，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"四个提取节点无父节点，可并行执行；answer 节点依赖全部四个提取节点，且 inputs 中明确消费每个节点的 group_name、order_count、planned_total、actual_total、total_deviation、positive_overrun_sum、overrun_count、detail_records 全部字段，用于汇总与交叉核对。依赖关系真实必要，无无意义串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"每个提取节点的 prompt_template 完整枚举了对应组全部25个来源编号（如甲组 L004、L008…L100），并要求输出 detail_records 保留来源编号；answer 节点要求保留来源编号。材料中每条工单均含计划与实际分钟，无需虚构数据。轻微瑕疵：各组编号列表末尾的「等」字措辞略欠严谨，但实际枚举完整，不影响可追溯性。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"四个提取节点分别负责甲、乙、丙、丁组，职责互不重叠；answer 节点负责汇总、核对与月报撰写，与提取节点职责不同。汇总节点明确包含原始任务所需的全部内容：各组总工时、全部工单总偏差、超计划工单数及限制、净偏差与正超时量分别报告、一致性核对。拆分选择有合理说明（计算量大、需交叉核对、可并行）。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"提取节点 input_budget_tokens 32768 足以容纳约25条工单材料，expected_output_tokens 2500 合理；answer 节点 input_budget_tokens 65536 可容纳四组统计结果与明细，expected_output_tokens 4000 对月报正文合理。difficulty 与 risk 评级与任务性质匹配。任务按组天然低耦合、高并行，拆分粒度恰当；execution 均为 text-model，符合「不联网或执行工具」的要求，但未在 prompt 或 checks 中显式重申该约束，属轻微遗漏。\"}]}",
+  "input_tokens": 7111,
+  "output_tokens": 806,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 24240,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016336407b531818cd979bd70c39b690ac6f2390233c2d8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 806,
+    "prompt_tokens": 7111,
+    "total_tokens": 7917,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_recruit:cost:cheap:judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"答案完整满足任务要求：名额分配方案（线下12/远程12，候补线下8/远程4）与R1、R2一致，计算正确（36人报名，24人入选，12人候补）；核对研究目标（各至少10人）符合R3；匿名化措施（只用匿名编号、待联系表本地保管）符合R4；明确列出未核实前提（无随机抽样、无同意确认记录）。evidence字段完整引用R1-R4原文，assumptions字段清晰区分已知事实与未知事项（如候补排序规则未给出）。未虚构数据或声称已执行操作，符合所有验收条件。仅微小瑕疵：assumptions中「假设报名者均符合研究条件」略显多余，因材料未提及筛选条件，但不影响整体正确性。\"}",
+  "input_tokens": 1418,
+  "output_tokens": 191,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12121,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012662252640844006c495b97e3327b5d9afec856e3beef",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 191,
+    "prompt_tokens": 1418,
+    "total_tokens": 1609,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

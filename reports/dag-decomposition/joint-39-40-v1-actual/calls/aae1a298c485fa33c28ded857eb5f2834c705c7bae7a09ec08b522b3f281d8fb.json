@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:risk:mid:judge",
+  "content": "{\"score\": 28, \"passed\": false, \"rationale\": \"输出为单个 JSON 对象且键集合符合契约，未声称执行工具，也保留了来源与假设；但核心计算与冻结参考及材料不一致，属于实质性错误。按参考，甲/乙/丙/丁四组需求总和应分别为1293/1284/1287/1247，正缺口（未满足需求）应分别为89/98/97/109；而答案写成1345/1286/1229/1230与145/86/29/30，既不等于「需求-容量」的净差（93/84/87/47），也不等于逐班正缺口之和，口径混乱且数值错误。全量合计应为需求5111、容量4800、正缺口393，答案写成5090与290，亦错误。班次计数也错误：参考显示每组需求大于容量的记录均为14条（全量56条），答案却称甲组22条、全量60条；甲组所列22条中有多条未满足为0（如L032、L056、L064、L068、L076、L080、L088、L100），自相矛盾。恰满载班次只有L021与L064两条，答案称3条且插入「部分L064边界核对见下文」却无下文，属含混表述。此外「存在未满足≥10的班次11条」后罗列22条，内部不一致。虽然第五部分对不可回答的运营问题说明尚可，但整体事实与计算未与材料一致，违反验收条件。\"}",
+  "input_tokens": 12251,
+  "output_tokens": 344,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13394,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013308424b4a50cd25f47d4bb7d101bbb29abc519dc6782",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 344,
+    "prompt_tokens": 12251,
+    "total_tokens": 12595,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-1-cheap:risk",
+  "content": "{\"result\": \"核验上游结果：上游判断与材料一致。保留记录b（来源X，版本2，样本120），删除记录a（来源X，版本1，样本100），依据是D1明确记录b替代记录a，且D3内部规则只采用各来源最新版。保留记录c（来源Y，样本80），依据是D2中记录c来源为Y，与X为不同来源，D3规则仅针对各来源内部版本，不跨来源删除。已知去重规模为30个样本，即记录c与记录b（X版本2）的重叠部分。信息缺口：除已知30个样本重叠外，记录c与记录b之间、以及记录a与记录c之间是否存在其他重叠均未知，且不得推定为零，因此去重总量仅能确定为至少30，实际可能更多，无法给出精确数值。未发现误判。\", \"evidence\": \"D1：记录a（来源X，版本1，样本100）；记录b（来源X，版本2，样本120），明确替代版本1。D2：记录c（来源Y，样本80），其中30个样本与X版本2重叠。D3：内部规则只采用各来源最新版；允许按已知重叠计算去重总量，未知重叠不得推定为零。\", \"assumptions\": \"假设「来源X」和「来源Y」为不同来源，因此记录c不因来源X的版本更新而受影响。假设「明确替代」意味着记录a不再有效，应删除。未知重叠的具体数量无法确定，且不能假设为零，因此去重总量存在不确定性，仅能确定下限为30。\"}",
+  "input_tokens": 981,
+  "output_tokens": 350,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6152,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890121307783a391e43edef5299850de6066b8d72e25253ae",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 350,
+    "prompt_tokens": 981,
+    "total_tokens": 1331,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

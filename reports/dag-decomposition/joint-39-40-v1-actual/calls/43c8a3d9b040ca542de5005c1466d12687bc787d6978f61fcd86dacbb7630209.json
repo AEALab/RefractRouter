@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_minutes-a:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划采用单节点直接生成，与任务规模匹配。提示模板完整保留了原始任务的全部材料（M1、M2、M3）和交付要求，并明确约束：区分决定与建议、不把未知期限补成周五、保留来源编号、不虚构信息。合同中的检查项覆盖了原始交付条件，验收标准与任务要求一致。单节点决策合理，因为任务材料短小、逻辑简单，拆分反而增加开销。唯一可改进之处是提示中「请直接输出最终正文」的表述略微冗余，但不影响正确性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"提示模板完整保留原始任务的三条材料和全部交付要求，合同检查项明确覆盖：行动项表三项内容、区分决定与建议、运营组日期保持未确定、保留来源编号、待确认事项仅一条。未降低任何原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"单节点无父节点（parents为空），无需声明边，不存在无意义串行依赖问题。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"提示模板内嵌全部三条材料（M1、M2、M3），来源编号清晰，模型可直接引用，无需虚构缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点合理，职责唯一无重复，输出包含行动项表和待确认事项，完整覆盖原始任务所需内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"任务材料仅三条短句，逻辑简单紧密耦合，单节点处理符合耦合程度；输入预算16384 tokens、预期输出1000 tokens的声明合理，难度和风险评估为low准确。\"}]}",
+  "input_tokens": 1029,
+  "output_tokens": 480,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14362,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890146980533d763aaa7a5e423f9e5323a8c500bc9ffb2fdd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 480,
+    "prompt_tokens": 1029,
+    "total_tokens": 1509,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

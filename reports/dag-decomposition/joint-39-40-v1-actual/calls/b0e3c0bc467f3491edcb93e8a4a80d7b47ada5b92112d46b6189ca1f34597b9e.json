@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_seating-a:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该拆分计划整体合理：两个节点职责清晰（stats 负责按组汇总100条记录的申请/有资格/无资格人数并计算席位缺口，answer 负责基于统计结果撰写含两阶段建议与约束说明的最终正文），依赖边真实消费 stats 的 group_summary、calculation_notes、evidence 字段，无虚构数据、无无意义串行，输入容量与难度声明与任务规模匹配，原始交付条件（按组统计、席位缺口、两阶段建议、保留不可跨组调剂与未授权代报名约束、保留来源编号）均被 checks 与 acceptance_criteria 覆盖。轻微不足：stats 节点要求「保留每条记录来源编号与关键数字的对应关系」在 3000 token 的输出预算内对 100 条记录而言偏紧，evidence 字段实际只能列关键来源而非全部逐条对应，存在小幅度口径张力；此外两节点 checks 均标 covers [0,1] 但第一条验收标准（计算与材料一致）主要落在 stats，第二条（约束与建议）主要落在 answer，覆盖标注略显粗放。这些不影响计划可执行性与正确性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"交付要求中的按组计算申请/有资格/无资格人数与席位缺口由 stats 节点承担，两阶段分班建议、保留不能跨组调剂和未授权代报名约束由 answer 节点承担，且两节点 checks 与 acceptance_criteria 均明确要求「不能用总申请人数冒充有资格需求」「先筛资格再分配」「只建议补充席位或调整时段」，未降低任何原始条件。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"唯一依赖边 answer←stats 声明消费 group_summary、calculation_notes、evidence 三个字段，且在 answer 的 prompt_template 中明确用于呈现统计结果、计算口径与来源证据，消费关系真实；统计必须先于成文，串行依赖有实际意义。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"stats 节点 prompt 引用全部 100 条来源编号范围（test_seating-L001 至 L100）及席位参数（甲70、乙90、丙110、丁130），并要求保留来源编号与关键数字对应、在 calculation_notes 中说明未知事项；answer 节点要求区分已知事实/建议/未知事项且不虚构，材料封闭完整，无需虚构。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"拆分为统计与成文两节点，职责不重叠：stats 只输出结构化汇总 JSON，answer 只输出正文；decomposition_reason 对拆分净收益（避免单节点同时承担大量计数与成文导致遗漏）给出了合理说明。stats 的汇总字段覆盖原始任务所需的申请、有资格、无资格、席位、缺口及来源依据。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"输入预算 65536 token 足以容纳 100 条短记录，难度/风险 medium 与确定性统计任务匹配；统计与成文强耦合但关注点不同，两节点拆分符合耦合程度。小瑕疵是 stats 要求逐条保留来源编号对应关系而 expected_output_tokens 仅 3000，对 100 条记录的完整逐条列举偏紧，实际只能列关键证据，属轻微口径张力，不影响整体合理性。\"}]}",
+  "input_tokens": 5712,
+  "output_tokens": 827,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 24684,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015695316846a816464a9af9c0791e0f68a2ce03cae3e36",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 827,
+    "prompt_tokens": 5712,
+    "total_tokens": 6539,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

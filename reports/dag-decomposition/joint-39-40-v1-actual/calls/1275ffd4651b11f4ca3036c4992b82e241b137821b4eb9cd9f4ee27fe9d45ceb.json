@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-auto-cold-b:plan-review",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"拆分计划整体合理，将100条工单按甲乙、丙丁分组并行统计再汇总，符合任务耦合程度。各节点职责明确，依赖关系真实（answer节点确实消费两个统计节点的字段），上下文完整保留了全部来源编号和计算规则。主要不足在于：answer节点未显式声明「全部工单的总偏差」必须由各组偏差求和得出，依赖分组统计的正确性；且验收标准未明确要求answer节点必须重新验算分组数据而非直接引用。但检查项中已包含「核对分组汇总与总计相等」，且分组节点要求保留来源编号，可追溯性基本满足。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"计划完整覆盖了W2要求的各组总工时、全部工单总偏差、超计划工单数及限制，以及交付要求中的净偏差与正超时量分别报告、核对分组汇总与总计相等。answer节点的checks明确包含「月报包含各组总工时」「月报包含全部工单的总偏差」「月报分别报告净偏差与正超时量」等，未降低原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer节点通过parents声明依赖group_a_stats和group_b_stats，并在inputs中明确消费group_a_summary、group_b_summary、group_c_summary、group_d_summary四个字段，依赖关系真实。两个统计节点之间无依赖，可并行执行，未制造无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"两个分组统计节点的prompt_template中完整列出了各自负责的工单来源编号（L001-L100中的对应条目）及计划、实际分钟数，answer节点通过inputs获取分组统计结果并要求保留来源编号，上下文充分，可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"节点职责划分清晰：group_a_stats负责甲乙组统计，group_b_stats负责丙丁组统计，answer负责汇总撰写，无重复。汇总节点明确包含原始任务所需的各组总工时、总偏差、超计划工单数、净偏差、正超时量及核对说明。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"输入容量声明合理（统计节点32768 tokens，汇总节点65536 tokens），符合100条工单数据的处理需求。任务计算量大且需交叉核对，拆分为并行统计再汇总符合耦合程度，降低了单节点计算错误风险。\"}]}",
+  "input_tokens": 7755,
+  "output_tokens": 618,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19742,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016279829923718d11d313173fa258a554449eb87a55638",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 618,
+    "prompt_tokens": 7755,
+    "total_tokens": 8373,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

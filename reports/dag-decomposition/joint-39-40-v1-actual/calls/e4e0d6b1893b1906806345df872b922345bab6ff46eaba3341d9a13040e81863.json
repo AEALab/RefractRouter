@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:risk:cheap:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，均为非空字符串，未复制元数据，未声称执行工具。实质内容上，逐组汇总（甲15/10、乙20/5、丙15/10、丁20/5）、整批合格70/100=70%、未达90%门槛判不合格，均与冻结参考及原始记录一致；保留了来源编号范围，并明确列出不可推断事项（异常原因、校正复测、外部条件），符合 Q2 与验收条件。主要瑕疵：result 中甲组合格记录编号列举出现自我矛盾——先称「共20次？」又改口「经重新核对……共15次」，且其列出的合格编号（含第8、20、40、60、80、100次等实际为25或17摄氏度的异常记录）与随后给出的正确值序列不一致；这段混乱的中间过程虽最终结论正确，但保留了错误的编号清单，易造成误导，且与「不虚构数据、事实与材料一致」的要求存在张力。evidence 与 assumptions 字段内容准确但较概括。综合，结论与关键数字正确、限制明确，但 result 内部存在未清理的矛盾表述，扣分。\"}",
+  "input_tokens": 8797,
+  "output_tokens": 291,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11906,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901378758639b5b0f4b57789945865e795386c35307b9f0a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 291,
+    "prompt_tokens": 8797,
+    "total_tokens": 9088,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

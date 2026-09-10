@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_catalog:risk:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出是单个原始JSON对象，键集合恰好为contract.output.fields声明的「result」「evidence」「assumptions」，无多余或缺失字段，所有值均为非空字符串，未使用Markdown围栏或对象外说明。语义上正确完成risk节点职责：核验上游cost结果，确认保留记录b和c、排除a，已知去重总量120+80-30=170与材料D1、D2、D3一致；明确指出不能加入旧版100，也不能扩展到未给来源或把未知重叠推定为零，符合「未知重叠不得推定为零」的规则。evidence字段完整保留D1、D2、D3来源编号及关键数据；assumptions字段区分了已知事实与信息缺口（来源Y其他版本、X与Y除30个外的其他重叠、其他来源均未知），未虚构数据、原因或已执行操作，未声称联网或执行工具。与冻结参考一致。轻微不足：result开头称「上游结果基本正确」，属于对上游的判断表述，虽无害但略冗余，且未显式逐字复述「先决定保留哪些记录，再计算」的步骤顺序，但内容实质完整覆盖，故仅小扣分。\"}",
+  "input_tokens": 1472,
+  "output_tokens": 280,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11594,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890123734188df8e1a1401bb5aa62b5b494646ada585e71ef",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 280,
+    "prompt_tokens": 1472,
+    "total_tokens": 1752,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

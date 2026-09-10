@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-auto-cold-b:plan-review",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"拆分计划采用单节点直接完成，与任务规模小、材料短、三个硬条件检查与方案比较强耦合的特点相符。最终正文依次包含三个硬条件检查、当前有证据可行的方案推荐、其他方案需要补充的证据或调整，覆盖了原始交付要求，并明确保留G1、G2、G3来源编号。计划没有虚构输入或缺失数据，checks和acceptance_criteria均强调不把G3口头承诺当作既成事实、区分已知事实、建议和未知事项。无多余节点，无虚假依赖，能力声明为text-model、low难度与输入预算合理。轻微扣分仅因输出字段较粗，未进一步结构化分项，但不影响覆盖与可执行性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点prompt_template明确要求依次输出三部分：三个硬条件逐项核对甲乙丙并保留来源编号；推荐当前有证据可行的方案；说明甲、丙需补证据或调整，且不得把口头承诺当作既成事实。checks也对应覆盖三条件、推荐依据、甲乙丙补充证据或调整、来源编号和事实区分，未降低原始要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"计划只有一个answer节点，parents为空，final_node_id指向answer，没有声明任何边，因此不存在无真实字段消费的依赖或无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template完整嵌入G1、G2、G3材料，并要求保留G1、G2、G3来源编号；任务本身声明封闭场景、不联网或执行工具，计划未引入外部输入或虚构数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点且不拆分，decomposition_reason明确说明因任务小、材料短、强耦合而不拆分。没有重复节点；最终输出字段text包含原始任务所需的三部分内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability声明difficulty为low、risk为low、execution为text-model，input_budget_tokens为16384、expected_output_tokens为1200，均与短材料推理写作任务匹配。三条件比较与推荐说明强耦合，单节点符合耦合程度。\"}]}",
+  "input_tokens": 1147,
+  "output_tokens": 586,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 21245,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890149910855e054c6d0ba743fab13ed8d72af4b8b2da2b74",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 586,
+    "prompt_tokens": 1147,
+    "total_tokens": 1733,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
