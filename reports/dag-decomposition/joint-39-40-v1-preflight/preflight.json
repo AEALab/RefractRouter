@@ -1,0 +1,864 @@
+{
+  "protocol_sha256": "dc472c894ab44a8429aba2cb119c2cdf9a3d7c84610b61f7c99699cf19cd7aea",
+  "real_model_calls": 0,
+  "maximum_calls": 808,
+  "budget": {
+    "production": 17177.8049,
+    "evaluation": 32587.776
+  },
+  "calls_by_phase": {
+    "independent_material_review": 2,
+    "calibration_production": 144,
+    "calibration_evaluation": 96,
+    "cached_planning": 16,
+    "cached_review": 16,
+    "test_production": 414,
+    "test_evaluation": 120
+  },
+  "runs": [
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-a"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-node-b"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-a"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-single-b"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-quality"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-serial"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "dag-strong-parallel"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-a"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "direct-b"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-a"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-cold-b"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-a"
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "repeat": 1,
+      "arm": "auto-reuse-b"
+    }
+  ],
+  "coverage": [
+    {
+      "task_id": "cal_workshop",
+      "cell": "small-medium",
+      "split": "calibration",
+      "challenge": "parallel",
+      "material_bytes": 580,
+      "node_input_bytes": {
+        "cost": 2840,
+        "risk": 2870,
+        "answer": 3743
+      }
+    },
+    {
+      "task_id": "cal_catalog",
+      "cell": "small-medium",
+      "split": "calibration",
+      "challenge": "serial",
+      "material_bytes": 591,
+      "node_input_bytes": {
+        "cost": 2851,
+        "risk": 3620,
+        "answer": 3812
+      }
+    },
+    {
+      "task_id": "cal_recruit",
+      "cell": "small-medium",
+      "split": "calibration",
+      "challenge": "coupled",
+      "material_bytes": 641,
+      "node_input_bytes": {
+        "cost": 2901,
+        "risk": 2931,
+        "answer": 4066
+      }
+    },
+    {
+      "task_id": "cal_transit",
+      "cell": "large-high",
+      "split": "calibration",
+      "challenge": "parallel",
+      "material_bytes": 13846,
+      "node_input_bytes": {
+        "cost": 16303,
+        "risk": 16333,
+        "answer": 17657
+      }
+    },
+    {
+      "task_id": "cal_sensor",
+      "cell": "large-high",
+      "split": "calibration",
+      "challenge": "serial",
+      "material_bytes": 12726,
+      "node_input_bytes": {
+        "cost": 15183,
+        "risk": 16140,
+        "answer": 16036
+      }
+    },
+    {
+      "task_id": "cal_archive",
+      "cell": "large-high",
+      "split": "calibration",
+      "challenge": "handoff",
+      "material_bytes": 12972,
+      "node_input_bytes": {
+        "cost": 15429,
+        "risk": 15459,
+        "answer": 16229
+      }
+    },
+    {
+      "task_id": "test_notice",
+      "cell": "small-medium",
+      "split": "test",
+      "challenge": "short",
+      "material_bytes": 518,
+      "node_input_bytes": {
+        "answer": 2096
+      }
+    },
+    {
+      "task_id": "test_minutes",
+      "cell": "small-medium",
+      "split": "test",
+      "challenge": "oversplit",
+      "material_bytes": 525,
+      "node_input_bytes": {
+        "answer": 2073
+      }
+    },
+    {
+      "task_id": "test_grant",
+      "cell": "small-medium",
+      "split": "test",
+      "challenge": "coupled",
+      "material_bytes": 668,
+      "node_input_bytes": {
+        "answer": 2216
+      }
+    },
+    {
+      "task_id": "test_surveys",
+      "cell": "small-medium",
+      "split": "test",
+      "challenge": "parallel",
+      "material_bytes": 598,
+      "node_input_bytes": {
+        "cost": 2858,
+        "risk": 2888,
+        "answer": 3773
+      }
+    },
+    {
+      "task_id": "test_seating",
+      "cell": "large-high",
+      "split": "test",
+      "challenge": "serial",
+      "material_bytes": 15497,
+      "node_input_bytes": {
+        "cost": 17954,
+        "risk": 19200,
+        "answer": 19241
+      }
+    },
+    {
+      "task_id": "test_workorders",
+      "cell": "large-high",
+      "split": "test",
+      "challenge": "bottleneck",
+      "material_bytes": 13424,
+      "node_input_bytes": {
+        "cost": 15881,
+        "risk": 15911,
+        "answer": 17321
+      }
+    },
+    {
+      "task_id": "test_shipments",
+      "cell": "large-high",
+      "split": "test",
+      "challenge": "handoff",
+      "material_bytes": 14239,
+      "node_input_bytes": {
+        "cost": 16696,
+        "risk": 16726,
+        "answer": 18106
+      }
+    },
+    {
+      "task_id": "test_energy",
+      "cell": "large-high",
+      "split": "test",
+      "challenge": "parallel",
+      "material_bytes": 14003,
+      "node_input_bytes": {
+        "cost": 16460,
+        "risk": 16490,
+        "answer": 17894
+      }
+    }
+  ],
+  "required_under_assumed_sd": 8,
+  "largest_text_overlaps": [
+    {
+      "left": "test_notice",
+      "right": "test_minutes",
+      "ratio": 0.40336134453781514
+    },
+    {
+      "left": "cal_workshop",
+      "right": "test_minutes",
+      "ratio": 0.3816793893129771
+    },
+    {
+      "left": "cal_catalog",
+      "right": "test_minutes",
+      "ratio": 0.36683417085427134
+    },
+    {
+      "left": "cal_workshop",
+      "right": "test_notice",
+      "ratio": 0.36082474226804123
+    },
+    {
+      "left": "cal_catalog",
+      "right": "test_notice",
+      "ratio": 0.33587786259541985
+    },
+    {
+      "left": "cal_recruit",
+      "right": "test_notice",
+      "ratio": 0.3308641975308642
+    },
+    {
+      "left": "cal_recruit",
+      "right": "test_minutes",
+      "ratio": 0.32682926829268294
+    },
+    {
+      "left": "test_minutes",
+      "right": "test_surveys",
+      "ratio": 0.3240506329113924
+    },
+    {
+      "left": "test_notice",
+      "right": "test_surveys",
+      "ratio": 0.3230769230769231
+    },
+    {
+      "left": "test_notice",
+      "right": "test_grant",
+      "ratio": 0.3170731707317073
+    }
+  ],
+  "historical_materials_checked": 126,
+  "scope": "封闭机构运营资料核验与研究交付；两个输入/风险联合场景，不能分离输入与风险的单独因果效应。",
+  "precision_limit": "正态样本量规划依赖标准差假设；案例是目的性选择，区间只描述这些条件，分层与尾时延不作精确推断。"
+}

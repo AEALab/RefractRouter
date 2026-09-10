@@ -1793,6 +1793,207 @@
         }
       },
       "说明": "Issue #39/#40 真实先导发现的研究执行器输入修复：相对 7f5ba88，仅使研究节点与探测显式接收全部原始验收条目。K3 不导入 research_execution；K3 runner、模型、任务、提示与既有核心执行器未修改。原成功基线仅允许精确恢复预检，完成探针仍禁止跨快照 compose/finalize。"
+    },
+    {
+      "source_config_sha256": "7a82d52522a4d9dd8586e52c44b1a449bba923ed52638eea0ac22a02991fc6b8",
+      "target_config_sha256": "21320a7efe40dd2de259911b9b3c2ce5b1f5f1ca9e45527e66e138fe09c7b487",
+      "source_index_sha256": "a112a46285fa8953ae63ae0e3056a0223458d0ff59152008f35981b12756213a",
+      "source_bundle": "reports/v0.5-k3-baseline-retry/output",
+      "changed_code": {
+        "experiments/build_node_routing_profile.py": {
+          "before": null,
+          "after": "e2ba259af25387c3b83c934cd2a671f279ab9403660da254ded95f83d1d011d0"
+        },
+        "experiments/build_stratified_routing_profile.py": {
+          "before": null,
+          "after": "3e065b6832e55f2f3419008b5446c1e4c898bf6378f3ebefed07ad130e7d251a"
+        },
+        "experiments/preflight_dag_study.py": {
+          "before": null,
+          "after": "012630efdc31f7ad65d6192855708b3ae4fa06be05fca3b63392944dd7a5cca5"
+        },
+        "experiments/preflight_research_studies.py": {
+          "before": null,
+          "after": "671c9aeebe04f1193afb2305a068df35e1bbe41c24e4f2a219ddf10cf8e6b916"
+        },
+        "experiments/prepare_joint_research.py": {
+          "before": null,
+          "after": "b99dd8d71680791d8c7f276ecb3e6405df3cb69c750bc7ab795fc054d5a15776"
+        },
+        "experiments/prepare_research_studies.py": {
+          "before": null,
+          "after": "491fb2bdaee5b5111a2e5017957bb5b9cb91319e7da15c872971f1ece8e197db"
+        },
+        "experiments/rehearse_research_execution.py": {
+          "before": null,
+          "after": "fb3497e0095c154d838c54d1b9deae6ac18a5f246997a6251c722a433a1ebcb2"
+        },
+        "experiments/replay_text_node_contract.py": {
+          "before": null,
+          "after": "02759799773437ab064bc8274ec05ccf83794f10368348052f80fd5e15f8f829"
+        },
+        "experiments/run_dag_handoff.py": {
+          "before": null,
+          "after": "2eaf2fe20aa1134cc615ad78483a4e1cb365b6f4018bd8221c50e0d6029d9b06"
+        },
+        "experiments/run_dag_study.py": {
+          "before": null,
+          "after": "a419ce069d294a05036072fd58af8040657d571d7fd511517cd0bc3c3c8225f7"
+        },
+        "experiments/run_joint_research.py": {
+          "before": null,
+          "after": "7c739f1bf6fb4a2ee17a690c2e1fd3263ef8dc71d4850163ee61cc31b7cc19fc"
+        },
+        "experiments/run_k3_baseline.py": {
+          "before": "2bfcc79d557c3bb89bbc8d0518a1648dee5a503220b9a2e2ca34699585bc04bd",
+          "after": "facd4c99c824133fa36fe99706a785488080140c8bc62929759ed31a22ebc554"
+        },
+        "experiments/run_recovery_study.py": {
+          "before": null,
+          "after": "d6b0e7d008fb72c5e46030ddccae01890a9b9a4e6a536b917d5375946ccb7a33"
+        },
+        "experiments/run_research_live_pilot.py": {
+          "before": null,
+          "after": "679ae6b63f98d39f1f1587550965239c55d2979474543963726c69f6db8fae57"
+        },
+        "experiments/summarize_dag_batch.py": {
+          "before": null,
+          "after": "ebcd556574598e18944516680254f4154e9a32ab964130b39d8f93ac0df576cf"
+        },
+        "experiments/summarize_dag_study.py": {
+          "before": null,
+          "after": "7ee3a6569341c5b91eaa5b0d1f3c588a30f767fd9b1b6436331a78b639a3f390"
+        },
+        "experiments/validate_node_recovery.py": {
+          "before": null,
+          "after": "2eeeba2ca3bba00ae57392936b72abed113b7012c098a69613f81be14379522a"
+        },
+        "experiments/validate_recovery_study.py": {
+          "before": null,
+          "after": "91d9d026a041a2a67ca1846f3eb8268b21e8b62d0addaaeeb9078a5dfbe54201"
+        },
+        "src/refractrouter/agent.py": {
+          "before": null,
+          "after": "6b65aa15b85271fa5918a719ec1d75caa43ce9d37ea3eece3a9e4b42bd389a38"
+        },
+        "src/refractrouter/agent_cli.py": {
+          "before": null,
+          "after": "be734b9a4008985bc515a464aa6b333932b69e62bc587ad23a018198450e522b"
+        },
+        "src/refractrouter/application_config.py": {
+          "before": null,
+          "after": "4d09bd286ee9d5f9c6c33f8d9f08dbcdf48d50fe06e9aab9663aeff4ba2cbb74"
+        },
+        "src/refractrouter/configured_routing.py": {
+          "before": null,
+          "after": "b8b9dcc302d9d70a95759a8477cbe82608e6a30833a5e91bb8f5236f5846f21d"
+        },
+        "src/refractrouter/dag_batch_study.py": {
+          "before": null,
+          "after": "6a8758d32373d9217141cd6b8149ff1488cbce8a22c03ad5f2fcb5379df40240"
+        },
+        "src/refractrouter/dag_study.py": {
+          "before": null,
+          "after": "fc60a1099e6df4105bce93ba384895205b331f3778fa5c2166e268cdad60cefb"
+        },
+        "src/refractrouter/dag_study_execution.py": {
+          "before": null,
+          "after": "c1e5ce9ae06f671299923ddf90f757f5cdb26fb98f650fc18e115dd280207659"
+        },
+        "src/refractrouter/handoff_validation.py": {
+          "before": null,
+          "after": "d493a2efdaddb15909782866d9b2ea7bffea3300230a97dfc136a30c48503422"
+        },
+        "src/refractrouter/joint_research.py": {
+          "before": null,
+          "after": "f9ddcdfb8db5f9275b7f65860b96740b0fec44c93fb91c222fdb8f2e5a145e28"
+        },
+        "src/refractrouter/k3_experiment.py": {
+          "before": "9ad88e064d257b815fa6e0ea99b05635ed5bcda3e63bdd02697d4829da0ce7cd",
+          "after": "a049f45cfb9c553c249c34926f94ed483b5767bec0ffb52def14c637064a5ca2"
+        },
+        "src/refractrouter/node_recovery.py": {
+          "before": null,
+          "after": "32c4256f23f59a4a32e7c797f20d818a2e6041284e6bb39cbfc33de7875d068c"
+        },
+        "src/refractrouter/node_routing.py": {
+          "before": null,
+          "after": "8e30c6278e3a451f522a9ecd9e10b8478033ed4eefa9d8a088df2b1a55aa511f"
+        },
+        "src/refractrouter/openai_compatible.py": {
+          "before": "1a48e91689a77e54136a4e2724cc09ea856067998f003fa2c9abec529b58eb59",
+          "after": "8f8b2c574337d479036a5b7ed7f1b414c1bf5cb2f24d173ce700b7b2f7243bba"
+        },
+        "src/refractrouter/output_constraints.py": {
+          "before": null,
+          "after": "3396a68d87755d53ef5171390d7d42e77e5fddc9b4f9c3b8975ef5ed4e09b6b8"
+        },
+        "src/refractrouter/profile_calibration.py": {
+          "before": null,
+          "after": "a360a8a9c0ee8c7bedbab39e9785c50c97dd7b196bb3af22fd4db92fe0760f2f"
+        },
+        "src/refractrouter/recovery_study.py": {
+          "before": null,
+          "after": "a84b30615fdb764aea62df7a4fd2f244f801ed9e07f33e0996df1f6af0601de5"
+        },
+        "src/refractrouter/research_analysis.py": {
+          "before": null,
+          "after": "4b718fabe9651c90c798cf0a1693b722fa8bf8ff4a5d8278368becebb935656d"
+        },
+        "src/refractrouter/research_calibration.py": {
+          "before": null,
+          "after": "418899ad7dd259fb25e3d88fa73eff50fc421e2fb1f3b4480671585301baf88e"
+        },
+        "src/refractrouter/research_execution.py": {
+          "before": null,
+          "after": "ddddd5a8165ec497eced16daabf131cf78344cf2ff817392ffd826b30c69ec66"
+        },
+        "src/refractrouter/research_protocol.py": {
+          "before": null,
+          "after": "4cab499d215c0f6518660e9c449236709e577c2d8f51a5412b151eb9d540f3f1"
+        },
+        "src/refractrouter/responses_api.py": {
+          "before": null,
+          "after": "c9973560ea25916d13c2891a9f5e8e22baa58f5320a81105e77bc5d5f0fbba3a"
+        },
+        "src/refractrouter/routing_actions.py": {
+          "before": null,
+          "after": "3bae39478fdc5ab5fed9a64df023b2008ae6fe6689bb2d1f0b7095510e05e492"
+        },
+        "src/refractrouter/task_budget.py": {
+          "before": null,
+          "after": "69aa22989cfa47fc414699c918d2de7b58bc7745c6f43b04b42ae4895501aa63"
+        },
+        "src/refractrouter/task_contract_replay.py": {
+          "before": null,
+          "after": "c9122a6ceaa01760521bb062df63cbf27380d7fa045e831739ce0c5cf6269d87"
+        },
+        "src/refractrouter/task_contracts.py": {
+          "before": null,
+          "after": "8516a1e0f0d41dc2c803609c46250d021fd2eb5b14325b0384a9b34f73f4fd95"
+        },
+        "src/refractrouter/task_evaluation.py": {
+          "before": null,
+          "after": "b1a0fe6693ac127fed762651bcbf575f67a2c8c68e1a3e409afbd2eb5c9c78c8"
+        },
+        "src/refractrouter/task_execution.py": {
+          "before": null,
+          "after": "f772aee78b4729519f87e580687cfc9bca315901706913a28ace773267236e4b"
+        },
+        "src/refractrouter/task_plan.py": {
+          "before": null,
+          "after": "ac7b6e53c010990abc67e7e5de8b2d3711a5e3e5bb1f3ee4fb19de7332b396f1"
+        },
+        "src/refractrouter/task_runtime.py": {
+          "before": null,
+          "after": "b5753bcfe888930b9a86c577c532a85d48242154beaa91f490fd5043e0b193b1"
+        },
+        "src/refractrouter/task_scheduling.py": {
+          "before": null,
+          "after": "c6bb822938b9c0adde91a62512dc1eb6f0c847f5aef7f4a826a63ee1f12f60ad"
+        }
+      },
+      "说明": "Issue #39/#40 联合研究新增封闭任务、共享校准编排和严格配对收益判定；ResearchSession 新增显式交接、串行对照与评审专用参考，默认路径保持原义。K3 不导入这些研究模块，既有 K3 runner、模型、任务、提示与底层执行器未改；仅允许原成功基线精确恢复，不允许已完成探针跨快照组合。"
     }
   ]
 }

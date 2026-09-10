@@ -82,14 +82,33 @@ def compare_research(preview, protocol, rows, *, simulated, setup_cost=None):
                 fields = ('score', 'deployment_cost', 'wall_time_ms')
                 if a is None or b is None or any(r.get(f) is None for r in (a, b) for f in fields):
                     continue
-                clusters[tid].append([a[f] - b[f] for f in fields])
+                if b['deployment_cost'] <= 0 or b['wall_time_ms'] <= 0:
+                    continue
+                clusters[tid].append([a[f] - b[f] for f in fields] + [
+                    1-a['deployment_cost']/b['deployment_cost'], a['wall_time_ms']/b['wall_time_ms']])
             metrics = {}
-            for i, field in enumerate(('score', 'deployment_cost', 'wall_time_ms')):
+            for i, field in enumerate(('score', 'deployment_cost', 'wall_time_ms','cost_saving_fraction','latency_ratio')):
                 values = [statistics.mean(v[i] for v in pair_rows) for pair_rows in clusters.values()]
                 metrics[field] = {'mean_delta': statistics.mean(values) if values else None,
                     'interval_97_5': _interval(values, repeats=repeats, seed=seed)}
+            expected_pairs = sum(k[2]==left for k in selected)
+            all_delivered = all(k in observed and observed[k]['delivered'] for k in selected if k[2] in (left,right))
+            paired = sum(map(len, clusters.values()))
+            limits = protocol['acceptance']
+            if simulated:
+                verdict = 'simulated-no-benefit-claim'
+            elif paired != expected_pairs or len(clusters)<2:
+                verdict = 'insufficient-paired-evidence'
+            elif not {'maximum_quality_loss','minimum_cost_saving','maximum_latency_ratio'} <= limits.keys():
+                verdict = 'thresholds-not-configured'
+            else:
+                signal = (all_delivered and metrics['score']['interval_97_5'][0] >= -limits['maximum_quality_loss']
+                    and metrics['cost_saving_fraction']['interval_97_5'][0] >= limits['minimum_cost_saving']
+                    and metrics['latency_ratio']['interval_97_5'][1] <= limits['maximum_latency_ratio'])
+                verdict = 'supported-within-frozen-cases' if signal else 'does-not-meet-frozen-benefit-thresholds'
             comparisons.append({'left': left, 'right': right, 'task_clusters': len(clusters),
-                'paired_repeats': sum(map(len, clusters.values())), 'metrics': metrics})
+                'paired_repeats': paired, 'expected_pairs':expected_pairs, 'metrics': metrics,
+                'benefit_verdict':verdict, 'all_planned_delivered':all_delivered})
         groups['overall' if cell is None else cell] = {'arms': arms, 'primary_comparisons': comparisons}
     costs = groups['overall']['arms'].values()
     complete = all(a['cost_complete'] for a in costs)
@@ -97,7 +116,8 @@ def compare_research(preview, protocol, rows, *, simulated, setup_cost=None):
     return {'schema_version': 'research-analysis-v1', 'simulated': simulated, 'groups': groups,
         'first_use_cost': runtime_cost + setup_cost if runtime_cost is not None and setup_cost is not None else None,
         'runtime_cost': runtime_cost, 'setup_cost': setup_cost,
-        'benefit_verified': False,
+        'benefit_verified': any(c['benefit_verdict']=='supported-within-frozen-cases'
+            for c in groups['overall']['primary_comparisons']) if not simulated else False,
         'limitations': ['模拟结果不能证明路由收益；材料独立性与人工复核必须另外验收。',
             '共同配对区间是条件于已有评分的结果；必须同时阅读全计划交付率和完整费用。',
             '差值方向为左减右；重复先按任务平均，分层区间仅作探索描述，不报告小样本 p95。',

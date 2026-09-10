@@ -75,3 +75,16 @@ def test_duplicate_evidence_rejected():
     rows.append(deepcopy(rows[0]))
     with pytest.raises(ValueError, match='duplicate'):
         compare_research(preview, protocol, rows, simulated=True)
+
+
+@pytest.mark.parametrize('change,expected', [('none',True),('missing',False),('failed',False),('slow',False),('simulated',False)])
+def test_benefit_requires_complete_delivery_and_all_frozen_thresholds(change,expected):
+    preview,protocol,rows=inputs()
+    protocol['acceptance'].update(maximum_quality_loss=3,minimum_cost_saving=.2,maximum_latency_ratio=1.1)
+    if change=='missing':rows.pop()
+    elif change=='failed':rows[0].update(delivered=False,judge_passed=False,score=90)
+    elif change=='slow':
+        for r in rows:
+            if r['arm']=='left':r['wall_time_ms']=20
+    result=compare_research(preview,protocol,rows,simulated=change=='simulated')
+    assert result['benefit_verified'] is expected

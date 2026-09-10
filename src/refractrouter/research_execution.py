@@ -199,7 +199,7 @@ class ResearchSession:
         return deepcopy(row)
 
     def run_trial(self, task, run_id, *, mode, fixed_model=None, profiles=(), method='A', cache_id=None,
-                  assignment_mode='per-node'):
+                  assignment_mode='per-node', explicit_assignments=None, serial=False, unavailable=False):
         if self.budget.stopped:
             raise RuntimeError('session stopped')
         if mode not in ('manual', 'direct', 'auto-cold', 'auto-reuse') or method not in ('A', 'B'):
@@ -215,7 +215,11 @@ class ResearchSession:
         first = len(self.budget.snapshot()[1])
         start = time.monotonic()
         deadline = start + self.config['constraints']['latencyMaxMs']/1000
+        policy = ExecutionPolicy(1, self.policy.provider_concurrency, self.policy.provider_min_interval_ms) if serial else self.policy
         try:
+            if unavailable:
+                row['phase'] = 'routing'
+                raise ValueError('study-no-feasible-route: frozen baseline unavailable')
             if mode == 'auto-cold':
                 plan = self._plan(task, row, run_id, deadline)
             elif mode == 'auto-reuse':
@@ -233,7 +237,12 @@ class ResearchSession:
             row['plan'] = plan.to_dict()
             row['phase'] = 'routing'
             cap = self.config['constraints']
-            if fixed_model is not None:
+            if explicit_assignments is not None:
+                if set(explicit_assignments) != {n.node_id for n in plan.nodes} or not set(explicit_assignments.values()) <= set(self.models):
+                    raise ValueError('invalid explicit handoff assignments')
+                row['assignments'] = dict(explicit_assignments)
+                row['assignment_origin'] = 'frozen-handoff-validation'
+            elif fixed_model is not None:
                 if fixed_model not in self.models:
                     raise ValueError('unknown fixed model')
                 row['assignments'] = {n.node_id: fixed_model for n in plan.nodes}
@@ -244,7 +253,7 @@ class ResearchSession:
                     for n in plan.nodes}
                 row['routing'] = route_nodes(plan, profiles, method=method, quality_min=cap['qualityMin'],
                     cost_max=cap['costMax'], latency_max_ms=cap['latencyMaxMs'], weights=Weights(**cap['weights']) if method == 'B' else None,
-                    eligible_models=eligible, execution_policy=self.policy,
+                    eligible_models=eligible, execution_policy=policy,
                     model_providers={mid: m.provider for mid, m in self.models.items()}, assignment_mode=assignment_mode)
                 if row['routing']['status'] != 'selected':
                     raise ValueError('study-no-feasible-route')
@@ -252,12 +261,13 @@ class ResearchSession:
             row['routing_finished_ms'] = self._time()
             row['phase'] = 'execution'
             row['final_output'] = execute_nodes(plan, delivery_task(task), row['assignments'], self.models,
-                self.budget, self.policy, row, self.persist, started=start, deadline=deadline,
+                self.budget, policy, row, self.persist, started=start, deadline=deadline,
                 label_prefix=run_id + ':', classify_failure=True, dispatch_history=self.history,
                 production_cap=row['production_limit'])
             row['execution_finished_ms'] = self._time()
             row['phase'] = 'final-review'
-            row['evaluation'] = self._judge(task['task'], row['final_output'], task['criteria'], run_id + ':final-review', deadline)
+            review_task = task['task'] + ('\n仅供评审核验的冻结参考：\n'+task['evaluation_reference'] if task.get('evaluation_reference') else '')
+            row['evaluation'] = self._judge(review_task, row['final_output'], task['criteria'], run_id + ':final-review', deadline)
             row['status'] = 'completed' if row['evaluation']['passed'] and row['evaluation']['score'] >= cap['qualityMin'] else 'quality-failed'
         except Exception as exc:
             self._settle_failure(exc, row)
@@ -318,7 +328,8 @@ class ResearchSession:
             else:
                 row['phase'] = 'final-review'
                 try:
-                    grade = self._judge(task['task'], response.content, contract['checks'], label + ':judge',
+                    review_task = task['task'] + ('\n仅供评审核验的冻结参考：\n'+task['evaluation_reference'] if task.get('evaluation_reference') else '')
+                    grade = self._judge(review_task, response.content, contract['checks'], label + ':judge',
                                         deadline, node_input=json.loads(raw_input))
                     obs['evaluation'] = {**grade, 'method': 'independent-text-node-v1', 'status': 'completed',
                                           'input_sha256': ih, 'output_sha256': oh}

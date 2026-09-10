@@ -192,3 +192,22 @@ def test_all_execution_inputs_include_original_acceptance_criteria(setup, mode):
         if call['category'] == 'production':
             payload = json.loads(call['request_messages'][-1]['content'])
             assert all(criterion in payload['task'] for criterion in task['criteria'])
+
+
+def test_unavailable_baseline_preserves_failure_without_call(setup):
+    task,factory=setup;session=factory()
+    row=session.run_trial(task,'unavailable',mode='direct',unavailable=True)
+    assert not row['delivered'] and row['deployment_cost']==0
+    assert not session.budget.records
+
+
+def test_explicit_handoff_and_serial_policy(setup):
+    task,factory=setup;session=factory()
+    mids=list(session.models)
+    assignments={n['node_id']:mids[i%len(mids)] for i,n in enumerate(task['plan']['nodes'])}
+    from refractrouter.research_execution import execute_nodes
+    with patch('refractrouter.research_execution.execute_nodes',wraps=execute_nodes) as execute:
+        row=session.run_trial(task,'handoff',mode='manual',explicit_assignments=assignments,serial=True)
+    assert row['delivered'] and row['assignments']==assignments
+    assert execute.call_args.args[5].max_concurrency==1
+    assert session.policy.max_concurrency==2
