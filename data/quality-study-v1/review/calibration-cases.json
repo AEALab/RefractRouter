@@ -1,0 +1,667 @@
+{
+  "schema_version": "quality-controls-v1",
+  "provenance": "作者构造正负例，非真人评审记录",
+  "cases": [
+    {
+      "case_id": "analysis-01-positive",
+      "task_id": "analysis-01",
+      "output": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "analysis-02-positive",
+      "task_id": "analysis-02",
+      "output": {
+        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "findings": [
+          {
+            "id": "survey_negative",
+            "value": 14,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "service_complaints",
+            "value": 20,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "can_pool",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "rules-01-positive",
+      "task_id": "rules-01",
+      "output": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "full_approval",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "rules-02-positive",
+      "task_id": "rules-02",
+      "output": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "decision-01-positive",
+      "task_id": "decision-01",
+      "output": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 380,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "decision-02-positive",
+      "task_id": "decision-02",
+      "output": {
+        "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+        "findings": [
+          {
+            "id": "morning",
+            "value": "甲",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "evening",
+            "value": "乙",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "feasible",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "wrong-dependency",
+      "task_id": "rules-02",
+      "output": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "发布",
+              "签名"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "fail",
+      "expected_final_status": "fail",
+      "author_semantic_label": "unacceptable",
+      "purpose": "wrong-dependency"
+    },
+    {
+      "case_id": "wrong-citation",
+      "task_id": "analysis-01",
+      "output": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "fail",
+      "expected_final_status": "fail",
+      "author_semantic_label": "unacceptable",
+      "purpose": "数值正确但来源错误"
+    },
+    {
+      "case_id": "prose-contradiction",
+      "task_id": "rules-02",
+      "output": {
+        "answer": "可以立即发布，发布完成后才需要签名。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "unacceptable",
+      "purpose": "字段正确但正文依赖反向；自动检查不能证明语义正确"
+    },
+    {
+      "case_id": "global-combination-error",
+      "task_id": "decision-01",
+      "output": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 240,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "fail",
+      "expected_final_status": "fail",
+      "author_semantic_label": "unacceptable",
+      "purpose": "global-combination-error"
+    },
+    {
+      "case_id": "missed-damage-rule",
+      "task_id": "analysis-01",
+      "output": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 64,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "fail",
+      "expected_final_status": "fail",
+      "author_semantic_label": "unacceptable",
+      "purpose": "missed-damage-rule"
+    },
+    {
+      "case_id": "analysis-01-equivalent",
+      "task_id": "analysis-01",
+      "output": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60.0,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1.0,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "analysis-02-equivalent",
+      "task_id": "analysis-02",
+      "output": {
+        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "findings": [
+          {
+            "id": "survey_negative",
+            "value": 14.0,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "service_complaints",
+            "value": 20.0,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "can_pool",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "decision-01-equivalent",
+      "task_id": "decision-01",
+      "output": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 380.0,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "decision-02-equivalent",
+      "task_id": "decision-02",
+      "output": {
+        "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+        "findings": [
+          {
+            "id": "morning",
+            "value": "甲",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "evening",
+            "value": "乙",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "feasible",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "rules-01-equivalent",
+      "task_id": "rules-01",
+      "output": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2.0,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3.0,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "full_approval",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "rules-02-equivalent",
+      "task_id": "rules-02",
+      "output": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "acceptable",
+      "purpose": "结构化事实正确仍需语义审查"
+    },
+    {
+      "case_id": "missing-required-rule",
+      "task_id": "rules-01",
+      "output": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "fail",
+      "expected_final_status": "fail",
+      "author_semantic_label": "unacceptable",
+      "purpose": "遗漏必须核对的批准结论"
+    }
+  ]
+}
