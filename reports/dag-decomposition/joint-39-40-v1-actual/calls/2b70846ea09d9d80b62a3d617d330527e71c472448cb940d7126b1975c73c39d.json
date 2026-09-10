@@ -1,0 +1,24 @@
+{
+  "label": "material-review:large-high",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"材料整体满足独立校准与测试要求：7个任务（3个校准、4个测试）在解题目标、规则设定和数据结构上各不相同，并非同一问题仅换数字的复刻；各任务的事实、限制和交付要求明确可评分，冻结参考经抽样核验与来源数据一致；所标挑战（parallel、serial、handoff、bottleneck）均可从材料与交付要求检验，且所有任务均明确声明为虚构封闭场景，结论限于案例内。个别参考字段命名（如「第一列总和」「第二列总和」）较为通用，需结合任务文本解读，但不影响可评分性。\", \"criteria\": [{\"criterion\": \"校准与测试任务不是同一问题仅换数字或实体的副本，任务数按来源包计数。\", \"passed\": true, \"rationale\": \"7个任务按来源包计数，分别为cal_transit、cal_sensor、cal_archive、test_seating、test_workorders、test_shipments、test_energy。这些任务在解题问题、规则体系和数据结构上均不同：cal_transit是需求-容量缺口分析，cal_sensor是区间合格判定与批次门槛，cal_archive是保留期限与锁定状态筛选，test_seating是资格筛选与席位比较，test_workorders是计划-实际偏差分析，test_shipments是应交-签收差额与正缺口计算，test_energy是基准-本期用量变化分析。虽然部分任务共享「分组汇总」「净差与正缺口区分」等输出结构，但任务说明明确禁止将共享输出结构本身当作重复，且各任务的解题逻辑、约束条件和交付要求实质不同，不属于同一问题仅改数字的复刻。\"}, {\"criterion\": \"任务的事实、限制和交付要求明确且可评分，冻结参考没有明显计算或逻辑错误。\", \"passed\": true, \"rationale\": \"各任务均明确给出事实规则（如T1-T3、Q1-Q3、A1-A3等）、限制条件（如不得跨组抵消、不能删除异常重算、锁定记录不得列为可清理等）和交付要求（汇总、比较、说明不可推断事项等），可评分性良好。冻结参考经抽样核验与来源数据一致：例如cal_transit中甲组25条记录需求总和1293、容量总和1200、净差93、正缺口182，与来源数据计算相符；test_workorders中乙组计划总和975、实际总和1080、净偏差-105、正超额177，与来源数据一致；test_seating中各组申请、有资格、无资格人数及席位缺口均与来源记录吻合。未发现明显计算或逻辑错误。\"}, {\"criterion\": \"所标挑战可从材料与交付要求检验；短任务允许不拆分，所有结论限于自编封闭案例。\", \"passed\": true, \"rationale\": \"所标挑战均可从材料与交付要求检验：parallel类任务（cal_transit、test_energy）要求按线路或校区独立核验后汇总；serial类任务（cal_sensor、test_seating）要求先筛选或汇总再判断；handoff类任务（cal_archive、test_shipments）要求将分组事实、来源和限制完整交接至最终报告；bottleneck类任务（test_workorders）要求综合全表形成完整月报并核对分组汇总与总计相等。所有任务均明确声明为「独立编写的虚构封闭场景」，不代表真实机构或法律规则，结论限于封闭案例内。任务长度充足，无需拆分。\"}]}",
+  "input_tokens": 29340,
+  "output_tokens": 754,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 29353,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890116561783a391e43edef5299850de6066b8d72e2fc6fa4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 754,
+    "prompt_tokens": 29340,
+    "total_tokens": 30094,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

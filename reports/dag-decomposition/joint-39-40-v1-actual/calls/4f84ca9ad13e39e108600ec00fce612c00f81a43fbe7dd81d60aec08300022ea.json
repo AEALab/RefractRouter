@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:cost:cheap:judge",
+  "content": "{\"score\": 28, \"passed\": false, \"rationale\": \"输出为合法 JSON 且键集合符合契约（result/evidence/assumptions），但核心计算与材料严重不符。正确汇总应为：A类33件、锁定11件、待审批16件；B类34件、锁定0件、待审批16件（年龄400>90的8件加年龄120>90的8件）；C类33件、锁定0件、待审批8件（年龄400>365）。被评估答案声称「A类共25件，锁定5件」「B类共25件」「C类共25件」「符合待审批条件共35件」「实际锁定记录共11件」，前后自相矛盾（result 说锁定5件，evidence 却列出11件锁定记录），且各类总数（25+25+25=75）与材料100件不符，待审批数量（20/10/5）也全部错误。此外 result 中混入「需核对」等不确定表述，未给出干净结论，evidence 虽列出了正确的11个锁定编号，但与 result 数字冲突，违反「事实和计算与材料一致」及「不虚构数据」的检查要求。未声称执行工具或删除动作、保留了来源编号是仅有的优点。\"}",
+  "input_tokens": 8027,
+  "output_tokens": 284,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9501,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901422005591be90b70b1bfc3059428bd07e108b7e2591c6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 284,
+    "prompt_tokens": 8027,
+    "total_tokens": 8311,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

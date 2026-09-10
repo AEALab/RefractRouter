@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:risk:mid:judge",
+  "content": "{\"score\": 72, \"passed\": false, \"rationale\": \"输出符合 JSON 契约（result/evidence/assumptions 三键齐全、非空），保留了来源编号、证据与假设，未声称执行工具或删除动作，明确区分事实与建议，满足「保留证据与假设」「覆盖职责并明确限制」两项检查。但核心计算存在多处错误与自相矛盾：①B 类待审批数错误——B 类年龄>90 的记录实际为 16 件（400 天 8 件：L007,L019,L031,L043,L055,L067,L079,L091；120 天 8 件：L010,L022,L034,L046,L058,L070,L082,L094），答案却列出 17 件，把 L097（年龄 45 天，≤90）误计入，与冻结参考值 16 不符；②A 类筛选过程自相矛盾——先称「入选：L015,L039,L051,L075,L087 共 5 件」，随后又自我纠正为 16 件，中间插入一段关于 L002 的无关混淆文字（「L002(C,120,否)?——C 类不属此」），推理混乱；③A 类锁定数表述前后矛盾——先写「锁定 7 件」随即改为 11 件，虽最终 11 正确，但暴露了未清理的草稿痕迹；④「其余 48 件未达年龄阈值」的分解（A 类 6 + B 类 17 + C 类 25）与自身数据不一致：按正确答案 A 未达阈值且未锁定为 6 件、B 为 18 件（34-16）、C 为 25 件，且 100-41-11=48 仅在 B=16 时成立，答案用错误的 B=17 仍得出 48，算术不自洽。最终汇总 A=16、C=8 正确，B=17 错误。鉴于高风险节点要求事实与计算与材料一致，B 类计数错误及多处内部矛盾构成实质性缺陷，判不通过。\"}",
+  "input_tokens": 9636,
+  "output_tokens": 471,
+  "cached_input_tokens": 3584,
+  "reasoning_tokens": 0,
+  "latency_ms": 14474,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014336508ca3041a3a8c2b7f648d1ff1a7e90ae3f3564db",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 471,
+    "prompt_tokens": 9636,
+    "total_tokens": 10107,
+    "prompt_tokens_details": {
+      "cached_tokens": 3584
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

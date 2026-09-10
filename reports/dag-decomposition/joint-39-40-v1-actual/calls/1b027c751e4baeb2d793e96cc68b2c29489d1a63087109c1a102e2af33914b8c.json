@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:risk:mid:judge",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"被评估文本为单个原始 JSON 对象，键集合恰好为 contract.output.fields 声明的 result、evidence、assumptions，均为非空字符串，无多余字段、无 Markdown 围栏，转义正确。内容核验：材料按甲乙丙丁四组各25条轮转，每组读数循环为18,19,20,21,22,23,24,25,26,17（每10条一轮，共2.5轮），故甲、丙组各含5个25与5个17共10条异常、15条合格；乙、丁组各含5个26共5条异常、20条合格，与上游 cost 汇总及被评估文本的逐组数字完全一致。整批异常30条、合格70条、合格率70%，低于Q3的90%门槛，判定批次不合格，且未删除异常重算，符合Q3流程（先汇总分组分布再判断门槛）。端点18与24按Q1判合格，处理正确。evidence 引用了来源编号范围 cal_sensor-L001 至 L100 及判定依据 Q1、Q3，assumptions 明确了 Q2 限制（不推断设备故障原因）、未声称执行工具或校正操作，并列出信息缺口，满足 checks 要求。轻微不足：result 中「读数25或17的记录」用于描述甲组异常，表述略简（甲组异常确为25和17，正确）；evidence 未逐条列出异常记录编号（如 L008、L009 等），证据粒度可更细；assumptions 中「读数偏高」措辞对17（偏低）不够准确，应为「偏离区间」。整体事实、计算与契约均正确，职责覆盖完整。\"}",
+  "input_tokens": 8381,
+  "output_tokens": 398,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14627,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890138044173f04613060c95c0e1cb70b4f628471a92ee6af",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 398,
+    "prompt_tokens": 8381,
+    "total_tokens": 8779,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

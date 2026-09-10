@@ -1,0 +1,24 @@
+{
+  "label": "test_shipments-dag-strong-serial:answer",
+  "content": "最终核对报告\n\n一、来源范围\n\n本报告基于来源编号 test_shipments-L001 至 test_shipments-L100，共 100 批物资到货记录。材料中每批均注明“每批单独核验，未记录损毁或责任结论”。\n\n二、总应交、总签收、净差\n\n- 总应交数量：2700 件\n- 总签收数量：2700 件\n- 净差：2700 - 2700 = 0 件\n\n三、正缺口\n\n按 H2 规则，多签不能抵消另一批次少签，正缺口须逐批计算后汇总。经逐批核验，应交大于签收的批次及缺口如下：\n\n- test_shipments-L001：应交 21，签收 20，缺口 1\n- test_shipments-L010：应交 30，签收 19，缺口 11\n- test_shipments-L011：应交 31，签收 21，缺口 10\n- test_shipments-L012：应交 32，签收 23，缺口 9\n- test_shipments-L013：应交 33，签收 25，缺口 8\n- test_shipments-L014：应交 34，签收 27，缺口 7\n- test_shipments-L019：应交 24，签收 18，缺口 6\n- test_shipments-L020：应交 25，签收 20，缺口 5\n- test_shipments-L021：应交 26，签收 22，缺口 4\n- test_shipments-L022：应交 27，签收 24，缺口 3\n- test_shipments-L023：应交 28，签收 26，缺口 2\n- test_shipments-L024：应交 29，签收 28，缺口 1\n- test_shipments-L029：应交 34，签收 19，缺口 15\n- test_shipments-L038：应交 28，签收 18，缺口 10\n- test_shipments-L039：应交 29，签收 20，缺口 9\n- test_shipments-L040：应交 30，签收 22，缺口 8\n- test_shipments-L041：应交 31，签收 24，缺口 7\n- test_shipments-L042：应交 32，签收 26，缺口 6\n- test_shipments-L043：应交 33，签收 28，缺口 5\n- test_shipments-L044：应交 34，签收 30，缺口 4\n- test_shipments-L048：应交 23，签收 19，缺口 4\n- test_shipments-L049：应交 24，签收 21，缺口 3\n- test_shipments-L050：应交 25，签收 23，缺口 2\n- test_shipments-L051：应交 26，签收 25，缺口 1\n- test_shipments-L057：应交 32，签收 18，缺口 14\n- test_shipments-L058：应交 33，签收 20，缺口 13\n- test_shipments-L059：应交 34，签收 22，缺口 12\n- test_shipments-L067：应交 27，签收 19，缺口 8\n- test_shipments-L068：应交 28，签收 21，缺口 7\n- test_shipments-L069：应交 29，签收 23，缺口 6\n- test_shipments-L070：应交 30，签收 25，缺口 5\n- test_shipments-L071：应交 31，签收 27，缺口 4\n- test_shipments-L072：应交 32，签收 29，缺口 3\n- test_shipments-L073：应交 33，签收 31，缺口 2\n- test_shipments-L074：应交 34，签收 33，缺口 1\n- test_shipments-L076：应交 21，签收 18，缺口 3\n- test_shipments-L077：应交 22，签收 20，缺口 2\n- test_shipments-L078：应交 23，签收 22，缺口 1\n- test_shipments-L086：应交 31，签收 19，缺口 12\n- test_shipments-L087：应交 32，签收 21，缺口 11\n- test_shipments-L088：应交 33，签收 23，缺口 10\n- test_shipments-L089：应交 34，签收 25，缺口 9\n- test_shipments-L095：应交 25，签收 18，缺口 7\n- test_shipments-L096：应交 26，签收 20，缺口 6\n- test_shipments-L097：应交 27，签收 22，缺口 5\n- test_shipments-L098：应交 28，签收 24，缺口 4\n- test_shipments-L099：应交 29，签收 26，缺口 3\n- test_shipments-L100：应交 30，签收 28，缺口 2\n\n正缺口合计：300 件。\n\n四、结论与限制\n\n1. 总净差为 0 件，不等于全部到货无缺口。按 H2 规则，存在 300 件正缺口，即未满足数量为 300 件。\n2. 其余批次为签收等于应交或多签，不产生正缺口；多签数量不能用于抵消上述少签批次的正缺口。\n3. 材料未提供损毁、丢失、责任方或后续补救记录，因此不能认定少签原因，也不能宣称已全部交齐或已执行补交。\n4. 本报告仅依据给定材料进行逐批核对，不推断材料之外的事实。",
+  "input_tokens": 6267,
+  "output_tokens": 1310,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14989,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016587171ca3041a3a8c2b7f648d1ff1a7e90ae3f7c9820",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 1310,
+    "prompt_tokens": 6267,
+    "total_tokens": 7577,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

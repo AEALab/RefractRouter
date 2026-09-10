@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-dag-node-a:final-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"交付文本完整满足任务要求：分别核验了甲站（S1）与乙站（S2）报告，明确各自可支持的结论范围；比较结论部分系统列出了抽样方式、样本量、时间、题目、人群口径及数据缺失六项差异，并明确「不能据百分比直接认定甲服务更好」；补充数据清单具体且针对可比性障碍；保留了S1–S4来源编号；区分了已知事实与未知事项，未虚构数据或声称执行了工具。唯一小瑕疵是「乙站样本量约为甲站的4倍」虽计算正确（200/50=4），但属于简单算术，不构成问题。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": true, \"rationale\": \"文本结构完整覆盖「分别核验—比较结论—补充数据清单」三部分；事实与S1–S4一致（80%/50人/自愿、70%/200人/随机、春秋季、题目不同、缺失数据）；明确保留S1–S4编号；未直接认定甲更好。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"明确声明「未联网或调用工具」；将抽样框、回收率、总体规模等列为未知缺口；未编造置信区间或未回应人数；建议部分（补充数据清单）与事实部分分离；未虚构外部原因。\"}]}",
+  "input_tokens": 1247,
+  "output_tokens": 351,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13927,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015661645f0b662e0a22462bcc30964e8c71cc766ecc0e2",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 351,
+    "prompt_tokens": 1247,
+    "total_tokens": 1598,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

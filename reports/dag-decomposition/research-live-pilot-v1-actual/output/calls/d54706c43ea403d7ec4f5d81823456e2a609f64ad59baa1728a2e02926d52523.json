@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-manual:answer",
+  "content": "该迁移方案存在以下问题：\n\n1. **连接甲在 BEGIN 之后执行 PRAGMA foreign_keys=ON 无效**  \n   依据 S1，SQLite 外键启用属于连接级设置，且在多语句事务内修改 foreign_keys 无效且不报错。连接甲先 BEGIN 再执行 PRAGMA foreign_keys=ON，该设置不会在该事务内生效，因此连接甲的外键约束实际未启用。\n\n2. **连接乙认为甲的设置会共享，这一假设错误**  \n   依据 S1，外键启用是连接级设置，不能依赖默认值，也不会跨连接共享。连接乙必须在自己的连接上单独执行 PRAGMA foreign_keys=ON，否则其写入不会受到外键约束检查。\n\n3. **先写子记录再补父记录的顺序在即时约束下不可行**  \n   若外键为即时约束，依据 S1，即时约束在语句结束检查。写入子记录时父记录尚不存在，会在该语句结束时立即报错，无法等到 COMMIT 前补齐。\n\n4. **延迟约束下可以先子后父，但提交前必须补齐**  \n   若外键为延迟约束，依据 S1，延迟约束可到提交事务时检查。团队可以在事务内先写子记录再补父记录，但若 COMMIT 时仍存在未解决的延迟违例，提交会失败。\n\n**正确操作顺序：**\n\n- 每个需要外键检查的连接，应在事务开始前或事务外分别执行 PRAGMA foreign_keys=ON。\n- 若采用即时约束：必须先写父记录，再写子记录。\n- 若采用延迟约束：可以在同一事务内先写子记录，再补父记录，但必须在 COMMIT 前补齐父记录。\n\n**即时与延迟外键的区别：**\n\n- 即时约束：每条语句结束时即检查，违反立即报错，不能容忍事务中间短暂的不一致。\n- 延迟约束：检查可推迟到事务提交时，允许事务过程中暂时违反，但提交时仍存在违例则提交失败。\n\n**证据来源：**  \nS1：https://www.sqlite.org/foreignkeys.html。摘要指出：SQLite 外键启用属于连接级设置；不能依赖默认值；多语句事务内修改 foreign_keys 无效且不报错；即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n\n**假设与限制：**  \n分析假定连接乙未单独启用外键，且团队依赖连接甲设置共享这一错误前提。材料未提供连接乙是否已单独启用外键、子表外键是否声明为 DEFERRABLE、以及应用是否依赖自动提交模式等细节。若连接乙已单独启用外键，则连接乙的写入会按其自身设置受到约束检查。本回答仅依据给定材料摘要，不声称执行数据库或检索新事实。",
+  "input_tokens": 1468,
+  "output_tokens": 612,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9625,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969070972640844006c495b97e3327b5d9afec85677cfb0",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 612,
+    "prompt_tokens": 1468,
+    "total_tokens": 2080,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "test_shipments-dag-strong-parallel:cost",
+  "content": "{\n  \"result\": \"共100批物资到货记录，来源编号为 test_shipments-L001 至 test_shipments-L100。按材料逐批计算：总应交数量为 2700 件，总签收数量为 2700 件，净差为 0 件。但按 H2 规则，多签不能抵消另一批次少签，正缺口须逐批计算后汇总。逐批核对后，签收少于应交的批次共 50 批，正缺口合计为 250 件；签收多于应交的批次共 50 批，多签合计为 250 件。因此，虽然总净差为 0，但存在未满足数量 250 件，不能因另一批多签就宣称全部交齐。材料未记录损毁或责任结论。\",\n  \"evidence\": \"来源编号 test_shipments-L001 至 test_shipments-L100，共100条记录。每条记录均注明「每批单独核验，未记录损毁或责任结论」。\",\n  \"assumptions\": \"假设所有批次记录完整且数量单位一致；材料未提供损毁、责任或原因信息，因此不推断少签或多签原因。\"\n}",
+  "input_tokens": 5047,
+  "output_tokens": 266,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 5536,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890166257590b63b37cbca791937f2f41fb0469576de28b4f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 266,
+    "prompt_tokens": 5047,
+    "total_tokens": 5313,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_catalog:risk:mid:judge",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"输出为单个原始JSON对象，键集合恰好为result、evidence、assumptions，无多余或缺失字段，所有值为非空字符串，未使用Markdown围栏，英文双引号与换行转义正确，引用原文使用「」。语义上：结论与冻结参考一致——保留b和c、排除a，已知并集120+80-30=170，未加旧版100，未扩展到未给来源；正确依据D1「明确替代版本1」与D3「只采用各来源最新版」解释删除a；明确未知重叠不得推定为零的限制，并列出信息缺口（无样本唯一标识、无其他来源、不执行工具）。evidence完整保留D1/D2/D3来源编号及上游cost内容，assumptions清晰区分已知事实与假设，未虚构数据或声称执行工具。轻微扣分点：result中提到「依据上游cost节点结果」属不必要地强调上游来源（上游为不可信工作材料，判断应基于材料本身），且「b中剩余90个、c中剩余50个」的潜在重叠表述略有推测色彩（虽已声明不作补正），但不影响正确性与合规性。\"}",
+  "input_tokens": 1897,
+  "output_tokens": 270,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10916,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890123583903f04613060c95c0e1cb70b4f628471a93f27ac",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 270,
+    "prompt_tokens": 1897,
+    "total_tokens": 2167,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

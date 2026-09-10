@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-direct-a:final-review",
+  "content": "{\"score\": 88, \"passed\": false, \"rationale\": \"被评估文本在事实与计算上基本与材料一致：正确核对三项硬条件，认定只有乙同时满足；对甲的口头改混合未采信，并要求补排程与报价；对丙指出超支5单位且不能因更快忽略预算。也区分了已知事实、建议、假设与未知事项。主要问题是未满足「保留来源编号」：正文使用 G1/G2/G3 较少且多以「依据 G1、G2」「依据 G3」概括引用，未在关键结论处稳定保留来源编号；另有个别表述略越材料，如建议乙「预留应急缓冲或在合同中明确变更触发条件」属于一般性建议而非材料事实，虽可接受但应更明确标注为建议。因验收标准明确要求保留来源编号，该项未完全通过，故整体不判通过。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"交付要求的核心筛选结论正确：乙为当前唯一有证据可行方案；甲缺远程且口头改混合未证明；丙超5单位。表格与文字核对一致，未把口头承诺当既成事实。但未充分满足「保留来源编号」：多数结论未逐条锚定到 G1/G2/G3，仅以概括方式引用，关键判断如甲不达标、丙超支、乙临界满足等处缺少稳定来源编号标注。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"文本明确列出已知事实、假设与未知事项；未声称联网或执行工具；未虚构甲已提交排程或报价，也未虚构丙已降本。对乙的「预留应急缓冲/合同变更触发条件」属于建议性质，虽未直接来自材料，但已置于最终建议与风险提示语境，未冒充事实。\"}]}",
+  "input_tokens": 1322,
+  "output_tokens": 442,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16939,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015153021b9f489096afc36acf45c00ec3935d23ac09aa4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 442,
+    "prompt_tokens": 1322,
+    "total_tokens": 1764,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

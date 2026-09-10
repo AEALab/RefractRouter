@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-auto-cold:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案完整覆盖任务要求：指出连接设置不共享、事务内启用无效且不报错；给出每连接在事务外启用并读取确认状态的步骤；区分即时与延迟检查，说明先写子记录的可行性、补齐父记录与提交失败条件；未声称执行数据库或联网。\",\"criteria\":[{\"criterion\":\"指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。\",\"passed\":true,\"rationale\":\"答案明确指出连接甲的 PRAGMA foreign_keys=ON 只影响连接甲，连接乙不会共享；并指出连接甲先 BEGIN 再设置属于事务内修改，依据材料无效且不报错。正确操作顺序中要求连接甲和连接乙都在事务外执行 PRAGMA foreign_keys=ON，并读取 PRAGMA foreign_keys 确认返回值为 1。\"},{\"criterion\":\"区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。\",\"passed\":true,\"rationale\":\"答案区分即时约束在语句结束检查、延迟约束可到提交事务时检查；说明即时模式下先写子记录会在语句结束时违例，COMMIT 前补齐不能补救；延迟模式下可先写子记录再在 COMMIT 前补齐父记录，但未解决的延迟违例会使提交失败。答案没有把事务内的无效设置当作已生效。\"}]}",
+  "input_tokens": 1129,
+  "output_tokens": 304,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9317,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896914441439b5b0f4b57789945865e795386c3530bdad20",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 304,
+    "prompt_tokens": 1129,
+    "total_tokens": 1433,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

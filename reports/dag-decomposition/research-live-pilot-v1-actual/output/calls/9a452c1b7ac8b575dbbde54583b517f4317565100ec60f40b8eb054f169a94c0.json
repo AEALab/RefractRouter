@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-auto-reuse:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案完整且正确：明确指出 groupby 按相邻连续且键相等分组，原顺序产生 A、B、A、B 四组；解释了共享底层迭代器导致外层推进后前组未消费数据丢失，因而循环结束后再 list 会丢内容。修正版先按 itemgetter(0) 排序使同键相邻，并在当前组有效时立即用列表推导消费求和，给出期望输出 {'A': 5, 'B': 12}，且未声称已运行代码。\",\"criteria\":[{\"criterion\":\"指出原顺序产生 A、B、A、B 四组，解释共享迭代器使延后消费丢失内容。\",\"passed\":true,\"rationale\":\"答案说明实际产生「四组」并列出 A:[(\"},{\"criterion\":\"修正版按相同键排序并在当前组有效时消费，给出 A=5、B=12，不声称已运行。\",\"passed\":true,\"rationale\":\"修正版使用 sorted(data, key=itemgetter(0)) 排序，再在 groupby 循环内立即 values = [v for _, v in group] 并求和；期望输出为 {'A': 5, 'B': 12}，并说明 A=2+3=5、B=5+7=12。文本使用「期望输出」，未声称运行代码。\"}]}",
+  "input_tokens": 1008,
+  "output_tokens": 305,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11720,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969352738ca3041a3a8c2b7f648d1ff1a7e90ae3fbf68c7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 305,
+    "prompt_tokens": 1008,
+    "total_tokens": 1313,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

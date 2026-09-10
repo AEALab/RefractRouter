@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-direct-a:answer",
+  "content": "通知（简洁版）\n\n协调员请注意：材料核对完成后，请在**下周三上午十点前**将**六份**议程草稿提交给**会务组**。若材料仍有冲突，请先标明冲突来源，并于同一截止时间提交待确认版本。\n\n---\n\n**依据与说明**\n\n- **角色**：协调员（提交方）、会务组（接收方）— 源自 N1。\n- **数量**：六份议程草稿 — 源自 N1。\n- **截止时间**：下周三上午十点前 — 源自 N1。\n- **条件分支**：\n  1. 材料核对完成 → 按时提交六份议程草稿；\n  2. 材料仍有冲突 → 标明冲突来源，并在同一截止时间提交待确认版本。\n- **未涉及事项**（未在 N1 中出现，不作补充）：提交形式、联系人、议程内容范围等。\n- **限制说明**：本改写仅基于 N1 提供的原文，未引入外部事实、推断理由或操作记录。",
+  "input_tokens": 582,
+  "output_tokens": 218,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3678,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014632299b4a50cd25f47d4bb7d101bbb29abc519381267",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 218,
+    "prompt_tokens": 582,
+    "total_tokens": 800,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

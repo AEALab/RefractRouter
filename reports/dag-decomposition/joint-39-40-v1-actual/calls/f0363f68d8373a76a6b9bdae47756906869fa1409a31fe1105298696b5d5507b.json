@@ -1,0 +1,24 @@
+{
+  "label": "cal-direct-1-mid:final-review",
+  "content": "{\"score\":95,\"passed\":true,\"rationale\":\"答案完整满足交付要求：先决定保留记录（保留b和c、排除a），再计算已知去重规模（120+80-30=170），并解释了删除旧版的依据（内部规则采用最新版、版本2明确替代版本1）及未知重叠的限制（170是已知重叠下的下限，未知重叠不得推定为零，真实值可能更低）。事实和计算与材料一致，未虚构数据或操作。小瑕疵：未显式保留来源编号「D1」「D2」字样（仅描述了来源X、Y），且未明确复述「不能扩展到其他未给来源」的限制，但内容实质正确。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"答案按顺序完成保留决策、去重计算（120+80-30=170）、删除旧版依据及未知重叠限制的解释，事实与计算均与材料一致，正确指出旧版100不能加入计算。轻微不足：未在文中显式标注「D1」「D2」来源编号，且未明确说明不能扩展到其他未给来源，但不影响实质正确性。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"答案严格基于材料，明确区分已知事实（30个重叠、版本替代关系）与未知事项（可能存在的额外未知重叠使真实值低于170），未虚构任何数据、原因或已执行的操作，并声明无超出材料的额外假设。\"}]}",
+  "input_tokens": 1109,
+  "output_tokens": 358,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11955,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890121718598df8e1a1401bb5aa62b5b494646ada58ce1e7d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 358,
+    "prompt_tokens": 1109,
+    "total_tokens": 1467,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

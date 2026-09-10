@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-dag-quality:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本完整满足任务要求：同时检查了三个硬条件（六周内完成、支出≤40单位、提供远程途径），正确推荐当前唯一有证据可行的方案乙；对甲说明其口头承诺不能视为既成事实，需补排程、报价与远程安排；对丙指出超支5单位，需调整预算并提供新明细。事实与计算均与材料一致，保留G1/G2/G3来源编号，区分了已知事实、建议与未知事项，未虚构数据或声称执行工具。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"文本逐项核对三个硬条件，推荐乙，说明甲缺远程且修改未经证明、丙超支5单位，与冻结参考一致；数据与材料一致，并引用G1、G2、G3来源编号。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"文本明确区分已知事实、建议与未知事项，未把甲的口头承诺当作事实，未虚构任何数据，并声明未联网、未执行工具。\"}]}",
+  "input_tokens": 1023,
+  "output_tokens": 281,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9391,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890152252850e23c04e8b740c94d8512f0597aa5fa6a38108",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 281,
+    "prompt_tokens": 1023,
+    "total_tokens": 1304,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

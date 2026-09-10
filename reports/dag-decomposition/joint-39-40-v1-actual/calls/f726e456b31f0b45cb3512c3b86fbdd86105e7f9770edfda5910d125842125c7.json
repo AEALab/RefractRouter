@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:cost:cheap:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"输出为单个 JSON 对象，键集合与 contract.output.fields 完全一致（result/evidence/assumptions），均为非空字符串，无虚构工具执行声明，保留了来源编号、假设与不确定性，并正确区分了「需求超过容量」与「实际超载」、说明了无延误原因证据。按线路核验：甲组需求 1293、乙组 1284、丙组 1287、丁组 1247，容量各 1200，与冻结参考一致；总需求 5111、总容量 4800 也正确。主要缺陷：按 T2「需求超出部分记为未满足需求」，未满足需求应按每班 max(需求-容量,0) 逐条累加，冻结参考给出正缺口分别为甲 182、乙 182、丙 184、丁 156（合计 704），而答案直接用组总需求减总容量（93/84/87/47，合计 311），这等于让组内未超容量班次的富余抵消了超需求班次的缺口，与「每条记录是独立的一班需求」「不与其他组抵消」的语义相悖，未满足需求口径错误。此外 assumptions 中「仅当需求大于容量时计为未满足」的表述与其实际采用的净额算法不一致。尽管核心汇总（需求、容量）正确且限制说明到位，未满足需求这一关键交付指标口径有误，故扣分。\"}",
+  "input_tokens": 9945,
+  "output_tokens": 329,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12933,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013166444b531818cd979bd70c39b690ac6f2390294b721",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 329,
+    "prompt_tokens": 9945,
+    "total_tokens": 10274,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

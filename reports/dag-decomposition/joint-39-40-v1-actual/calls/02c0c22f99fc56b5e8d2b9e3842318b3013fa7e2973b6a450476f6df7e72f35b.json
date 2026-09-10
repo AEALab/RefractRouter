@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-auto-cold-a:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"拆分计划整体合理：verify_s1 与 verify_s2 分别覆盖两份报告核验，compare 依赖二者生成比较结论与补充数据清单，answer 汇总为最终正文，交付要求均有明确职责覆盖；依赖边均有真实字段消费，无无意义串行；上下文充分，材料与来源编号可追溯；节点职责不重复，能力声明合理。主要瑕疵是验收条目遗漏了「不能据百分比直接认定甲服务更好」这一原始硬性要求（虽在节点 checks 中有覆盖，但顶层 acceptance_criteria 未显式列出），以及 covers 字段统一为 [0,1] 较为笼统，未精确映射各交付条目。这些属于轻微缺陷，不影响整体可执行性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"「分别核验两份报告」由 verify_s1、verify_s2 覆盖，「比较结论和补充数据清单」由 compare 覆盖，「不能据百分比直接认定甲服务更好」在 compare 与 answer 的 prompt 及 checks 中均有明确要求，最终 answer 节点汇总全部交付物。原始条件未被改写或降低，仅顶层 acceptance_criteria 未显式列出禁止直接认定甲更好一条，但节点层面已覆盖，职责覆盖完整。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"compare 依赖 verify_s1、verify_s2 并在 inputs 中声明消费其全部字段且给出理由；answer 依赖三个上游节点并声明字段消费；verify_s1 与 verify_s2 无依赖可并行。所有边均有真实字段消费，无无意义串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"每个节点 prompt_template 均完整内嵌 S1–S4 材料及封闭场景约束，要求保留来源编号、不虚构数据；上游结果通过 {{verify_s1}} 等占位符传递，来源可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"任务含两项可并行的独立核验，拆分合理；四节点职责互不重复（两核验、一比较、一整合）；answer 节点按要求顺序汇总核验与比较内容，包含原始任务全部所需内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"difficulty、risk、input_budget_tokens、expected_output_tokens 声明与文本生成任务匹配；两项核验低耦合可并行，比较与整合存在真实依赖，拆分粒度与耦合程度相符。轻微瑕疵：covers 统一标 [0,1] 未精确区分各节点覆盖的交付条目，但不影响能力声明合理性。\"}]}",
+  "input_tokens": 2785,
+  "output_tokens": 664,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 20515,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015618975e78c31fe06d4434dfef0260629e4a08b51407d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 664,
+    "prompt_tokens": 2785,
+    "total_tokens": 3449,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

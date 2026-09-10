@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-manual:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案完整满足原任务与全部验收条目。它正确指出 groupby 按相邻连续且键相等分组，原输入会产生「A、B、A、B」四组，而不是把相同键全局聚合；也解释了各组迭代器共享底层输入、外层推进后延迟 list 会丢失或无法可靠取得内容。修正版先按相同键排序，并在组仍有效时立即消费求和，给出期望输出「{\"}",
+  "input_tokens": 929,
+  "output_tokens": 116,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6212,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969262257d6f60410e67e178f28d968f0420b51c3cc98c3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 116,
+    "prompt_tokens": 929,
+    "total_tokens": 1045,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

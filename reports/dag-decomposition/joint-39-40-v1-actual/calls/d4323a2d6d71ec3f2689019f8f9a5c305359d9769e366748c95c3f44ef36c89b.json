@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_recruit:cost:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始JSON对象，键集合恰好为result、evidence、assumptions，均为非空字符串，符合契约。计算正确：线下20-12=8候补、远程16-12=4候补、入选12+12=24、总候补12，且12≥10满足R3对远程与线下各至少10人的目标，与冻结参考一致。证据字段引用R1-R4来源编号，区分了已知事实、建议与未知事项，未虚构数据，未声称已随机抽样或已取得同意，也未声称执行工具或联网。匿名化要求（仅用匿名编号、待联系表本地保管、不进入公开报告）已覆盖，未核实前提（候补排序、同意记录、纳入排除标准、编号规则、递补触发条件等）列出充分。轻微不足：assumptions中将「无重复或缺漏报名者」表述为假设，而材料R1的20+16=36与总数一致属于可直接核对的事实而非假设，措辞略欠精确；另有个别表述如「按材料无重叠」略带推断色彩，但不影响整体正确性与合规性。\"}",
+  "input_tokens": 2028,
+  "output_tokens": 261,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18971,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012685361b531818cd979bd70c39b690ac6f2390247b79f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 261,
+    "prompt_tokens": 2028,
+    "total_tokens": 2289,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

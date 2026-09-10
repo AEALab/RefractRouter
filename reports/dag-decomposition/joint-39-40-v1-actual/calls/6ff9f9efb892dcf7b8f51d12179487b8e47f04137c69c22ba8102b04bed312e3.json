@@ -1,0 +1,24 @@
+{
+  "label": "handoff-1:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"交付完整满足任务要求：先决定保留b、c并排除a，再计算已知去重规模170，解释删除旧版a依据D1替代关系与D3只采用最新版规则，并明确未知重叠不得推定为零、170为已知重叠上限。事实、计算与材料一致，未虚构来源、数据或工具执行。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"答案明确保留「记录b」「记录c」、删除「记录a」，与冻结参考一致；计算「120 + 80 − 30 = 170」正确，并说明不能把旧版100加入保留集，也不能扩展到未给来源。引用D1、D2、D3作为依据，事实和计算均与材料一致。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"答案将D1替代关系、D2的30重叠、D3最新版与未知重叠规则列为已知依据；对b与c是否另有重叠、b内部是否重复、Y是否有其他版本均标明未知或不作推定。未声称联网或执行工具，未虚构机构、法律规则或额外数据。\"}]}",
+  "input_tokens": 1054,
+  "output_tokens": 300,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14291,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890124616117093713527b8c530401a403eec8fc1522d37c0",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 300,
+    "prompt_tokens": 1054,
+    "total_tokens": 1354,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

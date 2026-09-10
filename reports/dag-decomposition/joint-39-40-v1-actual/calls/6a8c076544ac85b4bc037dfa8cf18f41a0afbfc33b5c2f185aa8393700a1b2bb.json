@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:cost:mid:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"被评估文本为单个原始JSON对象，键集合恰好为result、evidence、assumptions，均为非空字符串，满足输出契约；未声称执行工具或联网。逐条枚举了100条记录并保留来源编号，批次判断「不合格」（80%<90%）方向正确，且按Q2未推断故障原因、按Q3未删除异常重算，assumptions中明确了限制。但存在多处计算错误：甲组实际为25条（合格15、异常10），文本误写为「共24条，合格20、异常4」；乙组实际异常5条（26出现5次：第9、29、49、69、89次），合格20条，文本误写为「异常4条、合格21条」；丙组实际异常10条（17与25各5次），合格15条，文本误写为「异常8条、合格17条」；丁组实际异常5条（26出现5次），合格20条，文本误写为「异常4条、合格21条」。与冻结参考（甲15/10、乙20/5、丙15/10、丁20/5）对比，分组合格/异常分布全部不符。巧合的是各组错误相互抵消，整批合计80/20与80.00%仍正确，批次结论不受影响。因核心交付之一「逐组汇总合格与异常记录」存在系统性计数错误，扣分但不能判为完全失败。\"}",
+  "input_tokens": 8875,
+  "output_tokens": 339,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12103,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013743708efca7158d8a072a352f4e6ec3154e35a497e71",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 339,
+    "prompt_tokens": 8875,
+    "total_tokens": 9214,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

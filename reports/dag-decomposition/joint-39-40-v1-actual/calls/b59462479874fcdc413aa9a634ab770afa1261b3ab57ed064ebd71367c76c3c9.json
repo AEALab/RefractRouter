@@ -1,0 +1,24 @@
+{
+  "label": "cal-direct-1-cheap:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案先决定保留记录b与c、删除a，再计算已知去重规模：已知重叠30，去重后总量120+80-30=170；并明确删除旧版依据是D3「只采用各来源最新版」及材料中版本2「明确替代版本1」，同时说明未知重叠不得推定为零、170仅基于已知重叠且未来发现额外重叠需调减。事实、计算与材料一致，保留了来源编号，未虚构数据或声称执行工具。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"交付顺序符合要求：先保留/删除决定，再计算与解释。保留b、c，排除a；已知并集为120+80-30=170；未把旧版100加入，也未扩展到未给来源。来源X/Y、版本1/2与样本数均与材料一致。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"答案将删除依据限定为D3最新版规则与材料中的替代关系，将30个重叠列为已知事实，将其他可能重叠列为未知且不得假设为零；未编造额外原因、数据，也未声称联网或执行工具。\"}]}",
+  "input_tokens": 848,
+  "output_tokens": 308,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11142,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012113325137f500080bf18603e76d17d12e7c43e709b50",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 308,
+    "prompt_tokens": 848,
+    "total_tokens": 1156,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fixed-direct:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"答案正确指出外键启用是连接级设置、不能共享，且事务内修改无效且不报错；给出每连接在事务外启用并读取状态的顺序；区分即时与延迟约束，说明先写子记录仅在延迟约束下可行、提交时仍有未解决违例则失败；未声称执行数据库，且明确只依据给定材料。\",\"criteria\":[{\"criterion\":\"指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。\",\"passed\":true,\"rationale\":\"答案明确说明连接甲的设置不会共享给连接乙，事务内执行 PRAGMA foreign_keys=ON 无效且不报错，并要求每个连接在 BEGIN 前于事务外启用，再用 PRAGMA foreign_keys 读取确认返回 1。\"},{\"criterion\":\"区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。\",\"passed\":true,\"rationale\":\"答案区分即时约束在语句结束检查、延迟约束可推迟到提交时检查；说明即时约束下必须先写父记录，延迟约束下可先写子记录但须在 COMMIT 前补齐，且提交时存在未解决违例会失败；同时未把事务内无效设置描述为已生效。\"}]}",
+  "input_tokens": 1170,
+  "output_tokens": 282,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9014,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969652026770d3492782dd10cc0a489fec0a72eadfa96ff",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 282,
+    "prompt_tokens": 1170,
+    "total_tokens": 1452,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

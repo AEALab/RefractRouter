@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:cost:mid:judge",
+  "content": "{\"score\": 58, \"passed\": false, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，均为非空字符串，未复制元数据，未声称执行工具或实施删除，符合形式契约。实质内容上，最终汇总（A=33、B=34、C=33；锁定 11/0/0；待审批 16/16/8）与冻结参考一致，待审批编号清单也正确，证据与假设字段保留了来源与不确定性。但存在严重质量问题：(1) result 字段充斥大量自相矛盾的中间演算与反复「修正」，先断言「A类共25件」「B类符合待审批=10件」「C类共25件」「合计75件」等错误结论，再推翻，最终才给出正确数字，可读性与可靠性差，违反「只交付本节点分析」的简洁要求；(2) 多处推导混乱，如 B 类年龄分布一度算出「8+8+9+9=34≠25」、编号列表与件数反复不一致，虽最终修正，但中间错误陈述可能被误采信；(3) 第一部分曾给出错误的 A 类待审批数 14 件，后在第三部分才改为 16 件，前后结论冲突未明确标注哪一版为最终。鉴于最终结果正确且限制声明完整，给予及格线以下偏中分数。\"}",
+  "input_tokens": 15228,
+  "output_tokens": 311,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12007,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890142694223d3436761e68cde6bd2815b0b11060ac332623",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 311,
+    "prompt_tokens": 15228,
+    "total_tokens": 15539,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

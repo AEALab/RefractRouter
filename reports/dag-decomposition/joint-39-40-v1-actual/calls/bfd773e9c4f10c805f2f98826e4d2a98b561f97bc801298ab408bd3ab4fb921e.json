@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-dag-node-a:risk",
+  "content": "{\n  \"result\": \"甲站报告80%满意，乙站报告70%满意，但两者不可直接比较。甲站基于50位到访者的自愿问卷，样本量小且存在自愿回应偏差，可能高估满意度；乙站基于200位会员的随机抽样，样本量较大且随机性较好，但调查时间不同（春季与秋季）且问卷题目不同，可能影响结果。因此，不能仅凭百分比认定甲服务更好。比较结论：在现有信息下，无法确定哪个站点的服务更优；乙站的抽样方法更严谨，但甲站的满意度数值更高，需谨慎解读。补充数据清单：未回应人数、总体规模、原始答卷、问卷题目内容、调查具体时间、样本代表性说明、置信区间或误差范围。\",\n  \"evidence\": \"S1：甲站报告80%满意，来自50位到访者的自愿问卷。S2：乙站报告70%满意，来自200位会员的随机抽样。S3：调查时间分别为春季和秋季，问卷题目不同。S4：两份报告都没有给出未回应人数、总体规模或原始答卷。\",\n  \"assumptions\": \"假设自愿问卷存在回应偏差，随机抽样更可靠；假设春季和秋季的满意度可能受季节影响；假设问卷题目不同导致结果不可比；信息缺口包括未回应人数、总体规模、原始答卷、问卷具体内容、调查具体日期、样本代表性、统计误差。\"\n}",
+  "input_tokens": 641,
+  "output_tokens": 307,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5215,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890156398287093713527b8c530401a403eec8fc152efe2ac",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 307,
+    "prompt_tokens": 641,
+    "total_tokens": 948,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

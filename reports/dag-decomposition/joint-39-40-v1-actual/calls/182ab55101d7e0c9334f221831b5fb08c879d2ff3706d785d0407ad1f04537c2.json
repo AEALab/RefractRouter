@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_archive:risk:cheap:judge",
+  "content": "{\"score\": 18, \"passed\": false, \"rationale\": \"输出为单个原始 JSON 对象，键集合与 contract.output.fields 一致，且包含 evidence 与 assumptions，未声称执行工具；但核心事实与计算严重错误且自相矛盾。材料明确为 L001-L100 共 100 件，冻结参考给出 A=33、B=34、C=33，锁定=11，待审批 A=16、B=16、C=8；答案却称「A类共25件、B类共25件、C类共25件、总计75件」，并在同一段中先写 A 锁定 5 件又改口 11 件，待审批数量也先后写成 14/21、10/17、10/17，未给出可信修正结果。证据字段列出的符合条件编号大量与类别或锁定状态不符（例如把 L002、L005 等 C 类列入 B/C 待审批，且 C 类 120 天并不超过 365 天），违反「事实和计算与材料一致」「保留证据与假设，不虚构数据」。虽然提到不执行外部动作和限制，但正确性不足，不能通过。\"}",
+  "input_tokens": 8237,
+  "output_tokens": 269,
+  "cached_input_tokens": 3584,
+  "reasoning_tokens": 0,
+  "latency_ms": 11140,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014310109fc7578b59e843c90e5af4aa62e8cfda9105b60",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 269,
+    "prompt_tokens": 8237,
+    "total_tokens": 8506,
+    "prompt_tokens_details": {
+      "cached_tokens": 3584
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

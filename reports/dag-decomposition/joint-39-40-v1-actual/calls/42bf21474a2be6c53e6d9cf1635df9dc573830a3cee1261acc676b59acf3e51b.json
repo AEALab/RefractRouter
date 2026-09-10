@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-dag-node-a:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"交付仅含一张简短行动项表与一条待确认事项；设备组「周五前给出检查清单」与 M1 一致，运营组「汇总现场反馈，完成日期尚未确定」与 M2 一致且未把未知期限补成周五，周三试运行被明确标为未表决建议而非已批准决定，与 M3 及冻结参考一致；各项均保留来源编号 M1/M2/M3，未虚构事实或声称执行工具。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"输出包含且仅包含行动项表与一条待确认事项；两个行动项和待确认事项均与 M1、M2、M3 表述一致，并逐项标注来源编号。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"已批准决定（设备组周五前检查清单）与未表决建议（周三试运行）明确区分，运营组期限保持「尚未确定」未补成周五，未添加材料外信息，也未声称联网或执行工具。\"}]}",
+  "input_tokens": 487,
+  "output_tokens": 276,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12032,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014860214795aa3a4ba36fe885727fc31a219ca2557ca08",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 276,
+    "prompt_tokens": 487,
+    "total_tokens": 763,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

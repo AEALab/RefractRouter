@@ -1,0 +1,30 @@
+{
+  "calls": 6,
+  "artifact_hashes_verified": 7,
+  "all_billed": true,
+  "acceptance_criteria_present_in_every_generation_call": true,
+  "actual_afp": {
+    "production": 2.9051,
+    "evaluation": 3.037
+  },
+  "total_actual_afp": 5.9421,
+  "runs": [
+    {
+      "run_id": "sqlite-fixed-direct",
+      "status": "completed",
+      "score": 100,
+      "delivered": true,
+      "deployment_cost": 2.1323499999999997,
+      "wall_time_ms": 22862.126584048383
+    },
+    {
+      "run_id": "sqlite-fixed-manual",
+      "status": "completed",
+      "score": 100,
+      "delivered": true,
+      "deployment_cost": 3.8097499999999997,
+      "wall_time_ms": 34668.97583298851
+    }
+  ],
+  "independent_holdout": false
+}

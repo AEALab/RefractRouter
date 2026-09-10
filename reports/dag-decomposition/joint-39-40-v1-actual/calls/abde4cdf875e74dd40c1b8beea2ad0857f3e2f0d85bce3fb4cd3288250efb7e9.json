@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_grant-b:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该拆分计划采用单节点策略，符合任务规模小、材料短、检查项强耦合的特点，避免了不必要的拆分开销。计划完整覆盖了原始交付要求：三个硬条件检查、基于证据的推荐、其他方案补充说明，且明确禁止将口头承诺视为既成事实。上下文充分，来源编号（G1、G2、G3）可追溯，节点能力声明合理。唯一可改进之处是「covers」字段使用数字索引（[0,1]）而非明确的内容描述，虽然可推断对应交付要求，但降低了可读性；此外，prompt_template 中「保留来源编号」的指令与 checks 中「保留G1、G2、G3来源编号」的表述略有差异，但实质要求一致。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点 prompt_template 完整覆盖三项交付要求：1) 三个硬条件逐项检查并保留来源编号；2) 推荐当前有证据可行的方案；3) 说明其他方案需补充的证据或调整。未降低任何要求，且明确禁止将口头承诺视为既成事实。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"单节点无父节点，无依赖边，符合任务无需拆分的特性，未制造无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 完整包含 G1、G2、G3 原始材料，要求保留来源编号，并明确「对材料未说明的事项保持未知或写成条件判断，不虚构原因、数据或已执行的操作」。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"单节点职责清晰无重复，contract 的 output 字段和 checks 均要求输出包含三个硬条件检查、推荐结论、其他方案补充说明的完整正文，汇总内容完整。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明 difficulty 为 low、risk 为 low，input_budget_tokens 16384 和 expected_output_tokens 1200 与任务规模匹配；decomposition_reason 合理说明三个硬条件检查强耦合，拆分无并行收益，单节点最合适。\"}]}",
+  "input_tokens": 1211,
+  "output_tokens": 579,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19541,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890149616007093713527b8c530401a403eec8fc152e979e3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 579,
+    "prompt_tokens": 1211,
+    "total_tokens": 1790,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

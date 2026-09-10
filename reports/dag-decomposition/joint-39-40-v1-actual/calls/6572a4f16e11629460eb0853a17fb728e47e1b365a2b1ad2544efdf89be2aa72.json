@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_workshop:risk:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为「result」「evidence」「assumptions」，均为非空字符串，符合契约。内容与冻结参考一致：讲座安排周二14至16时（满足连续2小时、投影仅周二、18人≤20人）；摄影每场3小时，周四仅容一场，24人超过20人不能单场完成，第二场缺少可用连续3小时时段（周二仅2小时且被讲座占用，不能延长开馆），当前资源不能覆盖24人。证据字段保留了 L1–L4 来源编号，假设字段明确区分信息缺口、假设与未知事项，未虚构额外场地或工具执行。轻微不足：假设中「修复讲座优先占用周二时段」的优先级表述略带推断色彩，但已明确标注为假设，且投影仅周二可用使该安排实为必然，故仅小幅扣分。\"}",
+  "input_tokens": 1480,
+  "output_tokens": 207,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10228,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890119988990b63b37cbca791937f2f41fb0469576d6cf8bd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 207,
+    "prompt_tokens": 1480,
+    "total_tokens": 1687,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

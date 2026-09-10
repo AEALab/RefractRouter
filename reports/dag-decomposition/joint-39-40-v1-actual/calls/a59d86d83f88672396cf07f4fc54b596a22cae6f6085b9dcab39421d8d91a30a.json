@@ -1,0 +1,24 @@
+{
+  "label": "test_notice-direct-a:final-review",
+  "content": "{\"score\": 45, \"passed\": false, \"rationale\": \"交付要求明确「改写成一段更简洁的通知」且「不增加理由或分析章节」，但被评估文本在通知正文之后附加了「依据与说明」章节，包含依据列表、未涉及事项与限制说明，属于分析性章节，直接违反交付要求。通知正文本身保留了协调员、六份、下周三上午十点前、会务组及两个条件分支，内容准确；附加章节中关于「未涉及事项」与「限制说明」的陈述与材料一致，未虚构事实或工具执行声明，但整体上未按「一段简洁通知」的规格交付。\", \"criteria\": [{\"criterion\": \"用一段简洁通知保留原角色、数量、截止时间、接收方和全部条件分支，不添加分析章节。\", \"passed\": false, \"rationale\": \"通知正文保留了协调员、会务组、六份、下周三上午十点前及两个条件分支（核对完成提交草稿；有冲突标明来源并同时提交待确认版本），但交付物在正文后附加了「依据与说明」分析章节（含依据、未涉及事项、限制说明），违反「一段更简洁的通知」和「不增加理由或分析章节」的明确要求。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"文本未引入 N1 之外的事实，明确列出「未涉及事项」并声明仅基于 N1，未虚构原因、数据或声称执行过工具操作；加粗强调虽为格式添加但不构成事实虚构。\"}]}",
+  "input_tokens": 641,
+  "output_tokens": 361,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10605,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014636102770d3492782dd10cc0a489fec0a72eadbb649b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 361,
+    "prompt_tokens": 641,
+    "total_tokens": 1002,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "wai-chart-manual:cost",
+  "content": "{\n  \"result\": \"核对结果：图表为季度访问量柱状图，纵轴从0开始，单位为千次。站点甲一月至三月访问量分别为120、90、60，呈逐月下降趋势；站点乙一月至三月访问量均为80、80、80，呈持平趋势。现有替代文本「访问量图」过短，未表达关键数值、站点对比和趋势；详细数据仅在鼠标悬浮时显示，键盘用户、触屏用户及部分辅助技术用户可能无法可靠获取，不满足复杂图像需要简短替代文本加可见详细说明的要求。\",\n  \"evidence\": \"来源 S1：https://www.w3.org/WAI/tutorials/images/complex/。摘要指出：复杂图像需要能识别图像的简短替代文本，以及表达关键信息的详细文本说明；详细说明可包括数值、比例尺、关系、趋势；详细说明宜让所有读者可访问，例如放在主内容中，并可在图像附近提供说明链接。本节点仅依据该材料摘要及任务给定图表数值进行核对，未联网或执行工具。\",\n  \"assumptions\": \"假设任务给定的月度数值和纵轴尺度准确，且柱状图仅包含站点甲、站点乙两个数据系列。未获得原始图像文件，无法核对颜色、图例、柱体位置等视觉细节；未进行辅助技术实测，因此不能声称已通过辅助技术测试。下降原因不在本节点职责范围内，不作推断。\"\n}",
+  "input_tokens": 599,
+  "output_tokens": 310,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6260,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969391047ed0e184fb98d17720dee9f0ee33ee7e1fd06d9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 310,
+    "prompt_tokens": 599,
+    "total_tokens": 909,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

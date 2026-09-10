@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-direct-b:final-review",
+  "content": "{\"score\": 92, \"passed\": false, \"rationale\": \"答案的行动项表与待确认事项内容正确：A1 设备组检查清单周五前（M1）、A2 运营组汇总现场反馈期限未定（M2）、周三试运行仅作未表决建议（M3），来源编号保留，未把未知期限补成周五，事实与冻结参考一致。但交付要求明确「仅输出一张简短行动项表和一条待确认事项」，答案额外附加了「假设与说明」段落，违反了「仅输出」的格式约束，因此不能判为完全通过。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"事实与材料一致且来源编号（M1/M2/M3）保留，但交付要求为「仅输出一张简短行动项表和一条待确认事项」，答案额外包含「假设与说明」部分，超出规定输出范围，未完整满足交付格式要求。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"正确区分已决定事项（A1、A2）与未表决建议（周三试运行），A2 期限保留为「未定」未补成周五，未虚构负责人、日期或背景信息，未声称执行任何工具操作。\"}]}",
+  "input_tokens": 668,
+  "output_tokens": 320,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9331,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014774820923718d11d313173fa258a554449eb879cdc27",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 320,
+    "prompt_tokens": 668,
+    "total_tokens": 988,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

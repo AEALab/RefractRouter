@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-auto-cold:plan-review",
+  "content": "{\"score\": 97, \"passed\": true, \"rationale\": \"该拆分计划以单节点覆盖原始任务全部交付条件，prompt_template 完整内嵌封闭材料 S1 摘要并明确禁止联网、执行工具及声称执行数据库；contract.checks 与 acceptance_criteria 逐条对应连接级设置不共享、事务内修改无效且不报错、事务外启用并读取确认、即时/延迟检查区别、先子后父写入在两种模式下的补齐与提交条件等要求，未改写或降低条件。无父节点依赖，符合无意义串行依赖的禁止；covers 引用 checks 索引 0、1 对应前两项检查，虽仅覆盖部分检查项，但其余检查由 prompt 与 acceptance_criteria 承接，不构成虚构数据或职责缺失。节点能力 difficulty=medium、risk=low、input_budget_tokens=16384、expected_output_tokens=1500 与任务耦合程度匹配，decomposition_reason 合理说明不拆分原因。未发现不实工具执行声明或材料外事实引入。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"prompt_template 与 contract.checks 明确覆盖逐条问题、正确操作顺序、即时与延迟区别三部分，并保留「不声称执行数据库」「不把事务内无效设置写成已生效」等原始限制，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"parents 为空，无声明边；单节点自包含，不存在无真实字段消费的依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 完整嵌入来源 S1 URL 及官方材料摘要，输入可追溯，未虚构缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"单节点职责唯一，final_node_id 指向 answer，输出格式 text 包含原始任务所需全部内容，decomposition_reason 合理说明不拆分原因。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"difficulty=medium、risk=low、input_budget_tokens=16384、expected_output_tokens=1500 与封闭材料文本生成任务匹配，拆分粒度与任务高耦合程度一致。\"}]}",
+  "input_tokens": 1276,
+  "output_tokens": 560,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 19355,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969112238b9f489096afc36acf45c00ec3935d23a8a0dd1",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 560,
+    "prompt_tokens": 1276,
+    "total_tokens": 1836,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

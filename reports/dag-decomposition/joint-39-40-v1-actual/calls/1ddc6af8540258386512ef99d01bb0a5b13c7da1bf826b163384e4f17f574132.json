@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-2-cheap:final-review",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"交付文本与冻结参考完全一致：线下12、远程12，总24；线下候补8、远程候补4；明确满足各至少10且未改变研究目标；匿名化要求（匿名编号、待联系表本地保管、不贴公开报告）得到复述；未核实前提（无随机抽样记录、无同意确认记录）被如实列出，未声称已随机抽样或已取得同意。计算正确（20-12=8，16-12=4，8+4=12），并保留了R1-R4来源编号。未知事项（候补顺序、名额互用性假设）被明确标注为假设或未知，未虚构已执行操作。仅轻微扣分：来源编号引用可更系统（如每条结论后标注），但不影响正确性与完整性。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": true, \"rationale\": \"名额分配、候补方案、目标核对、匿名化与未核实前提五项交付内容齐全；数字与材料及冻结参考一致（线下12/远程12/候补8/候补4/总24）；各节引用了R1、R2、R3、R4来源编号。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"明确区分已知事实（报名人数、名额、目标）与未知事项（同意记录、随机抽样、候补顺序、名额互用性），将名额互不通用标注为「本方案假设」，未声称已联系、已确认、已随机抽样或已取得同意，未为满额改变研究目标。\"}]}",
+  "input_tokens": 912,
+  "output_tokens": 387,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15628,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012518897efca7158d8a072a352f4e6ec3154e35ae4e798",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 387,
+    "prompt_tokens": 912,
+    "total_tokens": 1299,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

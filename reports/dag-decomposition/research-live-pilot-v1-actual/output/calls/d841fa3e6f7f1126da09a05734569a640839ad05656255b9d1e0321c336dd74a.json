@@ -1,0 +1,24 @@
+{
+  "label": "wai-chart-auto-reuse:answer",
+  "content": "1. 简短替代文本  \n站点甲与站点乙一月至三月访问量柱状图，单位为千次。\n\n2. 可见长说明  \n该柱状图展示站点甲与站点乙在一月至三月的季度访问量，纵轴从0开始，单位为千次。  \n站点甲：一月120千次，二月90千次，三月60千次，逐月递减。  \n站点乙：一月80千次，二月80千次，三月80千次，保持稳定。  \n本说明不推断站点甲访问量下降的原因。\n\n3. 发布检查项  \n- 替代文本是否识别该季度访问量柱状图，而非笼统写作“访问量图”。  \n- 详细说明是否可见并放在主内容中，不依赖鼠标悬浮即可阅读。  \n- 数值与单位是否准确：站点甲120、90、60；站点乙80、80、80；单位为千次；纵轴从0开始。  \n- 是否避免虚构站点甲下降原因。  \n- 是否避免声称已通过辅助技术测试。",
+  "input_tokens": 986,
+  "output_tokens": 225,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4451,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896950087189d0c17fc196b3c940c12dd7ad5b500b57353a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 225,
+    "prompt_tokens": 986,
+    "total_tokens": 1211,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_surveys-b:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划完整覆盖了原始任务的所有交付要求。verify_a 和 verify_b 分别独立核验两份报告，职责清晰且可并行；answer 节点依赖两者的输出字段（report、supported_conclusions、limitations、unknowns、evidence）进行汇总，依赖关系真实且必要。上下文传递充分，prompt_template 中完整保留了 S1-S4 的原始材料，无需虚构数据。节点能力声明合理，输入预算和输出预期符合任务规模。acceptance_criteria 准确反映了任务的核心约束（保留来源编号、不虚构、区分事实与未知）。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"计划通过 verify_a、verify_b 分别覆盖「分别核验两份报告」的要求，通过 answer 节点覆盖「比较结论和补充数据清单」及「不能据百分比直接认定甲服务更好」的要求，所有原始交付条件均有明确节点负责，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer 节点的 parents 声明为 [verify_a, verify_b]，且其 prompt_template 中明确通过 {verify_a} 和 {verify_b} 占位符消费上游的 report、supported_conclusions、limitations、unknowns、evidence 字段，依赖关系真实必要，无无意义串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"所有节点的 prompt_template 均完整包含 S1-S4 的原始材料描述，answer 节点额外接收上游核验结果，上下文充分；checks 中明确要求「保留来源编号」「不虚构数据」，确保可追溯性。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"节点职责划分清晰：verify_a 只核验甲站，verify_b 只核验乙站，answer 负责汇总比较，无重复劳动；answer 的 checks 要求「完整保留两份核验的分析内容」，确保汇总包含原始任务所需的全部分析内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"verify_a/verify_b 声明为 low difficulty/risk，input_budget_tokens 16384、expected_output_tokens 1200，与单报告核验任务匹配；answer 声明为 medium difficulty/risk，input_budget_tokens 65536 以容纳两份上游输出，expected_output_tokens 2400 合理；拆分符合「两独立核验+一汇总」的天然耦合结构。\"}]}",
+  "input_tokens": 2178,
+  "output_tokens": 616,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17833,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015300915f0b662e0a22462bcc30964e8c71cc766e3e5bb",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 616,
+    "prompt_tokens": 2178,
+    "total_tokens": 2794,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

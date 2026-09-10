@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-dag-single-b:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本逐项检查三个硬条件：甲满足六周和预算但不满足远程；乙三项全满足；丙满足时间和远程但预算45单位超过40单位。结论与冻结参考一致：只有乙同时满足，甲缺远程且修改未经证明，丙超5单位且未因更快而忽略预算。文本明确将甲的混合方式主张标为口头承诺而非既成事实，并要求补排程、报价与远程覆盖说明；对丙要求调整预算至不超过40单位。文本保留G1、G2、G3来源编号，区分已知事实、建议和未知事项，未虚构数据、原因或已执行操作，也未声称联网或执行工具。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"同时检查三个硬条件，推荐当前有证据可行的乙；说明甲需补混合方式排程、远程覆盖和不追加成本报价，丙需把45单位调至不超过40单位；未把G3口头承诺当作事实。事实与计算一致，并引用G1、G2、G3。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"明确列出已知事实、建议和未知事项；对甲混合方式成本、丙调整后成本构成、乙未披露风险均标明材料未提供且不推测；未虚构外部规则、机构信息、数据或工具执行。\"}]}",
+  "input_tokens": 1015,
+  "output_tokens": 341,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12831,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015047232d6f60410e67e178f28d968f0420b51c353a695",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 341,
+    "prompt_tokens": 1015,
+    "total_tokens": 1356,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

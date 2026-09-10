@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_workshop:cost:mid:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好等于 contract.output.fields 声明的「result」「evidence」「assumptions」，无额外字段，所有值为非空字符串，JSON 语法与转义符合要求。内容逐项核对时间与设备、容量与分场条件，结论与冻结参考一致：修复讲座可周二14-16（2小时且有投影，18人≤20）；摄影工作坊周四14-17仅容一场且24人>20，缺第二个3小时连续窗口，当前资源不能覆盖24人；未虚构额外场地，明确禁止延长开馆。evidence 列出 L1-L4 来源，assumptions 明确未引入新材料及信息缺口。轻微瑕疵：result 中写「修复讲座(L3对应讲座事件,需投影)」将讲座误标为 L3（应为 L2），但同句后文及来源标注正确引用 L2，属笔误而非事实错误；另「可执行」清单中列入摄影单场后又说明因容量不足不可直接执行，分类略有歧义但整体结论清晰且与验收条件一致。\"}",
+  "input_tokens": 1742,
+  "output_tokens": 257,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10459,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789011912998add9fca5277b8939d33af9a0f1789d6c23a13f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 257,
+    "prompt_tokens": 1742,
+    "total_tokens": 1999,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

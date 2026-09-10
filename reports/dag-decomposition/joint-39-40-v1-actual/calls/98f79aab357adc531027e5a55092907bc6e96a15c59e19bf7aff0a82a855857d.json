@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:risk:strong:judge",
+  "content": "{\"score\": 86, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，均为非空字符串，符合契约。内容正确识别本节点为风险核验节点且 upstream 为空，说明无法据上游结果完成判断；正确复述 T1（每条记录为独立单次需求）、T2（容量固定 48 人，超出部分记未满足需求）、T3（不得描述为实际超载、无延误原因证据），未虚构数据、未声称执行工具，并明确列出信息缺口（无上游结果、无线路汇总、无实际运营数据），保留了来源标识 cal_transit-L001 至 L100 及 T1/T2/T3。扣分点：作为风险核验节点，材料中附有「仅供评审核验的冻结参考」汇总数据，answer 未对其进行任何核验或评论（例如确认其与 T2 口径一致、或指出「正缺口/正超额」等字段语义可能与未满足需求口径存在歧义），对潜在误判点的挖掘较浅；此外 result 中「无法核验线路级结果」的表述虽保守安全，但材料本身含全部 100 条原始记录，本可独立汇总复核，限制声明略显过度。总体证据与假设保留完整、限制明确，达到通过标准。\"}",
+  "input_tokens": 9167,
+  "output_tokens": 294,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9875,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901332731820244bbcebb250bf80b1bc04ef4640175572de",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 294,
+    "prompt_tokens": 9167,
+    "total_tokens": 9461,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

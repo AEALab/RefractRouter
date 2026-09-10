@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_workshop:risk:cheap:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"输出为单个原始 JSON 对象，键集合恰好为 result、evidence、assumptions，均为非空字符串，符合契约。事实与计算基本正确：修复讲座满足周二14-16时、连续2小时、投影周二可用、18人不超过20人，判定可执行；摄影需每场3小时，周二仅2小时不可行，周四14-17时可容一场但最多20人，24人不能单场完成，且剩余可用时段不足以再安排第二场3小时，判定当前资源不能覆盖24人，结论与冻结参考一致。证据字段完整保留 L1-L4 来源。扣分点：assumptions 中「假设所有活动均需在同一周内完成」属于额外引入的排程范围假设，材料只给出周二/周四可用窗口，虽不影响本次结论，但应更明确标注为限制而非默认前提；另外对「摄影工作坊整体无法执行」与「可安排一场但不足24人」的表述可更清晰地拆成可执行部分与不可执行部分，避免被理解为完全不能举办任何场次。未声称联网或执行工具，未虚构场地。\"}",
+  "input_tokens": 1488,
+  "output_tokens": 260,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11715,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789011948465e4d5e3acd6b6d5c09c835e2d36b9596c9e804f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 260,
+    "prompt_tokens": 1488,
+    "total_tokens": 1748,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

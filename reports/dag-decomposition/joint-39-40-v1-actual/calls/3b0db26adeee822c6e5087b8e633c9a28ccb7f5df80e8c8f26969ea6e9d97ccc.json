@@ -1,0 +1,24 @@
+{
+  "label": "test_energy-dag-strong-serial:risk",
+  "content": "{\n  \"result\": \"本节点为风险核验，未收到上游结果，因此仅能基于给定材料进行约束核验与信息缺口识别。材料为虚构封闭场景「多校区用能记录分析」，共100个独立单元，分布于甲、乙、丙、丁四个校区。材料明确要求：按校区汇总后报告整体净变化；各校区可独立分析；总体减少不保证每个校区减少；不能根据用量变化直接认定措施有效；不能按人均或面积归一化。经核验，材料未提供任何措施信息、气温、面积或人数，因此无法进行措施有效性判断或归一化分析。可能的误判风险包括：将个别单元或校区的减少直接推断为整体减少、将用量变化归因于未提供的措施、或忽略总体与校区层面的差异。\",\n  \"evidence\": \"来源 test_energy-L001 至 test_energy-L100，共100条记录，每条均标注校区、基准用量、本期用量，并注明未包含人数、面积与气温。材料约束见任务说明P1至P4。未收到上游结果，无上游证据可引用。\",\n  \"assumptions\": \"假设所有记录均为独立单元且数据完整、单位统一为千瓦时。信息缺口包括：无气温、面积、人数数据；无措施或管理动作信息；无各校区单元数量分布以外的背景说明；无上游结果可供交叉核验。由于缺少这些信息，无法判断用量变化的驱动因素，也无法验证是否存在记录错误或异常值。\"\n}",
+  "input_tokens": 4445,
+  "output_tokens": 323,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 7812,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890170868843f04613060c95c0e1cb70b4f628471a936be37",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 323,
+    "prompt_tokens": 4445,
+    "total_tokens": 4768,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

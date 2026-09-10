@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:cost:strong:judge",
+  "content": "{\"score\": 22, \"passed\": false, \"rationale\": \"答案与冻结参考严重不符。参考给出甲组需求总和1293、未满足（正超额）89，乙组1284/98，丙组1287/97，丁组1247/109；而答案声称四组需求合计均为1238、未满足均为38、总计152，与参考的总计5111（需求）与383（正缺口）完全矛盾。抽查明细也证实答案错误：甲组第8条需求43（43-48=-5，未满足0）在答案的甲组明细中整条缺失，且答案把第4条58-48=10等列入却又得出合计38，内部亦不一致；答案所列甲组明细中正值之和（10+23+8+21+6+19+4+17+2+15+13+11+24+9）远超其声称的38。证据字段虽引用来源编号，但计算结果错误导致证据支撑失效；assumptions 对未知运营问题的说明基本合理，但核心职责（正确汇总与计算）未完成，且错误数据构成与材料不一致的虚构结果。\"}",
+  "input_tokens": 10334,
+  "output_tokens": 260,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11900,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890132431269c5625d6f49ce94e6eea0041d172c51ca7b320",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 260,
+    "prompt_tokens": 10334,
+    "total_tokens": 10594,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

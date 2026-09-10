@@ -1,0 +1,24 @@
+{
+  "label": "wai-chart-auto-cold:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本完整满足任务要求：给出了识别图像的简短替代文本（「站点甲与站点乙一月至三月访问量柱状图，单位为千次」），提供了不依赖鼠标悬浮的可见长说明，准确保留了全部数值（甲120、90、60；乙80、80、80）、时间范围（一月至三月）、纵轴从0开始及单位千次，正确指出甲逐月递减、乙保持稳定的趋势，且未虚构下降原因、未声称已通过辅助技术测试。发布检查项还明确针对原有 alt=\\\"访问量图\\\" 的不足和悬浮显示数据的问题提出改进，符合 WAI 复杂图像无障碍指南。\",\"criteria\":[{\"criterion\":\"给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。\",\"passed\":true,\"rationale\":\"简短替代文本能识别图像主体、时间与单位；长说明置于页面可见位置，检查项明确要求「详细说明在页面中可见，不依赖鼠标悬浮即可获取」，并指出原 alt 文本的不足。\"},{\"criterion\":\"准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。\",\"passed\":true,\"rationale\":\"所有数值（120/90/60 与 80/80/80）、一月至三月时间、纵轴从0开始、单位千次均准确保留；趋势表述为「站点甲逐月递减，站点乙保持稳定」；检查项明确「未虚构站点甲下降原因」「未声称已通过辅助技术测试」，正文亦无此类推断或声明。\"}]}",
+  "input_tokens": 703,
+  "output_tokens": 352,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11682,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178896945467108e37163f19fb200d5e116edcbda02b4707235",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 352,
+    "prompt_tokens": 703,
+    "total_tokens": 1055,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

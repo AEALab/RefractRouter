@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_catalog:cost:mid:judge",
+  "content": "{\"score\":98,\"passed\":true,\"rationale\":\"输出为单个原始JSON对象，键集合恰好为result、evidence、assumptions，均为非空字符串，语法与转义正确，未使用Markdown围栏。语义上完整满足交付要求：先决定保留b、c并排除a；删除依据同时引用D1「版本2替代版本1」与D3「只采用各来源最新版」；已知去重计算120+80−30=170正确，且明确不能加回旧版100；未知重叠限制说明符合D3「未知重叠不得推定为零」，并指出实际唯一总量可能低于170而不虚构更小数值。evidence保留D1/D2/D3来源标识，assumptions说明信息缺口。与冻结参考一致，未发现不实工具执行声明或虚构数据。仅扣极少分：result未逐字使用来源编号前缀标注每个结论（如「依据D1/D3」），但evidence字段已完整列出来源，影响很小。\"}",
+  "input_tokens": 1450,
+  "output_tokens": 222,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10198,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012304393a6cdd8247c48d753298cd4bcf5eec90e25606f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 222,
+    "prompt_tokens": 1450,
+    "total_tokens": 1672,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:cost:cheap:judge",
+  "content": "{\"score\": 28, \"passed\": false, \"rationale\": \"输出为单个原始 JSON 对象且键集合恰好为 result/evidence/assumptions，三个字段均为非空字符串，形式上满足契约；也保留了来源编号、说明了不推断设备故障原因。但核心事实与计算存在严重错误且自相矛盾：result 先写「甲组……合格20条……异常5条（……以及第84次测量21摄氏度？需重新核对）」，把合格的21摄氏度误列为异常并留下未解决的疑问，随后又说「实际甲组异常为……共10条异常，合格15条」，前后不一致；对丙组的判定也错误，材料中丙组含 L018(25)、L038(25)、L058(25)、L078(25)、L098(25) 五个25摄氏度以及 L010/L030/L050/L070/L090 五个17摄氏度，共10条异常、合格15条，答案却写成「丙组……合格20条（异常……共5条）」。汇总统 similarly 混乱：各组若按答案文字为15+20+20+20=75条合格，却又结论「整批合格记录共80条，合格比例80%」，与自身分组数据不符；而按材料与冻结参考正确结果应为甲15、乙20、丙15、丁20，合计70条合格、30条异常、合格比例70%，未达到90%门槛。evidence 字段虽列出异常来源编号，但遗漏了丙组五个25摄氏度异常（L018、L038、L058、L078、L098），证据不完整。批次「不合格」的方向性结论虽与正确结果一致，但比例与分组分布均错，违反「事实和计算与材料一致」「不虚构数据」的验收条件，故判定不通过。\"}",
+  "input_tokens": 8270,
+  "output_tokens": 397,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14692,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890137212048f4f8ecdaf0d8a16803f1d267b7ea40d6debba",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 397,
+    "prompt_tokens": 8270,
+    "total_tokens": 8667,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

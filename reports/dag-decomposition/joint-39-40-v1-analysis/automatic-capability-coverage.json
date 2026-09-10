@@ -1,0 +1,690 @@
+[
+  {
+    "plan_id": "test_notice-auto-cold-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_notice-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 300
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_minutes-auto-cold-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_minutes-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_grant-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_grant-auto-cold-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-auto-cold-a",
+    "node_id": "verify_s1",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-auto-cold-a",
+    "node_id": "verify_s2",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-auto-cold-a",
+    "node_id": "compare",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 1600
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-auto-cold-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 2400
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_seating-auto-cold-b",
+    "node_id": "summarize",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 4096
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_seating-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 4096
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-b",
+    "node_id": "group_a_stats",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 2000
+    },
+    "calibrated_models_in_same_stratum": [
+      "cheap",
+      "mid",
+      "strong"
+    ]
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-b",
+    "node_id": "group_b_stats",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 2000
+    },
+    "calibrated_models_in_same_stratum": [
+      "cheap",
+      "mid",
+      "strong"
+    ]
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 4000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-a",
+    "node_id": "extract_group_a",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 2500
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-a",
+    "node_id": "extract_group_b",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 2500
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-a",
+    "node_id": "extract_group_c",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 2500
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-a",
+    "node_id": "extract_group_d",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 2500
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-auto-cold-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 4000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-b",
+    "node_id": "verify_jia",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-b",
+    "node_id": "verify_yi",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-b",
+    "node_id": "verify_bing",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-b",
+    "node_id": "verify_ding",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-a",
+    "node_id": "verify_jia",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-a",
+    "node_id": "verify_yi",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-a",
+    "node_id": "verify_bing",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-a",
+    "node_id": "verify_ding",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_energy-auto-cold-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 5000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_notice-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 300
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_notice-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 300
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_minutes-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_minutes-b",
+    "node_id": "extract",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 800
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_minutes-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 1000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_grant-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_grant-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-a",
+    "node_id": "verify_s1",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-a",
+    "node_id": "verify_s2",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 2400
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-b",
+    "node_id": "verify_a",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-b",
+    "node_id": "verify_b",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "low",
+      "risk": "low",
+      "input_budget_tokens": 16384,
+      "expected_output_tokens": 1200
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_surveys-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 2400
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_seating-a",
+    "node_id": "stats",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_seating-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 4000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_seating-b",
+    "node_id": "extract_group_summary",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 2000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_seating-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-a",
+    "node_id": "extract_group_a",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-a",
+    "node_id": "extract_group_b",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-a",
+    "node_id": "extract_group_c",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-a",
+    "node_id": "extract_group_d",
+    "node_type": "extraction",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "low",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 3000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_workorders-a",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 6000
+    },
+    "calibrated_models_in_same_stratum": []
+  },
+  {
+    "plan_id": "test_shipments-b",
+    "node_id": "calc_1_50",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 4096
+    },
+    "calibrated_models_in_same_stratum": [
+      "cheap",
+      "mid",
+      "strong"
+    ]
+  },
+  {
+    "plan_id": "test_shipments-b",
+    "node_id": "calc_51_100",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 32768,
+      "expected_output_tokens": 4096
+    },
+    "calibrated_models_in_same_stratum": [
+      "cheap",
+      "mid",
+      "strong"
+    ]
+  },
+  {
+    "plan_id": "test_shipments-b",
+    "node_id": "answer",
+    "node_type": "generation",
+    "capability": {
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_budget_tokens": 65536,
+      "expected_output_tokens": 8192
+    },
+    "calibrated_models_in_same_stratum": []
+  }
+]

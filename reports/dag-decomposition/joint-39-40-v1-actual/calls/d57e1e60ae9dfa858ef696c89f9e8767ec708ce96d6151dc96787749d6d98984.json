@@ -1,0 +1,24 @@
+{
+  "label": "test_shipments-dag-strong-parallel:answer",
+  "content": "最终报告\n\n一、来源范围\n\n本报告核对范围为来源编号 test_shipments-L001 至 test_shipments-L100，共 100 批物资到货记录。材料中每组记录均注明“每批单独核验，未记录损毁或责任结论”。\n\n二、总应交、总签收与净差\n\n按材料逐批计算：\n\n- 总应交数量：2700 件\n- 总签收数量：2700 件\n- 净差：0 件\n\n三、正缺口\n\n依据 H2 规则，多签不等于可以抵消另一批次少签，正缺口须逐批计算后汇总。逐批核对后：\n\n- 签收少于应交的批次共 50 批\n- 正缺口合计：250 件\n\n同时，签收多于应交的批次共 50 批，多签合计为 250 件。多签数量不用于抵减正缺口。\n\n四、结论\n\n虽然总净差为 0 件，但存在未满足数量 250 件。不能因另一批多签就宣称全部交齐。材料未记录损毁或责任结论，因此不对少签或多签原因作推断。\n\n五、证据与假设\n\n证据：来源编号 test_shipments-L001 至 test_shipments-L100，共 100 条记录；每条记录均含批次、组别、应交数量、签收数量，并注明“每批单独核验，未记录损毁或责任结论”。\n\n假设：假设所有批次记录完整且数量单位一致；材料未提供损毁、责任或原因信息，因此不推断少签或多签原因。\n\n不确定性：材料未提供分组汇总结果、总应交、总签收、净差、正缺口及来源范围；未提供任何损毁或责任证据。上述汇总结果系依据材料逐批计算得出。",
+  "input_tokens": 5692,
+  "output_tokens": 399,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 7463,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901663530908e37163f19fb200d5e116edcbda02b4bc5ddf",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 399,
+    "prompt_tokens": 5692,
+    "total_tokens": 6091,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

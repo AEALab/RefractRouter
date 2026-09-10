@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_shipments-b:plan-review",
+  "content": "{\"score\": 85, \"passed\": false, \"rationale\": \"该拆分计划整体结构合理，将100批数据分为两个并行计算节点和一个汇总节点，符合任务耦合程度，节点职责清晰且无重复。计划明确保留了来源编号、区分了净差与正缺口、禁止了多签抵消少签，并声明了未记录损毁或责任结论的异常限制。然而，存在一个关键缺陷：两个计算节点（calc_1_50 和 calc_51_100）的 prompt_template 中并未包含实际的物资数据（应交数量、签收数量等），仅指示「处理来源 test_shipments-L001 至 test_shipments-L050」，这违反了「只用以下材料」的约束，因为执行时模型无法访问这些来源编号对应的原始数据，除非外部系统额外注入，但计划未声明此依赖。此外，汇总节点 answer 的 input_budget_tokens 为 65536，虽然能容纳上游两个节点的输出（各约 4096 tokens），但 prompt 中要求「逐批明细：列出100批的来源编号、批次、组别、应交、签收、差额、正缺口」，这会导致最终报告极长，可能超出 expected_output_tokens 8192 的限制，存在截断风险。验收标准方面，计划中的 acceptance_criteria 基本覆盖了原始交付要求，但标准「完整满足本任务交付要求，事实和计算与材料一致，保留来源编号」较为宽泛，未明确列出「必须包含每组的来源范围、总应交、总签收、净差及正缺口」等具体要素，虽然 checks 字段中有详细说明，但验收标准本身可更精确。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"计划通过 calc 节点处理逐批计算和分组汇总，answer 节点负责合并生成最终报告，覆盖了「保留来源范围」「列出总应交、总签收、净差及正缺口」「区分净差与未满足数量」「不宣称全部交齐」等所有原始交付条件，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"answer 节点明确消费 calc_1_50 和 calc_51_100 的 records、group_summary、assumptions、uncertainties 字段，两个 calc 节点并行执行无依赖，依赖关系真实且必要，无无意义串行。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": false, \"rationale\": \"关键缺陷：calc_1_50 和 calc_51_100 的 prompt_template 中仅提及「处理来源 test_shipments-L001 至 test_shipments-L050」，但未在 prompt 中嵌入这些来源编号对应的具体数据（应交数量、签收数量、组别等）。根据任务约束「只用以下材料」，执行节点无法访问原始材料，除非假设有外部数据注入机制，但这未在计划中声明，导致上下文不充分，存在无法追溯来源的风险。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"节点职责划分清晰：两个 calc 节点分别处理 1-50 批和 51-100 批的计算，无重复；answer 节点负责汇总合并，包含原始任务所需的全部分组统计、逐批明细和异常限制说明。拆分合理，非单节点可高效完成。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"calc 节点 input_budget_tokens 32768 和 expected_output_tokens 4096 对于处理 50 批数据（每批约 20-30 tokens 输入，输出约 50-80 tokens）是合理的。answer 节点 input_budget_tokens 65536 可容纳两个上游输出（约 8192 tokens）及 prompt 开销，但 expected_output_tokens 8192 对于包含 100 批逐批明细的最终报告可能偏紧，存在轻微截断风险，但整体仍在合理范围内。拆分符合任务高计算量、低耦合的特点。\"}]}",
+  "input_tokens": 6715,
+  "output_tokens": 918,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 27758,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890164491719c5625d6f49ce94e6eea0041d172c51cebd8c0",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 918,
+    "prompt_tokens": 6715,
+    "total_tokens": 7633,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

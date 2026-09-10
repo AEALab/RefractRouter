@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-manual:risk",
+  "content": "{\n  \"result\": \"上游分析基本正确。itertools.groupby 只合并相邻且键相等的元素，因此原输入会形成四个连续组：(\\\"A\\\",[2])、(\\\"B\\\",[5])、(\\\"A\\\",[3])、(\\\"B\\\",[7])，不会得到 A 合计 5、B 合计 12。同事先保存全部 (key, group_iterator) 再延迟消费确实存在共享底层迭代器问题：外层 groupby 推进后，先前组迭代器中未消费的数据可能失效，循环结束后再 list 通常无法可靠还原各组元素。修正版应先按首元素排序，使相同键相邻，再使用 groupby，并在每次迭代中立即消费组迭代器。可保留结果的示例代码为：data = [(\\\"A\\\",2),(\\\"B\\\",5),(\\\"A\\\",3),(\\\"B\\\",7)]；data_sorted = sorted(data, key=lambda x: x[0])；result = {k: sum(v for _, v in g) for k, g in groupby(data_sorted, key=lambda x: x[0])}。期望输出为 {\\\"A\\\": 5, \\\"B\\\": 12}。\",\n  \"evidence\": \"来源 S1：https://docs.python.org/3.13/library/itertools.html。摘要指出：itertools.groupby 按相邻连续且键相等的元素分组，并非 SQL 的全局聚合；如需按键聚合所有元素，可先按相同键排序；每个返回的组迭代器共享底层输入，外层向后推进会使前一个组的未保留数据不再可用，需要稍后使用时可当场转为列表。\",\n  \"assumptions\": \"假设输入顺序保持题目给定的 [(\\\"A\\\",2),(\\\"B\\\",5),(\\\"A\\\",3),(\\\"B\\\",7)]，且修正版只使用标准库 itertools.groupby 与内置 sorted、sum。未声称实际运行代码；若输入顺序或键类型不同，需相应调整排序键。\"\n}",
+  "input_tokens": 1148,
+  "output_tokens": 432,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7437,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969248740e78c31fe06d4434dfef0260629e4a08b553560",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 432,
+    "prompt_tokens": 1148,
+    "total_tokens": 1580,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

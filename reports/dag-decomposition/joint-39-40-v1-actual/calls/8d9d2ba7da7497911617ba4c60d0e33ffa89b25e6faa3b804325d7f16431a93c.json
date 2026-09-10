@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_catalog:answer:strong:judge",
+  "content": "{\"score\": 98, \"passed\": true, \"rationale\": \"答案完整满足交付要求：先决定保留 b、c 并排除 a，再计算已知去重规模 120+80-30=170，解释了删除旧版 a 的依据是 D1「记录b...明确替代版本1」与 D3「只采用各来源最新版」，并明确未知重叠不得推定为零、不能扩展到未给来源。事实与计算同材料及冻结参考一致，保留了 D1、D2、D3 来源编号，区分了已知与未知，没有虚构数据，也没有声称执行工具或联网。仅轻微不足是未显式逐条标注验收条件编号，但实质内容已全部覆盖。\"}",
+  "input_tokens": 1911,
+  "output_tokens": 163,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7825,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890124308993d0449b03f13da7ad7c0359f0f1d760ca5cc3e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 163,
+    "prompt_tokens": 1911,
+    "total_tokens": 2074,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

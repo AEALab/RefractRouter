@@ -1,0 +1,27 @@
+{
+  "protocol_sha256": "864bee8d98f279c19e0b606bc26b9eab7829e1ca662b8151cd7285faeb11fdfe",
+  "real_model_calls": 0,
+  "maximum_calls": 84,
+  "production_limit": 892.1088,
+  "evaluation_limit": 1327.1041,
+  "billing_unit": "AFP",
+  "material_overlap": [
+    {
+      "left": "sqlite-fk",
+      "right": "python-groupby",
+      "character_similarity": 0.22714681440443213
+    },
+    {
+      "left": "sqlite-fk",
+      "right": "wai-chart",
+      "character_similarity": 0.23088455772113944
+    },
+    {
+      "left": "python-groupby",
+      "right": "wai-chart",
+      "character_similarity": 0.23004059539918809
+    }
+  ],
+  "independence_limit": "不同来源、不同问题；字符检查只是辅助，未作人工语义独立性认证。",
+  "scope": "3 个任务 × 4 条固定强模型路线；每任务另有一次缓存计划设置，不是正式 A/B 收益实验。"
+}

@@ -1,0 +1,24 @@
+{
+  "label": "setup:python-groupby:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划合理地将单一封闭材料任务保持为单节点，避免了不必要的拆分开销。计划完整覆盖了原始任务的所有要求：分析连续分组问题、解释延迟消费问题、提供修正代码和期望输出。输入材料明确可追溯，节点能力声明合理，验收标准与原始任务要求一致。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点 contract 的 checks 完整覆盖原始任务要求：指出四组而非两组、解释共享迭代器问题、修正版排序并立即消费、给出期望输出、不声称运行代码。验收标准与原始任务一致，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"单节点无依赖边，符合任务特性。所有必要信息（材料摘要、任务要求）均在 prompt_template 中直接提供，无需虚构依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 完整包含来源 S1 的 URL 和材料摘要，输入数据明确给出，上下文充分且可追溯。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"decomposition_reason 合理说明单节点原因：两部分共享同一材料和代码上下文，拆分会产生交接开销。节点职责单一明确，output 定义包含原始任务所需的全部内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明 difficulty 和 risk 为 low 符合任务实际，input_budget_tokens 16384 和 expected_output_tokens 1200 合理。任务两部分高度耦合（同一代码上下文），单节点拆分符合耦合程度。\"}]}",
+  "input_tokens": 1183,
+  "output_tokens": 449,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14445,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969329076b9f489096afc36acf45c00ec3935d23abe254b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 449,
+    "prompt_tokens": 1183,
+    "total_tokens": 1632,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

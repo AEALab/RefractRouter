@@ -1,0 +1,24 @@
+{
+  "label": "test_energy-auto-cold-b:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该拆分计划将任务合理分解为四个校区并行核验节点和一个汇总节点，覆盖了原始交付要求。各校区节点职责清晰、无重复，均要求保留来源编号并计算基准合计、本期合计、净变化、增加/减少/持平单元数；汇总节点明确依赖四个校区结果，负责整体汇总、有限结论和补充数据需求，符合「总体减少不保证每个校区减少」「不能按人均或面积归一化」等约束。上下文充分，输入材料可追溯，节点能力与输入容量声明合理，拆分符合任务低耦合、可并行的特性。唯一不足是各校区节点的 prompt_template 未显式嵌入完整材料文本，虽注明「仅使用以下材料」但材料需通过外部上下文传入，略有歧义，但不影响整体正确性和完整性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"四个校区核验节点分别覆盖甲、乙、丙、丁校区的记录核验与指标计算，汇总节点覆盖整体汇总、有限结论与补充数据需求，完整对应交付要求「并行核验各校区记录，汇总整体变化、增加单元数和减少单元数，给出有限结论与补充数据需求」，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"汇总节点 answer 的 parents 为 verify_jia、verify_yi、verify_bing、verify_ding，inputs 中明确消费各校区节点的 campus、records、baseline_total、current_total、net_change、increase_count、decrease_count、unchanged_count 字段，依赖真实且必要；四个校区节点之间无依赖，可并行，未制造无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"各节点 prompt_template 均强调「仅使用以下材料」「保留所有来源编号」「不得虚构信息」，汇总节点要求「核对四个校区结果是否存在冲突、遗漏或术语不一致」「不得虚构原因、数据或已执行的操作」，输入材料可通过来源编号追溯，无需虚构缺失数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"四个校区节点职责互不重叠，分别负责单一校区核验；汇总节点负责整体汇总、有限结论与补充数据需求，包含原始任务所需的「整体净变化」「增加单元数」「减少单元数」「有限结论」「补充数据需求」等内容，未遗漏。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"各校区节点 difficulty 为 low、risk 为 low、input_budget_tokens 16384、expected_output_tokens 1200，汇总节点 difficulty 为 medium、risk 为 medium、input_budget_tokens 65536、expected_output_tokens 3000，声明合理；任务中各校区可独立分析，耦合程度低，适合并行拆分，拆分方案符合任务特性。\"}]}",
+  "input_tokens": 6812,
+  "output_tokens": 698,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 20644,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016893340b566464da517b102b4cb09cdfd60e7eec53aa8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 698,
+    "prompt_tokens": 6812,
+    "total_tokens": 7510,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

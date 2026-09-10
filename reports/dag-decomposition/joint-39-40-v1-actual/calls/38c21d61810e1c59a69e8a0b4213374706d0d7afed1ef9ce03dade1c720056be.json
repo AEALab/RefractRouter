@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-1-cheap:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本与任务及冻结参考一致：保留b和c、排除a；已知并集按120+80-30=170计算，未把旧版a的100加入保留集，也未扩展到未给来源。删除a依据正确表述为D1「明确替代版本1」与D3只采用各来源最新版。未知重叠限制说明到位：仅确认b与c重叠30，未知不得推定为零，因此去重至少30、总量至少170且实际可能更少。关于「记录c与记录b之间除已知30个样本外，是否还有其他重叠」的表述略显宽泛，因为D2只给出c中30个样本与X版本2重叠，未给额外重叠信息；但文本将其列为未知而非断言存在额外重叠，符合不虚构未知事项的要求。来源编号D1/D2/D3及记录a/b/c均保留。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"交付顺序满足先决定保留记录再计算已知去重规模，并解释删除旧版依据及未知重叠限制。保留b、c，排除a；计算为120+80-30=170，明确不能加旧版100，不能扩展到其他未给来源。引用D1、D2、D3及记录a/b/c，来源编号保留。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"文本将30重叠、替代关系、最新版规则作为材料事实；将其他重叠列为未知并说明不得推定为零；未声称联网或执行工具；未虚构额外来源、重叠数或机构规则。假设部分明确标注为不确定性说明，未当作事实。\"}]}",
+  "input_tokens": 1067,
+  "output_tokens": 407,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15720,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890121493493f04613060c95c0e1cb70b4f628471a9f5528d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 407,
+    "prompt_tokens": 1067,
+    "total_tokens": 1474,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

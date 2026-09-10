@@ -1,0 +1,24 @@
+{
+  "label": "test_workorders-dag-strong-parallel:cost",
+  "content": "{\n  \"result\": \"本节点仅基于提供的100条工单原始记录进行汇总计算，不推断故障原因或人员责任。\\n\\n一、分组总工时（计划/实际，单位：分钟）\\n甲组：计划 760，实际 800\\n乙组：计划 760，实际 800\\n丙组：计划 760，实际 800\\n丁组：计划 760，实际 800\\n四组合计：计划 3040，实际 3200\\n\\n二、全部工单总偏差\\n总偏差 = 实际总工时 - 计划总工时 = 3200 - 3040 = 160 分钟（正偏差，表示总体超时）\\n\\n三、超计划工单数\\n实际大于计划的工单共 50 单。\\n\\n四、限制说明\\n材料未提供故障原因、人员绩效评价或责任归因信息，因此不能根据耗时长短推断任何组或个人的责任。本结果仅反映计划与实际分钟数的算术汇总。\",\n  \"evidence\": \"来源 test_workorders-L001 至 test_workorders-L100，共100条工单记录。分组汇总依据各单标注的组别、计划分钟和实际分钟逐项加总。\",\n  \"assumptions\": \"假设所有工单记录均完整且组别、计划分钟、实际分钟字段可直接用于汇总；材料未提供缺失值或异常值说明。信息缺口：无故障原因、人员评价、责任归因及工单内容背景信息。\"\n}",
+  "input_tokens": 4439,
+  "output_tokens": 326,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 7174,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789016194060534779bc6a83ab3f36a7a90c1e71ba35fa91a3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 326,
+    "prompt_tokens": 4439,
+    "total_tokens": 4765,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

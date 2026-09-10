@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-4-strong:answer",
+  "content": "逐组汇总：\n\n- 甲组：共20条，合格12条，异常8条。  \n- 乙组：共20条，合格14条，异常6条。  \n- 丙组：共20条，合格14条，异常6条。  \n- 丁组：共20条，合格14条，异常6条。  \n\n整批合格比例：  \n合格记录共 12 + 14 + 14 + 14 = 54 条。  \n总记录数 100 条。  \n合格比例 = 54 / 100 = 54.0%。  \n\n批次判断：  \n54.0% 未达到至少 90% 记录合格的批次门槛，因此该批次判断为不合格。  \n\n不可推断的事项：  \n材料未提供校正记录、设备状态或异常原因说明，因此不能推断 17、25、26 摄氏度异常记录的原因，不能推断设备故障或校正缺失，也不能推断存在未记录的操作。  \n\n依据来源：  \ncal_sensor-L001 至 cal_sensor-L100，共100条原始读数记录。  \n异常记录来源编号：  \n- 17 摄氏度：L010、L020、L030、L040、L050、L060、L070、L080、L090、L100  \n- 25 摄氏度：L008、L018、L028、L038、L048、L058、L068、L078、L088、L098  \n- 26 摄氏度：L009、L019、L029、L039、L049、L059、L069、L079、L089、L099  \n\n其余来源编号对应 18 至 24 摄氏度合格记录。",
+  "input_tokens": 4640,
+  "output_tokens": 359,
+  "cached_input_tokens": 3072,
+  "reasoning_tokens": 0,
+  "latency_ms": 4480,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901368905578af8113c224ccdd69578c3b63d1e71aefcab7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 359,
+    "prompt_tokens": 4640,
+    "total_tokens": 4999,
+    "prompt_tokens_details": {
+      "cached_tokens": 3072
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

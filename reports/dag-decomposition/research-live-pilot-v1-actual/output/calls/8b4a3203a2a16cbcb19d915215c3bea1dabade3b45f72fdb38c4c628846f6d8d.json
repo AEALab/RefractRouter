@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-direct:answer",
+  "content": "逐条问题如下：\n\n1. **连接甲设置 `PRAGMA foreign_keys=ON` 不会共享给连接乙。**  \n   依据 S1：外键启用属于连接级设置，不能依赖默认值。连接甲开启外键只影响连接甲自身，连接乙若未显式开启，则外键约束在连接乙中不生效。\n\n2. **连接甲在已开启的多语句事务内执行 `PRAGMA foreign_keys=ON` 无效且不报错。**  \n   依据 S1：多语句事务内修改 `foreign_keys` 无效且不报错。因此连接甲先 `BEGIN` 再 `PRAGMA foreign_keys=ON` 的顺序是错误的，该设置不会在事务内生效。\n\n3. **“先写子记录再补父记录，并在 COMMIT 前补齐”在即时外键下不可行。**  \n   依据 S1：即时约束在语句结束检查。若先插入子记录而父记录尚不存在，语句结束时即会触发外键违例，无法等到 COMMIT 前再补齐。\n\n4. **在延迟外键下，该顺序可能可行，但必须确保提交前违例已解决。**  \n   依据 S1：延迟约束可到提交事务时检查，未解决的延迟违例会使提交失败。因此若使用延迟外键，可以先写子记录，再在提交前补齐父记录；但若提交时仍未补齐，则提交失败。\n\n正确操作顺序应为：\n\n- 在每个需要外键约束的连接上，于事务开始前设置 `PRAGMA foreign_keys=ON`。  \n- 连接甲应先执行 `PRAGMA foreign_keys=ON`，再执行 `BEGIN`。  \n- 连接乙若需要外键约束，也应先执行 `PRAGMA foreign_keys=ON`，再开始写入。  \n- 如果采用即时外键，应先写入父记录，再写入子记录。  \n- 如果采用延迟外键，可以先写子记录，但必须在 `COMMIT` 前补齐父记录，否则提交会失败。\n\n选择即时或延迟外键时的区别：\n\n- **即时外键**：每条语句结束时立即检查约束。任何语句导致外键不满足，该语句即失败，不能把违例留到事务提交时解决。  \n- **延迟外键**：允许在事务期间暂时违反外键约束，到提交事务时统一检查。若提交时仍有未解决的违例，整个提交失败。  \n- 两者都要求外键在相应连接上已启用；启用设置是连接级的，不能跨连接共享。\n\n假设：团队所说的“连接乙直接写入，认为甲的设置会共享”是错误假设；本答案仅依据 S1 材料，不声称已执行数据库或验证具体 SQLite 版本行为。",
+  "input_tokens": 443,
+  "output_tokens": 596,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11005,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969034957534779bc6a83ab3f36a7a90c1e71ba35cc5969",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 596,
+    "prompt_tokens": 443,
+    "total_tokens": 1039,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

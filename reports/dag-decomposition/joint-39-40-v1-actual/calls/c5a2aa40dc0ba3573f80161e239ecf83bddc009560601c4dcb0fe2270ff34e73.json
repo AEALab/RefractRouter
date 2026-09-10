@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-auto-cold-a:plan-review",
+  "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"该计划以单节点直接生成最终正文，节点提示完整复述原始任务材料与交付要求，覆盖三个硬条件检查、推荐有证据可行的方案、说明其他方案需补证据或调整、保留来源编号、区分事实/建议/未知，且明确禁止把口头承诺当作既成事实。验收标准与原始任务一致，未降低要求。单节点对小型强耦合任务合理，无依赖边需要验证，能力声明（low/low、预算与输出token）与任务规模匹配。轻微不足：contract 的 covers 字段含义未在任务中定义，且 output.format 仅为笼统 text，但这些不影响对交付要求的覆盖与可执行性。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"节点 prompt_template 逐项列出三个硬条件检查、推荐当前有证据可行的方案、说明其他方案需补证据或调整，并要求保留 G1/G2/G3、区分已知事实/建议/未知、不得把口头承诺当作既成事实；checks 与 acceptance_criteria 与原始交付要求一致，未改写或降低条件。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"计划仅含一个节点，parents 为空，final_node_id 指向该节点；没有声明任何边，因此不存在无真实字段消费或无意义串行依赖的问题。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"节点提示中完整包含 G1、G2、G3 原文并要求保留来源编号；checks 明确事实和计算须与材料一致、不虚构原因或数据，足以支撑可追溯生成。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点且 decomposition_reason 说明因任务小、耦合强而不拆分；无多节点职责重叠问题，final_node_id 即生成最终正文，汇总内容即原始任务所需交付。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明 difficulty/risk 为 low，input_budget_tokens 16384 远大于材料长度，expected_output_tokens 1200 与所需正文规模相符；不拆分与三条件检查与方案比较之间强耦合的特点一致。\"}]}",
+  "input_tokens": 1158,
+  "output_tokens": 572,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18474,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890151033368df8e1a1401bb5aa62b5b494646ada587c2b82",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 572,
+    "prompt_tokens": 1158,
+    "total_tokens": 1730,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

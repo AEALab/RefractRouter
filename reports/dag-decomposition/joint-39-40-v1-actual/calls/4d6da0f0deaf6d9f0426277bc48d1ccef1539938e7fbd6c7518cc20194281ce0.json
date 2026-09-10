@@ -1,0 +1,24 @@
+{
+  "label": "cal-direct-4-strong:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"交付文本逐组汇总了甲、乙、丙、丁四组的合格与异常记录，保留了来源编号，并明确列出异常来源；整批合计100条，合格70条、异常30条，合格比例70%，据此判断未达到至少90%的批次门槛。文本还按Q2和材料说明指出所有记录均为原始读数、无校正记录或原因说明，因此不能推断设备故障、操作错误、环境波动、组间差异或未记录的校正、复测、剔除操作。事实、分组、计数、比例和批次结论均与材料及冻结参考一致，未发现虚构数据、虚构原因或不实工具执行声明。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"交付内容完整覆盖逐组汇总、整批合格比例、批次判断和不可推断事项；甲15合格10异常、乙20合格5异常、丙15合格10异常、丁20合格5异常，总计70/100合格，比例70%，与材料和冻结参考一致，并保留了相关来源编号。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"文本仅按记录值和给定质控区间判定，明确端点合格；在不可推断事项中说明不能推断设备故障、操作错误、环境波动、组间差异或校正、复测、剔除操作，未虚构原因、数据或已执行操作。\"}]}",
+  "input_tokens": 4937,
+  "output_tokens": 346,
+  "cached_input_tokens": 3584,
+  "reasoning_tokens": 0,
+  "latency_ms": 15626,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013660562c237340934591b89d6de6b6a9271c1b9ec072a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 346,
+    "prompt_tokens": 4937,
+    "total_tokens": 5283,
+    "prompt_tokens_details": {
+      "cached_tokens": 3584
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

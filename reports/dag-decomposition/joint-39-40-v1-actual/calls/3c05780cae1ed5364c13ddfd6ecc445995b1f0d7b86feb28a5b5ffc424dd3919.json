@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:answer:cheap:judge",
+  "content": "{\"score\": 88, \"passed\": true, \"rationale\": \"被评估文本的核心结论与冻结参考完全一致：逐组合格/异常数为甲15/10、乙20/5、丙15/10、丁20/5，整批合格70条、异常30条、合格率70%，低于90%门槛判定不合格批次，且明确保留异常未删除重算、不推断设备故障原因，满足Q1/Q2/Q3与交付要求。主要缺陷是呈现方式：在「异常记录为」的列表中混入了大量合格记录并逐条标注「合格，不计入异常」，虽然每组末尾「经核对」给出了正确的异常编号清单（如甲组L008、L020、L028、L040、L048、L060、L068、L080、L088、L100），与参考一致，但这种先列全部记录再排除的写法冗长且易误导，属于表达质量问题而非事实错误。文本保留了来源编号（L001–L100及具体异常编号），未虚构数据、未声称执行工具或检索新事实，明确区分了已知事实与不可推断事项（设备原因、校正操作、环境条件等），覆盖了节点职责与限制。证据充分、计算正确、限制声明完整，仅因列表组织混乱扣分。\"}",
+  "input_tokens": 9487,
+  "output_tokens": 284,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13951,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890138536688f4f8ecdaf0d8a16803f1d267b7ea40d876baf",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 284,
+    "prompt_tokens": 9487,
+    "total_tokens": 9771,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

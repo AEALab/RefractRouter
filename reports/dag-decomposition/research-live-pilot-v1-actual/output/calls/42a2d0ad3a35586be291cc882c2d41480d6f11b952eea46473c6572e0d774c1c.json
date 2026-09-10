@@ -1,0 +1,24 @@
+{
+  "label": "python-groupby-auto-reuse:answer",
+  "content": "## 连续分组与延迟消费分析\n\n原输入顺序为：\n\n```text\n[(\"A\",2), (\"B\",5), (\"A\",3), (\"B\",7)]\n```\n\n`itertools.groupby` 只对相邻连续且键相等的元素分组，因此按首元素分组时，实际产生的不是两组，而是四组：\n\n```text\nA: [(\"A\",2)]\nB: [(\"B\",5)]\nA: [(\"A\",3)]\nB: [(\"B\",7)]\n```\n\n也就是说，两个 `A` 组和两个 `B` 组是分开的，并不会自动合并为全局的 `A` 组和 `B` 组。\n\n同事先保存了全部 `(key, group_iterator)`，循环结束后才分别执行 `list(group_iterator)`。这里存在延迟消费问题：`groupby` 返回的每个组迭代器共享同一个底层输入迭代器。当外层循环继续向后推进以获取下一组时，前一组尚未消费的数据会随底层迭代器前进而不再可用。因此，延后到循环结束后再 `list(group_iterator)`，前面组的内容可能已经丢失，无法得到完整的 `A` 和 `B` 分组，更不可能得到预期的合计值。\n\n## 修正版代码及期望输出\n\n要按键聚合所有元素，应先按相同键排序，使相同键的元素相邻；同时应在当前组有效时立即消费，例如当场转为列表，避免共享迭代器推进导致数据丢失。\n\n```python\nfrom itertools import groupby\nfrom operator import itemgetter\n\ndata = [(\"A\", 2), (\"B\", 5), (\"A\", 3), (\"B\", 7)]\n\n# 先按首元素排序，使相同键相邻\nsorted_data = sorted(data, key=itemgetter(0))\n\nresult = {}\nfor key, group in groupby(sorted_data, key=itemgetter(0)):\n    # 在当前组有效时立即转为列表，保留组内容\n    values = [v for _, v in group]\n    result[key] = sum(values)\n\nprint(result)\n```\n\n期望输出：\n\n```text\n{'A': 5, 'B': 12}\n```\n\n即 `A` 的合计为 `2 + 3 = 5`，`B` 的合计为 `5 + 7 = 12`。",
+  "input_tokens": 842,
+  "output_tokens": 495,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9187,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217889693435224c81961e630bce638d970dc275335873b78dea",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 495,
+    "prompt_tokens": 842,
+    "total_tokens": 1337,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

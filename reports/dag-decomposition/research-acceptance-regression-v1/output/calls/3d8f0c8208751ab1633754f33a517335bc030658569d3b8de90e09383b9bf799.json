@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fixed-manual:answer",
+  "content": "逐条问题\n\n1. 连接设置不共享  \n   SQLite 的 foreign_keys 是连接级设置。连接甲执行 PRAGMA foreign_keys=ON，只影响连接甲自身；连接乙直接写入时，不会因为连接甲的设置而启用外键检查。连接乙是否检查外键，取决于连接乙自己的 PRAGMA foreign_keys 状态。因此，团队认为“甲的设置会共享”是错误的。\n\n2. 事务内启用无效  \n   连接甲先 BEGIN，再执行 PRAGMA foreign_keys=ON，这属于在多语句事务内修改 foreign_keys。依据材料，多语句事务内修改 foreign_keys 无效且不报错。也就是说，连接甲在这个事务中实际上并未启用外键约束，但不会收到错误提示，容易误以为已经生效。\n\n正确操作顺序\n\n1. 在每个连接上、事务开始之前执行：\n   PRAGMA foreign_keys=ON;\n\n2. 在每个连接上读取状态确认已启用：\n   PRAGMA foreign_keys;\n   返回值为 1 才表示该连接已启用外键。\n\n3. 确认启用后，再开始事务：\n   BEGIN;\n\n4. 执行写入操作。\n\n5. 提交或回滚：\n   COMMIT 或 ROLLBACK。\n\n对于连接甲和连接乙，都需要分别在各自连接上完成上述事务外启用和确认步骤，不能只在一个连接上设置。\n\n即时外键与延迟外键的区别\n\n1. 即时外键约束  \n   即时约束在每条语句结束时立即检查。  \n   如果团队先写子记录，此时父记录尚不存在，那么该子记录写入语句会在语句结束时立即失败，无法等到 COMMIT 前再补父记录。  \n   因此，在即时外键约束下，“先写子记录再补父记录”不可行。\n\n2. 延迟外键约束  \n   延迟约束可以推迟到事务提交时再检查。  \n   如果外键约束被定义为可延迟，并且当前事务中处于延迟检查状态，那么可以先写子记录，再在 COMMIT 前补齐父记录。  \n   提交时系统会统一检查外键关系。只要提交时父记录已经补齐，所有外键关系满足，事务就可以成功提交。  \n   如果提交时仍存在未解决的延迟违例，则提交会失败。\n\n结论\n\n该迁移方案不能按原方式执行。连接甲在事务内启用 foreign_keys 无效，连接乙也不会共享连接甲的设置。正确做法是：每个连接都在事务外启用外键，并读取 PRAGMA foreign_keys 确认返回值为 1，然后再开始事务。对于“先写子记录再补父记录”，只有在使用延迟外键约束且提交前补齐父记录时才可行；如果使用即时外键约束，则子记录写入会立即失败，无法等到提交前补齐。\n\n依据与限制\n\n依据来源 S1：https://www.sqlite.org/foreignkeys.html  \n摘要明确：SQLite 外键启用属于连接级设置；不能依赖默认值。多语句事务内修改 foreign_keys 无效且不报错。即时约束在语句结束检查，延迟约束可到提交事务时检查，未解决的延迟违例使提交失败。\n\n假设与不确定性：材料未提供连接乙自身的 PRAGMA foreign_keys 状态，也未提供表结构中外键约束是否定义为 DEFERRABLE。上述结论假设连接乙未另行启用外键，并且延迟外键场景以外键约束已定义为可延迟为前提。如果外键定义为 NOT DEFERRABLE，则即使希望延迟检查也不可行。",
+  "input_tokens": 1292,
+  "output_tokens": 744,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13412,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217889696702513d763aaa7a5e423f9e5323a8c500bc9f61947b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 744,
+    "prompt_tokens": 1292,
+    "total_tokens": 2036,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

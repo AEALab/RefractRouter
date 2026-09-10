@@ -1,0 +1,24 @@
+{
+  "label": "sqlite-fk-auto-reuse:final-review",
+  "content": "{\"score\": 100, \"passed\": true, \"rationale\": \"答案正确且完整：明确指出 PRAGMA foreign_keys 为连接级设置、甲的设置不会共享给乙，且甲在 BEGIN 后于事务内启用无效且不报错；给出每个连接在事务外启用并读取状态确认的步骤；区分即时约束（语句结束检查，先写子记录会立即失败）与延迟约束（可到提交时检查，但未解决的延迟违例使提交失败），并说明提交前须补齐父记录或先写父记录；未把事务内无效设置写成已生效，未声称执行数据库或联网，与材料一致。\", \"criteria\": [{\"criterion\": \"指出连接设置不共享以及事务内启用无效，给出每连接事务外启用并读取状态的步骤。\", \"passed\": true, \"rationale\": \"答案指出甲的 PRAGMA 只影响自身、不共享给乙，且甲先 BEGIN 再启用属事务内修改、无效且不报错；并给出甲、乙各自在事务外执行 PRAGMA foreign_keys=ON 并读取状态确认后再开始事务或写入的步骤。\"}, {\"criterion\": \"区分即时与延迟检查，说明补齐父记录与提交条件；不把事务内无效设置写成已生效。\", \"passed\": true, \"rationale\": \"答案区分即时约束在语句结束检查（先写子记录会立即失败）与延迟约束可到提交时检查（提交前须补齐父记录，未解决的延迟违例使提交失败）；并明确事务内修改 foreign_keys 无效且不报错，未将其写成已生效。\"}]}",
+  "input_tokens": 1047,
+  "output_tokens": 346,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12505,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021788969203257846a816464a9af9c0791e0f68a2ce03ca5cd7d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 346,
+    "prompt_tokens": 1047,
+    "total_tokens": 1393,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

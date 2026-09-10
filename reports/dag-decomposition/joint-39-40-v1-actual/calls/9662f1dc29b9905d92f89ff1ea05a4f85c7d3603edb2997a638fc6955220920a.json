@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_transit:risk:cheap:judge",
+  "content": "{\"score\": 12, \"passed\": false, \"rationale\": \"被评估答案的核心汇总数字与冻结参考严重不一致，属于关键计算错误。其声称甲、乙、丙、丁各组「需求合计1325人」「未满足需求合计125人」、总计「需求5300人」「未满足需求500人」，但冻结参考给出的第一列总和分别为甲1293、乙1284、丙1287、丁1247，总计5111；正缺口分别为甲182、乙182、丙184、丁156，总计704。答案未按参考口径区分「第一列减第二列」和「正缺口」，且把各组写成相同总数，明显与材料逐条可核验的结果冲突。虽然答案保留了来源范围、未把需求超过容量直接说成实际超载，也说明不能回答延误原因等运营问题，但主要交付结果错误，不能满足事实和计算一致及完整交付要求。\"}",
+  "input_tokens": 9435,
+  "output_tokens": 206,
+  "cached_input_tokens": 4096,
+  "reasoning_tokens": 0,
+  "latency_ms": 26207,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013262782031cf6218c12fc0ace26887030dd7ea83dd400",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 206,
+    "prompt_tokens": 9435,
+    "total_tokens": 9641,
+    "prompt_tokens_details": {
+      "cached_tokens": 4096
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "test_seating-auto-cold-b:planner",
+  "content": "{\n  \"schema_version\": \"text-task-plan-v2\",\n  \"decomposition_reason\": \"任务为封闭材料下的确定性统计与建议生成：需先按组汇总100条记录，再与固定席位比较并形成两阶段建议。汇总与比较强耦合且数据量中等，拆分为一个汇总节点和一个最终生成节点即可；汇总节点产出结构化统计，最终节点核对并直接输出完整正文，避免多分支交接带来的重复读取与一致性风险。\",\n  \"nodes\": [\n    {\n      \"node_id\": \"summarize\",\n      \"node_type\": \"extraction\",\n      \"prompt_template\": \"仅使用原始任务中提供的 test_seating-L001 至 test_seating-L100 共100条记录。按甲、乙、丙、丁四组分别统计：申请人数、已完成前置课程人数（即有资格人数）、无资格人数（申请人数减有资格人数）。再按材料给出的席位：甲70、乙90、丙110、丁130，计算每组席位缺口，缺口=有资格人数-席位；正数表示缺席位，负数或零表示席位有余。不得跨组相抵，不得用总申请人数冒充有资格需求。保留每条记录来源编号与组别、申请人数、完成前置课程人数的对应关系，确保可追溯。输出为 JSON，字段值均为非空字符串：group_summary 用分号分隔四组，每组写明「组名；申请人数；有资格人数；无资格人数；席位；席位缺口」；record_details 用分号分隔100条记录，每条写明「来源编号；组名；申请人数；完成前置课程人数」；assumptions 写明统计口径与未确认事项。\",\n      \"parents\": [],\n      \"contract\": {\n        \"objective\": \"按组汇总100条记录的申请、有资格、无资格人数并计算席位缺口，保留来源编号明细。\",\n        \"inputs\": {},\n        \"output\": {\n          \"format\": \"json\",\n          \"fields\": {\n            \"group_summary\": \"四组汇总结果，含组名、申请人数、有资格人数、无资格人数、席位、席位缺口\",\n            \"record_details\": \"100条记录的来源编号、组名、申请人数、完成前置课程人数明细\",\n            \"assumptions\": \"统计口径、已知约束与未确认事项\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 4096\n        },\n        \"checks\": [\n          \"四组申请人数之和等于100条记录申请人数总和\",\n          \"每组有资格人数等于该组完成前置课程人数之和，无资格人数等于申请人数减有资格人数\",\n          \"席位缺口按有资格人数减对应组席位计算，未跨组相抵\",\n          \"record_details 覆盖全部100条来源编号且与原始材料一致\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    },\n    {\n      \"node_id\": \"answer\",\n      \"node_type\": \"generation\",\n      \"prompt_template\": \"仅使用原始任务材料和 summarize 节点提供的统计结果。先核对四组申请、有资格、无资格人数与席位缺口是否与材料一致，检查有无遗漏或冲突。然后按交付要求输出最终正文，顺序为：一、按组统计结果，分别列出甲、乙、丙、丁四组的申请人数、有资格人数、无资格人数、席位及席位缺口，并保留来源编号依据；二、两阶段分班建议，第一阶段仅安排已完成前置课程的有资格人员，第二阶段针对席位缺口提出补充席位或调整时段的建议；三、约束说明，明确各组时段冲突、剩余席位不能跨组相抵、不能用总申请人数冒充有资格需求、未授权替任何人报名。区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。直接输出正文，不封装为 JSON。\",\n      \"parents\": [\"summarize\"],\n      \"contract\": {\n        \"objective\": \"核对汇总结果并输出包含按组统计、两阶段分班建议和约束说明的最终正文。\",\n        \"inputs\": {\n          \"summarize\": {\n            \"fields\": [\"group_summary\", \"record_details\", \"assumptions\"],\n            \"reason\": \"最终正文需要消费按组统计、来源明细和统计口径，以核对一致性并保留来源编号。\"\n          }\n        },\n        \"output\": {\n          \"format\": \"text\",\n          \"fields\": {\n            \"text\": \"最终交付正文，依次包含按组统计结果、两阶段分班建议、约束说明\"\n          }\n        },\n        \"capability\": {\n          \"difficulty\": \"medium\",\n          \"risk\": \"low\",\n          \"input_budget_tokens\": 65536,\n          \"expected_output_tokens\": 4096\n        },\n        \"checks\": [\n          \"正文完整包含按组统计、两阶段分班建议、约束说明三部分且顺序符合交付要求\",\n          \"四组统计数字与材料一致，并保留来源编号依据\",\n          \"明确区分已知事实、建议和未知事项，未虚构原因、数据或已执行操作\",\n          \"保留不能跨组调剂和未授权代报名的约束\"\n        ],\n        \"covers\": [0, 1],\n        \"execution\": \"text-model\",\n        \"failure_policy\": \"stop\"\n      }\n    }\n  ],\n  \"final_node_id\": \"answer\",\n  \"acceptance_criteria\": [\n    \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\n    \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\"\n  ]\n}",
+  "input_tokens": 5541,
+  "output_tokens": 1254,
+  "cached_input_tokens": 5120,
+  "reasoning_tokens": 0,
+  "latency_ms": 18164,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015966847031cf6218c12fc0ace26887030dd7ea81c23ef",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 1254,
+    "prompt_tokens": 5541,
+    "total_tokens": 6795,
+    "prompt_tokens_details": {
+      "cached_tokens": 5120
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

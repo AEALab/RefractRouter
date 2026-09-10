@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_workshop:cost:cheap:judge",
+  "content": "{\"score\": 32, \"passed\": false, \"rationale\": \"输出结构满足契约：仅含 result、evidence、assumptions 三个非空字符串字段，且未声称联网或执行工具，也引用了 L1-L4 来源。但核心事实判断与材料和冻结参考不一致：被评估文本称「L3无法在现有时段内安排任何一场3小时的工作坊」「周四虽为3小时但仅有一个时段，无法满足两场各3小时」，这混淆了「单场可执行」与「覆盖24人整体不可执行」。根据 L1 周四14至17时正好连续3小时，L3 不要求投影，因此周四可执行一场3小时摄影工作坊；该场最多20人，无法覆盖24人，且周二仅2小时不能再提供一场3小时，故整体不能覆盖24人。冻结参考也明确「摄影每场3小时，周四只容一场且超过20人不能单场完成，当前资源不能覆盖24人」。此外，assumptions 中说「L2可安排在周二或周四……但投影限制使其只能在周二」与前文一致，但 result 中先称「周二或周四均可」再限定周二，表述不够清晰。因关键结论错误且会误导可执行/不可执行安排，判定不通过。\"}",
+  "input_tokens": 1473,
+  "output_tokens": 282,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10843,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789011894279a77e5a4c9aa25c0e7eca6d226bba90a0996c1e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 282,
+    "prompt_tokens": 1473,
+    "total_tokens": 1755,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "test_grant-dag-strong-parallel:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"交付文本逐项核对三个硬条件，明确只有乙同时满足；甲因仅线下且G3口头承诺未提交排程或报价而不采信，丙因45单位超出40单位上限而不满足。推荐乙与冻结参考一致，并分别说明甲需补混合方式排程、远程覆盖说明及不追加成本报价，丙需降至不超过40单位并提供证据。文本保留G1、G2、G3来源编号，区分已知事实、建议与未知事项，未把口头承诺当作既成事实，也未虚构数据或声称执行工具。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"同时检查工期、支出、远程途径三项硬条件；结论与材料一致：乙满足，甲缺远程且修改未证明，丙超支5单位。文中引用G1、G2、G3。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"明确划分已知事实、建议与未知事项；未将甲的口头承诺视为事实，未编造排程、报价或工具执行。\"}]}",
+  "input_tokens": 980,
+  "output_tokens": 282,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16063,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901519710448e426867c3c446aaa68159641220ac15d85fe",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 282,
+    "prompt_tokens": 980,
+    "total_tokens": 1262,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

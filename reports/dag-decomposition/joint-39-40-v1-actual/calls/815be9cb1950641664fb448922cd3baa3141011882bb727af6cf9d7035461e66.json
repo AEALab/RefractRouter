@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-direct-a:final-review",
+  "content": "{\"score\": 82, \"passed\": false, \"rationale\": \"交付整体结构完整，分别核验了两份报告，给出了比较结论与补充数据清单，并保留了 S1–S4 来源编号，且明确不能据百分比直接认定甲更好。但存在与材料不一致的事实：文中写「2024 年春季」「2024 年秋季」，材料仅说明季节分别为春季和秋季，未给出年份，属于新增事实；另称乙站「可据此给出一定精度的置信区间（需在掌握原始答卷和总体规模后才能计算）」与冻结参考「缺少总体规模、未回应及原始答卷，不编置信区间」相近但表述上仍暗示可在补齐后计算，任务层面可接受，然而当前报告不应暗示现已能给出精度。主要失分在未满足「事实和计算与材料一致」以及「不虚构数据」。\" , \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"结构完整且保留来源编号，但加入材料未提供的年份「2024 年」，与事实一致性要求不符。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": false, \"rationale\": \"大部分内容区分了事实、假设与未知事项，但「2024 年」属于虚构数据；此外关于置信区间的表述容易被理解为当前已可给出精度，需更明确为不可计算。\"}]}",
+  "input_tokens": 1586,
+  "output_tokens": 336,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11764,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789015516795e78c31fe06d4434dfef0260629e4a08b5f1d39",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 336,
+    "prompt_tokens": 1586,
+    "total_tokens": 1922,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

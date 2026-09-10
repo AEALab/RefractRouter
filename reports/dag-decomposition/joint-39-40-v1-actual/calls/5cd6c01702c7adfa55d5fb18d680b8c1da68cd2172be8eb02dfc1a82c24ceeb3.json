@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-auto-cold-a:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划采用单节点设计，符合任务规模小、耦合度高的特点。计划完整覆盖了原始交付要求：行动项表需包含三项内容并区分决定与建议、待确认事项仅一条且指向运营组日期未定、保留来源编号、不虚构未知期限。节点职责清晰无重复，输入材料明确，无需虚构数据，能力声明合理。各检查项与验收标准一致，能有效保障最终交付质量。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点 prompt_template 和 checks 完整覆盖了原始任务的所有交付条件：输出一张简短行动项表和一条待确认事项、区分决定与建议（M3 建议不列为已批准）、不把未知期限补成周五（M2 保持未知）、保留 M1/M2/M3 来源编号。未降低任何要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"该计划为单节点，无内部依赖边。节点直接消费原始任务材料，final_node_id 指向 answer，结构合理，无无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"prompt_template 中完整包含了 M1、M2、M3 三条材料内容，并明确要求保留来源编号。checks 中要求保留 M1、M2、M3 来源编号，确保可追溯性。对于 M2 的未知日期，要求保持未知而非虚构。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"decomposition_reason 合理说明了单节点原因（任务规模小、材料短、拆分增加交接开销）。节点职责单一清晰，contract 的 output 和 checks 覆盖了原始任务所需的全部内容（行动项表+待确认事项）。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"capability 声明 difficulty 和 risk 为 low，input_budget_tokens 16384 和 expected_output_tokens 1000 与任务规模匹配。任务本身高度耦合（需综合三条材料生成统一表格），单节点拆分符合其耦合程度。\"}]}",
+  "input_tokens": 1034,
+  "output_tokens": 551,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16864,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014753538923718d11d313173fa258a554449eb87ff931d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 551,
+    "prompt_tokens": 1034,
+    "total_tokens": 1585,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "wai-chart-manual:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本完整满足任务要求：给出了能识别图像的简短替代文本，包含站点、时间与关键数值；提供了可见长说明，保留全部数值（120、90、60、80、80、80）、纵轴从0开始、单位千次，并指出站点甲逐月下降、站点乙保持平稳；明确指出现有「仅在鼠标悬浮时显示」的问题并建议改为可见文字；发布检查项覆盖替代文本改进、可见长说明、纵轴与单位、不依赖悬浮、不推断原因、不声称通过辅助技术测试；依据与限制部分正确引用 S1 摘要且未超出材料范围，未虚构原因或测试结论。两条验收标准均满足。\",\"criteria\":[{\"criterion\":\"给出识别图像的简短替代文本与可访问的详细说明，不能只依赖鼠标悬浮。\",\"passed\":true,\"rationale\":\"文本提供了识别图像内容并概括关键信息的简短替代文本，以及包含数值与趋势的可见长说明，并明确指出「详细数据目前仅在鼠标悬浮时显示」应改为可见文字，符合不依赖悬浮的要求。\"},{\"criterion\":\"准确保留两个站点数值、时间、纵轴与单位，指出甲递减乙稳定，不虚构原因或测试。\",\"passed\":true,\"rationale\":\"数值（甲120/90/60、乙80/80/80）、时间（一月至三月）、纵轴从0开始、单位千次均准确保留；明确指出甲逐月下降、乙保持平稳；未推断下降原因，并声明未声称已通过辅助技术测试。\"}]}",
+  "input_tokens": 855,
+  "output_tokens": 346,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13436,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217889694063429c5625d6f49ce94e6eea0041d172c51c1a4e93",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 346,
+    "prompt_tokens": 855,
+    "total_tokens": 1201,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

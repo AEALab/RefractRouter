@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-dag-strong-serial:final-review",
+  "content": "{\"score\": 100, \"passed\": true, \"rationale\": \"被评估文本仅包含一张简短行动项表和一条待确认事项，符合交付范围。表中「给出检查清单」责任方为「设备组」，期限为「周五前」，来源标注 M1，与 M1 一致；「汇总现场反馈」责任方为「运营组」，期限写为「尚未确定」，来源标注 M2，没有把未知期限补成周五。待确认事项明确说明「周三试运行仅为某成员建议，会议未表决，不能列为已批准决定」，并指出是否采纳、执行方与执行时间均待确认，来源标注 M3，正确区分了决定与建议。文本未声称联网或执行工具，也未虚构原因、数据或已执行操作。两条验收标准均满足。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": true, \"rationale\": \"交付物包含且仅包含一张简短行动项表和一条待确认事项。设备组行动项为「给出检查清单」，期限「周五前」，来源 M1；运营组行动项为「汇总现场反馈」，期限「尚未确定」，来源 M2；待确认事项对应 M3。事实与材料一致，来源编号均保留。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"已批准决定仅列入 M1、M2；M3 被正确放在待确认事项中，并明确其为未表决建议，未列为已批准决定。运营组期限保持未知，未补成周五。文本未虚构原因、数据，也未声称执行了联网或工具操作。\"}]}",
+  "input_tokens": 607,
+  "output_tokens": 386,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13154,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014901088f1aca4493aa6c7087a6ccfbfdb4be615c986a6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 386,
+    "prompt_tokens": 607,
+    "total_tokens": 993,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

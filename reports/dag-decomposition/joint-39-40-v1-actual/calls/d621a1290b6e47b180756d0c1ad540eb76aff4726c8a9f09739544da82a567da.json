@@ -1,0 +1,24 @@
+{
+  "label": "test_surveys-dag-single-a:final-review",
+  "content": "{\"score\":100,\"passed\":true,\"rationale\":\"被评估文本完整满足任务要求：分别核验了两份报告能支持的结论，计算正确（甲站40人=50×80%，乙站140人=200×70%），保留了来源编号S1-S4；明确写出「不能依据百分比直接认定甲服务更好」并列出样本来源、抽样方法、时间、题目差异及缺失数据等理由；补充数据清单完整且未虚构置信区间；区分了已知事实、假设与未知事项，未虚构原因、数据或工具执行。\",\"criteria\":[{\"criterion\":\"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\",\"passed\":true,\"rationale\":\"文本分别核验了S1甲站和S2乙站报告能支持的结论，计算正确（50×80%=40，200×70%=140），包含比较结论段落和补充数据清单，并明确标注「证据来源：S1、S2、S3、S4」及各计算依据的来源编号。\"},{\"criterion\":\"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\",\"passed\":true,\"rationale\":\"文本明确区分已知事实（如「可支持的事实仅为」）与未知事项（专设「假设与未知事项」段，列出未回应人数、总体规模等均未知），未虚构置信区间或其他数据，未声称执行任何工具操作，且遵守了「不能据百分比直接认定甲服务更好」的约束。\"}]}",
+  "input_tokens": 996,
+  "output_tokens": 329,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10664,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890154924187820404c56ac6dd9ce215ba8b602495a367885",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 329,
+    "prompt_tokens": 996,
+    "total_tokens": 1325,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

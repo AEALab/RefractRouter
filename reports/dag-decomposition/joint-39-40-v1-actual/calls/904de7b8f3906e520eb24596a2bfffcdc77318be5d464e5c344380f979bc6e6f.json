@@ -1,0 +1,24 @@
+{
+  "label": "test_minutes-direct-a:final-review",
+  "content": "{\"score\": 88, \"passed\": false, \"rationale\": \"交付文本整体符合材料：A1 设备组检查清单周五前（M1）正确；A2 运营组汇总现场反馈期限标为「尚未确定」（M2）正确，未补成周五；A3 周三试运行标为未表决建议（M3）正确，来源编号保留。但存在两处与交付要求的偏差：其一，任务要求「仅输出一张简短行动项表和一条待确认事项」，而答案额外附加了「补充说明（依据与限制）」一节，违反了「仅输出」的限定；其二，A3 行将负责人填为「待定」，这属于材料中不存在的信息——材料只说某成员提出建议且未表决，并未确立该行动项及其负责人，更稳妥的做法是不将其列入行动项表或明确标注「材料未给出」，填「待定」有轻微虚构意味。鉴于「仅输出」要求被明确违反，不能判全部通过。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": false, \"rationale\": \"事实与材料一致且保留了 M1/M2/M3 来源编号，但未做到「仅输出一张简短行动项表和一条待确认事项」——额外附加了「补充说明（依据与限制）」段落，超出交付范围；且行动项表纳入未表决建议并填「待定」负责人，表格结构不够简洁严谨。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"正确区分了已决定事项（A1、A2）与未表决建议（A3），运营组期限保留为「尚未确定」未补成周五，未虚构原因或声称执行了工具；仅 A3 负责人「待定」为轻微推断，但已明确标注建议性质，未构成实质性虚构。\"}]}",
+  "input_tokens": 748,
+  "output_tokens": 435,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13483,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014820222a77e5a4c9aa25c0e7eca6d226bba90a02e36d8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 435,
+    "prompt_tokens": 748,
+    "total_tokens": 1183,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

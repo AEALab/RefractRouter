@@ -1,0 +1,24 @@
+{
+  "label": "probe:cal_sensor:answer:strong:judge",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"输出逐组汇总了合格与异常数量并列出全部异常来源编号，与冻结参考一致（甲15/10、乙20/5、丙15/10、丁20/5），整批100条中合格70条、异常30条、合格比例70%，据此判断不满足至少90%门槛，且未删除异常重算。异常编号核对无误：甲组异常为25与17摄氏度记录（L008、L020、L028、L040、L048、L060、L068、L080、L088、L100），乙组为26摄氏度记录（L009、L029、L049、L069、L089），丙组为17与25摄氏度记录（L010、L018、L030、L038、L050、L058、L070、L078、L090、L098），丁组为26摄氏度记录（L019、L039、L059、L079、L099）。端点18与24按合格处理，符合Q1。输出明确区分已知事实与不可推断事项，未虚构原因、未声称执行工具或联网。轻微不足：未显式说明「先汇总异常再判断门槛」的流程顺序，也未引用上游cost/risk的假设表述，但实质内容完整、计算正确、限制清晰，满足节点职责与验收条件。\"}",
+  "input_tokens": 8186,
+  "output_tokens": 308,
+  "cached_input_tokens": 3584,
+  "reasoning_tokens": 0,
+  "latency_ms": 11581,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789013891137e78c31fe06d4434dfef0260629e4a08bf56e79",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 308,
+    "prompt_tokens": 8186,
+    "total_tokens": 8494,
+    "prompt_tokens_details": {
+      "cached_tokens": 3584
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

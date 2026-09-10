@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-0-cheap:final-review",
+  "content": "{\"score\": 100, \"passed\": true, \"rationale\": \"答案完整满足任务要求：分别核对了时间与设备（L2 匹配周二 14-16 时及投影可用性，L3 因周二时长不足、周四仅一个 3 小时时段而无法满足分场要求）、容量与分场条件（L2 的 18 人≤20 人上限，L3 分场后每场 12 人虽满足容量但时间条件不足）。事实与材料一致，保留了 L1-L4 来源编号，未虚构额外场地或资源，并明确区分了已知事实与假设（如 L3 是否需投影的未知事项不影响结论）。结论与冻结参考一致：L2 可执行，L3 无法执行。\", \"criteria\": [{\"criterion\": \"完整满足本任务交付要求，事实和计算与材料一致，保留来源编号。\", \"passed\": true, \"rationale\": \"答案完整核对了时间与设备、容量与分场条件，正确指出 L2 可执行（周二 14-16 时，18 人≤20 人，投影可用）及 L3 无法执行（分场需两个 3 小时时段但仅周四有一个 3 小时时段，周二仅 2 小时），计算与材料一致，并保留了 L1-L4 来源编号。\"}, {\"criterion\": \"遵守材料约束，区分已知事实、建议和未知事项，不虚构原因、数据或已执行的操作。\", \"passed\": true, \"rationale\": \"答案严格基于给定材料，明确区分了已知事实（如 L1-L4 的具体规定）与假设/未知事项（如 L3 是否必须使用投影），未虚构额外场地、时间调整或其他资源，结论推导过程清晰且符合逻辑。\"}]}",
+  "input_tokens": 1004,
+  "output_tokens": 392,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12795,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178901174399678af8113c224ccdd69578c3b63d1e71a19cc22",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 392,
+    "prompt_tokens": 1004,
+    "total_tokens": 1396,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

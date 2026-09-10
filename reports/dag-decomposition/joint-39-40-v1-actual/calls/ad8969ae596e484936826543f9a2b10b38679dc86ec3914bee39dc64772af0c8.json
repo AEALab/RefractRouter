@@ -1,0 +1,24 @@
+{
+  "label": "cal-dag-1-strong:cost",
+  "content": "{\n  \"result\": \"保留记录：记录b（来源X，版本2，样本120）和记录c（来源Y，样本80）。删除记录a（来源X，版本1，样本100），因为材料明确说明记录b替代版本1，且内部规则只采用各来源最新版。已知去重规模：记录c中有30个样本与来源X版本2重叠，因此已知重叠为30。去重后总量为120+80-30=170。未知重叠限制：材料未提供来源X版本2与来源Y除这30个样本之外是否还有其他重叠，也未提供其他来源或版本间的重叠信息；按材料约束，未知重叠不得推定为零，因此170仅为基于已知重叠的计算结果，不能视为最终去重总量。\",\n  \"evidence\": \"D1：记录a：来源X，版本1，样本100；记录b：来源X，版本2，样本120，明确替代版本1。D2：记录c：来源Y，样本80，其中30个样本与X版本2重叠。D3：内部规则只采用各来源最新版；允许按已知重叠计算去重总量，未知重叠不得推定为零。\",\n  \"assumptions\": \"假设来源X的最新版为版本2，来源Y仅提供记录c且无其他版本信息。信息缺口：未提供来源Y是否有其他版本、来源X版本2与来源Y除30个样本外的其他重叠情况，以及是否存在其他来源或记录。\"\n}",
+  "input_tokens": 639,
+  "output_tokens": 312,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5046,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789012240027b9f489096afc36acf45c00ec3935d23a11aa46",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 312,
+    "prompt_tokens": 639,
+    "total_tokens": 951,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

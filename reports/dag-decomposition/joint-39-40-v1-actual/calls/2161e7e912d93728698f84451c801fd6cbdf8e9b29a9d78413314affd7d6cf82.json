@@ -1,0 +1,24 @@
+{
+  "label": "setup:test_notice-b:plan-review",
+  "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"该拆分计划为单节点生成任务，完整覆盖了原始交付要求。计划明确保留了角色（协调员）、数量（六份）、截止时间（下周三上午十点前）、接收方（会务组）及两个条件分支（正常提交与冲突时标明来源并提交待确认版本），且未添加分析章节。无依赖边需求，输入材料直接嵌入提示词，上下文充分可追溯。节点能力声明合理（低难度、低风险），符合任务耦合程度，无需拆分。\", \"criteria\": [{\"criterion\": \"原始交付条件全部有明确职责覆盖，不用改写条件降低要求。\", \"passed\": true, \"rationale\": \"单节点职责明确涵盖所有交付条件：保留角色、数量、截止时间、接收方及两个条件分支，且不增加理由或分析章节，未降低要求。\"}, {\"criterion\": \"必要依赖存在，声明的每条边都有真实字段消费，不制造无意义串行依赖。\", \"passed\": true, \"rationale\": \"任务为单节点，无依赖边声明，符合简单改写任务特性，未制造无意义串行依赖。\"}, {\"criterion\": \"上下文充分，输入材料和来源可以追溯，无需虚构缺失数据。\", \"passed\": true, \"rationale\": \"输入材料N1完整嵌入提示词，来源清晰可追溯，无需虚构数据。\"}, {\"criterion\": \"允许单节点和不拆分，节点职责不重复，汇总包含原始任务所需内容。\", \"passed\": true, \"rationale\": \"采用单节点合理，职责无重复，最终节点输出即为完整改写通知，包含原始任务所需全部内容。\"}, {\"criterion\": \"节点能力与输入容量声明合理，拆分符合任务的耦合程度。\", \"passed\": true, \"rationale\": \"能力声明（低难度、低风险、16384输入/300输出token）合理，单节点拆分符合高耦合短文本改写任务特性。\"}]}",
+  "input_tokens": 879,
+  "output_tokens": 419,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10869,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789014523903fd0de7354b348b065f00b895e07126b8a757e8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 419,
+    "prompt_tokens": 879,
+    "total_tokens": 1298,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
