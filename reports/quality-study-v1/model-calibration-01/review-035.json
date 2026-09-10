@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pending\",\"rationale\":\"材料与任务约束清晰，参考事实和算术正确，验收条件覆盖关键错误与全局约束；但任务难度与目标业务代表性缺乏证据，无法判定。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1 要求无溶剂，X 满足；s2 要求含护目镜，U 满足；s3 预算 800 且不可少买、不可假设补充配件，约束明确无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"kits=[X,U] 与 s1、s2 一致；total_cost=350+420=770；remaining_budget=800-770=30；来源对应 s1、s2、s3 正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks 校验 kits 集合、total_cost、remaining_budget，并要求 s3 作为预算来源，能捕获选错套件（Y/V）、算术错误及忽略共享预算的情况。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"材料仅给出各选项属性与价格及预算规则，未直接给出应选 X、U 或 770/30 的结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"单份作者构造的简短材料无法证明跨样本独立性、来源真实性或业务代表性，证据不足。\"}]}",
+  "input_tokens": 802,
+  "output_tokens": 345,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12124,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056249823e78c31fe06d4434dfef0260629e4a08bde70a3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 345,
+    "prompt_tokens": 802,
+    "total_tokens": 1147,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

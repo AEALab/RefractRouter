@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pending\",\"rationale\":\"材料本身自洽且未泄露结论，但单份材料无法证明跨样本独立性、来源真实性或业务代表性，相关验收项证据不足。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"材料明确给出问卷14份不满意、客服20条工单，并指出无法身份对应，任务要求分别分析，无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"参考检查中survey_negative=14(s1)、service_complaints=20(s2)、can_pool=false(s1,s2)与材料一致，算术与来源对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pending\",\"rationale\":\"现有检查覆盖数值与合并限制，但未显式覆盖'不把工单当客户数'的语义错误及抽样限制说明，无法判定是否充分。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"材料仅陈述原始数据与限制，未直接给出can_pool=false等结论，需推导得出。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"材料为作者构造的简短示例，无证据表明其代表真实业务场景或难度分布。\"}]}",
+  "input_tokens": 755,
+  "output_tokens": 300,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17933,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056003007efca7158d8a072a352f4e6ec3154e35a46a3e4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 300,
+    "prompt_tokens": 755,
+    "total_tokens": 1055,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

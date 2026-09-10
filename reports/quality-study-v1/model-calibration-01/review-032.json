@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"材料、参考答案（早班甲、晚班乙、feasible=true，来源s1+s2）与语义约束一致，无明显歧义或算术错误；但验收条件未覆盖'每人最多一班'这一全局约束（本材料下甲乙各一班恰好满足，无反例可触发），且任务难度与业务代表性缺乏证据。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1规定每班1人须持有效培训记录及班次时间，s2给出甲有效仅早班、乙有效仅晚班、丙过期两班有空，资格与班次约束清晰无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"甲有效且只能早班→morning=甲；乙有效且只能晚班→evening=乙；丙培训过期不得安排；两班均满足故feasible=true，来源s1、s2对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"fail\",\"rationale\":\"reference_checks仅校验三个字段的等值结果，未覆盖'每人最多一班'的全局约束（本构造下甲乙各一班自然满足，无反例可检验该约束被违反的情形），语义准则'丙不得作为合格替补'虽有覆盖但全局约束覆盖不完整。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"任务说明与材料仅给出规则和人员状态，未直接给出morning/evening/feasible的结论，需推导得出。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"单份作者构造的简短材料无法证明跨样本独立性、来源真实性或对目标排班业务的代表性，证据不足。\"}]}",
+  "input_tokens": 762,
+  "output_tokens": 410,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14384,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056199657efca7158d8a072a352f4e6ec3154e35a60d47e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 410,
+    "prompt_tokens": 762,
+    "total_tokens": 1172,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

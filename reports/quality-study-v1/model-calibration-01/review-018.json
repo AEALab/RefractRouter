@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文声称可立即发布且发布后才签名，直接倒写“签名通过才能发布”的依赖，并暗示检查通过即可发布；findings 中 allowed_now/required_edge 虽方向正确，但与正文冲突，且 blocked_now 未把签名列为当前未执行而阻塞发布的关键前提，证据引用也不足以支持正文结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文说“可以立即发布，发布完成后才需要签名”，违反 s1“签名通过才能发布”和 s2“签名未执行；负责人要求现在直接发布”的现状，未核对当前状态可执行性。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"findings 的 required_edge 为[签名, 发布]、blocked_now含发布，方向正确；但正文称可立即发布且发布后才签名，与结构化结论矛盾并反写依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"allowed_now列“签名”有 s1/s2 支持；blocked_now列“发布”正确；required_edge [签名, 发布] 正确。但正文核心结论错误，且未明确说明检查报告只证明打包成功、不代表签名完成，整体必需结论不完整且引用不能支持正文主张。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"fail\",\"rationale\":\"正文明确倒写依赖为发布后再签名，并在打包通过检查、签名未执行状态下允许立即发布，构成直接违反。\"}]}",
+  "input_tokens": 696,
+  "output_tokens": 378,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11955,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789055973490f1aca4493aa6c7087a6ccfbfdb4be61553372c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 378,
+    "prompt_tokens": 696,
+    "total_tokens": 1074,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

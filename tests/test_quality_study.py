@@ -45,7 +45,7 @@ def test_zero_network_preflight_and_conservative_envelopes():
     assert result['totals']['holdout-candidate']['runs'] == 432
     assert result['calibration']['expectation_mismatches'] == []
     assert result['calibration']['detected_negative_cases'] == 5
-    assert result['calibration']['unresolved_negative_cases'] == 1
+    assert result['calibration']['unresolved_negative_cases'] == 2
     assert result['calibration']['false_rejections_on_author_positives'] == 0
     assert result['calibration']['human_disagreement'] is None
 

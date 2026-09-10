@@ -1,0 +1,54 @@
+{
+  "state": "completed",
+  "origin": "model",
+  "model": "kimi-k3",
+  "plan_sha256": "9b8beb8e9016e4ea17a46f611159833cfdc807e3e876c9cfba4494f906848702",
+  "real_model_calls": 11,
+  "completed_reviews": 10,
+  "invalid_outputs": 1,
+  "unattempted_requests": 0,
+  "known_usage_afp": 12.394,
+  "unknown_usage_calls": 0,
+  "unknown_usage_reserved_afp": 0,
+  "actual_total_afp": 12.394,
+  "afp_ceiling": 59.5,
+  "elapsed_seconds": 175.441,
+  "calibration_against_author_labels": {
+    "acceptable:pass": 4,
+    "unacceptable:fail": 2
+  },
+  "false_accepts": 0,
+  "false_rejects": 0,
+  "material_audit_verdicts": {
+    "pending": 3,
+    "fail": 1,
+    "pass": 1
+  },
+  "material_criterion_verdicts": {
+    "材料与任务要求无歧义或明确保留未知": {
+      "pending": 2,
+      "pass": 3
+    },
+    "参考事实、算术及来源对应正确": {
+      "pass": 4,
+      "pending": 1
+    },
+    "验收条件覆盖关键错误和全局约束": {
+      "pass": 4,
+      "pending": 1
+    },
+    "公共任务输入没有预先透露应推导的结论": {
+      "pass": 3,
+      "fail": 1,
+      "pending": 1
+    },
+    "有证据支持任务难度与目标业务的代表性": {
+      "pending": 4,
+      "pass": 1
+    }
+  },
+  "human_disagreement": null,
+  "independent_human_reviews": 0,
+  "formal_run_ready": false,
+  "scope": "开发集作者正负例的辅助评审校准，以及候选材料的 AI 交叉检查。没有真人判定；不估计独立留出准确率，不证明任务代表性或 Pareto 收益。"
+}

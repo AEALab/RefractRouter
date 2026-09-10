@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"材料明确给出了依赖链、时长、单执行者约束和60分钟窗口；按串行计算20+10+15+10=55，顺序为备份→校验备份→部署→回归检查，55<=60，参考事实与来源对应正确。验收条件覆盖不得删依赖、漏回归、错误并行等关键约束。任务输入未预先给出order、finish_minute或deadline_met结论。业务代表性仅有有限材料支持，但任务为作者构造的简短排程核算样例，难度与目标场景基本相符，无明确反证。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1明确四步时长与先后依赖，s2明确单执行者串行、从0开始、截止60分钟且校验一次通过；无需要保留的未知。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"串行总时长20+10+15+10=55，finish_minute=55；55<=60故deadline_met=true；order与s1依赖链一致，且order/finish/deadline均需结合s1与s2。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks固定顺序集合、完成分钟与窗口判断；semantic_criteria禁止删除依赖、漏掉回归或把同一执行者并行，覆盖主要错法。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction与materials只给约束和参数，未直接给出执行顺序、55分钟或是否赶上窗口。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pass\",\"rationale\":\"材料为简短构造样例，包含依赖、资源互斥与截止窗口，能代表基础迁移排程核算；虽不能证明广泛业务覆盖，但本任务范围内难度与目标相符且无反证。\"}]}",
+  "input_tokens": 791,
+  "output_tokens": 440,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16514,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890562619687093713527b8c530401a403eec8fc152254410",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 440,
+    "prompt_tokens": 791,
+    "total_tokens": 1231,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

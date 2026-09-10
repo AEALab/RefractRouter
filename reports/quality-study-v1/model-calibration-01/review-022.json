@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"参考事实与算术本身正确（东站差20个百分点、西站unknown、不支持统一推广），但任务输入的语义标准已预先透露关键结论方向，且无任何证据支持任务难度与业务代表性。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"材料明确：东站随机对照（s1）可算完成率差；西站为自愿参与、另20人无结果记录且人群不同（s2），无法与旧流程比较，应保留unknown。任务要求与材料一致，未知项需明确保留。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"东站新流程32/40=80%、旧流程24/40=60%，差20个百分点，来源s1正确；西站无旧流程对照数据，west_change=unknown，来源s2正确；西站非随机、人群不同，pooled_effect_supported=false，来源s1+s2正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks覆盖三项结论及来源要求，semantic_criteria明确禁止把西站90%完成率误作90个百分点提升，覆盖关键错误。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"fail\",\"rationale\":\"semantic_criteria直接提示'不把西站90%完成率当成90个百分点提升'，预先透露了西站结论方向与应避免的答案，属于向作答方泄露应推导的结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"材料为作者构造的简短示例，无任何关于目标业务场景或难度代表性的证据，无法判定。\"}]}",
+  "input_tokens": 764,
+  "output_tokens": 381,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13334,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890560348418f4f8ecdaf0d8a16803f1d267b7ea40db28f01",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 381,
+    "prompt_tokens": 764,
+    "total_tokens": 1145,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

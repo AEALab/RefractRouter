@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pending\",\"rationale\":\"参考事实与算术正确，验收覆盖关键约束，无预先透露结论；但材料未提供跨样本独立性、来源真实性或业务代表性的证据，且任务说明对“周五前送达”的边界表述存在轻微歧义。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pending\",\"rationale\":\"“须周五前送达”在中文语境中可能含“周五当天”或“严格早于周五”两种理解；材料未明确是否包含周五。虽D周四送达在两种解释下均满足，E周六均不满足，但表述存在轻微歧义，未明确保留未知。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"P满足双面彩色300元（s1），D满足周四送达80元（s2），总价300+80=380元，符合预算400元；来源对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"reference_checks分别校验printer、delivery、total_cost，并强制要求对应来源，覆盖双面彩色、配送时限、预算及最低总价组合等关键约束。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction与materials仅给出需求和报价，未直接给出P、D或380的结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"单份作者构造的简短材料无法证明跨样本独立性、来源真实性或业务代表性，证据不足。\"}]}",
+  "input_tokens": 739,
+  "output_tokens": 351,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14142,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905618551420244bbcebb250bf80b1bc04ef464017ef0782",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 351,
+    "prompt_tokens": 739,
+    "total_tokens": 1090,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

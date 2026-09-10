@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文与 findings 一致：问卷14份不满意仅描述自愿填写者，投诉20条工单且4条为同一客户追问，未把工单等同客户数；两来源身份无法对应、不能去重，故 can_pool=false。各结论均有 s1/s2 支撑，满足分别分析与限制说明。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文分别说明问卷50份中14份不满意、客服20条工单且4条同一客户追问，并指出未填写者未知、身份无法对应，符合材料与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 survey_negative=14(s1)、service_complaints=20(s2)、can_pool=false(s1,s2) 与正文一致；未把工单当客户数，也未声称可代表全体客户。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出且数值/布尔正确；14与20分别由s1、s2直接支持，不能合并由两来源身份无法对应及问卷未记录客服接触共同支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"明确说明工单条数不等于客户数；问卷为自愿填写、未记录未填写者，客服与问卷身份无法对应、无法去重，抽样与重叠限制均已说明。\"}]}",
+  "input_tokens": 783,
+  "output_tokens": 357,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12732,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056458484e78c31fe06d4434dfef0260629e4a08ba62b94",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 357,
+    "prompt_tokens": 783,
+    "total_tokens": 1140,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

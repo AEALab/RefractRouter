@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确计算应存60件（80+30-46-4），实盘差异-1件，且未将差异归因于失窃，符合材料与任务要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1计算应存60件，依据s2说明实盘59件及待核对单据，未擅自补齐数量，结论与材料一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中expected_stock=60、observed_gap=-1、theft_proven=false与正文表述一致，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings均完整，数值正确，sources引用与材料对应，足以支持各自主张。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"明确指出待核对单据数量未知，不能从差异直接认定失窃，未补齐待核对数量。\"}]}",
+  "input_tokens": 730,
+  "output_tokens": 266,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13080,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890558558993f04613060c95c0e1cb70b4f628471a9890f84",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 266,
+    "prompt_tokens": 730,
+    "total_tokens": 996,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

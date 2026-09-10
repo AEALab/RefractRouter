@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文与 allowed_now/blocked_now 均正确，但 required_edge 将发布直接前置边写成 [\\\"发布\\\",\\\"签名\\\"]，在任务要求“用两个步骤名列表表达”且语义禁止倒写依赖的约束下，该顺序把边方向反写为 发布→签名，与正文自述的 签名→发布 矛盾，构成关键错误。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文说明当前只能签名、签名通过后才可发布，且指出打包检查不能替代签名，符合 s1、s2 与任务约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文写“签名→发布”，但 findings 的 required_edge 为 [\\\"发布\\\",\\\"签名\\\"]，方向相反；二者不一致，且结构化项反写了发布直接前置边。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"allowed_now=[签名]、blocked_now=[发布] 正确且有 s1、s2 支持；但 required_edge 事实方向错误，s1 只支持“签名通过才能发布”，不支持 [发布, 签名] 这一顺序。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"最终正文本身未倒写依赖，并明确否认检查通过即可直接发布；错误位于 findings.required_edge，而非正文。\"}]}",
+  "input_tokens": 710,
+  "output_tokens": 347,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11978,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789055794750846a816464a9af9c0791e0f68a2ce03ccec658",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 347,
+    "prompt_tokens": 710,
+    "total_tokens": 1057,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

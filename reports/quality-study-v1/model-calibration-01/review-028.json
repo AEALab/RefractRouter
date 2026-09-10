@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"材料与参考检查一致：A 公开且解禁已过、无联系方式，可释放；B 内部禁止；C附件虽公开且解禁已过，但含未脱敏联系方式，按附件例外必须阻断。任务未在输入中直接给出结论，验收条件覆盖公开标签非充分条件这一关键错误。跨样本独立性与业务代表性虽无法由单份材料证明，但范围说明已要求证据不足保留 pending；本任务为作者构造的简短候选材料，难度与规则适用目标明确，故整体通过。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1 给出公开/内部/附件联系方式三类规则，s2 对 A、B、C附件的属性描述完整，能无歧义判定 releasable 与 blocked。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"reference_checks 期望 releasable=[A]、blocked=[B,C附件]，与 s1 规则和 s2 目录一致；required_sources 均为 s1、s2，来源对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"semantic_criteria 明确要求检查附件例外，防止把公开标签当充分条件；两个 set_equal 检查同时约束 releasable 与 blocked 的全局结果。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction 与 materials 只提供规则和事实，未直接写出 A 可释放或 B、C附件阻断的结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pass\",\"rationale\":\"任务要求同时处理公开解禁、内部禁止、附件脱敏例外，覆盖典型发布审查冲突；虽单份材料不能证明跨样本代表性，但在作者构造的简短候选材料范围内，该组合足以支持目标规则适用难度。\"}]}",
+  "input_tokens": 719,
+  "output_tokens": 432,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17561,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056123050640844006c495b97e3327b5d9afec856d2d482",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 432,
+    "prompt_tokens": 719,
+    "total_tokens": 1151,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

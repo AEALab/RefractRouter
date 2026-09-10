@@ -319,7 +319,7 @@ def preflight(directory):
                 '质量与非劣门槛未完成开发校准及真人签署。',
                 '基线运行器、内部提示与逐请求容量/超时尚未绑定冻结。',
                 '离线画像/训练/搜索开销未定界，当前包络不是整项研究总预算。',
-                '真人盲审与模型语义评审的正负例校准尚未完成。'],
+                '真人盲审及辅助模型校准分歧尚未完成独立复核。'],
             'independent_review_records': len(reviews), 'material_independence_verified': False,
             'task_counts': dict(Counter(t['split'] for t in tasks)),
             'source_kinds': dict(Counter(t['provenance']['kind'] for t in tasks)),

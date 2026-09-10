@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"规则与名单一致：A材料不完整应剔除；合格者按优先级再按提交时间排序为B(优先1,10:00)、C(优先2,08:00)、D(优先2,11:00)、E(优先3,07:00)，3个名额故选B/C/D，E候补。参考检查与来源s1、s2对应正确，验收覆盖剔除、顺序、候补与名额约束；任务未预先给出结论。材料为作者构造的简短样本，无法证明跨样本独立性、来源真实性或业务代表性，但任务本身包含资格剔除、两级排序和容量限制，难度与目标业务可对应，且无反证。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1明确名额3、资格为材料完整、排序为先优先级后提交时间；s2明确各申请完整性、优先级、时间且说明数字越小越优先，无冲突。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"excluded=A；selected按有效顺序为B、C、D；waitlisted=E；来源均对应s1规则与s2名单。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"检查覆盖不合格剔除、入选顺序相等、候补集合相等，并要求来源；能捕捉资格颠倒、优先级/时间顺序错误和名额分配错误。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction与materials只给规则和数据，未直接给出excluded、selected、waitlisted结果。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pass\",\"rationale\":\"虽为构造短样，但包含资格筛选、优先级、时间 tie 外的顺序规则、容量约束与候补，足以代表该类名额分配任务的基础难度；无材料反证其不具代表性。\"}]}",
+  "input_tokens": 791,
+  "output_tokens": 435,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 22997,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890561624897820404c56ac6dd9ce215ba8b602495a2334a2",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 435,
+    "prompt_tokens": 791,
+    "total_tokens": 1226,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,4826 @@
+{
+  "schema_version": "quality-preflight-v1",
+  "real_model_calls": 0,
+  "protocol_sha256": "dd058548c861e72e26a04bc398c95f088777632ccbdacba3b73a22913bad1d75",
+  "formal_run_ready": false,
+  "blocking_requirements": [
+    "材料及参考答案尚未独立审查，构造材料不代表真实业务分布。",
+    "质量与非劣门槛未完成开发校准及真人签署。",
+    "基线运行器、内部提示与逐请求容量/超时尚未绑定冻结。",
+    "离线画像/训练/搜索开销未定界，当前包络不是整项研究总预算。",
+    "真人盲审及辅助模型校准分歧尚未完成独立复核。"
+  ],
+  "independent_review_records": 0,
+  "material_independence_verified": false,
+  "task_counts": {
+    "development": 6,
+    "holdout-candidate": 12
+  },
+  "source_kinds": {
+    "constructed": 18
+  },
+  "envelopes": [
+    {
+      "arm_id": "direct-cheap",
+      "maximum_online_calls": 2,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 36.864,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 140000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "direct-mid",
+      "maximum_online_calls": 2,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 45.056,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 140000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "direct-strong",
+      "maximum_online_calls": 2,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 57.344,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 140000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "task-selector",
+      "maximum_online_calls": 3,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 59.0424,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 152000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "random-mixture",
+      "maximum_online_calls": 2,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 57.344,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 140000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "reused-single",
+      "maximum_online_calls": 7,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 158.72,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 365000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 2
+    },
+    {
+      "arm_id": "reused-heterogeneous",
+      "maximum_online_calls": 7,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 158.72,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 365000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 2
+    },
+    {
+      "arm_id": "auto-single-1",
+      "maximum_online_calls": 8,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 160.4184,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 377000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "auto-single-2",
+      "maximum_online_calls": 8,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 160.4184,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 377000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 2
+    },
+    {
+      "arm_id": "auto-heterogeneous-1",
+      "maximum_online_calls": 8,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 160.4184,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 377000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 1
+    },
+    {
+      "arm_id": "auto-heterogeneous-2",
+      "maximum_online_calls": 8,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 160.4184,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 377000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 2
+    },
+    {
+      "arm_id": "direct-or-dag",
+      "maximum_online_calls": 9,
+      "maximum_research_calls": 1,
+      "online_afp_ceiling": 162.1168,
+      "research_afp_ceiling": 34.816,
+      "online_timeout_sum_ms": 389000,
+      "research_timeout_sum_ms": 45000,
+      "max_concurrency": 2
+    }
+  ],
+  "totals": {
+    "development": {
+      "runs": 216,
+      "maximum_calls": 1404,
+      "online_afp_ceiling": 24783.8544,
+      "research_afp_ceiling": 7520.256
+    },
+    "holdout-candidate": {
+      "runs": 432,
+      "maximum_calls": 2808,
+      "online_afp_ceiling": 49567.7088,
+      "research_afp_ceiling": 15040.512
+    }
+  },
+  "schedule": [
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-01/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-01/repeat-1/reused-single"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-01/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-01/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-01/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-01/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-01/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-01/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-01/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-01/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-01/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-01/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-02/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-02/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-02/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-02/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-02/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-02/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-02/repeat-1/reused-single"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-02/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-02/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-02/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-02/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-02/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-03/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-03/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-03/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-03/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-03/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-03/repeat-1/reused-single"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-03/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-03/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-03/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-03/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-03/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-03/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-04/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-04/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-04/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-04/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-04/repeat-1/reused-single"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-04/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-04/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-04/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-04/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-04/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-04/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-04/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-05/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-05/repeat-1/reused-single"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-05/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-05/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-05/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-05/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-05/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-05/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-05/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-05/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-05/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-05/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-06/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-06/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-06/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-06/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-06/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-06/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-06/repeat-1/reused-single"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-06/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-06/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-06/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-06/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-06/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-01/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-01/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-01/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-01/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-01/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-01/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-01/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-01/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-01/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-01/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-01/repeat-1/task-selector"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-01/repeat-1/reused-single"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-02/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-02/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-02/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-02/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-02/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-02/repeat-1/reused-single"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-02/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-02/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-02/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-02/repeat-1/task-selector"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-02/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-02/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-03/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-03/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-03/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-03/repeat-1/task-selector"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-03/repeat-1/reused-single"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-03/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-03/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-03/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-03/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-03/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-03/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-03/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-04/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-04/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-04/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-04/repeat-1/task-selector"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-04/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-04/repeat-1/reused-single"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-04/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-04/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-04/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-04/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-04/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-04/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-05/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-05/repeat-1/reused-single"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-05/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-05/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-05/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-05/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-05/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-05/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-05/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-05/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-05/repeat-1/task-selector"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-05/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-06/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-06/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-06/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-06/repeat-1/task-selector"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-06/repeat-1/reused-single"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-06/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-06/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-06/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-06/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-06/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-06/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-06/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-01/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-01/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-01/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-01/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-01/repeat-1/reused-single"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-01/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-01/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-01/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-01/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-01/repeat-1/task-selector"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-01/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-01/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-02/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-02/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-02/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-02/repeat-1/task-selector"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-02/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-02/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-02/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-02/repeat-1/reused-single"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-02/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-02/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-02/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-02/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-03/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-03/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-03/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-03/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-03/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-03/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-03/repeat-1/task-selector"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-03/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-03/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-03/repeat-1/reused-single"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-03/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-03/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-04/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-04/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-04/repeat-1/task-selector"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-04/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-04/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-04/repeat-1/reused-single"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-04/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-04/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-04/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-04/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-04/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-04/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-05/repeat-1/reused-single"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-05/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-05/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-05/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-05/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-05/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-05/repeat-1/task-selector"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-05/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-05/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-05/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-05/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-05/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-06/repeat-1/direct-strong"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-06/repeat-1/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-06/repeat-1/direct-mid"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-06/repeat-1/reused-single"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-06/repeat-1/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-06/repeat-1/auto-single-2"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-06/repeat-1/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-06/repeat-1/direct-cheap"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-06/repeat-1/auto-single-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-06/repeat-1/random-mixture"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-06/repeat-1/direct-or-dag"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 1,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-06/repeat-1/task-selector"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-01/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-01/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-01/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-01/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-01/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-01/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-01/repeat-2/task-selector"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-01/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-01/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-01/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-01/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-01/repeat-2/reused-single"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-02/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-02/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-02/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-02/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-02/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-02/repeat-2/task-selector"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-02/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-02/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-02/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-02/repeat-2/reused-single"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-02/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-02/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-03/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-03/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-03/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-03/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-03/repeat-2/reused-single"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-03/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-03/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-03/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-03/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-03/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-03/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-03/repeat-2/task-selector"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-04/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-04/repeat-2/task-selector"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-04/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-04/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-04/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-04/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-04/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-04/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-04/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-04/repeat-2/reused-single"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-04/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-04/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-05/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-05/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-05/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-05/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-05/repeat-2/reused-single"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-05/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-05/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-05/repeat-2/task-selector"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-05/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-05/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-05/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-05/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-06/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-06/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-06/repeat-2/reused-single"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-06/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-06/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-06/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-06/repeat-2/task-selector"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-06/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-06/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-06/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-06/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-06/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-01/repeat-2/task-selector"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-01/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-01/repeat-2/reused-single"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-01/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-01/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-01/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-01/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-01/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-01/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-01/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-01/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-01/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-02/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-02/repeat-2/reused-single"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-02/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-02/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-02/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-02/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-02/repeat-2/task-selector"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-02/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-02/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-02/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-02/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-02/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-03/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-03/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-03/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-03/repeat-2/reused-single"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-03/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-03/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-03/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-03/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-03/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-03/repeat-2/task-selector"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-03/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-03/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-04/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-04/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-04/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-04/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-04/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-04/repeat-2/reused-single"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-04/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-04/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-04/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-04/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-04/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-04/repeat-2/task-selector"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-05/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-05/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-05/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-05/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-05/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-05/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-05/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-05/repeat-2/reused-single"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-05/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-05/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-05/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-05/repeat-2/task-selector"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-06/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-06/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-06/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-06/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-06/repeat-2/task-selector"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-06/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-06/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-06/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-06/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-06/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-06/repeat-2/reused-single"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-06/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-01/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-01/repeat-2/reused-single"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-01/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-01/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-01/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-01/repeat-2/task-selector"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-01/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-01/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-01/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-01/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-01/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-01/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-02/repeat-2/task-selector"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-02/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-02/repeat-2/reused-single"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-02/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-02/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-02/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-02/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-02/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-02/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-02/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-02/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-02/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-03/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-03/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-03/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-03/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-03/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-03/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-03/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-03/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-03/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-03/repeat-2/reused-single"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-03/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-03/repeat-2/task-selector"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-04/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-04/repeat-2/task-selector"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-04/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-04/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-04/repeat-2/reused-single"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-04/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-04/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-04/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-04/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-04/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-04/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-04/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-05/repeat-2/task-selector"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-05/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-05/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-05/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-05/repeat-2/reused-single"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-05/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-05/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-05/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-05/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-05/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-05/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-05/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-06/repeat-2/task-selector"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-06/repeat-2/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-06/repeat-2/auto-single-2"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-06/repeat-2/direct-strong"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-06/repeat-2/random-mixture"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-06/repeat-2/reused-single"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-06/repeat-2/direct-mid"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-06/repeat-2/direct-or-dag"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-06/repeat-2/auto-single-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-06/repeat-2/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-06/repeat-2/direct-cheap"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 2,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-06/repeat-2/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-01/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-01/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-01/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-01/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-01/repeat-3/reused-single"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-01/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-01/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-01/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-01/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-01/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-01/repeat-3/task-selector"
+    },
+    {
+      "task_id": "analysis-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-01/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-02/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-02/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-02/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-02/repeat-3/reused-single"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-02/repeat-3/task-selector"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-02/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-02/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-02/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-02/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-02/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-02/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-02/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-03/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-03/repeat-3/reused-single"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-03/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-03/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-03/repeat-3/task-selector"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-03/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-03/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-03/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-03/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-03/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-03/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-03/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-04/repeat-3/task-selector"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-04/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-04/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-04/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-04/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-04/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-04/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-04/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-04/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-04/repeat-3/reused-single"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-04/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "analysis-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-04/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-05/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-05/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-05/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-05/repeat-3/reused-single"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-05/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-05/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-05/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-05/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-05/repeat-3/task-selector"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-05/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-05/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "analysis-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-05/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/analysis-06/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/analysis-06/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/analysis-06/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/analysis-06/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/analysis-06/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/analysis-06/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/analysis-06/repeat-3/reused-single"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/analysis-06/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/analysis-06/repeat-3/task-selector"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/analysis-06/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/analysis-06/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "analysis-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/analysis-06/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-01/repeat-3/task-selector"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-01/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-01/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-01/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-01/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-01/repeat-3/reused-single"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-01/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-01/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-01/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-01/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-01/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "rules-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-01/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-02/repeat-3/task-selector"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-02/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-02/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-02/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-02/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-02/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-02/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-02/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-02/repeat-3/reused-single"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-02/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-02/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-02/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-03/repeat-3/reused-single"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-03/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-03/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-03/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-03/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-03/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-03/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-03/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-03/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-03/repeat-3/task-selector"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-03/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "rules-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-03/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-04/repeat-3/task-selector"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-04/repeat-3/reused-single"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-04/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-04/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-04/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-04/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-04/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-04/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-04/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-04/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-04/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-04/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-05/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-05/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-05/repeat-3/task-selector"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-05/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-05/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-05/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-05/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-05/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-05/repeat-3/reused-single"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-05/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-05/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "rules-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-05/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/rules-06/repeat-3/task-selector"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/rules-06/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/rules-06/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/rules-06/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/rules-06/repeat-3/reused-single"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/rules-06/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/rules-06/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/rules-06/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/rules-06/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/rules-06/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/rules-06/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "rules-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/rules-06/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-01/repeat-3/task-selector"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-01/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-01/repeat-3/reused-single"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-01/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-01/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-01/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-01/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-01/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-01/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-01/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-01/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "decision-01",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-01/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-02/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-02/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-02/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-02/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-02/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-02/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-02/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-02/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-02/repeat-3/task-selector"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-02/repeat-3/reused-single"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-02/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "decision-02",
+      "split": "development",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-02/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-03/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-03/repeat-3/task-selector"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-03/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-03/repeat-3/reused-single"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-03/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-03/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-03/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-03/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-03/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-03/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-03/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "decision-03",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-03/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-04/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-04/repeat-3/reused-single"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-04/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-04/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-04/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-04/repeat-3/task-selector"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-04/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-04/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-04/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-04/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-04/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "decision-04",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-04/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-05/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-05/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-05/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-05/repeat-3/reused-single"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-05/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-05/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-05/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-05/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-05/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-05/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-05/repeat-3/task-selector"
+    },
+    {
+      "task_id": "decision-05",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-05/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-2",
+      "output_relative_path": "runs/decision-06/repeat-3/auto-single-2"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-strong",
+      "output_relative_path": "runs/decision-06/repeat-3/direct-strong"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-single-1",
+      "output_relative_path": "runs/decision-06/repeat-3/auto-single-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-2",
+      "output_relative_path": "runs/decision-06/repeat-3/auto-heterogeneous-2"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-cheap",
+      "output_relative_path": "runs/decision-06/repeat-3/direct-cheap"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "random-mixture",
+      "output_relative_path": "runs/decision-06/repeat-3/random-mixture"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "auto-heterogeneous-1",
+      "output_relative_path": "runs/decision-06/repeat-3/auto-heterogeneous-1"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-mid",
+      "output_relative_path": "runs/decision-06/repeat-3/direct-mid"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "task-selector",
+      "output_relative_path": "runs/decision-06/repeat-3/task-selector"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "direct-or-dag",
+      "output_relative_path": "runs/decision-06/repeat-3/direct-or-dag"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-heterogeneous",
+      "output_relative_path": "runs/decision-06/repeat-3/reused-heterogeneous"
+    },
+    {
+      "task_id": "decision-06",
+      "split": "holdout-candidate",
+      "repeat": 3,
+      "arm_id": "reused-single",
+      "output_relative_path": "runs/decision-06/repeat-3/reused-single"
+    }
+  ],
+  "calibration": {
+    "cases": [
+      {
+        "case_id": "analysis-01-positive",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "analysis-02-positive",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "rules-01-positive",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "rules-02-positive",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "decision-01-positive",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "decision-02-positive",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "wrong-dependency",
+        "author_semantic_label": "unacceptable",
+        "check_status": "fail",
+        "final_status": "fail"
+      },
+      {
+        "case_id": "wrong-citation",
+        "author_semantic_label": "unacceptable",
+        "check_status": "fail",
+        "final_status": "fail"
+      },
+      {
+        "case_id": "prose-contradiction",
+        "author_semantic_label": "unacceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "global-combination-error",
+        "author_semantic_label": "unacceptable",
+        "check_status": "fail",
+        "final_status": "fail"
+      },
+      {
+        "case_id": "missed-damage-rule",
+        "author_semantic_label": "unacceptable",
+        "check_status": "fail",
+        "final_status": "fail"
+      },
+      {
+        "case_id": "analysis-01-equivalent",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "analysis-02-equivalent",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "decision-01-equivalent",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "decision-02-equivalent",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "rules-01-equivalent",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "rules-02-equivalent",
+        "author_semantic_label": "acceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      },
+      {
+        "case_id": "missing-required-rule",
+        "author_semantic_label": "unacceptable",
+        "check_status": "fail",
+        "final_status": "fail"
+      },
+      {
+        "case_id": "missing-sampling-limitation",
+        "author_semantic_label": "unacceptable",
+        "check_status": "pass",
+        "final_status": "pending"
+      }
+    ],
+    "expectation_mismatches": [],
+    "detected_negative_cases": 5,
+    "unresolved_negative_cases": 2,
+    "false_rejections_on_author_positives": 0,
+    "human_disagreement": null,
+    "model_judge_evaluated": false,
+    "scope": "仅作者构造样例的确定性检查；不是独立语义评审准确率。"
+  },
+  "limitations": [
+    "时间为声明的调用超时之和加清理宽限，不是预计等待或已实现硬 deadline。",
+    "上界使用未缓存 token 费率；调用上限包含失败尝试，但未执行任何调用。",
+    "运行 payload 只从公共字段投影；仓库文件权限不是安全隔离，runner 仍需测试与封装。"
+  ]
+}

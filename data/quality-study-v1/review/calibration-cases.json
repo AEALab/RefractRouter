@@ -41,7 +41,7 @@
       "case_id": "analysis-02-positive",
       "task_id": "analysis-02",
       "output": {
-        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "answer": "自愿填写的50份问卷中14份不满意（28%），只能描述填写者；未填写者情况未知，不能推及全部客户。客服有20条投诉工单，其中4条是同一客户追问，工单条数不等于客户数。问卷未记录填写者是否联系客服，两类身份无法对应，无法去重，不能合成全体客户不满意率。",
         "findings": [
           {
             "id": "survey_negative",
@@ -453,7 +453,7 @@
       "case_id": "analysis-02-equivalent",
       "task_id": "analysis-02",
       "output": {
-        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "answer": "自愿填写的50份问卷中14份不满意（28%），只能描述填写者；未填写者情况未知，不能推及全部客户。客服有20条投诉工单，其中4条是同一客户追问，工单条数不等于客户数。问卷未记录填写者是否联系客服，两类身份无法对应，无法去重，不能合成全体客户不满意率。",
         "findings": [
           {
             "id": "survey_negative",
@@ -662,6 +662,41 @@
       "expected_final_status": "fail",
       "author_semantic_label": "unacceptable",
       "purpose": "遗漏必须核对的批准结论"
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "task_id": "analysis-02",
+      "output": {
+        "answer": "问卷中14/50不满意，客服有20条工单。工单不是独立客户，且两类记录无法去重，不能合成全体客户不满意率。",
+        "findings": [
+          {
+            "id": "survey_negative",
+            "value": 14,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "service_complaints",
+            "value": 20,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "can_pool",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "expected_check_status": "pass",
+      "expected_final_status": "pending",
+      "author_semantic_label": "unacceptable",
+      "purpose": "保留首批作者正例的真实漏项：缺少自愿抽样及未填写者限制，结构化字段仍正确"
     }
   ]
 }

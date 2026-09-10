@@ -121,14 +121,14 @@
         "efficiency_improved": "按每开放小时口径是否改善"
       },
       "semantic_criteria": [
-        "写清分母改变；不得把归一化指标恶化解释为因果证明。"
+        "比较总量与单位指标时写清分母和变化；区分观测结果与因果结论。"
       ],
       "output_contract": {
         "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
       "material_sha256": "ea93028f5663740130ba130d9e8398ce42a0c35548fb817f71926e80968b93bf",
-      "task_sha256": "560f492f2fc521e74e658841fd39f1275c104a25f600a080575e8173f5bb4951"
+      "task_sha256": "e38c5b552a0b3ff178d4c703c25a9606c8855e1272cd34d0a312300435c5a462"
     },
     {
       "task_id": "analysis-04",
@@ -164,14 +164,14 @@
         "pooled_effect_supported": "是否支持统一推广效果估计"
       },
       "semantic_criteria": [
-        "两个站点单独分析；不把西站90%完成率当成90个百分点提升。"
+        "分别分析各站点，区分完成率与效果差异；说明抽样、对照和跨站点合并的证据限制。"
       ],
       "output_contract": {
         "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
       "material_sha256": "0f78e457422f647f9a1a2151633364348dd4ef9f1197b811160d0b5bb71b6be9",
-      "task_sha256": "22e58d4d7a75390859dbe2c31d5227cd83ee4b37fde92988392ba65421537a15"
+      "task_sha256": "484e908e7d80368538b254dbdbc0e28ddc699f6e2756f380aefa2d27f0895854"
     },
     {
       "task_id": "analysis-05",
@@ -251,7 +251,7 @@
         }
       ],
       "requested_findings": {
-        "order": "由早到晚事件名列表：start、complaint、restore",
+        "order": "将事件按时间由早到晚排列。事件标识按字母列示（不代表时间顺序）：complaint=投诉创建，restore=服务恢复，start=故障开始。",
         "complaint_before_restore": "投诉是否早于恢复"
       },
       "semantic_criteria": [
@@ -262,7 +262,7 @@
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
       "material_sha256": "fe5e41fcf9bdc0d0f10b2c971436e7299aeca307c4f037cae849ef0d0d268e30",
-      "task_sha256": "ece00d80dd8d5dfd70bdc8f1a4789baddb7c91500c03e4fa63eeef25a68a4861"
+      "task_sha256": "9f36ad6d226d8047a9b82bedf59c2254efb26553e3d2f7000fa9738e781c85ac"
     },
     {
       "task_id": "rules-01",
@@ -597,14 +597,14 @@
         "feasible": "是否存在符合全部条件安排"
       },
       "semantic_criteria": [
-        "有空不能替代资格；不得额外安排丙作为合格替补。"
+        "同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。"
       ],
       "output_contract": {
         "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
       "material_sha256": "6c5ca590ae25061ae1f3edaae4d4e1e0ff2a25f861638999900716c683c308f2",
-      "task_sha256": "8d0c6b95ab50960aef93dd3337579f45fa91890753d8c308d3785f53445de066"
+      "task_sha256": "a09f0d891ad8c6c4b0b5a584bc52a20641408fd0e10c745076dfdacfef0be02b"
     },
     {
       "task_id": "decision-03",
@@ -640,14 +640,14 @@
         "rejected_ids": "因硬条件不合格者，不含合格但较贵者"
       },
       "semantic_criteria": [
-        "区分不合格与合格但未选，不能把D判为违反预算。"
+        "区分硬条件不合格与合格但未选；说明选择及排除的具体依据。"
       ],
       "output_contract": {
         "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
       "material_sha256": "b13d3a2d107c24441a4281e5a53d897f6ac164952aad3bfd1a80f4ab4b07987d",
-      "task_sha256": "bcc1bdbf47d603981c682319fa89a763de7aa3f252777851462fe0de061d22d5"
+      "task_sha256": "ac541ea4b0d32e2e6e3df370abe6b1492933bd79a05dfefa358003060a575df4"
     },
     {
       "task_id": "decision-04",

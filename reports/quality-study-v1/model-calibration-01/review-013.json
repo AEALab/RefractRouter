@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案选择P+D组合，总价380元，满足双面彩色、周五前送达、预算400元全部硬约束，正文与findings一致且引用正确。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"P可双面彩色（s1），D周四送达满足周五前（s2），总价300+80=380≤400预算，正文陈述与材料一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论P+D共380元与findings中printer=P、delivery=D、total_cost=380完全一致，未夸大或反向表述。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"printer、delivery、total_cost三项齐全；printer引s1、delivery引s2、total_cost引s1和s2，引用足以支撑各自主张。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未选更便宜的Q（仅黑白）或E（周六送达），正文明确说明其违反硬条件，所选组合全局满足所有要求。\"}]}",
+  "input_tokens": 716,
+  "output_tokens": 291,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10591,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890559154988df8e1a1401bb5aa62b5b494646ada58318a3b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 291,
+    "prompt_tokens": 716,
+    "total_tokens": 1007,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

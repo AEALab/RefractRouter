@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确排除培训过期的丙，安排甲早班、乙晚班，满足每班1人、持有效培训、每人最多一班等硬约束；findings 三项完整且与正文一致，引用 s1、s2 足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文先排除丙（培训过期），再分甲早班、乙晚班，符合 s1 每班1人持有效培训及 s2 人员限制，每人一班。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 morning=甲、evening=乙、feasible=true 与正文一致，先判资格再分配的顺序未反写，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 id 齐全，值正确，sources 均含 s1、s2，足以支持资格与班次安排。\"},{\"criterion\":\"有空不能替代资格；不得额外安排丙作为合格替补。\",\"verdict\":\"pass\",\"rationale\":\"输出明确因培训过期排除丙，未将其列为替补或额外安排。\"}]}",
+  "input_tokens": 729,
+  "output_tokens": 293,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8508,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890559649718878e6c95084a12b4d57c4d96cb06f1d84f175",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 293,
+    "prompt_tokens": 729,
+    "total_tokens": 1022,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

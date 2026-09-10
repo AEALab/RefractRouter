@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"参考事实与算术正确（eligible=30，retained=18，retention=18/30=60%，草稿用34/60口径错误故report_correct=false），来源对应齐全，任务输入未预泄结论；但验收条件缺少对全局约束“资格筛选先于比例计算、不得双口径同时盖章”的可核查检查项，且无任何证据支持任务难度与业务代表性。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1口径明确（6月1日前注册且当日未注销，6月至少一次活跃），s2人群数据与s3草稿口径冲突清晰可判，无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"仅A组符合口径：eligible=30（s1+s2）；retained=18（s1+s2）；retention=18/30=60%（s1+s2）；草稿34/60=56.7%混入B组，report_correct=false（s1+s2+s3），来源要求均满足。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"fail\",\"rationale\":\"reference_checks仅核对四个数值字段，未覆盖semantic_criteria中的全局约束（资格筛选先于比例计算、不得给两个口径同时盖正确章），无法通过现有检查项验证该约束。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"材料仅给出口径、原始人群数据和错误草稿，eligible/retained/60%/report_correct需推导得出，未预先透露。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"材料为作者构造的简短示例，无关于目标业务场景、难度校准或代表性的任何证据，无法判定。\"}]}",
+  "input_tokens": 866,
+  "output_tokens": 416,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15559,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789056048199846a816464a9af9c0791e0f68a2ce03c553c13",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 416,
+    "prompt_tokens": 866,
+    "total_tokens": 1282,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

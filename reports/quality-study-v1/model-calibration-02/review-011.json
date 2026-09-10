@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"材料与任务自洽：硬条件为12人容量、无障碍通道、预算500元；A满足全部硬条件且450元为合格者中最低价，B容量不足、C无通道为硬条件不合格，D合格但较贵不应列入rejected_ids。参考检查selected=A、cost=450、rejected_ids={B,C}及来源对应均正确，验收条件覆盖了硬条件与最低价区分的关键错误。任务输入未预先给出结论。难度与业务代表性仅有有限证据，但任务构造合理，无反证，按可核对依据判定。\",\"criteria\":[{\"criterion\":\"材料与任务要求无歧义或明确保留未知\",\"verdict\":\"pass\",\"rationale\":\"s1明确12人、无障碍通道、预算500元及满足后选最低价；s2各房间容量/通道/价格清晰，A(12人,有通道,450)、D(12人,有通道,480)合格，B(10人)容量不足、C(无通道)不合格，无歧义。\"},{\"criterion\":\"参考事实、算术及来源对应正确\",\"verdict\":\"pass\",\"rationale\":\"selected=A需s1硬条件与s2报价，正确；cost=450来自s2，正确；rejected_ids={B,C}为硬条件不合格者，D合格但较贵被正确排除，来源s1、s2对应正确。\"},{\"criterion\":\"验收条件覆盖关键错误和全局约束\",\"verdict\":\"pass\",\"rationale\":\"三项reference_checks分别校验选中项、费用及硬条件不合格集合，set_equal且要求不含合格但较贵的D，覆盖硬条件与最低价区分这一关键错误及全局约束。\"},{\"criterion\":\"公共任务输入没有预先透露应推导的结论\",\"verdict\":\"pass\",\"rationale\":\"instruction与requested_findings仅描述任务与字段含义，未给出A、450或{B,C}等结论。\"},{\"criterion\":\"有证据支持任务难度与目标业务的代表性\",\"verdict\":\"pending\",\"rationale\":\"单份作者构造材料无法证明跨样本独立性、来源真实性或业务代表性；任务涉及硬条件筛选与最低价权衡，构造合理但证据不足以充分支持代表性。\"}]}",
+  "input_tokens": 768,
+  "output_tokens": 472,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18246,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905660315340d92d5266a85c14e28416df297f1b20301b7a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 472,
+    "prompt_tokens": 768,
+    "total_tokens": 1240,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

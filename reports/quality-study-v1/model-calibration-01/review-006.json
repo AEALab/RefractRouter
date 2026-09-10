@@ -1,0 +1,23 @@
+{
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选输出缺少 requested_findings 要求的 full_approval 结论项，结构化结论不完整。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1、s2 正确说明未签收归还仍计入持有，当前持有3件、可新增2件、本次3件不能全数批准。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文与 findings 中 remaining=2、requested=3 一致，未把未签收归还当作已扣除，也未扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"requested_findings 要求输出 remaining、requested、full_approval 三项，但 findings 仅含 remaining 与 requested，缺少 full_approval。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"候选明确将已放回但未签收的1件仍计入持有，符合 s1 的签收后才扣除规则。\"}]}",
+  "input_tokens": 668,
+  "output_tokens": 256,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12688,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905582728178af8113c224ccdd69578c3b63d1e71a8288de",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 256,
+    "prompt_tokens": 668,
+    "total_tokens": 924,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

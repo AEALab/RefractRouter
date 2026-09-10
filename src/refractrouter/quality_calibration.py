@@ -55,7 +55,7 @@ def _messages(task, *, output=None, reference=None):
             {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}], criteria
 
 
-def build_plan(study_dir):
+def build_plan(study_dir, *, case_ids=None, material_ids=None):
     """先冻结精确请求及实现；校准不读留出任务的答案，材料审查不执行路线。"""
     protocol, tasks, refs, controls, _, manifest = load_study(study_dir)
     model = replace(manifest.judge, max_output_tokens=OUTPUT_CAP)
@@ -63,10 +63,22 @@ def build_plan(study_dir):
             or not model.base_url.endswith('/api/plan/v3')):
         raise ValueError('calibration requires the frozen Ark Plan manifest')
     by_id = {t['task_id']: t for t in tasks}
+    def selected(ids, available):
+        if ids is None:
+            return sorted(available)
+        if len(ids) != len(set(ids)) or not set(ids) <= set(available):
+            raise ValueError('unknown or duplicate calibration selection')
+        return sorted(ids)
+    case_ids = selected(case_ids, [c['case_id'] for c in controls])
+    material_ids = selected(material_ids, by_id)
+    if not case_ids and not material_ids:
+        raise ValueError('empty calibration plan')
     requests = []
     shuffled = list(controls)
     random.Random(5201).shuffle(shuffled)
     for case in shuffled:
+        if case['case_id'] not in case_ids:
+            continue
         task = by_id[case['task_id']]
         if task['split'] != 'development':
             raise ValueError('holdout cannot calibrate the evaluator')
@@ -78,6 +90,8 @@ def build_plan(study_dir):
                          'deterministic_status': check_output(task, refs[task['task_id']], case['output'])['status'],
                          'messages': messages, 'criteria': criteria})
     for task in tasks:
+        if task['task_id'] not in material_ids:
+            continue
         messages, criteria = _messages(task, reference=refs[task['task_id']])
         requests.append({'kind': 'material-audit', 'task_id': task['task_id'],
                          'task_sha256': task['task_sha256'],
@@ -94,6 +108,7 @@ def build_plan(study_dir):
     sources = sorted((ROOT / 'src/refractrouter').rglob('*.py'))
     sources.append(ROOT / 'experiments/run_quality_calibration.py')
     return {'schema_version': 'quality-model-calibration-v1', 'study_protocol_sha256': digest(protocol),
+            'selection': {'case_ids': case_ids, 'material_ids': material_ids},
             'implementation': {str(p.relative_to(ROOT)): file_digest(p) for p in sources},
             'model': asdict(model), 'pricing_snapshot_date': manifest.pricing_snapshot_date,
             'requests': requests, 'max_calls': len(requests), 'http_retries': 0,
@@ -154,7 +169,7 @@ def summarize(plan, results, ledger, *, state, elapsed_seconds):
             'plan_sha256': digest(plan), 'real_model_calls': sum(r['status'] in ('billed', 'unknown-usage') for r in records),
             'completed_reviews': sum('review' in r for r in results),
             'invalid_outputs': sum(r.get('status') == 'invalid-output' for r in results),
-            'unattempted_requests': plan['max_calls'] - len(records),
+            'unattempted_requests': plan['max_calls'] - sum(r['status'] in ('billed', 'unknown-usage') for r in records),
             'known_usage_afp': round(sum(r['charged'] for r in records if r['status'] == 'billed'), 6),
             'unknown_usage_calls': len(unknown),
             'unknown_usage_reserved_afp': round(sum(r['charged'] for r in unknown), 6),
@@ -171,7 +186,7 @@ def summarize(plan, results, ledger, *, state, elapsed_seconds):
 
 def run_calibration(study_dir, frozen_plan, output_dir, *, client=None):
     """调用前验证冻结状态；保留每次预留、原始响应和未知用量，拒绝覆盖归档。"""
-    plan = build_plan(study_dir)
+    plan = build_plan(study_dir, **frozen_plan.get('selection', {}))
     if digest(plan) != digest(frozen_plan):
         raise ValueError('frozen calibration plan changed; prepare a new plan before calling')
     _, _, _, _, _, manifest = load_study(study_dir)
