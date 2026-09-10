@@ -1,0 +1,289 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T082649Z-693fb88b4efb",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "排程与费用综合结果\n\n一、五项工作最早开始和完成时间\n\n| 工作 | 最早开始 | 最早完成 | 依赖条件 |\n|---|---:|---:|---|\n| A 手续 | 第 0 天 | 第 2 天 | 无前置 |\n| B 运输 | 第 2 天 | 第 5 天 | 必须等 A 完成 |\n| C 版面设计 | 第 0 天 | 第 4 天 | 无前置，可独立开始 |\n| D 布展 | 第 5 天 | 第 7 天 | 必须等 B 和 C 都完成 |\n| E 验收 | 第 7 天 | 第 8 天 | 必须等 D 完成 |\n\nD 的汇合条件已核对：B 第 5 天完成，C 第 4 天完成，两者都完成后，D 最早从第 5 天开始。\n\n二、总工期\n\n总工期为 8 天。\n\n三、关键依赖链\n\n原始关键依赖链为：\n\nA→B→D→E\n\n四、C 额外延误 2 天的影响\n\n如果 C 额外延误 2 天，C 的完成时间从第 4 天变为第 6 天。\n\n延误后的时间变化：\n\n| 工作 | 最早开始 | 最早完成 |\n|---|---:|---:|\n| A 手续 | 第 0 天 | 第 2 天 |\n| B 运输 | 第 2 天 | 第 5 天 |\n| C 版面设计 | 第 0 天 | 第 6 天 |\n| D 布展 | 第 6 天 | 第 8 天 |\n| E 验收 | 第 8 天 | 第 9 天 |\n\n延误后，D 必须等 B 和 C 都完成。B 第 5 天完成，C 第 6 天完成，因此 D 最早从第 6 天开始。\n\n延误后总工期变为 9 天。\n\n延误后的关键依赖链为：\n\nC→D→E\n\n五、费用核算与预算余额\n\n已给定费用：\n\n| 费用项目 | 金额 |\n|---|---:|\n| 采购 | 1200 元 |\n| 运输 | 800 元 |\n| 布展 | 1500 元 |\n| 设计 | 900 元 |\n\n费用合计：\n\n1200 + 800 + 1500 + 900 = 4400 元\n\n总预算：\n\n4600 元\n\n预算余额：\n\n4600 - 4400 = 200 元\n\n结论：四项已给定费用合计 4400 元，未超过总预算 4600 元，余额为 200 元。未虚构其他费用。",
+  "issues": [],
+  "models": {
+    "schedule": "deepseek-v4-pro",
+    "budget": "deepseek-v4-pro",
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "schedule": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    },
+    "budget": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    },
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "交付文本逐项核对：A 第0-2天、B 第2-5天、C 第0-4天、D 第5-7天、E 第7-8天，与给定排程一致，且明确说明 D 需等 B（第5天）和 C（第4天）都完成后从第5天开始，汇合条件未遗漏。总工期8天，原始关键链以箭头形式给出「A→B→D→E」，与参考一致。C 延误2天的情景中，C 变为第0-6天，D 第6-8天，E 第8-9天，总工期9天，延误后关键链为「C→D→E」，且未保留错误链再补修正，而是以独立段落分别列出原始与延误后的关键链，符合要求。费用核算：1200+800+1500+900=4400元，预算4600元，余额200元，计算正确，未虚构额外费用，并声明「未虚构其他费用」。交付同时包含排程与费用，三项验收标准全部满足。",
+    "criteria": [
+      {
+        "criterion": "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+        "passed": true,
+        "rationale": "五项工作最早开始/结束时间全部正确（A:0-2，B:2-5，C:0-4，D:5-7，E:7-8），并明确说明 D 须等 B 第5天、C 第4天都完成后从第5天开始，B、C 汇合条件完整呈现。"
+      },
+      {
+        "criterion": "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+        "passed": true,
+        "rationale": "总工期8天正确；原始关键链以箭头形式给出「A→B→D→E」；C 延误2天后 C 变为第6天完成，D 顺延至第6-8天，E 第8-9天，总工期9天，延误后关键链「C→D→E」正确，且未保留错误链再补修正。"
+      },
+      {
+        "criterion": "正确核算费用和预算余额，最终交付包含排程与费用。",
+        "passed": true,
+        "rationale": "费用合计 1200+800+1500+900=4400 元，预算 4600 元，余额 200 元，计算正确；未虚构未给定费用；最终交付同时包含排程与费用两部分。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 2.8824,
+    "evaluation": 2.333,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 36520,
+  "plan_origin": "model",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "schedule",
+        "node_type": "extraction",
+        "prompt_template": "计算A-E最早开始/完成时间，识别B、C汇合条件，确定总工期与关键链，并分析C延误2天对总工期的影响。",
+        "parents": [],
+        "contract": {
+          "objective": "计算A-E最早开始/完成时间，识别B、C汇合条件，确定总工期与关键链，并分析C延误2天对总工期的影响。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "计算A-E最早开始/完成时间，识别B、C汇合条件，确定总工期与关键链，并分析C延误2天对总工期的影响。"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 4906,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "budget",
+        "node_type": "extraction",
+        "prompt_template": "核算采购、运输、布展、设计四项费用总和，对比总预算4600元，计算余额；不虚构未给定费用。",
+        "parents": [],
+        "contract": {
+          "objective": "核算采购、运输、布展、设计四项费用总和，对比总预算4600元，计算余额；不虚构未给定费用。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "核算采购、运输、布展、设计四项费用总和，对比总预算4600元，计算余额；不虚构未给定费用。"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 4868,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "综合排程与费用结果，完整呈现五项工作最早开始/结束时间、总工期、关键依赖链、C延误影响、费用核算与预算余额，并核对原始事实无遗漏。",
+        "parents": [
+          "schedule",
+          "budget"
+        ],
+        "contract": {
+          "objective": "综合排程与费用结果，完整呈现五项工作最早开始/结束时间、总工期、关键依赖链、C延误影响、费用核算与预算余额，并核对原始事实无遗漏。",
+          "inputs": {
+            "schedule": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            },
+            "budget": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 38177,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+            "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+            "正确核算费用和预算余额，最终交付包含排程与费用。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+      "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+      "正确核算费用和预算余额，最终交付包含排程与费用。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "任务包含排程计算与费用核算两个独立分析分支，可并行；最后需综合两者并核对依赖与延误影响。"
+  },
+  "plan_admission": {
+    "schedule": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 4873,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 4905,
+        "forecast_input_tokens": 4905
+      }
+    },
+    "budget": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 4835,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 4867,
+        "forecast_input_tokens": 4867
+      }
+    },
+    "answer": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 5377,
+        "upstream_allowance": 32768,
+        "estimated_input_bound": 38177,
+        "forecast_input_tokens": 21409
+      }
+    }
+  },
+  "planner": {
+    "model_id": "cheap",
+    "basis": "configured-latency-then-price",
+    "output_cap": 1200,
+    "timeout_ms": 12000
+  },
+  "plan_ready_ms": 4385,
+  "content_validation": {
+    "source_status": "supported",
+    "passed": true,
+    "invalid_edges": [],
+    "missing_paths": []
+  },
+  "dynamic_decomposition": {
+    "policy_version": "drain-and-graft-v1",
+    "max_splits": 1,
+    "max_total_nodes": 8,
+    "max_subplan_nodes": 3,
+    "max_depth": 1,
+    "events": []
+  },
+  "cost_breakdown": {
+    "planning": 0.0389,
+    "dynamic_planning": 0,
+    "execution": 2.8435,
+    "evaluation": 2.333
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v1/development_exhibition/20260910T082649Z-693fb88b4efb/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v1/development_exhibition/20260910T082649Z-693fb88b4efb",
+  "usage": {
+    "input_tokens": 6469,
+    "output_tokens": 1812,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "4ada7882e1869ed3d215a3176a646df4d963749be706a742f5450794ad83865d",
+    "manifest.json": "18f46adf1fd56bc70b085150c4822cc876619ae013895b2c47917dc6c09f0491",
+    "plan.json": "8e80d2fcb55cfd0aef843894c5b26213309dcd8f4bfd0db21c5c6a0bd36c50cf",
+    "profile.json": "bc71f2b25be58ceb55f55ec3be91d424a1b984708c46e5ebcbba5fe2746556ce",
+    "provider-config.json": "a9acf9f56c499ddfb19fd26d2230a87185a6aa1981b852c18c20b83be825b156",
+    "request.json": "759f2a4eb3c35eecd83df156cee96487d277a77a1d4eff330d9c60efcdab1ded",
+    "result.json": "6e171a23c4d25383ed938eb0d52765c6dd23daad74facb37fca0a2a919413b9d"
+  }
+}

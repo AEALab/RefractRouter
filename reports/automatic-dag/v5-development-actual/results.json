@@ -1,0 +1,436 @@
+[
+  {
+    "task_id": "dev_sampling_after_schema_failure",
+    "template": "auto",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T073834Z-97474d98de69",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "全年费用分析  \n方案甲：首次采购 4200 元，每月维护 180 元，使用期 12 个月。全年费用为 4200 + 180 × 12 = 6360 元。相对 7000 元预算，余额为 640 元，在预算内。  \n方案乙：首次采购 6800 元，每月维护 60 元，使用期 12 个月。全年费用为 6800 + 60 × 12 = 7520 元。相对 7000 元预算，缺口为 520 元，超出预算。\n\n维护方式执行风险分析  \n方案甲的执行风险集中在人员培训状态。该方案要求现场人员每次出发前校准，但人员是否完成培训尚未确认。若培训未完成或未达标，现场校准可能被遗漏、操作不规范或参数设置错误，进而影响采样记录结果或设备正常使用。该风险取决于实际培训状态，当前不能推断培训已完成，因此执行上存在不确定性。  \n方案乙的执行风险集中在网络覆盖状态。该方案依赖供应商远程协助，但山地网络覆盖尚未确认。若网络不可用或信号不稳定，远程协助可能中断、延迟或无法发起，维护问题难以及时解决，影响设备持续可用性。该风险取决于实际网络覆盖情况，当前不能推断网络可用，因此执行上存在不确定性。\n\n当前预算下可执行的有条件建议  \n从成本看，方案甲全年费用为 6360 元，在 7000 元预算内，剩余 640 元；方案乙全年费用为 7520 元，超出预算 520 元。因此，仅从预算约束看，方案甲可执行，方案乙在当前预算下不可直接执行。  \n从风险看，方案甲的主要不确定性是人员是否完成培训，方案乙的主要不确定性是山地网络是否可用。两者均不能作为已满足条件处理。  \n综合成本与风险，当前预算下可执行的有条件建议为：优先考虑方案甲，但执行前必须确认现场人员已完成校准培训并具备规范操作能力；若培训未确认完成，则不应直接进入现场采样记录环节。方案乙因超出预算，当前不具备直接执行条件；若后续预算增加且山地网络覆盖经确认可用，再重新评估方案乙。当前不推断培训已完成或网络可用，也不对设备测量精度作任何假设。",
+    "issues": [],
+    "models": {
+      "cost_analysis": "deepseek-v4-pro",
+      "risk_analysis": "deepseek-v4-pro",
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "cost_analysis": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "risk_analysis": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "交付文本正确计算了方案甲全年费用为4200+180×12=6360元、预算余额640元，方案乙全年费用为6800+60×12=7520元、预算缺口520元；分别单独讨论了甲的培训不确定性和乙的网络覆盖不确定性，没有用费用替代风险分析；最终同时给出成本结论、风险结论和有条件建议，并明确不推断培训已完成、网络可用或设备测量精度，未虚构设备性能。",
+      "criteria": [
+        {
+          "criterion": "正确计算全年费用和相对预算的余额或缺口。",
+          "passed": true,
+          "rationale": "文本明确给出方案甲全年费用6360元、余额640元，方案乙全年费用7520元、缺口520元，计算与任务数据一致。"
+        },
+        {
+          "criterion": "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+          "passed": true,
+          "rationale": "文本分别说明方案甲取决于现场人员是否完成培训，方案乙取决于山地网络覆盖是否可用，并指出两者当前均不能推断为已满足，风险分析与费用分析相互独立。"
+        },
+        {
+          "criterion": "同时给出成本、风险和有条件建议，不虚构设备性能。",
+          "passed": true,
+          "rationale": "文本同时覆盖成本比较、执行风险和有条件建议：预算内优先考虑方案甲但须先确认培训完成，方案乙因超预算当前不可直接执行，需追加预算且确认网络后再评估；未声明测量精度、网络可用或培训已完成。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 3.6102,
+      "evaluation": 1.264,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 44360,
+    "plan_origin": "model",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "cost_analysis",
+          "node_type": "extraction",
+          "prompt_template": "根据原始任务中的采购方案信息，计算方案甲和方案乙在12个月使用期内的全年费用，并分别计算相对7000元可用预算的余额或缺口。方案甲：首次采购4200元，每月维护180元；方案乙：首次采购6800元，每月维护60元。不得推断任何未提供的费用。输出计算结果和计算过程。",
+          "parents": [],
+          "contract": {
+            "objective": "计算方案甲和方案乙的全年费用及相对预算的余额或缺口。",
+            "inputs": {},
+            "output": {
+              "format": "json",
+              "fields": {
+                "plan_a_annual_cost": "方案甲全年费用及计算过程",
+                "plan_b_annual_cost": "方案乙全年费用及计算过程",
+                "plan_a_budget_gap": "方案甲相对7000元预算的余额或缺口",
+                "plan_b_budget_gap": "方案乙相对7000元预算的余额或缺口"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 3526,
+              "expected_output_tokens": 800
+            },
+            "checks": [
+              "方案甲全年费用计算正确，包含首次采购和12个月维护费",
+              "方案乙全年费用计算正确，包含首次采购和12个月维护费",
+              "分别给出相对7000元预算的余额或缺口，且符号和金额正确"
+            ],
+            "covers": [
+              0
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "risk_analysis",
+          "node_type": "generation",
+          "prompt_template": "根据原始任务，单独讨论两种维护方式的执行风险，不用费用代替风险分析。方案甲需要现场人员每次出发前校准，但人员是否完成培训尚未确认；方案乙由供应商远程协助，但山地网络覆盖尚未确认。分别分析培训不确定性和网络不确定性对执行的影响，保持未知条件为未知，不推断培训已完成或网络可用，不虚构设备性能。",
+          "parents": [],
+          "contract": {
+            "objective": "单独分析培训不确定性和网络不确定性对两种维护方式执行的风险。",
+            "inputs": {},
+            "output": {
+              "format": "json",
+              "fields": {
+                "training_risk": "方案甲现场校准所需培训未确认带来的执行风险分析",
+                "network_risk": "方案乙远程协助所需山地网络覆盖未确认带来的执行风险分析"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 3516,
+              "expected_output_tokens": 1200
+            },
+            "checks": [
+              "单独讨论培训不确定性，未用费用代替风险分析",
+              "单独讨论网络不确定性，未用费用代替风险分析",
+              "未将培训已完成或网络可用写成事实",
+              "未虚构设备性能"
+            ],
+            "covers": [
+              1
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "answer",
+          "node_type": "synthesis",
+          "prompt_template": "你是自然观察小组采购建议的汇总撰写者。请基于原始任务和以下上游分析，撰写最终交付正文。必须分别呈现：1）全年费用分析，包括方案甲和方案乙的全年费用及相对7000元预算的余额或缺口；2）维护方式执行风险分析，单独讨论培训不确定性和网络不确定性，不用费用代替风险分析；3）当前预算下可执行的有条件建议，同时结合成本、风险给出建议，不虚构设备性能。不得推断测量精度、网络可用或培训已完成。\n\n上游费用分析：\n{cost_analysis}\n\n上游风险分析：\n{risk_analysis}",
+          "parents": [
+            "cost_analysis",
+            "risk_analysis"
+          ],
+          "contract": {
+            "objective": "整合费用计算和风险分析，输出包含成本、风险和有条件建议的完整最终交付正文。",
+            "inputs": {
+              "cost_analysis": {
+                "fields": [
+                  "plan_a_annual_cost",
+                  "plan_b_annual_cost",
+                  "plan_a_budget_gap",
+                  "plan_b_budget_gap"
+                ],
+                "reason": "需要消费费用计算结果以在最终正文中呈现全年费用和预算余额或缺口。"
+              },
+              "risk_analysis": {
+                "fields": [
+                  "training_risk",
+                  "network_risk"
+                ],
+                "reason": "需要消费风险分析结果以在最终正文中单独呈现培训与网络不确定性。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终交付正文，依次包含全年费用分析、维护方式执行风险分析、当前预算下可执行的有条件建议"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 69538,
+              "expected_output_tokens": 2000
+            },
+            "checks": [
+              "正确呈现方案甲和方案乙全年费用及相对预算的余额或缺口",
+              "单独讨论培训不确定性和网络不确定性，未用费用代替风险分析",
+              "同时给出成本、风险和有条件建议",
+              "未虚构设备性能，未将培训已完成或网络可用写成事实",
+              "最终正文完整保留用户要求的各部分及顺序"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确计算全年费用和相对预算的余额或缺口。",
+        "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+        "同时给出成本、风险和有条件建议，不虚构设备性能。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "任务包含费用计算、两类风险分析和有条件建议，计算与风险分析相互独立，可并行分支后由汇总节点整合并输出完整交付。拆分可让费用计算与风险分析分别聚焦，同时最终节点保留用户要求的全部部分和顺序。"
+    },
+    "plan_admission": {
+      "cost_analysis": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 3493,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 3525,
+          "forecast_input_tokens": 3525
+        }
+      },
+      "risk_analysis": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 3483,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 3515,
+          "forecast_input_tokens": 3515
+        }
+      },
+      "answer": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 3970,
+          "upstream_allowance": 65536,
+          "estimated_input_bound": 69538,
+          "forecast_input_tokens": 20002
+        }
+      }
+    },
+    "cost_breakdown": {
+      "planning": 1.76715,
+      "execution": 1.84305,
+      "evaluation": 1.264
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-development-actual/dev_sampling_after_schema_failure/auto/20260910T073834Z-97474d98de69/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-development-actual/dev_sampling_after_schema_failure/auto/20260910T073834Z-97474d98de69",
+    "usage": {
+      "input_tokens": 5248,
+      "output_tokens": 2580,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "55f494cf66f1ac5f5720e4f4f0e9b7db3c5addb0f89e211087a5130234586568",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "a57519dc159bac4bca53c8ce2506b82f79c33818a32dc8a86e7e7872fa4d9051",
+      "profile.json": "60fe9f54458fdae5e92bdebbf086f72dde9265ba1c46a6b51e80fc42d7715fcb",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "b98033e91b1425968532a8ff06ea70b4664eab2ebf99563df28f9fa03ea1afee",
+      "result.json": "6bb276c5d2e784f0126dcd4badde78afd087caaa8d16dc9174d3e8ceb2ec830b"
+    }
+  },
+  {
+    "task_id": "dev_sampling_after_schema_failure",
+    "template": "single",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T073918Z-b91ab4bd8a7d",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "方案甲全年费用：  \n首次采购 4200 元 + 每月维护 180 元 × 12 个月  \n= 4200 + 2160  \n= 6360 元  \n\n相对 7000 元预算：  \n7000 - 6360 = 640 元余额  \n\n方案乙全年费用：  \n首次采购 6800 元 + 每月维护 60 元 × 12 个月  \n= 6800 + 720  \n= 7520 元  \n\n相对 7000 元预算：  \n7000 - 7520 = -520 元，即缺口 520 元  \n\n---\n\n维护方式执行风险分析  \n\n方案甲：  \n方案甲要求现场人员每次出发前校准。当前材料只说明人员是否完成培训尚未确认，因此不能把“已完成培训”作为前提。执行风险在于：如果人员未完成培训或培训效果不足，校准操作可能无法按要求进行，进而影响采样记录工作的正常开展。这个风险来自人员能力状态的不确定，不是费用问题。即使预算上有余额，也不能消除这一执行不确定性。  \n\n方案乙：  \n方案乙由供应商远程协助维护。当前材料只说明山地网络覆盖尚未确认，因此不能把“网络可用”作为前提。执行风险在于：如果山地网络覆盖不足或信号不稳定，远程协助可能无法及时建立，维护支持会受到影响。这个风险来自网络条件的不确定，同样不是费用问题。即使设备本身不需要现场校准，也不能消除这一执行不确定性。  \n\n---\n\n当前预算下可执行的有条件建议  \n\n从全年费用看，方案甲在 7000 元预算内可执行，并且还有 640 元余额；方案乙超出预算 520 元，在当前预算下不可直接执行。  \n\n但方案甲的可执行性附带条件：  \n只有在确认现场人员已完成校准培训、或能够在采购后、使用前完成必要培训并具备校准能力时，才建议选择方案甲。如果培训状态始终不能确认，方案甲虽然费用可行，但执行风险较高，不能仅凭成本优势推荐。  \n\n方案乙在当前预算下不可执行。如果后续能够追加至少 520 元预算，并且确认山地网络覆盖能够支持供应商远程协助，才可重新考虑方案乙。不能因为方案乙维护方式更依赖远程支持，就推断其维护风险更低；网络覆盖未确认前，这一方案仍存在执行不确定性。  \n\n综合结论：  \n当前 7000 元预算下，唯一费用上可执行的是方案甲，但建议以“人员校准培训已确认或可完成”为条件。若该条件不能满足，则不应直接采购方案甲。方案乙因超出预算 520 元，当前不可执行；若未来预算增加且网络覆盖得到确认，可作为备选方案重新评估。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "被评估文本正确计算了方案甲全年费用6360元（4200+180×12）及余额640元，方案乙全年费用7520元（6800+60×12）及缺口520元；单独讨论了培训未确认和网络覆盖未确认的执行风险，未用费用代替风险分析；同时给出成本、风险与有条件建议，未推断测量精度、网络可用或培训已完成，未虚构设备性能。三条验收标准均满足。",
+      "criteria": [
+        {
+          "criterion": "正确计算全年费用和相对预算的余额或缺口。",
+          "passed": true,
+          "rationale": "甲：4200+180×12=6360元，余额7000-6360=640元；乙：6800+60×12=7520元，缺口520元。计算正确，余额与缺口均明确给出。"
+        },
+        {
+          "criterion": "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+          "passed": true,
+          "rationale": "文本分别分析了甲的现场校准依赖人员培训（培训状态未确认，不能假设已完成）和乙的远程协助依赖山地网络（覆盖未确认，不能假设可用），并明确指出「即使预算上有余额，也不能消除这一执行不确定性」，风险分析独立于费用。"
+        },
+        {
+          "criterion": "同时给出成本、风险和有条件建议，不虚构设备性能。",
+          "passed": true,
+          "rationale": "建议部分明确：当前预算下仅甲费用可执行，但以「人员校准培训已确认或可完成」为条件；乙超支520元当前不可执行，需追加预算且确认网络覆盖后才可重新评估。未推断测量精度、网络可用性或培训已完成，未虚构任何设备性能。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 0.58575,
+      "evaluation": 1.431,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 23187,
+    "plan_origin": "provided",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 3866,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确计算全年费用和相对预算的余额或缺口。",
+              "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+              "同时给出成本、风险和有条件建议，不虚构设备性能。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确计算全年费用和相对预算的余额或缺口。",
+        "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+        "同时给出成本、风险和有条件建议，不虚构设备性能。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "plan_admission": null,
+    "cost_breakdown": {
+      "planning": 0,
+      "execution": 0.58575,
+      "evaluation": 1.431
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-development-actual/dev_sampling_after_schema_failure/single/20260910T073918Z-b91ab4bd8a7d/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-development-actual/dev_sampling_after_schema_failure/single/20260910T073918Z-b91ab4bd8a7d",
+    "usage": {
+      "input_tokens": 1549,
+      "output_tokens": 947,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "f92ed2d291478e23e612fdfa61714e31e044066dca2b8bef5b411b6960e34260",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "b7e3f0562f9088de4af5e108c2874e749b385401ccd0a30421573e5d8f648ef1",
+      "profile.json": "2ca3b41dfe2d0c13e8915b2ad2af0c207c1c4e8078c66e2d3ae44b2cc7c5c58b",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "7add221a926b1f05da0abd8e86b36f93dfe50eae792b89b2c0957d9190949c8a",
+      "result.json": "a5361d5a1fb9176aaa1681f255a0b7f619eafb08e6a0546659651043a31dd549"
+    }
+  }
+]

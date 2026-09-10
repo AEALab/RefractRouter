@@ -1,0 +1,74 @@
+{
+  "schema_version": "node-routing-profile-v2",
+  "kind": "configured",
+  "billing_unit": "AFP",
+  "scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "provenance": "本次 provider-config.json；无模型探测、无观测样本。",
+  "candidates": [
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 0.30115000000000003,
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 3975,
+      "input_max_tokens": 3976
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 1.50575,
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 3975,
+      "input_max_tokens": 3976
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 3.3126500000000005,
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 3975,
+      "input_max_tokens": 3976
+    }
+  ],
+  "forecast_basis": {
+    "answer": {
+      "cheap": {
+        "input_tokens": 3975,
+        "output_tokens": 2048,
+        "source": "default"
+      },
+      "mid": {
+        "input_tokens": 3975,
+        "output_tokens": 2048,
+        "source": "default"
+      },
+      "strong": {
+        "input_tokens": 3975,
+        "output_tokens": 2048,
+        "source": "default"
+      }
+    }
+  },
+  "model_bindings": {
+    "cheap": "deepseek-v4-flash",
+    "mid": "minimax-m3",
+    "strong": "deepseek-v4-pro"
+  },
+  "action_bindings": {
+    "cheap": "17bb1248cc5c76251dac8a12aeeed31c605531cb7c5fad693cc4bcf5fcd8249e",
+    "mid": "5e66ad2ee333df9d27d23e876a024204efadf36c8f9738225c338b432e6a9fea",
+    "strong": "01e4e34362bd59f7f381aa9a26984b217600881dea3867ddb1531efab741f55f"
+  }
+}

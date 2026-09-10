@@ -1,0 +1,79 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "请按以下虚构资料馆规则审核四个申请，并给出可直接发送给申请人的简短说明。规则：公开目录任何人可查；扫描件仅对持有效会员证者提供，但未满 16 岁还须监护人书面同意；原件须提前两个工作日预约且仅在馆内查阅，会员资格不替代预约。申请甲：非会员，只查公开目录。乙：15 岁，会员证有效，申请扫描件，监护人同意尚未收到。丙：20 岁，会员证有效，希望今天借走原件，未预约。丁：17 岁，会员证有效，申请扫描件。不得添加收费、证件类别或其他规则。",
+    "acceptanceCriteria": [
+      "四个申请分别给出正确结论及相应规则理由。",
+      "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+      "说明清楚友好，不添加材料未列出的限制或收费。"
+    ],
+    "strategy": "economy",
+    "template": "single"
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "请按以下虚构资料馆规则审核四个申请，并给出可直接发送给申请人的简短说明。规则：公开目录任何人可查；扫描件仅对持有效会员证者提供，但未满 16 岁还须监护人书面同意；原件须提前两个工作日预约且仅在馆内查阅，会员资格不替代预约。申请甲：非会员，只查公开目录。乙：15 岁，会员证有效，申请扫描件，监护人同意尚未收到。丙：20 岁，会员证有效，希望今天借走原件，未预约。丁：17 岁，会员证有效，申请扫描件。不得添加收费、证件类别或其他规则。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 1,
+    "maxNodeFallbacks": 0,
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 4022,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "四个申请分别给出正确结论及相应规则理由。",
+              "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+              "说明清楚友好，不添加材料未列出的限制或收费。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "四个申请分别给出正确结论及相应规则理由。",
+        "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+        "说明清楚友好，不添加材料未列出的限制或收费。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "acceptanceCriteria": [
+      "四个申请分别给出正确结论及相应规则理由。",
+      "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+      "说明清楚友好，不添加材料未列出的限制或收费。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 4096
+}

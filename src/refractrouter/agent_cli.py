@@ -63,7 +63,7 @@ def main(argv=None):
     source.add_argument('--request-stdin', action='store_true')
     source.add_argument('--host-stdio', action='store_true', help=argparse.SUPPRESS)
     run.add_argument('--strategy', choices=tuple(PRESETS), default='balanced')
-    run.add_argument('--template', choices=['single', 'compare'], default='single')
+    run.add_argument('--template', choices=['single', 'compare', 'auto'], default='single')
     run.add_argument('--mode', choices=['preflight', 'demo', 'live'], default='preflight')
     run.add_argument('--runs-dir', type=Path, default=Path.home()/'.local/share/refractagent/runs')
     run.add_argument('--production-budget', type=float, default=40)
@@ -85,6 +85,7 @@ def main(argv=None):
     setup.add_argument('--production-budget', type=float, default=40)
     setup.add_argument('--evaluation-budget', type=float, default=80)
     setup.add_argument('--strategy', choices=tuple(PRESETS), default='balanced')
+    setup.add_argument('--template', choices=['single', 'compare', 'auto'], default='single')
     setup_config = setup.add_mutually_exclusive_group()
     setup_config.add_argument('--provider-config', type=Path)
     setup_config.add_argument('--preset', choices=['ark-agent-plan'])
@@ -123,6 +124,7 @@ def main(argv=None):
             config = {'pythonExecutable': sys.executable, 'executionMode': args.mode,
                       'runsDir': str(args.runs_dir.expanduser().resolve()), 'allowPaidRuns': False,
                       'maxOutputTokens': args.max_output_tokens,
+                      'template': args.template,
                       'maxProductionCost': args.production_budget, 'maxEvaluationCost': args.evaluation_budget}
             if args.provider_config:
                 raw = json.loads(args.provider_config.read_text())

@@ -1,0 +1,66 @@
+{
+  "reviewer": "Codex 内容复核；不是 #40 的真人签署",
+  "source": "automatic-dag-acceptance-v3.json 的冻结展览任务，逐项转录依赖并用 Python 拓扑计算",
+  "dependencies": {
+    "A": [],
+    "B": [
+      "A"
+    ],
+    "C": [],
+    "D": [
+      "B",
+      "C"
+    ],
+    "E": [
+      "D"
+    ]
+  },
+  "original": {
+    "finish": {
+      "A": 2,
+      "C": 4,
+      "B": 5,
+      "D": 7,
+      "E": 8
+    },
+    "critical_path": [
+      "A",
+      "B",
+      "D",
+      "E"
+    ]
+  },
+  "delayed": {
+    "finish": {
+      "A": 2,
+      "C": 6,
+      "B": 5,
+      "D": 8,
+      "E": 9
+    },
+    "critical_path": [
+      "C",
+      "D",
+      "E"
+    ]
+  },
+  "findings": [
+    {
+      "task": "holdout_participant_filter",
+      "auto": "未发现与材料冲突",
+      "single": "未发现与材料冲突"
+    },
+    {
+      "task": "holdout_document_rules",
+      "auto": "未发现与材料冲突",
+      "single": "未发现与材料冲突"
+    },
+    {
+      "task": "holdout_exhibition",
+      "auto": "未通过内容复核：延误后的关键链写成 A→C→D→E，原始材料不存在 A→C 依赖。应为 C→D→E，总工期仍为 9 天。",
+      "single": "存在矛盾表述：先写 A→B→C→D→E，后又说明 C 独立分支。不能把 92 分视为无误交付。"
+    }
+  ],
+  "original_judgments_preserved": true,
+  "conclusion": "执行可行性通过；完整内容可靠性未通过，模型评审分数不能替代材料核对。"
+}

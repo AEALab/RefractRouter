@@ -1,0 +1,57 @@
+{
+  "verified": true,
+  "complete": true,
+  "files": 19,
+  "calls": 10,
+  "checked_handoffs": 6,
+  "total_afp": 6.45425,
+  "comparisons": [
+    {
+      "task": "holdout_stage_single",
+      "template": "single",
+      "plan_ready_ms": 0,
+      "content_validation": {
+        "source_status": "supported",
+        "passed": true,
+        "invalid_edges": [],
+        "missing_paths": []
+      },
+      "dynamic_events": 0,
+      "dynamic_planning_afp": 0,
+      "status": "completed",
+      "nodes": 1,
+      "score": 100,
+      "planning_afp": 0,
+      "execution_afp": 0.84535,
+      "evaluation_afp": 2.043,
+      "total_afp": 2.88835,
+      "wall_time_ms": 26228,
+      "node_execution_ms": 6005.989708006382,
+      "peak_running_nodes": 1
+    },
+    {
+      "task": "controlled_dynamic_split",
+      "template": "single",
+      "plan_ready_ms": 0,
+      "content_validation": {
+        "source_status": "not-applicable",
+        "passed": null,
+        "invalid_edges": [],
+        "missing_paths": []
+      },
+      "dynamic_events": 1,
+      "dynamic_planning_afp": 0.04235,
+      "status": "completed",
+      "nodes": 5,
+      "score": 100,
+      "planning_afp": 0,
+      "execution_afp": 2.67355,
+      "evaluation_afp": 0.85,
+      "total_afp": 3.5659000000000005,
+      "wall_time_ms": 32685,
+      "node_execution_ms": 19863.430707948282,
+      "peak_running_nodes": 1
+    }
+  ],
+  "scope": "仅核对结构交接与账本；模型是否正确理解上游语义仍由最终评审及材料复核判断。"
+}

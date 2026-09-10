@@ -1,0 +1,118 @@
+{
+  "nodes": [
+    {
+      "node_id": "schedule",
+      "node_type": "synthesis",
+      "prompt_template": "计算五项工作最早起止时间、原始总工期与关键链；再计算Z延误5天后的排程与关键链，标注Z无X依赖。",
+      "parents": [],
+      "contract": {
+        "objective": "计算五项工作最早起止时间、原始总工期与关键链；再计算Z延误5天后的排程与关键链，标注Z无X依赖。",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "计算五项工作最早起止时间、原始总工期与关键链；再计算Z延误5天后的排程与关键链，标注Z无X依赖。"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 4852,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+        ],
+        "covers": [],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "cost",
+      "node_type": "synthesis",
+      "prompt_template": "独立核算手续300、运输700、搭建1600、灯光800四项费用，计算总费用与预算4000的余额。",
+      "parents": [],
+      "contract": {
+        "objective": "独立核算手续300、运输700、搭建1600、灯光800四项费用，计算总费用与预算4000的余额。",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "独立核算手续300、运输700、搭建1600、灯光800四项费用，计算总费用与预算4000的余额。"
+          }
+        },
+        "capability": {
+          "difficulty": "low",
+          "risk": "low",
+          "input_budget_tokens": 4773,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+        ],
+        "covers": [],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "汇总排程与费用结果，完整呈现五项起止时间、原始及延误后总工期与关键链、费用明细和预算余额，核对无新增依赖或费用。",
+      "parents": [
+        "schedule",
+        "cost"
+      ],
+      "contract": {
+        "objective": "汇总排程与费用结果，完整呈现五项起止时间、原始及延误后总工期与关键链、费用明细和预算余额，核对无新增依赖或费用。",
+        "inputs": {
+          "schedule": {
+            "fields": [
+              "text"
+            ],
+            "reason": "当前职责消费该上游节点的结果。"
+          },
+          "cost": {
+            "fields": [
+              "text"
+            ],
+            "reason": "当前职责消费该上游节点的结果。"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 38068,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "正确给出五项工作起止时间、原始总工期与关键链。",
+          "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+          "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "正确给出五项工作起止时间、原始总工期与关键链。",
+    "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+    "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "排程与费用为两个独立核算分支，可并行；随后汇总节点合并结果并核对原始事实与延误影响。"
+}

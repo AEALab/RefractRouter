@@ -1,0 +1,237 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T072348Z-804d8ef94ea0",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "no-feasible-route",
+  "answer": "",
+  "issues": [
+    "no assignment satisfies quality, total cost and remaining time constraints"
+  ],
+  "models": {},
+  "model_routes": {},
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": null,
+  "costs": {
+    "production": 0.1425,
+    "evaluation": 0,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "not-started",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 17722,
+  "plan_origin": "model",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "cost_analysis",
+        "node_type": "generation",
+        "prompt_template": "请对社区手工教室的两个采购方案进行全年成本核算。方案松：设备费2800元，耗材每月150元；方案竹：设备费3900元，耗材每月70元。按使用12个月计算。请分别计算两个方案的全年总成本，并比较5000元总预算。输出JSON，包含字段：cost_song（方案松全年成本及计算过程）、cost_zhu（方案竹全年成本及计算过程）、budget_comparison（与5000元预算的比较结论）。只使用给定信息，不推断设备质量。",
+        "parents": [],
+        "contract": {
+          "objective": "计算两个方案全年成本并与5000元预算比较",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "cost_song": "方案松全年成本及计算过程",
+              "cost_zhu": "方案竹全年成本及计算过程",
+              "budget_comparison": "与5000元预算的比较结论"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 3471,
+            "expected_output_tokens": 500
+          },
+          "checks": [
+            "方案松全年成本=2800+150*12=4600元",
+            "方案竹全年成本=3900+70*12=4740元",
+            "两个方案均未超过5000元预算"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risk_analysis",
+        "node_type": "generation",
+        "prompt_template": "请分析社区手工教室两个采购方案的维护执行风险。方案松需要每月由志愿者清洁，负责人尚未确定；方案竹由供应商季度维护，合同是否包含上门费尚未确认。请分别分析两个方案的维护执行风险，重点说明未知条件：方案松的负责人未确定、方案竹的上门费是否包含未确认。输出JSON，包含字段：risk_song（方案松维护风险分析）、risk_zhu（方案竹维护风险分析）、unknown_conditions（未知条件汇总）。只使用给定信息，不编造已确认事实，不推断设备质量。",
+        "parents": [],
+        "contract": {
+          "objective": "分析两个方案的维护执行风险及未知条件",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "risk_song": "方案松维护风险分析",
+              "risk_zhu": "方案竹维护风险分析",
+              "unknown_conditions": "未知条件汇总"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 3543,
+            "expected_output_tokens": 600
+          },
+          "checks": [
+            "方案松风险围绕负责人未确定展开",
+            "方案竹风险围绕上门费未确认展开",
+            "未知条件明确标注为未确认"
+          ],
+          "covers": [
+            1
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "请整合以下两个独立分析的结果，形成最终采购建议。成本分析：{cost_analysis}。维护风险分析：{risk_analysis}。最终交付必须包含三部分：1.全年成本核算：分别呈现方案松和方案竹的全年成本及与5000元预算的比较；2.维护执行风险：分别呈现方案松（负责人未确定）和方案竹（上门费未确认）的风险分析；3.有条件的选择建议：基于成本与风险给出条件性建议，明确未知条件。只使用给定信息，不编造已确认事实，不推断设备质量。",
+        "parents": [
+          "cost_analysis",
+          "risk_analysis"
+        ],
+        "contract": {
+          "objective": "整合成本与风险分析，输出包含成本、维护风险与有条件建议的最终文本",
+          "inputs": {
+            "cost_analysis": {
+              "fields": [
+                "cost_song",
+                "cost_zhu",
+                "budget_comparison"
+              ],
+              "reason": "需要成本核算结果以呈现全年成本并比较预算"
+            },
+            "risk_analysis": {
+              "fields": [
+                "risk_song",
+                "risk_zhu",
+                "unknown_conditions"
+              ],
+              "reason": "需要维护风险分析以呈现风险部分并支撑有条件建议"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "包含全年成本核算、维护执行风险和有条件选择建议的完整文本"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 69123,
+            "expected_output_tokens": 1200
+          },
+          "checks": [
+            "包含方案松和方案竹的全年成本及预算比较",
+            "包含方案松和方案竹的维护风险分析",
+            "包含有条件的选择建议且明确未知条件"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "正确计算两个方案的全年成本并比较 5000 元预算。",
+      "分别分析负责人和上门费的未知条件，不编造已确认事实。",
+      "最终答案同时包含成本、维护风险与有条件建议。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "任务要求分别呈现成本核算和维护风险，且明确要求分工式处理，因此拆分为两个独立分析节点并行执行，再由汇总节点整合为最终交付。成本核算与维护风险无推理依赖，可并行；汇总节点负责整合并给出有条件建议，开销较小。"
+  },
+  "plan_admission": {
+    "cost_analysis": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 3438,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 3470
+      }
+    },
+    "risk_analysis": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 3510,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 3542
+      }
+    },
+    "answer": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 3555,
+        "upstream_allowance": 65536,
+        "estimated_input_bound": 69123
+      }
+    }
+  },
+  "cost_breakdown": {
+    "planning": 0.1425,
+    "execution": 0,
+    "evaluation": 0
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v2-development-actual/dev_workshop_handoffs/auto/20260910T072348Z-804d8ef94ea0/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v2-development-actual/dev_workshop_handoffs/auto/20260910T072348Z-804d8ef94ea0",
+  "usage": {
+    "input_tokens": 1753,
+    "output_tokens": 1097,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+    "plan.json": "3a13be47b5ec0f094c07f647b760f03fb938511905f7f9953d5eb252c44b8baf",
+    "profile.json": "564a74acce187875f22db5d5ab9dd7c5ae9b3d41fb4800b490459a5b809cb46e",
+    "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+    "request.json": "464aed21b8fac8797f9e2dec83c6149c764c0ae1047e42d1240e9de2cf67901c",
+    "result.json": "36419d0455fef14c351159b34c76f276b56e1f3a1399d485bc38046f87214362"
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "虚构社团采购方案首次购买 2400 元，每月维护 100 元，使用期 12 个月，总预算 4000 元。方案需要操作人员完成培训，但培训是否完成未知。只按已知费用计算全年费用、预算余额，并给出有条件建议。",
+    "acceptanceCriteria": [
+      "正确计算全年费用 3600 元、预算余额 400 元。",
+      "培训状态必须保持未知；建议使用方案前确认培训。"
+    ],
+    "strategy": "economy",
+    "template": "single",
+    "maxDynamicSplits": 1,
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "source",
+          "node_type": "extraction",
+          "prompt_template": "摘录方案费用及培训状态，仅列给定事实。",
+          "parents": [],
+          "contract": {
+            "objective": "摘录方案费用及培训状态，仅列给定事实。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "摘录方案费用及培训状态，仅列给定事实。"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "hard",
+          "node_type": "synthesis",
+          "prompt_template": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+          "parents": [
+            "source"
+          ],
+          "contract": {
+            "objective": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+            "inputs": {
+              "source": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "依据上游成果完整回答全年费用、余额和培训建议。",
+          "parents": [
+            "hard"
+          ],
+          "contract": {
+            "objective": "依据上游成果完整回答全年费用、余额和培训建议。",
+            "inputs": {
+              "hard": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确计算全年费用 3600 元、预算余额 400 元。",
+              "培训状态必须保持未知；建议使用方案前确认培训。"
+            ],
+            "covers": [
+              0,
+              1
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确计算全年费用 3600 元、预算余额 400 元。",
+        "培训状态必须保持未知；建议使用方案前确认培训。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "受控测试：先保留材料，再要求困难节点发出拆分信号并恢复下游。"
+    }
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "虚构社团采购方案首次购买 2400 元，每月维护 100 元，使用期 12 个月，总预算 4000 元。方案需要操作人员完成培训，但培训是否完成未知。只按已知费用计算全年费用、预算余额，并给出有条件建议。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 180000,
+    "maxConcurrency": 1,
+    "maxNodeFallbacks": 0,
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "source",
+          "node_type": "extraction",
+          "prompt_template": "摘录方案费用及培训状态，仅列给定事实。",
+          "parents": [],
+          "contract": {
+            "objective": "摘录方案费用及培训状态，仅列给定事实。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "摘录方案费用及培训状态，仅列给定事实。"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "hard",
+          "node_type": "synthesis",
+          "prompt_template": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+          "parents": [
+            "source"
+          ],
+          "contract": {
+            "objective": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+            "inputs": {
+              "source": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "依据上游成果完整回答全年费用、余额和培训建议。",
+          "parents": [
+            "hard"
+          ],
+          "contract": {
+            "objective": "依据上游成果完整回答全年费用、余额和培训建议。",
+            "inputs": {
+              "hard": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确计算全年费用 3600 元、预算余额 400 元。",
+              "培训状态必须保持未知；建议使用方案前确认培训。"
+            ],
+            "covers": [
+              0,
+              1
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确计算全年费用 3600 元、预算余额 400 元。",
+        "培训状态必须保持未知；建议使用方案前确认培训。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "受控测试：先保留材料，再要求困难节点发出拆分信号并恢复下游。"
+    },
+    "verifyDependencies": true,
+    "maxDynamicSplits": 1,
+    "acceptanceCriteria": [
+      "正确计算全年费用 3600 元、预算余额 400 元。",
+      "培训状态必须保持未知；建议使用方案前确认培训。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 2048
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "为一个虚构舞台演出核对搭建排程和费用。第 0 天开始，手续 X 需要 2 天；运输 Y 需要 4 天且必须等 X 完成；灯光准备 Z 需要 3 天，可在第 0 天独立开始；搭建 U 需要 3 天，必须等 Y 和 Z 都完成；验收 V 需要 2 天，必须等 U 完成。不考虑周末。手续费用 300 元、运输 700 元、搭建 1600 元、灯光 800 元，总预算 4000 元。独立核对排程与费用后汇总，给出五项的最早起止时间、关键依赖链、总工期和预算余额；如果 Z 额外延误 5 天，也给出变化后的排程与关键链。不得新增依赖或费用。",
+    "acceptanceCriteria": [
+      "正确给出五项工作起止时间、原始总工期与关键链。",
+      "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+      "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+    ],
+    "strategy": "economy",
+    "template": "auto",
+    "maxDynamicSplits": 1
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "为一个虚构舞台演出核对搭建排程和费用。第 0 天开始，手续 X 需要 2 天；运输 Y 需要 4 天且必须等 X 完成；灯光准备 Z 需要 3 天，可在第 0 天独立开始；搭建 U 需要 3 天，必须等 Y 和 Z 都完成；验收 V 需要 2 天，必须等 U 完成。不考虑周末。手续费用 300 元、运输 700 元、搭建 1600 元、灯光 800 元，总预算 4000 元。独立核对排程与费用后汇总，给出五项的最早起止时间、关键依赖链、总工期和预算余额；如果 Z 额外延误 5 天，也给出变化后的排程与关键链。不得新增依赖或费用。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 180000,
+    "maxConcurrency": 4,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 0,
+    "planningMode": "compact",
+    "maxDynamicSplits": 1,
+    "verifyDependencies": true,
+    "acceptanceCriteria": [
+      "正确给出五项工作起止时间、原始总工期与关键链。",
+      "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+      "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 2048
+}

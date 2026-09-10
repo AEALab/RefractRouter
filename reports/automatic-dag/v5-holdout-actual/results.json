@@ -1,0 +1,1051 @@
+[
+  {
+    "task_id": "holdout_participant_filter",
+    "template": "auto",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T074027Z-73bd0f2f14b5",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "1. 当前明确符合资格的人：  \n沈禾、唐澄。\n\n2. 明确不符合的人及原因：  \n- 江柯：仅参加过 1 次基础课，未达到至少 2 次的要求。  \n- 陆晴：不能参加周日上午。  \n- 顾原：借用工具未归还。\n\n3. 信息不足需确认的人：  \n- 齐岚：归还情况未记录，无法判断是否已归还借用工具。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "答案正确将沈禾、唐澄列为明确符合；江柯（仅1次基础课）、陆晴（不能参加周日上午）、顾原（工具未归还）列为明确不符合并给出具体原因；齐岚因归还情况未记录列为需确认，未将未记录当作已归还或未归还。六人全部覆盖，未新增任何信息。",
+      "criteria": [
+        {
+          "criterion": "准确区分明确符合、明确不符合及待确认三类人员。",
+          "passed": true,
+          "rationale": "三类划分准确：符合为沈禾、唐澄；不符合为江柯、陆晴、顾原；待确认为齐岚。"
+        },
+        {
+          "criterion": "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+          "passed": true,
+          "rationale": "江柯因次数不足、陆晴因时间冲突、顾原因未归还工具，原因具体；齐岚的未记录状态被正确处理为需确认而非推断。"
+        },
+        {
+          "criterion": "不遗漏六人，也不新增信息。",
+          "passed": true,
+          "rationale": "沈禾、江柯、陆晴、顾原、唐澄、齐岚六人均被涵盖，且未添加名单之外的任何信息。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 1.83425,
+      "evaluation": 0.828,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 21916,
+    "plan_origin": "model",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据以下虚构陶艺活动筛选规则和名单，完成参与者资格分类。\n\n资格要求需同时满足：至少参加过两次基础课、能参加周日上午、已归还借用工具。\n\n名单：\n沈禾，3 次，能参加，已归还；\n江柯，1 次，能参加，已归还；\n陆晴，2 次，不能参加，已归还；\n顾原，4 次，能参加，未归还；\n唐澄，2 次，能参加，已归还；\n齐岚，2 次，能参加，归还情况未记录。\n\n请只依据名单，不推断缺失情况，不把未记录当作已归还或未归还。\n\n最终交付正文必须依次包含以下三部分：\n1. 当前明确符合资格的人；\n2. 明确不符合的人及原因；\n3. 信息不足需确认的人。\n\n要求：准确区分三类人员；给出各不符合人员的具体原因；不遗漏六人，也不新增信息。",
+          "parents": [],
+          "contract": {
+            "objective": "依据给定规则和名单，准确分类六名参与者的资格状态并输出完整正文。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "依次包含明确符合资格的人、明确不符合的人及原因、信息不足需确认的人三部分的最终交付正文"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 3543,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "明确符合资格的人仅包含同时满足三项条件的名单人员",
+              "明确不符合的人均给出具体原因，且不将未记录推断为已归还或未归还",
+              "信息不足需确认的人仅包含因归还情况未记录而无法判断的人员",
+              "六人全部被归入且仅归入一个类别，未新增名单外人员"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "准确区分明确符合、明确不符合及待确认三类人员。",
+        "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+        "不遗漏六人，也不新增信息。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "任务为六人名单的规则筛选，材料短小、规则明确，拆分不会带来质量或并行收益，反而增加交接与汇总开销，因此使用单节点直接完成。"
+    },
+    "plan_admission": {
+      "answer": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 3510,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 3542,
+          "forecast_input_tokens": 3542
+        }
+      }
+    },
+    "cost_breakdown": {
+      "planning": 1.3563,
+      "execution": 0.47795,
+      "evaluation": 0.828
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_participant_filter/auto/20260910T074027Z-73bd0f2f14b5/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_participant_filter/auto/20260910T074027Z-73bd0f2f14b5",
+    "usage": {
+      "input_tokens": 2119,
+      "output_tokens": 1020,
+      "cache_read_tokens": 1024,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "ebd0192d2e41ab073af65955a868b06993bd7aa8cb84fe2c5667ebc00965d897",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "2556c0acfc725c1b7fca04261f6d44b62a44097b5a0ba9efcc7aac8b1b263b08",
+      "profile.json": "7882344a1ed9b8245ecca322da0f4d2c86b49a1b3d4d5c0ccd92736d0a806c0f",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "e9a9d5e66e324e2295580e0f32df6247fe3edeeeaf2e435c8a7bb0de46175ada",
+      "result.json": "9313aad36e6c23da7ef099244ecc632195ba3f8fdbe243b9d2735f965da6dca2"
+    }
+  },
+  {
+    "task_id": "holdout_participant_filter",
+    "template": "single",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T074049Z-bcfdec7dd834",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "明确符合资格的人：\n\n- 沈禾：3 次基础课，能参加周日上午，已归还借用工具。\n- 唐澄：2 次基础课，能参加周日上午，已归还借用工具。\n\n明确不符合资格的人及原因：\n\n- 江柯：只参加过 1 次基础课，未达到“至少两次基础课”的要求。\n- 陆晴：不能参加周日上午。\n- 顾原：未归还借用工具。\n\n信息不足需确认的人：\n\n- 齐岚：已满足基础课次数和能参加周日上午，但借用工具归还情况未记录，需确认是否已归还。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "被评估文本将六人完整分类：明确符合为沈禾、唐澄；明确不符合为江柯（仅1次基础课）、陆晴（不能参加周日上午）、顾原（未归还借用工具）；待确认为齐岚（归还情况未记录）。分类与原始名单一致，未把「未记录」推断为已归还或未归还，未遗漏任何人，也未新增名单外信息。三项验收标准均满足。",
+      "criteria": [
+        {
+          "criterion": "准确区分明确符合、明确不符合及待确认三类人员。",
+          "passed": true,
+          "rationale": "文本明确分为三组：符合（沈禾、唐澄）、不符合（江柯、陆晴、顾原）、需确认（齐岚），与任务要求的资格逻辑一致。"
+        },
+        {
+          "criterion": "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+          "passed": true,
+          "rationale": "江柯因基础课次数不足、陆晴因不能参加周日上午、顾原因未归还工具均给出具体原因；齐岚的归还情况被表述为「未记录，需确认」，未作推断。"
+        },
+        {
+          "criterion": "不遗漏六人，也不新增信息。",
+          "passed": true,
+          "rationale": "沈禾、江柯、陆晴、顾原、唐澄、齐岚六人全部出现且仅出现一次，所述事实均来自名单，无额外添加。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 0.34705,
+      "evaluation": 0.907,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 13485,
+    "plan_origin": "provided",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 3835,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "准确区分明确符合、明确不符合及待确认三类人员。",
+              "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+              "不遗漏六人，也不新增信息。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "准确区分明确符合、明确不符合及待确认三类人员。",
+        "给出各不符合人员的具体原因，不把未记录当作已归还或未归还。",
+        "不遗漏六人，也不新增信息。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "plan_admission": null,
+    "cost_breakdown": {
+      "planning": 0,
+      "execution": 0.34705,
+      "evaluation": 0.907
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_participant_filter/single/20260910T074049Z-bcfdec7dd834/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_participant_filter/single/20260910T074049Z-bcfdec7dd834",
+    "usage": {
+      "input_tokens": 1096,
+      "output_tokens": 442,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "fc260fcc274e3684071adfc326a114c4987f2ea131f6f440db77472213a681ea",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "6e932b0377210826ccd6e9ec467bc80b21f3c3f2c95e22bc16afd96e02f48779",
+      "profile.json": "e2b02ae9329d2d77a0a0a75c01cd92fec557d7f5828cd5683e74040bda70a155",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "48f67415f8b7384549152babb40c154eb6b0c9f64e9748d4817b6a6fdc384c3a",
+      "result.json": "849bf230b9aec31adb659143c3d6e20d9dde34aeb771590a7c2b5afcc52353e2"
+    }
+  },
+  {
+    "task_id": "holdout_document_rules",
+    "template": "auto",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T074103Z-72dc86d337fc",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "甲：可以查公开目录。公开目录任何人可查，您无需会员证即可使用。\n\n乙：目前暂不能提供扫描件。扫描件虽对有效会员提供，但您未满 16 岁，还须有监护人书面同意；待我们收到监护人书面同意后，即可为您办理。\n\n丙：目前不能借走原件。原件须提前两个工作日预约，且仅在馆内查阅，不能外借；会员资格不能替代预约。建议您先预约，并在馆内使用。\n\n丁：可以申请扫描件。您已年满 16 岁，且持有有效会员证，符合扫描件提供条件。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "四个申请均给出正确结论并附规则理由：甲可公开查目录；乙因未满16岁需待监护人书面同意；丙同时指出未提前两个工作日预约与原件不能外借、仅限馆内查阅，且说明会员资格不替代预约；丁年满16岁且会员证有效，可申请扫描件。说明简短友好，未添加收费、证件类别或其他限制。",
+      "criteria": [
+        {
+          "criterion": "四个申请分别给出正确结论及相应规则理由。",
+          "passed": true,
+          "rationale": "甲、乙、丙、丁均分别给出可/暂不可/不能/可以的结论，并对应引用公开目录、扫描件年龄与监护人同意、原件预约与馆内查阅、扫描件会员条件等规则理由。"
+        },
+        {
+          "criterion": "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+          "passed": true,
+          "rationale": "乙明确「待我们收到监护人书面同意后」办理；丙同时说明「须提前两个工作日预约」和「仅在馆内查阅，不能外借」，并补充会员资格不能替代预约。"
+        },
+        {
+          "criterion": "说明清楚友好，不添加材料未列出的限制或收费。",
+          "passed": true,
+          "rationale": "措辞清楚且可直接发送，使用了「建议您先预约」等友好表达；未引入收费、证件类别或其他未列限制。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 1.8436000000000001,
+      "evaluation": 0.897,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 23762,
+    "plan_origin": "model",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "请按以下虚构资料馆规则审核四个申请，并给出可直接发送给申请人的简短说明。规则：公开目录任何人可查；扫描件仅对持有效会员证者提供，但未满 16 岁还须监护人书面同意；原件须提前两个工作日预约且仅在馆内查阅，会员资格不替代预约。申请甲：非会员，只查公开目录。乙：15 岁，会员证有效，申请扫描件，监护人同意尚未收到。丙：20 岁，会员证有效，希望今天借走原件，未预约。丁：17 岁，会员证有效，申请扫描件。不得添加收费、证件类别或其他规则。\n\n最终交付必须满足：\n四个申请分别给出正确结论及相应规则理由。\n乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。\n说明清楚友好，不添加材料未列出的限制或收费。\n\n请直接输出最终说明正文，分别呈现甲、乙、丙、丁四个申请的结论及规则理由，语言清楚友好。",
+          "parents": [],
+          "contract": {
+            "objective": "审核四个申请并输出可直接发送给申请人的简短说明，分别给出结论及规则理由。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终交付的简短说明正文，分别呈现甲、乙、丙、丁四个申请的结论及规则理由。"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 3668,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "四个申请分别给出正确结论及相应规则理由。",
+              "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+              "说明清楚友好，不添加材料未列出的限制或收费。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "四个申请分别给出正确结论及相应规则理由。",
+        "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+        "说明清楚友好，不添加材料未列出的限制或收费。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "任务为四个独立申请的规则审核，规则简单且材料短小，拆分会增加交接与汇总开销而收益有限；单节点可直接完成全部审核并输出最终说明。"
+    },
+    "plan_admission": {
+      "answer": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 3635,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 3667,
+          "forecast_input_tokens": 3667
+        }
+      }
+    },
+    "cost_breakdown": {
+      "planning": 1.3541,
+      "execution": 0.4895,
+      "evaluation": 0.897
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/auto/20260910T074103Z-72dc86d337fc/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/auto/20260910T074103Z-72dc86d337fc",
+    "usage": {
+      "input_tokens": 2155,
+      "output_tokens": 1070,
+      "cache_read_tokens": 1024,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "b915c8f85482b6f4fadb2bcf67930fee75d4feab06d5b24b2dae86b19ba0c807",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "d7bd2b2aee2a772a4dcbbd68b8aae3385ba1d745a3f380deba692fcf2c3694b7",
+      "profile.json": "1b324250c741155727573c5b90ba567666fb5c7ff8130eceb2e50b3e35d75ce7",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "b1815ccca1ec5905d9d2aa8a3a959b6ada79e61b0fe304b89f288472803fb5f6",
+      "result.json": "7846b06cee70813a4f77f2ef7657101f8ad6b7c67b7252f794e271f294d0e825"
+    }
+  },
+  {
+    "task_id": "holdout_document_rules",
+    "template": "single",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T074127Z-e42d3fa823f4",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "甲：可以查公开目录。公开目录任何人可查，您无需会员证即可使用。\n\n乙：目前暂不能提供扫描件。扫描件需要有效会员证，未满 16 岁还须有监护人书面同意；您的会员证有效，但监护人书面同意尚未收到，请补齐后再申请。\n\n丙：今天不能借走原件。原件须提前两个工作日预约，且仅在馆内查阅，不能外借；您未预约，同时原件也不提供外借服务。建议您先预约，并在馆内使用。\n\n丁：可以申请扫描件。您已年满 16 岁，且会员证有效，符合扫描件提供条件。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "四个申请均给出正确结论与规则依据：甲可查公开目录；乙因未满16岁且监护人书面同意未收到而暂不能提供扫描件；丙同时指出未预约与原件不外借且仅限馆内查阅；丁年满16岁且会员证有效，可申请扫描件。说明简短友好，未添加收费、证件类别或其他未列限制。",
+      "criteria": [
+        {
+          "criterion": "四个申请分别给出正确结论及相应规则理由。",
+          "passed": true,
+          "rationale": "甲、乙、丙、丁均分别给出可或不可的结论，并对应公开目录、扫描件年龄与监护人同意、原件预约与馆内查阅等规则理由。"
+        },
+        {
+          "criterion": "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+          "passed": true,
+          "rationale": "乙明确因监护人书面同意尚未收到而暂不能提供扫描件；丙同时说明未预约和原件不能外借、仅馆内查阅。"
+        },
+        {
+          "criterion": "说明清楚友好，不添加材料未列出的限制或收费。",
+          "passed": true,
+          "rationale": "措辞清楚友好，未引入收费、特定证件类别或其他材料外限制。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 0.3586,
+      "evaluation": 0.883,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 14537,
+    "plan_origin": "provided",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 4022,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "四个申请分别给出正确结论及相应规则理由。",
+              "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+              "说明清楚友好，不添加材料未列出的限制或收费。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "四个申请分别给出正确结论及相应规则理由。",
+        "乙应待监护人书面同意；丙同时涉及未预约和不能外借，不遗漏其中之一。",
+        "说明清楚友好，不添加材料未列出的限制或收费。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "plan_admission": null,
+    "cost_breakdown": {
+      "planning": 0,
+      "execution": 0.3586,
+      "evaluation": 0.883
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/single/20260910T074127Z-e42d3fa823f4/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_document_rules/single/20260910T074127Z-e42d3fa823f4",
+    "usage": {
+      "input_tokens": 1115,
+      "output_tokens": 420,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "565cba1a8b68224f877bbc10d8869c7ab139c2d127e51d81c4ac4d21603d7b93",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "093caa1eb1c4109bc1604979a1c749e6fd196e61fab9a7fd8a5cbf1add43e14b",
+      "profile.json": "335ef8989e31a0ec79c408ead2c8eb1c708485c36e99079866be8ad9510d61a1",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "875e2bd41bd5a5d5a136d9ed1f87692eb4f752150114bb32f7ee0c41bb0c1434",
+      "result.json": "e54c6ee3dc1c0df70387f8b97d075755968761733b5ce04dca396e2ce3d7f2da"
+    }
+  },
+  {
+    "task_id": "holdout_exhibition",
+    "template": "auto",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T074141Z-b92f61a8b308",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "一、最早开始和完成时间  \n- A：第 0 天开始，第 2 天结束。  \n- B：必须等 A 完成，第 2 天开始，第 5 天结束。  \n- C：第 0 天开始，第 4 天结束。  \n- D：必须等 B 和 C 都完成。B 第 5 天结束，C 第 4 天结束，取较晚者，因此 D 第 5 天开始，第 7 天结束。  \n- E：必须等 D 完成，第 7 天开始，第 8 天结束。  \n\nB、C 汇合条件：D 不能早于 B 和 C 两者都完成的时间开始。原排程中 B 第 5 天完成，C 第 4 天完成，因此 D 从第 5 天开始。\n\n二、总工期和关键依赖链  \n总工期为 8 天。  \n关键依赖链为：A → B → D → E。  \n\n如果 C 额外延误 2 天：  \nC 原第 4 天结束，延误后第 6 天结束。D 必须等 B 和 C 都完成，B 第 5 天结束，C 第 6 天结束，取较晚者，因此 D 推迟到第 6 天开始，第 8 天结束；E 第 8 天开始，第 9 天结束。总工期由 8 天变为 9 天，关键依赖链由 A → B → D → E 变为 A → C → D → E。\n\n三、预算核算  \n- 采购：1200 元  \n- 运输：800 元  \n- 布展：1500 元  \n- 设计：900 元  \n\n费用合计：4400 元  \n总预算：4600 元  \n预算余额：200 元  \n\n四、最终安排  \n按原排程，展览准备可在第 8 天完成，关键路径为 A → B → D → E。费用合计 4400 元，未超过 4600 元预算，余额 200 元。建议按第 0 天同时启动 A 和 C，A 完成后立即开始 B，B 和 C 都完成后进入 D，最后完成 E。由于预算尚有 200 元余量，可保留作为应急备用金，不建议新增未给定的费用项目。  \n\n需要重点监控 C 的进度：如果 C 额外延误 2 天，总工期会延长至 9 天，且关键链会转移到 A → C → D → E。因此，若展览开幕日期不可推迟，应优先确保 C 按原计划完成，或在早期阶段协调设计进度，避免 C 成为新的关键约束。",
+    "issues": [],
+    "models": {
+      "schedule_analysis": "deepseek-v4-pro",
+      "cost_analysis": "deepseek-v4-pro",
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "schedule_analysis": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "cost_analysis": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "被评估文本正确给出 A、B、C、D、E 的最早开始与结束时间，并明确说明 D 必须等待 B、C 两者完成后取较晚者开始；正确给出总工期 8 天和关键链 A → B → D → E；对 C 延误 2 天的影响计算正确，C 变为第 6 天完成，D 第 6 天开始、第 8 天完成，E 第 9 天完成，总工期变为 9 天，关键链转为 A → C → D → E；费用核算为 1200+800+1500+900=4400 元，预算 4600 元，余额 200 元，未虚构费用，且最终交付同时包含排程与费用。",
+      "criteria": [
+        {
+          "criterion": "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+          "passed": true,
+          "rationale": "五项工作时间均正确：A 第0-2天，B 第2-5天，C 第0-4天，D 第5-7天，E 第7-8天；并明确说明 D 需等 B、C 都完成且取较晚者第5天开始。"
+        },
+        {
+          "criterion": "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+          "passed": true,
+          "rationale": "正确给出总工期 8 天、关键链 A → B → D → E；C 延误 2 天后正确得出 C 第6天完成、D 第6-8天、E 第8-9天、总工期 9 天，并指出关键链变为 A → C → D → E。"
+        },
+        {
+          "criterion": "正确核算费用和预算余额，最终交付包含排程与费用。",
+          "passed": true,
+          "rationale": "费用合计 4400 元正确，预算余额 200 元正确，未新增未给定费用；最终安排同时包含排程、关键链、费用与预算余额。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 4.2658,
+      "evaluation": 1.663,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 54290,
+    "plan_origin": "model",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "schedule_analysis",
+          "node_type": "generation",
+          "prompt_template": "根据以下虚构展览准备任务，独立核对排程：第 0 天开始，手续 A 需要 2 天；运输 B 需要 3 天且必须等 A 完成；版面设计 C 需要 4 天，可在第 0 天独立开始；布展 D 需要 2 天，必须等 B 和 C 都完成；验收 E 需要 1 天，必须等 D 完成。各项连续执行，不考虑周末。请给出：1）五项工作 A、B、C、D、E 的最早开始和结束时间，明确写出 B、C 汇合条件对 D 开始时间的约束；2）总工期；3）决定总工期的关键依赖链；4）如果 C 额外延误 2 天，对总工期和关键链的影响。只依据给定条件计算，不得虚构额外工作或费用。",
+          "parents": [],
+          "contract": {
+            "objective": "独立完成排程分析，给出五项工作最早开始/结束时间、总工期、关键依赖链及 C 延误 2 天的影响。",
+            "inputs": {},
+            "output": {
+              "format": "json",
+              "fields": {
+                "schedule": "五项工作最早开始和结束时间的完整排程说明，包含 B、C 汇合条件",
+                "total_duration": "总工期天数",
+                "critical_chain": "决定总工期的关键依赖链",
+                "delay_impact": "C 额外延误 2 天对总工期和关键链的影响"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 4073,
+              "expected_output_tokens": 1200
+            },
+            "checks": [
+              "排程结果包含 A、B、C、D、E 五项工作的最早开始和结束时间",
+              "明确说明 D 必须等 B 和 C 都完成，不遗漏汇合条件",
+              "总工期和关键依赖链与给定依赖关系一致",
+              "C 延误 2 天的影响计算正确"
+            ],
+            "covers": [
+              0,
+              1
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "cost_analysis",
+          "node_type": "generation",
+          "prompt_template": "根据以下虚构展览准备任务，独立核算费用：采购 1200 元、运输 800 元、布展 1500 元、设计 900 元，总预算 4600 元。请给出：1）各项费用明细；2）费用合计；3）预算余额。没有给定的费用不得虚构。只依据给定费用核算。",
+          "parents": [],
+          "contract": {
+            "objective": "独立核算展览准备费用，给出各项费用、合计和预算余额。",
+            "inputs": {},
+            "output": {
+              "format": "json",
+              "fields": {
+                "cost_items": "各项费用明细",
+                "total_cost": "费用合计",
+                "budget_balance": "预算余额"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 3361,
+              "expected_output_tokens": 600
+            },
+            "checks": [
+              "费用明细包含采购、运输、布展、设计四项给定费用",
+              "费用合计计算正确",
+              "预算余额计算正确",
+              "未虚构任何未给定费用"
+            ],
+            "covers": [
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "answer",
+          "node_type": "synthesis",
+          "prompt_template": "你是一名展览准备规划师。请综合以下独立分析结果，形成最终安排建议。\n\n排程分析结果：\n{{schedule_analysis.schedule}}\n总工期：{{schedule_analysis.total_duration}}\n关键依赖链：{{schedule_analysis.critical_chain}}\nC 延误 2 天影响：{{schedule_analysis.delay_impact}}\n\n费用分析结果：\n{{cost_analysis.cost_items}}\n费用合计：{{cost_analysis.total_cost}}\n预算余额：{{cost_analysis.budget_balance}}\n\n最终交付必须满足：\n1. 正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。\n2. 给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。\n3. 正确核算费用和预算余额，最终交付包含排程与费用。\n\n请直接输出最终正文，依次包含以下部分：\n一、最早开始和完成时间：分别列出 A、B、C、D、E 的最早开始和结束时间，并说明 B、C 汇合条件。\n二、总工期和关键依赖链：给出总工期、关键依赖链，并说明如果 C 额外延误 2 天会怎样。\n三、预算核算：列出采购、运输、布展、设计各项费用、费用合计和预算余额。\n四、最终安排：综合排程与费用给出最终安排建议。\n\n注意核对排程与费用之间是否存在冲突或遗漏；不得虚构未给定费用；最终正文必须完整呈现上述所有部分。",
+          "parents": [
+            "schedule_analysis",
+            "cost_analysis"
+          ],
+          "contract": {
+            "objective": "综合排程与费用分析，输出完整最终安排，包含最早开始和完成时间、总工期和关键依赖链、C 延误影响、预算核算及最终安排建议。",
+            "inputs": {
+              "schedule_analysis": {
+                "fields": [
+                  "schedule",
+                  "total_duration",
+                  "critical_chain",
+                  "delay_impact"
+                ],
+                "reason": "最终交付必须使用排程分析的五项工作时间、总工期、关键链和延误影响。"
+              },
+              "cost_analysis": {
+                "fields": [
+                  "cost_items",
+                  "total_cost",
+                  "budget_balance"
+                ],
+                "reason": "最终交付必须使用费用明细、合计和预算余额。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终交付正文，依次包含最早开始和完成时间、总工期和关键依赖链及 C 延误影响、预算核算、最终安排"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 70484,
+              "expected_output_tokens": 2000
+            },
+            "checks": [
+              "最终正文包含五项工作的最早开始和结束时间，并说明 B、C 汇合条件",
+              "最终正文给出总工期和关键依赖链，并正确说明 C 延误 2 天的影响",
+              "最终正文包含费用明细、费用合计和预算余额",
+              "最终正文包含排程与费用的综合最终安排",
+              "未虚构任何未给定费用"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+        "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+        "正确核算费用和预算余额，最终交付包含排程与费用。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "任务要求分步骤执行：先独立核对排程和费用，再综合两者给出最终安排。排程与费用相互独立，可并行分析；最终节点必须汇总并完整呈现排程、费用、关键链及延误影响。拆分为两个独立分析节点和一个综合节点，净收益是避免单一节点同时处理两类计算时遗漏汇合条件或费用核算，且最终交付结构更清晰。"
+    },
+    "plan_admission": {
+      "schedule_analysis": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 4040,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 4072,
+          "forecast_input_tokens": 4072
+        }
+      },
+      "cost_analysis": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 3328,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 3360,
+          "forecast_input_tokens": 3360
+        }
+      },
+      "answer": {
+        "eligible_models": [
+          "strong"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 4916,
+          "upstream_allowance": 65536,
+          "estimated_input_bound": 70484,
+          "forecast_input_tokens": 19348
+        }
+      }
+    },
+    "cost_breakdown": {
+      "planning": 2.05095,
+      "execution": 2.21485,
+      "evaluation": 1.663
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_exhibition/auto/20260910T074141Z-b92f61a8b308/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_exhibition/auto/20260910T074141Z-b92f61a8b308",
+    "usage": {
+      "input_tokens": 5166,
+      "output_tokens": 3229,
+      "cache_read_tokens": 1024,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "4990c6ed8aee3fd1ef239473c846ce4504c183529468aaa1e0e693676a5ad5bd",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "22b9c0617119e9f49de0954ed7f4f779d9ae849a74702328514a209ea1c6d148",
+      "profile.json": "1b045bd5ac3f4dcaabc05d41c018273901d17c157c98185b02252e49c7269ddc",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "5580cb7975a3544743e68d03a2c448d3d6911cdce552fe2035a8febe0f367022",
+      "result.json": "dbcc3a1e613325b1613259ea66d71faafd6b186e1d962d1822ff53eafe7a981a"
+    }
+  },
+  {
+    "task_id": "holdout_exhibition",
+    "template": "single",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T074235Z-df21e4e00745",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "第 0 天开始，按连续执行、不考虑周末计算。\n\n## 一、排程核对\n\n### 1. 各工作最早开始与完成时间\n\n| 工作 | 工期 | 依赖条件 | 最早开始 | 最早完成 |\n|---|---:|---|---:|---:|\n| A 手续 | 2 天 | 无 | 第 0 天 | 第 2 天 |\n| B 运输 | 3 天 | A 完成后 | 第 2 天 | 第 5 天 |\n| C 版面设计 | 4 天 | 无，可第 0 天独立开始 | 第 0 天 | 第 4 天 |\n| D 布展 | 2 天 | B 和 C 都完成后 | 第 5 天 | 第 7 天 |\n| E 验收 | 1 天 | D 完成后 | 第 7 天 | 第 8 天 |\n\n说明：  \n- B 必须等 A 完成，因此 B 最早第 2 天开始，第 5 天完成。  \n- C 第 0 天开始，第 4 天完成。  \n- D 必须同时等 B 和 C 完成。B 第 5 天完成，C 第 4 天完成，因此 D 最早第 5 天开始。  \n- E 在 D 完成后开始，因此第 7 天开始，第 8 天完成。\n\n### 2. 总工期\n\n总工期为 **8 天**，即第 0 天至第 8 天完成。\n\n### 3. 关键依赖链\n\n决定总工期的关键依赖链为：\n\n**A → B → D → E**\n\n对应时间为：\n\n- A：第 0—2 天，2 天  \n- B：第 2—5 天，3 天  \n- D：第 5—7 天，2 天  \n- E：第 7—8 天，1 天  \n\n合计：2 + 3 + 2 + 1 = **8 天**\n\nC 虽然需要 4 天，但第 0 天即可开始，第 4 天完成，早于 B 的第 5 天完成，因此 C 不在关键链上。\n\n---\n\n## 二、费用核算\n\n已给出的费用为：\n\n| 费用项目 | 金额 |\n|---|---:|\n| 采购 | 1200 元 |\n| 运输 | 800 元 |\n| 布展 | 1500 元 |\n| 设计 | 900 元 |\n\n总费用：\n\n1200 + 800 + 1500 + 900 = **4400 元**\n\n总预算为 **4600 元**。\n\n预算余额：\n\n4600 − 4400 = **200 元**\n\n因此，费用未超预算，余额为 **200 元**。\n\n---\n\n## 三、如果 C 额外延误 2 天\n\n原计划中 C 的完成时间为第 4 天。如果 C 额外延误 2 天，则 C 的完成时间变为：\n\n第 4 天 + 2 天 = **第 6 天**\n\n此时需要重新判断 D 的开始条件：\n\n- B 仍为第 5 天完成。  \n- C 延误后第 6 天完成。  \n- D 必须等 B 和 C 都完成，因此 D 最早开始时间变为第 6 天。\n\n调整后的排程：\n\n| 工作 | 最早开始 | 最早完成 |\n|---|---:|---:|\n| A | 第 0 天 | 第 2 天 |\n| B | 第 2 天 | 第 5 天 |\n| C | 第 0 天 | 第 6 天 |\n| D | 第 6 天 | 第 8 天 |\n| E | 第 8 天 | 第 9 天 |\n\n调整后总工期为 **9 天**。\n\n关键依赖链变为：\n\n**A → B → C → D → E**\n\n或更准确地说，由于 C 延误后成为 D 的约束条件，关键链为：\n\n**A → B → D → E** 与 **C → D → E** 汇合后，由 C 的延误决定 D 的开始时间。\n\n因此，C 额外延误 2 天会导致总工期从 8 天增加到 **9 天**，即整体延后 **1 天**。\n\n---\n\n## 四、最终安排\n\n- 原计划总工期：**8 天**  \n- 关键依赖链：**A → B → D → E**  \n- 总费用：**4400 元**  \n- 预算余额：**200 元**  \n- 若 C 额外延误 2 天：总工期变为 **9 天**，整体延后 **1 天**，费用不变。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 92,
+      "passed": true,
+      "rationale": "交付文本正确给出了五项工作的最早开始与结束时间（A：0-2，B：2-5，C：0-4，D：5-7，E：7-8），明确说明了 D 需等 B 和 C 汇合（B 第 5 天完成、C 第 4 天完成，D 取较晚者第 5 天开始）。总工期 8 天、关键链 A→B→D→E 正确。C 延误 2 天的影响计算正确：C 变为第 6 天完成，D 推迟到第 6 天开始，总工期变为 9 天，整体延后 1 天。费用核算正确：1200+800+1500+900=4400 元，预算余额 200 元，未虚构额外费用。唯一瑕疵是在 C 延误情景下写「关键依赖链变为 A → B → C → D → E」，这在逻辑上不准确（C 与 A→B 是并行分支，并非 A→B→C 的串联链），但文本随后立即用「或更准确地说」进行了自我修正，正确指出是 C→D→E 与 A→B→D→E 汇合后由 C 决定 D 的开始时间，因此实质结论正确，仅表述上先有误导后纠正，酌情扣分。",
+      "criteria": [
+        {
+          "criterion": "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+          "passed": true,
+          "rationale": "五项工作的最早开始/结束时间均正确：A 第0-2天、B 第2-5天、C 第0-4天、D 第5-7天、E 第7-8天。明确说明 D 必须等 B 和 C 都完成，B 第5天完成、C 第4天完成，D 取较晚者于第5天开始，B、C 汇合条件未遗漏。"
+        },
+        {
+          "criterion": "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+          "passed": true,
+          "rationale": "总工期 8 天、关键链 A→B→D→E 正确，并解释了 C 不在关键链上的原因。C 延误 2 天的影响计算正确：C 第6天完成，D 推迟至第6天开始、第8天完成，E 第9天完成，总工期 9 天，整体延后 1 天。瑕疵：先写「关键依赖链变为 A → B → C → D → E」这一串联表述不准确（C 与 A→B 为并行分支），但紧接着以「或更准确地说」自我修正为 C→D→E 与 A→B→D→E 汇合、由 C 决定 D 开始时间，实质结论正确，故判通过。"
+        },
+        {
+          "criterion": "正确核算费用和预算余额，最终交付包含排程与费用。",
+          "passed": true,
+          "rationale": "费用核算正确：1200+800+1500+900=4400 元，预算 4600 元，余额 200 元，未虚构任何未给定费用。最终交付同时包含排程（含延误情景）与费用汇总。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 0.9141,
+      "evaluation": 2.469,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 40341,
+    "plan_origin": "provided",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 4089,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+              "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+              "正确核算费用和预算余额，最终交付包含排程与费用。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+        "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+        "正确核算费用和预算余额，最终交付包含排程与费用。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "plan_admission": null,
+    "cost_breakdown": {
+      "planning": 0,
+      "execution": 0.9141,
+      "evaluation": 2.469
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_exhibition/single/20260910T074235Z-df21e4e00745/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/automatic-dag/v5-holdout-actual/holdout_exhibition/single/20260910T074235Z-df21e4e00745",
+    "usage": {
+      "input_tokens": 2312,
+      "output_tokens": 1819,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "8584f2261fa3de2ce746749c60b888bb89db7851aa5eae59bda422399ffaaed8",
+      "manifest.json": "d3e36f8513fcedcdce9b6e4ed1a08688f12f73e6c20b99ce6717e040b687a0ec",
+      "plan.json": "442dcedbabdc6e277ae3843a1ffaee45ebaca8fda99783676ef035bc62df3dbf",
+      "profile.json": "55d328e9ead37cef9c5c57a8e37a81b38b0b44bb28cd61cb099dc0bcfdbb5866",
+      "provider-config.json": "68c1246ffb5e8bb6a86b97b8b6d8332af88b18c858ede4d248e0d1c44f7bb14c",
+      "request.json": "cd82630d730fad8c842b8cc51fd162d7e21b6169d958cf15ecd132a3cb65edb6",
+      "result.json": "ee79e27ddff8100ca083ab902c4bedff5aaf4d5f7161929aa27e26285bb6f73e"
+    }
+  }
+]

@@ -1,0 +1,159 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T083054Z-efd9f69983b2",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "原始排程（第 0 天开始，不考虑周末）：\n\n| 工作 | 最早开始 | 最早结束 |\n|---|---:|---:|\n| X 手续 | 第 0 天 | 第 2 天 |\n| Y 运输 | 第 2 天 | 第 6 天 |\n| Z 灯光准备 | 第 0 天 | 第 3 天 |\n| U 搭建 | 第 6 天 | 第 9 天 |\n| V 验收 | 第 9 天 | 第 11 天 |\n\n原始关键依赖链：\n\nX → Y → U → V\n\n原始总工期：11 天。\n\n费用核算：\n\n| 项目 | 费用 |\n|---|---:|\n| 手续 X | 300 元 |\n| 运输 Y | 700 元 |\n| 搭建 U | 1600 元 |\n| 灯光 Z | 800 元 |\n| 合计 | 3400 元 |\n\n总预算 4000 元，预算余额：\n\n4000 − 3400 = 600 元。\n\nZ 额外延误 5 天后的排程：\n\nZ 原需 3 天，延误 5 天后变为 8 天，因此 Z 从第 0 天开始，到第 8 天结束。\n\n| 工作 | 最早开始 | 最早结束 |\n|---|---:|---:|\n| X 手续 | 第 0 天 | 第 2 天 |\n| Y 运输 | 第 2 天 | 第 6 天 |\n| Z 灯光准备 | 第 0 天 | 第 8 天 |\n| U 搭建 | 第 8 天 | 第 11 天 |\n| V 验收 | 第 11 天 | 第 13 天 |\n\n延误后的关键依赖链：\n\nZ → U → V\n\n延误后总工期：13 天。\n\n费用不变，仍为 3400 元，预算余额仍为 600 元。",
+  "issues": [],
+  "models": {
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "答案与给定依赖计算完全一致：原始排程 X(0-2)、Y(2-6)、Z(0-3)、U(6-9)、V(9-11)，总工期 11 天，关键链「X → Y → U → V」正确；Z 延误 5 天后 Z(0-8)、U(8-11)、V(11-13)，总工期 13 天，关键链「Z → U → V」正确，且未给 Z 添加 X 前置依赖；费用 300+700+1600+800=3400 元，预算余额 4000-3400=600 元正确，并明确说明延误后费用不变。未新增依赖或费用，关键链以箭头形式完整呈现，无错误链残留。",
+    "criteria": [
+      {
+        "criterion": "正确给出五项工作起止时间、原始总工期与关键链。",
+        "passed": true,
+        "rationale": "五项工作起止时间 X(0-2)、Y(2-6)、Z(0-3)、U(6-9)、V(9-11) 与计算结果一致，总工期 11 天正确，关键链以「X → Y → U → V」箭头形式给出，正确且无错误链残留。"
+      },
+      {
+        "criterion": "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+        "passed": true,
+        "rationale": "Z 延误 5 天后工期由 3 天变为 8 天，Z(0-8)，U 等 Y(第6天)与 Z(第8天)完成后于第 8 天开始，U(8-11)、V(11-13)，总工期 13 天正确；关键链「Z → U → V」正确，未将 X 列为 Z 的前置依赖。"
+      },
+      {
+        "criterion": "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。",
+        "passed": true,
+        "rationale": "四项费用 300、700、1600、800 元逐项列出，合计 3400 元，预算余额 4000-3400=600 元正确；排程与费用在原始与延误两种情形下均完整呈现，并说明延误不影响费用，未新增任何费用项。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 0.84535,
+    "evaluation": 2.043,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 26228,
+  "plan_origin": "provided",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+        "parents": [],
+        "contract": {
+          "objective": "完整回答当前用户任务，保留要求的输出格式。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终答案"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 6810,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "正确给出五项工作起止时间、原始总工期与关键链。",
+            "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+            "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "正确给出五项工作起止时间、原始总工期与关键链。",
+      "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+      "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+  },
+  "plan_admission": null,
+  "planner": {
+    "model_id": "cheap",
+    "basis": "configured-latency-then-price",
+    "output_cap": 2048,
+    "timeout_ms": 180000
+  },
+  "plan_ready_ms": 0,
+  "content_validation": {
+    "source_status": "supported",
+    "passed": true,
+    "invalid_edges": [],
+    "missing_paths": []
+  },
+  "dynamic_decomposition": null,
+  "cost_breakdown": {
+    "planning": 0,
+    "dynamic_planning": 0,
+    "execution": 0.84535,
+    "evaluation": 2.043
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v2/holdout_stage_single/20260910T083054Z-efd9f69983b2/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v2/holdout_stage_single/20260910T083054Z-efd9f69983b2",
+  "usage": {
+    "input_tokens": 2613,
+    "output_tokens": 967,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "ba7ce2c8666f9cc946a602831bff4121eaef73303f8fd5294ca8d2501fc20dff",
+    "manifest.json": "18f46adf1fd56bc70b085150c4822cc876619ae013895b2c47917dc6c09f0491",
+    "plan.json": "a5e4cf87b15fac6100f78a907b3aaf442d1bc7640fe0ad2a05c5fe164ae19696",
+    "profile.json": "42064595baabe9ee42dbc1a5b7a7e1aa109f5693be83b2b539c7f4c60c3a931f",
+    "provider-config.json": "a9acf9f56c499ddfb19fd26d2230a87185a6aa1981b852c18c20b83be825b156",
+    "request.json": "bab0973055ff3eac82e580dee3cceeef7eb53f9c35c273d9ea1b33f774e176db",
+    "result.json": "8816aa63f6de7ca405276ec84b0daf50ba797ad79545a06ac2b467346dfad4e4"
+  }
+}

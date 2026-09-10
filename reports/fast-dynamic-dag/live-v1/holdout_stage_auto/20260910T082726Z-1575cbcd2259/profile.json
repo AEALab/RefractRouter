@@ -1,0 +1,198 @@
+{
+  "schema_version": "node-routing-profile-v2",
+  "kind": "configured",
+  "billing_unit": "AFP",
+  "scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "provenance": "本次 provider-config.json；无模型探测、无观测样本。",
+  "candidates": [
+    {
+      "model_id": "cheap",
+      "node_type": "synthesis",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 0.34500000000000003,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 4852,
+      "input_max_tokens": 4853
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "synthesis",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 0.34105,
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 4773,
+      "input_max_tokens": 4774
+    },
+    {
+      "model_id": "cheap",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 55,
+      "latency_ms": 10000,
+      "cost": 1.1674000000000002,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 38068,
+      "input_max_tokens": 38069
+    },
+    {
+      "model_id": "mid",
+      "node_type": "synthesis",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 1.725,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 4852,
+      "input_max_tokens": 4853
+    },
+    {
+      "model_id": "mid",
+      "node_type": "synthesis",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 1.70525,
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 4773,
+      "input_max_tokens": 4774
+    },
+    {
+      "model_id": "mid",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 78,
+      "latency_ms": 10000,
+      "cost": 5.837,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 38068,
+      "input_max_tokens": 38069
+    },
+    {
+      "model_id": "strong",
+      "node_type": "synthesis",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 3.795000000000001,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 4852,
+      "input_max_tokens": 4853
+    },
+    {
+      "model_id": "strong",
+      "node_type": "synthesis",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 3.75155,
+      "difficulty": "low",
+      "risk": "low",
+      "input_min_tokens": 4773,
+      "input_max_tokens": 4774
+    },
+    {
+      "model_id": "strong",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 92,
+      "latency_ms": 10000,
+      "cost": 12.841400000000002,
+      "difficulty": "medium",
+      "risk": "medium",
+      "input_min_tokens": 38068,
+      "input_max_tokens": 38069
+    }
+  ],
+  "forecast_basis": {
+    "schedule": {
+      "cheap": {
+        "input_tokens": 4852,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 4852,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "mid": {
+        "input_tokens": 4852,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 4852,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "strong": {
+        "input_tokens": 4852,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 4852,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      }
+    },
+    "cost": {
+      "cheap": {
+        "input_tokens": 4773,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 4773,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "mid": {
+        "input_tokens": 4773,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 4773,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "strong": {
+        "input_tokens": 4773,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 4773,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      }
+    },
+    "answer": {
+      "cheap": {
+        "input_tokens": 21300,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 38068,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "mid": {
+        "input_tokens": 21300,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 38068,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "strong": {
+        "input_tokens": 21300,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 38068,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      }
+    }
+  },
+  "model_bindings": {
+    "cheap": "deepseek-v4-flash",
+    "mid": "minimax-m3",
+    "strong": "deepseek-v4-pro"
+  },
+  "action_bindings": {
+    "cheap": "17bb1248cc5c76251dac8a12aeeed31c605531cb7c5fad693cc4bcf5fcd8249e",
+    "mid": "5e66ad2ee333df9d27d23e876a024204efadf36c8f9738225c338b432e6a9fea",
+    "strong": "01e4e34362bd59f7f381aa9a26984b217600881dea3867ddb1531efab741f55f"
+  }
+}

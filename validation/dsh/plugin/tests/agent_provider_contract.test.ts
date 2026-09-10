@@ -62,6 +62,13 @@ test('demo uses installed core through native sandboxed subprocess and preserves
   assert.equal(result.filter(c=>c.type==='finish').length,1)
   assert.equal(result.find(c=>c.type==='text-delta')?.text,'[SIMULATED] answer')
 })
+test('automatic decomposition is passed to Python without a fabricated plan',async()=>{
+  const f=fixture()
+  await chunks(createAdapter(f.ctx,configure({template:'auto'})))
+  const payload=JSON.parse(f.spawns[0]!.input())
+  assert.equal(payload.template,'auto')
+  assert.equal(payload.plan,undefined)
+})
 
 test('explicit length constraints reach Python and failed checks preserve answer and replay verdicts', async()=>{
   const constraint = {maxLength:250, unit:'unicode-code-points', countWhitespace:false}
@@ -311,4 +318,23 @@ test('node effort profiles pass to Python and selected efforts survive display a
   const replay=output.at(-1)?.replayState as {response:{refractagent:{modelRoutes:unknown;evaluationModel:unknown}}}
   assert.deepEqual(replay.response.refractagent.modelRoutes,modelRoutes)
   assert.deepEqual(replay.response.refractagent.evaluationModel,evaluationModel)
+})
+
+test('automatic mode reports progress before spawning and forwards bounded planning controls', async()=>{
+  const f=fixture()
+  const adapter=createAdapter(f.ctx,configure({template:'auto',plannerModelId:'small',
+    plannerTimeoutMs:8000,plannerMaxOutputTokens:900,maxDynamicSplits:1,maxConcurrency:3,verifyDependencies:true}))
+  const stream=adapter.stream(options)[Symbol.asyncIterator]()
+  assert.equal((await stream.next()).value?.type,'block-start')
+  const progress=(await stream.next()).value
+  assert.equal(progress?.type,'reasoning-delta')
+  assert.match(String(progress?.text),/正在/)
+  assert.equal(f.spawns.length,0)
+  while(!(await stream.next()).done) {}
+  const spawn=f.spawns[0]!
+  const payload=JSON.parse(spawn.input())
+  assert.equal(payload.plannerModelId,'small')
+  assert.equal(payload.maxDynamicSplits,1)
+  assert.equal(payload.maxConcurrency,3)
+  assert.equal(payload.verifyDependencies,true)
 })

@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+      "parents": [],
+      "contract": {
+        "objective": "完整回答当前用户任务，保留要求的输出格式。",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终答案"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 3866,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "正确计算全年费用和相对预算的余额或缺口。",
+          "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+          "同时给出成本、风险和有条件建议，不虚构设备性能。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "正确计算全年费用和相对预算的余额或缺口。",
+    "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+    "同时给出成本、风险和有条件建议，不虚构设备性能。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+}

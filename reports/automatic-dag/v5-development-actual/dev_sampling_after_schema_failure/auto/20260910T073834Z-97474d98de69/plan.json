@@ -1,0 +1,137 @@
+{
+  "nodes": [
+    {
+      "node_id": "cost_analysis",
+      "node_type": "extraction",
+      "prompt_template": "根据原始任务中的采购方案信息，计算方案甲和方案乙在12个月使用期内的全年费用，并分别计算相对7000元可用预算的余额或缺口。方案甲：首次采购4200元，每月维护180元；方案乙：首次采购6800元，每月维护60元。不得推断任何未提供的费用。输出计算结果和计算过程。",
+      "parents": [],
+      "contract": {
+        "objective": "计算方案甲和方案乙的全年费用及相对预算的余额或缺口。",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "plan_a_annual_cost": "方案甲全年费用及计算过程",
+            "plan_b_annual_cost": "方案乙全年费用及计算过程",
+            "plan_a_budget_gap": "方案甲相对7000元预算的余额或缺口",
+            "plan_b_budget_gap": "方案乙相对7000元预算的余额或缺口"
+          }
+        },
+        "capability": {
+          "difficulty": "low",
+          "risk": "low",
+          "input_budget_tokens": 3526,
+          "expected_output_tokens": 800
+        },
+        "checks": [
+          "方案甲全年费用计算正确，包含首次采购和12个月维护费",
+          "方案乙全年费用计算正确，包含首次采购和12个月维护费",
+          "分别给出相对7000元预算的余额或缺口，且符号和金额正确"
+        ],
+        "covers": [
+          0
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "risk_analysis",
+      "node_type": "generation",
+      "prompt_template": "根据原始任务，单独讨论两种维护方式的执行风险，不用费用代替风险分析。方案甲需要现场人员每次出发前校准，但人员是否完成培训尚未确认；方案乙由供应商远程协助，但山地网络覆盖尚未确认。分别分析培训不确定性和网络不确定性对执行的影响，保持未知条件为未知，不推断培训已完成或网络可用，不虚构设备性能。",
+      "parents": [],
+      "contract": {
+        "objective": "单独分析培训不确定性和网络不确定性对两种维护方式执行的风险。",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "training_risk": "方案甲现场校准所需培训未确认带来的执行风险分析",
+            "network_risk": "方案乙远程协助所需山地网络覆盖未确认带来的执行风险分析"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 3516,
+          "expected_output_tokens": 1200
+        },
+        "checks": [
+          "单独讨论培训不确定性，未用费用代替风险分析",
+          "单独讨论网络不确定性，未用费用代替风险分析",
+          "未将培训已完成或网络可用写成事实",
+          "未虚构设备性能"
+        ],
+        "covers": [
+          1
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "synthesis",
+      "prompt_template": "你是自然观察小组采购建议的汇总撰写者。请基于原始任务和以下上游分析，撰写最终交付正文。必须分别呈现：1）全年费用分析，包括方案甲和方案乙的全年费用及相对7000元预算的余额或缺口；2）维护方式执行风险分析，单独讨论培训不确定性和网络不确定性，不用费用代替风险分析；3）当前预算下可执行的有条件建议，同时结合成本、风险给出建议，不虚构设备性能。不得推断测量精度、网络可用或培训已完成。\n\n上游费用分析：\n{cost_analysis}\n\n上游风险分析：\n{risk_analysis}",
+      "parents": [
+        "cost_analysis",
+        "risk_analysis"
+      ],
+      "contract": {
+        "objective": "整合费用计算和风险分析，输出包含成本、风险和有条件建议的完整最终交付正文。",
+        "inputs": {
+          "cost_analysis": {
+            "fields": [
+              "plan_a_annual_cost",
+              "plan_b_annual_cost",
+              "plan_a_budget_gap",
+              "plan_b_budget_gap"
+            ],
+            "reason": "需要消费费用计算结果以在最终正文中呈现全年费用和预算余额或缺口。"
+          },
+          "risk_analysis": {
+            "fields": [
+              "training_risk",
+              "network_risk"
+            ],
+            "reason": "需要消费风险分析结果以在最终正文中单独呈现培训与网络不确定性。"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终交付正文，依次包含全年费用分析、维护方式执行风险分析、当前预算下可执行的有条件建议"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 69538,
+          "expected_output_tokens": 2000
+        },
+        "checks": [
+          "正确呈现方案甲和方案乙全年费用及相对预算的余额或缺口",
+          "单独讨论培训不确定性和网络不确定性，未用费用代替风险分析",
+          "同时给出成本、风险和有条件建议",
+          "未虚构设备性能，未将培训已完成或网络可用写成事实",
+          "最终正文完整保留用户要求的各部分及顺序"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "正确计算全年费用和相对预算的余额或缺口。",
+    "单独讨论培训和网络的不确定性，不用费用代替风险分析。",
+    "同时给出成本、风险和有条件建议，不虚构设备性能。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "任务包含费用计算、两类风险分析和有条件建议，计算与风险分析相互独立，可并行分支后由汇总节点整合并输出完整交付。拆分可让费用计算与风险分析分别聚焦，同时最终节点保留用户要求的全部部分和顺序。"
+}

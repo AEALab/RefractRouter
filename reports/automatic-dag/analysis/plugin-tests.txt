@@ -1,0 +1,358 @@
+
+> dsh-refractrouter-validation@0.11.0 test
+> npm run build && npm run test:contracts
+
+
+> dsh-refractrouter-validation@0.11.0 build
+> tsc
+
+
+> dsh-refractrouter-validation@0.11.0 test:contracts
+> tsc -p tsconfig.test.json && node --test .test-dist/*.test.js
+
+TAP version 13
+# Subtest: native registration advertises three strategy models with zero retries
+ok 1 - native registration advertises three strategy models with zero retries
+  ---
+  duration_ms: 1.708792
+  type: 'test'
+  ...
+# Subtest: demo uses installed core through native sandboxed subprocess and preserves conversation
+ok 2 - demo uses installed core through native sandboxed subprocess and preserves conversation
+  ---
+  duration_ms: 3.897083
+  type: 'test'
+  ...
+# Subtest: automatic decomposition is passed to Python without a fabricated plan
+ok 3 - automatic decomposition is passed to Python without a fabricated plan
+  ---
+  duration_ms: 2.316625
+  type: 'test'
+  ...
+# Subtest: explicit length constraints reach Python and failed checks preserve answer and replay verdicts
+ok 4 - explicit length constraints reach Python and failed checks preserve answer and replay verdicts
+  ---
+  duration_ms: 1.241666
+  type: 'test'
+  ...
+# Subtest: explicit checks cannot silently disappear with an older installed core
+ok 5 - explicit checks cannot silently disappear with an older installed core
+  ---
+  duration_ms: 0.907375
+  type: 'test'
+  ...
+# Subtest: host-injected user-role context cannot replace the latest actual user task
+ok 6 - host-injected user-role context cannot replace the latest actual user task
+  ---
+  duration_ms: 1.285917
+  type: 'test'
+  ...
+# Subtest: live deployment gate rejects before credential access or subprocess
+ok 7 - live deployment gate rejects before credential access or subprocess
+  ---
+  duration_ms: 1.075208
+  type: 'test'
+  ...
+# Subtest: live resolves host credential only after enablement and preserves explicit limits
+ok 8 - live resolves host credential only after enablement and preserves explicit limits
+  ---
+  duration_ms: 1.127417
+  type: 'test'
+  ...
+# Subtest: malformed usage or mismatched strategy cannot become a successful model response
+ok 9 - malformed usage or mismatched strategy cannot become a successful model response
+  ---
+  duration_ms: 2.7135
+  type: 'test'
+  ...
+# Subtest: cancelled requests never emit a completed answer
+ok 10 - cancelled requests never emit a completed answer
+  ---
+  duration_ms: 0.515583
+  type: 'test'
+  ...
+# Subtest: live cannot silently select Ark without a provider configuration or preset
+ok 11 - live cannot silently select Ark without a provider configuration or preset
+  ---
+  duration_ms: 0.170917
+  type: 'test'
+  ...
+# Subtest: custom providers receive separate host credential references outside the task payload
+ok 12 - custom providers receive separate host credential references outside the task payload
+  ---
+  duration_ms: 0.832084
+  type: 'test'
+  ...
+# Subtest: custom demo configuration never resolves provider credentials
+ok 13 - custom demo configuration never resolves provider credentials
+  ---
+  duration_ms: 0.820417
+  type: 'test'
+  ...
+# Subtest: provider configuration rejects raw secrets and recursion in the host boundary
+ok 14 - provider configuration rejects raw secrets and recursion in the host boundary
+  ---
+  duration_ms: 0.38275
+  type: 'test'
+  ...
+# Subtest: DSH providers require zero host retries before any model dispatch
+ok 15 - DSH providers require zero host retries before any model dispatch
+  ---
+  duration_ms: 0.322042
+  type: 'test'
+  ...
+# Subtest: native DSH routes reuse the host LLM bridge without exporting host credentials
+ok 16 - native DSH routes reuse the host LLM bridge without exporting host credentials
+  ---
+  duration_ms: 4.040458
+  type: 'test'
+  ...
+# Subtest: all configured credentials are redacted from runner errors
+ok 17 - all configured credentials are redacted from runner errors
+  ---
+  duration_ms: 0.869625
+  type: 'test'
+  ...
+# Subtest: configured provider snapshots cannot be changed after registration
+ok 18 - configured provider snapshots cannot be changed after registration
+  ---
+  duration_ms: 0.511125
+  type: 'test'
+  ...
+# Subtest: Responses provider configuration and reasoning envelope reach the Python core
+ok 19 - Responses provider configuration and reasoning envelope reach the Python core
+  ---
+  duration_ms: 0.423292
+  type: 'test'
+  ...
+# Subtest: node effort profiles pass to Python and selected efforts survive display and replay
+ok 20 - node effort profiles pass to Python and selected efforts survive display and replay
+  ---
+  duration_ms: 0.690917
+  type: 'test'
+  ...
+# Subtest: preflight registers a discoverable tool and uses DSH service seams
+ok 21 - preflight registers a discoverable tool and uses DSH service seams
+  ---
+  duration_ms: 12.417916
+  type: 'test'
+  ...
+# Subtest: danger-full-access bypasses sandbox wrapping
+ok 22 - danger-full-access bypasses sandbox wrapping
+  ---
+  duration_ms: 2.454625
+  type: 'test'
+  ...
+# Subtest: Agent Plan uses only the dedicated direct endpoint and DSH-resolved credential
+ok 23 - Agent Plan uses only the dedicated direct endpoint and DSH-resolved credential
+  ---
+  duration_ms: 4.454708
+  type: 'test'
+  ...
+# Subtest: AFP execution rejects the ordinary Ark pay-as-you-go endpoint
+ok 24 - AFP execution rejects the ordinary Ark pay-as-you-go endpoint
+  ---
+  duration_ms: 4.578208
+  type: 'test'
+  ...
+# Subtest: contract replay is bounded and retains paid deployment controls
+ok 25 - contract replay is bounded and retains paid deployment controls
+  ---
+  duration_ms: 3.14325
+  type: 'test'
+  ...
+# Subtest: paid execution requires deployment enablement, two budgets, and a credential
+ok 26 - paid execution requires deployment enablement, two budgets, and a credential
+  ---
+  duration_ms: 3.234
+  type: 'test'
+  ...
+# Subtest: paid diagnostics and evidence issues redact the resolved credential
+ok 27 - paid diagnostics and evidence issues redact the resolved credential
+  ---
+  duration_ms: 8.109167
+  type: 'test'
+  ...
+# Subtest: paid subprocess failures redact the resolved credential
+ok 28 - paid subprocess failures redact the resolved credential
+  ---
+  duration_ms: 5.429583
+  type: 'test'
+  ...
+# Subtest: output truncation and oversized evidence fail closed
+ok 29 - output truncation and oversized evidence fail closed
+  ---
+  duration_ms: 3.904959
+  type: 'test'
+  ...
+# Subtest: timeout returns structured failure and caller abort stops before spawn
+ok 30 - timeout returns structured failure and caller abort stops before spawn
+  ---
+  duration_ms: 10.823167
+  type: 'test'
+  ...
+# Subtest: the registered tool completes a real zero-cost Python preflight
+ok 31 - the registered tool completes a real zero-cost Python preflight
+  ---
+  duration_ms: 1506.799375
+  type: 'test'
+  ...
+# Subtest: execution modes completes the native tool subprocess preflight with no credential access
+ok 32 - execution modes completes the native tool subprocess preflight with no credential access
+  ---
+  duration_ms: 1201.592125
+  type: 'test'
+  ...
+# Subtest: K3 baseline completes native zero-call preflight and exposes the prepare budget
+ok 33 - K3 baseline completes native zero-call preflight and exposes the prepare budget
+  ---
+  duration_ms: 733.875
+  type: 'test'
+  ...
+# Subtest: baseline stage makes a one-call plan through the native subprocess
+ok 34 - baseline stage makes a one-call plan through the native subprocess
+  ---
+  duration_ms: 643.657833
+  type: 'test'
+  ...
+# Subtest: K3 review handoff arguments are typed and paid execution remains disabled
+ok 35 - K3 review handoff arguments are typed and paid execution remains disabled
+  ---
+  duration_ms: 5.346167
+  type: 'test'
+  ...
+# Subtest: 未登记的新代码通过原生子进程拒绝旧 K3 基线迁移
+ok 36 - 未登记的新代码通过原生子进程拒绝旧 K3 基线迁移
+  ---
+  duration_ms: 617.506041
+  type: 'test'
+  ...
+# Subtest: K3 accepts a zero internal evaluation budget after explicit deployment enablement
+ok 37 - K3 accepts a zero internal evaluation budget after explicit deployment enablement
+  ---
+  duration_ms: 0.962709
+  type: 'test'
+  ...
+# Subtest: DSH LLM bridge preserves content, disjoint usage, finish reason, and request id
+ok 38 - DSH LLM bridge preserves content, disjoint usage, finish reason, and request id
+  ---
+  duration_ms: 0.666
+  type: 'test'
+  ...
+# Subtest: DSH LLM bridge enforces the per-request hard timeout
+ok 39 - DSH LLM bridge enforces the per-request hard timeout
+  ---
+  duration_ms: 5.578166
+  type: 'test'
+  ...
+# Subtest: config schema supplies safe defaults and rejects malformed host configuration
+ok 40 - config schema supplies safe defaults and rejects malformed host configuration
+  ---
+  duration_ms: 0.2525
+  type: 'test'
+  ...
+# Subtest: malformed projected evidence fields fail as structured diagnostics
+ok 41 - malformed projected evidence fields fail as structured diagnostics
+  ---
+  duration_ms: 2.860458
+  type: 'test'
+  ...
+# Subtest: published tarball loads from its compiled export without source or build dependencies
+ok 42 - published tarball loads from its compiled export without source or build dependencies
+  ---
+  duration_ms: 646.192917
+  type: 'test'
+  ...
+# Subtest: both paid budgets are checked before credentials or process launch
+ok 43 - both paid budgets are checked before credentials or process launch
+  ---
+  duration_ms: 0.491667
+  type: 'test'
+  ...
+# Subtest: task tool performs an actual zero-call Python preflight and returns DAG assignments
+ok 44 - task tool performs an actual zero-call Python preflight and returns DAG assignments
+  ---
+  duration_ms: 135.76925
+  type: 'test'
+  ...
+# Subtest: task demo returns clearly simulated outputs without live credentials
+ok 45 - task demo returns clearly simulated outputs without live credentials
+  ---
+  duration_ms: 203.679292
+  type: 'test'
+  ...
+# Subtest: task tool forwards explicit length constraints to Python without claiming preflight acceptance
+ok 46 - task tool forwards explicit length constraints to Python without claiming preflight acceptance
+  ---
+  duration_ms: 120.672125
+  type: 'test'
+  ...
+# Subtest: task live modes retain deployment and both budget gates
+ok 47 - task live modes retain deployment and both budget gates
+  ---
+  duration_ms: 0.71875
+  type: 'test'
+  ...
+# Subtest: task text is a JSON request file and cannot become process arguments
+ok 48 - task text is a JSON request file and cannot become process arguments
+  ---
+  duration_ms: 4.458541
+  type: 'test'
+  ...
+# Subtest: invalid task arguments are rejected before process launch
+ok 49 - invalid task arguments are rejected before process launch
+  ---
+  duration_ms: 0.326416
+  type: 'test'
+  ...
+# Subtest: 新版 DAG 与固定验收条件通过 DSH 原样进入 Python 核心
+ok 50 - 新版 DAG 与固定验收条件通过 DSH 原样进入 Python 核心
+  ---
+  duration_ms: 125.04025
+  type: 'test'
+  ...
+# Subtest: 非法固定验收条件在启动进程前拒绝
+ok 51 - 非法固定验收条件在启动进程前拒绝
+  ---
+  duration_ms: 0.264625
+  type: 'test'
+  ...
+# Subtest: DSH 将并发和 Provider 限制传入核心并展示调度预测
+ok 52 - DSH 将并发和 Provider 限制传入核心并展示调度预测
+  ---
+  duration_ms: 90.7345
+  type: 'test'
+  ...
+# Subtest: DSH 在派发前拒绝非法并发参数
+ok 53 - DSH 在派发前拒绝非法并发参数
+  ---
+  duration_ms: 0.388167
+  type: 'test'
+  ...
+# Subtest: node selection policy is typed, validated and forwarded to Python
+ok 54 - node selection policy is typed, validated and forwarded to Python
+  ---
+  duration_ms: 2.469709
+  type: 'test'
+  ...
+# Subtest: execution modes forwards the bounded v0.4 phase without enabling paid calls
+ok 55 - execution modes forwards the bounded v0.4 phase without enabling paid calls
+  ---
+  duration_ms: 4.018958
+  type: 'test'
+  ...
+# Subtest: 文本任务不接收基准专用候选策略参数
+ok 56 - 文本任务不接收基准专用候选策略参数
+  ---
+  duration_ms: 0.699334
+  type: 'test'
+  ...
+1..56
+# tests 56
+# suites 0
+# pass 56
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6179.818125

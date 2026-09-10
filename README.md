@@ -59,6 +59,12 @@ RefractAgent 模型入口使用已安装的 Python 核心，脱离源码目录�
 
 ## 研究与验证记录
 
+[自动拆分应用入口](docs/automatic-dag.md)支持 `refractagent run --template auto`：
+快速规划模型输出短计划，Python 编译契约并并行执行；困难节点可进行一次有界再拆。
+排程材料中的显式错误依赖由确定性检查拦截，检查范围和未覆盖内容分别记录。
+[旧验收](reports/automatic-dag/README.md)保留原始误判；
+[快速规划与动态执行验收](reports/fast-dynamic-dag/README.md)记录新验证，不代表已经证明整体收益。
+
 2026-09-10 的 [#39/#40 联合实测](reports/dag-decomposition/joint-39-40-v1-analysis/结项评估.md)
 已完成 430 次真实调用与 104 个预定条件，消耗 1085.01 AFP，账本及文件审计通过。
 现有配置未验证综合收益；自动计划虽有语义审查通过者，但没有执行节点。
