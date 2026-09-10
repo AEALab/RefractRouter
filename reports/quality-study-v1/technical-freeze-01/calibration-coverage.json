@@ -1,0 +1,217 @@
+{
+  "controls": [
+    {
+      "case_id": "analysis-01-positive",
+      "author_label": "acceptable",
+      "current_messages_sha256": "eeff1fb714254a3372d1bb40e76f11c021ada94d9597b3d8706edd404e6710e9",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-008",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "analysis-02-positive",
+      "author_label": "acceptable",
+      "current_messages_sha256": "459235fe39617cbc0e3a0ab6fc7572fa2e13389fc98442786a418669243fb750",
+      "evidence": {
+        "batch": "model-calibration-02",
+        "request_id": "review-001",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "rules-01-positive",
+      "author_label": "acceptable",
+      "current_messages_sha256": "dc5d0097d2f5b92946a379279064f6b3ae25d3c18a6fb45958a21871a9157f74",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-002",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "rules-02-positive",
+      "author_label": "acceptable",
+      "current_messages_sha256": "50b1195c8fbdfcb77866d5ed6fba36950b5c0514c3eba88ad3c914af3eed4508",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-012",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "decision-01-positive",
+      "author_label": "acceptable",
+      "current_messages_sha256": "8096bd619c3f13c5eaf636a94deb95da874eefb2ba4316dca9c9983370e34fa4",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-013",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "decision-02-positive",
+      "author_label": "acceptable",
+      "current_messages_sha256": "a554933ff2f23f6eaa8dec1c3143f762dae7c8a6f57bd40eb4e4726353ee6e9b",
+      "evidence": {
+        "batch": "model-calibration-02",
+        "request_id": "review-005",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "wrong-dependency",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "d41c5a4aadc190c920d5df62d3c813e5c8c65c920c47be1c866a976391a0630a",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-003",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "wrong-citation",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "d7fa94ad23eb888af8ef284eb0d8a86590330d21e24c94875ddecc4c4ccabef8",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-004",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "prose-contradiction",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "6e949ca3c1f6257008afd10d3717f55f41fe4efebbe7734ba4601d5923f14dc0",
+      "evidence": {
+        "batch": "model-calibration-02",
+        "request_id": "review-006",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "global-combination-error",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "a9c056e1a5b0901b00e34b91490fc358f9404bd41a5c5a4189432aa7fc0eda7b",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-009",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "missed-damage-rule",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "b4ff4ef14c3a5507cbed4ea7e63df8b6591e230e7cb5a6570808263201624879",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-016",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "analysis-01-equivalent",
+      "author_label": "acceptable",
+      "current_messages_sha256": "8bc00201d56e8c5dc3f1a5fb68929bbe6840605b6a4b04998b007fb6ab7cdbe8",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-005",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "analysis-02-equivalent",
+      "author_label": "acceptable",
+      "current_messages_sha256": "eccd31a5173b021a4e00bfccc3a705518c375e02c47b01759e5b3c7d1b4d3854",
+      "evidence": {
+        "batch": "model-calibration-02",
+        "request_id": "review-002",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "decision-01-equivalent",
+      "author_label": "acceptable",
+      "current_messages_sha256": "d6020e0409c81d1c80df1146932379b2a737d7564d119e8a42f8aeae3dd756cf",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-014",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "decision-02-equivalent",
+      "author_label": "acceptable",
+      "current_messages_sha256": "a554933ff2f23f6eaa8dec1c3143f762dae7c8a6f57bd40eb4e4726353ee6e9b",
+      "evidence": {
+        "batch": "model-calibration-02",
+        "request_id": "review-005",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "rules-01-equivalent",
+      "author_label": "acceptable",
+      "current_messages_sha256": "9b9e97f344e5880e7fb1ffff09769097e72af36a766836bed878b5eff4a29732",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-015",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "rules-02-equivalent",
+      "author_label": "acceptable",
+      "current_messages_sha256": "50b1195c8fbdfcb77866d5ed6fba36950b5c0514c3eba88ad3c914af3eed4508",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-012",
+        "verdict": "pass"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "missing-required-rule",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "b731471cc8b437504bf6df93c4b6c8f5853c428e3d3399ccce775fb0bb0fbd0d",
+      "evidence": {
+        "batch": "model-calibration-01",
+        "request_id": "review-006",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "author_label": "unacceptable",
+      "current_messages_sha256": "e73ba818e989485c3642d2c2eb9c7bf836f8cc6a41f2634de9c12a660fbabddd",
+      "evidence": {
+        "batch": "model-calibration-02",
+        "request_id": "review-004",
+        "verdict": "fail"
+      },
+      "matches_author_label": true
+    }
+  ],
+  "covered": 19,
+  "count": 19,
+  "human_disagreement": null,
+  "scope": "按当前消息精确匹配历史真实开发调用；含看过结果后的开发修订，不是新的独立测试集。"
+}

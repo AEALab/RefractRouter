@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-auto-heterogeneous:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文正确指出签名可执行、发布被阻塞，明确检查报告不能替代签名，依赖方向未倒写；findings 三项完整且与正文一致，required_edge 以[签名,发布]保留了有向顺序，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文含结论、依据、限制与权衡，符合 s1 流程与 s2 现状，未暗示检查通过即可发布，满足任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文称签名可执行、发布被阻塞，与 findings 的 allowed_now=[签名]、blocked_now=[发布] 一致；检查报告含义未被扩大，依赖方向正确。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"allowed_now、blocked_now、required_edge 三项齐全且事实正确；allowed/blocked 引用 s1、s2，required_edge 引用 s1，均足以支持。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确“不能以检查通过替代签名通过”“不能绕过签名步骤”，依赖方向为打包→签名→发布，无倒写或暗示。\"}]}",
+  "input_tokens": 819,
+  "output_tokens": 314,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12883,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059551932b531818cd979bd70c39b690ac6f23902a6bd63",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 314,
+    "prompt_tokens": 819,
+    "total_tokens": 1133,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

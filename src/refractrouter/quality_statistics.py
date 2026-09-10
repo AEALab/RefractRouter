@@ -20,6 +20,8 @@ POLICY = {
     'primary_pairs': [['direct-or-dag', 'direct-strong'], ['direct-or-dag', 'task-selector']],
     'quality_interval': '精确二项下界；配对差使用正负不一致概率的精确上下界及并集界。',
     'bootstrap_draws': 10000, 'bootstrap_seed': 52053,
+    'descriptive_strata': ['category', 'structure_stratum'],
+    'setup_accounting': '共享图准备单列，并按1/3/10/100次复用分配；不是冷启动墙钟实测。',
     'performance_interval': '先在任务内汇总全部重复，再按来源族配对百分位重采样；只作探索诊断。',
     'minimum_useful_relative_gain': .10,
     'sample_size': {'development': 6, 'holdout_candidate': 12,
@@ -79,6 +81,8 @@ def paired_performance(candidate, reference, clusters, *, seed=52053, draws=1000
 
 
 def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose_review=None):
+    if frozen['statistics_policy'] != POLICY:
+        raise ValueError('analysis policy differs from frozen protocol')
     if result['frozen_sha256'] != digest(frozen):
         raise ValueError('results bound to another protocol')
     expected = {r['run_id']: r for r in frozen['schedule']}
@@ -89,9 +93,12 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         if any(row[k] != expected[row['run_id']][k] for k in ('task_id', 'repeat', 'arm')):
             raise ValueError('result pairing changed')
         row = dict(row)
-        if references is not None and row.get('status') == 'delivered-unconfirmed' and 'output' in row:
-            row['quality_status'] = adjudicate(by_id[row['task_id']], references[row['task_id']],
-                                               row['output'], human_reviews)['status']
+        if references is not None:
+            if row.get('status') == 'delivered-unconfirmed' and 'output' in row:
+                row['quality_status'] = adjudicate(by_id[row['task_id']], references[row['task_id']],
+                                                   row['output'], human_reviews)['status']
+            else:
+                row['quality_status'] = 'fail' if row.get('status') in ('failed', 'withheld', 'deadline-failed') else 'pending'
         rows[row['run_id']] = row
     arms = frozen['selection']['arms']; tids = frozen['selection']['task_ids']
     groups = defaultdict(list)
@@ -132,7 +139,7 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         row = {'candidate': candidate, 'reference': reference,
                'quality_difference_lower': paired_quality_lower(outcomes[candidate], outcomes[reference], POLICY['quality_tail_alpha']),
                'conclusion': 'human-quality-or-exploratory-evidence-pending'}
-        row['conditional_noninferiority_supported'] = bool(approved and full_design
+        row['conditional_noninferiority_supported'] = bool(approved and full_design and references is not None and not result['simulated']
             and not summaries[candidate]['run_counts']['pending'] and not summaries[reference]['run_counts']['pending']
             and row['quality_difference_lower'] >= -POLICY['noninferiority_margin'])
         if row['conditional_noninferiority_supported']:
@@ -148,10 +155,41 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         summaries[b]['mean_online_ms'] <= summaries[a]['mean_online_ms'] and
         (summaries[b]['mean_online_afp'] < summaries[a]['mean_online_afp'] or
          summaries[b]['mean_online_ms'] < summaries[a]['mean_online_ms']) for b in feasible)]
+    strata = {}
+    for field in POLICY['descriptive_strata']:
+        strata[field] = {}
+        for value in sorted({by_id[t][field] for t in tids}):
+            selected = [t for t in tids if by_id[t][field] == value]
+            strata[field][value] = {}
+            for arm in arms:
+                sample = [r for tid in selected for r in groups[arm, tid]]
+                complete = all(r and r.get('cost_known') and all(type(r.get(k)) in (int, float)
+                    and math.isfinite(r[k]) and r[k] >= 0 for k in ('online_afp', 'online_finished_ms')) for r in sample)
+                strata[field][value][arm] = {'tasks': len(selected), 'planned_runs': len(sample),
+                    'run_counts': {s: sum((r.get('quality_status', 'pending') if r else 'pending') == s for r in sample)
+                                   for s in ('pass', 'fail', 'pending')},
+                    'mean_online_afp': statistics.mean(r['online_afp'] for r in sample) if complete else None,
+                    'mean_online_ms': statistics.mean(r['online_finished_ms'] for r in sample) if complete else None,
+                    'scope': '描述性分层，不作选择最有利子群的主检验。'}
+    setups = {r['task_id']: r for r in result.get('setups', [])}
+    shared_setup_complete = (len(setups) == len(result.get('setups', [])) and set(setups) == set(tids)
+        and all(r.get('status') == 'ready' and all(type(r.get(k)) in (int, float) and math.isfinite(r[k])
+               and r[k] >= 0 for k in ('offline_afp', 'wall_time_ms')) for r in setups.values()))
+    amortized = {}
+    for arm in arms:
+        shared = arm.startswith('shared-')
+        complete = summaries[arm]['performance_complete'] and (not shared or shared_setup_complete)
+        amortized[arm] = {str(n): {'mean_afp_with_setup_allocation': summaries[arm]['mean_online_afp'] +
+            (statistics.mean(r['offline_afp'] for r in setups.values()) / n if shared else 0) if complete else None,
+            'mean_ms_with_setup_allocation': summaries[arm]['mean_online_ms'] +
+            (statistics.mean(r['wall_time_ms'] for r in setups.values()) / n if shared else 0) if complete else None}
+            for n in frozen['offline_setup']['amortization_reuses']}
     return {'schema_version': 'quality-statistics-report-v1', 'policy': POLICY,
             'simulated': result['simulated'], 'planned_runs': len(expected), 'observed_runs': len(rows),
             'missing_runs': sorted(set(expected) - set(rows)), 'arms': summaries, 'comparisons': comparisons,
             'confirmed_pareto_frontier': frontier, 'frontier_scope': '仅本批有限候选及真人确认样本的经验前沿',
+            'descriptive_strata': strata, 'setup_amortization': amortized,
+            'setup_amortization_scope': '单一路线复用的分配情景；不把准备在四条共享路线间重复求和，不是真实冷启动时间。',
             'human_review_pending': not approved or any(s['run_counts']['pending'] for s in summaries.values()),
             'reviewer_identity_authenticated_by_code': False,
             'limitations': ['固定构造任务不是从业务分布随机抽样，二项界仅展示条件假设下的不确定性。',

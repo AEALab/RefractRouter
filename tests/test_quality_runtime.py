@@ -143,3 +143,11 @@ def test_human_gate_requires_real_record_shape_bound_to_material_and_policy():
     for bad in [{'origin': 'model'}, {'task_sha256': 'old'}, {'evidence': ''}, {'reviewer': 'Codex'}]:
         assert not human_gate(frozen, tasks, refs, [{**review, **bad}], purpose)
     assert not human_gate(frozen, tasks, refs, [review], {**purpose, 'policy_sha256': 'old'})
+def test_delivery_code_fence_normalization_does_not_repair_semantics():
+    from refractrouter.quality_runtime import parse_delivery
+    value = '{"answer":"保留原始正文。","findings":[]}'
+    assert parse_delivery(value) == parse_delivery('```json\n' + value + '\n```')
+    for invalid in ('额外说明\n```json\n' + value + '\n```', value + value,
+                    '```json\n' + value, '{"answer":"", "findings":[]}'):
+        with pytest.raises(ValueError):
+            parse_delivery(invalid)

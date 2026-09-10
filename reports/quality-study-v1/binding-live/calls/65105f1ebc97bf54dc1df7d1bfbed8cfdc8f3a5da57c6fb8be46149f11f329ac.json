@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-auto-single:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别当前可执行步骤为签名、发布被阻塞，且将发布直接前置边表述为[签名通过, 发布]，符合材料中“打包结束才能签名；签名通过才能发布”的依赖方向；未把检查通过扩大解释为可发布，正文与 findings 一致，引用足以支持结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1、s2 说明签名可执行、发布不可执行，并明确负责人要求不改变依赖规则，符合任务要求核对当前状态执行性。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 allowed_now=[签名]、blocked_now=[发布]、required_edge=[签名通过, 发布] 与正文一致；未将检查报告含义扩大为签名完成或可发布。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 requested_findings 均给出；allowed_now 与 blocked_now 由 s1 依赖和 s2 当前状态共同支持，required_edge 由 s1 的“签名通过才能发布”直接支持。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确发布前置是签名通过，且指出检查通过不代表签名完成，不能据此直接发布；依赖方向未倒写。\"}]}",
+  "input_tokens": 1024,
+  "output_tokens": 341,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 12059,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905976755296de9f55314d9c1d75ac853e3e9cad7e473b3b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 341,
+    "prompt_tokens": 1024,
+    "total_tokens": 1365,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

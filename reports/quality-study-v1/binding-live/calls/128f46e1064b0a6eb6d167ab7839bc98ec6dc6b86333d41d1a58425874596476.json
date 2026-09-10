@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-auto-single:extract_deps",
+  "content": "结论：当前不能直接发布。依据流程材料，发布的前置依赖是“签名通过”，而签名又依赖“打包结束”。现状中“打包已结束并通过检查”只满足打包结束这一条件，检查报告仅证明打包成功，不能替代签名完成；现状明确“签名未执行”，因此发布仍被阻塞。\n\nfindings:\n- id: allowed_now\n  value: []\n  sources: [s1, s2]\n- id: blocked_now\n  value: [签名, 发布]\n  sources: [s1, s2]\n- id: required_edge\n  value: [签名通过, 发布]\n  sources: [s1]",
+  "input_tokens": 569,
+  "output_tokens": 140,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3332,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059736283ff228b459645a66c98f2a46916338f8eeec08a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 140,
+    "prompt_tokens": 569,
+    "total_tokens": 709,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

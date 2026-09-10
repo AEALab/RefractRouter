@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-auto-heterogeneous:synthesize_status",
+  "content": "结论：可执行步骤为“签名”，不可执行步骤为“发布”；发布的前置直接依赖边是“签名通过 → 发布”，而非“打包结束 → 发布”或“检查通过 → 发布”。打包步骤作为已结束的历史动作，其状态事实需在叙述中保留，但不应被列为当前可执行步骤。\n\n依据：\n- 材料 s1（流程）明确给出三段依赖：“打包结束才能签名；签名通过才能发布”，因此“打包”与“签名”之间存在直接边，“签名”与“发布”之间存在直接边；发布必须以“签名通过”为直接前置。\n- 材料 s2（现状）说明“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”，据此判断打包动作已结束，签名条件已满足但尚未执行，发布因签名未通过仍被阻塞。\n- 材料 s1 另指出“检查报告只证明打包成功，不代表签名完成”，因此检查报告通过不能作为发布的前置依据，负责人“现在直接发布”的要求与流程依赖冲突，不能据此放行。\n- 上游 extract_flow 已得出“发布的前置直接边是‘签名通过 → 发布’，而非‘打包结束’或‘检查报告通过’”，与本核对结论一致；上游 extract_state 提供的事实与材料 s2 一致，可作为依据采纳。\n\n限制与权衡：本结论仅基于所提供的流程与现状两项材料，未假设未提及的审批、合规或安全环节；若实际存在其他发布前置条件，需补充材料后重新核对。关于“打包”步骤，本节点将其判定为“已结束的历史动作”，不列入 allowed_now；若后续需要将已结束步骤也列入可勾选项，应在流程定义中显式区分“执行”与“已完成状态”，并提供相应材料后再行核对。\n\nfindings:\n- id: allowed_now\n  value: [\"签名\"]\n  sources: [\"s1\", \"s2\"]\n- id: blocked_now\n  value: [\"发布\"]\n  sources: [\"s1\", \"s2\"]\n- id: required_edge\n  value: [\"签名通过\", \"发布\"]\n  sources: [\"s1\"]",
+  "input_tokens": 1112,
+  "output_tokens": 435,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6061,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789060221102efca7158d8a072a352f4e6ec3154e35a20e856",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 435,
+    "prompt_tokens": 1112,
+    "total_tokens": 1547,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

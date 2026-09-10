@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-direct-mid:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文与 findings 均正确：allowed_now 仅含签名，blocked_now 仅含发布，required_edge 为[签名,发布]，方向未倒写，未暗示检查通过即可直接发布，引用与材料一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 的串联依赖（打包结束→签名→发布）和 s2 的现状（签名未执行、要求直接发布）给出结论，符合任务对 allowed_now/blocked_now/required_edge 的要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文明确签名可执行、发布被阻塞，与 findings 中 allowed_now=[签名]、blocked_now=[发布] 一致；未把检查报告等同于签名通过，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 均完整且正确：allowed_now 与 blocked_now 引用 s1、s2 足以支持；required_edge=[签名,发布] 引用 s1 对应'签名通过才能发布'，方向正确。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确'检查报告通过≠签名通过'，并设反向校验段排除'检查通过→直接发布'路径，依赖方向保持为打包→签名→发布，无倒写。\"}]}",
+  "input_tokens": 1437,
+  "output_tokens": 348,
+  "cached_input_tokens": 1280,
+  "reasoning_tokens": 0,
+  "latency_ms": 11795,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789060201488e78c31fe06d4434dfef0260629e4a08b69919a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 348,
+    "prompt_tokens": 1437,
+    "total_tokens": 1785,
+    "prompt_tokens_details": {
+      "cached_tokens": 1280
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

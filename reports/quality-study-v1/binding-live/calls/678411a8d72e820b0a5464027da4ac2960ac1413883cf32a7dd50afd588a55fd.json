@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-1:extract_flow",
+  "content": "结论：当前状态下，**打包**步骤可以执行（且已执行完毕），**签名**步骤可以执行但尚未执行；**发布**步骤当前不能执行，因为其直接前置条件“签名通过”未满足。负责人要求直接发布，与流程依赖冲突，应被阻止。\n\n依据：\n- 流程材料（s1）明确依赖顺序：打包结束 → 签名；签名通过 → 发布。检查报告只证明打包成功，不证明签名完成。\n- 现状材料（s2）表明：打包已结束并通过检查；签名未执行。\n\n限制与权衡：本结论仅基于给定材料中的流程定义与现状描述，不涉及对流程规则合理性的评判。若流程规则被修改，结论可能变化；但在当前材料约束下，发布必须等待签名通过。\n\n发现列表：\n- id: allowed_now，value: 打包（已结束，可视为已完成）；签名（当前可执行，因打包已结束），sources: [s1, s2]\n- id: blocked_now，value: 发布（因签名未执行、未通过，直接前置条件不满足），sources: [s1, s2]\n- id: required_edge，value: [签名, 发布]（发布直接前置边为“签名通过→发布”，即发布的前置步骤为签名），sources: [s1]",
+  "input_tokens": 566,
+  "output_tokens": 285,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5233,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890596902103d3436761e68cde6bd2815b0b11060acf3c380",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 285,
+    "prompt_tokens": 566,
+    "total_tokens": 851,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

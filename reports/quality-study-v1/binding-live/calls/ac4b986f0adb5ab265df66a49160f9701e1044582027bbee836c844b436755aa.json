@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-single-2:extract_flow",
+  "content": "结论：当前可执行步骤只有“签名”。当前仍不能执行“发布”。发布的前置边是“签名通过→发布”，即发布直接依赖签名通过，而不是依赖检查报告或打包成功。\n\n依据：\n- 材料 s1 明确“打包结束才能签名；签名通过才能发布”。\n- 材料 s1 还说明“检查报告只证明打包成功，不代表签名完成”。\n- 材料 s2 显示“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”。\n\n因此，虽然打包已结束并通过检查，但签名尚未执行，所以不能直接发布。负责人“现在直接发布”的要求与流程依赖冲突。\n\n限制与权衡：\n- 本结论仅基于给定材料中的流程依赖和现状描述，不引入外部事实。\n- 检查报告只能证明打包成功，不能替代“签名通过”这一发布前置条件。\n- 若现实中存在其他未在材料中出现的例外流程或授权机制，本材料范围内无法确认。\n\nfindings:\n- id: allowed_now\n  value: [\"签名\"]\n  sources: [\"s1\", \"s2\"]\n- id: blocked_now\n  value: [\"发布\"]\n  sources: [\"s1\", \"s2\"]\n- id: required_edge\n  value: [\"签名通过\", \"发布\"]\n  sources: [\"s1\"]",
+  "input_tokens": 566,
+  "output_tokens": 277,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5591,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178905984304996de9f55314d9c1d75ac853e3e9cad7e6a1a99",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 277,
+    "prompt_tokens": 566,
+    "total_tokens": 843,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

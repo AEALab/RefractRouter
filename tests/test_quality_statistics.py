@@ -73,3 +73,32 @@ def test_human_binding_and_missing_repeat_prevent_false_quality_frontier():
     assert report['arms']['direct-or-dag']['run_counts']['pending'] == 1
     assert not report['arms']['direct-or-dag']['performance_complete']
     assert report['comparisons'][0]['performance'] is None
+
+
+def test_failed_delivery_and_missing_setup_cannot_improve_stratified_accounting():
+    from refractrouter.quality_runtime import prepare
+    from refractrouter.quality_statistics import analyze
+    from refractrouter.quality_study import digest
+    _, tasks, refs, *_ = load_study(STUDY)
+    frozen = prepare(STUDY, task_ids=['rules-02'], arms=['shared-single-1'], repeats=1)
+    spec = frozen['schedule'][0]
+    result = {'frozen_sha256': digest(frozen), 'simulated': True, 'runs': [
+        {**spec, 'status': 'withheld', 'quality_status': 'pass', 'cost_known': True,
+         'online_afp': 2, 'online_finished_ms': 100}],
+        'setups': [{'task_id': 'rules-02', 'status': 'ready', 'offline_afp': 3, 'wall_time_ms': 900}]}
+    report = analyze(frozen, result, tasks, references=refs)
+    task = next(t for t in tasks if t['task_id'] == 'rules-02')
+    stratum = report['descriptive_strata']['category'][task['category']]['shared-single-1']
+    assert stratum['run_counts'] == {'pass': 0, 'fail': 1, 'pending': 0}
+    assert stratum['mean_online_afp'] == 2
+    allocations = report['setup_amortization']['shared-single-1']
+    assert allocations['1']['mean_afp_with_setup_allocation'] == 5
+    assert allocations['3']['mean_ms_with_setup_allocation'] == 400
+    result['setups'] = []
+    report = analyze(frozen, result, tasks, references=refs)
+    assert report['setup_amortization']['shared-single-1']['1']['mean_afp_with_setup_allocation'] is None
+    changed = deepcopy(frozen)
+    changed['statistics_policy']['pass_rate_floor'] = .5
+    result['frozen_sha256'] = digest(changed)
+    with pytest.raises(ValueError, match='analysis policy differs'):
+        analyze(changed, result, tasks, references=refs)

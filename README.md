@@ -60,7 +60,9 @@ RefractAgent 模型入口使用已安装的 Python 核心，脱离源码目录�
 ## 研究与验证记录
 
 当前 [三类任务质量协议](docs/quality-study-protocol.md)提供候选材料、三态质量检查、
-开发正负例校准和零调用预检；独立审查与正式冻结仍待完成。
+开发正负例校准，以及[实际路线与统计绑定](docs/quality-study-freeze.md)。
+[非真人条件验证](reports/quality-study-v1/technical-freeze-analysis.md)已完成，
+独立真人材料审查、盲审与用途确认仍待完成；尚未证明 Pareto 收益。
 
 [自动拆分应用入口](docs/automatic-dag.md)支持 `refractagent run --template auto`：
 快速规划模型输出短计划，Python 编译契约并并行执行；困难节点可进行一次有界再拆。

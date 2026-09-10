@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-auto-single:planner",
+  "content": "{\"reason\":\"核对流程依赖与现状，判断可执行与阻塞步骤，并提取发布前置边。\",\"nodes\":[{\"id\":\"extract_deps\",\"type\":\"extraction\",\"job\":\"从流程材料提取步骤间依赖：打包结束才能签名，签名通过才能发布；检查报告仅证明打包成功。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"assess_state\",\"type\":\"extraction\",\"job\":\"从现状材料提取当前状态：打包已结束并通过检查，签名未执行，负责人要求直接发布。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"synthesize\",\"type\":\"synthesis\",\"job\":\"结合依赖与现状，判断签名可执行（打包结束），发布被阻塞（签名未通过），发布直接前置边为[签名通过]。\",\"parents\":[\"extract_deps\",\"assess_state\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"输出中文说明：结论、依据、限制及权衡，并给出allowed_now、blocked_now、required_edge三项发现。\",\"parents\":[\"synthesize\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 642,
+  "output_tokens": 254,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3429,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059732851e4d5e3acd6b6d5c09c835e2d36b9596ca537aa",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 254,
+    "prompt_tokens": 642,
+    "total_tokens": 896,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

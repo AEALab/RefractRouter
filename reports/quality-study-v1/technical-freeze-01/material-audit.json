@@ -1,0 +1,337 @@
+{
+  "schema_version": "quality-material-audit-v1",
+  "rows": [
+    {
+      "task_id": "analysis-01",
+      "task_sha256": "f994387bf14361968a745119101404e43d812c0d75a719074359a4fffcc14edf",
+      "recomputed": {
+        "expected_stock": 60.0,
+        "observed_gap": -1.0,
+        "theft_proven": false
+      },
+      "mismatches": [],
+      "material_bytes": 214,
+      "category": "material-analysis",
+      "structure": "direct",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "analysis-02",
+      "task_sha256": "a23dd467584e035bb121af43795aeb3b1be1916fd7fa00581c2d5287a5d9d1aa",
+      "recomputed": {
+        "survey_negative": 14.0,
+        "service_complaints": 20.0,
+        "can_pool": false
+      },
+      "mismatches": [],
+      "material_bytes": 211,
+      "category": "material-analysis",
+      "structure": "parallel",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "analysis-03",
+      "task_sha256": "e38c5b552a0b3ff178d4c703c25a9606c8855e1272cd34d0a312300435c5a462",
+      "recomputed": {
+        "before_kwh_per_hour": 6.0,
+        "after_kwh_per_hour": 9.0,
+        "efficiency_improved": false
+      },
+      "mismatches": [],
+      "material_bytes": 139,
+      "category": "material-analysis",
+      "structure": "direct",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "analysis-04",
+      "task_sha256": "484e908e7d80368538b254dbdbc0e28ddc699f6e2756f380aefa2d27f0895854",
+      "recomputed": {
+        "east_change": 20.0,
+        "west_change": "unknown",
+        "pooled_effect_supported": false
+      },
+      "mismatches": [],
+      "material_bytes": 192,
+      "category": "material-analysis",
+      "structure": "parallel",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "analysis-05",
+      "task_sha256": "d302b515cf4c177f23193f8afc4b22894a2f4e009a4561130aabff5173400b0e",
+      "recomputed": {
+        "eligible": 30,
+        "retained": 18,
+        "retention_percent": 60.0,
+        "report_correct": false
+      },
+      "mismatches": [],
+      "material_bytes": 310,
+      "category": "material-analysis",
+      "structure": "sequential",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "analysis-06",
+      "task_sha256": "9f36ad6d226d8047a9b82bedf59c2254efb26553e3d2f7000fa9738e781c85ac",
+      "recomputed": {
+        "order": [
+          "start",
+          "complaint",
+          "restore"
+        ],
+        "complaint_before_restore": true
+      },
+      "mismatches": [],
+      "material_bytes": 150,
+      "category": "material-analysis",
+      "structure": "sequential",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "rules-01",
+      "task_sha256": "0079aa998ac9cd99b2e093a939d260bba649a9c505024dbdc6c08d31a939eb8a",
+      "recomputed": {
+        "remaining": 2.0,
+        "requested": 3.0,
+        "full_approval": false
+      },
+      "mismatches": [],
+      "material_bytes": 178,
+      "category": "rule-checking",
+      "structure": "direct",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "rules-02",
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "recomputed": {
+        "allowed_now": [
+          "签名"
+        ],
+        "blocked_now": [
+          "发布"
+        ],
+        "required_edge": [
+          "签名",
+          "发布"
+        ]
+      },
+      "mismatches": [],
+      "material_bytes": 201,
+      "category": "rule-checking",
+      "structure": "sequential",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "rules-03",
+      "task_sha256": "38436ee505c9d5c8e15dcd966f014bef8a1138de582a519c87aac74c4b2e6c5e",
+      "recomputed": {
+        "eligible_ids": [
+          "甲",
+          "乙"
+        ],
+        "ineligible_ids": [
+          "丙"
+        ]
+      },
+      "mismatches": [],
+      "material_bytes": 253,
+      "category": "rule-checking",
+      "structure": "direct",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "rules-04",
+      "task_sha256": "60334550760b921b32cef26c200e79d58bb11a8b460426513fd8faef12f8aea4",
+      "recomputed": {
+        "releasable": [
+          "A"
+        ],
+        "blocked": [
+          "B",
+          "C附件"
+        ]
+      },
+      "mismatches": [],
+      "material_bytes": 288,
+      "category": "rule-checking",
+      "structure": "parallel",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "rules-05",
+      "task_sha256": "b2b3f6a0c49210904a36a8f8718818e383923b5f854e41dd8dd59e878957d7d1",
+      "recomputed": {
+        "accepted": [
+          "P"
+        ],
+        "rejected": [
+          "Q"
+        ],
+        "unknown": [
+          "R"
+        ]
+      },
+      "mismatches": [],
+      "material_bytes": 295,
+      "category": "rule-checking",
+      "structure": "parallel",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "rules-06",
+      "task_sha256": "d1d9c2b19e451b9b333cba7cfc44776eeef1873314aff289bae99645126ee80c",
+      "recomputed": {
+        "excluded": [
+          "A"
+        ],
+        "selected": [
+          "B",
+          "C",
+          "D"
+        ],
+        "waitlisted": [
+          "E"
+        ]
+      },
+      "mismatches": [],
+      "material_bytes": 316,
+      "category": "rule-checking",
+      "structure": "sequential",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "decision-01",
+      "task_sha256": "6385bd59839b22d0dd4f69b04c0fa275209c208a5a8914c7918e258dd573520a",
+      "recomputed": {
+        "printer": "P",
+        "delivery": "D",
+        "total_cost": 380
+      },
+      "mismatches": [],
+      "material_bytes": 173,
+      "category": "multipart-decision",
+      "structure": "parallel",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "decision-02",
+      "task_sha256": "a09f0d891ad8c6c4b0b5a584bc52a20641408fd0e10c745076dfdacfef0be02b",
+      "recomputed": {
+        "morning": "甲",
+        "evening": "乙",
+        "feasible": true
+      },
+      "mismatches": [],
+      "material_bytes": 192,
+      "category": "multipart-decision",
+      "structure": "sequential",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "decision-03",
+      "task_sha256": "ac541ea4b0d32e2e6e3df370abe6b1492933bd79a05dfefa358003060a575df4",
+      "recomputed": {
+        "selected": "A",
+        "cost": 450,
+        "rejected_ids": [
+          "B",
+          "C"
+        ]
+      },
+      "mismatches": [],
+      "material_bytes": 224,
+      "category": "multipart-decision",
+      "structure": "direct",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "decision-04",
+      "task_sha256": "6ab6a58f4fd2b308f5b710607f374f72d826cd546f809c69a345151e2457b5b5",
+      "recomputed": {
+        "selected": "B",
+        "monthly_cost": 180,
+        "recovery_hours": 2
+      },
+      "mismatches": [],
+      "material_bytes": 231,
+      "category": "multipart-decision",
+      "structure": "direct",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "decision-05",
+      "task_sha256": "164362d42700702c9c3e1369647a347ff5994beb6125183d69eeaefe11fd1b4e",
+      "recomputed": {
+        "kits": [
+          "X",
+          "U"
+        ],
+        "total_cost": 770,
+        "remaining_budget": 30.0
+      },
+      "mismatches": [],
+      "material_bytes": 256,
+      "category": "multipart-decision",
+      "structure": "parallel",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    },
+    {
+      "task_id": "decision-06",
+      "task_sha256": "46dce101461644ff28a4cfb4cf9804c9bf72ec5d514613a9866057f02fc87aeb",
+      "recomputed": {
+        "order": [
+          "备份",
+          "校验备份",
+          "部署",
+          "回归检查"
+        ],
+        "finish_minute": 55,
+        "deadline_met": true
+      },
+      "mismatches": [],
+      "material_bytes": 314,
+      "category": "multipart-decision",
+      "structure": "sequential",
+      "origin": "deterministic-source-recalculation",
+      "semantic_review": "pending-human"
+    }
+  ],
+  "reference_mismatches": 0,
+  "coverage": {
+    "material-analysis:direct": 2,
+    "material-analysis:parallel": 2,
+    "material-analysis:sequential": 2,
+    "rule-checking:direct": 2,
+    "rule-checking:sequential": 2,
+    "rule-checking:parallel": 2,
+    "multipart-decision:parallel": 2,
+    "multipart-decision:sequential": 2,
+    "multipart-decision:direct": 2
+  },
+  "source_families": 18,
+  "template_families": 18,
+  "median_material_bytes": 219.0,
+  "population_representativeness": "not-established",
+  "semantic_rule_origin": "作者形式化的固定材料规则，非独立开放语义解释器；缺证据等语义判断仍待真人审核。",
+  "scope": "固定构造微任务的算术、排序、集合与显式规则复算；不证明开放语义、来源真实性或业务代表性。"
+}

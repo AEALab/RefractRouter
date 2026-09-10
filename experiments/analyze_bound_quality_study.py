@@ -5,7 +5,7 @@ from pathlib import Path
 
 from refractrouter.dag_study_execution import write_json
 from refractrouter.quality_statistics import analyze
-from refractrouter.quality_study import load_study
+from refractrouter.quality_study import load_study, make_blind_packet
 
 
 def main(argv=None):
@@ -16,16 +16,26 @@ def main(argv=None):
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--human-reviews', type=Path)
     parser.add_argument('--purpose-review', type=Path)
+    parser.add_argument('--blind-output-dir', type=Path)
     args = parser.parse_args(argv)
     if args.output.exists():
         parser.error('output already exists')
+    if args.blind_output_dir and args.blind_output_dir.exists():
+        parser.error('blind output directory already exists')
     _, tasks, refs, *_ = load_study(args.study_dir)
-    report = analyze(json.loads(args.frozen.read_text()), json.loads(args.results.read_text()), tasks,
+    result = json.loads(args.results.read_text())
+    report = analyze(json.loads(args.frozen.read_text()), result, tasks,
                      references=refs,
                      human_reviews=json.loads(args.human_reviews.read_text()) if args.human_reviews else (),
                      purpose_review=json.loads(args.purpose_review.read_text()) if args.purpose_review else None)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     write_json(args.output, report)
+    if args.blind_output_dir:
+        records = [{**r, 'arm_id': r['arm'], 'model_id': None} for r in result['runs'] if 'output' in r]
+        packet, mapping = make_blind_packet(records, tasks, refs)
+        args.blind_output_dir.mkdir(parents=True, exist_ok=False)
+        write_json(args.blind_output_dir / 'blind-output-packet.json', packet)
+        write_json(args.blind_output_dir / 'private-blind-mapping.json', mapping)
     print(json.dumps({'observed_runs': report['observed_runs'], 'human_review_pending': report['human_review_pending'],
                       'confirmed_pareto_frontier': report['confirmed_pareto_frontier']}, ensure_ascii=False))
 

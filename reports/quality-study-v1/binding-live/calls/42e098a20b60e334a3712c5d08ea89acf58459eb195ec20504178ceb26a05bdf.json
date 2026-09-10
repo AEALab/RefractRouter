@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-2:assess_state",
+  "content": "当前状态核对如下：\n\n**结论**：当前可执行“签名”步骤；“发布”步骤被阻塞，不能现在执行；“发布”的直接前置边是“签名 → 发布”。\n\n**依据**：\n- 流程材料（s1）明确：打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。\n- 现状材料（s2）明确：打包已结束并通过检查；签名未执行；负责人要求现在直接发布。\n\n**核对结果**：\n\n- **allowed_now（可执行步骤列表）**：签名。因为打包已结束并通过检查，满足“打包结束才能签名”的前置条件。\n- **blocked_now（仍不能执行步骤列表）**：发布。因为签名未执行，不满足“签名通过才能发布”的前置条件。负责人“现在直接发布”的要求与流程依赖冲突，不能执行。\n- **required_edge（发布直接前置边）**：[\"签名\", \"发布\"]。即发布步骤的直接前置步骤是签名，签名完成并通过后才能进入发布。\n\n**限制与权衡**：检查报告通过仅证明打包成功，不能替代签名步骤。若负责人坚持直接发布，属于绕过流程依赖的例外决策，需另行授权并承担相应风险，但按当前流程契约，发布仍被阻塞。",
+  "input_tokens": 559,
+  "output_tokens": 272,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2239,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059654161682583ac3749be18cdf4b3a384433037931a26",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 272,
+    "prompt_tokens": 559,
+    "total_tokens": 831,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,6 +1,5 @@
 """汇总 #52 非真人条件及可复现证据；真人栏必须由真实参与者填写。"""
 import argparse
-from dataclasses import asdict
 import hashlib
 import json
 from pathlib import Path
@@ -102,15 +101,21 @@ def main(argv=None):
                   and all(c['status'] in ('billed', 'cancelled-before-dispatch') for c in live['calls']))
     def matches_implementation(result_path):
         evidence_frozen = json.loads((result_path.parent / 'frozen.json').read_text())
-        return (evidence_frozen['implementation'] == frozen['implementation']
+        # 运行后统计/证据汇总可以修正而不重复付费，但路线执行代码与统计政策必须完全相同。
+        # 全部当前文件仍写入新的正式冻结；本检查的范围明确限定为实际模型调用路径。
+        analysis_only = {'src/refractrouter/quality_statistics.py',
+                         'experiments/analyze_bound_quality_study.py', 'experiments/freeze_quality_protocol.py'}
+        return ({k: v for k, v in evidence_frozen['implementation'].items() if k not in analysis_only}
+                == {k: v for k, v in frozen['implementation'].items() if k not in analysis_only}
+                and evidence_frozen['statistics_policy'] == frozen['statistics_policy']
                 and digest(evidence_frozen) == json.loads(result_path.read_text())['frozen_sha256'])
     checks = {'material_reference_recalculation': calculation['reference_mismatches'] == 0,
         'current_development_controls_have_real_judge_evidence': coverage['covered'] == coverage['count'],
         'statistics_and_operating_thresholds_frozen': frozen['statistics_policy'] == POLICY,
         'all_routes_bound_and_rehearsed': all(r['status'] == 'delivered-unconfirmed' for r in rehearsal['runs']),
         'real_runner_usage_reconciled': live_known,
-        'rehearsal_implementation_matches': matches_implementation(args.rehearsal_results),
-        'real_implementation_matches': matches_implementation(args.live_results),
+        'rehearsal_execution_and_policy_match': matches_implementation(args.rehearsal_results),
+        'real_execution_and_policy_match': matches_implementation(args.live_results),
         'offline_setup_bounded': frozen['offline_setup']['training_calls'] == 0 and len(frozen['setups']) == len(selected),
         'heldout_outputs_not_used_for_tuning': all(r['task_id'] not in selected for r in live['runs'])}
     args.output_dir.mkdir(parents=True, exist_ok=False)
@@ -118,7 +123,9 @@ def main(argv=None):
     write_json(args.output_dir / 'material-audit.json', calculation)
     write_json(args.output_dir / 'calibration-coverage.json', coverage)
     write_json(args.output_dir / 'ledger-audit.json', ledger_checks)
-    write_json(args.output_dir / 'human-material-packet.json', material_review_packet(tasks, refs))
+    packet = material_review_packet(tasks, refs)
+    write_json(args.output_dir / 'human-material-packet.json', packet)
+    write_json(args.output_dir / 'human-material-template.json', [{**r['review'], 'task_id': r['task_id']} for r in packet])
     write_json(args.output_dir / 'human-purpose-template.json', {'origin': 'human', 'reviewer': None, 'evidence': None,
                'policy_sha256': digest(POLICY), 'task_bindings': frozen['task_bindings'], 'verdict': 'pending'})
     summary = {'schema_version': 'quality-technical-readiness-v1', 'technical_checks': checks,
