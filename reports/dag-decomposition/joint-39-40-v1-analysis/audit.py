@@ -120,20 +120,25 @@ def main():
     selected={min(t['task_id'] for t in tasks.values() if t['challenge']==challenge) for challenge in {t['challenge'] for t in tasks.values()}}
     candidates=[]
     for tid in sorted(selected):
-        candidates.append((tid,'manual',tasks[tid]['plan'],None))
+        trace=next((r for r in observed if r['task_id']==tid and r['arm']=='dag-node-a'),None)
+        candidates.append((tid,'manual',tasks[tid]['plan'],None,trace))
     for row in observed:
         if row['arm'].startswith('auto-cold') and (row['task_id'] in selected or row['status']=='planner-failed'):
-            candidates.append((row['task_id'],row['run_id'],row.get('plan'),row.get('planner_output')))
+            candidates.append((row['task_id'],row['run_id'],row.get('plan'),row.get('planner_output'),row))
     for row in session['plan_setups']:
         tid=row['cache_id'][:-2]
         if tid in selected or row['status']=='planner-failed':
-            candidates.append((tid,'cache:'+row['cache_id'],row.get('plan'),row.get('planner_output')))
+            trace=next((r for r in observed if r['task_id']==tid and r['arm']=='auto-reuse-'+row['cache_id'][-1]),None)
+            candidates.append((tid,'cache:'+row['cache_id'],row.get('plan'),row.get('planner_output'),trace))
     random.Random(394010).shuffle(candidates)
     packet=[];mapping={}
-    for i,(tid,origin,plan,raw) in enumerate(candidates,1):
+    for i,(tid,origin,plan,raw,trace) in enumerate(candidates,1):
         rid=f'P{i:03d}';mapping[rid]={'task_id':tid,'origin':origin}
         packet.append({'review_id':rid,'task':tasks[tid]['task'],'criteria':tasks[tid]['criteria'],
+            'reference_for_review':tasks[tid]['evaluation_reference'],
             'plan':plan,'raw_plan_if_unparsed':raw if plan is None else None,
+            'execution_trace':[{'node_id':n['node_id'],'output':n.get('output')} for n in (trace or {}).get('nodes',[])],
+            'final_output':(trace or {}).get('final_output'),
             'reviewer':None,'reviewed_at':None,'decomposition_appropriate':None,'original_delivery_covered':None,
             'dependencies_correct':None,'parallelism_appropriate':None,'handoff_risks':None,'overall_passed':None,'rationale':None})
     write('human-review-packet.json',{'scope':'真人复核；不得由自动评分或模型填表替代。','rows':packet})
