@@ -1,0 +1,1426 @@
+[
+  {
+    "case_id": "holdout_stage_single",
+    "split": "holdout",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T083054Z-efd9f69983b2",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "原始排程（第 0 天开始，不考虑周末）：\n\n| 工作 | 最早开始 | 最早结束 |\n|---|---:|---:|\n| X 手续 | 第 0 天 | 第 2 天 |\n| Y 运输 | 第 2 天 | 第 6 天 |\n| Z 灯光准备 | 第 0 天 | 第 3 天 |\n| U 搭建 | 第 6 天 | 第 9 天 |\n| V 验收 | 第 9 天 | 第 11 天 |\n\n原始关键依赖链：\n\nX → Y → U → V\n\n原始总工期：11 天。\n\n费用核算：\n\n| 项目 | 费用 |\n|---|---:|\n| 手续 X | 300 元 |\n| 运输 Y | 700 元 |\n| 搭建 U | 1600 元 |\n| 灯光 Z | 800 元 |\n| 合计 | 3400 元 |\n\n总预算 4000 元，预算余额：\n\n4000 − 3400 = 600 元。\n\nZ 额外延误 5 天后的排程：\n\nZ 原需 3 天，延误 5 天后变为 8 天，因此 Z 从第 0 天开始，到第 8 天结束。\n\n| 工作 | 最早开始 | 最早结束 |\n|---|---:|---:|\n| X 手续 | 第 0 天 | 第 2 天 |\n| Y 运输 | 第 2 天 | 第 6 天 |\n| Z 灯光准备 | 第 0 天 | 第 8 天 |\n| U 搭建 | 第 8 天 | 第 11 天 |\n| V 验收 | 第 11 天 | 第 13 天 |\n\n延误后的关键依赖链：\n\nZ → U → V\n\n延误后总工期：13 天。\n\n费用不变，仍为 3400 元，预算余额仍为 600 元。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "答案与给定依赖计算完全一致：原始排程 X(0-2)、Y(2-6)、Z(0-3)、U(6-9)、V(9-11)，总工期 11 天，关键链「X → Y → U → V」正确；Z 延误 5 天后 Z(0-8)、U(8-11)、V(11-13)，总工期 13 天，关键链「Z → U → V」正确，且未给 Z 添加 X 前置依赖；费用 300+700+1600+800=3400 元，预算余额 4000-3400=600 元正确，并明确说明延误后费用不变。未新增依赖或费用，关键链以箭头形式完整呈现，无错误链残留。",
+      "criteria": [
+        {
+          "criterion": "正确给出五项工作起止时间、原始总工期与关键链。",
+          "passed": true,
+          "rationale": "五项工作起止时间 X(0-2)、Y(2-6)、Z(0-3)、U(6-9)、V(9-11) 与计算结果一致，总工期 11 天正确，关键链以「X → Y → U → V」箭头形式给出，正确且无错误链残留。"
+        },
+        {
+          "criterion": "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+          "passed": true,
+          "rationale": "Z 延误 5 天后工期由 3 天变为 8 天，Z(0-8)，U 等 Y(第6天)与 Z(第8天)完成后于第 8 天开始，U(8-11)、V(11-13)，总工期 13 天正确；关键链「Z → U → V」正确，未将 X 列为 Z 的前置依赖。"
+        },
+        {
+          "criterion": "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。",
+          "passed": true,
+          "rationale": "四项费用 300、700、1600、800 元逐项列出，合计 3400 元，预算余额 4000-3400=600 元正确；排程与费用在原始与延误两种情形下均完整呈现，并说明延误不影响费用，未新增任何费用项。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 0.84535,
+      "evaluation": 2.043,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 26228,
+    "plan_origin": "provided",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 6810,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确给出五项工作起止时间、原始总工期与关键链。",
+              "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+              "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确给出五项工作起止时间、原始总工期与关键链。",
+        "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+        "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "plan_admission": null,
+    "planner": {
+      "model_id": "cheap",
+      "basis": "configured-latency-then-price",
+      "output_cap": 2048,
+      "timeout_ms": 180000
+    },
+    "plan_ready_ms": 0,
+    "content_validation": {
+      "source_status": "supported",
+      "passed": true,
+      "invalid_edges": [],
+      "missing_paths": []
+    },
+    "dynamic_decomposition": null,
+    "cost_breakdown": {
+      "planning": 0,
+      "dynamic_planning": 0,
+      "execution": 0.84535,
+      "evaluation": 2.043
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v2/holdout_stage_single/20260910T083054Z-efd9f69983b2/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v2/holdout_stage_single/20260910T083054Z-efd9f69983b2",
+    "usage": {
+      "input_tokens": 2613,
+      "output_tokens": 967,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "ba7ce2c8666f9cc946a602831bff4121eaef73303f8fd5294ca8d2501fc20dff",
+      "manifest.json": "18f46adf1fd56bc70b085150c4822cc876619ae013895b2c47917dc6c09f0491",
+      "plan.json": "a5e4cf87b15fac6100f78a907b3aaf442d1bc7640fe0ad2a05c5fe164ae19696",
+      "profile.json": "42064595baabe9ee42dbc1a5b7a7e1aa109f5693be83b2b539c7f4c60c3a931f",
+      "provider-config.json": "a9acf9f56c499ddfb19fd26d2230a87185a6aa1981b852c18c20b83be825b156",
+      "request.json": "bab0973055ff3eac82e580dee3cceeef7eb53f9c35c273d9ea1b33f774e176db",
+      "result.json": "8816aa63f6de7ca405276ec84b0daf50ba797ad79545a06ac2b467346dfad4e4"
+    }
+  },
+  {
+    "case_id": "controlled_dynamic_split",
+    "split": "controlled-integration",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20260910T083120Z-d611206bee9d",
+    "mode": "live",
+    "strategy": "economy",
+    "strategy_name": "省成本",
+    "policy_version": "refractagent-presets-v1",
+    "status": "completed",
+    "answer": "按已知费用计算：\n\n- 首次购买：2400 元\n- 每月维护：100 元 × 12 个月 = 1200 元\n- 全年费用合计：2400 + 1200 = 3600 元\n- 总预算：4000 元\n- 预算余额：4000 - 3600 = 400 元\n\n培训状态：操作人员是否完成培训仍为未知，不能推断为已完成或未完成。\n\n有条件建议：在仅按已知费用计算的情况下，全年费用 3600 元，预算余额 400 元，预算可以覆盖全年费用。但使用方案前应确认操作人员培训是否完成；若培训未完成，应暂缓执行或先完成培训后再启用方案。",
+    "issues": [],
+    "models": {
+      "source": "deepseek-v4-pro",
+      "hard": "deepseek-v4-pro",
+      "answer": "deepseek-v4-pro",
+      "hard_split_0": "deepseek-v4-pro",
+      "hard_split_1": "deepseek-v4-pro"
+    },
+    "model_routes": {
+      "source": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "hard": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "answer": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "hard_split_0": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      },
+      "hard_split_1": {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "reasoning_effort": null
+      }
+    },
+    "evaluation_model": {
+      "id": "judge",
+      "provider": "ark-plan",
+      "model": "kimi-k3",
+      "reasoning_effort": null
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "被评估文本正确计算了全年费用：首次购买2400元加每月维护100元乘12个月等于1200元，合计3600元；预算余额为4000减3600等于400元。培训状态明确表述为「仍为未知，不能推断为已完成或未完成」，保持了未知状态。建议部分明确提出「使用方案前应确认操作人员培训是否完成」，并给出条件性处理（若未完成应暂缓或先完成培训）。两条验收标准均满足，无不实工具执行声明或信息补造。",
+      "criteria": [
+        {
+          "criterion": "正确计算全年费用 3600 元、预算余额 400 元。",
+          "passed": true,
+          "rationale": "文本明确列出「全年费用合计：2400 + 1200 = 3600 元」及「预算余额：4000 - 3600 = 400 元」，计算过程和结果均正确。"
+        },
+        {
+          "criterion": "培训状态必须保持未知；建议使用方案前确认培训。",
+          "passed": true,
+          "rationale": "文本声明「操作人员是否完成培训仍为未知，不能推断为已完成或未完成」，并建议「使用方案前应确认操作人员培训是否完成；若培训未完成，应暂缓执行或先完成培训后再启用方案」，完全满足要求。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 2.7159,
+      "evaluation": 0.85,
+      "unconfirmed": 0
+    },
+    "billing_unit": "AFP",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 32685,
+    "plan_origin": "provided",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "source",
+          "node_type": "extraction",
+          "prompt_template": "摘录方案费用及培训状态，仅列给定事实。",
+          "parents": [],
+          "contract": {
+            "objective": "摘录方案费用及培训状态，仅列给定事实。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "摘录方案费用及培训状态，仅列给定事实。"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 12000,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "依据上游成果完整回答全年费用、余额和培训建议。",
+          "parents": [
+            "hard"
+          ],
+          "contract": {
+            "objective": "依据上游成果完整回答全年费用、余额和培训建议。",
+            "inputs": {
+              "hard": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 18896,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "正确计算全年费用 3600 元、预算余额 400 元。",
+              "培训状态必须保持未知；建议使用方案前确认培训。"
+            ],
+            "covers": [
+              0,
+              1
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "hard_split_0",
+          "node_type": "extraction",
+          "prompt_template": "按已知费用计算全年费用3600元与预算余额400元，核对原始数字。",
+          "parents": [
+            "source"
+          ],
+          "contract": {
+            "objective": "按已知费用计算全年费用3600元与预算余额400元，核对原始数字。",
+            "inputs": {
+              "source": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "按已知费用计算全年费用3600元与预算余额400元，核对原始数字。"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 18864,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "hard_split_1",
+          "node_type": "extraction",
+          "prompt_template": "确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。",
+          "parents": [
+            "source"
+          ],
+          "contract": {
+            "objective": "确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。",
+            "inputs": {
+              "source": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。"
+              }
+            },
+            "capability": {
+              "difficulty": "low",
+              "risk": "low",
+              "input_budget_tokens": 18888,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        },
+        {
+          "node_id": "hard",
+          "node_type": "synthesis",
+          "prompt_template": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。\n使用新增分支的结果完成原职责，逐项核对原始事实和矛盾。",
+          "parents": [
+            "source",
+            "hard_split_0",
+            "hard_split_1"
+          ],
+          "contract": {
+            "objective": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+            "inputs": {
+              "source": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              },
+              "hard_split_0": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              },
+              "hard_split_1": {
+                "fields": [
+                  "text"
+                ],
+                "reason": "当前职责消费该上游节点的结果。"
+              }
+            },
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "medium",
+              "input_budget_tokens": 52672,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+            ],
+            "covers": [],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "正确计算全年费用 3600 元、预算余额 400 元。",
+        "培训状态必须保持未知；建议使用方案前确认培训。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "受控测试：先保留材料，再要求困难节点发出拆分信号并恢复下游。"
+    },
+    "plan_admission": null,
+    "planner": {
+      "model_id": "cheap",
+      "basis": "configured-latency-then-price",
+      "output_cap": 2048,
+      "timeout_ms": 180000
+    },
+    "plan_ready_ms": 0,
+    "content_validation": {
+      "source_status": "not-applicable",
+      "passed": null,
+      "invalid_edges": [],
+      "missing_paths": []
+    },
+    "dynamic_decomposition": {
+      "policy_version": "drain-and-graft-v1",
+      "max_splits": 1,
+      "max_total_nodes": 8,
+      "max_subplan_nodes": 3,
+      "max_depth": 1,
+      "events": [
+        {
+          "node_id": "hard",
+          "reason": "请拆为费用核算与培训风险两个独立职责后汇总",
+          "status": "admitted",
+          "completed_nodes": [
+            "source"
+          ],
+          "upstream": {
+            "source": {
+              "text": "费用：首次购买 2400 元；每月维护 100 元；使用期 12 个月；总预算 4000 元。  \n培训状态：操作人员需完成培训；培训是否完成未知。"
+            }
+          },
+          "upstream_sha256": "0253b34d567c87cca6e7983ec19f5040a83d4e55d32612d24ff328d08e0281a3",
+          "previous_plan": {
+            "nodes": [
+              {
+                "node_id": "source",
+                "node_type": "extraction",
+                "prompt_template": "摘录方案费用及培训状态，仅列给定事实。",
+                "parents": [],
+                "contract": {
+                  "objective": "摘录方案费用及培训状态，仅列给定事实。",
+                  "inputs": {},
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "摘录方案费用及培训状态，仅列给定事实。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "low",
+                    "risk": "low",
+                    "input_budget_tokens": 12000,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+                  ],
+                  "covers": [],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "hard",
+                "node_type": "synthesis",
+                "prompt_template": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+                "parents": [
+                  "source"
+                ],
+                "contract": {
+                  "objective": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+                  "inputs": {
+                    "source": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "medium",
+                    "input_budget_tokens": 12000,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+                  ],
+                  "covers": [],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "answer",
+                "node_type": "generation",
+                "prompt_template": "依据上游成果完整回答全年费用、余额和培训建议。",
+                "parents": [
+                  "hard"
+                ],
+                "contract": {
+                  "objective": "依据上游成果完整回答全年费用、余额和培训建议。",
+                  "inputs": {
+                    "hard": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "medium",
+                    "input_budget_tokens": 12000,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "正确计算全年费用 3600 元、预算余额 400 元。",
+                    "培训状态必须保持未知；建议使用方案前确认培训。"
+                  ],
+                  "covers": [
+                    0,
+                    1
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              }
+            ],
+            "final_node_id": "answer",
+            "acceptance_criteria": [
+              "正确计算全年费用 3600 元、预算余额 400 元。",
+              "培训状态必须保持未知；建议使用方案前确认培训。"
+            ],
+            "schema_version": "text-task-plan-v2",
+            "decomposition_reason": "受控测试：先保留材料，再要求困难节点发出拆分信号并恢复下游。"
+          },
+          "planner": {
+            "attempts": [
+              {
+                "output": "{\"reason\":\"费用核算与培训风险是两个独立职责，可并行拆分后汇总。\",\"nodes\":[{\"id\":\"cost\",\"type\":\"extraction\",\"job\":\"按已知费用计算全年费用3600元与预算余额400元，核对原始数字。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"training\",\"type\":\"extraction\",\"job\":\"确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总费用结果与培训风险，给出有条件建议：确认培训后再使用方案。\",\"parents\":[\"cost\",\"training\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+                "error": null
+              }
+            ],
+            "started_monotonic": 989301.340931041,
+            "output_cap": 1200,
+            "wall_time_ms": 3258.8461249833927
+          },
+          "routing_profile": {
+            "schema_version": "node-routing-profile-v2",
+            "kind": "configured",
+            "billing_unit": "AFP",
+            "scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+            "provenance": "本次 provider-config.json；无模型探测、无观测样本。",
+            "candidates": [
+              {
+                "model_id": "cheap",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 55,
+                "latency_ms": 10000,
+                "cost": 0.21555000000000002,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 2263,
+                "input_max_tokens": 2264
+              },
+              {
+                "model_id": "cheap",
+                "node_type": "generation",
+                "samples": 0,
+                "quality": 55,
+                "latency_ms": 10000,
+                "cost": 0.6280000000000001,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 18896,
+                "input_max_tokens": 18897
+              },
+              {
+                "model_id": "cheap",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 55,
+                "latency_ms": 10000,
+                "cost": 0.6264000000000001,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18864,
+                "input_max_tokens": 18865
+              },
+              {
+                "model_id": "cheap",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 55,
+                "latency_ms": 10000,
+                "cost": 0.6276,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18888,
+                "input_max_tokens": 18889
+              },
+              {
+                "model_id": "cheap",
+                "node_type": "synthesis",
+                "samples": 0,
+                "quality": 55,
+                "latency_ms": 10000,
+                "cost": 1.4784000000000002,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 52672,
+                "input_max_tokens": 52673
+              },
+              {
+                "model_id": "mid",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 78,
+                "latency_ms": 10000,
+                "cost": 1.07775,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 2263,
+                "input_max_tokens": 2264
+              },
+              {
+                "model_id": "mid",
+                "node_type": "generation",
+                "samples": 0,
+                "quality": 78,
+                "latency_ms": 10000,
+                "cost": 3.14,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 18896,
+                "input_max_tokens": 18897
+              },
+              {
+                "model_id": "mid",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 78,
+                "latency_ms": 10000,
+                "cost": 3.132,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18864,
+                "input_max_tokens": 18865
+              },
+              {
+                "model_id": "mid",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 78,
+                "latency_ms": 10000,
+                "cost": 3.138,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18888,
+                "input_max_tokens": 18889
+              },
+              {
+                "model_id": "mid",
+                "node_type": "synthesis",
+                "samples": 0,
+                "quality": 78,
+                "latency_ms": 10000,
+                "cost": 7.3919999999999995,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 52672,
+                "input_max_tokens": 52673
+              },
+              {
+                "model_id": "strong",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 92,
+                "latency_ms": 10000,
+                "cost": 2.3710500000000003,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 2263,
+                "input_max_tokens": 2264
+              },
+              {
+                "model_id": "strong",
+                "node_type": "generation",
+                "samples": 0,
+                "quality": 92,
+                "latency_ms": 10000,
+                "cost": 6.908000000000001,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 18896,
+                "input_max_tokens": 18897
+              },
+              {
+                "model_id": "strong",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 92,
+                "latency_ms": 10000,
+                "cost": 6.890400000000001,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18864,
+                "input_max_tokens": 18865
+              },
+              {
+                "model_id": "strong",
+                "node_type": "extraction",
+                "samples": 0,
+                "quality": 92,
+                "latency_ms": 10000,
+                "cost": 6.903600000000001,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18888,
+                "input_max_tokens": 18889
+              },
+              {
+                "model_id": "strong",
+                "node_type": "synthesis",
+                "samples": 0,
+                "quality": 92,
+                "latency_ms": 10000,
+                "cost": 16.2624,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 52672,
+                "input_max_tokens": 52673
+              }
+            ],
+            "forecast_basis": {
+              "source": {
+                "cheap": {
+                  "input_tokens": 2263,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 2263,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "mid": {
+                  "input_tokens": 2263,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 2263,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "strong": {
+                  "input_tokens": 2263,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 2263,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                }
+              },
+              "answer": {
+                "cheap": {
+                  "input_tokens": 10512,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18896,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "mid": {
+                  "input_tokens": 10512,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18896,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "strong": {
+                  "input_tokens": 10512,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18896,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                }
+              },
+              "hard_split_0": {
+                "cheap": {
+                  "input_tokens": 10480,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18864,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "mid": {
+                  "input_tokens": 10480,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18864,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "strong": {
+                  "input_tokens": 10480,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18864,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                }
+              },
+              "hard_split_1": {
+                "cheap": {
+                  "input_tokens": 10504,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18888,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "mid": {
+                  "input_tokens": 10504,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18888,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "strong": {
+                  "input_tokens": 10504,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 18888,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                }
+              },
+              "hard": {
+                "cheap": {
+                  "input_tokens": 27520,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 52672,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "mid": {
+                  "input_tokens": 27520,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 52672,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                },
+                "strong": {
+                  "input_tokens": 27520,
+                  "output_tokens": 2048,
+                  "source": "default",
+                  "input_capacity": 52672,
+                  "input_forecast_source": "serialized-input-and-planned-parent-output"
+                }
+              }
+            },
+            "model_bindings": {
+              "cheap": "deepseek-v4-flash",
+              "mid": "minimax-m3",
+              "strong": "deepseek-v4-pro"
+            },
+            "action_bindings": {
+              "cheap": "17bb1248cc5c76251dac8a12aeeed31c605531cb7c5fad693cc4bcf5fcd8249e",
+              "mid": "5e66ad2ee333df9d27d23e876a024204efadf36c8f9738225c338b432e6a9fea",
+              "strong": "01e4e34362bd59f7f381aa9a26984b217600881dea3867ddb1531efab741f55f"
+            }
+          },
+          "plan": {
+            "nodes": [
+              {
+                "node_id": "source",
+                "node_type": "extraction",
+                "prompt_template": "摘录方案费用及培训状态，仅列给定事实。",
+                "parents": [],
+                "contract": {
+                  "objective": "摘录方案费用及培训状态，仅列给定事实。",
+                  "inputs": {},
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "摘录方案费用及培训状态，仅列给定事实。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "low",
+                    "risk": "low",
+                    "input_budget_tokens": 12000,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+                  ],
+                  "covers": [],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "answer",
+                "node_type": "generation",
+                "prompt_template": "依据上游成果完整回答全年费用、余额和培训建议。",
+                "parents": [
+                  "hard"
+                ],
+                "contract": {
+                  "objective": "依据上游成果完整回答全年费用、余额和培训建议。",
+                  "inputs": {
+                    "hard": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "medium",
+                    "input_budget_tokens": 18896,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "正确计算全年费用 3600 元、预算余额 400 元。",
+                    "培训状态必须保持未知；建议使用方案前确认培训。"
+                  ],
+                  "covers": [
+                    0,
+                    1
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "hard_split_0",
+                "node_type": "extraction",
+                "prompt_template": "按已知费用计算全年费用3600元与预算余额400元，核对原始数字。",
+                "parents": [
+                  "source"
+                ],
+                "contract": {
+                  "objective": "按已知费用计算全年费用3600元与预算余额400元，核对原始数字。",
+                  "inputs": {
+                    "source": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "按已知费用计算全年费用3600元与预算余额400元，核对原始数字。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "low",
+                    "risk": "low",
+                    "input_budget_tokens": 18864,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+                  ],
+                  "covers": [],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "hard_split_1",
+                "node_type": "extraction",
+                "prompt_template": "确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。",
+                "parents": [
+                  "source"
+                ],
+                "contract": {
+                  "objective": "确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。",
+                  "inputs": {
+                    "source": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "确认培训状态保持未知，不推断完成与否，仅指出使用前需确认培训。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "low",
+                    "risk": "low",
+                    "input_budget_tokens": 18888,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+                  ],
+                  "covers": [],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "hard",
+                "node_type": "synthesis",
+                "prompt_template": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。\n使用新增分支的结果完成原职责，逐项核对原始事实和矛盾。",
+                "parents": [
+                  "source",
+                  "hard_split_0",
+                  "hard_split_1"
+                ],
+                "contract": {
+                  "objective": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。",
+                  "inputs": {
+                    "source": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    },
+                    "hard_split_0": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    },
+                    "hard_split_1": {
+                      "fields": [
+                        "text"
+                      ],
+                      "reason": "当前职责消费该上游节点的结果。"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "这是动态恢复受控验收。若 upstream 只有 source 一个键，仅返回 {\"status\":\"needs-decomposition\",\"reason\":\"请拆为费用核算与培训风险两个独立职责后汇总\"}。若已出现新增分支结果，则核对其费用与风险并汇总，不再请求拆分。"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "medium",
+                    "input_budget_tokens": 52672,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+                  ],
+                  "covers": [],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              }
+            ],
+            "final_node_id": "answer",
+            "acceptance_criteria": [
+              "正确计算全年费用 3600 元、预算余额 400 元。",
+              "培训状态必须保持未知；建议使用方案前确认培训。"
+            ],
+            "schema_version": "text-task-plan-v2",
+            "decomposition_reason": "受控测试：先保留材料，再要求困难节点发出拆分信号并恢复下游。"
+          },
+          "admission": {
+            "source": {
+              "eligible_models": [
+                "strong"
+              ],
+              "reason": null,
+              "input_estimate": {
+                "base_input_bound": 2230,
+                "upstream_allowance": 0,
+                "estimated_input_bound": 2262,
+                "forecast_input_tokens": 2262
+              }
+            },
+            "answer": {
+              "eligible_models": [
+                "strong"
+              ],
+              "reason": null,
+              "input_estimate": {
+                "base_input_bound": 2480,
+                "upstream_allowance": 16384,
+                "estimated_input_bound": 18896,
+                "forecast_input_tokens": 10512
+              }
+            },
+            "hard_split_0": {
+              "eligible_models": [
+                "strong"
+              ],
+              "reason": null,
+              "input_estimate": {
+                "base_input_bound": 2448,
+                "upstream_allowance": 16384,
+                "estimated_input_bound": 18864,
+                "forecast_input_tokens": 10480
+              }
+            },
+            "hard_split_1": {
+              "eligible_models": [
+                "strong"
+              ],
+              "reason": null,
+              "input_estimate": {
+                "base_input_bound": 2472,
+                "upstream_allowance": 16384,
+                "estimated_input_bound": 18888,
+                "forecast_input_tokens": 10504
+              }
+            },
+            "hard": {
+              "eligible_models": [
+                "strong"
+              ],
+              "reason": null,
+              "input_estimate": {
+                "base_input_bound": 3488,
+                "upstream_allowance": 49152,
+                "estimated_input_bound": 52672,
+                "forecast_input_tokens": 27520
+              }
+            }
+          },
+          "routing": {
+            "policy_version": "node-routing-v2",
+            "method": "A",
+            "assignment_mode": "per-node",
+            "status": "selected",
+            "assignments": {
+              "answer": "strong",
+              "hard_split_0": "strong",
+              "hard_split_1": "strong",
+              "hard": "strong"
+            },
+            "quality_min_per_node": 80,
+            "cost_max": 39.296,
+            "latency_max_ms": 173704.9628329696,
+            "weights": null,
+            "normalized_weights": null,
+            "normalization_bounds": {
+              "answer": {
+                "quality": [
+                  92,
+                  92
+                ],
+                "cost": [
+                  6.908000000000001,
+                  6.908000000000001
+                ],
+                "latency_ms": [
+                  10000,
+                  10000
+                ]
+              },
+              "hard_split_0": {
+                "quality": [
+                  92,
+                  92
+                ],
+                "cost": [
+                  6.890400000000001,
+                  6.890400000000001
+                ],
+                "latency_ms": [
+                  10000,
+                  10000
+                ]
+              },
+              "hard_split_1": {
+                "quality": [
+                  92,
+                  92
+                ],
+                "cost": [
+                  6.903600000000001,
+                  6.903600000000001
+                ],
+                "latency_ms": [
+                  10000,
+                  10000
+                ]
+              },
+              "hard": {
+                "quality": [
+                  92,
+                  92
+                ],
+                "cost": [
+                  16.2624,
+                  16.2624
+                ],
+                "latency_ms": [
+                  10000,
+                  10000
+                ]
+              }
+            },
+            "eligible_models": {
+              "answer": [
+                "strong"
+              ],
+              "hard_split_0": [
+                "strong"
+              ],
+              "hard_split_1": [
+                "strong"
+              ],
+              "hard": [
+                "strong"
+              ]
+            },
+            "scheduled_latency_bounds_ms": [
+              40000.0,
+              40000.0
+            ],
+            "execution_policy": {
+              "policy_version": "topological-list-v1",
+              "max_concurrency": 1,
+              "provider_concurrency": {},
+              "provider_min_interval_ms": {}
+            },
+            "combinations": 1,
+            "feasible_combinations": 1,
+            "prediction": {
+              "cost": 36.964400000000005,
+              "serial_latency_ms": 40000,
+              "scheduled_latency_ms": 40000.0,
+              "schedule": {
+                "makespan_ms": 40000.0,
+                "nodes": {
+                  "hard_split_0": {
+                    "start_ms": 0.0,
+                    "end_ms": 10000.0,
+                    "queue_ms": 0.0
+                  },
+                  "hard_split_1": {
+                    "start_ms": 10000.0,
+                    "end_ms": 20000.0,
+                    "queue_ms": 10000.0
+                  },
+                  "hard": {
+                    "start_ms": 20000.0,
+                    "end_ms": 30000.0,
+                    "queue_ms": 0.0
+                  },
+                  "answer": {
+                    "start_ms": 30000.0,
+                    "end_ms": 40000.0,
+                    "queue_ms": 0.0
+                  }
+                }
+              },
+              "mean_node_quality_proxy": 92.0,
+              "weighted_score": null
+            },
+            "nodes": {
+              "answer": {
+                "model_id": "strong",
+                "node_type": "generation",
+                "quality": 92,
+                "cost": 6.908000000000001,
+                "latency_ms": 10000,
+                "samples": 0,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 18896,
+                "input_max_tokens": 18897
+              },
+              "hard_split_0": {
+                "model_id": "strong",
+                "node_type": "extraction",
+                "quality": 92,
+                "cost": 6.890400000000001,
+                "latency_ms": 10000,
+                "samples": 0,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18864,
+                "input_max_tokens": 18865
+              },
+              "hard_split_1": {
+                "model_id": "strong",
+                "node_type": "extraction",
+                "quality": 92,
+                "cost": 6.903600000000001,
+                "latency_ms": 10000,
+                "samples": 0,
+                "difficulty": "low",
+                "risk": "low",
+                "input_min_tokens": 18888,
+                "input_max_tokens": 18889
+              },
+              "hard": {
+                "model_id": "strong",
+                "node_type": "synthesis",
+                "quality": 92,
+                "cost": 16.2624,
+                "latency_ms": 10000,
+                "samples": 0,
+                "difficulty": "medium",
+                "risk": "medium",
+                "input_min_tokens": 52672,
+                "input_max_tokens": 52673
+              }
+            }
+          },
+          "added_nodes": [
+            "hard_split_0",
+            "hard_split_1"
+          ]
+        }
+      ]
+    },
+    "cost_breakdown": {
+      "planning": 0,
+      "dynamic_planning": 0.04235,
+      "execution": 2.67355,
+      "evaluation": 0.85
+    },
+    "result_path": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v2/controlled_dynamic_split/20260910T083120Z-d611206bee9d/result.json",
+    "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v2/controlled_dynamic_split/20260910T083120Z-d611206bee9d",
+    "usage": {
+      "input_tokens": 5351,
+      "output_tokens": 1207,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 0
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "artifact_hashes": {
+      "answer.md": "618fcce234aed4f9dd8ed0867929ddb753cfb5e65a44181d80251e855b76d83e",
+      "manifest.json": "18f46adf1fd56bc70b085150c4822cc876619ae013895b2c47917dc6c09f0491",
+      "plan.json": "78dd6d0f9c22cce31868437af72644fa04d01627eb5c0ce726788aa76d1499c6",
+      "profile.json": "9ff7c24f3ffd1e0717789b3accc37f5c401f1a743637c7690c9838ecbf3cf52e",
+      "provider-config.json": "a9acf9f56c499ddfb19fd26d2230a87185a6aa1981b852c18c20b83be825b156",
+      "request.json": "ada55ac59f89dc42b92057306c080019d8c23193c1495b98e008e31b46d3d0bd",
+      "result.json": "ed26b19acb5243127966f4cfa6788c92a266bbaa3b1d4a3fc50ed00e4ebfcc04"
+    }
+  }
+]

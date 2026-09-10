@@ -64,7 +64,9 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
                 'cost': input_forecast / 1000 * model.input_cost_per_1k + output / 1000 * model.output_cost_per_1k,
                 **selector}
             key = (model.model_id, node.node_type, *selector.values())
-            rows[key] = row
+            # 相同画像区间可能覆盖不同父输出预测；共享行取较大费用，避免遍历顺序低估。
+            if key not in rows or row['cost'] > rows[key]['cost']:
+                rows[key] = row
             basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': input_forecast,
                 'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]'}
             if input_forecasts is not None:

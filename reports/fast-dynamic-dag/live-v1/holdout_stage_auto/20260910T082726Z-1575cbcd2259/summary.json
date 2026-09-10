@@ -1,0 +1,289 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260910T082726Z-1575cbcd2259",
+  "mode": "live",
+  "strategy": "economy",
+  "strategy_name": "省成本",
+  "policy_version": "refractagent-presets-v1",
+  "status": "completed",
+  "answer": "原始排程（第 0 天开始，不考虑周末）：\n\n- X 手续：第 0—2 天\n- Y 运输：第 2—6 天，依赖 X 完成\n- Z 灯光准备：第 0—3 天，无 X 前置依赖，可独立开始\n- U 搭建：第 6—9 天，依赖 Y 和 Z 都完成\n- V 验收：第 9—11 天，依赖 U 完成\n\n原始总工期：11 天  \n原始关键链：X→Y→U→V\n\n费用核算：\n\n- 手续 X：300 元\n- 运输 Y：700 元\n- 搭建 U：1600 元\n- 灯光 Z：800 元\n\n四项费用合计：300 + 700 + 1600 + 800 = 3400 元  \n总预算：4000 元  \n预算余额：4000 - 3400 = 600 元\n\nZ 额外延误 5 天后的排程：\n\n- X 手续：第 0—2 天\n- Y 运输：第 2—6 天，依赖 X 完成\n- Z 灯光准备：第 0—8 天，无 X 前置依赖，因额外延误 5 天，由原第 3 天结束延至第 8 天结束\n- U 搭建：第 8—11 天，依赖 Y 和 Z 都完成；因 Z 第 8 天完成，晚于 Y 的第 6 天完成，故 U 从第 8 天开始\n- V 验收：第 11—13 天，依赖 U 完成\n\n延误后总工期：13 天  \n延误后关键链：Z→U→V\n\n说明：Z 没有 X 前置依赖，因此 Z 延误不会通过 X 或 Y 传导，而是直接影响 U 的最早开始时间，使关键链从原来的 X→Y→U→V 变为 Z→U→V。未新增任何依赖或费用。",
+  "issues": [],
+  "models": {
+    "schedule": "deepseek-v4-pro",
+    "cost": "deepseek-v4-pro",
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "schedule": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    },
+    "cost": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    },
+    "answer": {
+      "id": "strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "judge",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 100,
+    "passed": true,
+    "rationale": "被评估文本与任务及所附 Python 依据一致：原始排程为 X 第 0—2 天、Y 第 2—6 天、Z 第 0—3 天、U 第 6—9 天、V 第 9—11 天，总工期 11 天，关键链 X→Y→U→V；Z 延误 5 天后为 Z 第 0—8 天、U 第 8—11 天、V 第 11—13 天，总工期 13 天，关键链 Z→U→V，且明确 Z 无 X 前置依赖；费用 300+700+1600+800=3400 元，预算 4000 元，余额 600 元。未新增依赖或费用，也未保留错误链。",
+    "criteria": [
+      {
+        "criterion": "正确给出五项工作起止时间、原始总工期与关键链。",
+        "passed": true,
+        "rationale": "五项工作起止时间、总工期 11 天与关键链 X→Y→U→V 均正确，且与依据数据一致。"
+      },
+      {
+        "criterion": "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+        "passed": true,
+        "rationale": "Z 延至第 0—8 天，U 改为第 8—11 天，V 改为第 11—13 天，总工期 13 天，关键链改为 Z→U→V，并明确 Z 无 X 前置依赖。"
+      },
+      {
+        "criterion": "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。",
+        "passed": true,
+        "rationale": "四项费用分别列出并合计 3400 元，预算 4000 元，余额 600 元；最终答案同时完整呈现原始与延误后的排程及费用。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 2.89385,
+    "evaluation": 1.992,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 30202,
+  "plan_origin": "model",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "schedule",
+        "node_type": "synthesis",
+        "prompt_template": "计算五项工作最早起止时间、原始总工期与关键链；再计算Z延误5天后的排程与关键链，标注Z无X依赖。",
+        "parents": [],
+        "contract": {
+          "objective": "计算五项工作最早起止时间、原始总工期与关键链；再计算Z延误5天后的排程与关键链，标注Z无X依赖。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "计算五项工作最早起止时间、原始总工期与关键链；再计算Z延误5天后的排程与关键链，标注Z无X依赖。"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 4852,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "cost",
+        "node_type": "synthesis",
+        "prompt_template": "独立核算手续300、运输700、搭建1600、灯光800四项费用，计算总费用与预算4000的余额。",
+        "parents": [],
+        "contract": {
+          "objective": "独立核算手续300、运输700、搭建1600、灯光800四项费用，计算总费用与预算4000的余额。",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "独立核算手续300、运输700、搭建1600、灯光800四项费用，计算总费用与预算4000的余额。"
+            }
+          },
+          "capability": {
+            "difficulty": "low",
+            "risk": "low",
+            "input_budget_tokens": 4773,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "汇总排程与费用结果，完整呈现五项起止时间、原始及延误后总工期与关键链、费用明细和预算余额，核对无新增依赖或费用。",
+        "parents": [
+          "schedule",
+          "cost"
+        ],
+        "contract": {
+          "objective": "汇总排程与费用结果，完整呈现五项起止时间、原始及延误后总工期与关键链、费用明细和预算余额，核对无新增依赖或费用。",
+          "inputs": {
+            "schedule": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            },
+            "cost": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 38068,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "正确给出五项工作起止时间、原始总工期与关键链。",
+            "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+            "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "正确给出五项工作起止时间、原始总工期与关键链。",
+      "正确计算 Z 延误 5 天的影响及关键链，Z 没有 X 前置依赖。",
+      "独立核算四项费用及预算余额，最终答案完整呈现排程与费用。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "排程与费用为两个独立核算分支，可并行；随后汇总节点合并结果并核对原始事实与延误影响。"
+  },
+  "plan_admission": {
+    "schedule": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 4819,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 4851,
+        "forecast_input_tokens": 4851
+      }
+    },
+    "cost": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 4740,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 4772,
+        "forecast_input_tokens": 4772
+      }
+    },
+    "answer": {
+      "eligible_models": [
+        "strong"
+      ],
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 5268,
+        "upstream_allowance": 32768,
+        "estimated_input_bound": 38068,
+        "forecast_input_tokens": 21300
+      }
+    }
+  },
+  "planner": {
+    "model_id": "cheap",
+    "basis": "configured-latency-then-price",
+    "output_cap": 1200,
+    "timeout_ms": 12000
+  },
+  "plan_ready_ms": 1988,
+  "content_validation": {
+    "source_status": "supported",
+    "passed": true,
+    "invalid_edges": [],
+    "missing_paths": []
+  },
+  "dynamic_decomposition": {
+    "policy_version": "drain-and-graft-v1",
+    "max_splits": 1,
+    "max_total_nodes": 8,
+    "max_subplan_nodes": 3,
+    "max_depth": 1,
+    "events": []
+  },
+  "cost_breakdown": {
+    "planning": 0.04375,
+    "dynamic_planning": 0,
+    "execution": 2.8501000000000003,
+    "evaluation": 1.992
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v1/holdout_stage_auto/20260910T082726Z-1575cbcd2259/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-dag/reports/fast-dynamic-dag/live-v1/holdout_stage_auto/20260910T082726Z-1575cbcd2259",
+  "usage": {
+    "input_tokens": 6428,
+    "output_tokens": 1621,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "7877b81270ad960bc88ceadf949eb9764b0bc4ca96b033e7c8ca616c6e5247ab",
+    "manifest.json": "18f46adf1fd56bc70b085150c4822cc876619ae013895b2c47917dc6c09f0491",
+    "plan.json": "012c91c46f84d0ae785225b0809d09e86a4a988c31bf3187945daf05e2c4434c",
+    "profile.json": "14a35ab131eaa5ec8a4649c2bc1c2206efd73f52d00c40dce8eccfb7eceab5b5",
+    "provider-config.json": "a9acf9f56c499ddfb19fd26d2230a87185a6aa1981b852c18c20b83be825b156",
+    "request.json": "1037f4d3c9b83934665152998e9ad43d8d3ce38b21f6e98a2cc37e13d2bac1aa",
+    "result.json": "9fd6bfebf9a812626f06da023042d957f5376d20530b3aa79db400852d476cd2"
+  }
+}

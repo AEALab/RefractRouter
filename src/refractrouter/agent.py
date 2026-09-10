@@ -78,7 +78,9 @@ def plan_template(name, criteria=None):
 
 
 def build_request(payload, *, mode, production_budget, timeout_ms):
-    if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs'}:
+    if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
+            'planningMode', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
+            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies'}:
         raise ValueError('invalid RefractAgent request fields')
     strategy = payload.get('strategy', 'balanced')
     if not isinstance(strategy, str) or strategy not in PRESETS:
@@ -96,12 +98,19 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
     if plan is not None:
         request['plan'] = plan
     if automatic:
-        repairs = payload.get('maxPlanRepairs', 1)
+        repairs = payload.get('maxPlanRepairs', 0)
         if type(repairs) is not int or not 0 <= repairs <= 1:
             raise ValueError('maxPlanRepairs must be an integer in 0..1')
         request['maxPlanRepairs'] = repairs
+        request['planningMode'] = payload.get('planningMode','compact')
+        request['maxDynamicSplits'] = payload.get('maxDynamicSplits',1)
     elif 'maxPlanRepairs' in payload:
         raise ValueError('maxPlanRepairs requires the automatic template')
+    request['verifyDependencies'] = payload.get('verifyDependencies',True)
+    for key in ('plannerModelId','plannerMaxOutputTokens','plannerTimeoutMs','maxDynamicSplits',
+                'maxConcurrency','providerConcurrency','providerMinIntervalMs'):
+        if key in payload:
+            request[key] = payload[key]
     if criteria is not None:
         request['acceptanceCriteria'] = criteria
     del request['name']
@@ -153,7 +162,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
                                              if m.role == 'candidate' and m.wire_api != 'responses' else m for m in manifest.models))
     if payload.get('template') == 'auto' and 'plan' not in payload:
-        request['maxConcurrency'] = 1 if any(m.wire_api == 'dsh-llm' for m in manifest.models) else 2
+        request['maxConcurrency'] = payload.get('maxConcurrency',
+            1 if any(m.wire_api == 'dsh-llm' for m in manifest.models) else 4)
     if configured:
         manifest_data = {'schema_version': manifest.schema_version, 'billing_unit': manifest.billing_unit,
                          'models': [asdict(m) for m in manifest.models]}
@@ -226,9 +236,13 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],
         'plan_origin': result['plan_origin'], 'plan': result['plan'],
         'plan_admission': result.get('plan_admission'),
+        'planner': result.get('planner_selection'), 'plan_ready_ms': result.get('plan_ready_ms'),
+        'content_validation': result.get('content_validation'),
+        'dynamic_decomposition': result.get('dynamic_decomposition'),
         'cost_breakdown': {
             'planning': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] in {'planner','planner-repair'}),
-            'execution': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] not in {'planner','planner-repair'}),
+            'dynamic_planning': sum(c['charged'] for c in calls if c['category']=='production' and c['label'].startswith('dynamic-planner-')),
+            'execution': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] not in {'planner','planner-repair'} and not c['label'].startswith('dynamic-planner-')),
             'evaluation': sum(c['charged'] for c in calls if c['category']=='evaluation'),
         },
         'result_path': str(result_path), 'run_dir': str(directory),

@@ -319,3 +319,22 @@ test('node effort profiles pass to Python and selected efforts survive display a
   assert.deepEqual(replay.response.refractagent.modelRoutes,modelRoutes)
   assert.deepEqual(replay.response.refractagent.evaluationModel,evaluationModel)
 })
+
+test('automatic mode reports progress before spawning and forwards bounded planning controls', async()=>{
+  const f=fixture()
+  const adapter=createAdapter(f.ctx,configure({template:'auto',plannerModelId:'small',
+    plannerTimeoutMs:8000,plannerMaxOutputTokens:900,maxDynamicSplits:1,maxConcurrency:3,verifyDependencies:true}))
+  const stream=adapter.stream(options)[Symbol.asyncIterator]()
+  assert.equal((await stream.next()).value?.type,'block-start')
+  const progress=(await stream.next()).value
+  assert.equal(progress?.type,'reasoning-delta')
+  assert.match(String(progress?.text),/正在/)
+  assert.equal(f.spawns.length,0)
+  while(!(await stream.next()).done) {}
+  const spawn=f.spawns[0]!
+  const payload=JSON.parse(spawn.input())
+  assert.equal(payload.plannerModelId,'small')
+  assert.equal(payload.maxDynamicSplits,1)
+  assert.equal(payload.maxConcurrency,3)
+  assert.equal(payload.verifyDependencies,true)
+})

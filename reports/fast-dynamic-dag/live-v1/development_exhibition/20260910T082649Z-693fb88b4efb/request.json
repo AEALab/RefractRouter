@@ -1,0 +1,38 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "为一个虚构展览制定准备建议。第 0 天开始，手续 A 需要 2 天；运输 B 需要 3 天且必须等 A 完成；版面设计 C 需要 4 天，可在第 0 天独立开始；布展 D 需要 2 天，必须等 B 和 C 都完成；验收 E 需要 1 天，必须等 D 完成。各项连续执行，不考虑周末。费用为采购 1200 元、运输 800 元、布展 1500 元、设计 900 元，总预算 4600 元。分别给出最早开始和完成时间、决定总工期的依赖链、预算核算，最后说明如果 C 额外延误 2 天会怎样。没有给定的费用不得虚构。请分步骤执行：独立核对排程和费用，再综合两者给出最终安排。",
+    "acceptanceCriteria": [
+      "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+      "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+      "正确核算费用和预算余额，最终交付包含排程与费用。"
+    ],
+    "strategy": "economy",
+    "template": "auto",
+    "maxDynamicSplits": 1
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "为一个虚构展览制定准备建议。第 0 天开始，手续 A 需要 2 天；运输 B 需要 3 天且必须等 A 完成；版面设计 C 需要 4 天，可在第 0 天独立开始；布展 D 需要 2 天，必须等 B 和 C 都完成；验收 E 需要 1 天，必须等 D 完成。各项连续执行，不考虑周末。费用为采购 1200 元、运输 800 元、布展 1500 元、设计 900 元，总预算 4600 元。分别给出最早开始和完成时间、决定总工期的依赖链、预算核算，最后说明如果 C 额外延误 2 天会怎样。没有给定的费用不得虚构。请分步骤执行：独立核对排程和费用，再综合两者给出最终安排。",
+    "mode": "run",
+    "costMax": 40,
+    "latencyMaxMs": 180000,
+    "maxConcurrency": 4,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 0,
+    "planningMode": "compact",
+    "maxDynamicSplits": 1,
+    "verifyDependencies": true,
+    "acceptanceCriteria": [
+      "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+      "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+      "正确核算费用和预算余额，最终交付包含排程与费用。"
+    ]
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 40,
+  "evaluation_budget": 40,
+  "max_output_tokens": 2048
+}

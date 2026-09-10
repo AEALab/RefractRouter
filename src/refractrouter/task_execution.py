@@ -10,6 +10,7 @@ from .task_contracts import decode_output
 from .output_constraints import output_constraint_instruction
 from .task_budget import InvalidModelOutput
 from .task_scheduling import available
+from .dependency_guard import NeedsDecomposition, NodeSemanticFailure, decomposition_request
 
 
 class RecoveryEligibleFailure(ValueError):
@@ -55,11 +56,17 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
 
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
                   *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
-                  output_constraints=None, classify_failure=False, dispatch_history=None):
+                  output_constraints=None, classify_failure=False, dispatch_history=None,
+                  dynamic=None, content_guard=None):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
     attempted = {n.node_id: [] for n in plan.nodes}
+    track_attempts = recovery is not None or dynamic is not None
+    if track_attempts:
+        result['initial_assignments'] = dict(assignments)
+        result['assignments'] = assignments
+        result['node_attempts'] = []
     if recovery is not None:
         result['initial_assignments'] = dict(assignments)
         result['assignments'] = assignments
@@ -71,6 +78,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
     pending, completed, active, futures = set(order), set(), {}, {}
     context, critical, ready_at, last_start = {}, {}, {}, {}
     failure = None
+    split_pending = {}
     dispatch_locks = {model.provider: Lock() for model in candidates.values()}
     actual_starts = dispatch_history if dispatch_history is not None else {}
     last_start.update({p: (t - started) * 1000 for p, t in actual_starts.items()})
@@ -79,6 +87,9 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                  'failure_policy': 'stop-dispatch-and-drain', 'started_ms': (time.monotonic() - started) * 1000}
     if recovery is not None:
         execution['failure_policy'] = 'bounded-node-fallback-then-stop-and-drain'
+    if dynamic is not None:
+        execution['failure_policy'] = 'bounded-drain-and-graft-then-stop'
+        result['initial_plan'] = plan.to_dict()
     result['execution'] = execution
 
     def elapsed():
@@ -107,6 +118,12 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
             return None, exc, begin, elapsed()
 
     def recover(nid, row, exc):
+        if (dynamic is not None and dynamic.eligible(nid, plan) and not budget.stopped
+                and time.monotonic() < deadline
+                and not (cancel_event is not None and cancel_event.is_set())):
+            split_pending[nid] = str(exc)
+            row['recovery_status'] = 'waiting-for-dynamic-split'
+            return True
         if (recovery is None or len(attempted[nid]) > recovery.max_fallbacks
                 or budget.stopped or time.monotonic() >= deadline
                 or (cancel_event is not None and cancel_event.is_set())):
@@ -137,6 +154,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
 
     def stop(exc, *, recoverable=False):
         nonlocal failure
+        if cancel_event is not None and cancel_event.is_set():
+            exc, recoverable = CancelledError('task-cancelled'), False
         recoverable_stops.append(recoverable)
         if failure is None:
             failure = exc
@@ -146,12 +165,12 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
             persist()
 
     with ThreadPoolExecutor(max_workers=policy.max_concurrency, thread_name_prefix='refractrouter-node') as executor:
-        while pending or futures:
+        while pending or futures or split_pending:
             if cancel_event is not None and cancel_event.is_set():
                 stop(CancelledError('task-cancelled'))
             if time.monotonic() >= deadline:
                 stop(ValueError('task-deadline-exhausted'))
-            if failure is None:
+            if failure is None and not split_pending:
                 for nid in order:
                     if nid not in pending or not set(nodes[nid].parents) <= completed:
                         continue
@@ -172,7 +191,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         row = {'node_id': nid, 'model_id': model.model_id, 'provider': model.provider,
                                'status': 'scheduled', 'semantic_status': 'not-evaluated', 'ready_ms': ready_at[nid]}
                         attempted[nid].append(model.model_id)
-                        if recovery is not None:
+                        if track_attempts:
                             row.update(attempt=attempt, call_label=label)
                             result['node_attempts'].append(row)
                             result['nodes'][:] = [r for r in result['nodes'] if r['node_id'] != nid]
@@ -189,7 +208,27 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         break
             if not futures:
                 if failure is not None or not pending:
-                    break
+                    if failure is not None or not split_pending:
+                        break
+                if split_pending:
+                    try:
+                        nid = next(iter(split_pending))
+                        plan, new_assignments = dynamic.expand(plan, nid, context, completed,
+                            split_pending[nid], actual_starts)
+                        del split_pending[nid]
+                        order = plan.order()
+                        nodes = {n.node_id: n for n in plan.nodes}
+                        assignments.update(new_assignments)
+                        pending.update(set(order) - completed - set(split_pending))
+                        for key in order:
+                            attempted.setdefault(key, [])
+                        last_start.update({p: (t-started)*1000 for p,t in actual_starts.items()})
+                        result['plan'] = plan.to_dict()
+                        result['plan_analysis'] = plan.diagnostics()
+                        persist()
+                    except Exception as exc:
+                        stop(exc)
+                    continue
                 # 只有派发间隔暂时阻塞就绪节点时才会进入此分支。
                 time.sleep(min(.01, max(0, deadline - time.monotonic())))
                 continue
@@ -215,6 +254,13 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                     row.update(status='invalid-output', output=response.content, latency_ms=response.latency_ms)
                     try:
                         contract = plan.contracts.get(nid)
+                        if dynamic is not None:
+                            requested = decomposition_request(response.content)
+                            if requested:
+                                raise NeedsDecomposition(requested)
+                        if content_guard is not None:
+                            row['content_validation'] = content_guard.check(response.content, final=nid == plan.final_node_id)
+                            content_guard.validate(response.content, final=nid == plan.final_node_id)
                         context[nid] = decode_output(response.content, contract) if contract else response.content
                         row.update(status='ok', contract_status='structure-valid' if contract else 'legacy-unchecked')
                         failed_latency = sum(r['end_ms']-r['start_ms'] for r in result.get('node_attempts', [])
@@ -222,6 +268,11 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         critical[nid] = max((critical[p] for p in nodes[nid].parents), default=0) + response.latency_ms + failed_latency
                         completed.add(nid)
                     except ValueError as exc:
+                        row['error'] = str(exc)[:1000]
+                        if isinstance(exc, NodeSemanticFailure):
+                            row['semantic_status'] = 'failed'
+                            if nid == plan.final_node_id:
+                                result['final_output'] = response.content
                         if classify_failure:
                             row['error_type'] = type(exc).__name__
                         if not recover(nid, row, exc):

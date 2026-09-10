@@ -15,21 +15,25 @@ def audit(directory):
     fingerprint = source.pop('sha256')
     assert hashlib.sha256(json.dumps(source,ensure_ascii=False,sort_keys=True).encode()).hexdigest() == fingerprint
     rows = json.loads((directory/'results.json').read_text())
-    tasks = {t['id']: t for t in frozen['protocol']['tasks'] if t['split'] == frozen['split']}
+    compact = 'runs' in frozen['protocol']
+    tasks = ({t['id']:t for t in frozen['protocol']['runs']} if compact else
+             {t['id']: t for t in frozen['protocol']['tasks'] if t['split'] == frozen['split']})
     seen, calls, edges = set(), [], 0
     checked = []
     for row in rows:
-        pair = (row['task_id'], row['template'])
+        task_id = row['case_id'] if compact else row['task_id']
+        template = tasks[task_id]['template'] if compact else row['template']
+        pair = (task_id, template)
         assert pair not in seen
         seen.add(pair)
-        run = directory/row['task_id']/row['template']/row['run_id']
+        run = directory/task_id/row['run_id'] if compact else directory/task_id/template/row['run_id']
         raw = json.loads((run/'result.json').read_text())
         request = json.loads((run/'request.json').read_text())
         manifest = json.loads((run/'manifest.json').read_text())
         models = {m['model_id']: m for m in manifest['models']}
-        assert request['payload']['task'] == tasks[row['task_id']]['task']
-        assert request['payload']['acceptanceCriteria'] == tasks[row['task_id']]['criteria']
-        if row['template'] == 'auto':
+        assert request['payload']['task'] == tasks[task_id]['task']
+        assert request['payload']['acceptanceCriteria'] == tasks[task_id]['criteria']
+        if template == 'auto':
             assert 'plan' not in request['runtime_request'] and raw['plan_origin']=='model'
         total = {'production': 0., 'evaluation': 0.}
         call_by_node = {}
@@ -61,7 +65,7 @@ def audit(directory):
         for node in (raw.get('plan') or {}).get('nodes',[]):
             if node['node_id'] not in actual or actual[node['node_id']]['status']!='ok':
                 continue
-            payload = json.loads(call_by_node[node['node_id']]['request_messages'][-1]['content'])
+            payload = json.loads(call_by_node[actual[node['node_id']].get('call_label',node['node_id'])]['request_messages'][-1]['content'])
             assert set(payload['upstream']) == set(node['parents'])
             for parent, contract in node['contract']['inputs'].items():
                 assert actual[parent]['end_ms'] <= actual[node['node_id']]['start_ms']
@@ -72,21 +76,31 @@ def audit(directory):
                 edges += 1
         grade = raw.get('evaluation')
         if row['status']=='completed':
-            assert grade and grade['passed'] and grade['score'] >= frozen['protocol']['quality_min']
+            assert grade and grade['passed'] and grade['score'] >= (frozen['configuration']['qualityMin'] if compact else frozen['protocol']['quality_min'])
             assert len(actual)==len(raw['plan']['nodes'])
             assert all(n['status']=='ok' for n in actual.values())
             assert raw['final_output']==actual[raw['plan']['final_node_id']]['output']
             assert raw['final_output']==(run/'answer.md').read_text()==row['answer']
-        checked.append({'task':row['task_id'], 'template':row['template'], 'status':row['status'],
+        for event in raw.get('dynamic_decomposition',{}).get('events',[]):
+            assert event['status']=='admitted'
+            assert hashlib.sha256(json.dumps(event['upstream'],sort_keys=True,ensure_ascii=False).encode()).hexdigest()==event['upstream_sha256']
+            for nid in event['completed_nodes']:
+                assert len([n for n in raw['node_attempts'] if n['node_id']==nid])==1
+            assert len(event['plan']['nodes'])<=8
+        checked.append({'task':task_id, 'template':template,
+            'plan_ready_ms':row.get('plan_ready_ms'), 'content_validation':row.get('content_validation'),
+            'dynamic_events':len(raw.get('dynamic_decomposition',{}).get('events',[])),
+            'dynamic_planning_afp':row['cost_breakdown'].get('dynamic_planning',0), 'status':row['status'],
             'nodes':len(actual), 'score':grade['score'] if grade else None,
             'planning_afp':row['cost_breakdown']['planning'], 'execution_afp':row['cost_breakdown']['execution'],
             'evaluation_afp':row['cost_breakdown']['evaluation'], 'total_afp':sum(total.values()),
             'wall_time_ms':raw['wall_time_ms'], 'node_execution_ms':raw.get('execution',{}).get('wall_time_ms'),
             'peak_running_nodes':raw.get('execution',{}).get('peak_running_nodes',0)})
-    assert len(calls) <= frozen['maximum_calls']
+    assert len(calls) <= (frozen['limits']['maximum_calls'] if compact else frozen['maximum_calls'])
     for kind in ('production','evaluation'):
-        assert sum(c['charged'] for c in calls if c['category']==kind) <= frozen['budget'][kind]
-    expected = {(t, template) for t in tasks for template in frozen['protocol']['order']}
+        assert sum(c['charged'] for c in calls if c['category']==kind) <= (frozen['limits'][kind+'_per_run']*len(tasks) if compact else frozen['budget'][kind])
+    expected = ({(t,v['template']) for t,v in tasks.items()} if compact else
+                {(t, template) for t in tasks for template in frozen['protocol']['order']})
     return {'verified':True,'complete':seen==expected,'files':len(index),'calls':len(calls),'checked_handoffs':edges,
         'total_afp':sum(c['charged'] for c in calls), 'comparisons':checked,
         'scope':'仅核对结构交接与账本；模型是否正确理解上游语义仍由最终评审及材料复核判断。'}

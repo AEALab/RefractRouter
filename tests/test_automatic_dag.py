@@ -4,11 +4,18 @@ from dataclasses import replace
 import json
 from pathlib import Path
 
-from refractrouter.agent import run_agent
+from refractrouter.agent import run_agent as application_run_agent
 from refractrouter.agent_cli import main
 from refractrouter.task_runtime import run_task
 from tests.test_provider_configuration import configuration
 from tests.test_text_tasks import Client, MANIFEST, PROFILE, REQUEST
+
+
+def run_agent(payload, **kwargs):
+    # 保留完整契约规划的兼容性回归；紧凑自动默认值由单独测试覆盖。
+    if payload.get('template') == 'auto':
+        payload = {'planningMode': 'full', 'maxPlanRepairs': 1, 'maxDynamicSplits': 0, **payload}
+    return application_run_agent(payload, **kwargs)
 
 
 def config():
@@ -26,7 +33,7 @@ def test_automatic_application_plans_executes_and_saves_compiled_profile(tmp_pat
     assert result['status'] == 'completed', result['issues']
     assert result['plan_origin'] == 'model'
     assert len(client.calls) == 5
-    assert client.calls[0][0].model_id == 'better'
+    assert client.calls[0][0].model_id == 'fast'
     assert set(result['models']) == {'cost', 'risk', 'answer'}
     payload = json.loads(client.calls[0][1][-1]['content'])
     support = payload['execution_support']

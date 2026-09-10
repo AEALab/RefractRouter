@@ -1,0 +1,118 @@
+{
+  "nodes": [
+    {
+      "node_id": "schedule",
+      "node_type": "extraction",
+      "prompt_template": "计算A-E最早开始/完成时间，识别B、C汇合条件，确定总工期与关键链，并分析C延误2天对总工期的影响。",
+      "parents": [],
+      "contract": {
+        "objective": "计算A-E最早开始/完成时间，识别B、C汇合条件，确定总工期与关键链，并分析C延误2天对总工期的影响。",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "计算A-E最早开始/完成时间，识别B、C汇合条件，确定总工期与关键链，并分析C延误2天对总工期的影响。"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 4906,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+        ],
+        "covers": [],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "budget",
+      "node_type": "extraction",
+      "prompt_template": "核算采购、运输、布展、设计四项费用总和，对比总预算4600元，计算余额；不虚构未给定费用。",
+      "parents": [],
+      "contract": {
+        "objective": "核算采购、运输、布展、设计四项费用总和，对比总预算4600元，计算余额；不虚构未给定费用。",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "核算采购、运输、布展、设计四项费用总和，对比总预算4600元，计算余额；不虚构未给定费用。"
+          }
+        },
+        "capability": {
+          "difficulty": "low",
+          "risk": "low",
+          "input_budget_tokens": 4868,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+        ],
+        "covers": [],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "综合排程与费用结果，完整呈现五项工作最早开始/结束时间、总工期、关键依赖链、C延误影响、费用核算与预算余额，并核对原始事实无遗漏。",
+      "parents": [
+        "schedule",
+        "budget"
+      ],
+      "contract": {
+        "objective": "综合排程与费用结果，完整呈现五项工作最早开始/结束时间、总工期、关键依赖链、C延误影响、费用核算与预算余额，并核对原始事实无遗漏。",
+        "inputs": {
+          "schedule": {
+            "fields": [
+              "text"
+            ],
+            "reason": "当前职责消费该上游节点的结果。"
+          },
+          "budget": {
+            "fields": [
+              "text"
+            ],
+            "reason": "当前职责消费该上游节点的结果。"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 38177,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+          "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+          "正确核算费用和预算余额，最终交付包含排程与费用。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "正确给出五项工作的最早开始和结束时间，不遗漏 B、C 汇合条件。",
+    "给出总工期和关键依赖链，并正确计算 C 延误 2 天的影响。",
+    "正确核算费用和预算余额，最终交付包含排程与费用。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "任务包含排程计算与费用核算两个独立分析分支，可并行；最后需综合两者并核对依赖与延误影响。"
+}

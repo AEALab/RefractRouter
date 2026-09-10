@@ -37,6 +37,12 @@ interface Configuration {
   providerConfig?: ProviderConfiguration
   template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
+  plannerModelId?: string
+  plannerTimeoutMs?: number
+  plannerMaxOutputTokens?: number
+  maxDynamicSplits?: number
+  maxConcurrency?: number
+  verifyDependencies?: boolean
 }
 interface ModelOptions {
   provider: string
@@ -91,7 +97,8 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
     preset: undefined as unknown, providerConfig: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
-    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'outputConstraints'])
+    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'outputConstraints',
+    'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
     if (typeof result[key] !== 'string' || !result[key].trim()) throw new Error(`invalid ${key}`)
@@ -107,6 +114,13 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(result.credentialEnv)) throw new Error('invalid credentialEnv')
   if (result.preset !== undefined && result.preset !== 'ark-agent-plan') throw new Error('unknown provider preset')
   if (raw.outputConstraints !== undefined) result.outputConstraints = decodeOutputConstraints(raw.outputConstraints)
+  for (const key of ['plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency']) {
+    if (raw[key] !== undefined && (typeof raw[key] !== 'number' || !Number.isSafeInteger(raw[key]) || raw[key] < 0)) {
+      throw new Error(`invalid ${key}`)
+    }
+  }
+  if (raw.plannerModelId !== undefined && (typeof raw.plannerModelId !== 'string' || !raw.plannerModelId.trim())) throw new Error('invalid plannerModelId')
+  if (raw.verifyDependencies !== undefined && typeof raw.verifyDependencies !== 'boolean') throw new Error('invalid verifyDependencies')
   if (result.providerConfig !== undefined) {
     if (result.preset !== undefined) throw new Error('providerConfig and preset are mutually exclusive')
     const config = result.providerConfig
@@ -163,6 +177,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.preset) throw new Error('configure providerConfig or explicitly choose preset: ark-agent-plan')
   const payload = { ...conversation(options), strategy: options.model, template: config.template,
+    ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
+      .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),
     ...(config.outputConstraints ? { outputConstraints: config.outputConstraints } : {}),
     temperature: options.temperature ?? 0, ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}) }
   const routes: ModelRoute[] = []
@@ -293,6 +309,12 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
     prepareCall: async (provider, model) => ({ model: metadata(provider, model), stream: options => adapter.stream(options) }),
     async *stream(options) {
       metadata(options.provider, options.model)
+      const pending = config.template === 'auto' ? (config.executionMode === 'live'
+        ? '正在快速拆分任务，随后执行可并行的步骤。\n' : '正在预览自动拆分流程。\n') : ''
+      if (pending) {
+        yield { type: 'block-start', index: 0, blockType: 'reasoning' }
+        yield { type: 'reasoning-delta', index: 0, text: pending }
+      }
       const result = await invoke(ctx, config, options)
       const info = `${result.simulated ? '【模拟演示，无真实模型调用】' : ''}策略：${String(result.strategy_name)}；`
         + `模型：${JSON.stringify(result.model_routes ?? result.models)}；状态：${String(result.status)}；`
@@ -300,12 +322,14 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
         + `长度检查：${formatValidationSummary(result.format_validation)}；`
         + (object(result.plan) && Array.isArray(result.plan.nodes) ? `计划：${String(result.plan_origin)}，${result.plan.nodes.length} 个节点；` : '')
         + (typeof result.wall_time_ms === 'number' ? `总耗时：${(result.wall_time_ms / 1000).toFixed(2)} 秒；` : '')
+        + (typeof result.plan_ready_ms === 'number' ? `计划就绪：${(result.plan_ready_ms / 1000).toFixed(2)} 秒；` : '')
+        + (object(result.content_validation) ? `依赖复核：${JSON.stringify(result.content_validation)}；` : '')
         + (object(result.cost_breakdown) ? `规划／执行／评审：${JSON.stringify(result.cost_breakdown)} ${String(result.billing_unit)}；` : '')
         + `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}；记录：${String(result.result_path)}`
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
-      yield { type: 'block-start', index: 0, blockType: 'reasoning' }
+      if (!pending) yield { type: 'block-start', index: 0, blockType: 'reasoning' }
       yield { type: 'reasoning-delta', index: 0, text: info }
-      yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: info } }
+      yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: pending + info } }
       yield { type: 'block-start', index: 1, blockType: 'text' }
       yield { type: 'text-delta', index: 1, text: result.answer }
       yield { type: 'block-end', index: 1, block: { type: 'text', text: result.answer } }
@@ -318,6 +342,8 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
           status: result.status, generationStatus: result.generation_status, quality: result.quality,
           formatValidation: result.format_validation,
           plan: result.plan, planOrigin: result.plan_origin, wallTimeMs: result.wall_time_ms,
+          planner: result.planner, planReadyMs: result.plan_ready_ms,
+          contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
           costs: result.costs, simulated: result.simulated, resultPath: result.result_path },
       } } }
