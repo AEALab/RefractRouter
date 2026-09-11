@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"任务需核对流程依赖与现状，先并行提取流程规则与现状事实，再综合判断各步骤状态，最后汇总输出结论与依据。\",\"nodes\":[{\"id\":\"extract_flow\",\"type\":\"extraction\",\"job\":\"从流程材料提取步骤间依赖关系：打包结束才能签名，签名通过才能发布；检查报告仅证明打包成功，不证明签名完成。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"extract_state\",\"type\":\"extraction\",\"job\":\"从现状材料提取当前状态：打包已结束并通过检查，签名未执行，负责人要求直接发布。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"synthesize_status\",\"type\":\"synthesis\",\"job\":\"结合流程依赖与现状，判断打包、签名、发布各自是否可执行：打包已结束可执行；签名因打包结束可执行；发布因签名未通过而不可执行。\",\"parents\":[\"extract_flow\",\"extract_state\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"输出中文说明：结论为打包和签名可执行，发布被阻塞；依据为流程依赖与现状；限制为检查报告不能替代签名；权衡为负责人要求直接发布违反流程，需先签名。同时输出 findings 列表，含 allowed_now、blocked_now、required_edge 及 sources。\",\"parents\":[\"synthesize_status\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 642,
+  "output_tokens": 321,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2292,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890602132989255aa03547266d00c3fa3dce78057f17ebef8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 321,
+    "prompt_tokens": 642,
+    "total_tokens": 963,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

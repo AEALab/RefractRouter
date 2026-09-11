@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正文与 findings 均正确反映流程约束：打包完成后仅允许签名，发布被阻塞，发布直接前置边为[签名,发布]，且明确否定检查通过即可直接发布。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文说明当前只能签名、发布被阻塞，符合 s1 的“打包结束才能签名；签名通过才能发布”和 s2 的“签名未执行；负责人要求现在直接发布”。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 allowed_now=[签名]、blocked_now=[发布]、required_edge=[签名,发布]，与正文一致；未把检查报告扩大为签名完成。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 requested_findings 键均给出；allowed/blocked 由 s1 流程与 s2 现状共同支持，required_edge 由 s1 的发布前置关系支持。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确“检查报告只证明打包成功，不能替代签名完成，所以不能据此直接发布”，未倒写依赖。\"}]}",
+  "input_tokens": 805,
+  "output_tokens": 309,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10946,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059795752ed0e184fb98d17720dee9f0ee33ee7e12b3a93",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 309,
+    "prompt_tokens": 805,
+    "total_tokens": 1114,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "label": "analysis-02-r1-direct-or-dag:planner",
+  "content": "{\"reason\": \"模拟根据材料数量生成不同节点数，仅检验调度。\", \"nodes\": [{\"id\": \"part0\", \"type\": \"extraction\", \"job\": \"分析第1部分并保留证据。\", \"parents\": [], \"difficulty\": \"low\", \"risk\": \"low\"}, {\"id\": \"part1\", \"type\": \"extraction\", \"job\": \"分析第2部分并保留证据。\", \"parents\": [], \"difficulty\": \"low\", \"risk\": \"low\"}, {\"id\": \"answer\", \"type\": \"generation\", \"job\": \"完整回答全部要求。\", \"parents\": [\"part0\", \"part1\"], \"difficulty\": \"medium\", \"risk\": \"medium\"}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null
+}

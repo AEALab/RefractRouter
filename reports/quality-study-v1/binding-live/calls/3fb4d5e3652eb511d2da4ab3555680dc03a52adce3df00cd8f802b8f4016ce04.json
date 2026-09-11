@@ -1,0 +1,24 @@
+{
+  "label": "setup:rules-02",
+  "content": "{\"reason\":\"核对流程与现状，判断可执行与阻塞步骤，并提取发布前置边。\",\"nodes\":[{\"id\":\"extract_flow\",\"type\":\"extraction\",\"job\":\"从流程材料提取步骤依赖：打包结束→签名，签名通过→发布；检查报告仅证明打包成功。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"assess_state\",\"type\":\"extraction\",\"job\":\"从现状材料提取当前状态：打包已结束并通过检查，签名未执行，负责人要求直接发布。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"synthesize\",\"type\":\"synthesis\",\"job\":\"结合流程与现状，判断签名可执行（打包已结束），发布被阻塞（签名未通过），发布前置边为[签名通过,发布]。\",\"parents\":[\"extract_flow\",\"assess_state\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"输出中文结论：签名可执行，发布被阻塞，发布直接前置边为签名通过→发布；检查通过不构成发布条件。\",\"parents\":[\"synthesize\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 642,
+  "output_tokens": 257,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3370,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890595244808878e6c95084a12b4d57c4d96cb06f1d6e75a8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 257,
+    "prompt_tokens": 642,
+    "total_tokens": 899,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

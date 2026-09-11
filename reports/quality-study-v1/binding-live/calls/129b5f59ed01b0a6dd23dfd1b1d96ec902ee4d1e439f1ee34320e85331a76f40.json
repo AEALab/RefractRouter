@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-single-2:assess_state",
+  "content": "结论：当前状态是“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”。\n\n依据：现状材料 s2 明确写明“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”。流程材料 s1 说明“打包结束才能签名；签名通过才能发布”，并强调“检查报告只证明打包成功，不代表签名完成”。\n\n限制：本节点只提取现状，不判断发布是否合规，也不把“负责人要求直接发布”等同于“发布已具备前置条件”。检查通过不能替代签名完成。\n\n权衡：现状中同时存在“签名未执行”和“负责人要求直接发布”，二者是事实并存，不是依赖关系成立。",
+  "input_tokens": 559,
+  "output_tokens": 144,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3383,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890598430643d763aaa7a5e423f9e5323a8c500bc9fdf12e5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 144,
+    "prompt_tokens": 559,
+    "total_tokens": 703,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

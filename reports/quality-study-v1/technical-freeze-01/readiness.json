@@ -1,0 +1,27 @@
+{
+  "schema_version": "quality-technical-readiness-v1",
+  "technical_checks": {
+    "material_reference_recalculation": true,
+    "current_development_controls_have_real_judge_evidence": true,
+    "statistics_and_operating_thresholds_frozen": true,
+    "all_routes_bound_and_rehearsed": true,
+    "real_runner_usage_reconciled": true,
+    "rehearsal_execution_and_policy_match": true,
+    "real_execution_and_policy_match": true,
+    "offline_setup_bounded": true,
+    "heldout_outputs_not_used_for_tuning": true
+  },
+  "nonhuman_requirements_complete": true,
+  "human_requirements": [
+    "材料及来源/模板独立性审核",
+    "用途质量门槛确认",
+    "最终答案匿名语义审查与分歧裁决"
+  ],
+  "human_requirements_complete": false,
+  "formal_run_ready": false,
+  "research_scope": "固定构造微任务的控制性探索；无业务总体代表性主张。",
+  "evidence": {
+    "reports/quality-study-v1/ready-rehearsal/evaluated-results.json": "43cdfaa48632bbbc419e6ffd28a4af2d7f872a08a63352ced88533ac6d0cd88c",
+    "reports/quality-study-v1/ready-live/evaluated-results.json": "d917f8f7874ce5a818ee77ea6ecf1ad29c738629bec0db835fd5a645741403f6"
+  }
+}

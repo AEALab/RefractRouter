@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-direct-mid:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别了流程依赖（打包结束→签名→发布），明确将'签名'列为当前可执行步骤，'发布'列为被阻塞步骤，且正确表达了发布的直接前置边为[签名, 发布]。正文未倒写依赖，未暗示检查通过即可直接发布，反而明确否定了该路径；同时正确处理了负责人要求与流程约束的冲突，未扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文严格遵循材料s1的流程约束（打包结束才能签名，签名通过才能发布）和s2的现状（打包已结束、签名未执行），正确区分了检查报告与签名的关系，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文与findings中的allowed_now（签名）、blocked_now（发布）、required_edge（[签名, 发布]）完全一致；未将检查通过等同于签名通过，未暗示可直接发布，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论完整：allowed_now正确识别签名可执行（依据s1打包结束才能签名+s2打包已结束），blocked_now正确识别发布被阻塞（依据s1签名通过才能发布+s2签名未执行），required_edge正确表达为[签名, 发布]（依据s1）。各项引用充分。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确强调'检查报告只证明打包成功，不代表签名完成'，并设置专门段落防止倒写依赖，明确指出'不存在检查通过→可直接发布的隐含路径'，符合该硬约束。\"}]}",
+  "input_tokens": 1437,
+  "output_tokens": 409,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15639,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789060185828b9f489096afc36acf45c00ec3935d23a986430",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 409,
+    "prompt_tokens": 1437,
+    "total_tokens": 1846,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

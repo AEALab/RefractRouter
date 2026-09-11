@@ -1,0 +1,193 @@
+{
+  "schema_version": "quality-statistics-report-v1",
+  "policy": {
+    "schema_version": "quality-statistics-v1",
+    "study_tier": "controlled-exploratory",
+    "confirmatory_population_claims": false,
+    "repeats": 3,
+    "pass_rate_floor": 0.9,
+    "noninferiority_margin": 0.05,
+    "threshold_meaning": "研究操作门槛：至少九成任务三次均确认通过；非劣容忍五个百分点。不是用户可接受性的实证结论，真人用途确认单独待办。",
+    "quality_unit": "task:all-frozen-repeats-confirmed-pass",
+    "familywise_alpha": 0.05,
+    "quality_tail_alpha": 0.003125,
+    "primary_pairs": [
+      [
+        "direct-or-dag",
+        "direct-strong"
+      ],
+      [
+        "direct-or-dag",
+        "task-selector"
+      ]
+    ],
+    "quality_interval": "精确二项下界；配对差使用正负不一致概率的精确上下界及并集界。",
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 52053,
+    "descriptive_strata": [
+      "category",
+      "structure_stratum"
+    ],
+    "setup_accounting": "共享图准备单列，并按1/3/10/100次复用分配；不是冷启动墙钟实测。",
+    "performance_interval": "先在任务内汇总全部重复，再按来源族配对百分位重采样；只作探索诊断。",
+    "minimum_useful_relative_gain": 0.1,
+    "sample_size": {
+      "development": 6,
+      "holdout_candidate": 12,
+      "purpose": "固定控制题的有限候选探索，不为总体非劣、SLA或p95提供把握度保证。"
+    },
+    "failures": "失败及pending留在预定分母；费用和时延使用同一完整任务集合；缺失或未知阻止比较。",
+    "human_gate": "真人语义判定与用途门槛确认未完成前，不生成确认质量可行的前沿。",
+    "sources": [
+      "https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm",
+      "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html"
+    ]
+  },
+  "simulated": false,
+  "planned_runs": 2,
+  "observed_runs": 2,
+  "missing_runs": [],
+  "arms": {
+    "direct-mid": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 0,
+        "pending": 1
+      },
+      "planned_runs": 1,
+      "robust_pass_tasks": 0,
+      "tasks": 1,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 2.24325,
+      "mean_online_ms": 27094.981667003594,
+      "median_online_ms": 27094.981667003594
+    },
+    "auto-heterogeneous": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 1,
+        "pending": 0
+      },
+      "planned_runs": 1,
+      "robust_pass_tasks": 0,
+      "tasks": 1,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 2.50765,
+      "mean_online_ms": 31295.19099998288,
+      "median_online_ms": 31295.19099998288
+    }
+  },
+  "comparisons": [],
+  "confirmed_pareto_frontier": [],
+  "frontier_scope": "仅本批有限候选及真人确认样本的经验前沿",
+  "descriptive_strata": {
+    "category": {
+      "rule-checking": {
+        "direct-mid": {
+          "tasks": 1,
+          "planned_runs": 1,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 1
+          },
+          "mean_online_afp": 2.24325,
+          "mean_online_ms": 27094.981667003594,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 1,
+          "planned_runs": 1,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 0
+          },
+          "mean_online_afp": 2.50765,
+          "mean_online_ms": 31295.19099998288,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      }
+    },
+    "structure_stratum": {
+      "sequential": {
+        "direct-mid": {
+          "tasks": 1,
+          "planned_runs": 1,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 1
+          },
+          "mean_online_afp": 2.24325,
+          "mean_online_ms": 27094.981667003594,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 1,
+          "planned_runs": 1,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 0
+          },
+          "mean_online_afp": 2.50765,
+          "mean_online_ms": 31295.19099998288,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      }
+    }
+  },
+  "setup_amortization": {
+    "direct-mid": {
+      "1": {
+        "mean_afp_with_setup_allocation": 2.24325,
+        "mean_ms_with_setup_allocation": 27094.981667003594
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 2.24325,
+        "mean_ms_with_setup_allocation": 27094.981667003594
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 2.24325,
+        "mean_ms_with_setup_allocation": 27094.981667003594
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 2.24325,
+        "mean_ms_with_setup_allocation": 27094.981667003594
+      }
+    },
+    "auto-heterogeneous": {
+      "1": {
+        "mean_afp_with_setup_allocation": 2.50765,
+        "mean_ms_with_setup_allocation": 31295.19099998288
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 2.50765,
+        "mean_ms_with_setup_allocation": 31295.19099998288
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 2.50765,
+        "mean_ms_with_setup_allocation": 31295.19099998288
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 2.50765,
+        "mean_ms_with_setup_allocation": 31295.19099998288
+      }
+    }
+  },
+  "setup_amortization_scope": "单一路线复用的分配情景；不把准备在四条共享路线间重复求和，不是真实冷启动时间。",
+  "human_review_pending": true,
+  "reviewer_identity_authenticated_by_code": false,
+  "limitations": [
+    "固定构造任务不是从业务分布随机抽样，二项界仅展示条件假设下的不确定性。",
+    "三次重复先在任务内汇总；不把重复调用当成三个独立任务。",
+    "退化重采样区间不构成零不确定性或性能优势证明。"
+  ]
+}

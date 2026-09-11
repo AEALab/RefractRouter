@@ -1,0 +1,310 @@
+[
+  {
+    "case_id": "case-0001",
+    "task": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "【结论】当前可执行步骤为\"打包已结束、已通过检查报告\"这一事实状态本身所支撑的后续动作，即进入并执行\"签名\"步骤；与此同时，\"发布\"在当前状态下仍被阻塞，不能直接执行。\n\n【依据】\n1. 流程约束（s1）：明确写明三段式有向依赖——\"打包结束→才能签名\"，\"签名通过→才能发布\"。这是一条不可逆、不可跳跃的串联链：检查报告（s1 中\"检查报告只证明打包成功，不代表签名完成\"）只能证明打包环节已通过，不能替代签名，更不能跨越签名去直接发布。\n2. 现状约束（s2）：打包已结束并通过检查；签名尚未执行；负责人提出\"现在直接发布\"的指令。该指令与流程依赖冲突，按流程约束应以流程为准，不能因口头要求而跳过签名环节。\n\n【allowed_now】可执行步骤列表：\n- \"签名\"：打包已结束并通过检查，前置条件（打包结束）已满足，因此可以启动签名。签名本身是否\"通过\"还需执行后由签名结果决定，但\"开始执行签名\"这一动作在当前状态下是被允许的。\n注意：\"打包\"作为已结束步骤，不属于\"现在可执行\"的可启动动作，列入可执行集合没有意义；其状态在依据中已记录。\n\n【blocked_now】仍不能执行步骤列表：\n- \"发布\"：发布的前置条件是\"签名通过\"，而当前签名\"未执行\"，自然谈不上\"通过\"。因此发布在当前状态被阻塞。\n- 即便负责人要求\"现在直接发布\"，也不能据此放行；流程约束的优先级高于口头指令。\n\n【required_edge】发布直接前置边：\n- 表达为两个步骤名的扁平列表：[签名, 发布]，表示\"发布\"必须紧跟在\"签名\"之后（且签名需通过），中间不允许再插入\"跳过签名直接发布\"这条路径。\n- 这条边来源于 s1 的\"签名通过才能发布\"，并由 s2 的现状（签名未执行、要求直接发布）反向凸显其刚性。\n\n【限制与权衡】\n- 限制一：可执行性判断严格基于\"前置是否已满足\"，不基于\"是否被要求执行\"。即使被强烈要求直接发布，只要签名未通过，发布仍被阻塞。\n- 限制二：检查报告通过 ≠ 签名通过。s1 明确切分二者，不能用检查报告覆盖签名结果；同理不能用检查报告替代签名作为发布的前置。\n- 权衡一：若负责人坚持直接发布，存在两种合规处理路径——（A）先执行签名并取得\"通过\"结果，再走发布；（B）若需紧急发布，须先获得对流程的正式豁免/变更授权，否则不应放行。本结论按默认遵守流程给出，不假设豁免已存在。\n- 权衡二：本判断仅覆盖\"能否执行\"，不评估签名失败时的回退路径或重打包策略；如需扩展，应另作分析。\n\n【反向校验（防止倒写依赖）】\n- 不存在\"检查通过 → 可直接发布\"的隐含路径。\n- 不存在\"负责人要求 → 流程放行\"的隐含路径。\n- 唯一允许的前向路径是：打包结束并通过检查 → 签名 → 签名通过 → 发布。\n- 任何把\"打包通过检查\"或\"负责人要求\"当作发布前置的表述，均与 s1、s2 矛盾，本结论已避免此类倒写。",
+      "findings": [
+        {
+          "id": "allowed_now",
+          "value": [
+            "签名"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "blocked_now",
+          "value": [
+            "发布"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "required_edge",
+          "value": [
+            "签名",
+            "发布"
+          ],
+          "sources": [
+            "s1"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "output_sha256": "c07cb6fd5a0ed85f4f1abcb0561746bdc4837df99c2808c8ba4bf943c464f3cd"
+    }
+  },
+  {
+    "case_id": "case-0002",
+    "task": {
+      "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "流程",
+          "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+        },
+        {
+          "source_id": "s2",
+          "title": "现状",
+          "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+        }
+      ],
+      "requested_findings": {
+        "allowed_now": "可执行步骤列表",
+        "blocked_now": "仍不能执行步骤列表",
+        "required_edge": "发布直接前置边，用两个步骤名列表表达"
+      },
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "output_contract": {
+        "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+        "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+      }
+    },
+    "reference": {
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "output": {
+      "answer": "结论：当前可执行步骤为“签名”；仍不能执行的步骤为“发布”。打包已结束并通过检查，但检查报告只证明打包成功，不代表签名完成；签名尚未执行，因此发布被阻塞。依据为流程依赖与现状：材料 s1 明确“打包结束才能签名；签名通过才能发布”，材料 s2 显示“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”。限制为检查报告不能替代签名，不能因打包检查通过而放行发布。权衡为负责人要求现在直接发布违反流程依赖，必须先完成签名且签名通过后才能发布。",
+      "findings": [
+        {
+          "id": "allowed_now",
+          "value": [
+            "签名"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "blocked_now",
+          "value": [
+            "发布"
+          ],
+          "sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "id": "required_edge",
+          "value": [
+            "签名通过",
+            "发布"
+          ],
+          "sources": [
+            "s1"
+          ]
+        }
+      ]
+    },
+    "review": {
+      "origin": "human",
+      "reviewer": null,
+      "verdict": null,
+      "evidence": null,
+      "stage": "initial",
+      "criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "task_sha256": "fa7441d64e3a9686535d5c0260565c2dcc6c5bbdab6022e1a56c2e11ae679256",
+      "output_sha256": "5f0a4f37e562e056b69448edaaf2ba17cba118d6458459cc5c1125394a6b7b19"
+    }
+  }
+]

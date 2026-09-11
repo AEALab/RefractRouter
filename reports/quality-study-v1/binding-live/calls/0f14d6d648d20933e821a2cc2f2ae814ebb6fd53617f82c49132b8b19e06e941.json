@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-2:extract_flow",
+  "content": "结论：当前状态不能直接发布。依据流程材料，发布的前置条件是“签名通过”，而现状中“签名未执行”，因此发布步骤被阻塞。检查报告仅证明打包成功，不构成签名通过的证据，不能替代签名前置条件。\n\n依据：\n- 流程材料（s1）明确依赖关系：打包结束→签名；签名通过→发布。\n- 现状材料（s2）说明：打包已结束并通过检查；签名未执行；负责人要求直接发布。\n\n限制与权衡：负责人要求直接发布与流程依赖冲突。若强行发布，将违反流程规定的依赖顺序，且缺乏签名通过这一必要前置条件的验证。本结论仅基于给定材料，不涉及对流程合理性或签名必要性的外部判断。\n\n发现列表：\n- id: allowed_now\n  value: 打包结束（已通过检查，可视为打包步骤完成）\n  sources: [s1, s2]\n- id: blocked_now\n  value: 签名（未执行）；发布（因签名未通过而阻塞）\n  sources: [s1, s2]\n- id: required_edge\n  value: [签名通过, 发布]\n  sources: [s1]",
+  "input_tokens": 566,
+  "output_tokens": 248,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1884,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059654162b4a50cd25f47d4bb7d101bbb29abc5191965aa",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 248,
+    "prompt_tokens": 566,
+    "total_tokens": 814,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

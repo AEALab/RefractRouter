@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别当前可执行步骤为签名、发布被阻塞，前置边为签名→发布，且明确指出检查报告不代表签名完成、不能因打包检查通过而直接发布，正文与 findings 一致，未倒写依赖或扩大证据含义，各项引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 流程（打包→签名→发布）与 s2 现状（打包完成、签名未执行），给出结论、依据与限制，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文与 findings 一致：allowed_now=[签名]、blocked_now=[发布]、required_edge=[签名,发布]，方向正确，未将检查通过等同于签名完成。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 均完整且正确；allowed_now/blocked_now 引用 s1、s2，required_edge 引用 s1，均足以支持。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确说明检查报告只证明打包成功、不代表签名完成，不能因打包检查通过而直接发布，依赖方向正确。\"}]}",
+  "input_tokens": 809,
+  "output_tokens": 314,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14386,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789059639719ed0e184fb98d17720dee9f0ee33ee7e1233209",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 314,
+    "prompt_tokens": 809,
+    "total_tokens": 1123,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
