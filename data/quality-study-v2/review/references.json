@@ -1,0 +1,1213 @@
+{
+  "schema_version": "quality-references-v1",
+  "tasks": {
+    "analysis-01": {
+      "task_sha256": "8c2104e5d1f15727a46eeb06fbd5089e49ffd459a1a7a07f5b204b0aa3e8f7b7",
+      "checks": [
+        {
+          "field": "expected_stock",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "observed_gap",
+          "op": "equal",
+          "expected": -1,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "theft_proven",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "区分台账差异与原因认定；不擅自补齐待核对数量。"
+      ],
+      "author_reference": {
+        "answer": "应存60件，实盘少1件。待核对单据数量未知，不能从差异直接认定失窃。",
+        "findings": [
+          {
+            "id": "expected_stock",
+            "value": 60,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "observed_gap",
+            "value": -1,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "theft_proven",
+            "value": false,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "analysis-02": {
+      "task_sha256": "4f3b32fa2e25b5039a67dd9e378cda8701adf7a6472256a926769f34d2debba8",
+      "checks": [
+        {
+          "field": "survey_negative",
+          "op": "equal",
+          "expected": 14,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "service_complaints",
+          "op": "equal",
+          "expected": 20,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "can_pool",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "author_reference": {
+        "answer": "自愿填写的50份问卷中14份不满意（28%），只能描述填写者；未填写者情况未知，不能推及全部客户。客服有20条投诉工单，其中4条是同一客户追问，工单条数不等于客户数。问卷未记录填写者是否联系客服，两类身份无法对应，无法去重，不能合成全体客户不满意率。",
+        "findings": [
+          {
+            "id": "survey_negative",
+            "value": 14,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "service_complaints",
+            "value": 20,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "can_pool",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "analysis-03": {
+      "task_sha256": "e38c5b552a0b3ff178d4c703c25a9606c8855e1272cd34d0a312300435c5a462",
+      "checks": [
+        {
+          "field": "before_kwh_per_hour",
+          "op": "equal",
+          "expected": 6,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "after_kwh_per_hour",
+          "op": "equal",
+          "expected": 9,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "efficiency_improved",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "比较总量与单位指标时写清分母和变化；区分观测结果与因果结论。"
+      ],
+      "author_reference": {
+        "answer": "总耗电降低，但每开放小时从6升到9千瓦时，按该口径没有改善；人数和天气缺失，不能进一步归因。",
+        "findings": [
+          {
+            "id": "before_kwh_per_hour",
+            "value": 6,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "after_kwh_per_hour",
+            "value": 9,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "efficiency_improved",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "analysis-04": {
+      "task_sha256": "484e908e7d80368538b254dbdbc0e28ddc699f6e2756f380aefa2d27f0895854",
+      "checks": [
+        {
+          "field": "east_change",
+          "op": "equal",
+          "expected": 20,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "west_change",
+          "op": "equal",
+          "expected": "unknown",
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "pooled_effect_supported",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "分别分析各站点，区分完成率与效果差异；说明抽样、对照和跨站点合并的证据限制。"
+      ],
+      "author_reference": {
+        "answer": "东站完成率80%对60%，差20个百分点。西站只有自选参与者结果，缺少比较结果，无法估计变化或直接合并为推广效果。",
+        "findings": [
+          {
+            "id": "east_change",
+            "value": 20,
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "west_change",
+            "value": "unknown",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "pooled_effect_supported",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "analysis-05": {
+      "task_sha256": "d302b515cf4c177f23193f8afc4b22894a2f4e009a4561130aabff5173400b0e",
+      "checks": [
+        {
+          "field": "eligible",
+          "op": "equal",
+          "expected": 30,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "retained",
+          "op": "equal",
+          "expected": 18,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "retention_percent",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "report_correct",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "资格筛选先于比例计算；不得给两个口径同时盖正确章。"
+      ],
+      "author_reference": {
+        "answer": "先排除6月注册和已注销者，只剩A组30人；18人活跃，留存率60%。草稿混入不合格人群，56.7%不符合口径。",
+        "findings": [
+          {
+            "id": "eligible",
+            "value": 30,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "retained",
+            "value": 18,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "retention_percent",
+            "value": 60,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "report_correct",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "analysis-06": {
+      "task_sha256": "9f36ad6d226d8047a9b82bedf59c2254efb26553e3d2f7000fa9738e781c85ac",
+      "checks": [
+        {
+          "field": "order",
+          "op": "equal",
+          "expected": [
+            "start",
+            "complaint",
+            "restore"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "complaint_before_restore",
+          "op": "equal",
+          "expected": true,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "顺序必须有向、不可把事件集相同当成顺序相同。"
+      ],
+      "author_reference": {
+        "answer": "北京时间09:50故障开始，10:10投诉，10:20恢复；投诉在恢复前。不能直接按原日志数字大小排序。",
+        "findings": [
+          {
+            "id": "order",
+            "value": [
+              "start",
+              "complaint",
+              "restore"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "complaint_before_restore",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "rules-01": {
+      "task_sha256": "7af90b0325df288a78575935fc1b0344cdf862e7bc668d6c31e89de0d1769f27",
+      "checks": [
+        {
+          "field": "remaining",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "requested",
+          "op": "equal",
+          "expected": 3,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "full_approval",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不可把口头归还视作已完成手续。"
+      ],
+      "author_reference": {
+        "answer": "未签收归还仍计入持有，因此当前持有3件，可新增2件，本次3件不能全数批准。",
+        "findings": [
+          {
+            "id": "remaining",
+            "value": 2,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "requested",
+            "value": 3,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "full_approval",
+            "value": false,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "rules-02": {
+      "task_sha256": "380b66fc69b7237e0432c249122d43ac9a0e387eb4a70561e27a88e18494cadc",
+      "checks": [
+        {
+          "field": "allowed_now",
+          "op": "set_equal",
+          "expected": [
+            "签名"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked_now",
+          "op": "set_equal",
+          "expected": [
+            "发布"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "required_edge",
+          "op": "equal",
+          "expected": [
+            "签名",
+            "发布"
+          ],
+          "required_sources": [
+            "s1"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+      ],
+      "author_reference": {
+        "answer": "当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。",
+        "findings": [
+          {
+            "id": "allowed_now",
+            "value": [
+              "签名"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked_now",
+            "value": [
+              "发布"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "required_edge",
+            "value": [
+              "签名",
+              "发布"
+            ],
+            "sources": [
+              "s1"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "rules-03": {
+      "task_sha256": "38436ee505c9d5c8e15dcd966f014bef8a1138de582a519c87aac74c4b2e6c5e",
+      "checks": [
+        {
+          "field": "eligible_ids",
+          "op": "set_equal",
+          "expected": [
+            "甲",
+            "乙"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "ineligible_ids",
+          "op": "set_equal",
+          "expected": [
+            "丙"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。"
+      ],
+      "author_reference": {
+        "answer": "甲符合第7天边界，乙符合登记故障的第30天例外；丙超过所有允许时限。",
+        "findings": [
+          {
+            "id": "eligible_ids",
+            "value": [
+              "甲",
+              "乙"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "ineligible_ids",
+            "value": [
+              "丙"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "rules-04": {
+      "task_sha256": "60334550760b921b32cef26c200e79d58bb11a8b460426513fd8faef12f8aea4",
+      "checks": [
+        {
+          "field": "releasable",
+          "op": "set_equal",
+          "expected": [
+            "A"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "blocked",
+          "op": "set_equal",
+          "expected": [
+            "B",
+            "C附件"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "检查附件例外，不能把公开标签当成充分条件。"
+      ],
+      "author_reference": {
+        "answer": "A可直接提供；B内部禁止；C附件需先脱敏，不能因为主体公开而直接发出。",
+        "findings": [
+          {
+            "id": "releasable",
+            "value": [
+              "A"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "blocked",
+            "value": [
+              "B",
+              "C附件"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "rules-05": {
+      "task_sha256": "b2b3f6a0c49210904a36a8f8718818e383923b5f854e41dd8dd59e878957d7d1",
+      "checks": [
+        {
+          "field": "accepted",
+          "op": "set_equal",
+          "expected": [
+            "P"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "rejected",
+          "op": "set_equal",
+          "expected": [
+            "Q"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "unknown",
+          "op": "set_equal",
+          "expected": [
+            "R"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "保留未知状态；不得用缺失证据直接推断事实。"
+      ],
+      "author_reference": {
+        "answer": "P在10%边界仍通过；Q因过期被拒绝；R缺时钟同步证据，应待核验而非自动通过或认定不同步。",
+        "findings": [
+          {
+            "id": "accepted",
+            "value": [
+              "P"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "rejected",
+            "value": [
+              "Q"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "unknown",
+            "value": [
+              "R"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "rules-06": {
+      "task_sha256": "d1d9c2b19e451b9b333cba7cfc44776eeef1873314aff289bae99645126ee80c",
+      "checks": [
+        {
+          "field": "excluded",
+          "op": "set_equal",
+          "expected": [
+            "A"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "selected",
+          "op": "equal",
+          "expected": [
+            "B",
+            "C",
+            "D"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "waitlisted",
+          "op": "set_equal",
+          "expected": [
+            "E"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "资格、优先级、时间的先后不可颠倒。"
+      ],
+      "author_reference": {
+        "answer": "A先因资料不完整被剔除，三个名额依次给B、C、D；E候补，不能只按时间让E优先。",
+        "findings": [
+          {
+            "id": "excluded",
+            "value": [
+              "A"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "selected",
+            "value": [
+              "B",
+              "C",
+              "D"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "waitlisted",
+            "value": [
+              "E"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "decision-01": {
+      "task_sha256": "2a721232c2e3cdef63ee23c057902eeaac862c3ba659ba92d596e91cef06bfe4",
+      "checks": [
+        {
+          "field": "printer",
+          "op": "equal",
+          "expected": "P",
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "delivery",
+          "op": "equal",
+          "expected": "D",
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "total_cost",
+          "op": "equal",
+          "expected": 380,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+      ],
+      "author_reference": {
+        "answer": "选P打印加D配送，共380元，满足颜色、双面、时限和预算。Q或E虽更便宜但违反硬条件。",
+        "findings": [
+          {
+            "id": "printer",
+            "value": "P",
+            "sources": [
+              "s1"
+            ]
+          },
+          {
+            "id": "delivery",
+            "value": "D",
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 380,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "decision-02": {
+      "task_sha256": "98dbb94e6d42d115e11a39ddb3b1bad5ce87b4ba668a7e1b4cfac9072005fa70",
+      "checks": [
+        {
+          "field": "morning",
+          "op": "equal",
+          "expected": "甲",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "evening",
+          "op": "equal",
+          "expected": "乙",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "feasible",
+          "op": "equal",
+          "expected": true,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。"
+      ],
+      "author_reference": {
+        "answer": "先排除培训过期的丙，再安排甲早班、乙晚班；每人只上一班且时间符合。",
+        "findings": [
+          {
+            "id": "morning",
+            "value": "甲",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "evening",
+            "value": "乙",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "feasible",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "decision-03": {
+      "task_sha256": "ac541ea4b0d32e2e6e3df370abe6b1492933bd79a05dfefa358003060a575df4",
+      "checks": [
+        {
+          "field": "selected",
+          "op": "equal",
+          "expected": "A",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "cost",
+          "op": "equal",
+          "expected": 450,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "rejected_ids",
+          "op": "set_equal",
+          "expected": [
+            "B",
+            "C"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "区分硬条件不合格与合格但未选；说明选择及排除的具体依据。"
+      ],
+      "author_reference": {
+        "answer": "A符合全部要求且在合格房间中最低价。B容量不足，C无通道；D合格但更贵。",
+        "findings": [
+          {
+            "id": "selected",
+            "value": "A",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "cost",
+            "value": 450,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "rejected_ids",
+            "value": [
+              "B",
+              "C"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "decision-04": {
+      "task_sha256": "6ab6a58f4fd2b308f5b710607f374f72d826cd546f809c69a345151e2457b5b5",
+      "checks": [
+        {
+          "field": "selected",
+          "op": "equal",
+          "expected": "B",
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "monthly_cost",
+          "op": "equal",
+          "expected": 180,
+          "required_sources": [
+            "s2"
+          ]
+        },
+        {
+          "field": "recovery_hours",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。"
+      ],
+      "author_reference": {
+        "answer": "选B，180元且2小时恢复；它比A、D贵但恢复更快，符合优先级。C超预算。",
+        "findings": [
+          {
+            "id": "selected",
+            "value": "B",
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "monthly_cost",
+            "value": 180,
+            "sources": [
+              "s2"
+            ]
+          },
+          {
+            "id": "recovery_hours",
+            "value": 2,
+            "sources": [
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "decision-05": {
+      "task_sha256": "164362d42700702c9c3e1369647a347ff5994beb6125183d69eeaefe11fd1b4e",
+      "checks": [
+        {
+          "field": "kits",
+          "op": "set_equal",
+          "expected": [
+            "X",
+            "U"
+          ],
+          "required_sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "field": "total_cost",
+          "op": "equal",
+          "expected": 770,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "remaining_budget",
+          "op": "equal",
+          "expected": 30,
+          "required_sources": [
+            "s1",
+            "s2",
+            "s3"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "两个局部选择必须再检查共享预算，说明不可替代的用品条件。"
+      ],
+      "author_reference": {
+        "answer": "绘画选X、手工选U，总770元，余30元；便宜的Y或V不符合各自硬要求，不能虚构补件来使其合格。",
+        "findings": [
+          {
+            "id": "kits",
+            "value": [
+              "X",
+              "U"
+            ],
+            "sources": [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          },
+          {
+            "id": "total_cost",
+            "value": 770,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "remaining_budget",
+            "value": 30,
+            "sources": [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    },
+    "decision-06": {
+      "task_sha256": "46dce101461644ff28a4cfb4cf9804c9bf72ec5d514613a9866057f02fc87aeb",
+      "checks": [
+        {
+          "field": "order",
+          "op": "set_equal",
+          "expected": [
+            "备份",
+            "校验备份",
+            "部署",
+            "回归检查"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "finish_minute",
+          "op": "equal",
+          "expected": 55,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "deadline_met",
+          "op": "equal",
+          "expected": true,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        }
+      ],
+      "semantic_criteria": [
+        "不得为了提速删除依赖、漏掉回归或把同一执行者排为并行。"
+      ],
+      "author_reference": {
+        "answer": "依次备份0–20、校验20–30、部署30–45、回归45–55分钟；55分钟完成，剩5分钟。共享人员和依赖均不允许并行。",
+        "findings": [
+          {
+            "id": "order",
+            "value": [
+              "备份",
+              "校验备份",
+              "部署",
+              "回归检查"
+            ],
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "finish_minute",
+            "value": 55,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          },
+          {
+            "id": "deadline_met",
+            "value": true,
+            "sources": [
+              "s1",
+              "s2"
+            ]
+          }
+        ]
+      },
+      "reference_status": "作者拟定，待独立审查"
+    }
+  }
+}

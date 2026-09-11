@@ -106,6 +106,23 @@ def execution_payload(task):
 
 
 def check_output(task, reference, output):
+    if reference['task_sha256'] != task['task_sha256']:
+        raise ValueError('reference bound to another task')
+    if 'finding_types' not in task['output_contract']:
+        return _check_output(task, reference, output)
+    from .quality_encoding import normalize_output
+    encoding = normalize_output(task, output)
+    if encoding['status'] == 'invalid':
+        return {'status': 'fail', 'fact_status': 'unverified', 'encoding': encoding,
+                'checks': [{'check': 'public-output-encoding', 'status': 'fail',
+                            'reason': '字段编码不符合公开类型/名称合同；未归因为语义错误'}],
+                'unverified': ['格式不支持的字段事实、正文语义与全局一致性']}
+    result = _check_output(task, reference, encoding['normalized'])
+    result.update(encoding=encoding, fact_status=result['status'])
+    return result
+
+
+def _check_output(task, reference, output):
     """结构化事实检查。正文语义始终保留未验证，不能把字段通过当最终通过。"""
     if reference['task_sha256'] != task['task_sha256']:
         raise ValueError('reference bound to another task')

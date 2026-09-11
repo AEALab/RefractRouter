@@ -1,0 +1,333 @@
+{
+  "schema_version": "quality-protocol-v1",
+  "study_id": "quality-study-v2",
+  "status": "draft",
+  "issue": 53,
+  "purpose": "低风险内部建议；仅探索可接受质量下的时间与 AFP，不作现实承诺或自动业务执行。",
+  "manifest_path": "../model-manifests/volcengine-agent-plan.json",
+  "manifest_file_sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+  "artifacts": {
+    "public/tasks.json": "66d19285fe201344ce01f94fea84260cc99f13615b6b5037324cd09f6b3bc5d9",
+    "review/calibration-cases.json": "61a92bf003492f4694576d9fb4a6fc1919e557a7b5decdaeb80c93748e828ecb",
+    "review/material-reviews.json": "636ec8b77f2decfd731fa59ac71d72ea7255331ab00174951a5a3c745486a5f3",
+    "review/references.json": "8589137d0299968dd1a16dce318bc2a7bee81e8509b83f133ac38af9371fc4b0"
+  },
+  "task_count": 18,
+  "split_counts": {
+    "development": 6,
+    "holdout-candidate": 12
+  },
+  "quality": {
+    "task_rule": "任一关键检查失败即不通过；未覆盖、缺证据或语义审查未完成为待判定；机器高分不能覆盖失败。",
+    "pass_rate_floor": 0.9,
+    "noninferiority_margin": 0.05,
+    "reference_arm": "direct-strong",
+    "threshold_status": "proposed-not-human-calibrated",
+    "rationale": "低风险内部研究的拟议门槛；90%策略通过率和5个百分点非劣容忍需开发校准与真人签署，不能称同等质量。",
+    "semantic_human_reviews_per_output": 2,
+    "human_review_scope": "首轮小样本所有最终输出，按预注册顺序独立盲审；意见不一致交第三位真人裁决。",
+    "pending_in_denominator": true
+  },
+  "statistics": {
+    "unit": "task_id",
+    "source_cluster": "source_family",
+    "strata": [
+      "category",
+      "structure_stratum"
+    ],
+    "interval": "按来源族聚类的配对重采样区间；预注册后由 #53 实现。",
+    "familywise_alpha": 0.05,
+    "primary_comparisons": [
+      "direct-or-dag vs direct-strong",
+      "direct-or-dag vs task-selector"
+    ],
+    "sample_size_status": "exploratory-not-powered",
+    "minimum_useful_relative_gain": 0.1,
+    "no_sla_or_p95_claim": true,
+    "decision": "候选政策与权重仅开发集确定；区间不能支持预定门槛即证据不足。"
+  },
+  "execution": {
+    "repeats": 3,
+    "order_seed": 52051,
+    "ordering": "每任务每次重复内对路线随机排列；重复按轮交错。",
+    "feedback": "第一轮固定策略；不使用留出结果更新策略。",
+    "failure_policy": "节点失败停止其下游并结算在途；未知用量、认证、账本与证据写入故障停止整批；无路线/超时计入分母。",
+    "max_node_fallbacks": 0,
+    "max_dynamic_splits": 0,
+    "http_retries": 0,
+    "planner_repairs": 0,
+    "cost_bound_type": "冻结输入输出容量的保守上界；真实运行必须绑定逐调用容量与超时检查。",
+    "drain_grace_ms": 5000,
+    "random_mixture_weights": {
+      "cheap": 0.5,
+      "strong": 0.5
+    },
+    "random_mixture_status": "开发前占位，冻结前只可在开发集校准"
+  },
+  "stages": {
+    "selector": {
+      "model": "cheap",
+      "input_cap": 32768,
+      "output_cap": 1200,
+      "timeout_ms": 12000,
+      "ledger": "online"
+    },
+    "planner": {
+      "model": "cheap",
+      "input_cap": 32768,
+      "output_cap": 1200,
+      "timeout_ms": 12000,
+      "ledger": "online"
+    },
+    "worker": {
+      "model": "arm-candidates",
+      "input_cap": 32768,
+      "output_cap": 4096,
+      "timeout_ms": 45000,
+      "ledger": "online"
+    },
+    "final": {
+      "model": "arm-candidates",
+      "input_cap": 32768,
+      "output_cap": 8192,
+      "timeout_ms": 90000,
+      "ledger": "online"
+    },
+    "delivery_judge": {
+      "model": "judge",
+      "input_cap": 32768,
+      "output_cap": 2048,
+      "timeout_ms": 45000,
+      "ledger": "online"
+    },
+    "research_judge": {
+      "model": "judge",
+      "input_cap": 32768,
+      "output_cap": 2048,
+      "timeout_ms": 45000,
+      "ledger": "offline"
+    }
+  },
+  "arms": [
+    {
+      "arm_id": "direct-cheap",
+      "kind": "direct",
+      "candidate_models": [
+        "cheap"
+      ],
+      "maximum_stage_calls": {
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "direct-mid",
+      "kind": "direct",
+      "candidate_models": [
+        "mid"
+      ],
+      "maximum_stage_calls": {
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "direct-strong",
+      "kind": "direct",
+      "candidate_models": [
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "task-selector",
+      "kind": "task-selector",
+      "candidate_models": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "selector": 1,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "random-mixture",
+      "kind": "random-mixture",
+      "candidate_models": [
+        "cheap",
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "reused-single",
+      "kind": "reused-dag",
+      "candidate_models": [
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 2,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "reused-heterogeneous",
+      "kind": "reused-dag",
+      "candidate_models": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 2,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "auto-single-1",
+      "kind": "auto-dag",
+      "candidate_models": [
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "planner": 1,
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "auto-single-2",
+      "kind": "auto-dag",
+      "candidate_models": [
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "planner": 1,
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 2,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "auto-heterogeneous-1",
+      "kind": "auto-dag",
+      "candidate_models": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "planner": 1,
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 1,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "auto-heterogeneous-2",
+      "kind": "auto-dag",
+      "candidate_models": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "planner": 1,
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 2,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    },
+    {
+      "arm_id": "direct-or-dag",
+      "kind": "conditional",
+      "candidate_models": [
+        "cheap",
+        "mid",
+        "strong"
+      ],
+      "maximum_stage_calls": {
+        "selector": 1,
+        "planner": 1,
+        "worker": 5,
+        "final": 1,
+        "delivery_judge": 1,
+        "research_judge": 1
+      },
+      "max_concurrency": 2,
+      "implementation_status": "not-bound",
+      "prompt_revision": "pending"
+    }
+  ],
+  "offline_setup": {
+    "status": "unbounded-not-ready",
+    "reason": "复用图画像、基线训练及近邻方法适配尚未冻结，不能当作零成本。"
+  },
+  "approval": {
+    "status": "pending",
+    "reviewer": null,
+    "evidence": null
+  },
+  "formal_run_ready": false,
+  "development_revision": {
+    "id": "2026-09-11-encoding-v2",
+    "reason": "六个开发任务公开类型与有限边端点别名，区分编码偏差和事实错误；候选留出不变。",
+    "status": "仅开发诊断，真人适配仍待审查"
+  }
+}
