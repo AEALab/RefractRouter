@@ -8,16 +8,25 @@ import { decodeOutputConstraints, decodeFormatValidation, formatValidationSummar
 export const name = 'refractagent'
 export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials']
 
+const MAX_CONTEXT_BYTES = 120_000
+const RELAXED_CONTEXT_BYTES = 1_000_000
+
 const MODELS = [
   { id: 'economy', name: 'RefractAgent · 省成本' },
   { id: 'balanced', name: 'RefractAgent · 均衡' },
   { id: 'quality', name: 'RefractAgent · 质量优先' },
 ] as const
 
+interface StrategyConfiguration {
+  reasoningEffort?: string
+  models?: string[]
+}
 interface ProviderConfiguration {
   schemaVersion: 'refractagent-providers-v1'
   billingUnit: string
   qualityMin?: number
+  defaultReasoningEffort?: string
+  strategies?: Partial<Record<'economy' | 'balanced' | 'quality', StrategyConfiguration>>
   providers: Array<{ id: string; type: 'openai-compatible' | 'openai-responses' | 'ark-agent-plan' | 'dsh';
     baseUrl?: string; credentialEnv?: string; dshProvider?: string; maxTokensParameter?: string }>
   models: Array<{ id: string; provider: string; model: string; role?: 'candidate' | 'judge';
@@ -36,6 +45,7 @@ interface Configuration {
   credentialEnv: string
   preset?: 'ark-agent-plan'
   providerConfig?: ProviderConfiguration
+  limits?: { relaxBudget?: boolean; relaxContext?: boolean }
   template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
   plannerModelId?: string
@@ -96,10 +106,11 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
     allowPaidRuns: false, maxProductionCost: 40, maxEvaluationCost: 80,
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
-    preset: undefined as unknown, providerConfig: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
+    preset: undefined as unknown, providerConfig: undefined as unknown, limits: undefined as unknown,
+    outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
     'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'outputConstraints',
-    'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
+    'limits', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
     if (typeof result[key] !== 'string' || !result[key].trim()) throw new Error(`invalid ${key}`)
@@ -114,6 +125,12 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (!Number.isInteger(result.timeoutMs) || result.timeoutMs > 7200000) throw new Error('invalid timeoutMs')
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(result.credentialEnv)) throw new Error('invalid credentialEnv')
   if (result.preset !== undefined && result.preset !== 'ark-agent-plan') throw new Error('unknown provider preset')
+  if (result.limits !== undefined) {
+    if (!object(result.limits) || Object.keys(result.limits).some(k => !['relaxBudget', 'relaxContext'].includes(k))
+      || Object.values(result.limits).some(v => typeof v !== 'boolean')) {
+      throw new Error('limits may only contain boolean relaxBudget and relaxContext')
+    }
+  }
   if (raw.outputConstraints !== undefined) result.outputConstraints = decodeOutputConstraints(raw.outputConstraints)
   for (const key of ['plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency']) {
     if (raw[key] !== undefined && (typeof raw[key] !== 'number' || !Number.isSafeInteger(raw[key]) || raw[key] < 0)) {
@@ -127,8 +144,12 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     const config = result.providerConfig
     if (!object(config) || config.schemaVersion !== 'refractagent-providers-v1'
       || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
-      || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','providers','models'].includes(k))) {
+      || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','defaultReasoningEffort','strategies','providers','models'].includes(k))) {
       throw new Error('invalid providerConfig; use refractagent config-example')
+    }
+    if (config.defaultReasoningEffort !== undefined
+      && (typeof config.defaultReasoningEffort !== 'string' || !config.defaultReasoningEffort.trim())) {
+      throw new Error('invalid defaultReasoningEffort')
     }
     for (const p of config.providers) {
       if (!object(p) || typeof p.id !== 'string' || !['openai-compatible','openai-responses','ark-agent-plan','dsh'].includes(String(p.type))
@@ -145,6 +166,28 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
       if (!object(m) || typeof m.id !== 'string' || typeof m.provider !== 'string' || typeof m.model !== 'string'
         || !config.providers.some(p => object(p) && p.id === m.provider)) throw new Error('invalid configured model reference')
     }
+    if (config.strategies !== undefined) {
+      const strategies = config.strategies
+      if (!object(strategies) || Object.keys(strategies).some(k => !['economy', 'balanced', 'quality'].includes(k))) {
+        throw new Error('strategies may only configure economy, balanced and quality')
+      }
+      const modelIds = new Set(config.models.filter(m => object(m) && typeof m.id === 'string').map(m => String(m.id)))
+      for (const [name, entry] of Object.entries(strategies)) {
+        if (!object(entry) || Object.keys(entry).some(k => !['reasoningEffort', 'models'].includes(k))) {
+          throw new Error('invalid ' + name + ' strategy fields')
+        }
+        if (entry.reasoningEffort !== undefined
+          && (typeof entry.reasoningEffort !== 'string' || !entry.reasoningEffort.trim())) {
+          throw new Error('invalid ' + name + ' reasoningEffort')
+        }
+        if (entry.models !== undefined) {
+          if (!Array.isArray(entry.models) || entry.models.length === 0
+            || entry.models.some(id => typeof id !== 'string' || !modelIds.has(id))) {
+            throw new Error(name + ' models must reference configured model ids')
+          }
+        }
+      }
+    }
     if (Buffer.byteLength(JSON.stringify(config)) > 100000) throw new Error('providerConfig is too large')
   }
   return freezeConfiguration(JSON.parse(JSON.stringify(result)) as Configuration)
@@ -157,7 +200,7 @@ export const Config = { '~standard': {
   },
 } }
 
-function conversation(options: ModelOptions): { task: string; context: string } {
+function conversation(options: ModelOptions, contextLimitBytes: number): { task: string; context: string } {
   if (!Array.isArray(options.messages) || !options.messages.length) throw new Error('RefractAgent requires conversation messages')
   // DSH also encodes injected instructions and skill catalogs as user messages.
   // Producer attribution, rather than text heuristics, identifies the user's task.
@@ -167,7 +210,7 @@ function conversation(options: ModelOptions): { task: string; context: string } 
   if (!latest) throw new Error('RefractAgent requires a text user task')
   const task = latest.content.filter(b => b.type === 'text').map(b => b.text ?? '').join('\n')
   const context = JSON.stringify({ system: options.system ?? '', messages: options.messages })
-  if (Buffer.byteLength(context) > 120000) throw new Error('RefractAgent conversation is too large; start a shorter text task')
+  if (Buffer.byteLength(context) > contextLimitBytes) throw new Error('RefractAgent conversation is too large; start a shorter text task')
   return { task, context }
 }
 
@@ -177,11 +220,13 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.preset) throw new Error('configure providerConfig or explicitly choose preset: ark-agent-plan')
-  const payload = { ...conversation(options), strategy: options.model, template: config.template,
+  const payload = { ...conversation(options, config.limits?.relaxContext ? RELAXED_CONTEXT_BYTES : MAX_CONTEXT_BYTES),
+    strategy: options.model, template: config.template,
     ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
       .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),
     ...(config.outputConstraints ? { outputConstraints: config.outputConstraints } : {}),
-    temperature: options.temperature ?? 0, ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}) }
+    temperature: options.temperature ?? 0, ...(config.limits ? { limits: config.limits } : {}),
+    ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}) }
   const routes: ModelRoute[] = []
   for (const model of config.providerConfig?.models ?? []) {
     const provider = config.providerConfig!.providers.find(p=>p.id===model.provider)!

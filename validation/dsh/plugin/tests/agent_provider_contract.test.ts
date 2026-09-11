@@ -409,3 +409,37 @@ test('停止消费进度时取消子进程，不产生伪完成答案', {timeout
   await h.stream.return?.()
   assert.equal(h.aborted,true)
 })
+
+test('strategy-scoped provider configuration passes through unchanged',async()=>{
+  const f=fixture({billing_unit:'USD'})
+  const config={...userConfiguration(),defaultReasoningEffort:'medium',
+    strategies:{economy:{reasoningEffort:'low',models:['answer']},quality:{reasoningEffort:'high'}}}
+  await chunks(createAdapter(f.ctx,configure({providerConfig:config})))
+  assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,config)
+})
+
+test('invalid strategy or limits configuration is rejected at the host boundary',()=>{
+  const base=userConfiguration()
+  assert.throws(()=>configure({providerConfig:{...base,strategies:{turbo:{}}}}),/strategies/)
+  assert.throws(()=>configure({providerConfig:{...base,strategies:{economy:{models:[]}}}}),/configured model ids/)
+  assert.throws(()=>configure({providerConfig:{...base,strategies:{economy:{models:['missing']}}}}),/configured model ids/)
+  assert.throws(()=>configure({providerConfig:{...base,strategies:{economy:{reasoningEffort:''}}}}),/reasoningEffort/)
+  assert.throws(()=>configure({providerConfig:{...base,defaultReasoningEffort:17}}),/defaultReasoningEffort/)
+  assert.throws(()=>configure({limits:{relaxBudget:'yes'}}),/limits/)
+  assert.throws(()=>configure({limits:{unexpected:true}}),/limits/)
+})
+
+test('limit toggles reach Python and relaxed context accepts long conversations',async()=>{
+  const long='x'.repeat(130000)
+  await assert.rejects(async()=>{
+    for await(const _ of createAdapter(fixture().ctx,configure()).stream({...options,system:long})){}
+  },/too large/)
+  await assert.rejects(async()=>{
+    for await(const _ of createAdapter(fixture().ctx,configure({limits:{relaxBudget:true}})).stream({...options,system:long})){}
+  },/too large/)
+  const f=fixture({billing_unit:'USD'})
+  for await(const _ of createAdapter(f.ctx,configure({limits:{relaxBudget:true,relaxContext:true}})).stream({...options,system:long})){}
+  const payload=JSON.parse(f.spawns[0]!.input())
+  assert.deepEqual(payload.limits,{relaxBudget:true,relaxContext:true})
+  assert.ok(payload.context.length>130000)
+})

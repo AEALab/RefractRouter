@@ -62,7 +62,7 @@ def validate_contract(raw, node, criterion_count):
     exact(capability, {"difficulty", "risk", "input_budget_tokens", "expected_output_tokens"}, "capability")
     if capability["difficulty"] not in ("low", "medium", "high") or capability["risk"] not in ("low", "medium", "high"):
         raise ValueError("invalid difficulty/risk")
-    integer(capability["input_budget_tokens"], "input_budget_tokens", 256, 131072)
+    integer(capability["input_budget_tokens"], "input_budget_tokens", 256, 1_000_000)
     integer(capability["expected_output_tokens"], "expected_output_tokens", 1, 8192)
     string_list(raw["checks"], "node checks")
     covers = raw["covers"]

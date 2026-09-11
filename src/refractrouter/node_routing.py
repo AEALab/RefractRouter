@@ -49,7 +49,7 @@ class NodeProfile:
             if self.difficulty not in ('low', 'medium', 'high') or self.risk not in ('low', 'medium', 'high'):
                 raise ValueError('invalid profile difficulty/risk stratum')
             if (type(self.input_min_tokens) is not int or type(self.input_max_tokens) is not int
-                    or not 256 <= self.input_min_tokens < self.input_max_tokens <= 131073):
+                    or not 256 <= self.input_min_tokens < self.input_max_tokens <= 1_000_001):
                 raise ValueError('invalid profile input interval')
 
     def matches(self, node, plan):

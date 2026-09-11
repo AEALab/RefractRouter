@@ -92,6 +92,10 @@ def main(argv=None):
     setup_config.add_argument('--preset', choices=['ark-agent-plan'])
     setup.add_argument('--max-output-tokens', type=int, default=2048)
     setup.add_argument('--credential-env', help='仅覆盖 Ark 预设的凭证引用')
+    setup.add_argument('--relax-budget', action='store_true',
+                       help='生成放开预算拦截的配置；账本仍完整记录每次调用')
+    setup.add_argument('--relax-context', action='store_true',
+                       help='放开对话上下文上限；仍受各模型 contextWindow 约束')
     args = parser.parse_args(argv)
     try:
         if args.command == 'config-example':
@@ -107,10 +111,14 @@ def main(argv=None):
                 'models': [{'id': key, 'name': 'RefractAgent · '+p['name'],
                             'description': '按用户配置的可用模型进行文本任务路由。'} for key,p in PRESETS.items()]}
             if args.provider_config:
-                compiled = compile_configuration(json.loads(args.provider_config.read_text()))
+                raw = json.loads(args.provider_config.read_text())
+                compiled = compile_configuration(raw)
                 result['available_models'] = [{**action_identity(m), 'role': m.role}
                                               for m in compiled.manifest.models]
                 result['billing_unit'] = compiled.manifest.billing_unit
+                for key in ('defaultReasoningEffort', 'strategies'):
+                    if key in raw:
+                        result[key] = raw[key]
             print(json.dumps(result, ensure_ascii=False))
             return 0
         if args.command == 'show':
@@ -135,6 +143,8 @@ def main(argv=None):
                 config.update(preset=args.preset, credentialEnv=args.credential_env or 'CODEX_ARK_API_KEY')
             elif args.credential_env:
                 raise ValueError('--credential-env applies only to --preset ark-agent-plan')
+            if args.relax_budget or args.relax_context:
+                config['limits'] = {'relaxBudget': args.relax_budget, 'relaxContext': args.relax_context}
             if args.mode=='live' and not (args.provider_config or args.preset):
                 raise ValueError('live configuration requires --provider-config or an explicit --preset')
             patch = [{'id': 'refractagent', 'config': config},

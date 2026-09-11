@@ -108,9 +108,9 @@ class DemoTaskClient:
 
 def run_task(request, manifest, profile, *, client=None, production_limit=None, evaluation_limit=None,
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
-             configured_application=False, configuration=None):
+             configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072):
     request = validate_request(request)
-    if not isinstance(conversation_context, str) or len(conversation_context.encode()) > 120000:
+    if not isinstance(conversation_context, str) or len(conversation_context.encode()) > context_limit_bytes:
         raise ValueError('invalid conversation context')
     planning_task, execution_task, content_guard = prepare_inputs(request, conversation_context)
     validate_models(manifest, configured_application=configured_application)
@@ -214,7 +214,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             result['generated_plan'] = plan.to_dict()
             if configuration is not None:
                 plan, estimates = compile_generated_capacity(plan, execution_task, candidates,
-                    output_constraints=request.get('outputConstraints'))
+                    output_constraints=request.get('outputConstraints'), input_cap=input_cap)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})

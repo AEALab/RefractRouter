@@ -95,13 +95,13 @@ def input_estimates(plan, task, candidates, *, output_constraints=None):
     return rows
 
 
-def compile_generated_capacity(plan, task, candidates, *, output_constraints=None):
+def compile_generated_capacity(plan, task, candidates, *, output_constraints=None, input_cap=131072):
     """只用于应用自动生成的计划；不改显式合同、实测画像或节点的语义属性。"""
     raw = deepcopy(plan.to_dict())
     estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints)
     for node in raw['nodes']:
         bound = max(256, estimates[node['node_id']]['estimated_input_bound'])
-        if bound > 131072:
+        if bound > input_cap:
             raise ValueError(f"automatic-plan-input-capacity-exceeded: {node['node_id']}")
         node['contract']['capability']['input_budget_tokens'] = bound
     return validate_plan(raw, required_criteria=plan.acceptance_criteria), estimates

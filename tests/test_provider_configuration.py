@@ -195,3 +195,119 @@ def test_cli_default_runs_directory_and_custom_currency(tmp_path,monkeypatch):
     plugin=json.loads(output.read_text())[0]['config']
     assert plugin['runsDir']==str(tmp_path/'.refractagent/runs')
     assert plugin['providerConfig']['billingUnit']=='CNY'
+
+
+def test_default_reasoning_effort_applies_only_to_a_selected_strategy():
+    config = example_configuration('openai-responses')
+    for model in config['models']:
+        model.pop('requestOptions', None)
+    config['defaultReasoningEffort'] = 'medium'
+    unscoped = compile_configuration(config)
+    assert all('reasoning' not in m.request_options for m in unscoped.manifest.models)
+    scoped = compile_configuration(config, strategy='balanced')
+    assert all(m.request_options['reasoning']['effort'] == 'medium' for m in scoped.manifest.models)
+
+
+def test_strategy_scoped_pools_and_default_efforts_reach_each_mode(tmp_path):
+    client = Client()
+    raw = configuration()
+    raw['strategies'] = {
+        'economy': {'reasoningEffort': 'low', 'models': ['fast']},
+        'quality': {'reasoningEffort': 'high', 'models': ['fast']},
+    }
+    runs = {}
+    for strategy in ('economy', 'quality'):
+        runs[strategy] = run_agent({'task': '按模式选模', 'strategy': strategy}, provider_config=raw,
+            mode='live', execute_paid_run=True, runs_dir=tmp_path/strategy, client=client)
+        assert runs[strategy]['status'] == 'completed', runs[strategy]['issues']
+        assert runs[strategy]['model_routes']['answer']['id'] == 'fast'
+    assert runs['economy']['model_routes']['answer']['reasoning_effort'] == 'low'
+    assert runs['quality']['model_routes']['answer']['reasoning_effort'] == 'high'
+    assert runs['economy']['evaluation_model']['reasoning_effort'] == 'low'
+    assert runs['quality']['evaluation_model']['reasoning_effort'] == 'high'
+
+
+def test_model_level_effort_wins_over_strategy_defaults(tmp_path):
+    raw = configuration()
+    raw['strategies'] = {'quality': {'reasoningEffort': 'high', 'models': ['better']}}
+    raw['models'][1]['reasoningEffort'] = 'medium'
+    result = run_agent({'task': '显式档位优先', 'strategy': 'quality'}, provider_config=raw,
+        mode='live', execute_paid_run=True, runs_dir=tmp_path, client=Client())
+    assert result['status'] == 'completed', result['issues']
+    assert result['model_routes']['answer']['reasoning_effort'] == 'medium'
+    assert result['evaluation_model']['reasoning_effort'] == 'high'
+
+
+@pytest.mark.parametrize('mutate', [
+    lambda c: c.update(strategies={'turbo': {'models': ['fast']}}),
+    lambda c: c.update(strategies={'economy': {'models': []}}),
+    lambda c: c.update(strategies={'economy': {'models': ['review']}}),
+    lambda c: c.update(strategies={'economy': {'models': ['fast', 'fast']}}),
+    lambda c: c.update(strategies={'economy': {'reasoningEffort': ''}}),
+    lambda c: c.update(defaultReasoningEffort=17),
+])
+def test_invalid_strategy_configuration_fails_before_dispatch(tmp_path, mutate):
+    config = configuration()
+    mutate(config)
+    client = Client()
+    with pytest.raises(ValueError):
+        run_agent({'task': '拒绝无效模式配置', 'strategy': 'economy'}, provider_config=config,
+                  mode='live', execute_paid_run=True, runs_dir=tmp_path, client=client)
+    assert not client.calls and not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize('limits', [{'relaxBudget': 'yes'}, {'unexpected': True}, True])
+def test_limit_toggles_are_validated_before_any_artifact(tmp_path, limits):
+    with pytest.raises(ValueError):
+        run_agent({'task': '非法限制字段', 'limits': limits}, provider_config=configuration(),
+                  mode='demo', runs_dir=tmp_path)
+    assert not list(tmp_path.iterdir())
+
+
+def test_relaxed_budget_unblocks_dispatch_and_keeps_the_ledger(tmp_path):
+    client = Client()
+    result = run_agent({'task': '预算外任务', 'limits': {'relaxBudget': True}},
+        provider_config=configuration(), mode='live', execute_paid_run=True, runs_dir=tmp_path,
+        production_budget=1e-9, evaluation_budget=1e-9, client=client)
+    assert result['status'] == 'completed', result['issues']
+    assert result['limits'] == {'relaxBudget': True, 'relaxContext': False}
+    assert result['costs']['production'] > 0 and result['costs']['evaluation'] > 0
+    blocked = run_agent({'task': '预算内任务'}, provider_config=configuration(), mode='live',
+        execute_paid_run=True, runs_dir=tmp_path/'blocked',
+        production_budget=1e-9, evaluation_budget=1e-9, client=client)
+    assert blocked['status'] != 'completed'
+
+
+def test_relaxed_context_accepts_long_conversations_within_model_windows(tmp_path):
+    raw = configuration()
+    for model in raw['models']:
+        model['contextWindow'] = 262144
+    client = Client()
+    result = run_agent({'task': '长上下文任务', 'context': 'x' * 130000, 'limits': {'relaxContext': True}},
+        provider_config=raw, mode='live', execute_paid_run=True, runs_dir=tmp_path, client=client)
+    assert result['status'] == 'completed', result['issues']
+    with pytest.raises(ValueError, match='context'):
+        run_agent({'task': '长上下文任务', 'context': 'x' * 130000}, provider_config=raw,
+                  mode='demo', runs_dir=tmp_path/'rejected')
+
+
+def test_dsh_config_can_emit_limit_toggles(tmp_path):
+    source = tmp_path/'providers.json'
+    assert main(['config-example', '--output', str(source)]) == 0
+    target = tmp_path/'relaxed.json'
+    assert main(['dsh-config', '--provider-config', str(source), '--output', str(target),
+                 '--mode', 'live', '--relax-budget']) == 0
+    config = json.loads(target.read_text())[0]['config']
+    assert config['limits'] == {'relaxBudget': True, 'relaxContext': False}
+
+
+def test_models_command_echoes_the_strategy_mapping(tmp_path, capsys):
+    config = configuration()
+    config['defaultReasoningEffort'] = 'medium'
+    config['strategies'] = {'economy': {'reasoningEffort': 'low', 'models': ['fast']}}
+    source = tmp_path/'providers.json'
+    source.write_text(json.dumps(config))
+    assert main(['models', '--provider-config', str(source)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result['defaultReasoningEffort'] == 'medium'
+    assert result['strategies'] == config['strategies']

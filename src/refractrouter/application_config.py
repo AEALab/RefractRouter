@@ -22,6 +22,7 @@ from .task_inputs import prepare_inputs
 
 SCHEMA = 'refractagent-providers-v1'
 ARK_PLAN_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
+STRATEGIES = ('economy', 'balanced', 'quality')
 _ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$')
 _ENV = re.compile(r'^[A-Z][A-Z0-9_]*$')
 
@@ -44,6 +45,46 @@ def integer(value, label, minimum, maximum):
     return value
 
 
+def strategy_rows(raw):
+    """Validate optional per-strategy overrides shared by all three presets."""
+    strategies = raw.get('strategies')
+    if strategies is None:
+        return {}
+    if not isinstance(strategies, dict) or set(strategies) - set(STRATEGIES):
+        raise ValueError('strategies may only configure economy, balanced and quality')
+    rows = {}
+    for name, row in strategies.items():
+        if not isinstance(row, dict) or set(row) - {'reasoningEffort', 'models'}:
+            raise ValueError(f'invalid {name} strategy fields')
+        entry = {}
+        if 'reasoningEffort' in row:
+            entry['reasoningEffort'] = text(row['reasoningEffort'], f'{name} reasoningEffort', 100)
+        if 'models' in row:
+            ids = row['models']
+            if (not isinstance(ids, list) or not ids or len(set(ids)) != len(ids)
+                    or any(not isinstance(value, str) for value in ids)):
+                raise ValueError(f'{name} models must be a non-empty list of unique model ids')
+            entry['models'] = ids
+        rows[name] = entry
+    return rows
+
+
+def apply_reasoning_effort(effort, options, provider_type, *, label):
+    """Map an effort onto the provider's native request options."""
+    native = options.setdefault('reasoning', {}) if provider_type == 'openai-responses' else options
+    key = 'effort' if provider_type == 'openai-responses' else 'reasoning_effort'
+    if key in native and native[key] != effort:
+        raise ValueError(f'{label} conflicts with requestOptions')
+    native[key] = effort
+    return options
+
+
+def has_request_effort(options, provider_type):
+    if provider_type == 'openai-responses':
+        return isinstance(options.get('reasoning'), dict) and 'effort' in options['reasoning']
+    return 'reasoning_effort' in options
+
+
 @dataclass(frozen=True)
 class ApplicationModelSpec(ModelSpec):
     token_limit_parameter: str = "max_completion_tokens"
@@ -58,13 +99,24 @@ class ApplicationConfiguration:
     snapshot: dict
 
 
-def compile_configuration(raw):
-    raw = obj(raw, {'schemaVersion', 'billingUnit', 'providers', 'models', 'qualityMin'}, 'provider configuration')
+def compile_configuration(raw, strategy=None):
+    raw = obj(raw, {'schemaVersion', 'billingUnit', 'providers', 'models', 'qualityMin',
+                    'defaultReasoningEffort', 'strategies'}, 'provider configuration')
     if raw.get('schemaVersion') != SCHEMA:
         raise ValueError(f'provider configuration requires schemaVersion {SCHEMA}')
     unit = raw.get('billingUnit')
     if not isinstance(unit, str) or not re.fullmatch(r'[A-Z][A-Z0-9_-]{0,15}', unit):
         raise ValueError('billingUnit must be one declared accounting unit')
+    default_effort = None
+    if 'defaultReasoningEffort' in raw:
+        default_effort = text(raw['defaultReasoningEffort'], 'defaultReasoningEffort', 100)
+    strategies = strategy_rows(raw)
+    scoped = {}
+    if strategy is not None:
+        if strategy not in STRATEGIES:
+            raise ValueError('strategy must be economy, balanced or quality')
+        scoped = strategies.get(strategy, {})
+    effective_effort = scoped.get('reasoningEffort', default_effort) if strategy is not None else None
     provider_rows = raw.get('providers')
     if not isinstance(provider_rows, list) or not 1 <= len(provider_rows) <= 32:
         raise ValueError('configure between 1 and 32 providers')
@@ -170,12 +222,10 @@ def compile_configuration(raw):
         if p['type'] == 'dsh' and set(options) - {'temperature', 'reasoning_effort'}:
             raise ValueError('DSH model options support temperature and reasoning_effort')
         if 'reasoningEffort' in m:
-            effort = text(m['reasoningEffort'], 'reasoningEffort', 100)
-            native = (options.setdefault('reasoning', {}) if p['type'] == 'openai-responses' else options)
-            key = 'effort' if p['type'] == 'openai-responses' else 'reasoning_effort'
-            if key in native and native[key] != effort:
-                raise ValueError('reasoningEffort conflicts with requestOptions')
-            native[key] = effort
+            apply_reasoning_effort(text(m['reasoningEffort'], 'reasoningEffort', 100), options, p['type'],
+                                   label='reasoningEffort')
+        elif effective_effort is not None and not has_request_effort(options, p['type']):
+            apply_reasoning_effort(effective_effort, options, p['type'], label='default reasoning effort')
         if role == 'candidate':
             predictions[mid] = compile_routing(m.get('routing'), output)
         elif 'routing' in m:
@@ -191,11 +241,20 @@ def compile_configuration(raw):
             authentication_required=p.get('credentialEnv') is not None))
     if not predictions or sum(m.role=='judge' for m in models) != 1:
         raise ValueError('configure at least one candidate and exactly one judge')
+    candidate_ids = {m.model_id for m in models if m.role == 'candidate'}
+    for name, row in strategies.items():
+        unknown = set(row.get('models', ())) - candidate_ids
+        if unknown:
+            raise ValueError(f'{name} models must reference candidate models: {sorted(unknown)}')
+    if strategy is not None and 'models' in scoped:
+        pool = set(scoped['models'])
+        models = [m for m in models if m.role != 'candidate' or m.model_id in pool]
+        predictions = {mid: row for mid, row in predictions.items() if mid in pool}
     return ApplicationConfiguration(ModelManifest(SCHEMA, date.today().isoformat(), unit, tuple(models)),
         predictions, number(raw.get('qualityMin', 0), 'qualityMin', maximum=100), deepcopy(raw))
 
 
-def prepare_configured_plan(request, context, *, explicit_plan, output_cap):
+def prepare_configured_plan(request, context, *, explicit_plan, output_cap, input_cap=131072):
     """Size generated plans for the input; explicit user contracts stay authoritative."""
     if explicit_plan:
         return
@@ -206,7 +265,9 @@ def prepare_configured_plan(request, context, *, explicit_plan, output_cap):
         spec = next(n for n in plan.nodes if n.node_id==node['node_id'])
         contract = node['contract']
         upstream = {parent: {field: '' for field in info['fields']} for parent,info in contract['inputs'].items()}
-        messages = node_messages(task, spec, contract, upstream)
+        # Sizing must measure the real envelope before the budget is rewritten;
+        # the template's initial budget is not a limit for this measurement.
+        messages = node_messages(task, spec, contract, upstream, check_input_budget=False)
         size = len(json.dumps(messages).encode()) + 512 + len(spec.parents)*output_cap*8
-        contract['capability']['input_budget_tokens'] = max(256, min(131072, size))
+        contract['capability']['input_budget_tokens'] = max(256, min(input_cap, size))
     request['plan'] = validate_plan(raw).to_dict()

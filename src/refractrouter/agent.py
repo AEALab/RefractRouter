@@ -36,6 +36,9 @@ PRESETS = {
 }
 POLICY_VERSION = 'refractagent-presets-v1'
 MAX_CONTEXT_BYTES = 120000
+RELAXED_CONTEXT_BYTES = 1000000
+RELAXED_COST_MAX = 1e12
+RELAXED_INPUT_CAP = 1_000_000
 
 
 def resource(name):
@@ -81,11 +84,18 @@ def plan_template(name, criteria=None):
 def build_request(payload, *, mode, production_budget, timeout_ms):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
             'planningMode', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
-            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies'}:
+            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
         raise ValueError('invalid RefractAgent request fields')
+    limits = payload.get('limits', {})
+    if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext'}
+            or any(not isinstance(limits[key], bool) for key in limits)):
+        raise ValueError('limits may only contain boolean relaxBudget and relaxContext')
+    relax_budget = limits.get('relaxBudget', False)
+    relax_context = limits.get('relaxContext', False)
     strategy = payload.get('strategy', 'balanced')
     if not isinstance(strategy, str) or strategy not in PRESETS:
         raise ValueError('strategy must be economy, balanced or quality')
+    budget = number(production_budget, 'production budget', positive=True)
     task = text(payload.get('task'), 'task')
     criteria = payload.get('acceptanceCriteria')
     automatic = payload.get('template') == 'auto' and 'plan' not in payload
@@ -93,7 +103,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
             else plan_template(payload.get('template', 'single'), criteria))
     request = {**deepcopy(PRESETS[strategy]), 'task': task,
                'mode': {'preflight': 'preflight', 'demo': 'demo', 'live': 'run'}[mode],
-               'costMax': number(production_budget, 'production budget', positive=True),
+               'costMax': RELAXED_COST_MAX if relax_budget else budget,
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
                'maxConcurrency': 1, 'maxNodeFallbacks': 0}
     if plan is not None:
@@ -118,9 +128,10 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
     if 'outputConstraints' in payload:
         request['outputConstraints'] = validate_output_constraints(payload['outputConstraints'])
     context = payload.get('context', '')
-    if not isinstance(context, str) or len(context.encode()) > MAX_CONTEXT_BYTES:
+    context_limit = RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES
+    if not isinstance(context, str) or len(context.encode()) > context_limit:
         raise ValueError('conversation context exceeds the RefractAgent input limit')
-    return strategy, request, context
+    return strategy, request, context, {'relaxBudget': relax_budget, 'relaxContext': relax_context}
 
 
 def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
@@ -134,8 +145,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     number(evaluation_budget, 'evaluation budget', positive=True)
     if type(max_output_tokens) is not int or not 1000 <= max_output_tokens <= 128000:
         raise ValueError('output cap must be an integer in 1000..128000')
-    strategy, request, context = build_request(payload, mode=mode, production_budget=production_budget,
-                                               timeout_ms=timeout_ms)
+    strategy, request, context, limits = build_request(payload, mode=mode, production_budget=production_budget,
+                                                       timeout_ms=timeout_ms)
+    relax_budget, relax_context = limits['relaxBudget'], limits['relaxContext']
     if preset not in {None, 'ark-agent-plan'}:
         raise ValueError('unknown provider preset')
     if provider_config is not None and (preset or manifest_path or profile_path):
@@ -146,17 +158,19 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         raise ValueError('custom manifest and profile must be supplied together')
     if mode == 'live' and provider_config is None and preset is None and manifest_path is None:
         raise ValueError('configure providers/models or explicitly select the ark-agent-plan preset')
-    configured = compile_configuration(provider_config) if provider_config is not None else None
+    configured = compile_configuration(provider_config, strategy=strategy) if provider_config is not None else None
     if configured:
         manifest = configured.manifest
         request['qualityMin'] = configured.quality_min
-        if 'plan' in request:
-            prepare_configured_plan(request, context, explicit_plan='plan' in payload, output_cap=max_output_tokens)
-
     else:
         manifest_file = Path(manifest_path) if manifest_path else Path(str(resource('agent-plan.json')))
         manifest = load_model_manifest(manifest_file)
         manifest_data = json.loads(manifest_file.read_text())
+    input_cap = (min(RELAXED_INPUT_CAP, max(131072, max(m.context_window for m in manifest.models) - max_output_tokens))
+                 if relax_context else 131072)
+    if 'plan' in request and (configured or relax_context):
+        prepare_configured_plan(request, context, explicit_plan='plan' in payload,
+                                output_cap=max_output_tokens, input_cap=input_cap)
     temperature = number(payload.get('temperature', 0), 'temperature', maximum=2)
     manifest = replace(manifest, models=tuple(replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
                                              for m in manifest.models))
@@ -193,7 +207,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     atomic_json(request_path, {'schema_version': 'refractagent-request-v1', 'payload': payload,
         'runtime_request': request, 'policy_version': POLICY_VERSION, 'mode': mode,
         'production_budget': production_budget, 'evaluation_budget': evaluation_budget,
-        'max_output_tokens': max_output_tokens})
+        'max_output_tokens': max_output_tokens, 'limits': limits})
     atomic_json(directory / 'profile.json', profile)
     atomic_json(directory / 'manifest.json', manifest_data)
     if configured:
@@ -205,9 +219,11 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         recorder.record(value)
     result = run_task(request, manifest, profile,
         client=client if mode == 'live' else None,
-        production_limit=production_budget, evaluation_limit=evaluation_budget,
+        production_limit=RELAXED_COST_MAX if relax_budget else production_budget,
+        evaluation_limit=RELAXED_COST_MAX if relax_budget else evaluation_budget,
         checkpoint=checkpoint, cancel_event=cancel_event,
-        conversation_context=context, configured_application=configured is not None, configuration=configured)
+        conversation_context=context, configured_application=configured is not None, configuration=configured,
+        context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap)
     if result.get('routing_profile'):
         profile = result['routing_profile']
         atomic_json(directory / 'profile.json', profile)
@@ -231,6 +247,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     totals['unconfirmed'] = sum(c['charged'] for c in calls if c['status'] in {'reserved', 'unknown-usage'})
     output = {'schema_version': 'refractagent-result-v1', 'run_id': run_id, 'mode': mode,
         'strategy': strategy, 'strategy_name': PRESETS[strategy]['name'], 'policy_version': POLICY_VERSION,
+        'limits': limits,
         'status': result['status'], 'answer': result['final_output'], 'issues': result['issues'],
         'models': {nid: models[mid] for nid, mid in assignments.items()},
         'model_routes': {nid: actions[mid] for nid, mid in assignments.items()},
