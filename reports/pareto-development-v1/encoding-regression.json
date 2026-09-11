@@ -1,0 +1,199 @@
+{
+  "scope": "历史开发输出的事后编码诊断；不重写历史状态，不作为v2新运行或独立准确率证据。",
+  "sources": {
+    "reports/quality-study-v1/binding-live/evaluated-results.json": "425f7cc9dc2a924d25a502e544f2e4bdacfcbbf4041e3a3b5a0c34438adb4e87",
+    "reports/quality-study-v1/final-live/evaluated-results.json": "26cee8a963c17e75035a7a413e61f6c85b1a95b80b8b8f7b04c3496947b4db6b",
+    "reports/quality-study-v1/ready-live/evaluated-results.json": "d917f8f7874ce5a818ee77ea6ecf1ad29c738629bec0db835fd5a645741403f6"
+  },
+  "v2_task_sha256": "380b66fc69b7237e0432c249122d43ac9a0e387eb4a70561e27a88e18494cadc",
+  "rows": [
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-auto-heterogeneous",
+      "output_sha256": "1c9d0c11194ed1bc5895e5cad1ce89e82b51cba7334405e505076fc21d8ee2c4",
+      "original_quality_status": "pending",
+      "v2_encoding": "canonical",
+      "v2_field_status": "pass",
+      "normalizations": []
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-random-mixture",
+      "output_sha256": "31a4abdea0d5715232e70ccac5d7513fc1c964c843582e19c86633ca44923f4e",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "unwrap-single-edge"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-direct-or-dag",
+      "output_sha256": "de3360731c13c1d9b47aa94585d4e54c4f7154e9919a9641961855b897e47478",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "unwrap-single-edge"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-task-selector",
+      "output_sha256": "76d1c7961ef33df0c2a6f6cf6f8b3a821703d838f84fe1ca013e4016eec397f1",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "unwrap-single-edge"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-shared-heterogeneous-2",
+      "output_sha256": "c81ccf897f45394f97e15dd797a0e60c7af07cc0d78413b7f7b0011b54202b48",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "public-edge-label-alias"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-shared-heterogeneous-1",
+      "output_sha256": "5ad4918bccd77fabe90335afd0d4d0d4704de8cec204c4ab7e29889ed9058937",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "public-edge-label-alias"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-auto-single",
+      "output_sha256": "eb85f88dd7d7dc5ddbb474bc311948a204940248e874ce4010e5269a7b036fa0",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "public-edge-label-alias"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-direct-mid",
+      "output_sha256": "6f891863dba2ec222c8ddc30839ddbd524a5acd5081c5fe56d79351b2be11987",
+      "original_quality_status": "fail",
+      "v2_encoding": "invalid",
+      "v2_field_status": "unverified",
+      "normalizations": []
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-direct-strong",
+      "output_sha256": "774cbfe781bd1a0f15dce069782607f049592c4cfbbfda3522c1671126aff44a",
+      "original_quality_status": "pending",
+      "v2_encoding": "canonical",
+      "v2_field_status": "pass",
+      "normalizations": []
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-direct-cheap",
+      "output_sha256": "2fc54c0d751bd7df4d7a8718261f898b6e39b91cb30c28614e07ef0fd9dd9afd",
+      "original_quality_status": "pending",
+      "v2_encoding": "canonical",
+      "v2_field_status": "pass",
+      "normalizations": []
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-shared-single-2",
+      "output_sha256": "c33780672c13652b8fbd62160462e362da95a64664bf3fb3fcaa69b9c647006a",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "public-edge-label-alias"
+        }
+      ]
+    },
+    {
+      "batch": "binding-live",
+      "run_id": "rules-02-r1-shared-single-1",
+      "output_sha256": "0e19bc3f1e2ad1e634bf4ea9f642437c450badbc0e7d3df49db991783ae2f049",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "public-edge-label-alias"
+        }
+      ]
+    },
+    {
+      "batch": "final-live",
+      "run_id": "rules-02-r1-direct-cheap",
+      "output_sha256": "f5b1365d5daf91d06e859e6f96786b62f09fd0e47fee1f1dbd7214d3ccdd8ba6",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "unwrap-single-edge"
+        }
+      ]
+    },
+    {
+      "batch": "ready-live",
+      "run_id": "rules-02-r1-direct-mid",
+      "output_sha256": "c07cb6fd5a0ed85f4f1abcb0561746bdc4837df99c2808c8ba4bf943c464f3cd",
+      "original_quality_status": "pending",
+      "v2_encoding": "canonical",
+      "v2_field_status": "pass",
+      "normalizations": []
+    },
+    {
+      "batch": "ready-live",
+      "run_id": "rules-02-r1-auto-heterogeneous",
+      "output_sha256": "5f0a4f37e562e056b69448edaaf2ba17cba118d6458459cc5c1125394a6b7b19",
+      "original_quality_status": "fail",
+      "v2_encoding": "normalized",
+      "v2_field_status": "pass",
+      "normalizations": [
+        {
+          "field": "required_edge",
+          "operation": "public-edge-label-alias"
+        }
+      ]
+    }
+  ],
+  "human_semantics": "pending",
+  "actual_model_calls": 0,
+  "actual_afp": 0
+}
