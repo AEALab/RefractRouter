@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-auto-heterogeneous:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别硬约束：双面彩色排除Q，周五前送达排除E，唯一可行组合为P+D，总价380元低于预算400元。正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选P（300元，双面彩色，s1）满足双面彩色100份；选D（80元，周四送达，s2）满足周五前送达；合计380元≤400元预算，全部硬约束满足。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文完全一致；未反写依赖，未扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个finding齐全：printer引用s1、delivery引用s2、total_cost引用s1和s2，数值300+80=380正确，标签均在allowed_labels内，类型符合。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未贪便宜选Q（仅黑白）或E（周六送达），而是全局筛选后得唯一可行组合P+D，满足全部条件且为可行项中最低（唯一）总价。\"}]}",
+  "input_tokens": 884,
+  "output_tokens": 326,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14173,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100725914f1aca4493aa6c7087a6ccfbfdb4be61581236b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 326,
+    "prompt_tokens": 884,
+    "total_tokens": 1210,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

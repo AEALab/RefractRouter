@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-shared-heterogeneous-2:pooling_check",
+  "content": "## 结论\n\n不能合并计算全体客户不满意率，can_pool 为 false。\n\n## 依据与发现\n\n- survey_negative：14。来源 s1，问卷不满意份数为 14 份。\n- service_complaints：20。来源 s2，投诉工单条数为 20 条。\n- can_pool：false。来源 s1、s2。\n\n## 限制与权衡\n\n1. 抽样偏差：s1 为自愿填写的 50 份问卷，未记录未填写者的态度，未填写者的不满意度未知，不能外推至全体客户。\n2. 身份无法对应：s1 未记录是否联系过客服，s2 明确\"无法与问卷身份对应\"，两来源之间无法建立个体级匹配，重叠情况完全未知。\n3. 工单重复计数：s2 的 20 条工单中有 4 条是同一客户追问，去重后涉及客户数至多为 17，工单条数不等于客户数，更不等于不满意的独立客户数。\n4. 量纲不一致：问卷返回的是\"份数\"（自报），客服返回的是\"工单条数\"（事件），二者基数不同，不可简单相加或求并集率。\n5. 替代方案有限：即便放弃个体级合并，分别报告两来源的原始数字与各自局限，也比强行合成一个虚假的\"全体客户不满意率\"更可靠；如确需合并，需补做抽样设计、加入身份字段并对工单去重后再评估。\n\n## 假设与不确定性\n\n- 上游两节点对 survey_negative、service_complaints、can_pool 的判断一致，本节点予以采纳。\n- 工单去重后客户数的上界取 17 是基于\"4 条属同一客户\"的最小假设；若存在其他客户多次追问，实际客户数更低，材料未披露。\n- 未做工具调用或新事实检索，全部结论基于 s1、s2 两份材料与上游分析。",
+  "input_tokens": 1082,
+  "output_tokens": 401,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6446,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891002497214c81961e630bce638d970dc27533587357b35a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 401,
+    "prompt_tokens": 1082,
+    "total_tokens": 1483,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-single-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别 P 满足双面彩色、D 满足周五前送达，组合总价 380 元低于预算 400 元；正文与 findings 一致，引用充分，未忽略全局约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文分别核对打印（P 双面彩色 300 元合格，Q 仅黑白不合格）与配送（D 周四送达 80 元合格，E 周六送达不合格），并验证总价 380 元低于预算 400 元，符合材料与全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 printer=P、delivery=D、total_cost=380 与正文结论完全一致，未引入材料之外的含义或反转依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项必需结论齐全：printer 引用 s1、delivery 引用 s2、total_cost=380 引用 s1 与 s2，数值与事实均正确且引用足以支持。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"候选未选取更便宜但不合格的 Q 或 E，而是选出同时满足双面彩色、周五前送达及预算约束的唯一组合 P+D（380 元），满足全局要求。\"}]}",
+  "input_tokens": 948,
+  "output_tokens": 340,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13275,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100502906b566464da517b102b4cb09cdfd60e7ee4b2a44",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 340,
+    "prompt_tokens": 948,
+    "total_tokens": 1288,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

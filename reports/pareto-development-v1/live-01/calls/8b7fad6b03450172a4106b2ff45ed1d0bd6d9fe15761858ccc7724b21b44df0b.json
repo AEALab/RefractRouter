@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-auto-heterogeneous:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别P为唯一满足双面彩色打印的供应商，D为唯一满足周五前送达的配送方案，总价380元低于400元预算，满足全部硬约束。正文、findings与材料一致，未反写依赖或扩大证据。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文准确引用材料：P可双面彩色300元（s1），Q仅黑白200元不满足需求；D周四送达80元满足周五前（s2），E周六送达不满足；总价380元低于预算400元。符合任务'分别核对打印和配送，再选满足全部条件的最低总价组合'要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文结论完全一致；sources引用正确（printer引s1，delivery引s2，total_cost引s1+s2）；未反写依赖（如未将E周六送达误述为满足条件）。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项必需结论完整：printer、delivery、total_cost均存在；事实正确（P/D/380）；引用充分：printer由s1支持，delivery由s2支持，total_cost由s1+s2共同支持。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"明确拒绝Q（仅黑白）和E（周六送达）的低价诱惑，选择同时满足双面彩色、周五前送达、预算400元内全部条件的P+D组合，总价380元为可行最低总价。\"}]}",
+  "input_tokens": 865,
+  "output_tokens": 399,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13797,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909882746991be90b70b1bfc3059428bd07e108b7e2191dd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 399,
+    "prompt_tokens": 865,
+    "total_tokens": 1264,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

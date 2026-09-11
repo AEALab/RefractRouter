@@ -1,0 +1,24 @@
+{
+  "label": "setup:rules-02",
+  "content": "{\"reason\":\"任务为单一状态核对，依赖关系简单，拆为提取现状、核对依赖、汇总输出三部分。\",\"nodes\":[{\"id\":\"extract\",\"type\":\"extraction\",\"job\":\"从流程与现状材料中提取步骤状态：打包已结束、签名未执行、发布被要求直接执行。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"verify\",\"type\":\"verification\",\"job\":\"核对依赖：打包结束是签名前置，签名通过是发布前置；检查报告不替代签名。\",\"parents\":[\"extract\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"输出allowed_now、blocked_now、required_edge，并说明结论、依据、限制及权衡。\",\"parents\":[\"verify\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 690,
+  "output_tokens": 181,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4048,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099485388ed0e184fb98d17720dee9f0ee33ee7e1781ce8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 181,
+    "prompt_tokens": 690,
+    "total_tokens": 871,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

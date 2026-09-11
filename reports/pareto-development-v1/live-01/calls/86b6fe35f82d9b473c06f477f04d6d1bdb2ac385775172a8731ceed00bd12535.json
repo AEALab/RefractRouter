@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"任务需先分别核对打印与配送约束，再合并筛选满足全部条件的最低总价组合，最后汇总输出。\",\"nodes\":[{\"id\":\"check_print\",\"type\":\"verification\",\"job\":\"核对打印条件：需双面彩色100份。P报价300元满足双面彩色，Q报价200元仅黑白不满足，故打印商只能选P。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"check_delivery\",\"type\":\"verification\",\"job\":\"核对配送条件：须周五前送达。D报价80元周四送达满足，E报价40元周六送达不满足，故配送只能选D。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"combine\",\"type\":\"synthesis\",\"job\":\"综合打印与配送结果，唯一满足全部条件的组合为P+D，总价300+80=380元，低于预算400元。\",\"parents\":[\"check_print\",\"check_delivery\"],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"输出最终答案：printer=P，delivery=D，total_cost=380，并说明依据与限制。\",\"parents\":[\"combine\"],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+  "input_tokens": 586,
+  "output_tokens": 273,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4756,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891007119447820404c56ac6dd9ce215ba8b602495a6f246b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 273,
+    "prompt_tokens": 586,
+    "total_tokens": 859,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

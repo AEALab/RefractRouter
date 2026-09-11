@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-auto-heterogeneous:pool",
+  "content": "**结论**：问卷与客服记录不能合并为全体客户不满意率，原因是问卷为非随机自愿抽样、客服工单含同一客户重复追问、且两来源身份无法对应。\n\n**分别分析**\n\n问卷（s1）：50份自愿填写问卷中14份表示不满意。不满意率在填写样本内为 14/50 = 28%，但因属自愿填写（自选偏差），且材料未记录未填写者数量，也未记录这14位填写者是否联系过客服，因此该比例不能外推至全体客户。\n\n客服（s2）：同周共20条投诉工单，其中4条是同一客户追问，实际涉及独立客户数至多17位、最少16位（取决于追问客户的归属判断）。20条工单不等于20位不满客户，不能直接视为客户数。\n\n**不能合并的理由**\n\n1. **抽样非随机**：问卷自愿填写，存在自选偏差，无法代表全体客户。\n2. **身份无法对应**：客服记录无法与问卷填写者身份匹配，重叠情况未知；同一人可能在两处都表达不满，也可能仅在一处出现，简单相加会重复或遗漏。\n3. **工单含重复**：20条工单中含同一客户追问，视为客户数会高估；以客户数计也无法与问卷的\"份数\"概念同口径合并。\n4. **缺少总体基数**：两来源均未提供全体客户数，分母未知，无法合成统一的不满意率。\n\n**必要的权衡说明**\n\n- 若要勉强估算，可给出一个区间式叙述（问卷侧填写者不满意率约 14/50；客服侧独立投诉客户约 16–17 位），但这只是两源各自的范围，不能相加，不能作为\"全体客户不满意率\"。\n- 若需真正合并，必须补充：全体客户基数、身份关联字段（如匿名ID或联系方式哈希）、并采用随机抽样问卷以消除自选偏差。\n\n**findings**\n\n- id: survey_negative, value: 14, sources: [\"s1\"]\n- id: service_complaints, value: 20, sources: [\"s2\"]\n- id: can_pool, value: false, sources: [\"s1\", \"s2\"]",
+  "input_tokens": 1184,
+  "output_tokens": 450,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5715,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100397027fa871229fec4115dc08043e38393b8b53fc936",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 450,
+    "prompt_tokens": 1184,
+    "total_tokens": 1634,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

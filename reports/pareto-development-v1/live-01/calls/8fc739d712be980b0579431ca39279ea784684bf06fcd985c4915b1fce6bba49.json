@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-heterogeneous-2:assignment",
+  "content": "结论：存在可行的排班安排。早班分配甲，晚班分配乙，feasible 为 true。\n\n依据：依据材料 s1 的要求，每班 1 人且必须持有有效培训记录，并规定早班 08:00–12:00、晚班 16:00–20:00。结合材料 s2 中的人员信息，甲培训有效且只能早班，乙培训有效且只能晚班，丙培训过期不符合资格要求。因此甲天然适合早班，乙天然适合晚班，两人各占一班且每人最多一班，完全满足所有约束。\n\n补充说明：丙因培训记录过期，不具备带班资格，无论时间是否可用均不能被分配到任何班次；甲与乙的班次限制也使其无法互换或重复占用另一班次，因此排班方案唯一，即早班甲、晚班乙。该安排在资格、时间、班次偏好三项约束下均无冲突，无需权衡或替代。",
+  "input_tokens": 971,
+  "output_tokens": 195,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5436,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098848767fa871229fec4115dc08043e38393b8b592ba72",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 195,
+    "prompt_tokens": 971,
+    "total_tokens": 1166,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

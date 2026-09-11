@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-1:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文与 findings 将“打包”列入 allowed_now，但材料 s2 明确“打包已结束”，已完成的步骤不属于“当前可执行步骤”；按材料只能推出签名可执行、发布被阻断。allowed_now 含打包构成事实错误并扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文称“当前可执行步骤为‘打包’和‘签名’”，与 s2“打包已结束”冲突；当前可执行应为签名，发布被阻断。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 一致地把“打包”列入 allowed_now，但这把已完成的打包当作仍可执行，扩大了对现状的解释；依赖方向本身未反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"blocked_now=[发布]与 required_edge=[签名,发布]可由 s1/s2 支持；allowed_now=[打包,签名]中“打包”不被 s2 支持，因其已结束。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确签名通过才能发布、检查报告不代表签名完成，且指出不能以检查通过直接发布；未倒写依赖。\"}]}",
+  "input_tokens": 1268,
+  "output_tokens": 321,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12444,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099621527fa871229fec4115dc08043e38393b8b5e0ae68",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 321,
+    "prompt_tokens": 1268,
+    "total_tokens": 1589,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

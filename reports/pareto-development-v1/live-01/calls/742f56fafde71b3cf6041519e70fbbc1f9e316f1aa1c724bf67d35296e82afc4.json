@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-shared-heterogeneous-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案分别报告问卷不满意14份（s1）与投诉工单20条（s2），明确工单非客户数且含同一客户追问，指出自愿抽样、未填写者缺失、身份无法对应与缺统一分母，结论为不能合并，findings 与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文使用中文，分别分析 s1 与 s2，给出结论、依据、限制与权衡；数值14与20及不能合并均与材料一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 survey_negative=14、service_complaints=20、can_pool=false 与正文一致；未把工单写成客户数，也未声称可合并或外推全体客户。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出：14份来自s1，20条来自s2，can_pool=false由s1与s2共同支持；引用与事实对应充分。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"明确说明20条是工单计数且4条为同一客户追问，独立客户数少于20；并分别说明问卷自愿抽样偏差、未填写者未知、两来源身份无法对应导致重叠不可判定。\"}]}",
+  "input_tokens": 1187,
+  "output_tokens": 347,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 14124,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098493842fc7578b59e843c90e5af4aa62e8cfda9e95b80",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 347,
+    "prompt_tokens": 1187,
+    "total_tokens": 1534,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

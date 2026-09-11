@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-direct-cheap:answer",
+  "content": "{\n  \"answer\": \"核对打印条件：需求为双面彩色100份。P报价300元，支持双面彩色，满足打印要求；Q报价200元，仅支持黑白，不满足双面彩色的要求，因此打印商必须选择P。\\n\\n核对配送条件：须周五前送达。D报价80元，周四送达，满足周五前送达的要求；E报价40元，周六送达，不满足周五前送达的要求，因此配送方案必须选择D。\\n\\n总价计算：P（300元）+ D（80元）= 380元，未超过总预算400元，满足预算限制。\\n\\n最终组合：打印商为P，配送方案为D，总价为380元。该组合同时满足双面彩色、周五前送达和总预算400元的所有条件。\",\n  \"findings\": [\n    {\n      \"id\": \"printer\",\n      \"value\": \"P\",\n      \"sources\": [\"s1\"]\n    },\n    {\n      \"id\": \"delivery\",\n      \"value\": \"D\",\n      \"sources\": [\"s2\"]\n    },\n    {\n      \"id\": \"total_cost\",\n      \"value\": 380,\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 817,
+  "output_tokens": 274,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2338,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890985910363d763aaa7a5e423f9e5323a8c500bc9fa07726",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 274,
+    "prompt_tokens": 817,
+    "total_tokens": 1091,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

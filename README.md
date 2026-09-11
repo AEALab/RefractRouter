@@ -64,6 +64,10 @@ RefractAgent 模型入口使用已安装的 Python 核心，脱离源码目录�
 [非真人条件验证](reports/quality-study-v1/technical-freeze-analysis.md)已完成，
 独立真人材料审查、盲审与用途确认仍待完成；尚未证明 Pareto 收益。
 
+[#53 时间与 AFP 开发对照](reports/pareto-development-v1/README.md)接续该协议，
+在六个开发任务上比较直接回答、整任务选模、共享图串行/并行和自动图执行。
+逐调用费用、端到端时间与质量状态分别审计；开发资源点不等于质量合格的 Pareto 前沿。
+
 [自动拆分应用入口](docs/automatic-dag.md)支持 `refractagent run --template auto`：
 快速规划模型输出短计划，Python 编译契约并并行执行；困难节点可进行一次有界再拆。
 排程材料中的显式错误依赖由确定性检查拦截，检查范围和未覆盖内容分别记录。

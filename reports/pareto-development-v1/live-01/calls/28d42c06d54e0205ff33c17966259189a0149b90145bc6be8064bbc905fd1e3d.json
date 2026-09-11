@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-direct-mid:research-judge",
+  "content": "{\n  \"verdict\": \"fail\",\n  \"rationale\": \"候选答案在依赖方向、发布阻塞和 required_edge 上基本正确，但把“签名”列入 blocked_now 与材料冲突：s2 明确打包已结束，s1 明确打包结束才能签名，因此签名当前已满足直接前置条件，不能作为仍不能执行步骤。正文还把“可签字接收的完成态”等表述混入口径，进一步扩大了 allowed_now 的语义。\",\n  \"criteria\": [\n    {\n      \"criterion\": \"最终正文符合材料、任务要求与全部硬约束\",\n      \"verdict\": \"fail\",\n      \"rationale\": \"正文称 blocked_now=[\\\"签名\\\",\\\"发布\\\"]，但 s1 给出“打包结束才能签名”，s2 给出“打包已结束并通过检查；签名未执行”，所以签名虽然未执行，却并不被前置条件阻塞；把签名列为仍不能执行不符合材料。正文对发布受阻和不能跳过签名的判断正确，但存在上述关键状态判定错误。\"\n    },\n    {\n      \"criterion\": \"正文与结构化结论一致且未反写依赖或扩大证据含义\",\n      \"verdict\": \"fail\",\n      \"rationale\": \"正文与 findings 在 allowed_now=[\\\"打包\\\"]、blocked_now=[\\\"签名\\\",\\\"发布\\\"]、required_edge=[\\\"签名\\\",\\\"发布\\\"] 上保持一致，也没有把依赖反写成发布可直接进行；但正文把打包描述为“处于可签字接收的完成态”，并把签名归入 blocked_now，扩大了检查报告和当前状态对步骤可执行性的含义。\"\n    },\n    {\n      \"criterion\": \"必需结论完整、事实正确且各自引用足以支持主张\",\n      \"verdict\": \"fail\",\n      \"rationale\": \"三个 findings 的 id 都齐全，required_edge=[\\\"签名\\\",\\\"发布\\\"] 由 s1 的“签名通过才能发布”直接支持，发布受阻也由 s1、s2 共同支持；但 blocked_now 包含“签名”缺乏支持，且与“打包结束才能签名”及“打包已结束”相矛盾，allowed_now 又未把当前真正可推进的签名纳入，事实完整性不足。\"\n    },\n    {\n      \"criterion\": \"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"正文反复强调“签名通过才能发布”、检查报告“不代表签名完成”，并明确拒绝“负责人要求现在直接发布”，未倒写依赖，也未暗示检查通过即可直接发布。\"\n    }\n  ]\n}",
+  "input_tokens": 1413,
+  "output_tokens": 552,
+  "cached_input_tokens": 1280,
+  "reasoning_tokens": 0,
+  "latency_ms": 22074,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891015459768878e6c95084a12b4d57c4d96cb06f1d88102a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 552,
+    "prompt_tokens": 1413,
+    "total_tokens": 1965,
+    "prompt_tokens_details": {
+      "cached_tokens": 1280
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

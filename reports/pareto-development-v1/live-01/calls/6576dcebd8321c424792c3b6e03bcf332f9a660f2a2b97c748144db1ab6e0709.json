@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r2-direct-mid:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确核算持有数（3+未签收1=4）、remaining=1、requested=3、full_approval=false，正文与 findings 一致，未将口头归还视为完成手续，各项结论均有 s1/s2 支撑。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 上限5件与签收规则、s2 已签出3件及未签收1件，得出持有4件、可新增1件、申请3件、不能全数批准，符合材料与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 remaining=1、requested=3、full_approval=false 与正文一致；签收后才扣除的依赖方向保留，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 齐全且数值正确；remaining 引用 s1、s2，requested 引用 s2，full_approval 引用 s1、s2，引用足以支持。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"答案明确口头归还未签收不计入已归还，持有数按4件计算，符合该约束。\"}]}",
+  "input_tokens": 1144,
+  "output_tokens": 312,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 11736,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891012181957820404c56ac6dd9ce215ba8b602495a5fcb6c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 312,
+    "prompt_tokens": 1144,
+    "total_tokens": 1456,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

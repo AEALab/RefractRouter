@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-shared-heterogeneous-2:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"台账计算 80+30-46-4=60，实盘减应存 59-60=-1，均正确；正文明确差异不等于失窃，未补齐2份待核对单据数量，theft_proven=false 与材料一致；findings 的 id、类型、sources 均符合契约。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出应存60件、差-1件、不能认定失窃，符合材料与任务；未编造待核对单据数量。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文数值与 findings 的 60、-1、false 一致，未将短缺扩大为失窃。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 完整：expected_stock=60 引用 s1，observed_gap=-1 引用 s1、s2，theft_proven=false 引用 s2（无监控或调查），引用充分。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"正文明确区分台账差异与失窃认定，并说明待核对单据未纳入计算、数量未补齐。\"}]}",
+  "input_tokens": 866,
+  "output_tokens": 312,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10226,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789097979143e4d5e3acd6b6d5c09c835e2d36b9596cfe2609",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 312,
+    "prompt_tokens": 866,
+    "total_tokens": 1178,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

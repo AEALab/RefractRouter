@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别打包已完成、签名可执行、发布被阻断；required_edge 为[签名,发布]，方向正确；未将检查通过等同于签名完成，未倒写依赖；findings 三项齐全且引用恰当。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1（打包结束才能签名；签名通过才能发布；检查不代表签名完成）与 s2（打包已结束、签名未执行、负责人要求直接发布），给出结论、依据、限制与权衡，符合任务输出要求，未违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文称可执行打包与签名、发布被阻断，与 findings 中 allowed_now=[打包,签名]、blocked_now=[发布]、required_edge=[签名,发布]一致；明确反向边不等价，未把检查报告扩大为签名完成证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 findings 完整：allowed_now 与 blocked_now 引用 s1、s2 足以支持（流程依赖+现状）；required_edge=[签名,发布]引用 s1（签名通过才能发布）足以支持；事实与材料一致。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确‘签名通过才能发布’、‘检查报告只证明打包成功，不代表签名完成’、‘不能以检查通过为由直接发布’，并指出负责人直接发布要求与流程冲突，无倒写依赖或暗示检查通过即可发布。\"}]}",
+  "input_tokens": 1268,
+  "output_tokens": 387,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 10607,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909963404889d0c17fc196b3c940c12dd7ad5b500b1baba3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 387,
+    "prompt_tokens": 1268,
+    "total_tokens": 1655,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

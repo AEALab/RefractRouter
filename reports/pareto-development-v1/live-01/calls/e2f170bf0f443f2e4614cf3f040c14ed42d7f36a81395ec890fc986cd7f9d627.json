@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-direct-mid:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确区分了问卷不满意份数（14）与工单条数（20），明确工单去重后独立客户数为17，且未将工单直接等同于客户数；同时指出两来源因抽样偏差、计数单位不同、身份不可对应及时间窗口模糊而不能合并为整体不满意率，can_pool=false。正文与findings一致，引用来源正确，覆盖全部评估标准。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文基于材料s1（50份问卷14份不满意）和s2（20条工单含4条重复追问），分别分析并给出结论、依据、限制及权衡，符合任务要求与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中survey_negative=14、service_complaints=20、can_pool=false与正文论述完全一致，未夸大证据含义，未将工单数直接等同于客户数。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项必需结论均完整：survey_negative=14（引用s1）、service_complaints=20（引用s2）、can_pool=false（引用s1,s2），数值与材料一致，引用足以支持主张。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"明确区分20条工单与17个独立客户（去重后），未将工单直接视为客户数；分别分析了问卷的自愿抽样偏差与工单的重复计数问题，并详细说明了身份不可对应导致的重叠限制。\"}]}",
+  "input_tokens": 1136,
+  "output_tokens": 384,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13205,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909815506248e426867c3c446aaa68159641220ac1ebd1b0",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 384,
+    "prompt_tokens": 1136,
+    "total_tokens": 1520,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

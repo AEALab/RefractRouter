@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-single-1:combine",
+  "content": "结论：  \n满足打印与配送全部条件的唯一组合是打印商 P + 配送商 D。  \n总价为 300 + 80 = 380 元，未超过预算 400 元。  \n因此，最低总价组合为 P + D。\n\n依据：  \n- 打印环节：P 支持双面彩色，报价 300 元，满足“双面彩色100份”；Q 仅黑白，不满足。  \n- 配送环节：D 周四送达，报价 80 元，满足“周五前送达”；E 周六送达，不满足。  \n- 组合总价：P + D = 380 元，低于预算 400 元。\n\n限制与权衡：  \n- 由于 Q 不满足打印条件、E 不满足配送时间条件，不能为了更低单价而选择 Q 或 E。  \n- 当前条件下不存在其他可比较的满足全部条件的组合，因此 P + D 即为最低总价组合。\n\nfindings:\n- id: printer\n  value: P\n  sources: [s1]\n- id: delivery\n  value: D\n  sources: [s2]\n- id: total_cost\n  value: 380\n  sources: [s1, s2]",
+  "input_tokens": 913,
+  "output_tokens": 265,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4438,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100483269ff228b459645a66c98f2a46916338f8e90ac6b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 265,
+    "prompt_tokens": 913,
+    "total_tokens": 1178,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

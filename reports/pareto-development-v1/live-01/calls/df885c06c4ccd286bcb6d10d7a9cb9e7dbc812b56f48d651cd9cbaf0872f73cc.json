@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别硬约束：双面彩色排除Q，周五前送达排除E，组合P+D总价380元满足预算400元；正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文说明P可双面彩色300元、Q仅黑白不符；D周四送达80元符合周五前、E周六送达不符；总价380低于预算400，符合材料与全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文一致，未改变时序方向或扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全，值正确，printer引s1、delivery引s2、total_cost引s1与s2，足以支持。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未选更便宜的Q和E，而是选满足全部条件的P+D，总价380元，符合全局约束。\"}]}",
+  "input_tokens": 890,
+  "output_tokens": 288,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12082,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891006011610e23c04e8b740c94d8512f0597aa5fa67597cf",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 288,
+    "prompt_tokens": 890,
+    "total_tokens": 1178,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

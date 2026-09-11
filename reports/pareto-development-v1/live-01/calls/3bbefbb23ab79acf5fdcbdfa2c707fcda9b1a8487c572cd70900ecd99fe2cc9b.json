@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-single-2:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确核对打印与配送约束，选择唯一可行组合 P+D，总价380元低于预算400元，正文与findings一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文说明需双面彩色100份故选P（300元），须周五前送达故选D（80元周四达），总价380元低于预算400元，与s1、s2一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文结论一致，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"printer引用s1、delivery引用s2、total_cost引用s1和s2，三个finding均完整且数值正确（300+80=380）。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"输出明确排除更便宜但不满足条件的Q和E，选择唯一满足全部条件的P+D组合。\"}]}",
+  "input_tokens": 930,
+  "output_tokens": 282,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10464,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098789603fa871229fec4115dc08043e38393b8b52883c5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 282,
+    "prompt_tokens": 930,
+    "total_tokens": 1212,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

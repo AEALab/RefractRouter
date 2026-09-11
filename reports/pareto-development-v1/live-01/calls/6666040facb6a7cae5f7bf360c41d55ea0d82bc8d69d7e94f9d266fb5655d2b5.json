@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-shared-single-2:assignment",
+  "content": "结论：存在可行安排。早班由甲担任，晚班由乙担任。依据材料，甲培训有效且只能早班，乙培训有效且只能晚班；丙培训过期，不具备带班资格。该安排满足每班1人、持有效培训记录、每人最多一班及班次限制。feasible 为 true。\n\nfindings：\n- id: morning, value: 甲, sources: [s2]\n- id: evening, value: 乙, sources: [s2]\n- id: feasible, value: true, sources: [s1, s2]\n\n限制与假设：该结论仅基于现有人员及“早晚各安排1人”的要求。丙虽两班均有空，但培训过期，不能作为合格人员或替补。若任务还要求丙必须参与，或要求存在额外替补人员，则当前人员条件下不可行。",
+  "input_tokens": 1141,
+  "output_tokens": 187,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4086,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100884652c237340934591b89d6de6b6a9271c1b966f029",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 187,
+    "prompt_tokens": 1141,
+    "total_tokens": 1328,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

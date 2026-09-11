@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-shared-heterogeneous-2:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选输出将“签名”列入 allowed_now 存在争议（签名未执行，其前置“打包结束”虽已满足，但材料未明确签名当前可立即执行，且任务核心矛盾是负责人要求直接发布），更严重的是正文与 findings 虽正确阻塞了发布，但 allowed_now 包含“签名”可能暗示签名已可执行，而材料仅说明打包结束是签名的前提，未说明签名本身当前状态为可执行；此外 required_edge 使用[\\\"签名\\\",\\\"发布\\\"]符合边编码，但 allowed_now 的判定依据不足，整体存在证据扩大风险。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文结论称“当前可执行步骤为打包和签名”，但材料 s2 明确“签名未执行”，且 s1 仅说明“打包结束才能签名”，并未表明签名当前已可执行；将签名列入 allowed_now 缺乏材料直接支持，存在扩大证据含义。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 一致将 allowed_now 设为[\\\"打包\\\",\\\"签名\\\"]，但签名未执行（s2），其可执行性仅由打包结束推导，材料未明确签名当前可立即执行，属于扩大证据含义；依赖方向未反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pending\",\"rationale\":\"blocked_now=[\\\"发布\\\"] 与 required_edge=[\\\"签名\\\",\\\"发布\\\"] 正确且引用充分；allowed_now 包含“签名”的事实正确性存疑，材料未明确签名当前可执行，证据不足。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确“检查报告只证明打包成功，不代表签名完成”“签名通过这一前置条件不满足，发布仍被阻塞”，未倒写依赖，也未暗示检查通过即可发布。\"}]}",
+  "input_tokens": 1020,
+  "output_tokens": 446,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17511,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101472717d1a31addd6d38d14c8141e1e64f1efaac23971",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 446,
+    "prompt_tokens": 1020,
+    "total_tokens": 1466,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

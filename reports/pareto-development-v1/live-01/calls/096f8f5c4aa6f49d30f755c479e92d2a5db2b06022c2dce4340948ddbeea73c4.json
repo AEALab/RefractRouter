@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别硬约束：打印需双面彩色，仅P满足；配送需周五前，仅D满足；总价380元低于预算400元，为唯一可行且最低组合。正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文结论P+D=380元，符合s1双面彩色（仅P）、s2周五前送达（仅D）及400元预算，满足全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文完全一致，未反写依赖或夸大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全，printer引用s1、delivery引用s2、total_cost引用s1和s2，数值300+80=380正确，引用足以支撑。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未选更便宜的Q和E，明确说明其不满足双面彩色与周五前送达约束，组合P+D同时满足全部条件且总价最低。\"}]}",
+  "input_tokens": 890,
+  "output_tokens": 305,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9924,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910059110240d92d5266a85c14e28416df297f1b20c9dff7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 305,
+    "prompt_tokens": 890,
+    "total_tokens": 1195,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

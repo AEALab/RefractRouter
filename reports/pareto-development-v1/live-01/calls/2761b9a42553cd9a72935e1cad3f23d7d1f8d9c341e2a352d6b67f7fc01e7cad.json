@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-direct-cheap:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选输出将已完成的前置步骤“打包”列入 allowed_now，与“当前可执行步骤”的语义不符；打包已结束，不能再作为现在可执行步骤，只能作为已满足的前置条件。allowed_now 应为签名，blocked_now 应包含发布（打包是否列入 blocked 取决于口径，但至少不应列入 allowed_now）。该错误同时影响正文与 findings 的一致性和事实正确性。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文把已完成的“打包”列为当前可执行步骤，混淆了“前置条件已满足”和“步骤现在可执行”；这与任务要求核对当前状态下能否执行不符。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 一致地把“打包”列入 allowed_now，但这是把已完成前置条件扩大解释为当前可执行步骤；依赖方向虽未反写，证据含义被扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"blocked_now=[\\\"发布\\\"] 与 required_edge=[\\\"签名\\\",\\\"发布\\\"] 正确且有 s1/s2 支持，但 allowed_now 包含“打包”事实不正确；签名可执行正确，整体必需结论不完全正确。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确说明检查报告只证明打包成功、不代表签名完成，并指出发布被阻塞，未倒写依赖，也未暗示可直接发布。\"}]}",
+  "input_tokens": 1044,
+  "output_tokens": 362,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12773,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099726219ca3041a3a8c2b7f648d1ff1a7e90ae3f1352cb",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 362,
+    "prompt_tokens": 1044,
+    "total_tokens": 1406,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

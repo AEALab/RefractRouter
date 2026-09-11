@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-direct-cheap:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"allowed_now 包含“打包”缺乏依据：材料显示打包已结束，任务问的是当前可执行的步骤，已完成步骤不应列为现在可执行；正文对此的辩解无材料支持，属扩大解释。其余结论正确。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文将已完成的“打包”列为当前可执行步骤，并自述“作为步骤本身在当前状态下可执行”，材料无此依据，不符合任务对当前可执行性的核对要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 一致且未反写依赖，但把“打包已结束”扩大解释为“打包当前可执行”，超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"blocked_now=[发布]、required_edge=[签名,发布] 正确且引用充分；但 allowed_now 含“打包”无材料支持，s1/s2 不足以支持该主张。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确依赖方向为打包→签名→发布，并声明检查报告不能替代签名通过、不能直接发布，未倒写依赖。\"}]}",
+  "input_tokens": 1044,
+  "output_tokens": 311,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 11398,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099739091de824baea9702e17bffa39e9c3bdc4f68e8bde",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 311,
+    "prompt_tokens": 1044,
+    "total_tokens": 1355,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

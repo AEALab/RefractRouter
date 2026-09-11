@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-shared-single-2:service_analysis",
+  "content": "结论：  \n- 问卷中能证实的不满意份数为 14 份。  \n- 客服记录中能证实的投诉工单为 20 条，但其中 4 条是同一客户追问，因此不能把 20 条工单等同于 20 个客户。  \n- 两套数据无法合并成全体客户不满意率，因为问卷未记录是否联系过客服，客服记录也无法与问卷身份对应，且两者抽样口径和重叠情况均不明确。\n\n依据：  \n- 问卷材料明确写有“自愿填写的50份问卷中，14份表示不满意”。  \n- 客服材料明确写有“同周共有20条投诉工单，其中4条是同一客户追问”。  \n- 客服材料同时说明“无法与问卷身份对应”。\n\n限制：  \n- 问卷只反映自愿填写者中的不满意数量，不能代表全体客户。  \n- 客服工单数不等于客户数，20 条工单中至少存在同一客户重复计数的 4 条。  \n- 由于无法识别问卷受访者与客服投诉者是否重叠，不能简单相加或合并计算不满意率。  \n- 未填写问卷者的情况未知，不能纳入统计。\n\nfindings:  \n- id: survey_negative  \n  value: 14  \n  sources: [s1]  \n- id: service_complaints  \n  value: 20  \n  sources: [s2]  \n- id: can_pool  \n  value: false  \n  sources: [s1, s2]",
+  "input_tokens": 649,
+  "output_tokens": 326,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6335,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100102809f0b662e0a22462bcc30964e8c71cc766594a5e",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 326,
+    "prompt_tokens": 649,
+    "total_tokens": 975,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
