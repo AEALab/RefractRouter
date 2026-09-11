@@ -12,6 +12,18 @@ Python 执行最终正文的确定性计数；插件分别展示生成、语义�
 保留完整答案、费用及回放，不因超限自动修复。
 详见[输出长度检查](../../../docs/output-constraints.md)。
 
+## 0.12.0：三模式配置与限制开关
+
+配合 Python 核心 0.4.0，`providerConfig` 新增 `defaultReasoningEffort` 与 `strategies`：
+可声明全局或按模式（省成本／均衡／质量优先）的默认推理档位，并可按模式限定候选模型池。
+档位解析优先级为模型显式配置高于模式默认，模式默认高于全局默认；
+`refractagent models` 会回显该映射。
+
+插件配置新增可选 `limits`：`relaxBudget` 放开预算对选路与派发的拦截，账本仍逐次记账；
+`relaxContext` 将对话上下文上限从 120000 字节放宽到 1000000 字节，仍受各模型
+`contextWindow` 约束。两者默认关闭；生成器可用 `dsh-config --relax-budget
+--relax-context` 写入。详见[provider 与模型配置](../../../docs/provider-configuration.md)。
+
 ## 0.11.0：用户配置 provider 与模型
 
 配合 Python 核心 0.3.0，`refractagent` 配置新增 `providerConfig`：

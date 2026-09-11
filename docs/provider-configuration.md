@@ -1,6 +1,6 @@
 # 自行配置 providers 与 models
 
-适用：RefractRouter 0.3.0、DSH 插件 0.11.0。Ark Agent Plan 是一个可选 provider。
+适用：RefractRouter 0.4.0、DSH 插件 0.12.0。Ark Agent Plan 是一个可选 provider。
 RefractRouter 根据用户声明的可用模型路由；不会自动启用账户下全部模型。
 当前 RefractAgent 处理文本任务，图片、视频生成模型暂不在这个执行入口的支持范围内。
 
@@ -266,6 +266,72 @@ refractagent run --task '比较方案 A/B 的成本与风险' \
 `refractagent models`、任务 `model_routes`、独立评审 `evaluation_model`、调用记录和 DSH
 回放信息包含配置 `id` 与 `reasoning_effort`。这里记录的是实际发送的请求档位；服务端是否
 按预期实现仍需服务端支持。节点未执行时，路由结果只代表选定配置，不能当作已发生的调用。
+
+## 默认 thinking effort 与三种模式的映射
+
+`providerConfig` 顶层支持 `defaultReasoningEffort` 和 `strategies` 两个可选字段，
+把可用模型与默认推理档位对应到 economy（省成本）、balanced（均衡）、quality（质量优先）
+三种模式。两个字段都省略时行为与 0.11.0 一致：三种模式共享全部候选模型，不注入默认档位。
+
+`defaultReasoningEffort` 是全局默认档位，只对既没有显式 `reasoningEffort`、也没有在
+`requestOptions` 里声明档位的模型生效，并按 provider 类型映射为 Responses 的
+`reasoning.effort` 或 Chat Completions / DSH 的 `reasoning_effort`。
+
+`strategies` 按模式覆盖，每个模式可选以下字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `reasoningEffort` | 该模式的默认档位，优先于全局默认；对候选和评审模型同样生效 |
+| `models` | 该模式可用的候选模型 `id` 列表；省略表示共享全部候选；评审模型始终全局唯一 |
+
+档位解析优先级：模型的显式 `reasoningEffort` 与 `requestOptions` 中已声明的档位高于
+任何默认值；两者都没有时才注入模式默认，再退到全局默认。`models` 只能引用候选模型
+（`role: "candidate"`），不能引用评审模型，且每个模式至少保留一个候选。被排除的候选
+不参与该模式的选模与预算估计；`refractagent models` 仍列出全部配置并回显该映射。
+
+```json
+{
+  "schemaVersion": "refractagent-providers-v1",
+  "billingUnit": "USD",
+  "defaultReasoningEffort": "medium",
+  "strategies": {
+    "economy": {"reasoningEffort": "low", "models": ["answer-low"]},
+    "quality": {"reasoningEffort": "high", "models": ["answer-low", "answer-high"]}
+  },
+  "providers": [],
+  "models": []
+}
+```
+
+上例中 economy 模式只在 `answer-low` 中选模并默认 `low` 档位；quality 模式在两个候选间
+按质量权重选模并默认 `high`；balanced 未配置，共享全部候选并使用全局默认 `medium`。
+同一物理模型的不同档位仍是独立的模型行；核心按节点联合选择模型与档位，
+不会因配置了默认档位而自动生成新候选。
+
+## 放开预算与上下文长度限制
+
+插件配置新增可选 `limits`，控制是否放开两个应用层限制，默认均关闭：
+
+```yaml
+- id: refractagent
+  config:
+    limits:
+      relaxBudget: false
+      relaxContext: false
+```
+
+`relaxBudget: true` 时，生产与评审预算不再拦截选路和调用派发；配置中的预算仍被校验、
+记录并用于结果展示，账本照常逐次结算归档。实际用量超出单次保守预留的异常仍会停止执行，
+底层客户端零重试与用量确认要求不变。
+
+`relaxContext: true` 时，对话上下文上限从 120000 字节放宽到 1000000 字节；节点输入预算
+随实际输入重新定尺，定尺上限同步放宽。每次调用仍受所选模型 `contextWindow` 的保守包络
+检查约束，模型窗口不足时任务会明确失败，不会被截断。
+
+放开预算意味着取消部署层的费用护栏，仅建议在订阅计价（如 AFP）或本地免费端点上使用；
+付费按量计费环境应保持关闭并依赖预算上限。运行记录、`request.json` 与结果中的
+`limits` 字段保存本次运行的实际开关状态，保证证据可追溯。生成器可用
+`refractagent dsh-config --relax-budget --relax-context` 写入该配置。
 
 ## 复用 DSH 已配置的模型
 
