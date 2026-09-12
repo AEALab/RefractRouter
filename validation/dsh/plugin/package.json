@@ -1,6 +1,6 @@
 {
   "name": "dsh-refractrouter-validation",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "DeepSeek Harness bundle for structured RefractRouter benchmark validation",
   "private": true,
   "license": "MIT",
@@ -32,6 +32,9 @@
       "types": "./dist/agent-provider.d.ts",
       "import": "./dist/agent-provider.js"
     },
+    "./client": {
+      "default": "./dist/client.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -48,6 +51,14 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ],
+      "platform": "web"
+    },
     "compatibility": {
       "cli": "0.1.1-rc.2",
       "node": ">=22.19.0 <23"
@@ -55,14 +66,16 @@
   },
   "types": "dist/index.d.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.client.json",
+    "build": "tsc && node scripts/build-client.mjs",
     "test": "npm run build && npm run test:contracts",
     "prepack": "npm run build",
     "test:contracts": "tsc -p tsconfig.test.json && node --test .test-dist/*.test.js"
   },
   "devDependencies": {
+    "@types/react": "~18.3.1",
     "@types/node": "22.19.15",
+    "esbuild": "^0.25.0",
     "typescript": "5.9.3"
   }
 }

@@ -4,6 +4,21 @@
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
 provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
 
+## 0.13.0：DSH 插件设置卡片
+
+安装 0.13.0 后，可在 DSH 网页的「设置 → 插件 → 插件配置」展开
+「RefractAgent 路由」卡片。卡片通过 DSH 原生 settings namespace 保存用户覆盖，支持：
+
+- 编辑完整的 `refractagent-providers-v1` provider 与模型配置；
+- 设置全局及省成本／均衡／质量优先三种模式的默认 reasoning effort 和模型池；
+- 开关 `relaxBudget` 与 `relaxContext`；
+- 保存、放弃草稿，以及清除用户覆盖并恢复部署组合值。
+
+设置写入 DSH 的用户设置文件并热加载到后续模型调用；密钥仍只保存为凭证引用，
+不会显示或写入卡片。插件浏览器半边使用 DSH 的 `dsh.client` 和
+`settings.plugin.item` 扩展点，不修改 DSH 源码。复杂 provider 字段以完整 JSON 编辑，
+宿主保存前继续执行与命令行配置相同的完整校验。
+
 ## 未发布：可选输出长度检查
 
 本分支的匹配核心和插件支持显式 `outputConstraints`，无默认字数限制。

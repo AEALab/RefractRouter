@@ -4,6 +4,8 @@ import { resolve } from 'node:path'
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
 import { dshProviderIssues, pumpDshBridge } from './index.js'
 import { decodeOutputConstraints, decodeFormatValidation, formatValidationSummary, type OutputConstraints } from './output-constraints.js'
+import { freezeConfiguration, validateProviderConfiguration, type LimitsConfiguration, type ProviderConfiguration } from './provider-config.js'
+import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
 
 export const name = 'refractagent'
 export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials']
@@ -17,23 +19,7 @@ const MODELS = [
   { id: 'quality', name: 'RefractAgent · 质量优先' },
 ] as const
 
-interface StrategyConfiguration {
-  reasoningEffort?: string
-  models?: string[]
-}
-interface ProviderConfiguration {
-  schemaVersion: 'refractagent-providers-v1'
-  billingUnit: string
-  qualityMin?: number
-  defaultReasoningEffort?: string
-  strategies?: Partial<Record<'economy' | 'balanced' | 'quality', StrategyConfiguration>>
-  providers: Array<{ id: string; type: 'openai-compatible' | 'openai-responses' | 'ark-agent-plan' | 'dsh';
-    baseUrl?: string; credentialEnv?: string; dshProvider?: string; maxTokensParameter?: string }>
-  models: Array<{ id: string; provider: string; model: string; role?: 'candidate' | 'judge';
-    contextWindow: number; maxOutputTokens?: number; pricing: Record<string, unknown>;
-    reasoningEffort?: string; routing?: Record<string, unknown>; requestOptions?: Record<string, unknown>; jsonMode?: string }>
-}
-interface Configuration {
+export interface Configuration {
   pythonExecutable: string
   runsDir: string
   executionMode: 'demo' | 'live'
@@ -45,7 +31,7 @@ interface Configuration {
   credentialEnv: string
   preset?: 'ark-agent-plan'
   providerConfig?: ProviderConfiguration
-  limits?: { relaxBudget?: boolean; relaxContext?: boolean }
+  limits?: LimitsConfiguration
   template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
   plannerModelId?: string
@@ -84,19 +70,12 @@ export interface AgentAdapter {
 }
 export type AgentContext = Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
   llm: Partial<LlmService> & { registerAdapter(providers: string[], adapter: AgentAdapter): unknown }
+  inject?: (deps: readonly string[], callback: (sctx: SettingsFiberContext) => void) => unknown
 }
 
 function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
-function freezeConfiguration<T>(value: T): T {
-  if (value !== null && typeof value === 'object') {
-    Object.values(value).forEach(freezeConfiguration)
-    Object.freeze(value)
-  }
-  return value
-}
-
 function positive(value: unknown, key: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) throw new Error(`invalid ${key}`)
   return value
@@ -141,54 +120,7 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (raw.verifyDependencies !== undefined && typeof raw.verifyDependencies !== 'boolean') throw new Error('invalid verifyDependencies')
   if (result.providerConfig !== undefined) {
     if (result.preset !== undefined) throw new Error('providerConfig and preset are mutually exclusive')
-    const config = result.providerConfig
-    if (!object(config) || config.schemaVersion !== 'refractagent-providers-v1'
-      || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
-      || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','defaultReasoningEffort','strategies','providers','models'].includes(k))) {
-      throw new Error('invalid providerConfig; use refractagent config-example')
-    }
-    if (config.defaultReasoningEffort !== undefined
-      && (typeof config.defaultReasoningEffort !== 'string' || !config.defaultReasoningEffort.trim())) {
-      throw new Error('invalid defaultReasoningEffort')
-    }
-    for (const p of config.providers) {
-      if (!object(p) || typeof p.id !== 'string' || !['openai-compatible','openai-responses','ark-agent-plan','dsh'].includes(String(p.type))
-        || Object.keys(p).some(k=>!['id','type','baseUrl','credentialEnv','dshProvider','maxTokensParameter'].includes(k))) {
-        throw new Error('invalid provider configuration fields')
-      }
-      if (p.credentialEnv !== undefined && (typeof p.credentialEnv !== 'string' || !/^[A-Z][A-Z0-9_]*$/.test(p.credentialEnv))) {
-        throw new Error('provider credentialEnv must be a reference, never a secret value')
-      }
-      if (p.type === 'dsh' && (p.credentialEnv !== undefined || p.baseUrl !== undefined)) throw new Error('DSH providers use host credentials')
-      if (p.type === 'dsh' && (p.dshProvider ?? p.id) === 'refractagent') throw new Error('recursive RefractAgent routing is forbidden')
-    }
-    for (const m of config.models) {
-      if (!object(m) || typeof m.id !== 'string' || typeof m.provider !== 'string' || typeof m.model !== 'string'
-        || !config.providers.some(p => object(p) && p.id === m.provider)) throw new Error('invalid configured model reference')
-    }
-    if (config.strategies !== undefined) {
-      const strategies = config.strategies
-      if (!object(strategies) || Object.keys(strategies).some(k => !['economy', 'balanced', 'quality'].includes(k))) {
-        throw new Error('strategies may only configure economy, balanced and quality')
-      }
-      const modelIds = new Set(config.models.filter(m => object(m) && typeof m.id === 'string').map(m => String(m.id)))
-      for (const [name, entry] of Object.entries(strategies)) {
-        if (!object(entry) || Object.keys(entry).some(k => !['reasoningEffort', 'models'].includes(k))) {
-          throw new Error('invalid ' + name + ' strategy fields')
-        }
-        if (entry.reasoningEffort !== undefined
-          && (typeof entry.reasoningEffort !== 'string' || !entry.reasoningEffort.trim())) {
-          throw new Error('invalid ' + name + ' reasoningEffort')
-        }
-        if (entry.models !== undefined) {
-          if (!Array.isArray(entry.models) || entry.models.length === 0
-            || entry.models.some(id => typeof id !== 'string' || !modelIds.has(id))) {
-            throw new Error(name + ' models must reference configured model ids')
-          }
-        }
-      }
-    }
-    if (Buffer.byteLength(JSON.stringify(config)) > 100000) throw new Error('providerConfig is too large')
+    validateProviderConfiguration(result.providerConfig)
   }
   return freezeConfiguration(JSON.parse(JSON.stringify(result)) as Configuration)
 }
@@ -345,8 +277,9 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   }
 }
 
-export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>): AgentAdapter {
+export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>): AgentAdapter {
   const metadata = (provider: string, model: string): ModelMetadata => {
+    const config = source()
     const entry = MODELS.find(m => m.id === model)
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
     return { ...entry, provider, name: entry.name + (config.executionMode === 'demo' ? '（模拟）' : ''),
@@ -361,6 +294,7 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
     prepareCall: async (provider, model) => ({ model: metadata(provider, model), stream: options => adapter.stream(options) }),
     async *stream(options) {
       metadata(options.provider, options.model)
+      const config = source()
       const pending = config.template === 'auto' ? (config.executionMode === 'live'
         ? '正在快速拆分任务，随后执行可并行的步骤。\n' : '正在预览自动拆分流程。\n') : ''
       if (pending) {
@@ -444,5 +378,10 @@ export function createAdapter(ctx: AgentContext, config: Readonly<Configuration>
 }
 
 export function apply(ctx: AgentContext, raw: unknown = {}): void {
-  ctx.llm.registerAdapter(['refractagent'], createAdapter(ctx, configure(raw)))
+  const composed = configure(raw)
+  let effective: Readonly<Configuration> = composed
+  ctx.llm.registerAdapter(['refractagent'], createAdapter(ctx, () => effective))
+  installRefractSettings(ctx, composed, section => {
+    effective = overlaySettings(composed, section)
+  })
 }

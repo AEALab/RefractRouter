@@ -1,5 +1,13 @@
 # 变更日志
 
+## 0.13.0
+
+- 新增 DSH 浏览器半边，在「设置 → 插件 → 插件配置」显示「RefractAgent 路由」卡片。
+- 通过 `refractagent` settings namespace 编辑 provider/model 配置、全局与三模式
+  reasoning effort、三模式候选模型池，以及预算和上下文限制开关。
+- 设置使用 DSH 用户层持久化并热加载；保存失败保留草稿，重置清除用户覆盖并恢复部署值。
+- 浏览器 bundle 按 DSH lazy-CJS factory 格式构建，发布包继续保持零运行时 npm 依赖。
+
 ## 0.12.0
 
 - `providerConfig` 新增 `defaultReasoningEffort` 与 `strategies`，支持按省成本／均衡／

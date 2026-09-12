@@ -53,7 +53,7 @@ test('native registration advertises three strategy models with zero retries',as
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
 })
 test('demo uses installed core through native sandboxed subprocess and preserves conversation',async()=>{
-  const f=fixture(); const result=await chunks(createAdapter(f.ctx,configure()))
+  const f=fixture(); const result=await chunks(createAdapter(f.ctx, () => configure()))
   assert.equal(f.credentials,0)
   const spawn=f.spawns[0]!
   assert.deepEqual(spawn.argv.slice(0,5),['sandbox','/installed/core/bin/python','-m','refractrouter.agent_cli','run'])
@@ -67,7 +67,7 @@ test('demo uses installed core through native sandboxed subprocess and preserves
 })
 test('automatic decomposition is passed to Python without a fabricated plan',async()=>{
   const f=fixture()
-  await chunks(createAdapter(f.ctx,configure({template:'auto'})))
+  await chunks(createAdapter(f.ctx, () => configure({template:'auto'})))
   const payload=JSON.parse(f.spawns[0]!.input())
   assert.equal(payload.template,'auto')
   assert.equal(payload.plan,undefined)
@@ -83,7 +83,7 @@ test('explicit length constraints reach Python and failed checks preserve answer
     generation_status:'completed',format_validation:validation,quality})
   const config = configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan',outputConstraints:constraint})
   constraint.maxLength=1000
-  const result = await chunks(createAdapter(f.ctx,config))
+  const result = await chunks(createAdapter(f.ctx,() => config))
   assert.equal((JSON.parse(f.spawns[0]!.input()).outputConstraints).maxLength,250)
   assert.equal(f.spawns.length,1)
   assert.equal(result.find(c=>c.type==='text-delta')?.text,answer)
@@ -99,7 +99,7 @@ test('explicit length constraints reach Python and failed checks preserve answer
 
 test('explicit checks cannot silently disappear with an older installed core',async()=>{
   const f=fixture()
-  await assert.rejects(chunks(createAdapter(f.ctx,configure({outputConstraints:{
+  await assert.rejects(chunks(createAdapter(f.ctx, () => configure({outputConstraints:{
     maxLength:250,unit:'unicode-code-points',countWhitespace:false}}))),/did not return/)
   for (const outputConstraints of [null,{}, {maxLength:250},
     {maxLength:250,unit:'tokens',countWhitespace:false},
@@ -117,24 +117,24 @@ test('host-injected user-role context cannot replace the latest actual user task
     {role:'user',source:{kind:'plugin'},content:[{type:'text',text:'运行环境'}]},
     {role:'user',source:{kind:'skill-catalog'},content:[{type:'text',text:'注入的技能目录'}]},
   ]
-  for await(const _ of createAdapter(f.ctx,configure()).stream({...options,messages})){}
+  for await(const _ of createAdapter(f.ctx, () => configure()).stream({...options,messages})){}
   const payload=JSON.parse(f.spawns[0]!.input())
   assert.equal(payload.task,'只比较部署成本')
   assert.deepEqual(JSON.parse(payload.context).messages,messages)
   const empty=fixture()
   await assert.rejects(async()=>{
-    for await(const _ of createAdapter(empty.ctx,configure()).stream({...options,messages:messages.slice(-2)})){}
+    for await(const _ of createAdapter(empty.ctx, () => configure()).stream({...options,messages:messages.slice(-2)})){}
   },/requires a text user task/)
   assert.equal(empty.spawns.length,0)
 })
 test('live deployment gate rejects before credential access or subprocess',async()=>{
   const f=fixture()
-  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live'}))),/disabled/)
+  await assert.rejects(chunks(createAdapter(f.ctx, () => configure({executionMode:'live'}))),/disabled/)
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
 })
 test('live resolves host credential only after enablement and preserves explicit limits',async()=>{
   const f=fixture({mode:'live',simulated:false,status:'completed'})
-  await chunks(createAdapter(f.ctx,configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true,maxProductionCost:7,maxEvaluationCost:9})))
+  await chunks(createAdapter(f.ctx, () => configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true,maxProductionCost:7,maxEvaluationCost:9})))
   assert.equal(f.credentials,1)
   assert.deepEqual(f.credentialReferences,['CODEX_ARK_API_KEY'])
   const spawn=f.spawns[0]!
@@ -142,7 +142,7 @@ test('live resolves host credential only after enablement and preserves explicit
   assert.equal(spawn.env.CODEX_ARK_API_KEY,'private-test-key')
   assert.ok(!spawn.argv.join(' ').includes('private-test-key'))
   const custom=fixture({mode:'live',simulated:false,status:'completed'})
-  await chunks(createAdapter(custom.ctx,configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true,credentialEnv:'TEAM_ARK_KEY'})))
+  await chunks(createAdapter(custom.ctx, () => configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true,credentialEnv:'TEAM_ARK_KEY'})))
   assert.deepEqual(custom.credentialReferences,['TEAM_ARK_KEY'])
   assert.equal(custom.spawns[0]!.env.CODEX_ARK_API_KEY,'private-test-key')
 })
@@ -152,12 +152,12 @@ test('malformed usage or mismatched strategy cannot become a successful model re
     {usage:{input_tokens:1,output_tokens:1,reasoning_tokens:0.5}},
     {strategy:'quality'},{mode:'live'},{costs:{production:-1,evaluation:0,unconfirmed:0}}]) {
     const f=fixture(result)
-    await assert.rejects(chunks(createAdapter(f.ctx,configure())),/invalid|different/)
+    await assert.rejects(chunks(createAdapter(f.ctx, () => configure())),/invalid|different/)
   }
 })
 test('cancelled requests never emit a completed answer',async()=>{
   const f=fixture(); const controller=new AbortController();controller.abort()
-  await assert.rejects(async()=>{for await(const _ of createAdapter(f.ctx,configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true})).stream({...options,signal:controller.signal})){}},/cancelled/)
+  await assert.rejects(async()=>{for await(const _ of createAdapter(f.ctx, () => configure({executionMode:'live',preset:'ark-agent-plan',allowPaidRuns:true})).stream({...options,signal:controller.signal})){}},/cancelled/)
   assert.equal(f.credentials,0)
   assert.equal(f.spawns.length,0)
 })
@@ -178,14 +178,14 @@ function userConfiguration(native = false) {
 
 test('live cannot silently select Ark without a provider configuration or preset',async()=>{
   const f=fixture()
-  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true}))),/configure providerConfig/)
+  await assert.rejects(chunks(createAdapter(f.ctx, () => configure({executionMode:'live',allowPaidRuns:true}))),/configure providerConfig/)
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
 })
 
 test('custom providers receive separate host credential references outside the task payload',async()=>{
   const f=fixture({mode:'live',simulated:false,status:'completed',billing_unit:'USD'})
   f.ctx.credentials.resolve=async reference=>{f.credentialReferences.push(reference);return {value:reference+'-secret'}}
-  await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration()})))
+  await chunks(createAdapter(f.ctx, () => configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration()})))
   const spawn=f.spawns[0]!
   assert.deepEqual(f.credentialReferences,['FIRST_KEY','SECOND_KEY'])
   assert.deepEqual(JSON.parse(spawn.env.REFRACTROUTER_PROVIDER_CREDENTIALS!),{FIRST_KEY:'FIRST_KEY-secret',SECOND_KEY:'SECOND_KEY-secret'})
@@ -198,7 +198,7 @@ test('custom providers receive separate host credential references outside the t
 
 test('custom demo configuration never resolves provider credentials',async()=>{
   const f=fixture({billing_unit:'USD'})
-  await chunks(createAdapter(f.ctx,configure({providerConfig:userConfiguration()})))
+  await chunks(createAdapter(f.ctx, () => configure({providerConfig:userConfiguration()})))
   assert.equal(f.credentials,0)
   assert.equal(f.spawns[0]!.env.REFRACTROUTER_PROVIDER_CREDENTIALS,undefined)
   assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,userConfiguration())
@@ -219,7 +219,7 @@ test('DSH providers require zero host retries before any model dispatch',async()
   f.ctx.llm.resolveModelInfo=async()=>({})
   f.ctx.llm.providerRetryPolicy=()=>({mode:'normal',maxRetries:2})
   f.ctx.llm.stream=async function*(){throw new Error('must not call')}
-  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration(true)}))),/retry-policy-not-zero/)
+  await assert.rejects(chunks(createAdapter(f.ctx, () => configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration(true)}))),/retry-policy-not-zero/)
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
 })
 
@@ -261,7 +261,7 @@ test('native DSH routes reuse the host LLM bridge without exporting host credent
     })
     return {stdin,stdout,done,async waitForExit(){},collected:{}}
   }
-  const result=await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration(true)})))
+  const result=await chunks(createAdapter(f.ctx, () => configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration(true)})))
   assert.equal(hostCalls,1)
   assert.equal(childReply?.ok,true)
   assert.equal(childReply?.content,'native answer')
@@ -275,7 +275,7 @@ test('native DSH routes reuse the host LLM bridge without exporting host credent
 test('all configured credentials are redacted from runner errors',async()=>{
   const f=fixture({schema_version:'refractagent-error-v1',error:'FIRST_KEY-secret SECOND_KEY-secret'})
   f.ctx.credentials.resolve=async reference=>({value:reference+'-secret'})
-  await assert.rejects(chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration()}))),
+  await assert.rejects(chunks(createAdapter(f.ctx, () => configure({executionMode:'live',allowPaidRuns:true,providerConfig:userConfiguration()}))),
     (error: unknown)=>error instanceof Error && !error.message.includes('KEY-secret') && error.message.includes('[REDACTED]'))
 })
 
@@ -294,7 +294,7 @@ test('Responses provider configuration and reasoning envelope reach the Python c
   for(const model of config.models)model.provider='one'
   const models=config.models.map(model=>({...model,maxOutputTokens:32768,contextWindow:131072,
     requestOptions:{reasoning:{effort:'high'}}}))
-  await chunks(createAdapter(f.ctx,configure({executionMode:'live',allowPaidRuns:true,
+  await chunks(createAdapter(f.ctx, () => configure({executionMode:'live',allowPaidRuns:true,
     maxOutputTokens:32768,providerConfig:{...config,models}})))
   const spawn=f.spawns[0]!
   assert.ok(spawn.argv.includes('32768'))
@@ -315,7 +315,7 @@ test('node effort profiles pass to Python and selected efforts survive display a
     routing:{quality:90,latencyMs:2000,outputTokens:1000,profiles:[
       {nodeType:'synthesis',difficulty:'low',risk:'low',quality:95,latencyMs:1000,outputTokens:1000}]}}))
   const input={...config,models:[...variants,config.models[1]!]}
-  const output=await chunks(createAdapter(f.ctx,configure({providerConfig:input})))
+  const output=await chunks(createAdapter(f.ctx, () => configure({providerConfig:input})))
   assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,input)
   assert.ok(String(output.find(c=>c.type==='reasoning-delta')?.text).includes(JSON.stringify(modelRoutes)))
   const replay=output.at(-1)?.replayState as {response:{refractagent:{modelRoutes:unknown;evaluationModel:unknown}}}
@@ -325,7 +325,7 @@ test('node effort profiles pass to Python and selected efforts survive display a
 
 test('automatic mode reports progress before spawning and forwards bounded planning controls', async()=>{
   const f=fixture()
-  const adapter=createAdapter(f.ctx,configure({template:'auto',plannerModelId:'small',
+  const adapter=createAdapter(f.ctx, () => configure({template:'auto',plannerModelId:'small',
     plannerTimeoutMs:8000,plannerMaxOutputTokens:900,maxDynamicSplits:1,maxConcurrency:3,verifyDependencies:true}))
   const stream=adapter.stream(options)[Symbol.asyncIterator]()
   assert.equal((await stream.next()).value?.type,'block-start')
@@ -371,7 +371,7 @@ function progressHarness() {
     spec.signal.addEventListener('abort',()=>{aborted=true;stdout.end();resolve({exitCode:1,signal:null})},{once:true})
     return {stdin,stdout,done,collected:{},async waitForExit(){}}
   }
-  const stream = createAdapter(f.ctx,configure({template:'auto',executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})).stream(options)[Symbol.asyncIterator]()
+  const stream = createAdapter(f.ctx, () => configure({template:'auto',executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})).stream(options)[Symbol.asyncIterator]()
   return {stream,finish:()=>finish!(),get aborted(){return aborted}}
 }
 
@@ -414,7 +414,7 @@ test('strategy-scoped provider configuration passes through unchanged',async()=>
   const f=fixture({billing_unit:'USD'})
   const config={...userConfiguration(),defaultReasoningEffort:'medium',
     strategies:{economy:{reasoningEffort:'low',models:['answer']},quality:{reasoningEffort:'high'}}}
-  await chunks(createAdapter(f.ctx,configure({providerConfig:config})))
+  await chunks(createAdapter(f.ctx, () => configure({providerConfig:config})))
   assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,config)
 })
 
@@ -432,14 +432,23 @@ test('invalid strategy or limits configuration is rejected at the host boundary'
 test('limit toggles reach Python and relaxed context accepts long conversations',async()=>{
   const long='x'.repeat(130000)
   await assert.rejects(async()=>{
-    for await(const _ of createAdapter(fixture().ctx,configure()).stream({...options,system:long})){}
+    for await(const _ of createAdapter(fixture().ctx, () => configure()).stream({...options,system:long})){}
   },/too large/)
   await assert.rejects(async()=>{
-    for await(const _ of createAdapter(fixture().ctx,configure({limits:{relaxBudget:true}})).stream({...options,system:long})){}
+    for await(const _ of createAdapter(fixture().ctx, () => configure({limits:{relaxBudget:true}})).stream({...options,system:long})){}
   },/too large/)
   const f=fixture({billing_unit:'USD'})
-  for await(const _ of createAdapter(f.ctx,configure({limits:{relaxBudget:true,relaxContext:true}})).stream({...options,system:long})){}
+  for await(const _ of createAdapter(f.ctx, () => configure({limits:{relaxBudget:true,relaxContext:true}})).stream({...options,system:long})){}
   const payload=JSON.parse(f.spawns[0]!.input())
   assert.deepEqual(payload.limits,{relaxBudget:true,relaxContext:true})
   assert.ok(payload.context.length>130000)
+})
+
+test('adapter reads its configuration source on every call (mechanism for settings overrides)',async()=>{
+  const f=fixture()
+  let config=configure({maxOutputTokens:2048})
+  const adapter=createAdapter(f.ctx,() => config)
+  assert.equal((await adapter.resolveModel('refractagent','balanced')).defaultMaxTokens,2048)
+  config=configure({maxOutputTokens:4096})
+  assert.equal((await adapter.resolveModel('refractagent','balanced')).defaultMaxTokens,4096)
 })
