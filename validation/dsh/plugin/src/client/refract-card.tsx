@@ -1,5 +1,6 @@
-/** RefractAgent 设置卡片：自包含 chrome 与表单（不依赖官方卡片组件）。 */
+/** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
 import { useState } from 'react'
+import examples from '../provider-examples.json' with { type: 'json' }
 import { MODE_KEYS, type CardField, type LimitKey, type ModeKey, type RefractCardProjection } from '../settings-card.js'
 
 export interface RefractCardOwnerProps {
@@ -23,35 +24,40 @@ const STRATEGY_LABEL_KEYS: Record<ModeKey, string> = {
   quality: 'strategyQuality',
 }
 
-const css = [
-  '.rra-card{border:1px solid var(--dsw-alias-border-l2,#d9d9d9);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:var(--dsw-alias-bg-layer-2,#fff)}',
-  '.rra-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}',
-  '.rra-toggle{font:inherit;font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary,#1f2329);background:none;border:none;padding:0;cursor:pointer}',
-  '.rra-toggle:hover{opacity:.8}',
-  '.rra-badge{font-size:11px;line-height:17px;padding:1px 8px;border-radius:999px;background:var(--dsw-alias-bg-module-platform,#f2f3f5);color:var(--dsw-alias-label-secondary,#515c6b);white-space:nowrap}',
-  '.rra-desc{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a939f)}',
-  '.rra-body{display:flex;flex-direction:column;gap:12px;padding-top:4px}',
-  '.rra-field{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--dsw-alias-border-l2,#ececf0)}',
-  '.rra-label-row{display:flex;align-items:center;gap:8px}',
-  '.rra-label{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary,#1f2329);flex:1}',
-  '.rra-field-hint{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a939f)}',
-  '.rra-select{height:32px;font:inherit;font-size:13px;color:var(--dsw-alias-label-primary,#1f2329);border:1px solid var(--dsw-alias-border-l2,#d9d9d9);border-radius:8px;background:var(--dsw-alias-bg-layer-3,#fff);padding:0 8px;max-width:220px}',
-  '.rra-select:disabled,.rra-textarea:disabled{color:var(--dsw-alias-label-tertiary,#8a939f);cursor:default;opacity:.6}',
-  '.rra-strategy{display:flex;flex-direction:column;gap:4px;padding:6px 0}',
-  '.rra-strategy-name{font-size:12px;font-weight:500;color:var(--dsw-alias-label-secondary,#515c6b)}',
-  '.rra-textarea{font:inherit;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-primary,#1f2329);border:1px solid var(--dsw-alias-border-l2,#d9d9d9);border-radius:8px;background:var(--dsw-alias-bg-layer-3,#fff);padding:6px 10px;resize:vertical}',
-  '.rra-json{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}',
-  '.rra-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-primary,#1f2329)}',
-  '.rra-reset{font:inherit;font-size:12px;color:var(--dsw-alias-label-secondary,#515c6b);background:none;border:none;padding:0;cursor:pointer}',
-  '.rra-reset:hover:not(:disabled){color:var(--dsw-alias-label-primary,#1f2329)}',
-  '.rra-reset:disabled{cursor:default;opacity:.5}',
-  '.rra-invalid{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-error,#e5484d)}',
-  '.rra-actions{display:flex;gap:8px;padding-top:8px}',
-  '.rra-button{font:inherit;font-size:13px;font-weight:500;color:var(--dsw-alias-bg-inversed,#fff);background:var(--dsw-alias-brand-primary,#4c6ef5);border:none;border-radius:8px;padding:6px 16px;cursor:pointer}',
-  '.rra-button:disabled{cursor:default;opacity:.5}',
-  '.rra-button-secondary{background:var(--dsw-alias-bg-module-platform,#f2f3f5);color:var(--dsw-alias-label-primary,#1f2329)}',
-  '.rra-hint{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary,#8a939f)}',
-].join('')
+const css = `
+.rra-card{border:1px solid var(--dsw-alias-border-l2);border-radius:12px;list-style:none;background:var(--dsw-alias-bg-layer-3);transition:border-color .16s,background .16s}
+.rra-card:hover,.rra-card-open{border-color:var(--dsw-alias-label-dimmed)}
+.rra-card-open{background:var(--dsw-alias-bg-layer-2)}
+.rra-head{appearance:none;width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer;background:none;border:0;border-radius:12px;display:flex;align-items:center;gap:12px;padding:14px 16px}
+.rra-head-text{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.rra-name{color:var(--dsw-alias-label-primary);font-size:15px;font-weight:600;line-height:1.4}
+.rra-desc{color:var(--dsw-alias-label-tertiary);font-size:13px;line-height:1.5}
+.rra-chevron{color:var(--dsw-alias-label-tertiary);flex:none;transition:transform .16s}
+.rra-card-open .rra-chevron{transform:rotate(180deg)}
+.rra-body{border-top:1px solid var(--dsw-alias-border-l2);margin:0 16px;padding-bottom:8px}
+.rra-badge{white-space:nowrap;background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:500;line-height:17px}
+.rra-field{display:flex;flex-direction:column;gap:8px;padding:16px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.rra-label-row{display:flex;align-items:center;gap:8px}
+.rra-label{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary);flex:1}
+.rra-field-hint,.rra-hint{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary);overflow-wrap:anywhere}
+.rra-hint{margin-top:12px}
+.rra-select,.rra-textarea{box-sizing:border-box;font:inherit;font-size:13px;color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-3);padding:8px 10px}
+.rra-select{height:34px;width:220px;max-width:100%}
+.rra-textarea{width:100%;min-height:76px;line-height:1.5;resize:vertical}
+.rra-textarea::placeholder{color:var(--dsw-alias-label-tertiary)}
+.rra-select:disabled,.rra-textarea:disabled{opacity:.4;cursor:default}
+.rra-strategy{display:flex;flex-direction:column;gap:8px;padding:8px 0}
+.rra-strategy-name{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary)}
+.rra-json{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;min-height:240px}
+.rra-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-primary)}
+.rra-reset{font:inherit;font-size:12px;color:var(--dsw-alias-label-secondary);background:none;border:none;cursor:pointer}
+.rra-invalid{margin:8px 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-error)}
+.rra-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 0 4px}
+.rra-button{appearance:none;font:inherit;font-size:13px;line-height:1.5;cursor:pointer;border:1px solid transparent;border-radius:8px;padding:5px 14px;background:var(--dsw-alias-label-primary);color:var(--dsw-alias-bg-layer-3)}
+.rra-button-secondary{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);background:none}
+.rra-button:disabled,.rra-reset:disabled{opacity:.4;cursor:default}
+.rra-head:focus-visible,.rra-button:focus-visible,.rra-select:focus-visible,.rra-textarea:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+`
 
 if (typeof document !== 'undefined' && document.querySelector('style[data-plugin-css="refractagent-settings-card"]') === null) {
   const tag = document.createElement('style')
@@ -69,19 +75,25 @@ export function RefractCard(props: RefractCardOwnerProps) {
     return (
       <li className="rra-card">
         <div className="rra-head">
-          <span className="rra-toggle">{t('title')}</span>
+          <span className="rra-name">{t('title')}</span>
         </div>
         <p className="rra-hint">{t('unavailable')}</p>
       </li>
     )
   }
 
-  const disabled = !state.writable || state.saving
+  const disabled = state.status !== 'ready' || !state.writable || state.saving
   const provider = state.provider
-  const effortSelect = (value: string | undefined, onEdit: (value: string) => void) => {
+  const candidateIds = (Array.isArray(provider?.models) ? provider.models : []).flatMap(row => {
+    if (!row || typeof row !== 'object') return []
+    const model = row as { id?: unknown; role?: unknown }
+    return typeof model.id === 'string' && model.role !== 'judge' ? [model.id] : []
+  })
+  const modelExample = (candidateIds.length ? candidateIds.slice(0, 2) : ['answer']).join('\n')
+  const effortSelect = (label: string, value: string | undefined, onEdit: (value: string) => void) => {
     const options = [...EFFORTS, ...(value !== undefined && !EFFORTS.includes(value) ? [value] : [])]
     return (
-      <select className="rra-select" value={value ?? ''} disabled={disabled || !state.hasProvider}
+      <select className="rra-select" aria-label={label} value={value ?? ''} disabled={disabled}
         onChange={event => onEdit(event.target.value)}>
         <option value="">{t('effortDefault')}</option>
         {options.map(option => <option key={option} value={option}>{option}</option>)}
@@ -90,17 +102,19 @@ export function RefractCard(props: RefractCardOwnerProps) {
   }
 
   return (
-    <li className="rra-card">
-      <div className="rra-head">
-        <button type="button" className="rra-toggle" aria-expanded={expanded}
-          onClick={() => setExpanded(value => !value)}>
-          {(expanded ? t('collapse') : t('expand')) + ': ' + t('title')}
-        </button>
+    <li className={'rra-card' + (expanded ? ' rra-card-open' : '')}>
+      <button type="button" className="rra-head" aria-expanded={expanded}
+        aria-label={(expanded ? t('collapse') : t('expand')) + ': ' + t('title')}
+        onClick={() => setExpanded(value => !value)}>
+        <span className="rra-head-text">
+          <span className="rra-name">{t('title')}</span>
+          <span className="rra-desc">{t('description')}</span>
+        </span>
         {state.dirty ? <span className="rra-badge">{t('unsaved')}</span> : null}
-        {state.overriddenProvider || state.overriddenLimits
-          ? <span className="rra-badge">{t('overridden')}</span> : null}
-      </div>
-      <p className="rra-desc">{t('description')}</p>
+        <svg className="rra-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M3 5.5L7 9.5L11 5.5" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      </button>
       {expanded ? (
         <div className="rra-body">
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
@@ -112,19 +126,21 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     onClick={() => props.resetField('providerConfig')}>{t('reset')}</button> : null}
             </div>
             <p className="rra-field-hint">{t('defaultEffortHint')}</p>
-            {effortSelect(provider?.defaultReasoningEffort, value => props.editDefaultEffort(value))}
+            {effortSelect(t('defaultEffort'), provider?.defaultReasoningEffort, value => props.editDefaultEffort(value))}
           </div>
           <div className="rra-field">
             <span className="rra-label">{t('strategies')}</span>
             {MODE_KEYS.map(mode => (
               <div key={mode} className="rra-strategy">
                 <span className="rra-strategy-name">{t(STRATEGY_LABEL_KEYS[mode])}</span>
-                {effortSelect(provider?.strategies?.[mode]?.reasoningEffort,
+                {effortSelect(t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('defaultEffort'), provider?.strategies?.[mode]?.reasoningEffort,
                   value => props.editStrategyEffort(mode, value))}
-                <textarea className="rra-textarea" rows={2} disabled={disabled || !state.hasProvider}
-                  placeholder={t('modelsLabel')}
-                  value={(provider?.strategies?.[mode]?.models ?? []).join('\n')}
+                <textarea className="rra-textarea" rows={2} disabled={disabled}
+                  aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('modelsLabel')}
+                  placeholder={modelExample}
+                  value={state.strategyModelText[mode] ?? (provider?.strategies?.[mode]?.models ?? []).join('\n')}
                   onChange={event => props.editStrategyModels(mode, event.target.value)} />
+                <p className="rra-field-hint">{t('modelsHint')} {modelExample.split('\n').join('、')}</p>
               </div>
             ))}
           </div>
@@ -149,16 +165,21 @@ export function RefractCard(props: RefractCardOwnerProps) {
             <p className="rra-field-hint">{t('relaxContextHint')}</p>
           </div>
           <div className="rra-field">
-            <span className="rra-label">{t('providerJsonTitle')}</span>
+            <div className="rra-label-row">
+              <span className="rra-label">{t('providerJsonTitle')}</span>
+              <button type="button" className="rra-reset" disabled={disabled}
+                onClick={() => props.editProviderJson(JSON.stringify(examples['openai-compatible'], null, 2))}>{t('insertExample')}</button>
+            </div>
             <p className="rra-field-hint">{t('providerJsonHint')}</p>
-            <textarea className="rra-textarea rra-json" rows={8} disabled={disabled} spellCheck={false}
+            <textarea className="rra-textarea rra-json" rows={12} disabled={disabled} spellCheck={false}
+              aria-label={t('providerJsonTitle')} placeholder={JSON.stringify(examples['openai-compatible'], null, 2)}
               value={state.providerJson}
               onChange={event => props.editProviderJson(event.target.value)} />
             {state.providerJsonError !== null
               ? <p className="rra-invalid">{t('invalidJson') + ': ' + state.providerJsonError}</p> : null}
           </div>
           <div className="rra-actions">
-            <button type="button" className="rra-button" disabled={disabled || !state.dirty}
+            <button type="button" className="rra-button" disabled={disabled || !state.dirty || state.providerJsonError !== null}
               onClick={() => props.save()}>{state.saving ? t('saving') : t('save')}</button>
             <button type="button" className="rra-button rra-button-secondary" disabled={disabled || !state.dirty}
               onClick={() => props.discard()}>{t('discard')}</button>

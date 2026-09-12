@@ -8,8 +8,13 @@
     "verbatimModuleSyntax": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": []
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [],
+    "resolveJsonModule": true
   },
   "include": [
     "src/client/**/*.ts",

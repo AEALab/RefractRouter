@@ -1,3 +1,4 @@
+import examples from './provider-examples.json' with { type: 'json' }
 /** RefractAgent 设置卡片的纯逻辑层：staged 表单、写入规划与快照投影。
  * 宿主契约测试与浏览器 client bundle 共用；不依赖 React、Node API 或 DSH 包。
  */
@@ -61,6 +62,7 @@ export interface RefractCardProjection {
   providerJson: string
   providerJsonError: string | null
   limits: LimitsView
+  strategyModelText: Partial<Record<ModeKey, string>>
   limitsCleared: boolean
 }
 
@@ -96,6 +98,8 @@ export class RefractCardController {
   private readonly listeners = new Set<() => void>()
   private readonly staged = new Map<CardField, StagedEdit>()
   private providerJson = ''
+  private jsonEdited = false
+  private modelText: Partial<Record<ModeKey, string>> = {}
   private providerJsonError: string | null = null
   private saving = false
   private failed = false
@@ -105,7 +109,7 @@ export class RefractCardController {
   constructor(scope: CardScope) {
     this.scope = scope
     this.offScope = scope.subscribe(() => {
-      if (!this.staged.has('providerConfig')) this.syncProviderJson()
+      if (!this.jsonEdited && !this.staged.has('providerConfig')) this.syncProviderJson()
       this.publish()
     })
     this.syncProviderJson()
@@ -138,8 +142,7 @@ export class RefractCardController {
   }
 
   editDefaultEffort(value: string): void {
-    const provider = this.currentProvider()
-    if (provider === undefined) return
+    const provider: ProviderConfigView = this.currentProvider() ?? structuredClone(examples['openai-compatible'])
     const effort = value.trim()
     const next: ProviderConfigView = { ...provider }
     if (effort === '') delete next.defaultReasoningEffort
@@ -148,8 +151,7 @@ export class RefractCardController {
   }
 
   editStrategyEffort(mode: ModeKey, value: string): void {
-    const provider = this.currentProvider()
-    if (provider === undefined) return
+    const provider: ProviderConfigView = this.currentProvider() ?? structuredClone(examples['openai-compatible'])
     const effort = value.trim()
     const strategies = { ...provider.strategies }
     const entry: StrategyView = { ...strategies[mode] }
@@ -161,9 +163,9 @@ export class RefractCardController {
   }
 
   editStrategyModels(mode: ModeKey, text: string): void {
-    const provider = this.currentProvider()
-    if (provider === undefined) return
-    const models = text.split(/\r?\n/).map(line => line.trim()).filter(line => line !== '')
+    const provider: ProviderConfigView = this.currentProvider() ?? structuredClone(examples['openai-compatible'])
+    this.modelText[mode] = text
+    const models = [...new Set(text.split(/\r?\n/).map(line => line.trim()).filter(line => line !== ''))]
     const strategies = { ...provider.strategies }
     const entry: StrategyView = { ...strategies[mode] }
     if (models.length === 0) delete entry.models
@@ -178,6 +180,8 @@ export class RefractCardController {
   }
 
   editProviderJson(text: string): void {
+    this.jsonEdited = true
+    this.modelText = {}
     this.providerJson = text
     if (text.trim() === '') {
       this.providerJsonError = null
@@ -189,6 +193,11 @@ export class RefractCardController {
     try {
       const parsed: unknown = JSON.parse(text)
       if (!isRecord(parsed)) throw new Error('providerConfig must be a JSON object')
+      if (parsed.strategies !== undefined && (!isRecord(parsed.strategies)
+        || Object.values(parsed.strategies).some(row => !isRecord(row)
+          || (row.models !== undefined && (!Array.isArray(row.models) || row.models.some(id => typeof id !== 'string')))))) {
+        throw new Error('strategies.models must be an array of model IDs')
+      }
       this.staged.set('providerConfig', { kind: 'set', value: parsed })
       this.providerJsonError = null
     } catch (error) {
@@ -209,7 +218,7 @@ export class RefractCardController {
   }
 
   discard(): void {
-    if (this.staged.size === 0 && !this.failed) return
+    if (this.staged.size === 0 && !this.failed && !this.jsonEdited) return
     this.staged.clear()
     this.failed = false
     this.syncProviderJson()
@@ -225,6 +234,7 @@ export class RefractCardController {
       return
     }
     const snap = this.snapshot()
+    if (snap.status !== 'ready' || !snap.writable) return
     const writes: Array<{ field: CardField; run: () => Promise<void> }> = []
     const provider = this.staged.get('providerConfig')
     if (provider?.kind === 'clear') {
@@ -317,6 +327,8 @@ export class RefractCardController {
   }
 
   private syncProviderJson(): void {
+    this.jsonEdited = false
+    this.modelText = {}
     const provider = this.currentProvider()
     this.providerJson = provider === undefined ? '' : JSON.stringify(provider, null, 2)
     this.providerJsonError = null
@@ -329,7 +341,7 @@ export class RefractCardController {
     return {
       status: snap.status,
       writable: snap.writable,
-      dirty: this.staged.size > 0,
+      dirty: this.staged.size > 0 || this.jsonEdited,
       saving: this.saving,
       failed: this.failed,
       hasProvider: this.currentProvider() !== undefined,
@@ -340,6 +352,7 @@ export class RefractCardController {
       providerJson: this.providerJson,
       providerJsonError: this.providerJsonError,
       limits: this.currentLimits(),
+      strategyModelText: { ...this.modelText },
       limitsCleared: limitsStage?.kind === 'clear',
     }
   }

@@ -1,0 +1,153 @@
+{
+  "ark-agent-plan": {
+    "schemaVersion": "refractagent-providers-v1",
+    "billingUnit": "AFP",
+    "qualityMin": 0,
+    "providers": [
+      {
+        "id": "ark-plan",
+        "type": "ark-agent-plan",
+        "credentialEnv": "CODEX_ARK_API_KEY"
+      }
+    ],
+    "models": [
+      {
+        "id": "cheap",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.05,
+          "outputPer1k": 0.05,
+          "cachedInputPer1k": 0.05
+        },
+        "routing": {
+          "quality": 55,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "mid",
+        "provider": "ark-plan",
+        "model": "minimax-m3",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "prompt-only",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.25,
+          "outputPer1k": 0.25,
+          "cachedInputPer1k": 0.25
+        },
+        "routing": {
+          "quality": 78,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "strong",
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.55,
+          "outputPer1k": 0.55,
+          "cachedInputPer1k": 0.55
+        },
+        "routing": {
+          "quality": 92,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "judge",
+        "provider": "ark-plan",
+        "model": "kimi-k3",
+        "role": "judge",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 1.0,
+          "outputPer1k": 1.0,
+          "cachedInputPer1k": 1.0
+        }
+      }
+    ]
+  },
+  "openai-compatible": {
+    "schemaVersion": "refractagent-providers-v1",
+    "billingUnit": "USD",
+    "qualityMin": 0,
+    "providers": [
+      {
+        "id": "team",
+        "type": "openai-compatible",
+        "baseUrl": "https://your-provider.example/v1",
+        "credentialEnv": "TEAM_MODEL_KEY"
+      }
+    ],
+    "models": [
+      {
+        "id": "answer",
+        "provider": "team",
+        "model": "YOUR_MODEL_ID",
+        "role": "candidate",
+        "contextWindow": 32768,
+        "maxOutputTokens": 2048,
+        "pricing": {
+          "unit": "USD",
+          "inputPer1k": 0.001,
+          "outputPer1k": 0.002
+        },
+        "routing": {
+          "quality": 85,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "review",
+        "provider": "team",
+        "model": "YOUR_JUDGE_MODEL_ID",
+        "role": "judge",
+        "contextWindow": 32768,
+        "maxOutputTokens": 2048,
+        "pricing": {
+          "unit": "USD",
+          "inputPer1k": 0.001,
+          "outputPer1k": 0.002
+        }
+      }
+    ]
+  }
+}

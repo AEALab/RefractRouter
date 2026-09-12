@@ -39,9 +39,9 @@ def example_configuration(kind):
         models = []
         for m in source['models']:
             models.append({'id': m['model_id'], 'provider': 'ark-plan', 'model': m['api_model'], 'role': m['role'],
-                'contextWindow': source['defaults']['context_window'], 'maxOutputTokens': 2048,
+                'contextWindow': source['defaults']['context_window'], 'maxOutputTokens': source['defaults']['max_output_tokens'],
                 'jsonMode': m.get('json_mode_strategy', 'json-object-hint'),
-                'requestOptions': source['defaults']['request_options'],
+                'requestOptions': {**source['defaults']['request_options'], 'thinking': {'type': 'auto'}},
                 'pricing': {'unit': unit, 'inputPer1k': m['input_cost_per_1k'], 'outputPer1k': m['output_cost_per_1k'],
                             'cachedInputPer1k': m['cached_input_cost_per_1k']},
                 **({'routing': {'quality': round(m['capability']*100), 'latencyMs': 10000}} if m['role']=='candidate' else {})})
