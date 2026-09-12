@@ -29,7 +29,7 @@ class DSHPluginTests(unittest.TestCase):
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.12.0")
+        self.assertEqual(package["version"], "0.13.0")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")
@@ -41,6 +41,9 @@ class DSHPluginTests(unittest.TestCase):
             package["dsh"]["compatibility"]["cli"],
             "0.1.1-rc.2",
         )
+        self.assertEqual(package["exports"]["./client"]["default"], "./dist/client.js")
+        self.assertEqual(package["dsh"]["client"]["platform"], "web")
+        self.assertIn("@deepseek-ai/dsh-client-ui-settings", package["dsh"]["client"]["inject"])
         self.assertIn("name: dsh-refractrouter-validation", patch)
         self.assertIn("allowPaidRuns: false", patch)
         self.assertIn("maxProductionCost: 2", patch)
