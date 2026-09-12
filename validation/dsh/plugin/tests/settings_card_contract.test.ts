@@ -21,7 +21,9 @@ test('settings base reflects the tunable subset of the composed configuration', 
   const config = configure({ executionMode: 'live', allowPaidRuns: true, preset: 'ark-agent-plan',
     limits: { relaxBudget: false, relaxContext: false } })
   const base = buildSettingsBase(config)
-  assert.equal(base.providerConfig, undefined)
+  assert.equal(base.providerConfig?.providers[0].type, 'ark-agent-plan')
+  assert.ok(base.providerConfig!.models.length > 1)
+  assert.equal(overlaySettings(config, base).preset, 'ark-agent-plan')
   assert.deepEqual(base.limits, { relaxBudget: false, relaxContext: false })
 
   const withProviders = configure({ executionMode: 'live', allowPaidRuns: true,
@@ -89,7 +91,7 @@ test('installRefractSettings registers the namespace and follows the settings sc
   )
   assert.equal(registrations.length, 1)
   assert.equal(registrations[0].ns, SETTINGS_NAMESPACE)
-  assert.deepEqual(registrations[0].options.base, { limits: { relaxBudget: false, relaxContext: false } })
+  assert.deepEqual(registrations[0].options.base, buildSettingsBase(config))
   assert.equal(typeof registrations[0].options.validate, 'function')
   assert.equal(sections.length, 1)
   current = { limits: { relaxBudget: true, relaxContext: false } }
@@ -109,8 +111,9 @@ function fakeScope(section: SectionView, user?: SectionView, base?: SectionView)
     status: 'ready', value: section, base: base ?? section, user, writable: true,
   }
   const publish = () => { for (const listener of [...listeners]) listener() }
-  const scope: CardScope & { writes: typeof writes; setAccepting(next: boolean): void } = {
+  const scope: CardScope & { writes: typeof writes; setAccepting(next: boolean): void; refresh(): void } = {
     writes,
+    refresh: publish,
     setAccepting: (next: boolean) => { acceptWrites = next },
     getSnapshot: () => snapshot,
     subscribe: listener => {
@@ -188,7 +191,7 @@ test('controller saves a valid providerConfig edit and restores it via reset', a
   assert.equal(scope.writes[0].field, 'providerConfig')
   const saved = scope.writes[0].value as Record<string, unknown>
   assert.equal(saved.defaultReasoningEffort, 'high')
-  assert.deepEqual((saved.strategies as Record<string, { models?: string[] }>).economy.models, ['m', 'm'])
+  assert.deepEqual((saved.strategies as Record<string, { models?: string[] }>).economy.models, ['m'])
   assert.equal(controller.getSnapshot().overriddenProvider, true)
   face.resetField('providerConfig')
   await controller.save()
@@ -257,4 +260,52 @@ test('client bundle registers in the host module format and exports the plugin f
     const result = dispose()
     if (typeof result === 'function') result()
   }
+})
+
+
+test('preset fields can be edited, saved and reset without changing untouched preset execution', async () => {
+  const composed = configure({ preset: 'ark-agent-plan', credentialEnv: 'TEAM_ARK_KEY' })
+  const base = buildSettingsBase(composed)
+  assert.equal(base.providerConfig!.providers[0].credentialEnv, 'TEAM_ARK_KEY')
+  const scope = fakeScope(base as unknown as SectionView)
+  const controller = new RefractCardController(scope)
+  assert.equal(controller.getSnapshot().hasProvider, true)
+  controller.editDefaultEffort('medium')
+  controller.editStrategyEffort('quality', 'high')
+  controller.editStrategyModels('economy', 'cheap\n')
+  assert.equal(controller.getSnapshot().strategyModelText.economy, 'cheap\n')
+  await controller.save()
+  const saved = scope.getSnapshot().value as Parameters<typeof overlaySettings>[1]
+  assert.equal(overlaySettings(composed, saved).preset, undefined)
+  assert.equal(saved.providerConfig?.defaultReasoningEffort, 'medium')
+  assert.equal(saved.providerConfig?.strategies?.quality?.reasoningEffort, 'high')
+  controller.resetField('providerConfig')
+  await controller.save()
+  assert.equal(overlaySettings(composed, scope.getSnapshot().value as typeof saved).preset, 'ark-agent-plan')
+  controller.dispose()
+})
+
+test('incomplete JSON survives host refresh and can be discarded before attempting save', () => {
+  const scope = fakeScope({})
+  const controller = new RefractCardController(scope)
+  controller.editProviderJson('{')
+  scope.refresh()
+  assert.equal(controller.getSnapshot().providerJson, '{')
+  assert.equal(controller.getSnapshot().dirty, true)
+  controller.discard()
+  assert.equal(controller.getSnapshot().providerJson, '')
+  assert.equal(controller.getSnapshot().providerJsonError, null)
+  assert.equal(controller.getSnapshot().dirty, false)
+  controller.dispose()
+})
+
+test('unconfigured form fields initialize an editable example and preserve multiline input', () => {
+  const controller = new RefractCardController(fakeScope({}))
+  controller.editDefaultEffort('medium')
+  assert.equal(controller.getSnapshot().provider?.defaultReasoningEffort, 'medium')
+  controller.editStrategyModels('balanced', 'answer\n')
+  assert.equal(controller.getSnapshot().strategyModelText.balanced, 'answer\n')
+  controller.editStrategyModels('balanced', 'answer\nother')
+  assert.deepEqual(controller.getSnapshot().provider?.strategies?.balanced?.models, ['answer', 'other'])
+  controller.dispose()
 })

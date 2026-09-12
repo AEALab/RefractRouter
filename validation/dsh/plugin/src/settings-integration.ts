@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util'
+import examples from './provider-examples.json' with { type: 'json' }
 /** DSH 设置命名空间集成：schema、组合 base、覆盖合成与宿主注册。
  * 命名空间出现在「设置 → 插件 → 插件配置」，浏览器半边由 src/client/ 提供。
  */
@@ -74,6 +76,10 @@ export function buildSettingsSchema(): RefractSettingsSchema {
 export function buildSettingsBase(config: Readonly<Configuration>): Readonly<SettingsSection> {
   const base: SettingsSection = {}
   if (config.providerConfig !== undefined) base.providerConfig = config.providerConfig
+  else if (config.preset === 'ark-agent-plan') {
+    base.providerConfig = structuredClone(examples['ark-agent-plan']) as SettingsSection['providerConfig']
+    base.providerConfig!.providers[0].credentialEnv = config.credentialEnv
+  }
   if (config.limits !== undefined) base.limits = config.limits
   return freezeConfiguration(base)
 }
@@ -97,7 +103,8 @@ export function overlaySettings(
 ): Readonly<Configuration> {
   if (section.providerConfig === undefined && section.limits === undefined) return composed
   const next: Configuration = { ...composed }
-  if (section.providerConfig !== undefined) {
+  if (section.providerConfig !== undefined
+    && !(composed.preset && isDeepStrictEqual(section.providerConfig, buildSettingsBase(composed).providerConfig))) {
     next.preset = undefined
     next.providerConfig = section.providerConfig
   }
