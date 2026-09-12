@@ -2,6 +2,7 @@
  * 被 configure() 与设置命名空间集成共用；仅宿主侧使用（依赖 Buffer）。
  */
 export interface StrategyConfiguration {
+  maxAfpCoefficient?: number
   reasoningEffort?: string
   models?: string[]
 }
@@ -75,8 +76,12 @@ export function validateProviderConfiguration(value: unknown): asserts value is 
     }
     const modelIds = new Set(config.models.filter(m => isRecordValue(m) && typeof m.id === 'string').map(m => String(m.id)))
     for (const [name, entry] of Object.entries(strategies)) {
-      if (!isRecordValue(entry) || Object.keys(entry).some(k => !['reasoningEffort', 'models'].includes(k))) {
+      if (!isRecordValue(entry) || Object.keys(entry).some(k => !['reasoningEffort', 'models', 'maxAfpCoefficient'].includes(k))) {
         throw new Error('invalid ' + name + ' strategy fields')
+      }
+      if (entry.maxAfpCoefficient !== undefined && (config.billingUnit !== 'AFP'
+        || typeof entry.maxAfpCoefficient !== 'number' || !Number.isFinite(entry.maxAfpCoefficient) || entry.maxAfpCoefficient <= 0)) {
+        throw new Error('maxAfpCoefficient must be positive and use AFP billingUnit')
       }
       if (entry.reasoningEffort !== undefined
         && (typeof entry.reasoningEffort !== 'string' || !entry.reasoningEffort.trim())) {

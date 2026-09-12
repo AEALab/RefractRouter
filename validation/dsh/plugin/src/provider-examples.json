@@ -12,9 +12,57 @@
     ],
     "models": [
       {
-        "id": "cheap",
+        "id": "doubao-seed-2.0-mini",
+        "model": "doubao-seed-2.0-mini",
         "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 256000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.025,
+          "outputPer1k": 0.025,
+          "cachedInputPer1k": 0.025
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "doubao-seed-2.0-lite",
+        "model": "doubao-seed-2.0-lite",
+        "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 256000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.05,
+          "outputPer1k": 0.05,
+          "cachedInputPer1k": 0.05
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "deepseek-v4-flash",
         "model": "deepseek-v4-flash",
+        "provider": "ark-plan",
         "role": "candidate",
         "contextWindow": 1024000,
         "maxOutputTokens": 8192,
@@ -31,14 +79,86 @@
           "cachedInputPer1k": 0.05
         },
         "routing": {
-          "quality": 55,
+          "quality": 80,
           "latencyMs": 10000
         }
       },
       {
-        "id": "mid",
+        "id": "glm-5.3-flash",
+        "model": "glm-5.3-flash",
         "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.05,
+          "outputPer1k": 0.05,
+          "cachedInputPer1k": 0.05
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "doubao-seed-2.1-turbo",
+        "model": "doubao-seed-2.1-turbo",
+        "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 256000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.25,
+          "outputPer1k": 0.25,
+          "cachedInputPer1k": 0.25
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "doubao-seed-evolving",
+        "model": "doubao-seed-evolving",
+        "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.25,
+          "outputPer1k": 0.25,
+          "cachedInputPer1k": 0.25
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "minimax-m3",
         "model": "minimax-m3",
+        "provider": "ark-plan",
         "role": "candidate",
         "contextWindow": 1024000,
         "maxOutputTokens": 8192,
@@ -55,14 +175,62 @@
           "cachedInputPer1k": 0.25
         },
         "routing": {
-          "quality": 78,
+          "quality": 80,
           "latencyMs": 10000
         }
       },
       {
-        "id": "strong",
+        "id": "glm-5.3",
+        "model": "glm-5.3",
         "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "enabled"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.45,
+          "outputPer1k": 0.45,
+          "cachedInputPer1k": 0.45
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "kimi-k2.7-code",
+        "model": "kimi-k2.7-code",
+        "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 256000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.45,
+          "outputPer1k": 0.45,
+          "cachedInputPer1k": 0.45
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "deepseek-v4-pro",
         "model": "deepseek-v4-pro",
+        "provider": "ark-plan",
         "role": "candidate",
         "contextWindow": 1024000,
         "maxOutputTokens": 8192,
@@ -79,14 +247,38 @@
           "cachedInputPer1k": 0.55
         },
         "routing": {
-          "quality": 92,
+          "quality": 80,
           "latencyMs": 10000
         }
       },
       {
-        "id": "judge",
-        "provider": "ark-plan",
+        "id": "kimi-k3",
         "model": "kimi-k3",
+        "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {
+          "thinking": {
+            "type": "auto"
+          }
+        },
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 1.0,
+          "outputPer1k": 1.0,
+          "cachedInputPer1k": 1.0
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
+        "id": "evaluation-kimi-k3",
+        "model": "kimi-k3",
+        "provider": "ark-plan",
         "role": "judge",
         "contextWindow": 1024000,
         "maxOutputTokens": 8192,

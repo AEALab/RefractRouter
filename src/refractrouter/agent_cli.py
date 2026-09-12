@@ -33,18 +33,8 @@ def example_configuration(kind):
                          requestOptions={'reasoning': {'effort': 'medium'}})
     unit = 'USD'
     if kind == 'ark-agent-plan':
-        source = json.loads(resource('agent-plan.json').read_text())
-        provider = {'id': 'ark-plan', 'type': kind, 'credentialEnv': 'CODEX_ARK_API_KEY'}
-        unit = 'AFP'
-        models = []
-        for m in source['models']:
-            models.append({'id': m['model_id'], 'provider': 'ark-plan', 'model': m['api_model'], 'role': m['role'],
-                'contextWindow': source['defaults']['context_window'], 'maxOutputTokens': source['defaults']['max_output_tokens'],
-                'jsonMode': m.get('json_mode_strategy', 'json-object-hint'),
-                'requestOptions': {**source['defaults']['request_options'], 'thinking': {'type': 'auto'}},
-                'pricing': {'unit': unit, 'inputPer1k': m['input_cost_per_1k'], 'outputPer1k': m['output_cost_per_1k'],
-                            'cachedInputPer1k': m['cached_input_cost_per_1k']},
-                **({'routing': {'quality': round(m['capability']*100), 'latencyMs': 10000}} if m['role']=='candidate' else {})})
+        from .ark_plan import application_configuration
+        return application_configuration()
     return {'schemaVersion': SCHEMA, 'billingUnit': unit, 'qualityMin': 0, 'providers': [provider], 'models': models}
 
 

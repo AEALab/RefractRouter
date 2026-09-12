@@ -26,9 +26,11 @@ class DSHPluginTests(unittest.TestCase):
 
     def test_settings_examples_match_python_configuration_and_compile(self) -> None:
         from refractrouter.agent_cli import example_configuration
+        from refractrouter.ark_plan import afp_metadata
         from refractrouter.application_config import compile_configuration
 
         examples = json.loads((PLUGIN / "src" / "provider-examples.json").read_text())
+        self.assertEqual(json.loads((PLUGIN / "src" / "afp-metadata.json").read_text()), afp_metadata())
         for kind, config in examples.items():
             self.assertEqual(config, example_configuration(kind))
             config["defaultReasoningEffort"] = "medium"
@@ -38,7 +40,7 @@ class DSHPluginTests(unittest.TestCase):
                 self.assertTrue(all(m.request_options["reasoning_effort"] == effort
                                     for m in compiled.manifest.models))
                 if kind == "ark-agent-plan":
-                    self.assertTrue(all(m.request_options["thinking"]["type"] == "auto"
+                    self.assertTrue(all(m.request_options["thinking"]["type"] in {"auto", "enabled"}
                                         for m in compiled.manifest.models))
 
     def test_bundle_manifest_and_safe_defaults(self) -> None:
@@ -46,7 +48,7 @@ class DSHPluginTests(unittest.TestCase):
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.13.2")
+        self.assertEqual(package["version"], "0.14.0")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")

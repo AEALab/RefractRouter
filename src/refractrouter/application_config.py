@@ -54,9 +54,11 @@ def strategy_rows(raw):
         raise ValueError('strategies may only configure economy, balanced and quality')
     rows = {}
     for name, row in strategies.items():
-        if not isinstance(row, dict) or set(row) - {'reasoningEffort', 'models'}:
+        if not isinstance(row, dict) or set(row) - {'reasoningEffort', 'models', 'maxAfpCoefficient'}:
             raise ValueError(f'invalid {name} strategy fields')
         entry = {}
+        if 'maxAfpCoefficient' in row:
+            entry['maxAfpCoefficient'] = number(row['maxAfpCoefficient'], f'{name} maxAfpCoefficient', positive=True)
         if 'reasoningEffort' in row:
             entry['reasoningEffort'] = text(row['reasoningEffort'], f'{name} reasoningEffort', 100)
         if 'models' in row:
@@ -111,6 +113,8 @@ def compile_configuration(raw, strategy=None):
     if 'defaultReasoningEffort' in raw:
         default_effort = text(raw['defaultReasoningEffort'], 'defaultReasoningEffort', 100)
     strategies = strategy_rows(raw)
+    if any('maxAfpCoefficient' in row for row in strategies.values()) and unit != 'AFP':
+        raise ValueError('maxAfpCoefficient requires AFP billingUnit')
     scoped = {}
     if strategy is not None:
         if strategy not in STRATEGIES:
@@ -249,6 +253,14 @@ def compile_configuration(raw, strategy=None):
     if strategy is not None and 'models' in scoped:
         pool = set(scoped['models'])
         models = [m for m in models if m.role != 'candidate' or m.model_id in pool]
+        predictions = {mid: row for mid, row in predictions.items() if mid in pool}
+    if 'maxAfpCoefficient' in scoped:
+        ceiling = scoped['maxAfpCoefficient']
+        models = [m for m in models if m.role != 'candidate'
+                  or max(m.input_cost_per_1k, m.output_cost_per_1k) * 10 <= ceiling + 1e-10]
+        pool = {m.model_id for m in models if m.role == 'candidate'}
+        if not pool:
+            raise ValueError('AFP ceiling and selected models leave no candidate model')
         predictions = {mid: row for mid, row in predictions.items() if mid in pool}
     return ApplicationConfiguration(ModelManifest(SCHEMA, date.today().isoformat(), unit, tuple(models)),
         predictions, number(raw.get('qualityMin', 0), 'qualityMin', maximum=100), deepcopy(raw))
