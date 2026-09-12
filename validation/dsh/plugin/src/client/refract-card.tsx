@@ -1,7 +1,7 @@
 /** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
 import { useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
-import { MODE_KEYS, type CardField, type LimitKey, type ModeKey, type RefractCardProjection } from '../settings-card.js'
+import { candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey, type RefractCardProjection } from '../settings-card.js'
 
 export interface RefractCardOwnerProps {
   t: (key: string) => string
@@ -48,6 +48,9 @@ const css = `
 .rra-select:disabled,.rra-textarea:disabled{opacity:.4;cursor:default}
 .rra-strategy{display:flex;flex-direction:column;gap:8px;padding:8px 0}
 .rra-strategy-name{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary)}
+.rra-models{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:4px 0;min-width:0}
+.rra-models legend{padding:0;margin-bottom:6px}
+.rra-models .rra-reset{align-self:flex-start;padding:0}
 .rra-json{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;min-height:240px}
 .rra-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-primary)}
 .rra-reset{font:inherit;font-size:12px;color:var(--dsw-alias-label-secondary);background:none;border:none;cursor:pointer}
@@ -84,12 +87,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
 
   const disabled = state.status !== 'ready' || !state.writable || state.saving
   const provider = state.provider
-  const candidateIds = (Array.isArray(provider?.models) ? provider.models : []).flatMap(row => {
-    if (!row || typeof row !== 'object') return []
-    const model = row as { id?: unknown; role?: unknown }
-    return typeof model.id === 'string' && model.role !== 'judge' ? [model.id] : []
-  })
-  const modelExample = (candidateIds.length ? candidateIds.slice(0, 2) : ['answer']).join('\n')
+  const choices = candidateChoices(provider)
   const effortSelect = (label: string, value: string | undefined, onEdit: (value: string) => void) => {
     const options = [...EFFORTS, ...(value !== undefined && !EFFORTS.includes(value) ? [value] : [])]
     return (
@@ -130,19 +128,43 @@ export function RefractCard(props: RefractCardOwnerProps) {
           </div>
           <div className="rra-field">
             <span className="rra-label">{t('strategies')}</span>
-            {MODE_KEYS.map(mode => (
-              <div key={mode} className="rra-strategy">
-                <span className="rra-strategy-name">{t(STRATEGY_LABEL_KEYS[mode])}</span>
-                {effortSelect(t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('defaultEffort'), provider?.strategies?.[mode]?.reasoningEffort,
-                  value => props.editStrategyEffort(mode, value))}
-                <textarea className="rra-textarea" rows={2} disabled={disabled}
-                  aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('modelsLabel')}
-                  placeholder={modelExample}
-                  value={state.strategyModelText[mode] ?? (provider?.strategies?.[mode]?.models ?? []).join('\n')}
-                  onChange={event => props.editStrategyModels(mode, event.target.value)} />
-                <p className="rra-field-hint">{t('modelsHint')} {modelExample.split('\n').join('、')}</p>
-              </div>
-            ))}
+            {MODE_KEYS.map(mode => {
+              const selected = provider?.strategies?.[mode]?.models ?? []
+              const missing = selected.filter(id => !choices.some(choice => choice.id === id))
+              const update = (id: string, checked: boolean) => props.editStrategyModels(mode,
+                (checked ? [...new Set([...selected, id])] : selected.filter(value => value !== id)).join('\n'))
+              return (
+                <div key={mode} className="rra-strategy">
+                  <span className="rra-strategy-name">{t(STRATEGY_LABEL_KEYS[mode])}</span>
+                  <p className="rra-field-hint">{t(STRATEGY_LABEL_KEYS[mode] + 'Hint')}</p>
+                  {effortSelect(t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('defaultEffort'), provider?.strategies?.[mode]?.reasoningEffort,
+                    value => props.editStrategyEffort(mode, value))}
+                  <fieldset className="rra-models" disabled={disabled}>
+                    <legend className="rra-label">{t('modelsLabel')}</legend>
+                    <p className="rra-field-hint">{t('modelsHint')}</p>
+                    {choices.map(choice => (
+                      <label key={choice.id} className="rra-check">
+                        <input type="checkbox" checked={selected.includes(choice.id)}
+                          aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + choice.label}
+                          onChange={event => update(choice.id, event.target.checked)} />
+                        <span>{choice.label}</span>
+                      </label>
+                    ))}
+                    {missing.map(id => (
+                      <label key={id} className="rra-check">
+                        <input type="checkbox" checked aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('missingModel') + ': ' + id}
+                          onChange={() => update(id, false)} />
+                        <span>{t('missingModel')}: {id}</span>
+                      </label>
+                    ))}
+                    {choices.length === 0 ? <p className="rra-field-hint">{t('noModels')}</p> : null}
+                    <p className="rra-field-hint">{selected.length ? t('selectedModels') + selected.length : t('allModels')}</p>
+                    {selected.length ? <button type="button" className="rra-reset"
+                      onClick={() => props.editStrategyModels(mode, '')}>{t('useAllModels')}</button> : null}
+                  </fieldset>
+                </div>
+              )
+            })}
           </div>
           <div className="rra-field">
             <div className="rra-label-row">
