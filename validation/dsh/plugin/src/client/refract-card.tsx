@@ -47,8 +47,8 @@ const css = `
 .rra-textarea{width:100%;min-height:76px;line-height:1.5;resize:vertical}
 .rra-textarea::placeholder{color:var(--dsw-alias-label-tertiary)}
 .rra-select:disabled,.rra-textarea:disabled{opacity:.4;cursor:default}
-.rra-strategy{display:flex;flex-direction:column;gap:8px;padding:8px 0}
-.rra-strategy-name{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary)}
+.rra-strategy{display:flex;flex-direction:column;gap:12px;margin-top:16px;padding:20px 16px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-3);min-width:0}
+.rra-strategy-name{margin:0;padding-bottom:12px;border-bottom:1px solid var(--dsw-alias-border-l2);font-size:15px;font-weight:600;line-height:1.4;color:var(--dsw-alias-label-primary)}
 .rra-models{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:4px 0;min-width:0}
 .rra-models legend{padding:0;margin-bottom:6px}
 .rra-models .rra-reset{align-self:flex-start;padding:0}
@@ -137,8 +137,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
               const update = (id: string, checked: boolean) => props.editStrategyModels(mode,
                 (checked ? [...new Set([...selected, id])] : selected.filter(value => value !== id)).join('\n'))
               return (
-                <div key={mode} className="rra-strategy">
-                  <span className="rra-strategy-name">{t(STRATEGY_LABEL_KEYS[mode])}</span>
+                <section key={mode} className="rra-strategy" aria-label={t(STRATEGY_LABEL_KEYS[mode])}>
+                  <h3 className="rra-strategy-name">{t(STRATEGY_LABEL_KEYS[mode])}</h3>
                   <p className="rra-field-hint">{t(STRATEGY_LABEL_KEYS[mode] + 'Hint')}</p>
                   {provider?.billingUnit === 'AFP' ? <label className="rra-label">
                     {t('afpCeiling')}
@@ -176,7 +176,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     {selected.length ? <button type="button" className="rra-reset"
                       onClick={() => props.editStrategyModels(mode, '')}>{t('useAllModels')}</button> : null}
                   </fieldset>
-                </div>
+                </section>
               )
             })}
           </div>
