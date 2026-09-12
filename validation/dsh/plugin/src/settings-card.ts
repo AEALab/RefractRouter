@@ -1,3 +1,7 @@
+import afpData from './afp-metadata.json' with { type: 'json' }
+export const afpMetadata: { snapshotDate: string; sourceUrl: string; tiers: number[];
+  models: Array<{model: string; coefficient: number; inputCoefficient: number; outputCoefficient: number; planTiers: string[]}>
+} = afpData
 import examples from './provider-examples.json' with { type: 'json' }
 /** RefractAgent 设置卡片的纯逻辑层：staged 表单、写入规划与快照投影。
  * 宿主契约测试与浏览器 client bundle 共用；不依赖 React、Node API 或 DSH 包。
@@ -21,18 +25,24 @@ export interface ProviderConfigView {
   [field: string]: unknown
 }
 export interface StrategyView {
+  maxAfpCoefficient?: number
   reasoningEffort?: string
   models?: string[]
 }
 /** 表单只把配置 ID 映射为可读名称，不参与候选模型的路由判定。 */
-export function candidateChoices(provider: ProviderConfigView | undefined): Array<{ id: string; label: string }> {
+export function candidateChoices(provider: ProviderConfigView | undefined): Array<{ id: string; label: string; costLabel?: string; planLabel?: string }> {
   const models = (Array.isArray(provider?.models) ? provider.models : []).filter(
     (row): row is Record<string, unknown> => isRecord(row) && row.role !== 'judge'
       && typeof row.id === 'string' && typeof row.model === 'string',
   )
   return models.map(row => {
     const duplicate = models.filter(other => other.model === row.model).length > 1
+    const reference = afpMetadata.models.find(m => m.model === row.model)
+    const providerRow = provider?.providers?.find(p => isRecord(p) && p.id === row.provider)
+    const ark = isRecord(providerRow) && providerRow.type === 'ark-agent-plan'
     return {
+      ...(ark && reference ? { costLabel: `AFP ${reference.inputCoefficient} / ${reference.outputCoefficient}`,
+        planLabel: reference.planTiers.includes('small') ? 'Small / Medium / Large / Max' : 'Medium / Large / Max' } : {}),
       id: row.id as string,
       label: duplicate ? `${row.model} · ${row.provider} (${row.id})` : row.model as string,
     }
@@ -87,6 +97,7 @@ export interface RefractCardFace {
   hooks: { refractCard: { subscribe(listener: () => void): () => void; getSnapshot(): RefractCardProjection } }
   editDefaultEffort(value: string): void
   editStrategyEffort(mode: ModeKey, value: string): void
+  editStrategyAfpCeiling(mode: ModeKey, value: string): void
   editStrategyModels(mode: ModeKey, text: string): void
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
@@ -147,6 +158,7 @@ export class RefractCardController {
       hooks: { refractCard: this },
       editDefaultEffort: value => this.editDefaultEffort(value),
       editStrategyEffort: (mode, value) => this.editStrategyEffort(mode, value),
+      editStrategyAfpCeiling: (mode, value) => this.editStrategyAfpCeiling(mode, value),
       editStrategyModels: (mode, text) => this.editStrategyModels(mode, text),
       editLimit: (key, checked) => this.editLimit(key, checked),
       editProviderJson: text => this.editProviderJson(text),
@@ -175,6 +187,19 @@ export class RefractCardController {
     if (Object.keys(entry).length > 0) strategies[mode] = entry
     else delete strategies[mode]
     this.stageProvider({ ...provider, strategies })
+  }
+
+  editStrategyAfpCeiling(mode: ModeKey, value: string): void {
+    const provider = this.currentProvider()
+    if (!provider || provider.billingUnit !== 'AFP') return
+    const entry = { ...provider.strategies?.[mode] }
+    if (value === '') delete entry.maxAfpCoefficient
+    else {
+      const coefficient = Number(value)
+      if (!Number.isFinite(coefficient) || coefficient <= 0) return
+      entry.maxAfpCoefficient = coefficient
+    }
+    this.stageProvider({ ...provider, strategies: { ...provider.strategies, [mode]: entry } })
   }
 
   editStrategyModels(mode: ModeKey, text: string): void {

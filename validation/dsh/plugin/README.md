@@ -4,6 +4,30 @@
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
 provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
 
+## 0.14.0：官方文字模型清单与 AFP 成本档位
+
+配合 Python 核心 0.4.1，DSH 的 Ark 预设默认展开官方 11 个文字生成模型，使用实际模型 ID，
+另有一次独立的 Kimi K3 评审调用。K3 需要 Medium / Large / Max；这是独立调用而非独立型号。
+图片、视频、向量和语音需要专用适配器，不进入文字路由池。历史实验 manifest 保持原样。
+
+模式分别配置两项独立参数：
+
+- **模型成本档位**：按官方常规 AFP 系数 0.25、0.5、2.5、4.5、5.5、10 划分，
+  选择输入和输出系数上限。Python 用该上限与手动选择的模型取交集；空集明确报错。
+- **推理强度**：minimal / low / medium / high / xhigh 是可选模型参数，
+  不对应价格等级；模型支持范围不同，默认不显式传递。GLM-5.3 保持开启思考。
+
+例如省成本选择 0.5，候选为 Seed 2.0 Mini、Seed 2.0 Lite、DeepSeek V4 Flash 和 GLM 5.3 Flash。
+不限制档位时可选择全部文字模型。成本上限仅约束生产候选，不筛掉评审调用。
+价格显示单位为每万 token 的 AFP 系数，核心每千 token 单价为系数除以 10。
+采用 2026-09-12 核对的常规价格，不把已到期活动价格固化为永久价格。
+
+系数不是质量评分。新增模型使用统一的未校准质量和时延占位预测，
+质量优先的有效区分仍需要用户配置或独立任务评测，不按价格捏造能力排名。
+CLI `--preset ark-agent-plan` 的历史实验兼容路径仍使用原 manifest；
+新完整应用清单通过 `config-example --provider-type ark-agent-plan` 和 DSH 设置展开使用。
+官方依据见 [AFP 成本档位说明](../../../docs/ark-afp-cost-tiers.md)。
+
 ## 0.13.2：按真实模型名称选择
 
 三种模式使用模型勾选列表，显示 `deepseek-v4-flash`、`minimax-m3` 等真实名称。

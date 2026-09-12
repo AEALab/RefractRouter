@@ -23,7 +23,7 @@ test('settings base reflects the tunable subset of the composed configuration', 
   const base = buildSettingsBase(config)
   assert.equal(base.providerConfig?.providers[0].type, 'ark-agent-plan')
   assert.ok(base.providerConfig!.models.length > 1)
-  assert.equal(overlaySettings(config, base).preset, 'ark-agent-plan')
+  assert.equal(overlaySettings(config, base).providerConfig?.models.filter(m => m.role === 'candidate').length, 11)
   assert.deepEqual(base.limits, { relaxBudget: false, relaxContext: false })
 
   const withProviders = configure({ executionMode: 'live', allowPaidRuns: true,
@@ -263,7 +263,7 @@ test('client bundle registers in the host module format and exports the plugin f
 })
 
 
-test('preset fields can be edited, saved and reset without changing untouched preset execution', async () => {
+test('preset fields can be edited, saved and reset with the complete documented model pool', async () => {
   const composed = configure({ preset: 'ark-agent-plan', credentialEnv: 'TEAM_ARK_KEY' })
   const base = buildSettingsBase(composed)
   assert.equal(base.providerConfig!.providers[0].credentialEnv, 'TEAM_ARK_KEY')
@@ -272,8 +272,8 @@ test('preset fields can be edited, saved and reset without changing untouched pr
   assert.equal(controller.getSnapshot().hasProvider, true)
   controller.editDefaultEffort('medium')
   controller.editStrategyEffort('quality', 'high')
-  controller.editStrategyModels('economy', 'cheap\n')
-  assert.equal(controller.getSnapshot().strategyModelText.economy, 'cheap\n')
+  controller.editStrategyModels('economy', 'deepseek-v4-flash\n')
+  assert.equal(controller.getSnapshot().strategyModelText.economy, 'deepseek-v4-flash\n')
   await controller.save()
   const saved = scope.getSnapshot().value as Parameters<typeof overlaySettings>[1]
   assert.equal(overlaySettings(composed, saved).preset, undefined)
@@ -281,7 +281,7 @@ test('preset fields can be edited, saved and reset without changing untouched pr
   assert.equal(saved.providerConfig?.strategies?.quality?.reasoningEffort, 'high')
   controller.resetField('providerConfig')
   await controller.save()
-  assert.equal(overlaySettings(composed, scope.getSnapshot().value as typeof saved).preset, 'ark-agent-plan')
+  assert.deepEqual(overlaySettings(composed, scope.getSnapshot().value as typeof saved).providerConfig, base.providerConfig)
   controller.dispose()
 })
 
@@ -325,4 +325,19 @@ test('model choices show actual names, exclude judges and disambiguate duplicate
   config.models.push({ id: 'second', model: 'deepseek-v4-flash', provider: 'team' })
   const duplicateLabels = candidateChoices(config).filter(row => row.label.includes('deepseek-v4-flash'))
   assert.equal(new Set(duplicateLabels.map(row => row.label)).size, 2)
+})
+
+
+test('AFP ceiling is staged, saved and removed independently of reasoning effort', async () => {
+  const base = buildSettingsBase(configure({ preset: 'ark-agent-plan' }))
+  const scope = fakeScope(base as unknown as SectionView)
+  const controller = new RefractCardController(scope)
+  controller.editStrategyAfpCeiling('economy', '0.5')
+  controller.editStrategyEffort('economy', 'high')
+  await controller.save()
+  assert.deepEqual(controller.getSnapshot().provider?.strategies?.economy,
+    { maxAfpCoefficient: 0.5, reasoningEffort: 'high' })
+  controller.editStrategyAfpCeiling('economy', '')
+  assert.deepEqual(controller.getSnapshot().provider?.strategies?.economy, { reasoningEffort: 'high' })
+  controller.dispose()
 })

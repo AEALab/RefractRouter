@@ -1,13 +1,14 @@
 /** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
 import { useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
-import { candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey, type RefractCardProjection } from '../settings-card.js'
+import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey, type RefractCardProjection } from '../settings-card.js'
 
 export interface RefractCardOwnerProps {
   t: (key: string) => string
   useRefractCard: <T>(selector: (snapshot: RefractCardProjection) => T) => T
   editDefaultEffort(value: string): void
   editStrategyEffort(mode: ModeKey, value: string): void
+  editStrategyAfpCeiling(mode: ModeKey, value: string): void
   editStrategyModels(mode: ModeKey, text: string): void
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
@@ -94,7 +95,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
       <select className="rra-select" aria-label={label} value={value ?? ''} disabled={disabled}
         onChange={event => onEdit(event.target.value)}>
         <option value="">{t('effortDefault')}</option>
-        {options.map(option => <option key={option} value={option}>{option}</option>)}
+        {options.map(option => <option key={option} value={option}>{t('effort_' + option) === 'effort_' + option ? option : t('effort_' + option)}</option>)}
       </select>
     )
   }
@@ -128,6 +129,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
           </div>
           <div className="rra-field">
             <span className="rra-label">{t('strategies')}</span>
+            <p className="rra-field-hint">{t('separateControlsHint')}</p>
+            {provider?.billingUnit === 'AFP' ? <p className="rra-field-hint">{t('afpSourceHint')} {afpMetadata.snapshotDate} · <a href={afpMetadata.sourceUrl} target="_blank" rel="noreferrer">{t('afpSource')}</a></p> : null}
             {MODE_KEYS.map(mode => {
               const selected = provider?.strategies?.[mode]?.models ?? []
               const missing = selected.filter(id => !choices.some(choice => choice.id === id))
@@ -137,6 +140,17 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <div key={mode} className="rra-strategy">
                   <span className="rra-strategy-name">{t(STRATEGY_LABEL_KEYS[mode])}</span>
                   <p className="rra-field-hint">{t(STRATEGY_LABEL_KEYS[mode] + 'Hint')}</p>
+                  {provider?.billingUnit === 'AFP' ? <label className="rra-label">
+                    {t('afpCeiling')}
+                    <select className="rra-select" style={{display:'block',marginTop:6}} disabled={disabled}
+                      aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('afpCeiling')}
+                      value={provider.strategies?.[mode]?.maxAfpCoefficient ?? ''}
+                      onChange={event => props.editStrategyAfpCeiling(mode, event.target.value)}>
+                      <option value="">{t('noCostCeiling')}</option>
+                      {afpMetadata.tiers.map(value => <option key={value} value={value}>{t('afpAtMost')} {value}</option>)}
+                    </select>
+                  </label> : null}
+                  <span className="rra-label">{t('modeEffort')}</span>
                   {effortSelect(t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + t('defaultEffort'), provider?.strategies?.[mode]?.reasoningEffort,
                     value => props.editStrategyEffort(mode, value))}
                   <fieldset className="rra-models" disabled={disabled}>
@@ -147,7 +161,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                         <input type="checkbox" checked={selected.includes(choice.id)}
                           aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + choice.label}
                           onChange={event => update(choice.id, event.target.checked)} />
-                        <span>{choice.label}</span>
+                        <span>{choice.label}{choice.costLabel ? <small style={{display:'block'}} className="rra-field-hint">{choice.costLabel} · {choice.planLabel}</small> : null}</span>
                       </label>
                     ))}
                     {missing.map(id => (
