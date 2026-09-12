@@ -24,6 +24,21 @@ export interface StrategyView {
   reasoningEffort?: string
   models?: string[]
 }
+/** 表单只把配置 ID 映射为可读名称，不参与候选模型的路由判定。 */
+export function candidateChoices(provider: ProviderConfigView | undefined): Array<{ id: string; label: string }> {
+  const models = (Array.isArray(provider?.models) ? provider.models : []).filter(
+    (row): row is Record<string, unknown> => isRecord(row) && row.role !== 'judge'
+      && typeof row.id === 'string' && typeof row.model === 'string',
+  )
+  return models.map(row => {
+    const duplicate = models.filter(other => other.model === row.model).length > 1
+    return {
+      id: row.id as string,
+      label: duplicate ? `${row.model} · ${row.provider} (${row.id})` : row.model as string,
+    }
+  })
+}
+
 export interface LimitsView {
   relaxBudget?: boolean
   relaxContext?: boolean

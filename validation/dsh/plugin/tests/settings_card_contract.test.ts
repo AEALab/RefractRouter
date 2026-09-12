@@ -6,7 +6,7 @@ import {
   buildSettingsBase, installRefractSettings, overlaySettings, validateSettingsSection,
 } from '../dist/settings-integration.js'
 import {
-  RefractCardController, SETTINGS_NAMESPACE,
+  candidateChoices, RefractCardController, SETTINGS_NAMESPACE,
   type CardScope, type CardScopeSnapshot, type SectionView,
 } from '../dist/settings-card.js'
 
@@ -308,4 +308,21 @@ test('unconfigured form fields initialize an editable example and preserve multi
   controller.editStrategyModels('balanced', 'answer\nother')
   assert.deepEqual(controller.getSnapshot().provider?.strategies?.balanced?.models, ['answer', 'other'])
   controller.dispose()
+})
+
+
+test('model choices show actual names, exclude judges and disambiguate duplicate names', () => {
+  assert.deepEqual(candidateChoices(undefined), [])
+  const config = { models: [
+    { id: 'cheap', model: 'deepseek-v4-flash', provider: 'ark-plan' },
+    { id: 'mid', model: 'minimax-m3', provider: 'ark-plan' },
+    { id: 'judge', model: 'kimi-k3', role: 'judge' },
+  ] }
+  assert.deepEqual(candidateChoices(config), [
+    { id: 'cheap', label: 'deepseek-v4-flash' },
+    { id: 'mid', label: 'minimax-m3' },
+  ])
+  config.models.push({ id: 'second', model: 'deepseek-v4-flash', provider: 'team' })
+  const duplicateLabels = candidateChoices(config).filter(row => row.label.includes('deepseek-v4-flash'))
+  assert.equal(new Set(duplicateLabels.map(row => row.label)).size, 2)
 })
