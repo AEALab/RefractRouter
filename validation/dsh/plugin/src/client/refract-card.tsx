@@ -161,7 +161,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                         <input type="checkbox" checked={selected.includes(choice.id)}
                           aria-label={t(STRATEGY_LABEL_KEYS[mode]) + ' · ' + choice.label}
                           onChange={event => update(choice.id, event.target.checked)} />
-                        <span>{choice.label}{choice.costLabel ? <small style={{display:'block'}} className="rra-field-hint">{choice.costLabel} · {choice.planLabel}</small> : null}</span>
+                        <span>{choice.label}{choice.costLabel ? <small style={{display:'block'}} className="rra-field-hint">{choice.costLabel} · {choice.planLabel}</small> : null}{choice.thinkingAuto ? <small className="rra-field-hint" style={{display:'block'}}>{t('thinkingAuto_' + choice.thinkingAuto)}</small> : null}</span>
                       </label>
                     ))}
                     {missing.map(id => (

@@ -8,6 +8,19 @@ def catalog():
     return json.loads(files('refractrouter').joinpath('resources/ark-agent-plan-catalog.json').read_text())
 
 
+def thinking_capabilities():
+    return json.loads(files('refractrouter').joinpath('resources/ark-thinking-capabilities.json').read_text())
+
+
+def validate_thinking_auto(model, options):
+    """只拒绝当前 Ark 端点已有明确证据不接受的 auto；其他供应商不套用此结论。"""
+    if options.get('thinking', {}).get('type') != 'auto':
+        return
+    capability = next((row for row in thinking_capabilities()['models'] if row['model'] == model), None)
+    if capability and capability['auto'] == 'rejected':
+        raise ValueError(f'Ark 模型 {model} 不接受 thinking.type=auto；请删除 thinking 字段以使用供应商默认行为')
+
+
 def afp_metadata():
     data = catalog()
     models = [row for row in data['models'] if row['capability'] == 'text-generation']
@@ -19,6 +32,7 @@ def afp_metadata():
             'model': m['model_id'], 'coefficient': max(m['pricing']['input_coefficient'], m['pricing']['output_coefficient']),
             'inputCoefficient': m['pricing']['input_coefficient'], 'outputCoefficient': m['pricing']['output_coefficient'],
             'planTiers': m['plan_tiers'],
+            'thinkingAuto': next(row['auto'] for row in thinking_capabilities()['models'] if row['model'] == m['model_id']),
         } for m in models],
     }
 

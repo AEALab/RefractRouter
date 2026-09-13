@@ -214,6 +214,9 @@ def compile_configuration(raw, strategy=None):
             thinking = obj(options['thinking'], {'type'}, 'thinking')
             if thinking.get('type') not in {'enabled', 'disabled', 'auto'}:
                 raise ValueError('invalid thinking mode')
+            if p['type'] == 'ark-agent-plan':
+                from .ark_plan import validate_thinking_auto
+                validate_thinking_auto(api_model, options)
         if 'reasoning_effort' in options:
             text(options['reasoning_effort'], 'reasoning_effort', 100)
         if 'seed' in options and type(options['seed']) is not int:

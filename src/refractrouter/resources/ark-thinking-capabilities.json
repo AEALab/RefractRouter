@@ -1,0 +1,72 @@
+{
+  "verified_date": "2026-09-13",
+  "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3",
+  "models": [
+    {
+      "model": "doubao-seed-2.0-mini",
+      "auto": "rejected",
+      "http_status": 400,
+      "evidence": "auto 请求被明确拒绝；移除后 HTTP 200。"
+    },
+    {
+      "model": "doubao-seed-2.0-lite",
+      "auto": "rejected",
+      "http_status": 400,
+      "evidence": "接口明确拒绝 auto。"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "auto": "accepted",
+      "http_status": 200,
+      "evidence": "接口接受参数；不代表支持自适应思考或完整任务通过。"
+    },
+    {
+      "model": "glm-5.3-flash",
+      "auto": "rejected",
+      "http_status": 400,
+      "evidence": "接口明确拒绝 auto。"
+    },
+    {
+      "model": "doubao-seed-2.1-turbo",
+      "auto": "rejected",
+      "http_status": 400,
+      "evidence": "接口明确拒绝 auto。"
+    },
+    {
+      "model": "doubao-seed-evolving",
+      "auto": "rejected",
+      "http_status": 400,
+      "evidence": "接口明确拒绝 auto。"
+    },
+    {
+      "model": "minimax-m3",
+      "auto": "inconclusive",
+      "http_status": 400,
+      "evidence": "一般参数错误，未定位到 auto。"
+    },
+    {
+      "model": "glm-5.3",
+      "auto": "rejected",
+      "http_status": 400,
+      "evidence": "接口明确拒绝 auto。"
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "auto": "inconclusive",
+      "http_status": 400,
+      "evidence": "一般参数错误，未定位到 auto。"
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "auto": "accepted",
+      "http_status": 200,
+      "evidence": "接口接受参数；不代表支持自适应思考或完整任务通过。"
+    },
+    {
+      "model": "kimi-k3",
+      "auto": "inconclusive",
+      "http_status": 400,
+      "evidence": "一般参数错误，未定位到 auto。"
+    }
+  ]
+}
