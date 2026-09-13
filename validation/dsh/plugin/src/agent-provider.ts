@@ -200,7 +200,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   }
   if (useBridge) env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
   const failed = new AbortController()
-  const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), AbortSignal.timeout(config.timeoutMs + 5000)])
+  const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), ...(config.template === 'auto' ? [] : [AbortSignal.timeout(config.timeoutMs + 5000)])])
   let python: string
   try { python = await ctx.subprocess.resolveExecutable(config.pythonExecutable, env, signal) }
   catch { throw new Error('RefractAgent Python not found; install the core and generate a dsh-config overlay') }

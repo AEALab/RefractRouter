@@ -126,7 +126,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                 eligible_models: dict[str, list[str]] | None = None,
                 execution_policy: ExecutionPolicy | None = None,
                 model_providers: dict[str, str] | None = None,
-                assignment_mode: str = 'per-node'):
+                assignment_mode: str = 'per-node', reduce_dominated: bool = False):
     if assignment_mode not in {'per-node', 'single-model'}:
         raise ValueError('unsupported assignment mode')
     if method not in {"A", "B"} or (method == "B" and weights is None) or (method == "A" and weights is not None):
@@ -157,6 +157,17 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                 score += utility * (normalized[metric] if normalized else 0)
             utilities[(node.node_id, p.model_id)] = score
         options.append(pool)
+    original_count = math.prod(map(len, options))
+    if reduce_dominated and assignment_mode == 'per-node':
+        # 相同供应商和时延保证替换不改变整个 DAG 的调度；保留原始归一化标尺。
+        # 成本更低或质量更高的替代项不会恶化 A/B 目标与硬约束。
+        options = [[p for p in pool if not any(
+            q.model_id != p.model_id
+            and providers[q.model_id] == providers[p.model_id]
+            and q.latency_ms == p.latency_ms
+            and q.cost <= p.cost and q.quality >= p.quality
+            and (q.cost < p.cost or q.quality > p.quality or q.model_id < p.model_id)
+            for q in pool)] for pool in options]
     count = math.prod(map(len, options))
     if count > 100000:
         raise ValueError("assignment search exceeds 100000 combinations; narrow the profile or DAG")
@@ -194,6 +205,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
               "normalized_weights": normalized, "normalization_bounds": bounds, "eligible_models": eligible_models,
               "scheduled_latency_bounds_ms": latency_bounds, "execution_policy": policy.to_dict(),
               "combinations": count, "feasible_combinations": feasible,
+              "original_combinations": original_count, "dominated_reduction": reduce_dominated,
               "prediction": None, "nodes": {}}
     if best:
         combination, cost, latency, quality, score = best

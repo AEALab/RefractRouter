@@ -70,7 +70,7 @@ class DynamicDecomposition:
             raise ValueError('dynamic-split-limit-exhausted')
         if self.cancel_event is not None and self.cancel_event.is_set():
             raise CancelledError('task-cancelled-before-split')
-        if time.monotonic() >= self.deadline:
+        if time.monotonic() >= self.budget.deadline(self.deadline):
             raise ValueError('task-deadline-exhausted')
         _, calls = self.budget.snapshot()
         if any(c['status'] not in {'billed', 'cancelled-before-dispatch'} for c in calls):
@@ -92,7 +92,7 @@ class DynamicDecomposition:
             while time.monotonic() < dispatch_history.get(provider, -float('inf')) + self.policy.interval(provider)/1000:
                 if self.cancel_event is not None and self.cancel_event.is_set():
                     raise CancelledError('task-cancelled-before-split')
-                if time.monotonic() >= self.deadline:
+                if time.monotonic() >= self.budget.deadline(self.deadline):
                     raise ValueError('task-deadline-exhausted')
                 time.sleep(.01)
             dispatch_history[provider] = time.monotonic()
@@ -102,7 +102,7 @@ class DynamicDecomposition:
                 'failure': reason[:1000],
                 'instruction': '仅拆当前困难节点为 2..3 个更小职责，最后一项汇总原职责。独立检查尽量并行。不得重复已完成的上游，也不得修改原始要求。'},
                 event['planner'], criteria=plan.acceptance_criteria,
-                cost_limit=self.request['costMax'], deadline=min(self.deadline,
+                cost_limit=self.request['costMax'], deadline=None if self.request.get('unrestrictedPlanning') else min(self.budget.deadline(self.deadline),
                     time.monotonic() + self.request.get('plannerTimeoutMs', 12000)/1000),
                 persist=self.persist, label=f'dynamic-planner-{len(events)}',
                 max_nodes=min(3, MAX_NODES-len(plan.nodes)+1),
@@ -129,10 +129,10 @@ class DynamicDecomposition:
             routing = route_nodes(residual, profiles, method=self.request['method'],
                 quality_min=self.request['qualityMin'], cost_max=min(self.budget.remaining(),
                     max(0, self.request['costMax']-self.budget.snapshot()[0]['production'])),
-                latency_max_ms=max(0, (self.deadline-now)*1000-max(0, wait_ms)),
+                latency_max_ms=max(0, (self.budget.deadline(self.deadline)-now)*1000-max(0, wait_ms)),
                 weights=Weights(**self.request['weights']) if self.request['method']=='B' else None,
                 eligible_models={n.node_id:admission[n.node_id]['eligible_models'] for n in residual.nodes},
-                execution_policy=self.policy, model_providers={mid:m.provider for mid,m in self.candidates.items()})
+                reduce_dominated=self.configuration is not None, execution_policy=self.policy, model_providers={mid:m.provider for mid,m in self.candidates.items()})
             event.update(plan=expanded.to_dict(), admission=admission, routing=routing)
             if routing['status'] != 'selected':
                 raise ValueError('dynamic-no-feasible-route')

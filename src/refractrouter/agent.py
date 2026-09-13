@@ -114,6 +114,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
             raise ValueError('maxPlanRepairs must be an integer in 0..1')
         request['maxPlanRepairs'] = repairs
         request['planningMode'] = payload.get('planningMode','compact')
+        request['unrestrictedPlanning'] = request['planningMode'] == 'compact'
         request['maxDynamicSplits'] = payload.get('maxDynamicSplits',1)
     elif 'maxPlanRepairs' in payload:
         raise ValueError('maxPlanRepairs requires the automatic template')
@@ -122,6 +123,9 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
                 'maxConcurrency','providerConcurrency','providerMinIntervalMs'):
         if key in payload:
             request[key] = payload[key]
+    if request.get('unrestrictedPlanning'):
+        request.pop('plannerMaxOutputTokens', None)
+        request.pop('plannerTimeoutMs', None)
     if criteria is not None:
         request['acceptanceCriteria'] = criteria
     del request['name']
@@ -162,6 +166,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if configured:
         manifest = configured.manifest
         request['qualityMin'] = configured.quality_min
+        request['plannerThinking'] = configured.snapshot.get('plannerThinking', 'inherit')
     else:
         manifest_file = Path(manifest_path) if manifest_path else Path(str(resource('agent-plan.json')))
         manifest = load_model_manifest(manifest_file)

@@ -103,12 +103,14 @@ class ApplicationConfiguration:
 
 def compile_configuration(raw, strategy=None):
     raw = obj(raw, {'schemaVersion', 'billingUnit', 'providers', 'models', 'qualityMin',
-                    'defaultReasoningEffort', 'strategies'}, 'provider configuration')
+                    'defaultReasoningEffort', 'plannerThinking', 'strategies'}, 'provider configuration')
     if raw.get('schemaVersion') != SCHEMA:
         raise ValueError(f'provider configuration requires schemaVersion {SCHEMA}')
     unit = raw.get('billingUnit')
     if not isinstance(unit, str) or not re.fullmatch(r'[A-Z][A-Z0-9_-]{0,15}', unit):
         raise ValueError('billingUnit must be one declared accounting unit')
+    if raw.get('plannerThinking', 'inherit') not in {'inherit', 'enabled', 'disabled'}:
+        raise ValueError('invalid plannerThinking')
     default_effort = None
     if 'defaultReasoningEffort' in raw:
         default_effort = text(raw['defaultReasoningEffort'], 'defaultReasoningEffort', 100)

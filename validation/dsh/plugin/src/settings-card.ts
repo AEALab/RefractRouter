@@ -18,6 +18,7 @@ export interface ProviderConfigView {
   schemaVersion?: string
   billingUnit?: string
   qualityMin?: number
+  plannerThinking?: string
   defaultReasoningEffort?: string
   strategies?: Partial<Record<ModeKey, StrategyView>>
   providers?: unknown[]
@@ -96,6 +97,7 @@ type StagedEdit = { kind: 'clear' } | { kind: 'set'; value: unknown }
 
 export interface RefractCardFace {
   hooks: { refractCard: { subscribe(listener: () => void): () => void; getSnapshot(): RefractCardProjection } }
+  editPlannerThinking(value: string): void
   editDefaultEffort(value: string): void
   editStrategyEffort(mode: ModeKey, value: string): void
   editStrategyAfpCeiling(mode: ModeKey, value: string): void
@@ -157,6 +159,7 @@ export class RefractCardController {
   inject(): RefractCardFace {
     return {
       hooks: { refractCard: this },
+      editPlannerThinking: value => this.editPlannerThinking(value),
       editDefaultEffort: value => this.editDefaultEffort(value),
       editStrategyEffort: (mode, value) => this.editStrategyEffort(mode, value),
       editStrategyAfpCeiling: (mode, value) => this.editStrategyAfpCeiling(mode, value),
@@ -167,6 +170,15 @@ export class RefractCardController {
       save: () => { void this.save() },
       discard: () => this.discard(),
     }
+  }
+
+  editPlannerThinking(value: string): void {
+    const provider = this.currentProvider() ?? structuredClone(examples['openai-compatible'])
+    const next: ProviderConfigView = { ...provider }
+    if (value === 'inherit') delete next.plannerThinking
+    else if (['enabled','disabled'].includes(value)) next.plannerThinking = value
+    else throw new Error('invalid plannerThinking')
+    this.stageProvider(next)
   }
 
   editDefaultEffort(value: string): void {

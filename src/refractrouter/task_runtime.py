@@ -34,13 +34,17 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
+               "planningMode", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     ExecutionPolicy.from_request(raw)
     validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
     if type(raw.get('maxPlanRepairs', 0)) is not int or not 0 <= raw.get('maxPlanRepairs', 0) <= 1:
         raise ValueError('maxPlanRepairs must be an integer in 0..1')
+    if type(raw.get('unrestrictedPlanning', False)) is not bool:
+        raise ValueError('unrestrictedPlanning must be boolean')
+    if raw.get('plannerThinking', 'inherit') not in {'inherit', 'enabled', 'disabled'}:
+        raise ValueError('invalid plannerThinking')
     if raw.get('planningMode', 'full') not in ('full', 'compact'):
         raise ValueError('planningMode must be full or compact')
     for key, default, low, high in (('plannerMaxOutputTokens',1200,256,2048),
@@ -132,7 +136,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     candidates = {m.model_id: m for m in manifest.candidates}
     planner, planner_basis = planner_model(candidates, configuration=configuration,
         explicit=request.get('plannerModelId'), output_cap=request.get('plannerMaxOutputTokens',1200),
-        compact=request.get('planningMode') == 'compact')
+        compact=request.get('planningMode') == 'compact', unrestricted=request.get('unrestrictedPlanning', False),
+        thinking=request.get('plannerThinking','inherit'))
     planner_id = planner.model_id
     if planner_id not in candidates:
         raise ValueError("plannerModelId must be a candidate in the manifest")
@@ -158,7 +163,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                               "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"]}
     result['planner_selection'] = {'model_id': planner_id, 'basis': planner_basis,
         'output_cap': output_token_limit(planner if request.get('planningMode')=='compact' else candidates[planner_id]),
-        'timeout_ms': request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms}
+        'timeout_ms': None if request.get('unrestrictedPlanning') else request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms,
+        'thinking': request.get('plannerThinking','inherit'), 'output_policy': 'model-capacity' if request.get('unrestrictedPlanning') else 'explicit-cap'}
     if content_guard is not None:
         result['dependency_evidence'] = content_guard.evidence()
     if configuration is not None and not configured_application:
@@ -173,7 +179,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         checkpoint(result)
     budget.on_reserve = lambda reservation: persist()
     def before_call():
-        remaining = deadline_ms / 1000 - (time.monotonic() - started)
+        remaining = deadline_ms / 1000 - (time.monotonic() - started - budget.planning_elapsed)
         if cancel_event is not None and cancel_event.is_set():
             budget.stop()
             raise CancelledError("task-cancelled")
@@ -193,7 +199,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 plan = generate_compact(budget, planner, {'task': planning_task,
                     'parallel_capacity': policy.max_concurrency}, result['compact_planning'],
                     criteria=request.get('acceptanceCriteria'), cost_limit=request['costMax'],
-                    deadline=min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
+                    deadline=None if request.get('unrestrictedPlanning') else min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
                     persist=persist, repairs=request.get('maxPlanRepairs',0),
                     output_cap=max(output_token_limit(m) for m in candidates.values()))
                 result['planner_output'] = result['compact_planning']['attempts'][0]['output']
@@ -241,11 +247,11 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 request['qualityMin'], output_constraints=request.get('outputConstraints'))
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
         remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
-        remaining_latency = max(0, deadline_ms - (time.monotonic() - started) * 1000) if live else deadline_ms
+        remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
         result["routing"] = route_nodes(plan, profiles, method=request["method"],
             quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=remaining_latency,
             weights=Weights(**request["weights"]) if request["method"] == "B" else None,
-            eligible_models=eligible_models, execution_policy=policy,
+            eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
             model_providers={mid: model.provider for mid, model in candidates.items()})
         if configured_application:
             result['routing']['actions'] = {nid: action_identity(candidates[mid])
@@ -289,7 +295,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
             before_call()
             judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
-                criteria=plan.acceptance_criteria, label="final-judge", deadline=started + deadline_ms / 1000)
+                criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000))
             result["evaluation"] = judged
             result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
             if result['format_validation']['passed'] is False:

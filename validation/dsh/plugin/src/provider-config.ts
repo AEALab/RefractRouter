@@ -11,6 +11,7 @@ export interface ProviderConfiguration {
   schemaVersion: 'refractagent-providers-v1'
   billingUnit: string
   qualityMin?: number
+  plannerThinking?: 'inherit' | 'enabled' | 'disabled'
   defaultReasoningEffort?: string
   strategies?: Partial<Record<'economy' | 'balanced' | 'quality', StrategyConfiguration>>
   providers: Array<{ id: string; type: 'openai-compatible' | 'openai-responses' | 'ark-agent-plan' | 'dsh';
@@ -47,8 +48,11 @@ export function validateProviderConfiguration(value: unknown): asserts value is 
   const config = value
   if (!isRecordValue(config) || config.schemaVersion !== 'refractagent-providers-v1'
     || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
-    || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','defaultReasoningEffort','strategies','providers','models'].includes(k))) {
+    || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','defaultReasoningEffort','plannerThinking','strategies','providers','models'].includes(k))) {
     throw new Error('invalid providerConfig; use refractagent config-example')
+  }
+  if (config.plannerThinking !== undefined && (typeof config.plannerThinking !== 'string' || !['inherit','enabled','disabled'].includes(config.plannerThinking))) {
+    throw new Error('invalid plannerThinking')
   }
   if (config.defaultReasoningEffort !== undefined
     && (typeof config.defaultReasoningEffort !== 'string' || !config.defaultReasoningEffort.trim())) {

@@ -69,7 +69,7 @@ def test_default_small_planner_is_compact_and_production_remains_quality_routed(
     result, raw = run(tmp_path,client)
     assert result['status']=='completed', result['issues']
     assert client.calls[0][0].model_id=='fast'
-    assert client.calls[0][0].max_output_tokens==1200
+    assert client.calls[0][0].max_output_tokens==2048
     assert set(client.calls[0][1])=={'task','parallel_capacity','max_nodes'}
     assert len(raw['compact_planning']['attempts'])==1
     assert result['plan_ready_ms']>=0
@@ -264,7 +264,7 @@ def test_compact_overlong_output_and_cycles_stop_before_execution(tmp_path):
         assert not raw['nodes']
 
 
-def test_planner_deadline_is_total_including_repairs(tmp_path):
+def test_automatic_planning_ignores_legacy_planner_timeout(tmp_path):
     from unittest.mock import patch
     from refractrouter.task_budget import TaskCallBudget
     original=TaskCallBudget.complete
@@ -276,8 +276,9 @@ def test_planner_deadline_is_total_including_repairs(tmp_path):
     client=Client()
     with patch.object(TaskCallBudget,'complete',complete):
         result,raw=run(tmp_path,client,plannerTimeoutMs=1000,maxPlanRepairs=1)
-    assert result['status']=='failed'
-    assert len(client.calls)==1 and not raw['nodes']
+    assert result['status']=='completed', result['issues']
+    assert result['planner']['timeout_ms'] is None
+    assert len(client.calls)>1 and raw['nodes']
 
 
 def test_single_template_capacity_includes_verification_material_and_criteria(tmp_path):

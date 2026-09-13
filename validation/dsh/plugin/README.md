@@ -511,3 +511,12 @@ the profile. A DSH version change also requires updating the compatibility metad
 
 To roll back, switch to the recorded clean commit or install its saved tarball, restore the previous
 profile patch, remove and reinstall the plugin, and run a zero-cost preflight before any paid run.
+
+
+### 规划器思考与容量
+
+在设置 → 插件 → 插件配置 → RefractAgent 路由中，可选择“规划器思考方式”：
+继承模型设置（默认）、开启、关闭。例如复杂依赖分析可开启思考，简单分类可关闭。
+配置 JSON 示例为 `"plannerThinking": "enabled"`，位于 provider 配置顶层。
+核心 0.5.0 配合插件 0.15.0，自动紧凑规划使用模型完整输出容量且无应用规划超时；
+规划等待不扣除后续执行时间，仍支持手动取消并遵守用户预算及服务商限制。

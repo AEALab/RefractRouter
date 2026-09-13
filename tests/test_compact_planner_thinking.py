@@ -9,7 +9,7 @@ from refractrouter.openai_compatible import ChatResponse
 from tests.test_fast_dynamic_dag import Client
 
 
-def test_ark_compact_planner_disables_default_thinking_without_changing_nodes(tmp_path):
+def test_ark_compact_planner_inherits_thinking_and_uses_model_capacity(tmp_path):
     client = Client()
     result = run_agent({'task':'分别分析后汇总', 'template':'auto'},
         provider_config=application_configuration(),client=client,mode='live',
@@ -17,9 +17,10 @@ def test_ark_compact_planner_disables_default_thinking_without_changing_nodes(tm
     assert result['status'] == 'completed', result['issues']
     planner = client.calls[0][0]
     assert planner.api_model == 'doubao-seed-2.0-mini'
-    assert planner.request_options['thinking'] == {'type':'disabled'}
-    assert planner.max_output_tokens == 1200
-    assert 'verified-non-thinking-planner' in result['planner']['basis']
+    assert 'thinking' not in planner.request_options
+    assert planner.max_output_tokens == 128000
+    assert result['planner']['timeout_ms'] is None
+    assert 'model-capacity' in result['planner']['basis']
     nodes = [model for model, payload, _ in client.calls[1:] if 'node_id' in payload]
     assert nodes and all('thinking' not in model.request_options for model in nodes)
 
