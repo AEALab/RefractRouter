@@ -32,7 +32,7 @@ test('native execution retains actual initiator, cancellation and native call/re
   assert.deepEqual(input.arguments,{name:'weather'})
   assert.notEqual(input.callId,'c1')
   assert.deepEqual((reply.result as Record<string,unknown>).additionalContexts,f.contexts)
-  assert.deepEqual(f.events.map(e=>e.type),['step/start','tool/call','tool/result'])
+  assert.deepEqual(f.events.map(e=>e.type),['step/start','refractagent/tool-call','refractagent/tool-result'])
   assert.equal(f.events[1]!.data.turn,1)
   assert.equal(f.events[1]!.data.step,2)
   assert.equal(f.events[1]!.data.callId,input.callId)
@@ -58,7 +58,7 @@ test('native denial and tool exceptions are recorded without fabricating success
   assert.match(JSON.stringify(result),/审批拒绝/)
   const g=fixture();g.ctx.tools!.execute=async()=>{throw new Error('private execution failure')}
   await assert.rejects(bindNativeTools(g.ctx,schemas)!.execute(request,new AbortController().signal))
-  assert.equal(g.events.at(-1)!.type,'tool/result')
+  assert.equal(g.events.at(-1)!.type,'refractagent/tool-result')
   assert.ok(!JSON.stringify(g.events).includes('private execution failure'))
 })
 

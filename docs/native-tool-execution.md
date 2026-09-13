@@ -16,7 +16,8 @@
   请求。正文里的调用标记不解析为命令，直接以明确错误停止该节点。
 - TypeScript 捕获真实 `agents.requireInitiator()` 与当前 step，调用 `tools.execute`。
   不伪造 Agent、父执行令牌或审批结果。工具串行执行，模型节点仍遵循 DAG 并发配置。
-- 每个工具调用使用独立宿主 callId，在原生 `tool/call`、`tool/result` 轨迹中配对。
+- 每个工具调用使用独立宿主 callId，在插件 `refractagent/tool-call`、`refractagent/tool-result` 日志中配对。
+  DSH 原生 `tool/result` 必须带 surface 标记，会加入外层模型历史，不能用作节点内部日志。
   节点内部工具消息只送回该节点，不向外层模型 surface 插入孤立的 tool result。
 - 技能的 `additionalContexts` 与工具结果一起送回节点。节点完成后才释放下游。
   原生工具返回 `concludesTurn` 时停止剩余工具、DAG 和评审，保留已完成结果及中止状态。

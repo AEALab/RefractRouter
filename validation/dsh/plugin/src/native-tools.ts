@@ -53,13 +53,13 @@ export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
       const callId = `refractagent-${randomUUID()}`
       const name = call.function.name
       // 只写轨迹事件；节点内部工具消息不插入外层模型 surface，避免孤立 tool result。
-      agent.session.append('tool/call', { ...step, callId, name, arguments: call.function.arguments })
+      agent.session.append('refractagent/tool-call', { ...step, callId, name, arguments: call.function.arguments })
       let recorded = false
       try {
         const result = await ctx.tools!.execute({ callId, name, arguments: args, agent, signal })
         const message = { id: randomUUID(), role: 'user', source: { kind: 'tool', callId },
           content: [{ type: 'tool-result', toolCallId: callId, content: result.content, isError: result.isError }] }
-        agent.session.append('tool/result', { ...step, message,
+        agent.session.append('refractagent/tool-result', { ...step, message,
           ...(result.meta !== undefined ? { meta: result.meta } : {}),
           ...(result.error?.info ? { error: result.error.info } : {}) })
         recorded = true
@@ -70,7 +70,7 @@ export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
           ...(result.error?.info ? { error: result.error.info } : {}), concludesTurn: result.concludesTurn === true } }
       } catch (error) {
         closed = true
-        if (!recorded) agent.session.append('tool/result', { ...step, message: {
+        if (!recorded) agent.session.append('refractagent/tool-result', { ...step, message: {
           id: randomUUID(), role: 'user', source: { kind: 'tool', callId },
           content: [{ type: 'tool-result', toolCallId: callId, isError: true,
             content: [{ type: 'text', text: '工具执行中断，结果未确认；未自动重试。' }] }],
