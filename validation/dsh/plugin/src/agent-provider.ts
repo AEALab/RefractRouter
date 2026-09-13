@@ -107,9 +107,9 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(result.credentialEnv)) throw new Error('invalid credentialEnv')
   if (result.preset !== undefined && result.preset !== 'ark-agent-plan') throw new Error('unknown provider preset')
   if (result.limits !== undefined) {
-    if (!object(result.limits) || Object.keys(result.limits).some(k => !['relaxBudget', 'relaxContext'].includes(k))
+    if (!object(result.limits) || Object.keys(result.limits).some(k => !['relaxBudget', 'relaxContext', 'unlimitedTime'].includes(k))
       || Object.values(result.limits).some(v => typeof v !== 'boolean')) {
-      throw new Error('limits may only contain boolean relaxBudget and relaxContext')
+      throw new Error('limits may only contain boolean relaxBudget, relaxContext and unlimitedTime')
     }
   }
   if (raw.outputConstraints !== undefined) result.outputConstraints = decodeOutputConstraints(raw.outputConstraints)
@@ -204,7 +204,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   }
   if (useBridge) env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
   const failed = new AbortController()
-  const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), ...(config.template === 'auto' ? [] : [AbortSignal.timeout(config.timeoutMs + 5000)])])
+  const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), ...(config.template === 'auto' || config.limits?.unlimitedTime ? [] : [AbortSignal.timeout(config.timeoutMs + 5000)])])
   let python: string
   try { python = await ctx.subprocess.resolveExecutable(config.pythonExecutable, env, signal) }
   catch { throw new Error('RefractAgent Python not found; install the core and generate a dsh-config overlay') }

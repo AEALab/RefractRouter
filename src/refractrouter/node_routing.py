@@ -133,7 +133,8 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         raise ValueError("A requires constraints; B also requires explicit weights")
     number(quality_min, "quality_min", maximum=100)
     number(cost_max, "cost_max")
-    number(latency_max_ms, "latency_max_ms")
+    if latency_max_ms is not None:
+        number(latency_max_ms, "latency_max_ms")
     validate_profiles(profiles)
     policy = execution_policy or ExecutionPolicy()
     providers = model_providers or {p.model_id: 'default' for p in profiles}
@@ -186,7 +187,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         # 对称单模型基线只限制分配空间；目标、归一化标尺、约束和调度均保持一致。
         if assignment_mode == 'single-model' and len({p.model_id for p in combination}) != 1:
             continue
-        if any(p.quality < quality_min for p in combination) or cost > cost_max or latency > latency_max_ms:
+        if any(p.quality < quality_min for p in combination) or cost > cost_max or (latency_max_ms is not None and latency > latency_max_ms):
             continue
         feasible += 1
         score = sum(utilities[(n.node_id, p.model_id)] for n, p in zip(plan.nodes, combination)) / len(combination)

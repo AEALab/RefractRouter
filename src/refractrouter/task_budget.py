@@ -124,7 +124,7 @@ class TaskCallBudget:
             row.update(status='unknown-usage', dispatch_monotonic=time.monotonic())
         call_client = self.client
         if (unlimited or timeout_seconds is not None) and hasattr(call_client, 'for_task_call'):
-            call_client = call_client.for_task_call(None if unlimited else timeout_seconds)
+            call_client = call_client.for_task_call(None if unlimited or timeout_seconds == float("inf") else timeout_seconds)
         planning_started = time.monotonic()
         try:
             response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode,

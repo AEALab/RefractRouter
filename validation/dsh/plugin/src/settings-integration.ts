@@ -35,7 +35,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
   const limitsNode: SchemaNode = {
     type: 'object',
     meta: { default: {} },
-    dict: { relaxBudget: booleanNode(), relaxContext: booleanNode() },
+    dict: { relaxBudget: booleanNode(), relaxContext: booleanNode(), unlimitedTime: booleanNode() },
   }
   const schema = ((value: unknown): SettingsSection => {
     if (value === undefined || value === null) value = {}
@@ -46,7 +46,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
       resolved.limits = {}
     } else {
       if (!isRecordValue(limits)) throw new TypeError('$.limits expected object')
-      for (const key of ['relaxBudget', 'relaxContext']) {
+      for (const key of ['relaxBudget', 'relaxContext', 'unlimitedTime']) {
         const entry = limits[key]
         if (entry !== undefined && typeof entry !== 'boolean') {
           throw new TypeError(`$.limits.${key} expected boolean`)
@@ -64,7 +64,8 @@ export function buildSettingsSchema(): RefractSettingsSchema {
       0: anyNode,
       1: limitsNode.dict!.relaxBudget,
       2: limitsNode.dict!.relaxContext,
-      3: { type: limitsNode.type, meta: limitsNode.meta, dict: { relaxBudget: 1, relaxContext: 2 } },
+      5: limitsNode.dict!.unlimitedTime,
+      3: { type: limitsNode.type, meta: limitsNode.meta, dict: { relaxBudget: 1, relaxContext: 2, unlimitedTime: 5 } },
       4: { type: 'object', meta: { default: {} }, dict: { providerConfig: 0, limits: 3 } },
     },
   })
@@ -88,10 +89,10 @@ export function validateSettingsSection(section: Readonly<SettingsSection>): voi
   if (section.providerConfig !== undefined) validateProviderConfiguration(section.providerConfig)
   if (section.limits !== undefined && (
     !isRecordValue(section.limits)
-    || Object.keys(section.limits).some(key => !['relaxBudget', 'relaxContext'].includes(key))
+    || Object.keys(section.limits).some(key => !['relaxBudget', 'relaxContext', 'unlimitedTime'].includes(key))
     || Object.values(section.limits).some(value => typeof value !== 'boolean')
   )) {
-    throw new Error('limits may only contain boolean relaxBudget and relaxContext')
+    throw new Error('limits may only contain boolean relaxBudget, relaxContext and unlimitedTime')
   }
 }
 

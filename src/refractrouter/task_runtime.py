@@ -36,13 +36,15 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
+               "planningMode", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     ExecutionPolicy.from_request(raw)
     validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
     if type(raw.get('maxPlanRepairs', 0)) is not int or not 0 <= raw.get('maxPlanRepairs', 0) <= 1:
         raise ValueError('maxPlanRepairs must be an integer in 0..1')
+    if type(raw.get('unlimitedTime', False)) is not bool:
+        raise ValueError('unlimitedTime must be boolean')
     if type(raw.get('unrestrictedPlanning', False)) is not bool:
         raise ValueError('unrestrictedPlanning must be boolean')
     if raw.get('plannerThinking', 'inherit') not in {'inherit', 'enabled', 'disabled'}:
@@ -151,7 +153,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                               if request.get('maxDynamicSplits',0) and tool_runtime is None else None,
                           capture_payload=True)
     started = time.monotonic()
-    deadline_ms = request["latencyMaxMs"]
+    deadline_ms = float("inf") if request.get("unlimitedTime") else request["latencyMaxMs"]
     result = {"schema_version": "task-run-v1", "mode": mode, "status": "started", "task": request["task"],
               "plan_origin": "provided" if "plan" in request else "model" if live else "template-preview",
               "planner_output": None, "planner_prompt_sha256": hashlib.sha256(PLANNER_SYSTEM.encode()).hexdigest(),
@@ -167,7 +169,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                               "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"]}
     result['planner_selection'] = {'model_id': planner_id, 'basis': planner_basis,
         'output_cap': output_token_limit(planner if request.get('planningMode')=='compact' else candidates[planner_id]),
-        'timeout_ms': None if request.get('unrestrictedPlanning') else request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms,
+        'timeout_ms': None if request.get('unlimitedTime') or request.get('unrestrictedPlanning') else request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms,
         'thinking': request.get('plannerThinking','inherit'), 'output_policy': 'model-capacity' if request.get('unrestrictedPlanning') else 'explicit-cap'}
     if content_guard is not None:
         result['dependency_evidence'] = content_guard.evidence()
@@ -259,7 +261,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
         result["routing"] = route_nodes(plan, profiles, method=request["method"],
-            quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=remaining_latency,
+            quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=None if request.get("unlimitedTime") else remaining_latency,
             weights=Weights(**request["weights"]) if request["method"] == "B" else None,
             eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
             model_providers={mid: model.provider for mid, model in candidates.items()})
@@ -333,6 +335,17 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 detail += ' (request timeout_ms=' + str(failure['timeout_ms']) + ')'
             if 'phase' in failure:
                 detail += ' (phase=' + str(failure['phase']) + ')'
+        if isinstance(exc, ValueError) and str(exc) == 'task-deadline-exhausted':
+            completed = [n['node_id'] for n in result['nodes'] if n.get('status') == 'ok']
+            planned = [n['node_id'] for n in (result.get('plan') or {}).get('nodes', [])]
+            pending = [node_id for node_id in planned if node_id not in completed]
+            result['deadline_failure'] = {
+                'limit_ms': deadline_ms,
+                'elapsed_execution_ms': round((time.monotonic() - started - budget.planning_elapsed) * 1000),
+                'excluded_planning_ms': round(budget.planning_elapsed * 1000),
+                'completed_nodes': completed, 'unfinished_nodes': pending,
+            }
+            detail += f" (任务执行期限 {deadline_ms / 1000:g} 秒；已完成 {len(completed)}/{len(planned)} 节点；预算及上下文放开不解除时间限制)"
         result["issues"].append(detail[:500])
     finally:
         persist()

@@ -10,7 +10,7 @@ export const SETTINGS_NAMESPACE = 'refractagent'
 
 export type ModeKey = 'economy' | 'balanced' | 'quality'
 export const MODE_KEYS: readonly ModeKey[] = ['economy', 'balanced', 'quality']
-export type LimitKey = 'relaxBudget' | 'relaxContext'
+export type LimitKey = 'relaxBudget' | 'relaxContext' | 'unlimitedTime'
 export type CardField = 'providerConfig' | 'limits'
 
 /** 卡片侧的 providerConfig 视图：结构化字段之外的原样保留，确保编辑往返不丢数据。 */
@@ -54,6 +54,7 @@ export function candidateChoices(provider: ProviderConfigView | undefined): Arra
 export interface LimitsView {
   relaxBudget?: boolean
   relaxContext?: boolean
+  unlimitedTime?: boolean
 }
 export interface SectionView {
   providerConfig?: ProviderConfigView

@@ -6,7 +6,7 @@ if (!process.argv[2]) throw new Error('请传入已安装 DSH 的 node_modules �
 const base=resolve(process.argv[2], '@deepseek-ai')+'/'
 const {Context}=await import(pathToFileURL(base+'cordis/lib/index.js').href)
 const {SystemPrompt}=await import(pathToFileURL(base+'dsh-system-prompt/lib/index.js').href)
-const {Session}=await import(pathToFileURL(base+'dsh-session/lib/index.js').href)
+const {Session,KNOWN_SESSION_EVENT_TYPES}=await import(pathToFileURL(base+'dsh-session/lib/index.js').href)
 const {ToolRuntime}=await import(pathToFileURL(base+'dsh-tools/lib/index.js').href)
 const {bindNativeTools}=await import(pathToFileURL(resolve(process.argv[3] ?? resolve(import.meta.dirname, '../dist/native-tools.js'))).href)
 const ctx=new Context()
@@ -36,12 +36,12 @@ assert.equal(executed,1)
 assert.equal(denied.result.isError,true)
 assert.match(JSON.stringify(denied.result.content),/rejected/)
 
-assert.equal(session.events.filter(e=>e.type==='refractagent/tool-result').length,2)
+assert.ok(session.events.every(e=>KNOWN_SESSION_EVENT_TYPES.has(e.type)||e.ignorable===true))
 assert.equal(session.events.some(e=>e.type==='tool/call'||e.type==='tool/result'),false)
 assert.equal(session.surface.nodes.length,0)
 
 const throwing=bindNativeTools({agents:{requireInitiator:()=>agent},tools:{async execute(){throw new Error('fixture failure')}}},schemas)
 await assert.rejects(throwing.execute({...request,id:'3'},new AbortController().signal),/fixture failure/)
-assert.equal(session.events.filter(e=>e.type==='refractagent/tool-result').length,3)
+assert.ok(session.events.every(e=>KNOWN_SESSION_EVENT_TYPES.has(e.type)||e.ignorable===true))
 assert.equal(session.surface.nodes.length,0)
 console.log('PASS: real DSH Session and ToolRuntime; success, denial, exception; unchanged outer surface')

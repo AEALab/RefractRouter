@@ -87,9 +87,9 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
         raise ValueError('invalid RefractAgent request fields')
     limits = payload.get('limits', {})
-    if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext'}
+    if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext', 'unlimitedTime'}
             or any(not isinstance(limits[key], bool) for key in limits)):
-        raise ValueError('limits may only contain boolean relaxBudget and relaxContext')
+        raise ValueError('limits may only contain boolean relaxBudget, relaxContext and unlimitedTime')
     relax_budget = limits.get('relaxBudget', False)
     relax_context = limits.get('relaxContext', False)
     strategy = payload.get('strategy', 'balanced')
@@ -106,6 +106,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
                'costMax': RELAXED_COST_MAX if relax_budget else budget,
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
                'maxConcurrency': 1, 'maxNodeFallbacks': 0}
+    if limits.get('unlimitedTime', False):
+        request['unlimitedTime'] = True
     if plan is not None:
         request['plan'] = plan
     if automatic:
@@ -135,7 +137,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
     context_limit = RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES
     if not isinstance(context, str) or len(context.encode()) > context_limit:
         raise ValueError('conversation context exceeds the RefractAgent input limit')
-    return strategy, request, context, {'relaxBudget': relax_budget, 'relaxContext': relax_context}
+    return strategy, request, context, {'relaxBudget': relax_budget, 'relaxContext': relax_context, **({'unlimitedTime': limits['unlimitedTime']} if 'unlimitedTime' in limits else {})}
 
 
 def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,

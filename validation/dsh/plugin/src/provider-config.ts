@@ -24,6 +24,7 @@ export interface ProviderConfiguration {
 export interface LimitsConfiguration {
   relaxBudget?: boolean
   relaxContext?: boolean
+  unlimitedTime?: boolean
 }
 
 /** DSH 设置命名空间承载的用户可调子集。 */

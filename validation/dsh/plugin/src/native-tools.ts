@@ -52,17 +52,10 @@ export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
       seen.add(key)
       const callId = `refractagent-${randomUUID()}`
       const name = call.function.name
-      // 只写轨迹事件；节点内部工具消息不插入外层模型 surface，避免孤立 tool result。
-      agent.session.append('refractagent/tool-call', { ...step, callId, name, arguments: call.function.arguments })
-      let recorded = false
+      // 节点工具证据由 Python tool_calls 持久化。DSH 不支持外部自定义事件的重载，
+      // 也不能把内部工具结果加入外层模型历史，因此不向宿主会话伪造工具事件。
       try {
         const result = await ctx.tools!.execute({ callId, name, arguments: args, agent, signal })
-        const message = { id: randomUUID(), role: 'user', source: { kind: 'tool', callId },
-          content: [{ type: 'tool-result', toolCallId: callId, content: result.content, isError: result.isError }] }
-        agent.session.append('refractagent/tool-result', { ...step, message,
-          ...(result.meta !== undefined ? { meta: result.meta } : {}),
-          ...(result.error?.info ? { error: result.error.info } : {}) })
-        recorded = true
         if (result.concludesTurn) closed = true
         signal.throwIfAborted()
         return { ...base, ok: true, result: { isError: result.isError, content: result.content,
@@ -70,11 +63,6 @@ export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
           ...(result.error?.info ? { error: result.error.info } : {}), concludesTurn: result.concludesTurn === true } }
       } catch (error) {
         closed = true
-        if (!recorded) agent.session.append('refractagent/tool-result', { ...step, message: {
-          id: randomUUID(), role: 'user', source: { kind: 'tool', callId },
-          content: [{ type: 'tool-result', toolCallId: callId, isError: true,
-            content: [{ type: 'text', text: '工具执行中断，结果未确认；未自动重试。' }] }],
-        } })
         throw error
       }
     },
