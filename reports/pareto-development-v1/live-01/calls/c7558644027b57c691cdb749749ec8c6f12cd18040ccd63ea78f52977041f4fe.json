@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-task-selector:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选输出将已完成且不可重复执行的“打包”列入 allowed_now，与任务语义和材料现状冲突，正文与结构化结论均存在该错误；其余依赖方向正确。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文把已结束的“打包”列入 allowed_now，但 s2 明确打包已结束，当前可执行的应是签名；发布因签名未执行被阻塞。该点不符合任务对当前状态可执行性的核对要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 一致，但二者共同错误地将打包列为现在可执行；未反写发布依赖，也未声称检查通过即可发布，然而 allowed_now 扩大了可执行范围。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"blocked_now=[\\\"发布\\\"]、required_edge=[\\\"签名\\\",\\\"发布\\\"] 正确且有 s1/s2 支持；但 allowed_now=[\\\"打包\\\",\\\"签名\\\"] 事实不当，打包已完成而非现在可执行，s2 不支持其为当前可执行步骤。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确发布需签名通过，签名未执行故发布被阻塞，并说明检查报告不替代签名完成，未倒写依赖。\"}]}",
+  "input_tokens": 1140,
+  "output_tokens": 332,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 13140,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101771798efca7158d8a072a352f4e6ec3154e35a4524be",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 332,
+    "prompt_tokens": 1140,
+    "total_tokens": 1472,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

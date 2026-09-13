@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-single-1:check_print",
+  "content": "结论：  \n- 需求为双面彩色 100 份。  \n- P 报价 300 元，可双面彩色，满足打印条件。  \n- Q 报价 200 元，但仅支持黑白，不满足双面彩色条件。  \n\n因此，在打印环节，只有 P 满足条件。  \n\n依据：  \n- 材料 s1《需求与打印》明确“需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。”  \n\n限制与不确定性：  \n- 当前仅核对打印条件，不涉及配送和总预算。  \n- 材料未提供 P、Q 的其他可选服务或议价信息，因此按已给报价和功能判断。",
+  "input_tokens": 666,
+  "output_tokens": 156,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3422,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890986942840b63b37cbca791937f2f41fb0469576d21cf7a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 156,
+    "prompt_tokens": 666,
+    "total_tokens": 822,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"分别核实问卷与客服两来源的数量，再判断能否合并，最后汇总交付。\",\"nodes\":[{\"id\":\"survey\",\"type\":\"extraction\",\"job\":\"从问卷材料提取不满意份数14，并确认抽样为自愿填写、未记录未填写者及是否联系客服。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"service\",\"type\":\"extraction\",\"job\":\"从客服材料提取投诉工单20条，识别其中4条为同一客户追问，确认无法与问卷身份对应。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"pool_check\",\"type\":\"synthesis\",\"job\":\"基于两来源的抽样与重叠限制，判断能否合成全体客户不满意率，得出不能合并的结论。\",\"parents\":[\"survey\",\"service\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答：分别给出问卷不满意份数14、投诉工单20条，说明不能合并及原因，并列出限制。\",\"parents\":[\"survey\",\"service\",\"pool_check\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 700,
+  "output_tokens": 244,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2979,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098229174d1a31addd6d38d14c8141e1e64f1efaab21426",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 244,
+    "prompt_tokens": 700,
+    "total_tokens": 944,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-direct-cheap:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确计算应存60件、实盘减应存-1件，未将差异归因于失窃，未擅自补齐待核对数量，正文与findings一致且引用恰当。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1算出80+30-46-4=60，依据s2实盘59得差异-1，并说明限制（2份单据待核对无数量、无监控或调查），符合任务与材料。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中expected_stock=60、observed_gap=-1、theft_proven=false与正文一致；未把待核对单据当作证据，未扩大含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且数值/布尔正确；expected_stock引s1充分，observed_gap引s1、s2充分，theft_proven=false引s2（含无监控或责任调查结果）足以支持。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"明确盘亏1件仅为台账差异，失窃未被证明；对2份待核对单据未假设数量。\"}]}",
+  "input_tokens": 846,
+  "output_tokens": 318,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11690,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890980511213d763aaa7a5e423f9e5323a8c500bc9ff19bc9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 318,
+    "prompt_tokens": 846,
+    "total_tokens": 1164,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

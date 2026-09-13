@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-auto-heterogeneous:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案分别分析问卷与客服记录，数值与材料一致（问卷不满意14份、投诉工单20条），正确指出工单不等于客户数、身份无法对应、自愿样本偏差、缺少总体分母，因此 can_pool=false 有充分依据；findings 的 id、value、sources 均符合契约，正文与结构化结论一致，未扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文分别分析 s1 与 s2，输出结论、依据、限制与权衡；数值14与20直接对应材料文本，can_pool 结论与材料中无法对应身份、未记录未填写者等限制一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 survey_negative=14、service_complaints=20、can_pool=false 与正文表述完全一致；正文称至少涉及17位客户时明确标注为基于工单口径的推算，未将其当作可合并的客户数，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 requested_findings 均给出且类型正确：survey_negative 为 number 14（sources s1），service_complaints 为 number 20（sources s2），can_pool 为 boolean false（sources s1、s2），引用足以支持各自主张。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"正文明确不能把20条工单当作20位客户，分别分析两来源，并说明问卷自选择偏差、未覆盖未填写者、工单按件计数、身份无法对应导致重叠未知等抽样与重叠限制。\"}]}",
+  "input_tokens": 1104,
+  "output_tokens": 410,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 17612,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098269048137f500080bf18603e76d17d12e7c43ebf6819",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 410,
+    "prompt_tokens": 1104,
+    "total_tokens": 1514,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

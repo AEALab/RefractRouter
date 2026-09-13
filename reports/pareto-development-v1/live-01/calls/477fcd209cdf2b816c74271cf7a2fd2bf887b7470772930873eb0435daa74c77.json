@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-heterogeneous-1:combine",
+  "content": "## 组合结论与依据\n\n**满足全部条件的可行组合只有一个：P + D。**\n\n### 条件核对\n\n| 维度 | 需求/约束 | P | Q | D | E |\n|---|---|---|---|---|---|\n| 打印 | 100份，双面彩色 | ✅ 300元，可双面彩色 | ❌ 200元，仅黑白 | — | — |\n| 配送 | 周五前送达 | — | — | ✅ 80元，周四送达 | ❌ 40元，周六送达 |\n\n由于打印环节只有 P 满足\"双面彩色\"硬性要求，Q 被排除；配送环节只有 D 满足\"周五前送达\"的截止时间，E 被排除。因此可纳入比对的组合仅 P + D 一项，不存在跨选项的取舍空间，也无法用\"P + E\"或\"Q + D\"等组合来压低总价——它们各自至少违反一条硬约束。\n\n### 组合与总价\n\n- **P + D**：300 + 80 = **380 元**\n- P + E：不可行（违反周五前送达）\n- Q + D：不可行（违反双面彩色）\n- Q + E：不可行（两项均不满足）\n\n### 是否在预算内\n\n总预算 400 元，P + D 共 380 元，剩余 20 元，**未超预算**。\n\n### 关键发现\n\n- printer：P（依据：s1 唯一满足双面彩色需求）\n- delivery：D（依据：s2 唯一满足周五前送达）\n- total_cost：380 元（依据：s1 + s2 报价相加）\n\n### 限制与权衡说明\n\n1. 本组合是\"唯一可行组合\"而非\"多选最优\"，因为两条硬约束（双面彩色、周五前送达）分别将 Q 和 E 排除掉，使得可行域收窄为单项。\n2. 材料中未提供 P 的单价是否含双面彩色加价、是否含税、是否含纸张等细节，本计算按 s1 给出的 300 元为最终打印费用处理。\n3. 配送报价 s2 中也未说明是否含运费、是否限重/限件数，按 80 元为最终配送费用处理。\n4. 预算口径以 s2 给出的\"总预算 400 元\"为准，不区分打印预算与配送预算。",
+  "input_tokens": 938,
+  "output_tokens": 488,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8384,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098654202add9fca5277b8939d33af9a0f1789d6cb48f37",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 488,
+    "prompt_tokens": 938,
+    "total_tokens": 1426,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

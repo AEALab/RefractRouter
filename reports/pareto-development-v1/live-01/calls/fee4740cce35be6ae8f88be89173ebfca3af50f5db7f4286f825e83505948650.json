@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-single-1:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别唯一满足全部硬约束的组合 P+D，总价 380 元未超预算，正文与 findings 一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文说明 P 满足双面彩色（s1），D 周四送达满足周五前（s2），总价 380 元低于预算 400 元，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 printer=P、delivery=D、total_cost=380 与正文一致，未夸大或反写任何依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"printer 引用 s1、delivery 引用 s2、total_cost 引用 s1 和 s2，事实正确且来源足以支持。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"答案明确排除仅便宜但不满足条件的 Q（仅黑白）和 E（周六送达），选择唯一全局可行组合 P+D。\"}]}",
+  "input_tokens": 948,
+  "output_tokens": 282,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10264,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100492523b4a50cd25f47d4bb7d101bbb29abc5192eb3bd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 282,
+    "prompt_tokens": 948,
+    "total_tokens": 1230,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

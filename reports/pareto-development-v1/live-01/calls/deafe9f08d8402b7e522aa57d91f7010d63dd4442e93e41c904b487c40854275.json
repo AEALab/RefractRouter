@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-shared-heterogeneous-1:theft",
+  "content": "结论：材料仅支持做台账层面的差异计算，不足以认定失窃。\n\n依据与计算：\n- 依据 s1，月初库存 80 件，本月入库 30 件，本月出库 46 件，报损 4 件已审批且独立于出库数。\n- 台账应存件数 expected_stock = 80 + 30 − 46 − 4 = 60 件。\n- 依据 s2，月末实盘 59 件。\n- 观察差异 observed_gap = 实盘 − 应存 = 59 − 60 = −1 件（实盘比应存少 1 件）。\n\n认定失窃所需的证据：监控录像、责任调查结论、第三方核实等。材料明确无监控、无责任调查结果，且仍有 2 份单据待核对、未提供对应数量，差异完全可能由未入账的出入库、单据延迟、报损与出库归类口径、盘点误差等非失窃原因导致。仅有 1 件的台账差异不足以证明失窃。\n\n限制与权衡：\n- 不擅自补齐待核对的 2 份单据数量，因为材料未提供其件数；若后续补充该数据，应存数与差异需重算。\n- 报损 4 件已审批，按\"不包含在出库数内\"的口径已在应存中扣除。\n- 1 件差异在误差容忍范围内属于常见盘点偏差，不构成失窃证明。\n\nfindings:\n- expected_stock: 60，sources: s1\n- observed_gap: -1，sources: s1, s2\n- theft_proven: false，sources: s1, s2",
+  "input_tokens": 752,
+  "output_tokens": 344,
+  "cached_input_tokens": 737,
+  "reasoning_tokens": 0,
+  "latency_ms": 5140,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098065761fa871229fec4115dc08043e38393b8b5e62118",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 344,
+    "prompt_tokens": 752,
+    "total_tokens": 1096,
+    "prompt_tokens_details": {
+      "cached_tokens": 737
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

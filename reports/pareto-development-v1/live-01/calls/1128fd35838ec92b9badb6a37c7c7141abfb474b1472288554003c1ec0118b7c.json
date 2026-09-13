@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-auto-heterogeneous:pool_check",
+  "content": "**结论**：问卷与客服记录是两套独立来源，受抽样偏差、统计口径不一致、身份无法对应三重限制，不能合并计算全体客户不满意率。\n\n**依据**：\n\n- 问卷（s1）：自愿填写的50份问卷中，14份表示不满意。属自愿样本，未覆盖未填写者，且未记录填写者是否联系过客服，因此该 14 份仅代表\"自愿填答者中的不满意人数\"，不可外推为全体客户的不满意数。\n- 客服（s2）：同周共 20 条投诉工单，其中 4 条来自同一客户追问；按工单计数 ≠ 按客户计数，仅就已知重叠扣除后，至少涉及约 17 位客户（20 - 3，仍属推算）。工单数据本身受是否拨打客服、是否升级投诉的覆盖范围限制。\n- 交叉限制：两来源统计口径不同（问卷按人、客服按工单），且无法与问卷身份对应，重叠部分完全未知，因此不能直接将 14 份 + 20 条合并为\"不满意人数\"，更不能合成总体不满意率。\n\n**限制与权衡**：\n\n1. 问卷：自选择样本，未覆盖未填答人群；即便与全周客流量相比，回复率与代表性也未知。\n2. 客服：仅反映已触发投诉通道的子群体，且工单与客户并非一一对应；追问工单是同一人还是多人，材料仅说\"同一客户追问 4 条\"，可去重为 1 位客户。\n3. 合并层面：两套来源既无法去重身份，也无法确定分母（全体客户基数），强行合并将引入双重计数或漏算的偏差。\n\n**findings**：\n\n- id: survey_negative, value: 14, sources: [\"s1\"]\n- id: service_complaints, value: 20, sources: [\"s2\"]\n- id: can_pool, value: false, sources: [\"s1\", \"s2\"]",
+  "input_tokens": 1143,
+  "output_tokens": 412,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6410,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890982368247820404c56ac6dd9ce215ba8b602495a1b3145",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 412,
+    "prompt_tokens": 1143,
+    "total_tokens": 1555,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

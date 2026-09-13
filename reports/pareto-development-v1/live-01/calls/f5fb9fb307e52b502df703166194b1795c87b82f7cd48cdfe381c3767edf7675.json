@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-heterogeneous-1:combine",
+  "content": "**结论**\n\n- printer：P\n- delivery：D\n- total_cost：380\n\n**依据与计算过程**\n\n依据上游核对结果与原始材料：\n\n- 打印条件（来源 s1）：需求为“双面彩色100份”。P 报价 300 元且支持双面彩色，满足；Q 报价 200 元但仅支持黑白，不满足双面彩色要求，被排除。\n- 配送条件（来源 s2）：要求“周五前送达”。D 报价 80 元，周四送达，满足；E 报价 40 元但周六送达，不满足，被排除。\n- 预算约束（来源 s2）：总预算 400 元。\n\n可行的组合只有 P+D 一项：300 + 80 = 380 元，未超过 400 元预算。\n\n对所有候选组合的枚举验证（说明为何“各取最便宜”不可行）：\n\n- P+E：P 满足打印但 E 为周六送达，不满足配送条件，且 300 + 40 = 340 元虽低但条件不达标，舍去。\n- Q+D：Q 不满足双面彩色，舍去。\n- Q+E：打印与配送条件均不满足，舍去。\n\n因此，唯一同时满足“打印 + 配送 + 预算”全部约束的组合即为 P+D，总价 380 元。\n\n**findings**\n\n- printer：P（sources：s1；上游 check_print）\n- delivery：D（sources：s2；上游 check_delivery）\n- total_cost：380（sources：s1, s2）\n\n**限制与权衡**\n\n- 决策受材料中给出的离散报价与单一档位（100 份、双面彩色、单一截止时间）约束，未考虑数量弹性、更优配送档位或议价空间。\n- 预算校验基于 400 元上限，组合 380 元留有 20 元余量，但该余量不足以切换到任何其他更便宜但不合规的选项。",
+  "input_tokens": 956,
+  "output_tokens": 400,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5032,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910052121491be90b70b1bfc3059428bd07e108b7ee512d3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 400,
+    "prompt_tokens": 956,
+    "total_tokens": 1356,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

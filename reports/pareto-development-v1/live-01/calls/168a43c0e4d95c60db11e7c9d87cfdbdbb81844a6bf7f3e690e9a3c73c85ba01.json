@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-shared-single-1:gap",
+  "content": "结论：依据现有台账，应存为 60 件；月末实盘 59 件，实盘比应存少 1 件。现有材料不能证明该差异由失窃造成，只能确认存在 1 件的账实差异，且另有 2 份待核对单据未提供数量，可能影响差异解释。\n\nfindings:\n- id: expected_stock\n  value: 60\n  sources: [s1]\n- id: observed_gap\n  value: -1\n  sources: [s1, s2]\n- id: theft_proven\n  value: false\n  sources: [s2]",
+  "input_tokens": 823,
+  "output_tokens": 138,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2697,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789097931970a77e5a4c9aa25c0e7eca6d226bba90a01a8867",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 138,
+    "prompt_tokens": 823,
+    "total_tokens": 961,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

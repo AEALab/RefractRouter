@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正文正确陈述依赖方向（打包→签名→发布），明确检查报告不能替代签名，未暗示可直接发布；findings 三项齐全：allowed_now=[签名]、blocked_now=[发布]、required_edge=[签名,发布]，方向正确、标签合法、引用充分，正文与结构化结论一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 流程与 s2 现状，正确说明打包完成、签名可执行、发布被阻塞，且指出检查报告不代表签名完成，无倒写依赖，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（可执行签名、发布阻塞、前置边[签名,发布]）与 findings 完全一致；未将检查通过扩大为签名完成。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"allowed_now、blocked_now、required_edge 三项均存在且正确；allowed_now/blocked_now 引用 s1、s2，required_edge 引用 s1，均足以支持；边方向[签名,发布]正确，标签在允许集合内。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确'签名通过才能发布'、'检查报告仅证明打包成功，不能替代签名通过'，无倒写依赖，未暗示可直接发布。\"}]}",
+  "input_tokens": 937,
+  "output_tokens": 353,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13312,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890996627723d763aaa7a5e423f9e5323a8c500bc9f1cb575",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 353,
+    "prompt_tokens": 937,
+    "total_tokens": 1290,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

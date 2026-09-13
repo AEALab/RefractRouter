@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-direct-mid:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别硬约束：双面彩色排除Q，周五前送达排除E，选P+D，总价380元不超400元预算；正文含结论、依据、限制与权衡，findings三项完整且类型、标签、来源引用均符合要求，正文与结构化结论一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文基于s1（P可双面彩色300元、Q仅黑白200元）与s2（D周四80元、E周六40元、预算400元），满足双面彩色、周五前送达、预算400元全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论P+D=380元与findings中printer=P、delivery=D、total_cost=380一致，未虚构材料外信息或颠倒条件方向。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"printer、delivery、total_cost三项齐全；P由s1支持，D由s2支持，380=300+80由s1与s2共同支持，数值与事实正确。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未取最便宜的Q+E（240元不可行），而是选满足全部条件的最低可行组合P+D=380元，并在权衡说明中明确指出便宜组合违反彩色与时限要求。\"}]}",
+  "input_tokens": 918,
+  "output_tokens": 352,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12450,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100574133137f500080bf18603e76d17d12e7c43eedc579",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 352,
+    "prompt_tokens": 918,
+    "total_tokens": 1270,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-single-1:check_delivery",
+  "content": "配送条件核对：\n\n- 约束：须周五前送达。\n- D：报价80元，周四送达。周四早于周五，满足“周五前送达”。\n- E：报价40元，周六送达。周六晚于周五，不满足“周五前送达”。\n\n结论：配送商D满足配送条件；配送商E不满足配送条件。",
+  "input_tokens": 656,
+  "output_tokens": 73,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2167,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909869776559e4692ee8689b9dc112ef0a7e12032f22de00",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 73,
+    "prompt_tokens": 656,
+    "total_tokens": 729,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

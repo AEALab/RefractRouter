@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-2:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案将已完成的“打包”列入 allowed_now（当前可执行步骤），与 s2“打包已结束”矛盾：已结束步骤不可能当前再执行；当前真正可执行的只有“签名”。正文还自称“上游核对结论一致、未发现需修正之处”，属无依据陈述。依赖方向与 required_edge 正确，但 allowed_now 事实错误导致整体 fail。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文称“当前可执行步骤为打包和签名”，但 s2 明确打包已结束，不能再作为当前可执行步骤；违反材料事实。其余依赖表述符合 s1。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 一致（均含 allowed_now={打包,签名}），但共同把已完成步骤当作可执行，扩大了可执行范围；依赖方向未反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"blocked_now={发布} 与 required_edge=[签名,发布] 正确且有 s1/s2 支持；但 allowed_now 含“打包”事实错误，s1/s2 均不支持已结束步骤仍可执行。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确“检查通过不能替代签名，也不能作为发布的前置条件”，发布前置为签名，未倒写依赖，未暗示检查通过即可发布。\"}]}",
+  "input_tokens": 1268,
+  "output_tokens": 361,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 13770,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099708669682583ac3749be18cdf4b3a3844330375d2506",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 361,
+    "prompt_tokens": 1268,
+    "total_tokens": 1629,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

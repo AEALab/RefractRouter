@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-shared-heterogeneous-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"台账计算80+30-46-4=60，实盘59，差异59-60=-1；材料明确无监控或责任调查结果，候选答案未将差异归因于失窃，也未补齐2份待核对单据数量；正文与findings一致，引用足以支持各项结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出expected_stock=60、observed_gap=-1、theft_proven=false，符合s1台账与s2盘点记录，并遵守不补齐待核对数量的约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文说明应存60、实盘59、差异-1且未证明失窃，与findings中60、-1、false一致；未把待核对单据或异常减少扩大为失窃证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings均存在且类型正确；expected_stock由s1支持，observed_gap由s1与s2支持，theft_proven=false由s2无监控或责任调查结果及整体证据不足支持。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"答案明确区分账面/实盘差异与失窃原因认定，说明可能原因但不断言失窃；对2份待核对单据仅说明不确定性，未擅自估数量入账。\"}]}",
+  "input_tokens": 977,
+  "output_tokens": 352,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14246,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909994119891be90b70b1bfc3059428bd07e108b7ef9a589",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 352,
+    "prompt_tokens": 977,
+    "total_tokens": 1329,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

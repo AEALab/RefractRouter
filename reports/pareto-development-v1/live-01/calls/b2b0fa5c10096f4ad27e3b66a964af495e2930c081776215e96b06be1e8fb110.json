@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-auto-heterogeneous:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别唯一可行组合P+D：P满足双面彩色要求（Q仅黑白不满足），D满足周五前送达（E周六送达不满足），总价380元低于预算400元。正文与findings一致，引用充分，未各取便宜项忽略全局约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确引用材料：P可双面彩色300元、Q仅黑白；D周四送达80元满足周五前、E周六送达不满足；总价380元低于预算400元，分别核对打印与配送后选出满足全部条件的组合。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文结论完全一致，未反写时序或扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全：printer引用s1、delivery引用s2、total_cost引用s1与s2，数值380=300+80正确，类型与标签均符合output_contract。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"候选明确说明Q和E虽便宜但分别不满足双面彩色和周五前送达，最终选P+D同时满足全部硬约束，未各取便宜项。\"}]}",
+  "input_tokens": 865,
+  "output_tokens": 338,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18968,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098808415b566464da517b102b4cb09cdfd60e7eeafef67",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 338,
+    "prompt_tokens": 865,
+    "total_tokens": 1203,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

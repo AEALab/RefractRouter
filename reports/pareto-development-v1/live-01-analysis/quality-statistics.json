@@ -1,0 +1,1046 @@
+{
+  "schema_version": "quality-statistics-report-v1",
+  "policy": {
+    "schema_version": "quality-statistics-v1",
+    "study_tier": "controlled-exploratory",
+    "confirmatory_population_claims": false,
+    "repeats": 3,
+    "pass_rate_floor": 0.9,
+    "noninferiority_margin": 0.05,
+    "threshold_meaning": "研究操作门槛：至少九成任务三次均确认通过；非劣容忍五个百分点。不是用户可接受性的实证结论，真人用途确认单独待办。",
+    "quality_unit": "task:all-frozen-repeats-confirmed-pass",
+    "familywise_alpha": 0.05,
+    "quality_tail_alpha": 0.003125,
+    "primary_pairs": [
+      [
+        "direct-or-dag",
+        "direct-strong"
+      ],
+      [
+        "direct-or-dag",
+        "task-selector"
+      ]
+    ],
+    "quality_interval": "精确二项下界；配对差使用正负不一致概率的精确上下界及并集界。",
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 52053,
+    "descriptive_strata": [
+      "category",
+      "structure_stratum"
+    ],
+    "setup_accounting": "共享图准备单列，并按1/3/10/100次复用分配；不是冷启动墙钟实测。",
+    "performance_interval": "先在任务内汇总全部重复，再按来源族配对百分位重采样；只作探索诊断。",
+    "minimum_useful_relative_gain": 0.1,
+    "sample_size": {
+      "development": 6,
+      "holdout_candidate": 12,
+      "purpose": "固定控制题的有限候选探索，不为总体非劣、SLA或p95提供把握度保证。"
+    },
+    "failures": "失败及pending留在预定分母；费用和时延使用同一完整任务集合；缺失或未知阻止比较。",
+    "human_gate": "真人语义判定与用途门槛确认未完成前，不生成确认质量可行的前沿。",
+    "sources": [
+      "https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm",
+      "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html"
+    ]
+  },
+  "simulated": false,
+  "planned_runs": 108,
+  "observed_runs": 108,
+  "missing_runs": [],
+  "arms": {
+    "direct-cheap": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 3,
+        "pending": 9
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 1.35775,
+      "mean_online_ms": 16752.636604224488,
+      "median_online_ms": 16582.749895518646
+    },
+    "direct-mid": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 3,
+        "pending": 9
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 1.808,
+      "mean_online_ms": 19034.79687842385,
+      "median_online_ms": 19645.65464586485
+    },
+    "direct-strong": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 1,
+        "pending": 11
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 1.7981291666666668,
+      "mean_online_ms": 17270.8450172989,
+      "median_online_ms": 16758.95647937432
+    },
+    "task-selector": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 2,
+        "pending": 10
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 1.3648208333333334,
+      "mean_online_ms": 18765.23437156963,
+      "median_online_ms": 17994.199562468566
+    },
+    "shared-single-1": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 2,
+        "pending": 10
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 3.335995833333333,
+      "mean_online_ms": 25732.309482758865,
+      "median_online_ms": 25603.940104483627
+    },
+    "shared-single-2": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 2,
+        "pending": 10
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 3.3539749999999997,
+      "mean_online_ms": 24909.239451342728,
+      "median_online_ms": 25383.11412499752
+    },
+    "shared-heterogeneous-1": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 3,
+        "pending": 9
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 2.7731833333333333,
+      "mean_online_ms": 28725.79196508741,
+      "median_online_ms": 29083.91585398931
+    },
+    "shared-heterogeneous-2": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 2,
+        "pending": 10
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 2.6593125,
+      "mean_online_ms": 26949.050100675475,
+      "median_online_ms": 26638.938853982836
+    },
+    "auto-heterogeneous": {
+      "run_counts": {
+        "pass": 0,
+        "fail": 1,
+        "pending": 11
+      },
+      "planned_runs": 12,
+      "robust_pass_tasks": 0,
+      "tasks": 6,
+      "observed_robust_pass_rate": 0.0,
+      "conditional_binomial_lower": 0.0,
+      "confirmed_quality_feasible": false,
+      "performance_complete": true,
+      "mean_online_afp": 2.4155625,
+      "mean_online_ms": 27656.54173619502,
+      "median_online_ms": 26794.517041533254
+    }
+  },
+  "comparisons": [],
+  "confirmed_pareto_frontier": [],
+  "frontier_scope": "仅本批有限候选及真人确认样本的经验前沿",
+  "descriptive_strata": {
+    "category": {
+      "material-analysis": {
+        "direct-cheap": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.303375,
+          "mean_online_ms": 16102.794542035554,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-mid": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.8756875,
+          "mean_online_ms": 20787.88486443227,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-strong": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.7904375,
+          "mean_online_ms": 19077.616260270588,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "task-selector": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.363375,
+          "mean_online_ms": 17288.803000294138,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 4.1678625,
+          "mean_online_ms": 29543.327187770046,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 4.0971375,
+          "mean_online_ms": 26779.691052041017,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 3.11005,
+          "mean_online_ms": 34868.36147925351,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 3.0086500000000003,
+          "mean_online_ms": 29042.680437210947,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.9759625,
+          "mean_online_ms": 34452.45072932448,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      },
+      "multipart-decision": {
+        "direct-cheap": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.382475,
+          "mean_online_ms": 15859.594374953303,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-mid": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.540125,
+          "mean_online_ms": 15734.085531439632,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-strong": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.840325,
+          "mean_online_ms": 17239.990260452032,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "task-selector": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.3831625,
+          "mean_online_ms": 18215.318885690067,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 3.2727125,
+          "mean_online_ms": 26023.61421874957,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 3.3480999999999996,
+          "mean_online_ms": 27495.670572738163,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.766125,
+          "mean_online_ms": 28906.68186417315,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.63565,
+          "mean_online_ms": 27434.316583210602,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.9621125,
+          "mean_online_ms": 23634.433645755053,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      },
+      "rule-checking": {
+        "direct-cheap": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 3,
+            "pending": 1
+          },
+          "mean_online_afp": 1.3874,
+          "mean_online_ms": 18295.520895684604,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-mid": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 2.0081875,
+          "mean_online_ms": 20582.420239399653,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-strong": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.763625,
+          "mean_online_ms": 15494.928531174082,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "task-selector": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 1.347925,
+          "mean_online_ms": 20791.58122872468,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 2.5674125,
+          "mean_online_ms": 21629.987041756976,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.6166875,
+          "mean_online_ms": 20452.356729249004,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 2.443375,
+          "mean_online_ms": 22402.33255183557,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 2.3336375,
+          "mean_online_ms": 24370.15328160487,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 2.3086125,
+          "mean_online_ms": 24882.740833505522,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      }
+    },
+    "structure_stratum": {
+      "direct": {
+        "direct-cheap": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.2856875,
+          "mean_online_ms": 16725.99846898811,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-mid": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.817375,
+          "mean_online_ms": 19526.478770945687,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-strong": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.6689,
+          "mean_online_ms": 16740.93895824626,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "task-selector": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.23735,
+          "mean_online_ms": 15973.859125049785,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 2.6454999999999997,
+          "mean_online_ms": 21273.675917007495,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.637975,
+          "mean_online_ms": 19009.201510285493,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.334525,
+          "mean_online_ms": 22845.97936453065,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.2777625,
+          "mean_online_ms": 21157.512635341845,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.2670125,
+          "mean_online_ms": 24050.132896052673,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      },
+      "parallel": {
+        "direct-cheap": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.3228499999999999,
+          "mean_online_ms": 16020.182385516819,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-mid": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.4121875,
+          "mean_online_ms": 15708.973395929206,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-strong": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.852325,
+          "mean_online_ms": 18435.568833258003,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "task-selector": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.4018000000000002,
+          "mean_online_ms": 18881.154531496577,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 4.1640875,
+          "mean_online_ms": 30062.00690654805,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 4.07965,
+          "mean_online_ms": 27755.991479265504,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 2.990625,
+          "mean_online_ms": 33520.73072898202,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.9331125,
+          "mean_online_ms": 30516.243624908384,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 2.6000875,
+          "mean_online_ms": 32726.269385253545,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      },
+      "sequential": {
+        "direct-cheap": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 1.4647125,
+          "mean_online_ms": 17511.728958168533,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-mid": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 2.1944375000000003,
+          "mean_online_ms": 21868.938468396664,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "direct-strong": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 0,
+            "pending": 4
+          },
+          "mean_online_afp": 1.8731625,
+          "mean_online_ms": 16636.02726039244,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "task-selector": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 1.4553125,
+          "mean_online_ms": 21440.689458162524,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 3.1984,
+          "mean_online_ms": 25861.24562472105,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-single-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 3.3443,
+          "mean_online_ms": 27962.525364477187,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-1": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 2.9944,
+          "mean_online_ms": 29810.665801749565,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "shared-heterogeneous-2": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 2,
+            "pending": 2
+          },
+          "mean_online_afp": 2.7670625,
+          "mean_online_ms": 29173.39404177619,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        },
+        "auto-heterogeneous": {
+          "tasks": 2,
+          "planned_runs": 4,
+          "run_counts": {
+            "pass": 0,
+            "fail": 1,
+            "pending": 3
+          },
+          "mean_online_afp": 2.3795875,
+          "mean_online_ms": 26193.22292727884,
+          "scope": "描述性分层，不作选择最有利子群的主检验。"
+        }
+      }
+    }
+  },
+  "setup_amortization": {
+    "direct-cheap": {
+      "1": {
+        "mean_afp_with_setup_allocation": 1.35775,
+        "mean_ms_with_setup_allocation": 16752.636604224488
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 1.35775,
+        "mean_ms_with_setup_allocation": 16752.636604224488
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 1.35775,
+        "mean_ms_with_setup_allocation": 16752.636604224488
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 1.35775,
+        "mean_ms_with_setup_allocation": 16752.636604224488
+      }
+    },
+    "direct-mid": {
+      "1": {
+        "mean_afp_with_setup_allocation": 1.808,
+        "mean_ms_with_setup_allocation": 19034.79687842385
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 1.808,
+        "mean_ms_with_setup_allocation": 19034.79687842385
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 1.808,
+        "mean_ms_with_setup_allocation": 19034.79687842385
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 1.808,
+        "mean_ms_with_setup_allocation": 19034.79687842385
+      }
+    },
+    "direct-strong": {
+      "1": {
+        "mean_afp_with_setup_allocation": 1.7981291666666668,
+        "mean_ms_with_setup_allocation": 17270.8450172989
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 1.7981291666666668,
+        "mean_ms_with_setup_allocation": 17270.8450172989
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 1.7981291666666668,
+        "mean_ms_with_setup_allocation": 17270.8450172989
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 1.7981291666666668,
+        "mean_ms_with_setup_allocation": 17270.8450172989
+      }
+    },
+    "task-selector": {
+      "1": {
+        "mean_afp_with_setup_allocation": 1.3648208333333334,
+        "mean_ms_with_setup_allocation": 18765.23437156963
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 1.3648208333333334,
+        "mean_ms_with_setup_allocation": 18765.23437156963
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 1.3648208333333334,
+        "mean_ms_with_setup_allocation": 18765.23437156963
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 1.3648208333333334,
+        "mean_ms_with_setup_allocation": 18765.23437156963
+      }
+    },
+    "shared-single-1": {
+      "1": {
+        "mean_afp_with_setup_allocation": 3.379570833333333,
+        "mean_ms_with_setup_allocation": 29638.240003415074
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 3.350520833333333,
+        "mean_ms_with_setup_allocation": 27034.2863229776
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 3.340353333333333,
+        "mean_ms_with_setup_allocation": 26122.902534824487
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 3.336431583333333,
+        "mean_ms_with_setup_allocation": 25771.368787965428
+      }
+    },
+    "shared-single-2": {
+      "1": {
+        "mean_afp_with_setup_allocation": 3.39755,
+        "mean_ms_with_setup_allocation": 28815.169971998937
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 3.3684999999999996,
+        "mean_ms_with_setup_allocation": 26211.216291561464
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 3.3583324999999995,
+        "mean_ms_with_setup_allocation": 25299.83250340835
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 3.3544107499999996,
+        "mean_ms_with_setup_allocation": 24948.29875654929
+      }
+    },
+    "shared-heterogeneous-1": {
+      "1": {
+        "mean_afp_with_setup_allocation": 2.8167583333333335,
+        "mean_ms_with_setup_allocation": 32631.72248574362
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 2.7877083333333332,
+        "mean_ms_with_setup_allocation": 30027.768805306147
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 2.777540833333333,
+        "mean_ms_with_setup_allocation": 29116.385017153032
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 2.773619083333333,
+        "mean_ms_with_setup_allocation": 28764.851270293973
+      }
+    },
+    "shared-heterogeneous-2": {
+      "1": {
+        "mean_afp_with_setup_allocation": 2.7028875,
+        "mean_ms_with_setup_allocation": 30854.980621331684
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 2.6738375,
+        "mean_ms_with_setup_allocation": 28251.02694089421
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 2.6636699999999998,
+        "mean_ms_with_setup_allocation": 27339.643152741097
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 2.65974825,
+        "mean_ms_with_setup_allocation": 26988.109405882038
+      }
+    },
+    "auto-heterogeneous": {
+      "1": {
+        "mean_afp_with_setup_allocation": 2.4155625,
+        "mean_ms_with_setup_allocation": 27656.54173619502
+      },
+      "3": {
+        "mean_afp_with_setup_allocation": 2.4155625,
+        "mean_ms_with_setup_allocation": 27656.54173619502
+      },
+      "10": {
+        "mean_afp_with_setup_allocation": 2.4155625,
+        "mean_ms_with_setup_allocation": 27656.54173619502
+      },
+      "100": {
+        "mean_afp_with_setup_allocation": 2.4155625,
+        "mean_ms_with_setup_allocation": 27656.54173619502
+      }
+    }
+  },
+  "setup_amortization_scope": "单一路线复用的分配情景；不把准备在四条共享路线间重复求和，不是真实冷启动时间。",
+  "human_review_pending": true,
+  "reviewer_identity_authenticated_by_code": false,
+  "limitations": [
+    "固定构造任务不是从业务分布随机抽样，二项界仅展示条件假设下的不确定性。",
+    "三次重复先在任务内汇总；不把重复调用当成三个独立任务。",
+    "退化重采样区间不构成零不确定性或性能优势证明。"
+  ]
+}

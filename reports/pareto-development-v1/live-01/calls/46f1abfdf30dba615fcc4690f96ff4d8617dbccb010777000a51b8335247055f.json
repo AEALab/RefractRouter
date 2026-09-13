@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-shared-heterogeneous-1:qualification",
+  "content": "根据材料s2（人员）和s1（要求）的原始信息：\n\n- **甲**：培训有效，只能早班（材料s2明确“只能早班”）。\n- **乙**：培训有效，只能晚班（材料s2明确“只能晚班”）。\n- **丙**：培训过期（材料s2明确“培训过期”），两班均有空（材料s2明确“两班均有空”）。\n\n材料s1要求每班1人且必须持有有效培训记录。因此，丙因培训过期不具备带班资格，不能安排任何班次。甲和乙培训有效，但受各自班次限制：甲只能早班，乙只能晚班。",
+  "input_tokens": 666,
+  "output_tokens": 149,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2971,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100792991d6f60410e67e178f28d968f0420b51c3d48f34",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 149,
+    "prompt_tokens": 666,
+    "total_tokens": 815,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-heterogeneous-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文正确排除丙（培训过期），早班甲、晚班乙，每人最多一班，满足全部硬约束；findings 与正文一致，id、类型、标签、来源均符合输出契约，且同时核验了资格、可用时间与班次限制。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 的有效培训要求排除丙，按 s2 限制分配早班甲、晚班乙，每班1人、每人最多一班，结论 feasible=true 正确。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 morning=甲、evening=乙、feasible=true 与正文一致，未颠倒资格与班次的因果，也未超出材料证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论齐全且正确，morning/evening/feasible 均引用 s1、s2，足以支持资格与班次安排主张。\"},{\"criterion\":\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\",\"verdict\":\"pass\",\"rationale\":\"正文同时核验培训有效性、甲只能早班/乙只能晚班的可用限制及班次匹配，关于丙的说明和后续重新评估的建议均不违反这些条件。\"}]}",
+  "input_tokens": 980,
+  "output_tokens": 326,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15494,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099054884ff228b459645a66c98f2a46916338f8e2032b3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 326,
+    "prompt_tokens": 980,
+    "total_tokens": 1306,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "setup:decision-01",
+  "content": "{\"reason\":\"任务需先分别核对打印与配送约束，再合并筛选满足全部条件的最低总价组合，最后汇总输出。\",\"nodes\":[{\"id\":\"check_print\",\"type\":\"extraction\",\"job\":\"从材料中提取打印商P和Q的报价、是否支持双面彩色，以及需求为双面彩色100份，判断各打印商是否满足打印条件。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"check_delivery\",\"type\":\"extraction\",\"job\":\"从材料中提取配送商D和E的报价、送达时间，以及须周五前送达的约束，判断各配送商是否满足配送条件。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"combine\",\"type\":\"synthesis\",\"job\":\"基于打印和配送的核对结果，组合所有满足打印与配送条件的方案，计算各组合总价，筛选出最低总价组合，并确认不超预算400元。\",\"parents\":[\"check_print\",\"check_delivery\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答任务：输出所选printer、delivery、total_cost，并说明结论依据、限制及权衡，核对原始事实无遗漏。\",\"parents\":[\"combine\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 586,
+  "output_tokens": 289,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4649,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098542685ed0e184fb98d17720dee9f0ee33ee7e12411f8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 289,
+    "prompt_tokens": 586,
+    "total_tokens": 875,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

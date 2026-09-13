@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-single-1:check_delivery",
+  "content": "配送条件核对结果：\n\n- 约束：须周五前送达。\n- 配送商D：报价80元，周四送达。周四早于周五，满足“周五前送达”的条件。\n- 配送商E：报价40元，周六送达。周六晚于周五，不满足“周五前送达”的条件。\n\n结论：在配送环节，只有配送商D满足配送时间要求；配送商E虽然报价更低，但送达时间为周六，不符合须周五前送达的约束。",
+  "input_tokens": 656,
+  "output_tokens": 102,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3028,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100480137770d3492782dd10cc0a489fec0a72eadab37f9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 102,
+    "prompt_tokens": 656,
+    "total_tokens": 758,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

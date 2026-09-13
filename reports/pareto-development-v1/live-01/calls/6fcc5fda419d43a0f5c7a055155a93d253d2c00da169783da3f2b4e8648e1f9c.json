@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r2-shared-single-1:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案在口头归还不可视为完成手续、requested=3、full_approval=false 及最多可再批2件上均正确；但 remaining 被定义为“现在可新增借用数”，候选输出为2，而材料中另有1件已放回尚未签收，按规则归还只有签收后才扣除，因此当前持有数应按4件计，remaining 应为1。正文又写“当前持有数为3件”，与自身采用的规则相矛盾，存在关键数值错误。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文称未签收放回件不能视为完成归还，却又将当前持有数算作3件而非4件，并据此得出 remaining=2；这与 s1 的签收后才扣除规则不一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 均把 remaining 定为2，二者彼此一致，但都与材料推出的应有结论不一致；未反写依赖，但数值结论错误。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"requested=3、full_approval=false 完整且有 s1/s2 支持；remaining=2 事实错误，正确值应为1，引用不能支持该错误数值。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"候选明确说明已放回但未签收的1件不能视为已完成归还，方向上遵守了该约束；错误在于随后未将其计入持有数。\"}]}",
+  "input_tokens": 796,
+  "output_tokens": 362,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14934,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101234189846a816464a9af9c0791e0f68a2ce03c1ae6aa",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 362,
+    "prompt_tokens": 796,
+    "total_tokens": 1158,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

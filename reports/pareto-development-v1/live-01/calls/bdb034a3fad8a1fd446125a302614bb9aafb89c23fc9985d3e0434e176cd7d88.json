@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-heterogeneous-2:answer",
+  "content": "{\n  \"answer\": \"结论：存在符合全部条件的排班安排。早班分配甲，晚班分配乙，feasible 为 true。\\n\\n依据：材料 s1 要求每班 1 人且必须持有有效培训记录，并规定早班 08:00–12:00、晚班 16:00–20:00。材料 s2 显示，甲培训有效且只能早班，乙培训有效且只能晚班，丙培训过期。因此，甲满足早班资格与时间限制，乙满足晚班资格与时间限制，两人各分配一班，且每人最多一班，完全满足所有约束。\\n\\n限制：丙因培训记录过期，不具备带班资格，即使两班均有空也不能被分配；甲只能早班，乙只能晚班，因此不能互换或重复占用另一班次。\\n\\n权衡：在资格、可用时间与班次限制三项条件下，排班方案唯一，即早班甲、晚班乙，无需进一步权衡或替代。\",\n  \"findings\": [\n    {\n      \"id\": \"morning\",\n      \"value\": \"甲\",\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"evening\",\n      \"value\": \"乙\",\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"feasible\",\n      \"value\": true,\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 1008,
+  "output_tokens": 329,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4431,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098854289b4a50cd25f47d4bb7d101bbb29abc519b8c25b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 329,
+    "prompt_tokens": 1008,
+    "total_tokens": 1337,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

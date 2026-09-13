@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-auto-heterogeneous:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案分别基于 s1、s2 给出 14 份问卷不满意与 20 条投诉工单，明确工单不等于客户数、身份无法对应、缺少全体客户基数，因而 can_pool=false；findings 的 id、value、sources 与 requested_findings 和材料一致，正文与结构化结论一致且未扩大证据。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文分别分析问卷与客服记录，符合 s1 的 50 份中 14 份不满意、未记录未填写者与客服联系情况，以及 s2 的 20 条工单、4 条同一客户追问、无法与问卷身份对应；输出包含结论、依据、限制与权衡，满足任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 survey_negative=14(s1)、service_complaints=20(s2)、can_pool=false(s1,s2) 与正文一致；正文仅称按材料已知信息推算至少涉及 17 位客户，并明确这是工单口径推算、不可与问卷人数合并，未把推算当成可合并客户数或反写依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出：14 来自 s1，20 来自 s2，不能合并由 s1 的自愿样本/未记录未填写者与 s2 的工单口径/身份无法对应共同支持；事实与引用足以支持各自主张。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"正文明确 20 条工单不等于 20 位客户，并分别说明问卷的自选择偏差、未覆盖未填写者，以及客服仅反映已投诉群体；同时指出两来源身份无法对应、重叠未知、缺少全体客户分母，故不能合成总体不满意率。\"}]}",
+  "input_tokens": 1104,
+  "output_tokens": 463,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 18391,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909825061248e426867c3c446aaa68159641220ac13cc5b5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 463,
+    "prompt_tokens": 1104,
+    "total_tokens": 1567,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

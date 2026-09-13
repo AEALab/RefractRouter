@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文虽开头有自相矛盾表述（先称不存在组合、又称 P+D 不能成立），但随后自我纠正并明确最终结论为 P+D=380；findings 完整、数值正确、标签合法、引用充分，最终组合满足双面彩色、周五前送达与预算 400 的全部硬约束，且未各取便宜项。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文最终结论 P（300 元双面彩色，s1）+D（80 元周四送达，s2）=380 元≤400 预算，满足全部硬约束；开头矛盾句被后文明确纠正，最终结论与材料一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 为 printer=P、delivery=D、total_cost=380，与正文最终结论一致；无依赖方向或证据扩大问题。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 findings 齐全；P 由 s1 支持，D 由 s2 支持，380=300+80 由 s1、s2 共同支持，数值与标签均正确合法。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"正文明确排除 Q+E 各取便宜项（Q 仅黑白、E 周六送达均违规），最终选择同时满足全部条件的最低总价组合 P+D=380。\"}]}",
+  "input_tokens": 989,
+  "output_tokens": 365,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12424,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909863768359e4692ee8689b9dc112ef0a7e12032fb101c9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 365,
+    "prompt_tokens": 989,
+    "total_tokens": 1354,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

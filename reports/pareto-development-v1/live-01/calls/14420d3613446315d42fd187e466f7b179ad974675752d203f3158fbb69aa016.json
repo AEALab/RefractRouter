@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-auto-heterogeneous:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文将客服侧独立客户数表述为“至多17、至少16”并给出“约16–17位”的结论，但材料仅说明20条工单中有4条是同一客户追问，未说明这4条是否全部属于同一客户、是否存在其他重复客户，因此只能确定独立客户数至多为16，不能支持17或16–17区间；该错误同时影响事实正确性与证据边界。其余关于14份、20条工单、不能合并及抽样/重叠限制的判断基本正确。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文总体按要求分别分析并给出结论，但客服客户数推算超出材料：s2仅称20条工单中4条为同一客户追问，不能推出“至多17、至少16”或“约16–17位”；在信息不足时应只说明20是工单数且客户数不可确定/至多16。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"结构化结论 service_complaints=20 与正文一致，can_pool=false 也一致；但正文对工单去重后的客户数给出16–17的确定区间，扩大了s2证据含义，因材料未提供足够去重信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"survey_negative=14由s1支持，service_complaints=20由s2支持，can_pool=false由s1/s2共同支持；但正文附加的客服独立客户数16–17缺乏材料支持，影响事实正确性。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"正文明确说明20条是工单而非客户数，分别讨论问卷自愿填写/自选偏差、未填写者未知、身份无法对应与重叠未知，符合该标准；虽客户数区间推算过度，但不等同于把工单直接当客户数。\"}]}",
+  "input_tokens": 1133,
+  "output_tokens": 456,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 18808,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100423404682583ac3749be18cdf4b3a384433037e382dd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 456,
+    "prompt_tokens": 1133,
+    "total_tokens": 1589,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

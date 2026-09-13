@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-single-1:research-judge",
+  "content": "{\n  \"verdict\": \"pass\",\n  \"rationale\": \"候选答案正确识别了当前流程状态：打包已完成、签名未执行、发布被阻断。答案正文与结构化findings一致，正确表达了依赖关系（打包→签名→发布），未倒写依赖，也未暗示检查通过就能直接发布。所有结论均有材料支持，符合任务要求和输出契约。\",\n  \"criteria\": [\n    {\n      \"criterion\": \"最终正文符合材料、任务要求与全部硬约束\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"正文准确反映材料s1的流程依赖（打包结束才能签名；签名通过才能发布）和s2的现状（打包已结束并通过检查；签名未执行；负责人要求现在直接发布）。结论指出当前只能执行签名，发布被阻断，符合任务要求核对每个步骤能否在当前状态执行。正文未违反任何硬约束，正确区分了检查报告与签名完成。\"\n    },\n    {\n      \"criterion\": \"正文与结构化结论一致且未反写依赖或扩大证据含义\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"正文结论与findings完全一致：allowed_now=['签名']、blocked_now=['发布']、required_edge=['签名','发布']。依赖方向正确（打包→签名→发布），未反写。明确说明检查报告只证明打包成功，不代表签名完成，未扩大证据含义。\"\n    },\n    {\n      \"criterion\": \"必需结论完整、事实正确且各自引用足以支持主张\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"三个必需结论均完整且正确：allowed_now=['签名']（打包已完成，签名是唯一可执行的下一步）、blocked_now=['发布']（签名未执行，发布前置条件未满足）、required_edge=['签名','发布']（发布的直接前置是签名）。每个finding都引用了适当的sources（s1,s2或s1），足以支持主张。\"\n    },\n    {\n      \"criterion\": \"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"正文正确表达依赖方向为打包→签名→发布，未倒写。明确指出'检查报告只证明打包成功，不代表签名完成'，并强调'不能把打包通过检查等同于签名完成，也不能据此认为可以直接发布'，完全符合该标准。\"\n    }\n  ]\n}",
+  "input_tokens": 1085,
+  "output_tokens": 511,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 17614,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099515979add9fca5277b8939d33af9a0f1789d6c34c37a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 511,
+    "prompt_tokens": 1085,
+    "total_tokens": 1596,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

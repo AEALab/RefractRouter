@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-direct-strong:answer",
+  "content": "{\n  \"answer\": \"结论：当前可执行步骤为“签名”；仍不能执行的步骤为“发布”；“发布”的直接前置边是[签名,发布]。依据材料，打包已结束并通过检查，但检查报告只证明打包成功，不代表签名完成；签名尚未执行，因此不能直接发布。负责人要求现在直接发布不符合流程约束，必须先完成签名且签名通过后，发布才具备执行条件。限制与权衡：本判断仅依据给定材料，不将“打包结束”或“检查通过”视为签名完成，也不将“签名”视为已通过；若后续补充签名已通过的事实，发布状态需重新核对。\",\n  \"findings\": [\n    {\n      \"id\": \"allowed_now\",\n      \"value\": [\"签名\"],\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"blocked_now\",\n      \"value\": [\"发布\"],\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"required_edge\",\n      \"value\": [\"签名\", \"发布\"],\n      \"sources\": [\"s1\"]\n    }\n  ]\n}",
+  "input_tokens": 807,
+  "output_tokens": 244,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5209,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890997506279c5625d6f49ce94e6eea0041d172c51cdf7fe6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 244,
+    "prompt_tokens": 807,
+    "total_tokens": 1051,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

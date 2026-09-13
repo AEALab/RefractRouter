@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-shared-heterogeneous-2:service_analysis",
+  "content": "从客服材料中提取投诉工单20条，识别其中4条为同一客户追问，确认无法与问卷身份对应，区分工单数与客户数。\n\n**结论**：客服材料显示同周共有20条投诉工单，其中4条是同一客户追问，因此投诉工单数为20条，但涉及客户数少于20条（至少去重1条后为19个客户，若4条均为同一客户则去重后为17个客户，但材料未明确4条是否全部属于同一客户，仅说明“其中4条是同一客户追问”，可确认这4条工单对应同一客户，故客户数至少为20-3=17个，但材料未提供其他工单是否重复，因此只能确认这4条为同一客户，其余16条工单无法确认是否重复）。同时，材料明确“无法与问卷身份对应”，即客服工单与问卷填写者无法匹配。\n\n**依据**：材料s2原文：“同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。”\n\n**限制**：工单数（20条）不等于客户数；因无法与问卷身份对应，不能将问卷不满意份数与投诉工单合并计算全体客户不满意率。",
+  "input_tokens": 649,
+  "output_tokens": 268,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2949,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890982867344c81961e630bce638d970dc275335873fbb18d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 268,
+    "prompt_tokens": 649,
+    "total_tokens": 917,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

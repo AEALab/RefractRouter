@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-single-1:assignment",
+  "content": "结论：存在符合全部条件的安排。  \n依据：甲培训有效且只能早班，因此早班只能安排甲；乙培训有效且只能晚班，因此晚班只能安排乙；丙培训过期，不具备带班资格，不能安排。每人最多一班，甲、乙各安排一班，不冲突。  \n限制：丙虽两班均有空，但因培训过期，不符合“必须持有有效培训记录”的要求，不能参与分配。  \n\nfindings:  \n- id: morning  \n  value: 甲  \n  sources: [s1, s2]  \n- id: evening  \n  value: 乙  \n  sources: [s1, s2]  \n- id: feasible  \n  value: true  \n  sources: [s1, s2]",
+  "input_tokens": 765,
+  "output_tokens": 164,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3538,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099103379b4a50cd25f47d4bb7d101bbb29abc51967a8d4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 164,
+    "prompt_tokens": 765,
+    "total_tokens": 929,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

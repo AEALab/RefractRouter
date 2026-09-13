@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-direct-mid:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案正文自行推断工单去重后客户数为17，但材料仅说明4条是同一客户追问，无法确定这4条是否全部落在20条内且其余16条互不重复，证据被扩大，导致正文与材料不一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文称工单去重后独立客户数=17，材料只给出20条工单中4条为同一客户追问，未说明其余工单的客户重叠情况，不能推出17。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"findings中service_complaints=20与材料一致，但正文额外断言去重客户数=17，超出s2证据范围，扩大了证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"survey_negative=14引用s1，service_complaints=20引用s2，can_pool=false引用s1、s2，三项必需结论均有对应材料支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"答案区分了问卷份数与工单条数，说明工单不是客户数，并分别分析两来源的自愿抽样、未填写者缺失、身份不可对应与重叠限制。\"}]}",
+  "input_tokens": 1136,
+  "output_tokens": 323,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 12050,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890981683053a391e43edef5299850de6066b8d72e21535fe",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 323,
+    "prompt_tokens": 1136,
+    "total_tokens": 1459,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
