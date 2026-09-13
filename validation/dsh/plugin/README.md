@@ -103,12 +103,21 @@ refractagent dsh-config --provider-config ./providers.json \
 真实模式必须有 `providerConfig` 或显式 `preset: "ark-agent-plan"`。
 从 0.10.0 升级的 Ark 配置需补上该预设字段。以下版本记录及验证工具的清单规则属于历史入口。
 
+## 0.17.0：DAG 节点原生工具
+
+需要 Python 核心 0.6.0。使用宿主本次模型请求提供的 `tools`，自动启用双向 stdio 通道。
+技能加载返回的附加上下文与工具结果送回同一节点；每次模型续调独立预留并记账。
+工具通过宿主 `tools.execute` 执行，沿用真实 Agent 的权限、审批和取消；调用与结果写入轨迹。
+工具执行后不自动回退或重新拆分该节点，避免重复副作用。不会执行正文中的伪工具标记。
+保留「任务 DAG」页签和插件设置；三种策略继续由 Python 选模。
+边界与无网络验证见[原生工具说明](../../../docs/native-tool-execution.md)。
+
 ## 0.10.0：RefractAgent 本机策略模型
 
 安装 Python 核心 `refractrouter` 0.2.0 和本插件后，DSH 模型列表增加
 `refractagent/economy`（省成本）、`refractagent/balanced`（均衡）和
 `refractagent/quality`（质量优先）。它们调用同一 Python 核心，支持文本任务、
-对话上下文、整任务与预设 DAG；当前模型接口不生成 DSH 工具调用。
+对话上下文、整任务与预设 DAG；该历史版本不生成 DSH 工具调用，原生工具自 0.17.0 起支持。
 
 收到核心 wheel 和插件 tgz 后，可在任务工作目录执行：
 

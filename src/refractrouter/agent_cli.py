@@ -12,6 +12,7 @@ from threading import Event
 from .agent import PRESETS, POLICY_VERSION, resource, run_agent
 from .application_config import SCHEMA, compile_configuration
 from .routing_actions import action_identity
+from .openai_compatible import write_host_record
 
 
 def example_configuration(kind):
@@ -147,7 +148,7 @@ def main(argv=None):
         if args.host_stdio:
             if os.environ.get('REFRACTROUTER_DSH_BRIDGE') != 'stdio':
                 raise ValueError('host stdio requires the DSH plugin')
-            payload = json.loads(sys.stdin.readline(262145))
+            payload = json.loads(sys.stdin.readline(2097153))
         else:
             payload = (json.loads(args.request_file.read_text()) if args.request_file else
                        json.loads(sys.stdin.read(262145)) if args.request_stdin else
@@ -157,6 +158,13 @@ def main(argv=None):
             if provider_config is not None or args.preset:
                 raise ValueError('conflicting provider configuration sources')
             provider_config = payload.pop('providerConfig')
+        tool_runtime = None
+        if isinstance(payload, dict) and 'hostTools' in payload:
+            if not args.host_stdio:
+                raise ValueError('host tools require the host stdio channel')
+            from .tool_runtime import StdioToolRuntime
+            from .openai_compatible import DshStdioBridge
+            tool_runtime = StdioToolRuntime(payload.pop('hostTools'), DshStdioBridge())
         cancelled = Event()
         previous = {sig: signal.signal(sig, lambda *_: cancelled.set()) for sig in (signal.SIGINT, signal.SIGTERM)}
         try:
@@ -165,9 +173,8 @@ def main(argv=None):
                 timeout_ms=args.timeout_ms, max_output_tokens=args.max_output_tokens,
                 manifest_path=args.manifest, profile_path=args.profile,
                 execute_paid_run=args.execute_paid_run, cancel_event=cancelled,
-                provider_config=provider_config, preset=args.preset,
-                progress=(lambda event: print(json.dumps(event, ensure_ascii=False), flush=True))
-                         if args.progress_stdio else None)
+                provider_config=provider_config, preset=args.preset, tool_runtime=tool_runtime,
+                progress=write_host_record if args.progress_stdio else None)
         finally:
             for sig, handler in previous.items():
                 signal.signal(sig, handler)

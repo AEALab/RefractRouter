@@ -1,3 +1,4 @@
+import type { ToolSchema } from './native-tools.js'
 import type { Readable, Writable } from 'node:stream'
 import type { FormatValidation } from './output-constraints.js'
 
@@ -80,10 +81,11 @@ export interface ModelRoute { provider: string; model: string }
 export interface LlmOptions extends ModelRoute {
   messages: Array<{
     readonly id: string
-    readonly role: 'user'
-    readonly content: readonly { readonly type: 'text'; readonly text: string }[]
-    readonly source: { readonly kind: 'plugin'; readonly plugin: string }
+    readonly role: 'user' | 'assistant'
+    readonly content: readonly { readonly type: string; readonly text?: string; readonly [key: string]: unknown }[]
+    readonly source: { readonly kind: string; readonly [key: string]: unknown }
   }>
+  tools?: ToolSchema[]
   system?: string
   temperature: number
   maxTokens: number
@@ -109,7 +111,7 @@ export type StreamChunk =
   | { type: 'text-delta'; text: string; index?: number }
   | { type: 'usage'; usage?: TokenUsage }
   | FinishChunk
-  | { type: 'block-start' | 'block-end' | 'reasoning-delta' | 'tool-call-delta' }
+  | { type: 'block-start' | 'block-end' | 'reasoning-delta' | 'tool-call-delta'; index?: number; id?: string; name?: string; argumentsDelta?: string; block?: { type: string; id?: string; name?: string; arguments?: string } }
 export interface LlmService {
   stream(options: LlmOptions): AsyncIterable<StreamChunk>
   listProviders(): Array<{ id: string }>
@@ -118,7 +120,7 @@ export interface LlmService {
 }
 export interface BridgeResponseBase { protocol: string; type: 'response'; id: string }
 export type BridgeResponse = BridgeResponseBase & (
-  | { ok: true; content: string; usage: {
+  | { ok: true; content: string; tool_calls?: unknown[]; replay_state?: unknown; usage: {
       input_tokens: number; output_tokens: number
       cached_input_tokens: number; reasoning_tokens: number
     }; finish_reason?: string; request_id?: string }

@@ -1,12 +1,20 @@
+import { createElement } from 'react'
+import { graphModule } from './graph.js'
 /** RefractAgent 浏览器半边：在「设置 → 插件 → 插件配置」注册自己的设置卡片。 */
 import { RefractCardController, SETTINGS_NAMESPACE } from '../settings-card.js'
 import { RefractCard } from './refract-card.js'
 import { en, LOCALE_NS, zh } from './locale.js'
 import type { ClientContext } from './types.js'
 
+const graph = graphModule(createElement as unknown as Parameters<typeof graphModule>[0])
+export const parse = graph.parse
+export const layout = graph.layout
+export const applyGraph = graph.apply
+
 export const inject = ['slots', 'locale', 'settingsScope']
 
 export function apply(ctx: ClientContext): void {
+  graph.apply(ctx)
   ctx.effect(() => ctx.locale.register(LOCALE_NS, { zh, en }), 'refractagent-settings-card: dictionaries')
   const controller = new RefractCardController(ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE }))
   ctx.effect(() => () => {

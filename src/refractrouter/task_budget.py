@@ -14,6 +14,12 @@ from .node_routing import number
 from .openai_compatible import ModelInvocationError, model_response_cost
 
 
+def request_input_bound(messages, tools=None):
+    """模型请求与节点准入共用相同的保守序列化计数。"""
+    payload = {"messages": messages, "tools": tools} if tools else messages
+    return len(json.dumps(payload, ensure_ascii=False).encode()) + 256
+
+
 class InvalidModelOutput(ValueError):
     """用量已结算，但模型返回空内容或非正常结束的输出。"""
 
@@ -24,6 +30,7 @@ class Reservation:
     messages: list
     row: dict
     json_mode: bool
+    tools: object = None
 
 
 class TaskCallBudget:
@@ -52,11 +59,11 @@ class TaskCallBudget:
         with self.lock:
             return dict(self.charged), deepcopy(self.records)
 
-    def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None):
+    def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None):
         if category_limit is not None:
             category_limit = number(category_limit, 'category limit')
-        encoded = json.dumps(messages, ensure_ascii=False).encode()
-        input_bound = len(encoded) + 256
+        encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
+        input_bound = request_input_bound(messages, tools)
         output_bound = output_token_limit(model)
         if input_bound + output_bound > model.context_window:
             raise ValueError('request exceeds conservative context bound')
@@ -76,8 +83,10 @@ class TaskCallBudget:
                 row['category_limit'] = category_limit
             if self.capture_payload:
                 row['request_messages'] = deepcopy(messages)
+                if tools:
+                    row['request_tools'] = deepcopy(tools)
             self.records.append(row)
-        reservation = Reservation(model, messages, row, json_mode)
+        reservation = Reservation(model, messages, row, json_mode, tools)
         if self.on_reserve is not None:
             try:
                 self.on_reserve(reservation)
@@ -114,7 +123,8 @@ class TaskCallBudget:
             call_client = call_client.for_task_call(None if unlimited else timeout_seconds)
         planning_started = time.monotonic()
         try:
-            response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode)
+            response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode,
+                **({"tools": reservation.tools} if reservation.tools else {}))
         except ModelInvocationError as exc:
             with self.lock:
                 row['failure'] = exc.public_details()
@@ -129,7 +139,7 @@ class TaskCallBudget:
                 row['response_output'] = response.content
                 row['response'] = asdict(response)
         counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)
-        if not response.usage_available or (response.content.strip() and (response.input_tokens == 0 or response.output_tokens == 0)):
+        if not response.usage_available or ((response.content.strip() or getattr(response, "tool_calls", ())) and (response.input_tokens == 0 or response.output_tokens == 0)):
             raise ValueError('missing or unconfirmed model usage; reservation retained')
         if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:
             raise ValueError('invalid model usage; reservation retained')
@@ -140,12 +150,17 @@ class TaskCallBudget:
                        output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,
                        reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,
                        request_id=response.request_id, finish_reason=response.finish_reason,
-                       output_sha256=hashlib.sha256(response.content.encode()).hexdigest())
+                       output_sha256=hashlib.sha256((json.dumps({'content': response.content, 'tool_calls': response.tool_calls},
+                           ensure_ascii=False) if getattr(response, 'tool_calls', ()) else response.content).encode()).hexdigest())
             if (actual > row['reserved'] + 1e-8
                     or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):
                 self.stop()
                 raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')
-        if response.finish_reason != 'stop' or not response.content.strip():
+        if not getattr(response, 'tool_calls', ()) and response.content.strip().startswith('<|FunctionCallBegin|>'):
+            raise ValueError('模型返回工具协议文本而非原生 tool_calls；未执行文本指令')
+        if reservation.tools and getattr(response, 'tool_calls', ()) and response.finish_reason in {'tool_calls', 'stop'}:
+            return response
+        if getattr(response, 'tool_calls', ()) or response.finish_reason != 'stop' or not response.content.strip():
             finish = response.finish_reason if response.finish_reason in {
                 'stop', 'length', 'content_filter', 'tool_calls', 'function_call'} else 'other'
             raise InvalidModelOutput(f"invalid or truncated output for {row['label']} "

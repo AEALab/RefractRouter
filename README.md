@@ -35,7 +35,8 @@ dsh --profile web --patch ./refractagent-live.json \
 
 访问 [本机 DSH 页面](http://127.0.0.1:53611/)。如安装时沿用原 DSH 配置，启动时也沿用
 同一 `DSH_HOME`。默认演示结果带 `[SIMULATED]`；启用真实配置后需发送新的 Query。
-当前支持文本分析与生成；RefractAgent 模型入口暂不执行 DSH 工具或生成图片、视频。
+当前支持文本分析与生成；RefractAgent 0.6.0 配合插件 0.17.0 可在 DAG 节点中调用
+DSH 原生工具。工具沿用宿主权限、审批和取消流程，详见[工具接入说明](docs/native-tool-execution.md)。
 本机三策略已通过 6 次真实调用验收，证据及已知长度控制限制见
 [应用验收记录](reports/refractagent-local/20260908/README.md)。
 

@@ -1,3 +1,4 @@
+import { TOOL_PROTOCOL, type NativeToolsBridge } from './native-tools.js'
 import { decodeTaskSummary, registerTaskTool, TASK_SUMMARY_SCHEMA, type TaskArguments } from './task-tool.js'
 import type { Writable } from 'node:stream'
 import type {
@@ -465,18 +466,33 @@ export async function callDshLlm(
     const system: string[] = []
     const messages: LlmOptions['messages'] = []
     for (const message of request.messages as unknown[]) {
-      if (!isRecord(message) || typeof message.content !== 'string') {
+      if (!isRecord(message) || (typeof message.content !== 'string' && !(message.role === 'assistant' && message.content === null))) {
         throw new Error('invalid DSH bridge message')
       }
       if (message.role === 'system') {
-        system.push(message.content)
+        system.push(String(message.content))
       } else if (message.role === 'user') {
         messages.push(Object.freeze({
           id: randomUUID(),
           role: 'user',
-          content: Object.freeze([Object.freeze({ type: 'text', text: message.content })]),
+          content: Object.freeze([Object.freeze({ type: 'text', text: String(message.content) })]),
           source: Object.freeze({ kind: 'plugin', plugin: name }),
         }))
+      } else if (message.role === 'assistant') {
+        const blocks: Array<{ type: string; [key: string]: unknown }> = []
+        if (message.content) blocks.push({ type: 'text', text: message.content })
+        if (Array.isArray(message.tool_calls)) for (const call of message.tool_calls) {
+          if (!isRecord(call) || typeof call.id !== 'string' || !isRecord(call.function)
+              || typeof call.function.name !== 'string' || typeof call.function.arguments !== 'string') throw new Error('invalid native tool history')
+          blocks.push({ type: 'tool-call', id: call.id, name: call.function.name, arguments: call.function.arguments })
+        }
+        messages.push({ id: randomUUID(), role: 'assistant', content: blocks,
+          source: { kind: 'model', provider: request.provider, model: request.model,
+            ...(message._dsh_replay_state ? { replayState: message._dsh_replay_state } : {}) } })
+      } else if (message.role === 'tool' && typeof message.tool_call_id === 'string') {
+        messages.push({ id: randomUUID(), role: 'user', source: { kind: 'tool', callId: message.tool_call_id },
+          content: [{ type: 'tool-result', toolCallId: message.tool_call_id,
+            content: [{ type: 'text', text: message.content }] }] })
       } else {
         throw new Error(`unsupported DSH bridge role: ${String(message.role)}`)
       }
@@ -490,12 +506,18 @@ export async function callDshLlm(
       maxTokens: Number(request.max_tokens),
       signal: callSignal,
     }
+    if (request.tools !== undefined) {
+      if (!Array.isArray(request.tools) || request.tools.some(t=>!isRecord(t) || typeof t.name !== 'string'
+          || typeof t.description !== 'string' || !isRecord(t.parameters))) throw new Error('invalid bridge tools')
+      options.tools = request.tools as NonNullable<LlmOptions['tools']>
+    }
     const reasoningEffort = isRecord(request.request_options)
       ? request.request_options.reasoning_effort : undefined
     if (typeof reasoningEffort === 'string' && reasoningEffort.length > 0) {
       options.reasoningEffort = reasoningEffort
     }
     let content = ''
+    const toolCalls = new Map<number, { id: string; type: 'function'; function: { name: string; arguments: string } }>()
     let usage: TokenUsage = {}
     let finish: FinishChunk | undefined
     const stream = ctx.llm.stream(options)
@@ -505,6 +527,18 @@ export async function callDshLlm(
         const step = await nextWithSignal(iterator, callSignal)
         if (step.done) break
         const chunk = step.value
+        if (chunk.type === 'tool-call-delta' && chunk.index !== undefined) {
+          const call = toolCalls.get(chunk.index) ?? { id: '', type: 'function' as const, function: { name: '', arguments: '' } }
+          if (chunk.id) call.id = chunk.id
+          if (chunk.name) call.function.name = chunk.name
+          call.function.arguments += chunk.argumentsDelta ?? ''
+          toolCalls.set(chunk.index, call)
+        }
+        if (chunk.type === 'block-end' && chunk.index !== undefined && chunk.block?.type === 'tool-call') {
+          const block = chunk.block
+          if (!block.id || !block.name || typeof block.arguments !== 'string') throw new Error('invalid native tool block')
+          toolCalls.set(chunk.index, { id: block.id, type: 'function', function: { name: block.name, arguments: block.arguments } })
+        }
         if (chunk.type === 'text-delta') content += chunk.text
         if (chunk.type === 'usage') usage = chunk.usage ?? {}
         if (chunk.type === 'finish') finish = chunk
@@ -538,7 +572,9 @@ export async function callDshLlm(
         cached_input_tokens: cachedInput,
         reasoning_tokens: Number(usage.reasoningTokens ?? 0),
       },
-      finish_reason: finish.reason?.kind,
+      tool_calls: [...toolCalls.entries()].sort((a,b)=>a[0]-b[0]).map(([,call])=>call),
+      replay_state: finish.replayState,
+      finish_reason: finish.reason?.kind === 'tool-calls' ? 'tool_calls' : finish.reason?.kind === 'max-tokens' ? 'length' : finish.reason?.kind,
       request_id: replayRequestId(finish.replayState),
     }
   } catch (error) {
@@ -588,7 +624,7 @@ function tailCapture(maxBytes: number) {
   }
 }
 
-async function writeLine(stream: Writable, value: BridgeResponse) {
+async function writeLine(stream: Writable, value: object) {
   const line = `${JSON.stringify(value)}\n`
   if (stream.write(line)) return
   await new Promise<void>(resolveDrain => stream.once('drain', resolveDrain))
@@ -596,7 +632,7 @@ async function writeLine(stream: Writable, value: BridgeResponse) {
 
 export async function pumpDshBridge(
   ctx: Pick<DshContext, 'llm'> | undefined, handle: ProcessHandle, signal: AbortSignal, routes: ModelRoute[], maxBytes: number,
-  onProgress?: (record: unknown) => void,
+  onProgress?: (record: unknown) => void, nativeTools?: NativeToolsBridge,
 ) {
   if (handle.stdout === undefined || handle.stdin === undefined) {
     throw new Error('DSH bridge requires piped child stdin and stdout')
@@ -618,6 +654,12 @@ export async function pumpDshBridge(
       }
       if (onProgress && isRecord(request) && request.protocol === 'refractagent-progress/v1') {
         onProgress(request)
+        continue
+      }
+      if (isRecord(request) && request.protocol === TOOL_PROTOCOL) {
+        if (!nativeTools) throw new Error('unexpected native tool request')
+        const response = await nativeTools.execute(request, signal)
+        await writeLine(handle.stdin, response)
         continue
       }
       if (!isRecord(request) || request.protocol !== DSH_BRIDGE_PROTOCOL || request.type !== 'request') {
