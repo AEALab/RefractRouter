@@ -132,7 +132,7 @@ class DynamicDecomposition:
                 latency_max_ms=max(0, (self.budget.deadline(self.deadline)-now)*1000-max(0, wait_ms)),
                 weights=Weights(**self.request['weights']) if self.request['method']=='B' else None,
                 eligible_models={n.node_id:admission[n.node_id]['eligible_models'] for n in residual.nodes},
-                execution_policy=self.policy, model_providers={mid:m.provider for mid,m in self.candidates.items()})
+                reduce_dominated=self.configuration is not None, execution_policy=self.policy, model_providers={mid:m.provider for mid,m in self.candidates.items()})
             event.update(plan=expanded.to_dict(), admission=admission, routing=routing)
             if routing['status'] != 'selected':
                 raise ValueError('dynamic-no-feasible-route')

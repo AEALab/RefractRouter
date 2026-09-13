@@ -251,7 +251,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result["routing"] = route_nodes(plan, profiles, method=request["method"],
             quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=remaining_latency,
             weights=Weights(**request["weights"]) if request["method"] == "B" else None,
-            eligible_models=eligible_models, execution_policy=policy,
+            eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
             model_providers={mid: model.provider for mid, model in candidates.items()})
         if configured_application:
             result['routing']['actions'] = {nid: action_identity(candidates[mid])
