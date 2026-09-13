@@ -139,9 +139,9 @@ def test_invalid_action_or_stratum_fails_before_calls_and_artifacts(tmp_path, mu
 
 def test_effort_forecast_cannot_be_silently_clipped_by_host_output_cap(tmp_path):
     config, plan = configuration_and_plan()
-    with pytest.raises(ValueError, match='effective maxOutputTokens'):
-        run_agent({'task':'too small cap','plan':plan}, provider_config=config, runs_dir=tmp_path, max_output_tokens=2048)
-    assert not list(tmp_path.iterdir())
+    result=run_agent({'task':'small host cap','plan':plan}, provider_config=config, runs_dir=tmp_path, max_output_tokens=2048)
+    manifest=json.loads((Path(result['run_dir'])/'manifest.json').read_text())
+    assert all(m['max_output_tokens']>2048 for m in manifest['models'] if m['role']=='candidate')
 
 
 @pytest.mark.parametrize('change', [

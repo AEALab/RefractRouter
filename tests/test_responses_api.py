@@ -168,10 +168,12 @@ def test_responses_cli_template_and_dsh_output_envelope(tmp_path):
     assert config['providerConfig']['providers'][0]['credentialEnv']=='OPENAI_API_KEY'
 
 
-def test_reasoning_envelope_is_reserved_before_any_model_call(tmp_path):
+def test_reasoning_envelope_leaves_actual_input_space_before_dispatch(tmp_path):
     config=configuration()
-    for m in config['models']:m['contextWindow']=32769
+    for m in config['models']:
+        if m['role']=='candidate':m['contextWindow']=32769
     transport=Transport()
     result=run_agent({'task':'比较两种方案'},provider_config=config,mode='live',execute_paid_run=True,
         runs_dir=tmp_path,client=client(transport),max_output_tokens=32768)
-    assert result['status']=='no-feasible-route' and not transport.calls
+    assert result['status']=='completed', result['issues']
+    assert 8192 < transport.calls[0][2]['max_output_tokens'] < 32768

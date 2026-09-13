@@ -6,7 +6,7 @@ import json
 import time
 from typing import Callable
 
-from .responses_api import output_token_limit
+from .responses_api import output_token_limit, available_output_limit
 from .model_selection import Weights
 from .routing_actions import action_identity
 from .node_routing import load_profile, number, route_nodes
@@ -249,8 +249,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         for node in plan.nodes:
             capability = plan.contracts.get(node.node_id, {}).get("capability")
             eligible_models[node.node_id] = [mid for mid, model in candidates.items() if not capability or (
-                capability["input_budget_tokens"] + output_token_limit(model) <= model.context_window
-                and capability["expected_output_tokens"] <= output_token_limit(model))]
+                capability["input_budget_tokens"] + available_output_limit(model, capability["input_budget_tokens"]) <= model.context_window
+                and capability["expected_output_tokens"] <= available_output_limit(model, capability["input_budget_tokens"]))]
         if live and 'plan' not in request:
             result['plan_admission'] = admission_diagnostics(plan, execution_task, candidates, profiles,
                 request['qualityMin'], output_constraints=request.get('outputConstraints'),

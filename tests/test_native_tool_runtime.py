@@ -260,3 +260,48 @@ def test_node_with_tool_effect_is_not_split_or_replayed_after_bad_final_output(m
     assert len(client.requests)==2 and len(runtime.bridge.calls)==1
     assert len(result['nodes'])==1
     assert result['execution']['not_started']==['risk','answer']
+
+
+def test_execution_capacity_survives_tool_round_and_preserves_thinking_and_budget():
+    from refractrouter.application_config import execution_capacity_model
+    from refractrouter.responses_api import output_token_limit
+    original = replace(real_model(), base_url='https://ark.cn-beijing.volces.com/api/plan/v3',
+                       api_model='deepseek-v4-flash', context_window=1024000,
+                       request_options={'thinking': {'type': 'enabled'}}, max_output_tokens=8192)
+    model = execution_capacity_model(original)
+    assert output_token_limit(original) == 8192
+    assert output_token_limit(model) == 384000
+    client = Client([reply(calls=[call()]), reply('有依据的模拟天气')])
+    runtime = StdioToolRuntime(SCHEMAS, Host())
+    budget = TaskCallBudget(client, 10000, 10000)
+    initial = budget.reserve(model, [{'role':'user','content':'天气'}],label='weather',tools=SCHEMAS)
+    seen = []
+    def invoke(reservation):
+        seen.append(reservation.model)
+        return budget.invoke(reservation), None, 0, 1
+    assert run_tool_node(runtime, initial, budget, invoke, lambda:None).content
+    assert [output_token_limit(m) for m in seen] == [384000,384000]
+    assert all(m.request_options == original.request_options for m in seen)
+    with pytest.raises(ValueError, match='budget'):
+        TaskCallBudget(client, 0.00001, 1).reserve(model,initial.messages,label='too-small',tools=SCHEMAS)
+
+
+def test_execution_capacity_leaves_room_for_actual_input_and_schema():
+    from refractrouter.application_config import execution_capacity_model
+    from refractrouter.task_budget import request_input_bound
+    model = execution_capacity_model(replace(real_model(),max_output_tokens=32000,context_window=32000))
+    messages = [{'role':'user','content':'测试输入'}]
+    reservation = TaskCallBudget(Client([]),10000,10000).reserve(model,messages,label='node',tools=SCHEMAS)
+    assert reservation.model.max_output_tokens == 32000-request_input_bound(messages,SCHEMAS)
+
+
+def test_execution_capacity_reaches_chat_wire_without_legacy_clamp():
+    from refractrouter.application_config import execution_capacity_model
+    model = execution_capacity_model(replace(real_model(),max_output_tokens=32000,context_window=128000))
+    body = {'choices':[{'message':{'content':'ok'},'finish_reason':'stop'}],
+            'usage':{'prompt_tokens':100,'completion_tokens':9000,'completion_tokens_details':{'reasoning_tokens':8999}}}
+    transport=SequenceTransport([TransportResponse(200,{},json.dumps(body).encode())])
+    client=OpenAICompatibleClient(transport=transport,environment={'TEST_API_KEY':'mock'},max_retries=0)
+    response=TaskCallBudget(client,10000,10000).complete(model,[{'role':'user','content':'模拟'}],label='node')
+    assert response.content=='ok'
+    assert transport.calls[0]['payload'][model.token_limit_parameter]==32000

@@ -14,7 +14,7 @@ import json
 import os
 from dataclasses import asdict
 
-from .application_config import compile_configuration, configured_profile, prepare_configured_plan
+from .application_config import execution_capacity_model, compile_configuration, configured_profile, prepare_configured_plan
 from pathlib import Path
 from uuid import uuid4
 
@@ -177,7 +177,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         prepare_configured_plan(request, context, explicit_plan='plan' in payload,
                                 output_cap=max_output_tokens, input_cap=input_cap)
     temperature = number(payload.get('temperature', 0), 'temperature', maximum=2)
-    manifest = replace(manifest, models=tuple(replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
+    manifest = replace(manifest, models=tuple(execution_capacity_model(m) if m.role == 'candidate' else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
                                              for m in manifest.models))
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
                                              if m.role == 'candidate' and m.wire_api != 'responses' else m for m in manifest.models))

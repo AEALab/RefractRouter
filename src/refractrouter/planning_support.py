@@ -3,7 +3,7 @@ from copy import deepcopy
 from dataclasses import asdict
 import json
 
-from .responses_api import output_token_limit
+from .responses_api import output_token_limit, available_output_limit
 from .task_execution import node_messages
 from .task_budget import request_input_bound
 from .task_plan import validate_plan, NODE_TYPES
@@ -125,8 +125,8 @@ def admission_diagnostics(plan, task, candidates, profiles, quality_min, *, outp
         available = []
         for p in matches:
             m = candidates[p.model_id]
-            if capability and (capability['input_budget_tokens'] + output_token_limit(m) > m.context_window
-                    or capability['expected_output_tokens'] > output_token_limit(m)
+            if capability and (capability['input_budget_tokens'] + available_output_limit(m, capability['input_budget_tokens']) > m.context_window
+                    or capability['expected_output_tokens'] > available_output_limit(m, capability['input_budget_tokens'])
                     or estimates[node.node_id]['base_input_bound'] > capability['input_budget_tokens']):
                 continue
             available.append(p.model_id)
