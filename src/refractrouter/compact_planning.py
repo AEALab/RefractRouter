@@ -48,7 +48,7 @@ def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048):
         required_criteria=criteria)
 
 
-def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1200):
+def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1200, compact=False):
     if explicit is not None:
         if explicit not in candidates:
             raise ValueError('plannerModelId must be a candidate in the manifest')
@@ -60,7 +60,15 @@ def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1
             configuration.predictions[m.model_id]['latency_ms'] if configuration else 0,
             m.input_cost_per_1k + m.output_cost_per_1k, m.capability, m.model_id))
         basis = 'configured-latency-then-price' if configuration else 'price-then-capability'
-    return replace(selected, max_output_tokens=min(output_token_limit(selected), output_cap)), basis
+    options = deepcopy(selected.request_options)
+    # 仅对已实测的端点/型号设置紧凑规划默认值；不覆盖用户的显式思考或推理强度。
+    if (compact and selected.base_url == 'https://ark.cn-beijing.volces.com/api/plan/v3'
+            and selected.api_model == 'doubao-seed-2.0-mini'
+            and 'thinking' not in options and 'reasoning_effort' not in options):
+        options['thinking'] = {'type': 'disabled'}
+        basis += '+verified-non-thinking-planner'
+    return replace(selected, request_options=options,
+                   max_output_tokens=min(output_token_limit(selected), output_cap)), basis
 
 
 def generate_compact(budget, model, payload, record, *, criteria, cost_limit, deadline,
