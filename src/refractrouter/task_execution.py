@@ -104,28 +104,28 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                     if budget.stopped or (cancel_event is not None and cancel_event.is_set()):
                         raise CancelledError('task-cancelled-before-dispatch')
                     now = time.monotonic()
-                    if now >= deadline:
+                    if now >= budget.deadline(deadline):
                         raise ValueError('task-deadline-exhausted')
                     delay = actual_starts.get(provider, -float('inf')) + policy.interval(provider)/1000 - now
                     if delay <= 0:
                         actual_starts[provider] = now
                         break
-                    time.sleep(min(delay, .01, deadline-now))
+                    time.sleep(min(delay, .01, budget.deadline(deadline)-now))
             begin = elapsed()
-            response = budget.invoke(reservation, timeout_seconds=deadline - time.monotonic(), cancel_event=cancel_event)
+            response = budget.invoke(reservation, timeout_seconds=budget.deadline(deadline) - time.monotonic(), cancel_event=cancel_event)
             return response, None, begin, elapsed()
         except Exception as exc:
             return None, exc, begin, elapsed()
 
     def recover(nid, row, exc):
         if (dynamic is not None and dynamic.eligible(nid, plan) and not budget.stopped
-                and time.monotonic() < deadline
+                and time.monotonic() < budget.deadline(deadline)
                 and not (cancel_event is not None and cancel_event.is_set())):
             split_pending[nid] = str(exc)
             row['recovery_status'] = 'waiting-for-dynamic-split'
             return True
         if (recovery is None or len(attempted[nid]) > recovery.max_fallbacks
-                or budget.stopped or time.monotonic() >= deadline
+                or budget.stopped or time.monotonic() >= budget.deadline(deadline)
                 or (cancel_event is not None and cancel_event.is_set())):
             return False
         spent, calls = budget.snapshot()
@@ -139,7 +139,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                            for provider, scheduled in last_start.items()}
         mid = recovery.choose(nid, assignments, set(attempted[nid]), completed, active,
             spent=spent['production'], cost_limit=min(budget.limits['production'], production_cap),
-            remaining_ms=max(0, (deadline-time.monotonic())*1000), input_bound=input_bound,
+            remaining_ms=max(0, (budget.deadline(deadline)-time.monotonic())*1000), input_bound=input_bound,
             last_start=previous_starts)
         if mid is None:
             row['recovery_status'] = 'no-feasible-replacement'
@@ -168,7 +168,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
         while pending or futures or split_pending:
             if cancel_event is not None and cancel_event.is_set():
                 stop(CancelledError('task-cancelled'))
-            if time.monotonic() >= deadline:
+            if time.monotonic() >= budget.deadline(deadline):
                 stop(ValueError('task-deadline-exhausted'))
             if failure is None and not split_pending:
                 for nid in order:
@@ -230,7 +230,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         stop(exc)
                     continue
                 # 只有派发间隔暂时阻塞就绪节点时才会进入此分支。
-                time.sleep(min(.01, max(0, deadline - time.monotonic())))
+                time.sleep(min(.01, max(0, budget.deadline(deadline) - time.monotonic())))
                 continue
             # 由调度线程保存进度，避免并发检查点写入。
             changed = False
@@ -255,7 +255,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         stopped_sibling = (isinstance(error, CancelledError) and failure is not None
                             and all(recoverable_stops) and reservation.row['status'] == 'cancelled-before-dispatch'
                             and not (cancel_event is not None and cancel_event.is_set())
-                            and time.monotonic() < deadline)
+                            and time.monotonic() < budget.deadline(deadline))
                         stop(error, recoverable=stopped_sibling or (isinstance(error, InvalidModelOutput)
                              and reservation.row['status'] == 'billed'))
                 else:

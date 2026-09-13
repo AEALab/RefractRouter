@@ -37,8 +37,12 @@ class TaskCallBudget:
         self.stopped = False
         self.max_calls = max_calls
         self.capture_payload = capture_payload
+        self.planning_elapsed = 0.0
         self.on_reserve = None
         self.on_response = None
+
+    def deadline(self, deadline):
+        return deadline + self.planning_elapsed
 
     def remaining(self, category='production'):
         with self.lock:
@@ -93,7 +97,7 @@ class TaskCallBudget:
             for category in self.charged:
                 self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)
 
-    def invoke(self, reservation, *, timeout_seconds=None, cancel_event=None):
+    def invoke(self, reservation, *, timeout_seconds=None, cancel_event=None, unlimited=False):
         row, model = reservation.row, reservation.model
         with self.lock:
             if cancel_event is not None and cancel_event.is_set():
@@ -106,14 +110,18 @@ class TaskCallBudget:
                 raise ValueError('task-deadline-exhausted')
             row.update(status='unknown-usage', dispatch_monotonic=time.monotonic())
         call_client = self.client
-        if timeout_seconds is not None and hasattr(call_client, 'for_task_call'):
-            call_client = call_client.for_task_call(timeout_seconds)
+        if (unlimited or timeout_seconds is not None) and hasattr(call_client, 'for_task_call'):
+            call_client = call_client.for_task_call(None if unlimited else timeout_seconds)
+        planning_started = time.monotonic()
         try:
             response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode)
         except ModelInvocationError as exc:
             with self.lock:
                 row['failure'] = exc.public_details()
             raise
+        finally:
+            if unlimited:
+                self.planning_elapsed += time.monotonic() - planning_started
         if self.on_response is not None:
             self.on_response(row, response)
         if self.capture_payload:
@@ -145,6 +153,6 @@ class TaskCallBudget:
                 f"reasoning_tokens={response.reasoning_tokens}, output_cap={output_token_limit(model)})")
         return response
 
-    def complete(self, model, messages, *, category='production', label, json_mode=False, timeout_seconds=None, category_limit=None):
+    def complete(self, model, messages, *, category='production', label, json_mode=False, timeout_seconds=None, category_limit=None, unlimited=False):
         return self.invoke(self.reserve(model, messages, category=category, label=label, json_mode=json_mode, category_limit=category_limit),
-                           timeout_seconds=timeout_seconds)
+                           timeout_seconds=timeout_seconds, **({"unlimited": True} if unlimited else {}))

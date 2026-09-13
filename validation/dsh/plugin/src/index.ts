@@ -456,14 +456,12 @@ export async function callDshLlm(
     ) {
       throw new Error('invalid DSH bridge request')
     }
-    const timeoutMs = positiveInteger(request.timeout_ms, 'timeout_ms')
-    if (timeoutMs > MAX_MODEL_TIMEOUT_MS) {
+    const timeoutMs = request.timeout_ms === null ? null : positiveInteger(request.timeout_ms, 'timeout_ms')
+    if (timeoutMs !== null && timeoutMs > MAX_MODEL_TIMEOUT_MS) {
       throw new Error(`timeout_ms must be no greater than ${String(MAX_MODEL_TIMEOUT_MS)}`)
     }
-    timeoutSignal = AbortSignal.timeout(timeoutMs)
-    const callSignal = AbortSignal.any(signal === undefined
-      ? [timeoutSignal]
-      : [signal, timeoutSignal])
+    timeoutSignal = timeoutMs === null ? undefined : AbortSignal.timeout(timeoutMs)
+    const callSignal = AbortSignal.any([...(signal ? [signal] : []), ...(timeoutSignal ? [timeoutSignal] : [])])
     const system: string[] = []
     const messages: LlmOptions['messages'] = []
     for (const message of request.messages as unknown[]) {
@@ -519,7 +517,7 @@ export async function callDshLlm(
     if (finish === undefined) throw new Error('DSH LLM stream ended without finish')
     if (finish.reason?.kind === 'error' || finish.reason?.kind === 'aborted') {
       const failure = finish.reason.failure ?? {}
-      const timedOut = timeoutSignal.aborted === true && signal?.aborted !== true
+      const timedOut = timeoutSignal?.aborted === true && signal?.aborted !== true
       return {
         ...base,
         ok: false,

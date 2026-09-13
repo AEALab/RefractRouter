@@ -16,7 +16,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .schemas import ModelSpec
-from .responses_api import decode_response, request_payload
+from .responses_api import output_token_limit, decode_response, request_payload
 
 
 _PROGRESS_LOCK = Lock()
@@ -140,8 +140,8 @@ class DshStdioBridge:
             "messages": list(messages),
             "json_mode": json_mode,
             "temperature": model.request_options.get("temperature", 0),
-            "max_tokens": min(model.max_output_tokens or 4096, 8192),
-            "timeout_ms": max(1, round(timeout_seconds * 1000)),
+            "max_tokens": output_token_limit(model),
+            "timeout_ms": None if timeout_seconds is None else max(1, round(timeout_seconds * 1000)),
             "request_options": dict(model.request_options),
         }
         self._record_progress(
@@ -314,7 +314,7 @@ class OpenAICompatibleClient:
     def for_task_call(self, timeout_seconds):
         """每次任务调用使用独立超时和请求 ID；不共享可变请求计数。"""
         cloned = copy(self)
-        cloned.timeout_seconds = min(self.timeout_seconds, timeout_seconds)
+        cloned.timeout_seconds = None if timeout_seconds is None else timeout_seconds if self.timeout_seconds is None else min(self.timeout_seconds, timeout_seconds)
         cloned.progress_request_prefix = uuid4().hex + "-"
         cloned.progress_request_id = 0
         return cloned
@@ -351,14 +351,14 @@ class OpenAICompatibleClient:
                 "provider": model.provider,
                 "model": model.api_model,
                 "endpoint": endpoint,
-                "timeout_ms": round(self.timeout_seconds * 1000),
+                "timeout_ms": None if self.timeout_seconds is None else round(self.timeout_seconds * 1000),
             },
         )
         payload: dict[str, object] = {
             "model": model.api_model,
             "messages": list(messages),
             "temperature": 0,
-            getattr(model, "token_limit_parameter", "max_completion_tokens"): min(model.max_output_tokens or 4096, 8192),
+            getattr(model, "token_limit_parameter", "max_completion_tokens"): output_token_limit(model),
             **dict(model.request_options),
         }
         if json_mode and model.json_mode_strategy != "prompt-only":

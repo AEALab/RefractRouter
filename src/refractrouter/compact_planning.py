@@ -1,6 +1,8 @@
 """小模型只描述职责与依赖，Python 编译完整契约；不让规划器代替执行器答题。"""
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import replace, dataclass, fields
+from .application_config import ApplicationModelSpec
+from .ark_plan import catalog
 import json
 import time
 
@@ -48,7 +50,13 @@ def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048):
         required_criteria=criteria)
 
 
-def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1200, compact=False):
+@dataclass(frozen=True)
+class PlanningModelSpec(ApplicationModelSpec):
+    unrestricted_planning_output: bool = True
+
+
+def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1200, compact=False,
+                  unrestricted=False, thinking='inherit'):
     if explicit is not None:
         if explicit not in candidates:
             raise ValueError('plannerModelId must be a candidate in the manifest')
@@ -61,14 +69,28 @@ def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1
             m.input_cost_per_1k + m.output_cost_per_1k, m.capability, m.model_id))
         basis = 'configured-latency-then-price' if configuration else 'price-then-capability'
     options = deepcopy(selected.request_options)
-    # 仅对已实测的端点/型号设置紧凑规划默认值；不覆盖用户的显式思考或推理强度。
-    if (compact and selected.base_url == 'https://ark.cn-beijing.volces.com/api/plan/v3'
-            and selected.api_model == 'doubao-seed-2.0-mini'
-            and 'thinking' not in options and 'reasoning_effort' not in options):
-        options['thinking'] = {'type': 'disabled'}
-        basis += '+verified-non-thinking-planner'
+    if thinking not in {'inherit', 'enabled', 'disabled'}:
+        raise ValueError('invalid plannerThinking')
+    if thinking != 'inherit':
+        if selected.wire_api in {'responses', 'dsh-llm'}:
+            raise ValueError('此规划接口仅支持模型自身的推理配置，请选择继承模型设置')
+        if thinking == 'disabled' and selected.api_model == 'glm-5.3' and selected.base_url == 'https://ark.cn-beijing.volces.com/api/plan/v3':
+            raise ValueError('GLM-5.3 不支持关闭思考')
+        options['thinking'] = {'type': thinking}
+    if unrestricted:
+        # 使用模型容量，而非生成节点的输出预算；未收录供应商遵循用户声明的模型容量。
+        capacity_model = next((m for m in configuration.manifest.models if m.model_id == selected.model_id), selected) if configuration else selected
+        capacity = capacity_model.max_output_tokens
+        if selected.base_url == 'https://ark.cn-beijing.volces.com/api/plan/v3':
+            entry = next((m for m in catalog()['models'] if m['model_id'] == selected.api_model), None)
+            if entry is not None:
+                capacity = entry['max_output_tokens']
+        values = {f.name: getattr(selected, f.name) for f in fields(ApplicationModelSpec) if hasattr(selected, f.name)}
+        values.update(max_output_tokens=capacity, request_options=options)
+        return PlanningModelSpec(**values), basis + '+model-capacity'
     return replace(selected, request_options=options,
                    max_output_tokens=min(output_token_limit(selected), output_cap)), basis
+
 
 
 def generate_compact(budget, model, payload, record, *, criteria, cost_limit, deadline,
@@ -79,22 +101,22 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
     record.update(attempts=[], started_monotonic=start, output_cap=output_token_limit(model))
     try:
         for attempt in range(repairs + 1):
-            remaining = deadline - time.monotonic()
-            if remaining <= 0 or budget.stopped:
+            remaining = None if deadline is None else deadline - time.monotonic()
+            if (remaining is not None and remaining <= 0) or budget.stopped:
                 raise ValueError('planner-deadline-exhausted')
             reply = budget.complete(model, messages, label=label if attempt == 0 else label+'-repair',
-                json_mode=True, timeout_seconds=remaining, category_limit=cost_limit)
+                json_mode=True, timeout_seconds=remaining, category_limit=cost_limit, unlimited=deadline is None)
             row = {'output': reply.content, 'error': None}
             record['attempts'].append(row)
             try:
-                if time.monotonic() > deadline:
+                if deadline is not None and time.monotonic() > deadline:
                     raise ValueError('planner-deadline-exhausted')
                 plan = compile_compact(json.loads(reply.content), criteria=criteria,
                     max_nodes=max_nodes, output_cap=output_cap)
             except ValueError as exc:
                 row['error'] = str(exc)[:500]
                 persist()
-                if attempt == repairs or time.monotonic() >= deadline:
+                if attempt == repairs or (deadline is not None and time.monotonic() >= deadline):
                     raise
                 messages.extend([{'role':'assistant','content':reply.content},
                     {'role':'user','content':f'修正结构错误并返回完整紧凑 JSON：{row["error"]}'}])

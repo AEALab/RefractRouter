@@ -1003,3 +1003,22 @@ test('文本任务不接收基准专用候选策略参数', async () => {
   assert.equal(argv.includes('--selection-policy'), false)
   assert.equal(argv.includes('--phase'), false)
 })
+
+
+test('planner bridge accepts no timeout and still follows manual cancellation', async () => {
+  const controller = new AbortController()
+  const ctx = { llm: { async *stream(options: LlmOptions): AsyncGenerator<StreamChunk> {
+    assert.equal(options.maxTokens, 128000)
+    assert.equal(options.signal?.aborted, false)
+    controller.abort()
+    await new Promise(resolveWait => setImmediate(resolveWait))
+    yield { type: 'finish', reason: { kind: 'stop' } }
+  } } }
+  const result = await callDshLlm(ctx, {
+    protocol: 'refractrouter-dsh-llm/v1', type: 'request', id: 'cancel-planner',
+    provider: 'test', model: 'test', messages: [{ role: 'user', content: 'test' }],
+    max_tokens: 128000, timeout_ms: null, request_options: {},
+  }, controller.signal)
+  assert.equal(result.ok, false)
+  assert.notEqual(result.failure_type, 'timeout')
+})

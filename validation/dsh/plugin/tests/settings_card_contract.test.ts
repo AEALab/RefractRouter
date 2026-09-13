@@ -341,3 +341,16 @@ test('AFP ceiling is staged, saved and removed independently of reasoning effort
   assert.deepEqual(controller.getSnapshot().provider?.strategies?.economy, { reasoningEffort: 'high' })
   controller.dispose()
 })
+
+
+test('planner thinking is editable, persisted and can return to inheritance', async () => {
+  const scope = fakeScope({ providerConfig: dshProviderConfig() })
+  const controller = new RefractCardController(scope)
+  controller.inject().editPlannerThinking('enabled')
+  await controller.save()
+  assert.equal((scope.writes[0].value as { plannerThinking?: string }).plannerThinking, 'enabled')
+  controller.inject().editPlannerThinking('inherit')
+  await controller.save()
+  assert.equal((scope.writes[1].value as { plannerThinking?: string }).plannerThinking, undefined)
+  controller.dispose()
+})

@@ -6,6 +6,7 @@ import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey
 export interface RefractCardOwnerProps {
   t: (key: string) => string
   useRefractCard: <T>(selector: (snapshot: RefractCardProjection) => T) => T
+  editPlannerThinking(value: string): void
   editDefaultEffort(value: string): void
   editStrategyEffort(mode: ModeKey, value: string): void
   editStrategyAfpCeiling(mode: ModeKey, value: string): void
@@ -126,6 +127,15 @@ export function RefractCard(props: RefractCardOwnerProps) {
             </div>
             <p className="rra-field-hint">{t('defaultEffortHint')}</p>
             {effortSelect(t('defaultEffort'), provider?.defaultReasoningEffort, value => props.editDefaultEffort(value))}
+          </div>
+          <div className="rra-field">
+            <span className="rra-label">{t('plannerThinking')}</span>
+            <p className="rra-field-hint">{t('plannerThinkingHint')}</p>
+            <select className="rra-select" aria-label={t('plannerThinking')} disabled={disabled}
+              value={provider?.plannerThinking ?? 'inherit'} onChange={event => props.editPlannerThinking(event.target.value)}>
+              {['inherit','enabled','disabled'].map(value => <option key={value} value={value}>{t('plannerThinking_' + value)}</option>)}
+            </select>
+            <p className="rra-field-hint">{t('plannerCapacityHint')}</p>
           </div>
           <div className="rra-field">
             <span className="rra-label">{t('strategies')}</span>
