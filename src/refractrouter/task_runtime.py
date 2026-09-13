@@ -329,6 +329,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             detail = 'ModelInvocationError: ' + str(failure['failure_type'])
             if 'http_status' in failure:
                 detail += ' (HTTP ' + str(failure['http_status']) + ')'
+            if 'timeout_ms' in failure:
+                detail += ' (request timeout_ms=' + str(failure['timeout_ms']) + ')'
+            if 'phase' in failure:
+                detail += ' (phase=' + str(failure['phase']) + ')'
         result["issues"].append(detail[:500])
     finally:
         persist()

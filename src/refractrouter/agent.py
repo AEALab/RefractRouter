@@ -204,7 +204,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             except (ValueError, TypeError):
                 raise ValueError('invalid host credential envelope') from None
             environment = {**os.environ, **credentials}
-        client = OpenAICompatibleClient(max_retries=0, environment=environment,
+        client = OpenAICompatibleClient(max_retries=0, timeout_seconds=None, environment=environment,
             **({"dsh_bridge": tool_runtime.bridge} if tool_runtime is not None else {}))
     run_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:12]
     directory = Path(runs_dir).expanduser().resolve() / run_id
