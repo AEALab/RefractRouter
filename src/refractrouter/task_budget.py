@@ -138,7 +138,11 @@ class TaskCallBudget:
                 self.stop()
                 raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')
         if response.finish_reason != 'stop' or not response.content.strip():
-            raise InvalidModelOutput(f"invalid or truncated output for {row['label']}")
+            finish = response.finish_reason if response.finish_reason in {
+                'stop', 'length', 'content_filter', 'tool_calls', 'function_call'} else 'other'
+            raise InvalidModelOutput(f"invalid or truncated output for {row['label']} "
+                f"(finish_reason={finish}, output_tokens={response.output_tokens}, "
+                f"reasoning_tokens={response.reasoning_tokens}, output_cap={output_token_limit(model)})")
         return response
 
     def complete(self, model, messages, *, category='production', label, json_mode=False, timeout_seconds=None, category_limit=None):

@@ -131,7 +131,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         raise ValueError("text tasks require a zero-retry client")
     candidates = {m.model_id: m for m in manifest.candidates}
     planner, planner_basis = planner_model(candidates, configuration=configuration,
-        explicit=request.get('plannerModelId'), output_cap=request.get('plannerMaxOutputTokens',1200))
+        explicit=request.get('plannerModelId'), output_cap=request.get('plannerMaxOutputTokens',1200),
+        compact=request.get('planningMode') == 'compact')
     planner_id = planner.model_id
     if planner_id not in candidates:
         raise ValueError("plannerModelId must be a candidate in the manifest")
