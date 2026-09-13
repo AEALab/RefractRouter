@@ -110,6 +110,7 @@ def test_no_implicit_ark_live_or_custom_profile_borrowing(tmp_path):
 
 
 def test_configured_predictions_do_not_pass_legacy_empirical_gate(tmp_path):
+    from refractrouter.application_config import execution_capacity_model
     config=configuration()
     result=run_agent({'task':'生成配置预测'},provider_config=config,mode='demo',runs_dir=tmp_path)
     folder=Path(result['run_dir'])
@@ -118,7 +119,7 @@ def test_configured_predictions_do_not_pass_legacy_empirical_gate(tmp_path):
     profile=json.loads((folder/'profile.json').read_text())
     with pytest.raises(ValueError,match='empirical'):
         run_task(request,replace(compile_configuration(config).manifest, models=tuple(
-            replace(m, request_options={**m.request_options, 'temperature': 0}) if m.role=='candidate' else m
+            replace(execution_capacity_model(m), request_options={**m.request_options, 'temperature': 0}) if m.role=='candidate' else m
             for m in compile_configuration(config).manifest.models)),profile,client=Client())
 
 
@@ -179,7 +180,7 @@ def test_effective_snapshot_preserves_output_and_temperature_overrides(tmp_path)
     result=run_agent({'task':'检查调用配置','temperature':0.5},provider_config=config,
         mode='live',execute_paid_run=True,runs_dir=tmp_path,max_output_tokens=1000,client=Client())
     manifest=json.loads((Path(result['run_dir'])/'manifest.json').read_text())
-    assert all(m['max_output_tokens']==1000 for m in manifest['models'])
+    assert all(m['max_output_tokens']==(2048 if m['role']=='candidate' else 1000) for m in manifest['models'])
     assert manifest['models'][0]['request_options']['temperature']==0.5
     assert json.loads((Path(result['run_dir'])/'provider-config.json').read_text())==config
 

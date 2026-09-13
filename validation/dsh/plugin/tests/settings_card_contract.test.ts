@@ -354,3 +354,13 @@ test('planner thinking is editable, persisted and can return to inheritance', as
   assert.equal((scope.writes[1].value as { plannerThinking?: string }).plannerThinking, undefined)
   controller.dispose()
 })
+
+test('unlimited time overlays independently and can be switched off', () => {
+  const config=configure({limits:{unlimitedTime:false,relaxBudget:false,relaxContext:false}})
+  validateSettingsSection({limits:{unlimitedTime:true}})
+  const enabled=overlaySettings(config,{limits:{unlimitedTime:true,relaxBudget:false,relaxContext:false}})
+  assert.equal(enabled.limits?.unlimitedTime,true)
+  assert.equal(enabled.limits?.relaxBudget,false)
+  assert.equal(overlaySettings(enabled,{limits:{unlimitedTime:false}}).limits?.unlimitedTime,false)
+  assert.throws(()=>validateSettingsSection({limits:{unlimitedTime:'yes'} as never}),/boolean/)
+})

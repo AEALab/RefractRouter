@@ -130,7 +130,7 @@ class DynamicDecomposition:
             routing = route_nodes(residual, profiles, method=self.request['method'],
                 quality_min=self.request['qualityMin'], cost_max=min(self.budget.remaining(),
                     max(0, self.request['costMax']-self.budget.snapshot()[0]['production'])),
-                latency_max_ms=max(0, (self.budget.deadline(self.deadline)-now)*1000-max(0, wait_ms)),
+                latency_max_ms=None if self.request.get("unlimitedTime") else max(0, (self.budget.deadline(self.deadline)-now)*1000-max(0, wait_ms)),
                 weights=Weights(**self.request['weights']) if self.request['method']=='B' else None,
                 eligible_models={n.node_id:admission[n.node_id]['eligible_models'] for n in residual.nodes},
                 reduce_dominated=self.configuration is not None, execution_policy=self.policy, model_providers={mid:m.provider for mid,m in self.candidates.items()})

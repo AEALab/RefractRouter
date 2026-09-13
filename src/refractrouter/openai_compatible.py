@@ -297,6 +297,16 @@ class ModelInvocationError(RuntimeError):
             details['http_status'] = status
         if type(self.attempts) is int and self.attempts >= 0:
             details['attempts'] = self.attempts
+        for key, allowed_values in {
+            'failure_origin': {'transport', 'http', 'response-validation'},
+            'phase': {'connect-or-response-headers', 'response-body', 'complete', 'unknown'},
+        }.items():
+            value = self.diagnostics.get(key)
+            if isinstance(value, str) and value in allowed_values:
+                details[key] = value
+        timeout = self.diagnostics.get('timeout_ms')
+        if type(timeout) is int and timeout > 0:
+            details['timeout_ms'] = timeout
         return details
 
 
@@ -483,6 +493,8 @@ class OpenAICompatibleClient:
                                     "exception_type": type(exc.reason).__name__}
             if attempts <= self.max_retries:
                 self.sleep(min(2 ** (attempts - 1), 4))
+        if self.timeout_seconds is not None:
+            last_diagnostics['timeout_ms'] = max(1, round(self.timeout_seconds * 1000))
         latency_ms = round((time.perf_counter() - started) * 1000)
         _append_progress(
             self.progress_path,

@@ -83,3 +83,36 @@ def test_success_retains_usage_and_transport_timing(tmp_path):
     event = json.loads(progress.read_text().splitlines()[-1])
     assert event['diagnostics']['phase'] == 'complete'
     assert event['diagnostics']['time_to_headers_ms'] >= 0
+
+
+def test_application_uses_remaining_task_deadline_without_hidden_120_seconds(tmp_path):
+    from refractrouter.agent import run_agent
+    from refractrouter.agent_cli import example_configuration
+    timeouts=[]
+    def fail(client, model, messages, **kwargs):
+        timeouts.append(client.timeout_seconds)
+        raise ModelInvocationError('timeout','private',1,0,
+            diagnostics={'failure_origin':'transport','phase':'connect-or-response-headers',
+                         'timeout_ms':round(client.timeout_seconds*1000)})
+    with patch.object(OpenAICompatibleClient,'complete',fail):
+        result=run_agent({'task':'离线超时验证'},provider_config=example_configuration('openai-compatible'),
+            mode='live',execute_paid_run=True,runs_dir=tmp_path,timeout_ms=300000)
+    assert len(timeouts)==1 and 290 < timeouts[0] <= 300
+    from pathlib import Path
+    result=json.loads((Path(result['run_dir'])/'result.json').read_text())
+    failure=result['calls'][0]['failure']
+    assert failure['phase']=='connect-or-response-headers'
+    assert failure['timeout_ms']>120000
+    assert 'request timeout_ms=' in result['issues'][0]
+    assert 'phase=connect-or-response-headers' in result['issues'][0]
+    assert result['calls'][0]['status']=='unknown-usage'
+    assert OpenAICompatibleClient().timeout_seconds==120
+
+
+def test_transport_timeout_exposes_only_allowlisted_stage_and_configured_limit():
+    client=OpenAICompatibleClient(timeout_seconds=275,max_retries=0,environment={'TEST_API_KEY':'mock'})
+    with patch('refractrouter.openai_compatible.urlopen',side_effect=TimeoutError('secret')):
+        with pytest.raises(ModelInvocationError) as caught:
+            client.complete(real_model(),[])
+    assert caught.value.public_details()=={'failure_type':'timeout','attempts':1,
+        'failure_origin':'transport','phase':'connect-or-response-headers','timeout_ms':275000}

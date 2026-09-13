@@ -20,7 +20,7 @@ from tests.test_text_tasks import Client
 def test_three_presets_use_the_same_router_and_report_real_assignments(tmp_path, strategy, model):
     with patch('socket.socket', side_effect=AssertionError('no network in application tests')):
         result = run_agent({'task': '根据给定材料比较两种部署方式。', 'strategy': strategy},
-            mode='live', execute_paid_run=True, runs_dir=tmp_path, client=Client())
+            mode='live', execute_paid_run=True, runs_dir=tmp_path, client=Client(), production_budget=10000)
     assert result['status'] == 'completed' and result['models'] == {'answer': model}
     assert result['quality']['passed'] and not result['simulated']
     assert result['costs']['production'] > 0 and result['costs']['evaluation'] > 0
@@ -43,7 +43,7 @@ def test_compare_template_reuses_existing_dag_and_retains_handoffs(tmp_path):
 
 def test_compare_template_accepts_a_typical_dsh_system_context(tmp_path):
     result = run_agent({'task': '比较 A/B 成本风险。', 'template': 'compare', 'context': '背景材料' * 4000},
-        mode='live', execute_paid_run=True, runs_dir=tmp_path, client=Client())
+        mode='live', execute_paid_run=True, runs_dir=tmp_path, client=Client(), production_budget=10000)
     assert result['status'] == 'completed', result['issues']
 
 

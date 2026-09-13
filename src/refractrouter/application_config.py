@@ -94,6 +94,24 @@ class ApplicationModelSpec(ModelSpec):
 
 
 @dataclass(frozen=True)
+class ExecutionModelSpec(ApplicationModelSpec):
+    unrestricted_execution_output: bool = True
+
+
+def execution_capacity_model(model):
+    """应用执行节点使用已知模型容量；未知供应商遵循用户声明，保留历史模型类型。"""
+    from dataclasses import fields
+    from .ark_plan import catalog
+    capacity = model.max_output_tokens
+    if model.base_url == ARK_PLAN_URL:
+        entry = next((m for m in catalog()['models'] if m['model_id'] == model.api_model), None)
+        if entry:
+            capacity = entry['max_output_tokens']
+    values = {f.name: getattr(model, f.name) for f in fields(ApplicationModelSpec) if hasattr(model, f.name)}
+    return ExecutionModelSpec(**{**values, 'max_output_tokens': capacity})
+
+
+@dataclass(frozen=True)
 class ApplicationConfiguration:
     manifest: ModelManifest
     predictions: dict
@@ -192,7 +210,7 @@ def compile_configuration(raw, strategy=None):
         cached = number(pricing.get('cachedInputPer1k', inp), 'cached input price', maximum=inp)
         context = integer(m.get('contextWindow'), 'contextWindow', 1024, 10_000_000)
         output = integer(m.get('maxOutputTokens', 2048), 'maxOutputTokens', 1000,
-                         128000 if p['type']=='openai-responses' else 8192)
+                         10_000_000)
         if context <= output:
             raise ValueError('contextWindow must leave space for model input')
         options = deepcopy(m.get('requestOptions', {}))

@@ -222,7 +222,9 @@ def main():
         results = []
         for strategy, physical in expected.items():
             patch = workspace/f'{strategy}.json'
-            run([executable,'dsh-config','--output',patch,'--runs-dir',runs,'--mode','demo','--strategy',strategy])
+            # 安装验收使用模拟模型；需容纳模型容量预留，避免把旧小预算误作安装失败。
+            run([executable,'dsh-config','--output',patch,'--runs-dir',runs,'--mode','demo',
+                 '--production-budget',1000,'--strategy',strategy])
             composed = run(['dsh','--profile','headless','--patch',patch,'--dump-config'])
             assert 'name: dsh-refractrouter-validation/agent' in composed
             assert 'provider: refractagent' in composed

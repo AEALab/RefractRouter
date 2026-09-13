@@ -209,6 +209,12 @@ export function RefractCard(props: RefractCardOwnerProps) {
               <span>{t('relaxContext')}</span>
             </label>
             <p className="rra-field-hint">{t('relaxContextHint')}</p>
+            <label className="rra-check">
+              <input type="checkbox" disabled={disabled} checked={state.limits.unlimitedTime === true}
+                onChange={event => props.editLimit('unlimitedTime', event.target.checked)} />
+              <span>{t('unlimitedTime')}</span>
+            </label>
+            <p className="rra-field-hint">{t('unlimitedTimeHint')}</p>
           </div>
           <div className="rra-field">
             <div className="rra-label-row">

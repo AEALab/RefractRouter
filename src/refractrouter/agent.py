@@ -14,7 +14,7 @@ import json
 import os
 from dataclasses import asdict
 
-from .application_config import compile_configuration, configured_profile, prepare_configured_plan
+from .application_config import execution_capacity_model, compile_configuration, configured_profile, prepare_configured_plan
 from pathlib import Path
 from uuid import uuid4
 
@@ -87,9 +87,9 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
         raise ValueError('invalid RefractAgent request fields')
     limits = payload.get('limits', {})
-    if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext'}
+    if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext', 'unlimitedTime'}
             or any(not isinstance(limits[key], bool) for key in limits)):
-        raise ValueError('limits may only contain boolean relaxBudget and relaxContext')
+        raise ValueError('limits may only contain boolean relaxBudget, relaxContext and unlimitedTime')
     relax_budget = limits.get('relaxBudget', False)
     relax_context = limits.get('relaxContext', False)
     strategy = payload.get('strategy', 'balanced')
@@ -106,6 +106,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
                'costMax': RELAXED_COST_MAX if relax_budget else budget,
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
                'maxConcurrency': 1, 'maxNodeFallbacks': 0}
+    if limits.get('unlimitedTime', False):
+        request['unlimitedTime'] = True
     if plan is not None:
         request['plan'] = plan
     if automatic:
@@ -135,7 +137,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
     context_limit = RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES
     if not isinstance(context, str) or len(context.encode()) > context_limit:
         raise ValueError('conversation context exceeds the RefractAgent input limit')
-    return strategy, request, context, {'relaxBudget': relax_budget, 'relaxContext': relax_context}
+    return strategy, request, context, {'relaxBudget': relax_budget, 'relaxContext': relax_context, **({'unlimitedTime': limits['unlimitedTime']} if 'unlimitedTime' in limits else {})}
 
 
 def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
@@ -177,7 +179,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         prepare_configured_plan(request, context, explicit_plan='plan' in payload,
                                 output_cap=max_output_tokens, input_cap=input_cap)
     temperature = number(payload.get('temperature', 0), 'temperature', maximum=2)
-    manifest = replace(manifest, models=tuple(replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
+    manifest = replace(manifest, models=tuple(execution_capacity_model(m) if m.role == 'candidate' else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
                                              for m in manifest.models))
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
                                              if m.role == 'candidate' and m.wire_api != 'responses' else m for m in manifest.models))
@@ -204,7 +206,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             except (ValueError, TypeError):
                 raise ValueError('invalid host credential envelope') from None
             environment = {**os.environ, **credentials}
-        client = OpenAICompatibleClient(max_retries=0, environment=environment,
+        client = OpenAICompatibleClient(max_retries=0, timeout_seconds=None, environment=environment,
             **({"dsh_bridge": tool_runtime.bridge} if tool_runtime is not None else {}))
     run_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:12]
     directory = Path(runs_dir).expanduser().resolve() / run_id

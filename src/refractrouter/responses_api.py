@@ -4,9 +4,16 @@ from __future__ import annotations
 
 def output_token_limit(model):
     """Responses 为推理与正文共用较大额度；历史协议保持 8192 上限。"""
-    if getattr(model, 'unrestricted_planning_output', False):
+    if getattr(model, 'unrestricted_planning_output', False) or getattr(model, 'unrestricted_execution_output', False):
         return model.max_output_tokens or 4096
     return min(model.max_output_tokens or 4096, 128000 if model.wire_api == 'responses' else 8192)
+
+
+def available_output_limit(model, input_bound):
+    limit = output_token_limit(model)
+    if getattr(model, 'unrestricted_execution_output', False):
+        return max(0, min(limit, model.context_window - input_bound))
+    return limit
 
 
 def request_payload(model, messages, *, json_mode):

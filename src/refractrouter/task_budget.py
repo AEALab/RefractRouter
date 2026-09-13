@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from concurrent.futures import CancelledError
 from copy import deepcopy
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 import hashlib
 import json
 from threading import RLock
 import time
 
-from .responses_api import output_token_limit
+from .responses_api import output_token_limit, available_output_limit
 from .node_routing import number
 from .openai_compatible import ModelInvocationError, model_response_cost
 
@@ -64,7 +64,11 @@ class TaskCallBudget:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
         input_bound = request_input_bound(messages, tools)
-        output_bound = output_token_limit(model)
+        output_bound = available_output_limit(model, input_bound)
+        if output_bound <= 0:
+            raise ValueError('request leaves no model output capacity')
+        if getattr(model, 'unrestricted_execution_output', False):
+            model = replace(model, max_output_tokens=output_bound)
         if input_bound + output_bound > model.context_window:
             raise ValueError('request exceeds conservative context bound')
         reserve = input_bound / 1000 * model.input_cost_per_1k + output_bound / 1000 * model.output_cost_per_1k
@@ -120,7 +124,7 @@ class TaskCallBudget:
             row.update(status='unknown-usage', dispatch_monotonic=time.monotonic())
         call_client = self.client
         if (unlimited or timeout_seconds is not None) and hasattr(call_client, 'for_task_call'):
-            call_client = call_client.for_task_call(None if unlimited else timeout_seconds)
+            call_client = call_client.for_task_call(None if unlimited or timeout_seconds == float("inf") else timeout_seconds)
         planning_started = time.monotonic()
         try:
             response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode,
