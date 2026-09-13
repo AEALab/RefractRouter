@@ -11,7 +11,7 @@ from .model_selection import Weights
 from .routing_actions import action_identity
 from .node_routing import load_profile, number, route_nodes
 from .node_recovery import NodeRecovery, validate_fallback_limit
-from .openai_compatible import ChatResponse
+from .openai_compatible import ChatResponse, ModelInvocationError
 from .task_budget import TaskCallBudget
 from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
@@ -303,6 +303,11 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             'content-verification-failed' if isinstance(exc, NodeSemanticFailure) else "failed")
         # Provider exception strings may contain credentials or response bodies.
         detail = str(exc) if isinstance(exc, (ValueError, json.JSONDecodeError, CancelledError)) else type(exc).__name__
+        if isinstance(exc, ModelInvocationError):
+            failure = exc.public_details()
+            detail = 'ModelInvocationError: ' + str(failure['failure_type'])
+            if 'http_status' in failure:
+                detail += ' (HTTP ' + str(failure['http_status']) + ')'
         result["issues"].append(detail[:500])
     finally:
         persist()

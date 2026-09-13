@@ -11,7 +11,7 @@ import time
 
 from .responses_api import output_token_limit
 from .node_routing import number
-from .openai_compatible import model_response_cost
+from .openai_compatible import ModelInvocationError, model_response_cost
 
 
 class InvalidModelOutput(ValueError):
@@ -108,7 +108,12 @@ class TaskCallBudget:
         call_client = self.client
         if timeout_seconds is not None and hasattr(call_client, 'for_task_call'):
             call_client = call_client.for_task_call(timeout_seconds)
-        response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode)
+        try:
+            response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode)
+        except ModelInvocationError as exc:
+            with self.lock:
+                row['failure'] = exc.public_details()
+            raise
         if self.on_response is not None:
             self.on_response(row, response)
         if self.capture_payload:

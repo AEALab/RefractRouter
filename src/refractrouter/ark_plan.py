@@ -34,7 +34,8 @@ def application_configuration():
             'id': row['model_id'], 'model': row['model_id'], 'provider': 'ark-plan', 'role': 'candidate',
             'contextWindow': row['context_window_tokens'], 'maxOutputTokens': 8192,
             'jsonMode': row.get('json_mode_strategy', 'json-object-hint'),
-            'requestOptions': {'thinking': {'type': 'enabled' if row.get('thinking_policy') == 'required-cannot-disable' else 'auto'}},
+            'requestOptions': ({'thinking': {'type': 'enabled'}}
+                               if row.get('thinking_policy') == 'required-cannot-disable' else {}),
             'pricing': {'unit': 'AFP', 'inputPer1k': pricing['input_coefficient'] / 10,
                         'outputPer1k': pricing['output_coefficient'] / 10,
                         'cachedInputPer1k': pricing['input_coefficient'] / 10},

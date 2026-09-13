@@ -40,3 +40,9 @@ AFP 是成本维度，不是质量维度；六档是六个官方实际价格值�
 历史 `data/model-manifests/volcengine-agent-plan.json`、旧清单与报告均未修改。
 DSH Ark 设置预设改用完整应用配置；CLI 历史 preset 路径保留，
 通过 `config-example --provider-type ark-agent-plan` 可导出同一完整应用配置。
+
+## 思考参数兼容性
+
+2026-09-13 的最小诊断确认 `doubao-seed-2.0-mini` 拒绝 `thinking.type: auto`（HTTP 400），
+移除该字段后返回 HTTP 200。应用预设不再给所有型号统一注入 `auto`，由供应商选择默认行为；
+GLM-5.3 保留已知的强制开启配置。该诊断只验证参数被接受，不构成完整任务质量评测。

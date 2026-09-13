@@ -268,6 +268,20 @@ class ModelInvocationError(RuntimeError):
         self.latency_ms = latency_ms
         self.diagnostics = dict(diagnostics or {})
 
+    def public_details(self) -> dict[str, object]:
+        """只公开有限枚举和数值；不透传供应商正文、异常文本或任意诊断字段。"""
+        allowed = {'timeout', 'transport-error', 'authentication', 'rate-limit',
+                   'provider-error', 'request-error', 'invalid-response', 'http-error'}
+        details: dict[str, object] = {
+            'failure_type': self.failure_type if self.failure_type in allowed else 'model-invocation-error',
+        }
+        status = self.diagnostics.get('http_status')
+        if type(status) is int and 100 <= status <= 599:
+            details['http_status'] = status
+        if type(self.attempts) is int and self.attempts >= 0:
+            details['attempts'] = self.attempts
+        return details
+
 
 class OpenAICompatibleClient:
     """Minimal non-streaming Chat Completions client with auditable retries."""

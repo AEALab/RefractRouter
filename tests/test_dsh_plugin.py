@@ -40,7 +40,8 @@ class DSHPluginTests(unittest.TestCase):
                 self.assertTrue(all(m.request_options["reasoning_effort"] == effort
                                     for m in compiled.manifest.models))
                 if kind == "ark-agent-plan":
-                    self.assertTrue(all(m.request_options["thinking"]["type"] in {"auto", "enabled"}
+                    self.assertTrue(all(m.request_options.get("thinking") ==
+                                        ({"type": "enabled"} if m.api_model == "glm-5.3" else None)
                                         for m in compiled.manifest.models))
 
     def test_bundle_manifest_and_safe_defaults(self) -> None:
@@ -48,7 +49,7 @@ class DSHPluginTests(unittest.TestCase):
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.14.1")
+        self.assertEqual(package["version"], "0.14.2")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")

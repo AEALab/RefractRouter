@@ -58,3 +58,10 @@ def test_invalid_cost_ceiling_is_rejected(value):
     config['strategies'] = {'economy': {'maxAfpCoefficient': value}}
     with pytest.raises(ValueError):
         compile_configuration(config, strategy='economy')
+
+
+def test_ark_preset_does_not_assume_shared_thinking_modes():
+    config = application_configuration()
+    for model in config['models']:
+        assert model['requestOptions'] == ({'thinking': {'type': 'enabled'}}
+            if model['model'] == 'glm-5.3' else {})
