@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-auto-heterogeneous:combine",
+  "content": "综合打印与配送结果，唯一满足全部条件的组合为P+D，总价300+80=380元，低于预算400元。\n\n**结论**：选择打印商P（300元，双面彩色）和配送方案D（80元，周四送达），总成本380元，满足双面彩色100份、周五前送达及总预算400元的全部要求。\n\n**依据**：\n- 打印条件：需双面彩色100份。P报价300元满足双面彩色；Q报价200元仅黑白，不满足双面彩色要求，故打印商只能选P。\n- 配送条件：须周五前送达。D报价80元周四送达满足；E报价40元周六送达不满足，故配送只能选D。\n- 预算条件：P+D总价380元，低于400元预算。\n\n**限制与权衡**：无其他可行组合。若选Q则打印不满足双面彩色；若选E则配送不满足周五前送达。因此P+D是唯一同时满足所有条件的组合，无需在价格与条件间权衡。\n\n**发现列表**：\n- printer：P（来源：s1）\n- delivery：D（来源：s2）\n- total_cost：380（来源：s1、s2）",
+  "input_tokens": 779,
+  "output_tokens": 266,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3320,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910071810378af8113c224ccdd69578c3b63d1e71a79ec05",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 266,
+    "prompt_tokens": 779,
+    "total_tokens": 1045,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

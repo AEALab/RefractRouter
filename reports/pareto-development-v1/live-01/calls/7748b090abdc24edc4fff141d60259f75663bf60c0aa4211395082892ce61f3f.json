@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-shared-single-1:theft",
+  "content": "结论：依据台账计算，月末应存为 60 件；实盘为 59 件，实盘减应存为 -1 件，即盘亏 1 件。现有材料不能证明失窃，只能确认存在 1 件差异，且另有 2 份待核对单据未提供数量，差异原因尚不确定。\n\nfindings:\n- id: expected_stock\n  value: 60\n  sources: [s1]\n- id: observed_gap\n  value: -1\n  sources: [s1, s2]\n- id: theft_proven\n  value: false\n  sources: [s2]",
+  "input_tokens": 649,
+  "output_tokens": 141,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3278,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909978204159e4692ee8689b9dc112ef0a7e12032fa4dc75",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 141,
+    "prompt_tokens": 649,
+    "total_tokens": 790,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "setup:decision-02",
+  "content": "{\"reason\":\"任务短小且强耦合：资格核验与班次分配必须同时进行，拆成资格核验与分配两个并行分支后由汇总节点合并并核对可行性。\",\"nodes\":[{\"id\":\"qualification\",\"type\":\"extraction\",\"job\":\"从材料中提取每人的培训有效性、可用班次限制，明确甲只能早班、乙只能晚班、丙培训过期。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"assignment\",\"type\":\"synthesis\",\"job\":\"基于资格与班次限制，尝试为早班和晚班各分配一名合格人员，每人最多一班，判断是否存在可行安排。\",\"parents\":[\"qualification\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答任务：输出morning、evening、feasible，并给出中文结论、依据、限制及权衡。\",\"parents\":[\"assignment\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 724,
+  "output_tokens": 213,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3612,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098841326ca3041a3a8c2b7f648d1ff1a7e90ae3f562423",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 213,
+    "prompt_tokens": 724,
+    "total_tokens": 937,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

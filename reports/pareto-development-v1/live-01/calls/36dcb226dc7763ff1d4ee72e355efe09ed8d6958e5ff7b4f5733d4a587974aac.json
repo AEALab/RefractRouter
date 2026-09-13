@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-heterogeneous-1:assignment",
+  "content": "**结论**\n\n早班分配甲，晚班分配乙，方案可行。\n\n**依据与推理过程**\n\n- 资格条件（材料 s1）：每班 1 人，且必须持有有效培训记录。培训有效性是硬性资格门槛。\n- 人员情况（材料 s2）：\n  - 甲：培训有效，可上班次 = 仅早班。资格满足且时间匹配早班 08:00–12:00。\n  - 乙：培训有效，可上班次 = 仅晚班。资格满足且时间匹配晚班 16:00–20:00。\n  - 丙：培训过期，资格不满足，无论时间是否可用均不可上岗。\n- 每人最多一班：甲、乙各分配到不冲突的班次，互不重复。\n- 唯一性：早班只有甲具备资格（乙仅晚班、丙资格无效），晚班只有乙具备资格（甲仅早班、丙资格无效），因此该方案在当前人员下是唯一可行解。\n\n**限制与权衡**\n\n- 本方案强依赖人员班次偏好与培训状态，若材料中任一人员的培训有效性或班次限制发生变化（例如甲培训过期，或乙改为只能早班），则可行结论将不成立，需重新评估。\n- 丙在所有人员均被占用前不会出现上岗机会，因为硬性资格门槛先于时间可用性；若未来要求放宽至\"持有过期培训记录亦可\"，则需另行评估风险与替代安排。\n\n**findings**\n\n- id: morning，value: 甲，sources: s1, s2\n- id: evening，value: 乙，sources: s1, s2\n- id: feasible，value: true，sources: s1, s2",
+  "input_tokens": 944,
+  "output_tokens": 360,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4358,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099033027fc7578b59e843c90e5af4aa62e8cfda915eac8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 360,
+    "prompt_tokens": 944,
+    "total_tokens": 1304,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "label": "rules-02-r1-direct-mid:answer",
+  "content": "{\"answer\": \"当前只能继续签名，签名通过后才可发布；打包检查不能替代签名。依赖方向是签名→发布。\", \"findings\": [{\"id\": \"allowed_now\", \"value\": [\"签名\"], \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"blocked_now\", \"value\": [\"发布\"], \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"required_edge\", \"value\": [\"签名\", \"发布\"], \"sources\": [\"s1\"]}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null
+}

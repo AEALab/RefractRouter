@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-heterogeneous-1:verify",
+  "content": "核对依赖：打包结束是签名前置，签名通过是发布前置；检查报告不替代签名。\n\n结论：当前可执行步骤为“打包”（已完成、可视为可执行状态）和“签名”（尚未执行，但流程上允许执行）；“发布”当前不能执行，因为其直接前置条件“签名通过”尚未满足。负责人“现在直接发布”的要求与流程依赖冲突，不能作为放行依据。\n\n依据：\n- 材料s1（流程）明确“打包结束才能签名；签名通过才能发布”，并强调“检查报告只证明打包成功，不代表签名完成”。该材料定义了两条直接前置边：打包→签名、签名→发布，且不承认检查通过可替代签名。\n- 材料s2（现状）显示“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”。结合s1：打包已满足其后续前置；签名虽未执行但前置（打包结束）已满足，故允许执行；发布的直接前置（签名通过）未满足，因此被阻断。\n- 上游extract结论与上述一致：allowed_now含打包、签名；blocked_now仅含发布；required_edge为[签名, 发布]。本节点以原始材料复核，未发现需要修正之处。\n\n限制：\n- 结论仅基于给定材料s1、s2及上游extract结果，不推断签名执行后的成败、签名失败时的回退路径，也不引入发布环节在签名之外可能存在的其他前置条件。\n- “负责人要求”属于外部指令，不构成流程边，不改变allowed_now/blocked_now的判定。\n- 别名仅用于识别边端点（如“签名通过”≡“签名”、“打包结束”≡“打包”），不用于证明步骤已通过，也不用于正文或allowed/blocked集合；反向边（发布→签名）不等价于签名→发布。\n\n权衡：\n- 若强行发布，须由具备相应权限的授权方明确给出流程豁免并承担风险；该豁免不在本节点职责范围内，本节点不为其背书。\n- 检查报告即便通过，也仅证明打包成功，不得用于将“发布”移入allowed_now，也不得省略required_edge中“签名→发布”这一边。\n\nfindings:\n- id: allowed_now\n  value: [\"打包\", \"签名\"]\n  sources: [\"s1\", \"s2\"]\n- id: blocked_now\n  value: [\"发布\"]\n  sources: [\"s1\", \"s2\"]\n- id: required_edge\n  value: [[\"签名\", \"发布\"]]\n  sources: [\"s1\"]",
+  "input_tokens": 1188,
+  "output_tokens": 517,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5580,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099607668682583ac3749be18cdf4b3a384433037dfe380",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 517,
+    "prompt_tokens": 1188,
+    "total_tokens": 1705,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

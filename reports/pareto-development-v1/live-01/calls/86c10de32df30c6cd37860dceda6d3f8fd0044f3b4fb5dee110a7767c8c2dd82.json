@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-direct-cheap:answer",
+  "content": "{\"answer\": \"根据台账计算，月初库存80件，本月入库30件，出库46件，报损4件（已审批，不包含在出库数内）。因此应存数量为：80 + 30 - 46 - 4 = 60件。月末实盘59件，实盘减应存为59 - 60 = -1件，即差异为短缺1件。关于失窃认定：材料中仅提供了进出记录和盘点记录，无监控或责任调查结果，且尚有2份单据待核对（未提供对应数量），因此无法将差异归因于失窃，失窃未被证明。\", \"findings\": [{\"id\": \"expected_stock\", \"value\": 60, \"sources\": [\"s1\"]}, {\"id\": \"observed_gap\", \"value\": -1, \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"theft_proven\", \"value\": false, \"sources\": [\"s2\"]}]}",
+  "input_tokens": 812,
+  "output_tokens": 218,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3572,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909995559175251d478e5bf6426f4e0f08f6c1b200a8b24d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 218,
+    "prompt_tokens": 812,
+    "total_tokens": 1030,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

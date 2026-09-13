@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-single-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确核对打印与配送：仅 P 满足双面彩色，仅 D 满足周五前送达，组合总价 380 元低于 400 元预算；findings 与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文明确双面彩色仅 P 可行、周五前仅 D 可行，P+D=380 元且低于 400 元预算，符合 s1、s2 与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 printer=P、delivery=D、total_cost=380 与正文一致；未把周四/周六方向或彩色/黑白限制写反，也未声称材料外优惠。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论齐全；printer 引 s1 支持彩色要求，delivery 引 s2 支持周五前送达，total_cost=380 引 s1、s2 的 300 与 80 报价相加成立。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未选择更便宜但不合规的 Q 或 E；最终 P+D 同时满足彩色双面、周五前送达与 400 元预算，且为唯一合法组合。\"}]}",
+  "input_tokens": 993,
+  "output_tokens": 339,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9153,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890987218030b63b37cbca791937f2f41fb0469576dd66b6f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 339,
+    "prompt_tokens": 993,
+    "total_tokens": 1332,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r1-shared-heterogeneous-2:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用规则：未签收的归还不扣减持有数，当前持有3件，可新增2件，申请3件超出，故不能全数批准；findings 的 id、类型、数值与 sources 均与材料和任务要求一致，正文与结构化结论一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 的5件上限与签收后扣减规则、 s2 的已签出3件与未签收1件，得出持有3件、可新增2件、申请3件不能全批，符合材料与任务。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与 findings 中 remaining=2、requested=3、full_approval=false 一致；签收才扣减的方向未被反写，未把放回当作已归还。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需 findings 齐全且类型正确：remaining=2（s1、s2 支持）、requested=3（s2 支持）、full_approval=false（s1、s2 支持），数值与规则计算一致。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"候选答案明确未签收不计入扣减，将放回的1件仍计入持有数，符合该语义约束。\"}]}",
+  "input_tokens": 834,
+  "output_tokens": 343,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12070,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099298725534779bc6a83ab3f36a7a90c1e71ba3578c366",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 343,
+    "prompt_tokens": 834,
+    "total_tokens": 1177,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-shared-heterogeneous-2:survey_analysis",
+  "content": "survey_negative：14份。依据材料s1，50份自愿填写的问卷中有14份表示不满意。限制：该数字仅反映自愿填写者的意见，未记录未填写问卷者的情况，且未记录这些不满意者是否联系过客服，因此不能外推至全体客户。\n\nservice_complaints：20条投诉工单。依据材料s2，同周共有20条投诉工单，其中4条为同一客户追问。限制：工单条数不等于客户数，因存在同一客户多次投诉的情况；且工单未与问卷身份对应。\n\ncan_pool：false。依据材料s1和s2，问卷未记录是否联系过客服，客服工单无法与问卷身份对应，且问卷为自愿填写、未记录未填写者，两来源的抽样基数和重叠情况均未知，因此不能合并计算全体客户不满意率。",
+  "input_tokens": 643,
+  "output_tokens": 185,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3208,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891002463977820404c56ac6dd9ce215ba8b602495a7b1901",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 185,
+    "prompt_tokens": 643,
+    "total_tokens": 828,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

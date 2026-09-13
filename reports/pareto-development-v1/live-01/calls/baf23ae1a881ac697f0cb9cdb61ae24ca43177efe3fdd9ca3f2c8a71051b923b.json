@@ -1,0 +1,24 @@
+{
+  "label": "setup:rules-01",
+  "content": "{\"reason\":\"任务短小且强耦合，需先提取规则与申请事实，再按规则计算剩余额度并判断是否全批，最后汇总核对。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"依据规则与申请材料，计算remaining（当前可新增借用数）、requested（本次请求数3）、full_approval（是否可全数批准），输出中文说明及findings列表，核对口头归还未签收不扣减持有数。\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 552,
+  "output_tokens": 119,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3066,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890992129530b63b37cbca791937f2f41fb0469576dc0aeff",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 119,
+    "prompt_tokens": 552,
+    "total_tokens": 671,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

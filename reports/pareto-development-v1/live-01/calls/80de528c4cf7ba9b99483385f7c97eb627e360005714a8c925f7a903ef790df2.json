@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-direct-cheap:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出分别分析了两来源，数值与材料一致，明确工单不等于客户数并说明抽样与重叠限制，正文与findings一致，覆盖全部要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文用中文分别说明问卷14/50不满意、客服20条工单且其中4条为同一客户追问，并给出不能合并的结论与限制，符合材料与输出结构。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中survey_negative=14(s1)、service_complaints=20(s2)、can_pool=false(s1,s2)与正文一致，未把无法对应身份反写成可合并，也未扩大为全体客户率。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出：问卷不满意14份由s1支持，投诉工单20条由s2支持，不可合并由s1未记录客服联系/未填写者与s2无法身份对应共同支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"明确说明20是工单条数而非客户数，并指出问卷自愿填写、未记录未填写者及是否联系客服，客服与问卷身份无法对应导致重叠不可识别，故不能合成全体不满意率。\"}]}",
+  "input_tokens": 1076,
+  "output_tokens": 337,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 13851,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891004639787424dba2bd6e77b99d402060a9cf8c0f3a6706",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 337,
+    "prompt_tokens": 1076,
+    "total_tokens": 1413,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

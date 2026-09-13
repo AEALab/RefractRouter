@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r1-direct-mid:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确计算：未签收归还不扣减持有数，当前持有3件，上限5件，可新增2件，请求3件，故不能全数批准；正文与findings一致，引用充分，满足全部硬约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1规则（5件上限、签收才扣减）与s2申请（已签出3件、1件放回未签收、申请3件）得出remaining=2、requested=3、full_approval=false，符合材料与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（批准2件、驳回1件、full_approval为false）与findings中remaining=2、requested=3、full_approval=false完全一致；未将未签收归还当作已扣减，依赖方向正确，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全且类型正确；remaining=2由s1上限与s2持有数支持，requested=3由s2支持，full_approval=false由s1、s2共同支持，引用充分。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"答案明确将放回归还因未签收而不予扣减，持有数仍按3件计算，并在限制部分强调该硬约束，未违反。\"}]}",
+  "input_tokens": 1094,
+  "output_tokens": 358,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 14604,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099330218fd0de7354b348b065f00b895e07126b876546b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 358,
+    "prompt_tokens": 1094,
+    "total_tokens": 1452,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

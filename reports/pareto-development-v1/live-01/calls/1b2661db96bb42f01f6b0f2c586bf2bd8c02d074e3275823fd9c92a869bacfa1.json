@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-auto-heterogeneous:theft",
+  "content": "expected_stock=60、observed_gap=-1、theft_proven=false。计算与判断如下：\n\n- expected_stock=60：\n  - 月初80 + 入库30 − 出库46 − 已审批报损4 = 60件。\n  - sources: s1。\n  - 注：s2中提到的2份待核对单据未提供对应数量，按\"不擅自补齐\"原则，不计入应存数。\n\n- observed_gap=-1：\n  - 实盘59 − 应存60 = −1件。\n  - sources: s1, s2。\n  - 含义：实盘比应存少1件，台账出现1件的负向缺口。\n\n- theft_proven=false：\n  - 仅存在1件台账差异，不能等同于失窃认定。s2明确：单据仍有2份待核对且未提供数量，无法排除账面口径偏差；无监控录像或出入库影像、无责任调查与询问笔录、无现场痕迹或报案记录，材料中无任何指向\"被他人非法占有\"的证据。\n  - sources: s2。\n  - 缺口可能由待核对单据的未入账数量、漏记入库/出库、报损口径差异、计量或盘点点差等常规原因造成；在补齐单据与完成责任调查之前，证据不足以认定失窃。\n\n- 限制与权衡：\n  - 结论以现有台账与盘点记录为限。1件缺口属于\"待解释\"，不属于\"已证明\"。\n  - 若后续补齐2份待核对单据对应的数量并发现其和恰为1件（或与之相符），则缺口可由单据差异解释，theft_proven仍为false。\n  - 若补齐后仍存在无法由单据解释的缺口，需再结合监控、门禁、岗位职责与询问调查，才能进一步判断是否可能涉及失窃；当前材料不支持该判断。\n  - 不进行未提供的数量估算或外推，保持结论稳健。\n\n综上：应存60件，实盘59件，台账缺口1件；在缺少监控、责任调查与待核对单据结果的情况下，证据不足以证明失窃，theft_proven=false。",
+  "input_tokens": 749,
+  "output_tokens": 454,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7389,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891000192893a391e43edef5299850de6066b8d72e26f4c49",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 454,
+    "prompt_tokens": 749,
+    "total_tokens": 1203,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

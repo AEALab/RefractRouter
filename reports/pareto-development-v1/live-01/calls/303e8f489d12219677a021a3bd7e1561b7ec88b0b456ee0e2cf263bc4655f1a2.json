@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"任务为单一状态核对，依赖关系简单，拆为提取现状与规则、核对状态、汇总交付三节点。\",\"nodes\":[{\"id\":\"extract\",\"type\":\"extraction\",\"job\":\"从流程与现状材料中提取步骤状态：打包已结束并通过检查，签名未执行，发布未执行；提取规则：打包结束才能签名，签名通过才能发布，检查报告不证明签名完成。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"check\",\"type\":\"verification\",\"job\":\"基于提取的规则与现状，逐项核对打包、签名、发布在当前状态能否执行；确定allowed_now、blocked_now及发布直接前置边（签名）。\",\"parents\":[\"extract\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总核对结果，输出中文结论、依据、限制及权衡，并按要求呈现allowed_now、blocked_now、required_edge，确保不暗示检查通过即可直接发布。\",\"parents\":[\"check\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 690,
+  "output_tokens": 232,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4690,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101635147d1a31addd6d38d14c8141e1e64f1efaa33839a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 232,
+    "prompt_tokens": 690,
+    "total_tokens": 922,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

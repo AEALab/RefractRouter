@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-heterogeneous-1:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确选择 P+D 组合，总价 380 元，满足双面彩色、周五前送达和 400 元预算的全部硬约束；正文逐一核对四种组合并说明不能各取便宜项，findings 与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文结论 P+D=380 元，与 s1（P 300 元双面彩色、Q 仅黑白）和 s2（D 80 元周四、E 周六、预算 400）一致，满足双面彩色、周五前送达、预算内全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 printer=P、delivery=D、total_cost=380 与正文一致；未反写依赖，限制说明（无折扣、无其他档位）未扩大材料证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 完整：printer 引用 s1、delivery 引用 s2、total_cost=380 引用 s1+s2，数值 300+80=380 正确，标签均在允许集合内，引用足以支持各自主张。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"所选 P+D 同时满足全部条件；正文明确逐一核对 P+E、Q+D、Q+E 均不合规，并指出不能只选各单项最便宜项（Q+E=240 最便宜但不合规），符合全局约束要求。\"}]}",
+  "input_tokens": 979,
+  "output_tokens": 384,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12768,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910053224196de9f55314d9c1d75ac853e3e9cad7eaa8ca4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 384,
+    "prompt_tokens": 979,
+    "total_tokens": 1363,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

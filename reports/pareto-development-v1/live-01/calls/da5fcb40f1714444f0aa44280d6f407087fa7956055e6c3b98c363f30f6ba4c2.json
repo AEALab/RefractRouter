@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"任务短小且强耦合，资格与班次限制需合并核验，直接生成最终答案。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"核验甲、乙、丙的培训有效性与班次可用性，判断早班、晚班分配及可行性，输出morning、evening、feasible及中文说明。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+  "input_tokens": 607,
+  "output_tokens": 96,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2342,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910109910448e426867c3c446aaa68159641220ac1d272da",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 96,
+    "prompt_tokens": 607,
+    "total_tokens": 703,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

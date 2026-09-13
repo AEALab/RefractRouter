@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-task-selector:answer",
+  "content": "```json\n{\n  \"answer\": \"结论：存在符合全部条件的安排。早班由甲担任，晚班由乙担任。\\n\\n依据：\\n1. 资格核验：甲培训记录有效，乙培训记录有效，丙培训记录已过期，不具备带班资格。\\n2. 可用时间与班次限制：甲只能早班，乙只能晚班，丙虽两班均有空但因培训过期不可用。\\n3. 每班1人且每人最多一班：甲安排早班，乙安排晚班，满足每班1人且无人重复。\\n\\n限制说明：丙因培训过期，即使时间有空也不能安排任何班次。若甲或乙任一缺席，则无法同时满足早班和晚班的资格与时间限制，此时不存在可行安排。\",\n  \"findings\": [\n    {\n      \"id\": \"morning\",\n      \"value\": \"甲\",\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"evening\",\n      \"value\": \"乙\",\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"feasible\",\n      \"value\": true,\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}\n```",
+  "input_tokens": 725,
+  "output_tokens": 284,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4985,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891010283458878e6c95084a12b4d57c4d96cb06f1d2248fd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 284,
+    "prompt_tokens": 725,
+    "total_tokens": 1009,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

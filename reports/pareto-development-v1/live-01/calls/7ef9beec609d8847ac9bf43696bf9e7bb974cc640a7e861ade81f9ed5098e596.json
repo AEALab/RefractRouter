@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确区分问卷与客服两个来源，给出可证实的14份不满意问卷与20条投诉工单，明确说明工单不等于客户数、自愿填写存在自选偏差、两来源无法身份对应且重叠不明，因此不能合成全体客户不满意率；findings 的 id、value、sources 与材料和 output_contract 一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文分别分析 s1 与 s2，给出结论、依据、限制与权衡；未把20条工单等同20个客户，且结论与材料一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论为 survey_negative=14、service_complaints=20、can_pool=false，与 findings 完全一致；未声称能合并或能代表全体客户。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 均包含 id、value、sources；14 来自 s1，20 来自 s2，can_pool=false 由 s1 未记录客服联系与 s2 无法身份对应共同支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"答案明确说明20条是工单条数而非客户数，指出同一客户追问导致重复；并分别说明问卷自愿填写偏差、未填写者缺失，以及两来源身份无法对应、重叠不明。\"}]}",
+  "input_tokens": 971,
+  "output_tokens": 355,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14100,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098515046b4a50cd25f47d4bb7d101bbb29abc5193acb92",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 355,
+    "prompt_tokens": 971,
+    "total_tokens": 1326,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

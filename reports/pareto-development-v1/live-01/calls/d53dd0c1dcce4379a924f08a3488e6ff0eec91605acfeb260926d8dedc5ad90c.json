@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r1-shared-single-2:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别当前仅可执行签名，发布因签名未执行而被阻断；required_edge 为[签名, 发布]，方向正确。正文明确说明检查通过不代表签名完成，未倒写依赖，未暗示可直接发布。findings 三项齐全，标签均在允许集合内，sources 引用与各自主张相符。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文结论与 s1 依赖（打包结束才能签名、签名通过才能发布）及 s2 现状（签名未执行）一致，明确拒绝负责人直接发布的要求，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文与 findings 一致：allowed_now=[签名]、blocked_now=[发布]、required_edge=[签名, 发布]；未将检查通过扩大为签名完成，未反写边方向。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 findings 完整且正确；allowed_now/blocked_now 引用 s1、s2 足以支持状态判断，required_edge 引用 s1 足以支持依赖边。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确‘检查报告只证明打包成功，不代表签名完成’，并指出签名未执行故发布被阻断，无倒写依赖或暗示可直接发布。\"}]}",
+  "input_tokens": 1007,
+  "output_tokens": 350,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10194,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099548057fa871229fec4115dc08043e38393b8b5c8b144",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 350,
+    "prompt_tokens": 1007,
+    "total_tokens": 1357,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-shared-single-1:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"应存=80+30-46-4=60，observed_gap=59-60=-1，theft_proven=false；正文明确区分账实差异与失窃归因，未补齐2份待核对单据数量，findings与正文一致且引用足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据、限制与权衡；计算符合s1、s2，未把待核对单据数量纳入，符合任务与约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文60/-1/false与findings一致；未把差异直接归因失窃，未扩大s2无监控或调查的含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"expected_stock=60由s1支持；observed_gap=-1由s1应存与s2实盘59支持；theft_proven=false由s2无监控或责任调查支持。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"明确仅认定1件账实差异，失窃未证明；对2份待核对单据仅说明未提供数量且未纳入，未擅自补齐。\"}]}",
+  "input_tokens": 961,
+  "output_tokens": 317,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10156,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099793787a77e5a4c9aa25c0e7eca6d226bba90a07a17b8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 317,
+    "prompt_tokens": 961,
+    "total_tokens": 1278,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

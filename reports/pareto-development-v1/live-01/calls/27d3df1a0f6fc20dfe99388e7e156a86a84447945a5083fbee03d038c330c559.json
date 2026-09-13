@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-shared-heterogeneous-2:answer",
+  "content": "{\n  \"answer\": \"依据现有材料，台账应存数量为60件，月末实盘为59件，实盘减应存的差异为-1件，即短缺1件。该差异属于台账与实盘之间的数量缺口，不能据此认定失窃。材料中明确无监控或责任调查结果，且仍有2份待核对单据未提供对应数量，因此失窃未被证明。\\n\\n计算依据：月初库存80件，本月入库30件，出库46件，已审批报损4件且报损不包含在出库数内，应存=80+30-46-4=60件。实盘59件，observed_gap=59-60=-1件。\\n\\n限制与权衡：2份待核对单据未纳入计算，按语义要求不擅自补齐其数量，因此应存数仍为60件；若后续单据数量确认，可能影响差异解释。当前仅有数量差异，无监控、无责任调查结论，不能排除错发、漏记、计量误差、报损漏批等非失窃原因，故不能将-1件差异归因于失窃。\",\n  \"findings\": [\n    {\n      \"id\": \"expected_stock\",\n      \"value\": 60,\n      \"sources\": [\"s1\"]\n    },\n    {\n      \"id\": \"observed_gap\",\n      \"value\": -1,\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"theft_proven\",\n      \"value\": false,\n      \"sources\": [\"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 1751,
+  "output_tokens": 347,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5786,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891000731825e054c6d0ba743fab13ed8d72af4b8b235ef7a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 347,
+    "prompt_tokens": 1751,
+    "total_tokens": 2098,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

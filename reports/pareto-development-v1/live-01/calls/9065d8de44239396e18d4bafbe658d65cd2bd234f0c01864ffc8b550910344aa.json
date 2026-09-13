@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-auto-heterogeneous:calc_expected",
+  "content": "expected_stock = 60件。依据：月初库存80件，本月入库30件，出库46件，报损4件（已审批，不包含在出库数内），应存 = 80 + 30 - 46 - 4 = 60件。来源：s1。\n\nobserved_gap = 实盘59件 - 应存60件 = -1件（即实盘比应存少1件）。来源：s2、s1。\n\ntheft_proven = false。材料仅显示台账差异（少1件）及存在2份待核对单据（未提供数量），且无监控或责任调查结果；差异可能由待核对单据、记录误差等原因造成，材料未证明失窃。来源：s1、s2。",
+  "input_tokens": 665,
+  "output_tokens": 166,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1743,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789097864661fa871229fec4115dc08043e38393b8b53576d2",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 166,
+    "prompt_tokens": 665,
+    "total_tokens": 831,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

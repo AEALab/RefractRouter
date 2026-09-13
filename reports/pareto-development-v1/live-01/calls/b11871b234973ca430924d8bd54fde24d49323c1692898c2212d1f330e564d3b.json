@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-shared-heterogeneous-2:assignment",
+  "content": "## 结论\n\n存在可行的排班安排。甲负责早班，乙负责晚班。\n\n## 依据与推理过程\n\n**1. 带班资格核验（依据材料 s1 与 s2）**\n\n材料 s1 明确要求：\"每班1人且必须持有有效培训记录\"。对照 s2 中三人状态：\n\n- **甲**：培训有效 → 具备带班资格。\n- **乙**：培训有效 → 具备带班资格。\n- **丙**：培训过期 → 不具备带班资格，两班均不可安排。\n\n**2. 班次可用性匹配（依据材料 s2）**\n\n- **甲**：只能早班 → 与早班 08:00–12:00 匹配。\n- **乙**：只能晚班 → 与晚班 16:00–20:00 匹配。\n- **丙**：两班时间上均有空，但因资格不符被排除。\n\n**3. 唯一性约束（每人最多一班）**\n\n甲与乙各被分配一个班次，无冲突，约束满足。\n\n**4. 可行性判定**\n\n早班和晚班各有一名培训有效、班次匹配的人员可用，因此 feasible 为 true。\n\n## 分配结果\n\n- 早班：甲\n- 晚班：乙\n- 可行性：true\n\n## 限制与说明\n\n- 丙因培训过期被完全排除，不进入任何班次；如需其参与，必须先完成有效培训并更新记录。\n- 上述安排对甲、乙均落在其\"只能\"对应的唯一班次上，无选择空间，亦无权衡余地。\n- 该方案是当前约束下的唯一可行解；若甲或乙任一人缺席，则因丙资格不符而无替代人选，整体排班将不可行。",
+  "input_tokens": 952,
+  "output_tokens": 367,
+  "cached_input_tokens": 937,
+  "reasoning_tokens": 0,
+  "latency_ms": 4423,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101064174efca7158d8a072a352f4e6ec3154e35ac4c122",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 367,
+    "prompt_tokens": 952,
+    "total_tokens": 1319,
+    "prompt_tokens_details": {
+      "cached_tokens": 937
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

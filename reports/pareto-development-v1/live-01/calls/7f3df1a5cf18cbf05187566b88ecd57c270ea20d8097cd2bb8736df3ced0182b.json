@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r2-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确计算：未签收的放回仍计入持有数，当前持有4件，可新增2件，请求3件超出额度，故不能全数批准；findings 与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 的5件上限与签收才扣减规则，结合 s2 的已签出3件、未签收放回1件、申请3件，得出 remaining=2、requested=3、full_approval=false，并给出结论、依据、限制与权衡，符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 remaining=2、requested=3、full_approval=false 与正文一致；未把'已放回未签收'当作已归还，依赖方向（签收才扣减）保持正确，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 findings 齐全，数值与布尔值正确；remaining 与 full_approval 引用 s1、s2，requested 引用 s2，均足以支持对应主张。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"答案明确将'已放回但尚未签收'的1件计入持有数，未视作完成归还手续，符合该准则。\"}]}",
+  "input_tokens": 818,
+  "output_tokens": 344,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14175,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910133761840d92d5266a85c14e28416df297f1b2031ab04",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 344,
+    "prompt_tokens": 818,
+    "total_tokens": 1162,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

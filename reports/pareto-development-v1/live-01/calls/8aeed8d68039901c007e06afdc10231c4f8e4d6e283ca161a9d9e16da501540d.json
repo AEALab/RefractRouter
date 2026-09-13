@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-auto-heterogeneous:answer",
+  "content": "{\n  \"answer\": \"依据现有台账与盘点材料，应存件数为60件，实盘59件，实盘比应存少1件，即差异为-1件。该差异属于台账差异，不能据此认定为失窃。材料中仍有2份单据待核对且未提供对应数量，同时没有监控或责任调查结果，因此无法排除单据延迟、错登漏登、未入账报损或流转损耗等替代原因。结论：台账差异为-1件，但失窃未被证明。\",\n  \"findings\": [\n    {\n      \"id\": \"expected_stock\",\n      \"value\": 60,\n      \"sources\": [\"s1\"]\n    },\n    {\n      \"id\": \"observed_gap\",\n      \"value\": -1,\n      \"sources\": [\"s2\", \"s1\"]\n    },\n    {\n      \"id\": \"theft_proven\",\n      \"value\": false,\n      \"sources\": [\"s2\", \"s1\"]\n    }\n  ]\n}",
+  "input_tokens": 1563,
+  "output_tokens": 218,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3753,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789097871062ff228b459645a66c98f2a46916338f8e5e82ec",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 218,
+    "prompt_tokens": 1563,
+    "total_tokens": 1781,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

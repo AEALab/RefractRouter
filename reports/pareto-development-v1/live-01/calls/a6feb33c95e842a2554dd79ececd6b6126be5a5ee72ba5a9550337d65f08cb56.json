@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-shared-single-1:pooling_check",
+  "content": "结论：不能合并计算全体客户不满意率。\n\n依据与限制如下：\n\n1. 问卷来源 s1 可证实：自愿填写的 50 份问卷中，有 14 份表示不满意。  \n   - 该数字只能说明“自愿填写且表达不满意”的问卷份数，不能推广为全体客户不满意人数或比率。  \n   - 问卷未记录未填写者数量及态度，存在自选偏差，样本不具代表性。\n\n2. 客服来源 s2 可证实：同周共有 20 条投诉工单，其中 4 条是同一客户追问。  \n   - 20 是“工单条数”，不是“20 个客户”。  \n   - 同一客户追问导致重复计数，进一步说明不能把工单条数直接当作客户数。\n\n3. 两来源无法合并的原因：  \n   - 身份无法对应：问卷与客服工单没有共同客户标识，无法判断投诉客户是否也填写了问卷。  \n   - 重叠情况未知：无法识别 14 份不满意问卷与 20 条投诉工单之间是否存在同一客户重叠。  \n   - 统计口径不同：问卷统计的是“不满意份数”，客服统计的是“投诉工单条数”，两者不能直接相加或合并去重。  \n   - 抽样偏差：问卷为自愿填写，未覆盖未填写者；客服工单只反映主动投诉者，不能代表全体客户。  \n\n因此，can_pool 应为 false。",
+  "input_tokens": 1379,
+  "output_tokens": 318,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5439,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890983849433f04613060c95c0e1cb70b4f628471a98f8e75",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 318,
+    "prompt_tokens": 1379,
+    "total_tokens": 1697,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

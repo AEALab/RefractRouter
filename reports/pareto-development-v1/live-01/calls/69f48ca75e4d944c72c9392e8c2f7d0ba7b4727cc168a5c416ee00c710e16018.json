@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-single-2:assignment",
+  "content": "结论：不存在符合全部条件的可行安排。\n\n依据：\n- 早班要求 1 人，且必须持有有效培训记录；甲培训有效且只能早班，因此早班只能安排甲。\n- 晚班要求 1 人，且必须持有有效培训记录；乙培训有效且只能晚班，因此晚班只能安排乙。\n- 丙培训过期，不满足“必须持有有效培训记录”的资格条件，不能安排到早班或晚班。\n- 甲、乙各安排一班后，满足“每人最多一班”的限制。\n\n因此，在现有人员条件下，早班由甲、晚班由乙，可以形成唯一可行安排。\n\n限制与说明：\n- 该安排依赖“甲只能早班、乙只能晚班”的班次限制；若该限制可调整，则可能有其他组合。\n- 丙虽两班均有空，但因培训过期，不具备带班资格，不能参与分配。\n- 未发现需要权衡的冲突：资格、可用时间与班次限制均指向同一安排。\n\nfindings:\n- id: morning\n  value: 甲\n  sources: [s2]\n- id: evening\n  value: 乙\n  sources: [s2]\n- id: feasible\n  value: true\n  sources: [s1, s2]",
+  "input_tokens": 729,
+  "output_tokens": 283,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5478,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890988869397424dba2bd6e77b99d402060a9cf8c0f3d6ab0",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 283,
+    "prompt_tokens": 729,
+    "total_tokens": 1012,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-shared-single-2:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确完成资格判断与班次分配：甲培训有效且只能早班故任早班，乙培训有效且只能晚班故任晚班，丙培训过期被排除；满足每班1人、有效培训、每人最多一班及班次方向限制。正文与findings一致，引用充分，补充权衡未违反约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出早班甲、晚班乙、feasible=true，符合s1每班1人且须有效培训及s2人员资格与班次限制；未让丙上岗，满足每人最多一班。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中morning=甲、evening=乙、feasible=true与正文一致；甲只能早班、乙只能晚班的方向未被反写，未把丙的空闲扩大为合格。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"morning、evening、feasible三项齐全且事实正确；morning/evening引用s2足以支持人员资格与班次限制，feasible引用s1、s2可支持整体可行性。\"},{\"criterion\":\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\",\"verdict\":\"pass\",\"rationale\":\"正文同时核验培训有效性、甲/乙班次限制及丙虽有空但培训过期；补充建议明确丙不能作为合格人员或替补，未违反条件。\"}]}",
+  "input_tokens": 890,
+  "output_tokens": 368,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 15416,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100910164f0b662e0a22462bcc30964e8c71cc7669902d0",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 368,
+    "prompt_tokens": 890,
+    "total_tokens": 1258,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

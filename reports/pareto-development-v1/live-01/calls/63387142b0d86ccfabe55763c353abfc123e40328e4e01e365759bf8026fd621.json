@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-shared-heterogeneous-1:answer",
+  "content": "{\n  \"answer\": \"结论：morning（早班）为甲，evening（晚班）为乙，feasible 为 true。该安排符合全部条件：每班1人，甲、乙均持有有效培训记录，丙培训过期不具备带班资格；甲只能早班，乙只能晚班，且每人最多一班，因此早班由甲、晚班由乙是唯一可行解。依据材料 s1，早班为08:00–12:00，晚班为16:00–20:00，每班1人且必须持有有效培训记录；依据材料 s2，甲培训有效且只能早班，乙培训有效且只能晚班，丙培训过期且两班均有空。核验结果：甲满足早班资格与班次限制，乙满足晚班资格与班次限制，丙因培训过期被排除；甲、乙各承担一班，未违反每人最多一班的限制。限制与权衡：该方案在现有条件下是唯一解，甲不能去晚班，乙不能去早班，丙因资格问题无法替补，因此无冗余备份；若甲或乙临时无法到岗，将无人具备有效培训资格可替补，需提前安排外协或为丙补办有效培训。补充建议：正式排班前确认甲、乙培训记录在排班当日仍有效；为丙补办培训以恢复排班弹性；建立培训有效期和班次限制的统一管理机制。\",\n  \"findings\": [\n    {\n      \"id\": \"morning\",\n      \"value\": \"甲\",\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"evening\",\n      \"value\": \"乙\",\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"feasible\",\n      \"value\": true,\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 1575,
+  "output_tokens": 421,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6712,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891008047945e054c6d0ba743fab13ed8d72af4b8b270b19f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 421,
+    "prompt_tokens": 1575,
+    "total_tokens": 1996,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

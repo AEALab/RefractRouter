@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-shared-single-1:answer",
+  "content": "{\n  \"answer\": \"结论：存在符合全部条件的可行安排。早班由甲担任，晚班由乙担任。丙因培训过期不具备带班资格，不能安排任何一班。该安排满足每班1人、有效培训记录、班次限制及每人最多一班的要求。\\n\\n依据：\\n- 每班1人且必须持有有效培训记录。\\n- 甲培训有效，只能早班。\\n- 乙培训有效，只能晚班。\\n- 丙培训过期，两班均有空但不具备带班资格。\\n- 每人最多一班。\\n\\n限制与权衡：\\n- 甲不能安排晚班，乙不能安排早班，因此班次分配唯一。\\n- 丙虽有空闲时间，但培训过期，不能作为合格人员。\\n- 若未来丙完成有效培训，可增加排班灵活性，但当前条件下只能由甲、乙分别承担早班和晚班。\",\n  \"findings\": [\n    {\n      \"id\": \"morning\",\n      \"value\": \"甲\",\n      \"sources\": [\"s2\"]\n    },\n    {\n      \"id\": \"evening\",\n      \"value\": \"乙\",\n      \"sources\": [\"s2\"]\n    },\n    {\n      \"id\": \"feasible\",\n      \"value\": true,\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 1122,
+  "output_tokens": 311,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5163,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891009344003f04613060c95c0e1cb70b4f628471a93389c4",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 311,
+    "prompt_tokens": 1122,
+    "total_tokens": 1433,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-auto-heterogeneous:extract",
+  "content": "结论：当前可执行步骤为“打包”（已完成，但作为步骤状态而言它已结束，不再需要执行）；“签名”和“发布”当前均不可执行。依据：现状材料（s2）明确“打包已结束并通过检查；签名未执行；负责人要求现在直接发布”。流程材料（s1）规定“打包结束才能签名；签名通过才能发布”，且“检查报告只证明打包成功，不代表签名完成”。因此，签名因未执行且需以打包结束为前提（该前提已满足，但签名本身尚未执行，故当前不能视为可执行或已完成）；发布因签名未通过而被阻塞，且检查报告不能替代签名通过这一前置条件。负责人要求直接发布与流程规则冲突，不能据此改变依赖。\n\n限制：本结论仅基于所给材料，不假设打包检查之外的其他验证状态；若存在未提供的额外授权或例外流程，不在本材料覆盖范围内。\n\n发现列表：\n\n- id: allowed_now\n  value: [\"打包\"]\n  sources: [\"s1\", \"s2\"]\n\n- id: blocked_now\n  value: [\"签名\", \"发布\"]\n  sources: [\"s1\", \"s2\"]\n\n- id: required_edge\n  value: [[\"打包\", \"签名\"], [\"签名\", \"发布\"]]\n  sources: [\"s1\"]",
+  "input_tokens": 800,
+  "output_tokens": 277,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 5875,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891016400167093713527b8c530401a403eec8fc152c27118",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 277,
+    "prompt_tokens": 800,
+    "total_tokens": 1077,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确判断丙培训过期无资格，分配甲早班、乙晚班，满足每班1人、有效培训记录及个人班次限制；findings 与正文一致，引用 s1、s2 足以支持，类型与标签符合契约。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出可行安排：甲早班（培训有效且只能早班）、乙晚班（培训有效且只能晚班）、丙因培训过期不排班，符合 s1 每班1人且须有效培训记录及 s2 人员限制。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 morning=甲、evening=乙、feasible=true 与正文结论完全一致，未颠倒资格先于分配的依赖，也未超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 findings 齐全，值正确（甲/乙/true），类型符合 finding_types，标签在 allowed_labels 内，sources 含 s1、s2，足以支持资格与班次主张。\"},{\"criterion\":\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确核验了培训资格（丙过期排除）、班次可用限制（甲仅早班、乙仅晚班）及班次时间要求，无额外建议违反这些条件。\"}]}",
+  "input_tokens": 872,
+  "output_tokens": 350,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12148,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101002315c237340934591b89d6de6b6a9271c1b9217512",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 350,
+    "prompt_tokens": 872,
+    "total_tokens": 1222,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-auto-heterogeneous:service",
+  "content": "分析如下：\n\n**结论**：问卷与客服记录分别统计，不能合并计算全体客户不满意率。\n\n**依据**：\n- 问卷（s1）：自愿填写的50份问卷中，14份表示不满意。该数据仅反映自愿填写者，未记录未填写者情况，也未记录填写者是否联系过客服，因此存在抽样偏差。\n- 客服（s2）：同周共有20条投诉工单，其中4条是同一客户追问，即实际投诉客户数可能少于工单数（至少涉及17位客户，若追问客户仅1人）。且客服记录无法与问卷身份对应，无法判断问卷不满意者是否也在投诉工单中。\n\n**限制与权衡**：\n- 不能将20条工单视为20个不满意客户，因含重复追问。\n- 问卷与客服数据来源不同、身份无法匹配，存在重叠未知的问题，故不能简单相加或合并计算总体不满意率。\n- 若需合成全体客户不满意率，需补充身份关联信息及总体客户基数，当前数据不支持。\n\n**findings**：\n- id: survey_negative, value: 14, sources: [\"s1\"]\n- id: service_complaints, value: 20（含4条同一客户追问，实际客户数至少17）, sources: [\"s2\"]\n- id: can_pool, value: false, sources: [\"s1\", \"s2\"]",
+  "input_tokens": 635,
+  "output_tokens": 298,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 6632,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100390307ca3041a3a8c2b7f648d1ff1a7e90ae3f501241",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 298,
+    "prompt_tokens": 635,
+    "total_tokens": 933,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

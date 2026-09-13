@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-direct-mid:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确计算应存60件（80+30-46-4），observed_gap为-1（实盘59减应存60），theft_proven为false，且未擅自补齐2份待核对单据数量，明确区分台账差异与失窃原因认定。正文与findings一致，引用来源恰当，满足全部criteria。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1算出应存60件、依据s2实盘59件得差异-1，并说明无监控或责任调查证据，符合材料与任务要求；输出包含结论、依据、限制，findings含id/value/sources，类型正确。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论expected_stock=60、observed_gap=-1、theft_proven=false与findings完全一致；未将盘亏1件扩大为失窃结论，依赖方向（先算应存再比实盘）正确。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全：expected_stock=60由s1支持；observed_gap=-1由s1、s2支持；theft_proven=false由s2无监控/调查及待核对单据支持，事实与计算均正确。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"正文明确指出1件盘亏属台账差异，不能归因于失窃；对2份待核对单据未提供数量的情况未做数量假设，仅说明需核对后重算，完全符合该标准。\"}]}",
+  "input_tokens": 1212,
+  "output_tokens": 393,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13563,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098011967031cf6218c12fc0ace26887030dd7ea8a5085c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 393,
+    "prompt_tokens": 1212,
+    "total_tokens": 1605,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

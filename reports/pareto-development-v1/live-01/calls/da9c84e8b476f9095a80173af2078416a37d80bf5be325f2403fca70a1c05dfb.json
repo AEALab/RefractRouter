@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-auto-heterogeneous:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案将“签名”列为 blocked_now，但材料显示签名前置（打包结束）已满足，签名是当前可执行步骤；同时把已结束的“打包”列入 allowed_now 与“当前可执行”语义冲突，且正文在签名可执行性上自相矛盾。依赖方向与 required_edge 正确。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"任务要求核对每步能否在当前状态执行。s1 给出依赖：打包结束→签名→发布；s2 表明打包已结束、签名未执行。由此签名前置已满足，签名应为当前可执行步骤，发布被阻塞，打包已结束不属于待执行。正文却称“签名……当前不可执行”并将其列入 blocked_now，同时把已结束的打包列入 allowed_now，与材料和任务语义不符，违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文一处说签名“前置（打包结束）已满足”，另一处又说“当前不可执行/不可视为通过”，内部矛盾；findings 将签名列入 blocked_now、打包列入 allowed_now，与依赖链和现状不一致。依赖方向未反写，检查报告含义未被扩大为可发布，但集合归属错误。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"required_edge=[签名,发布] 正确且由 s1 支持；blocked_now 含发布正确。但 allowed_now=[打包]、blocked_now 含签名的事实判定错误：打包已结束非待执行，签名前置已满足应可执行。s1、s2 的引用不能支持这些错误归属。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确发布直接前置为签名，指出检查报告只证明打包成功、不代表签名完成，拒绝负责人直接发布的要求，未倒写依赖，未暗示检查通过即可发布。\"}]}",
+  "input_tokens": 1412,
+  "output_tokens": 457,
+  "cached_input_tokens": 1280,
+  "reasoning_tokens": 0,
+  "latency_ms": 17921,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101679621795aa3a4ba36fe885727fc31a219ca25912ce8",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 457,
+    "prompt_tokens": 1412,
+    "total_tokens": 1869,
+    "prompt_tokens_details": {
+      "cached_tokens": 1280
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

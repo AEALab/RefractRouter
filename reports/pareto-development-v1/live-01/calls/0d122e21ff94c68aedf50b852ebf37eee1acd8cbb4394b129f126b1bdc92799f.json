@@ -1,0 +1,24 @@
+{
+  "label": "setup:analysis-02",
+  "content": "{\"reason\":\"任务需分别分析问卷与客服记录，再判断能否合并，存在两个独立分析分支和一个汇总判断节点。\",\"nodes\":[{\"id\":\"survey_analysis\",\"type\":\"extraction\",\"job\":\"从问卷材料提取不满意份数14份，确认抽样为自愿填写、未记录未填写者及是否联系客服，标注统计口径限制。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"service_analysis\",\"type\":\"extraction\",\"job\":\"从客服材料提取投诉工单20条，识别其中4条为同一客户追问，确认无法与问卷身份对应，区分工单数与客户数。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"pooling_check\",\"type\":\"verification\",\"job\":\"基于两来源分析结果，判断能否合并计算全体客户不满意率，核查抽样偏差、身份无法对应及工单重复计数等限制。\",\"parents\":[\"survey_analysis\",\"service_analysis\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答：给出survey_negative=14、service_complaints=20、can_pool=false，说明依据、限制及不能合并的原因。\",\"parents\":[\"survey_analysis\",\"service_analysis\",\"pooling_check\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 583,
+  "output_tokens": 287,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4941,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098180384d1a31addd6d38d14c8141e1e64f1efaa2150b9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 287,
+    "prompt_tokens": 583,
+    "total_tokens": 870,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

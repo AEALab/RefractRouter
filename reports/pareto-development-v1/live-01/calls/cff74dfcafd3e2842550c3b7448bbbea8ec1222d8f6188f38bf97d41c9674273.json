@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-task-selector:delivery-judge",
+  "content": "{\n  \"verdict\": \"fail\",\n  \"rationale\": \"候选答案在 allowed_now 中错误地包含“打包”。材料 s2 明确“打包已结束”，该步骤已完成而非当前可执行；任务要求核对“当前状态”下可执行的步骤，候选答案将已完成的打包列为可执行，属于扩大事实含义。\",\n  \"criteria\": [\n    {\n      \"criterion\": \"最终正文符合材料、任务要求与全部硬约束\",\n      \"verdict\": \"fail\",\n      \"rationale\": \"正文将“打包”列入 allowed_now，但材料 s2 表明打包已结束，当前状态下不可再执行，不符合任务对当前可执行步骤的核对要求。\"\n    },\n    {\n      \"criterion\": \"正文与结构化结论一致且未反写依赖或扩大证据含义\",\n      \"verdict\": \"fail\",\n      \"rationale\": \"正文与 findings 均把已完成的“打包”列为可执行，扩大了 s2 中“打包已结束”的事实含义。\"\n    },\n    {\n      \"criterion\": \"必需结论完整、事实正确且各自引用足以支持主张\",\n      \"verdict\": \"fail\",\n      \"rationale\": \"allowed_now 结论包含不应出现的“打包”，事实不正确；blocked_now 与 required_edge 正确，但整体必需结论存在错误。\"\n    },\n    {\n      \"criterion\": \"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\n      \"verdict\": \"pass\",\n      \"rationale\": \"正文明确发布被签名未执行所阻塞，未倒写依赖，也未暗示检查通过即可直接发布。\"\n    }\n  ]\n}",
+  "input_tokens": 1140,
+  "output_tokens": 358,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 22935,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101748720e78c31fe06d4434dfef0260629e4a08bfa2401",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 358,
+    "prompt_tokens": 1140,
+    "total_tokens": 1498,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

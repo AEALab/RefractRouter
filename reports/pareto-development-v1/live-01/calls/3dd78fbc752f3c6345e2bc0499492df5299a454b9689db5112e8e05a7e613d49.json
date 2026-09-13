@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-shared-heterogeneous-2:answer",
+  "content": "{\n  \"answer\": \"依据台账计算，应存件数为：月初库存80件 + 本月入库30件 - 本月出库46件 - 报损4件 = 60件。月末实盘59件，实盘减应存 = 59 - 60 = -1件，即实存比应存少1件。该差异是当前可核验条件下的台账与实盘之差，不等于失窃事实。材料中无监控或责任调查结果，且仍有2份单据待核对、对应数量未提供，因此不能证明差异系失窃所致，只能识别为数量短缺。待核对单据未纳入计算，后续若查明其数量，可能扩大、收窄或抵消当前差异。\",\n  \"findings\": [\n    {\n      \"id\": \"expected_stock\",\n      \"value\": 60,\n      \"sources\": [\"s1\"]\n    },\n    {\n      \"id\": \"observed_gap\",\n      \"value\": -1,\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"theft_proven\",\n      \"value\": false,\n      \"sources\": [\"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 1906,
+  "output_tokens": 255,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4763,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909797467796de9f55314d9c1d75ac853e3e9cad7ee86a06",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 255,
+    "prompt_tokens": 1906,
+    "total_tokens": 2161,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-heterogeneous-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别打印硬约束为双面彩色100份，排除仅黑白的Q并选择P；正确识别配送硬约束为周五前送达，排除周六送达的E并选择周四送达的D；总价300+80=380元，未超400元预算。正文、findings与材料一致，未把低价项误当可行项，结论完整且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文明确需双面彩色100份，s1中P可双面彩色、Q仅黑白，故选P；s2要求周五前送达，D周四送达、E周六送达，故选D；总价380元低于400元预算，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论为P、D、380元，findings中printer=P、delivery=D、total_cost=380一致；正文仅称材料未说明报价是否含税、运费等，属于限制说明，未把未知内容断言为事实，也未反写依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"findings包含printer、delivery、total_cost三项；printer=P由s1支持，delivery=D由s2支持，total_cost=380由s1的300元与s2的80元共同支持，事实与引用均充分。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"候选未选择更便宜的Q或E，而是先核对双面彩色与周五前送达两项硬约束，得到唯一可行组合P+D，并确认380元未超400元预算，满足全局要求。\"}]}",
+  "input_tokens": 1120,
+  "output_tokens": 413,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 14811,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098679395b4a50cd25f47d4bb7d101bbb29abc51926746f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 413,
+    "prompt_tokens": 1120,
+    "total_tokens": 1533,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -53,6 +53,7 @@ def main(argv=None):
     parser.add_argument('--frozen', type=Path)
     parser.add_argument('--material-reviews', type=Path)
     parser.add_argument('--purpose-review', type=Path)
+    parser.add_argument('--progress', action='store_true', help='逐任务立即输出开始事件，记录服务端发出时间')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--live', action='store_true')
     mode.add_argument('--rehearse', action='store_true')
@@ -64,7 +65,8 @@ def main(argv=None):
         result = execute(args.study_dir, frozen, args.output_dir,
                          client=RehearsalClient(args.study_dir) if args.rehearse else None, simulated=args.rehearse,
                          material_reviews=json.loads(args.material_reviews.read_text()) if args.material_reviews else (),
-                         purpose_review=json.loads(args.purpose_review.read_text()) if args.purpose_review else None)
+                         purpose_review=json.loads(args.purpose_review.read_text()) if args.purpose_review else None,
+                         on_progress=(lambda event: print(json.dumps(event, ensure_ascii=False), flush=True)) if args.progress else None)
         summary = {k: result[k] for k in ('status', 'simulated', 'actual_model_calls', 'actual_afp')}
         summary['runs'] = len(result['runs'])
     else:

@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r2-auto-heterogeneous:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确判断丙培训过期无资格，分配甲早班、乙晚班，满足每班1人、有效培训、班次限制及每人最多一班；findings 三项完整、类型正确、标签合法、引用充分，正文与结构化结论一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文先核验资格（丙过期排除），再按甲只能早班、乙只能晚班分配，每班1人且每人最多一班，符合 s1、s2 全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（早甲、晚乙、可行）与 findings 完全一致，未颠倒资格先于分配的顺序，未超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"morning=甲、evening=乙、feasible=true 三项齐全且正确，均引用 s1、s2，足以支持资格与班次主张。\"},{\"criterion\":\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确核验培训有效性（资格）、只能早/晚班及两班均有空（可用时间与班次限制），无补充建议违规。\"}]}",
+  "input_tokens": 946,
+  "output_tokens": 317,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14123,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891011209718df8e1a1401bb5aa62b5b494646ada58abdd96",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 317,
+    "prompt_tokens": 946,
+    "total_tokens": 1263,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

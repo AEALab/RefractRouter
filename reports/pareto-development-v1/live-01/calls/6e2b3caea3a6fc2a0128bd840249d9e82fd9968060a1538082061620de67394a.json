@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案逐项核对打印与配送约束，排除不满足双面彩色的Q和不满足周五前送达的E，选择P+D，总价380元未超400元预算；正文与findings一致，引用来源正确，满足全部硬约束且为唯一可行（即最低总价）组合。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确反映材料：P 300元双面彩色满足需求，Q仅黑白排除；D 80元周四送达满足周五前，E周六送达排除；总价380元≤400元预算，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文结论完全一致，来源标注s1/s2与材料对应，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项必需结论齐全：printer由s1支持，delivery由s2支持，total_cost=380为300+80，由s1和s2共同支持，数值正确。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未贪便宜选Q(200)或E(40)，而是先按硬约束筛选再组合，P+D同时满足双面彩色、周五前送达与400元预算，且为唯一可行组合即最低总价组合。\"}]}",
+  "input_tokens": 876,
+  "output_tokens": 355,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14437,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891006973343d0449b03f13da7ad7c0359f0f1d760c1e2bfe",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 355,
+    "prompt_tokens": 876,
+    "total_tokens": 1231,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-shared-single-2:expected",
+  "content": "结论：依据现有台账，应存为 60 件；实盘 59 件，实盘比应存少 1 件。该 1 件差异只能说明账实不符，现有材料不能证明失窃。\n\nfindings:\n- id: expected_stock\n  value: 60\n  sources: [s1]\n- id: observed_gap\n  value: -1\n  sources: [s1, s2]\n- id: theft_proven\n  value: false\n  sources: [s2]",
+  "input_tokens": 669,
+  "output_tokens": 116,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2730,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098110590ca3041a3a8c2b7f648d1ff1a7e90ae3f49d9d3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 116,
+    "prompt_tokens": 669,
+    "total_tokens": 785,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-single-1:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确选择了打印商P和配送方案D，总价380元，满足所有材料约束。正文与findings一致，引用充分，逻辑清晰。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确识别P满足双面彩色要求（300元），Q仅黑白不满足；D满足周五前送达（80元），E周六送达不满足；总价380元低于预算400元。所有硬约束均被正确应用。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中printer=P、delivery=D、total_cost=380与正文结论完全一致。未反写依赖，未扩大证据含义，sources引用正确对应材料。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论（printer、delivery、total_cost）均完整且事实正确。printer引用s1（打印需求与报价），delivery引用s2（配送需求与报价），total_cost引用s1和s2（价格来源），引用充分支持各项主张。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"候选输出明确说明P+D是唯一同时满足打印、配送和预算全部条件的组合，并解释了Q和E为何不满足各自环节的硬性要求，体现了全局约束的核对而非单纯选取最低价。\"}]}",
+  "input_tokens": 993,
+  "output_tokens": 336,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11457,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890987102843d3436761e68cde6bd2815b0b11060ac11c4b3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 336,
+    "prompt_tokens": 993,
+    "total_tokens": 1329,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

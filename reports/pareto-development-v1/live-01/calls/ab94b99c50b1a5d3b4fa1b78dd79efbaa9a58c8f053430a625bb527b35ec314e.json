@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"问卷与客服记录为两个独立数据源，需分别核实数量与重叠限制，最后汇总判断能否合并。\",\"nodes\":[{\"id\":\"survey\",\"type\":\"extraction\",\"job\":\"从问卷材料提取不满意份数14，确认抽样为自愿填写、未记录未填写者及是否联系客服，标注抽样偏差。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"service\",\"type\":\"extraction\",\"job\":\"从客服材料提取投诉工单20条，其中4条为同一客户追问，确认无法与问卷身份对应，标注重复计数。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"pool\",\"type\":\"synthesis\",\"job\":\"基于两来源独立分析，判断能否合并为全体客户不满意率：因抽样非随机、身份无法对应、工单含重复，不能合并。\",\"parents\":[\"survey\",\"service\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答：分别给出survey_negative=14、service_complaints=20、can_pool=false，说明依据、抽样与重叠限制及权衡。\",\"parents\":[\"pool\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 700,
+  "output_tokens": 265,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2191,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100387906682583ac3749be18cdf4b3a3844330378379d7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 265,
+    "prompt_tokens": 700,
+    "total_tokens": 965,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

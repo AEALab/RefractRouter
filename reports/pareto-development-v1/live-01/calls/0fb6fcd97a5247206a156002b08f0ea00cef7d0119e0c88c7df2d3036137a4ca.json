@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r1-shared-heterogeneous-2:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别唯一可行组合 P+D=380 元，满足双面彩色、周五前送达、预算 400 元全部硬约束；正文、findings 与材料一致，无依赖反写或证据扩大。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 排除仅黑白的 Q、依据 s2 排除周六送达的 E，选定 P+D，总价 380 元低于预算 400 元，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 printer=P、delivery=D、total_cost=380 与正文一致；sources 引用 s1、s2 正确，未反写依赖或超出材料主张。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"printer、delivery、total_cost 三项齐全；P 由 s1 支持，D 由 s2 支持，380=300+80 由 s1、s2 共同支持，数值正确。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"未各取最便宜的 Q+E，而是全局筛选出唯一同时满足彩色双面、周五前送达且总价 380≤400 的组合 P+D。\"}]}",
+  "input_tokens": 1019,
+  "output_tokens": 332,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12665,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890985782929c5625d6f49ce94e6eea0041d172c51c187356",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 332,
+    "prompt_tokens": 1019,
+    "total_tokens": 1351,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

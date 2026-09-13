@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-shared-heterogeneous-2:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"台账应存=80+30-46-4=60件，实盘59件，observed_gap=-1件；候选答案明确区分数量差异与原因认定，未把2份待核对单据数量补齐，且依据无监控或责任调查得出theft_proven=false。正文与findings一致，引用来源足以支持各项结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按s1计算应存60件，按s2取实盘59件并说明短缺1件；遵守不补齐待核对数量、不认定失窃的约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings中expected_stock=60、observed_gap=-1、theft_proven=false一致；未把差异直接等同于失窃，也未声称已有调查证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且类型正确；expected_stock由s1支持，observed_gap由s1与s2支持，theft_proven=false由s2的无监控或责任调查结果及待核对单据情况支持。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"答案明确-1件是台账与实盘缺口，失窃未被证明；对2份待核对单据仅说明未纳入计算，未虚构数量。\"}]}",
+  "input_tokens": 951,
+  "output_tokens": 351,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12745,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178910008987148e426867c3c446aaa68159641220ac1c7514a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 351,
+    "prompt_tokens": 951,
+    "total_tokens": 1302,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "label": "rules-02-r2-direct-mid:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选输出正文与 findings 整体符合流程依赖：打包已完成、签名未执行、发布被阻塞，required_edge 为 [签名, 发布]，未倒写依赖。但 allowed_now 语义存在关键问题：任务要求核对“每个步骤能否在当前状态执行”，材料 s2 显示打包已结束，签名是当前唯一可执行却未执行的步骤；候选把 allowed_now 设为已完成步骤“打包”，并把前置条件已满足、自身未启动的“签名”列入 blocked_now，属于对可执行集合的关键错误，且正文自行改写 allowed_now 定义为“可执行或已完成其前置条件”以容纳该结论，超出任务语义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文正确维护打包→签名→发布方向并拒绝直接发布，但将当前可执行步骤判为已完成的“打包”，并把“签名”列为 blocked_now，违背“能否在当前状态执行”的核对目标；s1/s2 支持的是打包已完成、签名现在可执行、发布被阻塞。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文与 findings 在 allowed_now=[\\\"打包\\\"]、blocked_now=[\\\"签名\\\",\\\"发布\\\"] 上一致，且未反写发布依赖；但一致地采用了错误执行态解释，并通过自定义 allowed_now 含义把已完成步骤纳入可执行集合，扩大了任务字段语义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"blocked_now 含发布、required_edge=[签名,发布] 及其 s1/s2 引用充分；但 allowed_now 未包含当前实际可执行的“签名”，blocked_now 错误包含“签名”，s1/s2 不足以支持“签名仍不能执行”的主张。\"},{\"criterion\":\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\",\"verdict\":\"pass\",\"rationale\":\"正文明确说明检查报告只证明打包成功、不代表签名完成，发布必须先完成签名，未倒写依赖，也未暗示检查通过即可直接发布。\"}]}",
+  "input_tokens": 1413,
+  "output_tokens": 478,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 17280,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217891015285447820404c56ac6dd9ce215ba8b602495a124630",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 478,
+    "prompt_tokens": 1413,
+    "total_tokens": 1891,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

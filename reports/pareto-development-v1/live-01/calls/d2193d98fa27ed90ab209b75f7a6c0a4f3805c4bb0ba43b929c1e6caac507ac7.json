@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r1-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确认定未签收归还不扣除持有数，当前持有按3件计，剩余可借2件，请求3件，超过额度故不能全数批准；正文与findings一致，引用足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1的5件上限与签收后扣除规则，处理s2中已签出3件、未签收放回1件、本次申请3件，得出不可全数批准，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文称剩余2件、请求3件、不可全批，与findings中remaining=2、requested=3、full_approval=false一致；未把未签收归还当作已扣除，也未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且类型正确；remaining=2由s1上限与s2已签出3件支持，requested=3由s2支持，full_approval=false由s1、s2共同支持。\"},{\"criterion\":\"不可把口头归还视作已完成手续。\",\"verdict\":\"pass\",\"rationale\":\"答案明确未签收放回仍计入持有数，遵守s1归还须签收后才扣除的规则。\"}]}",
+  "input_tokens": 799,
+  "output_tokens": 323,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10214,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099428149add9fca5277b8939d33af9a0f1789d6cfd9503",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 323,
+    "prompt_tokens": 799,
+    "total_tokens": 1122,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

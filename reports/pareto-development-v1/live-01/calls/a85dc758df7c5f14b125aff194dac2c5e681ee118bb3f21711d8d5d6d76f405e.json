@@ -1,0 +1,24 @@
+{
+  "label": "decision-01-r2-shared-heterogeneous-1:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案选择 P+D=380 元，逐项核对了四种组合并说明为何不能各取最便宜项；正文与 findings 一致，引用 s1/s2 足以支持，满足双面彩色、周五前送达与 400 元预算等硬约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文明确需双面彩色 100 份，选 P（300 元可双面彩色）排除 Q（仅黑白）；须周五前送达，选 D（80 元周四）排除 E（周六）；总价 380 元低于 400 元预算。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 printer=P、delivery=D、total_cost=380 与正文一致；未把周四送达反写成周五后，也未声称材料外的折扣或议价事实，仅将其列为未考虑的限制。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项必需结论齐全：printer 值 P 由 s1 支持，delivery 值 D 由 s2 支持，total_cost=380 为 300+80，sources 含 s1、s2，足以支持计算。\"},{\"criterion\":\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\",\"verdict\":\"pass\",\"rationale\":\"最终组合 P+D 同时满足打印、配送和预算；正文还逐一说明 P+E、Q+D、Q+E 虽更便宜但分别违反配送或打印要求，体现未忽略全局约束。\"}]}",
+  "input_tokens": 979,
+  "output_tokens": 377,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13568,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100545132770d3492782dd10cc0a489fec0a72eadc4ad56",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 377,
+    "prompt_tokens": 979,
+    "total_tokens": 1356,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

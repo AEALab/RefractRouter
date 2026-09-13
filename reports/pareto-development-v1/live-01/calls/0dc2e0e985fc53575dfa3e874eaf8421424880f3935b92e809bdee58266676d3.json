@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-direct-mid:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出逐项满足任务与材料：问卷不满意14份（s1）、投诉工单20条（s2）均与材料一致；明确指出4条工单为同一客户追问、工单不等于客户数；分别分析两来源并说明自愿抽样、未记录未填写者、无法身份对应等抽样与重叠限制；can_pool=false且理由充分。findings的id、value、sources均符合契约，正文与结构化结论一致，未发现反写依赖或扩大证据。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按任务分别分析问卷与客服记录，数值14与20与s1、s2一致，给出结论、依据、限制与权衡，符合输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中survey_negative=14(s1)、service_complaints=20(s2)、can_pool=false(s1,s2)与正文一致；未将工单数当作客户数，未夸大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项requested_findings均给出且数值/布尔正确，sources引用与材料对应，足以支持各自主张。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"明确指出20条工单含4条同一客户追问、不等于20个客户；分两节分析并说明自愿填写自选择偏差、未填写者未记录、两来源无法身份对应等限制。\"}]}",
+  "input_tokens": 1227,
+  "output_tokens": 369,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12530,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100362063fd0de7354b348b065f00b895e07126b8909daa",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 369,
+    "prompt_tokens": 1227,
+    "total_tokens": 1596,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

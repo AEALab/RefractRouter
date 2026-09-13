@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r2-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"规则与申请材料短小且强耦合，直接合并为单一生成节点即可完成判断与输出。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"依据规则判断申请能否全数批准：计算剩余可借数（5-3=2），本次申请3件，因口头归还未签收不能扣除，故剩余2小于3，输出remaining=2、requested=3、full_approval=false，并给出中文说明。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+  "input_tokens": 669,
+  "output_tokens": 118,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1381,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789101170042795aa3a4ba36fe885727fc31a219ca2558912a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 118,
+    "prompt_tokens": 669,
+    "total_tokens": 787,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

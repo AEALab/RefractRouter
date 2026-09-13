@@ -1,0 +1,24 @@
+{
+  "label": "setup:analysis-01",
+  "content": "{\"reason\":\"任务需先计算台账应存，再对比实盘得出差异，最后基于材料判断失窃是否被证明；计算与证据判断可并行，汇总节点整合并核对。\",\"nodes\":[{\"id\":\"expected\",\"type\":\"extraction\",\"job\":\"根据月初库存80、入库30、出库46、报损4，计算应存=80+30-46-4=60件；不纳入待核对单据数量。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"gap\",\"type\":\"extraction\",\"job\":\"用实盘59件减应存60件，计算observed_gap=-1件；明确差异为台账与实盘之差，不涉及原因。\",\"parents\":[\"expected\"],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"theft\",\"type\":\"verification\",\"job\":\"审查材料是否证明失窃：无监控、无责任调查结果，仅存在差异，不足以证明失窃；输出theft_proven=false。\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总expected_stock=60、observed_gap=-1、theft_proven=false；说明依据、限制（待核对单据未纳入）及权衡，完整交付结论。\",\"parents\":[\"expected\",\"gap\",\"theft\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 707,
+  "output_tokens": 298,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2712,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890979232847d6713dc852f73f0cf900d2fbe3d448834f6dd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 298,
+    "prompt_tokens": 707,
+    "total_tokens": 1005,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

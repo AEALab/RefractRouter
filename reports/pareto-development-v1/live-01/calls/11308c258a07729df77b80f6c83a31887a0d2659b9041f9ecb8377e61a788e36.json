@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-shared-heterogeneous-2:expected",
+  "content": "根据月初库存80件、本月入库30件、出库46件、报损4件（已审批，且不包含在出库数内），应存数量计算为：80 + 30 - 46 - 4 = 60件。待核对的2份单据未提供对应数量，按语义要求不擅自纳入计算，因此不改变应存数。\n\n实盘数量为59件，实盘减应存为：59 - 60 = -1件，即差异为短缺1件。\n\n关于差异归因：材料中仅有台账与盘点数量差异，无监控记录或责任调查结果，未提供任何失窃证据。因此，不能将差异归因于失窃，失窃未被证明。\n\nfindings:\n- id: expected_stock\n  value: 60\n  sources: [\"s1\"]\n- id: observed_gap\n  value: -1\n  sources: [\"s1\", \"s2\"]\n- id: theft_proven\n  value: false\n  sources: [\"s2\"]",
+  "input_tokens": 669,
+  "output_tokens": 221,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4213,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100065320b9f489096afc36acf45c00ec3935d23ad652ac",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 221,
+    "prompt_tokens": 669,
+    "total_tokens": 890,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

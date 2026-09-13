@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r2-shared-heterogeneous-1:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案整体分别分析了两来源、正确给出14与20、can_pool为false，并说明了自选偏差、无法对应身份与工单不等于客户数。但正文提出“客服去重后客户数不少于17”缺乏材料支持：材料仅说明20条工单中4条是同一客户追问，未说明这4条对应的去重后客户数，也未说明其余16条是否互不重复，因此无法推出不少于17。该错误属于正文扩大证据含义，导致相关硬约束失败。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文大部分符合任务，但“客服去重后客户数不少于17”超出材料。材料只说20条工单中4条是同一客户追问，不能确定这4条对应1个客户还是其他去重结果，也不能确定剩余16条无重复，因此该推断无依据。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"结构化findings与材料一致，但正文额外声称去重后客户数不少于17，扩大了s2证据含义；s2不支持可计算的最小客户数。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"survey_negative=14由s1直接支持；service_complaints=20由s2直接支持；can_pool=false由s1未记录是否联系客服、s2无法与问卷身份对应以及口径不同共同支持。\"},{\"criterion\":\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\",\"verdict\":\"pass\",\"rationale\":\"答案明确说明工单数不等于客户数，并分别说明问卷自愿填写、未填写者未记录，以及客服工单无法与问卷身份对应、存在同一客户追问，满足抽样与重叠限制要求。\"}]}",
+  "input_tokens": 1081,
+  "output_tokens": 417,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16055,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789100168495b9f489096afc36acf45c00ec3935d23a8fcd31",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 417,
+    "prompt_tokens": 1081,
+    "total_tokens": 1498,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

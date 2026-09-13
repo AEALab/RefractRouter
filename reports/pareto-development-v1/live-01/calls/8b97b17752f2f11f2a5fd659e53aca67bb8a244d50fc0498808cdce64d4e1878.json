@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r2-direct-mid:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案依据s1正确计算应存60件（80+30-46-4），依据s2得出observed_gap=-1，方向为实盘减应存，与任务定义一致；theft_proven=false有材料支持（s2明确无监控或责任调查，且有2份待核对单据未提供数量），未擅自补齐待核对数量，区分了台账差异与原因认定。findings三项id、类型、sources均符合契约，正文与结构化结论一致，未扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文计算与s1、s2一致：80+30-46-4=60，实盘59，差异-1；输出包含expected_stock、observed_gap、theft_proven三项，findings类型与sources符合output_contract。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文所述60、-1、false与findings完全一致；observed_gap按任务定义为实盘减应存（59-60=-1），方向正确；未将差异直接归因于失窃，未超出材料证据范围。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项结论齐全：expected_stock=60（s1）、observed_gap=-1（s1+s2）、theft_proven=false（s1+s2，s2明确无监控或责任调查），引用足以支持各自主张。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"正文明确将1件记为待核查差异而非定性失窃，并指出2份待核对单据未提供数量、不能据此调整应存，未擅自补齐数量。\"}]}",
+  "input_tokens": 1028,
+  "output_tokens": 418,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14279,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909998659848e426867c3c446aaa68159641220ac19ff6cd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 418,
+    "prompt_tokens": 1028,
+    "total_tokens": 1446,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

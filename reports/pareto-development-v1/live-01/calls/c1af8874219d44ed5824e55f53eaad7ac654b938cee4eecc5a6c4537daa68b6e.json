@@ -1,0 +1,24 @@
+{
+  "label": "decision-02-r1-shared-heterogeneous-1:qualification",
+  "content": "根据材料s2“人员”中的信息：\n\n- 甲：培训有效，只能早班。因此甲的培训有效性为“有效”，可用班次限制为“仅早班”。\n- 乙：培训有效，只能晚班。因此乙的培训有效性为“有效”，可用班次限制为“仅晚班”。\n- 丙：培训过期，两班均有空。因此丙的培训有效性为“过期”（即无效），可用班次限制为“两班均可”（但资格不满足）。\n\n材料s1“要求”中规定：每班1人且必须持有有效培训记录。因此，培训有效性是分配班次的硬性资格条件。",
+  "input_tokens": 666,
+  "output_tokens": 141,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3088,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178909902986489d0c17fc196b3c940c12dd7ad5b500b80eac5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 141,
+    "prompt_tokens": 666,
+    "total_tokens": 807,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "label": "analysis-02-r1-shared-heterogeneous-2:answer",
+  "content": "{\"answer\": \"自愿填写的50份问卷中14份不满意（28%），只能描述填写者；未填写者情况未知，不能推及全部客户。客服有20条投诉工单，其中4条是同一客户追问，工单条数不等于客户数。问卷未记录填写者是否联系客服，两类身份无法对应，无法去重，不能合成全体客户不满意率。\", \"findings\": [{\"id\": \"survey_negative\", \"value\": 14, \"sources\": [\"s1\"]}, {\"id\": \"service_complaints\", \"value\": 20, \"sources\": [\"s2\"]}, {\"id\": \"can_pool\", \"value\": false, \"sources\": [\"s1\", \"s2\"]}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null
+}

@@ -1,0 +1,24 @@
+{
+  "label": "analysis-02-r1-shared-heterogeneous-1:service_analysis",
+  "content": "从客服材料（s2）中提取投诉工单共20条，其中4条为同一客户追问，因此工单数为20条，但涉及客户数少于20条（至少去重1条后为17个不同客户，若追问客户仅计1人）。同时，材料明确记录“无法与问卷身份对应”，即客服记录与问卷（s1）之间没有可匹配的客户标识，无法将两来源数据关联到同一客户群体。因此，工单数（20条）不能直接等同于客户数，也不能与问卷的14份不满意样本合并计算全体客户不满意率。",
+  "input_tokens": 649,
+  "output_tokens": 129,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7275,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217890984549260b63b37cbca791937f2f41fb0469576d73d8dd",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 129,
+    "prompt_tokens": 649,
+    "total_tokens": 778,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

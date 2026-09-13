@@ -1,0 +1,24 @@
+{
+  "label": "rules-01-r1-auto-heterogeneous:planner",
+  "content": "{\"reason\":\"规则与申请材料短小且强耦合，直接合并为单一生成节点即可完成判断与输出。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"依据规则判断：已签出3件，口头归还未签收不计入扣除，故持有数仍为3；上限5件，剩余可新增2件；本次申请3件，超出剩余额度，不能全数批准。输出remaining=2、requested=3、full_approval=false，并给出中文说明。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+  "input_tokens": 669,
+  "output_tokens": 127,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1379,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789099372307ca3041a3a8c2b7f648d1ff1a7e90ae3fa7bdd9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 127,
+    "prompt_tokens": 669,
+    "total_tokens": 796,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}

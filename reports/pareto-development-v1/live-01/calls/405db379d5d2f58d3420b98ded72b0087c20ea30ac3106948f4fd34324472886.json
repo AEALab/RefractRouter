@@ -1,0 +1,24 @@
+{
+  "label": "analysis-01-r1-shared-heterogeneous-1:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"计算与材料一致：应存=80+30-46-4=60，差异=59-60=-1；未把待核对2份单据擅自计入，且明确区分数量差异与失窃认定，theft_proven=false 表示未证明而非排除。正文与 findings 一致，引用足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文使用 s1 的月初80、入库30、出库46、报损4且不包含在出库内，计算应存60；使用 s2 实盘59，差异-1；说明无监控或责任调查、2份单据待核对未提供数量，符合任务输出与限制。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 expected_stock=60、observed_gap=-1、theft_proven=false 与正文一致；未将待核对单据纳入计算，也未把未证明失窃表述为排除失窃。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 findings 完整且类型正确；expected_stock 由 s1 支持，observed_gap 由 s1+s2 支持，theft_proven=false 由 s2 无监控/调查及待核对单据、结合 s1 台账口径支持。\"},{\"criterion\":\"区分台账差异与原因认定；不擅自补齐待核对数量。\",\"verdict\":\"pass\",\"rationale\":\"正文明确-1件是台账与实盘差异，可能来自单据延迟、归类口径或盘点误差等，不能认定失窃；同时声明2份待核对单据未提供数量、未纳入计算。\"}]}",
+  "input_tokens": 1061,
+  "output_tokens": 399,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12274,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789098079090923718d11d313173fa258a554449eb87744f6c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 399,
+    "prompt_tokens": 1061,
+    "total_tokens": 1460,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  }
+}
