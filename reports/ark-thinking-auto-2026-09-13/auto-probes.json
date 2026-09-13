@@ -1,0 +1,118 @@
+{
+  "budget_afp": 1.5,
+  "reserved_afp": 1.0519,
+  "calls": [
+    {
+      "model": "doubao-seed-2.0-lite",
+      "reserved_afp": 0.0157,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "Unsupported thinking type for the current model: auto Request id: 021789262333823efca7158d8a072a352f4e6ec3154e35a829ec1",
+      "usage": null
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "reserved_afp": 0.0157,
+      "status": "response",
+      "http_status": 200,
+      "error_code": null,
+      "message": "",
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 86,
+        "total_tokens": 102,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      },
+      "actual_afp": 0.0051
+    },
+    {
+      "model": "glm-5.3-flash",
+      "reserved_afp": 0.0157,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "The parameter `type` specified in the request are not valid: invalid value auto Request id: 021789262335434fc7578b59e843c90e5af4aa62e8cfda986a1fa",
+      "usage": null
+    },
+    {
+      "model": "doubao-seed-2.1-turbo",
+      "reserved_afp": 0.0785,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "Unsupported thinking type for the current model: auto Request id: 0217892623356037424dba2bd6e77b99d402060a9cf8c0fd69942",
+      "usage": null
+    },
+    {
+      "model": "doubao-seed-evolving",
+      "reserved_afp": 0.0785,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "Unsupported thinking type for the current model: auto Request id: 021789262335856de824baea9702e17bffa39e9c3bdc4f6c7cf3c",
+      "usage": null
+    },
+    {
+      "model": "minimax-m3",
+      "reserved_afp": 0.0785,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "A parameter specified in the request is not valid Request id: 021789262336148770d3492782dd10cc0a489fec0a72ead53796c",
+      "usage": null
+    },
+    {
+      "model": "glm-5.3",
+      "reserved_afp": 0.1413,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "The parameter `type` specified in the request are not valid: invalid value auto Request id: 021789262336481682583ac3749be18cdf4b3a384433037a67a3d",
+      "usage": null
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "reserved_afp": 0.1413,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "A parameter specified in the request is not valid Request id: 021789262336740fc7578b59e843c90e5af4aa62e8cfda9636c08",
+      "usage": null
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "reserved_afp": 0.1727,
+      "status": "response",
+      "http_status": 200,
+      "error_code": null,
+      "message": "",
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 86,
+        "total_tokens": 102,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      },
+      "actual_afp": 0.0561
+    },
+    {
+      "model": "kimi-k3",
+      "reserved_afp": 0.314,
+      "status": "response",
+      "http_status": 400,
+      "error_code": "InvalidParameter",
+      "message": "A parameter specified in the request is not valid Request id: 021789262339067534779bc6a83ab3f36a7a90c1e71ba35828bf7",
+      "usage": null
+    }
+  ]
+}

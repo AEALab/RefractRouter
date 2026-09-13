@@ -1,6 +1,6 @@
 import afpData from './afp-metadata.json' with { type: 'json' }
 export const afpMetadata: { snapshotDate: string; sourceUrl: string; tiers: number[];
-  models: Array<{model: string; coefficient: number; inputCoefficient: number; outputCoefficient: number; planTiers: string[]}>
+  models: Array<{model: string; coefficient: number; inputCoefficient: number; outputCoefficient: number; planTiers: string[]; thinkingAuto: string}>
 } = afpData
 import examples from './provider-examples.json' with { type: 'json' }
 /** RefractAgent 设置卡片的纯逻辑层：staged 表单、写入规划与快照投影。
@@ -30,7 +30,7 @@ export interface StrategyView {
   models?: string[]
 }
 /** 表单只把配置 ID 映射为可读名称，不参与候选模型的路由判定。 */
-export function candidateChoices(provider: ProviderConfigView | undefined): Array<{ id: string; label: string; costLabel?: string; planLabel?: string }> {
+export function candidateChoices(provider: ProviderConfigView | undefined): Array<{ id: string; label: string; costLabel?: string; planLabel?: string; thinkingAuto?: string }> {
   const models = (Array.isArray(provider?.models) ? provider.models : []).filter(
     (row): row is Record<string, unknown> => isRecord(row) && row.role !== 'judge'
       && typeof row.id === 'string' && typeof row.model === 'string',
@@ -42,6 +42,7 @@ export function candidateChoices(provider: ProviderConfigView | undefined): Arra
     const ark = isRecord(providerRow) && providerRow.type === 'ark-agent-plan'
     return {
       ...(ark && reference ? { costLabel: `AFP ${reference.inputCoefficient} / ${reference.outputCoefficient}`,
+        thinkingAuto: reference.thinkingAuto,
         planLabel: reference.planTiers.includes('small') ? 'Small / Medium / Large / Max' : 'Medium / Large / Max' } : {}),
       id: row.id as string,
       label: duplicate ? `${row.model} · ${row.provider} (${row.id})` : row.model as string,
