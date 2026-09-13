@@ -35,6 +35,8 @@ def test_live_progress_arrives_before_blocked_model_finishes(tmp_path):
     assert all(n['state'] == 'ok' for n in final['nodes'])
     assert next(n for n in final['nodes'] if n['id']=='answer')['parents'] == ['left','right']
     assert all(n['model']['model'] for n in final['nodes'])
+    assert all(n['node_type'] in {'planning', 'extraction', 'synthesis', 'generation', 'verification'} for n in final['nodes'])
+    assert all(n['difficulty'] in {'low', 'medium', 'high'} and n['risk'] in {'low', 'medium', 'high'} for n in final['nodes'])
     assert [e['sequence'] for e in events] == list(range(1,len(events)+1))
     saved = [json.loads(line) for line in (Path(result['run_dir'])/'progress.ndjson').read_text().splitlines()]
     assert saved == events

@@ -20,6 +20,15 @@ from .responses_api import output_token_limit, decode_response, request_payload
 
 
 _PROGRESS_LOCK = Lock()
+_STDIO_WRITE_LOCK = Lock()
+
+
+def write_host_record(record, writer=None):
+    """进度与请求共用逐行写锁，避免并发节点将 NDJSON 字节交错。"""
+    with _STDIO_WRITE_LOCK:
+        stream = writer or sys.stdout
+        stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+        stream.flush()
 
 DSH_BRIDGE_PROTOCOL = "refractrouter-dsh-llm/v1"
 
@@ -117,6 +126,22 @@ class DshStdioBridge:
             Path(configured_progress) if configured_progress is not None else None
         )
         self.request_id = 0
+        self.lock = Lock()
+
+    def exchange(self, protocol, payload):
+        with self.lock:
+            self.request_id += 1
+            request_id = str(self.request_id)
+            request = {**payload, "protocol": protocol, "type": "request", "id": request_id}
+            write_host_record(request, self.writer)
+            line = self.reader.readline(2097153)
+            if not line or len(line.encode()) > 2097152:
+                raise RuntimeError("host bridge response missing or too large")
+            response = json.loads(line)
+            if (not isinstance(response, dict) or response.get("protocol") != protocol
+                    or response.get("type") != "response" or response.get("id") != request_id):
+                raise RuntimeError("host bridge response mismatch")
+            return response
 
     def _record_progress(self, event: Mapping[str, object]) -> None:
         _append_progress(self.progress_path, event)
@@ -128,9 +153,9 @@ class DshStdioBridge:
         *,
         json_mode: bool,
         timeout_seconds: float,
+        tools=None,
     ) -> Mapping[str, object]:
-        self.request_id += 1
-        request_id = str(self.request_id)
+        request_id = uuid4().hex
         request = {
             "protocol": DSH_BRIDGE_PROTOCOL,
             "type": "request",
@@ -138,6 +163,7 @@ class DshStdioBridge:
             "provider": model.provider,
             "model": model.api_model,
             "messages": list(messages),
+            **({"tools": tools} if tools else {}),
             "json_mode": json_mode,
             "temperature": model.request_options.get("temperature", 0),
             "max_tokens": output_token_limit(model),
@@ -153,21 +179,9 @@ class DshStdioBridge:
                 "timeout_ms": request["timeout_ms"],
             }
         )
-        self.writer.write(json.dumps(request, ensure_ascii=False) + "\n")
-        self.writer.flush()
         started = time.perf_counter()
         try:
-            line = self.reader.readline()
-            if not line:
-                raise RuntimeError("DSH LLM bridge closed before returning a response")
-            response = json.loads(line)
-            if (
-                not isinstance(response, dict)
-                or response.get("protocol") != DSH_BRIDGE_PROTOCOL
-                or response.get("type") != "response"
-                or response.get("id") != request_id
-            ):
-                raise RuntimeError("DSH LLM bridge returned an invalid response envelope")
+            response = self.exchange(DSH_BRIDGE_PROTOCOL, request)
         except Exception as exc:
             self._record_progress(
                 {
@@ -257,6 +271,9 @@ class ChatResponse:
     request_id: str | None
     usage_available: bool = True
     raw_usage: object = None
+    tool_calls: tuple = ()
+    replay_messages: tuple = ()
+    replay_state: object = None
 
 
 class ModelInvocationError(RuntimeError):
@@ -325,9 +342,10 @@ class OpenAICompatibleClient:
         messages: Sequence[Mapping[str, str]],
         *,
         json_mode: bool = False,
+        tools=None,
     ) -> ChatResponse:
         if model.wire_api == "dsh-llm":
-            return self._complete_dsh(model, messages, json_mode=json_mode)
+            return self._complete_dsh(model, messages, json_mode=json_mode, tools=tools)
         if not model.base_url or not model.api_model or (getattr(model, "authentication_required", True) and not model.api_key_env):
             raise ModelInvocationError(
                 "invalid-model-config", "Model is missing API configuration", 0, 0
@@ -365,6 +383,18 @@ class OpenAICompatibleClient:
             payload["response_format"] = {"type": "json_object"}
         if model.wire_api == "responses":
             payload = request_payload(model, messages, json_mode=json_mode)
+        if tools:
+            from .tool_runtime import validate_schemas
+            schemas = validate_schemas(tools)
+            if model.wire_api == 'responses':
+                payload['tools'] = [{'type': 'function', **s} for s in schemas]
+                payload['include'] = ['reasoning.encrypted_content']
+                if 'text' in payload:
+                    payload['text'].pop('format', None)
+            else:
+                payload['tools'] = [{'type': 'function', 'function': s} for s in schemas]
+            # 输出契约留在提示中；工具中间轮不是最终 JSON 交付。
+            payload.pop('response_format', None)
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         headers = {
             **({"Authorization": f"Bearer {api_key}"} if api_key else {}),
@@ -387,7 +417,7 @@ class OpenAICompatibleClient:
                 )
                 if 200 <= response.status < 300:
                     try:
-                        parsed = (self._parse_responses(response, attempts, started) if model.wire_api == "responses"
+                        parsed = (self._parse_responses(response, attempts, started, tools=bool(tools)) if model.wire_api == "responses"
                                   else self._parse_response(response, attempts, started))
                     except ModelInvocationError as exc:
                         exc.diagnostics = {**response.diagnostics,
@@ -477,6 +507,7 @@ class OpenAICompatibleClient:
         messages: Sequence[Mapping[str, str]],
         *,
         json_mode: bool,
+        tools=None,
     ) -> ChatResponse:
         if self.dsh_bridge is None:
             raise ModelInvocationError(
@@ -497,6 +528,7 @@ class OpenAICompatibleClient:
                     messages,
                     json_mode=json_mode,
                     timeout_seconds=self.timeout_seconds,
+                    **({"tools": tools} if tools else {}),
                 )
                 if response.get("ok") is True:
                     usage = response.get("usage", {})
@@ -504,6 +536,8 @@ class OpenAICompatibleClient:
                         raise TypeError("usage must be an object")
                     return ChatResponse(
                         content=str(response.get("content", "")),
+                        tool_calls=tuple(response.get("tool_calls") or ()),
+                        replay_state=response.get("replay_state"),
                         input_tokens=int(usage.get("input_tokens", 0)),
                         output_tokens=int(usage.get("output_tokens", 0)),
                         cached_input_tokens=int(usage.get("cached_input_tokens", 0)),
@@ -539,11 +573,11 @@ class OpenAICompatibleClient:
         raise ModelInvocationError(last_failure, last_message, attempts, latency_ms)
 
     @staticmethod
-    def _parse_responses(response, attempts, started):
+    def _parse_responses(response, attempts, started, *, tools=False):
         latency_ms = round((time.perf_counter() - started) * 1000)
         try:
             data = json.loads(response.body.decode('utf-8'))
-            decoded = decode_response(data)
+            decoded = decode_response(data, tools=tools)
         except (UnicodeDecodeError, ValueError, TypeError) as exc:
             raise ModelInvocationError('invalid-response', 'Invalid Responses API response',
                                        attempts, latency_ms) from exc
@@ -560,7 +594,7 @@ class OpenAICompatibleClient:
         try:
             data = json.loads(response.body.decode("utf-8"))
             choice = data["choices"][0]
-            content = _message_content(choice["message"]["content"])
+            content = _message_content(choice["message"].get("content") or "")
             raw_usage = data.get("usage")
             usage = raw_usage if isinstance(raw_usage, dict) else {}
         except (UnicodeDecodeError, json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
@@ -587,6 +621,8 @@ class OpenAICompatibleClient:
             request_id=headers.get("x-request-id") or data.get("id"),
             usage_available=usage_available,
             raw_usage=raw_usage,
+            tool_calls=tuple(choice["message"].get("tool_calls") or ()),
+            replay_messages=(choice["message"],),
         )
 
 

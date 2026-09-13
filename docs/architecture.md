@@ -88,7 +88,9 @@ Python 根据节点类型、难度、风险和输入包络匹配该候选的预�
 - RefractAgent 0.3.0 提供可安装的 Python 应用命令和随包资源。
   DSH 插件 0.11.0 的 `refractagent` provider 注册省成本、均衡、质量优先三个模型接口，
   通过原生子进程服务调用已安装核心，传入会话与部署上限；策略及记账仍完全由 Python 决定。
-  该入口支持文本任务，不生成 DSH 工具调用，使用方式见
+  该入口自核心 0.6.0／插件 0.17.0 起支持节点内原生工具循环：Python 负责逐轮预留、
+  模型续调及 DAG 状态；TypeScript 使用真实发起 Agent 调用宿主 `tools.execute`，
+  保留权限、审批及工具轨迹。参见[工具边界](native-tool-execution.md)；安装方式见
   [本机安装说明](refractagent-local-quickstart.md)。
 - `refractrouter_validate` 调用基准验证入口；`refractrouter_task` 调用文本任务入口。
   这两个历史工具仍依赖匹配的 Python 源码环境和配置数据。

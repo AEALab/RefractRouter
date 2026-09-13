@@ -5,6 +5,7 @@ import json
 
 from .responses_api import output_token_limit
 from .task_execution import node_messages
+from .task_budget import request_input_bound
 from .task_plan import validate_plan, NODE_TYPES
 
 
@@ -72,7 +73,7 @@ def generate_plan(budget, model, messages, result, *, required_criteria, max_rep
             return plan
 
 
-def input_estimates(plan, task, candidates, *, output_constraints=None):
+def input_estimates(plan, task, candidates, *, output_constraints=None, tools=None):
     """使用完整序列化输入；父输出按有效输出上限预留，运行时仍检查实际字节数。"""
     output_cap = max(output_token_limit(m) for m in candidates.values())
     rows = {}
@@ -84,8 +85,8 @@ def input_estimates(plan, task, candidates, *, output_constraints=None):
                     for p, info in contract['inputs'].items()}
         messages = node_messages(task, node, contract, upstream,
             output_constraints=output_constraints if node.node_id == plan.final_node_id else None,
-            check_input_budget=False)
-        base = len(json.dumps(messages, ensure_ascii=False).encode()) + 256
+            check_input_budget=False, tools=tools)
+        base = request_input_bound(messages, tools)
         # 与应用模板使用相同的保守预留系数。不是供应商分词器保证；实发前会再检查。
         rows[node.node_id] = {'base_input_bound': base,
             'upstream_allowance': len(node.parents) * output_cap * 8,
@@ -95,21 +96,28 @@ def input_estimates(plan, task, candidates, *, output_constraints=None):
     return rows
 
 
-def compile_generated_capacity(plan, task, candidates, *, output_constraints=None, input_cap=131072):
+def compile_generated_capacity(plan, task, candidates, *, output_constraints=None, input_cap=131072, tools=None):
     """只用于应用自动生成的计划；不改显式合同、实测画像或节点的语义属性。"""
     raw = deepcopy(plan.to_dict())
-    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints)
+    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints, tools=tools)
     for node in raw['nodes']:
         bound = max(256, estimates[node['node_id']]['estimated_input_bound'])
-        if bound > input_cap:
-            raise ValueError(f"automatic-plan-input-capacity-exceeded: {node['node_id']}")
-        node['contract']['capability']['input_budget_tokens'] = bound
+        estimate = estimates[node['node_id']]
+        # 父输出尚未生成，满输出容量不是已经占用的输入。已知材料本身超限仍立即拒绝。
+        # 运行前 node_messages 和 TaskCallBudget 按实际父结果再次检查，不截断或放开限制。
+        if estimate['base_input_bound'] + 32 > input_cap:
+            raise ValueError(f"automatic-plan-input-capacity-exceeded: {node['node_id']} "
+                             f"(known_input={estimate['base_input_bound']}, input_cap={input_cap})")
+        admitted = min(bound, input_cap)
+        estimate.update(admitted_input_budget=admitted,
+                        upstream_capacity_check='at-dispatch' if bound > input_cap else 'reserved')
+        node['contract']['capability']['input_budget_tokens'] = admitted
     return validate_plan(raw, required_criteria=plan.acceptance_criteria), estimates
 
 
-def admission_diagnostics(plan, task, candidates, profiles, quality_min, *, output_constraints=None):
+def admission_diagnostics(plan, task, candidates, profiles, quality_min, *, output_constraints=None, tools=None):
     """整个图在首个节点派发前检查；不给不可执行的分支先花钱。"""
-    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints)
+    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints, tools=tools)
     result = {}
     for node in plan.nodes:
         capability = plan.contracts.get(node.node_id, {}).get('capability')

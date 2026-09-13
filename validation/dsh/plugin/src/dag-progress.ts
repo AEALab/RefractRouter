@@ -1,6 +1,7 @@
 /** 仅校验和展示 Python 核心进度，不推导路由或执行状态。 */
 export const PROGRESS_PROTOCOL = 'refractagent-progress/v1'
 interface NodeView {
+  node_type?: string | null; difficulty?: string | null; risk?: string | null
   id: string; objective: string; parents: string[]; state: string; attempt: number
   model: { id: string; provider: string; model: string; reasoning_effort?: string | null } | null
   recovery: string | null
@@ -20,6 +21,9 @@ export function decodeDag(value: unknown): DagView {
       || !short(row.state, 80) || !Number.isSafeInteger(row.attempt) || Number(row.attempt) < 0
       || !Array.isArray(row.parents) || row.parents.length > 8 || !row.parents.every(p => short(p, 100))
       || !(row.recovery === null || short(row.recovery, 100))) throw new Error('invalid DAG node progress')
+    for (const key of ['node_type', 'difficulty', 'risk']) {
+      if (row[key] != null && !short(row[key], 40)) throw new Error('invalid DAG classification')
+    }
     ids.add(row.id)
     if (row.model !== null && (!object(row.model) || !short(row.model.id, 100)
       || !short(row.model.provider, 100) || !short(row.model.model, 200)
@@ -36,7 +40,7 @@ export function decodeProgress(value: unknown): ProgressEvent {
   return value as unknown as ProgressEvent
 }
 const states: Record<string,string> = { pending: '等待依赖／选模', scheduled: '排队', running: '运行中', ok: '已完成',
-  failed: '失败', 'invalid-output': '输出校验失败', 'cancelled-before-dispatch': '已取消', blocked: '未执行（任务停止）', 'not-run': '未执行（预览）' }
+  'tool-concluded': '工具已结束本轮', failed: '失败', 'invalid-output': '输出校验失败', 'cancelled-before-dispatch': '已取消', blocked: '未执行（任务停止）', 'not-run': '未执行（预览）' }
 const phases: Record<string,string> = { planning: '规划任务', routing: '计划就绪／模型分配', executing: '执行节点', evaluating: '独立评审', finished: '执行结束' }
 function escape(value: string): string {
   // DSH 0.1 的 reasoning 区域使用纯文本；保留易读文字并去掉控制字符。
@@ -51,7 +55,7 @@ function state(row: NodeView): string {
 }
 export function dagListing(view: DagView): string {
   if (!view.nodes.length) return ''
-  return '\n' + view.nodes.map(row => `${escape(row.id)} · ${escape(row.objective)}\n  依赖：${row.parents.map(escape).join('、') || '无'}\n  模型：${model(row)}\n  状态：${state(row)}`).join('\n\n') + '\n'
+  return '\n【节点清单】\n' + view.nodes.map(row => `${escape(row.id)} · ${escape(row.objective)}\n  类型：${escape(row.node_type ?? '未提供')}；难度：${escape(row.difficulty ?? '未提供')}；风险：${escape(row.risk ?? '未提供')}\n  依赖：${row.parents.map(escape).join('、') || '无'}\n  模型：${model(row)}\n  状态：${state(row)}`).join('\n\n') + '\n'
 }
 export function progressText(event: ProgressEvent, previous?: ProgressEvent): string {
   const topology = (v: DagView) => JSON.stringify(v.nodes.map(n => [n.id,n.parents,n.objective]))

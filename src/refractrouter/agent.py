@@ -141,7 +141,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
 def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               evaluation_budget=80, timeout_ms=300000, max_output_tokens=2048,
               manifest_path=None, profile_path=None, execute_paid_run=False,
-              client=None, cancel_event=None, provider_config=None, preset=None, progress=None):
+              client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     if (mode == 'live') != execute_paid_run:
@@ -204,7 +204,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             except (ValueError, TypeError):
                 raise ValueError('invalid host credential envelope') from None
             environment = {**os.environ, **credentials}
-        client = OpenAICompatibleClient(max_retries=0, environment=environment)
+        client = OpenAICompatibleClient(max_retries=0, environment=environment,
+            **({"dsh_bridge": tool_runtime.bridge} if tool_runtime is not None else {}))
     run_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + uuid4().hex[:12]
     directory = Path(runs_dir).expanduser().resolve() / run_id
     directory.mkdir(parents=True, exist_ok=False, mode=0o700)
@@ -226,7 +227,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         client=client if mode == 'live' else None,
         production_limit=RELAXED_COST_MAX if relax_budget else production_budget,
         evaluation_limit=RELAXED_COST_MAX if relax_budget else evaluation_budget,
-        checkpoint=checkpoint, cancel_event=cancel_event,
+        checkpoint=checkpoint, cancel_event=cancel_event, tool_runtime=tool_runtime,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
         context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap)
     if result.get('routing_profile'):

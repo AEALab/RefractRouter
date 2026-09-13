@@ -12,6 +12,8 @@ from .routing_actions import action_identity
 from .node_routing import load_profile, number, route_nodes
 from .node_recovery import NodeRecovery, validate_fallback_limit
 from .openai_compatible import ChatResponse, ModelInvocationError
+from threading import RLock
+from .tool_runtime import ToolTurnConcluded
 from .task_budget import TaskCallBudget
 from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
@@ -112,11 +114,13 @@ class DemoTaskClient:
 
 def run_task(request, manifest, profile, *, client=None, production_limit=None, evaluation_limit=None,
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
-             configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072):
+             configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072, tool_runtime=None):
     request = validate_request(request)
     if not isinstance(conversation_context, str) or len(conversation_context.encode()) > context_limit_bytes:
         raise ValueError('invalid conversation context')
     planning_task, execution_task, content_guard = prepare_inputs(request, conversation_context)
+    if tool_runtime is not None:
+        planning_task += '\n执行节点可使用宿主原生工具，实际查询须先取得工具证据，不得假装已经检索。可用工具：' + ', '.join(s['name'] for s in tool_runtime.schemas)
     validate_models(manifest, configured_application=configured_application)
     profiles = load_profile(profile, manifest)
     policy = ExecutionPolicy.from_request(request)
@@ -144,7 +148,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     budget = TaskCallBudget(client if live else DemoTaskClient(),
                           production_limit if live else 1e12, evaluation_limit if live else 1e12,
                           max_calls=10 + request.get('maxPlanRepairs',0) + 2*request.get('maxDynamicSplits',0)
-                              if request.get('maxDynamicSplits',0) else None,
+                              if request.get('maxDynamicSplits',0) and tool_runtime is None else None,
                           capture_payload=True)
     started = time.monotonic()
     deadline_ms = request["latencyMaxMs"]
@@ -158,7 +162,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
               "generation_status": "not-started",
               "format_validation": check_output_constraints(request.get('outputConstraints')),
               "profile_provenance": profile["provenance"],
-              "limitations": ["Text generation only; no shell, retrieval or filesystem actions.",
+              "limitations": [("执行节点通过宿主权限管线调用工具；规划与评审不执行工具。" if tool_runtime else "Text generation only; no shell, retrieval or filesystem actions."),
                               "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
                               "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"]}
     result['planner_selection'] = {'model_id': planner_id, 'basis': planner_basis,
@@ -169,14 +173,18 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result['dependency_evidence'] = content_guard.evidence()
     if configuration is not None and not configured_application:
         raise ValueError('automatic configuration requires configured application mode')
+    persist_lock = RLock()
     def persist():
-        result["charged"], result["calls"] = budget.snapshot()
-        if configured_application:
-            actions = {m.model_id: action_identity(m) for m in manifest.models}
-            for call in result['calls']:
-                call['route'] = actions[call['model_id']]
-        result["wall_time_ms"] = round((time.monotonic() - started) * 1000)
-        checkpoint(result)
+        with persist_lock:
+            result["charged"], result["calls"] = budget.snapshot()
+            if tool_runtime is not None:
+                result["tool_calls"] = tool_runtime.snapshot()
+            if configured_application:
+                actions = {m.model_id: action_identity(m) for m in manifest.models}
+                for call in result['calls']:
+                    call['route'] = actions[call['model_id']]
+            result["wall_time_ms"] = round((time.monotonic() - started) * 1000)
+            checkpoint(result)
     budget.on_reserve = lambda reservation: persist()
     def before_call():
         remaining = deadline_ms / 1000 - (time.monotonic() - started - budget.planning_elapsed)
@@ -221,7 +229,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             result['generated_plan'] = plan.to_dict()
             if configuration is not None:
                 plan, estimates = compile_generated_capacity(plan, execution_task, candidates,
-                    output_constraints=request.get('outputConstraints'), input_cap=input_cap)
+                    output_constraints=request.get('outputConstraints'), input_cap=input_cap,
+                    tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
@@ -244,7 +253,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 and capability["expected_output_tokens"] <= output_token_limit(model))]
         if live and 'plan' not in request:
             result['plan_admission'] = admission_diagnostics(plan, execution_task, candidates, profiles,
-                request['qualityMin'], output_constraints=request.get('outputConstraints'))
+                request['qualityMin'], output_constraints=request.get('outputConstraints'),
+                tools=tool_runtime.schemas if tool_runtime is not None else None)
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
         remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
@@ -276,7 +286,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         dynamic = DynamicDecomposition(request=request, manifest=manifest, configuration=configuration,
             profiles=profiles, planner=planner, budget=budget, policy=policy, task=execution_task,
             result=result, persist=persist, deadline=started+deadline_ms/1000,
-            cancel_event=cancel_event) if live and request.get('maxDynamicSplits',0) else None
+            cancel_event=cancel_event, input_cap=input_cap,
+            tools=tool_runtime.schemas if tool_runtime is not None else None) if live and request.get('maxDynamicSplits',0) else None
         dispatch_history = {candidates[c['model_id']].provider:c['dispatch_monotonic'] for c in budget.snapshot()[1]
             if 'dispatch_monotonic' in c and c['model_id'] in candidates}
         result["final_output"] = execute_nodes(plan, execution_task, result["routing"]["assignments"],
@@ -284,7 +295,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
             production_cap=request["costMax"],
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
-            dispatch_history=dispatch_history)
+            dispatch_history=dispatch_history, tool_runtime=tool_runtime)
         result['generation_status'] = 'completed' if live else 'simulated'
         if live:
             if content_guard is not None:
@@ -303,6 +314,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         else:
             result["status"] = "simulated"
         before_call()  # Detect a final response that arrived after the task deadline.
+    except ToolTurnConcluded as exc:
+        result.update(status='completed', generation_status='tool-concluded', final_output=exc.content)
+        result['issues'].append('host-tool-concluded-turn; remaining DAG and evaluation skipped')
     except Exception as exc:
         if result['generation_status'] == 'running':
             result['generation_status'] = 'failed'

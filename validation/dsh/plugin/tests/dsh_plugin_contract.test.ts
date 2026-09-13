@@ -788,6 +788,7 @@ test('published tarball loads from its compiled export without source or build d
     'dist/agent-provider.d.ts',
       'dist/output-constraints.js', 'dist/output-constraints.d.ts',
       'dist/dag-progress.js', 'dist/dag-progress.d.ts',
+      'dist/native-tools.js', 'dist/native-tools.d.ts',
       'dist/client.js',
       'dist/provider-config.js',
     'dist/provider-examples.json', 'dist/provider-config.d.ts',

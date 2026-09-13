@@ -17,6 +17,9 @@ def dag_snapshot(result, manifest):
         nid = node['node_id']
         row = latest.get(nid, {})
         nodes.append({'id': nid, 'parents': node['parents'],
+                      'node_type': node.get('node_type'),
+                      'difficulty': node.get('contract', {}).get('capability', {}).get('difficulty'),
+                      'risk': node.get('contract', {}).get('capability', {}).get('risk'),
                       'objective': (node.get('contract', {}).get('objective') or node.get('prompt_template', ''))[:240],
                       'state': row.get('status', untouched), 'attempt': row.get('attempt', 1 if row else 0),
                       'model': actions.get(row.get('model_id', routes.get(nid))),

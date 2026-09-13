@@ -19,12 +19,24 @@ def request_payload(model, messages, *, json_mode):
         raise ValueError('Responses text options cannot override output format')
     if json_mode and model.json_mode_strategy != 'prompt-only':
         text_options['format'] = {'type': 'json_object'}
-    return {'model': model.api_model, 'input': list(messages),
+    inputs = []
+    for message in messages:
+        if message.get('_response_items'):
+            inputs.extend(message['_response_items'])
+        elif message['role'] == 'tool':
+            inputs.append({'type': 'function_call_output', 'call_id': message['tool_call_id'], 'output': message['content']})
+        elif message.get('tool_calls'):
+            if message.get('content'):
+                inputs.append({'role': 'assistant', 'content': message['content']})
+            inputs.extend({'type': 'function_call', 'call_id': c['id'], **c['function']} for c in message['tool_calls'])
+        else:
+            inputs.append(dict(message))
+    return {'model': model.api_model, 'input': inputs,
             'max_output_tokens': output_token_limit(model), 'store': False,
             **options, **({'text': text_options} if text_options else {})}
 
 
-def decode_response(data):
+def decode_response(data, *, tools=False):
     """提取 assistant 正文；拒绝、截断和失败仍保留用量以便先结算。"""
     if not isinstance(data, dict) or data.get('status') not in {
             'completed', 'incomplete', 'failed', 'cancelled', 'queued', 'in_progress'}:
@@ -32,10 +44,15 @@ def decode_response(data):
     if not isinstance(data.get('output'), list):
         raise ValueError('invalid Responses output')
     parts, refused, unsupported = [], False, False
+    calls = []
     for item in data['output']:
         if not isinstance(item, dict):
             raise ValueError('invalid Responses output item')
         if item.get('type') == 'reasoning':
+            continue
+        if tools and item.get('type') == 'function_call':
+            calls.append({'id': item.get('call_id'), 'type': 'function',
+                          'function': {'name': item.get('name'), 'arguments': item.get('arguments')}})
             continue
         if item.get('type') != 'message':
             unsupported = True
@@ -63,6 +80,8 @@ def decode_response(data):
         finish = 'failed'
     if finish == 'stop':
         finish = 'content_filter' if refused else 'unsupported-output' if unsupported else finish
+    if finish == 'stop' and calls:
+        finish = 'tool_calls'
     raw_usage = data.get('usage')
     usage = raw_usage if isinstance(raw_usage, dict) else {}
     inputs = usage.get('input_tokens')
@@ -75,6 +94,7 @@ def decode_response(data):
     available = all(type(v) is int and v >= 0 for v in counts)
     available = available and cached <= inputs and reasoning <= outputs
     return {'content': ''.join(parts), 'finish_reason': finish, 'raw_usage': raw_usage,
+            **({'tool_calls': tuple(calls), 'replay_messages': tuple(data['output'])} if tools else {}),
             'usage_available': available,
             **{key: value if type(value) is int else 0 for key, value in zip(
                 ('input_tokens', 'output_tokens', 'cached_input_tokens', 'reasoning_tokens'), counts)}}

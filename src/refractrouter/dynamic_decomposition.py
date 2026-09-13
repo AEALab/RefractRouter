@@ -49,20 +49,21 @@ def graft(plan, nid, subplan):
 
 class DynamicDecomposition:
     def __init__(self, *, request, manifest, configuration, profiles, planner, budget, policy,
-                 task, result, persist, deadline, cancel_event=None):
+                 task, result, persist, deadline, cancel_event=None, input_cap=131072, tools=None):
         self.request, self.manifest, self.configuration = request, manifest, configuration
         self.profiles, self.planner, self.budget, self.policy = profiles, planner, budget, policy
         self.task, self.result, self.persist, self.deadline = task, result, persist, deadline
         self.cancel_event, self.protected = cancel_event, set()
+        self.input_cap, self.tools = input_cap, tools
         self.candidates = {m.model_id: m for m in manifest.candidates}
         self.limit = request['maxDynamicSplits']
         result['dynamic_decomposition'] = {'policy_version': 'drain-and-graft-v1',
             'max_splits': self.limit, 'max_total_nodes': MAX_NODES, 'max_subplan_nodes': 3,
             'max_depth': 1, 'events': []}
 
-    def eligible(self, nid, plan):
+    def eligible(self, nid, plan, *, reserved=0):
         return (nid not in self.protected and len(plan.nodes) < MAX_NODES
-            and len(self.result['dynamic_decomposition']['events']) < self.limit
+            and len(self.result['dynamic_decomposition']['events']) + reserved < self.limit
             and not self.budget.stopped)
 
     def expand(self, plan, nid, context, completed, reason, dispatch_history):
@@ -113,7 +114,7 @@ class DynamicDecomposition:
             profiles = self.profiles
             if self.configuration:
                 expanded, estimates = compile_generated_capacity(expanded, self.task, self.candidates,
-                    output_constraints=self.request.get('outputConstraints'))
+                    output_constraints=self.request.get('outputConstraints'), input_cap=self.input_cap, tools=self.tools)
                 profile = configured_profile(self.configuration, self.manifest, expanded.to_dict(),
                     input_forecasts={n: row['forecast_input_tokens'] for n,row in estimates.items()})
                 profiles = load_profile(profile, self.manifest)
@@ -122,7 +123,7 @@ class DynamicDecomposition:
             residual = replace(expanded, nodes=tuple(replace(n, parents=tuple(p for p in n.parents if p not in completed))
                 for n in expanded.nodes if n.node_id not in completed))
             admission = admission_diagnostics(expanded, self.task, self.candidates, profiles,
-                self.request['qualityMin'], output_constraints=self.request.get('outputConstraints'))
+                self.request['qualityMin'], output_constraints=self.request.get('outputConstraints'), tools=self.tools)
             now = time.monotonic()
             wait_ms = max((dispatch_history.get(m.provider, -float('inf')) + self.policy.interval(m.provider)/1000 - now
                            for m in self.candidates.values()), default=0) * 1000

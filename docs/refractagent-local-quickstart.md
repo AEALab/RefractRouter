@@ -389,3 +389,5 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 - [DSH 插件与开发配置](https://github.com/AEALab/RefractRouter/blob/main/validation/dsh/plugin/README.md)
 - [本机应用验收记录](https://github.com/AEALab/RefractRouter/blob/main/reports/refractagent-local/20260908/README.md)
 - [核心职责与服务边界](https://github.com/AEALab/RefractRouter/blob/main/docs/architecture.md)
+
+DSH 的「任务 DAG」页签提供依赖图和类型说明，详见[节点分类与 DAG 图](task-node-types.md)。

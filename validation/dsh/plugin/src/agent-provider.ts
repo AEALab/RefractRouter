@@ -1,6 +1,7 @@
 import { decodeDag, decodeProgress, progressText, runSummary, type ProgressEvent } from './dag-progress.js'
 /** Native DSH virtual models. Python owns presets, routing and all cost accounting. */
 import { resolve } from 'node:path'
+import { bindNativeTools, type NativeToolContext, type ToolSchema } from './native-tools.js'
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
 import { dshProviderIssues, pumpDshBridge } from './index.js'
 import { decodeOutputConstraints, decodeFormatValidation, formatValidationSummary, type OutputConstraints } from './output-constraints.js'
@@ -8,7 +9,7 @@ import { freezeConfiguration, validateProviderConfiguration, type LimitsConfigur
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
 
 export const name = 'refractagent'
-export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials']
+export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents']
 
 const MAX_CONTEXT_BYTES = 120_000
 const RELAXED_CONTEXT_BYTES = 1_000_000
@@ -47,6 +48,7 @@ interface ModelOptions {
   messages: Array<{ role: string; source?: { kind: string; [key: string]: unknown };
     content: Array<{ type: string; text?: string; [key: string]: unknown }> }>
   system?: string
+  tools?: ToolSchema[]
   maxTokens?: number
   temperature?: number
   stop?: string[]
@@ -68,7 +70,7 @@ export interface AgentAdapter {
   prepareCall(provider: string, model: string): Promise<{ model: ModelMetadata; stream(options: ModelOptions): AsyncIterable<Record<string, unknown>> }>
   stream(options: ModelOptions): AsyncIterable<Record<string, unknown>>
 }
-export type AgentContext = Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
+export type AgentContext = NativeToolContext & Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
   llm: Partial<LlmService> & { registerAdapter(providers: string[], adapter: AgentAdapter): unknown }
   inject?: (deps: readonly string[], callback: (sctx: SettingsFiberContext) => void) => unknown
 }
@@ -152,8 +154,10 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.preset) throw new Error('configure providerConfig or explicitly choose preset: ark-agent-plan')
+  const nativeTools = live && !options.purpose ? bindNativeTools(ctx, options.tools ?? []) : undefined
   const payload = { ...conversation(options, config.limits?.relaxContext ? RELAXED_CONTEXT_BYTES : MAX_CONTEXT_BYTES),
     strategy: options.model, template: config.template,
+    ...(nativeTools ? { hostTools: nativeTools.schemas } : {}),
     ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
       .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),
     ...(config.outputConstraints ? { outputConstraints: config.outputConstraints } : {}),
@@ -164,11 +168,11 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     const provider = config.providerConfig!.providers.find(p=>p.id===model.provider)!
     if (provider.type === 'dsh') routes.push({provider: provider.dshProvider ?? provider.id, model: model.model})
   }
-  const useBridge = live && routes.length > 0
+  const useBridge = live && (routes.length > 0 || !!nativeTools)
   const progressEnabled = config.template === 'auto'
   const piped = useBridge || progressEnabled
   let host: { llm: LlmService } | undefined
-  if (useBridge) {
+  if (routes.length) {
     if (!ctx.llm.stream || !ctx.llm.listProviders || !ctx.llm.providerRetryPolicy || !ctx.llm.resolveModelInfo) {
       throw new Error('DSH provider routing requires the native LLM service')
     }
@@ -227,7 +231,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       piped ? pumpDshBridge(host, handle, signal, routes, 2097152, progressEnabled ? record => {
         const clean = JSON.parse(secrets.reduce((text, secret) => text.split(secret).join('[REDACTED]'), JSON.stringify(record)))
         onProgress?.(decodeProgress(clean))
-      } : undefined) : Promise.resolve(undefined)])
+      } : undefined, nativeTools) : Promise.resolve(undefined)])
     await handle.waitForExit()
     if (signal.aborted) throw new Error('RefractAgent task cancelled or timed out; check the saved ledger before resubmitting')
     const stdout = piped ? bridged : handle.collected.stdout?.readFrom(0)
@@ -239,7 +243,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       const detail = object(result) && typeof result.error === 'string' ? result.error : 'invalid application result'
       throw new Error(detail)
     }
-    if (outcome.exitCode !== 0 && !result.answer) throw new Error(`RefractAgent ${String(result.status)}: ${JSON.stringify(result.issues)}`)
+    if (outcome.exitCode !== 0) throw new Error(`RefractAgent ${String(result.status)}: ${JSON.stringify(result.issues)}`)
     if (typeof result.answer !== 'string' || !result.answer || !object(result.costs) || !object(result.models)
       || !object(result.usage) || typeof result.result_path !== 'string') throw new Error('invalid RefractAgent result fields')
     if (typeof result.billing_unit !== 'string' || (config.providerConfig && result.billing_unit !== config.providerConfig.billingUnit)) {
@@ -283,7 +287,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     const entry = MODELS.find(m => m.id === model)
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
     return { ...entry, provider, name: entry.name + (config.executionMode === 'demo' ? '（模拟）' : ''),
-      description: '文本分析与生成；支持整任务、预设 DAG 和自动拆分，工具执行暂不支持。',
+      description: '支持整任务、自动 DAG 和宿主原生工具；执行遵循 DSH 权限与审批。',
       inputModalities: ['text'], context: { contextWindow: 24000 }, defaultMaxTokens: config.maxOutputTokens }
   }
   const adapter: AgentAdapter = {

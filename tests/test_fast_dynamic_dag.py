@@ -323,3 +323,26 @@ def test_dynamic_addition_respects_total_node_ceiling():
     subplan=compile_compact(compact(('part',[]),('merge',['part'])))
     with pytest.raises(ValueError,match='dynamic-node-limit-exhausted'):
         graft(initial,'n0',subplan)
+
+
+def test_concurrent_truncations_reserve_split_slots_and_preserve_root_error(tmp_path):
+    from threading import Barrier
+    both = Barrier(2)
+    class BothTruncated(Client):
+        def complete(self, model, messages, **kwargs):
+            payload = json.loads(messages[-1]['content'])
+            response = super().complete(model, messages, **kwargs)
+            if payload.get('node_id') in {'left','right'}:
+                both.wait(timeout=5)
+                return replace(response, content='', output_tokens=2048,
+                    reasoning_tokens=2048, finish_reason='length')
+            return response
+    client = BothTruncated()
+    result, raw = run(tmp_path, client)
+    assert result['status'] == 'failed'
+    assert any('finish_reason=length' in issue for issue in result['issues'])
+    assert 'dynamic-split-limit-exhausted' not in result['issues']
+    assert not raw['dynamic_decomposition']['events']
+    assert not any('failed_node' in payload for _,payload,_ in client.calls)
+    failed = [c for c in raw['calls'] if c['label'] in {'left','right'}]
+    assert len(failed) == 2 and all(c['status'] == 'billed' for c in failed)
