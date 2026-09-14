@@ -94,14 +94,19 @@ def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1
 
 
 def generate_compact(budget, model, payload, record, *, criteria, cost_limit, deadline,
-                     persist, label='planner', max_nodes=6, repairs=0, output_cap=2048, policy='legacy'):
+                     persist, label='planner', max_nodes=6, repairs=0, output_cap=2048, policy='legacy', context_policy='full'):
     if policy not in ('legacy', 'minimal-v1'):
         raise ValueError('invalid plannerPolicy')
+    if context_policy not in ('full', 'selective-v1') or (context_policy == 'selective-v1' and policy != 'minimal-v1'):
+        raise ValueError('invalid contextPolicy and plannerPolicy combination')
     if policy == 'minimal-v1' and repairs:
         raise ValueError('minimal-v1 requires one planning call without repairs')
     from .minimal_planning import MINIMAL_PLANNER_SYSTEM, compile_minimal
+    from .selective_context import SELECTIVE_PLANNER_SYSTEM, compile_selective
+    system = (SELECTIVE_PLANNER_SYSTEM if context_policy == 'selective-v1' else
+              MINIMAL_PLANNER_SYSTEM if policy == 'minimal-v1' else COMPACT_PLANNER_SYSTEM)
     start = time.monotonic()
-    messages = [{'role': 'system', 'content': MINIMAL_PLANNER_SYSTEM if policy == 'minimal-v1' else COMPACT_PLANNER_SYSTEM},
+    messages = [{'role': 'system', 'content': system},
                 {'role': 'user', 'content': json.dumps({**payload, 'max_nodes': max_nodes}, ensure_ascii=False)}]
     record.update(attempts=[], started_monotonic=start, output_cap=output_token_limit(model))
     if policy != 'legacy':
@@ -118,7 +123,14 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
             try:
                 if deadline is not None and time.monotonic() > deadline:
                     raise ValueError('planner-deadline-exhausted')
-                if policy == 'minimal-v1':
+                if context_policy == 'selective-v1':
+                    plan, decision, selections = compile_selective(json.loads(reply.content),
+                        materials=payload.get('material_catalog', []), criteria=criteria,
+                        max_nodes=max_nodes, output_cap=output_cap,
+                        parallel_capacity=payload.get('parallel_capacity', 1),
+                        tools_available=bool(payload.get('tools_available', False)))
+                    record.update(decision=decision, context_selection=selections)
+                elif policy == 'minimal-v1':
                     plan, decision = compile_minimal(json.loads(reply.content), criteria=criteria,
                         max_nodes=max_nodes, output_cap=output_cap,
                         parallel_capacity=payload.get('parallel_capacity', 1),

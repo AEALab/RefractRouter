@@ -1,5 +1,7 @@
 # 必要拆分优化：第一阶段
 
+第二阶段的显式实验入口见[材料与字段交接优化](selective-context.md)。
+
 关联 [Issue #72](https://github.com/AEALab/RefractRouter/issues/72)，承接 #54；
 质量门槛见 #52，端到端计量及对照见 #53，研究目标见 #50。
 

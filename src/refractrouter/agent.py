@@ -25,6 +25,7 @@ from .openai_compatible import OpenAICompatibleClient
 from .output_constraints import validate_output_constraints
 from .task_plan import text, validate_plan, preview_plan
 from .task_runtime import run_task
+from .task_materials import validate_materials
 from .agent_progress import ProgressRecorder, dag_snapshot
 
 PRESETS = {
@@ -83,9 +84,10 @@ def plan_template(name, criteria=None):
 
 def build_request(payload, *, mode, production_budget, timeout_ms):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
-            'planningMode', 'plannerPolicy', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
+            'planningMode', 'plannerPolicy', 'contextPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
         raise ValueError('invalid RefractAgent request fields')
+    validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
     if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext', 'unlimitedTime'}
             or any(not isinstance(limits[key], bool) for key in limits)):
@@ -124,6 +126,9 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
         raise ValueError('maxPlanRepairs requires the automatic template')
     if 'plannerPolicy' in payload and not automatic:
         raise ValueError('plannerPolicy requires the automatic template')
+    for key in ('contextPolicy', 'materials'):
+        if key in payload:
+            request[key] = deepcopy(payload[key])
     request['verifyDependencies'] = payload.get('verifyDependencies',True)
     for key in ('plannerModelId','plannerMaxOutputTokens','plannerTimeoutMs','maxDynamicSplits',
                 'maxConcurrency','providerConcurrency','providerMinIntervalMs'):
@@ -290,5 +295,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if result.get('compact_planning', {}).get('policy_version'):
         output['planning_policy'] = result['compact_planning']['policy_version']
         output['planning_decision'] = result['compact_planning'].get('decision')
+    if 'context_selection' in result:
+        output['context_selection'] = result['context_selection']
     atomic_json(directory / 'summary.json', output)
     return output
