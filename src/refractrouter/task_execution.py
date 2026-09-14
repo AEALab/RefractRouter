@@ -61,7 +61,7 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
                   *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
                   output_constraints=None, classify_failure=False, dispatch_history=None,
-                  dynamic=None, content_guard=None, tool_runtime=None):
+                  dynamic=None, content_guard=None, tool_runtime=None, context_policy=None):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
@@ -149,7 +149,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
         spent, calls = budget.snapshot()
         if any(c['status'] == 'unknown-usage' and c['label'] == row['call_label'] for c in calls):
             return False
-        messages = node_messages(task, nodes[nid], plan.contracts.get(nid), context,
+        messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], plan.contracts.get(nid), context,
             output_constraints=output_constraints if nid == plan.final_node_id else None,
             tools=tool_runtime.schemas if tool_runtime is not None else None)
         input_bound = request_input_bound(messages, tool_runtime.schemas if tool_runtime is not None else None)
@@ -200,7 +200,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         continue
                     try:
                         contract = plan.contracts.get(nid)
-                        messages = node_messages(task, nodes[nid], contract, context,
+                        messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], contract, context,
                             output_constraints=output_constraints if nid == plan.final_node_id else None,
                             tools=tool_runtime.schemas if tool_runtime is not None else None)
                         attempt = len(attempted[nid]) + 1
@@ -211,6 +211,10 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                             **({"tools": tool_runtime.schemas} if tool_runtime is not None else {}))
                         row = {'node_id': nid, 'model_id': model.model_id, 'provider': model.provider,
                                'status': 'scheduled', 'semantic_status': 'not-evaluated', 'ready_ms': ready_at[nid]}
+                        if context_policy is not None:
+                            row['context_selection'] = context_policy.record['nodes'][nid]
+                            row['handoff_bytes'] = {p: len(json.dumps({f: context[p][f] for f in info['fields']},
+                                ensure_ascii=False).encode()) for p, info in contract['inputs'].items()}
                         attempted[nid].append(model.model_id)
                         if track_attempts:
                             row.update(attempt=attempt, call_label=label)
@@ -294,6 +298,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                             row['content_validation'] = content_guard.check(response.content, final=nid == plan.final_node_id)
                             content_guard.validate(response.content, final=nid == plan.final_node_id)
                         context[nid] = decode_output(response.content, contract) if contract else response.content
+                        if context_policy is not None:
+                            row['evidence_validation'] = context_policy.validate_output(nid, context[nid])
                         row.update(status='ok', contract_status='structure-valid' if contract else 'legacy-unchecked')
                         failed_latency = sum(r['end_ms']-r['start_ms'] for r in result.get('node_attempts', [])
                                              if r['node_id'] == nid and r is not row and 'end_ms' in r)

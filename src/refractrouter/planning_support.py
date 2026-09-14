@@ -73,7 +73,7 @@ def generate_plan(budget, model, messages, result, *, required_criteria, max_rep
             return plan
 
 
-def input_estimates(plan, task, candidates, *, output_constraints=None, tools=None):
+def input_estimates(plan, task, candidates, *, output_constraints=None, tools=None, node_tasks=None):
     """使用完整序列化输入；父输出按有效输出上限预留，运行时仍检查实际字节数。"""
     output_cap = max(output_token_limit(m) for m in candidates.values())
     rows = {}
@@ -83,7 +83,7 @@ def input_estimates(plan, task, candidates, *, output_constraints=None, tools=No
             continue
         upstream = {p: {field: '' for field in info['fields']}
                     for p, info in contract['inputs'].items()}
-        messages = node_messages(task, node, contract, upstream,
+        messages = node_messages(node_tasks[node.node_id] if node_tasks is not None else task, node, contract, upstream,
             output_constraints=output_constraints if node.node_id == plan.final_node_id else None,
             check_input_budget=False, tools=tools)
         base = request_input_bound(messages, tools)
@@ -96,10 +96,10 @@ def input_estimates(plan, task, candidates, *, output_constraints=None, tools=No
     return rows
 
 
-def compile_generated_capacity(plan, task, candidates, *, output_constraints=None, input_cap=131072, tools=None):
+def compile_generated_capacity(plan, task, candidates, *, output_constraints=None, input_cap=131072, tools=None, node_tasks=None):
     """只用于应用自动生成的计划；不改显式合同、实测画像或节点的语义属性。"""
     raw = deepcopy(plan.to_dict())
-    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints, tools=tools)
+    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints, tools=tools, node_tasks=node_tasks)
     for node in raw['nodes']:
         bound = max(256, estimates[node['node_id']]['estimated_input_bound'])
         estimate = estimates[node['node_id']]
@@ -115,9 +115,9 @@ def compile_generated_capacity(plan, task, candidates, *, output_constraints=Non
     return validate_plan(raw, required_criteria=plan.acceptance_criteria), estimates
 
 
-def admission_diagnostics(plan, task, candidates, profiles, quality_min, *, output_constraints=None, tools=None):
+def admission_diagnostics(plan, task, candidates, profiles, quality_min, *, output_constraints=None, tools=None, node_tasks=None):
     """整个图在首个节点派发前检查；不给不可执行的分支先花钱。"""
-    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints, tools=tools)
+    estimates = input_estimates(plan, task, candidates, output_constraints=output_constraints, tools=tools, node_tasks=node_tasks)
     result = {}
     for node in plan.nodes:
         capability = plan.contracts.get(node.node_id, {}).get('capability')

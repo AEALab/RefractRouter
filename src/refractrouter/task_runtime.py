@@ -26,6 +26,8 @@ from .planning_support import execution_support, compile_generated_capacity, adm
 from .configured_routing import configured_profile
 from .compact_planning import COMPACT_PLANNER_SYSTEM, planner_model, generate_compact
 from .minimal_planning import MINIMAL_PLANNER_SYSTEM
+from .selective_context import SELECTIVE_PLANNER_SYSTEM, build_node_context
+from .task_materials import validate_materials
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
@@ -37,9 +39,15 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
+               "planningMode", "plannerPolicy", "contextPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
+    validate_materials(raw.get('materials', []))
+    if raw.get('contextPolicy', 'full') not in ('full', 'selective-v1'):
+        raise ValueError('invalid contextPolicy')
+    if raw.get('contextPolicy') == 'selective-v1':
+        if raw.get('plannerPolicy') != 'minimal-v1' or raw.get('maxDynamicSplits', 0):
+            raise ValueError('selective-v1 requires minimal-v1 and no dynamic splitting')
     ExecutionPolicy.from_request(raw)
     validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
     if type(raw.get('maxPlanRepairs', 0)) is not int or not 0 <= raw.get('maxPlanRepairs', 0) <= 1:
@@ -126,6 +134,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
              configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072, tool_runtime=None):
     request = validate_request(request)
+    if request.get('contextPolicy') == 'selective-v1' and tool_runtime is not None:
+        raise ValueError('selective-v1 currently requires text-only material tasks without native tools')
     if not isinstance(conversation_context, str) or len(conversation_context.encode()) > context_limit_bytes:
         raise ValueError('invalid conversation context')
     planning_task, execution_task, content_guard = prepare_inputs(request, conversation_context)
@@ -204,6 +214,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if remaining <= 0:
             raise ValueError("task-deadline-exhausted")
         return remaining
+    node_context = None
     try:
         if "plan" in request:
             plan = validate_plan(request["plan"], required_criteria=request.get("acceptanceCriteria"))
@@ -214,7 +225,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if request.get('planningMode') == 'compact':
                 result['compact_planning'] = {}
                 minimal = request.get('plannerPolicy') == 'minimal-v1'
-                system = MINIMAL_PLANNER_SYSTEM if minimal else COMPACT_PLANNER_SYSTEM
+                selective = request.get('contextPolicy') == 'selective-v1'
+                system = SELECTIVE_PLANNER_SYSTEM if selective else MINIMAL_PLANNER_SYSTEM if minimal else COMPACT_PLANNER_SYSTEM
                 result['planner_prompt_sha256'] = hashlib.sha256(system.encode()).hexdigest()
                 planning_payload = {'task': planning_task, 'parallel_capacity': policy.max_concurrency}
                 if minimal:
@@ -223,10 +235,14 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         parallel_capacity=min(policy.max_concurrency, sum(policy.limit(p) for p in providers)),
                         tools_available=bool(tool_runtime is not None and tool_runtime.schemas),
                         acceptance_criteria=request.get('acceptanceCriteria'))
+                if selective:
+                    planning_payload['material_catalog'] = [{k: v for k, v in item.items() if k != 'text'}
+                        for item in request.get('materials', [])]
                 plan = generate_compact(budget, planner, planning_payload, result['compact_planning'],
                     criteria=request.get('acceptanceCriteria'), cost_limit=request['costMax'],
                     deadline=None if request.get('unrestrictedPlanning') else min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
                     persist=persist, repairs=request.get('maxPlanRepairs',0), policy=request.get('plannerPolicy', 'legacy'),
+                    context_policy=request.get('contextPolicy', 'full'),
                     output_cap=max(output_token_limit(m) for m in candidates.values()))
                 result['planner_output'] = result['compact_planning']['attempts'][0]['output']
             else:
@@ -244,11 +260,15 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 plan = generate_plan(budget, candidates[planner_id], messages, result,
                     required_criteria=request.get('acceptanceCriteria'), max_repairs=request.get('maxPlanRepairs',0),
                     cost_limit=request['costMax'], remaining=before_call, persist=persist)
+            if request.get('contextPolicy') == 'selective-v1':
+                node_context = build_node_context(plan, request, conversation_context,
+                    result['compact_planning']['context_selection'])
+                result['context_selection'] = node_context.record
             result['generated_plan'] = plan.to_dict()
             if configuration is not None:
                 plan, estimates = compile_generated_capacity(plan, execution_task, candidates,
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
-                    tools=tool_runtime.schemas if tool_runtime is not None else None)
+                    node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
@@ -272,7 +292,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if live and 'plan' not in request:
             result['plan_admission'] = admission_diagnostics(plan, execution_task, candidates, profiles,
                 request['qualityMin'], output_constraints=request.get('outputConstraints'),
-                tools=tool_runtime.schemas if tool_runtime is not None else None)
+                node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
         remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
@@ -313,7 +333,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
             production_cap=request["costMax"],
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
-            dispatch_history=dispatch_history, tool_runtime=tool_runtime)
+            dispatch_history=dispatch_history, tool_runtime=tool_runtime, context_policy=node_context)
         result['generation_status'] = 'completed' if live else 'simulated'
         if live:
             if content_guard is not None:
