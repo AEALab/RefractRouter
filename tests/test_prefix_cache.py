@@ -157,3 +157,19 @@ def test_batch_unknown_usage_drains_siblings_and_preserves_ledger(tmp_path):
     assert len(ledger['calls']) == 2
     assert all(c['status'] == 'unknown-usage' and c['charged'] > 0 for c in ledger['calls'])
     assert (tmp_path / 'artifact-index.json').exists()
+
+
+@pytest.mark.parametrize('subset', [None, ['a_global', 'b_local']])
+def test_reordered_materials_keep_original_position_references(subset):
+    materials = [{'id': 'z_local', 'scope': 'local', 'text': '报价 10'},
+                 {'id': 'a_global', 'text': '预算 20'},
+                 {'id': 'b_local', 'scope': 'local', 'text': '报价 15'}]
+    request = {'task': '比较原始第一份与第三份报价，按第二份的预算核对。',
+               'materials': materials, 'prefixPolicy': 'stable-v1'}
+    chosen = [m for m in materials if m['id'] in subset] if subset is not None else None
+    _, task, _ = prepare_inputs(request, for_node=True, selected_materials=chosen)
+    records = json.loads(task.split('来源材料', 1)[1].split('\n', 1)[1])
+    positions = {m['id']: m['source_position'] for m in records}
+    assert records[0]['id'] == 'a_global'
+    expected = {'z_local': 1, 'a_global': 2, 'b_local': 3}
+    assert positions == {key: value for key, value in expected.items() if subset is None or key in subset}

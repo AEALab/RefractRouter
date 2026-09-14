@@ -1,0 +1,327 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20260914T100311Z-8496397c86d5",
+  "mode": "live",
+  "strategy": "balanced",
+  "strategy_name": "均衡",
+  "policy_version": "refractagent-presets-v1",
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  },
+  "status": "completed",
+  "answer": "**一、analysis-02：问卷与客服统计核对**\n\nrequested_findings：\n\n- **survey_negative = 14份**  \n  sources：s1  \n  依据：材料 s1 明确写“自愿填写的50份问卷中，14份表示不满意”，因此问卷不满意份数可证实为 14 份。\n\n- **service_complaints = 20条**  \n  sources：s2  \n  依据：材料 s2 明确写“同周共有20条投诉工单”，因此投诉工单条数可证实为 20 条。  \n  注意：其中 4 条是同一客户追问，所以“工单条数 20”不等于“投诉客户数 20”。\n\n- **can_pool = false**  \n  sources：s1、s2  \n  依据：不能合成全体客户不满意率。原因包括：  \n  1. 问卷是“自愿填写”，50 份内 14 份不满意，未记录未填写者，无法代表全体客户；  \n  2. 客服工单是工单维度，不是客户维度，20 条工单不能当作 20 个客户；  \n  3. 问卷身份与客服工单身份无法对应，不能确认投诉客户是否也在问卷不满意者中，无法去重合并。\n\n限制：  \n只能证实“自愿填写的 50 份问卷中有 14 份不满意”和“同周投诉工单共 20 条”。不能推算全体客户不满意率，也不能把问卷和客服两来源合并为一个总体统计。\n\n---\n\n**二、decision-01：打印与配送组合**\n\nrequested_findings：\n\n- **printer = P**  \n  sources：s1  \n  依据：任务需要双面彩色 100 份；s1 中 P 报价 300 元且可双面彩色，Q 报价 200 元但仅黑白，因此打印商只能选 P。\n\n- **delivery = D**  \n  sources：s2  \n  依据：必须周五前送达；s2 中 D 报价 80 元且周四送达，E 报价 40 元但周六送达，因此配送只能选 D。\n\n- **total_cost = 380元**  \n  sources：s1、s2  \n  依据：P 打印 300 元 + D 配送 80 元 = 380 元，满足总预算 400 元，也同时满足双面彩色和周五前送达。\n\n被排除项：  \n- Q 被排除：仅黑白，不满足双面彩色。  \n- E 被排除：周六送达，不满足周五前送达。  \n- 因此 Q+D、P+E、Q+E 等组合均至少违反一项条件，不能选。\n\n限制：  \n本结论仅基于所给报价、送达时间、预算和打印要求，未获取其他供应商或配送方式信息。\n\n---\n\n**三、decision-02：排班资格与早晚班分配**\n\nrequested_findings：\n\n- **morning = 甲**  \n  sources：s1、s2  \n  依据：甲培训有效，且只能早班，因此安排甲早班。早班时间为 08:00–12:00，符合要求。\n\n- **evening = 乙**  \n  sources：s1、s2  \n  依据：乙培训有效，且只能晚班，因此安排乙晚班。晚班时间为 16:00–20:00，符合要求。\n\n- **feasible = true**  \n  sources：s1、s2  \n  依据：甲、乙各安排一班，每人最多一班；甲只能早班、乙只能晚班，二者无冲突；两人均持有有效培训记录，满足资格要求。因此存在符合全部条件的安排。\n\n丙未被安排：  \n丙培训过期，不满足“每班必须持有有效培训记录”，因此不具备带班资格，即使两班均有空也不能安排。\n\n限制：  \n本判断仅基于所给培训记录、班次时间、每人最多一班和可用时间信息，未证明材料之外是否存在其他人员或培训更新情况。",
+  "issues": [],
+  "models": {
+    "statistics": "deepseek-v4-pro",
+    "decisions": "deepseek-v4-pro",
+    "answer": "deepseek-v4-pro"
+  },
+  "model_routes": {
+    "statistics": {
+      "id": "deepseek-v4-pro",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    },
+    "decisions": {
+      "id": "deepseek-v4-pro",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    },
+    "answer": {
+      "id": "deepseek-v4-pro",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "evaluation-kimi-k3",
+    "provider": "ark-plan",
+    "model": "kimi-k3",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": {
+    "score": 96,
+    "passed": true,
+    "rationale": "交付逐项覆盖三个任务的 requested_findings、依据与限制，数值与原文一致，未出现工单当客户数或合并不满意率的错误，也未作不实工具执行声明。analysis-02 正确给出 14 份不满意、20 条工单、can_pool=false，并说明自愿抽样、未记录未填写者、身份无法对应及同一客户 4 条追问等限制；decision-01 正确选出 P+D=380 元并解释 Q（仅黑白）与 E（周六送达）被排除的原因，且验证预算 400 元内；decision-02 正确安排甲早班、乙晚班、feasible=true，明确丙因培训过期不得安排，并保留班次时间与每人最多一班的限制。每项均标注 sources。轻微不足：findings 未以 output_contract 所述的列表结构（id/value/sources 字段）形式化呈现，而是以散文加 sources 标注给出，属格式层面的微小偏差，不影响实质正确性与完整性。",
+    "criteria": [
+      {
+        "criterion": "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+        "passed": true,
+        "rationale": "明确给出 survey_negative=14（s1）、service_complaints=20（s2）、can_pool=false，并指出「4 条是同一客户追问」故工单数不等于客户数，且因自愿填写、未记录未填写者、两来源身份无法对应而不能合并总体不满意率，满足该验收条目及语义标准。"
+      },
+      {
+        "criterion": "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+        "passed": true,
+        "rationale": "printer=P（300 元，可双面彩色）、delivery=D（80 元，周四送达），total_cost=380 元且低于 400 元预算；明确解释 Q 仅黑白、E 周六送达故被排除，并指出 Q+D、P+E、Q+E 均违规，符合全局约束而非各取便宜项。"
+      },
+      {
+        "criterion": "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。",
+        "passed": true,
+        "rationale": "morning=甲、evening=乙、feasible=true；明确丙培训过期不具备带班资格，即使两班有空也不得安排；同时保留早班 08:00–12:00、晚班 16:00–20:00、每班 1 人须持有效培训记录、每人最多一班等全部条件。"
+      }
+    ]
+  },
+  "costs": {
+    "production": 7.29135,
+    "evaluation": 3.128,
+    "unconfirmed": 0
+  },
+  "billing_unit": "AFP",
+  "generation_status": "completed",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "simulated": false,
+  "wall_time_ms": 142598,
+  "plan_origin": "provided",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "statistics",
+        "node_type": "generation",
+        "prompt_template": "只核对 analysis-02 的统计和来源限制。",
+        "parents": [],
+        "contract": {
+          "objective": "只核对 analysis-02 的统计和来源限制。",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "facts": "给出结果与依据",
+              "uncertainty": "限制及未证明内容"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 131072,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "decisions",
+        "node_type": "generation",
+        "prompt_template": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+        "parents": [],
+        "contract": {
+          "objective": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+          "inputs": {},
+          "output": {
+            "format": "json",
+            "fields": {
+              "facts": "给出结果与依据",
+              "uncertainty": "限制及未证明内容"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 131072,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+        "parents": [
+          "statistics",
+          "decisions"
+        ],
+        "contract": {
+          "objective": "完整回答当前用户任务，保留要求的输出格式。",
+          "inputs": {
+            "statistics": {
+              "fields": [
+                "facts",
+                "uncertainty"
+              ],
+              "reason": "保留父节点证据与限制"
+            },
+            "decisions": {
+              "fields": [
+                "facts",
+                "uncertainty"
+              ],
+              "reason": "保留父节点证据与限制"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终答案"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "high",
+            "input_budget_tokens": 131072,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "covers": [
+            0,
+            1,
+            2
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+      "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+      "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "冻结同图消融：统计与决策独立并行，最终节点完整交付。"
+  },
+  "dag": {
+    "phase": "finished",
+    "status": "completed",
+    "simulated": false,
+    "plan_origin": "provided",
+    "reason": "冻结同图消融：统计与决策独立并行，最终节点完整交付。",
+    "nodes": [
+      {
+        "id": "statistics",
+        "parents": [],
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "objective": "只核对 analysis-02 的统计和来源限制。",
+        "state": "ok",
+        "attempt": 1,
+        "model": {
+          "id": "deepseek-v4-pro",
+          "provider": "ark-plan",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null
+        },
+        "recovery": null
+      },
+      {
+        "id": "decisions",
+        "parents": [],
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "objective": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+        "state": "ok",
+        "attempt": 1,
+        "model": {
+          "id": "deepseek-v4-pro",
+          "provider": "ark-plan",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null
+        },
+        "recovery": null
+      },
+      {
+        "id": "answer",
+        "parents": [
+          "statistics",
+          "decisions"
+        ],
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "objective": "完整回答当前用户任务，保留要求的输出格式。",
+        "state": "ok",
+        "attempt": 1,
+        "model": {
+          "id": "deepseek-v4-pro",
+          "provider": "ark-plan",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null
+        },
+        "recovery": null
+      }
+    ]
+  },
+  "plan_admission": null,
+  "planner": {
+    "model_id": "deepseek-v4-pro",
+    "basis": "configured-latency-then-price",
+    "output_cap": 384000,
+    "timeout_ms": 300000,
+    "thinking": "inherit",
+    "output_policy": "explicit-cap"
+  },
+  "plan_ready_ms": 0,
+  "content_validation": null,
+  "dynamic_decomposition": null,
+  "cost_breakdown": {
+    "planning": 0,
+    "dynamic_planning": 0,
+    "execution": 7.29135,
+    "evaluation": 3.128
+  },
+  "result_path": "/private/tmp/refractrouter-minimal-dag-20260914/reports/prefix-cache-v1/live-01/same-dag-stable-v1/20260914T100311Z-8496397c86d5/result.json",
+  "run_dir": "/private/tmp/refractrouter-minimal-dag-20260914/reports/prefix-cache-v1/live-01/same-dag-stable-v1/20260914T100311Z-8496397c86d5",
+  "usage": {
+    "input_tokens": 5638,
+    "output_tokens": 8699,
+    "cache_read_tokens": 2048,
+    "reasoning_tokens": 6721
+  },
+  "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "artifact_hashes": {
+    "answer.md": "439611178c8b83711d2a6059efad30d4868decff0f8709fb8748a9ffa493a37f",
+    "manifest.json": "e276f2a572cf144dc086a06ed317c4e9ef3058f7fc8fac19b33786e58563c616",
+    "plan.json": "5942ca372177047dfe3b4efee057d28adc8167891d2881010bbfb2d359091d1d",
+    "profile.json": "a9bb8e344afaff7cbff259b0bb36a9080d6c8f1e761dfea0050fcb08aec1c0ca",
+    "progress.ndjson": "25e9a2f75889d1ceed85af020552d8e2a7707302f90ad24da9c283d40f0229a4",
+    "provider-config.json": "4a82e63d10110b1693eb454a87402d7726d64ff1e3cb1170e4a1c6d6c804396a",
+    "request.json": "3f722c3980c317afc3a558e259826b845a7a34afab2b7499a62232896f30ce53",
+    "result.json": "3db9367a1d438aea8bac537adfd3d4bdaf1a9fce6a605e44e315a550da95aca9"
+  },
+  "prefix_policy": "stable-v1"
+}

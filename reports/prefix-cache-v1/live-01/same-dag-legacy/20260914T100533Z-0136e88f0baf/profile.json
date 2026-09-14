@@ -1,0 +1,50 @@
+{
+  "schema_version": "node-routing-profile-v2",
+  "kind": "configured",
+  "billing_unit": "AFP",
+  "scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+  "provenance": "本次 provider-config.json；无模型探测、无观测样本。",
+  "candidates": [
+    {
+      "model_id": "deepseek-v4-pro",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 80,
+      "latency_ms": 10000,
+      "cost": 283.2896,
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 131072,
+      "input_max_tokens": 131073
+    }
+  ],
+  "forecast_basis": {
+    "statistics": {
+      "deepseek-v4-pro": {
+        "input_tokens": 131072,
+        "output_tokens": 384000,
+        "source": "default"
+      }
+    },
+    "decisions": {
+      "deepseek-v4-pro": {
+        "input_tokens": 131072,
+        "output_tokens": 384000,
+        "source": "default"
+      }
+    },
+    "answer": {
+      "deepseek-v4-pro": {
+        "input_tokens": 131072,
+        "output_tokens": 384000,
+        "source": "default"
+      }
+    }
+  },
+  "model_bindings": {
+    "deepseek-v4-pro": "deepseek-v4-pro"
+  },
+  "action_bindings": {
+    "deepseek-v4-pro": "4d45273499f92871acf23760606c8815f429fe949870fd39bc26dea74060f4c3"
+  }
+}

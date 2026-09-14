@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "refractagent-providers-v1",
+  "billingUnit": "AFP",
+  "qualityMin": 80,
+  "providers": [
+    {
+      "id": "ark-plan",
+      "type": "ark-agent-plan",
+      "credentialEnv": "CODEX_ARK_API_KEY"
+    }
+  ],
+  "models": [
+    {
+      "id": "deepseek-v4-pro",
+      "model": "deepseek-v4-pro",
+      "provider": "ark-plan",
+      "role": "candidate",
+      "contextWindow": 1024000,
+      "maxOutputTokens": 8192,
+      "jsonMode": "json-object-hint",
+      "requestOptions": {},
+      "pricing": {
+        "unit": "AFP",
+        "inputPer1k": 0.55,
+        "outputPer1k": 0.55,
+        "cachedInputPer1k": 0.55
+      },
+      "routing": {
+        "quality": 80,
+        "latencyMs": 10000
+      }
+    },
+    {
+      "id": "evaluation-kimi-k3",
+      "model": "kimi-k3",
+      "provider": "ark-plan",
+      "role": "judge",
+      "contextWindow": 1024000,
+      "maxOutputTokens": 8192,
+      "jsonMode": "json-object-hint",
+      "requestOptions": {},
+      "pricing": {
+        "unit": "AFP",
+        "inputPer1k": 1.0,
+        "outputPer1k": 1.0,
+        "cachedInputPer1k": 1.0
+      }
+    }
+  ]
+}

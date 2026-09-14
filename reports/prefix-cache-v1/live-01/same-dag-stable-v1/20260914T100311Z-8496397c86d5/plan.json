@@ -1,0 +1,134 @@
+{
+  "nodes": [
+    {
+      "node_id": "statistics",
+      "node_type": "generation",
+      "prompt_template": "只核对 analysis-02 的统计和来源限制。",
+      "parents": [],
+      "contract": {
+        "objective": "只核对 analysis-02 的统计和来源限制。",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "facts": "给出结果与依据",
+            "uncertainty": "限制及未证明内容"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 131072,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+          "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+          "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "decisions",
+      "node_type": "generation",
+      "prompt_template": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+      "parents": [],
+      "contract": {
+        "objective": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+        "inputs": {},
+        "output": {
+          "format": "json",
+          "fields": {
+            "facts": "给出结果与依据",
+            "uncertainty": "限制及未证明内容"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 131072,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+          "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+          "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+      "parents": [
+        "statistics",
+        "decisions"
+      ],
+      "contract": {
+        "objective": "完整回答当前用户任务，保留要求的输出格式。",
+        "inputs": {
+          "statistics": {
+            "fields": [
+              "facts",
+              "uncertainty"
+            ],
+            "reason": "保留父节点证据与限制"
+          },
+          "decisions": {
+            "fields": [
+              "facts",
+              "uncertainty"
+            ],
+            "reason": "保留父节点证据与限制"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终答案"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "high",
+          "input_budget_tokens": 131072,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+          "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+          "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "冻结同图消融：统计与决策独立并行，最终节点完整交付。"
+}

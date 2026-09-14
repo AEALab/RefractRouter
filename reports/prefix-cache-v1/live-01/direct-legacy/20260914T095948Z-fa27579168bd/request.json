@@ -1,0 +1,93 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+    "acceptanceCriteria": [
+      "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+      "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+      "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+    ],
+    "prefixPolicy": "legacy",
+    "template": "single",
+    "maxConcurrency": 2,
+    "verifyDependencies": false
+  },
+  "runtime_request": {
+    "method": "B",
+    "qualityMin": 80,
+    "weights": {
+      "quality": 0.5,
+      "cost": 0.3,
+      "latency": 0.2
+    },
+    "task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+    "mode": "run",
+    "costMax": 900,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 2,
+    "maxNodeFallbacks": 0,
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 9741,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+              "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+              "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+            ],
+            "covers": [
+              0,
+              1,
+              2
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+        "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+        "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "prefixPolicy": "legacy",
+    "verifyDependencies": false,
+    "acceptanceCriteria": [
+      "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+      "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+      "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+    ],
+    "plannerThinking": "inherit"
+  },
+  "policy_version": "refractagent-presets-v1",
+  "mode": "live",
+  "production_budget": 900,
+  "evaluation_budget": 40,
+  "max_output_tokens": 8192,
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  }
+}

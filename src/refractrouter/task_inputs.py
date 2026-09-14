@@ -10,6 +10,9 @@ def prepare_inputs(request, conversation_context='', *, selected_materials=None,
                           + conversation_context + '\n\n当前用户任务：\n' + request['task'])
     materials = request.get('materials', []) if selected_materials is None else selected_materials
     stable = for_node and request.get('prefixPolicy') == 'stable-v1'
+    original_positions = ({item['id']: index + 1
+                           for index, item in enumerate(request.get('materials', []))}
+                          if stable else None)
     if stable:
         common = {m['id'] for m in select_materials(request.get('materials', []), [])}
         materials = sorted(materials, key=lambda m: (m['id'] not in common, m['id']))
@@ -18,7 +21,7 @@ def prepare_inputs(request, conversation_context='', *, selected_materials=None,
     if request.get('acceptanceCriteria'):
         execution_task += '\n\n最终交付必须满足：\n' + '\n'.join(request['acceptanceCriteria'])
     if stable:
-        execution_task += render_materials(materials)
+        execution_task += render_materials(materials, original_positions)
     planning_task = execution_task
     # 确定性解析必须读取原文换行；JSON 转义会破坏边界与子句识别。
     dependency_source = request['task'] + ''.join('\n\n' + item['text'] for item in request.get('materials', []))

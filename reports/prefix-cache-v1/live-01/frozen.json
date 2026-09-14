@@ -1,0 +1,588 @@
+{
+  "protocol": {
+    "schema_version": "prefix-cache-diagnostic-v1",
+    "scope": "复用公开开发材料的接口缓存诊断及同图消融；不是独立样本，不估计成功率或 Pareto 前沿。",
+    "source": "reports/pareto-development-v1/live-01/frozen.json:public_tasks",
+    "configuration": {
+      "schemaVersion": "refractagent-providers-v1",
+      "billingUnit": "AFP",
+      "qualityMin": 80,
+      "providers": [
+        {
+          "id": "ark-plan",
+          "type": "ark-agent-plan",
+          "credentialEnv": "CODEX_ARK_API_KEY"
+        }
+      ],
+      "models": [
+        {
+          "id": "deepseek-v4-flash",
+          "model": "deepseek-v4-flash",
+          "provider": "ark-plan",
+          "role": "candidate",
+          "contextWindow": 1024000,
+          "maxOutputTokens": 8192,
+          "jsonMode": "json-object-hint",
+          "requestOptions": {},
+          "pricing": {
+            "unit": "AFP",
+            "inputPer1k": 0.05,
+            "outputPer1k": 0.05,
+            "cachedInputPer1k": 0.05
+          },
+          "routing": {
+            "quality": 80,
+            "latencyMs": 10000
+          }
+        },
+        {
+          "id": "minimax-m3",
+          "model": "minimax-m3",
+          "provider": "ark-plan",
+          "role": "candidate",
+          "contextWindow": 1024000,
+          "maxOutputTokens": 8192,
+          "jsonMode": "prompt-only",
+          "requestOptions": {},
+          "pricing": {
+            "unit": "AFP",
+            "inputPer1k": 0.25,
+            "outputPer1k": 0.25,
+            "cachedInputPer1k": 0.25
+          },
+          "routing": {
+            "quality": 80,
+            "latencyMs": 10000
+          }
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "model": "deepseek-v4-pro",
+          "provider": "ark-plan",
+          "role": "candidate",
+          "contextWindow": 1024000,
+          "maxOutputTokens": 8192,
+          "jsonMode": "json-object-hint",
+          "requestOptions": {},
+          "pricing": {
+            "unit": "AFP",
+            "inputPer1k": 0.55,
+            "outputPer1k": 0.55,
+            "cachedInputPer1k": 0.55
+          },
+          "routing": {
+            "quality": 80,
+            "latencyMs": 10000
+          }
+        },
+        {
+          "id": "evaluation-kimi-k3",
+          "model": "kimi-k3",
+          "provider": "ark-plan",
+          "role": "judge",
+          "contextWindow": 1024000,
+          "maxOutputTokens": 8192,
+          "jsonMode": "json-object-hint",
+          "requestOptions": {},
+          "pricing": {
+            "unit": "AFP",
+            "inputPer1k": 1.0,
+            "outputPer1k": 1.0,
+            "cachedInputPer1k": 1.0
+          }
+        }
+      ]
+    },
+    "application_configuration": {
+      "schemaVersion": "refractagent-providers-v1",
+      "billingUnit": "AFP",
+      "qualityMin": 80,
+      "providers": [
+        {
+          "id": "ark-plan",
+          "type": "ark-agent-plan",
+          "credentialEnv": "CODEX_ARK_API_KEY"
+        }
+      ],
+      "models": [
+        {
+          "id": "deepseek-v4-pro",
+          "model": "deepseek-v4-pro",
+          "provider": "ark-plan",
+          "role": "candidate",
+          "contextWindow": 1024000,
+          "maxOutputTokens": 8192,
+          "jsonMode": "json-object-hint",
+          "requestOptions": {},
+          "pricing": {
+            "unit": "AFP",
+            "inputPer1k": 0.55,
+            "outputPer1k": 0.55,
+            "cachedInputPer1k": 0.55
+          },
+          "routing": {
+            "quality": 80,
+            "latencyMs": 10000
+          }
+        },
+        {
+          "id": "evaluation-kimi-k3",
+          "model": "kimi-k3",
+          "provider": "ark-plan",
+          "role": "judge",
+          "contextWindow": 1024000,
+          "maxOutputTokens": 8192,
+          "jsonMode": "json-object-hint",
+          "requestOptions": {},
+          "pricing": {
+            "unit": "AFP",
+            "inputPer1k": 1.0,
+            "outputPer1k": 1.0,
+            "cachedInputPer1k": 1.0
+          }
+        }
+      ]
+    },
+    "sequential_task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+    "concurrent_task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-01\": {\"instruction\": \"依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。\", \"title\": \"进出记录\"}, {\"source_id\": \"s2\", \"text\": \"月末实盘59件；单据仍有2份待核对，未提供对应数量。无监控或责任调查结果。\", \"title\": \"盘点记录\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"expected_stock\": \"number\", \"observed_gap\": \"number\", \"theft_proven\": \"boolean\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"expected_stock\": \"应存件数\", \"observed_gap\": \"实盘减应存\", \"theft_proven\": \"材料是否已经证明失窃\"}, \"semantic_criteria\": [\"区分台账差异与原因认定；不擅自补齐待核对数量。\"]}, \"rules-01\": {\"instruction\": \"依据规则判断此次申请能否全数批准。输出 remaining、requested、full_approval。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每位成员最多同时持有5件设备；归还只有办理签收后才从持有数扣除。\", \"title\": \"规则\"}, {\"source_id\": \"s2\", \"text\": \"申请者已签出3件，另称有1件已放回但尚未签收；本次申请3件。\", \"title\": \"申请\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"full_approval\": \"boolean\", \"remaining\": \"number\", \"requested\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"full_approval\": \"是否可全数批准\", \"remaining\": \"现在可新增借用数\", \"requested\": \"此次请求数\"}, \"semantic_criteria\": [\"不可把口头归还视作已完成手续。\"]}, \"rules-02\": {\"instruction\": \"核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。\", \"title\": \"流程\"}, {\"source_id\": \"s2\", \"text\": \"打包已结束并通过检查；签名未执行；负责人要求现在直接发布。\", \"title\": \"现状\"}], \"output_contract\": {\"allowed_labels\": {\"allowed_now\": [\"打包\", \"签名\", \"发布\"], \"blocked_now\": [\"打包\", \"签名\", \"发布\"], \"required_edge\": [\"打包\", \"签名\", \"发布\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"edge_encoding\": \"单条边使用[前置步骤,后续步骤]；容许单元素外层列表和显式列出的边标签别名，保留原输出及规范化记录。别名仅识别边端点，不证明步骤已通过，不适用于allowed_now/blocked_now或正文；反向边不等价。\", \"edge_label_aliases\": {\"required_edge\": {\"打包结束\": \"打包\", \"签名通过\": \"签名\"}}, \"finding_types\": {\"allowed_now\": \"set\", \"blocked_now\": \"set\", \"required_edge\": \"edge\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"allowed_now\": \"可执行步骤列表\", \"blocked_now\": \"仍不能执行步骤列表\", \"required_edge\": \"发布直接前置边，用两个步骤名列表表达\"}, \"semantic_criteria\": [\"最终正文不得倒写依赖或暗示检查通过就能直接发布。\"]}}",
+    "application_runs": [
+      {
+        "id": "direct-legacy",
+        "payload": {
+          "task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+          "acceptanceCriteria": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "prefixPolicy": "legacy",
+          "template": "single",
+          "maxConcurrency": 2,
+          "verifyDependencies": false
+        }
+      },
+      {
+        "id": "direct-stable-v1",
+        "payload": {
+          "task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+          "acceptanceCriteria": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "prefixPolicy": "stable-v1",
+          "template": "single",
+          "maxConcurrency": 2,
+          "verifyDependencies": false
+        }
+      },
+      {
+        "id": "same-dag-stable-v1",
+        "payload": {
+          "task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+          "acceptanceCriteria": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "prefixPolicy": "stable-v1",
+          "template": "single",
+          "maxConcurrency": 2,
+          "verifyDependencies": false,
+          "plan": {
+            "nodes": [
+              {
+                "node_id": "statistics",
+                "node_type": "generation",
+                "prompt_template": "只核对 analysis-02 的统计和来源限制。",
+                "parents": [],
+                "contract": {
+                  "objective": "只核对 analysis-02 的统计和来源限制。",
+                  "inputs": {},
+                  "output": {
+                    "format": "json",
+                    "fields": {
+                      "facts": "给出结果与依据",
+                      "uncertainty": "限制及未证明内容"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "high",
+                    "input_budget_tokens": 131072,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+                    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+                    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+                  ],
+                  "covers": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "decisions",
+                "node_type": "generation",
+                "prompt_template": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+                "parents": [],
+                "contract": {
+                  "objective": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+                  "inputs": {},
+                  "output": {
+                    "format": "json",
+                    "fields": {
+                      "facts": "给出结果与依据",
+                      "uncertainty": "限制及未证明内容"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "high",
+                    "input_budget_tokens": 131072,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+                    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+                    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+                  ],
+                  "covers": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "answer",
+                "node_type": "generation",
+                "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+                "parents": [
+                  "statistics",
+                  "decisions"
+                ],
+                "contract": {
+                  "objective": "完整回答当前用户任务，保留要求的输出格式。",
+                  "inputs": {
+                    "statistics": {
+                      "fields": [
+                        "facts",
+                        "uncertainty"
+                      ],
+                      "reason": "保留父节点证据与限制"
+                    },
+                    "decisions": {
+                      "fields": [
+                        "facts",
+                        "uncertainty"
+                      ],
+                      "reason": "保留父节点证据与限制"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "最终答案"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "high",
+                    "input_budget_tokens": 131072,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+                    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+                    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+                  ],
+                  "covers": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              }
+            ],
+            "final_node_id": "answer",
+            "acceptance_criteria": [
+              "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+              "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+              "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+            ],
+            "schema_version": "text-task-plan-v2",
+            "decomposition_reason": "冻结同图消融：统计与决策独立并行，最终节点完整交付。"
+          }
+        }
+      },
+      {
+        "id": "same-dag-legacy",
+        "payload": {
+          "task": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。\n{\"analysis-02\": {\"instruction\": \"分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。\", \"title\": \"问卷\"}, {\"source_id\": \"s2\", \"text\": \"同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。\", \"title\": \"客服\"}], \"output_contract\": {\"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"can_pool\": \"boolean\", \"service_complaints\": \"number\", \"survey_negative\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"can_pool\": \"能否合成全体客户不满意率\", \"service_complaints\": \"投诉工单条数\", \"survey_negative\": \"问卷不满意份数\"}, \"semantic_criteria\": [\"不把工单当客户数；分别分析两来源并说明抽样与重叠限制。\"]}, \"decision-01\": {\"instruction\": \"分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。\", \"title\": \"需求与打印\"}, {\"source_id\": \"s2\", \"text\": \"须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。\", \"title\": \"配送与预算\"}], \"output_contract\": {\"allowed_labels\": {\"delivery\": [\"D\", \"E\"], \"printer\": [\"P\", \"Q\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"delivery\": \"string\", \"printer\": \"string\", \"total_cost\": \"number\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"delivery\": \"配送方案\", \"printer\": \"所选打印商\", \"total_cost\": \"总价元\"}, \"semantic_criteria\": [\"最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。\"]}, \"decision-02\": {\"instruction\": \"先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。\", \"materials\": [{\"source_id\": \"s1\", \"text\": \"每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。\", \"title\": \"要求\"}, {\"source_id\": \"s2\", \"text\": \"甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。\", \"title\": \"人员\"}], \"output_contract\": {\"allowed_labels\": {\"evening\": [\"甲\", \"乙\", \"丙\"], \"morning\": [\"甲\", \"乙\", \"丙\"]}, \"answer\": \"中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。\", \"finding_types\": {\"evening\": \"string\", \"feasible\": \"boolean\", \"morning\": \"string\"}, \"findings\": \"列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。\"}, \"requested_findings\": {\"evening\": \"晚班人员\", \"feasible\": \"是否存在符合全部条件安排\", \"morning\": \"早班人员\"}, \"semantic_criteria\": [\"同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。\"]}}",
+          "acceptanceCriteria": [
+            "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+            "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+            "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+          ],
+          "prefixPolicy": "legacy",
+          "template": "single",
+          "maxConcurrency": 2,
+          "verifyDependencies": false,
+          "plan": {
+            "nodes": [
+              {
+                "node_id": "statistics",
+                "node_type": "generation",
+                "prompt_template": "只核对 analysis-02 的统计和来源限制。",
+                "parents": [],
+                "contract": {
+                  "objective": "只核对 analysis-02 的统计和来源限制。",
+                  "inputs": {},
+                  "output": {
+                    "format": "json",
+                    "fields": {
+                      "facts": "给出结果与依据",
+                      "uncertainty": "限制及未证明内容"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "high",
+                    "input_budget_tokens": 131072,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+                    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+                    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+                  ],
+                  "covers": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "decisions",
+                "node_type": "generation",
+                "prompt_template": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+                "parents": [],
+                "contract": {
+                  "objective": "只核对 decision-01 与 decision-02 的全部约束与选择。",
+                  "inputs": {},
+                  "output": {
+                    "format": "json",
+                    "fields": {
+                      "facts": "给出结果与依据",
+                      "uncertainty": "限制及未证明内容"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "high",
+                    "input_budget_tokens": 131072,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+                    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+                    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+                  ],
+                  "covers": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              },
+              {
+                "node_id": "answer",
+                "node_type": "generation",
+                "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+                "parents": [
+                  "statistics",
+                  "decisions"
+                ],
+                "contract": {
+                  "objective": "完整回答当前用户任务，保留要求的输出格式。",
+                  "inputs": {
+                    "statistics": {
+                      "fields": [
+                        "facts",
+                        "uncertainty"
+                      ],
+                      "reason": "保留父节点证据与限制"
+                    },
+                    "decisions": {
+                      "fields": [
+                        "facts",
+                        "uncertainty"
+                      ],
+                      "reason": "保留父节点证据与限制"
+                    }
+                  },
+                  "output": {
+                    "format": "text",
+                    "fields": {
+                      "text": "最终答案"
+                    }
+                  },
+                  "capability": {
+                    "difficulty": "medium",
+                    "risk": "high",
+                    "input_budget_tokens": 131072,
+                    "expected_output_tokens": 1000
+                  },
+                  "checks": [
+                    "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+                    "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+                    "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+                  ],
+                  "covers": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "execution": "text-model",
+                  "failure_policy": "stop"
+                }
+              }
+            ],
+            "final_node_id": "answer",
+            "acceptance_criteria": [
+              "完整核对问卷与客服统计，不把工单当客户数或合并总体不满意率。",
+              "打印配送组合为 P 与 D，总价 380；解释被排除选项。",
+              "甲早班、乙晚班，不安排培训过期人员；保留全部资格和时间限制。"
+            ],
+            "schema_version": "text-task-plan-v2",
+            "decomposition_reason": "冻结同图消融：统计与决策独立并行，最终节点完整交付。"
+          }
+        }
+      }
+    ],
+    "maximum_calls": 44,
+    "probe_afp_ceiling": 240,
+    "application_production_afp": 900,
+    "application_evaluation_afp": 40,
+    "maximum_total_afp": 4000,
+    "per_request_timeout_seconds": 300,
+    "application_timeout_ms": 300000,
+    "http_retries": 0,
+    "max_node_fallbacks": 0,
+    "max_dynamic_splits": 0,
+    "planner_calls": 0,
+    "stop_rule": "认证、用量未知、账本或证据写入异常停止整批并结算在途；已结算的探针输出失败记录后继续。应用失败停止，不追加补跑。",
+    "cache_policy": "不清空服务端缓存，冷状态全部未确认；模型轮换布局顺序，跨布局和之前调用污染不能排除；不额外预热、填充或延迟。",
+    "measurement": "32 次探针：4 模型×2 布局×（首次并发2次、首次顺序1次、重复前缀1次）；应用4次：直接/同图×2布局，共12次。单重复只诊断，不做统计显著性。",
+    "quality": "应用沿用原 evaluate_text、Kimi K3 与80门槛；探针仅验证协议/用量，不评估最终交付。真人质量未完成。",
+    "pricing": "固定现有官方 AFP 系数，缓存按普通输入计；未验证专属折扣，不等同控制台实际扣减。 4000 AFP 是按44次调用及应用候选模型完整输出容量保留的整批上界，不是预计消耗。",
+    "timing": "记录完整请求墙钟；非流式 TTFT 未知；包含全部探针、失败、节点和最终评审。",
+    "thinking": "保持 application_configuration 当前模型默认，不全局关闭 thinking；候选8192容量，应用模型容量策略不变。"
+  },
+  "source_hashes": {
+    "src/refractrouter/__init__.py": "1ebb90221ab180b3804eaf36fddfaea1cfb5303f2f03e3299812041207e28a34",
+    "src/refractrouter/adapters.py": "43709152360d3079b816132ad8d3092b7f01398d78651cfe7e53dfb052c1f53d",
+    "src/refractrouter/agent.py": "31fb93382e0d65b5a01124b40d296d6ac13012b72be949736d7a3e42e6c2cf73",
+    "src/refractrouter/agent_cli.py": "9d15073249a753c04438e8874e00ca5fd743d638f233a97ab1a57119c8f09f04",
+    "src/refractrouter/agent_progress.py": "ad44afb1f73a70f8ceb5217195c1449cf37fcb584fe6c6b06bb9011b7bbb8e61",
+    "src/refractrouter/application_config.py": "1724aa3c41a298901698c0b2ecc240ec61178c6bc61b8adb7f3185a08ee6e7ac",
+    "src/refractrouter/ark_plan.py": "b96f7d3654eea5952a2ccff12852294bf49678f6ce326c734501f6ff4a148ec3",
+    "src/refractrouter/benchmark.py": "9c9042519d21db15cff169e036e369187a7cf9a7b33d7794cc25c3de9b193c12",
+    "src/refractrouter/blind_review.py": "a52c29f7c47f8dc30dbf4aa928a2055b63fd55ff980a023c8d3d7059333d5bed",
+    "src/refractrouter/cache_usage.py": "46474ae603fbb295da28ea4326fe920cf92a9d725fe748bba111f1ffe04f804a",
+    "src/refractrouter/calibration_runner.py": "5d8a15bbf818022c0eee690c2d391813614539ab8d2a4a9dc0f1453c61bce0f9",
+    "src/refractrouter/cli.py": "bfac0bf929a98acbddacd7c848f17650fb6dd9526c5f77895ca750cee033adee",
+    "src/refractrouter/compact_planning.py": "8529ee89250038da71565134478d52d062b6f83adc6c9dc46e0bdcbf9d6ff2af",
+    "src/refractrouter/comparisons.py": "baf75a5e94996e581887f7746f229eaefa28675bd9c102d3d7b5a0a3d1a249a1",
+    "src/refractrouter/configured_routing.py": "759fddb9f5c401b329a6ea3d78000fb2f65833a6adb1258a26c66358cbe20670",
+    "src/refractrouter/cost_selection.py": "c4b5e676b60ab190e6c6584bb7c4b0bfda2be59389f4777f2eb9591f75916461",
+    "src/refractrouter/dag_batch_study.py": "a257d98d47bc68627ed019d1e07cefac513882ea7e3ea54f7bb83ef43ed661d2",
+    "src/refractrouter/dag_study.py": "dab8f2e074ddfa5ab46c16f7c8e7b705d2c1b36a4a8242ff8eebdef23dbe7161",
+    "src/refractrouter/dag_study_execution.py": "2c29d750ce6a08079ad4c85dc727d3cad28185966cabecb7359c0bb2ba046f3d",
+    "src/refractrouter/dataset.py": "51f5138e84b515cdeee5f306f6bd8fed0f47eb74752748b52084c866598d749d",
+    "src/refractrouter/deepagents_executor.py": "e3e4e085d55f9792f7722681fccb5bdf1f45d6828749cfa274c07ddd88510f3b",
+    "src/refractrouter/dependency_guard.py": "d8f4eb3a08a3a65afa45b350f0e9c7782dedd76aef8be86bee97e38b0c7ea6c9",
+    "src/refractrouter/dynamic_decomposition.py": "201b6d0fa1c3c4ce14751841566a06bcd4b927e0c8abfd7806f44869fd58fcec",
+    "src/refractrouter/evidence_state.py": "b10a1af5e06ff8251e9cae7879a7e86b340de0195652898f72b8816244e0b7d4",
+    "src/refractrouter/execution_modes.py": "cefeba1f1cb728433fa22c479c6886b2c6b5a94a8124d4ef3c9610b35fc8fac0",
+    "src/refractrouter/execution_reports.py": "0c37cfa4472545fdc60f0b3d62ed20edff02054469ccb88e8e8824eef0e7bf16",
+    "src/refractrouter/graph_executor.py": "56d744d24c9a76e8a896e9fd33213c291b4da7bb727fa07e21b027dcd1428f26",
+    "src/refractrouter/handoff_validation.py": "74c527214f10e1ead75a5b957ce373ce9037d24ee10841880cffa29c67cd7709",
+    "src/refractrouter/joint_research.py": "f0f1f12c5488107682ec8de1c2d3b4f6767baf7e757cbe1d5074e2fe6f013dcf",
+    "src/refractrouter/judge.py": "ce3c891d7b2dee30b16dd81c1efd98078eb58789b9aa12b1e6a0e0538448d3b8",
+    "src/refractrouter/k3_experiment.py": "68e3fcc60a27f68a3f6cf65c33eba32f292b50330b9168a46faf0281a2a9a94d",
+    "src/refractrouter/k3_review_runner.py": "50c6e2fbb52bba5be011c2267b95c37642a8942c1aea96d78b35150ba471d621",
+    "src/refractrouter/manifest.py": "92c0490a5bdd362a7d9390ff5a842e08a0c9a5d7181c516a91c1aa327784354b",
+    "src/refractrouter/metrics.py": "1bfe2db5523c56bcefe456e23f62a507a1650f650fe07ee48ff7900b5dae350a",
+    "src/refractrouter/minimal_planning.py": "ebb3265c1c1d484497f58b78bfc4ff58194267a525b15619376ab5a2b65b927f",
+    "src/refractrouter/model_catalog.py": "158c7b5acc0dd13ed061099e298fd656b0ab93bd88dfe8b4ed526accaf9ca818",
+    "src/refractrouter/model_registry.py": "1f5d56244af42e918e594dd8434c49edba70ac50070314bef5eb09cc10868f8e",
+    "src/refractrouter/model_selection.py": "a23b611824b0ef432ee3c7933bd216879138d6901477048a433e20bf6a2f0793",
+    "src/refractrouter/node_availability.py": "b39ab5a1f7e4376992b528eb1e7a2872ee4ae1b5ed367b398d49b1a28c17b4fb",
+    "src/refractrouter/node_contracts.py": "d34e64ab4a1d39d8028099ae0fbb1dc8ed434a7a3ed4249b6ec072575a915d62",
+    "src/refractrouter/node_judge.py": "d1dd5997921b47533d45a15566368ec0b6f1a5aee668a83e9c636e4f4cea1b9b",
+    "src/refractrouter/node_recovery.py": "71c3da6863ab06e6f3b885280265dd0de5d5fcceb56658aa8bdbfa3c75038f9e",
+    "src/refractrouter/node_routing.py": "d7d262cf23ba8aed6a2e77d33187d7df8309c28c6936fb7ef962dd64e6cab014",
+    "src/refractrouter/openai_compatible.py": "ca44629b730cfe72ed7e596f4fe4cf1b3ac8c8196fe0f4252cc8fc3097a456bf",
+    "src/refractrouter/output_constraints.py": "942285767ffc53b72fbc84bea9c32d6f5b41d37cab2a5d752d82cbf32979cea4",
+    "src/refractrouter/pareto_analysis.py": "f607e62562ca2bfe3a7cef9c73f018aa915bf7c475e8192fd334311af777cc39",
+    "src/refractrouter/planning_support.py": "e901246bbd14fe0c9c76bfdaa70891887dc274782087db8c8fc495c4c54bf617",
+    "src/refractrouter/profile_calibration.py": "1257df3f9ff010fb50ad0916e3fb9e70efa56e7fd81250675fa9ce694f21765a",
+    "src/refractrouter/quality_calibration.py": "cbf33827880892e02e17b813b10d51b43648db6408a8233386a298779a3c13b1",
+    "src/refractrouter/quality_encoding.py": "b0f49ad4435dab7cd37cdfa2cad3e68eac29fe48c432f4eaccd5b513f20c2df6",
+    "src/refractrouter/quality_material_audit.py": "88b6163792caf6ddcb7872a782dce0c95fe7d8609aa2ffb3b139188f4eaba48a",
+    "src/refractrouter/quality_runtime.py": "59b58f9724cc0271b8cc231a783b94653c829e485b89e7679eabd492d84cd5da",
+    "src/refractrouter/quality_statistics.py": "bc88c97cb480454d12f0c3fc16a4482ca4c77bb5058750ba9c15101a5e89cec3",
+    "src/refractrouter/quality_study.py": "171c5d753b0b1eb11defbdfc41c60a74097dac4bb4151299800544c62dfe2cf8",
+    "src/refractrouter/recovery_study.py": "9b33dfd32ef1a0da8942f545ce4af7648f9225f6712c295624ea2a6ffe0d372d",
+    "src/refractrouter/report_renderer.py": "a2b110b8fdea5afdd4369377b5bef1c753bc1e845076dd90e23dc17dc4ed464d",
+    "src/refractrouter/research_analysis.py": "5fc0aa0fc374e35da4b4d0318a51eb25e688cadab3261b7b73ccbdad182fc8f9",
+    "src/refractrouter/research_calibration.py": "e17463504738892de2b6b35dac1e8f508d9290544ff19dc2ea5e24aeba83ccd7",
+    "src/refractrouter/research_execution.py": "8b51dd3c9d5d76f0b534cd9c967243b95f4b8a67e184f6f5c8f217adafaa3af6",
+    "src/refractrouter/research_protocol.py": "17fdb6dbd26b68ef43721d07fcbbc90f0e2ac5dded37236fb528f1429276db80",
+    "src/refractrouter/responses_api.py": "987e62ad2e7a8f7cdf20f0a8f46a3cde2a582f0d950e808ca8939540b60c8032",
+    "src/refractrouter/review_calibration.py": "ab42222950af33ad40d60ff65c80ebeef1f54ee2a97a065f92ca975eaa602d2c",
+    "src/refractrouter/routing.py": "6b7c964f643fa30465d4e9d2a425f0732ebf3633f59f9dafe67968188f6e916f",
+    "src/refractrouter/routing_actions.py": "65fc2d33b0f30c3b8909ec5f27b91c09ecdb37c0d49b10ed8cb12534e13539dc",
+    "src/refractrouter/schemas.py": "8acaf738edd6586135fa9e33f49ba15c1e21d3a7ae4def977fa03ba69771b08e",
+    "src/refractrouter/scoring.py": "2abb25786031dc996b64b6e94fdec6c86454898d67b19afa54193d6afb8a4dfe",
+    "src/refractrouter/selective_context.py": "188935266aed367ae52f79b506f5432d8c3607f29b5b116a9ce27d07e583f308",
+    "src/refractrouter/source_pack.py": "cc515979db15bcd08133cf0af2ba7ce615c288ec09a661ca0d4ae34d3501fe7d",
+    "src/refractrouter/task_budget.py": "d836ed328214500fccb7644a79b613048836fdb4266d14b997a575f81d68d61a",
+    "src/refractrouter/task_contract_replay.py": "9fa02697d015b4a7eb9c59147fd578493e69cd19cca5549bf5959d4f4b427685",
+    "src/refractrouter/task_contracts.py": "d6b540b1744ca8b866cbeaa9b3432bb4697363683ac56ede434e61c7ab45424c",
+    "src/refractrouter/task_evaluation.py": "bf7a59658313acd0abb519c75c1e2f383469fe1bac60167af0349f19b9e91530",
+    "src/refractrouter/task_execution.py": "c8e7a42776d5faccdaa6049c5b5b972f953de18d5db6ff0ec2d33a2aabd89711",
+    "src/refractrouter/task_inputs.py": "89552999630289b9f997e36cf4d93597c496ac8483f226ac33f38d0c94c4ece5",
+    "src/refractrouter/task_materials.py": "fd7b39fd5569f4075db79183b28c537ce52c904f85a60e490ef89973848d9664",
+    "src/refractrouter/task_plan.py": "732e897980298e5006e46c083e6f5e8fb061597a7ea1c52d6a86ad68d8643b11",
+    "src/refractrouter/task_runtime.py": "82173909b5c1cc650e3d4a2c1eb0ec00cb311f7f591a2067004ed61f4a6caf9c",
+    "src/refractrouter/task_scheduling.py": "f42143c117de757bea3c133df8780985c5b7d963953aa85ba9fbcf1f5fed5777",
+    "src/refractrouter/tool_runtime.py": "21536d0bcb36198acc6a3c315c5d74da1015178a15d8c73a0dabe6c69dea17f9",
+    "src/refractrouter/resources/agent-plan.json": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367",
+    "src/refractrouter/resources/ark-agent-plan-catalog.json": "7b68ee361691ee97d13f4196075ab997922961da467cefa1437d0c763169b5b8",
+    "src/refractrouter/resources/ark-thinking-capabilities.json": "b00a20291610ad10b3dc6de0d1f7b72b859beb95110dc3bf735feea839b0ad57",
+    "src/refractrouter/resources/compare-plan.json": "9ed6108a6dd45692734278eb26b628e7c4d71b5c8b815efc486a0b67001ae466",
+    "src/refractrouter/resources/report-profile.json": "b97961fcef869e7aa9d1f50ca7973f7ca0e392b8909525a2d722faf848c7bb30",
+    "experiments/validate_prefix_cache.py": "f8b8c02f8122624f2fab9a065d827c268c844fe679857417ef34cd0109bd1859",
+    "data/research/prefix-cache-v1.json": "2f7916a3fd398409e7362f7e153a0c58dd77e9d9bffa839ca6bbef43d8c9141d",
+    "uv.lock": "1ff35e682e48a6f2bde8a6a835c8fb4008bd38a7f49001f3b2393d81dcad7d1f",
+    "pyproject.toml": "90b9f6e41254a6421f3100060ebcb701204ce08119203175a1ed5a035c86b0da"
+  },
+  "sha256": "1041103ba252978bad1574f029729d1629b6b6487d4cf9196934ee438abc61c9"
+}
