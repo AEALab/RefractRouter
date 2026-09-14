@@ -12,7 +12,9 @@ def prepare_inputs(request, conversation_context='', *, selected_materials=None)
     if request.get('acceptanceCriteria'):
         execution_task += '\n\n最终交付必须满足：\n' + '\n'.join(request['acceptanceCriteria'])
     planning_task = execution_task
-    content_guard = DependencyGuard(request['task'] + render_materials(request.get('materials', []))) if request.get('verifyDependencies') else None
+    # 确定性解析必须读取原文换行；JSON 转义会破坏边界与子句识别。
+    dependency_source = request['task'] + ''.join('\n\n' + item['text'] for item in request.get('materials', []))
+    content_guard = DependencyGuard(dependency_source) if request.get('verifyDependencies') else None
     if content_guard is not None:
         execution_task += content_guard.instruction()
     if request.get('maxDynamicSplits',0):

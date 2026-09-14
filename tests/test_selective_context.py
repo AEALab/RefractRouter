@@ -256,3 +256,18 @@ def test_native_tool_combination_fails_before_calls(tmp_path):
             'contextPolicy': 'selective-v1'}, provider_config=config(), client=client,
             tool_runtime=object(), mode='live', execute_paid_run=True, runs_dir=tmp_path)
     assert not client.calls
+
+
+def test_structured_multiline_schedule_keeps_original_dependency_guard(tmp_path):
+    from refractrouter.task_inputs import prepare_inputs
+    material = {'id': 'schedule', 'text': '第 0 天开始。\nA 需要 2 天\nB 需要 3 天且必须等 A 完成\n'}
+    _, _, guard = prepare_inputs({'task': '核对排程', 'materials': [material], 'verifyDependencies': True})
+    assert guard.status == 'supported'
+    p = {**compact(('answer', [])), 'decision': 'direct',
+         'context': {'answer': {'sources': [], 'fields': ['text'], 'uses': {}}}}
+    client = ContextClient(plan=p)
+    client.output = 'A→C'
+    summary, raw = run(tmp_path, client, task='核对排程', materials=[material])
+    assert summary['status'] == 'content-verification-failed'
+    assert raw['dependency_evidence']['source_status'] == 'supported'
+    assert not any(m.role == 'judge' for m, _, _ in client.calls)
