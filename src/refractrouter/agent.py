@@ -83,7 +83,7 @@ def plan_template(name, criteria=None):
 
 def build_request(payload, *, mode, production_budget, timeout_ms):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
-            'planningMode', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
+            'planningMode', 'plannerPolicy', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
         raise ValueError('invalid RefractAgent request fields')
     limits = payload.get('limits', {})
@@ -117,9 +117,13 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
         request['maxPlanRepairs'] = repairs
         request['planningMode'] = payload.get('planningMode','compact')
         request['unrestrictedPlanning'] = request['planningMode'] == 'compact'
-        request['maxDynamicSplits'] = payload.get('maxDynamicSplits',1)
+        if 'plannerPolicy' in payload:
+            request['plannerPolicy'] = payload['plannerPolicy']
+        request['maxDynamicSplits'] = payload.get('maxDynamicSplits', 0 if payload.get('plannerPolicy') == 'minimal-v1' else 1)
     elif 'maxPlanRepairs' in payload:
         raise ValueError('maxPlanRepairs requires the automatic template')
+    if 'plannerPolicy' in payload and not automatic:
+        raise ValueError('plannerPolicy requires the automatic template')
     request['verifyDependencies'] = payload.get('verifyDependencies',True)
     for key in ('plannerModelId','plannerMaxOutputTokens','plannerTimeoutMs','maxDynamicSplits',
                 'maxConcurrency','providerConcurrency','providerMinIntervalMs'):
@@ -283,5 +287,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'profile_scope': profile['scope'], 'limitations': result['limitations'],
         'artifact_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                            for p in sorted(directory.iterdir()) if p.is_file()}}
+    if result.get('compact_planning', {}).get('policy_version'):
+        output['planning_policy'] = result['compact_planning']['policy_version']
+        output['planning_decision'] = result['compact_planning'].get('decision')
     atomic_json(directory / 'summary.json', output)
     return output
