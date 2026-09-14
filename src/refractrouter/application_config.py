@@ -294,7 +294,7 @@ def prepare_configured_plan(request, context, *, explicit_plan, output_cap, inpu
     if explicit_plan:
         return
     raw = deepcopy(request['plan'])
-    _, task, _ = prepare_inputs(request, context)
+    _, task, _ = prepare_inputs(request, context, for_node=True)
     plan = validate_plan(raw)
     for node in raw['nodes']:
         spec = next(n for n in plan.nodes if n.node_id==node['node_id'])
@@ -302,7 +302,7 @@ def prepare_configured_plan(request, context, *, explicit_plan, output_cap, inpu
         upstream = {parent: {field: '' for field in info['fields']} for parent,info in contract['inputs'].items()}
         # Sizing must measure the real envelope before the budget is rewritten;
         # the template's initial budget is not a limit for this measurement.
-        messages = node_messages(task, spec, contract, upstream, check_input_budget=False)
+        messages = node_messages(task, spec, contract, upstream, check_input_budget=False, prefix_policy=request.get("prefixPolicy", "legacy"))
         size = len(json.dumps(messages).encode()) + 512 + len(spec.parents)*output_cap*8
         contract['capability']['input_budget_tokens'] = max(256, min(input_cap, size))
     request['plan'] = validate_plan(raw).to_dict()

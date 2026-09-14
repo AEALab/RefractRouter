@@ -16,6 +16,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .schemas import ModelSpec
+from .cache_usage import cache_usage
 from .responses_api import output_token_limit, decode_response, request_payload
 
 
@@ -274,6 +275,8 @@ class ChatResponse:
     tool_calls: tuple = ()
     replay_messages: tuple = ()
     replay_state: object = None
+    cache_usage_source: str | None = None
+    ttft_ms: int | None = None
 
 
 class ModelInvocationError(RuntimeError):
@@ -621,17 +624,19 @@ class OpenAICompatibleClient:
         input_count = usage.get("prompt_tokens", usage.get("input_tokens"))
         output_count = usage.get("completion_tokens", usage.get("output_tokens"))
         usage_available = all(type(v) is int and v >= 0 for v in (input_count, output_count))
+        cached, cache_source, cache_valid = cache_usage(raw_usage, input_count)
         return ChatResponse(
             content=content,
             input_tokens=input_count if type(input_count) is int else 0,
             output_tokens=output_count if type(output_count) is int else 0,
-            cached_input_tokens=int(prompt_details.get("cached_tokens", 0)),
+            cached_input_tokens=cached,
+            cache_usage_source=cache_source,
             reasoning_tokens=int(completion_details.get("reasoning_tokens", 0)),
             latency_ms=latency_ms,
             attempts=attempts,
             finish_reason=choice.get("finish_reason"),
             request_id=headers.get("x-request-id") or data.get("id"),
-            usage_available=usage_available,
+            usage_available=usage_available and cache_valid,
             raw_usage=raw_usage,
             tool_calls=tuple(choice["message"].get("tool_calls") or ()),
             replay_messages=(choice["message"],),

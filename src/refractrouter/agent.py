@@ -84,7 +84,7 @@ def plan_template(name, criteria=None):
 
 def build_request(payload, *, mode, production_budget, timeout_ms):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
-            'planningMode', 'plannerPolicy', 'contextPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
+            'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
         raise ValueError('invalid RefractAgent request fields')
     validate_materials(payload.get('materials', []))
@@ -126,7 +126,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
         raise ValueError('maxPlanRepairs requires the automatic template')
     if 'plannerPolicy' in payload and not automatic:
         raise ValueError('plannerPolicy requires the automatic template')
-    for key in ('contextPolicy', 'materials'):
+    for key in ('contextPolicy', 'prefixPolicy', 'materials'):
         if key in payload:
             request[key] = deepcopy(payload[key])
     request['verifyDependencies'] = payload.get('verifyDependencies',True)
@@ -295,6 +295,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if result.get('compact_planning', {}).get('policy_version'):
         output['planning_policy'] = result['compact_planning']['policy_version']
         output['planning_decision'] = result['compact_planning'].get('decision')
+    output['prefix_policy'] = result.get('prefix_policy', 'legacy')
     if 'context_selection' in result:
         output['context_selection'] = result['context_selection']
     atomic_json(directory / 'summary.json', output)

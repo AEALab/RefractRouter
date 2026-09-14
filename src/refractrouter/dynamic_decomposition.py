@@ -114,7 +114,7 @@ class DynamicDecomposition:
             profiles = self.profiles
             if self.configuration:
                 expanded, estimates = compile_generated_capacity(expanded, self.task, self.candidates,
-                    output_constraints=self.request.get('outputConstraints'), input_cap=self.input_cap, tools=self.tools)
+                    prefix_policy=self.request.get('prefixPolicy', 'legacy'), output_constraints=self.request.get('outputConstraints'), input_cap=self.input_cap, tools=self.tools)
                 profile = configured_profile(self.configuration, self.manifest, expanded.to_dict(),
                     input_forecasts={n: row['forecast_input_tokens'] for n,row in estimates.items()})
                 profiles = load_profile(profile, self.manifest)
@@ -123,7 +123,7 @@ class DynamicDecomposition:
             residual = replace(expanded, nodes=tuple(replace(n, parents=tuple(p for p in n.parents if p not in completed))
                 for n in expanded.nodes if n.node_id not in completed))
             admission = admission_diagnostics(expanded, self.task, self.candidates, profiles,
-                self.request['qualityMin'], output_constraints=self.request.get('outputConstraints'), tools=self.tools)
+                self.request['qualityMin'], prefix_policy=self.request.get('prefixPolicy', 'legacy'), output_constraints=self.request.get('outputConstraints'), tools=self.tools)
             now = time.monotonic()
             wait_ms = max((dispatch_history.get(m.provider, -float('inf')) + self.policy.interval(m.provider)/1000 - now
                            for m in self.candidates.values()), default=0) * 1000

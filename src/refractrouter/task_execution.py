@@ -18,7 +18,9 @@ class RecoveryEligibleFailure(ValueError):
     """实验专用：全部在途请求已结算，且停止原因仅为模型输出不合法。"""
 
 
-def node_messages(task, node, contract, context, *, output_constraints=None, check_input_budget=True, tools=None):
+def node_messages(task, node, contract, context, *, output_constraints=None, check_input_budget=True, tools=None, prefix_policy="legacy"):
+    if prefix_policy not in ("legacy", "stable-v1"):
+        raise ValueError("invalid prefixPolicy")
     upstream = {p: ({key: context[p][key] for key in contract['inputs'][p]['fields']}
                     if contract else context[p]) for p in node.parents}
     payload = {'node_id': node.node_id, 'task': task, 'instruction': node.prompt_template, 'upstream': upstream}
@@ -27,6 +29,12 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
     if output_constraints is not None:
         payload['output_constraints'] = output_constraints
         payload['output_constraint_instruction'] = output_constraint_instruction(output_constraints)
+    if prefix_policy == "stable-v1":
+        # 顶层按稳定性排序；嵌套对象固定键序，数组顺序保留原有语义。
+        canonical = lambda value: json.loads(json.dumps(value, ensure_ascii=False, sort_keys=True))
+        payload = {key: canonical(payload[key]) for key in (
+            "task", "output_constraints", "output_constraint_instruction",
+            "instruction", "contract", "node_id", "upstream") if key in payload}
     messages = [
         {'role': 'system', 'content': '完成文本任务的一个节点。遵循给定的输入输出契约和语义检查要求。'
          'json 输出必须是单个原始 JSON 对象，键集合必须恰好等于 contract.output.fields 的键集合，'
@@ -61,7 +69,7 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
                   *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
                   output_constraints=None, classify_failure=False, dispatch_history=None,
-                  dynamic=None, content_guard=None, tool_runtime=None, context_policy=None):
+                  dynamic=None, content_guard=None, tool_runtime=None, context_policy=None, prefix_policy="legacy"):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
@@ -151,7 +159,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
             return False
         messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], plan.contracts.get(nid), context,
             output_constraints=output_constraints if nid == plan.final_node_id else None,
-            tools=tool_runtime.schemas if tool_runtime is not None else None)
+            tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy)
         input_bound = request_input_bound(messages, tool_runtime.schemas if tool_runtime is not None else None)
         now_ms = elapsed()
         previous_starts = {provider: max(scheduled, (actual_starts.get(provider, started) - started) * 1000) - now_ms
@@ -202,7 +210,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         contract = plan.contracts.get(nid)
                         messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], contract, context,
                             output_constraints=output_constraints if nid == plan.final_node_id else None,
-                            tools=tool_runtime.schemas if tool_runtime is not None else None)
+                            tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy)
                         attempt = len(attempted[nid]) + 1
                         label = label_prefix+nid+(f':attempt-{attempt}' if attempt > 1 else '')
                         reservation = budget.reserve(model, messages, label=label,

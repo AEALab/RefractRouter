@@ -39,9 +39,11 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "contextPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
+               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
+    if raw.get('prefixPolicy', 'legacy') not in ('legacy', 'stable-v1'):
+        raise ValueError('invalid prefixPolicy')
     validate_materials(raw.get('materials', []))
     if raw.get('contextPolicy', 'full') not in ('full', 'selective-v1'):
         raise ValueError('invalid contextPolicy')
@@ -139,6 +141,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     if not isinstance(conversation_context, str) or len(conversation_context.encode()) > context_limit_bytes:
         raise ValueError('invalid conversation context')
     planning_task, execution_task, content_guard = prepare_inputs(request, conversation_context)
+    _, node_task, _ = prepare_inputs(request, conversation_context, for_node=True)
     if tool_runtime is not None:
         planning_task += '\n执行节点可使用宿主原生工具，实际查询须先取得工具证据，不得假装已经检索。可用工具：' + ', '.join(s['name'] for s in tool_runtime.schemas)
     validate_models(manifest, configured_application=configured_application)
@@ -266,9 +269,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 result['context_selection'] = node_context.record
             result['generated_plan'] = plan.to_dict()
             if configuration is not None:
-                plan, estimates = compile_generated_capacity(plan, execution_task, candidates,
+                plan, estimates = compile_generated_capacity(plan, node_task, candidates,
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
-                    node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
+                    prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
@@ -277,6 +280,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         else:
             plan = preview_plan(request["task"], required_criteria=request.get("acceptanceCriteria"))
         before_call()
+        result["prefix_policy"] = request.get("prefixPolicy", "legacy")
         result["plan"] = plan.to_dict()
         result['plan_ready_ms'] = round((time.monotonic()-started)*1000)
         result["plan_analysis"] = plan.diagnostics()
@@ -290,9 +294,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 capability["input_budget_tokens"] + available_output_limit(model, capability["input_budget_tokens"]) <= model.context_window
                 and capability["expected_output_tokens"] <= available_output_limit(model, capability["input_budget_tokens"]))]
         if live and 'plan' not in request:
-            result['plan_admission'] = admission_diagnostics(plan, execution_task, candidates, profiles,
+            result['plan_admission'] = admission_diagnostics(plan, node_task, candidates, profiles,
                 request['qualityMin'], output_constraints=request.get('outputConstraints'),
-                node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
+                prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
         remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
@@ -322,18 +326,18 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             return result
         result['generation_status'] = 'running'
         dynamic = DynamicDecomposition(request=request, manifest=manifest, configuration=configuration,
-            profiles=profiles, planner=planner, budget=budget, policy=policy, task=execution_task,
+            profiles=profiles, planner=planner, budget=budget, policy=policy, task=node_task,
             result=result, persist=persist, deadline=started+deadline_ms/1000,
             cancel_event=cancel_event, input_cap=input_cap,
             tools=tool_runtime.schemas if tool_runtime is not None else None) if live and request.get('maxDynamicSplits',0) else None
         dispatch_history = {candidates[c['model_id']].provider:c['dispatch_monotonic'] for c in budget.snapshot()[1]
             if 'dispatch_monotonic' in c and c['model_id'] in candidates}
-        result["final_output"] = execute_nodes(plan, execution_task, result["routing"]["assignments"],
+        result["final_output"] = execute_nodes(plan, node_task, result["routing"]["assignments"],
             candidates, budget, policy, result, persist, started=started,
             deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
             production_cap=request["costMax"],
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
-            dispatch_history=dispatch_history, tool_runtime=tool_runtime, context_policy=node_context)
+            dispatch_history=dispatch_history, tool_runtime=tool_runtime, context_policy=node_context, prefix_policy=request.get("prefixPolicy", "legacy"))
         result['generation_status'] = 'completed' if live else 'simulated'
         if live:
             if content_guard is not None:
