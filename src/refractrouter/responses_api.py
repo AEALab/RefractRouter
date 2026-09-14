@@ -1,6 +1,8 @@
 """Responses API 的文本协议转换；路由与预算继续由任务核心负责。"""
 from __future__ import annotations
 
+from .cache_usage import cache_usage
+
 
 def output_token_limit(model):
     """Responses 为推理与正文共用较大额度；历史协议保持 8192 上限。"""
@@ -95,13 +97,13 @@ def decode_response(data, *, tools=False):
     outputs = usage.get('output_tokens')
     input_details = usage.get('input_tokens_details', {})
     output_details = usage.get('output_tokens_details', {})
-    cached = input_details.get('cached_tokens', 0) if isinstance(input_details, dict) else None
+    cached, cache_source, cache_valid = cache_usage(raw_usage, inputs, detail_keys=('input_tokens_details',))
     reasoning = output_details.get('reasoning_tokens', 0) if isinstance(output_details, dict) else None
     counts = (inputs, outputs, cached, reasoning)
     available = all(type(v) is int and v >= 0 for v in counts)
     available = available and cached <= inputs and reasoning <= outputs
     return {'content': ''.join(parts), 'finish_reason': finish, 'raw_usage': raw_usage,
             **({'tool_calls': tuple(calls), 'replay_messages': tuple(data['output'])} if tools else {}),
-            'usage_available': available,
+            'usage_available': available and cache_valid, 'cache_usage_source': cache_source,
             **{key: value if type(value) is int else 0 for key, value in zip(
                 ('input_tokens', 'output_tokens', 'cached_input_tokens', 'reasoning_tokens'), counts)}}

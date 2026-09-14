@@ -108,13 +108,13 @@ class NodeContext:
 
 def build_node_context(plan, request, conversation_context, selections):
     materials = request.get('materials', [])
-    _, full, _ = prepare_inputs(request, conversation_context)
+    _, full, _ = prepare_inputs(request, conversation_context, for_node=True)
     _, base, _ = prepare_inputs({k: v for k, v in request.items() if k != 'materials'}, conversation_context)
     tasks, sources, nodes = {}, {}, {}
     for nid in plan.order():
         spec = selections[nid]
         chosen = [item for item in materials if item['id'] in spec['source_ids']]
-        _, task, _ = prepare_inputs(request, conversation_context, selected_materials=chosen)
+        _, task, _ = prepare_inputs(request, conversation_context, selected_materials=chosen, for_node=True)
         if nid == plan.final_node_id:
             task = full
         tasks[nid] = task
