@@ -25,6 +25,7 @@ from .task_contracts import decode_output, string_list
 from .planning_support import execution_support, compile_generated_capacity, admission_diagnostics, generate_plan
 from .configured_routing import configured_profile
 from .compact_planning import COMPACT_PLANNER_SYSTEM, planner_model, generate_compact
+from .minimal_planning import MINIMAL_PLANNER_SYSTEM
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
@@ -36,7 +37,7 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
+               "planningMode", "plannerPolicy", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     ExecutionPolicy.from_request(raw)
@@ -51,6 +52,13 @@ def validate_request(raw):
         raise ValueError('invalid plannerThinking')
     if raw.get('planningMode', 'full') not in ('full', 'compact'):
         raise ValueError('planningMode must be full or compact')
+    if raw.get('plannerPolicy', 'legacy') not in ('legacy', 'minimal-v1'):
+        raise ValueError('invalid plannerPolicy')
+    if raw.get('plannerPolicy') == 'minimal-v1':
+        if 'plan' in raw or raw.get('planningMode') != 'compact':
+            raise ValueError('minimal-v1 requires automatic compact planning')
+        if raw.get('maxPlanRepairs', 0):
+            raise ValueError('minimal-v1 requires one planning call without repairs')
     for key, default, low, high in (('plannerMaxOutputTokens',1200,256,2048),
             ('plannerTimeoutMs',12000,1000,30000), ('maxDynamicSplits',0,0,2)):
         if type(raw.get(key, default)) is not int or not low <= raw.get(key, default) <= high:
@@ -205,12 +213,20 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             before_call()
             if request.get('planningMode') == 'compact':
                 result['compact_planning'] = {}
-                result['planner_prompt_sha256'] = hashlib.sha256(COMPACT_PLANNER_SYSTEM.encode()).hexdigest()
-                plan = generate_compact(budget, planner, {'task': planning_task,
-                    'parallel_capacity': policy.max_concurrency}, result['compact_planning'],
+                minimal = request.get('plannerPolicy') == 'minimal-v1'
+                system = MINIMAL_PLANNER_SYSTEM if minimal else COMPACT_PLANNER_SYSTEM
+                result['planner_prompt_sha256'] = hashlib.sha256(system.encode()).hexdigest()
+                planning_payload = {'task': planning_task, 'parallel_capacity': policy.max_concurrency}
+                if minimal:
+                    providers = {m.provider for m in candidates.values()}
+                    planning_payload.update(
+                        parallel_capacity=min(policy.max_concurrency, sum(policy.limit(p) for p in providers)),
+                        tools_available=bool(tool_runtime is not None and tool_runtime.schemas),
+                        acceptance_criteria=request.get('acceptanceCriteria'))
+                plan = generate_compact(budget, planner, planning_payload, result['compact_planning'],
                     criteria=request.get('acceptanceCriteria'), cost_limit=request['costMax'],
                     deadline=None if request.get('unrestrictedPlanning') else min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
-                    persist=persist, repairs=request.get('maxPlanRepairs',0),
+                    persist=persist, repairs=request.get('maxPlanRepairs',0), policy=request.get('plannerPolicy', 'legacy'),
                     output_cap=max(output_token_limit(m) for m in candidates.values()))
                 result['planner_output'] = result['compact_planning']['attempts'][0]['output']
             else:

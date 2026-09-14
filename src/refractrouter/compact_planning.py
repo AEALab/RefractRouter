@@ -94,11 +94,18 @@ def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1
 
 
 def generate_compact(budget, model, payload, record, *, criteria, cost_limit, deadline,
-                     persist, label='planner', max_nodes=6, repairs=0, output_cap=2048):
+                     persist, label='planner', max_nodes=6, repairs=0, output_cap=2048, policy='legacy'):
+    if policy not in ('legacy', 'minimal-v1'):
+        raise ValueError('invalid plannerPolicy')
+    if policy == 'minimal-v1' and repairs:
+        raise ValueError('minimal-v1 requires one planning call without repairs')
+    from .minimal_planning import MINIMAL_PLANNER_SYSTEM, compile_minimal
     start = time.monotonic()
-    messages = [{'role': 'system', 'content': COMPACT_PLANNER_SYSTEM},
+    messages = [{'role': 'system', 'content': MINIMAL_PLANNER_SYSTEM if policy == 'minimal-v1' else COMPACT_PLANNER_SYSTEM},
                 {'role': 'user', 'content': json.dumps({**payload, 'max_nodes': max_nodes}, ensure_ascii=False)}]
     record.update(attempts=[], started_monotonic=start, output_cap=output_token_limit(model))
+    if policy != 'legacy':
+        record['policy_version'] = policy
     try:
         for attempt in range(repairs + 1):
             remaining = None if deadline is None else deadline - time.monotonic()
@@ -111,8 +118,15 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
             try:
                 if deadline is not None and time.monotonic() > deadline:
                     raise ValueError('planner-deadline-exhausted')
-                plan = compile_compact(json.loads(reply.content), criteria=criteria,
-                    max_nodes=max_nodes, output_cap=output_cap)
+                if policy == 'minimal-v1':
+                    plan, decision = compile_minimal(json.loads(reply.content), criteria=criteria,
+                        max_nodes=max_nodes, output_cap=output_cap,
+                        parallel_capacity=payload.get('parallel_capacity', 1),
+                        tools_available=bool(payload.get('tools_available', False)))
+                    record['decision'] = decision
+                else:
+                    plan = compile_compact(json.loads(reply.content), criteria=criteria,
+                        max_nodes=max_nodes, output_cap=output_cap)
             except ValueError as exc:
                 row['error'] = str(exc)[:500]
                 persist()
