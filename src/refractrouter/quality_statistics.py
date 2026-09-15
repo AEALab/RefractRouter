@@ -4,7 +4,7 @@ import math
 import random
 import statistics
 
-from .quality_runtime import ARMS
+from .quality_runtime import ARMS, human_gate
 from .quality_study import adjudicate, digest
 
 
@@ -80,6 +80,46 @@ def paired_performance(candidate, reference, clusters, *, seed=52053, draws=1000
             'degenerate': means[0] == means[-1], 'inference': 'exploratory-only'}
 
 
+def _finite_nonnegative(value):
+    return type(value) in (int, float) and math.isfinite(value) and value >= 0
+
+
+def _review_time(records):
+    """单独汇总真人复核时间；缺失不填零，也不并入模型 AFP。"""
+    rows = [r for r in records if isinstance(r, dict) and r.get('origin') == 'human']
+    known = 0; missing = invalid = 0
+    for record in rows:
+        value = record.get('review_time_ms')
+        if _finite_nonnegative(value):
+            known += value
+        elif value is None:
+            missing += 1
+        else:
+            invalid += 1
+    complete = bool(rows) and not missing and not invalid
+    return {'records': len(rows), 'known_ms': known, 'missing_records': missing,
+            'invalid_records': invalid, 'total_ms': known if complete else None}
+
+
+def _task_cost(rows, setup, *, shared):
+    """按任务聚合在线执行、离线研究与共享图准备 AFP。"""
+    unknown = (not rows or any(not row or row.get('cost_known') is not True
+                               or not _finite_nonnegative(row.get('online_afp'))
+                               or not _finite_nonnegative(row.get('offline_afp'))
+                               for row in rows))
+    if shared and (not setup or setup.get('status') != 'ready'
+                   or not _finite_nonnegative(setup.get('offline_afp'))):
+        unknown = True
+    if unknown:
+        return {'known': False, 'online_afp': None, 'research_afp': None,
+                'setup_afp': None, 'total_afp': None}
+    online = sum(row['online_afp'] for row in rows)
+    research = sum(row['offline_afp'] for row in rows)
+    setup_afp = setup['offline_afp'] if shared else 0
+    return {'known': True, 'online_afp': online, 'research_afp': research,
+            'setup_afp': setup_afp, 'total_afp': online + research + setup_afp}
+
+
 def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose_review=None):
     if frozen['statistics_policy'] != POLICY:
         raise ValueError('analysis policy differs from frozen protocol')
@@ -104,12 +144,24 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
     groups = defaultdict(list)
     for spec in frozen['schedule']:
         groups[spec['arm'], spec['task_id']].append(rows.get(spec['run_id']))
+    setups = {}
+    for setup in result.get('setups', []):
+        if setup['task_id'] in setups:
+            raise ValueError('duplicated setup row')
+        setups[setup['task_id']] = setup
+    gate_evidence = result.get('human_gate_evidence') or {}
+    purpose_review = purpose_review or gate_evidence.get('purpose_review')
     approved = bool(purpose_review and purpose_review.get('origin') == 'human'
         and purpose_review.get('reviewer') and purpose_review.get('evidence')
         and purpose_review.get('policy_sha256') == digest(POLICY)
         and purpose_review.get('task_bindings') == frozen['task_bindings']
         and purpose_review.get('verdict') == 'pass'
         and purpose_review['reviewer'] not in {t['provenance']['creator'] for t in tasks})
+    material_reviews = gate_evidence.get('material_reviews') or ()
+    material_gate_ready = references is not None and human_gate(
+        frozen, tasks, references, material_reviews, purpose_review)
+    issue52_gate_ready = bool(references is not None and material_gate_ready
+                              and approved and not result['simulated'])
     full_design = (frozen['selection']['repeats'] == POLICY['repeats']
                    and len(tids) == POLICY['sample_size']['holdout_candidate']
                    and set(frozen['splits'].values()) == {'holdout-candidate'})
@@ -118,18 +170,61 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         sample = [row for tid in tids for row in groups[arm, tid]]
         counts = {s: sum((r.get('quality_status', 'pending') if r else 'pending') == s for r in sample) for s in ('pass', 'fail', 'pending')}
         robust = [all(r and r.get('quality_status') == 'pass' for r in groups[arm, tid]) for tid in tids]
+        failed_tasks = [any(r and r.get('quality_status') == 'fail' for r in groups[arm, tid]) for tid in tids]
+        accepted_tasks = [accepted and issue52_gate_ready for accepted in robust]
+        pending_tasks = [not accepted and not failed
+                         for accepted, failed in zip(accepted_tasks, failed_tasks)]
         lower = binomial_lower(sum(robust), len(tids), POLICY['quality_tail_alpha'])
         complete = all(r and r.get('cost_known') and all(type(r.get(k)) in (int, float) and math.isfinite(r[k]) and r[k] >= 0
                                                       for k in ('online_afp', 'online_finished_ms')) for r in sample)
+        costs = {tid: _task_cost(groups[arm, tid], setups.get(tid), shared=arm.startswith('shared-'))
+                 for tid in tids}
+        unknown_costs = [not cost['known'] for cost in costs.values()]
+        accepted_count = sum(accepted_tasks)
+        costs_complete = not any(unknown_costs)
+        accepted_costs_complete = accepted_count and all(
+            cost['known'] for accepted, cost in zip(accepted_tasks, costs.values()) if accepted)
+        accepted_online = sum(costs[tid]['online_afp'] for tid, accepted
+                              in zip(tids, accepted_tasks) if accepted) if accepted_costs_complete else None
+        accepted_research = sum(costs[tid]['research_afp'] for tid, accepted
+                                in zip(tids, accepted_tasks) if accepted) if accepted_costs_complete else None
+        accepted_setup = sum(costs[tid]['setup_afp'] for tid, accepted
+                             in zip(tids, accepted_tasks) if accepted) if accepted_costs_complete else None
+        accepted_total = (accepted_online + accepted_research + accepted_setup
+                          if accepted_costs_complete else None)
+        total_all = sum(cost['total_afp'] for cost in costs.values()) if not any(unknown_costs) else None
+        total_online_all = (sum(cost['online_afp'] for cost in costs.values())
+                            if not any(unknown_costs) else None)
         summaries[arm] = {'run_counts': counts, 'planned_runs': len(sample), 'robust_pass_tasks': sum(robust),
             'tasks': len(tids), 'observed_robust_pass_rate': sum(robust) / len(tids),
+            'adjudicated_pass_task_count': sum(robust), 'adjudicated_pass_rate': sum(robust) / len(tids),
+            'accepted_task_count': accepted_count, 'quality_pass_rate': accepted_count / len(tids),
+            'failed_task_count': sum(failed_tasks), 'pending_task_count': sum(pending_tasks),
+            'unknown_afp_task_count': sum(unknown_costs),
             'conditional_binomial_lower': lower,
             'confirmed_quality_feasible': bool(approved and full_design and not result['simulated']
-                and references is not None and counts['pending'] == 0 and sum(robust) / len(tids) >= POLICY['pass_rate_floor']),
+                and references is not None and material_gate_ready and counts['pending'] == 0
+                and sum(robust) / len(tids) >= POLICY['pass_rate_floor']),
             'performance_complete': complete,
             'mean_online_afp': statistics.mean(r['online_afp'] for r in sample) if complete else None,
             'mean_online_ms': statistics.mean(r['online_finished_ms'] for r in sample) if complete else None,
-            'median_online_ms': statistics.median(r['online_finished_ms'] for r in sample) if complete else None}
+            'median_online_ms': statistics.median(r['online_finished_ms'] for r in sample) if complete else None,
+            'accepted_task_metrics': {
+                'quality_gate_status': ('active' if issue52_gate_ready else
+                                        'pending-issue-52' if references is not None and not result['simulated']
+                                        else 'simulated-or-references-unavailable'),
+                'total_afp_all_tasks': total_all,
+                'accepted_task_online_afp': accepted_online,
+                'accepted_task_research_afp': accepted_research,
+                'accepted_task_setup_afp': accepted_setup,
+                'accepted_task_total_afp': accepted_total,
+                'successful_sample_afp': accepted_total,
+                'online_afp_per_accepted_task': total_online_all / accepted_count if total_online_all is not None and accepted_count else None,
+                'afp_per_accepted_task': total_all / accepted_count if total_all is not None and accepted_count else None,
+                'successful_sample_afp_per_accepted_task': accepted_total / accepted_count if accepted_total is not None else None,
+                'cost_conclusion_available': bool(accepted_count and costs_complete),
+                'cost_scope': '主指标分子为全部任务AFP（含失败、pending、规划、执行、评审与共享图准备）；成功样本AFP另行单列。',
+            }}
         outcomes[arm] = robust
         metrics[arm] = {key: {tid: statistics.mean(r[key] for r in groups[arm, tid]) for tid in tids}
                         for key in ('online_afp', 'online_finished_ms')} if complete else None
@@ -140,6 +235,7 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
                'quality_difference_lower': paired_quality_lower(outcomes[candidate], outcomes[reference], POLICY['quality_tail_alpha']),
                'conclusion': 'human-quality-or-exploratory-evidence-pending'}
         row['conditional_noninferiority_supported'] = bool(approved and full_design and references is not None and not result['simulated']
+            and material_gate_ready
             and not summaries[candidate]['run_counts']['pending'] and not summaries[reference]['run_counts']['pending']
             and row['quality_difference_lower'] >= -POLICY['noninferiority_margin'])
         if row['conditional_noninferiority_supported']:
@@ -171,7 +267,6 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
                     'mean_online_afp': statistics.mean(r['online_afp'] for r in sample) if complete else None,
                     'mean_online_ms': statistics.mean(r['online_finished_ms'] for r in sample) if complete else None,
                     'scope': '描述性分层，不作选择最有利子群的主检验。'}
-    setups = {r['task_id']: r for r in result.get('setups', [])}
     shared_setup_complete = (len(setups) == len(result.get('setups', [])) and set(setups) == set(tids)
         and all(r.get('status') == 'ready' and all(type(r.get(k)) in (int, float) and math.isfinite(r[k])
                and r[k] >= 0 for k in ('offline_afp', 'wall_time_ms')) for r in setups.values()))
@@ -184,13 +279,28 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
             'mean_ms_with_setup_allocation': summaries[arm]['mean_online_ms'] +
             (statistics.mean(r['wall_time_ms'] for r in setups.values()) / n if shared else 0) if complete else None}
             for n in frozen['offline_setup']['amortization_reuses']}
-    return {'schema_version': 'quality-statistics-report-v1', 'policy': POLICY,
+    output_reviews = _review_time(human_reviews)
+    material_review_time = _review_time(material_reviews)
+    purpose_review_time = _review_time([purpose_review] if purpose_review else [])
+    human_review_time = {'output_reviews': output_reviews, 'material_reviews': material_review_time,
+                         'purpose_review': purpose_review_time, 'included_in_afp': False,
+                         'scope': '仅汇总记录中显式提供的review_time_ms；缺失为null，不填零。'}
+    return {'schema_version': 'quality-statistics-report-v2', 'policy': POLICY,
             'simulated': result['simulated'], 'planned_runs': len(expected), 'observed_runs': len(rows),
             'missing_runs': sorted(set(expected) - set(rows)), 'arms': summaries, 'comparisons': comparisons,
             'confirmed_pareto_frontier': frontier, 'frontier_scope': '仅本批有限候选及真人确认样本的经验前沿',
             'descriptive_strata': strata, 'setup_amortization': amortized,
             'setup_amortization_scope': '单一路线复用的分配情景；不把准备在四条共享路线间重复求和，不是真实冷启动时间。',
-            'human_review_pending': not approved or any(s['run_counts']['pending'] for s in summaries.values()),
+            'human_review_pending': not approved or not material_gate_ready
+                                    or any(s['run_counts']['pending'] for s in summaries.values()),
+            'human_review_time': human_review_time,
+            'accepted_task_metric_definition': {
+                'afp_per_accepted_task': 'total_afp_all_tasks / accepted_task_count',
+                'successful_sample_afp': '仅通过质量门槛任务的online_afp+research_afp+setup_afp',
+                'successful_sample_afp_per_accepted_task': 'successful_sample_afp / accepted_task_count',
+                'failure_policy': '失败、pending与未知AFP任务保留在总AFP和任务分母；未知AFP阻止成本结论。',
+                'human_review_time': '单独报告，不计入AFP。'
+            },
             'reviewer_identity_authenticated_by_code': False,
             'limitations': ['固定构造任务不是从业务分布随机抽样，二项界仅展示条件假设下的不确定性。',
                             '三次重复先在任务内汇总；不把重复调用当成三个独立任务。',

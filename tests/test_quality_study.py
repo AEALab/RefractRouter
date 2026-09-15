@@ -8,7 +8,8 @@ import pytest
 
 from experiments.preflight_quality_study import main
 from refractrouter.quality_study import (adjudicate, calibrate, check_output, digest,
-    execution_payload, load_study, make_blind_packet, preflight, strategy_counts,
+    execution_payload, load_study, make_blind_packet, material_review_packet,
+    preflight, strategy_counts,
     validate_materials)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -171,6 +172,8 @@ def test_blind_metadata_and_private_mapping(bundle):
     assert 'SECRET' not in json.dumps(packet)
     assert mapping['case-0001']['arm_id'] == 'SECRET_ARM'
     assert packet[0]['review']['verdict'] is None
+    assert packet[0]['review']['review_time_ms'] is None
+    assert all(row['review']['review_time_ms'] is None for row in material_review_packet(tasks, refs))
 
 
 def test_cli_is_zero_call_and_cannot_overwrite(tmp_path):

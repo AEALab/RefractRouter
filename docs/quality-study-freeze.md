@@ -111,6 +111,32 @@ JSON 代码围栏；不修补字段、语义、截断或混杂说明，原始文
 类别与结构分层作描述，不从其中挑选最有利的一组作为主结论。
 确认质量不足时前沿为空；有真人确认后也只称“本批有限候选的经验前沿”，不称全局最优。
 
+### #76 的每成功任务 AFP 口径
+
+任务级 accepted 同时要求：该任务全部冻结重复均通过确定性检查与真人语义裁决，
+且 #52 的独立材料审查和用途门槛已经完成。模型 judge、自评或缺少真人记录都不能
+把任务写成 accepted；#52 未完成时已双审的任务也只能保留为 pending。
+
+每条路线同时报告以下字段：
+
+- adjudicated_pass_task_count：全部重复均通过任务级语义裁决的任务数，
+  用于区分“任务本身已判过”和“#52 总门槛已激活”。
+- accepted_task_count 与 quality_pass_rate：在 #52 门槛激活后的接受任务数及比例。
+- total_afp_all_tasks：全部预定任务的在线执行、离线研究评审和共享图准备 AFP，
+  失败、pending 和重试成本都保留在分子中。
+- successful_sample_afp：仅通过质量门槛任务的 AFP，用作对照，不能替代主指标。
+- afp_per_accepted_task：total_afp_all_tasks / accepted_task_count，
+  是 #76 的主成本指标；没有 accepted 任务时为 null，不是 0。
+- successful_sample_afp_per_accepted_task：仅成功样本 AFP 除以 accepted 任务数，
+  用于展示“只看成功样本”会低估多少成本。
+
+任一任务的 AFP 未知时，afp_per_accepted_task 与成本结论为 null / false，
+不能把未知用量填为零。共享图准备按路线独立部署情景计入该路线的每任务一次准备成本；
+这不是把一次实验中四条共享路线共用的准备相加成实验总支出。
+
+真人复核时间通过材料审查、输出盲审和用途确认记录中的 review_time_ms 单独汇总，
+缺失时报告 null 和缺失记录数，不计入模型 AFP，也不能从研究证据中消失。
+
 ## 运行与真人证据导入
 
 默认入口只冻结，绝不调用模型；执行必须使用该文件且不得覆盖范围。
