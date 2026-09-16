@@ -1,0 +1,99 @@
+{
+  "schema_version": "moa-consensus-v1",
+  "scope": "两位初审模型的逐 criterion 共识；分歧在缺少升级证据时保留 pending。不是真人审查，也不能证明真实用户接受度或独立留出任务质量。",
+  "sources": [
+    {
+      "role": "primary",
+      "path": "reports/quality-study-v2/moa-calibration-03-claude-primary/claude-primary-first-run.jsonl",
+      "cases": 19,
+      "file_sha256": "d208b64a8ff5daeb3bc8ded4be198d47fdd9f1457b549bd61736d33bc008ce6c"
+    },
+    {
+      "role": "primary",
+      "path": "reports/quality-study-v2/moa-calibration-05/deepseek-primary-first-run.jsonl",
+      "cases": 19,
+      "file_sha256": "7f198ee1160def5facb78ca5f5e6ad5f55a2c0ed5df34b0f151be5d3a362b776"
+    }
+  ],
+  "policy_sha256": "1f620cbbb46c379fe4453596c3e83a85c66dba0d147d20b29e5a5e3a0ea7f0e3",
+  "escalation_state": "not-executed",
+  "cases": 19,
+  "author_label_counts": {
+    "acceptable": 12,
+    "unacceptable": 7
+  },
+  "consensus_counts": {
+    "pass": 9,
+    "fail": 6,
+    "pending": 4
+  },
+  "final_status_counts": {
+    "pass": 9,
+    "fail": 6,
+    "pending": 4
+  },
+  "deterministic_expectation_mismatches": [],
+  "false_accepts": 0,
+  "false_rejects": 0,
+  "final_false_accepts": 0,
+  "final_false_rejects": 0,
+  "false_accept_rate": 0.0,
+  "false_reject_rate": 0.0,
+  "pending_on_unacceptable": 1,
+  "pending_on_acceptable": 3,
+  "escalated_criteria": 5,
+  "failed_records": 3,
+  "calls": 38,
+  "disputed": [
+    {
+      "case_id": "prose-contradiction",
+      "author_semantic_label": "unacceptable",
+      "primary": {
+        "claude-opus": "fail",
+        "ds-deepseek-v4-pro": "fail"
+      },
+      "criteria": [
+        "必需结论完整、事实正确且各自引用足以支持主张"
+      ],
+      "consensus": "fail",
+      "escalation": {}
+    },
+    {
+      "case_id": "missing-required-rule",
+      "author_semantic_label": "unacceptable",
+      "primary": {
+        "claude-opus": "fail",
+        "ds-deepseek-v4-pro": "fail"
+      },
+      "criteria": [
+        "最终正文符合材料、任务要求与全部硬约束",
+        "不可把口头归还视作已完成手续。"
+      ],
+      "consensus": "fail",
+      "escalation": {}
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "author_semantic_label": "unacceptable",
+      "primary": {
+        "claude-opus": "fail",
+        "ds-deepseek-v4-pro": "pass"
+      },
+      "criteria": [
+        "最终正文符合材料、任务要求与全部硬约束",
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "consensus": "pending",
+      "escalation": {}
+    }
+  ],
+  "moa_review_cost": {
+    "cost_ledger": "external-cli-account",
+    "known_usage": "unknown",
+    "ark_afp": null,
+    "calls": 38
+  },
+  "notes": [
+    "升级评审（codex-gpt-astra 与 claude-fable）尚未执行：本机自动审批审查因上游 provider 报错无法放行外部 CLI 调用，因此 3 例分歧案例的 5 项 criterion 与 3 条 DeepSeek 解析失败记录保持 pending。"
+  ]
+}
