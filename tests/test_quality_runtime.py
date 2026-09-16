@@ -59,7 +59,7 @@ def test_all_bound_arms_and_shared_graph_comparisons(tmp_path):
 def test_frozen_selection_and_holdout_paid_gate_precede_client_calls(tmp_path):
     plan = prepare(STUDY, task_ids=['analysis-03'], arms=['direct-cheap'], repeats=1)
     client = RehearsalClient(STUDY)
-    with pytest.raises(ValueError, match='human material'):
+    with pytest.raises(ValueError, match='human or MoA material'):
         execute(STUDY, plan, tmp_path / 'held', client=client)
     assert not client.messages and not (tmp_path / 'held').exists()
     changed = deepcopy(plan); changed['caps']['planner']['output'] = 9000

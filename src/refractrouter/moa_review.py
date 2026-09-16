@@ -238,7 +238,8 @@ def output_review(tasks, references, rows, invoke=default_invoke):
 def purpose_review(policy_sha256, task_bindings, invoke=default_invoke):
     messages = purpose_messages(policy_sha256, task_bindings)
     record = run_review_target(messages, list(PURPOSE_CRITERIA), invoke)
-    record.update(policy_sha256=policy_sha256, task_bindings=task_bindings)
+    # policy_sha256 始终绑定 MoA 策略；统计协议哈希用独立字段，避免互相覆盖。
+    record.update(statistics_policy_sha256=policy_sha256, task_bindings=task_bindings)
     return record
 
 
@@ -255,4 +256,3 @@ def preflight_envelope(kind, targets):
     return {'kind': kind, 'targets': len(targets), 'maximum_calls': calls,
             'timeout_sum_seconds': calls * MOA_POLICY['timeout_seconds'],
             'policy_sha256': digest(MOA_POLICY), 'real_model_calls': 0}
-

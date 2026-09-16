@@ -59,7 +59,8 @@
 - moa-material-reviews.json：每任务每 criterion 的初审、升级与共识结果。
 - moa-output-reviews.json：每交付输出的 criterion 级共识与绑定哈希。
 - moa-purpose-review.json：用途确认共识与策略哈希绑定。
-- 全部记录绑定 task_sha256 / output_sha256 / policy_sha256，防止事后改判。
+- 全部记录绑定 task_sha256 / output_sha256 / policy_sha256（MoA 策略哈希），防止事后改判；
+  用途确认记录额外绑定 statistics_policy_sha256（统计协议哈希）与 task_bindings。
 
 ## 冻结与预检
 
@@ -67,4 +68,3 @@
   零模型调用。付费评审运行必须使用新的输出目录并显式指定「--live」。
 - 策略、模型、thinking effort、prompt、JSON schema、超时与零重试规则改变时，
   必须重新冻结；历史记录保留原策略标签。
-

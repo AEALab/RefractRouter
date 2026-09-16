@@ -12,6 +12,7 @@ import time
 
 from .compact_planning import COMPACT_PLANNER_SYSTEM, compile_compact
 from .dag_study_execution import write_json
+from .moa_review import MOA_POLICY
 from .openai_compatible import OpenAICompatibleClient
 from .quality_calibration import DELIVERY_CHECKS, SYSTEM as JUDGE_SYSTEM, parse_review
 from .quality_study import MATERIAL_CRITERIA, adjudicate, digest, execution_payload, file_digest, load_study
@@ -423,18 +424,46 @@ def human_gate(frozen, tasks, refs, material_reviews, purpose_review):
     return ready == set(frozen['task_bindings']) and approved
 
 
+def moa_gate(frozen, tasks, refs, moa_material_reviews, moa_purpose_review):
+    """本地 CLI 多模型共识门槛：逐 criterion 全部共识 pass 且用途确认 pass 才放行。"""
+    by_id = {t['task_id']: t for t in tasks}
+    ready = set()
+    for review in moa_material_reviews:
+        tid = review.get('task_id')
+        if tid not in frozen['task_bindings']:
+            continue
+        consensus = review.get('consensus') or {}
+        criteria = {row.get('criterion'): row.get('verdict') for row in consensus.get('criteria', [])}
+        if (review.get('policy_sha256') == digest(MOA_POLICY)
+                and review.get('task_sha256') == frozen['task_bindings'][tid]
+                and review.get('reference_sha256') == digest(refs[tid])
+                and len(consensus.get('criteria', [])) == len(MATERIAL_CRITERIA)
+                and criteria == {c: 'pass' for c in MATERIAL_CRITERIA}):
+            ready.add(tid)
+    purpose = moa_purpose_review or {}
+    approved = bool(purpose.get('policy_sha256') == digest(MOA_POLICY)
+        and purpose.get('statistics_policy_sha256') == digest(frozen['statistics_policy'])
+        and purpose.get('task_bindings') == frozen['task_bindings']
+        and (purpose.get('consensus') or {}).get('overall') == 'pass')
+    return ready == set(frozen['task_bindings']) and approved
+
+
 def execute(study_dir, frozen, output_dir, *, client=None, simulated=False,
-            material_reviews=(), purpose_review=None, on_progress=None):
+            material_reviews=(), purpose_review=None, on_progress=None,
+            moa_material_reviews=(), moa_purpose_review=None):
     if digest(frozen) != digest(prepare(study_dir, **frozen['selection'])):
         raise ValueError('frozen protocol or implementation changed')
     _, gate_tasks, gate_refs, _, _, manifest = load_study(study_dir)
     if (not simulated and any(split != 'development' for split in frozen['splits'].values())
-            and not human_gate(frozen, gate_tasks, gate_refs, material_reviews, purpose_review)):
-        raise ValueError('human material acceptance required before held-out paid experiment')
+            and not human_gate(frozen, gate_tasks, gate_refs, material_reviews, purpose_review)
+            and not moa_gate(frozen, gate_tasks, gate_refs, moa_material_reviews, moa_purpose_review)):
+        raise ValueError('human or MoA material acceptance required before held-out paid experiment')
     client = client or OpenAICompatibleClient(max_retries=0)
     session = BoundSession(frozen, output_dir, manifest, client, simulated=simulated, on_progress=on_progress)
     session.result['human_gate_evidence'] = {'material_reviews': deepcopy(material_reviews),
         'purpose_review': deepcopy(purpose_review), 'identity_authenticated_by_code': False}
+    session.result['moa_gate_evidence'] = {'material_reviews': deepcopy(moa_material_reviews),
+        'purpose_review': deepcopy(moa_purpose_review), 'reviewer_identity_verified': False}
     try:
         lazy = frozen['setup_timing'] == 'before-first-shared'
         if not lazy:

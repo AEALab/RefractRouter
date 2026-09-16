@@ -4,7 +4,8 @@ import math
 import random
 import statistics
 
-from .quality_runtime import ARMS, human_gate
+from .moa_review import MOA_POLICY, final_quality_status
+from .quality_runtime import ARMS, human_gate, moa_gate
 from .quality_study import adjudicate, digest
 
 
@@ -120,13 +121,60 @@ def _task_cost(rows, setup, *, shared):
             'setup_afp': setup_afp, 'total_afp': online + research + setup_afp}
 
 
-def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose_review=None):
+def _bound_moa_output_review(reviews, row, task):
+    """返回与 run、任务哈希和输出哈希同时绑定的 MoA 交付评审记录。"""
+    for record in reviews:
+        if (record.get('run_id') == row['run_id'] and record.get('task_id') == row['task_id']
+                and record.get('task_sha256') == task['task_sha256']
+                and record.get('output_sha256') == digest(row['output'])
+                and record.get('policy_sha256') == digest(MOA_POLICY)
+                and isinstance(record.get('consensus'), dict)):
+            return record
+    return None
+
+
+def _moa_review_cost(material_reviews, output_reviews, purpose):
+    """汇总 MoA 评审调用成本；外部用量未知，不填零、不并入 Ark AFP。"""
+    categories = (('material', material_reviews), ('output', output_reviews),
+                  ('purpose', [purpose] if purpose else ()))
+    calls = failed = missing_time = 0
+    known_ms = 0.0
+    by_reviewer = {}
+    for _, records in categories:
+        for record in records:
+            for phase in ('primary', 'escalation'):
+                for call in record.get(phase, ()):
+                    calls += 1
+                    key = (call.get('cli'), call.get('model'), call.get('thinking_effort'))
+                    counts = by_reviewer.setdefault(key, {'calls': 0, 'failed_calls': 0})
+                    counts['calls'] += 1
+                    if call.get('status') != 'reviewed':
+                        counts['failed_calls'] += 1
+                        failed += 1
+                    value = call.get('wall_time_ms')
+                    if _finite_nonnegative(value):
+                        known_ms += value
+                    else:
+                        missing_time += 1
+    return {'real_model_calls': calls, 'failed_calls': failed,
+            'known_wall_time_ms': known_ms if not missing_time else None,
+            'records_missing_wall_time': missing_time,
+            'calls_by_reviewer': [{'cli': cli, 'model': model, 'thinking_effort': effort, **counts}
+                                  for (cli, model, effort), counts in sorted(by_reviewer.items())],
+            'included_in_ark_afp': False, 'external_usage': 'unknown',
+            'policy_sha256': digest(MOA_POLICY),
+            'scope': 'MoA 评审消耗本机 CLI 账号；外部用量未知，不折算为零，也不并入 Ark AFP。'}
+
+
+def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose_review=None,
+            moa_material_reviews=(), moa_output_reviews=(), moa_purpose_review=None):
     if frozen['statistics_policy'] != POLICY:
         raise ValueError('analysis policy differs from frozen protocol')
     if result['frozen_sha256'] != digest(frozen):
         raise ValueError('results bound to another protocol')
     expected = {r['run_id']: r for r in frozen['schedule']}
     rows = {}; by_id = {t['task_id']: t for t in tasks}
+    moa_bound_runs = []
     for row in result['runs']:
         if row['run_id'] not in expected or row['run_id'] in rows:
             raise ValueError('unknown or duplicated result row')
@@ -135,10 +183,20 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         row = dict(row)
         if references is not None:
             if row.get('status') == 'delivered-unconfirmed' and 'output' in row:
-                row['quality_status'] = adjudicate(by_id[row['task_id']], references[row['task_id']],
-                                                   row['output'], human_reviews)['status']
+                adjudication = adjudicate(by_id[row['task_id']], references[row['task_id']],
+                                          row['output'], human_reviews)
+                moa_record = _bound_moa_output_review(moa_output_reviews, row, by_id[row['task_id']])
+                if moa_record is not None:
+                    row['quality_status'] = final_quality_status(
+                        adjudication['deterministic']['status'], moa_record['consensus']['overall'])
+                    row['quality_status_source'] = 'deterministic-and-moa-consensus'
+                    moa_bound_runs.append(row['run_id'])
+                else:
+                    row['quality_status'] = adjudication['status']
+                    row['quality_status_source'] = 'deterministic-and-human-records'
             else:
                 row['quality_status'] = 'fail' if row.get('status') in ('failed', 'withheld', 'deadline-failed') else 'pending'
+                row['quality_status_source'] = 'run-status'
         rows[row['run_id']] = row
     arms = frozen['selection']['arms']; tids = frozen['selection']['task_ids']
     groups = defaultdict(list)
@@ -160,8 +218,21 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
     material_reviews = gate_evidence.get('material_reviews') or ()
     material_gate_ready = references is not None and human_gate(
         frozen, tasks, references, material_reviews, purpose_review)
-    issue52_gate_ready = bool(references is not None and material_gate_ready
-                              and approved and not result['simulated'])
+    moa_gate_evidence = result.get('moa_gate_evidence') or {}
+    moa_material_reviews = moa_material_reviews or moa_gate_evidence.get('material_reviews') or ()
+    moa_purpose_review = moa_purpose_review or moa_gate_evidence.get('purpose_review')
+    moa_purpose = moa_purpose_review or {}
+    moa_purpose_approved = bool(moa_purpose.get('policy_sha256') == digest(MOA_POLICY)
+        and moa_purpose.get('statistics_policy_sha256') == digest(POLICY)
+        and moa_purpose.get('task_bindings') == frozen['task_bindings']
+        and (moa_purpose.get('consensus') or {}).get('overall') == 'pass')
+    moa_gate_ready = references is not None and moa_gate(
+        frozen, tasks, references, moa_material_reviews, moa_purpose_review)
+    human_gate_active = bool(approved and material_gate_ready)
+    moa_gate_active = bool(moa_purpose_approved and moa_gate_ready)
+    quality_gate_active = human_gate_active or moa_gate_active
+    issue52_gate_ready = bool(references is not None and quality_gate_active
+                              and not result['simulated'])
     full_design = (frozen['selection']['repeats'] == POLICY['repeats']
                    and len(tids) == POLICY['sample_size']['holdout_candidate']
                    and set(frozen['splits'].values()) == {'holdout-candidate'})
@@ -202,8 +273,8 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
             'failed_task_count': sum(failed_tasks), 'pending_task_count': sum(pending_tasks),
             'unknown_afp_task_count': sum(unknown_costs),
             'conditional_binomial_lower': lower,
-            'confirmed_quality_feasible': bool(approved and full_design and not result['simulated']
-                and references is not None and material_gate_ready and counts['pending'] == 0
+            'confirmed_quality_feasible': bool(quality_gate_active and full_design and not result['simulated']
+                and references is not None and counts['pending'] == 0
                 and sum(robust) / len(tids) >= POLICY['pass_rate_floor']),
             'performance_complete': complete,
             'mean_online_afp': statistics.mean(r['online_afp'] for r in sample) if complete else None,
@@ -223,7 +294,8 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
                 'afp_per_accepted_task': total_all / accepted_count if total_all is not None and accepted_count else None,
                 'successful_sample_afp_per_accepted_task': accepted_total / accepted_count if accepted_total is not None else None,
                 'cost_conclusion_available': bool(accepted_count and costs_complete),
-                'cost_scope': '主指标分子为全部任务AFP（含失败、pending、规划、执行、评审与共享图准备）；成功样本AFP另行单列。',
+                'cost_scope': '主指标分子为全部任务 Ark AFP（含失败、pending、规划、执行、Ark 内评审与共享图准备）；'
+                              'MoA 评审外部成本单列，不混入；成功样本AFP另行单列。',
             }}
         outcomes[arm] = robust
         metrics[arm] = {key: {tid: statistics.mean(r[key] for r in groups[arm, tid]) for tid in tids}
@@ -234,8 +306,8 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         row = {'candidate': candidate, 'reference': reference,
                'quality_difference_lower': paired_quality_lower(outcomes[candidate], outcomes[reference], POLICY['quality_tail_alpha']),
                'conclusion': 'human-quality-or-exploratory-evidence-pending'}
-        row['conditional_noninferiority_supported'] = bool(approved and full_design and references is not None and not result['simulated']
-            and material_gate_ready
+        row['conditional_noninferiority_supported'] = bool(quality_gate_active and full_design
+            and references is not None and not result['simulated']
             and not summaries[candidate]['run_counts']['pending'] and not summaries[reference]['run_counts']['pending']
             and row['quality_difference_lower'] >= -POLICY['noninferiority_margin'])
         if row['conditional_noninferiority_supported']:
@@ -293,13 +365,25 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
             'setup_amortization_scope': '单一路线复用的分配情景；不把准备在四条共享路线间重复求和，不是真实冷启动时间。',
             'human_review_pending': not approved or not material_gate_ready
                                     or any(s['run_counts']['pending'] for s in summaries.values()),
+            'quality_gate_pending': not quality_gate_active
+                                    or any(s['run_counts']['pending'] for s in summaries.values()),
+            'moa_review': {
+                'gate_status': 'active' if moa_gate_active else 'pending',
+                'material_gate_ready': moa_gate_ready,
+                'purpose_overall': (moa_purpose.get('consensus') or {}).get('overall') if moa_purpose else None,
+                'output_review_bound_runs': len(moa_bound_runs),
+                'reviewer_identity_verified': False,
+                'cost': _moa_review_cost(moa_material_reviews, moa_output_reviews, moa_purpose_review),
+            },
             'human_review_time': human_review_time,
             'accepted_task_metric_definition': {
-                'afp_per_accepted_task': 'total_afp_all_tasks / accepted_task_count',
+                'afp_per_accepted_task': 'total_afp_all_tasks / accepted_task_count；口径为 Ark AFP per accepted task，'
+                                         '不含 MoA 评审外部成本。',
                 'successful_sample_afp': '仅通过质量门槛任务的online_afp+research_afp+setup_afp',
                 'successful_sample_afp_per_accepted_task': 'successful_sample_afp / accepted_task_count',
                 'failure_policy': '失败、pending与未知AFP任务保留在总AFP和任务分母；未知AFP阻止成本结论。',
-                'human_review_time': '单独报告，不计入AFP。'
+                'human_review_time': '单独报告，不计入AFP。',
+                'moa_review_cost': 'MoA 评审调用次数、评审者与耗时单独报告；外部用量未知，不并入 Ark AFP。'
             },
             'reviewer_identity_authenticated_by_code': False,
             'limitations': ['固定构造任务不是从业务分布随机抽样，二项界仅展示条件假设下的不确定性。',
