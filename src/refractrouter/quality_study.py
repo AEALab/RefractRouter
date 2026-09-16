@@ -236,6 +236,7 @@ def material_review_packet(tasks, references):
              'review': {'origin': 'human', 'reviewer': None, 'evidence': None,
                        'task_sha256': t['task_sha256'],
                        'reference_sha256': digest(references[t['task_id']]),
+                       'review_time_ms': None,
                        'checks': {key: 'pending' for key in MATERIAL_CRITERIA}}} for t in tasks]
 
 
@@ -258,7 +259,8 @@ def make_blind_packet(records, tasks, references, *, seed=52):
                        'reference': deepcopy(references[t['task_id']]), 'output': deepcopy(row['output']),
                        'review': {'origin': 'human', 'reviewer': None, 'verdict': None, 'evidence': None,
                                   'stage': 'initial', 'criteria': t['semantic_criteria'],
-                                  'task_sha256': t['task_sha256'], 'output_sha256': digest(row['output'])}})
+                                  'task_sha256': t['task_sha256'], 'output_sha256': digest(row['output']),
+                                  'review_time_ms': None}})
         mapping[case_id] = {k: row.get(k) for k in ('task_id', 'arm_id', 'model_id', 'repeat')}
     return packet, mapping
 

@@ -37,7 +37,10 @@ def main(argv=None):
         write_json(args.blind_output_dir / 'blind-output-packet.json', packet)
         write_json(args.blind_output_dir / 'private-blind-mapping.json', mapping)
     print(json.dumps({'observed_runs': report['observed_runs'], 'human_review_pending': report['human_review_pending'],
-                      'confirmed_pareto_frontier': report['confirmed_pareto_frontier']}, ensure_ascii=False))
+                      'confirmed_pareto_frontier': report['confirmed_pareto_frontier'],
+                      'accepted_task_counts': {arm: row['accepted_task_count'] for arm, row in report['arms'].items()},
+                      'afp_per_accepted_task': {arm: row['accepted_task_metrics']['afp_per_accepted_task']
+                                                for arm, row in report['arms'].items()}}, ensure_ascii=False))
 
 
 if __name__ == '__main__':
