@@ -11,13 +11,14 @@ import tempfile
 import time
 
 from .quality_calibration import DELIVERY_CHECKS, SYSTEM, parse_review
-from .quality_study import MATERIAL_CRITERIA, digest, execution_payload
+from .quality_study import MATERIAL_CRITERIA, check_output, digest, execution_payload
 
 
 MOA_POLICY = {
     'schema_version': 'moa-review-policy-v1',
     'primary': [
-        {'reviewer_id': 'codex-gpt-5.6', 'cli': 'codex', 'model': 'gpt-5.6', 'thinking_effort': 'high'},
+        {'reviewer_id': 'codex-gpt-5.6-sol', 'cli': 'codex', 'model': 'gpt-5.6-sol',
+         'thinking_effort': 'high'},
         {'reviewer_id': 'claude-opus', 'cli': 'claude', 'model': 'opus', 'thinking_effort': 'high'},
     ],
     'escalation': [
@@ -26,6 +27,19 @@ MOA_POLICY = {
     ],
     'timeout_seconds': 240,
     'output_cap_tokens': 4096,
+    'codex_cli': {
+        'ignore_user_config': True,
+        'sandbox': 'read-only',
+        'request_max_retries': 0,
+        'stream_max_retries': 0,
+    },
+    'claude_cli': {
+        'output_format': 'text',
+        'json_schema': 'inline-json',
+        'tools': [],
+        'permission_mode': 'dontAsk',
+        'no_session_persistence': True,
+    },
     'zero_retries': True,
     'voting_rule': '两位一致则采用；任一 criterion 不一致则升级两位重审；升级后一致则采用，否则 pending。',
     'origin': 'model',
@@ -61,18 +75,24 @@ REVIEW_SCHEMA = {
 
 def codex_command(reviewer, output_file, schema_file):
     """构造 codex CLI 非交互评审命令；prompt 由 stdin 传入，最后一条消息写入文件。"""
-    return ['codex', 'exec', '--skip-git-repo-check', '--ephemeral', '--sandbox', 'read-only',
+    options = MOA_POLICY['codex_cli']
+    return ['codex', 'exec', '--skip-git-repo-check', '--ignore-user-config',
+            '--ephemeral', '--sandbox', options['sandbox'],
             '--model', reviewer['model'],
             '-c', f'model_reasoning_effort={reviewer["thinking_effort"]}',
+            '-c', f"request_max_retries={options['request_max_retries']}",
+            '-c', f"stream_max_retries={options['stream_max_retries']}",
             '--output-schema', str(schema_file),
             '--output-last-message', str(output_file), '-']
 
 
-def claude_command(reviewer, schema_file):
+def claude_command(reviewer, schema_json):
     """构造 claude CLI 非交互评审命令；禁止工具、不询问权限，输出 JSON。"""
+    options = MOA_POLICY['claude_cli']
     return ['claude', '-p', '--model', reviewer['model'], '--effort', reviewer['thinking_effort'],
-            '--output-format', 'json', '--json-schema', str(schema_file),
-            '--tools', '', '--permission-mode', 'dontAsk', '--no-session-persistence', '-']
+            '--output-format', options['output_format'], '--json-schema', schema_json,
+            '--tools', '', '--permission-mode', options['permission_mode'],
+            '--no-session-persistence', '-']
 
 
 def default_invoke(reviewer, messages, schema=None):
@@ -86,7 +106,7 @@ def default_invoke(reviewer, messages, schema=None):
             schema_file.write_text(json.dumps(schema or REVIEW_SCHEMA, ensure_ascii=False), encoding='utf-8')
             output_file = root / 'last-message.txt'
             command = (codex_command(reviewer, output_file, schema_file) if reviewer['cli'] == 'codex'
-                       else claude_command(reviewer, schema_file))
+                       else claude_command(reviewer, schema_file.read_text(encoding='utf-8')))
             completed = subprocess.run(command, input=prompt, capture_output=True, text=True,
                                        timeout=MOA_POLICY['timeout_seconds'], check=False)
             stdout = completed.stdout
@@ -233,6 +253,112 @@ def output_review(tasks, references, rows, invoke=default_invoke):
                       output_sha256=digest(row['output']), run_id=row['run_id'])
         results.append(record)
     return results
+
+
+def calibration_review(tasks, references, cases, invoke=default_invoke):
+    """对作者构造的开发正负例运行 MoA，并保留确定性检查与最终门槛证据。"""
+    by_id = {t['task_id']: t for t in tasks}
+    results = []
+    for case in cases:
+        task = by_id.get(case['task_id'])
+        if task is None:
+            raise ValueError(f"unknown calibration task: {case['task_id']}")
+        if task['split'] != 'development':
+            raise ValueError('holdout material cannot calibrate the evaluator')
+        deterministic = check_output(task, references[task['task_id']], case['output'])
+        messages, criteria = output_messages(task, case['output'])
+        record = run_review_target(messages, criteria, invoke)
+        record.update(
+            case_id=case['case_id'], task_id=task['task_id'],
+            task_sha256=task['task_sha256'], output_sha256=digest(case['output']),
+            author_semantic_label=case['author_semantic_label'],
+            deterministic=deterministic, deterministic_status=deterministic['status'],
+            final_status=final_quality_status(deterministic['status'],
+                                              record['consensus']['overall']),
+            expected_check_status=case['expected_check_status'],
+            expected_final_status=case['expected_final_status'],
+            purpose=case['purpose'],
+        )
+        results.append(record)
+    return results
+
+
+def summarize_calibration(records):
+    """分别统计 MoA 共识与最终门槛的漏判、误杀和待判定。"""
+    def count(predicate):
+        return sum(predicate(record) for record in records)
+
+    acceptable = [r for r in records if r['author_semantic_label'] == 'acceptable']
+    unacceptable = [r for r in records if r['author_semantic_label'] == 'unacceptable']
+    deterministic_mismatches = [
+        r['case_id'] for r in records
+        if r['deterministic_status'] != r['expected_check_status']
+    ]
+    return {
+        'cases': len(records),
+        'author_label_counts': {
+            'acceptable': len(acceptable), 'unacceptable': len(unacceptable),
+        },
+        'deterministic_status_counts': {
+            status: count(lambda r, status=status: r['deterministic_status'] == status)
+            for status in ('pass', 'fail', 'unverified')
+        },
+        'moa_consensus_counts': {
+            status: count(lambda r, status=status: r['consensus']['overall'] == status)
+            for status in ('pass', 'fail', 'pending')
+        },
+        'final_status_counts': {
+            status: count(lambda r, status=status: r['final_status'] == status)
+            for status in ('pass', 'fail', 'pending')
+        },
+        'moa_false_accepts': count(lambda r: r['author_semantic_label'] == 'unacceptable'
+                                   and r['consensus']['overall'] == 'pass'),
+        'moa_false_rejects': count(lambda r: r['author_semantic_label'] == 'acceptable'
+                                   and r['consensus']['overall'] == 'fail'),
+        'final_false_accepts': count(lambda r: r['author_semantic_label'] == 'unacceptable'
+                                     and r['final_status'] == 'pass'),
+        'final_false_rejects': count(lambda r: r['author_semantic_label'] == 'acceptable'
+                                     and r['final_status'] == 'fail'),
+        'moa_false_accept_rate': (
+            count(lambda r: r['author_semantic_label'] == 'unacceptable'
+                  and r['consensus']['overall'] == 'pass') / len(unacceptable)
+            if unacceptable else None
+        ),
+        'moa_false_reject_rate': (
+            count(lambda r: r['author_semantic_label'] == 'acceptable'
+                  and r['consensus']['overall'] == 'fail') / len(acceptable)
+            if acceptable else None
+        ),
+        'final_false_accept_rate': (
+            count(lambda r: r['author_semantic_label'] == 'unacceptable'
+                  and r['final_status'] == 'pass') / len(unacceptable)
+            if unacceptable else None
+        ),
+        'final_false_reject_rate': (
+            count(lambda r: r['author_semantic_label'] == 'acceptable'
+                  and r['final_status'] == 'fail') / len(acceptable)
+            if acceptable else None
+        ),
+        'moa_pending_on_unacceptable': count(
+            lambda r: r['author_semantic_label'] == 'unacceptable'
+            and r['consensus']['overall'] == 'pending'
+        ),
+        'moa_pending_on_acceptable': count(
+            lambda r: r['author_semantic_label'] == 'acceptable'
+            and r['consensus']['overall'] == 'pending'
+        ),
+        'deterministic_expectation_mismatches': deterministic_mismatches,
+        'actual_calls': sum(len(r['primary']) + len(r['escalation']) for r in records),
+        'failed_records': sum(r['consensus']['failed_records'] for r in records),
+        'escalated_criteria': sum(r['consensus']['escalated_criteria'] for r in records),
+        'moa_review_cost': {
+            'cost_ledger': 'external-cli-account', 'known_usage': 'unknown',
+            'ark_afp': None, 'calls': sum(len(r['primary']) + len(r['escalation'])
+                                          for r in records),
+        },
+        'scope': '作者构造开发正负例的 MoA 校准；不是真人标注准确率，'
+                 '也不能证明独立留出任务质量或 Pareto 收益。',
+    }
 
 
 def purpose_review(policy_sha256, task_bindings, invoke=default_invoke):
