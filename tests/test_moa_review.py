@@ -175,7 +175,8 @@ def test_purpose_review_binds_policy():
     invoke, _ = fake_invoke(responses)
     record = purpose_review(policy_sha, bindings, invoke)
     assert record['consensus']['overall'] == 'pass'
-    assert record['policy_sha256'] == policy_sha
+    assert record['policy_sha256'] == digest(MOA_POLICY)
+    assert record['statistics_policy_sha256'] == policy_sha
     assert record['task_bindings'] == bindings
 
 

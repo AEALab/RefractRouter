@@ -53,6 +53,8 @@ def main(argv=None):
     parser.add_argument('--frozen', type=Path)
     parser.add_argument('--material-reviews', type=Path)
     parser.add_argument('--purpose-review', type=Path)
+    parser.add_argument('--moa-material-reviews', type=Path)
+    parser.add_argument('--moa-purpose-review', type=Path)
     parser.add_argument('--progress', action='store_true', help='逐任务立即输出开始事件，记录服务端发出时间')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--live', action='store_true')
@@ -62,10 +64,21 @@ def main(argv=None):
         if args.frozen is None or args.task_ids is not None or args.arms is not None or args.repeats is not None:
             parser.error('execution requires --frozen and cannot override its selection')
         frozen = json.loads(args.frozen.read_text())
+        def moa_records(path):
+            if path is None:
+                return []
+            data = json.loads(path.read_text())
+            records = data.get('records') if isinstance(data, dict) else data
+            if not isinstance(records, list):
+                raise SystemExit(f'invalid MoA records file: {path}')
+            return records
+        moa_purpose = moa_records(args.moa_purpose_review)
         result = execute(args.study_dir, frozen, args.output_dir,
                          client=RehearsalClient(args.study_dir) if args.rehearse else None, simulated=args.rehearse,
                          material_reviews=json.loads(args.material_reviews.read_text()) if args.material_reviews else (),
                          purpose_review=json.loads(args.purpose_review.read_text()) if args.purpose_review else None,
+                         moa_material_reviews=moa_records(args.moa_material_reviews),
+                         moa_purpose_review=moa_purpose[0] if moa_purpose else None,
                          on_progress=(lambda event: print(json.dumps(event, ensure_ascii=False), flush=True)) if args.progress else None)
         summary = {k: result[k] for k in ('status', 'simulated', 'actual_model_calls', 'actual_afp')}
         summary['runs'] = len(result['runs'])
