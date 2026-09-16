@@ -1,0 +1,52 @@
+{
+  "envelope": {
+    "kind": "escalation",
+    "cases": [
+      "prose-contradiction",
+      "missing-required-rule",
+      "missing-sampling-limitation"
+    ],
+    "maximum_calls": 6,
+    "timeout_sum_seconds": 1440,
+    "policy_sha256": "1f620cbbb46c379fe4453596c3e83a85c66dba0d147d20b29e5a5e3a0ea7f0e3",
+    "real_model_calls": 0
+  },
+  "reviewers": [
+    {
+      "reviewer_id": "codex-gpt-astra",
+      "cli": "codex",
+      "model": "gpt-6-astra",
+      "thinking_effort": "high"
+    },
+    {
+      "reviewer_id": "claude-fable",
+      "cli": "claude",
+      "model": "fable",
+      "thinking_effort": "high"
+    }
+  ],
+  "policy_sha256": "1f620cbbb46c379fe4453596c3e83a85c66dba0d147d20b29e5a5e3a0ea7f0e3",
+  "notes": [
+    "升级评审身份为 codex-gpt-astra（gpt-6-astra，high）与 claude-fable（fable，high）；本机 Codex 用量上限尚未解除，--live 前需确认两者可用。"
+  ],
+  "targets": [
+    {
+      "case_id": "prose-contradiction",
+      "task_id": "rules-02",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "c6aa5e004f0ee3fad5a32b04107cc7b477fd37621086b85ffb5b0699eb3f94e1"
+    },
+    {
+      "case_id": "missing-required-rule",
+      "task_id": "rules-01",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "16420c663d29e9a916145143fb308448d08077a189b936e4287a6139838b7f4c"
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "task_id": "analysis-02",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "74ff104527e08867e7933319c4bf9e3b0880379d3769b9cd0c48b8ba52c5c4ee"
+    }
+  ]
+}

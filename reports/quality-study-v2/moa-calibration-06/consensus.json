@@ -1,0 +1,1595 @@
+{
+  "schema_version": "moa-consensus-v1",
+  "scope": "两位初审模型的逐 criterion 共识；分歧在缺少升级证据时保留 pending。不是真人审查，也不能证明真实用户接受度或独立留出任务质量。",
+  "sources": [
+    {
+      "role": "primary",
+      "path": "reports/quality-study-v2/moa-calibration-03-claude-primary/claude-primary-first-run.jsonl",
+      "cases": 19,
+      "file_sha256": "d208b64a8ff5daeb3bc8ded4be198d47fdd9f1457b549bd61736d33bc008ce6c"
+    },
+    {
+      "role": "primary",
+      "path": "reports/quality-study-v2/moa-calibration-05/deepseek-primary-first-run.jsonl",
+      "cases": 19,
+      "file_sha256": "7f198ee1160def5facb78ca5f5e6ad5f55a2c0ed5df34b0f151be5d3a362b776"
+    }
+  ],
+  "policy_sha256": "1f620cbbb46c379fe4453596c3e83a85c66dba0d147d20b29e5a5e3a0ea7f0e3",
+  "escalation_state": "not-executed",
+  "cases": [
+    {
+      "case_id": "analysis-01-positive",
+      "task_id": "analysis-01",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "e3302f69a442df364efab7c8df8b56a8ffc279297a1b38994820552420a82e6e",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "f9d825e8f4d9e14ae955ef2a3805e262f4e1b47ab2360081964c46102d0f8851",
+          "wall_time_ms": 16920.642
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "12f69cfd9a71bbd673eda494a7f845ed09d86736044669a679fa54a72ff8eb2c",
+          "wall_time_ms": 15318.495
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "区分台账差异与原因认定；不擅自补齐待核对数量。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "analysis-02-positive",
+      "task_id": "analysis-02",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "950de092552e3754870d2709e68bed45ac21a7e4da3b5fd688b83296043e8fda",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "1c3e96a6a5f64050cf37dab55c7f2cfe3ca9f621bb889721cb30f0960474f451",
+          "wall_time_ms": 10866.123
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "b5f4039dcd3f114ac331c59a9d4d9b1b0598f5b8b3d261655c428138e2693da4",
+          "wall_time_ms": 18832.223
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "rules-01-positive",
+      "task_id": "rules-01",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "5183f186f396beaa9cabee6db4154abe8ac20cea5c61c04e7ccfae13fdc909b5",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "40d07eb90203680076979ab2122ec4337fc304eae172220b2679817956e5120f",
+          "wall_time_ms": 16722.508
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "failed",
+          "verdict": "pending",
+          "error": "ValueError: review criteria coverage mismatch",
+          "response_sha256": "2ae28b9a0da08759e35d225e02413d08a530b26addfb3559c52c5031c3d9521b",
+          "wall_time_ms": 102883.667
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "不可把口头归还视作已完成手续。",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pending",
+        "escalated_criteria": 0,
+        "failed_records": 1,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pending",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "rules-02-positive",
+      "task_id": "rules-02",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "ca0ce8632c346f26e1a2ecabf13db24947f62a87af5b76def27974fb06afee46",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "c89012b5c3c531ac0f833ead17d0319a68e6859f3e3b40e501a951b8b4d67601",
+          "wall_time_ms": 12651.818
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "5701f5b82ff7eb39e9fb4c5d67b0f91f4887d672d91deb8f6fd87c0b25d0390e",
+          "wall_time_ms": 22589.199
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终正文不得倒写依赖或暗示检查通过就能直接发布。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "decision-01-positive",
+      "task_id": "decision-01",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "e802b1f0196ee2b32fe8131c0be178e0b1751f94fc2e43079174a6fbe1bd0001",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "78c82a01d9409caab5f2c44530291e6ebc9fe4920cdc3de8f4e0f8af71e668e0",
+          "wall_time_ms": 9441.285
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "6a5ffd13e41dee11092f300701a5ea715f662e450b3e1594cc65cb98e995ab84",
+          "wall_time_ms": 19732.84
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "decision-02-positive",
+      "task_id": "decision-02",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "5cb79208a4e6d3941098f6a3aa29f74946661fcb93c8fcf95ad58bcc3fb055a9",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "8d90aae61d9b176cafcf4d823847800b310c8d7baa927de163790789072beb60",
+          "wall_time_ms": 7902.448
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "failed",
+          "verdict": "pending",
+          "error": "ValueError: review criteria coverage mismatch",
+          "response_sha256": "5e1c9364c5ff93d7a32786077d5a16e8fe7a45c115f5f96c98b9406522789107",
+          "wall_time_ms": 19492.693
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pending",
+        "escalated_criteria": 0,
+        "failed_records": 1,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pending",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "wrong-dependency",
+      "task_id": "rules-02",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "92cdd0a8f304fc0a3955a91f09cd43d4ba7e85978bfe977fc329d0a856a38f73",
+      "deterministic_status": "fail",
+      "expected_check_status": "fail",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "270142b5fdb116d3475082531869a666fd70e86ead1d94438d4b803812af0aca",
+          "wall_time_ms": 13026.439
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "aaa8e3b93a85638ba8c3b37d1a4b0f3f75c09fce5f290c50503e3dd3bd3227c1",
+          "wall_time_ms": 28129.525
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终正文不得倒写依赖或暗示检查通过就能直接发布。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "fail",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "fail",
+      "expected_final_status": "fail"
+    },
+    {
+      "case_id": "wrong-citation",
+      "task_id": "analysis-01",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "7087d768e103ac56099a8aaaad71a325b5651a26bf596880e9fa2e75dfacb4f1",
+      "deterministic_status": "fail",
+      "expected_check_status": "fail",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "9c441a48f56a4bcf9dc4b21b3a6169ae8304cb52737c7650be7854d0b074cc7a",
+          "wall_time_ms": 15057.411
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "3b62b8515f2dab8e7c27b7ab33c9df22868d186ec560d609d5660e27481a7436",
+          "wall_time_ms": 30412.944
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "区分台账差异与原因认定；不擅自补齐待核对数量。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "fail",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "fail",
+      "expected_final_status": "fail"
+    },
+    {
+      "case_id": "prose-contradiction",
+      "task_id": "rules-02",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "fa49168a736fbbf1aacc8544f395fcd9d69b3d974574c3ac58a31754c55da3e5",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "de70b513c9108c896a3a05e9fc055c58fa74d59de79a9b9618f58722ef190c73",
+          "wall_time_ms": 9940.069
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "45d75979cb2c69d4cbd86dffe58273d21c5a9f0b04c33905eb12d619798f04ef",
+          "wall_time_ms": 28960.969
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": true,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终正文不得倒写依赖或暗示检查通过就能直接发布。",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "fail",
+        "escalated_criteria": 1,
+        "failed_records": 0,
+        "primary_disagreements": 1
+      },
+      "disputed_criteria": [
+        "必需结论完整、事实正确且各自引用足以支持主张"
+      ],
+      "final_status": "fail",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "global-combination-error",
+      "task_id": "decision-01",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "c13a813815f65c796813822d7c55afa7a34607ee6c6779df9ea075e4c34c9615",
+      "deterministic_status": "fail",
+      "expected_check_status": "fail",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "2abd5e758fef8fd7226264fb8de2ea8a0a00bbde06f7eb2e9afa4b25f999e74e",
+          "wall_time_ms": 11201.976
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "0934e402d6d285cfe792980b0697bab636e3ee06fe235fcb4bdfea68033bf8fa",
+          "wall_time_ms": 14005.16
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "fail",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "fail",
+      "expected_final_status": "fail"
+    },
+    {
+      "case_id": "missed-damage-rule",
+      "task_id": "analysis-01",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "28cd95adddc1333ed8d80b8e80aeed859eb361e50021804f817e58c3e9e99659",
+      "deterministic_status": "fail",
+      "expected_check_status": "fail",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "424cbd1c18027a0e3ba7b2746ac077e61707a3c433bceb2e9b011a3af0dd700b",
+          "wall_time_ms": 12605.448
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "21748be017e3fad85efcf69551cd404dfbf66377dcd09498b186e07b8464d443",
+          "wall_time_ms": 27573.588
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "区分台账差异与原因认定；不擅自补齐待核对数量。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "fail",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "fail",
+      "expected_final_status": "fail"
+    },
+    {
+      "case_id": "analysis-01-equivalent",
+      "task_id": "analysis-01",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "c01f5b1b0fa2645b1ee9114a6dad826a8bf61e32801ce333f7dea32e0273440e",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "cfc7d20b8948a2df612e631d9b32bacdf7447c5b9e8d3b79cf8ccda7d13e9ab9",
+          "wall_time_ms": 15384.657
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "failed",
+          "verdict": "pending",
+          "error": "ValueError: review criteria coverage mismatch",
+          "response_sha256": "e8d70860a324115eac1f345c1b6fb1534a43575ab3075c235f3845a3445212cf",
+          "wall_time_ms": 17313.837
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "区分台账差异与原因认定；不擅自补齐待核对数量。",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pending",
+        "escalated_criteria": 0,
+        "failed_records": 1,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pending",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "analysis-02-equivalent",
+      "task_id": "analysis-02",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "d2af3dd4b2f65a766afa2e5048057df9094ac992012df4185ad88ac0cae18f57",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "49e6628dc263b11b8df3fd42e9d9e5ff74d23eca3ff0f7b9b0b922c7b1021cee",
+          "wall_time_ms": 11926.78
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "c832c59e03426c9955f8ea418a1ff80a74c7d3bcca62f9a1a6f2ffebb3b1a395",
+          "wall_time_ms": 18113.515
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "decision-01-equivalent",
+      "task_id": "decision-01",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "a849620306b3f1f168a31369aafadade50fad4183c5c76666ef128401a790a15",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "6e314cc872df2b2774207b9adf7045ed4c65b2ca58382e10eaaf83096249fd5d",
+          "wall_time_ms": 9267.263
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "998dc260fa3e6a2f557c4b96eeb6402681929095563bd7ac664cde66ec022b3c",
+          "wall_time_ms": 12532.301
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "decision-02-equivalent",
+      "task_id": "decision-02",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "5cb79208a4e6d3941098f6a3aa29f74946661fcb93c8fcf95ad58bcc3fb055a9",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "b0d68c090ae92095355ba43fa0b8cfdeec8b4164964d441730fb071b921584e4",
+          "wall_time_ms": 10832.81
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "f63c4776de6bb343d7afe058051a3f199d5b3cc710c2143ccc732ba5d4565300",
+          "wall_time_ms": 13507.741
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "rules-01-equivalent",
+      "task_id": "rules-01",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "fb91e3ccb8dd0cbec5204c67f8b8b31bd11531d764a39ed1f7732c9b9c94c0aa",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "1bf221c4c27868be8736300d6b12b3a84b942d2d8906c8c7cd31f7a59cc6f4d9",
+          "wall_time_ms": 14013.827
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "3a15f65e6df6b46ad58274e0aec1f21a9f1dc36df830aa9aef958514d3ecdbfd",
+          "wall_time_ms": 16241.265
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "不可把口头归还视作已完成手续。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "rules-02-equivalent",
+      "task_id": "rules-02",
+      "author_semantic_label": "acceptable",
+      "prompt_sha256": "ca0ce8632c346f26e1a2ecabf13db24947f62a87af5b76def27974fb06afee46",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "de0f9de34c495ac8e0ebf366e3d1399bada718e7e90d6e5b72ce1dea4daf65ba",
+          "wall_time_ms": 12144.296
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "c5600279e83a7e663f3447f9ae7ba742b32c675706ea2bea91421490be428604",
+          "wall_time_ms": 19765.847
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "最终正文不得倒写依赖或暗示检查通过就能直接发布。",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          }
+        ],
+        "overall": "pass",
+        "escalated_criteria": 0,
+        "failed_records": 0,
+        "primary_disagreements": 0
+      },
+      "disputed_criteria": [],
+      "final_status": "pass",
+      "expected_final_status": "pending"
+    },
+    {
+      "case_id": "missing-required-rule",
+      "task_id": "rules-01",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "3d9998a627802dfd4a58259a95f451cc93ec51750cab1f98225876112d8598b9",
+      "deterministic_status": "fail",
+      "expected_check_status": "fail",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "43d664e6cc1d8b9905370812193c3817cfaf89d36943b6d5c07110267c1efbe6",
+          "wall_time_ms": 13961.672
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "b93825d83251422ba8984dcdc9a88b4480e211b4c39c46b382e8d4945880929b",
+          "wall_time_ms": 42677.769
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": true,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "fail",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "fail"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "不可把口头归还视作已完成手续。",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": true,
+            "escalation": {}
+          }
+        ],
+        "overall": "fail",
+        "escalated_criteria": 2,
+        "failed_records": 0,
+        "primary_disagreements": 2
+      },
+      "disputed_criteria": [
+        "最终正文符合材料、任务要求与全部硬约束",
+        "不可把口头归还视作已完成手续。"
+      ],
+      "final_status": "fail",
+      "expected_final_status": "fail"
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "task_id": "analysis-02",
+      "author_semantic_label": "unacceptable",
+      "prompt_sha256": "1d1e291927532893d51a27dd664c458b92af578d4915039edbf32ebfec2a9e7f",
+      "deterministic_status": "pass",
+      "expected_check_status": "pass",
+      "deterministic_status_matches_expectation": true,
+      "primary": {
+        "claude-opus": {
+          "reviewer_id": "claude-opus",
+          "model": "opus",
+          "thinking_effort": "high",
+          "status": "reviewed",
+          "verdict": "fail",
+          "error": null,
+          "response_sha256": "768a8df81914e31e1e563fb5947b76ffccd415fb9fbc072ec6d2231c5d456813",
+          "wall_time_ms": 12148.704
+        },
+        "ds-deepseek-v4-pro": {
+          "reviewer_id": "ds-deepseek-v4-pro",
+          "model": "ds/deepseek-v4-pro",
+          "thinking_effort": "max",
+          "status": "reviewed",
+          "verdict": "pass",
+          "error": null,
+          "response_sha256": "527b893c5845995e0ca4aafbaa7081757e30942a510a5a2ad6d6094d43fc7894",
+          "wall_time_ms": 20802.347
+        }
+      },
+      "escalation": {},
+      "consensus": {
+        "criteria": [
+          {
+            "criterion": "最终正文符合材料、任务要求与全部硬约束",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": true,
+            "escalation": {}
+          },
+          {
+            "criterion": "正文与结构化结论一致且未反写依赖或扩大证据含义",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "必需结论完整、事实正确且各自引用足以支持主张",
+            "verdict": "pass",
+            "primary": {
+              "claude-opus": "pass",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": false,
+            "escalation": {}
+          },
+          {
+            "criterion": "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。",
+            "verdict": "pending",
+            "primary": {
+              "claude-opus": "fail",
+              "ds-deepseek-v4-pro": "pass"
+            },
+            "escalated": true,
+            "escalation": {}
+          }
+        ],
+        "overall": "pending",
+        "escalated_criteria": 2,
+        "failed_records": 0,
+        "primary_disagreements": 2
+      },
+      "disputed_criteria": [
+        "最终正文符合材料、任务要求与全部硬约束",
+        "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+      ],
+      "final_status": "pending",
+      "expected_final_status": "pending"
+    }
+  ]
+}

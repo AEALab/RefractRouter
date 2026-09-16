@@ -17,8 +17,8 @@ from .quality_study import MATERIAL_CRITERIA, check_output, digest, execution_pa
 MOA_POLICY = {
     'schema_version': 'moa-review-policy-v1',
     'primary': [
-        {'reviewer_id': 'codex-gpt-5.6-sol', 'cli': 'codex', 'model': 'gpt-5.6-sol',
-         'thinking_effort': 'high'},
+        {'reviewer_id': 'ds-deepseek-v4-pro', 'cli': 'codex', 'model': 'ds/deepseek-v4-pro',
+         'thinking_effort': 'max', 'output_schema': False},
         {'reviewer_id': 'claude-opus', 'cli': 'claude', 'model': 'opus', 'thinking_effort': 'high'},
     ],
     'escalation': [
@@ -28,7 +28,7 @@ MOA_POLICY = {
     'timeout_seconds': 240,
     'output_cap_tokens': 4096,
     'codex_cli': {
-        'ignore_user_config': True,
+        'ignore_user_config': False,
         'sandbox': 'read-only',
         'request_max_retries': 0,
         'stream_max_retries': 0,
@@ -76,13 +76,17 @@ REVIEW_SCHEMA = {
 def codex_command(reviewer, output_file, schema_file):
     """构造 codex CLI 非交互评审命令；prompt 由 stdin 传入，最后一条消息写入文件。"""
     options = MOA_POLICY['codex_cli']
-    return ['codex', 'exec', '--skip-git-repo-check', '--ignore-user-config',
+    ignore_options = ['--ignore-user-config'] if options['ignore_user_config'] else []
+    schema_options = [] if reviewer.get('output_schema') is False else [
+        '--output-schema', str(schema_file),
+    ]
+    return ['codex', 'exec', '--skip-git-repo-check', *ignore_options,
             '--ephemeral', '--sandbox', options['sandbox'],
             '--model', reviewer['model'],
             '-c', f'model_reasoning_effort={reviewer["thinking_effort"]}',
             '-c', f"request_max_retries={options['request_max_retries']}",
             '-c', f"stream_max_retries={options['stream_max_retries']}",
-            '--output-schema', str(schema_file),
+            *schema_options,
             '--output-last-message', str(output_file), '-']
 
 

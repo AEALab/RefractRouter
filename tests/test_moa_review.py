@@ -107,13 +107,15 @@ def test_cli_commands_include_model_and_effort():
     schema_json = json.dumps(REVIEW_SCHEMA, ensure_ascii=False, separators=(',', ':'))
     codex_args = codex_command(primary_codex, out, schema)
     assert codex_args[:2] == ['codex', 'exec']
-    assert '--ignore-user-config' in codex_args
+    assert '--ignore-user-config' not in codex_args
     assert primary_codex['model'] in codex_args
     assert f'model_reasoning_effort={primary_codex["thinking_effort"]}' in codex_args
     assert 'request_max_retries=0' in codex_args
     assert 'stream_max_retries=0' in codex_args
-    assert str(schema) in codex_args and str(out) in codex_args
-    assert MOA_POLICY['codex_cli']['ignore_user_config'] is True
+    assert str(out) in codex_args
+    assert '--output-schema' not in codex_args
+    assert MOA_POLICY['primary'][0]['output_schema'] is False
+    assert MOA_POLICY['codex_cli']['ignore_user_config'] is False
     assert MOA_POLICY['codex_cli']['request_max_retries'] == 0
     assert MOA_POLICY['codex_cli']['stream_max_retries'] == 0
     claude_args = claude_command(primary_claude, schema_json)
@@ -124,6 +126,14 @@ def test_cli_commands_include_model_and_effort():
     assert '--json-schema' in claude_args
     assert claude_args[claude_args.index('--json-schema') + 1] == schema_json
     assert MOA_POLICY['claude_cli']['json_schema'] == 'inline-json'
+
+
+def test_codex_output_schema_is_reviewer_capability():
+    schema = Path('/tmp/schema.json'); out = Path('/tmp/last.txt')
+    primary_codex = MOA_POLICY['primary'][0]
+    escalation_codex = MOA_POLICY['escalation'][0]
+    assert '--output-schema' not in codex_command(primary_codex, out, schema)
+    assert '--output-schema' in codex_command(escalation_codex, out, schema)
 
 
 def test_judge_records_binding_and_policy():
@@ -251,7 +261,7 @@ def test_cli_preflight_is_zero_call(tmp_path):
     assert preflight['envelope']['targets'] == 18
     assert preflight['envelope']['maximum_calls'] == 18 * 4
     assert preflight['policy']['schema_version'] == 'moa-review-policy-v1'
-    assert preflight['policy']['primary'][0]['thinking_effort'] == 'high'
+    assert preflight['policy']['primary'][0]['thinking_effort'] == 'max'
     assert preflight['policy']['primary'][1]['thinking_effort'] == 'high'
     assert preflight['policy']['escalation'][0]['thinking_effort'] == 'high'
     assert preflight['policy']['escalation'][1]['thinking_effort'] == 'high'
