@@ -1,0 +1,57 @@
+{
+  "schema_version": "deepseek-primary-partial-run-v1",
+  "scope": "DeepSeek 单侧初审证据；不是 MoA 共识，不能替代另一位初审。",
+  "reviewer": {
+    "reviewer_id": "ds-deepseek-v4-pro",
+    "cli": "codex",
+    "model": "ds/deepseek-v4-pro",
+    "thinking_effort": "max",
+    "output_schema": false
+  },
+  "targets": 19,
+  "first_run_records": 19,
+  "status_counts": {
+    "reviewed": 16,
+    "failed": 3
+  },
+  "verdict_counts": {
+    "pass": 10,
+    "fail": 6,
+    "pending": 3
+  },
+  "failed_records": [
+    {
+      "case_id": "rules-01-positive",
+      "error": "ValueError: review criteria coverage mismatch"
+    },
+    {
+      "case_id": "decision-02-positive",
+      "error": "ValueError: review criteria coverage mismatch"
+    },
+    {
+      "case_id": "analysis-01-equivalent",
+      "error": "ValueError: review criteria coverage mismatch"
+    }
+  ],
+  "raw_complete_records": 21,
+  "raw_invalid_tail_records": 1,
+  "duplicates": [
+    {
+      "case_id": "rules-02-equivalent",
+      "kept_line": 17,
+      "duplicate_line": 21
+    },
+    {
+      "case_id": "missing-required-rule",
+      "kept_line": 18,
+      "duplicate_line": 22
+    }
+  ],
+  "files": {
+    "preflight": "preflight.json",
+    "manifest": "run-manifest.json",
+    "raw": "deepseek-primary-all-calls.jsonl",
+    "first_run": "deepseek-primary-first-run.jsonl",
+    "sandbox_failed": "deepseek-primary-sandbox-failed.jsonl"
+  }
+}

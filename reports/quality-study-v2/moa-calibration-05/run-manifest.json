@@ -1,0 +1,49 @@
+{
+  "schema_version": "deepseek-primary-partial-run-v1",
+  "scope": "DeepSeek 单侧初审证据；不是 MoA 共识，也不能替代另一位初审。",
+  "reviewer": {
+    "reviewer_id": "ds-deepseek-v4-pro",
+    "cli": "codex",
+    "model": "ds/deepseek-v4-pro",
+    "thinking_effort": "max",
+    "output_schema": false
+  },
+  "started_at": "2026-09-16T22:15:17+08:00",
+  "targets": 19,
+  "zero_retries": true,
+  "output_schema": false,
+  "resumed_at": "2026-09-16T22:18:56+08:00",
+  "completed_before_resume": [
+    "analysis-01-positive",
+    "analysis-02-positive",
+    "rules-01-positive",
+    "rules-02-positive"
+  ],
+  "completed_at": "2026-09-16T22:25:27+08:00",
+  "raw_evidence": "deepseek-primary-all-calls.jsonl",
+  "first_run_evidence": "deepseek-primary-first-run.jsonl",
+  "raw_complete_records": 21,
+  "raw_invalid_tail_records": 1,
+  "first_run_records": 19,
+  "duplicate_records": [
+    {
+      "case_id": "rules-02-equivalent",
+      "kept_line": 17,
+      "duplicate_line": 21
+    },
+    {
+      "case_id": "missing-required-rule",
+      "kept_line": 18,
+      "duplicate_line": 22
+    }
+  ],
+  "invalid_tail": [
+    {
+      "line": 20,
+      "bytes": 11135,
+      "error": "JSONDecodeError: Extra data: line 1 column 10 (char 9)",
+      "head": " \"参考事实相符\", \"status\": \"pass\"}, {\"check\": \"requested\", \"reason\": \"参考事实相符\", \"st"
+    }
+  ],
+  "note": "并发续跑导致 rules-02-equivalent 重复与一个损坏尾部；全部原始字节保留，首轮证据按预期顺序去重。零重试，失败记录保留为 pending。"
+}
