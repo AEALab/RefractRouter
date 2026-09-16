@@ -1,0 +1,30 @@
+{
+  "schema_version": "claude-primary-partial-run-v1",
+  "scope": "Claude 单侧初审证据；不是 MoA 共识，也不能替代另一位初审。",
+  "intended_cases": 19,
+  "first_run_cases": 19,
+  "raw_records": 31,
+  "duplicate_cases": 12,
+  "duplicate_conflicts": {
+    "rules-01-equivalent": ["fail", "pass"]
+  },
+  "status_counts": {"reviewed": 19},
+  "verdict_counts": {"pass": 12, "fail": 7},
+  "author_label_counts": {"acceptable": 12, "unacceptable": 7},
+  "false_accepts": 0,
+  "false_rejects": 0,
+  "pending_on_unacceptable": 0,
+  "pending_on_acceptable": 0,
+  "false_accept_rate": 0.0,
+  "false_reject_rate": 0.0,
+  "wall_time_ms_sum": 236016.176,
+  "wall_time_ms_mean": 12421.904,
+  "external_cli_calls_observed": 31,
+  "known_usage": "unknown",
+  "ark_afp": null,
+  "notes": [
+    "Codex 用量上限尚未解除，因此本轮只完成 Claude 单侧初审。",
+    "误启动造成 12 例重复调用；重复记录保留在 all-calls 文件中。",
+    "rules-01-equivalent 在重复调用中出现过 pass/fail 冲突；首轮结果按协议保留第一次出现记录。"
+  ]
+}
