@@ -15,7 +15,11 @@
 
 ## 结果
 
-- 尚未执行 `--live`，本目录目前只有零调用冻结。
+- 调用 6 次：reviewed 3、failed 3。
+- 判定：pass 0、fail 3、pending 3。
+  - `missing-required-rule`：claude-fable=pending（failed）、codex-ark-kimi-k3=fail（reviewed）
+  - `missing-sampling-limitation`：claude-fable=pending（failed）、codex-ark-kimi-k3=fail（reviewed）
+  - `prose-contradiction`：claude-fable=pending（failed）、codex-ark-kimi-k3=fail（reviewed）
 
 ## 口径
 
