@@ -87,3 +87,17 @@ moa-calibration-08）。经用户确认改用 opus 并将 thinking effort 提到
   零模型调用。付费评审运行必须使用新的输出目录并显式指定「--live」。
 - 策略、模型、thinking effort、prompt、JSON schema、超时与零重试规则改变时，
   必须重新冻结；历史记录保留原策略标签。
+
+## 升级实跑结果与已知限制（2026-09-17）
+
+升级评审实跑于 moa-calibration-09（6 次调用、5 次有效、1 次 failed），聚合产物为
+moa-calibration-10：19 例，共识 pass 9 / fail 6 / pending 4，与未升级的
+moa-calibration-06 完全一致。两个已分歧案例（prose-contradiction、missing-required-rule）
+的升级判定一致为 fail，结论未变；missing-sampling-limitation 因升级判定 A 输出不合规
+保持 pending。本轮升级只提高了分歧 criterion 的证据密度，没有改变任何案例的最终判定。
+
+已知限制：升级判定 A 走无 output-schema 路径，在 1/3 案例返回带代码围栏的 JSON，
+按严格 JSON 规则记为 failed / pending。若下一轮要容忍围栏输出，必须先冻结新的解析
+规则并使用新的输出目录重跑，不追改本轮证据。另有 3 例（rules-01-positive、
+decision-02-positive、analysis-01-equivalent）因初审存在无效输出，按零重试规则保持
+pending，本轮不升级。

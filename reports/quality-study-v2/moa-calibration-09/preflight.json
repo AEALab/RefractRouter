@@ -1,0 +1,53 @@
+{
+  "envelope": {
+    "kind": "escalation",
+    "cases": [
+      "prose-contradiction",
+      "missing-required-rule",
+      "missing-sampling-limitation"
+    ],
+    "maximum_calls": 6,
+    "timeout_sum_seconds": 1440,
+    "policy_sha256": "0f335a4bbcd02786e43e68fc1980fbf59b2ab9e01581ed9f1702ff855a43d55c",
+    "real_model_calls": 0
+  },
+  "reviewers": [
+    {
+      "reviewer_id": "codex-ark-kimi-k3",
+      "cli": "codex",
+      "model": "ark/kimi-k3",
+      "thinking_effort": "high",
+      "output_schema": false
+    },
+    {
+      "reviewer_id": "claude-opus-max",
+      "cli": "claude",
+      "model": "opus",
+      "thinking_effort": "max"
+    }
+  ],
+  "policy_sha256": "0f335a4bbcd02786e43e68fc1980fbf59b2ab9e01581ed9f1702ff855a43d55c",
+  "notes": [
+    "升级判定 B 由 fable 改为 opus max（2026-09-17 用户确认）；fable 因需要额外 usage credits 无法使用，失败证据留在 moa-calibration-08。"
+  ],
+  "targets": [
+    {
+      "case_id": "prose-contradiction",
+      "task_id": "rules-02",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "c6aa5e004f0ee3fad5a32b04107cc7b477fd37621086b85ffb5b0699eb3f94e1"
+    },
+    {
+      "case_id": "missing-required-rule",
+      "task_id": "rules-01",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "16420c663d29e9a916145143fb308448d08077a189b936e4287a6139838b7f4c"
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "task_id": "analysis-02",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "74ff104527e08867e7933319c4bf9e3b0880379d3769b9cd0c48b8ba52c5c4ee"
+    }
+  ]
+}

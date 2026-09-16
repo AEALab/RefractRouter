@@ -44,6 +44,20 @@ def index_by_case(records, source):
     return by_case
 
 
+def index_escalation(records, source):
+    """按 case_id 与 reviewer_id 建立升级索引；同一案例允许两位升级评审。"""
+    by_case = {}
+    for record in records:
+        case_id, reviewer_id = record.get('case_id'), record.get('reviewer_id')
+        if case_id is None or reviewer_id is None:
+            raise ValueError(f'{source}: escalation evidence without case_id or reviewer_id')
+        reviewers = by_case.setdefault(case_id, {})
+        if reviewer_id in reviewers:
+            raise ValueError(f'{source}: duplicate escalation evidence: {case_id}/{reviewer_id}')
+        reviewers[reviewer_id] = record
+    return by_case
+
+
 def record_view(record):
     """保留可核对的调用摘要，不复制正文，避免聚合文件膨胀。"""
     return {'reviewer_id': record['reviewer_id'], 'model': record['model'],
@@ -150,7 +164,8 @@ def render_readme(summary, notes):
         '',
     ]
     for source in summary['sources']:
-        lines.append(f"- {source['role']}：`{source['path']}`（{source['cases']} 例，"
+        unit = '例' if source['role'] == 'primary' else '条调用记录'
+        lines.append(f"- {source['role']}：`{source['path']}`（{source['cases']} {unit}，"
                      f"sha256 `{source['file_sha256']}`）")
     lines += [
         '',
@@ -225,7 +240,12 @@ def main(argv=None):
     escalation_by_case = {}
     for path in args.escalation_evidence:
         records = read_records(path)
-        escalation_by_case.update(index_by_case(records, path))
+        for case_id, reviewers in index_escalation(records, path).items():
+            merged = escalation_by_case.setdefault(case_id, {})
+            for reviewer_id, record in reviewers.items():
+                if reviewer_id in merged:
+                    raise SystemExit(f'升级证据重复评审者：{case_id}/{reviewer_id}')
+                merged[reviewer_id] = record
         sources.append({'role': 'escalation', 'path': str(path), 'cases': len(records),
                         'file_sha256': file_digest(path)})
     expected_ids = set(case_ids)
@@ -240,7 +260,8 @@ def main(argv=None):
         cases.append(case_consensus(
             case, task, references[task['task_id']],
             [by_case[case['case_id']] for by_case in primary_sets],
-            [escalation_by_case[case['case_id']]] if case['case_id'] in escalation_by_case else []))
+            sorted(escalation_by_case.get(case['case_id'], {}).values(),
+                   key=lambda record: record['reviewer_id'])))
     escalation_state = 'executed' if escalation_by_case else 'not-executed'
     summary = summarize(cases, escalation_state=escalation_state, sources=sources)
     if args.note:
