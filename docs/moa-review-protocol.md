@@ -16,13 +16,16 @@
 
 | 角色 | CLI | 模型 | thinking effort |
 |---|---|---|---|
-| 初审判定 A | codex CLI | gpt-5.6 | high |
+| 初审判定 A | codex CLI | gpt-5.6-sol | high |
 | 初审判定 B | claude CLI | opus | high |
 | 升级判定 A | codex CLI | gpt-6-astra | high |
 | 升级判定 B | claude CLI | fable | high |
 
 - codex CLI 通过「-c model_reasoning_effort=<effort>」传入，并显式携带「--model <model>」。
 - claude CLI 通过「--effort <effort>」与「--model <model>」传入。
+- codex CLI 显式携带「--ignore-user-config」，避免评审被本机 opencodex 代理或用户级
+  provider 配置影响；重试在顶层配置为 0。
+- claude CLI 的 JSON schema 必须以内联 JSON 字符串传入，不得传文件路径。
 - 模型名称以本机 CLI 实际接受的别名为准，冻结在策略 JSON 中；CLI 拒绝别名时该记录为 failed。
 
 ## 调用约束

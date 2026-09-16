@@ -5,8 +5,9 @@ from pathlib import Path
 import pytest
 
 from refractrouter.moa_review import (MOA_POLICY, REVIEW_SCHEMA, aggregate,
-    claude_command, codex_command, final_quality_status, judge, material_review,
-    output_messages, output_review, preflight_envelope, purpose_review,
+    calibration_review, claude_command, codex_command, final_quality_status, judge,
+    material_review, output_messages, output_review, preflight_envelope, purpose_review,
+    summarize_calibration,
     run_review_target)
 from refractrouter.quality_study import digest, load_study
 
@@ -103,17 +104,26 @@ def test_cli_commands_include_model_and_effort():
     primary_codex = MOA_POLICY['primary'][0]
     primary_claude = MOA_POLICY['primary'][1]
     schema = Path('/tmp/schema.json'); out = Path('/tmp/last.txt')
+    schema_json = json.dumps(REVIEW_SCHEMA, ensure_ascii=False, separators=(',', ':'))
     codex_args = codex_command(primary_codex, out, schema)
     assert codex_args[:2] == ['codex', 'exec']
+    assert '--ignore-user-config' in codex_args
     assert primary_codex['model'] in codex_args
     assert f'model_reasoning_effort={primary_codex["thinking_effort"]}' in codex_args
+    assert 'request_max_retries=0' in codex_args
+    assert 'stream_max_retries=0' in codex_args
     assert str(schema) in codex_args and str(out) in codex_args
-    claude_args = claude_command(primary_claude, schema)
+    assert MOA_POLICY['codex_cli']['ignore_user_config'] is True
+    assert MOA_POLICY['codex_cli']['request_max_retries'] == 0
+    assert MOA_POLICY['codex_cli']['stream_max_retries'] == 0
+    claude_args = claude_command(primary_claude, schema_json)
     assert claude_args[:2] == ['claude', '-p']
     assert primary_claude['model'] in claude_args
     assert f'--effort' in claude_args and primary_claude['thinking_effort'] in claude_args
     assert '--tools' in claude_args and '' in claude_args
-    assert '--json-schema' in claude_args and str(schema) in claude_args
+    assert '--json-schema' in claude_args
+    assert claude_args[claude_args.index('--json-schema') + 1] == schema_json
+    assert MOA_POLICY['claude_cli']['json_schema'] == 'inline-json'
 
 
 def test_judge_records_binding_and_policy():
@@ -167,6 +177,50 @@ def test_material_and_output_review_bindings_with_mock():
     assert records[0]['consensus']['overall'] == 'pass'
 
 
+def test_calibration_review_reports_moa_and_final_gate_metrics():
+    _, tasks, refs, controls, *_ = load_study(STUDY)
+    criteria_by_case = {}
+    responses = {}
+    for case in controls:
+        task = next(t for t in tasks if t['task_id'] == case['task_id'])
+        _, criteria = output_messages(task, case['output'])
+        criteria_by_case[case['case_id']] = criteria
+    for reviewer in MOA_POLICY['primary'] + MOA_POLICY['escalation']:
+        # 初审一致 pass，因此不会升级；用于验证指标结构而不模拟真实模型判断。
+        if reviewer in MOA_POLICY['primary']:
+            responses[reviewer['reviewer_id']] = {
+                case_id: review_json('pass', criteria)
+                for case_id, criteria in criteria_by_case.items()
+            }
+
+    calls = []
+    def invoke(reviewer, messages, schema=None):
+        payload = json.loads(messages[1]['content'])
+        case_id = payload['candidate_output']['case_id_for_test']
+        calls.append(reviewer['reviewer_id'])
+        return (0, responses[reviewer['reviewer_id']][case_id], '', 10.0, 'test')
+
+    # output_messages 不接受额外字段；这里用内存副本注入测试用 case_id。
+    original_controls = [dict(case, output=dict(case['output'],
+                                                 case_id_for_test=case['case_id']))
+                         for case in controls]
+    records = calibration_review(tasks, refs, original_controls, invoke)
+    summary = summarize_calibration(records)
+    assert len(records) == 19
+    assert summary['author_label_counts'] == {'acceptable': 12, 'unacceptable': 7}
+    assert summary['deterministic_status_counts']['fail'] == 5
+    assert summary['deterministic_expectation_mismatches'] == []
+    assert summary['moa_false_accepts'] == 7
+    assert summary['final_false_accepts'] == 2
+    assert summary['final_false_rejects'] == 0
+    assert summary['actual_calls'] == 38
+    assert len(calls) == 38
+    for record in records:
+        assert record['policy_sha256'] == digest(MOA_POLICY)
+        assert record['output_sha256'] == digest(next(
+            c['output'] for c in original_controls if c['case_id'] == record['case_id']))
+
+
 def test_purpose_review_binds_policy():
     policy_sha = 'abc'; bindings = {'t1': 'hash1'}
     responses = {}
@@ -201,3 +255,41 @@ def test_cli_preflight_is_zero_call(tmp_path):
     assert preflight['policy']['primary'][1]['thinking_effort'] == 'high'
     assert preflight['policy']['escalation'][0]['thinking_effort'] == 'high'
     assert preflight['policy']['escalation'][1]['thinking_effort'] == 'high'
+
+
+def test_calibration_cli_preflight_is_zero_call(tmp_path):
+    from experiments.run_moa_review import main
+    output = tmp_path / 'moa-calibration-preflight'
+    main(['--kind', 'calibration', '--study-dir', str(STUDY),
+          '--output-dir', str(output), '--preflight'])
+    preflight = json.loads((output / 'preflight.json').read_text())
+    assert preflight['envelope']['kind'] == 'calibration'
+    assert preflight['envelope']['real_model_calls'] == 0
+    assert preflight['envelope']['targets'] == 19
+    assert preflight['envelope']['maximum_calls'] == 19 * 4
+    assert len(preflight['targets']) == 19
+    assert len({row['case_id'] for row in preflight['targets']}) == 19
+
+
+def test_calibration_cli_live_reuses_preflight_directory(tmp_path, monkeypatch):
+    from experiments import run_moa_review
+    output = tmp_path / 'moa-calibration-live'
+    run_moa_review.main(['--kind', 'calibration', '--study-dir', str(STUDY),
+                         '--output-dir', str(output), '--preflight'])
+    record = {
+        'case_id': 'analysis-01-positive', 'author_semantic_label': 'acceptable',
+        'deterministic_status': 'pass', 'expected_check_status': 'pass',
+        'final_status': 'pass',
+        'consensus': {'overall': 'pass', 'failed_records': 0,
+                      'escalated_criteria': 0},
+        'primary': [], 'escalation': [],
+    }
+    monkeypatch.setattr(run_moa_review, 'calibration_review',
+                        lambda *args, **kwargs: [record])
+    run_moa_review.main(['--kind', 'calibration', '--study-dir', str(STUDY),
+                         '--output-dir', str(output), '--live'])
+    result = json.loads((output / 'moa-results.json').read_text())
+    assert result['kind'] == 'calibration'
+    assert result['records'] == [record]
+    assert result['summary']['cases'] == 1
+    assert result['summary']['final_status_counts'] == {'pass': 1, 'fail': 0, 'pending': 0}

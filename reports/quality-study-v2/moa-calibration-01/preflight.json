@@ -1,0 +1,252 @@
+{
+  "envelope": {
+    "kind": "calibration",
+    "targets": 19,
+    "maximum_calls": 76,
+    "timeout_sum_seconds": 18240,
+    "policy_sha256": "6f467cd5a29145e5eac3654a2810f340f18c6afdee7c4b9597b2022e0e3f5932",
+    "real_model_calls": 0
+  },
+  "targets": [
+    {
+      "case_id": "analysis-01-positive",
+      "task_id": "analysis-01",
+      "task_sha256": "8c2104e5d1f15727a46eeb06fbd5089e49ffd459a1a7a07f5b204b0aa3e8f7b7",
+      "output_sha256": "0705a30d1503ae6dc39a53805bccc12595bdb0e156376f2b3643f3a2c12e81c1",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "analysis-02-positive",
+      "task_id": "analysis-02",
+      "task_sha256": "4f3b32fa2e25b5039a67dd9e378cda8701adf7a6472256a926769f34d2debba8",
+      "output_sha256": "47147faacaade9dceafee6e9bccb080a0fd12e9dd3e7984266d254af9d9616a7",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "rules-01-positive",
+      "task_id": "rules-01",
+      "task_sha256": "7af90b0325df288a78575935fc1b0344cdf862e7bc668d6c31e89de0d1769f27",
+      "output_sha256": "e60a29f36d92c074e25aabb3c3203e04a2ecddc39b83e04501ec9620e7af0718",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "rules-02-positive",
+      "task_id": "rules-02",
+      "task_sha256": "380b66fc69b7237e0432c249122d43ac9a0e387eb4a70561e27a88e18494cadc",
+      "output_sha256": "abeb7c21620233f40646c152c862b3efbb43cc8414f65204468f5d6db878f97f",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "decision-01-positive",
+      "task_id": "decision-01",
+      "task_sha256": "2a721232c2e3cdef63ee23c057902eeaac862c3ba659ba92d596e91cef06bfe4",
+      "output_sha256": "60daa5f6fd86ba5537614ece60792c18d369bca2e8822a4790231a0e1f1715b7",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "decision-02-positive",
+      "task_id": "decision-02",
+      "task_sha256": "98dbb94e6d42d115e11a39ddb3b1bad5ce87b4ba668a7e1b4cfac9072005fa70",
+      "output_sha256": "b3ae90006d80b5c877f3578abb94c439aee774965f8d10dde18759255163fb06",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "wrong-dependency",
+      "task_id": "rules-02",
+      "task_sha256": "380b66fc69b7237e0432c249122d43ac9a0e387eb4a70561e27a88e18494cadc",
+      "output_sha256": "27dd6e4eafd2e79c3c967abe0d49dbc199657e2b8ab3c311ed1d06a48011c5f6",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "fail"
+    },
+    {
+      "case_id": "wrong-citation",
+      "task_id": "analysis-01",
+      "task_sha256": "8c2104e5d1f15727a46eeb06fbd5089e49ffd459a1a7a07f5b204b0aa3e8f7b7",
+      "output_sha256": "068eb17a5e7e14c4edbaacba933b9ef6e4fda2167bd134aaffea5ed5dfd93d80",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "fail"
+    },
+    {
+      "case_id": "prose-contradiction",
+      "task_id": "rules-02",
+      "task_sha256": "380b66fc69b7237e0432c249122d43ac9a0e387eb4a70561e27a88e18494cadc",
+      "output_sha256": "c6aa5e004f0ee3fad5a32b04107cc7b477fd37621086b85ffb5b0699eb3f94e1",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "global-combination-error",
+      "task_id": "decision-01",
+      "task_sha256": "2a721232c2e3cdef63ee23c057902eeaac862c3ba659ba92d596e91cef06bfe4",
+      "output_sha256": "8460d306e49bcf7a800124a401643faafe95fe2161acfa5dcc296657e892032a",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "fail"
+    },
+    {
+      "case_id": "missed-damage-rule",
+      "task_id": "analysis-01",
+      "task_sha256": "8c2104e5d1f15727a46eeb06fbd5089e49ffd459a1a7a07f5b204b0aa3e8f7b7",
+      "output_sha256": "892d7c24e6fb09e485b9331ba0f9c63230ef42d42b94f98a94e1ea803328905a",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "fail"
+    },
+    {
+      "case_id": "analysis-01-equivalent",
+      "task_id": "analysis-01",
+      "task_sha256": "8c2104e5d1f15727a46eeb06fbd5089e49ffd459a1a7a07f5b204b0aa3e8f7b7",
+      "output_sha256": "fe9093fc3414265a0f5b2abae4e6728a2c9a6d9946e58014a417e3d7061c4bbe",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "analysis-02-equivalent",
+      "task_id": "analysis-02",
+      "task_sha256": "4f3b32fa2e25b5039a67dd9e378cda8701adf7a6472256a926769f34d2debba8",
+      "output_sha256": "782c622f212a57645781a05ea607180b56e5a304cdb54e36cf388b651257878f",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "decision-01-equivalent",
+      "task_id": "decision-01",
+      "task_sha256": "2a721232c2e3cdef63ee23c057902eeaac862c3ba659ba92d596e91cef06bfe4",
+      "output_sha256": "6dc401e16f6d7913df91f14c1a8b06dec59d27cddfdfcdbfb251df8590323f6f",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "decision-02-equivalent",
+      "task_id": "decision-02",
+      "task_sha256": "98dbb94e6d42d115e11a39ddb3b1bad5ce87b4ba668a7e1b4cfac9072005fa70",
+      "output_sha256": "b3ae90006d80b5c877f3578abb94c439aee774965f8d10dde18759255163fb06",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "rules-01-equivalent",
+      "task_id": "rules-01",
+      "task_sha256": "7af90b0325df288a78575935fc1b0344cdf862e7bc668d6c31e89de0d1769f27",
+      "output_sha256": "aa1033a36d5e632d8f156dc3813fb2a4d7b33889b3ea0601f6f6a2a2d152142c",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "rules-02-equivalent",
+      "task_id": "rules-02",
+      "task_sha256": "380b66fc69b7237e0432c249122d43ac9a0e387eb4a70561e27a88e18494cadc",
+      "output_sha256": "abeb7c21620233f40646c152c862b3efbb43cc8414f65204468f5d6db878f97f",
+      "author_semantic_label": "acceptable",
+      "expected_check_status": "pass"
+    },
+    {
+      "case_id": "missing-required-rule",
+      "task_id": "rules-01",
+      "task_sha256": "7af90b0325df288a78575935fc1b0344cdf862e7bc668d6c31e89de0d1769f27",
+      "output_sha256": "16420c663d29e9a916145143fb308448d08077a189b936e4287a6139838b7f4c",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "fail"
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "task_id": "analysis-02",
+      "task_sha256": "4f3b32fa2e25b5039a67dd9e378cda8701adf7a6472256a926769f34d2debba8",
+      "output_sha256": "74ff104527e08867e7933319c4bf9e3b0880379d3769b9cd0c48b8ba52c5c4ee",
+      "author_semantic_label": "unacceptable",
+      "expected_check_status": "pass"
+    }
+  ],
+  "policy": {
+    "schema_version": "moa-review-policy-v1",
+    "primary": [
+      {
+        "reviewer_id": "codex-gpt-5.6",
+        "cli": "codex",
+        "model": "gpt-5.6",
+        "thinking_effort": "high"
+      },
+      {
+        "reviewer_id": "claude-opus",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "high"
+      }
+    ],
+    "escalation": [
+      {
+        "reviewer_id": "codex-gpt-astra",
+        "cli": "codex",
+        "model": "gpt-6-astra",
+        "thinking_effort": "high"
+      },
+      {
+        "reviewer_id": "claude-fable",
+        "cli": "claude",
+        "model": "fable",
+        "thinking_effort": "high"
+      }
+    ],
+    "timeout_seconds": 240,
+    "output_cap_tokens": 4096,
+    "zero_retries": true,
+    "voting_rule": "两位一致则采用；任一 criterion 不一致则升级两位重审；升级后一致则采用，否则 pending。",
+    "origin": "model",
+    "reviewer_identity_verified": false,
+    "scope": "跨 provider 多模型共识质量判定；不构成真人审查，也不证明真实用户接受度。"
+  },
+  "review_schema": {
+    "type": "object",
+    "required": [
+      "verdict",
+      "rationale",
+      "criteria"
+    ],
+    "properties": {
+      "verdict": {
+        "enum": [
+          "pass",
+          "fail",
+          "pending"
+        ]
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 1
+      },
+      "criteria": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "criterion",
+            "verdict",
+            "rationale"
+          ],
+          "properties": {
+            "criterion": {
+              "type": "string"
+            },
+            "verdict": {
+              "enum": [
+                "pass",
+                "fail",
+                "pending"
+              ]
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}
