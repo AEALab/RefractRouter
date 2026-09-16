@@ -18,12 +18,12 @@
 |---|---|---|---|
 | 初审判定 A | codex CLI | ds/deepseek-v4-pro | max |
 | 初审判定 B | claude CLI | opus | high |
-| 升级判定 A | codex CLI | gpt-6-astra | high |
+| 升级判定 A | codex CLI | ark/kimi-k3 | high |
 | 升级判定 B | claude CLI | fable | high |
 
 - codex CLI 通过「-c model_reasoning_effort=<effort>」传入，并显式携带「--model <model>」。
 - codex CLI 的「--output-schema」按模型能力冻结：ds/deepseek-v4-pro 不携带该参数，
-  依靠系统提示中的严格 JSON 约束；GPT 类升级评审继续携带该参数。
+  依靠系统提示中的严格 JSON 约束；升级判定 A 的 ark/kimi-k3 同样不携带该参数。
 - claude CLI 通过「--effort <effort>」与「--model <model>」传入。
 - codex CLI 通过本机 opencodex 配置解析 ds/deepseek-v4-pro；不携带
   「--ignore-user-config」。重试在顶层配置为 0。
@@ -44,7 +44,7 @@
 1. 先运行确定性检查。任一已支持检查 fail，则整体 fail；MoA 不得覆盖。
 2. 两位初审模型对每个 criterion 独立给 pass / fail / pending。
 3. 两位一致时采用该判定；任一 criterion 两位不一致，该 criterion 升级给
-   gpt-6-astra 与 fable 重审。
+   ark/kimi-k3 与 fable 重审。
 4. 升级后两位一致时采用该判定；升级后仍不一致，该 criterion 为 pending。
 5. 整体：任一 criterion fail 则 fail；否则任一 pending 则 pending；全部 pass 才 pass。
 
@@ -58,6 +58,13 @@
   afp_per_accepted_task 分子；该指标口径改为「Ark AFP per accepted task」，
   并在报告中并列 MoA 评审的外部成本证据。
 - 评审耗时计入研究准备成本，不计入用户路线在线时间。
+
+## 升级评审身份变更（2026-09-17）
+
+升级判定 A 原定 gpt-6-astra，因本机 Codex 用量上限未恢复而改用 ark/kimi-k3，
+经用户确认并在证据中标注偏离。历史冻结记录（moa-calibration-07 的零调用包络）
+保持原策略不变；升级实跑使用新策略哈希并重新冻结。恢复 Codex 额度后如需回到
+原身份，须再次冻结并注明变更。
 
 ## 证据文件
 

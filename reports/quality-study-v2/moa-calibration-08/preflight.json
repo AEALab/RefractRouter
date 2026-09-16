@@ -1,0 +1,53 @@
+{
+  "envelope": {
+    "kind": "escalation",
+    "cases": [
+      "prose-contradiction",
+      "missing-required-rule",
+      "missing-sampling-limitation"
+    ],
+    "maximum_calls": 6,
+    "timeout_sum_seconds": 1440,
+    "policy_sha256": "09f8cf8bb8ce8a81a34fff20735f8c0fd20f24177e22de4dee73a3823d515a7b",
+    "real_model_calls": 0
+  },
+  "reviewers": [
+    {
+      "reviewer_id": "codex-ark-kimi-k3",
+      "cli": "codex",
+      "model": "ark/kimi-k3",
+      "thinking_effort": "high",
+      "output_schema": false
+    },
+    {
+      "reviewer_id": "claude-fable",
+      "cli": "claude",
+      "model": "fable",
+      "thinking_effort": "high"
+    }
+  ],
+  "policy_sha256": "09f8cf8bb8ce8a81a34fff20735f8c0fd20f24177e22de4dee73a3823d515a7b",
+  "notes": [
+    "升级判定 A 由 gpt-6-astra 改为 ark/kimi-k3（2026-09-17 用户确认），因 Codex 用量未恢复；moa-calibration-07 保持原案冻结。ark/kimi-k3 不携带 --output-schema，与 DeepSeek 初审一致。"
+  ],
+  "targets": [
+    {
+      "case_id": "prose-contradiction",
+      "task_id": "rules-02",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "c6aa5e004f0ee3fad5a32b04107cc7b477fd37621086b85ffb5b0699eb3f94e1"
+    },
+    {
+      "case_id": "missing-required-rule",
+      "task_id": "rules-01",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "16420c663d29e9a916145143fb308448d08077a189b936e4287a6139838b7f4c"
+    },
+    {
+      "case_id": "missing-sampling-limitation",
+      "task_id": "analysis-02",
+      "author_semantic_label": "unacceptable",
+      "output_sha256": "74ff104527e08867e7933319c4bf9e3b0880379d3769b9cd0c48b8ba52c5c4ee"
+    }
+  ]
+}

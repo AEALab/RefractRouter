@@ -132,8 +132,11 @@ def test_codex_output_schema_is_reviewer_capability():
     schema = Path('/tmp/schema.json'); out = Path('/tmp/last.txt')
     primary_codex = MOA_POLICY['primary'][0]
     escalation_codex = MOA_POLICY['escalation'][0]
+    gpt_style = {'reviewer_id': 'probe-gpt', 'cli': 'codex', 'model': 'gpt-x',
+                 'thinking_effort': 'high', 'output_schema': True}
     assert '--output-schema' not in codex_command(primary_codex, out, schema)
-    assert '--output-schema' in codex_command(escalation_codex, out, schema)
+    assert '--output-schema' not in codex_command(escalation_codex, out, schema)
+    assert '--output-schema' in codex_command(gpt_style, out, schema)
 
 
 def test_judge_records_binding_and_policy():
