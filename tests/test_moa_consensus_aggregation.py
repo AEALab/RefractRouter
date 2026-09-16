@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from experiments.aggregate_moa_consensus import (case_consensus, index_by_case, main,
-    read_records, summarize)
+    index_escalation, read_records, summarize)
 from refractrouter.moa_review import digest, output_messages
 from refractrouter.quality_study import load_study
 
@@ -98,6 +98,18 @@ def test_duplicate_case_evidence_is_rejected(study):
     record = evidence(case, task, 'reviewer-a', 'pass')
     with pytest.raises(ValueError, match='duplicate case evidence'):
         index_by_case([record, dict(record)], 'synthetic')
+
+
+def test_escalation_evidence_allows_two_reviewers_per_case(study):
+    by_id, references, controls = study
+    case = controls[0]
+    task = by_id[case['task_id']]
+    records = [evidence(case, task, 'escalation-a', 'fail'),
+               evidence(case, task, 'escalation-b', 'fail')]
+    indexed = index_escalation(records, 'synthetic')
+    assert set(indexed[case['case_id']]) == {'escalation-a', 'escalation-b'}
+    with pytest.raises(ValueError, match='duplicate escalation evidence'):
+        index_escalation([*records, dict(records[0])], 'synthetic')
 
 
 def test_summary_counts_false_accepts_and_pending(study):

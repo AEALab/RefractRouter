@@ -18,12 +18,12 @@
 |---|---|---|---|
 | 初审判定 A | codex CLI | ds/deepseek-v4-pro | max |
 | 初审判定 B | claude CLI | opus | high |
-| 升级判定 A | codex CLI | gpt-6-astra | high |
-| 升级判定 B | claude CLI | fable | high |
+| 升级判定 A | codex CLI | ark/kimi-k3 | high |
+| 升级判定 B | claude CLI | opus | max |
 
 - codex CLI 通过「-c model_reasoning_effort=<effort>」传入，并显式携带「--model <model>」。
 - codex CLI 的「--output-schema」按模型能力冻结：ds/deepseek-v4-pro 不携带该参数，
-  依靠系统提示中的严格 JSON 约束；GPT 类升级评审继续携带该参数。
+  依靠系统提示中的严格 JSON 约束；升级判定 A 的 ark/kimi-k3 同样不携带该参数。
 - claude CLI 通过「--effort <effort>」与「--model <model>」传入。
 - codex CLI 通过本机 opencodex 配置解析 ds/deepseek-v4-pro；不携带
   「--ignore-user-config」。重试在顶层配置为 0。
@@ -44,7 +44,7 @@
 1. 先运行确定性检查。任一已支持检查 fail，则整体 fail；MoA 不得覆盖。
 2. 两位初审模型对每个 criterion 独立给 pass / fail / pending。
 3. 两位一致时采用该判定；任一 criterion 两位不一致，该 criterion 升级给
-   gpt-6-astra 与 fable 重审。
+   ark/kimi-k3 与 opus（max）重审。
 4. 升级后两位一致时采用该判定；升级后仍不一致，该 criterion 为 pending。
 5. 整体：任一 criterion fail 则 fail；否则任一 pending 则 pending；全部 pass 才 pass。
 
@@ -58,6 +58,20 @@
   afp_per_accepted_task 分子；该指标口径改为「Ark AFP per accepted task」，
   并在报告中并列 MoA 评审的外部成本证据。
 - 评审耗时计入研究准备成本，不计入用户路线在线时间。
+
+## 升级评审身份变更（2026-09-17）
+
+升级判定 A 原定 gpt-6-astra，因本机 Codex 用量上限未恢复而改用 ark/kimi-k3，
+经用户确认并在证据中标注偏离。历史冻结记录（moa-calibration-07 的零调用包络）
+保持原策略不变；升级实跑使用新策略哈希并重新冻结。恢复 Codex 额度后如需回到
+原身份，须再次冻结并注明变更。
+
+升级判定 B 原定 fable，本机 claude CLI 回报「Fable 5.1 requires usage credits」，
+三次调用均在 2 秒内以 exit code 1 失败并记为 failed / pending（证据见
+moa-calibration-08）。经用户确认改用 opus 并将 thinking effort 提到 max。该选择的
+代价是升级判定 B 与初审判定 B 同属 opus 系列，升级侧不再是独立模型来源，
+共识只能按「同模型更高 effort 复核」解读，不能声称跨模型独立验证。
+恢复 fable 额度后如需回到原身份，须再次冻结并注明变更。
 
 ## 证据文件
 
@@ -73,3 +87,17 @@
   零模型调用。付费评审运行必须使用新的输出目录并显式指定「--live」。
 - 策略、模型、thinking effort、prompt、JSON schema、超时与零重试规则改变时，
   必须重新冻结；历史记录保留原策略标签。
+
+## 升级实跑结果与已知限制（2026-09-17）
+
+升级评审实跑于 moa-calibration-09（6 次调用、5 次有效、1 次 failed），聚合产物为
+moa-calibration-10：19 例，共识 pass 9 / fail 6 / pending 4，与未升级的
+moa-calibration-06 完全一致。两个已分歧案例（prose-contradiction、missing-required-rule）
+的升级判定一致为 fail，结论未变；missing-sampling-limitation 因升级判定 A 输出不合规
+保持 pending。本轮升级只提高了分歧 criterion 的证据密度，没有改变任何案例的最终判定。
+
+已知限制：升级判定 A 走无 output-schema 路径，在 1/3 案例返回带代码围栏的 JSON，
+按严格 JSON 规则记为 failed / pending。若下一轮要容忍围栏输出，必须先冻结新的解析
+规则并使用新的输出目录重跑，不追改本轮证据。另有 3 例（rules-01-positive、
+decision-02-positive、analysis-01-equivalent）因初审存在无效输出，按零重试规则保持
+pending，本轮不升级。

@@ -1,0 +1,79 @@
+{
+  "schema_version": "moa-escalation-run-v1",
+  "scope": "分歧案例的升级评审证据；仍需与两位初审一起聚合才形成共识。",
+  "policy_sha256": "09f8cf8bb8ce8a81a34fff20735f8c0fd20f24177e22de4dee73a3823d515a7b",
+  "cases": 3,
+  "calls": 6,
+  "reviewed": 3,
+  "failed": 3,
+  "verdict_counts": {
+    "pass": 0,
+    "fail": 3,
+    "pending": 3
+  },
+  "by_case": {
+    "prose-contradiction": {
+      "codex-ark-kimi-k3": {
+        "status": "reviewed",
+        "verdict": "fail",
+        "error": null,
+        "wall_time_ms": 26935.586
+      },
+      "claude-fable": {
+        "status": "failed",
+        "verdict": "pending",
+        "error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+        "wall_time_ms": 2360.158
+      }
+    },
+    "missing-required-rule": {
+      "codex-ark-kimi-k3": {
+        "status": "reviewed",
+        "verdict": "fail",
+        "error": null,
+        "wall_time_ms": 71780.357
+      },
+      "claude-fable": {
+        "status": "failed",
+        "verdict": "pending",
+        "error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+        "wall_time_ms": 2319.746
+      }
+    },
+    "missing-sampling-limitation": {
+      "codex-ark-kimi-k3": {
+        "status": "reviewed",
+        "verdict": "fail",
+        "error": null,
+        "wall_time_ms": 24562.526
+      },
+      "claude-fable": {
+        "status": "failed",
+        "verdict": "pending",
+        "error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+        "wall_time_ms": 2170.757
+      }
+    }
+  },
+  "reviewers": [
+    {
+      "reviewer_id": "codex-ark-kimi-k3",
+      "cli": "codex",
+      "model": "ark/kimi-k3",
+      "thinking_effort": "high",
+      "output_schema": false
+    },
+    {
+      "reviewer_id": "claude-fable",
+      "cli": "claude",
+      "model": "fable",
+      "thinking_effort": "high"
+    }
+  ],
+  "moa_review_cost": {
+    "cost_ledger": "external-cli-account",
+    "known_usage": "unknown",
+    "ark_afp": null,
+    "calls": 6
+  }
+}
