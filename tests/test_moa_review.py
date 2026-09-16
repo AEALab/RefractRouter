@@ -267,7 +267,7 @@ def test_cli_preflight_is_zero_call(tmp_path):
     assert preflight['policy']['primary'][0]['thinking_effort'] == 'max'
     assert preflight['policy']['primary'][1]['thinking_effort'] == 'high'
     assert preflight['policy']['escalation'][0]['thinking_effort'] == 'high'
-    assert preflight['policy']['escalation'][1]['thinking_effort'] == 'high'
+    assert preflight['policy']['escalation'][1]['thinking_effort'] == 'max'
 
 
 def test_calibration_cli_preflight_is_zero_call(tmp_path):

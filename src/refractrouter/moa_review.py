@@ -24,7 +24,7 @@ MOA_POLICY = {
     'escalation': [
         {'reviewer_id': 'codex-ark-kimi-k3', 'cli': 'codex', 'model': 'ark/kimi-k3',
          'thinking_effort': 'high', 'output_schema': False},
-        {'reviewer_id': 'claude-fable', 'cli': 'claude', 'model': 'fable', 'thinking_effort': 'high'},
+        {'reviewer_id': 'claude-opus-max', 'cli': 'claude', 'model': 'opus', 'thinking_effort': 'max'},
     ],
     'timeout_seconds': 240,
     'output_cap_tokens': 4096,
