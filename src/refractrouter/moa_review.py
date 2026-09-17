@@ -14,6 +14,13 @@ from .quality_calibration import DELIVERY_CHECKS, SYSTEM, parse_review
 from .quality_study import MATERIAL_CRITERIA, check_output, digest, execution_payload
 
 
+# MoA 材料评审只覆盖可从任务材料与参考事实直接验证的标准；
+# 「来源及模板族独立」与「候选任务难度及代表性适合研究」依赖任务构造
+# 与研究设计上下文，改由协议级冻结检查（#52）验证，不交给模型评审。
+PROTOCOL_MATERIAL_CRITERIA = ('来源及模板族独立', '候选任务难度及代表性适合研究')
+MOA_MATERIAL_CRITERIA = tuple(c for c in MATERIAL_CRITERIA if c not in PROTOCOL_MATERIAL_CRITERIA)
+
+
 MOA_POLICY = {
     'schema_version': 'moa-review-policy-v1',
     'primary': [
@@ -215,11 +222,16 @@ def aggregate(primary_records, escalation_records, criteria):
 
 def run_review_target(messages, criteria, invoke=default_invoke):
     """同一评审目标：两位初审；存在分歧则两位升级重审；返回证据与共识。"""
-    primary = [judge(reviewer, messages, criteria, invoke) for reviewer in MOA_POLICY['primary']]
+    primary = []
+    for reviewer in MOA_POLICY['primary']:
+        print(f'  初审 {reviewer["reviewer_id"]} …', flush=True)
+        primary.append(judge(reviewer, messages, criteria, invoke))
     escalation = []
     rows = criterion_consensus(primary, [], criteria)
     if any(row['escalated'] for row in rows):
-        escalation = [judge(reviewer, messages, criteria, invoke) for reviewer in MOA_POLICY['escalation']]
+        for reviewer in MOA_POLICY['escalation']:
+            print(f'  升级 {reviewer["reviewer_id"]} …', flush=True)
+            escalation.append(judge(reviewer, messages, criteria, invoke))
     consensus = aggregate(primary, escalation, criteria)
     return {'primary': primary, 'escalation': escalation, 'consensus': consensus,
             'policy_sha256': digest(MOA_POLICY)}
@@ -227,7 +239,7 @@ def run_review_target(messages, criteria, invoke=default_invoke):
 
 def material_messages(task, reference):
     payload = {'mode': '材料独立评审', 'task': deepcopy(task), 'reference': deepcopy(reference),
-               'criteria': list(MATERIAL_CRITERIA),
+               'criteria': list(MOA_MATERIAL_CRITERIA),
                'scope': '逐项核对材料、参考事实与语义验收；证据不足保留 pending，不得编造验证。'}
     return [{'role': 'system', 'content': SYSTEM},
             {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}]
@@ -251,12 +263,15 @@ def purpose_messages(policy_sha256, task_bindings):
 def material_review(tasks, references, invoke=default_invoke):
     """对全部任务材料运行 MoA 评审；返回每任务记录与共识。"""
     results = []
-    for task in tasks:
+    total = len(tasks)
+    for index, task in enumerate(tasks, 1):
+        print(f'[material] {index}/{total} {task["task_id"]} 开始', flush=True)
         messages = material_messages(task, references[task['task_id']])
-        record = run_review_target(messages, list(MATERIAL_CRITERIA), invoke)
+        record = run_review_target(messages, list(MOA_MATERIAL_CRITERIA), invoke)
         record.update(task_id=task['task_id'], task_sha256=task['task_sha256'],
                       reference_sha256=digest(references[task['task_id']]))
         results.append(record)
+        print(f'[material] {index}/{total} {task["task_id"]} → {record["consensus"]["overall"]}', flush=True)
     return results
 
 

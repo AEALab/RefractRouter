@@ -12,7 +12,7 @@ import time
 
 from .compact_planning import COMPACT_PLANNER_SYSTEM, compile_compact
 from .dag_study_execution import write_json
-from .moa_review import MOA_POLICY
+from .moa_review import MOA_MATERIAL_CRITERIA, MOA_POLICY
 from .openai_compatible import OpenAICompatibleClient
 from .quality_calibration import DELIVERY_CHECKS, SYSTEM as JUDGE_SYSTEM, parse_review
 from .quality_study import MATERIAL_CRITERIA, adjudicate, digest, execution_payload, file_digest, load_study
@@ -437,8 +437,8 @@ def moa_gate(frozen, tasks, refs, moa_material_reviews, moa_purpose_review):
         if (review.get('policy_sha256') == digest(MOA_POLICY)
                 and review.get('task_sha256') == frozen['task_bindings'][tid]
                 and review.get('reference_sha256') == digest(refs[tid])
-                and len(consensus.get('criteria', [])) == len(MATERIAL_CRITERIA)
-                and criteria == {c: 'pass' for c in MATERIAL_CRITERIA}):
+                and len(consensus.get('criteria', [])) == len(MOA_MATERIAL_CRITERIA)
+                and criteria == {c: 'pass' for c in MOA_MATERIAL_CRITERIA}):
             ready.add(tid)
     purpose = moa_purpose_review or {}
     approved = bool(purpose.get('policy_sha256') == digest(MOA_POLICY)
