@@ -100,6 +100,18 @@ def test_invalid_review_is_failed_and_pending():
     assert record['consensus']['failed_records'] == 2
 
 
+def test_code_fenced_json_is_parsed():
+    """模型把 JSON 包在 Markdown 代码围栏中时，剥离围栏后仍应正常解析。"""
+    criteria = ['甲', '乙']
+    def fenced(verdict):
+        return '```json\n' + review_json(verdict, criteria) + '\n```'
+    responses = {r['reviewer_id']: fenced('pass') for r in MOA_POLICY['primary']}
+    invoke, _ = fake_invoke(responses)
+    record = run_review_target([{'role': 'user', 'content': '{}'}], criteria, invoke)
+    assert all(p['status'] == 'reviewed' for p in record['primary'])
+    assert record['consensus']['overall'] == 'pass'
+
+
 def test_cli_commands_include_model_and_effort():
     primary_codex = MOA_POLICY['primary'][0]
     primary_claude = MOA_POLICY['primary'][1]

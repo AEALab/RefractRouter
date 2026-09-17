@@ -26,7 +26,7 @@ MOA_POLICY = {
          'thinking_effort': 'high', 'output_schema': False},
         {'reviewer_id': 'claude-opus-max', 'cli': 'claude', 'model': 'opus', 'thinking_effort': 'max'},
     ],
-    'timeout_seconds': 240,
+    'timeout_seconds': 480,
     'output_cap_tokens': 4096,
     'codex_cli': {
         'ignore_user_config': False,
@@ -124,9 +124,23 @@ def default_invoke(reviewer, messages, schema=None):
 
 def _parse(content, criteria):
     try:
-        return parse_review(content, criteria), None
+        return parse_review(_strip_code_fences(content), criteria), None
     except (ValueError, TypeError) as error:
         return None, f'{type(error).__name__}: {error}'
+
+
+def _strip_code_fences(content):
+    """剥离 Markdown 代码围栏；部分模型会把 JSON 包在 ```json ... ``` 中。"""
+    text = (content or '').strip()
+    if not text.startswith('```'):
+        return text
+    first_newline = text.find('\n')
+    if first_newline == -1:
+        return text
+    text = text[first_newline + 1:]
+    if text.rstrip().endswith('```'):
+        text = text.rstrip()[:-3]
+    return text.strip()
 
 
 def judge(reviewer, messages, criteria, invoke=default_invoke):
