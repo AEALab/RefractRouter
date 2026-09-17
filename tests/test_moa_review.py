@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from refractrouter.moa_review import (MOA_POLICY, REVIEW_SCHEMA, aggregate,
-    calibration_review, claude_command, codex_command, final_quality_status, judge,
+    MOA_MATERIAL_CRITERIA, calibration_review, claude_command, codex_command, final_quality_status, judge,
     material_review, output_messages, output_review, preflight_envelope, purpose_review,
     summarize_calibration,
     run_review_target)
@@ -172,9 +172,7 @@ def test_deterministic_fail_overrides_consensus():
 def test_material_and_output_review_bindings_with_mock():
     _, tasks, refs, *_ = load_study(STUDY)
     selected = tasks[:2]
-    criteria_material = ['来源与使用范围可追溯', '材料内部无歧义或已标记未知',
-        '参考事实及计算正确', '关键错误和语义验收覆盖交付', '来源及模板族独立',
-        '任务形态标注合理', '候选任务难度及代表性适合研究', '公共输入未泄漏参考答案']
+    criteria_material = list(MOA_MATERIAL_CRITERIA)
     responses = {}
     for reviewer in MOA_POLICY['primary'] + MOA_POLICY['escalation']:
         responses[reviewer['reviewer_id']] = review_json('pass', criteria_material)
