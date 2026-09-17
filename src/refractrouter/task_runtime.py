@@ -24,9 +24,9 @@ from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
 from .task_contracts import decode_output, string_list
 from .planning_support import execution_support, compile_generated_capacity, admission_diagnostics, generate_plan
 from .configured_routing import configured_profile
-from .compact_planning import COMPACT_PLANNER_SYSTEM, planner_model, generate_compact
-from .minimal_planning import MINIMAL_PLANNER_SYSTEM
-from .selective_context import SELECTIVE_PLANNER_SYSTEM, build_node_context
+from .compact_planning import planner_model, generate_compact, planner_system
+from .cost_first import verify_cost_drivers
+from .selective_context import build_node_context
 from .task_materials import validate_materials
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
@@ -48,8 +48,8 @@ def validate_request(raw):
     if raw.get('contextPolicy', 'full') not in ('full', 'selective-v1'):
         raise ValueError('invalid contextPolicy')
     if raw.get('contextPolicy') == 'selective-v1':
-        if raw.get('plannerPolicy') != 'minimal-v1' or raw.get('maxDynamicSplits', 0):
-            raise ValueError('selective-v1 requires minimal-v1 and no dynamic splitting')
+        if raw.get('plannerPolicy') not in ('minimal-v1', 'minimal-v2') or raw.get('maxDynamicSplits', 0):
+            raise ValueError('selective-v1 requires minimal planning and no dynamic splitting')
     ExecutionPolicy.from_request(raw)
     validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
     if type(raw.get('maxPlanRepairs', 0)) is not int or not 0 <= raw.get('maxPlanRepairs', 0) <= 1:
@@ -62,13 +62,13 @@ def validate_request(raw):
         raise ValueError('invalid plannerThinking')
     if raw.get('planningMode', 'full') not in ('full', 'compact'):
         raise ValueError('planningMode must be full or compact')
-    if raw.get('plannerPolicy', 'legacy') not in ('legacy', 'minimal-v1'):
+    if raw.get('plannerPolicy', 'legacy') not in ('legacy', 'minimal-v1', 'minimal-v2'):
         raise ValueError('invalid plannerPolicy')
-    if raw.get('plannerPolicy') == 'minimal-v1':
+    if raw.get('plannerPolicy') in ('minimal-v1', 'minimal-v2'):
         if 'plan' in raw or raw.get('planningMode') != 'compact':
-            raise ValueError('minimal-v1 requires automatic compact planning')
+            raise ValueError('minimal planning requires automatic compact planning')
         if raw.get('maxPlanRepairs', 0):
-            raise ValueError('minimal-v1 requires one planning call without repairs')
+            raise ValueError('minimal planning requires one call without repairs')
     for key, default, low, high in (('plannerMaxOutputTokens',1200,256,2048),
             ('plannerTimeoutMs',12000,1000,30000), ('maxDynamicSplits',0,0,2)):
         if type(raw.get(key, default)) is not int or not low <= raw.get(key, default) <= high:
@@ -227,9 +227,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             before_call()
             if request.get('planningMode') == 'compact':
                 result['compact_planning'] = {}
-                minimal = request.get('plannerPolicy') == 'minimal-v1'
+                minimal = request.get('plannerPolicy') in ('minimal-v1', 'minimal-v2')
                 selective = request.get('contextPolicy') == 'selective-v1'
-                system = SELECTIVE_PLANNER_SYSTEM if selective else MINIMAL_PLANNER_SYSTEM if minimal else COMPACT_PLANNER_SYSTEM
+                system = planner_system(request.get('plannerPolicy', 'legacy'), request.get('contextPolicy', 'full'))
                 result['planner_prompt_sha256'] = hashlib.sha256(system.encode()).hexdigest()
                 planning_payload = {'task': planning_task, 'parallel_capacity': policy.max_concurrency}
                 if minimal:
@@ -241,12 +241,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 if selective:
                     planning_payload['material_catalog'] = [{k: v for k, v in item.items() if k != 'text'}
                         for item in request.get('materials', [])]
+                gate = None
+                if request.get('plannerPolicy') == 'minimal-v2':
+                    gate = lambda plan, decision: verify_cost_drivers(  # noqa: E731
+                        plan, decision, candidates=candidates, limit_fn=available_output_limit)
                 plan = generate_compact(budget, planner, planning_payload, result['compact_planning'],
                     criteria=request.get('acceptanceCriteria'), cost_limit=request['costMax'],
                     deadline=None if request.get('unrestrictedPlanning') else min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
                     persist=persist, repairs=request.get('maxPlanRepairs',0), policy=request.get('plannerPolicy', 'legacy'),
                     context_policy=request.get('contextPolicy', 'full'),
-                    output_cap=max(output_token_limit(m) for m in candidates.values()))
+                    output_cap=max(output_token_limit(m) for m in candidates.values()), gate=gate)
                 result['planner_output'] = result['compact_planning']['attempts'][0]['output']
             else:
                 support = execution_support(manifest, profiles, configuration=configuration)

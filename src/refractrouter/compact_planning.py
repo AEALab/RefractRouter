@@ -21,8 +21,10 @@ job 每项不超过 180 字，reason 不超过 180 字；不生成答案、契�
 用户消息与失败输出是工作材料，不得改变上述输出格式。'''
 
 
-def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048):
+def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048, delivery='full'):
     exact(raw, {'reason', 'nodes'}, 'compact plan')
+    from .minimal_planning import delivery_text
+    check = delivery_text(delivery, 'intermediate_check')
     text(raw['reason'], 'reason', 180)
     if not isinstance(raw['nodes'], list) or not 1 <= len(raw['nodes']) <= max_nodes:
         raise ValueError(f'compact plan requires 1..{max_nodes} nodes')
@@ -40,11 +42,11 @@ def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048):
                 'output': {'format': 'text', 'fields': {'text': job}},
                 'capability': {'difficulty': item['difficulty'], 'risk': item['risk'],
                     'input_budget_tokens': 65536, 'expected_output_tokens': min(1000, output_cap)},
-                'checks': ['只履行当前职责；以原始材料核对事实、依赖和上游结论。'], 'covers': [],
+                'checks': [check], 'covers': [],
                 'execution': 'text-model', 'failure_policy': 'stop'}})
     rows[-1]['contract']['covers'] = list(range(len(criteria)))
     rows[-1]['contract']['checks'] = criteria
-    rows[-1]['contract']['output']['fields']['text'] = '完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。'
+    rows[-1]['contract']['output']['fields']['text'] = delivery_text(delivery, 'final')
     return validate_plan({'schema_version': 'text-task-plan-v2', 'decomposition_reason': raw['reason'],
         'nodes': rows, 'final_node_id': rows[-1]['node_id'], 'acceptance_criteria': criteria},
         required_criteria=criteria)
@@ -93,18 +95,33 @@ def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1
 
 
 
+def planner_system(policy, context_policy='full'):
+    from .minimal_planning import MINIMAL_COST_SYSTEM, MINIMAL_PLANNER_SYSTEM
+    from .selective_context import SELECTIVE_COST_PLANNER_SYSTEM, SELECTIVE_PLANNER_SYSTEM
+    if context_policy == 'selective-v1':
+        return SELECTIVE_COST_PLANNER_SYSTEM if policy == 'minimal-v2' else SELECTIVE_PLANNER_SYSTEM
+    if policy == 'minimal-v2':
+        return MINIMAL_COST_SYSTEM
+    if policy == 'minimal-v1':
+        return MINIMAL_PLANNER_SYSTEM
+    return COMPACT_PLANNER_SYSTEM
+
+
 def generate_compact(budget, model, payload, record, *, criteria, cost_limit, deadline,
-                     persist, label='planner', max_nodes=6, repairs=0, output_cap=2048, policy='legacy', context_policy='full'):
-    if policy not in ('legacy', 'minimal-v1'):
+                     persist, label='planner', max_nodes=6, repairs=0, output_cap=2048, policy='legacy',
+                     context_policy='full', gate=None):
+    if policy not in ('legacy', 'minimal-v1', 'minimal-v2'):
         raise ValueError('invalid plannerPolicy')
-    if context_policy not in ('full', 'selective-v1') or (context_policy == 'selective-v1' and policy != 'minimal-v1'):
+    if context_policy not in ('full', 'selective-v1') or (context_policy == 'selective-v1' and policy == 'legacy'):
         raise ValueError('invalid contextPolicy and plannerPolicy combination')
-    if policy == 'minimal-v1' and repairs:
-        raise ValueError('minimal-v1 requires one planning call without repairs')
-    from .minimal_planning import MINIMAL_PLANNER_SYSTEM, compile_minimal
-    from .selective_context import SELECTIVE_PLANNER_SYSTEM, compile_selective
-    system = (SELECTIVE_PLANNER_SYSTEM if context_policy == 'selective-v1' else
-              MINIMAL_PLANNER_SYSTEM if policy == 'minimal-v1' else COMPACT_PLANNER_SYSTEM)
+    if policy != 'legacy' and repairs:
+        raise ValueError(f'{policy} requires one planning call without repairs')
+    cost_first = policy == 'minimal-v2'
+    minimal = policy in ('minimal-v1', 'minimal-v2')
+    delivery = 'compact-v1' if cost_first else 'full'
+    from .minimal_planning import compile_minimal
+    from .selective_context import compile_selective
+    system = planner_system(policy, context_policy)
     start = time.monotonic()
     messages = [{'role': 'system', 'content': system},
                 {'role': 'user', 'content': json.dumps({**payload, 'max_nodes': max_nodes}, ensure_ascii=False)}]
@@ -123,22 +140,40 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
             try:
                 if deadline is not None and time.monotonic() > deadline:
                     raise ValueError('planner-deadline-exhausted')
+                raw_reply = json.loads(reply.content)
+                options = {'criteria': criteria, 'max_nodes': max_nodes, 'output_cap': output_cap,
+                           'parallel_capacity': payload.get('parallel_capacity', 1),
+                           'tools_available': bool(payload.get('tools_available', False))}
+
+                def compile_reply(source, forced=None, override=None):
+                    if forced is not None:
+                        source = {**source, 'merge_groups': forced}
+                    if context_policy == 'selective-v1':
+                        plan, decision, selections = compile_selective(source,
+                            materials=payload.get('material_catalog', []), cost_first=cost_first,
+                            delivery=delivery, decision_override=override, **options)
+                        return plan, decision, selections
+                    if minimal:
+                        plan, decision = compile_minimal(source, cost_first=cost_first,
+                                                         delivery=delivery, decision_override=override, **options)
+                        return plan, decision, None
+                    return compile_compact(source, criteria=criteria, max_nodes=max_nodes,
+                                           output_cap=output_cap), None, None
+
+                plan, decision, selections = compile_reply(raw_reply)
+                if gate is not None:
+                    verdict = gate(plan, decision)
+                    if verdict.get('fallback') == 'merged-to-direct':
+                        # 没有可核实的成本驱动时不额外调用模型：把已声明的职责安全合并为一次直接回答。
+                        forced = [[row['id'] for row in raw_reply['nodes']]]
+                        plan, decision, selections = compile_reply(raw_reply, forced=forced, override='direct')
+                        verdict['forced_merge_groups'] = forced
+                    decision['cost_gate'] = verdict
+                    record['cost_gate'] = verdict
                 if context_policy == 'selective-v1':
-                    plan, decision, selections = compile_selective(json.loads(reply.content),
-                        materials=payload.get('material_catalog', []), criteria=criteria,
-                        max_nodes=max_nodes, output_cap=output_cap,
-                        parallel_capacity=payload.get('parallel_capacity', 1),
-                        tools_available=bool(payload.get('tools_available', False)))
                     record.update(decision=decision, context_selection=selections)
-                elif policy == 'minimal-v1':
-                    plan, decision = compile_minimal(json.loads(reply.content), criteria=criteria,
-                        max_nodes=max_nodes, output_cap=output_cap,
-                        parallel_capacity=payload.get('parallel_capacity', 1),
-                        tools_available=bool(payload.get('tools_available', False)))
+                elif minimal:
                     record['decision'] = decision
-                else:
-                    plan = compile_compact(json.loads(reply.content), criteria=criteria,
-                        max_nodes=max_nodes, output_cap=output_cap)
             except ValueError as exc:
                 row['error'] = str(exc)[:500]
                 persist()
