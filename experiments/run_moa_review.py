@@ -90,7 +90,8 @@ def main(argv=None):
         records = calibration_review(tasks, refs, controls)
     else:
         frozen = json.loads(args.frozen.read_text())
-        records = [purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'])]
+        records = [purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'],
+                                  frozen['statistics_policy'])]
     results = {'kind': args.kind, 'policy_sha256': digest(MOA_POLICY), 'records': records}
     if args.kind == 'calibration':
         results['summary'] = summarize_calibration(records)

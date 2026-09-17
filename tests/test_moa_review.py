@@ -250,7 +250,7 @@ def test_purpose_review_binds_policy():
     for reviewer in MOA_POLICY['primary'] + MOA_POLICY['escalation']:
         responses[reviewer['reviewer_id']] = review_json('pass', ['研究用途与质量、非劣、样本量和失败标准相符'])
     invoke, _ = fake_invoke(responses)
-    record = purpose_review(policy_sha, bindings, invoke)
+    record = purpose_review(policy_sha, bindings, invoke=invoke)
     assert record['consensus']['overall'] == 'pass'
     assert record['policy_sha256'] == digest(MOA_POLICY)
     assert record['statistics_policy_sha256'] == policy_sha

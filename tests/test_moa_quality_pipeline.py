@@ -38,7 +38,8 @@ def test_moa_gate_requires_full_consensus_and_bindings():
     selected = [t for t in tasks if t['task_id'] == 'analysis-03']
     frozen = prepare(STUDY, task_ids=['analysis-03'], arms=['direct-cheap'], repeats=1)
     materials = material_review(selected, refs, all_pass_invoke)
-    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'], all_pass_invoke)
+    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'],
+                             frozen['statistics_policy'], invoke=all_pass_invoke)
     assert moa_gate(frozen, tasks, refs, materials, purpose)
     for bad in ({'task_sha256': 'old'}, {'reference_sha256': 'old'}, {'policy_sha256': 'old'}):
         assert not moa_gate(frozen, tasks, refs, [{**materials[0], **bad}], purpose)
@@ -55,7 +56,8 @@ def test_execute_accepts_moa_gate_for_heldout_run(tmp_path):
     _, tasks, refs, *_ = load_study(STUDY)
     selected = [t for t in tasks if t['task_id'] == 'analysis-03']
     materials = material_review(selected, refs, all_pass_invoke)
-    purpose = purpose_review(digest(plan['statistics_policy']), plan['task_bindings'], all_pass_invoke)
+    purpose = purpose_review(digest(plan['statistics_policy']), plan['task_bindings'],
+                             plan['statistics_policy'], invoke=all_pass_invoke)
     result = execute(STUDY, plan, tmp_path / 'held', client=client,
                      moa_material_reviews=materials, moa_purpose_review=purpose)
     assert result['moa_gate_evidence']['reviewer_identity_verified'] is False
@@ -78,7 +80,8 @@ def _development_fixture():
 def test_analyze_uses_moa_gate_and_output_consensus():
     tasks, refs, selected, frozen, result = _development_fixture()
     materials = material_review(selected, refs, all_pass_invoke)
-    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'], all_pass_invoke)
+    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'],
+                             frozen['statistics_policy'], invoke=all_pass_invoke)
     moa_outputs = output_review(selected, refs, result['runs'], all_pass_invoke)
     report = analyze(frozen, result, tasks, references=refs,
                      moa_material_reviews=materials, moa_output_reviews=moa_outputs,

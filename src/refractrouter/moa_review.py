@@ -253,9 +253,13 @@ def output_messages(task, output):
             {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}], criteria
 
 
-def purpose_messages(policy_sha256, task_bindings):
+def purpose_messages(policy_sha256, task_bindings, statistics_policy=None):
     payload = {'mode': '研究用途确认', 'policy_sha256': policy_sha256,
                'task_bindings': task_bindings, 'criteria': list(PURPOSE_CRITERIA)}
+    if statistics_policy is not None:
+        payload['statistics_policy'] = deepcopy(statistics_policy)
+        payload['scope'] = ('评审员须核对统计策略内容与 #52 冻结的研究用途是否相符：'
+                            '质量门槛、非劣容忍、样本量与失败标准均须覆盖。')
     return [{'role': 'system', 'content': SYSTEM},
             {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}]
 
@@ -395,8 +399,8 @@ def summarize_calibration(records):
     }
 
 
-def purpose_review(policy_sha256, task_bindings, invoke=default_invoke):
-    messages = purpose_messages(policy_sha256, task_bindings)
+def purpose_review(policy_sha256, task_bindings, statistics_policy=None, invoke=default_invoke):
+    messages = purpose_messages(policy_sha256, task_bindings, statistics_policy)
     record = run_review_target(messages, list(PURPOSE_CRITERIA), invoke)
     # policy_sha256 始终绑定 MoA 策略；统计协议哈希用独立字段，避免互相覆盖。
     record.update(statistics_policy_sha256=policy_sha256, task_bindings=task_bindings)
