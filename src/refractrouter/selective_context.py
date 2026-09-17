@@ -5,7 +5,8 @@ import hashlib
 import json
 import re
 
-from .minimal_planning import MINIMAL_PLANNER_SYSTEM, compile_minimal
+from .minimal_planning import (COST_PLANNER_ADDENDUM, MINIMAL_PLANNER_SYSTEM, compile_minimal,
+                               delivery_text)
 from .task_contracts import exact
 from .task_inputs import prepare_inputs
 from .task_materials import select_materials
@@ -24,13 +25,14 @@ SELECTIVE_PLANNER_SYSTEM = MINIMAL_PLANNER_SYSTEM.replace(
 sources 只取 material_catalog 的 ID；保留所需局部材料及例外，无法确定时选全部材料。无结构化材料时 sources 为 []，仍获得完整任务。
 中间节点 fields 从 facts/evidence/conclusion/uncertainty 选择，必须有 evidence、uncertainty，以及 facts 或 conclusion。最终节点 fields 为 ["text"]。
 uses 恰好覆盖 parents，选择父节点已声明的字段，并始终携带 evidence、uncertainty；最终节点读取所有父字段。合并后 sources 和职责字段取并集。不要复制材料原文到规划输出。'''
+SELECTIVE_COST_PLANNER_SYSTEM = SELECTIVE_PLANNER_SYSTEM + COST_PLANNER_ADDENDUM
 
 
-def compile_selective(raw, *, materials, **kwargs):
+def compile_selective(raw, *, materials, cost_first=False, delivery='full', **kwargs):
     if not isinstance(raw, dict) or 'context' not in raw:
         raise ValueError('selective-v1 requires context declarations')
     clean = {k: v for k, v in raw.items() if k != 'context'}
-    plan, decision = compile_minimal(clean, **kwargs)
+    plan, decision = compile_minimal(clean, cost_first=cost_first, delivery=delivery, **kwargs)
     specs = raw['context']
     original = {n['id']: n for n in raw['nodes']}
     exact(specs, set(original), 'node context declarations')
@@ -67,8 +69,13 @@ def compile_selective(raw, *, materials, **kwargs):
         chosen = materials if nid == plan.final_node_id else select_materials(materials, refs)
         fields = ['text'] if nid == plan.final_node_id else [f for f in HANDOFF_FIELDS
             if any(f in specs[key]['fields'] for key in members)]
-        row['contract']['output'] = {'format': 'text' if fields == ['text'] else 'json',
-            'fields': {'text': '完整交付原始任务并核对全部材料。'} if fields == ['text'] else {f: HANDOFF_FIELDS[f] for f in fields}}
+        if fields == ['text']:
+            row['contract']['output'] = {'format': 'text', 'fields': {'text': delivery_text(delivery, 'selective_final')}}
+        else:
+            row['contract']['output'] = {'format': 'json', 'fields': {f: HANDOFF_FIELDS[f] for f in fields}}
+            check = delivery_text(delivery, 'intermediate_check')
+            if check not in row['contract']['checks']:
+                row['contract']['checks'] = [*row['contract']['checks'], check]
         uses = {}
         for parent in row['parents']:
             selected = set(f for key in members for old_parent, fs in specs[key]['uses'].items()

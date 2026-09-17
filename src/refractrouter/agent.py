@@ -121,7 +121,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
         request['unrestrictedPlanning'] = request['planningMode'] == 'compact'
         if 'plannerPolicy' in payload:
             request['plannerPolicy'] = payload['plannerPolicy']
-        request['maxDynamicSplits'] = payload.get('maxDynamicSplits', 0 if payload.get('plannerPolicy') == 'minimal-v1' else 1)
+        request['maxDynamicSplits'] = payload.get('maxDynamicSplits',
+            0 if payload.get('plannerPolicy') in ('minimal-v1', 'minimal-v2') else 1)
     elif 'maxPlanRepairs' in payload:
         raise ValueError('maxPlanRepairs requires the automatic template')
     if 'plannerPolicy' in payload and not automatic:
