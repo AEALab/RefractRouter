@@ -210,20 +210,46 @@ local-work 继承 fake-local 的 simulated-local。敏感节点只能选 local-w
 结论必须分层报告，simulated-local 与 real-local 不得混称。模拟本地的时延与成本特性
 与真实本地存在偏差，须在真实端点阶段量化。
 
-## 九、验证边界
+## 九、优先级：主线在前
+
+本约束的实验价值依赖主线先把基线立住：
+
+1. 判断「敏感节点改用本地模型」是否可接受，前提是先有 Issue #52 的质量门槛与评审协议；
+2. Issue #76 把主指标定为 AFP per accepted task。约束启用后费用下降有多少来自本地
+   零成本、多少来自主线的拆分与选模，必须先有关闭组基线才能分开归因；
+3. Issue #53 的负结果（自动 DAG 多耗 60.13% 时间、34.34% AFP）尚未被推翻。
+   在拆分收益未证实前扩张隐私实验，会把两类不确定性混在一起。
+
+排期：主线 #52 → #53 → #76 / #72 → #54 先行；本约束的验证在其后。
+零调用的配置与机制实现（下表 A1、A2）不消耗预算也不依赖质量门槛，可与主线并行推进。
+
+| 编号 | 交付 | 调用 | 依赖 |
+| --- | --- | --- | --- |
+| A1 | 约束定位与本文档冻结；deployment 与可选 privacy schema | 零调用 | 无 |
+| A2 | 分级器 + 候选过滤 + 模拟本地标记；关闭路径回归 | 零调用 | 无 |
+| A3 | 分级器验证（构造 + 脱敏真实样本标注集） | 分级器本地调用 | A2 |
+| A4 | 开关对照（关闭基线 / all-local / all-cloud / 启用 / 直答） | 付费，另获批 | #52、#53、#76、A3 |
+| A5 | probe 回路 + OpenViking 记忆接入 | 离线回放优先 | A4 |
+| A6 | 真实本地端点（Ollama / vLLM）替换模拟 | 本地 + 付费 | A4 |
+
+## 十、验证边界
 
 #53 已证明自动 DAG 相对直接回答曾多耗 60.13% 时间、34.34% AFP。拆分收益必须逐任务
 论证并扣除规划与评审开销，单节点直答始终是合法路线。这条约束对启用与关闭隐私约束的
 两种情况同样成立。
 
 付费实验不自动继承 Issue #32 的 AFP 授权，每批先冻结协议再申请预算。配置与约束语义的
-验证保持零模型调用。
+验证保持零模型调用。A4 是唯一的付费对照批次。
 
 对照实验需要同时覆盖关闭与启用两种配置：关闭时验证路由结果与现状一致；启用时比较
 质量、费用、时延变化与外流率，确认约束带来的代价可量化。
 
-## 十、关联文档
+## 十一、关联文档
 
-- [Issue #87](https://github.com/AEALab/RefractRouter/issues/87)
+- [Issue #87](https://github.com/AEALab/RefractRouter/issues/87)：本约束的跟踪 Issue
+- 主线 [Issue #50](https://github.com/AEALab/RefractRouter/issues/50)；
+  前置 [#52](https://github.com/AEALab/RefractRouter/issues/52)、
+  [#53](https://github.com/AEALab/RefractRouter/issues/53)、
+  [#76](https://github.com/AEALab/RefractRouter/issues/76)
 - [Wiki 页 14：隐私感知的节点放置与本地模型约束](https://github.com/AEALab/RefractRouter/wiki/14-隐私感知的节点放置与本地模型约束)
 - [架构与职责边界](architecture.md)、[自定义 providers 与 models](provider-configuration.md)
