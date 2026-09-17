@@ -57,6 +57,13 @@ MOA_POLICY = {
 
 PURPOSE_CRITERIA = ('研究用途与质量、非劣、样本量和失败标准相符',)
 
+RESEARCH_PURPOSE = (
+    '在最终成果质量达到可接受门槛的前提下，优先降低 Ark Agent Plan 的 AFP 消耗'
+    '（核心指标：AFP per accepted task）。研究范围为控制性探索，涵盖材料分析、'
+    '规则核对与多部分决策三类任务；不做总体确认性推断，不宣称用户可接受性。'
+    '质量门槛须在看到路线结果之前冻结，不以平均分掩盖关键事实错误。'
+)
+
 REVIEW_SCHEMA = {
     'type': 'object',
     'required': ['verdict', 'rationale', 'criteria'],
@@ -258,8 +265,10 @@ def purpose_messages(policy_sha256, task_bindings, statistics_policy=None):
                'task_bindings': task_bindings, 'criteria': list(PURPOSE_CRITERIA)}
     if statistics_policy is not None:
         payload['statistics_policy'] = deepcopy(statistics_policy)
-        payload['scope'] = ('评审员须核对统计策略内容与 #52 冻结的研究用途是否相符：'
-                            '质量门槛、非劣容忍、样本量与失败标准均须覆盖。')
+        payload['research_purpose'] = RESEARCH_PURPOSE
+        payload['scope'] = ('评审员须逐项核对 statistics_policy 与 research_purpose 是否相符：'
+                            '研究层级、质量门槛、非劣容忍、样本量与失败标准均须覆盖，'
+                            '并确认没有总体确认性或用户可接受性声明。')
     return [{'role': 'system', 'content': SYSTEM},
             {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}]
 
