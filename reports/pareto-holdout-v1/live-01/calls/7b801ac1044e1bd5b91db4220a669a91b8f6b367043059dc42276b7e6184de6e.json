@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r1-task-selector:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别文件A可提供，文件B因内部属性被阻止，文件C附件因含未脱敏联系方式被阻止，正文与findings一致，且明确应用了附件例外规则，未将公开标签视为充分条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1公开原则和s2材料目录，正确区分三份材料状态，输出releasable与blocked分类，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中releasable仅含文件A，blocked含文件B与文件C附件，与正文结论一致，未扩大或反转证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项材料结论完整，事实与s2描述一致，引用s1、s2足以支持各自主张。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确将文件C附件因含未脱敏联系方式列为blocked，正确适用附件例外，未将公开标签当作充分条件。\"}]}",
+  "input_tokens": 912,
+  "output_tokens": 286,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7800,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731938151640844006c495b97e3327b5d9afec856b67875",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 286,
+    "prompt_tokens": 912,
+    "total_tokens": 1198,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别文件A可提供，文件B因内部属性被阻止，文件C附件因含未脱敏联系方式被阻止，正文与findings一致，且明确应用了附件例外规则，未将公开标签视为充分条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1公开原则和s2材料目录，正确区分三份材料状态，输出releasable与blocked分类，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中releasable仅含文件A，blocked含文件B与文件C附件，与正文结论一致，未扩大或反转证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项材料结论完整，事实与s2描述一致，引用s1、s2足以支持各自主张。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确将文件C附件因含未脱敏联系方式列为blocked，正确适用附件例外，未将公开标签当作充分条件。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

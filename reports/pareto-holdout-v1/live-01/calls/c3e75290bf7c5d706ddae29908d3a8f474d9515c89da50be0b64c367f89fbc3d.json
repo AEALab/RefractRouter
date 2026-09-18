@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r1-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则筛选与比较，无独立子问题，直接推理即可，无需DAG开销。\"}",
+  "input_tokens": 425,
+  "output_tokens": 35,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1665,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897316293778df8e1a1401bb5aa62b5b494646ada585a9cfc",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 35,
+    "prompt_tokens": 425,
+    "total_tokens": 460,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则筛选与比较，无独立子问题，直接推理即可，无需DAG开销。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

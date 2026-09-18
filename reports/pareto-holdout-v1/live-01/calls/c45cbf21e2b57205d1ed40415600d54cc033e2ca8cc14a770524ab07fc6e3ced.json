@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r1-direct-or-dag:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用硬约束筛选（排除C），在合格者中按最短恢复时间优先选择B，再比较价格；正文与findings一致，明确说明了成本与恢复时间的权衡，未将目标错误转为最低价。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确识别月费≤200元、恢复≤4小时硬约束，排除C，在A/B/D中按最短恢复时间选B，符合材料与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=B、monthly_cost=180、recovery_hours=2与正文结论一致，未颠倒优先级或扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings均完整且数值正确；selected引用s1、s2可支持选择依据，monthly_cost与recovery_hours引用s2足以支持数值。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确按优先级先比恢复时间而非最低价，并说明牺牲更低月费（A/D）与不可行的更快恢复（C），权衡表述清晰。\"}]}",
+  "input_tokens": 870,
+  "output_tokens": 305,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10919,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731646628f0b662e0a22462bcc30964e8c71cc766d9a3e6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 305,
+    "prompt_tokens": 870,
+    "total_tokens": 1175,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用硬约束筛选（排除C），在合格者中按最短恢复时间优先选择B，再比较价格；正文与findings一致，明确说明了成本与恢复时间的权衡，未将目标错误转为最低价。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确识别月费≤200元、恢复≤4小时硬约束，排除C，在A/B/D中按最短恢复时间选B，符合材料与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=B、monthly_cost=180、recovery_hours=2与正文结论一致，未颠倒优先级或扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings均完整且数值正确；selected引用s1、s2可支持选择依据，monthly_cost与recovery_hours引用s2足以支持数值。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确按优先级先比恢复时间而非最低价，并说明牺牲更低月费（A/D）与不可行的更快恢复（C），权衡表述清晰。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

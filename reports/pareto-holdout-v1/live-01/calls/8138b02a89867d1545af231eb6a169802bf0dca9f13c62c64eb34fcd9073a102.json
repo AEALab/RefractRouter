@@ -1,0 +1,34 @@
+{
+  "label": "rules-06-r3-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文最终给出的入选顺序 B、C、D 正确，但 findings.selected 写为 C、B、D，与正文不一致，也违反按分配顺序输出的要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确剔除材料不完整的 A，并在合格申请中按优先级再按时间分配 3 个名额，最终入选顺序为 B、C、D，E 候补。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文入选顺序为 B、C、D，但 findings.selected 为 C、B、D，二者不一致；结构化结论还颠倒了 B 与 C 的分配顺序。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"excluded 与 waitlisted 正确且有 s1、s2 支持，但 selected 的值顺序错误，不能支持按分配顺序给出的结论。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"fail\",\"rationale\":\"正文逻辑未颠倒资格、优先级、时间的先后，但 findings.selected 将优先 2 的 C 排在优先 1 的 B 前，违反了优先级顺序。\"}]}",
+  "input_tokens": 999,
+  "output_tokens": 301,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8974,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897341727910b63b37cbca791937f2f41fb0469576d9ca11c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 301,
+    "prompt_tokens": 999,
+    "total_tokens": 1300,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"fail\",\"rationale\":\"正文最终给出的入选顺序 B、C、D 正确，但 findings.selected 写为 C、B、D，与正文不一致，也违反按分配顺序输出的要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确剔除材料不完整的 A，并在合格申请中按优先级再按时间分配 3 个名额，最终入选顺序为 B、C、D，E 候补。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文入选顺序为 B、C、D，但 findings.selected 为 C、B、D，二者不一致；结构化结论还颠倒了 B 与 C 的分配顺序。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"excluded 与 waitlisted 正确且有 s1、s2 支持，但 selected 的值顺序错误，不能支持按分配顺序给出的结论。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"fail\",\"rationale\":\"正文逻辑未颠倒资格、优先级、时间的先后，但 findings.selected 将优先 2 的 C 排在优先 1 的 B 前，违反了优先级顺序。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

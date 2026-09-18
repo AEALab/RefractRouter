@@ -1,0 +1,34 @@
+{
+  "label": "decision-03-r3-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确选择A（450元），满足12人、无障碍通道、预算500元的全部硬条件且为合格者中最低价；B因容量不足、C因无无障碍通道被列为硬条件不合格，D合格但较贵未计入rejected_ids，正文与findings一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选择A（12人、有无障碍、450元≤500元预算），符合s1需求与s2报价，且为合格者中最低价，满足任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=A、cost=450、rejected_ids=[B,C]与正文表述一致，未引入材料外信息，未反写任何依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全：selected与cost由s2报价支持，rejected_ids=[B,C]由s1硬条件与s2报价共同支持，事实正确。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确B（容量10人不足）、C（无无障碍通道）为硬条件不合格，D为合格但价高未选且不计入rejected_ids，并说明了选A的最低价依据。\"}]}",
+  "input_tokens": 848,
+  "output_tokens": 339,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 16461,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973354383591be90b70b1bfc3059428bd07e108b7e5c6b6c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 339,
+    "prompt_tokens": 848,
+    "total_tokens": 1187,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确选择A（450元），满足12人、无障碍通道、预算500元的全部硬条件且为合格者中最低价；B因容量不足、C因无无障碍通道被列为硬条件不合格，D合格但较贵未计入rejected_ids，正文与findings一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选择A（12人、有无障碍、450元≤500元预算），符合s1需求与s2报价，且为合格者中最低价，满足任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=A、cost=450、rejected_ids=[B,C]与正文表述一致，未引入材料外信息，未反写任何依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全：selected与cost由s2报价支持，rejected_ids=[B,C]由s1硬条件与s2报价共同支持，事实正确。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确B（容量10人不足）、C（无无障碍通道）为硬条件不合格，D为合格但价高未选且不计入rejected_ids，并说明了选A的最低价依据。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

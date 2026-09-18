@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r3-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用硬约束排除C，在合格者中按最短恢复时间优先选择B，成本与恢复时间权衡说明清晰，正文与findings一致，数值与引用均有材料支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文先以月费≤200、恢复≤4小时排除C（210元超预算），再在A/B/D中按最短恢复时间选B（2小时），符合s1优先级与s2数据，输出包含selected、monthly_cost、recovery_hours。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论selected=B、monthly_cost=180、recovery_hours=2与findings完全一致；依赖方向（先硬约束、再恢复时间、后价格）未反写，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全，值与s2一致（B：180元、2小时），selected引用s1、s2，成本与恢复引用s2，引用足以支持。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确说明未选最便宜的A（100元），而是为最短恢复时间每月多付30至80元，清晰交代了成本与恢复时间的权衡。\"}]}",
+  "input_tokens": 913,
+  "output_tokens": 337,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12047,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897336915367424dba2bd6e77b99d402060a9cf8c0f44a884",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 337,
+    "prompt_tokens": 913,
+    "total_tokens": 1250,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用硬约束排除C，在合格者中按最短恢复时间优先选择B，成本与恢复时间权衡说明清晰，正文与findings一致，数值与引用均有材料支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文先以月费≤200、恢复≤4小时排除C（210元超预算），再在A/B/D中按最短恢复时间选B（2小时），符合s1优先级与s2数据，输出包含selected、monthly_cost、recovery_hours。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论selected=B、monthly_cost=180、recovery_hours=2与findings完全一致；依赖方向（先硬约束、再恢复时间、后价格）未反写，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全，值与s2一致（B：180元、2小时），selected引用s1、s2，成本与恢复引用s2，引用足以支持。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确说明未选最便宜的A（100元），而是为最短恢复时间每月多付30至80元，清晰交代了成本与恢复时间的权衡。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

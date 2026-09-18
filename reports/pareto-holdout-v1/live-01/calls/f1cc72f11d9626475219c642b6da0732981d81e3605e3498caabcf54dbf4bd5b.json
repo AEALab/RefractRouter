@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r2-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用硬约束（月费≤200、恢复≤4小时），排除C（210元超支），在合格者A、B、D中按优先级选择恢复最短的B（2小时），并明确说明牺牲了A的低成本和D的较低价格以换取更短恢复时间，未将目标错误转为最低价；findings与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文明确列出硬约束并据此筛选：A（100/4）、B（180/2）、D（150/3）合格，C（210/1）因月费超200被排除，符合s1标准与s2数据。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=B、monthly_cost=180、recovery_hours=2与正文结论完全一致；未颠倒恢复时间与成本的优先顺序，未超出材料信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出且数值正确；selected引用s1、s2可支持筛选与选择，monthly_cost与recovery_hours引用s2足以支持B方案参数。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确遵循“优先最短恢复时间，再选最低价”，并具体说明牺牲A的100元低成本与D的150元较低价，换取B的2小时最短恢复，权衡清晰。\"}]}",
+  "input_tokens": 951,
+  "output_tokens": 368,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12289,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732550452b4a50cd25f47d4bb7d101bbb29abc519a7d832",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 368,
+    "prompt_tokens": 951,
+    "total_tokens": 1319,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用硬约束（月费≤200、恢复≤4小时），排除C（210元超支），在合格者A、B、D中按优先级选择恢复最短的B（2小时），并明确说明牺牲了A的低成本和D的较低价格以换取更短恢复时间，未将目标错误转为最低价；findings与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文明确列出硬约束并据此筛选：A（100/4）、B（180/2）、D（150/3）合格，C（210/1）因月费超200被排除，符合s1标准与s2数据。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=B、monthly_cost=180、recovery_hours=2与正文结论完全一致；未颠倒恢复时间与成本的优先顺序，未超出材料信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论均给出且数值正确；selected引用s1、s2可支持筛选与选择，monthly_cost与recovery_hours引用s2足以支持B方案参数。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确遵循“优先最短恢复时间，再选最低价”，并具体说明牺牲A的100元低成本与D的150元较低价，换取B的2小时最短恢复，权衡清晰。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

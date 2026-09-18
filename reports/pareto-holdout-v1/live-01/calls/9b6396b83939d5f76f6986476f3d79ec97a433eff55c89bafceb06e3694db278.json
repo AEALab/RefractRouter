@@ -1,0 +1,34 @@
+{
+  "label": "rules-06-r3-task-selector:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"共3个名额，合格申请为B、C、D、E，按优先级应为B（优先1）、C（优先2，08:00）、D（优先2，11:00）入选，E候补；候选答案只选了B、C两人，漏选D，违反名额约束，正文与findings均错误。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"材料规定共3个名额且每个申请占1名额，合格者B、C、D、E中B（优先1）、C与D（优先2，C时间早）应占满3席；候选答案仅选B、C，把D错列为候补，未用满名额，违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings内容一致（excluded=A，selected=B、C，waitlisted=D、E），未发现正文与结构化结果相互矛盾或反写依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"selected漏掉D、waitlisted错含D，事实不正确；excluded=A正确且s2可支持，但整体必需结论不完整。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"pass\",\"rationale\":\"答案先剔除材料不完整的A，再按优先等级（数字小者优先）并在同级内按提交时间（C早于D）排序，资格→优先级→时间的顺序未颠倒；错误在于名额数量而非顺序。\"}]}",
+  "input_tokens": 865,
+  "output_tokens": 368,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12273,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789734240482fa871229fec4115dc08043e38393b8b59da8e7",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 368,
+    "prompt_tokens": 865,
+    "total_tokens": 1233,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"fail\",\"rationale\":\"共3个名额，合格申请为B、C、D、E，按优先级应为B（优先1）、C（优先2，08:00）、D（优先2，11:00）入选，E候补；候选答案只选了B、C两人，漏选D，违反名额约束，正文与findings均错误。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"材料规定共3个名额且每个申请占1名额，合格者B、C、D、E中B（优先1）、C与D（优先2，C时间早）应占满3席；候选答案仅选B、C，把D错列为候补，未用满名额，违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings内容一致（excluded=A，selected=B、C，waitlisted=D、E），未发现正文与结构化结果相互矛盾或反写依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"selected漏掉D、waitlisted错含D，事实不正确；excluded=A正确且s2可支持，但整体必需结论不完整。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"pass\",\"rationale\":\"答案先剔除材料不完整的A，再按优先等级（数字小者优先）并在同级内按提交时间（C早于D）排序，资格→优先级→时间的顺序未颠倒；错误在于名额数量而非顺序。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

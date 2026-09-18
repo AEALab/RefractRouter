@@ -1,0 +1,34 @@
+{
+  "label": "rules-05-r2-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用验收标准：P三项全满足判accepted（缺测10%未超过10%），Q校准过期明确失败判rejected，R无明确失败但缺同步证据判unknown，且未将缺失证据推断为事实；findings与正文一致，引用s1、s2足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文逐项判断P/Q/R并给出accepted/rejected/unknown，符合s1验收标准与任务指令，无违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中accepted=[P]、rejected=[Q]、unknown=[R]与正文结论一致；未将'没有同步记录'扩大为'未同步'。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点结论完整且正确：P缺测10%不超过阈值满足，Q校准过期明确失败，R缺同步证据；各项均引用s1（标准）与s2（检查结果），足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R点判为unknown并明确说明'不能据此推断其时钟未同步'，正确保留未知状态，未用缺失证据推断事实。\"}]}",
+  "input_tokens": 924,
+  "output_tokens": 329,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8477,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733016171add9fca5277b8939d33af9a0f1789d6c888201",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 329,
+    "prompt_tokens": 924,
+    "total_tokens": 1253,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用验收标准：P三项全满足判accepted（缺测10%未超过10%），Q校准过期明确失败判rejected，R无明确失败但缺同步证据判unknown，且未将缺失证据推断为事实；findings与正文一致，引用s1、s2足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文逐项判断P/Q/R并给出accepted/rejected/unknown，符合s1验收标准与任务指令，无违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中accepted=[P]、rejected=[Q]、unknown=[R]与正文结论一致；未将'没有同步记录'扩大为'未同步'。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点结论完整且正确：P缺测10%不超过阈值满足，Q校准过期明确失败，R缺同步证据；各项均引用s1（标准）与s2（检查结果），足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R点判为unknown并明确说明'不能据此推断其时钟未同步'，正确保留未知状态，未用缺失证据推断事实。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

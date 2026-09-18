@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r1-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用硬约束（月费≤200、恢复≤4小时）排除C，在合格者A、B、D中按优先级先选最短恢复时间，得B（180元、2小时），并明确写出牺牲更低月费（A、D）与C的1小时恢复但C超支的权衡；findings三项与正文一致且引用s1、s2足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1硬约束排除C（210>200），在A/B/D中按s1优先级选恢复最短的B，输出selected、monthly_cost、recovery_hours，符合材料与任务。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=B、monthly_cost=180、recovery_hours=2与正文一致；未颠倒'先恢复后价格'的优先级方向，未夸大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且数值正确（B、180元、2小时），sources引用s1（标准）与s2（选项数据）足以支持。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"未退化为最低价（未选A），明确写出牺牲A/D的更低月费及C的1小时恢复（但C超支）的权衡。\"}]}",
+  "input_tokens": 870,
+  "output_tokens": 356,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9826,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897316367607093713527b8c530401a403eec8fc15220ff4d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 356,
+    "prompt_tokens": 870,
+    "total_tokens": 1226,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用硬约束（月费≤200、恢复≤4小时）排除C，在合格者A、B、D中按优先级先选最短恢复时间，得B（180元、2小时），并明确写出牺牲更低月费（A、D）与C的1小时恢复但C超支的权衡；findings三项与正文一致且引用s1、s2足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1硬约束排除C（210>200），在A/B/D中按s1优先级选恢复最短的B，输出selected、monthly_cost、recovery_hours，符合材料与任务。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=B、monthly_cost=180、recovery_hours=2与正文一致；未颠倒'先恢复后价格'的优先级方向，未夸大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且数值正确（B、180元、2小时），sources引用s1（标准）与s2（选项数据）足以支持。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"未退化为最低价（未选A），明确写出牺牲A/D的更低月费及C的1小时恢复（但C超支）的权衡。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

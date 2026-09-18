@@ -1,0 +1,34 @@
+{
+  "label": "rules-03-r2-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用普通7天规则（甲第7天含边界，符合）、登记故障30天例外（乙第30天含边界，符合）及超过30天不受理（丙第31天，不符合），结论 eligible_ids=[甲,乙]、ineligible_ids=[丙] 与 findings 一致，引用 s1、s2 足以支持，且明确限制为虚构内部规则不扩展为现实法律结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文严格按 s1 规则核对 s2 三个申请，未添加常识条件，输出 eligible_ids 与 ineligible_ids，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与 findings 中 eligible_ids=[甲,乙]、ineligible_ids=[丙] 完全一致，未反写依赖，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均含 id、value、sources，值正确，sources 含 s1（规则）与 s2（申请表），足以支持各自主张。\"},{\"criterion\":\"同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。\",\"verdict\":\"pass\",\"rationale\":\"覆盖普通规则（甲第7天边界）、例外（乙第30天边界）及超期边界（丙第31天），并声明仅为虚构内部服务规则，不扩展为现实法律结论。\"}]}",
+  "input_tokens": 868,
+  "output_tokens": 368,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9967,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897328542910b63b37cbca791937f2f41fb0469576d5ce3bb",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 368,
+    "prompt_tokens": 868,
+    "total_tokens": 1236,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用普通7天规则（甲第7天含边界，符合）、登记故障30天例外（乙第30天含边界，符合）及超过30天不受理（丙第31天，不符合），结论 eligible_ids=[甲,乙]、ineligible_ids=[丙] 与 findings 一致，引用 s1、s2 足以支持，且明确限制为虚构内部规则不扩展为现实法律结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文严格按 s1 规则核对 s2 三个申请，未添加常识条件，输出 eligible_ids 与 ineligible_ids，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与 findings 中 eligible_ids=[甲,乙]、ineligible_ids=[丙] 完全一致，未反写依赖，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均含 id、value、sources，值正确，sources 含 s1（规则）与 s2（申请表），足以支持各自主张。\"},{\"criterion\":\"同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。\",\"verdict\":\"pass\",\"rationale\":\"覆盖普通规则（甲第7天边界）、例外（乙第30天边界）及超期边界（丙第31天），并声明仅为虚构内部服务规则，不扩展为现实法律结论。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

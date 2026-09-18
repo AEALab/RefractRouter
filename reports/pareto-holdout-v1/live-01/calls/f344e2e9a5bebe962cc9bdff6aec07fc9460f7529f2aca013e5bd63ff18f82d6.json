@@ -1,0 +1,34 @@
+{
+  "label": "rules-03-r1-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则匹配，三个申请直接对照时限即可，无需DAG拆分或复杂推理。\"}",
+  "input_tokens": 420,
+  "output_tokens": 34,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1728,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973185475578af8113c224ccdd69578c3b63d1e71a9387ad",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 34,
+    "prompt_tokens": 420,
+    "total_tokens": 454,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则匹配，三个申请直接对照时限即可，无需DAG拆分或复杂推理。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

@@ -1,0 +1,34 @@
+{
+  "label": "rules-05-r3-task-selector:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则匹配，材料直接对应，无需复杂推理或DAG。\"}",
+  "input_tokens": 546,
+  "output_tokens": 30,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 720,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789734135381b566464da517b102b4cb09cdfd60e7ee6e3f55",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 30,
+    "prompt_tokens": 546,
+    "total_tokens": 576,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则匹配，材料直接对应，无需复杂推理或DAG。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

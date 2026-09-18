@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r2-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别文件A可公开、文件B因内部属性被阻止、文件C附件因含未脱敏联系方式触发例外规则，正文与findings一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文准确反映s1公开原则与s2目录内容，结论、依据、限制（脱敏要求）完整，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings中releasable/blocked列表完全一致，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable与blocked两项均完整列出，事实正确，sources引用s1、s2足以支持分类主张。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确将文件C附件因含未脱敏联系方式而归入blocked，正确适用附件例外规则，未将公开标签视为充分条件。\"}]}",
+  "input_tokens": 747,
+  "output_tokens": 265,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8452,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732972289fc7578b59e843c90e5af4aa62e8cfda9b5c85c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 265,
+    "prompt_tokens": 747,
+    "total_tokens": 1012,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别文件A可公开、文件B因内部属性被阻止、文件C附件因含未脱敏联系方式触发例外规则，正文与findings一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文准确反映s1公开原则与s2目录内容，结论、依据、限制（脱敏要求）完整，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings中releasable/blocked列表完全一致，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable与blocked两项均完整列出，事实正确，sources引用s1、s2足以支持分类主张。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确将文件C附件因含未脱敏联系方式而归入blocked，正确适用附件例外规则，未将公开标签视为充分条件。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

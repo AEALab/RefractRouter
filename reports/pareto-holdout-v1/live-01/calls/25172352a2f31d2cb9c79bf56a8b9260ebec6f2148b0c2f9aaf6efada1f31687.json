@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r3-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文正确应用 s1 硬约束（月费≤200、恢复≤4小时）排除 C，在合格者 A/B/D 中按最短恢复优先选 B，并明确牺牲更低月费（A 100、D 150）换取 2 小时恢复；findings 三项与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出 selected=B、月费180、恢复2小时；明确月费≤200与恢复≤4为硬要求，排除 C（210>200），并在 A/B/D 中按恢复最短再价格规则选择，符合 s1、s2 与任务。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 selected=B、monthly_cost=180、recovery_hours=2 与正文一致；未改变 s1 的优先级方向，也未把选项数据扩大解释。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 requested_findings 均存在；B/180/2 与 s2 一致，选择规则由 s1 支持，sources 引用足以支撑。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确未选最低价 A，说明为从 3/4 小时压缩到 2 小时多付 30 至 80 元，并指出 C 虽恢复最短但超预算，权衡表达清楚。\"}]}",
+  "input_tokens": 1042,
+  "output_tokens": 371,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11651,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733620904ff228b459645a66c98f2a46916338f8e692969",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 371,
+    "prompt_tokens": 1042,
+    "total_tokens": 1413,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"正文正确应用 s1 硬约束（月费≤200、恢复≤4小时）排除 C，在合格者 A/B/D 中按最短恢复优先选 B，并明确牺牲更低月费（A 100、D 150）换取 2 小时恢复；findings 三项与正文一致且引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出 selected=B、月费180、恢复2小时；明确月费≤200与恢复≤4为硬要求，排除 C（210>200），并在 A/B/D 中按恢复最短再价格规则选择，符合 s1、s2 与任务。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 selected=B、monthly_cost=180、recovery_hours=2 与正文一致；未改变 s1 的优先级方向，也未把选项数据扩大解释。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项 requested_findings 均存在；B/180/2 与 s2 一致，选择规则由 s1 支持，sources 引用足以支撑。\"},{\"criterion\":\"不得把所有目标自行变成最低价；写清成本与恢复时间的权衡。\",\"verdict\":\"pass\",\"rationale\":\"正文明确未选最低价 A，说明为从 3/4 小时压缩到 2 小时多付 30 至 80 元，并指出 C 虽恢复最短但超预算，权衡表达清楚。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

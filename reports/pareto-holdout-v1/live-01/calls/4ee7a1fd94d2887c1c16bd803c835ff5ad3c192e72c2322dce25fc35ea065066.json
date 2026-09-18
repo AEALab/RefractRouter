@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r2-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确区分了文件A可发布、文件B和文件C附件被阻止的情况，符合材料中的公开原则和任务要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确应用了s1中的公开原则（公开+解禁过+无联系方式可发布；内部禁止；含联系方式需脱敏），对三个文件的处理与s2描述一致，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（A可发布，B和C阻止）与findings中的releasable和blocked列表一致，未引入材料外的信息或颠倒条件关系。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个findings（releasable和blocked）均完整列出，值正确（A可发布；B和C阻止），且均引用了s1和s2作为依据，足以支持结论。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"输出明确将文件C附件列为blocked，尽管其标记为公开且解禁已过，但因含未脱敏的联系方式而阻止，正确应用了附件例外规则。\"}]}",
+  "input_tokens": 839,
+  "output_tokens": 306,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10850,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897329189507424dba2bd6e77b99d402060a9cf8c0fbf39b5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 306,
+    "prompt_tokens": 839,
+    "total_tokens": 1145,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确区分了文件A可发布、文件B和文件C附件被阻止的情况，符合材料中的公开原则和任务要求。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确应用了s1中的公开原则（公开+解禁过+无联系方式可发布；内部禁止；含联系方式需脱敏），对三个文件的处理与s2描述一致，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（A可发布，B和C阻止）与findings中的releasable和blocked列表一致，未引入材料外的信息或颠倒条件关系。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个findings（releasable和blocked）均完整列出，值正确（A可发布；B和C阻止），且均引用了s1和s2作为依据，足以支持结论。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"输出明确将文件C附件列为blocked，尽管其标记为公开且解禁已过，但因含未脱敏的联系方式而阻止，正确应用了附件例外规则。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

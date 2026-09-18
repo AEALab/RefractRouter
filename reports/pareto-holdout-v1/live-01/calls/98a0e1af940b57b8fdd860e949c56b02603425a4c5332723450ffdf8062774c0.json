@@ -1,0 +1,34 @@
+{
+  "label": "rules-03-r3-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务简单，仅需按规则核对三个申请，无复杂推理或独立子问题，直接处理即可。\"}",
+  "input_tokens": 420,
+  "output_tokens": 36,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1699,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733919131ed0e184fb98d17720dee9f0ee33ee7e1336f62",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 420,
+    "total_tokens": 456,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务简单，仅需按规则核对三个申请，无复杂推理或独立子问题，直接处理即可。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

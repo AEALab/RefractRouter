@@ -1,0 +1,34 @@
+{
+  "label": "rules-03-r2-task-selector:answer",
+  "content": "{\"answer\": \"根据规则，普通申请须在购买后7天内提交（包含第7天），有登记故障的申请可在30天内提交（包含第30天），超过30天均不受理。\\n\\n核对三个申请：\\n- 甲：第7天提交，无登记故障。适用普通规则，第7天在7天期限内（包含第7天），符合时限。\\n- 乙：第30天提交，有登记故障。适用例外规则，第30天在30天期限内（包含第30天），符合时限。\\n- 丙：第31天提交，有登记故障。适用例外规则，但第31天已超过30天，不符合时限。\\n\\n结论：符合时限者为甲、乙；不符合时限者为丙。\\n\\n限制：本结论仅基于虚构的内部服务规则，不扩展为现实法律结论；未使用常识增加其他条件。\", \"findings\": [{\"id\": \"eligible_ids\", \"value\": [\"甲\", \"乙\"], \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"ineligible_ids\", \"value\": [\"丙\"], \"sources\": [\"s1\", \"s2\"]}]}",
+  "input_tokens": 657,
+  "output_tokens": 260,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 4513,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973282540296de9f55314d9c1d75ac853e3e9cad7eccab11",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 260,
+    "prompt_tokens": 657,
+    "total_tokens": 917,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"answer\": \"根据规则，普通申请须在购买后7天内提交（包含第7天），有登记故障的申请可在30天内提交（包含第30天），超过30天均不受理。\\n\\n核对三个申请：\\n- 甲：第7天提交，无登记故障。适用普通规则，第7天在7天期限内（包含第7天），符合时限。\\n- 乙：第30天提交，有登记故障。适用例外规则，第30天在30天期限内（包含第30天），符合时限。\\n- 丙：第31天提交，有登记故障。适用例外规则，但第31天已超过30天，不符合时限。\\n\\n结论：符合时限者为甲、乙；不符合时限者为丙。\\n\\n限制：本结论仅基于虚构的内部服务规则，不扩展为现实法律结论；未使用常识增加其他条件。\", \"findings\": [{\"id\": \"eligible_ids\", \"value\": [\"甲\", \"乙\"], \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"ineligible_ids\", \"value\": [\"丙\"], \"sources\": [\"s1\", \"s2\"]}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

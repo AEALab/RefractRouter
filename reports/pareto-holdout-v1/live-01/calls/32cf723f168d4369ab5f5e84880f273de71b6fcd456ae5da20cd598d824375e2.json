@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r3-direct-or-dag:check_painting",
+  "content": "核对绘画班材料：必须10套无溶剂用品，X满足且350元，Y不满足含溶剂，故选择X。",
+  "input_tokens": 635,
+  "output_tokens": 28,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1251,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733707635ff228b459645a66c98f2a46916338f8eec0df5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 28,
+    "prompt_tokens": 635,
+    "total_tokens": 663,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "核对绘画班材料：必须10套无溶剂用品，X满足且350元，Y不满足含溶剂，故选择X。",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

@@ -1,0 +1,34 @@
+{
+  "label": "decision-06-r3-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单线性依赖计算，无需DAG拆分，直接按顺序累加即可\"}",
+  "input_tokens": 458,
+  "output_tokens": 31,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1548,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897337932289c5625d6f49ce94e6eea0041d172c51c1ad6f1",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 31,
+    "prompt_tokens": 458,
+    "total_tokens": 489,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单线性依赖计算，无需DAG拆分，直接按顺序累加即可\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

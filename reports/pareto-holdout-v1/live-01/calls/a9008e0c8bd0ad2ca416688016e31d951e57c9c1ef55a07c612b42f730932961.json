@@ -1,0 +1,34 @@
+{
+  "label": "analysis-05-r1-task-selector:selector",
+  "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务需按口径筛选并核对报告，涉及简单计算与判断，中等模型可胜任，无需DAG。\"}",
+  "input_tokens": 613,
+  "output_tokens": 36,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1113,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731385646640844006c495b97e3327b5d9afec85645da05",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 613,
+    "total_tokens": 649,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务需按口径筛选并核对报告，涉及简单计算与判断，中等模型可胜任，无需DAG。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

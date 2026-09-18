@@ -1,0 +1,34 @@
+{
+  "label": "rules-05-r1-task-selector:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出对三个测点的判断与材料一致：P三项条件均满足判为accepted，Q校准过期明确失败判为rejected，R缺少同步记录但无明确失败判为unknown，保留了未知状态且未用缺失证据推断事实。正文与findings一致，引用s1、s2足以支持各结论，符合输出契约与语义约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1验收标准与s2检查结果逐点判断，结论、依据、限制说明齐全，符合任务与输出契约要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中accepted=[P]、rejected=[Q]、unknown=[R]与正文判断完全一致，未将缺失证据当作事实，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点分类完整且正确：P缺测10%不超过阈值且其余满足；Q校准过期为明确失败；R缺同步记录属缺证据。各项均引用s1、s2，足以支撑。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R因无同步记录被判为unknown而非accepted或rejected，明确说明未做额外推断，保留了未知状态。\"}]}",
+  "input_tokens": 947,
+  "output_tokens": 333,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 7661,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897320139930e23c04e8b740c94d8512f0597aa5fa6ab5f0f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 333,
+    "prompt_tokens": 947,
+    "total_tokens": 1280,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出对三个测点的判断与材料一致：P三项条件均满足判为accepted，Q校准过期明确失败判为rejected，R缺少同步记录但无明确失败判为unknown，保留了未知状态且未用缺失证据推断事实。正文与findings一致，引用s1、s2足以支持各结论，符合输出契约与语义约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1验收标准与s2检查结果逐点判断，结论、依据、限制说明齐全，符合任务与输出契约要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中accepted=[P]、rejected=[Q]、unknown=[R]与正文判断完全一致，未将缺失证据当作事实，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点分类完整且正确：P缺测10%不超过阈值且其余满足；Q校准过期为明确失败；R缺同步记录属缺证据。各项均引用s1、s2，足以支撑。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R因无同步记录被判为unknown而非accepted或rejected，明确说明未做额外推断，保留了未知状态。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

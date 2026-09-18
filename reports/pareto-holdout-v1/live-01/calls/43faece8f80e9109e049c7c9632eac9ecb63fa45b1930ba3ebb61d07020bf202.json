@@ -1,0 +1,34 @@
+{
+  "label": "rules-03-r1-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用规则：甲第7天无故障符合普通时限，乙第30天有故障符合例外时限，丙第31天超期不符合；findings 与正文一致，引用 s1、s2 充分，且明确限制为虚构内部规则。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文逐项核对三申请，输出符合/不符合结论，未添加材料外条件，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论甲、乙符合，丙不符合，与 findings 的 eligible_ids=[甲,乙]、ineligible_ids=[丙] 完全一致，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"eligible_ids 与 ineligible_ids 均完整且事实正确；每项均引用 s1（规则）与 s2（申请表），足以支持。\"},{\"criterion\":\"同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。\",\"verdict\":\"pass\",\"rationale\":\"覆盖普通7天含第7天、故障30天含第30天及超过30天不受理边界，并声明仅为虚构内部服务规则，不作现实法律结论。\"}]}",
+  "input_tokens": 839,
+  "output_tokens": 321,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9872,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731822183d1a31addd6d38d14c8141e1e64f1efaa24500f",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 321,
+    "prompt_tokens": 839,
+    "total_tokens": 1160,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用规则：甲第7天无故障符合普通时限，乙第30天有故障符合例外时限，丙第31天超期不符合；findings 与正文一致，引用 s1、s2 充分，且明确限制为虚构内部规则。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文逐项核对三申请，输出符合/不符合结论，未添加材料外条件，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论甲、乙符合，丙不符合，与 findings 的 eligible_ids=[甲,乙]、ineligible_ids=[丙] 完全一致，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"eligible_ids 与 ineligible_ids 均完整且事实正确；每项均引用 s1（规则）与 s2（申请表），足以支持。\"},{\"criterion\":\"同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。\",\"verdict\":\"pass\",\"rationale\":\"覆盖普通7天含第7天、故障30天含第30天及超过30天不受理边界，并声明仅为虚构内部服务规则，不作现实法律结论。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

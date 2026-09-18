@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r1-direct-or-dag:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别文件A可直接提供，文件B（内部）和文件C附件（公开但未脱敏联系方式）不可直接提供；正文与findings一致，引用s1、s2充分，且正确处理了附件例外，未将公开标签视为充分条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文用中文给出结论、依据、限制与权衡，覆盖三份材料，符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings中releasable=[文件A]、blocked=[文件B,文件C附件]一致，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable与blocked两项均完整且正确，sources均含s1（规则）与s2（目录事实），足以支持。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"文件C附件虽公开且过解禁日，但因含未脱敏联系方式被正确归入blocked，体现了附件例外检查。\"}]}",
+  "input_tokens": 842,
+  "output_tokens": 289,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14685,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897319183738df8e1a1401bb5aa62b5b494646ada58fecb85",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 289,
+    "prompt_tokens": 842,
+    "total_tokens": 1131,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确识别文件A可直接提供，文件B（内部）和文件C附件（公开但未脱敏联系方式）不可直接提供；正文与findings一致，引用s1、s2充分，且正确处理了附件例外，未将公开标签视为充分条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文用中文给出结论、依据、限制与权衡，覆盖三份材料，符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论与findings中releasable=[文件A]、blocked=[文件B,文件C附件]一致，未引入材料外信息。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable与blocked两项均完整且正确，sources均含s1（规则）与s2（目录事实），足以支持。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"文件C附件虽公开且过解禁日，但因含未脱敏联系方式被正确归入blocked，体现了附件例外检查。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

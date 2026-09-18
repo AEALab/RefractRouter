@@ -1,0 +1,34 @@
+{
+  "label": "analysis-06-r2-task-selector:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确完成时区换算（UTC+8），得出 start 09:50、complaint 10:10、restore 10:20，顺序有向且正确，投诉早于恢复结论为 true，正文与 findings 一致，引用 s1、s2 充分，未反写依赖或扩大证据。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按任务要求统一为北京时间（09:50、10:20、10:10），重建顺序并判断投诉在恢复前，包含结论、依据与限制，符合材料与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文顺序 start→complaint→restore 与 findings 的 order 一致，complaint_before_restore=true 一致；未颠倒时间方向，限制说明（秒级精度）未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均存在且正确：order=[start,complaint,restore]，complaint_before_restore=true；换算依据 s1 的 UTC 时间与 s2 的 +8 小时及同日说明，引用充分。\"},{\"criterion\":\"顺序必须有向、不可把事件集相同当成顺序相同。\",\"verdict\":\"pass\",\"rationale\":\"输出以有向序列 [start, complaint, restore] 表达先后，正文用箭头明确方向，未将顺序退化为无序集合。\"}]}",
+  "input_tokens": 863,
+  "output_tokens": 351,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11136,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732446380b531818cd979bd70c39b690ac6f23902c5024d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 351,
+    "prompt_tokens": 863,
+    "total_tokens": 1214,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确完成时区换算（UTC+8），得出 start 09:50、complaint 10:10、restore 10:20，顺序有向且正确，投诉早于恢复结论为 true，正文与 findings 一致，引用 s1、s2 充分，未反写依赖或扩大证据。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按任务要求统一为北京时间（09:50、10:20、10:10），重建顺序并判断投诉在恢复前，包含结论、依据与限制，符合材料与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文顺序 start→complaint→restore 与 findings 的 order 一致，complaint_before_restore=true 一致；未颠倒时间方向，限制说明（秒级精度）未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均存在且正确：order=[start,complaint,restore]，complaint_before_restore=true；换算依据 s1 的 UTC 时间与 s2 的 +8 小时及同日说明，引用充分。\"},{\"criterion\":\"顺序必须有向、不可把事件集相同当成顺序相同。\",\"verdict\":\"pass\",\"rationale\":\"输出以有向序列 [start, complaint, restore] 表达先后，正文用箭头明确方向，未将顺序退化为无序集合。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}
