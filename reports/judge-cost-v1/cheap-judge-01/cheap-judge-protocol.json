@@ -1,0 +1,20 @@
+{
+  "schema_version": "cheap-judge-protocol-v1",
+  "purpose": "候选 B：cheap 模型重判已封存 judge 判例，验证 92.5% 一致率可否达成。",
+  "model": "ark/deepseek-v4-flash",
+  "thinking_effort": "high",
+  "timeout_seconds": 480,
+  "request_max_retries": 0,
+  "reviewer_policy": "单一评审者，无升级，输出严格解析；unparsed 记 pending 留在分母。",
+  "prompt": "固定沿用封存请求的 request_messages，与 Ark judge 相同。",
+  "cases_path": "reports/judge-cost-v1/replay-01/cases.json",
+  "cases_sha256": "02791bc95437023435960d7859b2c0a3ebcc4b66898db27d8dc10784b00601db",
+  "thresholds_path": "reports/judge-cost-v1/replay-01/thresholds.json",
+  "max_calls": 107,
+  "estimated_afp_ceiling": 10.789575,
+  "price": {
+    "input_per_1k": 0.05,
+    "output_per_1k": 0.05
+  },
+  "decision_rule": "未达门槛则不替换 judge。"
+}
