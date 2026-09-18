@@ -31,6 +31,21 @@ def test_pairing_cannot_drop_failures_or_missing_metrics():
 def test_reference_arithmetic_recomputed_from_material_instead_of_gold():
     report = audit(STUDY)
     assert report['reference_mismatches'] == 0 and len(report['rows']) == 18
+
+
+def test_decision_03_negated_accessibility_is_not_eligible():
+    """确定性复算不得把「无无障碍通道」读成有通道，否则会把正确参考判成错。"""
+    task = deepcopy(next(t for t in load_study(STUDY)[1] if t['task_id'] == 'decision-03'))
+    assert recalculate(task) == {'selected': 'A', 'cost': 450, 'rejected_ids': ['B', 'C']}
+    open_room = deepcopy(task)
+    open_room['materials'][1]['text'] = open_room['materials'][1]['text'].replace(
+        'C可容16人、无无障碍通道、400元', 'C可容16人、有无障碍通道、400元')
+    assert recalculate(open_room) == {'selected': 'C', 'cost': 400, 'rejected_ids': ['B']}
+
+
+def test_audit_counts_all_rows_and_coverage():
+    """审计行数与格子覆盖是参考复算的前置断言，单独失败时便于定位。"""
+    report = audit(STUDY)
     assert all(count == 2 for count in report['coverage'].values())
     task = deepcopy(load_study(STUDY)[1][0])
     assert recalculate(task)['expected_stock'] == 60

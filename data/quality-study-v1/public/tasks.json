@@ -631,7 +631,7 @@
         {
           "source_id": "s2",
           "title": "报价",
-          "text": "A可容12人、有无障碍通道、450元；B可容10人、有通道、300元；C可容16人、无通道、400元；D可容12人、有通道、480元。"
+          "text": "A可容12人、有无障碍通道、450元；B可容10人、有无障碍通道、300元；C可容16人、无无障碍通道、400元；D可容12人、有无障碍通道、480元。"
         }
       ],
       "requested_findings": {
@@ -646,8 +646,8 @@
         "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
-      "material_sha256": "b13d3a2d107c24441a4281e5a53d897f6ac164952aad3bfd1a80f4ab4b07987d",
-      "task_sha256": "ac541ea4b0d32e2e6e3df370abe6b1492933bd79a05dfefa358003060a575df4"
+      "material_sha256": "f31e9fd3cd62081c1813899c1365f123dcf7bf919c91d57d732ee4c058249eb7",
+      "task_sha256": "0ce137d760c870ef4546bcd72f8a1c6faec243b5cd5e15251793233a2b596783"
     },
     {
       "task_id": "decision-04",
@@ -774,14 +774,14 @@
         "deadline_met": "是否在窗口内完成"
       },
       "semantic_criteria": [
-        "不得为了提速删除依赖、漏掉回归或把同一执行者排为并行。"
+        "不得为了提速删除依赖、漏掉回归或把同一执行者排为并行；order 必须满足全部依赖的先后方向，并与 finish_minute 相互一致。"
       ],
       "output_contract": {
         "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
         "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
       },
       "material_sha256": "7fd5a446d874e4a4cdb0c39ce9e6088f13f85ea040bc18200091005b7a060ecc",
-      "task_sha256": "46dce101461644ff28a4cfb4cf9804c9bf72ec5d514613a9866057f02fc87aeb"
+      "task_sha256": "73db615b41c1a51b670e7f18dd12b6adf7e3dcb4af09c731a11d177a3b776aac"
     }
   ]
 }

@@ -2,6 +2,7 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import re
 from unittest.mock import patch
 
 import pytest
@@ -196,3 +197,57 @@ def test_file_mutation_rejected(tmp_path):
     (copy / 'review/references.json').write_text('{}')
     with pytest.raises(ValueError, match='artifact hash mismatch'):
         load_study(copy)
+
+
+def test_order_fields_use_ordered_comparison():
+    """有序字段必须使用有序比较：无序集合比较会放过顺序错误的候选。"""
+    _, tasks, refs, *_ = load_study(STUDY)
+    ordered = [(t['task_id'], c['field'], c['op']) for t in tasks
+               for c in refs[t['task_id']]['checks']
+               if 'order' in c['field'] or 'sequence' in c['field']]
+    assert ordered, '全库应至少存在一个有序检查，避免断言真空'
+    assert [row for row in ordered if row[2] != 'equal'] == []
+
+
+def test_permuted_order_candidate_fails_decision_06():
+    """decision-06 回归：打乱顺序的候选必须判 fail，且只报 order 一项。"""
+    _, tasks, refs, *_ = load_study(STUDY)
+    task = next(t for t in tasks if t['task_id'] == 'decision-06')
+    reference = refs['decision-06']
+    assert check_output(task, reference, reference['author_reference'])['status'] == 'pass'
+    permuted = deepcopy(reference['author_reference'])
+    next(f for f in permuted['findings'] if f['id'] == 'order')['value'] = [
+        '部署', '备份', '回归检查', '校验备份']
+    result = check_output(task, reference, permuted)
+    assert result['status'] == 'fail'
+    assert [row['check'] for row in result['checks'] if row['status'] == 'fail'] == ['order']
+
+
+def test_task_and_reference_semantic_criteria_stay_in_sync():
+    """材料评审读 task 的 semantic_criteria；两侧不同步会放过语义缺陷。"""
+    _, tasks, refs, *_ = load_study(STUDY)
+    assert [t['task_id'] for t in tasks
+            if t['semantic_criteria'] != refs[t['task_id']]['semantic_criteria']] == []
+
+
+def test_decision_03_quote_qualifies_every_room_accessibility():
+    """decision-03 回归：硬条件是无障碍通道，报价不得用「有通道」这类未声明简写。"""
+    _, tasks, refs, *_ = load_study(STUDY)
+    task = next(t for t in tasks if t['task_id'] == 'decision-03')
+    quote = next(m for m in task['materials'] if m['source_id'] == 's2')['text']
+    rooms = re.findall(r'[A-D]可容\d+人、([^、]+)、\d+元', quote)
+    assert len(rooms) == 4
+    assert [room for room in rooms if '无障碍通道' not in room] == []
+
+
+def test_decision_03_rejects_only_hard_condition_failures():
+    """把合格但更贵的 D 计入 rejected_ids 必须判 fail；参考答案本身必须通过。"""
+    _, tasks, refs, *_ = load_study(STUDY)
+    task = next(t for t in tasks if t['task_id'] == 'decision-03')
+    reference = refs['decision-03']
+    assert check_output(task, reference, reference['author_reference'])['status'] == 'pass'
+    wrong = deepcopy(reference['author_reference'])
+    next(f for f in wrong['findings'] if f['id'] == 'rejected_ids')['value'] = ['B', 'C', 'D']
+    result = check_output(task, reference, wrong)
+    assert result['status'] == 'fail'
+    assert [row['check'] for row in result['checks'] if row['status'] == 'fail'] == ['rejected_ids']

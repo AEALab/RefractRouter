@@ -88,7 +88,9 @@ def recalculate(task):
         minimum, maximum = a
         rows = [(name, int(capacity), passage, int(cost)) for name, capacity, passage, cost in
                 re.findall(r'([A-D])可容(\d+)人、([^、]+)、(\d+)元', s['s2'])]
-        valid = [(cost, name) for name, capacity, passage, cost in rows if capacity >= minimum and passage != '无通道' and cost <= maximum]
+        # 通道字段的否定形态一律视为不满足硬条件：「无通道」与「无无障碍通道」都不得当合格。
+        valid = [(cost, name) for name, capacity, passage, cost in rows
+                 if capacity >= minimum and not passage.startswith('无') and cost <= maximum]
         cost, name = min(valid)
         return dict(selected=name, cost=cost, rejected_ids=[r[0] for r in rows if (r[3], r[0]) not in valid])
     if tid == 'decision-04':

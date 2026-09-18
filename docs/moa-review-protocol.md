@@ -33,8 +33,12 @@
 ## 调用约束
 
 - 零重试：任何超时、非零退出、无输出或 JSON 不合规都记为 failed / pending，不自动重发。
-- 单次调用超时 240 秒；评审调用不注册工具，claude 使用「--tools ""」并设置
-  「--permission-mode dontAsk」，codex 使用「-s read-only」。
+- 单次调用默认超时 480 秒，冻结在策略文件里；评审调用不注册工具，claude 使用
+  「--tools ""」并设置「--permission-mode dontAsk」，codex 使用「-s read-only」。
+- 超时可用「--timeout-seconds」或环境变量「MOA_REVIEW_TIMEOUT_SECONDS」覆盖：
+  覆盖值只作用于本次运行，不写入策略文件，所以策略摘要不变、既有材料评审记录继续有效。
+  预检会记录实际生效秒数并据此计算包络；live 启动时校验与冻结包络一致，
+  不一致必须换新目录重新预检。长评审题目的定向重跑用 900 秒（见下方解锁记录）。
 - 每次调用输出严格 JSON，由 parse_review 校验：必须逐字覆盖全部 criteria，
   总体 verdict 必须服从「任一 fail 则 fail，否则任一 pending 则 pending，否则 pass」。
 - 原始响应、prompt 哈希、CLI 版本、退出码和耗时逐次存档，未知用量不填零。
@@ -87,6 +91,46 @@ moa-calibration-08）。经用户确认改用 opus 并将 thinking effort 提到
   零模型调用。付费评审运行必须使用新的输出目录并显式指定「--live」。
 - 策略、模型、thinking effort、prompt、JSON schema、超时与零重试规则改变时，
   必须重新冻结；历史记录保留原策略标签。
+- 超时覆盖不属于策略改变：策略文件里的 480 秒不动，包络只记录本次实际生效的秒数。
+
+## 留出门槛解锁（2026-09-18）
+
+12 题留出实验此前被两处阻塞挡住：decision-03 先是评审调用超时
+（claude 侧 480 秒内未返回，记 exit_code=124），decision-06 是参考检查把有序字段
+当成无序集合比较。前者超时解除后，又暴露出第二处真实的材料歧义。
+
+- decision-06 的参考检查由 set_equal 改为 equal（有序），任务与参考的
+  semantic_criteria 同步补上「顺序必须满足全部依赖方向，并与 finish_minute 相互一致」，
+  并重算该题 task_sha256 与两个 artifact 哈希；其余 11 题材料、参考与哈希未动，
+  因此 10 份已通过的材料评审记录继续有效。
+- decision-03 与 decision-06 用「--task-ids」定向重跑，超时用 900 秒，
+  产物为 reports/quality-study-v2/moa-material-05/。
+- 超时解除后 decision-03 仍判 pending：s1 的硬条件是「无障碍通道」，而 s2 起初只对 A 写
+  「无障碍通道」，对 B、D 写「有通道」、C 写「无通道」。若「有通道」不等同硬条件所指，
+  D 即硬条件不合格，rejected_ids 应为 {B,C,D} 而非参考的 {B,C}。修订只把 s2 的通道描述
+  统一为「有无障碍通道」／「无无障碍通道」，房间、容量、报价与参考答案一字未改，并重算
+  该题 material_sha256、task_sha256 与两个 artifact 哈希；decision-03 因此在
+  reports/quality-study-v2/moa-material-06/ 再重审一次。
+- 上述修订只落在 data/quality-study-v1：MoA 材料评审记录（含六个开发任务）都由 v1 生成，
+  而 v2 的 protocol.json 哈希已被已完成开发对照的 frozen.json 绑定，改动会让那批付费结果
+  无法复算。v2 的 decision-06 与 decision-03 保持原样，改用 v2 跑留出前必须先同步修订。
+- 旧分片与新分片通过 experiments/merge_moa_records.py 合成单一 records 文件，
+  门禁（moa_gate）只读这一个文件，避免同一任务出现多份互相矛盾的记录。
+
+运行参数：`--task-ids` 只作用于 `--kind material`，用于定向重跑；`--timeout-seconds`
+（或环境变量 `MOA_REVIEW_TIMEOUT_SECONDS`）只覆盖单次调用超时，preflight 会记录本次
+实际生效秒数，`MOA_POLICY` 里的 480 秒不动，策略摘要因此保持不变。
+
+解锁结果（2026-09-18，均为本机 CLI，未消耗 Ark AFP）：
+
+- 材料评审：`reports/quality-study-v2/moa-material-gate/moa-results.json`，12 题六项 criterion
+  全部共识 pass，升级 0 条、无效记录 0 条。合流默认拒绝跨分片重复任务；被定向重审取代的
+  旧结论必须显式使用 `--allow-supersede` 才会被覆盖，并在 `superseded` 字段与 README 逐条留痕。
+- 用途确认：`reports/quality-study-v2/moa-purpose-06/`，两位初审
+  （codex `ds/deepseek-v4-pro`、claude `opus`）一致 pass，无升级。
+- 门禁放行：12 题冻结件为 `reports/pareto-holdout-v1/bound-01/frozen.json`，
+  `moa_gate` 判定为 True；排练产物 `reports/pareto-holdout-v1/rehearsal-01/` 为 0 次真实调用。
+- 付费执行只登记范围（12 题 × 3 臂 × 3 重复，调用上限 612，估 400–550 AFP），等待放行。
 
 ## 升级实跑结果与已知限制（2026-09-17）
 
