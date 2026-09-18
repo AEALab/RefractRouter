@@ -202,6 +202,23 @@ frozen.json 绑定，改动会让那批付费结果无法复算，因此本轮�
 `direct-or-dag` 对 `direct-strong` 与 `direct-or-dag` 对 `task-selector`，主指标为
 AFP per accepted task，时间与墙钟只作探索诊断。
 
+### 重新冻结（bound-02，2026-09-18）
+
+PR #97（隐私放置 A2）在 bound-01 冻结后改动了 `src/refractrouter/` 下五个被冻结哈希
+绑定的文件（`agent.py`、`application_config.py`、`dynamic_decomposition.py`、
+`task_execution.py`、`task_runtime.py`）。在当前实现上以 bound-01 重放排练会在
+哈希绑定校验处触发 `ValueError: frozen protocol or implementation changed`，
+bound-01 就此失效并保留原样，不追改。
+
+- 新冻结件：`reports/pareto-holdout-v1/bound-02/frozen.json`。选择与 bound-01 完全
+  一致：12 题留出 × 3 臂 × 3 重复，`max_calls` 612、`online_afp_ceiling` 29523.4848、
+  `offline_afp_ceiling` 14376.96；冻结过程零模型调用、零 AFP。
+- 新排练：`reports/pareto-holdout-v1/rehearsal-02/`。108 次运行、状态 completed、
+  `actual_model_calls` 0、`actual_afp` 0、墙钟约 40.2 秒；MoA 门禁证据复用 #96 的
+  合流材料评审与 moa-purpose-06 用途确认，未产生新的评审调用。
+- 付费执行继续只登记、不执行，等待用户明确放行；登记范围与包络同 bound-02，
+  估计仍约 400–550 AFP。
+
 ## 运行与真人证据导入
 
 默认入口只冻结，绝不调用模型；执行必须使用该文件且不得覆盖范围。

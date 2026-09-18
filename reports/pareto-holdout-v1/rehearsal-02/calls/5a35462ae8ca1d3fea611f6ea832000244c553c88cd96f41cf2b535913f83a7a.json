@@ -1,0 +1,19 @@
+{
+  "label": "decision-03-r1-direct-or-dag:answer",
+  "content": "{\"answer\": \"A符合全部要求且在合格房间中最低价。B容量不足，C无通道；D合格但更贵。\", \"findings\": [{\"id\": \"selected\", \"value\": \"A\", \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"cost\", \"value\": 450, \"sources\": [\"s2\"]}, {\"id\": \"rejected_ids\", \"value\": [\"B\", \"C\"], \"sources\": [\"s1\", \"s2\"]}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null,
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": null,
+  "ttft_ms": null
+}
