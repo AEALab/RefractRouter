@@ -1,0 +1,33 @@
+{
+  "schema_version": "judge-replay-v1",
+  "source": "reports/pareto-development-v1/live-01",
+  "source_sha256": "1eac1f8226592e9b0d877b6eced4d4c7c5d469498eae20dec35314964cbdeb75",
+  "case_count": 107,
+  "skipped": {
+    "missing-delivery-judge": 1
+  },
+  "identical_request_between_judges": 107,
+  "replayed_afp_by_stage": {
+    "delivery-judge": 143.861,
+    "research-judge": 143.839
+  },
+  "replayed_afp_by_model": {
+    "judge": 287.7
+  },
+  "verdict_pairs": {
+    "fail -> fail": 6,
+    "fail -> pass": 4,
+    "pass -> fail": 4,
+    "pass -> pass": 93
+  },
+  "verdict_agreement": 0.925234,
+  "criterion_pairs": {
+    "fail -> fail": 17,
+    "fail -> pass": 10,
+    "fail -> pending": 1,
+    "pass -> fail": 10,
+    "pass -> pass": 390
+  },
+  "criterion_agreement": 0.950935,
+  "noise_floor_note": "同一 judge 模型、同一 payload 的兩次取樣；一致率是重複取樣基準，不是獨立第二意見。"
+}
