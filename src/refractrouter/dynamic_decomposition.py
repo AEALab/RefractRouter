@@ -13,6 +13,8 @@ from .node_routing import load_profile, route_nodes
 from .planning_support import compile_generated_capacity, admission_diagnostics
 from .task_plan import MAX_NODES, validate_plan
 from .responses_api import output_token_limit
+from .privacy_placement import (PrivacyRouteViolation, grade_nodes, restricted_eligible_models,
+                                role_isolation, static_node_views)
 
 
 def graft(plan, nid, subplan):
@@ -49,12 +51,14 @@ def graft(plan, nid, subplan):
 
 class DynamicDecomposition:
     def __init__(self, *, request, manifest, configuration, profiles, planner, budget, policy,
-                 task, result, persist, deadline, cancel_event=None, input_cap=131072, tools=None):
+                 task, result, persist, deadline, cancel_event=None, input_cap=131072, tools=None,
+                 placement=None, privacy=None, classifier=None):
         self.request, self.manifest, self.configuration = request, manifest, configuration
         self.profiles, self.planner, self.budget, self.policy = profiles, planner, budget, policy
         self.task, self.result, self.persist, self.deadline = task, result, persist, deadline
         self.cancel_event, self.protected = cancel_event, set()
         self.input_cap, self.tools = input_cap, tools
+        self.placement, self.privacy, self.classifier = placement, privacy, classifier
         self.candidates = {m.model_id: m for m in manifest.candidates}
         self.limit = request['maxDynamicSplits']
         result['dynamic_decomposition'] = {'policy_version': 'drain-and-graft-v1',
@@ -97,11 +101,22 @@ class DynamicDecomposition:
                     raise ValueError('task-deadline-exhausted')
                 time.sleep(.01)
             dispatch_history[provider] = time.monotonic()
-            subplan = generate_compact(self.budget, self.planner, {
+            payload = {
                 'task': self.task, 'failed_node': {'instruction': node.prompt_template,
                     'objective': contract['objective'], 'checks': contract['checks']},
                 'failure': reason[:1000],
-                'instruction': '仅拆当前困难节点为 2..3 个更小职责，最后一项汇总原职责。独立检查尽量并行。不得重复已完成的上游，也不得修改原始要求。'},
+                'instruction': '仅拆当前困难节点为 2..3 个更小职责，最后一项汇总原职责。独立检查尽量并行。不得重复已完成的上游，也不得修改原始要求。'}
+            if self.placement is not None:
+                # 再拆规划器同样会读到节点指令与失败理由；敏感节点只允许本地规划。
+                check = role_isolation(view=json.dumps(payload, ensure_ascii=False, sort_keys=True),
+                                       privacy=self.privacy, classifier=self.classifier, model=self.planner,
+                                       role='split-planner', source='split-planner-view')
+                self.placement['role_checks'].append(check)
+                if not check['satisfied']:
+                    check['detail'] = 'split-planner-not-local'
+                    self.placement['blocked'].append(check)
+                    raise PrivacyRouteViolation(f'privacy-split-planner-not-local:{nid}')
+            subplan = generate_compact(self.budget, self.planner, payload,
                 event['planner'], criteria=plan.acceptance_criteria,
                 cost_limit=self.request['costMax'], deadline=None if self.request.get('unrestrictedPlanning') else min(self.budget.deadline(self.deadline),
                     time.monotonic() + self.request.get('plannerTimeoutMs', 12000)/1000),
@@ -127,12 +142,24 @@ class DynamicDecomposition:
             now = time.monotonic()
             wait_ms = max((dispatch_history.get(m.provider, -float('inf')) + self.policy.interval(m.provider)/1000 - now
                            for m in self.candidates.values()), default=0) * 1000
+            eligible_models = {n.node_id: admission[n.node_id]['eligible_models'] for n in residual.nodes}
+            if self.placement is not None:
+                narrowed = grade_nodes(self.placement, nodes=[n for n in residual.nodes if n.node_id in affected],
+                    node_views=static_node_views(residual, self.task), privacy=self.privacy,
+                    classifier=self.classifier, source='split-view')
+                eligible_models = restricted_eligible_models(eligible_models, {'eligible_models': narrowed})
+                starved = [nid for nid in narrowed if not eligible_models.get(nid)]
+                if starved:
+                    for nid in starved:
+                        self.placement['blocked'].append({'node_id': nid, 'grade': self.placement['grades'][nid]['grade'],
+                            'reasons': self.placement['grades'][nid]['reasons'], 'detail': 'no-local-candidate'})
+                    raise PrivacyRouteViolation('privacy-no-local-candidate-after-split')
             routing = route_nodes(residual, profiles, method=self.request['method'],
                 quality_min=self.request['qualityMin'], cost_max=min(self.budget.remaining(),
                     max(0, self.request['costMax']-self.budget.snapshot()[0]['production'])),
                 latency_max_ms=None if self.request.get("unlimitedTime") else max(0, (self.budget.deadline(self.deadline)-now)*1000-max(0, wait_ms)),
                 weights=Weights(**self.request['weights']) if self.request['method']=='B' else None,
-                eligible_models={n.node_id:admission[n.node_id]['eligible_models'] for n in residual.nodes},
+                eligible_models=eligible_models,
                 reduce_dominated=self.configuration is not None, execution_policy=self.policy, model_providers={mid:m.provider for mid,m in self.candidates.items()})
             event.update(plan=expanded.to_dict(), admission=admission, routing=routing)
             if routing['status'] != 'selected':

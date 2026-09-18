@@ -1,0 +1,100 @@
+{
+  "实验": "隐私感知放置零调用预检",
+  "假设": "deepseek-v4-flash 按 simulated-local 记 0 边际成本",
+  "实际模型调用": 0,
+  "privacy": {
+    "enabled": true,
+    "sensitiveTerms": [],
+    "maxPromptBytes": 1048576
+  },
+  "scenarios": [
+    {
+      "scenario": "public-task",
+      "status": "preview",
+      "issues": [],
+      "placement_status": "selected",
+      "grades": {
+        "answer": "S3"
+      },
+      "eligible_models": {},
+      "blocked": [],
+      "role_checks": [],
+      "judge_isolation": {
+        "required": false,
+        "nodes": [],
+        "judge_model_id": "evaluation-kimi-k3",
+        "judge_deployment": "cloud",
+        "satisfied": true
+      },
+      "events": []
+    },
+    {
+      "scenario": "sensitive-task-cloud-judge",
+      "status": "preview",
+      "issues": [
+        "final-judge: privacy-judge-not-local"
+      ],
+      "placement_status": "selected",
+      "grades": {
+        "answer": "S1"
+      },
+      "eligible_models": {
+        "answer": [
+          "deepseek-v4-flash"
+        ]
+      },
+      "blocked": [],
+      "role_checks": [],
+      "judge_isolation": {
+        "required": true,
+        "nodes": [
+          "answer"
+        ],
+        "judge_model_id": "evaluation-kimi-k3",
+        "judge_deployment": "cloud",
+        "satisfied": false
+      },
+      "events": []
+    },
+    {
+      "scenario": "sensitive-task-local-judge",
+      "status": "preview",
+      "issues": [],
+      "placement_status": "selected",
+      "grades": {
+        "answer": "S1"
+      },
+      "eligible_models": {
+        "answer": [
+          "deepseek-v4-flash"
+        ]
+      },
+      "blocked": [],
+      "role_checks": [],
+      "judge_isolation": {
+        "required": true,
+        "nodes": [
+          "answer"
+        ],
+        "judge_model_id": "evaluation-kimi-k3",
+        "judge_deployment": "simulated-local",
+        "satisfied": true
+      },
+      "events": []
+    }
+  ],
+  "pricing": [
+    {
+      "model_id": "deepseek-v4-flash",
+      "deployment": "simulated-local",
+      "effective_input_per_1k": 0.0,
+      "effective_output_per_1k": 0.0,
+      "declared_pricing": {
+        "unit": "AFP",
+        "inputPer1k": 0.05,
+        "outputPer1k": 0.05,
+        "cachedInputPer1k": 0.05
+      }
+    }
+  ]
+}

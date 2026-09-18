@@ -241,7 +241,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         evaluation_limit=RELAXED_COST_MAX if relax_budget else evaluation_budget,
         checkpoint=checkpoint, cancel_event=cancel_event, tool_runtime=tool_runtime,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
-        context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap)
+        context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap,
+        privacy=configured.privacy if configured else None)
     if result.get('routing_profile'):
         profile = result['routing_profile']
         atomic_json(directory / 'profile.json', profile)
