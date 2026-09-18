@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r3-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确区分文件A可提供、文件B内部禁止、文件C附件因含未脱敏联系方式触发附件例外而 blocked；findings 的 id、sources 符合契约，正文与结构化结论一致，未把公开标签当充分条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据（s1公开原则、s2目录）、限制（仅基于目录描述，未查看实际内容；C脱敏后可重评），符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文与 findings 一致：A 可释放，B 与 C附件 blocked；未把'脱敏后可提供'当作当前事实，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable=[文件A]、blocked=[文件B,文件C附件]，均引用 s1、s2，足以支持分类。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确指出C附件虽公开且解禁已过，但因含未脱敏联系方式触发附件例外，当前不能直接提供。\"}]}",
+  "input_tokens": 798,
+  "output_tokens": 300,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11465,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733993373ca3041a3a8c2b7f648d1ff1a7e90ae3f7055e1",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 300,
+    "prompt_tokens": 798,
+    "total_tokens": 1098,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确区分文件A可提供、文件B内部禁止、文件C附件因含未脱敏联系方式触发附件例外而 blocked；findings 的 id、sources 符合契约，正文与结构化结论一致，未把公开标签当充分条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据（s1公开原则、s2目录）、限制（仅基于目录描述，未查看实际内容；C脱敏后可重评），符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文与 findings 一致：A 可释放，B 与 C附件 blocked；未把'脱敏后可提供'当作当前事实，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable=[文件A]、blocked=[文件B,文件C附件]，均引用 s1、s2，足以支持分类。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确指出C附件虽公开且解禁已过，但因含未脱敏联系方式触发附件例外，当前不能直接提供。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

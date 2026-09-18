@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r3-direct-or-dag:planner",
+  "content": "{\"reason\":\"分别核对两个工作坊的用品条件，再合并检查共享预算并输出最终结果。\",\"nodes\":[{\"id\":\"check_painting\",\"type\":\"verification\",\"job\":\"核对绘画班材料：必须10套无溶剂用品，X满足且350元，Y不满足含溶剂，故选择X。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"check_craft\",\"type\":\"verification\",\"job\":\"核对手工班材料：必须10套含护目镜套件，U满足且420元，V不满足不含护目镜，故选择U。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"final_answer\",\"type\":\"generation\",\"job\":\"汇总两个局部选择，计算总费用350+420=770元，共享预算800元，剩余30元；输出kits、total_cost、remaining_budget及中文说明。\",\"parents\":[\"check_painting\",\"check_craft\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 698,
+  "output_tokens": 217,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1581,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973370587959e4692ee8689b9dc112ef0a7e12032fb44979",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 217,
+    "prompt_tokens": 698,
+    "total_tokens": 915,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"reason\":\"分别核对两个工作坊的用品条件，再合并检查共享预算并输出最终结果。\",\"nodes\":[{\"id\":\"check_painting\",\"type\":\"verification\",\"job\":\"核对绘画班材料：必须10套无溶剂用品，X满足且350元，Y不满足含溶剂，故选择X。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"check_craft\",\"type\":\"verification\",\"job\":\"核对手工班材料：必须10套含护目镜套件，U满足且420元，V不满足不含护目镜，故选择U。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"final_answer\",\"type\":\"generation\",\"job\":\"汇总两个局部选择，计算总费用350+420=770元，共享预算800元，剩余30元；输出kits、total_cost、remaining_budget及中文说明。\",\"parents\":[\"check_painting\",\"check_craft\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

@@ -1,0 +1,34 @@
+{
+  "label": "analysis-05-r2-direct-or-dag:selector",
+  "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务为单一顺序推理链，无独立子问题可并行，直接执行最简。\"}",
+  "input_tokens": 613,
+  "output_tokens": 31,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1163,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897323560197d6713dc852f73f0cf900d2fbe3d4488c830c6",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 31,
+    "prompt_tokens": 613,
+    "total_tokens": 644,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务为单一顺序推理链，无独立子问题可并行，直接执行最简。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

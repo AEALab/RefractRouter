@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r3-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确核对两个工作坊的用品条件，选择 X 和 U，计算总费用 770 元、剩余预算 30 元，符合共享预算约束；正文与 findings 一致，引用充分，且说明了不可替代条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确识别绘画班必须选 X（s1）、手工班必须选 U（s2），合并后总费用 770 元未超 800 元预算（s3），满足不可少买和不假设补充配件的要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 kits 为 [\\\"X\\\",\\\"U\\\"]、total_cost 为 770、remaining_budget 为 30，与正文计算一致；未反写依赖或扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"kits、total_cost、remaining_budget 三项均完整且数值正确；kits 和 total_cost 引用 s1、s2 支持，remaining_budget 引用 s3 支持，足以支撑主张。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确将两个局部选择合并后检查共享预算（770 ≤ 800），并指出绘画班“无溶剂”和手工班“含护目镜”为不可替代条件，不能改选 Y 或 V。\"}]}",
+  "input_tokens": 971,
+  "output_tokens": 355,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11704,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897337397503d763aaa7a5e423f9e5323a8c500bc9fe8d248",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 355,
+    "prompt_tokens": 971,
+    "total_tokens": 1326,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确核对两个工作坊的用品条件，选择 X 和 U，计算总费用 770 元、剩余预算 30 元，符合共享预算约束；正文与 findings 一致，引用充分，且说明了不可替代条件。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文正确识别绘画班必须选 X（s1）、手工班必须选 U（s2），合并后总费用 770 元未超 800 元预算（s3），满足不可少买和不假设补充配件的要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 kits 为 [\\\"X\\\",\\\"U\\\"]、total_cost 为 770、remaining_budget 为 30，与正文计算一致；未反写依赖或扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"kits、total_cost、remaining_budget 三项均完整且数值正确；kits 和 total_cost 引用 s1、s2 支持，remaining_budget 引用 s3 支持，足以支撑主张。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确将两个局部选择合并后检查共享预算（770 ≤ 800），并指出绘画班“无溶剂”和手工班“含护目镜”为不可替代条件，不能改选 Y 或 V。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

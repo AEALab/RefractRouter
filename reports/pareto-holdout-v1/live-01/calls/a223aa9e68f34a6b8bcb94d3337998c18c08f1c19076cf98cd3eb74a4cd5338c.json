@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r2-direct-strong:answer",
+  "content": "{\n  \"answer\": \"三份材料中，当前可直接提供给外部访客的只有文件A。文件B属于内部材料，依据公开原则禁止提供。文件C虽然主体标记为公开且解禁已过，但其附件含个人联系方式且未脱敏，触发附件例外规则，不能直接提供；必须先完成脱敏处理后才可考虑对外提供。结论：releasable 仅包含文件A；blocked 包含文件B和文件C附件。\",\n  \"findings\": [\n    {\n      \"id\": \"releasable\",\n      \"value\": [\"文件A\"],\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"blocked\",\n      \"value\": [\"文件B\", \"文件C附件\"],\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}",
+  "input_tokens": 640,
+  "output_tokens": 183,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 3218,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897329589643d3436761e68cde6bd2815b0b11060ac8ba795",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 183,
+    "prompt_tokens": 640,
+    "total_tokens": 823,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\n  \"answer\": \"三份材料中，当前可直接提供给外部访客的只有文件A。文件B属于内部材料，依据公开原则禁止提供。文件C虽然主体标记为公开且解禁已过，但其附件含个人联系方式且未脱敏，触发附件例外规则，不能直接提供；必须先完成脱敏处理后才可考虑对外提供。结论：releasable 仅包含文件A；blocked 包含文件B和文件C附件。\",\n  \"findings\": [\n    {\n      \"id\": \"releasable\",\n      \"value\": [\"文件A\"],\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"blocked\",\n      \"value\": [\"文件B\", \"文件C附件\"],\n      \"sources\": [\"s1\", \"s2\"]\n    }\n  ]\n}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

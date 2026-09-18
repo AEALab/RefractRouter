@@ -1,0 +1,34 @@
+{
+  "label": "analysis-06-r3-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案正文与 findings 在 complaint_before_restore 上自相矛盾：按统一北京时间，start=09:50、complaint=10:10、restore=10:20，投诉早于恢复，故 complaint_before_restore 应为 true；但 findings 给出 false，正文也错误结论为不早于恢复。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"时间换算本身支持 start 09:50、complaint 10:10、restore 10:20，但正文最终结论称投诉不早于恢复，违反材料推出的事实与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文顺序句先说投诉早于服务恢复，随后结论句又称投诉不早于服务恢复；findings 的 complaint_before_restore=false 与正确时序相反，存在依赖/先后关系反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"order=[start,complaint,restore] 正确且有 s1/s2 支持；但 complaint_before_restore=false 事实错误，同一引用组合反而支持 true。\"},{\"criterion\":\"顺序必须有向、不可把事件集相同当成顺序相同。\",\"verdict\":\"pass\",\"rationale\":\"候选明确给出有向顺序 start→complaint→restore，而非仅列事件集合；该点满足，尽管对 complaint 与 restore 的先后判断结论错误。\"}]}",
+  "input_tokens": 865,
+  "output_tokens": 343,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9868,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733447608770d3492782dd10cc0a489fec0a72eadb05223",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 343,
+    "prompt_tokens": 865,
+    "total_tokens": 1208,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"fail\",\"rationale\":\"候选答案正文与 findings 在 complaint_before_restore 上自相矛盾：按统一北京时间，start=09:50、complaint=10:10、restore=10:20，投诉早于恢复，故 complaint_before_restore 应为 true；但 findings 给出 false，正文也错误结论为不早于恢复。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"时间换算本身支持 start 09:50、complaint 10:10、restore 10:20，但正文最终结论称投诉不早于恢复，违反材料推出的事实与任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"正文顺序句先说投诉早于服务恢复，随后结论句又称投诉不早于服务恢复；findings 的 complaint_before_restore=false 与正确时序相反，存在依赖/先后关系反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"fail\",\"rationale\":\"order=[start,complaint,restore] 正确且有 s1/s2 支持；但 complaint_before_restore=false 事实错误，同一引用组合反而支持 true。\"},{\"criterion\":\"顺序必须有向、不可把事件集相同当成顺序相同。\",\"verdict\":\"pass\",\"rationale\":\"候选明确给出有向顺序 start→complaint→restore，而非仅列事件集合；该点满足，尽管对 complaint 与 restore 的先后判断结论错误。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

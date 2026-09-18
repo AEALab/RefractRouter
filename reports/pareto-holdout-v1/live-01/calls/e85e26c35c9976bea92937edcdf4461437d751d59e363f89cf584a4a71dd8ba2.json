@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r1-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别文件A可提供、文件B内部禁止、文件C附件因含未脱敏联系方式而 blocked，正文与 findings 一致，引用 s1、s2 充分，且正确处理了附件例外。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据、限制与权衡，符合 output_contract；结论与 s1 公开原则及 s2 目录一致，无违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 releasable=[文件A]、blocked=[文件B,文件C附件] 与正文结论一致；未将脱敏后可提供当作当前可提供，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable 与 blocked 两个必需键均存在且事实正确；每项 sources 含 s1（规则）与 s2（事实），足以支持主张。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"文件C附件虽公开且过解禁日，但因含联系方式未脱敏被正确判为 blocked，体现了附件例外规则。\"}]}",
+  "input_tokens": 842,
+  "output_tokens": 305,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10582,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731907721d6f60410e67e178f28d968f0420b51c3992a34",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 305,
+    "prompt_tokens": 842,
+    "total_tokens": 1147,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别文件A可提供、文件B内部禁止、文件C附件因含未脱敏联系方式而 blocked，正文与 findings 一致，引用 s1、s2 充分，且正确处理了附件例外。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据、限制与权衡，符合 output_contract；结论与 s1 公开原则及 s2 目录一致，无违反硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 releasable=[文件A]、blocked=[文件B,文件C附件] 与正文结论一致；未将脱敏后可提供当作当前可提供，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"releasable 与 blocked 两个必需键均存在且事实正确；每项 sources 含 s1（规则）与 s2（事实），足以支持主张。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"文件C附件虽公开且过解禁日，但因含联系方式未脱敏被正确判为 blocked，体现了附件例外规则。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

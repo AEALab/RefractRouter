@@ -1,0 +1,34 @@
+{
+  "label": "decision-03-r1-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文正确应用三项硬条件（12人、无障碍、≤500元），选出最低价A（450元），排除B（容量不足）与C（无无障碍），并明确D为合格但未选、不计入rejected_ids。findings中selected=A、cost=450、rejected_ids=[B,C]，与正文一致，引用s1、s2足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1需求（12人、无障碍、预算500、选最低价）与s2报价，A/D均合格，A 450元最低，结论符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings的selected=A、cost=450、rejected_ids=[B,C]与正文一致，未夸大或反向表述依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且数值正确；selected引用s1、s2，cost引用s2，rejected_ids引用s1、s2，均足以支持。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确B因容量不足、C因无无障碍属硬条件不合格；D合格但价高未选且不计入rejected_ids，区分清晰并给出依据。\"}]}",
+  "input_tokens": 854,
+  "output_tokens": 341,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11535,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897315377037820404c56ac6dd9ce215ba8b602495a5b02b1",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 341,
+    "prompt_tokens": 854,
+    "total_tokens": 1195,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"正文正确应用三项硬条件（12人、无障碍、≤500元），选出最低价A（450元），排除B（容量不足）与C（无无障碍），并明确D为合格但未选、不计入rejected_ids。findings中selected=A、cost=450、rejected_ids=[B,C]，与正文一致，引用s1、s2足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1需求（12人、无障碍、预算500、选最低价）与s2报价，A/D均合格，A 450元最低，结论符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings的selected=A、cost=450、rejected_ids=[B,C]与正文一致，未夸大或反向表述依赖。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全且数值正确；selected引用s1、s2，cost引用s2，rejected_ids引用s1、s2，均足以支持。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确B因容量不足、C因无无障碍属硬条件不合格；D合格但价高未选且不计入rejected_ids，区分清晰并给出依据。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

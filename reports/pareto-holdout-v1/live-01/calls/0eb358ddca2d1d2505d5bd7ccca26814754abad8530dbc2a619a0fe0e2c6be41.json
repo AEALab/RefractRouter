@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r2-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出满足全部硬约束：绘画班选X（10套无溶剂，350元），手工班选U（10套含护目镜，420元），合计770元未超800元共享预算，剩余30元；正文逐项说明不可替代条件（Y含溶剂、V不含护目镜均不可替换），并将两个局部选择代入共享预算核对；findings中kits、total_cost、remaining_budget与正文一致，数值正确，sources引用足以支持各自主张，未反写依赖或扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选X满足s1'必须10套无溶剂'（排除含溶剂的Y），选U满足s2'必须10套含护目镜'（排除不含护目镜的V），合计770元≤800元满足s3共享预算，未少买、未自行假设补充配件。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中kits=[X,U]、total_cost=770、remaining_budget=30与正文结论完全一致；依赖方向（先满足各班硬性条件再核对共享预算）正确，未将可选方案误述为可行。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个requested_findings均给出：kits引用s1、s2（套件来源），total_cost=770=350+420引用s1、s2、s3，remaining_budget=30=800-770引用s3；数值计算正确，引用足以支持。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确将X(350)+U(420)=770代入800元共享预算核对可行，并说明Y含溶剂违反'无溶剂'、V不含护目镜违反'含护目镜'，属不可替代条件，即使更便宜也不可替换。\"}]}",
+  "input_tokens": 1086,
+  "output_tokens": 450,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9865,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973269888496de9f55314d9c1d75ac853e3e9cad7ef4f7aa",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 450,
+    "prompt_tokens": 1086,
+    "total_tokens": 1536,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出满足全部硬约束：绘画班选X（10套无溶剂，350元），手工班选U（10套含护目镜，420元），合计770元未超800元共享预算，剩余30元；正文逐项说明不可替代条件（Y含溶剂、V不含护目镜均不可替换），并将两个局部选择代入共享预算核对；findings中kits、total_cost、remaining_budget与正文一致，数值正确，sources引用足以支持各自主张，未反写依赖或扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选X满足s1'必须10套无溶剂'（排除含溶剂的Y），选U满足s2'必须10套含护目镜'（排除不含护目镜的V），合计770元≤800元满足s3共享预算，未少买、未自行假设补充配件。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中kits=[X,U]、total_cost=770、remaining_budget=30与正文结论完全一致；依赖方向（先满足各班硬性条件再核对共享预算）正确，未将可选方案误述为可行。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个requested_findings均给出：kits引用s1、s2（套件来源），total_cost=770=350+420引用s1、s2、s3，remaining_budget=30=800-770引用s3；数值计算正确，引用足以支持。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确将X(350)+U(420)=770代入800元共享预算核对可行，并说明Y含溶剂违反'无溶剂'、V不含护目镜违反'含护目镜'，属不可替代条件，即使更便宜也不可替换。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

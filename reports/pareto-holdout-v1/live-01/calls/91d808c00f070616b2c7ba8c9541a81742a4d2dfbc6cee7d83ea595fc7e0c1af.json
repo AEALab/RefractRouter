@@ -1,0 +1,34 @@
+{
+  "label": "decision-06-r3-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确遵循依赖链（备份→校验备份→部署→回归检查）与单执行者串行约束，未删除依赖或漏掉回归；finish_minute=55 与各步骤时长累加一致，55<60 故 deadline_met=true；正文与 findings 一致，引用 s1、s2 足以支持结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按 s1 的依赖与时长、s2 的单执行者与 60 分钟窗口串行计算，未并行、未跳过校验，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文所述顺序、55 分钟、窗口内完成与 findings 的 order、finish_minute=55、deadline_met=true 完全一致，依赖方向未反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"order、finish_minute、deadline_met 三项齐全且数值正确（20+10+15+10=55<60），均引用 s1、s2，足以支持。\"},{\"criterion\":\"不得为了提速删除依赖、漏掉回归或把同一执行者排为并行；order 必须满足全部依赖的先后方向，并与 finish_minute 相互一致。\",\"verdict\":\"pass\",\"rationale\":\"未删除依赖、回归检查保留在末位、全程串行；order 满足备份→校验→部署→回归的依赖方向，累计 55 分钟与 finish_minute 一致。\"}]}",
+  "input_tokens": 914,
+  "output_tokens": 368,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10865,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733845272fa871229fec4115dc08043e38393b8b520ab8b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 368,
+    "prompt_tokens": 914,
+    "total_tokens": 1282,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确遵循依赖链（备份→校验备份→部署→回归检查）与单执行者串行约束，未删除依赖或漏掉回归；finish_minute=55 与各步骤时长累加一致，55<60 故 deadline_met=true；正文与 findings 一致，引用 s1、s2 足以支持结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按 s1 的依赖与时长、s2 的单执行者与 60 分钟窗口串行计算，未并行、未跳过校验，符合任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文所述顺序、55 分钟、窗口内完成与 findings 的 order、finish_minute=55、deadline_met=true 完全一致，依赖方向未反写。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"order、finish_minute、deadline_met 三项齐全且数值正确（20+10+15+10=55<60），均引用 s1、s2，足以支持。\"},{\"criterion\":\"不得为了提速删除依赖、漏掉回归或把同一执行者排为并行；order 必须满足全部依赖的先后方向，并与 finish_minute 相互一致。\",\"verdict\":\"pass\",\"rationale\":\"未删除依赖、回归检查保留在末位、全程串行；order 满足备份→校验→部署→回归的依赖方向，累计 55 分钟与 finish_minute 一致。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

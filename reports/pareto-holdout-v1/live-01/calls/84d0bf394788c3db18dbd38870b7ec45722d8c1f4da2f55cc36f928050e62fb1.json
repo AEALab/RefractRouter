@@ -1,0 +1,34 @@
+{
+  "label": "decision-06-r1-direct-or-dag:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出的顺序满足全部依赖方向（备份→校验备份→部署→回归检查），串行由同一执行者执行，总耗时55分钟与finish_minute一致，55≤60故deadline_met为true；正文、findings与材料一致，引用充分，无删除依赖、漏回归或并行化等违规。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按s1依赖链与s2单执行者串行约束排列，总时长20+10+15+10=55分钟，未跳过任何步骤，符合窗口60分钟限制与一次通过假设。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文所述顺序、55分钟、窗口内完成与findings中order、finish_minute=55、deadline_met=true完全一致；依赖方向未反写，限制说明（失败重试风险）未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全：order正确覆盖四个步骤且方向正确，finish_minute=55计算正确，deadline_met=true由55≤60支持；各项均引用s1（依赖与时长）和s2（窗口与执行者约束），足以支撑。\"},{\"criterion\":\"不得为了提速删除依赖、漏掉回归或把同一执行者排为并行；order 必须满足全部依赖的先后方向，并与 finish_minute 相互一致。\",\"verdict\":\"pass\",\"rationale\":\"order包含回归检查且位于部署之后，全部依赖方向保留；单执行者串行无并行；finish_minute=55恰为四步串行求和，与order一致。\"}]}",
+  "input_tokens": 955,
+  "output_tokens": 403,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 12393,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731741769d1a31addd6d38d14c8141e1e64f1efaa190c8a",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 403,
+    "prompt_tokens": 955,
+    "total_tokens": 1358,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出的顺序满足全部依赖方向（备份→校验备份→部署→回归检查），串行由同一执行者执行，总耗时55分钟与finish_minute一致，55≤60故deadline_met为true；正文、findings与材料一致，引用充分，无删除依赖、漏回归或并行化等违规。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文按s1依赖链与s2单执行者串行约束排列，总时长20+10+15+10=55分钟，未跳过任何步骤，符合窗口60分钟限制与一次通过假设。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文所述顺序、55分钟、窗口内完成与findings中order、finish_minute=55、deadline_met=true完全一致；依赖方向未反写，限制说明（失败重试风险）未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三项findings齐全：order正确覆盖四个步骤且方向正确，finish_minute=55计算正确，deadline_met=true由55≤60支持；各项均引用s1（依赖与时长）和s2（窗口与执行者约束），足以支撑。\"},{\"criterion\":\"不得为了提速删除依赖、漏掉回归或把同一执行者排为并行；order 必须满足全部依赖的先后方向，并与 finish_minute 相互一致。\",\"verdict\":\"pass\",\"rationale\":\"order包含回归检查且位于部署之后，全部依赖方向保留；单执行者串行无并行；finish_minute=55恰为四步串行求和，与order一致。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

@@ -1,0 +1,34 @@
+{
+  "label": "decision-03-r3-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别硬条件（12人、无障碍通道、预算500元），排除B（容量不足）和C（无无障碍通道），在合格者A、D中选最低价A（450元），rejected_ids仅含硬条件不合格者B、C，正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文与s1需求（12人、无障碍、预算500、最低价）及s2报价一致，选A费用450元，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=A、cost=450、rejected_ids=[B,C]与正文结论一致，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全且正确；selected引用s1、s2，cost与rejected_ids引用s2，均足以支持。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确B因人数不足、C因缺无障碍属硬条件不合格被排除，D合格但价高未选且不列入rejected_ids，依据具体。\"}]}",
+  "input_tokens": 923,
+  "output_tokens": 315,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10435,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733603392b531818cd979bd70c39b690ac6f239024c4ec9",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 315,
+    "prompt_tokens": 923,
+    "total_tokens": 1238,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确识别硬条件（12人、无障碍通道、预算500元），排除B（容量不足）和C（无无障碍通道），在合格者A、D中选最低价A（450元），rejected_ids仅含硬条件不合格者B、C，正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文与s1需求（12人、无障碍、预算500、最低价）及s2报价一致，选A费用450元，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中selected=A、cost=450、rejected_ids=[B,C]与正文结论一致，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个findings齐全且正确；selected引用s1、s2，cost与rejected_ids引用s2，均足以支持。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确B因人数不足、C因缺无障碍属硬条件不合格被排除，D合格但价高未选且不列入rejected_ids，依据具体。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

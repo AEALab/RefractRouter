@@ -33,9 +33,12 @@
 - MoA 门禁证据复用 #96 的合流材料评审（12 题全部共识 pass）与 moa-purpose-06
   用途确认，`execute()` 的哈希绑定与门槛断言全部通过。
 
-## 正式执行（待授权）
+## live-01（正式实跑，2026-09-18，已授权执行）
 
-- 付费执行未发起。参照旧开发运行（474 次调用、394.5012 AFP）估计实际消耗约
-  400–550 AFP；硬上限按 bound-02 包络（612 次调用、线上 29523.4848 AFP）执行。
+- 以 bound-02 实跑：108 次运行、397 次真实调用、312.7503 AFP（生产 171.3863、
+  评审 141.364）、零重试、墙钟约 52.6 分钟；95 交付、11 扣留、2 失败。
+- 官方质量门槛待 MoA 输出评审；当前 `quality_gate_pending=true`，
+  三个臂的 AFP per accepted task 暂为 null，`confirmed_pareto_frontier` 为空。
 - 主对比：`direct-or-dag` 对 `direct-strong`、`direct-or-dag` 对 `task-selector`；
   主指标为 AFP per accepted task，时间与墙钟只作探索诊断。
+- 详见 `live-01/README.md`。

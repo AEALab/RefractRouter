@@ -1,0 +1,34 @@
+{
+  "label": "decision-03-r2-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单筛选与比较，无复杂推理或并行子问题，直接处理即可。\"}",
+  "input_tokens": 430,
+  "output_tokens": 32,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1421,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897324688163d763aaa7a5e423f9e5323a8c500bc9fde929c",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 32,
+    "prompt_tokens": 430,
+    "total_tokens": 462,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单筛选与比较，无复杂推理或并行子问题，直接处理即可。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

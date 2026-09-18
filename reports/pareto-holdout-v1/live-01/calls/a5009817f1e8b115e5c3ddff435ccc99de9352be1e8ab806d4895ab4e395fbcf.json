@@ -1,0 +1,34 @@
+{
+  "label": "rules-06-r1-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确剔除材料不完整的A，按优先级（数字小者优先）再按提交时间排序合格申请B、C、D、E，分配3个名额给B、C、D，E候补；正文与findings一致，引用s1、s2足以支持，资格-优先级-时间的先后次序未被颠倒。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文遵循s1规则：3个名额、材料完整为资格门槛、先优先级后时间；A因材料不完整被剔除，B（优先1）、C（优先2，08:00早于D 11:00）、D入选，E（优先3）候补，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中excluded=[A]、selected=[B,C,D]、waitlisted=[E]与正文结论完全一致，未颠倒资格/优先级/时间的依赖方向，未超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论（excluded、selected、waitlisted）均给出且事实正确；每项引用s1（规则）与s2（申请名单），足以支持资格判定与排序主张。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"pass\",\"rationale\":\"输出先以材料完整性剔除A，再按优先等级排序，时间仅在同优先级（C与D）内比较，先后次序正确未颠倒。\"}]}",
+  "input_tokens": 1002,
+  "output_tokens": 366,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11953,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732100789e78c31fe06d4434dfef0260629e4a08bf7fe97",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 366,
+    "prompt_tokens": 1002,
+    "total_tokens": 1368,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确剔除材料不完整的A，按优先级（数字小者优先）再按提交时间排序合格申请B、C、D、E，分配3个名额给B、C、D，E候补；正文与findings一致，引用s1、s2足以支持，资格-优先级-时间的先后次序未被颠倒。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文遵循s1规则：3个名额、材料完整为资格门槛、先优先级后时间；A因材料不完整被剔除，B（优先1）、C（优先2，08:00早于D 11:00）、D入选，E（优先3）候补，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中excluded=[A]、selected=[B,C,D]、waitlisted=[E]与正文结论完全一致，未颠倒资格/优先级/时间的依赖方向，未超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个必需结论（excluded、selected、waitlisted）均给出且事实正确；每项引用s1（规则）与s2（申请名单），足以支持资格判定与排序主张。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"pass\",\"rationale\":\"输出先以材料完整性剔除A，再按优先等级排序，时间仅在同优先级（C与D）内比较，先后次序正确未颠倒。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

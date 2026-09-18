@@ -1,0 +1,34 @@
+{
+  "label": "rules-05-r2-task-selector:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用验收标准：P三项均满足判accepted（缺测10%不超过10%），Q校准过期为明确失败判rejected，R缺同步记录且无失败项判unknown，未用缺失证据推断事实。findings与正文一致，id与sources使用符合约定。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1标准与s2数据逐点判断，结论、依据、限制齐全，符合任务与输出约定。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中accepted=P、rejected=Q、unknown=R与正文一致，未将缺证据当作失败或成功。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点结论完整且与s2事实相符，sources引用s2（判断规则源自s1，正文已引述），足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R因无同步记录判unknown并明确说明不因缺证据推断同步与否，符合该语义准则。\"}]}",
+  "input_tokens": 905,
+  "output_tokens": 289,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 10984,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732985789ca3041a3a8c2b7f648d1ff1a7e90ae3f74ca41",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 289,
+    "prompt_tokens": 905,
+    "total_tokens": 1194,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用验收标准：P三项均满足判accepted（缺测10%不超过10%），Q校准过期为明确失败判rejected，R缺同步记录且无失败项判unknown，未用缺失证据推断事实。findings与正文一致，id与sources使用符合约定。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1标准与s2数据逐点判断，结论、依据、限制齐全，符合任务与输出约定。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中accepted=P、rejected=Q、unknown=R与正文一致，未将缺证据当作失败或成功。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点结论完整且与s2事实相符，sources引用s2（判断规则源自s1，正文已引述），足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R因无同步记录判unknown并明确说明不因缺证据推断同步与否，符合该语义准则。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

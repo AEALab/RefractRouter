@@ -1,0 +1,34 @@
+{
+  "label": "rules-06-r1-direct-strong:research-judge",
+  "content": "{\"verdict\":\"fail\",\"rationale\":\"正文先给出入选顺序 C、B、D，随后自行更正为 B、C、D，导致正文内部矛盾且与 findings 中 selected 顺序不一致；尽管最终更正和 findings 的集合内容正确，但正文存在明确顺序错误，违反优先级与时间的先后约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文先写“入选申请按分配顺序为 C、B、D”，与规则“先按优先等级高到低，再按提交时间早到晚”不符；B 优先1 应排在 C、D 之前。虽后文更正为 B、C、D，但正文仍包含并保留错误结论。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"findings 的 selected 为 [\\\"B\\\",\\\"C\\\",\\\"D\\\"]，而正文先声明“C、B、D”，随后又更正为“B、C、D”；正文内部及正文与 findings 在分配顺序上不一致。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"excluded=[A]、selected=[B,C,D]、waitlisted=[E] 与材料相符：A 材料不完整剔除；合格者按优先级 B(1) 先于 C(2,08:00)、D(2,11:00)，E(3) 候补；findings 引用 s1、s2 足以支持。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"fail\",\"rationale\":\"正文曾将 C 排在 B 前（C、B、D），颠倒了优先级顺序（B 优先1 应优先于 C 优先2）；虽后续更正，但错误表述仍存在于正文。\"}]}",
+  "input_tokens": 1042,
+  "output_tokens": 416,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 12446,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973206798040d92d5266a85c14e28416df297f1b20b818c3",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 416,
+    "prompt_tokens": 1042,
+    "total_tokens": 1458,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"fail\",\"rationale\":\"正文先给出入选顺序 C、B、D，随后自行更正为 B、C、D，导致正文内部矛盾且与 findings 中 selected 顺序不一致；尽管最终更正和 findings 的集合内容正确，但正文存在明确顺序错误，违反优先级与时间的先后约束。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"fail\",\"rationale\":\"正文先写“入选申请按分配顺序为 C、B、D”，与规则“先按优先等级高到低，再按提交时间早到晚”不符；B 优先1 应排在 C、D 之前。虽后文更正为 B、C、D，但正文仍包含并保留错误结论。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"fail\",\"rationale\":\"findings 的 selected 为 [\\\"B\\\",\\\"C\\\",\\\"D\\\"]，而正文先声明“C、B、D”，随后又更正为“B、C、D”；正文内部及正文与 findings 在分配顺序上不一致。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"excluded=[A]、selected=[B,C,D]、waitlisted=[E] 与材料相符：A 材料不完整剔除；合格者按优先级 B(1) 先于 C(2,08:00)、D(2,11:00)，E(3) 候补；findings 引用 s1、s2 足以支持。\"},{\"criterion\":\"资格、优先级、时间的先后不可颠倒。\",\"verdict\":\"fail\",\"rationale\":\"正文曾将 C 排在 B 前（C、B、D），颠倒了优先级顺序（B 优先1 应优先于 C 优先2）；虽后续更正，但错误表述仍存在于正文。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

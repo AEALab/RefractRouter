@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r2-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确选择了满足两班不可替代条件的套件（X 无溶剂、U 含护目镜），合计 770 元未超共享预算 800 元，剩余 30 元；正文说明了依据、限制与权衡，findings 三项齐全且引用充分，正文与结构化结论一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选 X（s1 无溶剂 350 元）与 U（s2 含护目镜 420 元），合计 770 元 ≤ 800 元（s3），未少买、未假设补充配件，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 kits=[X,U]、total_cost=770、remaining_budget=30 与正文完全一致；未反写依赖，未超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"kits、total_cost、remaining_budget 三项均存在且数值正确（350+420=770，800-770=30），sources 引用 s1/s2/s3 足以支持各自主张。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确在共享预算 800 元内核对合计 770 元，并说明无溶剂与含护目镜为不可替代条件，故只能选 X 与 U。\"}]}",
+  "input_tokens": 904,
+  "output_tokens": 361,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9963,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732671530770d3492782dd10cc0a489fec0a72eade1604d",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 361,
+    "prompt_tokens": 904,
+    "total_tokens": 1265,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确选择了满足两班不可替代条件的套件（X 无溶剂、U 含护目镜），合计 770 元未超共享预算 800 元，剩余 30 元；正文说明了依据、限制与权衡，findings 三项齐全且引用充分，正文与结构化结论一致。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文选 X（s1 无溶剂 350 元）与 U（s2 含护目镜 420 元），合计 770 元 ≤ 800 元（s3），未少买、未假设补充配件，符合全部硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 kits=[X,U]、total_cost=770、remaining_budget=30 与正文完全一致；未反写依赖，未超出材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"kits、total_cost、remaining_budget 三项均存在且数值正确（350+420=770，800-770=30），sources 引用 s1/s2/s3 足以支持各自主张。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文明确在共享预算 800 元内核对合计 770 元，并说明无溶剂与含护目镜为不可替代条件，故只能选 X 与 U。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

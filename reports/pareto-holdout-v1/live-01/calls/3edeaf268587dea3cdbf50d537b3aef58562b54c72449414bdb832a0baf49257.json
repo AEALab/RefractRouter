@@ -1,0 +1,34 @@
+{
+  "label": "decision-03-r3-direct-strong:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确选出 A（450 元），B 因容量不足、C 因无无障碍通道被列为硬条件不合格，D 合格但价高未选且未计入 rejected_ids；正文与 findings 一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文满足 12 人、无障碍通道、预算 500 元三项硬条件，并在合格者中选最低价 A（450 元），与 s1、s2 一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 selected=A、cost=450、rejected_ids=[B,C] 与正文表述一致，未夸大或反转任何依赖关系。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 齐全且数值正确；selected 与 rejected_ids 引用 s1、s2，cost 引用 s2，均足以支持对应主张。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确指出 B 容量不足、C 无无障碍通道属硬条件不合格，D 合格但价高未选且不计入 rejected_ids，依据具体。\"}]}",
+  "input_tokens": 848,
+  "output_tokens": 312,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 14309,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897335293780b63b37cbca791937f2f41fb0469576d20edcb",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 312,
+    "prompt_tokens": 848,
+    "total_tokens": 1160,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确选出 A（450 元），B 因容量不足、C 因无无障碍通道被列为硬条件不合格，D 合格但价高未选且未计入 rejected_ids；正文与 findings 一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文满足 12 人、无障碍通道、预算 500 元三项硬条件，并在合格者中选最低价 A（450 元），与 s1、s2 一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 selected=A、cost=450、rejected_ids=[B,C] 与正文表述一致，未夸大或反转任何依赖关系。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个 findings 齐全且数值正确；selected 与 rejected_ids 引用 s1、s2，cost 引用 s2，均足以支持对应主张。\"},{\"criterion\":\"区分硬条件不合格与合格但未选；说明选择及排除的具体依据。\",\"verdict\":\"pass\",\"rationale\":\"正文明确指出 B 容量不足、C 无无障碍通道属硬条件不合格，D 合格但价高未选且不计入 rejected_ids，依据具体。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

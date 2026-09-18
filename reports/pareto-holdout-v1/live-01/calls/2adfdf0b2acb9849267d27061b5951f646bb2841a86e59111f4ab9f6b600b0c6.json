@@ -1,0 +1,34 @@
+{
+  "label": "rules-05-r3-direct-or-dag:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用验收标准：P 三项条件均满足（缺测10%未超过上限）判 accepted；Q 校准过期为明确失败判 rejected；R 无同步记录属缺证据而非明确失败，保留 unknown，未用缺失证据推断事实。正文与 findings 一致，引用 s1、s2 足以支持各结论，未发现方向反写或证据扩大。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 标准与 s2 数据逐点判断，输出 accepted/rejected/unknown 三类，含结论、依据、限制与权衡，符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 accepted=P、rejected=Q、unknown=R 与正文一致；R 仅表述为缺少同步证据，未将其等同于未同步，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点结论完整且正确：P 缺测10%满足‘不超过10%’，Q 校准过期为明确失败，R 缺同步记录待核验；各项均引用 s1、s2，足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R 因无同步记录被判 unknown 并明确说明缺失记录不等于未同步，保留了未知状态，未做事实推断。\"}]}",
+  "input_tokens": 952,
+  "output_tokens": 357,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13442,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789734121790ed0e184fb98d17720dee9f0ee33ee7e1742955",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 357,
+    "prompt_tokens": 952,
+    "total_tokens": 1309,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出正确应用验收标准：P 三项条件均满足（缺测10%未超过上限）判 accepted；Q 校准过期为明确失败判 rejected；R 无同步记录属缺证据而非明确失败，保留 unknown，未用缺失证据推断事实。正文与 findings 一致，引用 s1、s2 足以支持各结论，未发现方向反写或证据扩大。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据 s1 标准与 s2 数据逐点判断，输出 accepted/rejected/unknown 三类，含结论、依据、限制与权衡，符合任务与输出契约。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 accepted=P、rejected=Q、unknown=R 与正文一致；R 仅表述为缺少同步证据，未将其等同于未同步，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个测点结论完整且正确：P 缺测10%满足‘不超过10%’，Q 校准过期为明确失败，R 缺同步记录待核验；各项均引用 s1、s2，足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R 因无同步记录被判 unknown 并明确说明缺失记录不等于未同步，保留了未知状态，未做事实推断。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

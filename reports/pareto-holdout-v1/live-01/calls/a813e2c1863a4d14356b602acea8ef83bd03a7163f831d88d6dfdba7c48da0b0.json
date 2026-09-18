@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r1-direct-or-dag:selector",
+  "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务需跨材料核对预算，但规模小且依赖链短，直接处理更省开销。\"}",
+  "input_tokens": 575,
+  "output_tokens": 33,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1806,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973168989539b5b0f4b57789945865e795386c35304ad380",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 33,
+    "prompt_tokens": 575,
+    "total_tokens": 608,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务需跨材料核对预算，但规模小且依赖链短，直接处理更省开销。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

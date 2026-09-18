@@ -1,0 +1,34 @@
+{
+  "label": "analysis-05-r1-direct-or-dag:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出严格遵循材料口径：先按s1资格筛选（仅A组30人符合），再计算留存（18/30=60.0%），并判定草稿s3因混入B、C组而不正确；正文与findings一致，引用充分，未给两个口径同时盖正确章。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文先确定eligible（30人，仅A组），再算retained=18、retention_percent=60.0%，并核对草稿不正确，符合s1口径、s2数据与任务流程要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中eligible=30、retained=18、retention_percent=60.0、report_correct=false与正文完全一致；依赖方向正确（先筛选后计算），未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"四个findings齐全且数值正确；eligible/retained/retention_percent引用s1、s2足以支持，report_correct引用s3并结合s1口径足以判定草稿错误。\"},{\"criterion\":\"资格筛选先于比例计算；不得给两个口径同时盖正确章。\",\"verdict\":\"pass\",\"rationale\":\"输出先排除B、C组再做除法，且仅认定s1口径下草稿错误，未认可草稿的56.7%口径。\"}]}",
+  "input_tokens": 1100,
+  "output_tokens": 346,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 16969,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731368618d1a31addd6d38d14c8141e1e64f1efaa256f96",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 346,
+    "prompt_tokens": 1100,
+    "total_tokens": 1446,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出严格遵循材料口径：先按s1资格筛选（仅A组30人符合），再计算留存（18/30=60.0%），并判定草稿s3因混入B、C组而不正确；正文与findings一致，引用充分，未给两个口径同时盖正确章。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文先确定eligible（30人，仅A组），再算retained=18、retention_percent=60.0%，并核对草稿不正确，符合s1口径、s2数据与任务流程要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中eligible=30、retained=18、retention_percent=60.0、report_correct=false与正文完全一致；依赖方向正确（先筛选后计算），未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"四个findings齐全且数值正确；eligible/retained/retention_percent引用s1、s2足以支持，report_correct引用s3并结合s1口径足以判定草稿错误。\"},{\"criterion\":\"资格筛选先于比例计算；不得给两个口径同时盖正确章。\",\"verdict\":\"pass\",\"rationale\":\"输出先排除B、C组再做除法，且仅认定s1口径下草稿错误，未认可草稿的56.7%口径。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

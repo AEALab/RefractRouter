@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r2-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务简单，单步决策，无需DAG；cheap足够处理明确规则筛选。\"}",
+  "input_tokens": 542,
+  "output_tokens": 32,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 894,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897325425913d763aaa7a5e423f9e5323a8c500bc9f8047e5",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 32,
+    "prompt_tokens": 542,
+    "total_tokens": 574,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务简单，单步决策，无需DAG；cheap足够处理明确规则筛选。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

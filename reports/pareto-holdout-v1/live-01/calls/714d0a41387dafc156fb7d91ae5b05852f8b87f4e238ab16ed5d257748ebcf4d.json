@@ -1,0 +1,34 @@
+{
+  "label": "rules-03-r1-direct-or-dag:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确适用普通规则（甲第7天含第7天，符合）、例外规则（乙第30天含第30天，符合）及上限（丙第31天超30天，不符合），findings 与正文一致且引用 s1、s2 充分，未扩展为现实法律结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文仅依据 s1 规则核对 s2 三个申请，未用常识增加条件，输出 eligible/ineligible 结论，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（甲、乙符合；丙不符合）与 findings 的 eligible_ids=[甲,乙]、ineligible_ids=[丙] 完全一致，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均含 id、value、sources，值正确（甲第7天≤7、乙第30天≤30、丙第31天>30），sources 引 s1（规则）与 s2（申请表）足以支持。\"},{\"criterion\":\"同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。\",\"verdict\":\"pass\",\"rationale\":\"正文分别处理普通规则（甲，含第7天边界）、例外（乙，含第30天边界）与超30天不受理（丙），并明确声明仅限虚构内部规则、不扩展为现实法律结论。\"}]}",
+  "input_tokens": 869,
+  "output_tokens": 373,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 8012,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731869562f0b662e0a22462bcc30964e8c71cc7661c4522",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 373,
+    "prompt_tokens": 869,
+    "total_tokens": 1242,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确适用普通规则（甲第7天含第7天，符合）、例外规则（乙第30天含第30天，符合）及上限（丙第31天超30天，不符合），findings 与正文一致且引用 s1、s2 充分，未扩展为现实法律结论。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文仅依据 s1 规则核对 s2 三个申请，未用常识增加条件，输出 eligible/ineligible 结论，符合任务与硬约束。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论（甲、乙符合；丙不符合）与 findings 的 eligible_ids=[甲,乙]、ineligible_ids=[丙] 完全一致，无依赖反写或证据扩大。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均含 id、value、sources，值正确（甲第7天≤7、乙第30天≤30、丙第31天>30），sources 引 s1（规则）与 s2（申请表）足以支持。\"},{\"criterion\":\"同时覆盖普通规则、例外与边界；这是虚构内部服务规则，不扩展为现实法律结论。\",\"verdict\":\"pass\",\"rationale\":\"正文分别处理普通规则（甲，含第7天边界）、例外（乙，含第30天边界）与超30天不受理（丙），并明确声明仅限虚构内部规则、不扩展为现实法律结论。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

@@ -1,0 +1,34 @@
+{
+  "label": "analysis-05-r2-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出先按口径筛选资格（A组30人符合，B组6月注册、C组5月注销均排除），再计算留存率18/30=60.0%，并判定草稿56.7%不符合口径；正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1口径排除B（6月注册）和C（5月注销），仅纳入A组，得出eligible=30、retained=18、留存率60.0%，并指出草稿用34/60未做资格筛选，与s1、s2、s3一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中eligible=30、retained=18、retention_percent=60.0、report_correct=false与正文完全一致；依赖方向为先筛选后计算，未反写，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"四个必需结论齐全：eligible=30（s1+s2）、retained=18（s1+s2）、retention_percent=60.0（s1+s2）、report_correct=false（s1+s2+s3），数值正确，引用足以支持。\"},{\"criterion\":\"资格筛选先于比例计算；不得给两个口径同时盖正确章。\",\"verdict\":\"pass\",\"rationale\":\"输出先完成资格筛选再算留存率，且仅认定60.0%为正确口径、明确判定草稿56.7%不符合口径，未给两个口径同时盖正确章。\"}]}",
+  "input_tokens": 1047,
+  "output_tokens": 383,
+  "cached_input_tokens": 1024,
+  "reasoning_tokens": 0,
+  "latency_ms": 13004,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02178973234293189d0c17fc196b3c940c12dd7ad5b500b928517",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 383,
+    "prompt_tokens": 1047,
+    "total_tokens": 1430,
+    "prompt_tokens_details": {
+      "cached_tokens": 1024
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选输出先按口径筛选资格（A组30人符合，B组6月注册、C组5月注销均排除），再计算留存率18/30=60.0%，并判定草稿56.7%不符合口径；正文与findings一致，引用充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文依据s1口径排除B（6月注册）和C（5月注销），仅纳入A组，得出eligible=30、retained=18、留存率60.0%，并指出草稿用34/60未做资格筛选，与s1、s2、s3一致。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中eligible=30、retained=18、retention_percent=60.0、report_correct=false与正文完全一致；依赖方向为先筛选后计算，未反写，未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"四个必需结论齐全：eligible=30（s1+s2）、retained=18（s1+s2）、retention_percent=60.0（s1+s2）、report_correct=false（s1+s2+s3），数值正确，引用足以支持。\"},{\"criterion\":\"资格筛选先于比例计算；不得给两个口径同时盖正确章。\",\"verdict\":\"pass\",\"rationale\":\"输出先完成资格筛选再算留存率，且仅认定60.0%为正确口径、明确判定草稿56.7%不符合口径，未给两个口径同时盖正确章。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

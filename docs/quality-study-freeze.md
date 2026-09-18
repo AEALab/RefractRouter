@@ -219,6 +219,17 @@ bound-01 就此失效并保留原样，不追改。
 - 付费执行继续只登记、不执行，等待用户明确放行；登记范围与包络同 bound-02，
   估计仍约 400–550 AFP。
 
+### 实跑（live-01，2026-09-18）
+
+用户明确授权后，以 bound-02 执行正式留出实跑（`reports/pareto-holdout-v1/live-01/`）：
+
+- 108 次运行全部完成；397 次真实调用、312.7503 AFP（生产 171.3863、评审 141.364）、
+  零重试、墙钟约 52.6 分钟；95 次交付未确认、11 次扣留、2 次失败（失败计入分母）。
+- 运行内评审给出 quality_status pending 65、fail 43；官方质量门槛仍需 MoA 输出评审，
+  `quality_gate_pending=true`，三个臂的 AFP per accepted task 暂为 null。
+- 分析产物 `reports/pareto-holdout-v1/live-01-analysis.json` 已归档；确认性结论待
+  输出评审完成后重新分析。
+
 ## 运行与真人证据导入
 
 默认入口只冻结，绝不调用模型；执行必须使用该文件且不得覆盖范围。

@@ -1,0 +1,34 @@
+{
+  "label": "decision-04-r2-task-selector:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务简单，材料少，无需DAG或强模型。\"}",
+  "input_tokens": 542,
+  "output_tokens": 26,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 2348,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732576985fd0de7354b348b065f00b895e07126b833a264",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 26,
+    "prompt_tokens": 542,
+    "total_tokens": 568,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务简单，材料少，无需DAG或强模型。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

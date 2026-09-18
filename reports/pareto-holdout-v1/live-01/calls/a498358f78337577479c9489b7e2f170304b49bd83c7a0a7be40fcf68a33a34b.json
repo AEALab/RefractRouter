@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r2-task-selector:selector",
+  "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务需跨材料核对预算与约束，但规模小且无独立子问题，直接处理更省开销。\"}",
+  "input_tokens": 575,
+  "output_tokens": 36,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1745,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732636413770d3492782dd10cc0a489fec0a72eadb14d04",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 575,
+    "total_tokens": 611,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"mid\",\"mode\":\"direct\",\"reason\":\"任务需跨材料核对预算与约束，但规模小且无独立子问题，直接处理更省开销。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

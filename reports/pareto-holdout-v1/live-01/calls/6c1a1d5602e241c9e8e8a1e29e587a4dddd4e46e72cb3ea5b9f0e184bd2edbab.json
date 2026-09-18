@@ -1,0 +1,34 @@
+{
+  "label": "decision-05-r2-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确执行了两个局部约束检查（绘画班选无溶剂的X排除含溶剂的Y；手工班选含护目镜的U排除不含护目镜的V），并在共享预算800元内核算总费用770元、剩余30元，同时明确说明了不可替代的用品条件及禁止自行补充配件的限制。findings与正文一致，引用来源足以支持各自主张，未发现反写依赖或证据扩大。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文严格遵循s1必须无溶剂（选X排除Y）、s2必须含护目镜（选U排除V）、s3预算800元且不可少买、不允许自行假设补充配件的硬约束，计算770元≤800元正确。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中kits[X,U]、total_cost 770、remaining_budget 30与正文结论完全一致；未将预算剩余30元误解为可购买其他物品，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"kits、total_cost、remaining_budget三项必需结论完整且数值正确；kits引用s1/s2对应两班选择，total_cost引用s1/s2/s3对应价格与预算，remaining_budget引用s3对应预算来源，引用充分。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文在分别核对两个班级用品后，明确进行共享预算核对（350+420=770≤800），并详细说明Y含溶剂、V不含护目镜均违反不可替代的用品条件，且禁止通过补充配件替代，满足该语义标准。\"}]}",
+  "input_tokens": 995,
+  "output_tokens": 413,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 13564,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217897326525430b63b37cbca791937f2f41fb0469576d712ba2",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 413,
+    "prompt_tokens": 995,
+    "total_tokens": 1408,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确执行了两个局部约束检查（绘画班选无溶剂的X排除含溶剂的Y；手工班选含护目镜的U排除不含护目镜的V），并在共享预算800元内核算总费用770元、剩余30元，同时明确说明了不可替代的用品条件及禁止自行补充配件的限制。findings与正文一致，引用来源足以支持各自主张，未发现反写依赖或证据扩大。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文严格遵循s1必须无溶剂（选X排除Y）、s2必须含护目镜（选U排除V）、s3预算800元且不可少买、不允许自行假设补充配件的硬约束，计算770元≤800元正确。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings中kits[X,U]、total_cost 770、remaining_budget 30与正文结论完全一致；未将预算剩余30元误解为可购买其他物品，未扩大证据含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"kits、total_cost、remaining_budget三项必需结论完整且数值正确；kits引用s1/s2对应两班选择，total_cost引用s1/s2/s3对应价格与预算，remaining_budget引用s3对应预算来源，引用充分。\"},{\"criterion\":\"两个局部选择必须再检查共享预算，说明不可替代的用品条件。\",\"verdict\":\"pass\",\"rationale\":\"正文在分别核对两个班级用品后，明确进行共享预算核对（350+420=770≤800），并详细说明Y含溶剂、V不含护目镜均违反不可替代的用品条件，且禁止通过补充配件替代，满足该语义标准。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

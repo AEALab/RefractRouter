@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r2-direct-or-dag:delivery-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确区分了可直接提供与当前不能直接提供的材料，明确识别了文件C附件虽公开且解禁已过但因含未脱敏联系方式而受阻的例外，正文与 findings 一致且引用来源充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据、限制与权衡，符合 s1 公开原则与 s2 材料目录，满足任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论 releasable=文件A、blocked=文件B和文件C附件，与 findings 完全一致，未扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均含 id、value、sources，事实正确，sources 引用 s1、s2 足以支持分类。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"答案明确指出文件C附件虽公开且解禁已过，但因含联系方式且未脱敏而 blocked，正确处理了附件例外。\"}]}",
+  "input_tokens": 876,
+  "output_tokens": 274,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 9442,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732939470add9fca5277b8939d33af9a0f1789d6c7af212",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 274,
+    "prompt_tokens": 876,
+    "total_tokens": 1150,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确区分了可直接提供与当前不能直接提供的材料，明确识别了文件C附件虽公开且解禁已过但因含未脱敏联系方式而受阻的例外，正文与 findings 一致且引用来源充分。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文给出结论、依据、限制与权衡，符合 s1 公开原则与 s2 材料目录，满足任务要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文结论 releasable=文件A、blocked=文件B和文件C附件，与 findings 完全一致，未扩大材料含义。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个 findings 均含 id、value、sources，事实正确，sources 引用 s1、s2 足以支持分类。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"答案明确指出文件C附件虽公开且解禁已过，但因含联系方式且未脱敏而 blocked，正确处理了附件例外。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

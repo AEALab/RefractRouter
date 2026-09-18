@@ -1,0 +1,34 @@
+{
+  "label": "rules-06-r1-direct-or-dag:selector",
+  "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则排序，无复杂推理，单模型直接处理即可。\"}",
+  "input_tokens": 561,
+  "output_tokens": 29,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 816,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789732030133795aa3a4ba36fe885727fc31a219ca25afb47b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 561,
+    "total_tokens": 590,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"model\":\"cheap\",\"mode\":\"direct\",\"reason\":\"任务为简单规则排序，无复杂推理，单模型直接处理即可。\"}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

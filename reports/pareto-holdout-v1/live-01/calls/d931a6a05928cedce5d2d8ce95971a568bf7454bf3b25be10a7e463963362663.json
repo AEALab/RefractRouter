@@ -1,0 +1,34 @@
+{
+  "label": "rules-05-r2-direct-strong:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"正文按验收标准逐点判断：P 缺测10%未超过上限且校准、时钟均满足，判 accepted；Q 校准过期为明确失败，判 rejected；R 校准与缺测满足但无同步记录，判 unknown 且未推断同步事实。findings 的 id、value、sources 与正文一致，覆盖 accepted/rejected/unknown，引用 s1、s2 足以支持。未发现反写依赖或扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文使用中文说明结论、依据与限制，按 s1 三条硬条件判断 s2 的 P/Q/R，结论为 P 纳入、Q 拒绝、R 待核验，符合任务与材料。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 accepted=[P]、rejected=[Q]、unknown=[R] 与正文一致；未把 R 的无同步记录改写成已同步或已失败，也未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个结论均给出且事实正确：P 满足全部条件，Q 校准过期明确失败，R 缺同步证据；各项均引用 s1 标准与 s2 检查结果，足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R 被保留为 unknown，正文明确说明不能由缺少同步记录直接推断已同步或未同步。\"}]}",
+  "input_tokens": 886,
+  "output_tokens": 375,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11681,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789733049584b4a50cd25f47d4bb7d101bbb29abc51923418b",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 375,
+    "prompt_tokens": 886,
+    "total_tokens": 1261,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"正文按验收标准逐点判断：P 缺测10%未超过上限且校准、时钟均满足，判 accepted；Q 校准过期为明确失败，判 rejected；R 校准与缺测满足但无同步记录，判 unknown 且未推断同步事实。findings 的 id、value、sources 与正文一致，覆盖 accepted/rejected/unknown，引用 s1、s2 足以支持。未发现反写依赖或扩大证据含义。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文使用中文说明结论、依据与限制，按 s1 三条硬条件判断 s2 的 P/Q/R，结论为 P 纳入、Q 拒绝、R 待核验，符合任务与材料。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"findings 中 accepted=[P]、rejected=[Q]、unknown=[R] 与正文一致；未把 R 的无同步记录改写成已同步或已失败，也未扩大证据。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"三个结论均给出且事实正确：P 满足全部条件，Q 校准过期明确失败，R 缺同步证据；各项均引用 s1 标准与 s2 检查结果，足以支持。\"},{\"criterion\":\"保留未知状态；不得用缺失证据直接推断事实。\",\"verdict\":\"pass\",\"rationale\":\"R 被保留为 unknown，正文明确说明不能由缺少同步记录直接推断已同步或未同步。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}

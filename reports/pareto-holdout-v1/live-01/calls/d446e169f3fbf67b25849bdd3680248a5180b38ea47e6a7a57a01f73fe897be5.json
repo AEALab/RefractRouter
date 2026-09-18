@@ -1,0 +1,34 @@
+{
+  "label": "rules-04-r1-task-selector:research-judge",
+  "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用公开原则与材料目录：文件A公开且解禁已过、无联系方式，列为可提供；文件B内部，列为不可提供；文件C附件虽公开且解禁已过，但含联系方式且未脱敏，依据附件例外列为不能直接提供，并说明脱敏后可转可提供。正文与 findings 一致，未把公开标签当充分条件，引用 s1、s2 足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文用中文给出结论、依据、限制与权衡，并汇总 releasable/blocked；符合 s1 公开原则与 s2 目录事实，满足任务输出要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文最终汇总为 releasable=文件A、blocked=文件B和文件C附件，与 findings 完全一致；未改变材料含义或新增无依据结论。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个必需结论均给出且事实正确：文件A可提供；文件B内部禁止；文件C附件因未脱敏不能直接提供。findings 均引用 s1、s2，足以支持分类。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确说明文件C附件虽公开且解禁已过，但因含联系方式且未脱敏被 blocked，并指出脱敏后才可提供，正确执行附件例外。\"}]}",
+  "input_tokens": 912,
+  "output_tokens": 356,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 11328,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021789731946028846a816464a9af9c0791e0f68a2ce03ca6a157",
+  "usage_available": true,
+  "raw_usage": {
+    "completion_tokens": 356,
+    "prompt_tokens": 912,
+    "total_tokens": 1268,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [
+    {
+      "content": "{\"verdict\":\"pass\",\"rationale\":\"候选答案正确应用公开原则与材料目录：文件A公开且解禁已过、无联系方式，列为可提供；文件B内部，列为不可提供；文件C附件虽公开且解禁已过，但含联系方式且未脱敏，依据附件例外列为不能直接提供，并说明脱敏后可转可提供。正文与 findings 一致，未把公开标签当充分条件，引用 s1、s2 足以支持。\",\"criteria\":[{\"criterion\":\"最终正文符合材料、任务要求与全部硬约束\",\"verdict\":\"pass\",\"rationale\":\"正文用中文给出结论、依据、限制与权衡，并汇总 releasable/blocked；符合 s1 公开原则与 s2 目录事实，满足任务输出要求。\"},{\"criterion\":\"正文与结构化结论一致且未反写依赖或扩大证据含义\",\"verdict\":\"pass\",\"rationale\":\"正文最终汇总为 releasable=文件A、blocked=文件B和文件C附件，与 findings 完全一致；未改变材料含义或新增无依据结论。\"},{\"criterion\":\"必需结论完整、事实正确且各自引用足以支持主张\",\"verdict\":\"pass\",\"rationale\":\"两个必需结论均给出且事实正确：文件A可提供；文件B内部禁止；文件C附件因未脱敏不能直接提供。findings 均引用 s1、s2，足以支持分类。\"},{\"criterion\":\"检查附件例外，不能把公开标签当成充分条件。\",\"verdict\":\"pass\",\"rationale\":\"明确说明文件C附件虽公开且解禁已过，但因含联系方式且未脱敏被 blocked，并指出脱敏后才可提供，正确执行附件例外。\"}]}",
+      "role": "assistant"
+    }
+  ],
+  "replay_state": null,
+  "cache_usage_source": "prompt_tokens_details.cached_tokens",
+  "ttft_ms": null
+}
