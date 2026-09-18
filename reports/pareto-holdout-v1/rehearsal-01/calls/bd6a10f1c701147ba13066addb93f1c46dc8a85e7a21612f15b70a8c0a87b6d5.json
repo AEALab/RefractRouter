@@ -1,0 +1,19 @@
+{
+  "label": "decision-06-r1-direct-strong:answer",
+  "content": "{\"answer\": \"依次备份0–20、校验20–30、部署30–45、回归45–55分钟；55分钟完成，剩5分钟。共享人员和依赖均不允许并行。\", \"findings\": [{\"id\": \"order\", \"value\": [\"备份\", \"校验备份\", \"部署\", \"回归检查\"], \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"finish_minute\", \"value\": 55, \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"deadline_met\", \"value\": true, \"sources\": [\"s1\", \"s2\"]}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null,
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": null,
+  "ttft_ms": null
+}

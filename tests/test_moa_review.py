@@ -7,11 +7,13 @@ import pytest
 from refractrouter.moa_review import (MOA_POLICY, REVIEW_SCHEMA, aggregate,
     MOA_MATERIAL_CRITERIA, calibration_review, claude_command, codex_command, final_quality_status, judge,
     material_review, output_messages, output_review, preflight_envelope, purpose_review,
-    summarize_calibration,
+    RESEARCH_PURPOSE, purpose_messages, summarize_calibration,
     run_review_target)
 from refractrouter.quality_study import digest, load_study
 
 STUDY = Path(__file__).resolve().parents[1] / 'data/quality-study-v1'
+# 10 份既有材料评审记录依赖该摘要；超时覆盖必须不改变它。
+MOA_POLICY_DIGEST = '2ae5b345f61a9a6be896663ff23f09499d98185ca6e13f7ceae3de0a50c1b902'
 
 
 def review_json(verdict, criteria, *, suffix=''):
@@ -316,3 +318,66 @@ def test_calibration_cli_live_reuses_preflight_directory(tmp_path, monkeypatch):
     assert result['records'] == [record]
     assert result['summary']['cases'] == 1
     assert result['summary']['final_status_counts'] == {'pass': 1, 'fail': 0, 'pending': 0}
+
+
+def test_timeout_override_keeps_policy_digest(monkeypatch):
+    """超时可用环境变量或参数覆盖，但不进入 MOA_POLICY，既有记录继续有效。"""
+    from refractrouter.moa_review import resolve_timeout_seconds
+    assert resolve_timeout_seconds() == MOA_POLICY['timeout_seconds'] == 480
+    monkeypatch.setenv('MOA_REVIEW_TIMEOUT_SECONDS', '900')
+    assert resolve_timeout_seconds() == 900
+    assert resolve_timeout_seconds(120) == 120
+    assert digest(MOA_POLICY) == MOA_POLICY_DIGEST
+    for invalid in ('0', '-5', 'abc'):
+        monkeypatch.setenv('MOA_REVIEW_TIMEOUT_SECONDS', invalid)
+        with pytest.raises(ValueError):
+            resolve_timeout_seconds()
+
+
+def test_research_purpose_states_gate_semantics():
+    """用途确认载荷必须写明门槛四要件：冻结时点、按任务观察、诊断下界、不可外推。"""
+    for required in ('冻结时点', '研究操作观察门槛', '配对非劣', '诊断下界',
+                     '不得推断总体', '多模型共识'):
+        assert required in RESEARCH_PURPOSE
+    messages = purpose_messages('a' * 64, {'analysis-03': 'b' * 64}, {'unit': 'task_id'})
+    payload = json.loads(messages[-1]['content'])
+    assert payload['research_purpose'] == RESEARCH_PURPOSE
+    assert payload['statistics_policy'] == {'unit': 'task_id'}
+
+
+def test_cli_task_ids_filter_and_live_timeout_consistency(tmp_path, monkeypatch):
+    from experiments import run_moa_review
+    monkeypatch.setenv('MOA_REVIEW_TIMEOUT_SECONDS', '480')
+    output = tmp_path / 'moa-material-targeted'
+    run_moa_review.main(['--kind', 'material', '--study-dir', str(STUDY),
+                         '--output-dir', str(output), '--preflight', '--timeout-seconds', '900',
+                         '--task-ids', 'decision-03', 'decision-06'])
+    preflight = json.loads((output / 'preflight.json').read_text())
+    assert [row['task_id'] for row in preflight['targets']] == ['decision-03', 'decision-06']
+    assert preflight['envelope']['timeout_seconds'] == 900
+    assert preflight['envelope']['timeout_sum_seconds'] == 2 * 4 * 900
+    assert preflight['envelope']['policy_sha256'] == digest(MOA_POLICY) == MOA_POLICY_DIGEST
+    monkeypatch.setattr(run_moa_review, 'material_review',
+                        lambda tasks, refs: [{'task_id': t['task_id']} for t in tasks])
+    with pytest.raises(SystemExit, match='超时'):
+        run_moa_review.main(['--kind', 'material', '--study-dir', str(STUDY),
+                             '--output-dir', str(output), '--live', '--timeout-seconds', '120',
+                             '--task-ids', 'decision-03', 'decision-06'])
+    run_moa_review.main(['--kind', 'material', '--study-dir', str(STUDY),
+                         '--output-dir', str(output), '--live', '--timeout-seconds', '900',
+                         '--task-ids', 'decision-03', 'decision-06'])
+    result = json.loads((output / 'moa-results.json').read_text())
+    assert [row['task_id'] for row in result['records']] == ['decision-03', 'decision-06']
+    assert result['policy_sha256'] == MOA_POLICY_DIGEST
+    with pytest.raises(SystemExit):
+        run_moa_review.main(['--kind', 'material', '--study-dir', str(STUDY),
+                             '--output-dir', str(tmp_path / 'unknown'), '--preflight',
+                             '--task-ids', 'decision-99'])
+    with pytest.raises(SystemExit):
+        run_moa_review.main(['--kind', 'material', '--study-dir', str(STUDY),
+                             '--output-dir', str(tmp_path / 'dupe'), '--preflight',
+                             '--task-ids', 'decision-06', 'decision-06'])
+    with pytest.raises(SystemExit):
+        run_moa_review.main(['--kind', 'purpose', '--study-dir', str(STUDY),
+                             '--output-dir', str(tmp_path / 'wrong-kind'), '--preflight',
+                             '--task-ids', 'decision-06'])

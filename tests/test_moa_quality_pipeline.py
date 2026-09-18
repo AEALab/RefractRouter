@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from experiments.run_bound_quality_study import RehearsalClient
-from refractrouter.moa_review import material_review, output_review, purpose_review
+from refractrouter.moa_review import MOA_POLICY, material_review, output_review, purpose_review
 from refractrouter.quality_runtime import execute, moa_gate, prepare
 from refractrouter.quality_statistics import analyze
 from refractrouter.quality_study import digest, load_study
@@ -115,3 +115,92 @@ def test_deterministic_fail_vetoes_moa_pass_consensus():
     report = analyze(frozen, result, tasks, references=refs, moa_output_reviews=moa_outputs)
     assert report['arms']['direct-cheap']['run_counts']['fail'] == 1
     assert report['arms']['direct-cheap']['run_counts']['pass'] == len(result['runs']) - 1
+
+
+def _write_shard(path, records, *, kind='material', policy=None):
+    path.write_text(json.dumps({'kind': kind,
+                                'policy_sha256': policy or digest(MOA_POLICY),
+                                'records': records}, ensure_ascii=False), encoding='utf-8')
+    return path
+
+
+def test_merge_rejects_duplicate_kind_and_policy_mismatch(tmp_path):
+    """合流必须拒绝跨分片重复任务与口径不一致的分片，避免门禁读到混合证据。"""
+    from experiments.merge_moa_records import merge_records
+    policy = digest(MOA_POLICY)
+    shard = tmp_path / 'shard.json'
+    first = _write_shard(shard, [{'task_id': 'analysis-03'}])
+    duplicate = (shard, 'material', policy, [{'task_id': 'analysis-03'}])
+    with pytest.raises(SystemExit, match='重复'):
+        merge_records([(first, 'material', policy, [{'task_id': 'analysis-03'}]), duplicate],
+                      expected_kind='material', expected_policy=policy)
+    with pytest.raises(SystemExit, match='策略哈希不符'):
+        merge_records([(first, 'material', 'deadbeef', [{'task_id': 'analysis-03'}])],
+                      expected_kind='material', expected_policy=policy)
+    with pytest.raises(SystemExit, match='分片种类不符'):
+        merge_records([(first, 'output', policy, [{'task_id': 'analysis-03'}])],
+                      expected_kind='material', expected_policy=policy)
+
+
+def test_merged_records_are_the_single_gate_input(tmp_path):
+    """定向重跑合流后的单一文件必须能直接放行门禁，且缺一题即不放行。"""
+    from experiments.merge_moa_records import main as merge_main
+    _, tasks, refs, *_ = load_study(STUDY)
+    holdout = [t for t in tasks if t['split'] == 'holdout-candidate']
+    task_ids = [t['task_id'] for t in holdout]
+    frozen = prepare(STUDY, task_ids=task_ids, arms=['direct-cheap'], repeats=1)
+    half = len(holdout) // 2
+    left = _write_shard(tmp_path / 'material-a.json',
+                        material_review(holdout[:half], refs, all_pass_invoke))
+    right = _write_shard(tmp_path / 'material-b.json',
+                         material_review(holdout[half:], refs, all_pass_invoke))
+    output = tmp_path / 'gate'
+    merge_main(['--study-dir', str(STUDY), '--source', str(left), '--source', str(right),
+                '--task-ids', *task_ids, '--output-dir', str(output)])
+    merged = json.loads((output / 'moa-results.json').read_text())
+    assert [row['task_id'] for row in merged['records']] == task_ids
+    assert merged['summary']['gate_ready'] == len(task_ids)
+    assert merged['summary']['not_gate_ready'] == 0
+    assert merged['dropped_task_ids'] == []
+    assert merged['superseded'] == []
+    assert (output / 'README.md').exists() and (output / 'artifact-index.json').exists()
+    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'],
+                             frozen['statistics_policy'], invoke=all_pass_invoke)
+    assert moa_gate(frozen, tasks, refs, merged['records'], purpose) is True
+    assert moa_gate(frozen, tasks, refs, merged['records'][:-1], purpose) is False
+    tampered = deepcopy(merged['records'])
+    tampered[0]['consensus']['criteria'][0]['verdict'] = 'pending'
+    assert moa_gate(frozen, tasks, refs, tampered, purpose) is False
+
+
+def test_merge_supersede_is_explicit_and_audited(tmp_path):
+    """单向重审取代旧结论必须显式开启，并在合流件与 README 留痕，不静默覆盖。"""
+    from experiments.merge_moa_records import main as merge_main, merge_records
+    _, tasks, refs, *_ = load_study(STUDY)
+    selected = [t for t in tasks if t['task_id'] == 'analysis-03']
+    stale = material_review(selected, refs, all_pass_invoke)[0]
+    stale['consensus']['criteria'][0]['verdict'] = 'pending'
+    stale['consensus']['overall'] = 'pending'
+    fresh = material_review(selected, refs, all_pass_invoke)[0]
+    policy = digest(MOA_POLICY)
+    old_path = _write_shard(tmp_path / 'material-old.json', [stale])
+    new_path = _write_shard(tmp_path / 'material-new.json', [fresh])
+    with pytest.raises(SystemExit, match='重复'):
+        merge_records([(old_path, 'material', policy, [stale]),
+                       (new_path, 'material', policy, [fresh])],
+                      expected_kind='material', expected_policy=policy)
+    records, superseded = merge_records(
+        [(old_path, 'material', policy, [stale]), (new_path, 'material', policy, [fresh])],
+        expected_kind='material', expected_policy=policy, allow_supersede=True)
+    assert [row['task_id'] for row in records] == ['analysis-03']
+    assert records[0]['consensus']['overall'] == 'pass'
+    assert superseded == [{'task_id': 'analysis-03', 'previous_source': str(old_path),
+                           'previous_overall': 'pending', 'source': str(new_path),
+                           'overall': 'pass'}]
+    output = tmp_path / 'gate'
+    merge_main(['--study-dir', str(STUDY), '--source', str(old_path), '--source', str(new_path),
+                '--task-ids', 'analysis-03', '--output-dir', str(output), '--allow-supersede'])
+    merged = json.loads((output / 'moa-results.json').read_text())
+    assert merged['summary']['gate_ready'] == 1
+    assert merged['superseded'][0]['previous_overall'] == 'pending'
+    assert '被覆盖的旧记录' in (output / 'README.md').read_text()

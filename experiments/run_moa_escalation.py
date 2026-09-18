@@ -8,7 +8,8 @@ import json
 from pathlib import Path
 
 from refractrouter.dag_study_execution import write_json
-from refractrouter.moa_review import MOA_POLICY, default_invoke, digest, judge, output_messages
+from refractrouter.moa_review import (MOA_POLICY, default_invoke, digest, judge,
+    output_messages, resolve_timeout_seconds)
 from refractrouter.quality_study import file_digest, load_study
 
 
@@ -22,10 +23,12 @@ def disputed_case_ids(summary):
 
 
 def envelope(case_ids):
-    """零调用冻结：案例、调用数上限、超时之和与策略哈希。"""
+    """零调用冻结：案例、调用数上限、实际生效超时、超时之和与策略哈希。"""
+    timeout_seconds = resolve_timeout_seconds()
     calls = len(case_ids) * len(MOA_POLICY['escalation'])
     return {'kind': 'escalation', 'cases': list(case_ids), 'maximum_calls': calls,
-            'timeout_sum_seconds': calls * MOA_POLICY['timeout_seconds'],
+            'timeout_seconds': timeout_seconds,
+            'timeout_sum_seconds': calls * timeout_seconds,
             'policy_sha256': digest(MOA_POLICY), 'real_model_calls': 0}
 
 
@@ -176,6 +179,10 @@ def main(argv=None):
     preflight = json.loads((args.output_dir / 'preflight.json').read_text(encoding='utf-8'))
     if preflight['envelope']['policy_sha256'] != digest(MOA_POLICY):
         raise SystemExit('MOA 策略已改变，请重新运行 --preflight')
+    # 旧冻结包络没有该字段时按当前生效值执行，避免让可续跑的目录失效。
+    frozen_timeout = preflight['envelope'].get('timeout_seconds')
+    if frozen_timeout is not None and frozen_timeout != resolve_timeout_seconds():
+        raise SystemExit('冻结包络的超时与当前生效值不一致，请重新运行 --preflight')
     if preflight['envelope']['cases'] != case_ids:
         raise SystemExit('冻结案例与当前输入不一致，请重新运行 --preflight')
     records = run_escalation(cases, tasks_by_id, args.output_dir)

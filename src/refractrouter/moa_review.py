@@ -5,6 +5,8 @@
 """
 from copy import deepcopy
 import json
+import math
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -57,11 +59,45 @@ MOA_POLICY = {
 
 PURPOSE_CRITERIA = ('研究用途与质量、非劣、样本量和失败标准相符',)
 
+# 超时可用环境变量覆盖，用于长评审题目的定向重跑；策略摘要不受影响，
+# 因此既有材料记录继续有效，包络按实际生效秒数冻结。
+TIMEOUT_ENV_VAR = 'MOA_REVIEW_TIMEOUT_SECONDS'
+
+def resolve_timeout_seconds(explicit=None):
+    """解析评审调用超时：显式参数 > 环境变量 > 冻结策略；不修改 MOA_POLICY 摘要。"""
+    if explicit is None:
+        explicit = os.environ.get(TIMEOUT_ENV_VAR)
+    if explicit is None or explicit == '':
+        return MOA_POLICY['timeout_seconds']
+    try:
+        seconds = float(explicit)
+    except (TypeError, ValueError):
+        raise ValueError(f'无效的评审超时秒数：{explicit!r}')
+    if not math.isfinite(seconds) or seconds <= 0:
+        raise ValueError(f'评审超时秒数必须为正的有限值：{explicit!r}')
+    return seconds
+
+
 RESEARCH_PURPOSE = (
     '在最终成果质量达到可接受门槛的前提下，优先降低 Ark Agent Plan 的 AFP 消耗'
     '（核心指标：AFP per accepted task）。研究范围为控制性探索，涵盖材料分析、'
     '规则核对与多部分决策三类任务；不做总体确认性推断，不宣称用户可接受性。'
     '质量门槛须在看到路线结果之前冻结，不以平均分掩盖关键事实错误。'
+    '\n门槛语义（冻结时随统计策略与任务绑定件一起冻结，评审按此判定，不按解释空间判定）：'
+    '（1）冻结时点：统计策略、任务与参考、执行与统计实现都在任何路线结果产生之前冻结，'
+    '冻结件以 sha256 与任务级绑定哈希固定；冻结之后修改任一项都只能作为新一轮重跑，'
+    '不得用同一批结果重新解释门槛。'
+    '（2）90% 是研究操作观察门槛：以任务而不是调用为统计单位，'
+    '同一任务的全部三次重复都通过确定性关键检查与共识语义判定，该任务才算通过；'
+    '达到门槛的判定按观测任务通过比例直接得出。'
+    '（3）5 个百分点是配对非劣容忍：作用于候选与参考路线质量差的下界'
+    '（由正负不一致概率的精确界及并集界给出），不是简单观测差的比较；'
+    '且要求两条路线都没有待判定记录。'
+    '（4）精确二项下界只是随报告给出的诊断下界，不参与通过判定。'
+    '（5）12 道留出题全部通过也不得推断总体通过率至少 90%，也不得声称用户可接受性；'
+    '观察门槛与总体置信保证是两件事。'
+    '（6）本轮放行条件是本地多模型共识门槛（两位初审一致，分歧升级两位重审）；'
+    '它替代真人签署作为放行条件，但本身不是真人审查，真人签署仍单列为后续事项。'
 )
 
 REVIEW_SCHEMA = {
@@ -127,7 +163,7 @@ def default_invoke(reviewer, messages, schema=None):
             command = (codex_command(reviewer, output_file, schema_file) if reviewer['cli'] == 'codex'
                        else claude_command(reviewer, schema_file.read_text(encoding='utf-8')))
             completed = subprocess.run(command, input=prompt, capture_output=True, text=True,
-                                       timeout=MOA_POLICY['timeout_seconds'], check=False)
+                                       timeout=resolve_timeout_seconds(), check=False)
             stdout = completed.stdout
             if reviewer['cli'] == 'codex' and output_file.is_file():
                 stdout = output_file.read_text(encoding='utf-8')
@@ -424,8 +460,10 @@ def final_quality_status(deterministic_status, consensus_overall):
 
 
 def preflight_envelope(kind, targets):
-    """零调用的冻结包络：调用数、超时之和与策略哈希。"""
+    """零调用的冻结包络：调用数、实际生效超时、超时之和与策略哈希。"""
+    timeout_seconds = resolve_timeout_seconds()
     calls = len(targets) * (len(MOA_POLICY['primary']) + len(MOA_POLICY['escalation']))
     return {'kind': kind, 'targets': len(targets), 'maximum_calls': calls,
-            'timeout_sum_seconds': calls * MOA_POLICY['timeout_seconds'],
+            'timeout_seconds': timeout_seconds,
+            'timeout_sum_seconds': calls * timeout_seconds,
             'policy_sha256': digest(MOA_POLICY), 'real_model_calls': 0}

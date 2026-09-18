@@ -137,6 +137,71 @@ JSON 代码围栏；不修补字段、语义、截断或混杂说明，原始文
 真人复核时间通过材料审查、输出盲审和用途确认记录中的 review_time_ms 单独汇总，
 缺失时报告 null 和缺失记录数，不计入模型 AFP，也不能从研究证据中消失。
 
+## 留出门槛解锁与单一合流记录（2026-09-18）
+
+12 题留出实验的放行门槛是本地多模型共识（MoA）材料评审加用途确认，不使用 Ark AFP。
+解锁前卡在两处：
+
+- decision-06：参考检查把有序字段 order 当成无序集合比较。一份依赖顺序被排错的候选
+  因此被放行。修订把该检查改为有序比较，并在任务与参考的 semantic_criteria 同步写明
+  「顺序必须满足全部依赖方向，并与 finish_minute 相互一致」，同时重算该题 task_sha256
+  与 public/tasks.json、review/references.json 两个 artifact 哈希。
+- decision-03：先是评审调用超时（claude 侧 480 秒内未返回）。超时通过运行级覆盖 900 秒
+  解除，策略里的 480 秒保持不变，避免改变 MoA 策略摘要而让已通过记录失效。
+  超时解除后的重审仍判 pending，原因是一处真实的材料歧义：s1 的硬条件是「无障碍通道」，
+  s2 起初只对 A 写「无障碍通道」，对 B、D 写「有通道」、C 写「无通道」。若「有通道」不等同
+  硬条件所指，D 就属于硬条件不合格，rejected_ids 应为 {B,C,D} 而不是参考的 {B,C}。
+  修订只把 s2 的通道描述统一写成「有无障碍通道」／「无无障碍通道」，房间、容量、报价与
+  参考答案一字未改，并重算该题 material_sha256、task_sha256 与两个 artifact 哈希。
+
+其余 10 题的任务、参考与哈希一律未动，这 10 份已通过的记录按
+task_sha256 / reference_sha256 / 六项 criterion 复核后直接复用；
+只有 decision-03 与 decision-06 定向重跑。旧分片与新分片由
+experiments/merge_moa_records.py 合成单一 records 文件（合流只做口径校验、
+重复覆盖留痕与冻结顺序重排，不调用模型、不改写记录），门禁只读这一个文件。
+
+本轮评审与冻结都绑定 `data/quality-study-v1`。两个版本的 12 题留出材料在修订前逐题相同
+（task_sha256 一致），但 `data/quality-study-v2` 的 protocol.json 哈希已被已完成开发对照的
+frozen.json 绑定，改动会让那批付费结果无法复算，因此本轮不动 v2：它的 decision-06 仍是无序
+集合比较、decision-03 仍是旧文本。若今后改用 v2 跑留出，必须先同步本文两处修订并重新冻结。
+
+用途确认载荷补齐了门槛语义，避免评审在解释空间里自由判定：
+
+1. 门槛在路线结果产生之前冻结，并以冻结件哈希与任务级绑定哈希固定；
+2. 90% 是按任务观测的操作门槛，同一任务三次重复全部通过才算该题通过；
+3. 5 个百分点作用于配对质量差下界，不是观测差的直接比较；
+4. 精确二项下界只是随报告给出的诊断下界，不参与通过判定；
+5. 12 题全部通过也不得推断总体至少 90%，也不得声称用户可接受性；
+6. 本轮放行靠本地多模型共识，它替代真人签署作为放行条件，但本身不是真人审查。
+
+### 解锁结果与冻结（2026-09-18）
+
+解锁在本机 codex / claude CLI 上完成，未产生 Ark AFP 消耗（评审不经过 Ark 账本）。
+
+- 合流记录：`reports/quality-study-v2/moa-material-gate/moa-results.json`。12 题六项 criterion
+  全部共识 pass（共识分布 pass 12 / fail 0 / pending 0，升级 0 条、无效记录 0 条）。
+  被定向重审取代的旧结论在 `superseded` 字段与 README 逐条留痕：decision-06 pending → pass、
+  decision-03 pending → pass；旧分片文件保留原样，便于复核。
+- 用途确认：`reports/quality-study-v2/moa-purpose-06/`。两位初审
+  （codex `ds/deepseek-v4-pro`、claude `opus`）逐项一致 pass，无升级、无失败记录。
+- 门禁断言：`moa_gate(frozen, tasks, refs, 合流记录, 用途记录) is True`，且 12 题
+  `task_bindings` 与冻结件逐题一致。
+- 冻结件：`reports/pareto-holdout-v1/bound-01/frozen.json`。选择为 12 题留出 ×
+  3 臂（`direct-strong`、`task-selector`、`direct-or-dag`）× 3 重复；`max_calls` 612、
+  `online_afp_ceiling` 29523.4848、`offline_afp_ceiling` 14376.96、`schedule` 108、
+  `setups` 0（非共享图路线不需要单独的准备记账）。
+- 排练：`reports/pareto-holdout-v1/rehearsal-01/`。108 次运行、`actual_model_calls` 0、
+  `actual_afp` 0，不发起网关请求，只验证编排、门槛接线与包络计数。
+
+冻结之后，`src/refractrouter/` 下任意 `.py`、`experiments/*quality*.py`、`experiments/*pareto*.py`、
+`pyproject.toml` 或 `uv.lock` 的改动都会让 `bound-01` 失效（`execute()` 会重算并比对冻结件）；
+需要变化时按新一轮冻结与新输出目录处理，不追改已冻结件。
+
+付费执行到本轮为止只登记、不执行，等待用户明确放行后再跑。登记范围与包络同冻结件；
+参照旧运行（474 次调用、394.5 AFP）估计实际消耗约 400–550 AFP。主对比是
+`direct-or-dag` 对 `direct-strong` 与 `direct-or-dag` 对 `task-selector`，主指标为
+AFP per accepted task，时间与墙钟只作探索诊断。
+
 ## 运行与真人证据导入
 
 默认入口只冻结，绝不调用模型；执行必须使用该文件且不得覆盖范围。
