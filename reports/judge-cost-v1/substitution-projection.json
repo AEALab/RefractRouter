@@ -1,0 +1,315 @@
+{
+  "schema_version": "judge-cost-projection-v1",
+  "baseline": {
+    "calls": 474,
+    "afp": 394.5012,
+    "by_stage": {
+      "final": {
+        "calls": 108,
+        "input_tokens": 113293,
+        "output_tokens": 39325,
+        "afp": 65.732
+      },
+      "delivery-judge": {
+        "calls": 107,
+        "input_tokens": 106009,
+        "output_tokens": 37852,
+        "afp": 143.861
+      },
+      "research-judge": {
+        "calls": 107,
+        "input_tokens": 106009,
+        "output_tokens": 37830,
+        "afp": 143.839
+      },
+      "planner": {
+        "calls": 18,
+        "input_tokens": 11760,
+        "output_tokens": 3671,
+        "afp": 0.77155
+      },
+      "worker": {
+        "calls": 122,
+        "input_tokens": 97408,
+        "output_tokens": 29427,
+        "afp": 39.96275
+      },
+      "selector": {
+        "calls": 12,
+        "input_tokens": 6325,
+        "output_tokens": 373,
+        "afp": 0.3349
+      }
+    },
+    "judge_share": 0.729275
+  },
+  "price_table": {
+    "cheap": {
+      "provider": "ark-plan",
+      "input_cost_per_1k": 0.05,
+      "output_cost_per_1k": 0.05,
+      "cached_input_cost_per_1k": 0.05
+    },
+    "mid": {
+      "provider": "ark-plan",
+      "input_cost_per_1k": 0.25,
+      "output_cost_per_1k": 0.25,
+      "cached_input_cost_per_1k": 0.25
+    },
+    "strong": {
+      "provider": "ark-plan",
+      "input_cost_per_1k": 0.55,
+      "output_cost_per_1k": 0.55,
+      "cached_input_cost_per_1k": 0.55
+    },
+    "judge": {
+      "provider": "ark-plan",
+      "input_cost_per_1k": 1.0,
+      "output_cost_per_1k": 1.0,
+      "cached_input_cost_per_1k": 1.0
+    }
+  },
+  "scenarios": [
+    {
+      "name": "delivery-judge → cheap",
+      "stages": [
+        "delivery-judge"
+      ],
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.05,
+      "replaced_afp": 143.861,
+      "substituted_afp": 7.19305,
+      "projected_total_afp": 257.83325,
+      "saving_afp": 136.66795,
+      "saving_share": 0.346432,
+      "relative_total": 0.653568
+    },
+    {
+      "name": "research-judge → cheap",
+      "stages": [
+        "research-judge"
+      ],
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.05,
+      "replaced_afp": 143.839,
+      "substituted_afp": 7.19195,
+      "projected_total_afp": 257.85415,
+      "saving_afp": 136.64705,
+      "saving_share": 0.346379,
+      "relative_total": 0.653621
+    },
+    {
+      "name": "both → cheap",
+      "stages": [
+        "delivery-judge",
+        "research-judge"
+      ],
+      "model_id": "cheap",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.05,
+      "replaced_afp": 287.7,
+      "substituted_afp": 14.385,
+      "projected_total_afp": 121.1862,
+      "saving_afp": 273.315,
+      "saving_share": 0.692812,
+      "relative_total": 0.307188
+    },
+    {
+      "name": "delivery-judge → mid",
+      "stages": [
+        "delivery-judge"
+      ],
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.25,
+      "replaced_afp": 143.861,
+      "substituted_afp": 35.96525,
+      "projected_total_afp": 286.60545,
+      "saving_afp": 107.89575,
+      "saving_share": 0.273499,
+      "relative_total": 0.726501
+    },
+    {
+      "name": "research-judge → mid",
+      "stages": [
+        "research-judge"
+      ],
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.25,
+      "replaced_afp": 143.839,
+      "substituted_afp": 35.95975,
+      "projected_total_afp": 286.62195,
+      "saving_afp": 107.87925,
+      "saving_share": 0.273457,
+      "relative_total": 0.726543
+    },
+    {
+      "name": "both → mid",
+      "stages": [
+        "delivery-judge",
+        "research-judge"
+      ],
+      "model_id": "mid",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.25,
+      "replaced_afp": 287.7,
+      "substituted_afp": 71.925,
+      "projected_total_afp": 178.7262,
+      "saving_afp": 215.775,
+      "saving_share": 0.546957,
+      "relative_total": 0.453043
+    },
+    {
+      "name": "delivery-judge → strong",
+      "stages": [
+        "delivery-judge"
+      ],
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.55,
+      "replaced_afp": 143.861,
+      "substituted_afp": 79.12355,
+      "projected_total_afp": 329.76375,
+      "saving_afp": 64.73745,
+      "saving_share": 0.1641,
+      "relative_total": 0.8359
+    },
+    {
+      "name": "research-judge → strong",
+      "stages": [
+        "research-judge"
+      ],
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.55,
+      "replaced_afp": 143.839,
+      "substituted_afp": 79.11145,
+      "projected_total_afp": 329.77365,
+      "saving_afp": 64.72755,
+      "saving_share": 0.164074,
+      "relative_total": 0.835926
+    },
+    {
+      "name": "both → strong",
+      "stages": [
+        "delivery-judge",
+        "research-judge"
+      ],
+      "model_id": "strong",
+      "provider": "ark-plan",
+      "unit_price_afp": 0.55,
+      "replaced_afp": 287.7,
+      "substituted_afp": 158.235,
+      "projected_total_afp": 265.0362,
+      "saving_afp": 129.465,
+      "saving_share": 0.328174,
+      "relative_total": 0.671826
+    },
+    {
+      "name": "delivery-judge → judge",
+      "stages": [
+        "delivery-judge"
+      ],
+      "model_id": "judge",
+      "provider": "ark-plan",
+      "unit_price_afp": 1.0,
+      "replaced_afp": 143.861,
+      "substituted_afp": 143.861,
+      "projected_total_afp": 394.5012,
+      "saving_afp": 0.0,
+      "saving_share": 0.0,
+      "relative_total": 1.0
+    },
+    {
+      "name": "research-judge → judge",
+      "stages": [
+        "research-judge"
+      ],
+      "model_id": "judge",
+      "provider": "ark-plan",
+      "unit_price_afp": 1.0,
+      "replaced_afp": 143.839,
+      "substituted_afp": 143.839,
+      "projected_total_afp": 394.5012,
+      "saving_afp": 0.0,
+      "saving_share": 0.0,
+      "relative_total": 1.0
+    },
+    {
+      "name": "both → judge",
+      "stages": [
+        "delivery-judge",
+        "research-judge"
+      ],
+      "model_id": "judge",
+      "provider": "ark-plan",
+      "unit_price_afp": 1.0,
+      "replaced_afp": 287.7,
+      "substituted_afp": 287.7,
+      "projected_total_afp": 394.5012,
+      "saving_afp": 0.0,
+      "saving_share": 0.0,
+      "relative_total": 1.0
+    },
+    {
+      "name": "delivery-judge → local-cli-moa",
+      "stages": [
+        "delivery-judge"
+      ],
+      "model_id": "local-cli-moa",
+      "provider": "local-cli",
+      "unit_price_afp": 0.0,
+      "replaced_afp": 143.861,
+      "substituted_afp": 0.0,
+      "projected_total_afp": 250.6402,
+      "saving_afp": 143.861,
+      "saving_share": 0.364666,
+      "relative_total": 0.635334
+    },
+    {
+      "name": "research-judge → local-cli-moa",
+      "stages": [
+        "research-judge"
+      ],
+      "model_id": "local-cli-moa",
+      "provider": "local-cli",
+      "unit_price_afp": 0.0,
+      "replaced_afp": 143.839,
+      "substituted_afp": 0.0,
+      "projected_total_afp": 250.6622,
+      "saving_afp": 143.839,
+      "saving_share": 0.36461,
+      "relative_total": 0.63539
+    },
+    {
+      "name": "both → local-cli-moa",
+      "stages": [
+        "delivery-judge",
+        "research-judge"
+      ],
+      "model_id": "local-cli-moa",
+      "provider": "local-cli",
+      "unit_price_afp": 0.0,
+      "replaced_afp": 287.7,
+      "substituted_afp": 0.0,
+      "projected_total_afp": 106.8012,
+      "saving_afp": 287.7,
+      "saving_share": 0.729275,
+      "relative_total": 0.270725
+    }
+  ],
+  "notes": {
+    "cache_discount": "凍結單價表的快取輸入價等於未快取價，前綴快取不減少 AFP。",
+    "scope": "純算術投影；token 量取自舊批次帳本，替換後的品質與時延不在本投影的結論範圍。"
+  },
+  "source": {
+    "analysis_path": "reports/pareto-development-v1/live-01-analysis/analysis.json",
+    "analysis_sha256": "23ddef983f3a84ed574e793c87c149cb9090f4169d838efd7cab7bc901cb8f2c",
+    "manifest_path": "reports/pareto-development-v1/live-01/frozen.json",
+    "manifest_sha256": "84cff7e3772f6d3668572e2ff5d5006244ff944a75108f562246927f394c0d96",
+    "call_table_sha256": "21af62e579c44a6302eb1e1c8483969df05411d3ecd4510cdf254f1d43bf06ec"
+  }
+}
