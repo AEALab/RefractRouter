@@ -1,0 +1,498 @@
+{
+  "schema_version": "judge-moa-replay-v1",
+  "policy_sha256": "2ae5b345f61a9a6be896663ff23f09499d98185ca6e13f7ceae3de0a50c1b902",
+  "frozen_policy_sha256": "2ae5b345f61a9a6be896663ff23f09499d98185ca6e13f7ceae3de0a50c1b902",
+  "parse_mode": "strict",
+  "case_count": 107,
+  "excluding_reference_disagreements": 8,
+  "reference_disagreement_cases": [
+    "analysis-02-r1-direct-mid",
+    "analysis-02-r2-auto-heterogeneous",
+    "analysis-02-r2-shared-heterogeneous-1",
+    "analysis-02-r2-shared-heterogeneous-2",
+    "decision-01-r1-direct-strong",
+    "rules-01-r2-shared-single-1",
+    "rules-02-r1-shared-heterogeneous-1",
+    "rules-02-r1-shared-heterogeneous-2"
+  ],
+  "by_reference_all_cases": {
+    "delivery-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 3,
+        "fail -> pending": 7,
+        "pass -> fail": 3,
+        "pass -> pass": 45,
+        "pass -> pending": 49
+      },
+      "verdict_agreement": 0.448598,
+      "criterion_pairs": {
+        "fail -> fail": 5,
+        "fail -> pass": 1,
+        "fail -> pending": 22,
+        "pass -> fail": 5,
+        "pass -> pass": 196,
+        "pass -> pending": 199
+      },
+      "criterion_agreement": 0.469626,
+      "ark_fail_candidate_pass": 0,
+      "risk_direction": 0.0
+    },
+    "research-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 2,
+        "fail -> pass": 1,
+        "fail -> pending": 7,
+        "pass -> fail": 4,
+        "pass -> pass": 44,
+        "pass -> pending": 49
+      },
+      "verdict_agreement": 0.429907,
+      "criterion_pairs": {
+        "fail -> fail": 2,
+        "fail -> pass": 5,
+        "fail -> pending": 20,
+        "pass -> fail": 8,
+        "pass -> pass": 192,
+        "pass -> pending": 200,
+        "pending -> pending": 1
+      },
+      "criterion_agreement": 0.455607,
+      "ark_fail_candidate_pass": 1,
+      "risk_direction": 0.009346
+    }
+  },
+  "primary": {
+    "delivery-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 1,
+        "fail -> pending": 5,
+        "pass -> fail": 2,
+        "pass -> pass": 44,
+        "pass -> pending": 47
+      },
+      "verdict_agreement": 0.454545,
+      "criterion_pairs": {
+        "fail -> fail": 1,
+        "fail -> pass": 1,
+        "fail -> pending": 16,
+        "pass -> fail": 4,
+        "pass -> pass": 183,
+        "pass -> pending": 191
+      },
+      "criterion_agreement": 0.464646,
+      "ark_fail_candidate_pass": 0,
+      "risk_direction": 0.0
+    },
+    "research-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 1,
+        "fail -> pending": 5,
+        "pass -> fail": 2,
+        "pass -> pass": 44,
+        "pass -> pending": 47
+      },
+      "verdict_agreement": 0.454545,
+      "criterion_pairs": {
+        "fail -> fail": 1,
+        "fail -> pass": 1,
+        "fail -> pending": 15,
+        "pass -> fail": 4,
+        "pass -> pass": 183,
+        "pass -> pending": 191,
+        "pending -> pending": 1
+      },
+      "criterion_agreement": 0.467172,
+      "ark_fail_candidate_pass": 0,
+      "risk_direction": 0.0
+    }
+  },
+  "primary_reviewers_available_only": {
+    "delivery-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 1,
+        "pass -> fail": 2,
+        "pass -> pass": 44,
+        "pass -> pending": 7
+      },
+      "verdict_agreement": 0.833333,
+      "criterion_pairs": {
+        "fail -> fail": 1,
+        "fail -> pass": 1,
+        "fail -> pending": 1,
+        "pass -> fail": 4,
+        "pass -> pass": 183,
+        "pass -> pending": 26
+      },
+      "criterion_agreement": 0.851852,
+      "ark_fail_candidate_pass": 0,
+      "risk_direction": 0.0
+    },
+    "research-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 1,
+        "pass -> fail": 2,
+        "pass -> pass": 44,
+        "pass -> pending": 7
+      },
+      "verdict_agreement": 0.833333,
+      "criterion_pairs": {
+        "fail -> fail": 1,
+        "fail -> pass": 1,
+        "fail -> pending": 1,
+        "pass -> fail": 4,
+        "pass -> pass": 183,
+        "pass -> pending": 26
+      },
+      "criterion_agreement": 0.851852,
+      "ark_fail_candidate_pass": 0,
+      "risk_direction": 0.0
+    }
+  },
+  "reviewer_unavailable_case_ids": [
+    "analysis-02-r1-auto-heterogeneous",
+    "decision-02-r1-shared-single-1",
+    "decision-02-r1-shared-single-2",
+    "decision-02-r1-task-selector",
+    "decision-02-r2-auto-heterogeneous",
+    "decision-02-r2-direct-cheap",
+    "decision-02-r2-direct-mid",
+    "decision-02-r2-direct-strong",
+    "decision-02-r2-shared-heterogeneous-1",
+    "decision-02-r2-shared-heterogeneous-2",
+    "decision-02-r2-shared-single-1",
+    "decision-02-r2-shared-single-2",
+    "decision-02-r2-task-selector",
+    "rules-01-r1-auto-heterogeneous",
+    "rules-01-r1-direct-mid",
+    "rules-01-r1-direct-strong",
+    "rules-01-r1-shared-heterogeneous-1",
+    "rules-01-r1-shared-heterogeneous-2",
+    "rules-01-r1-shared-single-1",
+    "rules-01-r1-shared-single-2",
+    "rules-01-r1-task-selector",
+    "rules-01-r2-auto-heterogeneous",
+    "rules-01-r2-direct-cheap",
+    "rules-01-r2-direct-mid",
+    "rules-01-r2-direct-strong",
+    "rules-01-r2-shared-heterogeneous-1",
+    "rules-01-r2-shared-heterogeneous-2",
+    "rules-01-r2-shared-single-1",
+    "rules-01-r2-shared-single-2",
+    "rules-01-r2-task-selector",
+    "rules-02-r1-auto-heterogeneous",
+    "rules-02-r1-direct-cheap",
+    "rules-02-r1-direct-mid",
+    "rules-02-r1-direct-strong",
+    "rules-02-r1-shared-heterogeneous-1",
+    "rules-02-r1-shared-heterogeneous-2",
+    "rules-02-r1-shared-single-1",
+    "rules-02-r1-shared-single-2",
+    "rules-02-r1-task-selector",
+    "rules-02-r2-auto-heterogeneous",
+    "rules-02-r2-direct-cheap",
+    "rules-02-r2-direct-mid",
+    "rules-02-r2-direct-strong",
+    "rules-02-r2-shared-heterogeneous-1",
+    "rules-02-r2-shared-heterogeneous-2",
+    "rules-02-r2-shared-single-1",
+    "rules-02-r2-shared-single-2",
+    "rules-02-r2-task-selector"
+  ],
+  "clean_case_count": 53,
+  "primary_clean_only": {
+    "delivery-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 3,
+        "pass -> fail": 3,
+        "pass -> pass": 45,
+        "pass -> pending": 2
+      },
+      "verdict_agreement": 0.90566,
+      "criterion_pairs": {
+        "fail -> fail": 5,
+        "fail -> pass": 1,
+        "fail -> pending": 1,
+        "pass -> fail": 5,
+        "pass -> pass": 196,
+        "pass -> pending": 4
+      },
+      "criterion_agreement": 0.948113,
+      "ark_fail_candidate_pass": 0,
+      "risk_direction": 0.0
+    },
+    "research-judge": {
+      "verdict_pairs": {
+        "fail -> fail": 2,
+        "fail -> pass": 1,
+        "fail -> pending": 1,
+        "pass -> fail": 4,
+        "pass -> pass": 44,
+        "pass -> pending": 1
+      },
+      "verdict_agreement": 0.867925,
+      "criterion_pairs": {
+        "fail -> fail": 2,
+        "fail -> pass": 5,
+        "fail -> pending": 3,
+        "pass -> fail": 8,
+        "pass -> pass": 192,
+        "pass -> pending": 2
+      },
+      "criterion_agreement": 0.915094,
+      "ark_fail_candidate_pass": 1,
+      "risk_direction": 0.018868
+    }
+  },
+  "checks": {
+    "delivery-judge": {
+      "verdict_agreement_ok": false,
+      "criterion_agreement_ok": false,
+      "risk_direction_ok": true,
+      "all_ok": false
+    },
+    "research-judge": {
+      "verdict_agreement_ok": false,
+      "criterion_agreement_ok": false,
+      "risk_direction_ok": true,
+      "all_ok": false
+    }
+  },
+  "checks_reviewers_available_only": {
+    "delivery-judge": {
+      "verdict_agreement_ok": false,
+      "criterion_agreement_ok": false,
+      "risk_direction_ok": true,
+      "all_ok": false
+    },
+    "research-judge": {
+      "verdict_agreement_ok": false,
+      "criterion_agreement_ok": false,
+      "risk_direction_ok": true,
+      "all_ok": false
+    }
+  },
+  "thresholds": {
+    "verdict_agreement_min": 0.925234,
+    "criterion_agreement_min": 0.950935,
+    "risk_direction_max": 0.037383,
+    "risk_direction_definition": "參考判定為 fail、候選判定為 pass 的比例（Ark fail、候選 pass），以全部 107 例為分母。",
+    "unparsed_output_policy": "候選評審輸出無法解析或 CLI 失敗時記 pending 並留在分母，不得從樣本中剔除。"
+  },
+  "decision": "keep",
+  "decision_all_cases": "keep",
+  "decision_basis": {
+    "case_count_used": 54,
+    "excluded_reviewer_unavailable": 48,
+    "excluded_reference_disagreements": 8,
+    "coverage_complete": false
+  },
+  "parse_recovery": {
+    "cases_with_label_issues": 0,
+    "by_reviewer_status": {},
+    "pending_overall": 56,
+    "reviewer_unavailable_cases": 48,
+    "strict_failures_by_repair_status": {
+      "ds-deepseek-v4-pro / count-mismatch": 1,
+      "ds-deepseek-v4-pro / repaired": 6
+    },
+    "strict_failures_unrecoverable_count": 1,
+    "strict_failures_unrecoverable": [
+      {
+        "case_id": "analysis-01-r2-shared-heterogeneous-2",
+        "reviewer_id": "ds-deepseek-v4-pro",
+        "status": "count-mismatch",
+        "error": "ValueError: duplicate JSON key"
+      }
+    ]
+  },
+  "moa_review_cost": {
+    "cli_calls": 222,
+    "escalated_criteria": 7,
+    "failed_records": 59,
+    "wall_time_ms": 6770257.009,
+    "ark_afp": 0,
+    "ark_model_calls": 4,
+    "ark_afp_note": "本工具不經 Ark 帳本；升級層含一個 Ark 評審，其用量由 Ark 方案外部計費，不在此統計。"
+  },
+  "reviewer_latency": {
+    "ds-deepseek-v4-pro": {
+      "calls": 107,
+      "timed_calls": 102,
+      "unavailable_calls": 5,
+      "median_ms": 24032.391,
+      "p90_ms": 109855.2,
+      "max_ms": 462578.446,
+      "at_or_over_45s": 17
+    },
+    "claude-opus": {
+      "calls": 107,
+      "timed_calls": 60,
+      "unavailable_calls": 47,
+      "median_ms": 23622.651,
+      "p90_ms": 52252.05,
+      "max_ms": 67274.686,
+      "at_or_over_45s": 8
+    },
+    "codex-ark-kimi-k3": {
+      "calls": 4,
+      "timed_calls": 4,
+      "unavailable_calls": 0,
+      "median_ms": 65371.762,
+      "p90_ms": 99518.745,
+      "max_ms": 99518.745,
+      "at_or_over_45s": 2
+    },
+    "claude-opus-max": {
+      "calls": 4,
+      "timed_calls": 4,
+      "unavailable_calls": 0,
+      "median_ms": 72975.063,
+      "p90_ms": 85747.268,
+      "max_ms": 85747.268,
+      "at_or_over_45s": 3
+    }
+  },
+  "by_reviewer_agreement": {
+    "ds-deepseek-v4-pro": {
+      "delivery-judge": {
+        "reviewed_cases": 95,
+        "verdict_pairs": {
+          "fail -> fail": 4,
+          "fail -> pass": 4,
+          "pass -> fail": 5,
+          "pass -> pass": 82
+        },
+        "verdict_agreement": 0.905263,
+        "criterion_pairs": {
+          "fail -> fail": 10,
+          "fail -> pass": 12,
+          "pass -> fail": 12,
+          "pass -> pass": 346
+        },
+        "criterion_agreement": 0.936842
+      },
+      "research-judge": {
+        "reviewed_cases": 95,
+        "verdict_pairs": {
+          "fail -> fail": 4,
+          "fail -> pass": 4,
+          "pass -> fail": 5,
+          "pass -> pass": 82
+        },
+        "verdict_agreement": 0.905263,
+        "criterion_pairs": {
+          "fail -> fail": 9,
+          "fail -> pass": 13,
+          "pass -> fail": 13,
+          "pass -> pass": 345
+        },
+        "criterion_agreement": 0.931579
+      }
+    },
+    "claude-opus": {
+      "delivery-judge": {
+        "reviewed_cases": 60,
+        "verdict_pairs": {
+          "fail -> fail": 3,
+          "pass -> fail": 5,
+          "pass -> pass": 52
+        },
+        "verdict_agreement": 0.916667,
+        "criterion_pairs": {
+          "fail -> fail": 6,
+          "fail -> pass": 1,
+          "pass -> fail": 10,
+          "pass -> pass": 223
+        },
+        "criterion_agreement": 0.954167
+      },
+      "research-judge": {
+        "reviewed_cases": 60,
+        "verdict_pairs": {
+          "fail -> fail": 2,
+          "fail -> pass": 2,
+          "pass -> fail": 6,
+          "pass -> pass": 50
+        },
+        "verdict_agreement": 0.866667,
+        "criterion_pairs": {
+          "fail -> fail": 3,
+          "fail -> pass": 7,
+          "pass -> fail": 13,
+          "pass -> pass": 217
+        },
+        "criterion_agreement": 0.916667
+      }
+    },
+    "codex-ark-kimi-k3": {
+      "delivery-judge": {
+        "reviewed_cases": 4,
+        "verdict_pairs": {
+          "fail -> fail": 2,
+          "pass -> fail": 1,
+          "pass -> pass": 1
+        },
+        "verdict_agreement": 0.75,
+        "criterion_pairs": {
+          "fail -> fail": 3,
+          "fail -> pass": 2,
+          "pass -> fail": 3,
+          "pass -> pass": 8
+        },
+        "criterion_agreement": 0.6875
+      },
+      "research-judge": {
+        "reviewed_cases": 4,
+        "verdict_pairs": {
+          "fail -> fail": 2,
+          "pass -> fail": 1,
+          "pass -> pass": 1
+        },
+        "verdict_agreement": 0.75,
+        "criterion_pairs": {
+          "fail -> fail": 4,
+          "fail -> pass": 2,
+          "pass -> fail": 2,
+          "pass -> pass": 8
+        },
+        "criterion_agreement": 0.75
+      }
+    },
+    "claude-opus-max": {
+      "delivery-judge": {
+        "reviewed_cases": 4,
+        "verdict_pairs": {
+          "fail -> fail": 2,
+          "pass -> fail": 1,
+          "pass -> pass": 1
+        },
+        "verdict_agreement": 0.75,
+        "criterion_pairs": {
+          "fail -> fail": 4,
+          "fail -> pass": 1,
+          "pass -> fail": 2,
+          "pass -> pass": 9
+        },
+        "criterion_agreement": 0.8125
+      },
+      "research-judge": {
+        "reviewed_cases": 4,
+        "verdict_pairs": {
+          "fail -> fail": 1,
+          "fail -> pass": 1,
+          "pass -> fail": 2
+        },
+        "verdict_agreement": 0.25,
+        "criterion_pairs": {
+          "fail -> fail": 2,
+          "fail -> pass": 4,
+          "pass -> fail": 4,
+          "pass -> pass": 6
+        },
+        "criterion_agreement": 0.5
+      }
+    }
+  },
+  "online_gate_cap_seconds": 45,
+  "scope": "候選 A 的本地 CLI MoA 重判；只比較判定一致性，不構成真人審查，也不證明用戶可接受性。"
+}
