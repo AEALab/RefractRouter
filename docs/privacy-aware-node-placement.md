@@ -84,13 +84,16 @@ TypeScript 只处理配置类型、凭证解析、宿主调用边界与结果展
 
 provider 行与模型行都可以声明 deployment，取值 local、cloud、simulated-local，
 默认 cloud。该字段独立可用：即使不启用 privacy，也可用于成本口径与运行记录标注。
+该字段编译进 providerConfig 的应用模型规格（`ApplicationModelSpec`），不写入
+`schemas.ModelSpec`，也不写入 `data/model-manifests/` 下的模型清单：清单参与 K3 历史
+基线的冻结配置摘要与恢复校验，新增字段会使已登记的成功基线无法恢复。
 
 - provider 行声明后其下模型默认继承；模型行可以显式覆盖。
 - 覆盖方向约束：provider 声明 local 时，模型不得覆盖为 cloud；cloud 的 provider
   可通过模型行标记 simulated-local 作为模拟本地候选。
 - local 指真实本地端点（OpenAI 兼容服务，Ollama / vLLM 等）。
-- simulated-local 在约束求解与记账中按 local 处理；运行记录保存真实标签，
-  结论按 simulated-local 与 real-local 分层报告，不得混称。
+- simulated-local 在约束求解与记账中按 local 处理，边际成本一律记 0（口径见 6.4）；
+  运行记录保存真实标签，结论按 simulated-local 与 real-local 分层报告，不得混称。
 
 ### 6.2 privacy 字段（可选，默认关闭）
 
@@ -123,9 +126,22 @@ provider 行与模型行都可以声明 deployment，取值 local、cloud、simu
 
 ### 6.4 记账与报告
 
-本地候选边际成本记 0（自有算力）或团队声明的摊销价；订阅型本地服务按声明价。
-simulated-local 按其真实价格记账并打标。运行记录与 model_routes 在启用时新增分级、
-分级理由与 deployment 标签，供外流率审计与回放；关闭时仅记录 deployment 标签。
+本地候选与 simulated-local 在求解与记账中一律按边际成本 0 计：前者是自持算力，落地后
+不再产生按次费用；后者的物理位置在实验阶段是模拟的，按 0 计得到的是「假设已本地化」
+的口径。申报价不丢弃，保留在该模型声明的 declared_pricing 里（含 cachedInputPer1k），
+供敏感性分析与实跑成本重算使用。
+
+由此产生两个不得混用的数字，报告必须同时给出：
+
+- 研究口径：按假设本地部署求解与记账，本地与 simulated-local 记 0。主指标
+  AFP per accepted task 与路线比较一律用这个口径。
+- 实跑口径：当次实验真实消耗。用 declared_pricing 与实际 token 重算，作为实验
+  成本与账户账单的留痕；它与研究口径的差额就是本地化假设带来的节省额。
+
+结论必须标注「simulated-local 假设」：0 成本来自部署假设，不是当次运行的真实账单；
+真实本地端点的时延、吞吐与质量特性尚未量化，切换真实端点后两个口径都要重测。
+运行记录与 model_routes 在启用时新增分级、分级理由与 deployment 标签，供外流率审计
+与回放；关闭时仅记录 deployment 标签。
 
 ## 七、完整示例
 
@@ -203,12 +219,14 @@ local-work 继承 fake-local 的 simulated-local。敏感节点只能选 local-w
 
 ## 八、实验方法：模拟本地模型
 
-开发与实验阶段用指定云端公开模型标记 simulated-local 模拟本地模型。路由、候选过滤、
-成本记账、质量评审全部真实生效，只有物理位置是模拟的。这样在没有本地算力时也能验证
-机制与收益假设；切换真实本地端点只改 provider 配置，路由代码不变。
+开发与实验阶段用指定云端公开模型标记 simulated-local 模拟本地模型。分级、候选过滤、
+角色隔离、运行期守门与质量评审全部真实生效，只有物理位置与按次费用是假设的。这样在
+没有本地算力时也能验证机制与收益假设；切换真实本地端点只改 provider 配置，路由代码
+不变。
 
-结论必须分层报告，simulated-local 与 real-local 不得混称。模拟本地的时延与成本特性
-与真实本地存在偏差，须在真实端点阶段量化。
+计价按 6.4 的双口径执行：求解与主指标用「本地记 0」的研究口径，实跑成本用
+declared_pricing 另算。结论必须分层报告，simulated-local 与 real-local 不得混称；
+模拟本地的时延与成本特性与真实本地存在偏差，须在真实端点阶段量化。
 
 ## 九、优先级：主线在前
 
@@ -225,8 +243,8 @@ local-work 继承 fake-local 的 simulated-local。敏感节点只能选 local-w
 
 | 编号 | 交付 | 调用 | 依赖 |
 | --- | --- | --- | --- |
-| A1 | 约束定位与本文档冻结；deployment 与可选 privacy schema | 零调用 | 无 |
-| A2 | 分级器 + 候选过滤 + 模拟本地标记；关闭路径回归 | 零调用 | 无 |
+| A1 | 约束定位与本文档冻结；deployment 与可选 privacy schema（已完成） | 零调用 | 无 |
+| A2 | 分级器 + 候选过滤 + 模拟本地标记；关闭路径回归（已完成，见 6.4 双口径） | 零调用 | 无 |
 | A3 | 分级器验证（构造 + 脱敏真实样本标注集） | 分级器本地调用 | A2 |
 | A4 | 开关对照（关闭基线 / all-local / all-cloud / 启用 / 直答） | 付费，另获批 | #52、#53、#76、A3 |
 | A5 | probe 回路 + OpenViking 记忆接入 | 离线回放优先 | A4 |

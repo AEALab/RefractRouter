@@ -28,6 +28,9 @@ from .compact_planning import planner_model, generate_compact, planner_system
 from .cost_first import verify_cost_drivers
 from .selective_context import build_node_context
 from .task_materials import validate_materials
+from .privacy_placement import (PlacementGuard, PrivacyRouteViolation, judge_isolation, new_record,
+                                privacy_enabled, resolve_placement, restricted_eligible_models,
+                                role_isolation, static_node_views)
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
@@ -134,7 +137,8 @@ class DemoTaskClient:
 
 def run_task(request, manifest, profile, *, client=None, production_limit=None, evaluation_limit=None,
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
-             configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072, tool_runtime=None):
+             configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072,
+             tool_runtime=None, privacy=None, classifier=None):
     request = validate_request(request)
     if request.get('contextPolicy') == 'selective-v1' and tool_runtime is not None:
         raise ValueError('selective-v1 currently requires text-only material tasks without native tools')
@@ -209,6 +213,25 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             result["wall_time_ms"] = round((time.monotonic() - started) * 1000)
             checkpoint(result)
     budget.on_reserve = lambda reservation: persist()
+    # 隐私感知放置：默认关闭（privacy 缺省时 placement 为 None，路径与现状一致）。
+    # 记录涵盖全部模型（含评审与规划器角色），便于审计本地可用集合；执行派发仍只用候选池。
+    placement = new_record(privacy, manifest.models) if privacy_enabled(privacy) else None
+    guard = (PlacementGuard(placement, candidates.values(), classifier=classifier)
+             if placement is not None else None)
+    if placement is not None:
+        result['privacy_placement'] = placement
+
+    def privacy_block(rows, append=True):
+        """启用约束后无法在本地候选内完成时明确失败，不静默放行云端。"""
+        placement['status'] = 'blocked'
+        if append:
+            placement['blocked'].extend(rows)
+        for row in rows:
+            result['issues'].append(f"{row.get('node_id') or row.get('role')}: {row['detail']}")
+        result['status'] = 'privacy-route-blocked'
+        persist()
+        return result
+
     def before_call():
         remaining = deadline_ms / 1000 - (time.monotonic() - started - budget.planning_elapsed)
         if cancel_event is not None and cancel_event.is_set():
@@ -225,6 +248,13 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 raise ValueError('dynamic decomposition requires v2 node contracts')
         elif live:
             before_call()
+            if placement is not None:
+                check = role_isolation(view=planning_task, privacy=privacy, classifier=classifier,
+                                       model=planner, role='planner', source='planner-view')
+                placement['role_checks'].append(check)
+                if not check['satisfied']:
+                    check['detail'] = 'planner-not-local'
+                    return privacy_block([check])
             if request.get('planningMode') == 'compact':
                 result['compact_planning'] = {}
                 minimal = request.get('plannerPolicy') in ('minimal-v1', 'minimal-v2')
@@ -302,6 +332,22 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 request['qualityMin'], output_constraints=request.get('outputConstraints'),
                 prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
+        if placement is not None:
+            resolve_placement(plan=plan, models=candidates.values(), privacy=privacy, classifier=classifier,
+                              node_views=static_node_views(plan, node_task, node_context.tasks if node_context else None),
+                              record=placement)
+            if placement['status'] == 'no-local-candidate':
+                return privacy_block(placement['blocked'], append=False)
+            eligible_models = restricted_eligible_models(eligible_models, placement)
+            starved = [{'node_id': nid, 'grade': placement['grades'][nid]['grade'],
+                        'reasons': placement['grades'][nid]['reasons'], 'detail': 'no-local-candidate'}
+                       for nid in placement['eligible_models'] if not eligible_models.get(nid)]
+            if starved:
+                return privacy_block(starved)
+            # 评审会读到节点输出；预检按静态视图先给出结论，真实运行前以运行期分级重算。
+            placement['judge_isolation'] = judge_isolation(placement, manifest.judge)
+            if not live and not placement['judge_isolation']['satisfied']:
+                result['issues'].append('final-judge: privacy-judge-not-local')
         remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
         result["routing"] = route_nodes(plan, profiles, method=request["method"],
@@ -333,7 +379,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             profiles=profiles, planner=planner, budget=budget, policy=policy, task=node_task,
             result=result, persist=persist, deadline=started+deadline_ms/1000,
             cancel_event=cancel_event, input_cap=input_cap,
-            tools=tool_runtime.schemas if tool_runtime is not None else None) if live and request.get('maxDynamicSplits',0) else None
+            tools=tool_runtime.schemas if tool_runtime is not None else None,
+            placement=placement, privacy=privacy, classifier=classifier) if live and request.get('maxDynamicSplits',0) else None
         dispatch_history = {candidates[c['model_id']].provider:c['dispatch_monotonic'] for c in budget.snapshot()[1]
             if 'dispatch_monotonic' in c and c['model_id'] in candidates}
         result["final_output"] = execute_nodes(plan, node_task, result["routing"]["assignments"],
@@ -341,7 +388,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
             production_cap=request["costMax"],
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
-            dispatch_history=dispatch_history, tool_runtime=tool_runtime, context_policy=node_context, prefix_policy=request.get("prefixPolicy", "legacy"))
+            dispatch_history=dispatch_history, tool_runtime=tool_runtime, guard=guard,
+            eligible_models=eligible_models,
+            context_policy=node_context, prefix_policy=request.get("prefixPolicy", "legacy"))
         result['generation_status'] = 'completed' if live else 'simulated'
         if live:
             if content_guard is not None:
@@ -350,6 +399,17 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if result['format_validation']['passed'] is False:
                 result['issues'].append('output-length-exceeded')
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
+            if placement is not None:
+                isolation = judge_isolation(placement, manifest.judge)
+                placement['judge_isolation'] = isolation
+                if not isolation['satisfied']:
+                    # 评审会读到节点输出；不满足隔离时不发起调用，明确失败并记录。
+                    isolation['detail'] = 'judge-not-local'
+                    placement['violations'].append({**isolation, 'action': 'blocked'})
+                    result['issues'].append('final-judge: privacy-judge-not-local')
+                    result['status'] = 'privacy-route-blocked'
+                    persist()
+                    return result
             before_call()
             judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
                 criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000))
@@ -367,6 +427,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if result['generation_status'] == 'running':
             result['generation_status'] = 'failed'
         result["status"] = ("cancelled" if isinstance(exc, CancelledError) else
+            'privacy-route-blocked' if isinstance(exc, PrivacyRouteViolation) else
             'content-verification-failed' if isinstance(exc, NodeSemanticFailure) else "failed")
         # Provider exception strings may contain credentials or response bodies.
         detail = str(exc) if isinstance(exc, (ValueError, json.JSONDecodeError, CancelledError)) else type(exc).__name__

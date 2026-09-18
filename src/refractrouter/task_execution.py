@@ -12,6 +12,7 @@ from .output_constraints import output_constraint_instruction
 from .task_budget import InvalidModelOutput, request_input_bound
 from .task_scheduling import available
 from .dependency_guard import NeedsDecomposition, NodeSemanticFailure, decomposition_request
+from .privacy_placement import deployment_of
 
 
 class RecoveryEligibleFailure(ValueError):
@@ -69,7 +70,8 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
 def execute_nodes(plan, task, assignments, candidates, budget, policy, result, persist,
                   *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
                   output_constraints=None, classify_failure=False, dispatch_history=None,
-                  dynamic=None, content_guard=None, tool_runtime=None, context_policy=None, prefix_policy="legacy"):
+                  dynamic=None, content_guard=None, tool_runtime=None, context_policy=None, prefix_policy="legacy",
+                  guard=None, eligible_models=None):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
@@ -211,6 +213,12 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], contract, context,
                             output_constraints=output_constraints if nid == plan.final_node_id else None,
                             tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy)
+                        if guard is not None:
+                            # 运行期以真实输入视图重新分级；敏感节点在规划期可达候选内改派本地，无候选则显式失败。
+                            model = candidates[guard.admit(nid, messages, assignments, candidates,
+                                                          eligible=(eligible_models or {}).get(nid))]
+                            if not available(nid, model.provider, active, last_start, now, policy):
+                                continue
                         attempt = len(attempted[nid]) + 1
                         label = label_prefix+nid+(f':attempt-{attempt}' if attempt > 1 else '')
                         reservation = budget.reserve(model, messages, label=label,
@@ -219,6 +227,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                             **({"tools": tool_runtime.schemas} if tool_runtime is not None else {}))
                         row = {'node_id': nid, 'model_id': model.model_id, 'provider': model.provider,
                                'status': 'scheduled', 'semantic_status': 'not-evaluated', 'ready_ms': ready_at[nid]}
+                        if guard is not None:
+                            row['deployment'] = deployment_of(model)
                         if context_policy is not None:
                             row['context_selection'] = context_policy.record['nodes'][nid]
                             row['handoff_bytes'] = {p: len(json.dumps({f: context[p][f] for f in info['fields']},
