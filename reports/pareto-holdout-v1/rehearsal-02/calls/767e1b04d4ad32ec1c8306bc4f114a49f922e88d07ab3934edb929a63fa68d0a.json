@@ -1,0 +1,19 @@
+{
+  "label": "analysis-06-r1-direct-strong:answer",
+  "content": "{\"answer\": \"北京时间09:50故障开始，10:10投诉，10:20恢复；投诉在恢复前。不能直接按原日志数字大小排序。\", \"findings\": [{\"id\": \"order\", \"value\": [\"start\", \"complaint\", \"restore\"], \"sources\": [\"s1\", \"s2\"]}, {\"id\": \"complaint_before_restore\", \"value\": true, \"sources\": [\"s1\", \"s2\"]}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null,
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": null,
+  "ttft_ms": null
+}
