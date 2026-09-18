@@ -1,0 +1,90 @@
+{
+  "schema_version": "cheap-judge-replay-v1",
+  "case_count": 107,
+  "excluding_reference_disagreements": 8,
+  "reference_disagreement_cases": [
+    "analysis-02-r1-direct-mid",
+    "analysis-02-r2-auto-heterogeneous",
+    "analysis-02-r2-shared-heterogeneous-1",
+    "analysis-02-r2-shared-heterogeneous-2",
+    "decision-01-r1-direct-strong",
+    "rules-01-r2-shared-single-1",
+    "rules-02-r1-shared-heterogeneous-1",
+    "rules-02-r1-shared-heterogeneous-2"
+  ],
+  "by_reference": {
+    "delivery-judge": {
+      "verdict_agreement": 0.878788,
+      "criterion_agreement": 0.89899,
+      "verdict_pairs": {
+        "fail -> fail": 1,
+        "fail -> pass": 4,
+        "fail -> pending": 1,
+        "pass -> fail": 2,
+        "pass -> pass": 86,
+        "pass -> pending": 5
+      },
+      "criterion_pairs": {
+        "fail -> fail": 2,
+        "fail -> pass": 13,
+        "fail -> pending": 3,
+        "pass -> fail": 3,
+        "pass -> pass": 354,
+        "pass -> pending": 21
+      },
+      "risk_direction": 0.037383,
+      "verdict_agreement_ok": false,
+      "criterion_agreement_ok": false,
+      "risk_direction_ok": false,
+      "all_ok": false
+    },
+    "research-judge": {
+      "verdict_agreement": 0.878788,
+      "criterion_agreement": 0.89899,
+      "verdict_pairs": {
+        "fail -> fail": 1,
+        "fail -> pass": 4,
+        "fail -> pending": 1,
+        "pass -> fail": 2,
+        "pass -> pass": 86,
+        "pass -> pending": 5
+      },
+      "criterion_pairs": {
+        "fail -> fail": 2,
+        "fail -> pass": 12,
+        "fail -> pending": 3,
+        "pass -> fail": 3,
+        "pass -> pass": 354,
+        "pass -> pending": 21,
+        "pending -> pass": 1
+      },
+      "risk_direction": 0.037383,
+      "verdict_agreement_ok": false,
+      "criterion_agreement_ok": false,
+      "risk_direction_ok": false,
+      "all_ok": false
+    }
+  },
+  "decision": "keep",
+  "decision_rule": "未達門檻則不替換 judge；達到門檻才進入階段四評審設計。",
+  "thresholds": {
+    "verdict_agreement_min": 0.925234,
+    "criterion_agreement_min": 0.950935,
+    "risk_direction_max": 0.037383,
+    "risk_direction_definition": "參考判定為 fail、候選判定為 pass 的比例（Ark fail、候選 pass），以全部 107 例為分母。",
+    "unparsed_output_policy": "候選評審輸出無法解析或 CLI 失敗時記 pending 並留在分母，不得從樣本中剔除。"
+  },
+  "cost": {
+    "calls": 107,
+    "estimated_afp": 7.19305,
+    "wall_time_ms": 3513567.913,
+    "ark_afp_in_ledger": 0,
+    "note": "成本為按封存 token 與 0.05 AFP/1k 的估算；實際扣費以 Ark 側為準，本工具不讀取餘額。"
+  },
+  "latency_ms": {
+    "median_ms": 21587.25,
+    "p90_ms": 50602.571,
+    "max_ms": 417756.179
+  },
+  "scope": "候選 B 的 cheap judge 重播；只比較判定一致性，不構成真人審查。"
+}

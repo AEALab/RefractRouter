@@ -58,3 +58,4 @@ keep：不替換。線上 delivery-judge 與離線 research-judge 都保留現�
 cheap 模型直接頂替 judge（候選 B，約 7 AFP／107 例，需明確放行），或導入與
 質量門檻對齊的便宜評審，這些歸入下一階段規劃，不在本輪繼續。
 
+"## 候选 B（cheap judge）小对照（2026-09-18，用户明确放行）\n\n同一份冻结判例与门槛，改用单一 cheap 评审（ark/deepseek-v4-flash，thinking=high，\n零重试，协议与估算上限见 cheap-judge-01/cheap-judge-protocol.json）。\n\n- 107 例重判完成：verdict 一致率 87.88%（门槛 92.5234%）、criterion 一致率\n  89.90%（门槛 95.0935%）、风险方向（Ark fail、候选 pass）4/107＝3.7383%，\n  刚好压过上限 3.7383%。结果不达标，按冻结规则 keep，不替换 kimi-k3 judge。\n- 成本：107 次调用，按封存 token 与 0.05 AFP/1k 估算约 7.19 AFP（记录内估算，\n  实际扣费以 Ark 侧为准）。\n- 两个候选都试过之后的一致性排序：Ark 同仪器重复取样 92.5%（参考下限） >\n  cheap judge 87.9% > 本地 MoA 83.3%。cheap 更便宜但目前无法达到替换门槛；\n  离现有 kimi-k3 只差 4.6 个百分点，属于后续可再校准的方向。\n"
