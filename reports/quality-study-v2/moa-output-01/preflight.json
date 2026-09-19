@@ -1,0 +1,651 @@
+{
+  "envelope": {
+    "kind": "output",
+    "targets": 107,
+    "maximum_calls": 428,
+    "timeout_seconds": 480,
+    "timeout_sum_seconds": 205440,
+    "policy_sha256": "2ae5b345f61a9a6be896663ff23f09499d98185ca6e13f7ceae3de0a50c1b902",
+    "real_model_calls": 0
+  },
+  "targets": [
+    {
+      "run_id": "analysis-03-r1-direct-strong",
+      "task_id": "analysis-03",
+      "output_sha256": "20fe16e5a48e60929186c3cfc1e8afb792acbe01b62b3c3687b139a4534241ee"
+    },
+    {
+      "run_id": "analysis-03-r1-direct-or-dag",
+      "task_id": "analysis-03",
+      "output_sha256": "f4258651d0d9c6668f13cb2af895d3b5b1637b29e2c51d5dffe0ddf5b5d242f5"
+    },
+    {
+      "run_id": "analysis-03-r1-task-selector",
+      "task_id": "analysis-03",
+      "output_sha256": "dc29f0bea5d401cb653c39e91853c3ca99f184e3fb264bf04e80d4be24c9c62e"
+    },
+    {
+      "run_id": "analysis-04-r1-direct-or-dag",
+      "task_id": "analysis-04",
+      "output_sha256": "ab7185f3c88302c2c456c36b7cffff9b276cf3c69136acbc96a803bc46544064"
+    },
+    {
+      "run_id": "analysis-04-r1-task-selector",
+      "task_id": "analysis-04",
+      "output_sha256": "b1c053356a2804af34687da346ca7cc0e19b294988f6b3f50c479999b395e82d"
+    },
+    {
+      "run_id": "analysis-04-r1-direct-strong",
+      "task_id": "analysis-04",
+      "output_sha256": "1fd33d34afcf81f1f2c5f87cd4674d4bd5fceb04be28951f09a1a585274bf2d6"
+    },
+    {
+      "run_id": "analysis-05-r1-direct-strong",
+      "task_id": "analysis-05",
+      "output_sha256": "cdbe3e17d4b58221b17af39318db094412b9ac5b590fe57f7d8da071730aeaf2"
+    },
+    {
+      "run_id": "analysis-05-r1-direct-or-dag",
+      "task_id": "analysis-05",
+      "output_sha256": "3e8e027d7ad8ce5c72928fd688fe5821fdd57426ebc9bad3d1bb6c1678b26baa"
+    },
+    {
+      "run_id": "analysis-05-r1-task-selector",
+      "task_id": "analysis-05",
+      "output_sha256": "92789e82f8d09c1cc904272344c062d190d481b21d71da079af658c4e97e3246"
+    },
+    {
+      "run_id": "analysis-06-r1-task-selector",
+      "task_id": "analysis-06",
+      "output_sha256": "71e821ccc3a93cb5b21e70dcad369ec90e68ced2e5a700b20c06f4ddf416a367"
+    },
+    {
+      "run_id": "analysis-06-r1-direct-strong",
+      "task_id": "analysis-06",
+      "output_sha256": "e226e8f74f1392548cc19ff0cc6f27adeff6c6d1141b9e48132a57a55bf92129"
+    },
+    {
+      "run_id": "analysis-06-r1-direct-or-dag",
+      "task_id": "analysis-06",
+      "output_sha256": "10ef779396e48240fccf77b8cbf35b437a9d03d6326f796397c9a21dd94bb5c0"
+    },
+    {
+      "run_id": "decision-03-r1-task-selector",
+      "task_id": "decision-03",
+      "output_sha256": "2343c3c66abf94d9b3ad4835e77f5ba329529cfe2380577f818a932a6e21c0dd"
+    },
+    {
+      "run_id": "decision-03-r1-direct-strong",
+      "task_id": "decision-03",
+      "output_sha256": "a465d6c0413f7e8b4c413228c5ea9e79f3306aea11f64ee555b12bc89602fc52"
+    },
+    {
+      "run_id": "decision-03-r1-direct-or-dag",
+      "task_id": "decision-03",
+      "output_sha256": "18f745669d8aff2bda7278eef6be86075a44706dde036e10f2af993c3fed2754"
+    },
+    {
+      "run_id": "decision-04-r1-task-selector",
+      "task_id": "decision-04",
+      "output_sha256": "566bef57167a2134f37e62cdb8209a4da657cab6b91f265424db32e5d99fdbb2"
+    },
+    {
+      "run_id": "decision-04-r1-direct-strong",
+      "task_id": "decision-04",
+      "output_sha256": "966380818546ba4e2dda5fbedc907eaaa7b3caf8dc66084d2bc54e500fc021dd"
+    },
+    {
+      "run_id": "decision-04-r1-direct-or-dag",
+      "task_id": "decision-04",
+      "output_sha256": "38910f48118b66dbc3dae4fc8650b70ae577bdf0c95f31614a2b9560de53eb8b"
+    },
+    {
+      "run_id": "decision-05-r1-task-selector",
+      "task_id": "decision-05",
+      "output_sha256": "22d904e80625422651cf105759b718a9b3e2f244dcbd07299b828d1748742784"
+    },
+    {
+      "run_id": "decision-05-r1-direct-strong",
+      "task_id": "decision-05",
+      "output_sha256": "52ab7af3b371b50aa7ffc705c4a7bddd4f7cfe31c3b6299cea1307b0ee38480e"
+    },
+    {
+      "run_id": "decision-06-r1-direct-or-dag",
+      "task_id": "decision-06",
+      "output_sha256": "89d813ebda63f4bc5219a1e3a6898aefa4da1426141b74ce5993f5d2e79e3d26"
+    },
+    {
+      "run_id": "decision-06-r1-direct-strong",
+      "task_id": "decision-06",
+      "output_sha256": "d1c873430784cc48c877921e62423c4bc0f15a48d0d447556b22e739a114c20d"
+    },
+    {
+      "run_id": "decision-06-r1-task-selector",
+      "task_id": "decision-06",
+      "output_sha256": "dd366172635e0b57d48b43131b98a19e394a0dedaf5d177bde3a35f561c311d9"
+    },
+    {
+      "run_id": "rules-03-r1-task-selector",
+      "task_id": "rules-03",
+      "output_sha256": "2b602e956c65c3ac7e8546785d115f80223d6925d3a52d17102ea89df29e3745"
+    },
+    {
+      "run_id": "rules-03-r1-direct-strong",
+      "task_id": "rules-03",
+      "output_sha256": "289610d3df5141266be736280bc18e7eb4e889cd69d14b563366e794e630ff8f"
+    },
+    {
+      "run_id": "rules-03-r1-direct-or-dag",
+      "task_id": "rules-03",
+      "output_sha256": "95e37c3b457e38e5a3e4961fd80e58ba9edf3f858a73cce90075ebd6988a159b"
+    },
+    {
+      "run_id": "rules-04-r1-direct-strong",
+      "task_id": "rules-04",
+      "output_sha256": "11a20bd960d3c879e60299d9f10bc3cc1610e5d5610992c7f5bc08600548afbb"
+    },
+    {
+      "run_id": "rules-04-r1-direct-or-dag",
+      "task_id": "rules-04",
+      "output_sha256": "54e4a8f1d857584b08b648d96a5c49145012f1ab347f657d6a207c00d87ba8bc"
+    },
+    {
+      "run_id": "rules-04-r1-task-selector",
+      "task_id": "rules-04",
+      "output_sha256": "b930242dd2184543949f7ba196d717152507eeaabb3667566ae3cd5b383b4bee"
+    },
+    {
+      "run_id": "rules-05-r1-direct-strong",
+      "task_id": "rules-05",
+      "output_sha256": "d88c44ab58820dfda7ebea3c82deb3e3552dd49400044d564d020e5663813422"
+    },
+    {
+      "run_id": "rules-05-r1-direct-or-dag",
+      "task_id": "rules-05",
+      "output_sha256": "4957e1ef7085f97bc09a28f62a7b6b236a86118886b0611465655ab5b3bdfaa4"
+    },
+    {
+      "run_id": "rules-05-r1-task-selector",
+      "task_id": "rules-05",
+      "output_sha256": "fce8faac3c41b3d11e1c5675489e12d62ec229dda50a49942a1102c1dd380a1e"
+    },
+    {
+      "run_id": "rules-06-r1-direct-or-dag",
+      "task_id": "rules-06",
+      "output_sha256": "e47a0a2d6d29e9672bf4f80a05ef2b8271dd6b3a8907527231deca8cab4838c6"
+    },
+    {
+      "run_id": "rules-06-r1-direct-strong",
+      "task_id": "rules-06",
+      "output_sha256": "81e7c9aa2092a38718c099a4cb7d59098255877128d2333eda7454d1f1f20d01"
+    },
+    {
+      "run_id": "rules-06-r1-task-selector",
+      "task_id": "rules-06",
+      "output_sha256": "d6e155fba94c3dce4a2ceb9d7264e5b9af4c5e430cb5a9e11a649eeb4cbfe607"
+    },
+    {
+      "run_id": "analysis-03-r2-task-selector",
+      "task_id": "analysis-03",
+      "output_sha256": "fed633c573cecc03eeae4ec4d8e99e2f19dc45e6c0c51d24ce51ef334de98129"
+    },
+    {
+      "run_id": "analysis-03-r2-direct-or-dag",
+      "task_id": "analysis-03",
+      "output_sha256": "06b49c288d57da0c4ab5851403e65632a2c34c159374a2c5dbd944408daa39b2"
+    },
+    {
+      "run_id": "analysis-03-r2-direct-strong",
+      "task_id": "analysis-03",
+      "output_sha256": "07f9d47a949617eb8c2f535b455a814de2c5567bb44cfe0b69d25ff0743e702c"
+    },
+    {
+      "run_id": "analysis-04-r2-direct-or-dag",
+      "task_id": "analysis-04",
+      "output_sha256": "5693c245675068a8907c9bdbced985079ad5666af7690c042bc41145b610ffe4"
+    },
+    {
+      "run_id": "analysis-04-r2-task-selector",
+      "task_id": "analysis-04",
+      "output_sha256": "1042c393d81cb515b96d05e1bf9e834b73a3e4e0d99c88d25cf6aa4b4ca2f7a2"
+    },
+    {
+      "run_id": "analysis-04-r2-direct-strong",
+      "task_id": "analysis-04",
+      "output_sha256": "126b4b512f4837d561af643a7c29c3cc005da4bd7b99faa2b82c35b85bdd3ecb"
+    },
+    {
+      "run_id": "analysis-05-r2-direct-strong",
+      "task_id": "analysis-05",
+      "output_sha256": "2f51f57b836a7949dc195d976240d8a6dc404e71684a9bb3ac9d590a054ece44"
+    },
+    {
+      "run_id": "analysis-05-r2-task-selector",
+      "task_id": "analysis-05",
+      "output_sha256": "28f34e4e738899f0c6fadeb2db3c3a27695160b06d033de6f3e0dab414eb4b13"
+    },
+    {
+      "run_id": "analysis-05-r2-direct-or-dag",
+      "task_id": "analysis-05",
+      "output_sha256": "9fcf90cd341a055f01bf90a8bdc1763b8a406ef46dd26fceac9a4e0684daff5a"
+    },
+    {
+      "run_id": "analysis-06-r2-direct-strong",
+      "task_id": "analysis-06",
+      "output_sha256": "9d02528a9f498c8a876b37defa557d33ad19889d72950fa6e18ede534b2af6af"
+    },
+    {
+      "run_id": "analysis-06-r2-direct-or-dag",
+      "task_id": "analysis-06",
+      "output_sha256": "287a0ee7b1a1383f83828afd7da5c142b3d965c1f3e433ceb89763667f747993"
+    },
+    {
+      "run_id": "analysis-06-r2-task-selector",
+      "task_id": "analysis-06",
+      "output_sha256": "af7c7e358607d9033b0b1b556f04664f34b82a7efa9e3d421ee913c02db7a7b9"
+    },
+    {
+      "run_id": "decision-03-r2-direct-or-dag",
+      "task_id": "decision-03",
+      "output_sha256": "642027c90b8e66fc83eaf4b81774395d9f15726d55b64bac64aa285fdac66582"
+    },
+    {
+      "run_id": "decision-03-r2-direct-strong",
+      "task_id": "decision-03",
+      "output_sha256": "ec0f7f6ef23d8135d882a4b5b9a43282422d9e92d795d99a7b78ef2215199b66"
+    },
+    {
+      "run_id": "decision-03-r2-task-selector",
+      "task_id": "decision-03",
+      "output_sha256": "0158ec804cb3c92c2536c1da792e0978c23b3f46b15113734ed94394670e3576"
+    },
+    {
+      "run_id": "decision-04-r2-direct-or-dag",
+      "task_id": "decision-04",
+      "output_sha256": "2b1fb3a2ade4a86e3451b0e762df401f4b7f6e693ba86917b28e334a459412ee"
+    },
+    {
+      "run_id": "decision-04-r2-task-selector",
+      "task_id": "decision-04",
+      "output_sha256": "9e013943c95baf8eab93237a57464be8afaffd67edaf187a05deab0e8f13d450"
+    },
+    {
+      "run_id": "decision-04-r2-direct-strong",
+      "task_id": "decision-04",
+      "output_sha256": "989b5496de25a948fe54e227f772be17d547051a10eeffe9f8050828bb2f056b"
+    },
+    {
+      "run_id": "decision-05-r2-task-selector",
+      "task_id": "decision-05",
+      "output_sha256": "4367ca5498d9ff63f48f49494156f2a5db345823895c48606e038f49ceb0bb05"
+    },
+    {
+      "run_id": "decision-05-r2-direct-strong",
+      "task_id": "decision-05",
+      "output_sha256": "0c4704583e53dbc9030fe09a3155e947761c223c6793693d362f56c8f46d04ea"
+    },
+    {
+      "run_id": "decision-05-r2-direct-or-dag",
+      "task_id": "decision-05",
+      "output_sha256": "66b42c3afbce83c840449cb6c643f223715cf0b7145dbbfd2268d4bb950802ef"
+    },
+    {
+      "run_id": "decision-06-r2-task-selector",
+      "task_id": "decision-06",
+      "output_sha256": "a7a23ec4bc6ed1e4b736f6e4d743c41099b1f68e5e5515abcf0eb29d64d8ea24"
+    },
+    {
+      "run_id": "decision-06-r2-direct-strong",
+      "task_id": "decision-06",
+      "output_sha256": "837a5b355dcda532233b224ed32b27fc4018d7b920cff12a048d3a71f2374e9a"
+    },
+    {
+      "run_id": "decision-06-r2-direct-or-dag",
+      "task_id": "decision-06",
+      "output_sha256": "99e7818d991b5fb8663aa59e8aee0d988a8e7a313b0229e7f9a72772b609399b"
+    },
+    {
+      "run_id": "rules-03-r2-task-selector",
+      "task_id": "rules-03",
+      "output_sha256": "95e37c3b457e38e5a3e4961fd80e58ba9edf3f858a73cce90075ebd6988a159b"
+    },
+    {
+      "run_id": "rules-03-r2-direct-or-dag",
+      "task_id": "rules-03",
+      "output_sha256": "f50c19eab0136609ea39bfdb3bd8912c8b4ad2d3bc951d27e11950154529ec21"
+    },
+    {
+      "run_id": "rules-03-r2-direct-strong",
+      "task_id": "rules-03",
+      "output_sha256": "9b16994c1e04ea1864dd6592f9984a8e6ace9ca91417860285192699c3202ef8"
+    },
+    {
+      "run_id": "rules-04-r2-task-selector",
+      "task_id": "rules-04",
+      "output_sha256": "60493d37be2d2eff0b6c602b53bd63940954400d83ea962de83d6a1358b00d84"
+    },
+    {
+      "run_id": "rules-04-r2-direct-or-dag",
+      "task_id": "rules-04",
+      "output_sha256": "465ad9da1a351eb37dc9cf922da4ef4e8d4fdce86861951b34f5525fe3026e53"
+    },
+    {
+      "run_id": "rules-04-r2-direct-strong",
+      "task_id": "rules-04",
+      "output_sha256": "17374bcb7f04e8dffcd4eab52f0d2c9d078cb2a9f8169bb26c6981efc876e835"
+    },
+    {
+      "run_id": "rules-05-r2-task-selector",
+      "task_id": "rules-05",
+      "output_sha256": "686758deb0d98ffb81675accd2a49afe53f260a97958bc9ea0ba6c13e84a0267"
+    },
+    {
+      "run_id": "rules-05-r2-direct-or-dag",
+      "task_id": "rules-05",
+      "output_sha256": "f86d8a4f8e7b7e99714939893286f54a6ad92567cbb15cd42d04ca049f0cc493"
+    },
+    {
+      "run_id": "rules-05-r2-direct-strong",
+      "task_id": "rules-05",
+      "output_sha256": "850af63ef9cb3d65d930c4ddec3113901f3f71626a5a7c4df325963dda853e9c"
+    },
+    {
+      "run_id": "rules-06-r2-direct-strong",
+      "task_id": "rules-06",
+      "output_sha256": "34af1f4dfa45b5c9b76c2d37b9b519945574c5adaa2400d172acc29eed7e9628"
+    },
+    {
+      "run_id": "rules-06-r2-task-selector",
+      "task_id": "rules-06",
+      "output_sha256": "2dafe9adb3d08c826a434085a427a6a97dcd3f9382c292f4e74ffacd22921312"
+    },
+    {
+      "run_id": "rules-06-r2-direct-or-dag",
+      "task_id": "rules-06",
+      "output_sha256": "eee00899b772d8f6debebb7cc28064ba3538f9dab8600d4f335b3676ab7d7f22"
+    },
+    {
+      "run_id": "analysis-03-r3-direct-or-dag",
+      "task_id": "analysis-03",
+      "output_sha256": "a7d9aaa5781f13a2b7aa7f6f872d2edc9eb250888a398d2b8e933b8970c7d857"
+    },
+    {
+      "run_id": "analysis-03-r3-task-selector",
+      "task_id": "analysis-03",
+      "output_sha256": "e316ec87d53e1a1c69372c36f7642488bbd045870aa242ec3893891e0269b115"
+    },
+    {
+      "run_id": "analysis-03-r3-direct-strong",
+      "task_id": "analysis-03",
+      "output_sha256": "85b2e7620b34e7dd144e411f48a900273899213527199914c65de0e87afef3a3"
+    },
+    {
+      "run_id": "analysis-04-r3-direct-or-dag",
+      "task_id": "analysis-04",
+      "output_sha256": "1dab216d3a03211753eb8e922386530b91b8450535aeca727134121750fa68ae"
+    },
+    {
+      "run_id": "analysis-04-r3-task-selector",
+      "task_id": "analysis-04",
+      "output_sha256": "65b65706c8d08b9504431bbc7316d3c4c02f0badb34e4b4080c10e9bd95c7c04"
+    },
+    {
+      "run_id": "analysis-04-r3-direct-strong",
+      "task_id": "analysis-04",
+      "output_sha256": "c046cd7a3ccda7ccb097b7a1052fe846c0b86edcd3bef7be1ededda9d96475a5"
+    },
+    {
+      "run_id": "analysis-05-r3-direct-or-dag",
+      "task_id": "analysis-05",
+      "output_sha256": "b513dd950e490f7ba31cd7b86939be9676c32e1842889dbeed974777ce5187ac"
+    },
+    {
+      "run_id": "analysis-05-r3-direct-strong",
+      "task_id": "analysis-05",
+      "output_sha256": "321133a6af8cc7edfeda7b5780e85f6098d59760028e696454c8a08580900d2d"
+    },
+    {
+      "run_id": "analysis-05-r3-task-selector",
+      "task_id": "analysis-05",
+      "output_sha256": "f2f7d80035d0d5358cd971ccd3b81eb0fdd16e3b229262729f98cdd3e322bb5e"
+    },
+    {
+      "run_id": "analysis-06-r3-direct-strong",
+      "task_id": "analysis-06",
+      "output_sha256": "272967948e3ec10ae3a99702c76cfc37eb19dc1bf7a0866238839e9aa9d732e8"
+    },
+    {
+      "run_id": "analysis-06-r3-direct-or-dag",
+      "task_id": "analysis-06",
+      "output_sha256": "9f5ca3a26357bfd36d215c5fcebd178952b76d6b2729033965cb1aa856ffc72d"
+    },
+    {
+      "run_id": "analysis-06-r3-task-selector",
+      "task_id": "analysis-06",
+      "output_sha256": "c830aa12a76152247facabd8d543bb5a98944972c66ea7699db5b06a38da5848"
+    },
+    {
+      "run_id": "decision-03-r3-direct-strong",
+      "task_id": "decision-03",
+      "output_sha256": "0bf22b2d235db576b7ebc914013b2bf27ace578b510da8d18ebde9b1ecfb51f3"
+    },
+    {
+      "run_id": "decision-03-r3-direct-or-dag",
+      "task_id": "decision-03",
+      "output_sha256": "1b5b108440ac359faa1a43619ba6a730326d0ed0ca53f1fb07f68256c15f156a"
+    },
+    {
+      "run_id": "decision-03-r3-task-selector",
+      "task_id": "decision-03",
+      "output_sha256": "89c03ae8c5092716f677ad5189ff9370cc20db07f0ec0ab1bf11eec12783606e"
+    },
+    {
+      "run_id": "decision-04-r3-direct-strong",
+      "task_id": "decision-04",
+      "output_sha256": "8c74dad45bb7c709ea00b679252eebeafd0c0cf6d8baa1f9240141a5409d8f27"
+    },
+    {
+      "run_id": "decision-04-r3-direct-or-dag",
+      "task_id": "decision-04",
+      "output_sha256": "f71c53ef2b8b90dd820c380bd9ae96c97fdbf6b4466e9ff1dcb46695ca08ca96"
+    },
+    {
+      "run_id": "decision-04-r3-task-selector",
+      "task_id": "decision-04",
+      "output_sha256": "33133af091be7b3c2c50ba9b6b8c9f1e9448dde2e413e0a25c6a085af6267f74"
+    },
+    {
+      "run_id": "decision-05-r3-direct-or-dag",
+      "task_id": "decision-05",
+      "output_sha256": "4df8e773e32d115dacdcab100b75fceedec2ae0bf75a7833f31e64b06750e828"
+    },
+    {
+      "run_id": "decision-05-r3-direct-strong",
+      "task_id": "decision-05",
+      "output_sha256": "7c77349a9652a15bcedf84826a25a3a078303bfddcd9b4a16c5118f6d2b93da7"
+    },
+    {
+      "run_id": "decision-05-r3-task-selector",
+      "task_id": "decision-05",
+      "output_sha256": "a65aae2b17c9da479a5c9733b68d00b2bb5cef1cae1a5132ec3cb134fdb0f00d"
+    },
+    {
+      "run_id": "decision-06-r3-direct-or-dag",
+      "task_id": "decision-06",
+      "output_sha256": "35be75c9cb76f277075ca1565e4a2a4f651d8ad5f33953ac4e8f3d5c74a85b96"
+    },
+    {
+      "run_id": "decision-06-r3-task-selector",
+      "task_id": "decision-06",
+      "output_sha256": "b2afc7d439e9e0b3b273a3bc116e9f85b9b32042c2fda7132912c34cce0d7a0a"
+    },
+    {
+      "run_id": "decision-06-r3-direct-strong",
+      "task_id": "decision-06",
+      "output_sha256": "473619d73c71fb1df8ddf7d151d829b8974ad5c1a804a8d89a631012bce6d3ab"
+    },
+    {
+      "run_id": "rules-03-r3-direct-strong",
+      "task_id": "rules-03",
+      "output_sha256": "9b16994c1e04ea1864dd6592f9984a8e6ace9ca91417860285192699c3202ef8"
+    },
+    {
+      "run_id": "rules-03-r3-direct-or-dag",
+      "task_id": "rules-03",
+      "output_sha256": "3693b63cdb4f7b926f6bc9d8abfc26f048b60dc153b4a1782dc91a2d31c4b3f5"
+    },
+    {
+      "run_id": "rules-03-r3-task-selector",
+      "task_id": "rules-03",
+      "output_sha256": "40c8b23b32b61c22c590b995fed0cd915d3b559ab9d89eb2745f5c3c82f7db5a"
+    },
+    {
+      "run_id": "rules-04-r3-direct-strong",
+      "task_id": "rules-04",
+      "output_sha256": "d9570d02bac3101dd9f35f6c2b863c18a47818949799c734cd7fa8b149c13d6e"
+    },
+    {
+      "run_id": "rules-04-r3-task-selector",
+      "task_id": "rules-04",
+      "output_sha256": "f95be602121b9571600341ae5a1d394104f45272004285dd66938f0e501e24f4"
+    },
+    {
+      "run_id": "rules-04-r3-direct-or-dag",
+      "task_id": "rules-04",
+      "output_sha256": "147e7367d89315f54d0168800ea85125eca0edd90eb3e420430d8a3d452228ab"
+    },
+    {
+      "run_id": "rules-05-r3-direct-strong",
+      "task_id": "rules-05",
+      "output_sha256": "861107adc4863a76e2521a17449f5c0dbe79970424fd41aa5b3f404e6027685e"
+    },
+    {
+      "run_id": "rules-05-r3-direct-or-dag",
+      "task_id": "rules-05",
+      "output_sha256": "727e18adc9e359ad50c8d4e8958dccb54f46a4dd138ff7139517aacca4a07cc7"
+    },
+    {
+      "run_id": "rules-05-r3-task-selector",
+      "task_id": "rules-05",
+      "output_sha256": "61de7708785b83a76f2dc2a3fa17152ad4e4df1e8a8c6061b77c137b94c9afb0"
+    },
+    {
+      "run_id": "rules-06-r3-direct-strong",
+      "task_id": "rules-06",
+      "output_sha256": "9197f635365705125a46c307133d51c2498b69a065b55e015830551e1b929077"
+    },
+    {
+      "run_id": "rules-06-r3-direct-or-dag",
+      "task_id": "rules-06",
+      "output_sha256": "e11a9c38a377bc94044c942ef9fbc45e45f0ea0fe64d32ed86241bb9ea34c522"
+    },
+    {
+      "run_id": "rules-06-r3-task-selector",
+      "task_id": "rules-06",
+      "output_sha256": "46156c09cfaea7a345b9db6adc155807284b456dd84f350f71eb19a8783ca549"
+    }
+  ],
+  "policy": {
+    "schema_version": "moa-review-policy-v1",
+    "primary": [
+      {
+        "reviewer_id": "ds-deepseek-v4-pro",
+        "cli": "codex",
+        "model": "ds/deepseek-v4-pro",
+        "thinking_effort": "max",
+        "output_schema": false
+      },
+      {
+        "reviewer_id": "claude-opus",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "high"
+      }
+    ],
+    "escalation": [
+      {
+        "reviewer_id": "codex-ark-kimi-k3",
+        "cli": "codex",
+        "model": "ark/kimi-k3",
+        "thinking_effort": "high",
+        "output_schema": false
+      },
+      {
+        "reviewer_id": "claude-opus-max",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "max"
+      }
+    ],
+    "timeout_seconds": 480,
+    "output_cap_tokens": 4096,
+    "codex_cli": {
+      "ignore_user_config": false,
+      "sandbox": "read-only",
+      "request_max_retries": 0,
+      "stream_max_retries": 0
+    },
+    "claude_cli": {
+      "output_format": "text",
+      "json_schema": "inline-json",
+      "tools": [],
+      "permission_mode": "dontAsk",
+      "no_session_persistence": true
+    },
+    "zero_retries": true,
+    "voting_rule": "两位一致则采用；任一 criterion 不一致则升级两位重审；升级后一致则采用，否则 pending。",
+    "origin": "model",
+    "reviewer_identity_verified": false,
+    "scope": "跨 provider 多模型共识质量判定；不构成真人审查，也不证明真实用户接受度。"
+  },
+  "review_schema": {
+    "type": "object",
+    "required": [
+      "verdict",
+      "rationale",
+      "criteria"
+    ],
+    "properties": {
+      "verdict": {
+        "enum": [
+          "pass",
+          "fail",
+          "pending"
+        ]
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 1
+      },
+      "criteria": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "criterion",
+            "verdict",
+            "rationale"
+          ],
+          "properties": {
+            "criterion": {
+              "type": "string"
+            },
+            "verdict": {
+              "enum": [
+                "pass",
+                "fail",
+                "pending"
+              ]
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}
