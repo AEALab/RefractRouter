@@ -1,0 +1,256 @@
+{
+  "schema_version": "privacy-classifier-validation-v1",
+  "study": "隐私感知节点放置 A3：分级器验证",
+  "issue": 87,
+  "created": "2026-09-19",
+  "zero_network_calls": true,
+  "datasets": [
+    {
+      "name": "constructed-samples-v1.json",
+      "sha256": "dbe086053041a7cc872d824304bbc589db9a8f576336c9e2bc802caf0c2fe036",
+      "item_count": 58
+    },
+    {
+      "name": "desensitized-real-samples-v1.json",
+      "sha256": "be1369b529797f3445aecc1d26abc22bd65ecf1c6108e5a0654fb020faa08d97",
+      "item_count": 15
+    }
+  ],
+  "frozen_terms": [
+    "合同金额",
+    "客户名单"
+  ],
+  "gate": {
+    "s1_precision": 1.0,
+    "s1_recall": 1.0,
+    "s3_precision": 1.0,
+    "s3_recall": 1.0
+  },
+  "gate_passed": true,
+  "metrics": {
+    "clean_count": 70,
+    "tp": 29,
+    "tn": 41,
+    "fn": 0,
+    "fp": 0,
+    "s1_precision": 1.0,
+    "s1_recall": 1.0,
+    "s3_precision": 1.0,
+    "s3_recall": 1.0,
+    "accuracy": 1.0,
+    "gate_passed": true
+  },
+  "rule_table": {
+    "private-key": {
+      "expected_count": 2,
+      "matched": 2,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "credential-assignment": {
+      "expected_count": 6,
+      "matched": 6,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "credential-assignment-zh": {
+      "expected_count": 3,
+      "matched": 3,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "bearer-token": {
+      "expected_count": 3,
+      "matched": 3,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "email": {
+      "expected_count": 7,
+      "matched": 7,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "phone-cn": {
+      "expected_count": 6,
+      "matched": 6,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "local-absolute-path": {
+      "expected_count": 5,
+      "matched": 5,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "windows-absolute-path": {
+      "expected_count": 2,
+      "matched": 2,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "term:合同金额": {
+      "expected_count": 2,
+      "matched": 2,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    },
+    "term:客户名单": {
+      "expected_count": 1,
+      "matched": 1,
+      "unexpected_hits": [],
+      "unexpected_documented": true
+    }
+  },
+  "known_issues": [
+    {
+      "id": "c-ph-n05",
+      "ground": "S3",
+      "predicted": "S1",
+      "hits": [
+        "phone-cn"
+      ],
+      "issue": "订单号与手机号形态相同，规则保守误报；宁松勿漏，代价由 A4 对照量化。"
+    },
+    {
+      "id": "c-cred-n05",
+      "ground": "S1",
+      "predicted": "S3",
+      "hits": [],
+      "issue": "含空格的秘密值不被捕获，是已知召回缺口；后续里程碑评估值字符集扩展。"
+    },
+    {
+      "id": "c-term-n01",
+      "ground": "S3",
+      "predicted": "S1",
+      "hits": [
+        "term:合同金额"
+      ],
+      "issue": "自定义词按子串匹配，保守误报；语义边界留待分类器第二道。"
+    }
+  ],
+  "second_pass_contract": [
+    {
+      "scenario": "classifier:public",
+      "grade": "S3",
+      "reasons": [],
+      "classifier_calls": null
+    },
+    {
+      "scenario": "classifier:sensitive",
+      "grade": "S1",
+      "reasons": [
+        "classifier:sensitive",
+        "疑似个人合同"
+      ],
+      "classifier_calls": null
+    },
+    {
+      "scenario": "classifier:unknown",
+      "grade": "unknown",
+      "reasons": [
+        "classifier:unknown",
+        "无法判断"
+      ],
+      "classifier_calls": null
+    },
+    {
+      "scenario": "classifier:invalid",
+      "grade": "unknown",
+      "reasons": [
+        "classifier-label:'weird'"
+      ],
+      "classifier_calls": null
+    },
+    {
+      "scenario": "classifier:exception",
+      "grade": "unknown",
+      "reasons": [
+        "classifier-failed:RuntimeError"
+      ],
+      "classifier_calls": null
+    },
+    {
+      "scenario": "classifier:missing",
+      "grade": "unknown",
+      "reasons": [
+        "classifier-unavailable"
+      ],
+      "classifier_calls": null
+    },
+    {
+      "scenario": "deterministic-preempts-classifier",
+      "grade": "S1",
+      "reasons": [
+        "email"
+      ],
+      "classifier_calls": 0
+    },
+    {
+      "scenario": "oversized-before-classifier",
+      "grade": "unknown",
+      "reasons": [
+        "prompt-bytes:2048>8"
+      ],
+      "classifier_calls": 0
+    }
+  ],
+  "fail_safe_placement": [
+    {
+      "scenario": "oversized-with-local",
+      "status": "selected",
+      "grades": {
+        "cost": "unknown",
+        "risk": "unknown",
+        "answer": "unknown"
+      },
+      "eligible": {
+        "cost": [
+          "local-work"
+        ],
+        "risk": [
+          "local-work"
+        ],
+        "answer": [
+          "local-work"
+        ]
+      }
+    },
+    {
+      "scenario": "oversized-cloud-only",
+      "status": "no-local-candidate",
+      "blocked": [
+        {
+          "node_id": "cost",
+          "grade": "unknown",
+          "reasons": [
+            "prompt-bytes:2048>8"
+          ],
+          "detail": "no-local-candidate"
+        },
+        {
+          "node_id": "risk",
+          "grade": "unknown",
+          "reasons": [
+            "prompt-bytes:2048>8"
+          ],
+          "detail": "no-local-candidate"
+        },
+        {
+          "node_id": "answer",
+          "grade": "unknown",
+          "reasons": [
+            "prompt-bytes:2048>8"
+          ],
+          "detail": "no-local-candidate"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "phone-cn 对形态相同的订单流水号保守误报，代价由 A4 开关对照量化。",
+    "自定义敏感词按子串命中，保守误报；语义边界留待分类器第二道。",
+    "含空格的秘密值暂不捕获（召回缺口），后续评估值字符集扩展。",
+    "S2 在 v0 不产出；真实 ML 分类器的模型质量留待 A6 真实本地端点验证。"
+  ]
+}

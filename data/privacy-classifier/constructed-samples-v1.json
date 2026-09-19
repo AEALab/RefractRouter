@@ -1,0 +1,490 @@
+{
+  "schema_version": "privacy-classifier-samples-v1",
+  "set_id": "constructed-v1",
+  "created": "2026-09-19",
+  "provenance": {
+    "kind": "constructed",
+    "creator": "Codex",
+    "origin": "研究构造样本，不指代现实个人或机构；联系人与凭据一律使用保留占位符。",
+    "rights": "项目研究材料；可随本项目进行评估，非第三方来源摘录。"
+  },
+  "policy": {
+    "grade_labels": ["S1", "S3"],
+    "reserved": "S2 在 v0 不产出；unknown 是容量超限、分类失败与超时场景的 fail-safe 状态，由验证场景覆盖。",
+    "terms": ["合同金额", "客户名单"],
+    "placeholder_note": "example.com 等为 RFC 2606 保留域名；13800138000 为运营商演示号码；路径使用假名用户。"
+  },
+  "items": [
+    {
+      "id": "c-em-01",
+      "category": "builtin-email",
+      "text": "联系人 wang@example.com，请回复确认",
+      "grade": "S1",
+      "expected_hits": ["email"],
+      "note": "常规邮箱。"
+    },
+    {
+      "id": "c-em-02",
+      "category": "builtin-email",
+      "text": "评审意见发送至 review@example.com 并抄送 archive@example.org",
+      "grade": "S1",
+      "expected_hits": ["email"],
+      "note": "多邮箱。"
+    },
+    {
+      "id": "c-ph-01",
+      "category": "builtin-phone",
+      "text": "客户电话 13800138000，工作时间来电",
+      "grade": "S1",
+      "expected_hits": ["phone-cn"],
+      "note": "大陆手机号形态。"
+    },
+    {
+      "id": "c-ph-02",
+      "category": "builtin-phone",
+      "text": "紧急联系 13900139000",
+      "grade": "S1",
+      "expected_hits": ["phone-cn"],
+      "note": "演示号码。"
+    },
+    {
+      "id": "c-pk-01",
+      "category": "builtin-private-key",
+      "text": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----",
+      "grade": "S1",
+      "expected_hits": ["private-key"],
+      "note": "RSA 私钥头。"
+    },
+    {
+      "id": "c-pk-02",
+      "category": "builtin-private-key",
+      "text": "密钥头 -----BEGIN EC PRIVATE KEY----- 之后为正文",
+      "grade": "S1",
+      "expected_hits": ["private-key"],
+      "note": "EC 私钥头。"
+    },
+    {
+      "id": "c-cred-01",
+      "category": "builtin-credential",
+      "text": "api_key = sk-abcdef123456",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment"],
+      "note": "英文键名等号赋值。"
+    },
+    {
+      "id": "c-cred-02",
+      "category": "builtin-credential",
+      "text": "client_secret: abcdefgh12345678",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment"],
+      "note": "英文键名冒号赋值。"
+    },
+    {
+      "id": "c-cred-03",
+      "category": "builtin-credential",
+      "text": "数据库密码：Passw0rd2026",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment-zh"],
+      "note": "中文键名赋值（A3 扩展）。"
+    },
+    {
+      "id": "c-cred-04",
+      "category": "builtin-credential",
+      "text": "口令: abcd1234efgh",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment-zh"],
+      "note": "口令赋值。"
+    },
+    {
+      "id": "c-bearer-01",
+      "category": "builtin-bearer",
+      "text": "Authorization: Bearer abcdefghijklmnopqrstuvwx",
+      "grade": "S1",
+      "expected_hits": ["bearer-token"],
+      "note": "Bearer 令牌。"
+    },
+    {
+      "id": "c-bearer-02",
+      "category": "builtin-bearer",
+      "text": "请求头 Bearer eyJhbGciOiJIUzI1NiJ9.abcdef123456",
+      "grade": "S1",
+      "expected_hits": ["bearer-token"],
+      "note": "JWT 形态令牌。"
+    },
+    {
+      "id": "c-path-01",
+      "category": "builtin-local-path",
+      "text": "读取 /Users/alice/contracts/2026.docx",
+      "grade": "S1",
+      "expected_hits": ["local-absolute-path"],
+      "note": "macOS 用户目录绝对路径。"
+    },
+    {
+      "id": "c-path-02",
+      "category": "builtin-local-path",
+      "text": "数据在 /home/bob/sales.csv",
+      "grade": "S1",
+      "expected_hits": ["local-absolute-path"],
+      "note": "Linux 家目录。"
+    },
+    {
+      "id": "c-path-03",
+      "category": "builtin-local-path",
+      "text": "脚本位于 /root/.ssh/id_rsa",
+      "grade": "S1",
+      "expected_hits": ["local-absolute-path"],
+      "note": "root 目录。"
+    },
+    {
+      "id": "c-win-01",
+      "category": "builtin-windows-path",
+      "text": "导出到 C:\\Users\\alice\\Desktop\\report.xlsx",
+      "grade": "S1",
+      "expected_hits": ["windows-absolute-path"],
+      "note": "Windows 用户目录。"
+    },
+    {
+      "id": "c-win-02",
+      "category": "builtin-windows-path",
+      "text": "日志在 C:\\Documents\\2026\\inventory.csv",
+      "grade": "S1",
+      "expected_hits": ["windows-absolute-path"],
+      "note": "Windows 文档目录。"
+    },
+    {
+      "id": "c-multi-01",
+      "category": "multi-hit",
+      "text": "联系人 li@example.com，电话 13700137000",
+      "grade": "S1",
+      "expected_hits": ["email", "phone-cn"],
+      "note": "多规则命中。"
+    },
+    {
+      "id": "c-multi-02",
+      "category": "multi-hit",
+      "text": "路径 /Users/bob/data.csv 与 access_token: abcd1234efgh5678",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment", "local-absolute-path"],
+      "note": "多规则命中，顺序稳定。"
+    },
+    {
+      "id": "c-term-01",
+      "category": "custom-term",
+      "text": "本合同金额为 120 万元，请汇总",
+      "grade": "S1",
+      "expected_hits": ["term:合同金额"],
+      "sensitive_terms": ["合同金额", "客户名单"],
+      "note": "自定义词命中。"
+    },
+    {
+      "id": "c-term-02",
+      "category": "custom-term",
+      "text": "请更新客户名单并输出联系人页",
+      "grade": "S1",
+      "expected_hits": ["term:客户名单"],
+      "sensitive_terms": ["合同金额", "客户名单"],
+      "note": "自定义词命中。"
+    },
+    {
+      "id": "c-json-01",
+      "category": "structured",
+      "text": "{\"service\":\"sync\",\"api_key\":\"sk-abcdef123456\",\"region\":\"cn\"}",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment"],
+      "note": "JSON 结构化视图同样命中。"
+    },
+    {
+      "id": "c-json-n01",
+      "category": "near-miss",
+      "text": "{\"name\":\"api_key\",\"enabled\":true}",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "JSON 键名无赋值，不命中。"
+    },
+    {
+      "id": "c-json-n02",
+      "category": "near-miss",
+      "text": "{\"api_key\":\"\",\"region\":\"cn\"}",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "JSON 空值不命中。"
+    },
+    {
+      "id": "c-em-n01",
+      "category": "near-miss",
+      "text": "联系人 wang@example，请回复确认",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "无顶级域名，不命中。"
+    },
+    {
+      "id": "c-em-n02",
+      "category": "near-miss",
+      "text": "邮箱地址是 example.com，请核对",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "只有域名，不命中。"
+    },
+    {
+      "id": "c-em-n03",
+      "category": "near-miss",
+      "text": "变量 email_addr 保存联系人地址",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "标识符不是邮箱。"
+    },
+    {
+      "id": "c-ph-n01",
+      "category": "near-miss",
+      "text": "编号 1380013800",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "10 位编号。"
+    },
+    {
+      "id": "c-ph-n02",
+      "category": "near-miss",
+      "text": "电话 013800138000",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "0 开头座机形态。"
+    },
+    {
+      "id": "c-ph-n03",
+      "category": "near-miss",
+      "text": "流水 138001380001",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "12 位流水号。"
+    },
+    {
+      "id": "c-ph-n04",
+      "category": "near-miss",
+      "text": "发布时间 20260917123",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "日期编号不命中。"
+    },
+    {
+      "id": "c-ph-n05",
+      "category": "near-miss",
+      "text": "订单流水 13000000001 已出库",
+      "grade": "S3",
+      "expected_hits": ["phone-cn"],
+      "known_issue": "订单号与手机号形态相同，规则保守误报；宁松勿漏，代价由 A4 对照量化。",
+      "note": "已文档化的误报。"
+    },
+    {
+      "id": "c-ph-n06",
+      "category": "near-miss",
+      "text": "哈希 9fa02697d015b4a7eb9c59147fd578493e69cd19cca5549bf5959d4f4b427685",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "64 位十六进制哈希不误报（回归）。"
+    },
+    {
+      "id": "c-ph-n07",
+      "category": "near-miss",
+      "text": "版本 v1.2.3 发布于 2026-09-17",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "版本号不误报。"
+    },
+    {
+      "id": "c-cred-n01",
+      "category": "near-miss",
+      "text": "请把 api_key 填在这里",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "键名无赋值。"
+    },
+    {
+      "id": "c-cred-n02",
+      "category": "near-miss",
+      "text": "password: ab",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "值不足 6 位。"
+    },
+    {
+      "id": "c-cred-n03",
+      "category": "near-miss",
+      "text": "密码：ab",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "中文键名短值。"
+    },
+    {
+      "id": "c-cred-n04",
+      "category": "near-miss",
+      "text": "secretKey 为环境变量",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "无赋值符号。"
+    },
+    {
+      "id": "c-cred-n05",
+      "category": "near-miss",
+      "text": "password: my secret key",
+      "grade": "S1",
+      "expected_hits": [],
+      "known_issue": "含空格的秘密值不被捕获，是已知召回缺口；后续里程碑评估值字符集扩展。",
+      "note": "已文档化的漏报。"
+    },
+    {
+      "id": "c-cred-n06",
+      "category": "near-miss",
+      "text": "密钥：公开说明如下",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "中文值不命中。"
+    },
+    {
+      "id": "c-bearer-n01",
+      "category": "near-miss",
+      "text": "使用 Bearer abc 访问服务",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "令牌过短。"
+    },
+    {
+      "id": "c-bearer-n02",
+      "category": "near-miss",
+      "text": "BearerToken 字段说明",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "标识符不是请求头。"
+    },
+    {
+      "id": "c-pk-n01",
+      "category": "near-miss",
+      "text": "-----BEGIN PUBLIC KEY-----",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公钥不命中。"
+    },
+    {
+      "id": "c-path-n01",
+      "category": "near-miss",
+      "text": "读取 data/users/alice.csv",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "相对路径。"
+    },
+    {
+      "id": "c-path-n02",
+      "category": "near-miss",
+      "text": "路径 ~/Documents/a.docx",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "波浪线路径。"
+    },
+    {
+      "id": "c-path-n03",
+      "category": "near-miss",
+      "text": "放在 /tmp/out.txt",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "临时目录。"
+    },
+    {
+      "id": "c-path-n04",
+      "category": "near-miss",
+      "text": "使用 /usr/local/bin/tool",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "系统目录。"
+    },
+    {
+      "id": "c-win-n01",
+      "category": "near-miss",
+      "text": "打开 C:\\temp\\file.txt",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "非用户目录。"
+    },
+    {
+      "id": "c-win-n02",
+      "category": "near-miss",
+      "text": "C:\\Program Files\\app",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "程序目录。"
+    },
+    {
+      "id": "c-term-n01",
+      "category": "near-miss",
+      "text": "合同金额度是公开指标，供参考",
+      "grade": "S3",
+      "expected_hits": ["term:合同金额"],
+      "sensitive_terms": ["合同金额", "客户名单"],
+      "known_issue": "自定义词按子串匹配，保守误报；语义边界留待分类器第二道。",
+      "note": "已文档化的误报。"
+    },
+    {
+      "id": "c-term-n02",
+      "category": "near-miss",
+      "text": "名单中客户均为试点成员",
+      "grade": "S3",
+      "expected_hits": [],
+      "sensitive_terms": ["合同金额", "客户名单"],
+      "note": "词不连续不命中。"
+    },
+    {
+      "id": "c-pub-01",
+      "category": "public",
+      "text": "比较两种公开方案的资源需求，输出中文短文",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开任务。"
+    },
+    {
+      "id": "c-pub-02",
+      "category": "public",
+      "text": "2026 年企业 LLM Agent 平台选型报告需要覆盖部署成本与能力对比",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开研究主题。"
+    },
+    {
+      "id": "c-pub-03",
+      "category": "public",
+      "text": "def parse(items): return [x.strip() for x in items if x]",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开代码。"
+    },
+    {
+      "id": "c-pub-04",
+      "category": "public",
+      "text": "{\"name\":\"demo\",\"enabled\":true,\"retries\":0}",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "无秘密的 JSON。"
+    },
+    {
+      "id": "c-pub-05",
+      "category": "public",
+      "text": "材料 A：试点投入 12 单位、覆盖 2 组；比较单位覆盖成本与风险",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开比较材料。"
+    },
+    {
+      "id": "c-pub-06",
+      "category": "public",
+      "text": "月初库存80件；本月入库30件，出库46件；报损4件已审批",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开台账材料。"
+    },
+    {
+      "id": "c-pub-07",
+      "category": "public",
+      "text": "表结构：id、名称、创建时间；全部字段公开可读",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开字段说明。"
+    }
+  ]
+}

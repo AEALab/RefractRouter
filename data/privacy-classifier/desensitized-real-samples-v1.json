@@ -1,0 +1,144 @@
+{
+  "schema_version": "privacy-classifier-samples-v1",
+  "set_id": "desensitized-real-v1",
+  "created": "2026-09-19",
+  "provenance": {
+    "kind": "real-desensitized",
+    "origin": "样本文本取自仓库既有公开任务与研究材料；含敏感形态的样本先脱敏（真实值替换为保留占位符）再标注，原始真实值不进入本文件。",
+    "desensitization": {
+      "email": "一律替换为 example.com / example.org（RFC 2606 保留域名）",
+      "phone": "一律替换为运营商演示号码 13800138000、13900139000",
+      "path": "替换为 /Users/alice 等假名用户路径",
+      "credential": "替换为 sk-abcdef123456 等占位凭据"
+    },
+    "rights": "项目研究材料；可随本项目进行评估。"
+  },
+  "policy": {
+    "grade_labels": ["S1", "S3"],
+    "reserved": "S2 在 v0 不产出；unknown 为 fail-safe 状态。",
+    "terms": ["合同金额", "客户名单"],
+    "placeholder_note": "测试应校验：本集内出现的邮箱域名、手机号与路径必须全部为保留占位符。"
+  },
+  "items": [
+    {
+      "id": "r-pub-01",
+      "origin": "data/tasks/report_001.json：domain 与 required_sections",
+      "text": "2026 年企业 LLM Agent 平台选型。报告需覆盖 Executive Summary、Background、Selection Criteria、Platform Comparison、Risks、Conclusion、References。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开研究主题。"
+    },
+    {
+      "id": "r-pub-02",
+      "origin": "data/tasks/report_010.json：expected_claims 摘录",
+      "text": "Atlas 预计 6 周上线，年度许可成本为 140 千美元；Beacon 预计 12 周上线，年度许可成本为 100 千美元。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "公开选型结论。"
+    },
+    {
+      "id": "r-pub-03",
+      "origin": "data/benchmarks/dag-routing-v4.json：tasks.compare_cal_a.task",
+      "text": "材料 A：试点投入 12 单位、覆盖 2 组；全面推广投入 40 单位、覆盖 8 组。材料 B：试点便于修正错误；全面推广存在培训不足风险。比较单位覆盖成本与风险，建议应明确条件。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "真实基准任务。"
+    },
+    {
+      "id": "r-pub-04",
+      "origin": "data/benchmarks/dag-routing-v4.json：tasks.compare_holdout_v4.task",
+      "text": "材料 A：小范围方案投入 28 单位、覆盖 7 组；全量方案投入 63 单位、覆盖 9 组。材料 B：小范围方案每周收集反馈；全量方案只有验收后才能调整，验收时间尚未确定。比较单位覆盖成本、总投入与调整风险，给出有条件建议；不得编造收益或失败概率。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "真实留出任务。"
+    },
+    {
+      "id": "r-pub-05",
+      "origin": "data/benchmarks/recovery-study-v1.json：tasks.recovery38_storage_v1.task",
+      "text": "请比较归档系统选型，给出成本计算、风险分析和带条件的建议。只使用以下材料，不执行检索或工具，不虚构缺失数据。材料 S1：方案甲部署费 18000 元，每月存储费 2100 元；方案乙部署费 6000 元，每月存储费 3400 元。使用周期 12 个月，无残值，费用不折现。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "真实恢复研究任务。"
+    },
+    {
+      "id": "r-pub-06",
+      "origin": "data/quality-study-v2/public/tasks.json：analysis-01",
+      "text": "依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "真实质量研究材料。"
+    },
+    {
+      "id": "r-pub-07",
+      "origin": "data/research/prefix-cache-v1.json：sequential_task 摘录",
+      "text": "逐项核对以下开发任务，分别给出各项 requested_findings、依据和限制。材料不足时明确说明，不合并不同任务的统计。自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "真实缓存诊断材料。"
+    },
+    {
+      "id": "r-pub-08",
+      "origin": "data/benchmarks/dag-routing-v4.json：implementation_sha256 摘录",
+      "text": "contract_replay.py 9fa02697d015b4a7eb9c59147fd578493e69cd19cca5549bf5959d4f4b427685 task_contracts.py 7e794a3e6e0416958677163e254b83a869a59c10a172aa35a83e670442da95ff",
+      "grade": "S3",
+      "expected_hits": [],
+      "note": "哈希清单回归：不得误报手机号。"
+    },
+    {
+      "id": "r-sen-01",
+      "origin": "experiments/preflight_privacy_placement.py：SENSITIVE_TASK（原值已为保留占位符）",
+      "text": "整理客户合同：联络人 wang@example.com，金额 120 万元，输出摘要",
+      "grade": "S1",
+      "expected_hits": ["email"],
+      "note": "实验使用的敏感任务模板。"
+    },
+    {
+      "id": "r-sen-02",
+      "origin": "构造自实验任务模板；值已脱敏为占位符",
+      "text": "客户电话 13800138000，请将合同扫描件发至 ops@example.com，并附 api_key: sk-abcdef123456",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment", "email", "phone-cn"],
+      "note": "多敏感字段组合。"
+    },
+    {
+      "id": "r-sen-03",
+      "origin": "构造自本地文件任务模板；路径已替换为假名用户",
+      "text": "路径 /Users/alice/contracts/2026.docx 的报价单需要复核，联系人 wang@example.com",
+      "grade": "S1",
+      "expected_hits": ["email", "local-absolute-path"],
+      "note": "本地路径与邮箱组合。"
+    },
+    {
+      "id": "r-sen-04",
+      "origin": "构造自客户记录形态；值已脱敏为占位符",
+      "text": "{\"customer\":\"试点客户\",\"phone\":\"13900139000\",\"email\":\"c1@example.com\"}",
+      "grade": "S1",
+      "expected_hits": ["email", "phone-cn"],
+      "note": "JSON 形态客户记录。"
+    },
+    {
+      "id": "r-sen-05",
+      "origin": "构造自登录信息形态；密码已替换为占位符",
+      "text": "登录信息：账号 admin，数据库密码：Passw0rd2026，服务器 10.0.0.8",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment-zh"],
+      "note": "中文密码赋值。"
+    },
+    {
+      "id": "r-sen-06",
+      "origin": "构造自请求头形态；令牌已替换为占位符",
+      "text": "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.abcdef123456",
+      "grade": "S1",
+      "expected_hits": ["bearer-token"],
+      "note": "请求头令牌。"
+    },
+    {
+      "id": "r-sen-07",
+      "origin": "构造自服务配置形态；密码已替换为占位符",
+      "text": "{\"db\":{\"password\":\"Passw0rd2026\"},\"host\":\"10.0.0.8\"}",
+      "grade": "S1",
+      "expected_hits": ["credential-assignment"],
+      "note": "JSON 形态服务配置。"
+    }
+  ]
+}
