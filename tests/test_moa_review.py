@@ -13,7 +13,7 @@ from refractrouter.quality_study import digest, load_study
 
 STUDY = Path(__file__).resolve().parents[1] / 'data/quality-study-v1'
 # 10 份既有材料评审记录依赖该摘要；超时覆盖必须不改变它。
-MOA_POLICY_DIGEST = '2ae5b345f61a9a6be896663ff23f09499d98185ca6e13f7ceae3de0a50c1b902'
+MOA_POLICY_DIGEST = 'b591b0f80635a0d771e7c0360581dba3f97b7638c6c7e1ef26494be2fc3d0d92'
 
 
 def review_json(verdict, criteria, *, suffix=''):

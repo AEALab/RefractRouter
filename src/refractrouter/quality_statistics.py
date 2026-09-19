@@ -167,7 +167,8 @@ def _moa_review_cost(material_reviews, output_reviews, purpose):
 
 
 def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose_review=None,
-            moa_material_reviews=(), moa_output_reviews=(), moa_purpose_review=None):
+            moa_material_reviews=(), moa_output_reviews=(), moa_purpose_review=None,
+            human_tiebreaks=()):
     if frozen['statistics_policy'] != POLICY:
         raise ValueError('analysis policy differs from frozen protocol')
     if result['frozen_sha256'] != digest(frozen):
@@ -227,7 +228,8 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
         and moa_purpose.get('task_bindings') == frozen['task_bindings']
         and (moa_purpose.get('consensus') or {}).get('overall') == 'pass')
     moa_gate_ready = references is not None and moa_gate(
-        frozen, tasks, references, moa_material_reviews, moa_purpose_review)
+        frozen, tasks, references, moa_material_reviews, moa_purpose_review,
+        human_tiebreaks=human_tiebreaks)
     human_gate_active = bool(approved and material_gate_ready)
     moa_gate_active = bool(moa_purpose_approved and moa_gate_ready)
     quality_gate_active = human_gate_active or moa_gate_active
@@ -370,6 +372,11 @@ def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose
             'moa_review': {
                 'gate_status': 'active' if moa_gate_active else 'pending',
                 'material_gate_ready': moa_gate_ready,
+                'human_tiebreaks': [{'task_id': row['task_id'], 'criterion': row['criterion'],
+                                     'verdict': row['verdict'], 'adjudicator': row['adjudicator'],
+                                     'evidence': row['evidence']} for row in human_tiebreaks],
+                'human_tiebreak_scope': ('对冻结机械规则的显式例外：MoA 平票 pending 的 criterion '
+                                         '由研究负责人定向裁决替代；逐条留痕，不构成对规则本身的修改。'),
                 'purpose_overall': (moa_purpose.get('consensus') or {}).get('overall') if moa_purpose else None,
                 'output_review_bound_runs': len(moa_bound_runs),
                 'reviewer_identity_verified': False,

@@ -1,0 +1,133 @@
+{
+  "envelope": {
+    "kind": "purpose",
+    "targets": 1,
+    "maximum_calls": 4,
+    "timeout_seconds": 480,
+    "timeout_sum_seconds": 1920,
+    "policy_sha256": "b591b0f80635a0d771e7c0360581dba3f97b7638c6c7e1ef26494be2fc3d0d92",
+    "real_model_calls": 0
+  },
+  "targets": [
+    {
+      "policy_sha256": "56694f60eec90621d45087ebe2da4318d574f318dd9a184abd6891ee1649e0d2",
+      "task_bindings": {
+        "analysis-03": "e38c5b552a0b3ff178d4c703c25a9606c8855e1272cd34d0a312300435c5a462",
+        "analysis-04": "484e908e7d80368538b254dbdbc0e28ddc699f6e2756f380aefa2d27f0895854",
+        "analysis-05": "d302b515cf4c177f23193f8afc4b22894a2f4e009a4561130aabff5173400b0e",
+        "analysis-06": "9f36ad6d226d8047a9b82bedf59c2254efb26553e3d2f7000fa9738e781c85ac",
+        "rules-03": "38436ee505c9d5c8e15dcd966f014bef8a1138de582a519c87aac74c4b2e6c5e",
+        "rules-04": "60334550760b921b32cef26c200e79d58bb11a8b460426513fd8faef12f8aea4",
+        "rules-05": "b2b3f6a0c49210904a36a8f8718818e383923b5f854e41dd8dd59e878957d7d1",
+        "rules-06": "d1d9c2b19e451b9b333cba7cfc44776eeef1873314aff289bae99645126ee80c",
+        "decision-03": "0ce137d760c870ef4546bcd72f8a1c6faec243b5cd5e15251793233a2b596783",
+        "decision-04": "6ab6a58f4fd2b308f5b710607f374f72d826cd546f809c69a345151e2457b5b5",
+        "decision-05": "164362d42700702c9c3e1369647a347ff5994beb6125183d69eeaefe11fd1b4e",
+        "decision-06": "73db615b41c1a51b670e7f18dd12b6adf7e3dcb4af09c731a11d177a3b776aac"
+      }
+    }
+  ],
+  "policy": {
+    "schema_version": "moa-review-policy-v1",
+    "primary": [
+      {
+        "reviewer_id": "ds-deepseek-v4-pro",
+        "cli": "codex",
+        "model": "ds/deepseek-v4-pro",
+        "thinking_effort": "max",
+        "output_schema": false
+      },
+      {
+        "reviewer_id": "claude-opus",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "high"
+      }
+    ],
+    "escalation": [
+      {
+        "reviewer_id": "codex-kimi-k3",
+        "cli": "codex",
+        "model": "moonshot/kimi-k3",
+        "thinking_effort": "high",
+        "output_schema": false
+      },
+      {
+        "reviewer_id": "claude-opus-max",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "max"
+      }
+    ],
+    "timeout_seconds": 480,
+    "output_cap_tokens": 4096,
+    "codex_cli": {
+      "ignore_user_config": false,
+      "sandbox": "read-only",
+      "request_max_retries": 0,
+      "stream_max_retries": 0
+    },
+    "claude_cli": {
+      "output_format": "text",
+      "json_schema": "inline-json",
+      "tools": [],
+      "permission_mode": "dontAsk",
+      "no_session_persistence": true
+    },
+    "zero_retries": true,
+    "voting_rule": "两位一致则采用；任一 criterion 不一致则升级两位重审；升级后一致则采用，否则 pending。",
+    "origin": "model",
+    "reviewer_identity_verified": false,
+    "scope": "跨 provider 多模型共识质量判定；不构成真人审查，也不证明真实用户接受度。"
+  },
+  "review_schema": {
+    "type": "object",
+    "required": [
+      "verdict",
+      "rationale",
+      "criteria"
+    ],
+    "properties": {
+      "verdict": {
+        "enum": [
+          "pass",
+          "fail",
+          "pending"
+        ]
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 1
+      },
+      "criteria": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "criterion",
+            "verdict",
+            "rationale"
+          ],
+          "properties": {
+            "criterion": {
+              "type": "string"
+            },
+            "verdict": {
+              "enum": [
+                "pass",
+                "fail",
+                "pending"
+              ]
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}
