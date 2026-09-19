@@ -245,7 +245,7 @@ declared_pricing 另算。结论必须分层报告，simulated-local 与 real-lo
 | --- | --- | --- | --- |
 | A1 | 约束定位与本文档冻结；deployment 与可选 privacy schema（已完成） | 零调用 | 无 |
 | A2 | 分级器 + 候选过滤 + 模拟本地标记；关闭路径回归（已完成，见 6.4 双口径） | 零调用 | 无 |
-| A3 | 分级器验证（构造 + 脱敏真实样本标注集） | 分级器本地调用 | A2 |
+| A3 | 分级器验证（构造 + 脱敏真实样本标注集；已完成） | 分级器本地调用 | A2 |
 | A4 | 开关对照（关闭基线 / all-local / all-cloud / 启用 / 直答） | 付费，另获批 | #52、#53、#76、A3 |
 | A5 | probe 回路 + OpenViking 记忆接入 | 离线回放优先 | A4 |
 | A6 | 真实本地端点（Ollama / vLLM）替换模拟 | 本地 + 付费 | A4 |
@@ -261,6 +261,28 @@ declared_pricing 另算。结论必须分层报告，simulated-local 与 real-lo
 
 对照实验需要同时覆盖关闭与启用两种配置：关闭时验证路由结果与现状一致；启用时比较
 质量、费用、时延变化与外流率，确认约束带来的代价可量化。
+
+## 十·五、分级器验证结果（A3）
+
+A3 以零网络、零付费调用完成确定性第一道的验证。标注集冻结在
+data/privacy-classifier/ 目录：constructed-samples-v1.json（构造样本 58 条）与
+desensitized-real-samples-v1.json（脱敏真实样本 15 条，全部敏感值替换为保留占位符，
+原始真实值不进入仓库）。验证入口为 experiments/validate_privacy_classifier.py，
+冻结证据在 reports/privacy-classifier-v1/validation-01/。
+
+严格门禁（只统计非 known_issue 样本）：S1 与 S3 的精确率、召回率均为 100%，
+70 条干净样本零误判、零漏报。验证驱动的两处规则修复：
+
+- credential-assignment 增加 JSON 引号键名支持，"api_key":"value" 形态不再漏报；
+- 新增 credential-assignment-zh，覆盖「密码 / 口令 / 密钥」中文键名赋值。
+
+已文档化的保守代价（known_issue，不进入严格门禁，代价由 A4 开关对照量化）：
+
+- phone-cn 对形态相同的订单流水号误报；宁松勿漏，误报代价是本地改派而非外流；
+- 自定义敏感词按子串命中，保守误报；语义边界留待分类器第二道；
+- 含空格的秘密值暂不捕获（召回缺口），后续评估值字符集扩展；
+- S2 在 v0 不产出；第二道 ML 分类器只验证了调用合同与 fail-safe（本地替身），
+  真实模型质量留待 A6 真实本地端点验证。
 
 ## 十一、关联文档
 

@@ -24,7 +24,9 @@ RULES = (
     ('private-key', re.compile(r'-----BEGIN(?: [A-Z0-9]+)* ?PRIVATE KEY-----')),
     ('credential-assignment', re.compile(
         r'(?i)\b(?:api[_-]?key|apikey|secret[_-]?key|access[_-]?token|refresh[_-]?token'
-        r'|client[_-]?secret|password|passwd)\b\s*[:=：]\s*[A-Za-z0-9_\-+/=]{6,}')),
+        r'|client[_-]?secret|password|passwd)\b\s*"?\s*[:=：]\s*"?\s*[A-Za-z0-9_\-+/=]{6,}')),
+    ('credential-assignment-zh', re.compile(
+        r'(?:密码|口令|密钥)\s*[:=：]\s*[A-Za-z0-9_\-+/=]{6,}')),
     ('bearer-token', re.compile(r'(?i)\bbearer\s+[A-Za-z0-9._~+/-]{16,}=*')),
     ('email', re.compile(r'[\w.+-]+@[\w-]+\.[A-Za-z]{2,12}\b')),
     ('phone-cn', re.compile(r'(?<!\d)1[3-9]\d{9}(?!\d)')),
