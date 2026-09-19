@@ -31,7 +31,7 @@ MOA_POLICY = {
         {'reviewer_id': 'claude-opus', 'cli': 'claude', 'model': 'opus', 'thinking_effort': 'high'},
     ],
     'escalation': [
-        {'reviewer_id': 'codex-ark-kimi-k3', 'cli': 'codex', 'model': 'ark/kimi-k3',
+        {'reviewer_id': 'codex-kimi-k3', 'cli': 'codex', 'model': 'moonshot/kimi-k3',
          'thinking_effort': 'high', 'output_schema': False},
         {'reviewer_id': 'claude-opus-max', 'cli': 'claude', 'model': 'opus', 'thinking_effort': 'max'},
     ],

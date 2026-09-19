@@ -1,0 +1,126 @@
+{
+  "envelope": {
+    "kind": "material",
+    "targets": 2,
+    "maximum_calls": 8,
+    "timeout_seconds": 480,
+    "timeout_sum_seconds": 3840,
+    "policy_sha256": "b591b0f80635a0d771e7c0360581dba3f97b7638c6c7e1ef26494be2fc3d0d92",
+    "real_model_calls": 0
+  },
+  "targets": [
+    {
+      "task_id": "analysis-04",
+      "task_sha256": "484e908e7d80368538b254dbdbc0e28ddc699f6e2756f380aefa2d27f0895854",
+      "reference_sha256": "fa1aa7e7651300b5f0117236967a0057b70aa1275f7e20f884284c7733152bb4"
+    },
+    {
+      "task_id": "rules-04",
+      "task_sha256": "60334550760b921b32cef26c200e79d58bb11a8b460426513fd8faef12f8aea4",
+      "reference_sha256": "268d42d37d7171b00156445f1e5943fdec7489102ab06b5b61d0ea0cd07aef97"
+    }
+  ],
+  "policy": {
+    "schema_version": "moa-review-policy-v1",
+    "primary": [
+      {
+        "reviewer_id": "ds-deepseek-v4-pro",
+        "cli": "codex",
+        "model": "ds/deepseek-v4-pro",
+        "thinking_effort": "max",
+        "output_schema": false
+      },
+      {
+        "reviewer_id": "claude-opus",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "high"
+      }
+    ],
+    "escalation": [
+      {
+        "reviewer_id": "codex-kimi-k3",
+        "cli": "codex",
+        "model": "moonshot/kimi-k3",
+        "thinking_effort": "high",
+        "output_schema": false
+      },
+      {
+        "reviewer_id": "claude-opus-max",
+        "cli": "claude",
+        "model": "opus",
+        "thinking_effort": "max"
+      }
+    ],
+    "timeout_seconds": 480,
+    "output_cap_tokens": 4096,
+    "codex_cli": {
+      "ignore_user_config": false,
+      "sandbox": "read-only",
+      "request_max_retries": 0,
+      "stream_max_retries": 0
+    },
+    "claude_cli": {
+      "output_format": "text",
+      "json_schema": "inline-json",
+      "tools": [],
+      "permission_mode": "dontAsk",
+      "no_session_persistence": true
+    },
+    "zero_retries": true,
+    "voting_rule": "两位一致则采用；任一 criterion 不一致则升级两位重审；升级后一致则采用，否则 pending。",
+    "origin": "model",
+    "reviewer_identity_verified": false,
+    "scope": "跨 provider 多模型共识质量判定；不构成真人审查，也不证明真实用户接受度。"
+  },
+  "review_schema": {
+    "type": "object",
+    "required": [
+      "verdict",
+      "rationale",
+      "criteria"
+    ],
+    "properties": {
+      "verdict": {
+        "enum": [
+          "pass",
+          "fail",
+          "pending"
+        ]
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 1
+      },
+      "criteria": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "criterion",
+            "verdict",
+            "rationale"
+          ],
+          "properties": {
+            "criterion": {
+              "type": "string"
+            },
+            "verdict": {
+              "enum": [
+                "pass",
+                "fail",
+                "pending"
+              ]
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}

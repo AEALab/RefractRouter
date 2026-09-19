@@ -534,11 +534,11 @@ def summarize(records, thresholds, parse_mode='strict', policy=MOA_POLICY):
             'failed_records': failed,
             'wall_time_ms': round(sum(record['elapsed_ms'] for record in records), 3),
             'ark_afp': 0,
-            'ark_model_calls': sum(1 for record in records
-                                   for row in record['moa']['escalation']
-                                   if str(row['model']).startswith('ark/')),
-            'ark_afp_note': ('本工具不經 Ark 帳本；升級層含一個 Ark 評審，'
-                             '其用量由 Ark 方案外部計費，不在此統計。'),
+            'codex_cli_escalation_calls': sum(
+                1 for record in records for row in record['moa']['escalation']
+                if str(row['model']).startswith(('ark/', 'moonshot/'))),
+            'ark_afp_note': ('本工具不經 Ark 帳本；升級層的 codex CLI 外部評審'
+                             '（ark/ 或 moonshot/）用量由其方案外部計費，不在此統計。'),
         },
         'reviewer_latency': {key: value for key, value in latency.items() if value},
         'by_reviewer_agreement': {key: value for key, value in by_reviewer.items()

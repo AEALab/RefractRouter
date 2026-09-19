@@ -424,9 +424,28 @@ def human_gate(frozen, tasks, refs, material_reviews, purpose_review):
     return ready == set(frozen['task_bindings']) and approved
 
 
-def moa_gate(frozen, tasks, refs, moa_material_reviews, moa_purpose_review):
-    """本地 CLI 多模型共识门槛：逐 criterion 全部共识 pass 且用途确认 pass 才放行。"""
+def moa_gate(frozen, tasks, refs, moa_material_reviews, moa_purpose_review, *,
+             human_tiebreaks=()):
+    """本地 CLI 多模型共识门槛：逐 criterion 全部共识 pass 且用途确认 pass 才放行。
+
+    human_tiebreaks 是记录在案的显式例外通道：当 MoA 在某一 criterion 上平票 pending
+    时，研究负责人的定向裁决（verdict=pass、附证据与绑定哈希、裁决人不是任务创建者）
+    可以替代该 criterion 的共识结论。冻结机械规则本身没有平票机制，任何使用都必须
+    在报告中逐条留痕，不得静默生效。
+    """
     by_id = {t['task_id']: t for t in tasks}
+    tiebreaks = {}
+    for row in human_tiebreaks or ():
+        tid = row.get('task_id')
+        criterion = row.get('criterion')
+        if (tid not in frozen['task_bindings'] or criterion not in MOA_MATERIAL_CRITERIA
+                or row.get('verdict') != 'pass' or not row.get('adjudicator')
+                or not row.get('evidence')
+                or row.get('adjudicator') == by_id[tid]['provenance']['creator']
+                or row.get('task_sha256') != frozen['task_bindings'][tid]
+                or row.get('reference_sha256') != digest(refs[tid])):
+            continue
+        tiebreaks.setdefault(tid, {})[criterion] = row
     ready = set()
     for review in moa_material_reviews:
         tid = review.get('task_id')
@@ -434,11 +453,16 @@ def moa_gate(frozen, tasks, refs, moa_material_reviews, moa_purpose_review):
             continue
         consensus = review.get('consensus') or {}
         criteria = {row.get('criterion'): row.get('verdict') for row in consensus.get('criteria', [])}
-        if (review.get('policy_sha256') == digest(MOA_POLICY)
+        if not (review.get('policy_sha256') == digest(MOA_POLICY)
                 and review.get('task_sha256') == frozen['task_bindings'][tid]
                 and review.get('reference_sha256') == digest(refs[tid])
-                and len(consensus.get('criteria', [])) == len(MOA_MATERIAL_CRITERIA)
-                and criteria == {c: 'pass' for c in MOA_MATERIAL_CRITERIA}):
+                and len(consensus.get('criteria', [])) == len(MOA_MATERIAL_CRITERIA)):
+            continue
+        resolved = dict(criteria)
+        for criterion, tiebreak in tiebreaks.get(tid, {}).items():
+            if resolved.get(criterion) == 'pending':
+                resolved[criterion] = tiebreak['verdict']
+        if resolved == {c: 'pass' for c in MOA_MATERIAL_CRITERIA}:
             ready.add(tid)
     purpose = moa_purpose_review or {}
     approved = bool(purpose.get('policy_sha256') == digest(MOA_POLICY)

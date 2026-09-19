@@ -19,6 +19,8 @@ def main(argv=None):
     parser.add_argument('--moa-material-reviews', type=Path)
     parser.add_argument('--moa-output-reviews', type=Path)
     parser.add_argument('--moa-purpose-review', type=Path)
+    parser.add_argument('--human-tiebreaks', type=Path,
+                        help='研究负责人对 MoA 平票 criterion 的定向裁决（JSON 列表，逐条留痕）')
     parser.add_argument('--blind-output-dir', type=Path)
     args = parser.parse_args(argv)
     if args.output.exists():
@@ -36,13 +38,17 @@ def main(argv=None):
             raise SystemExit(f'invalid MoA records file: {path}')
         return records
     moa_purpose = moa_records(args.moa_purpose_review)
+    human_tiebreaks = json.loads(args.human_tiebreaks.read_text()) if args.human_tiebreaks else []
+    if not isinstance(human_tiebreaks, list):
+        raise SystemExit(f'invalid human tiebreaks file: {args.human_tiebreaks}')
     report = analyze(json.loads(args.frozen.read_text()), result, tasks,
                      references=refs,
                      human_reviews=json.loads(args.human_reviews.read_text()) if args.human_reviews else (),
                      purpose_review=json.loads(args.purpose_review.read_text()) if args.purpose_review else None,
                      moa_material_reviews=moa_records(args.moa_material_reviews),
                      moa_output_reviews=moa_records(args.moa_output_reviews),
-                     moa_purpose_review=moa_purpose[0] if moa_purpose else None)
+                     moa_purpose_review=moa_purpose[0] if moa_purpose else None,
+                     human_tiebreaks=human_tiebreaks)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     write_json(args.output, report)
     if args.blind_output_dir:

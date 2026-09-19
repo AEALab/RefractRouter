@@ -50,6 +50,52 @@ def test_moa_gate_requires_full_consensus_and_bindings():
     assert not moa_gate(frozen, tasks, refs, materials, {**purpose, 'consensus': {'overall': 'pending'}})
 
 
+def _pending_materials_and_tiebreak(selected, tasks, refs, frozen):
+    materials = material_review(selected, refs, all_pass_invoke)
+    tampered = deepcopy(materials[0])
+    pending_criterion = next(c for c in tampered['consensus']['criteria'])
+    pending_criterion['verdict'] = 'pending'
+    tid = selected[0]['task_id']
+    tiebreak = {'task_id': tid, 'criterion': pending_criterion['criterion'],
+                'verdict': 'pass', 'adjudicator': '研究负责人',
+                'evidence': '裁决依据：材料本身已能推出该结论，不构成泄漏。',
+                'task_sha256': frozen['task_bindings'][tid],
+                'reference_sha256': digest(refs[tid])}
+    return tampered, tiebreak, tid
+
+
+def test_moa_gate_accepts_documented_human_tiebreak_for_pending_criterion():
+    _, tasks, refs, *_ = load_study(STUDY)
+    selected = [t for t in tasks if t['task_id'] == 'analysis-03']
+    frozen = prepare(STUDY, task_ids=['analysis-03'], arms=['direct-cheap'], repeats=1)
+    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'],
+                             frozen['statistics_policy'], invoke=all_pass_invoke)
+    tampered, tiebreak, _ = _pending_materials_and_tiebreak(selected, tasks, refs, frozen)
+    assert not moa_gate(frozen, tasks, refs, [tampered], purpose)
+    assert moa_gate(frozen, tasks, refs, [tampered], purpose,
+                    human_tiebreaks=[tiebreak])
+
+
+@pytest.mark.parametrize('mutate', [
+    lambda row: row.update(verdict='pending'),
+    lambda row: row.update(adjudicator='Codex'),
+    lambda row: row.update(evidence=''),
+    lambda row: row.update(task_sha256='old'),
+    lambda row: row.update(reference_sha256='old'),
+    lambda row: row.update(criterion='不在评审标准内'),
+])
+def test_moa_gate_rejects_invalid_human_tiebreaks(mutate):
+    _, tasks, refs, *_ = load_study(STUDY)
+    selected = [t for t in tasks if t['task_id'] == 'analysis-03']
+    frozen = prepare(STUDY, task_ids=['analysis-03'], arms=['direct-cheap'], repeats=1)
+    purpose = purpose_review(digest(frozen['statistics_policy']), frozen['task_bindings'],
+                             frozen['statistics_policy'], invoke=all_pass_invoke)
+    tampered, tiebreak, _ = _pending_materials_and_tiebreak(selected, tasks, refs, frozen)
+    mutate(tiebreak)
+    assert not moa_gate(frozen, tasks, refs, [tampered], purpose,
+                        human_tiebreaks=[tiebreak])
+
+
 def test_execute_accepts_moa_gate_for_heldout_run(tmp_path):
     plan = prepare(STUDY, task_ids=['analysis-03'], arms=['direct-cheap'], repeats=1)
     client = RehearsalClient(STUDY)

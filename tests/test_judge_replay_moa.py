@@ -13,7 +13,7 @@ from refractrouter.quality_study import digest
 
 THRESHOLDS = {'verdict_agreement_min': 0.925234, 'criterion_agreement_min': 0.950935,
               'risk_direction_max': 0.037383}
-MOA_POLICY_DIGEST = '2ae5b345f61a9a6be896663ff23f09499d98185ca6e13f7ceae3de0a50c1b902'
+MOA_POLICY_DIGEST = 'b591b0f80635a0d771e7c0360581dba3f97b7638c6c7e1ef26494be2fc3d0d92'
 
 
 def _messages(case_id, criteria):
@@ -205,7 +205,7 @@ def test_escalation_runs_only_after_primary_disagreement():
     split_escalation = []
     result = review_target(messages, criteria, reviewer_verdicts(
         {'ds-deepseek-v4-pro': 'pass', 'claude-opus': 'fail',
-         'codex-ark-kimi-k3': 'pass', 'claude-opus-max': 'fail'}, split_escalation),
+         'codex-kimi-k3': 'pass', 'claude-opus-max': 'fail'}, split_escalation),
         reviewer_workers=2)
 
     assert len(split_escalation) == 4        # 兩位初審加兩位升級
@@ -215,7 +215,7 @@ def test_escalation_runs_only_after_primary_disagreement():
     agreeing_escalation = []
     settled = review_target(messages, criteria, reviewer_verdicts(
         {'ds-deepseek-v4-pro': 'pass', 'claude-opus': 'fail',
-         'codex-ark-kimi-k3': 'fail', 'claude-opus-max': 'fail'}, agreeing_escalation),
+         'codex-kimi-k3': 'fail', 'claude-opus-max': 'fail'}, agreeing_escalation),
         reviewer_workers=2)
 
     assert len(agreeing_escalation) == 4
@@ -428,7 +428,7 @@ def test_run_header_and_summary_record_parse_mode(tmp_path):
 def test_summary_counts_ark_escalation_calls(tmp_path):
     cases = [_case('case-1', delivery='pass', research='pass', criteria=('c1',))]
     verdicts = {'ds-deepseek-v4-pro': 'pass', 'claude-opus': 'fail',
-                'codex-ark-kimi-k3': 'pass', 'claude-opus-max': 'pass'}
+                'codex-kimi-k3': 'pass', 'claude-opus-max': 'pass'}
 
     def invoke(reviewer, messages, schema=None):
         return 0, _review_body([_row('c1', verdicts[reviewer['reviewer_id']])]), '', 1.0, None
@@ -436,7 +436,7 @@ def test_summary_counts_ark_escalation_calls(tmp_path):
     records = run(_write_cases(tmp_path, cases), tmp_path / 'out', invoke=invoke)
     summary = summarize(records, THRESHOLDS)
 
-    assert summary['moa_review_cost']['ark_model_calls'] == 1
+    assert summary['moa_review_cost']['codex_cli_escalation_calls'] == 1
     assert summary['moa_review_cost']['ark_afp'] == 0
 
 
