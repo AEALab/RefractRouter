@@ -11,6 +11,8 @@ from refractrouter.quality_study import file_digest
 
 
 ARMS = ('direct-strong', 'task-selector', 'direct-or-dag')
+ROUTING_STAGES = ('selector', 'planner', 'worker', 'final')
+EVALUATION_STAGES = ('delivery-judge', 'research-judge')
 
 
 def _counts(values):
@@ -28,6 +30,115 @@ def _bound_review(records, row):
     return matches[0]
 
 
+def _cost_analysis(result, rows, final_analysis):
+    """按实际调用拆解费用，并显式分离路由执行与实验评审。"""
+    row_by_id = {row['run_id']: row for row in rows}
+    stages = {arm: defaultdict(lambda: {'calls': 0, 'afp': 0.0}) for arm in ARMS}
+    run_stages = defaultdict(lambda: defaultdict(
+        lambda: {'calls': 0, 'afp': 0.0, 'input_tokens': 0, 'output_tokens': 0}
+    ))
+    unmatched = []
+    for call in result.get('calls', []):
+        matches = [run_id for run_id in row_by_id
+                   if call['label'].startswith(f'{run_id}:')]
+        if len(matches) != 1:
+            unmatched.append(call['label'])
+            continue
+        arm = row_by_id[matches[0]]['arm']
+        stage = call['stage']
+        stages[arm][stage]['calls'] += 1
+        stages[arm][stage]['afp'] += call.get('charged', 0.0)
+        run_stages[matches[0]][stage]['calls'] += 1
+        run_stages[matches[0]][stage]['afp'] += call.get('charged', 0.0)
+        run_stages[matches[0]][stage]['input_tokens'] += call.get('input_tokens', 0)
+        run_stages[matches[0]][stage]['output_tokens'] += call.get('output_tokens', 0)
+    if unmatched:
+        raise ValueError(f'有 {len(unmatched)} 个调用不能唯一绑定运行：{unmatched[:3]}')
+
+    arms = {}
+    baseline = final_analysis['arms']['direct-strong']
+    baseline_total = baseline['accepted_task_metrics']['total_afp_all_tasks']
+    baseline_accepted = baseline['accepted_task_count']
+    baseline_per_accepted = baseline['accepted_task_metrics']['afp_per_accepted_task']
+    for arm in ARMS:
+        metrics = final_analysis['arms'][arm]
+        accepted = metrics['accepted_task_count']
+        accepted_metrics = metrics['accepted_task_metrics']
+        total = accepted_metrics['total_afp_all_tasks']
+        routing_afp = sum(stages[arm][stage]['afp'] for stage in ROUTING_STAGES)
+        evaluation_afp = sum(stages[arm][stage]['afp'] for stage in EVALUATION_STAGES)
+        arms[arm] = {
+            'calls': sum(item['calls'] for item in stages[arm].values()),
+            'total_afp_all_tasks': total,
+            'routing_execution_afp': routing_afp,
+            'evaluation_afp': evaluation_afp,
+            'evaluation_share': evaluation_afp / total if total else 0.0,
+            'accepted_tasks': accepted,
+            'afp_per_accepted_task': accepted_metrics['afp_per_accepted_task'],
+            'gross_afp_change_vs_direct_strong': total / baseline_total - 1,
+            'accepted_task_change_vs_direct_strong': accepted / baseline_accepted - 1,
+            'afp_per_accepted_change_vs_direct_strong': (
+                accepted_metrics['afp_per_accepted_task'] / baseline_per_accepted - 1
+            ),
+            'stages': {
+                stage: {
+                    'calls': item['calls'],
+                    'afp': item['afp'],
+                }
+                for stage, item in sorted(stages[arm].items())
+            },
+        }
+
+    dag_rows = [row for row in rows
+                if row['arm'] == 'direct-or-dag' and row['node_count'] > 1]
+    dag_cases = []
+    for dag in dag_rows:
+        peers = [row for row in rows
+                 if row['task_id'] == dag['task_id'] and row['repeat'] == dag['repeat']]
+        dag_cases.append({
+            'run_id': dag['run_id'],
+            'task_id': dag['task_id'],
+            'repeat': dag['repeat'],
+            'node_count': dag['node_count'],
+            'comparisons': [
+                {
+                    'arm': peer['arm'],
+                    'final_status': peer['final_status'],
+                    'node_count': peer['node_count'],
+                    'online_afp': peer['online_afp'],
+                    'offline_afp': peer['offline_afp'],
+                    'total_afp': peer['online_afp'] + peer['offline_afp'],
+                    'routing_execution_afp': sum(
+                        run_stages[peer['run_id']][stage]['afp']
+                        for stage in ROUTING_STAGES
+                    ),
+                    'routing_execution_tokens': sum(
+                        run_stages[peer['run_id']][stage]['input_tokens']
+                        + run_stages[peer['run_id']][stage]['output_tokens']
+                        for stage in ROUTING_STAGES
+                    ),
+                    'routing_stages': {
+                        stage: dict(run_stages[peer['run_id']][stage])
+                        for stage in ROUTING_STAGES
+                        if run_stages[peer['run_id']][stage]['calls']
+                    },
+                }
+                for peer in sorted(peers, key=lambda item: ARMS.index(item['arm']))
+            ],
+        })
+    return {
+        'accounting_scope': (
+            'routing_execution_afp 包含 selector、planner、worker、final；evaluation_afp '
+            '包含在线 delivery-judge 与离线 research-judge。主指标沿用冻结口径，二者均计入。'
+        ),
+        'arms': arms,
+        'actual_multi_node_cases': dag_cases,
+        'identification_limit': (
+            '只有 1 次真实多节点运行，无法从本批数据识别 DAG 拆分对成本的平均因果效应。'
+        ),
+    }
+
+
 def analyze(result, tasks, moa_records, final_analysis):
     """返回可复算的失败分层、任务稳定性与路由行为。"""
     task_by_id = {task['task_id']: task for task in tasks}
@@ -40,6 +151,8 @@ def analyze(result, tasks, moa_records, final_analysis):
             'repeat': row['repeat'], 'category': task['category'],
             'structure_stratum': task['structure_stratum'], 'run_status': row['status'],
             'node_count': len(row.get('nodes', [])),
+            'online_afp': row.get('online_afp', 0.0),
+            'offline_afp': row.get('offline_afp', 0.0),
         }
         if 'output' in row:
             item['moa_consensus'] = _bound_review(moa_records, row)['consensus']['overall']
@@ -115,6 +228,8 @@ def analyze(result, tasks, moa_records, final_analysis):
                            '臂间差异不能归因于 DAG 拆分收益。'),
     }
 
+    cost = _cost_analysis(result, rows, final_analysis)
+
     expected = {arm: final_analysis['arms'][arm]['run_counts'] for arm in ARMS}
     observed = {arm: arms[arm]['final_status'] for arm in ARMS}
     for arm in ARMS:
@@ -129,10 +244,12 @@ def analyze(result, tasks, moa_records, final_analysis):
                           'moa_consensus_all_runs 另列全部可评审输出，允许与交付门禁重叠。'),
         'arms': arms,
         'routing_behavior': routing,
+        'cost_analysis': cost,
         'run_rows': rows,
         'decision': {
             'current_result': '三条路线均未达到 90% 质量门槛，当前确认性前沿为空。',
-            'primary_bottleneck': '输出正确性与约束一致性，而非费用优化。',
+            'primary_bottleneck': ('低价路线虽然降低总 AFP，但质量损失使每个合格任务的'
+                                   '成本反而上升；DAG 本身的成本效应尚不可识别。'),
             'next_actions': [
                 '先修复结构化 findings 的来源传播、值校验与正文一致性。',
                 '为 direct-or-dag 增加明确的路由决策证据，并保证正式实验覆盖足够的真实多节点运行。',
@@ -200,6 +317,70 @@ def markdown(report):
         f'`{", ".join(report["routing_behavior"]["multi_node_run_ids"])}`；',
         '- 唯一多节点运行失败，所以现有路线名称不能当成“DAG 已被充分测试”的证据；',
         '- 目前观察到的成本差异主要来自选模与提示链路，无法隔离出拆分本身的因果贡献。', '',
+        '## 为什么低价路线的单位合格成本反而更高', '',
+        '现有证据没有证明“拆分天然比直跑贵”。实际结果是：两条路由路线都降低了总 AFP，',
+        '但合格任务数量下降得更快，所以 `AFP / accepted task` 反而升高。', '',
+        '| 路线 | 全部任务 AFP | 相对 direct-strong | 合格任务 | 每个合格任务 AFP | 相对 direct-strong |',
+        '| --- | ---: | ---: | ---: | ---: | ---: |',
+    ]
+    for arm, row in report['cost_analysis']['arms'].items():
+        lines.append(
+            f'| `{arm}` | {row["total_afp_all_tasks"]:.3f} | '
+            f'{row["gross_afp_change_vs_direct_strong"]:+.1%} | {row["accepted_tasks"]}/12 | '
+            f'{row["afp_per_accepted_task"]:.3f} | '
+            f'{row["afp_per_accepted_change_vs_direct_strong"]:+.1%} |'
+        )
+    lines += [
+        '',
+        '`direct-or-dag` 总 AFP 比 `direct-strong` 少约 10%，但合格任务从 7 个降到 5 个，',
+        '因此每个合格任务的成本高约 26%。`task-selector` 的总 AFP 也少约 11%，但只剩',
+        '3 个合格任务，每个合格任务的成本高约 109%。费用劣势主要来自质量门槛的分母',
+        '缩水，不是账面调用总额上升。', '',
+        '### 费用口径（记账说明）', '',
+        '| 路线 | 选路/规划/工作/合流 AFP | 两类评审 AFP | 评审占总 AFP |',
+        '| --- | ---: | ---: | ---: |',
+    ]
+    for arm, row in report['cost_analysis']['arms'].items():
+        lines.append(f'| `{arm}` | {row["routing_execution_afp"]:.3f} | '
+                     f'{row["evaluation_afp"]:.3f} | {row["evaluation_share"]:.1%} |')
+    lines += [
+        '',
+        '上表只用于避免把研究评审算成部署路由费用，不作为拆分优劣的结论。只看路由与生成',
+        '调用，`direct-or-dag` 为 5.805 AFP，低于全程强模型的 19.835 AFP；但其中 35/36',
+        '是单节点，节省来自 cheap/mid 选模，不能归因于 DAG。', '',
+        '### 唯一真实 DAG 暴露出的成本机制', '',
+        '唯一多节点运行 `decision-05-r3-direct-or-dag` 使用 2 个 cheap worker 和 1 个',
+        'strong final。排除两类 judge 后，它的路由执行成本为 0.768 AFP；同题同次的',
+        '`direct-strong` 为 0.584 AFP，真实 DAG 高 31.6%。增加的 0.185 AFP 来自：', '',
+        '- selector + planner + 两个 worker：0.138 AFP；',
+        '- strong final 本身比直跑多 0.047 AFP，因为合流输入从 691 token 增至 884 token；',
+        '- 整条 DAG 的路由调用共处理 3,904 个输入加输出 token，直跑为 1,061，约为 3.7 倍。', '',
+        '这说明该样本的 cheap worker 单价虽低，新增调用和重复上下文仍超过其节省。该 DAG',
+        '与同题两个直跑结果最终都未通过，因此只能用于定位成本机制，不能估计平均收益或',
+        '比较质量。', '',
+        '### 成本不占优的机制', '',
+        '1. **固定调用开销。** 拆分新增 selector、planner 和 final synthesis；节点很小或只有',
+        '   一两个时，省下的模型单价不足以覆盖这些固定成本。',
+        '2. **上下文重复。** 多个节点若各自读取完整任务与材料，输入 token 随节点数重复增长。',
+        '3. **强模型合流。** cheap worker 后仍固定使用 strong final，会吞掉大部分局部节省。',
+        '4. **质量损失。** 值、来源和跨节点约束在传递与合流时丢失，导致任务不合格；全部失败',
+        '   调用仍进入成本分子，但不能增加 accepted task 分母。',
+        '5. **拆分覆盖不足。** 35/36 次 `direct-or-dag` 实际是单节点，观察到的节省主要来自',
+        '   cheap/mid 选模，不能归因给 DAG。', '',
+        '### 可执行的解决方案', '',
+        '1. 下一轮分成 `strong-direct`、`routed-direct`、`forced/frozen-DAG`、`direct-or-dag`',
+        '   四条路线，分别识别选模收益、拆分收益和策略选择收益；报告实际模式，不用路线名称',
+        '   代替真实 DAG 覆盖。',
+        '2. 在拆分前计算净节省门槛：只有预计 worker 节省大于 selector + planner + final +',
+        '   质量保障开销，并且任务存在可并行、可压缩的独立子问题时才拆分。',
+        '3. 先修复质量分母：对 findings 做字段级值、来源和约束传播；用确定性校验器处理算术、',
+        '   有向顺序、预算和引用，失败时局部修复，避免整条任务报废。',
+        '4. 按风险自适应合流模型：低风险且结构化校验通过时用 cheap/mid 合流；只有高风险、',
+        '   高难度或校验失败时升级 strong。',
+        '5. 节点只接收所需材料切片和结构化上游字段，避免复制完整上下文；对重复任务模板缓存',
+        '   规划结果，摊薄 planner 固定成本。',
+        '6. 同时报告部署口径和研究口径：部署口径排除离线 research judge，研究口径保留全部',
+        '   评审；核心指标继续使用质量达标后的成本，不能只比较原始 AFP。', '',
         '## 下一步', '',
         '1. 修复质量侧：对节点输出到最终 findings 做字段级来源传播；在交付前校验值、引用、',
         '   有向顺序、共享预算与正文一致性。',
