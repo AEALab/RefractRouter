@@ -12,6 +12,9 @@ export type ModeKey = 'economy' | 'balanced' | 'quality'
 export const MODE_KEYS: readonly ModeKey[] = ['economy', 'balanced', 'quality']
 export type LimitKey = 'relaxBudget' | 'relaxContext' | 'unlimitedTime'
 export type CardField = 'providerConfig' | 'limits'
+export type V4CollectionKey = 'providers' | 'models' | 'trustPolicies'
+export type V4DagMode = 'auto' | 'never' | 'force'
+export type V4DataMode = 'live' | 'desensitized' | 'synthetic'
 
 /** 卡片侧的 providerConfig 视图：结构化字段之外的原样保留，确保编辑往返不丢数据。 */
 export interface ProviderConfigView {
@@ -21,6 +24,9 @@ export interface ProviderConfigView {
   plannerThinking?: string
   defaultReasoningEffort?: string
   strategies?: Partial<Record<ModeKey, StrategyView>>
+  objective?: { qualityMin?: number; primary?: string; secondary?: string; dagMode?: string; [field: string]: unknown }
+  security?: { dataMode?: string; sensitiveTerms?: unknown[]; [field: string]: unknown }
+  trustPolicies?: unknown[]
   providers?: unknown[]
   models?: unknown[]
   [field: string]: unknown
@@ -90,6 +96,7 @@ export interface RefractCardProjection {
   providerJson: string
   providerJsonError: string | null
   limits: LimitsView
+  automaticRouting: boolean
   strategyModelText: Partial<Record<ModeKey, string>>
   limitsCleared: boolean
 }
@@ -103,6 +110,12 @@ export interface RefractCardFace {
   editStrategyEffort(mode: ModeKey, value: string): void
   editStrategyAfpCeiling(mode: ModeKey, value: string): void
   editStrategyModels(mode: ModeKey, text: string): void
+  editV4QualityMin(value: number): void
+  editV4DagMode(value: V4DagMode): void
+  editV4DataMode(value: V4DataMode): void
+  editV4SensitiveTerms(text: string): void
+  upsertV4Row(collection: V4CollectionKey, value: Record<string, unknown>, previousId?: string): void
+  removeV4Row(collection: V4CollectionKey, id: string): void
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
   resetField(field: CardField): void
@@ -112,6 +125,19 @@ export interface RefractCardFace {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function assertCredentialReferences(provider: ProviderConfigView): void {
+  for (const row of Array.isArray(provider.providers) ? provider.providers : []) {
+    if (!isRecord(row)) continue
+    if (['apiKey', 'api_key', 'token', 'secret', 'credential'].some(key => Object.hasOwn(row, key))) {
+      throw new Error('provider credentials must be saved as credentialEnv references')
+    }
+    if (row.credentialEnv !== undefined
+      && (typeof row.credentialEnv !== 'string' || !/^[A-Z][A-Z0-9_]*$/.test(row.credentialEnv))) {
+      throw new Error('credentialEnv must be an environment-variable reference')
+    }
+  }
 }
 
 /** 键序无关的 JSON 等值比较，用于写入前后核对宿主是否接受了值。 */
@@ -165,6 +191,12 @@ export class RefractCardController {
       editStrategyEffort: (mode, value) => this.editStrategyEffort(mode, value),
       editStrategyAfpCeiling: (mode, value) => this.editStrategyAfpCeiling(mode, value),
       editStrategyModels: (mode, text) => this.editStrategyModels(mode, text),
+      editV4QualityMin: value => this.editV4QualityMin(value),
+      editV4DagMode: value => this.editV4DagMode(value),
+      editV4DataMode: value => this.editV4DataMode(value),
+      editV4SensitiveTerms: text => this.editV4SensitiveTerms(text),
+      upsertV4Row: (collection, value, previousId) => this.upsertV4Row(collection, value, previousId),
+      removeV4Row: (collection, id) => this.removeV4Row(collection, id),
       editLimit: (key, checked) => this.editLimit(key, checked),
       editProviderJson: text => this.editProviderJson(text),
       resetField: field => this.resetField(field),
@@ -229,6 +261,50 @@ export class RefractCardController {
     this.stageProvider({ ...provider, strategies })
   }
 
+  editV4QualityMin(value: number): void {
+    if (!Number.isFinite(value) || value < 0 || value > 100) throw new Error('qualityMin must be in 0..100')
+    const provider = this.v4Provider()
+    this.stageProvider({ ...provider, objective: { ...provider.objective, qualityMin: value } })
+  }
+
+  editV4DagMode(value: V4DagMode): void {
+    if (!['auto', 'never', 'force'].includes(value)) throw new Error('invalid dagMode')
+    const provider = this.v4Provider()
+    this.stageProvider({ ...provider, objective: { ...provider.objective, dagMode: value } })
+  }
+
+  editV4DataMode(value: V4DataMode): void {
+    if (!['live', 'desensitized', 'synthetic'].includes(value)) throw new Error('invalid dataMode')
+    const provider = this.v4Provider()
+    this.stageProvider({ ...provider, security: { ...provider.security, dataMode: value } })
+  }
+
+  editV4SensitiveTerms(text: string): void {
+    const provider = this.v4Provider()
+    const sensitiveTerms = [...new Set(text.split(/\r?\n/).map(value => value.trim()).filter(Boolean))]
+    this.stageProvider({ ...provider, security: { ...provider.security, sensitiveTerms } })
+  }
+
+  upsertV4Row(collection: V4CollectionKey, value: Record<string, unknown>, previousId?: string): void {
+    const provider = this.v4Provider()
+    if (typeof value.id !== 'string' || value.id.trim() === '') throw new Error(`${collection} rows require an id`)
+    if (collection === 'providers') assertCredentialReferences({ providers: [value] })
+    const target = previousId ?? value.id
+    const rows = Array.isArray(provider[collection]) ? [...provider[collection] as unknown[]] : []
+    const index = rows.findIndex(row => isRecord(row) && row.id === target)
+    const cloned = structuredClone(value)
+    if (index === -1) rows.push(cloned)
+    else rows[index] = cloned
+    this.stageProvider({ ...provider, [collection]: rows })
+  }
+
+  removeV4Row(collection: V4CollectionKey, id: string): void {
+    const provider = this.v4Provider()
+    const rows = (Array.isArray(provider[collection]) ? provider[collection] as unknown[] : [])
+      .filter(row => !isRecord(row) || row.id !== id)
+    this.stageProvider({ ...provider, [collection]: rows })
+  }
+
   editLimit(key: LimitKey, checked: boolean): void {
     this.stageLimits({ ...this.currentLimits(), [key]: checked })
   }
@@ -247,6 +323,7 @@ export class RefractCardController {
     try {
       const parsed: unknown = JSON.parse(text)
       if (!isRecord(parsed)) throw new Error('providerConfig must be a JSON object')
+      assertCredentialReferences(parsed)
       if (parsed.strategies !== undefined && (!isRecord(parsed.strategies)
         || Object.values(parsed.strategies).some(row => !isRecord(row)
           || (row.models !== undefined && (!Array.isArray(row.models) || row.models.some(id => typeof id !== 'string')))))) {
@@ -361,6 +438,14 @@ export class RefractCardController {
     return this.snapshot().value?.providerConfig
   }
 
+  private v4Provider(): ProviderConfigView {
+    const provider = this.currentProvider()
+    if (provider?.schemaVersion !== 'refractagent-providers-v4') {
+      throw new Error('structured automatic-routing edits require providerConfig v4')
+    }
+    return provider
+  }
+
   private currentLimits(): LimitsView {
     const staged = this.staged.get('limits')
     if (staged?.kind === 'set') return staged.value as LimitsView
@@ -406,6 +491,7 @@ export class RefractCardController {
       providerJson: this.providerJson,
       providerJsonError: this.providerJsonError,
       limits: this.currentLimits(),
+      automaticRouting: this.currentProvider()?.schemaVersion === 'refractagent-providers-v4',
       strategyModelText: { ...this.modelText },
       limitsCleared: limitsStage?.kind === 'clear',
     }

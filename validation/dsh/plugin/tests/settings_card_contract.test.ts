@@ -17,6 +17,27 @@ const dshProviderConfig = () => ({
   models: [{ id: 'm', provider: 'p', model: 'deepseek-chat', contextWindow: 64000, pricing: {} }],
 })
 
+const v4ProviderConfig = () => ({
+  schemaVersion: 'refractagent-providers-v4' as const,
+  billingUnit: 'USD',
+  objective: { qualityMin: 80, primary: 'cost' as const, secondary: 'latency' as const, dagMode: 'auto' as const },
+  security: { dataMode: 'synthetic', sensitiveTerms: ['内部'] },
+  trustPolicies: [{ id: 'team-cn', residency: 'CN', auditLogging: true, allowsSensitiveData: true }],
+  providers: [
+    { id: 'external', type: 'openai-compatible' as const, baseUrl: 'https://example.test/v1',
+      credentialEnv: 'TEAM_MODEL_KEY', deployment: 'external-cloud' as const },
+    { id: 'local', type: 'dsh' as const, dshProvider: 'local-model-provider', deployment: 'local' as const },
+  ],
+  models: [
+    { id: 'worker', provider: 'external', model: 'worker-model', roles: ['worker' as const], contextWindow: 128000,
+      pricing: { unit: 'USD', inputPer1k: 0.1, outputPer1k: 0.2 }, routing: { quality: 90, latencyMs: 1000 } },
+    { id: 'router', provider: 'local', model: 'router-model', roles: ['planner' as const, 'worker' as const,
+      'classifier' as const], contextWindow: 128000, pricing: { unit: 'USD', inputPer1k: 0, outputPer1k: 0 } },
+    { id: 'judge', provider: 'local', model: 'judge-model', roles: ['judge' as const], contextWindow: 128000,
+      pricing: { unit: 'USD', inputPer1k: 0, outputPer1k: 0 } },
+  ],
+})
+
 test('settings base reflects the tunable subset of the composed configuration', () => {
   const config = configure({ executionMode: 'live', allowPaidRuns: true, preset: 'ark-agent-plan',
     limits: { relaxBudget: false, relaxContext: false } })
@@ -382,4 +403,74 @@ test('unlimited time overlays independently and can be switched off', () => {
   assert.equal(enabled.limits?.relaxBudget,false)
   assert.equal(overlaySettings(enabled,{limits:{unlimitedTime:false}}).limits?.unlimitedTime,false)
   assert.throws(()=>validateSettingsSection({limits:{unlimitedTime:'yes'} as never}),/boolean/)
+})
+
+test('v4 structured edits cover objective, security and repeatable rows without losing JSON-only fields', async () => {
+  const original = v4ProviderConfig()
+  const providerConfig = { ...original, models: original.models.map(model => model.id === 'router'
+    ? { ...model, requestOptions: { futureOption: { retained: true } } } : model) }
+  validateSettingsSection({ providerConfig })
+  const scope = fakeScope({ providerConfig })
+  const controller = new RefractCardController(scope)
+  const face = controller.inject()
+  assert.equal(controller.getSnapshot().automaticRouting, true)
+  face.editV4QualityMin(87)
+  face.editV4DagMode('never')
+  face.editV4DataMode('desensitized')
+  face.editV4SensitiveTerms('内部\n客户\n内部\n')
+  face.upsertV4Row('trustPolicies', {
+    id: 'team-us', residency: 'US', auditLogging: true, allowsSensitiveData: false,
+  })
+  face.upsertV4Row('providers', {
+    id: 'trusted', type: 'openai-compatible', baseUrl: 'https://trusted.example/v1',
+    credentialEnv: 'TRUSTED_MODEL_KEY', deployment: 'trusted-cloud', trustPolicy: 'team-us',
+  })
+  face.upsertV4Row('models', {
+    id: 'trusted-worker', provider: 'trusted', model: 'trusted-model', roles: ['worker'],
+    contextWindow: 64000, pricing: { unit: 'USD', inputPer1k: 0.01, outputPer1k: 0.02 },
+  })
+  face.removeV4Row('models', 'worker')
+  await controller.save()
+  const saved = scope.getSnapshot().value?.providerConfig
+  assert.equal(saved?.objective?.qualityMin, 87)
+  assert.equal(saved?.objective?.dagMode, 'never')
+  assert.equal(saved?.security?.dataMode, 'desensitized')
+  assert.deepEqual(saved?.security?.sensitiveTerms, ['内部', '客户'])
+  assert.deepEqual((saved?.models?.[0] as { requestOptions?: unknown }).requestOptions,
+    { futureOption: { retained: true } })
+  assert.equal(saved?.trustPolicies?.length, 2)
+  assert.equal(saved?.providers?.length, 3)
+  assert.deepEqual(saved?.models?.map(row => (row as { id: string }).id), ['router', 'judge', 'trusted-worker'])
+  assert.deepEqual(JSON.parse(controller.getSnapshot().providerJson), saved)
+  controller.dispose()
+})
+
+test('v4 structured edits can update, rename and remove rows, then discard as one rollback', () => {
+  const providerConfig = v4ProviderConfig()
+  const controller = new RefractCardController(fakeScope({ providerConfig }))
+  const face = controller.inject()
+  face.upsertV4Row('providers', { ...providerConfig.providers[0], id: 'external-next' }, 'external')
+  assert.equal((controller.getSnapshot().provider?.providers?.[0] as { id: string }).id, 'external-next')
+  face.removeV4Row('trustPolicies', 'team-cn')
+  assert.deepEqual(controller.getSnapshot().provider?.trustPolicies, [])
+  face.discard()
+  assert.deepEqual(controller.getSnapshot().provider, providerConfig)
+  assert.equal(controller.getSnapshot().dirty, false)
+  controller.dispose()
+})
+
+test('settings drafts accept credential references but reject embedded provider secrets', () => {
+  const controller = new RefractCardController(fakeScope({ providerConfig: v4ProviderConfig() }))
+  const face = controller.inject()
+  assert.throws(() => face.upsertV4Row('providers', {
+    id: 'bad', type: 'openai-compatible', deployment: 'external-cloud', apiKey: 'secret-value',
+  }), /credentialEnv references/)
+  face.editProviderJson(JSON.stringify({ ...v4ProviderConfig(), providers: [{
+    id: 'bad', type: 'openai-compatible', deployment: 'external-cloud', token: 'secret-value',
+  }] }))
+  assert.match(String(controller.getSnapshot().providerJsonError), /credentialEnv references/)
+  assert.throws(() => face.upsertV4Row('providers', {
+    id: 'bad-ref', type: 'openai-compatible', deployment: 'external-cloud', credentialEnv: 'not-an-env-ref',
+  }), /environment-variable reference/)
+  controller.dispose()
 })

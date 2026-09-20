@@ -1,8 +1,10 @@
 """Configured provider routing, accounting and credential boundaries; no paid calls."""
 from copy import deepcopy
 from dataclasses import replace
+from io import StringIO
 import json
 from pathlib import Path
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -206,6 +208,40 @@ def test_cli_v4_auto_entry_runs_zero_call_demo_and_blocks_live(tmp_path, capsys)
         run_agent({'task': '不得误入旧执行器', 'strategy': 'auto'}, provider_config=json.loads(source.read_text()),
                   mode='live', execute_paid_run=True, runs_dir=tmp_path / 'live-runs', client=Client())
     assert not (tmp_path / 'live-runs').exists()
+
+
+def test_validate_config_reports_core_summary_from_file_and_stdin(tmp_path, capsys, monkeypatch):
+    source = Path(__file__).resolve().parents[1] / 'data/schema/refractagent-providers-v4-example.json'
+    assert main(['validate-config', '--provider-config', str(source)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result == {
+        'schema_version': 'refractagent-config-validation-v1',
+        'valid': True,
+        'config_schema': 'refractagent-providers-v4',
+        'provider_count': 2,
+        'model_count': 3,
+        'role_counts': {'planner': 1, 'worker': 2, 'judge': 1, 'classifier': 1},
+        'credential_references': ['EXTERNAL_MODEL_KEY'],
+        'model_calls': 0,
+    }
+    monkeypatch.setattr(sys, 'stdin', StringIO(source.read_text()))
+    assert main(['validate-config', '--request-stdin']) == 0
+    assert json.loads(capsys.readouterr().out) == result
+
+
+def test_validate_config_rejects_invalid_v4_without_exposing_credentials(tmp_path, capsys):
+    source = tmp_path / 'invalid.json'
+    raw = json.loads((Path(__file__).resolve().parents[1] /
+                      'data/schema/refractagent-providers-v4-example.json').read_text())
+    raw['models'] = [model for model in raw['models'] if 'judge' not in model['roles']]
+    raw['providers'][0]['credentialEnv'] = 'NEVER_A_REAL_SECRET'
+    source.write_text(json.dumps(raw))
+    assert main(['validate-config', '--provider-config', str(source)]) == 1
+    error = json.loads(capsys.readouterr().out)
+    assert error['schema_version'] == 'refractagent-config-validation-v1'
+    assert error['valid'] is False and error['model_calls'] == 0
+    assert 'judge' in error['error']
+    assert 'NEVER_A_REAL_SECRET' not in json.dumps(error)
 
 
 def test_effective_snapshot_preserves_output_and_temperature_overrides(tmp_path):

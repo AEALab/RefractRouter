@@ -26,6 +26,16 @@ v4 使用单一 `objective`，不再接受 `qualityMin` 与 `strategies`：
 配置至少要有一个 planner、worker 和 judge。部署域必须显式声明，Python 核心负责最终安全、
 角色和路由校验；TypeScript 插件只做结构检查和配置透传。
 
+可以在保存或部署前调用 Python 核心的零调用校验入口：
+
+```bash
+refractagent validate-config --provider-config ./providers-v4.json
+cat ./providers-v4.json | refractagent validate-config --request-stdin
+```
+
+成功结果只返回配置版本、Provider/模型数量、职责数量和凭证引用名称，不读取凭证值，
+也不发起模型调用。错误配置返回非零退出码和脱敏错误。
+
 `simulated-local` 仍表示云端调用。真实敏感数据只有在其信任策略允许敏感数据、启用审计，
 并且显式设置 `acknowledgeExternalTransmission: true` 时才通过 v4 编译。配置快照会同时记录
 该确认、求解使用的模拟边际成本以及模型声明的云端价格。v3 的拒绝规则保持不变。
@@ -47,7 +57,9 @@ refractagent migrate-config-v4 \
 ## 当前开发边界
 
 配置编译、显式迁移、DSH 单一入口合同和安全约束下的零调用 direct-or-DAG 估算已经实现；
-估算合同与审计字段见 [v4 两级自动路由选择器](automatic-routing-v4.md)。运行期逐阶段重新分级、
-实际账本回填、预测误差校准和结构化设置表单仍在 Issue #116 的后续实施切片完成。v4 已允许
+估算合同与审计字段见 [v4 两级自动路由选择器](automatic-routing-v4.md)。DSH 设置控制器已提供
+路由目标、安全模式、Provider、模型与信任策略的结构化编辑合同，并保留高级 JSON 无损往返；
+具体卡片布局和可行性预览仍在后续切片完成。运行期逐阶段重新分级、实际账本回填和预测误差
+校准也仍属于 Issue #116 的后续工作。v4 已允许
 `preflight` 与 `demo` 通过真实 Python/DSH 入口验证配置、职责池和直接路线，`live` 仍在凭证解析
 及模型调用前 fail closed；在完整自动选路接入前，不应作为生产付费执行配置发布。
