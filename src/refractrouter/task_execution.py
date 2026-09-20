@@ -138,7 +138,10 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
         begin = elapsed()
         try:
             response = run_tool_node(tool_runtime, reservation, budget, invoke_once, persist,
-                                     cancel_event=cancel_event)
+                cancel_event=cancel_event,
+                before_followup=(None if guard is None else
+                    lambda messages: guard.require(reservation.row['security_node_id'],
+                        reservation.model.model_id, messages, stage='sensitive-tool-result')))
             return replace(response, latency_ms=round(elapsed()-begin)), None, begin, elapsed()
         except Exception as exc:
             return None, exc, begin, elapsed()
@@ -225,6 +228,8 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                             json_mode=bool(contract and contract['output']['format'] == 'json'),
                             category_limit=production_cap,
                             **({"tools": tool_runtime.schemas} if tool_runtime is not None else {}))
+                        if guard is not None:
+                            reservation.row['security_node_id'] = nid
                         row = {'node_id': nid, 'model_id': model.model_id, 'provider': model.provider,
                                'status': 'scheduled', 'semantic_status': 'not-evaluated', 'ready_ms': ready_at[nid]}
                         if guard is not None:

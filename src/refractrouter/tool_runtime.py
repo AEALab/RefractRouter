@@ -120,7 +120,8 @@ def native_calls(raw, schemas):
     return deepcopy(list(raw))
 
 
-def run_tool_node(runtime, reservation, budget, invoke, persist, *, cancel_event=None):
+def run_tool_node(runtime, reservation, budget, invoke, persist, *, cancel_event=None,
+                  before_followup=None):
     messages = deepcopy(reservation.messages)
     initial = reservation
     for turn in range(MAX_TOOL_ROUNDS + 1):
@@ -163,6 +164,9 @@ def run_tool_node(runtime, reservation, budget, invoke, persist, *, cancel_event
                 # 保留技能原文与非文本引用，作为不可信宿主上下文传递。
                 additional.append({'role': 'user', 'content': json.dumps(context, ensure_ascii=False)})
         messages.extend(additional)
+        if before_followup is not None:
+            # 工具结果与 additionalContexts 都是不可信新数据；进入下一次模型调用前重新守门。
+            before_followup(messages)
         reservation = budget.reserve(initial.model, deepcopy(messages),
             label=initial.row['label'] + f':tool-round-{turn+1}', tools=runtime.schemas,
             json_mode=initial.json_mode, category_limit=initial.row.get('category_limit'))

@@ -8,17 +8,22 @@ export interface StrategyConfiguration {
 }
 
 export interface ProviderConfiguration {
-  schemaVersion: 'refractagent-providers-v1'
+  schemaVersion: 'refractagent-providers-v1' | 'refractagent-providers-v2' | 'refractagent-providers-v3'
   billingUnit: string
   qualityMin?: number
   plannerThinking?: 'inherit' | 'enabled' | 'disabled'
   defaultReasoningEffort?: string
   strategies?: Partial<Record<'economy' | 'balanced' | 'quality', StrategyConfiguration>>
+  privacy?: Record<string, unknown>
+  security?: Record<string, unknown>
+  trustPolicies?: Array<{ id: string; residency: string; auditLogging: boolean; allowsSensitiveData: boolean }>
   providers: Array<{ id: string; type: 'openai-compatible' | 'openai-responses' | 'ark-agent-plan' | 'dsh';
-    baseUrl?: string; credentialEnv?: string; dshProvider?: string; maxTokensParameter?: string }>
+    baseUrl?: string; credentialEnv?: string; dshProvider?: string; maxTokensParameter?: string;
+    deployment?: 'cloud' | 'external-cloud' | 'trusted-cloud' | 'local' | 'simulated-local'; trustPolicy?: string }>
   models: Array<{ id: string; provider: string; model: string; role?: 'candidate' | 'judge';
     contextWindow: number; maxOutputTokens?: number; pricing: Record<string, unknown>;
-    reasoningEffort?: string; routing?: Record<string, unknown>; requestOptions?: Record<string, unknown>; jsonMode?: string }>
+    reasoningEffort?: string; routing?: Record<string, unknown>; requestOptions?: Record<string, unknown>; jsonMode?: string;
+    deployment?: 'cloud' | 'external-cloud' | 'trusted-cloud' | 'local' | 'simulated-local' }>
 }
 
 export interface LimitsConfiguration {
@@ -47,11 +52,15 @@ export function freezeConfiguration<T>(value: T): T {
 
 export function validateProviderConfiguration(value: unknown): asserts value is ProviderConfiguration {
   const config = value
-  if (!isRecordValue(config) || config.schemaVersion !== 'refractagent-providers-v1'
+  const schemas = ['refractagent-providers-v1','refractagent-providers-v2','refractagent-providers-v3']
+  if (!isRecordValue(config) || !schemas.includes(String(config.schemaVersion))
     || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
-    || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','defaultReasoningEffort','plannerThinking','strategies','providers','models'].includes(k))) {
+    || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','defaultReasoningEffort','plannerThinking','strategies','providers','models','privacy','security','trustPolicies'].includes(k))) {
     throw new Error('invalid providerConfig; use refractagent config-example')
   }
+  const v3 = config.schemaVersion === 'refractagent-providers-v3'
+  if (v3 && config.privacy !== undefined) throw new Error('providerConfig v3 uses security instead of privacy')
+  if (!v3 && (config.security !== undefined || config.trustPolicies !== undefined)) throw new Error('security requires providerConfig v3')
   if (config.plannerThinking !== undefined && (typeof config.plannerThinking !== 'string' || !['inherit','enabled','disabled'].includes(config.plannerThinking))) {
     throw new Error('invalid plannerThinking')
   }
@@ -61,14 +70,26 @@ export function validateProviderConfiguration(value: unknown): asserts value is 
   }
   for (const p of config.providers) {
     if (!isRecordValue(p) || typeof p.id !== 'string' || !['openai-compatible','openai-responses','ark-agent-plan','dsh'].includes(String(p.type))
-      || Object.keys(p).some(k=>!['id','type','baseUrl','credentialEnv','dshProvider','maxTokensParameter'].includes(k))) {
+      || Object.keys(p).some(k=>!['id','type','baseUrl','credentialEnv','dshProvider','maxTokensParameter','deployment','trustPolicy'].includes(k))) {
       throw new Error('invalid provider configuration fields')
     }
+    if (v3 && p.deployment === undefined) throw new Error('providerConfig v3 requires explicit deployment')
     if (p.credentialEnv !== undefined && (typeof p.credentialEnv !== 'string' || !/^[A-Z][A-Z0-9_]*$/.test(p.credentialEnv))) {
       throw new Error('provider credentialEnv must be a reference, never a secret value')
     }
     if (p.type === 'dsh' && (p.credentialEnv !== undefined || p.baseUrl !== undefined)) throw new Error('DSH providers use host credentials')
     if (p.type === 'dsh' && (p.dshProvider ?? p.id) === 'refractagent') throw new Error('recursive RefractAgent routing is forbidden')
+  }
+  if (v3) {
+    if (config.security !== undefined && !isRecordValue(config.security)) throw new Error('invalid security configuration')
+    if (config.trustPolicies !== undefined && !Array.isArray(config.trustPolicies)) throw new Error('invalid trustPolicies')
+    const policyIds = new Set((config.trustPolicies ?? []).filter(isRecordValue).map(row => row.id))
+    for (const p of config.providers) {
+      if (p.deployment === 'trusted-cloud' && (typeof p.trustPolicy !== 'string' || !policyIds.has(p.trustPolicy))) {
+        throw new Error('trusted-cloud requires a configured trustPolicy')
+      }
+      if (p.deployment !== 'trusted-cloud' && p.trustPolicy !== undefined) throw new Error('trustPolicy requires trusted-cloud')
+    }
   }
   for (const m of config.models) {
     if (!isRecordValue(m) || typeof m.id !== 'string' || typeof m.provider !== 'string' || typeof m.model !== 'string'

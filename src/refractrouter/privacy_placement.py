@@ -1,4 +1,4 @@
-"""隐私感知的节点放置：部署域标签、确定性分级、候选收窄与运行期守门。
+"""安全感知的节点放置：部署域标签、确定性分级、候选收窄与运行期守门。
 
 本模块只做判定、候选过滤与运行期拦截，不发起模型调用。约束默认关闭：未配置 privacy
 字段时调用方不进入本模块，路由行为与现状一致。契约见
@@ -7,11 +7,16 @@ docs/privacy-aware-node-placement.md（里程碑 A2）。
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 
-POLICY_VERSION = 'privacy-placement-v1'
-DEPLOYMENTS = ('cloud', 'local', 'simulated-local')
-LOCAL_DEPLOYMENTS = frozenset({'local', 'simulated-local'})
+POLICY_VERSION = 'security-placement-v2'
+LEGACY_POLICY_VERSION = 'privacy-placement-v1'
+DEPLOYMENTS = ('cloud', 'external-cloud', 'trusted-cloud', 'local', 'simulated-local')
+# “零边际成本”与“可接触真实敏感材料”是两个独立维度。模拟本地只用于研究计价，
+# 不能因为价格记为 0 就取得真实本地的信任资格。
+ZERO_COST_DEPLOYMENTS = frozenset({'local', 'simulated-local'})
+SENSITIVE_DEPLOYMENTS = frozenset({'local', 'trusted-cloud'})
 NARROWED_GRADES = frozenset({'S1', 'S2', 'unknown'})
 DEFAULT_MAX_PROMPT_BYTES = 1_048_576
 MIN_MAX_PROMPT_BYTES = 1024
@@ -57,7 +62,20 @@ def deployment_of(model):
 
 
 def is_local_deployment(value):
-    return value in LOCAL_DEPLOYMENTS
+    """兼容旧调用：只表示物理本地，不再把 simulated-local 当作安全本地。"""
+    return value == 'local'
+
+
+def is_zero_cost_deployment(value):
+    return value in ZERO_COST_DEPLOYMENTS
+
+
+def allows_sensitive(deployment, privacy):
+    if deployment in SENSITIVE_DEPLOYMENTS:
+        return True
+    return (deployment == 'simulated-local'
+            and ('dataMode' not in (privacy or {})
+                 or (privacy or {}).get('dataMode') in {'synthetic', 'desensitized'}))
 
 
 def marginal_pricing(deployment, input_per_1k, cached_per_1k, output_per_1k):
@@ -66,20 +84,20 @@ def marginal_pricing(deployment, input_per_1k, cached_per_1k, output_per_1k):
     本地算力边际成本记 0；模拟本地是云端公开模型冒充本地，研究阶段按 0 计，
     申报价格保留在配置快照与模型声明的 declared_pricing 里供敏感性分析复核。
     """
-    if is_local_deployment(deployment):
+    if is_zero_cost_deployment(deployment):
         return 0.0, 0.0, 0.0
     return input_per_1k, cached_per_1k, output_per_1k
 
 
-def local_model_ids(models):
+def local_model_ids(models, privacy=None):
     return tuple(sorted(m.model_id for m in models
-                        if is_local_deployment(deployment_of(m))))
+                        if allows_sensitive(deployment_of(m), privacy)))
 
 
-def local_execution_model_ids(models):
+def local_execution_model_ids(models, privacy=None):
     """可作为节点执行者的本地候选：评审与规划器等非候选角色不参与派发。"""
     return tuple(sorted(m.model_id for m in models
-                        if is_local_deployment(deployment_of(m))
+                        if allows_sensitive(deployment_of(m), privacy)
                         and getattr(m, 'role', 'candidate') == 'candidate'))
 
 
@@ -145,12 +163,13 @@ def static_node_views(plan, task, node_tasks=None):
 def new_record(privacy, models):
     """放置记录骨架；角色检查与运行期分级都写回同一个记录，便于回放审计。"""
     models = tuple(models)
-    return {'policy_version': POLICY_VERSION, 'enabled': privacy_enabled(privacy),
+    policy_version = POLICY_VERSION if privacy and 'dataMode' in privacy else LEGACY_POLICY_VERSION
+    return {'policy_version': policy_version, 'enabled': privacy_enabled(privacy),
             'privacy': privacy or default_privacy(), 'status': 'disabled' if not privacy_enabled(privacy) else 'pending',
-            'local_model_ids': list(local_model_ids(models)),
-            'local_execution_model_ids': list(local_execution_model_ids(models)),
+            'local_model_ids': list(local_model_ids(models, privacy)),
+            'local_execution_model_ids': list(local_execution_model_ids(models, privacy)),
             'cloud_model_ids': sorted(m.model_id for m in models
-                                      if not is_local_deployment(deployment_of(m))),
+                                      if not allows_sensitive(deployment_of(m), privacy)),
             'grades': {}, 'eligible_models': {}, 'blocked': [],
             'events': [], 'violations': [], 'runtime_grades': {}, 'role_checks': []}
 
@@ -201,7 +220,7 @@ def judge_isolation(record, judge):
     narrowed = sorted(nid for nid, row in grades.items() if row['grade'] in NARROWED_GRADES)
     row = {'required': bool(narrowed), 'nodes': narrowed,
            'judge_model_id': judge.model_id, 'judge_deployment': deployment_of(judge)}
-    row['satisfied'] = not narrowed or is_local_deployment(row['judge_deployment'])
+    row['satisfied'] = not narrowed or allows_sensitive(row['judge_deployment'], record.get('privacy'))
     return row
 
 
@@ -212,7 +231,7 @@ def role_isolation(*, view, privacy, model, role, classifier=None, source='role-
     """
     row = classify_view(view, privacy=privacy, classifier=classifier, source=source)
     row.update(role=role, model_id=model.model_id, deployment=deployment_of(model),
-               satisfied=row['grade'] not in NARROWED_GRADES or is_local_deployment(deployment_of(model)))
+               satisfied=row['grade'] not in NARROWED_GRADES or allows_sensitive(deployment_of(model), privacy))
     return row
 
 
@@ -235,9 +254,28 @@ def grade_nodes(record, *, nodes, node_views, privacy, classifier=None, source='
 
 
 def request_view(messages):
-    """节点真实输入视图：实际发送给模型的用户侧载荷，不含网关指令模板。"""
-    payload = [message.get('content', '') for message in messages if message.get('role') == 'user']
-    return '\n'.join(payload)
+    """节点真实输入视图：用户输入与工具结果；不含网关和模型自身输出。"""
+    payload = [message.get('content', '') for message in messages
+               if message.get('role') in {'user', 'tool'}]
+    return '\n'.join(str(item) for item in payload)
+
+
+def safe_tool_audit(records, *, privacy):
+    """生成不含原文的审计摘要；持久化过程不得再次调用模型分类器。"""
+    rows = []
+    for record in records:
+        call = record.get('call') or {}
+        function = call.get('function') or {}
+        raw_call = json.dumps(call, ensure_ascii=False, sort_keys=True)
+        raw_result = json.dumps(record.get('result'), ensure_ascii=False, sort_keys=True)
+        result_grade = classify_view(raw_result, privacy=privacy, classifier=None,
+                                     source='tool-result') if 'result' in record else None
+        rows.append({'node': record.get('node'), 'status': record.get('status'),
+                     'tool_name': function.get('name'), 'call_id': call.get('id'),
+                     'call_sha256': hashlib.sha256(raw_call.encode()).hexdigest(),
+                     **({'result_sha256': hashlib.sha256(raw_result.encode()).hexdigest(),
+                         'result_grade': result_grade} if result_grade is not None else {})})
+    return rows
 
 
 class PrivacyRouteViolation(ValueError):
@@ -259,7 +297,7 @@ class PlacementGuard:
 
     def allows(self, node_id, model_id, messages):
         model = self.models[model_id]
-        if is_local_deployment(deployment_of(model)):
+        if allows_sensitive(deployment_of(model), self.privacy):
             return True
         row = self.evaluate(model_id, messages)
         if row['grade'] not in NARROWED_GRADES:
@@ -278,7 +316,7 @@ class PlacementGuard:
         self.record['runtime_grades'][node_id] = row
         if row['grade'] not in NARROWED_GRADES:
             return model.model_id
-        if is_local_deployment(deployment_of(model)):
+        if allows_sensitive(deployment_of(model), self.privacy):
             return model.model_id
         pool = (candidates if eligible is None
                 else {mid: candidates[mid] for mid in eligible if mid in candidates})
@@ -294,6 +332,18 @@ class PlacementGuard:
         assignments[node_id] = choice
         return choice
 
+    def require(self, node_id, model_id, messages, *, stage):
+        """同一模型续调前重新判定；状态化工具对话不跨信任域迁移，违规即阻断。"""
+        model = self.models[model_id]
+        row = self.evaluate(model_id, messages)
+        self.record['runtime_grades'][node_id] = row
+        if row['grade'] not in NARROWED_GRADES or allows_sensitive(deployment_of(model), self.privacy):
+            return
+        violation = {'node_id': node_id, 'model_id': model_id, 'grade': row['grade'],
+                     'reasons': row['reasons'], 'action': 'blocked', 'detail': stage}
+        self.record['violations'].append(violation)
+        raise PrivacyRouteViolation(f'privacy-route-violation:{node_id}:{stage}')
+
     def choose_local(self, messages, candidates):
         """在本地候选中挑选工作节点；评审与规划器角色不参与执行派发。"""
         size = len(request_view(messages).encode())
@@ -301,7 +351,7 @@ class PlacementGuard:
         for model in candidates.values():
             if getattr(model, 'role', 'candidate') != 'candidate':
                 continue
-            if not is_local_deployment(deployment_of(model)):
+            if not allows_sensitive(deployment_of(model), self.privacy):
                 continue
             if size + (model.max_output_tokens or 0) > (model.context_window or 0):
                 continue

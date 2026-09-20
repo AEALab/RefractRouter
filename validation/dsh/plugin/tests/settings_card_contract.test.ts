@@ -60,6 +60,25 @@ test('validateSettingsSection accepts a valid providerConfig and rejects an inva
   assert.throws(() => validateSettingsSection({ limits: { unexpected: true } as never }), /limits/)
 })
 
+test('v3 security configuration passes through while trust domains stay explicit', () => {
+  const base = dshProviderConfig()
+  const providerConfig = {
+    ...base,
+    schemaVersion: 'refractagent-providers-v3' as const,
+    security: { dataMode: 'live' },
+    trustPolicies: [{ id: 'team-cn', residency: 'CN', auditLogging: true, allowsSensitiveData: true }],
+    providers: base.providers.map((provider, index) => ({ ...provider,
+      deployment: index === 0 ? 'trusted-cloud' as const : 'local' as const,
+      ...(index === 0 ? { trustPolicy: 'team-cn' } : {}) })),
+  }
+  validateSettingsSection({ providerConfig })
+  assert.deepEqual(overlaySettings(configure({}), { providerConfig }).providerConfig, providerConfig)
+  assert.throws(() => validateSettingsSection({ providerConfig: {
+    ...providerConfig,
+    providers: [{ ...providerConfig.providers[0], trustPolicy: 'missing' }],
+  } }), /trustPolicy/)
+})
+
 test('installRefractSettings registers the namespace and follows the settings scope', () => {
   const config = configure({ executionMode: 'live', allowPaidRuns: true, preset: 'ark-agent-plan',
     limits: { relaxBudget: false, relaxContext: false } })

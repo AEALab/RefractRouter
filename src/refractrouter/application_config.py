@@ -15,9 +15,9 @@ from urllib.parse import urlsplit
 from .configured_routing import compile_routing, configured_profile
 from .manifest import ModelManifest
 from .node_routing import number
-from .privacy_placement import (DEPLOYMENTS, LOCAL_DEPLOYMENTS, MAX_MAX_PROMPT_BYTES,
+from .privacy_placement import (DEPLOYMENTS, ZERO_COST_DEPLOYMENTS, MAX_MAX_PROMPT_BYTES,
                                 MAX_SENSITIVE_TERMS, MAX_SENSITIVE_TERM_CHARS, MIN_MAX_PROMPT_BYTES,
-                                DEFAULT_MAX_PROMPT_BYTES, default_privacy, marginal_pricing)
+                                DEFAULT_MAX_PROMPT_BYTES, allows_sensitive, default_privacy, marginal_pricing)
 from .schemas import ModelSpec
 from .task_plan import text, validate_plan
 from .task_execution import node_messages
@@ -25,8 +25,9 @@ from .task_inputs import prepare_inputs
 
 SCHEMA_V1 = 'refractagent-providers-v1'
 SCHEMA_V2 = 'refractagent-providers-v2'
+SCHEMA_V3 = 'refractagent-providers-v3'
 SCHEMA = SCHEMA_V1
-SCHEMAS = (SCHEMA_V1, SCHEMA_V2)
+SCHEMAS = (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3)
 ARK_PLAN_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
 STRATEGIES = ('economy', 'balanced', 'quality')
 _ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$')
@@ -97,16 +98,16 @@ def deployment_value(value, *, provider_deployment, schema_version, label):
     """模型行部署域：缺省继承 provider 行；本地 provider 不允许把模型改回云端。"""
     if value is None:
         return provider_deployment
-    if schema_version != SCHEMA_V2:
-        raise ValueError(f'{label} requires schemaVersion {SCHEMA_V2}')
+    if schema_version not in {SCHEMA_V2, SCHEMA_V3}:
+        raise ValueError(f'{label} requires schemaVersion {SCHEMA_V2} or {SCHEMA_V3}')
     if value not in DEPLOYMENTS:
         raise ValueError(f'invalid {label}')
-    if provider_deployment in LOCAL_DEPLOYMENTS and value == 'cloud':
+    if provider_deployment in ZERO_COST_DEPLOYMENTS and value in {'cloud', 'external-cloud', 'trusted-cloud'}:
         raise ValueError(f'{label}: a local provider cannot declare cloud models')
     return value
 
 
-def compile_privacy(raw, *, models, schema_version):
+def compile_privacy(raw, *, models, schema_version, require_local_candidate=True):
     """编译可选的隐私约束；未配置时返回关闭形态，路由行为与现状一致。"""
     if raw is None:
         return default_privacy()
@@ -133,19 +134,43 @@ def compile_privacy(raw, *, models, schema_version):
         target = next((model for model in models if model.model_id == model_id), None)
         if target is None:
             raise ValueError('privacy.classifier.modelId must reference a configured model')
-        if target.deployment not in LOCAL_DEPLOYMENTS:
+        if target.deployment not in ZERO_COST_DEPLOYMENTS:
             raise ValueError('privacy.classifier.modelId must reference a local or simulated-local model')
     elif classifier_enabled:
         raise ValueError('privacy.classifier.modelId is required when the local classifier is enabled')
     limit = raw.get('maxPromptBytes', DEFAULT_MAX_PROMPT_BYTES)
     if type(limit) is not int or not MIN_MAX_PROMPT_BYTES <= limit <= MAX_MAX_PROMPT_BYTES:
         raise ValueError('privacy.maxPromptBytes is out of range')
-    if enabled and not any(model.deployment in LOCAL_DEPLOYMENTS and model.role == 'candidate'
+    if enabled and require_local_candidate and not any(model.deployment in ZERO_COST_DEPLOYMENTS and model.role == 'candidate'
                            for model in models):
         raise ValueError('privacy requires at least one local or simulated-local candidate model')
     return {'enabled': enabled, 'sensitiveTerms': list(terms),
             'classifier': {'enabled': classifier_enabled, 'modelId': model_id},
             'maxPromptBytes': limit}
+
+
+def compile_security(raw, *, models):
+    """编译 v3 强制安全合同；安全可行性不可由质量、费用或时延抵消。"""
+    raw = {} if raw is None else raw
+    if not isinstance(raw, dict) or set(raw) - {'dataMode', 'sensitiveTerms', 'classifier', 'maxPromptBytes'}:
+        raise ValueError('invalid security fields')
+    data_mode = raw.get('dataMode', 'live')
+    if data_mode not in {'live', 'synthetic', 'desensitized'}:
+        raise ValueError('security.dataMode must be live, synthetic or desensitized')
+    compatibility = {'enabled': True, 'sensitiveTerms': raw.get('sensitiveTerms', []),
+                     'classifier': raw.get('classifier', {}),
+                     'maxPromptBytes': raw.get('maxPromptBytes', DEFAULT_MAX_PROMPT_BYTES)}
+    compiled = compile_privacy(compatibility, models=models, schema_version=SCHEMA_V2,
+                               require_local_candidate=False)
+    compiled['dataMode'] = data_mode
+    classifier_id = compiled['classifier'].get('modelId')
+    if classifier_id is not None:
+        classifier_model = next(model for model in models if model.model_id == classifier_id)
+        if not allows_sensitive(classifier_model.deployment, compiled):
+            raise ValueError('security.classifier.modelId must reference a local or trusted-cloud model')
+    if not any(model.role == 'candidate' and allows_sensitive(model.deployment, compiled) for model in models):
+        raise ValueError('security requires at least one local or trusted-cloud candidate; simulated-local is allowed only for synthetic or desensitized data')
+    return compiled
 
 
 @dataclass(frozen=True)
@@ -186,11 +211,26 @@ class ApplicationConfiguration:
 
 def compile_configuration(raw, strategy=None):
     raw = obj(raw, {'schemaVersion', 'billingUnit', 'providers', 'models', 'qualityMin',
-                    'defaultReasoningEffort', 'plannerThinking', 'strategies', 'privacy'},
+                    'defaultReasoningEffort', 'plannerThinking', 'strategies', 'privacy',
+                    'security', 'trustPolicies'},
               'provider configuration')
     schema_version = raw.get('schemaVersion')
     if schema_version not in SCHEMAS:
-        raise ValueError(f'provider configuration requires schemaVersion {SCHEMA_V1} or {SCHEMA_V2}')
+        raise ValueError(f'provider configuration requires schemaVersion {SCHEMA_V1}, {SCHEMA_V2} or {SCHEMA_V3}')
+    if schema_version == SCHEMA_V3 and 'privacy' in raw:
+        raise ValueError('schemaVersion v3 uses security instead of the optional privacy switch')
+    if schema_version != SCHEMA_V3 and ({'security', 'trustPolicies'} & set(raw)):
+        raise ValueError(f'security and trustPolicies require schemaVersion {SCHEMA_V3}')
+    policies = {}
+    for policy in raw.get('trustPolicies', []):
+        policy = obj(policy, {'id', 'residency', 'auditLogging', 'allowsSensitiveData'}, 'trust policy')
+        policy_id = identifier(policy.get('id'), 'trust policy id')
+        if policy_id in policies:
+            raise ValueError('trust policy ids must be unique')
+        if policy.get('allowsSensitiveData') is not True or policy.get('auditLogging') is not True:
+            raise ValueError('trusted-cloud policy must explicitly allow sensitive data and audit logging')
+        residency = text(policy.get('residency'), 'trust policy residency', 100)
+        policies[policy_id] = {**policy, 'residency': residency}
     unit = raw.get('billingUnit')
     if not isinstance(unit, str) or not re.fullmatch(r'[A-Z][A-Z0-9_-]{0,15}', unit):
         raise ValueError('billingUnit must be one declared accounting unit')
@@ -214,20 +254,32 @@ def compile_configuration(raw, strategy=None):
     providers = {}
     for row in provider_rows:
         p = obj(row, {'id', 'type', 'baseUrl', 'credentialEnv', 'dshProvider', 'maxTokensParameter',
-                      'deployment'}, 'provider')
+                      'deployment', 'trustPolicy'}, 'provider')
         pid = identifier(p.get('id'), 'provider id')
         if pid in providers:
             raise ValueError('provider ids must be unique')
+        if schema_version == SCHEMA_V3 and 'deployment' not in p:
+            raise ValueError('schemaVersion v3 requires an explicit provider deployment')
         provider_deployment = p.get('deployment', 'cloud')
-        if 'deployment' in p and schema_version != SCHEMA_V2:
-            raise ValueError(f'deployment requires schemaVersion {SCHEMA_V2}')
+        if 'deployment' in p and schema_version not in {SCHEMA_V2, SCHEMA_V3}:
+            raise ValueError(f'deployment requires schemaVersion {SCHEMA_V2} or {SCHEMA_V3}')
         if provider_deployment not in DEPLOYMENTS:
             raise ValueError('invalid provider deployment')
+        trust_policy = p.get('trustPolicy')
+        if trust_policy is not None:
+            if schema_version != SCHEMA_V3:
+                raise ValueError(f'trustPolicy requires schemaVersion {SCHEMA_V3}')
+            trust_policy = identifier(trust_policy, 'provider trustPolicy')
+        if provider_deployment == 'trusted-cloud':
+            if trust_policy not in policies:
+                raise ValueError('trusted-cloud requires a configured trustPolicy')
+        elif trust_policy is not None:
+            raise ValueError('trustPolicy is only valid for trusted-cloud providers')
         kind = p.get('type')
         if kind not in {'openai-compatible', 'openai-responses', 'ark-agent-plan', 'dsh'}:
             raise ValueError('provider type must be openai-compatible, openai-responses, ark-agent-plan or dsh')
         if kind == 'dsh':
-            if set(p) - {'id', 'type', 'dshProvider', 'deployment'}:
+            if set(p) - {'id', 'type', 'dshProvider', 'deployment', 'trustPolicy'}:
                 raise ValueError('DSH providers use host configuration and credentials')
             target = identifier(p.get('dshProvider', pid), 'DSH provider')
             if target == 'refractagent':
@@ -352,7 +404,8 @@ def compile_configuration(raw, strategy=None):
     if not predictions or sum(m.role=='judge' for m in models) != 1:
         raise ValueError('configure at least one candidate and exactly one judge')
     # 隐私约束在策略收窄之前编译，分类器引用与本地候选要求按声明的完整模型池判定。
-    privacy = compile_privacy(raw.get('privacy'), models=tuple(models), schema_version=schema_version)
+    privacy = (compile_security(raw.get('security'), models=tuple(models)) if schema_version == SCHEMA_V3
+               else compile_privacy(raw.get('privacy'), models=tuple(models), schema_version=schema_version))
     candidate_ids = {m.model_id for m in models if m.role == 'candidate'}
     for name, row in strategies.items():
         unknown = set(row.get('models', ())) - candidate_ids
@@ -372,7 +425,7 @@ def compile_configuration(raw, strategy=None):
         predictions = {mid: row for mid, row in predictions.items() if mid in pool}
     return ApplicationConfiguration(ModelManifest(schema_version, date.today().isoformat(), unit, tuple(models)),
         predictions, number(raw.get('qualityMin', 0), 'qualityMin', maximum=100), deepcopy(raw),
-        privacy=None if raw.get('privacy') is None else privacy)
+        privacy=privacy if schema_version == SCHEMA_V3 or raw.get('privacy') is not None else None)
 
 
 def prepare_configured_plan(request, context, *, explicit_plan, output_cap, input_cap=131072):
