@@ -53,11 +53,11 @@ test('native registration advertises three strategy models with zero retries',as
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
 })
 test('v4 advertises only the automatic routing model while legacy configurations stay unchanged',async()=>{
-  const f=fixture()
+  const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
   const providerConfig={schemaVersion:'refractagent-providers-v4',billingUnit:'USD',
     objective:{qualityMin:80,primary:'cost',secondary:'latency',dagMode:'auto'},
     security:{dataMode:'live'},
-    providers:[{id:'local',type:'dsh',dshProvider:'team-host',deployment:'local'}],
+    providers:[{id:'local',type:'openai-compatible',baseUrl:'https://local.example/v1',deployment:'local'}],
     models:[
       {id:'work',provider:'local',model:'worker',roles:['planner','worker'],contextWindow:32768,
        pricing:{unit:'USD',inputPer1k:0,outputPer1k:0},routing:{quality:90,latencyMs:1000}},
@@ -67,11 +67,21 @@ test('v4 advertises only the automatic routing model while legacy configurations
   const adapter=createAdapter(f.ctx,()=>configure({providerConfig}))
   assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto'])
   await assert.rejects(adapter.resolveModel('refractagent','balanced'),/Unknown/)
-  await assert.rejects(async()=>{
-    for await(const _ of adapter.stream({...options,model:'auto'})){}
-  },/尚未启用/)
+  for await(const _ of adapter.stream({...options,model:'auto'})){}
   assert.equal(f.credentials,0)
-  assert.equal(f.spawns.length,0)
+  assert.equal(f.spawns.length,1)
+  const payload=JSON.parse(f.spawns[0]!.input())
+  assert.equal(payload.strategy,'auto')
+  assert.equal(payload.template,'auto')
+  assert.deepEqual(payload.providerConfig,providerConfig)
+
+  const blocked=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
+  const live=createAdapter(blocked.ctx,()=>configure({providerConfig,executionMode:'live',allowPaidRuns:true}))
+  await assert.rejects(async()=>{
+    for await(const _ of live.stream({...options,model:'auto'})){}
+  },/尚未启用/)
+  assert.equal(blocked.credentials,0)
+  assert.equal(blocked.spawns.length,0)
 })
 test('demo uses installed core through native sandboxed subprocess and preserves conversation',async()=>{
   const f=fixture(); const result=await chunks(createAdapter(f.ctx, () => configure()))

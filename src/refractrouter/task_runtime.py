@@ -165,13 +165,17 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     if live and getattr(client, "max_retries", 0) != 0:
         raise ValueError("text tasks require a zero-retry client")
     candidates = {m.model_id: m for m in manifest.candidates}
-    planner, planner_basis = planner_model(candidates, configuration=configuration,
+    planner_candidates = ({m.model_id: m for m in manifest.models
+                           if m.model_id in configuration.role_pools['planner']}
+                          if configuration is not None and configuration.role_pools is not None
+                          else candidates)
+    planner, planner_basis = planner_model(planner_candidates, configuration=configuration,
         explicit=request.get('plannerModelId'), output_cap=request.get('plannerMaxOutputTokens',1200),
         compact=request.get('planningMode') == 'compact', unrestricted=request.get('unrestrictedPlanning', False),
         thinking=request.get('plannerThinking','inherit'))
     planner_id = planner.model_id
-    if planner_id not in candidates:
-        raise ValueError("plannerModelId must be a candidate in the manifest")
+    if planner_id not in planner_candidates:
+        raise ValueError("plannerModelId must be available in the planner role pool")
     budget = TaskCallBudget(client if live else DemoTaskClient(),
                           production_limit if live else 1e12, evaluation_limit if live else 1e12,
                           max_calls=10 + request.get('maxPlanRepairs',0) + 2*request.get('maxDynamicSplits',0)
@@ -192,8 +196,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
               "limitations": [("执行节点通过宿主权限管线调用工具；规划与评审不执行工具。" if tool_runtime else "Text generation only; no shell, retrieval or filesystem actions."),
                               "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
                               "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"]}
+    planning_model = planner if request.get('planningMode') == 'compact' else planner_candidates[planner_id]
     result['planner_selection'] = {'model_id': planner_id, 'basis': planner_basis,
-        'output_cap': output_token_limit(planner if request.get('planningMode')=='compact' else candidates[planner_id]),
+        'output_cap': output_token_limit(planning_model),
         'timeout_ms': None if request.get('unlimitedTime') or request.get('unrestrictedPlanning') else request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms,
         'thinking': request.get('plannerThinking','inherit'), 'output_policy': 'model-capacity' if request.get('unrestrictedPlanning') else 'explicit-cap'}
     if content_guard is not None:
@@ -299,7 +304,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                  "remaining_production_cost": min(request['costMax'], budget.remaining()),
                  "remaining_time_ms": before_call() * 1000}, ensure_ascii=False)},
                 ]
-                plan = generate_plan(budget, candidates[planner_id], messages, result,
+                plan = generate_plan(budget, planning_model, messages, result,
                     required_criteria=request.get('acceptanceCriteria'), max_repairs=request.get('maxPlanRepairs',0),
                     cost_limit=request['costMax'], remaining=before_call, persist=persist)
             if request.get('contextPolicy') == 'selective-v1':

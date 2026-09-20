@@ -155,16 +155,15 @@ function conversation(options: ModelOptions, contextLimitBytes: number): { task:
 
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions, onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
-  if (config.providerConfig?.schemaVersion === 'refractagent-providers-v4') {
-    throw new Error('RefractAgent v4 自动路由执行器尚未启用；当前配置仅支持零调用校验和迁移')
-  }
+  const automaticRouting = config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
   const live = config.executionMode === 'live'
+  if (automaticRouting && live) throw new Error('RefractAgent v4 实时自动路由尚未启用；请先使用模拟模式验证配置')
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.preset) throw new Error('configure providerConfig or explicitly choose preset: ark-agent-plan')
   const nativeTools = live && !options.purpose ? bindNativeTools(ctx, options.tools ?? []) : undefined
   const payload = { ...conversation(options, config.limits?.relaxContext ? RELAXED_CONTEXT_BYTES : MAX_CONTEXT_BYTES),
-    strategy: options.model, template: config.template,
+    strategy: options.model, template: automaticRouting ? 'auto' : config.template,
     ...(nativeTools ? { hostTools: nativeTools.schemas } : {}),
     ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
       .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),

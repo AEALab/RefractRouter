@@ -61,13 +61,14 @@ def planner_model(candidates, *, configuration=None, explicit=None, output_cap=1
                   unrestricted=False, thinking='inherit'):
     if explicit is not None:
         if explicit not in candidates:
-            raise ValueError('plannerModelId must be a candidate in the manifest')
+            raise ValueError('plannerModelId must reference the active planner role pool')
         selected = candidates[explicit]
         basis = 'explicit'
     else:
         # 时延是配置预测；没有模型规模字段，不能把价格或能力声明当成参数量证据。
         selected = min(candidates.values(), key=lambda m: (
-            configuration.predictions[m.model_id]['latency_ms'] if configuration else 0,
+            configuration.predictions.get(m.model_id, {}).get('latency_ms', float('inf'))
+            if configuration else 0,
             m.input_cost_per_1k + m.output_cost_per_1k, m.capability, m.model_id))
         basis = 'configured-latency-then-price' if configuration else 'price-then-capability'
     options = deepcopy(selected.request_options)

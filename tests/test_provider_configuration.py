@@ -175,7 +175,7 @@ def test_cli_compiles_user_configuration_into_dsh_overlay(tmp_path,capsys):
     assert main(['dsh-config','--mode','live','--runs-dir',str(tmp_path/'runs'),'--output',str(tmp_path/'missing.json')])==1
 
 
-def test_cli_v4_lists_and_configures_only_the_auto_entry(tmp_path, capsys):
+def test_cli_v4_auto_entry_runs_zero_call_demo_and_blocks_live(tmp_path, capsys):
     source = Path(__file__).resolve().parents[1] / 'data/schema/refractagent-providers-v4-example.json'
     assert main(['models', '--provider-config', str(source)]) == 0
     listed = json.loads(capsys.readouterr().out)
@@ -184,12 +184,28 @@ def test_cli_v4_lists_and_configures_only_the_auto_entry(tmp_path, capsys):
         'planner', 'worker', 'classifier']
     output = tmp_path / 'v4-dsh.json'
     assert main(['dsh-config', '--provider-config', str(source), '--output', str(output)]) == 0
-    patch = json.loads(output.read_text())
-    assert patch[1]['config'] == {'provider': 'refractagent', 'model': 'auto'}
-    with pytest.raises(ValueError, match='not enabled yet'):
+    overlay = json.loads(output.read_text())
+    assert overlay[1]['config'] == {'provider': 'refractagent', 'model': 'auto'}
+    raw = json.loads(source.read_text())
+    raw['providers'][1] = {'id': 'local', 'type': 'openai-compatible',
+                           'baseUrl': 'https://local.example/v1', 'deployment': 'local'}
+    with patch('socket.socket', side_effect=AssertionError('network forbidden')):
+        demo = run_agent({'task': '比较两个公开方案', 'strategy': 'auto'},
+                         provider_config=raw, mode='demo', runs_dir=tmp_path / 'runs')
+    assert demo['status'] == 'simulated' and demo['strategy'] == 'auto'
+    assert demo['strategy_name'] == '自动路由'
+    assert demo['policy_version'] == 'refractagent-auto-runtime-v1'
+    assert demo['planner']['model_id'] == 'local-router'
+    assert demo['plan_origin'] == 'template-preview'
+    request = json.loads((Path(demo['run_dir']) / 'request.json').read_text())
+    assert request['runtime_request']['maxConcurrency'] == 4
+    with pytest.raises(ValueError, match='requires template auto'):
+        run_agent({'task': '拒绝旧模板', 'strategy': 'auto', 'template': 'single'},
+                  provider_config=raw, mode='demo', runs_dir=tmp_path / 'invalid-runs')
+    with pytest.raises(ValueError, match='live automatic routing is not enabled yet'):
         run_agent({'task': '不得误入旧执行器', 'strategy': 'auto'}, provider_config=json.loads(source.read_text()),
-                  mode='live', execute_paid_run=True, runs_dir=tmp_path / 'runs', client=Client())
-    assert not (tmp_path / 'runs').exists()
+                  mode='live', execute_paid_run=True, runs_dir=tmp_path / 'live-runs', client=Client())
+    assert not (tmp_path / 'live-runs').exists()
 
 
 def test_effective_snapshot_preserves_output_and_temperature_overrides(tmp_path):
