@@ -144,18 +144,12 @@ def _moa_review_cost(material_reviews, output_reviews, purpose):
         for record in records:
             for phase in ('primary', 'escalation'):
                 for call in record.get(phase, ()):
-                    calls += 1
-                    key = (call.get('cli'), call.get('model'), call.get('thinking_effort'))
-                    counts = by_reviewer.setdefault(key, {'calls': 0, 'failed_calls': 0})
-                    counts['calls'] += 1
-                    if call.get('status') != 'reviewed':
-                        counts['failed_calls'] += 1
-                        failed += 1
-                    value = call.get('wall_time_ms')
-                    if _finite_nonnegative(value):
-                        known_ms += value
-                    else:
-                        missing_time += 1
+                    calls, failed, missing_time, known_ms = _count_review_call(
+                        call, calls, failed, missing_time, known_ms, by_reviewer)
+            # 定向补审被替换下来的原失败调用仍在总账内：外部确实产生了这些调用。
+            for call in record.get('targeted_review', {}).get('replaced_failed_calls', ()):
+                calls, failed, missing_time, known_ms = _count_review_call(
+                    call.get('original', call), calls, failed, missing_time, known_ms, by_reviewer)
     return {'real_model_calls': calls, 'failed_calls': failed,
             'known_wall_time_ms': known_ms if not missing_time else None,
             'records_missing_wall_time': missing_time,
@@ -164,6 +158,22 @@ def _moa_review_cost(material_reviews, output_reviews, purpose):
             'included_in_ark_afp': False, 'external_usage': 'unknown',
             'policy_sha256': digest(MOA_POLICY),
             'scope': 'MoA 评审消耗本机 CLI 账号；外部用量未知，不折算为零，也不并入 Ark AFP。'}
+
+
+def _count_review_call(call, calls, failed, missing_time, known_ms, by_reviewer):
+    calls += 1
+    key = (call.get('cli'), call.get('model'), call.get('thinking_effort'))
+    counts = by_reviewer.setdefault(key, {'calls': 0, 'failed_calls': 0})
+    counts['calls'] += 1
+    if call.get('status') != 'reviewed':
+        counts['failed_calls'] += 1
+        failed += 1
+    value = call.get('wall_time_ms')
+    if _finite_nonnegative(value):
+        known_ms += value
+    else:
+        missing_time += 1
+    return calls, failed, missing_time, known_ms
 
 
 def analyze(frozen, result, tasks, *, references=None, human_reviews=(), purpose_review=None,

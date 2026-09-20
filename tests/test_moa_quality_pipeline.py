@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from experiments.run_bound_quality_study import RehearsalClient
+from experiments.review_moa_failed_calls import failed_calls, retry_records
 from refractrouter.moa_review import MOA_POLICY, material_review, output_review, purpose_review
 from refractrouter.quality_runtime import execute, moa_gate, prepare
 from refractrouter.quality_statistics import analyze
@@ -250,3 +251,42 @@ def test_merge_supersede_is_explicit_and_audited(tmp_path):
     assert merged['summary']['gate_ready'] == 1
     assert merged['superseded'][0]['previous_overall'] == 'pending'
     assert '被覆盖的旧记录' in (output / 'README.md').read_text()
+
+
+def _run_rows_and_records_with_failed_deepseek():
+    from refractrouter.moa_review import aggregate, output_messages
+    _, tasks, refs, *_ = load_study(STUDY)
+    selected = [t for t in tasks if t['task_id'] == 'analysis-03']
+    frozen = prepare(STUDY, task_ids=['analysis-03'], arms=['direct-cheap'], repeats=1)
+    run_rows = [{'run_id': spec['run_id'], 'task_id': spec['task_id'],
+                 'output': refs[spec['task_id']]['author_reference']}
+                for spec in frozen['schedule']]
+    records = output_review(tasks, refs, run_rows, all_pass_invoke)
+    record = records[0]
+    deepseek = next(r for r in record['primary'] if r['reviewer_id'] == 'ds-deepseek-v4-pro')
+    deepseek.update(status='failed', verdict='pending', review=None,
+                    error='review criteria coverage mismatch', wall_time_ms=1000.0)
+    _, criteria = output_messages(selected[0], refs['analysis-03']['author_reference'])
+    record['consensus'] = aggregate(record['primary'], record['escalation'], criteria)
+    return tasks, refs, run_rows, records
+
+
+def test_retry_records_replaces_failed_calls_and_recomputes_consensus():
+    tasks, refs, run_rows, records = _run_rows_and_records_with_failed_deepseek()
+    assert len(failed_calls(records)) == 1
+    updated, audit = retry_records(tasks, refs, run_rows, records, all_pass_invoke)
+    assert audit[0]['new_status'] == ['reviewed'] and audit[0]['overall'] == 'pass'
+    record = updated[0]
+    assert all(row['status'] == 'reviewed' for row in record['primary'])
+    assert record['targeted_review']['replaced_failed_calls'][0]['original']['status'] == 'failed'
+    assert record['consensus']['overall'] == 'pass'
+
+
+def test_retry_records_keeps_record_when_retry_fails_again():
+    tasks, refs, run_rows, records = _run_rows_and_records_with_failed_deepseek()
+
+    def failing_invoke(reviewer, messages, schema=None):
+        return 1, '', 'simulated failure', 10.0, None
+    updated, audit = retry_records(tasks, refs, run_rows, records, failing_invoke)
+    assert audit[0]['new_status'] == ['failed']
+    assert updated[0]['primary'] == records[0]['primary']
