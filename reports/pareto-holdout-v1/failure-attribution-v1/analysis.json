@@ -1,0 +1,1829 @@
+{
+  "schema_version": "quality-failure-attribution-v1",
+  "scope": "live-01 已冻结证据的零模型调用事后归因；不改变确认性结论。",
+  "counting_rule": "failure_layer 按首次决定最终状态的层互斥计数；moa_consensus_all_runs 另列全部可评审输出，允许与交付门禁重叠。",
+  "arms": {
+    "direct-strong": {
+      "runs": 36,
+      "final_status": {
+        "fail": 14,
+        "pass": 22
+      },
+      "failure_layer": {
+        "delivery-gate": 8,
+        "deterministic-check": 6,
+        "pass": 22
+      },
+      "moa_consensus_all_runs": {
+        "fail": 8,
+        "pass": 28
+      },
+      "deterministic_failed_check_instances": {
+        "citation": 4,
+        "value": 6
+      },
+      "robust_pass_tasks": 7,
+      "failed_tasks": [
+        "analysis-06",
+        "decision-05",
+        "decision-06",
+        "rules-04",
+        "rules-06"
+      ],
+      "by_structure": {
+        "direct": {
+          "runs": 12,
+          "final_status": {
+            "pass": 12
+          },
+          "robust_pass_tasks": 4,
+          "tasks": 4
+        },
+        "parallel": {
+          "runs": 12,
+          "final_status": {
+            "fail": 6,
+            "pass": 6
+          },
+          "robust_pass_tasks": 2,
+          "tasks": 4
+        },
+        "sequential": {
+          "runs": 12,
+          "final_status": {
+            "fail": 8,
+            "pass": 4
+          },
+          "robust_pass_tasks": 1,
+          "tasks": 4
+        }
+      }
+    },
+    "task-selector": {
+      "runs": 36,
+      "final_status": {
+        "fail": 17,
+        "pass": 19
+      },
+      "failure_layer": {
+        "delivery-gate": 2,
+        "deterministic-check": 14,
+        "execution-failed": 1,
+        "pass": 19
+      },
+      "moa_consensus_all_runs": {
+        "fail": 2,
+        "pass": 33,
+        "pending": 1
+      },
+      "deterministic_failed_check_instances": {
+        "citation": 17,
+        "value": 8
+      },
+      "robust_pass_tasks": 3,
+      "failed_tasks": [
+        "analysis-04",
+        "analysis-05",
+        "decision-03",
+        "decision-04",
+        "decision-05",
+        "decision-06",
+        "rules-04",
+        "rules-05",
+        "rules-06"
+      ],
+      "by_structure": {
+        "direct": {
+          "runs": 12,
+          "final_status": {
+            "fail": 3,
+            "pass": 9
+          },
+          "robust_pass_tasks": 2,
+          "tasks": 4
+        },
+        "parallel": {
+          "runs": 12,
+          "final_status": {
+            "fail": 9,
+            "pass": 3
+          },
+          "robust_pass_tasks": 0,
+          "tasks": 4
+        },
+        "sequential": {
+          "runs": 12,
+          "final_status": {
+            "fail": 5,
+            "pass": 7
+          },
+          "robust_pass_tasks": 1,
+          "tasks": 4
+        }
+      }
+    },
+    "direct-or-dag": {
+      "runs": 36,
+      "final_status": {
+        "fail": 12,
+        "pass": 24
+      },
+      "failure_layer": {
+        "delivery-gate": 1,
+        "deterministic-check": 10,
+        "execution-failed": 1,
+        "pass": 24
+      },
+      "moa_consensus_all_runs": {
+        "no-output": 1,
+        "pass": 34,
+        "pending": 1
+      },
+      "deterministic_failed_check_instances": {
+        "citation": 9,
+        "value": 9
+      },
+      "robust_pass_tasks": 5,
+      "failed_tasks": [
+        "analysis-05",
+        "decision-03",
+        "decision-05",
+        "decision-06",
+        "rules-04",
+        "rules-05",
+        "rules-06"
+      ],
+      "by_structure": {
+        "direct": {
+          "runs": 12,
+          "final_status": {
+            "fail": 2,
+            "pass": 10
+          },
+          "robust_pass_tasks": 3,
+          "tasks": 4
+        },
+        "parallel": {
+          "runs": 12,
+          "final_status": {
+            "fail": 7,
+            "pass": 5
+          },
+          "robust_pass_tasks": 1,
+          "tasks": 4
+        },
+        "sequential": {
+          "runs": 12,
+          "final_status": {
+            "fail": 3,
+            "pass": 9
+          },
+          "robust_pass_tasks": 1,
+          "tasks": 4
+        }
+      }
+    }
+  },
+  "routing_behavior": {
+    "direct_or_dag_runs": 36,
+    "single_node_runs": 35,
+    "multi_node_runs": 1,
+    "multi_node_run_ids": [
+      "decision-05-r3-direct-or-dag"
+    ],
+    "multi_node_final_status": {
+      "fail": 1
+    },
+    "interpretation": "当前 direct-or-dag 路线 36 次中几乎全部退化为单节点；臂间差异不能归因于 DAG 拆分收益。"
+  },
+  "run_rows": [
+    {
+      "run_id": "analysis-03-r1-direct-strong",
+      "task_id": "analysis-03",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r1-direct-or-dag",
+      "task_id": "analysis-03",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r1-task-selector",
+      "task_id": "analysis-03",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r1-direct-or-dag",
+      "task_id": "analysis-04",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r1-task-selector",
+      "task_id": "analysis-04",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r1-direct-strong",
+      "task_id": "analysis-04",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r1-direct-strong",
+      "task_id": "analysis-05",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r1-direct-or-dag",
+      "task_id": "analysis-05",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "report_correct:sources"
+      ]
+    },
+    {
+      "run_id": "analysis-05-r1-task-selector",
+      "task_id": "analysis-05",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "report_correct:sources"
+      ]
+    },
+    {
+      "run_id": "analysis-06-r1-task-selector",
+      "task_id": "analysis-06",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-06-r1-direct-strong",
+      "task_id": "analysis-06",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-06-r1-direct-or-dag",
+      "task_id": "analysis-06",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r1-task-selector",
+      "task_id": "decision-03",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "rejected_ids:sources"
+      ]
+    },
+    {
+      "run_id": "decision-03-r1-direct-strong",
+      "task_id": "decision-03",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r1-direct-or-dag",
+      "task_id": "decision-03",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "rejected_ids:sources"
+      ]
+    },
+    {
+      "run_id": "decision-04-r1-task-selector",
+      "task_id": "decision-04",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "selected"
+      ]
+    },
+    {
+      "run_id": "decision-04-r1-direct-strong",
+      "task_id": "decision-04",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-04-r1-direct-or-dag",
+      "task_id": "decision-04",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-05-r1-task-selector",
+      "task_id": "decision-05",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources",
+        "remaining_budget:sources"
+      ]
+    },
+    {
+      "run_id": "decision-05-r1-direct-or-dag",
+      "task_id": "decision-05",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "failed",
+      "node_count": 1,
+      "moa_consensus": "no-output",
+      "final_status": "fail",
+      "failure_layer": "execution-failed"
+    },
+    {
+      "run_id": "decision-05-r1-direct-strong",
+      "task_id": "decision-05",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources"
+      ]
+    },
+    {
+      "run_id": "decision-06-r1-direct-or-dag",
+      "task_id": "decision-06",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-06-r1-direct-strong",
+      "task_id": "decision-06",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "decision-06-r1-task-selector",
+      "task_id": "decision-06",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "order:sources",
+        "deadline_met:sources"
+      ]
+    },
+    {
+      "run_id": "rules-03-r1-task-selector",
+      "task_id": "rules-03",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r1-direct-strong",
+      "task_id": "rules-03",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r1-direct-or-dag",
+      "task_id": "rules-03",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-04-r1-direct-strong",
+      "task_id": "rules-04",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-04-r1-direct-or-dag",
+      "task_id": "rules-04",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-04-r1-task-selector",
+      "task_id": "rules-04",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-05-r1-direct-strong",
+      "task_id": "rules-05",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-05-r1-direct-or-dag",
+      "task_id": "rules-05",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "accepted",
+        "rejected",
+        "unknown"
+      ]
+    },
+    {
+      "run_id": "rules-05-r1-task-selector",
+      "task_id": "rules-05",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-06-r1-direct-or-dag",
+      "task_id": "rules-06",
+      "arm": "direct-or-dag",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-06-r1-direct-strong",
+      "task_id": "rules-06",
+      "arm": "direct-strong",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "rules-06-r1-task-selector",
+      "task_id": "rules-06",
+      "arm": "task-selector",
+      "repeat": 1,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r2-task-selector",
+      "task_id": "analysis-03",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r2-direct-or-dag",
+      "task_id": "analysis-03",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r2-direct-strong",
+      "task_id": "analysis-03",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r2-direct-or-dag",
+      "task_id": "analysis-04",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r2-task-selector",
+      "task_id": "analysis-04",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r2-direct-strong",
+      "task_id": "analysis-04",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r2-direct-strong",
+      "task_id": "analysis-05",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r2-task-selector",
+      "task_id": "analysis-05",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r2-direct-or-dag",
+      "task_id": "analysis-05",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-06-r2-direct-strong",
+      "task_id": "analysis-06",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "analysis-06-r2-direct-or-dag",
+      "task_id": "analysis-06",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-06-r2-task-selector",
+      "task_id": "analysis-06",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r2-direct-or-dag",
+      "task_id": "decision-03",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r2-direct-strong",
+      "task_id": "decision-03",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r2-task-selector",
+      "task_id": "decision-03",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-04-r2-direct-or-dag",
+      "task_id": "decision-04",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-04-r2-task-selector",
+      "task_id": "decision-04",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-04-r2-direct-strong",
+      "task_id": "decision-04",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-05-r2-task-selector",
+      "task_id": "decision-05",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources",
+        "remaining_budget:sources"
+      ]
+    },
+    {
+      "run_id": "decision-05-r2-direct-strong",
+      "task_id": "decision-05",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources"
+      ]
+    },
+    {
+      "run_id": "decision-05-r2-direct-or-dag",
+      "task_id": "decision-05",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources",
+        "remaining_budget:sources"
+      ]
+    },
+    {
+      "run_id": "decision-06-r2-task-selector",
+      "task_id": "decision-06",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-06-r2-direct-strong",
+      "task_id": "decision-06",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "decision-06-r2-direct-or-dag",
+      "task_id": "decision-06",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r2-task-selector",
+      "task_id": "rules-03",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r2-direct-or-dag",
+      "task_id": "rules-03",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r2-direct-strong",
+      "task_id": "rules-03",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-04-r2-task-selector",
+      "task_id": "rules-04",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-04-r2-direct-or-dag",
+      "task_id": "rules-04",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-04-r2-direct-strong",
+      "task_id": "rules-04",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-05-r2-task-selector",
+      "task_id": "rules-05",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pending",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "accepted:sources",
+        "rejected:sources",
+        "unknown:sources"
+      ]
+    },
+    {
+      "run_id": "rules-05-r2-direct-or-dag",
+      "task_id": "rules-05",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-05-r2-direct-strong",
+      "task_id": "rules-05",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-06-r2-direct-strong",
+      "task_id": "rules-06",
+      "arm": "direct-strong",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "rules-06-r2-task-selector",
+      "task_id": "rules-06",
+      "arm": "task-selector",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "rules-06-r2-direct-or-dag",
+      "task_id": "rules-06",
+      "arm": "direct-or-dag",
+      "repeat": 2,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r3-direct-or-dag",
+      "task_id": "analysis-03",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r3-task-selector",
+      "task_id": "analysis-03",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-03-r3-direct-strong",
+      "task_id": "analysis-03",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r3-direct-or-dag",
+      "task_id": "analysis-04",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-04-r3-task-selector",
+      "task_id": "analysis-04",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "failed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "execution-failed"
+    },
+    {
+      "run_id": "analysis-04-r3-direct-strong",
+      "task_id": "analysis-04",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r3-direct-or-dag",
+      "task_id": "analysis-05",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r3-direct-strong",
+      "task_id": "analysis-05",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-05-r3-task-selector",
+      "task_id": "analysis-05",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "report_correct:sources"
+      ]
+    },
+    {
+      "run_id": "analysis-06-r3-direct-strong",
+      "task_id": "analysis-06",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "analysis-06-r3-direct-or-dag",
+      "task_id": "analysis-06",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "analysis-06-r3-task-selector",
+      "task_id": "analysis-06",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "material-analysis",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r3-direct-strong",
+      "task_id": "decision-03",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-03-r3-direct-or-dag",
+      "task_id": "decision-03",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "pending",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "decision-03-r3-task-selector",
+      "task_id": "decision-03",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "rejected_ids:sources"
+      ]
+    },
+    {
+      "run_id": "decision-04-r3-direct-strong",
+      "task_id": "decision-04",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-04-r3-direct-or-dag",
+      "task_id": "decision-04",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-04-r3-task-selector",
+      "task_id": "decision-04",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-05-r3-direct-or-dag",
+      "task_id": "decision-05",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 3,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources",
+        "remaining_budget:sources"
+      ]
+    },
+    {
+      "run_id": "decision-05-r3-direct-strong",
+      "task_id": "decision-05",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits:sources",
+        "remaining_budget:sources"
+      ]
+    },
+    {
+      "run_id": "decision-05-r3-task-selector",
+      "task_id": "decision-05",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "kits",
+        "remaining_budget:sources"
+      ]
+    },
+    {
+      "run_id": "decision-06-r3-direct-or-dag",
+      "task_id": "decision-06",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "order:sources",
+        "deadline_met:sources"
+      ]
+    },
+    {
+      "run_id": "decision-06-r3-task-selector",
+      "task_id": "decision-06",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "decision-06-r3-direct-strong",
+      "task_id": "decision-06",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "multipart-decision",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "rules-03-r3-direct-strong",
+      "task_id": "rules-03",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r3-direct-or-dag",
+      "task_id": "rules-03",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-03-r3-task-selector",
+      "task_id": "rules-03",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "direct",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-04-r3-direct-strong",
+      "task_id": "rules-04",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-04-r3-task-selector",
+      "task_id": "rules-04",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-04-r3-direct-or-dag",
+      "task_id": "rules-04",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "releasable",
+        "blocked"
+      ]
+    },
+    {
+      "run_id": "rules-05-r3-direct-strong",
+      "task_id": "rules-05",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-05-r3-direct-or-dag",
+      "task_id": "rules-05",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "pass",
+      "failure_layer": "pass",
+      "deterministic_status": "pass"
+    },
+    {
+      "run_id": "rules-05-r3-task-selector",
+      "task_id": "rules-05",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "parallel",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "accepted:sources",
+        "rejected:sources",
+        "unknown:sources"
+      ]
+    },
+    {
+      "run_id": "rules-06-r3-direct-strong",
+      "task_id": "rules-06",
+      "arm": "direct-strong",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    },
+    {
+      "run_id": "rules-06-r3-direct-or-dag",
+      "task_id": "rules-06",
+      "arm": "direct-or-dag",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "delivered-unconfirmed",
+      "node_count": 1,
+      "moa_consensus": "pass",
+      "final_status": "fail",
+      "failure_layer": "deterministic-check",
+      "deterministic_status": "fail",
+      "failed_checks": [
+        "excluded:sources"
+      ]
+    },
+    {
+      "run_id": "rules-06-r3-task-selector",
+      "task_id": "rules-06",
+      "arm": "task-selector",
+      "repeat": 3,
+      "category": "rule-checking",
+      "structure_stratum": "sequential",
+      "run_status": "withheld",
+      "node_count": 1,
+      "moa_consensus": "fail",
+      "final_status": "fail",
+      "failure_layer": "delivery-gate"
+    }
+  ],
+  "decision": {
+    "current_result": "三条路线均未达到 90% 质量门槛，当前确认性前沿为空。",
+    "primary_bottleneck": "输出正确性与约束一致性，而非费用优化。",
+    "next_actions": [
+      "先修复结构化 findings 的来源传播、值校验与正文一致性。",
+      "为 direct-or-dag 增加明确的路由决策证据，并保证正式实验覆盖足够的真实多节点运行。",
+      "对失败输出做真人抽查，确认自动门槛没有系统性误杀后再冻结新实验。"
+    ]
+  },
+  "provenance": {
+    "results_sha256": "97a2f876e7761fd106cb62d8c7b645f0f07b1b3c0d2b9cf07adc48089ce66a19",
+    "tasks_sha256": "66d19285fe201344ce01f94fea84260cc99f13615b6b5037324cd09f6b3bc5d9",
+    "moa_reviews_sha256": "572611161d7ac3b7a9da017dd1ae8fbfbbcb54c175d8832fd972ed81e43476ee",
+    "final_analysis_sha256": "5b4da9ab9400e8faae2c4d8d95aa75d22234fa936d67626fa56bc5309cd317e3",
+    "analysis_implementation_sha256": "e58b2830a3672ee127ae9b8eabb64c61d5d4417a1009a88c0ffec3eb60749a16"
+  }
+}

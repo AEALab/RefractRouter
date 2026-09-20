@@ -37,8 +37,11 @@
 
 - 以 bound-02 实跑：108 次运行、397 次真实调用、312.7503 AFP（生产 171.3863、
   评审 141.364）、零重试、墙钟约 52.6 分钟；95 交付、11 扣留、2 失败。
-- 官方质量门槛待 MoA 输出评审；当前 `quality_gate_pending=true`，
-  三个臂的 AFP per accepted task 暂为 null，`confirmed_pareto_frontier` 为空。
+- MoA 输出评审及定向补审已完成。三个臂均未达到 90% 质量门槛，
+  `confirmed_pareto_frontier` 为空；AFP per accepted task 分别为 `direct-strong` 16.00、
+  `direct-or-dag` 20.13、`task-selector` 33.36。
 - 主对比：`direct-or-dag` 对 `direct-strong`、`direct-or-dag` 对 `task-selector`；
   主指标为 AFP per accepted task，时间与墙钟只作探索诊断。
-- 详见 `live-01/README.md`。
+- 质量失败归因发现 `direct-or-dag` 的 36 次运行中只有 1 次真正产生多节点 DAG，且该次
+  失败；现有臂间差异不能解释为 DAG 拆分收益。详见 `failure-attribution-v1/README.md`。
+- 原始运行说明见 `live-01/README.md`，最终统计见 `live-01-analysis-v5.json`。
