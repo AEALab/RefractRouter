@@ -6,7 +6,7 @@ import {
   buildSettingsBase, installRefractSettings, overlaySettings, validateSettingsSection,
 } from '../dist/settings-integration.js'
 import {
-  candidateChoices, RefractCardController, SETTINGS_NAMESPACE,
+  buildV4FeasibilityPreview, candidateChoices, RefractCardController, SETTINGS_NAMESPACE,
   type CardScope, type CardScopeSnapshot, type SectionView,
 } from '../dist/settings-card.js'
 
@@ -418,6 +418,7 @@ test('v4 structured edits cover objective, security and repeatable rows without 
   face.editV4DagMode('never')
   face.editV4DataMode('desensitized')
   face.editV4SensitiveTerms('内部\n客户\n内部\n')
+  face.editV4Classifier(true, 'router')
   face.upsertV4Row('trustPolicies', {
     id: 'team-us', residency: 'US', auditLogging: true, allowsSensitiveData: false,
   })
@@ -436,6 +437,7 @@ test('v4 structured edits cover objective, security and repeatable rows without 
   assert.equal(saved?.objective?.dagMode, 'never')
   assert.equal(saved?.security?.dataMode, 'desensitized')
   assert.deepEqual(saved?.security?.sensitiveTerms, ['内部', '客户'])
+  assert.deepEqual(saved?.security?.classifier, { enabled: true, modelId: 'router' })
   assert.deepEqual((saved?.models?.[0] as { requestOptions?: unknown }).requestOptions,
     { futureOption: { retained: true } })
   assert.equal(saved?.trustPolicies?.length, 2)
@@ -459,7 +461,18 @@ test('v4 structured edits can update, rename and remove rows, then discard as on
   controller.dispose()
 })
 
-test('settings drafts accept credential references but reject embedded provider secrets', () => {
+test('v4 structural preview reports inventory without making a routing or security decision', () => {
+  const preview = buildV4FeasibilityPreview(v4ProviderConfig())
+  assert.deepEqual(preview?.roleCounts, { planner: 1, worker: 2, judge: 1, classifier: 1 })
+  assert.deepEqual(preview?.missingRoles, [])
+  assert.equal(preview?.hasLocalDeployment, true)
+  assert.equal(preview?.providerCount, 2)
+  assert.equal(preview?.modelCount, 3)
+  assert.equal(preview?.requiresCoreValidation, true)
+  assert.equal(buildV4FeasibilityPreview(dshProviderConfig()), undefined)
+})
+
+test('settings drafts reject embedded secrets and expose incomplete credential references as validation errors', () => {
   const controller = new RefractCardController(fakeScope({ providerConfig: v4ProviderConfig() }))
   const face = controller.inject()
   assert.throws(() => face.upsertV4Row('providers', {
@@ -469,8 +482,9 @@ test('settings drafts accept credential references but reject embedded provider 
     id: 'bad', type: 'openai-compatible', deployment: 'external-cloud', token: 'secret-value',
   }] }))
   assert.match(String(controller.getSnapshot().providerJsonError), /credentialEnv references/)
-  assert.throws(() => face.upsertV4Row('providers', {
+  face.upsertV4Row('providers', {
     id: 'bad-ref', type: 'openai-compatible', deployment: 'external-cloud', credentialEnv: 'not-an-env-ref',
-  }), /environment-variable reference/)
+  })
+  assert.match(String(controller.getSnapshot().providerJsonError), /environment-variable reference/)
   controller.dispose()
 })

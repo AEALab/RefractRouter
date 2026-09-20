@@ -36,6 +36,50 @@ export interface StrategyView {
   reasoningEffort?: string
   models?: string[]
 }
+
+export interface V4FeasibilityPreview {
+  providerCount: number
+  modelCount: number
+  trustPolicyCount: number
+  roleCounts: Record<'planner' | 'worker' | 'judge' | 'classifier', number>
+  deploymentCounts: Record<string, number>
+  missingRoles: Array<'planner' | 'worker' | 'judge'>
+  hasLocalDeployment: boolean
+  requiresCoreValidation: true
+}
+
+/**
+ * 浏览器只投影配置清单事实，不判断敏感数据是否合法或选择路线。
+ * 完整可行性必须交给 Python compile_configuration。
+ */
+export function buildV4FeasibilityPreview(provider: ProviderConfigView | undefined): V4FeasibilityPreview | undefined {
+  if (provider?.schemaVersion !== 'refractagent-providers-v4') return undefined
+  const providers = (Array.isArray(provider.providers) ? provider.providers : []).filter(isRecord)
+  const models = (Array.isArray(provider.models) ? provider.models : []).filter(isRecord)
+  const policies = (Array.isArray(provider.trustPolicies) ? provider.trustPolicies : []).filter(isRecord)
+  const roleCounts: V4FeasibilityPreview['roleCounts'] = { planner: 0, worker: 0, judge: 0, classifier: 0 }
+  for (const model of models) {
+    const roles = Array.isArray(model.roles) ? model.roles : []
+    for (const role of Object.keys(roleCounts) as Array<keyof typeof roleCounts>) {
+      if (roles.includes(role)) roleCounts[role] += 1
+    }
+  }
+  const deploymentCounts: Record<string, number> = {}
+  for (const row of providers) {
+    const deployment = typeof row.deployment === 'string' ? row.deployment : 'missing'
+    deploymentCounts[deployment] = (deploymentCounts[deployment] ?? 0) + 1
+  }
+  return {
+    providerCount: providers.length,
+    modelCount: models.length,
+    trustPolicyCount: policies.length,
+    roleCounts,
+    deploymentCounts,
+    missingRoles: (['planner', 'worker', 'judge'] as const).filter(role => roleCounts[role] === 0),
+    hasLocalDeployment: (deploymentCounts.local ?? 0) > 0,
+    requiresCoreValidation: true,
+  }
+}
 /** 表单只把配置 ID 映射为可读名称，不参与候选模型的路由判定。 */
 export function candidateChoices(provider: ProviderConfigView | undefined): Array<{ id: string; label: string; costLabel?: string; planLabel?: string; thinkingAuto?: string }> {
   const models = (Array.isArray(provider?.models) ? provider.models : []).filter(
@@ -114,6 +158,7 @@ export interface RefractCardFace {
   editV4DagMode(value: V4DagMode): void
   editV4DataMode(value: V4DataMode): void
   editV4SensitiveTerms(text: string): void
+  editV4Classifier(enabled: boolean, modelId?: string): void
   upsertV4Row(collection: V4CollectionKey, value: Record<string, unknown>, previousId?: string): void
   removeV4Row(collection: V4CollectionKey, id: string): void
   editLimit(key: LimitKey, checked: boolean): void
@@ -127,13 +172,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
-function assertCredentialReferences(provider: ProviderConfigView): void {
+function assertCredentialReferences(provider: ProviderConfigView, validateReference = true): void {
   for (const row of Array.isArray(provider.providers) ? provider.providers : []) {
     if (!isRecord(row)) continue
     if (['apiKey', 'api_key', 'token', 'secret', 'credential'].some(key => Object.hasOwn(row, key))) {
       throw new Error('provider credentials must be saved as credentialEnv references')
     }
-    if (row.credentialEnv !== undefined
+    if (validateReference && row.credentialEnv !== undefined
       && (typeof row.credentialEnv !== 'string' || !/^[A-Z][A-Z0-9_]*$/.test(row.credentialEnv))) {
       throw new Error('credentialEnv must be an environment-variable reference')
     }
@@ -195,6 +240,7 @@ export class RefractCardController {
       editV4DagMode: value => this.editV4DagMode(value),
       editV4DataMode: value => this.editV4DataMode(value),
       editV4SensitiveTerms: text => this.editV4SensitiveTerms(text),
+      editV4Classifier: (enabled, modelId) => this.editV4Classifier(enabled, modelId),
       upsertV4Row: (collection, value, previousId) => this.upsertV4Row(collection, value, previousId),
       removeV4Row: (collection, id) => this.removeV4Row(collection, id),
       editLimit: (key, checked) => this.editLimit(key, checked),
@@ -285,10 +331,20 @@ export class RefractCardController {
     this.stageProvider({ ...provider, security: { ...provider.security, sensitiveTerms } })
   }
 
+  editV4Classifier(enabled: boolean, modelId?: string): void {
+    const provider = this.v4Provider()
+    const classifier: Record<string, unknown> = {
+      ...(isRecord(provider.security?.classifier) ? provider.security.classifier : {}), enabled,
+    }
+    if (modelId === undefined || modelId === '') delete classifier.modelId
+    else classifier.modelId = modelId
+    this.stageProvider({ ...provider, security: { ...provider.security, classifier } })
+  }
+
   upsertV4Row(collection: V4CollectionKey, value: Record<string, unknown>, previousId?: string): void {
     const provider = this.v4Provider()
-    if (typeof value.id !== 'string' || value.id.trim() === '') throw new Error(`${collection} rows require an id`)
-    if (collection === 'providers') assertCredentialReferences({ providers: [value] })
+    if (typeof value.id !== 'string') throw new Error(`${collection} rows require an id`)
+    if (collection === 'providers') assertCredentialReferences({ providers: [value] }, false)
     const target = previousId ?? value.id
     const rows = Array.isArray(provider[collection]) ? [...provider[collection] as unknown[]] : []
     const index = rows.findIndex(row => isRecord(row) && row.id === target)
@@ -456,7 +512,12 @@ export class RefractCardController {
   private stageProvider(value: ProviderConfigView): void {
     this.staged.set('providerConfig', { kind: 'set', value })
     this.providerJson = JSON.stringify(value, null, 2)
-    this.providerJsonError = null
+    try {
+      assertCredentialReferences(value)
+      this.providerJsonError = null
+    } catch (error) {
+      this.providerJsonError = error instanceof Error ? error.message : String(error)
+    }
     this.publish()
   }
 

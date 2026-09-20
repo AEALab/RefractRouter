@@ -4,6 +4,26 @@
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
 provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
 
+## 0.19.0：v4 自动路由设置界面
+
+`refractagent-providers-v4` 在「设置 → 插件 → 插件配置 → RefractAgent 路由」中使用单一
+自动路由界面，不显示 v1–v3 的省成本、均衡、质量优先三模式。界面可编辑路由目标、数据模式、
+敏感分类器、信任策略、Provider、模型职责、计价以及质量和时延预测；旧配置继续使用原界面。
+若 DSH 仍为新会话保留升级前的 `economy`、`balanced` 或 `quality` 选择，适配层会把该旧 ID
+规范化为 `auto`；模型清单仍只公开一个自动路由入口。
+
+结构可行性预览只统计 Provider、模型、信任策略、职责和本地部署声明，并明确标记“待核心校验”。
+它不在 TypeScript 中判断敏感数据能否外发、选择模型或决定 direct/DAG。保存前仍可用高级 JSON
+检查完整配置，并用 `refractagent validate-config` 执行零调用的 Python 业务校验。
+
+在仓库根目录可使用只运行模拟模式的界面验收覆盖；它通过 `process.cwd()` 使用当前 `.venv`，
+Provider 和模型均为占位声明，不会解析凭证：
+
+```bash
+dsh --profile web --patch validation/dsh/v4-ui-demo.patch.yml \
+  --host 127.0.0.1 --port 53611 --no-open
+```
+
 ## 0.18.0：v4 自动路由设置合同
 
 设置控制器现已支持 `refractagent-providers-v4` 的路由质量门槛、DAG 模式、数据模式、

@@ -25,6 +25,12 @@ function configuredModels(config: Readonly<Configuration>): readonly { id: strin
   return config.providerConfig?.schemaVersion === 'refractagent-providers-v4' ? AUTO_MODELS : LEGACY_MODELS
 }
 
+/** DSH 会保留新会话上次选择的模型 ID；升级到 v4 后把旧三模式选择收敛到唯一自动入口。 */
+function normalizeConfiguredModel(config: Readonly<Configuration>, model: string): string {
+  return config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
+    && LEGACY_MODELS.some(entry => entry.id === model) ? 'auto' : model
+}
+
 export interface Configuration {
   pythonExecutable: string
   runsDir: string
@@ -176,10 +182,10 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     if (provider.type === 'dsh') routes.push({provider: provider.dshProvider ?? provider.id, model: model.model})
   }
   const useBridge = live && (routes.length > 0 || !!nativeTools)
-  const progressEnabled = config.template === 'auto'
+  const progressEnabled = automaticRouting || config.template === 'auto'
   const piped = useBridge || progressEnabled
   let host: { llm: LlmService } | undefined
-  if (routes.length) {
+  if (useBridge) {
     if (!ctx.llm.stream || !ctx.llm.listProviders || !ctx.llm.providerRetryPolicy || !ctx.llm.resolveModelInfo) {
       throw new Error('DSH provider routing requires the native LLM service')
     }
@@ -291,9 +297,10 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
 export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>): AgentAdapter {
   const metadata = (provider: string, model: string): ModelMetadata => {
     const config = source()
-    const entry = configuredModels(config).find(m => m.id === model)
+    const normalized = normalizeConfiguredModel(config, model)
+    const entry = configuredModels(config).find(m => m.id === normalized)
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
-    return { ...entry, provider, name: entry.name + (config.executionMode === 'demo' ? '（模拟）' : ''),
+    return { ...entry, id: model, provider, name: entry.name + (config.executionMode === 'demo' ? '（模拟）' : ''),
       description: '支持整任务、自动 DAG 和宿主原生工具；执行遵循 DSH 权限与审批。',
       inputModalities: ['text'], context: { contextWindow: 24000 }, defaultMaxTokens: config.maxOutputTokens }
   }
@@ -306,7 +313,9 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     async *stream(options) {
       metadata(options.provider, options.model)
       const config = source()
-      const pending = config.template === 'auto' ? (config.executionMode === 'live'
+      const model = normalizeConfiguredModel(config, options.model)
+      const automatic = config.providerConfig?.schemaVersion === 'refractagent-providers-v4' || config.template === 'auto'
+      const pending = automatic ? (config.executionMode === 'live'
         ? '正在快速拆分任务，随后执行可并行的步骤。\n' : '正在预览自动拆分流程。\n') : ''
       if (pending) {
         yield { type: 'block-start', index: 0, blockType: 'reasoning' }
@@ -319,7 +328,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       let previous: ProgressEvent | undefined
       let transcript = pending
       const cancelled = new AbortController()
-      const work = invoke(ctx, config, { ...options, signal: AbortSignal.any([cancelled.signal, ...(options.signal ? [options.signal] : [])]) }, event => {
+      const work = invoke(ctx, config, { ...options, model,
+        signal: AbortSignal.any([cancelled.signal, ...(options.signal ? [options.signal] : [])]) }, event => {
         if (previous && (event.run_id !== previous.run_id || event.sequence <= previous.sequence)) throw new Error('DAG progress sequence mismatch')
         const text = progressText(event, previous)
         previous = event

@@ -46,11 +46,17 @@ test('动态图替换旧拓扑，流式截断不生成虚构节点，拒绝环�
 })
 
 test('客户端只贡献独立页签，不发起请求或改动原会话渲染器', () => {
-  const api = client(); let config: any
-  api.applyGraph({ slots: { inject: (_: string, cb: () => void) => [...(cb() as any)], register: (value: any) => { config = value } } })
+  const api = client(); let config: any, View: any
+  api.applyGraph({ slots: { inject: (_: string, cb: () => void) => [...(cb() as any)], register: (value: any, component: any) => { config = value; View = component } } })
   assert.equal(config.name, 'conversation.view')
   assert.equal(config.id, 'refractagent-dag')
   assert.equal(config.label(), '任务 DAG')
+  let selected = false
+  assert.doesNotThrow(() => View({ useChat: (select: any) => {
+    selected = true
+    return select({ legacy: { nodes: [], partial: null } })
+  } }))
+  assert.equal(selected, true)
 })
 
 

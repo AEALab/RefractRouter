@@ -3,7 +3,8 @@ interface GraphNode { id: string; objective: string; parents: string[]; model: s
 interface GraphData { nodes: GraphNode[]; phase: string; interrupted: boolean }
 interface Block { kind: string; text?: string }
 interface Snapshot { nodes: Array<{ kind: string; blocks?: Block[]; turn?: number }>; partial: { blocks: Block[] } | null }
-interface GraphProps { useSession<T>(select: (snapshot: Snapshot) => T): T }
+interface ChatSnapshot { legacy: Snapshot }
+interface GraphProps { useChat<T>(select: (snapshot: ChatSnapshot) => T): T }
 type ElementFactory = (tag: string | ((props: GraphProps) => unknown), props: Record<string, unknown> | null, ...children: unknown[]) => unknown
 interface GraphContext { slots: { inject(name: string, callback: () => Generator<unknown>): void; register(options: Record<string, unknown>, component: (props: GraphProps) => unknown): unknown } }
 export function graphModule(h: ElementFactory) {
@@ -79,8 +80,10 @@ export function graphModule(h: ElementFactory) {
             h('text', { x: 14, y: 130, fill: color(n.state), fontSize: 13 }, n.state.slice(0, 28)))
         })))
   }
-  function View({ useSession }: GraphProps) {
-    const snapshot = useSession(s => s)
+  function View({ useChat }: GraphProps) {
+    // conversation.view 的会话正文由 DSH Chat 标准 hook 提供；useSession 只包含
+    // Session 元数据。legacy 是 DSH 为完整消息序列与流式 partial 保留的兼容投影。
+    const snapshot = useChat(s => s.legacy)
     const blocks = [...snapshot.nodes.filter(n => n.kind === 'assistant').map(n => n.blocks ?? []), ...(snapshot.partial ? [snapshot.partial.blocks] : [])]
     let data: GraphData | null = null
     for (const list of blocks) for (const b of list) if (b.kind === 'reasoning' && b.text) { const candidate = parse(b.text); if (candidate) data = candidate }

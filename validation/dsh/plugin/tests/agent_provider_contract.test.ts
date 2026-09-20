@@ -52,7 +52,7 @@ test('native registration advertises three strategy models with zero retries',as
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
 })
-test('v4 advertises only the automatic routing model while legacy configurations stay unchanged',async()=>{
+test('v4 advertises only automatic routing and normalizes a stale DSH legacy selection',async()=>{
   const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
   const providerConfig={schemaVersion:'refractagent-providers-v4',billingUnit:'USD',
     objective:{qualityMin:80,primary:'cost',secondary:'latency',dagMode:'auto'},
@@ -66,14 +66,17 @@ test('v4 advertises only the automatic routing model while legacy configurations
     ]}
   const adapter=createAdapter(f.ctx,()=>configure({providerConfig}))
   assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto'])
-  await assert.rejects(adapter.resolveModel('refractagent','balanced'),/Unknown/)
-  for await(const _ of adapter.stream({...options,model:'auto'})){}
+  assert.equal((await adapter.resolveModel('refractagent','balanced')).id,'balanced')
+  const v4Chunks=[]
+  for await(const chunk of adapter.stream({...options,model:'balanced'})) v4Chunks.push(chunk)
   assert.equal(f.credentials,0)
   assert.equal(f.spawns.length,1)
   const payload=JSON.parse(f.spawns[0]!.input())
   assert.equal(payload.strategy,'auto')
   assert.equal(payload.template,'auto')
   assert.deepEqual(payload.providerConfig,providerConfig)
+  assert.ok(v4Chunks.some(chunk=>chunk.type==='reasoning-delta' && /预览自动拆分流程/.test(String(chunk.text))))
+  assert.ok(f.spawns[0]!.argv.includes('--progress-stdio'))
 
   const blocked=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
   const live=createAdapter(blocked.ctx,()=>configure({providerConfig,executionMode:'live',allowPaidRuns:true}))
@@ -233,6 +236,14 @@ test('custom demo configuration never resolves provider credentials',async()=>{
   assert.equal(f.credentials,0)
   assert.equal(f.spawns[0]!.env.REFRACTROUTER_PROVIDER_CREDENTIALS,undefined)
   assert.deepEqual(JSON.parse(f.spawns[0]!.input()).providerConfig,userConfiguration())
+})
+
+test('demo with DSH provider declarations does not require or call the host model bridge',async()=>{
+  const f=fixture({billing_unit:'USD'})
+  await chunks(createAdapter(f.ctx, () => configure({providerConfig:userConfiguration(true)})))
+  assert.equal(f.credentials,0)
+  assert.equal(f.spawns.length,1)
+  assert.equal(f.spawns[0]!.env.REFRACTROUTER_DSH_BRIDGE,undefined)
 })
 
 test('provider configuration rejects raw secrets and recursion in the host boundary',()=>{
