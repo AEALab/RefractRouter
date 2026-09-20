@@ -404,10 +404,223 @@
     ],
     "identification_limit": "只有 1 次真实多节点运行，无法从本批数据识别 DAG 拆分对成本的平均因果效应。"
   },
+  "live_route_definitions": {
+    "shared_setting": "12 个冻结留出任务 × 3 次重复；cheap selector/planner，候选模型为 cheap、mid、strong；零 HTTP 重试、零节点回退、零动态再拆。三路线使用相同交付门禁、确定性检查和离线研究评审。",
+    "direct-strong": {
+      "task_graph": "不拆分；每个任务只有一个 answer 节点。",
+      "model_rule": "answer 固定使用 strong，不调用 selector 或 planner。",
+      "scheduling_rule": "单调用串行执行，最大并发 1。",
+      "purpose": "质量优先的整任务直跑基线。",
+      "cannot_show": "不能说明便宜整任务选模或 DAG 拆分的收益。",
+      "actual_behavior": "36/36 次均为 strong 单节点直跑。"
+    },
+    "task-selector": {
+      "task_graph": "不拆分；cheap selector 只为整个任务选择一个模型。",
+      "model_rule": "selector 可在 cheap、mid、strong 中选择，随后由所选模型一次完成任务。",
+      "scheduling_rule": "selector 后接一个 answer 调用；没有 worker 或 DAG 合流。",
+      "purpose": "隔离整任务级选模收益，作为自动 DAG 路线的直接对照。",
+      "cannot_show": "不能说明节点级异构路由或拆分是否有效。",
+      "actual_behavior": "36 次中选择 cheap 31 次、mid 5 次、strong 0 次；全部保持单节点。"
+    },
+    "direct-or-dag": {
+      "task_graph": "cheap selector 先决定 direct 或 dag；选 dag 时再由 cheap planner 生成最多 5 个 worker 的任务图。",
+      "model_rule": "direct 使用 selector 选出的 cheap/mid/strong；DAG 使用显式异构规则：最终节点或高难度/高风险节点用 strong，其他 medium 用 mid，其余 cheap。",
+      "scheduling_rule": "DAG 遵循依赖，最多 2 个就绪节点并行；不允许运行中再次拆分。",
+      "purpose": "同时检验是否拆分决策、自动规划、节点选模和执行后的端到端结果。",
+      "cannot_show": "若实际很少选择 DAG，臂间差异只能说明整套政策表现，不能单独归因给拆分。",
+      "actual_behavior": "35 次 direct：cheap 28、mid 7、strong 0；1 次 DAG（selector 选择 cheap 0、mid 1、strong 0），DAG 实际节点模型依次为 cheap、cheap、strong。"
+    },
+    "selection_counts": {
+      "direct-or-dag": {
+        "direct:cheap": 28,
+        "direct:mid": 7,
+        "dag:mid": 1
+      },
+      "task-selector": {
+        "cheap": 31,
+        "mid": 5
+      }
+    }
+  },
   "historical_fixed_dag_evidence": {
     "scope": "issue-32-usage-verified 的固定人工 DAG 留出实验；3 个任务 × 3 次重复 × 8 条路线。它检验给定 DAG 后的执行与节点选模，不检验自动规划器或是否拆分。",
     "fixed_dag_runs": 63,
+    "multi_node_runs": 42,
+    "single_node_plan_runs": 21,
     "direct_runs": 9,
+    "task_node_counts": {
+      "compare_holdout_v6": 3,
+      "cash_holdout_v6": 3,
+      "rewrite_holdout_v6": 1
+    },
+    "route_definitions": {
+      "direct-strong": {
+        "model_rule": "忽略冻结 DAG，构造单一 answer 节点并固定使用 strong。",
+        "scheduling_rule": "单调用串行执行，最大并发为 1。",
+        "purpose": "整任务强模型基线，用来衡量固定 DAG 的新增调用、交接和合流是否值得。",
+        "cannot_show": "它不执行 DAG，不能说明节点路由或并行调度内部的差异。"
+      },
+      "dag-strong-serial": {
+        "model_rule": "全部节点固定使用 strong。",
+        "scheduling_rule": "最大并发为 1，所有可并行节点也顺序执行。",
+        "purpose": "与 direct-strong 比较固定 DAG 本身的多调用、交接和合流成本。",
+        "cannot_show": "串行执行不代表 DAG 可获得的最佳时间，只用于测量无并行收益时的拆分开销。"
+      },
+      "dag-strong-parallel": {
+        "model_rule": "全部节点固定使用 strong。",
+        "scheduling_rule": "遵循 DAG 依赖并允许最多 2 个就绪节点并行。",
+        "purpose": "与 strong-serial 比较并行调度能否缩短墙钟时间。",
+        "cannot_show": "全部节点仍用 strong，不能说明节点级便宜模型是否节省成本。"
+      },
+      "dag-calibrated-single": {
+        "model_rule": "先在校准任务上按整任务质量优先、费用次优冻结每个任务族的一个模型，再让该 DAG 的所有节点使用同一模型。",
+        "scheduling_rule": "遵循 DAG 依赖，允许最多 2 个就绪节点并行。",
+        "purpose": "提供经过校准的整图单模型基线，不允许节点级混合。",
+        "cannot_show": "模型按任务族冻结，不能归因到单个节点的能力差异。"
+      },
+      "dag-node-a": {
+        "model_rule": "在每节点质量下限、整图成本与时延上限内，逐节点搜索模型组合；先选预测总成本最低，再按质量、时延和稳定排序打破平手。",
+        "scheduling_rule": "遵循 DAG 依赖，允许最多 2 个就绪节点并行。",
+        "purpose": "检验“满足硬约束后成本优先”的异构节点路由。",
+        "cannot_show": "画像来自有限校准样本，预测可行不等于最终任务质量必然达标。"
+      },
+      "dag-node-b": {
+        "model_rule": "使用与 node-a 相同的可行组合，再按归一化质量 0.5、成本 0.25、调度时延 0.25 的加权效用选逐节点模型。",
+        "scheduling_rule": "遵循 DAG 依赖，允许最多 2 个就绪节点并行。",
+        "purpose": "检验兼顾质量、成本与时间的异构节点路由。",
+        "cannot_show": "权重是冻结研究选择，不代表用户真实偏好或唯一最优权重。"
+      },
+      "dag-single-a": {
+        "model_rule": "复用 node-a 的画像、硬约束、成本优先目标和归一化标尺，但限制整图只能选择同一个模型。",
+        "scheduling_rule": "遵循 DAG 依赖，允许最多 2 个就绪节点并行。",
+        "purpose": "node-a 的对称控制组，用来隔离逐节点异构分配本身的贡献。",
+        "cannot_show": "它仍执行固定 DAG，不等同于一次调用的整任务模型路由。"
+      },
+      "dag-single-b": {
+        "model_rule": "复用 node-b 的画像、硬约束和加权目标，但限制整图只能选择同一个模型。",
+        "scheduling_rule": "遵循 DAG 依赖，允许最多 2 个就绪节点并行。",
+        "purpose": "node-b 的对称控制组，用来隔离逐节点异构分配本身的贡献。",
+        "cannot_show": "它仍执行固定 DAG，不等同于一次调用的整任务模型路由。"
+      }
+    },
+    "actual_assignments": {
+      "dag-single-a": {
+        "compare_holdout_v6": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "mid"
+        },
+        "cash_holdout_v6": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "mid"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "cheap"
+        }
+      },
+      "dag-node-a": {
+        "compare_holdout_v6": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "cash_holdout_v6": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "cheap"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "cheap"
+        }
+      },
+      "dag-strong-parallel": {
+        "compare_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "strong"
+        },
+        "cash_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "strong"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "strong"
+        }
+      },
+      "direct-strong": {
+        "compare_holdout_v6": {
+          "answer": "strong"
+        },
+        "cash_holdout_v6": {
+          "answer": "strong"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "strong"
+        }
+      },
+      "dag-single-b": {
+        "compare_holdout_v6": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "mid"
+        },
+        "cash_holdout_v6": {
+          "cost": "mid",
+          "risk": "mid",
+          "answer": "mid"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "cheap"
+        }
+      },
+      "dag-node-b": {
+        "compare_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "cash_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "cheap"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "cheap"
+        }
+      },
+      "dag-calibrated-single": {
+        "compare_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "strong"
+        },
+        "cash_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "strong"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "cheap"
+        }
+      },
+      "dag-strong-serial": {
+        "compare_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "strong"
+        },
+        "cash_holdout_v6": {
+          "cost": "strong",
+          "risk": "strong",
+          "answer": "strong"
+        },
+        "rewrite_holdout_v6": {
+          "answer": "strong"
+        }
+      }
+    },
     "methods": {
       "dag-calibrated-single": {
         "runs": 9,
@@ -2378,7 +2591,9 @@
     "tasks_sha256": "66d19285fe201344ce01f94fea84260cc99f13615b6b5037324cd09f6b3bc5d9",
     "moa_reviews_sha256": "572611161d7ac3b7a9da017dd1ae8fbfbbcb54c175d8832fd972ed81e43476ee",
     "final_analysis_sha256": "5b4da9ab9400e8faae2c4d8d95aa75d22234fa936d67626fa56bc5309cd317e3",
-    "analysis_implementation_sha256": "29a3b545d2e01c5fcab2feca252765e978ab612224fb8285eda11c7ee44c90f9",
-    "fixed_dag_results_sha256": "235918862b2c78c88b674e2d2a74693007fd36d3d3d45a79147e13614b2f1898"
+    "analysis_implementation_sha256": "819a95ebd8128e916c298ee86684f423e82e025675416b2ec017b9f3d4239b75",
+    "fixed_dag_results_sha256": "235918862b2c78c88b674e2d2a74693007fd36d3d3d45a79147e13614b2f1898",
+    "fixed_dag_protocol_sha256": "9a4940943656090c203afec93a68ccbd678e929b9dbe1db96d48eb031bc08e8e",
+    "fixed_dag_summary_sha256": "a7ed5d4d56e3348e5fa38b4e8fa572943e0ea06e6dae439ca024cb23d692a8aa"
   }
 }

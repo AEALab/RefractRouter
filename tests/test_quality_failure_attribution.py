@@ -102,3 +102,38 @@ def test_fixed_dag_evidence_is_not_counted_as_automatic_split_coverage():
     assert evidence['methods']['dag-strong-serial'][
         'production_change_vs_direct_strong'] == pytest.approx(1.0)
     assert '不检验自动规划器' in evidence['scope']
+
+
+def test_fixed_dag_evidence_explains_every_route_and_actual_assignment():
+    methods = ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel',
+               'dag-calibrated-single', 'dag-node-a', 'dag-node-b',
+               'dag-single-a', 'dag-single-b')
+    study = {
+        'runs': [
+            {
+                'split': 'test', 'method': method, 'task_id': task_id,
+                'delivered': True, 'score': 95, 'production_cost': 1.0,
+                'deployment_cost': 1.0, 'wall_time_ms': 1000,
+            }
+            for method in methods for task_id in ('multi', 'single')
+        ],
+        'comparison': {'comparisons': []},
+    }
+    protocol = {'tasks': [
+        {'task_id': 'multi', 'split': 'test', 'plan': {'nodes': [{}, {}]}},
+        {'task_id': 'single', 'split': 'test', 'plan': {'nodes': [{}]}},
+    ]}
+    summary = {'test_results': [
+        {'method': method, 'task_id': task_id, 'assignments': {'answer': 'strong'}}
+        for method in methods for task_id in ('multi', 'single')
+    ]}
+
+    evidence = _fixed_dag_evidence(study, protocol, summary)
+
+    assert set(evidence['route_definitions']) == set(methods)
+    assert evidence['fixed_dag_runs'] == 14
+    assert evidence['multi_node_runs'] == 7
+    assert evidence['single_node_plan_runs'] == 7
+    assert evidence['actual_assignments']['dag-node-a']['multi'] == {'answer': 'strong'}
+    for route in evidence['route_definitions'].values():
+        assert set(route) == {'model_rule', 'scheduling_rule', 'purpose', 'cannot_show'}

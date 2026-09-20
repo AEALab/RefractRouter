@@ -139,7 +139,7 @@ def _cost_analysis(result, rows, final_analysis):
     }
 
 
-def _fixed_dag_evidence(study):
+def _fixed_dag_evidence(study, protocol=None, summary=None):
     """汇总历史用量已核验的固定 DAG 留出实验，避免与自动拆分混为一谈。"""
     if study is None:
         return None
@@ -174,12 +174,89 @@ def _fixed_dag_evidence(study):
                 row['cost_saving'] for row in comparison['joint_graded_pairs']
             ) / len(comparison['joint_graded_pairs']),
         }
+    route_definitions = {
+        'direct-strong': {
+            'model_rule': '忽略冻结 DAG，构造单一 answer 节点并固定使用 strong。',
+            'scheduling_rule': '单调用串行执行，最大并发为 1。',
+            'purpose': '整任务强模型基线，用来衡量固定 DAG 的新增调用、交接和合流是否值得。',
+            'cannot_show': '它不执行 DAG，不能说明节点路由或并行调度内部的差异。',
+        },
+        'dag-strong-serial': {
+            'model_rule': '全部节点固定使用 strong。',
+            'scheduling_rule': '最大并发为 1，所有可并行节点也顺序执行。',
+            'purpose': '与 direct-strong 比较固定 DAG 本身的多调用、交接和合流成本。',
+            'cannot_show': '串行执行不代表 DAG 可获得的最佳时间，只用于测量无并行收益时的拆分开销。',
+        },
+        'dag-strong-parallel': {
+            'model_rule': '全部节点固定使用 strong。',
+            'scheduling_rule': '遵循 DAG 依赖并允许最多 2 个就绪节点并行。',
+            'purpose': '与 strong-serial 比较并行调度能否缩短墙钟时间。',
+            'cannot_show': '全部节点仍用 strong，不能说明节点级便宜模型是否节省成本。',
+        },
+        'dag-calibrated-single': {
+            'model_rule': ('先在校准任务上按整任务质量优先、费用次优冻结每个任务族的一个模型，'
+                           '再让该 DAG 的所有节点使用同一模型。'),
+            'scheduling_rule': '遵循 DAG 依赖，允许最多 2 个就绪节点并行。',
+            'purpose': '提供经过校准的整图单模型基线，不允许节点级混合。',
+            'cannot_show': '模型按任务族冻结，不能归因到单个节点的能力差异。',
+        },
+        'dag-node-a': {
+            'model_rule': ('在每节点质量下限、整图成本与时延上限内，逐节点搜索模型组合；'
+                           '先选预测总成本最低，再按质量、时延和稳定排序打破平手。'),
+            'scheduling_rule': '遵循 DAG 依赖，允许最多 2 个就绪节点并行。',
+            'purpose': '检验“满足硬约束后成本优先”的异构节点路由。',
+            'cannot_show': '画像来自有限校准样本，预测可行不等于最终任务质量必然达标。',
+        },
+        'dag-node-b': {
+            'model_rule': ('使用与 node-a 相同的可行组合，再按归一化质量 0.5、成本 0.25、'
+                           '调度时延 0.25 的加权效用选逐节点模型。'),
+            'scheduling_rule': '遵循 DAG 依赖，允许最多 2 个就绪节点并行。',
+            'purpose': '检验兼顾质量、成本与时间的异构节点路由。',
+            'cannot_show': '权重是冻结研究选择，不代表用户真实偏好或唯一最优权重。',
+        },
+        'dag-single-a': {
+            'model_rule': ('复用 node-a 的画像、硬约束、成本优先目标和归一化标尺，但限制整图'
+                           '只能选择同一个模型。'),
+            'scheduling_rule': '遵循 DAG 依赖，允许最多 2 个就绪节点并行。',
+            'purpose': 'node-a 的对称控制组，用来隔离逐节点异构分配本身的贡献。',
+            'cannot_show': '它仍执行固定 DAG，不等同于一次调用的整任务模型路由。',
+        },
+        'dag-single-b': {
+            'model_rule': ('复用 node-b 的画像、硬约束和加权目标，但限制整图只能选择同一个模型。'),
+            'scheduling_rule': '遵循 DAG 依赖，允许最多 2 个就绪节点并行。',
+            'purpose': 'node-b 的对称控制组，用来隔离逐节点异构分配本身的贡献。',
+            'cannot_show': '它仍执行固定 DAG，不等同于一次调用的整任务模型路由。',
+        },
+    }
+    task_node_counts = {}
+    if protocol:
+        task_node_counts = {
+            task['task_id']: len(task['plan']['nodes'])
+            for task in protocol['tasks'] if task['split'] == 'test'
+        }
+    actual_assignments = defaultdict(dict)
+    if summary:
+        for row in summary['test_results']:
+            prior = actual_assignments[row['method']].get(row['task_id'])
+            if prior is not None and prior != row['assignments']:
+                raise ValueError(f'{row["method"]}/{row["task_id"]}: 重复间分配不一致')
+            actual_assignments[row['method']][row['task_id']] = row['assignments']
+    fixed_rows = [row for row in test_runs if row['method'].startswith('dag-')]
+    multi_node_runs = (sum(task_node_counts.get(row['task_id'], 0) > 1 for row in fixed_rows)
+                       if task_node_counts else None)
     return {
         'scope': ('issue-32-usage-verified 的固定人工 DAG 留出实验；3 个任务 × 3 次重复 × '
                   '8 条路线。它检验给定 DAG 后的执行与节点选模，不检验自动规划器或是否拆分。'),
         'fixed_dag_runs': sum(row['runs'] for method, row in methods.items()
                               if method.startswith('dag-')),
+        'multi_node_runs': multi_node_runs,
+        'single_node_plan_runs': len(fixed_rows) - multi_node_runs
+        if multi_node_runs is not None else None,
         'direct_runs': methods['direct-strong']['runs'],
+        'task_node_counts': task_node_counts,
+        'route_definitions': route_definitions,
+        'actual_assignments': {method: dict(tasks)
+                               for method, tasks in actual_assignments.items()},
         'methods': methods,
         'pairwise': pairwise,
         'interpretation': (
@@ -190,7 +267,81 @@ def _fixed_dag_evidence(study):
     }
 
 
-def analyze(result, tasks, moa_records, final_analysis, fixed_dag_study=None):
+def _live_route_definitions(result):
+    selections = defaultdict(Counter)
+    for row in result['runs']:
+        choice = row.get('selection')
+        if row['arm'] == 'task-selector' and choice:
+            selections[row['arm']][choice['model']] += 1
+        elif row['arm'] == 'direct-or-dag' and choice:
+            selections[row['arm']][f'{choice["mode"]}:{choice["model"]}'] += 1
+    run_counts = Counter(row['arm'] for row in result['runs'])
+    task_selected = selections['task-selector']
+    conditional = selections['direct-or-dag']
+    dag_nodes = [node.get('model_id', '未记录') for row in result['runs']
+                 if row['arm'] == 'direct-or-dag' and len(row.get('nodes', [])) > 1
+                 for node in row['nodes']]
+    task_actual = (f'{sum(task_selected.values())} 次中选择 cheap '
+                   f'{task_selected["cheap"]} 次、mid {task_selected["mid"]} 次、'
+                   f'strong {task_selected["strong"]} 次；全部保持单节点。')
+    direct_counts = Counter()
+    for key, count in conditional.items():
+        mode, model = key.split(':', 1)
+        if mode == 'direct':
+            direct_counts[model] += count
+    dag_selected = Counter()
+    for key, count in conditional.items():
+        mode, model = key.split(':', 1)
+        if mode == 'dag':
+            dag_selected[model] += count
+    conditional_actual = (
+        f'{sum(direct_counts.values())} 次 direct：cheap {direct_counts["cheap"]}、'
+        f'mid {direct_counts["mid"]}、strong {direct_counts["strong"]}；'
+        f'{sum(dag_selected.values())} 次 DAG（selector 选择 cheap {dag_selected["cheap"]}、'
+        f'mid {dag_selected["mid"]}、strong {dag_selected["strong"]}）'
+    )
+    if dag_nodes:
+        conditional_actual += '，DAG 实际节点模型依次为 ' + '、'.join(dag_nodes)
+    conditional_actual += '。'
+    return {
+        'shared_setting': (
+            '12 个冻结留出任务 × 3 次重复；cheap selector/planner，候选模型为 cheap、mid、'
+            'strong；零 HTTP 重试、零节点回退、零动态再拆。三路线使用相同交付门禁、'
+            '确定性检查和离线研究评审。'
+        ),
+        'direct-strong': {
+            'task_graph': '不拆分；每个任务只有一个 answer 节点。',
+            'model_rule': 'answer 固定使用 strong，不调用 selector 或 planner。',
+            'scheduling_rule': '单调用串行执行，最大并发 1。',
+            'purpose': '质量优先的整任务直跑基线。',
+            'cannot_show': '不能说明便宜整任务选模或 DAG 拆分的收益。',
+            'actual_behavior': (f'{run_counts["direct-strong"]}/{run_counts["direct-strong"]} '
+                                '次均为 strong 单节点直跑。'),
+        },
+        'task-selector': {
+            'task_graph': '不拆分；cheap selector 只为整个任务选择一个模型。',
+            'model_rule': 'selector 可在 cheap、mid、strong 中选择，随后由所选模型一次完成任务。',
+            'scheduling_rule': 'selector 后接一个 answer 调用；没有 worker 或 DAG 合流。',
+            'purpose': '隔离整任务级选模收益，作为自动 DAG 路线的直接对照。',
+            'cannot_show': '不能说明节点级异构路由或拆分是否有效。',
+            'actual_behavior': task_actual,
+        },
+        'direct-or-dag': {
+            'task_graph': ('cheap selector 先决定 direct 或 dag；选 dag 时再由 cheap planner '
+                           '生成最多 5 个 worker 的任务图。'),
+            'model_rule': ('direct 使用 selector 选出的 cheap/mid/strong；DAG 使用显式异构规则：'
+                           '最终节点或高难度/高风险节点用 strong，其他 medium 用 mid，其余 cheap。'),
+            'scheduling_rule': 'DAG 遵循依赖，最多 2 个就绪节点并行；不允许运行中再次拆分。',
+            'purpose': '同时检验是否拆分决策、自动规划、节点选模和执行后的端到端结果。',
+            'cannot_show': ('若实际很少选择 DAG，臂间差异只能说明整套政策表现，不能单独归因给拆分。'),
+            'actual_behavior': conditional_actual,
+        },
+        'selection_counts': {arm: dict(counts) for arm, counts in selections.items()},
+    }
+
+
+def analyze(result, tasks, moa_records, final_analysis, fixed_dag_study=None,
+            fixed_dag_protocol=None, fixed_dag_summary=None):
     """返回可复算的失败分层、任务稳定性与路由行为。"""
     task_by_id = {task['task_id']: task for task in tasks}
     rows = []
@@ -280,7 +431,10 @@ def analyze(result, tasks, moa_records, final_analysis, fixed_dag_study=None):
     }
 
     cost = _cost_analysis(result, rows, final_analysis)
-    fixed_dag = _fixed_dag_evidence(fixed_dag_study)
+    fixed_dag = _fixed_dag_evidence(
+        fixed_dag_study, fixed_dag_protocol, fixed_dag_summary
+    )
+    live_routes = _live_route_definitions(result)
 
     expected = {arm: final_analysis['arms'][arm]['run_counts'] for arm in ARMS}
     observed = {arm: arms[arm]['final_status'] for arm in ARMS}
@@ -297,6 +451,7 @@ def analyze(result, tasks, moa_records, final_analysis, fixed_dag_study=None):
         'arms': arms,
         'routing_behavior': routing,
         'cost_analysis': cost,
+        'live_route_definitions': live_routes,
         'historical_fixed_dag_evidence': fixed_dag,
         'run_rows': rows,
         'decision': {
@@ -314,14 +469,38 @@ def analyze(result, tasks, moa_records, final_analysis, fixed_dag_study=None):
 
 def markdown(report):
     lines = [
-        '# live-01 质量失败归因', '',
-        '本报告只复算既有证据，不产生模型调用，也不改变冻结协议与最终质量结论。', '',
+        '# 任务路由实验综合报告', '',
+        '本报告综合 live-01 自动路由留出实验与历史固定 DAG 路由实验，只复算既有证据，',
+        '不产生模型调用，也不改变冻结协议与最终质量结论。', '',
         '## 结论', '',
         '三条路线都没有达到 90% 质量门槛。当前主要问题是输出质量，不是路由费用。',
         '更关键的是，live-01 的 `direct-or-dag` 36 次运行中只有 1 次真正产生多节点 DAG，',
         '因此本批数据不能证明自动拆分带来质量、成本或时间收益。历史固定 DAG 实验另行',
         '汇总，不能遗漏或与自动拆分实验混算。', '',
-        '## 失败发生在哪一层', '',
+        '## 实验一：live-01 自动路由留出实验', '',
+        report['live_route_definitions']['shared_setting'], '',
+        '模型别名沿用冻结清单：`cheap` 为 `deepseek-v4-flash`，`mid` 为 `minimax-m3`，',
+        '`strong` 为 `deepseek-v4-pro`；三者均关闭 thinking。在线与离线 judge 使用',
+        '`kimi-k3`。三条路线共享任务、运行顺序、质量判定和费用记账，只改变路由链路。', '',
+        '| 路线 | 是否拆分 | 模型选择层级 | 最大有效并发 | 核心对照 |',
+        '| --- | --- | --- | ---: | --- |',
+        '| `direct-strong` | 否 | 整任务固定 strong | 1 | 强模型直跑基线 |',
+        '| `task-selector` | 否 | selector 为整任务选一个模型 | 1 | 只测整任务选模 |',
+        '| `direct-or-dag` | 条件式 | direct 整任务选模；DAG 逐节点异构 | 2 | 测完整自动政策 |', '',
+    ]
+    for arm in ARMS:
+        route = report['live_route_definitions'][arm]
+        lines += [
+            f'### `{arm}`', '',
+            f'- **任务图：** {route["task_graph"]}',
+            f'- **模型规则：** {route["model_rule"]}',
+            f'- **调度规则：** {route["scheduling_rule"]}',
+            f'- **对照目的：** {route["purpose"]}',
+            f'- **不能说明：** {route["cannot_show"]}',
+            f'- **实际行为：** {route["actual_behavior"]}', '',
+        ]
+    lines += [
+        '## live-01 失败发生在哪一层', '',
         '| 路线 | 通过 | 执行失败 | 交付门禁失败 | 确定性检查失败 | MoA 语义失败 |',
         '| --- | ---: | ---: | ---: | ---: | ---: |',
     ]
@@ -376,17 +555,60 @@ def markdown(report):
     if fixed:
         methods = fixed['methods']
         lines += [
-            '## 历史强制固定 DAG 实验', '',
+            '## 实验二：历史固定 DAG 路由实验', '',
             f'项目并非只有一个 DAG 样本。`issue-32-usage-verified` 有 '
-            f'{fixed["fixed_dag_runs"]} 次固定人工 DAG 留出运行，另有 '
-            f'{fixed["direct_runs"]} 次强模型整任务直跑；全部 72 条路线均完成交付。',
+            f'{fixed["fixed_dag_runs"]} 次固定计划路线，另有 '
+            f'{fixed["direct_runs"]} 次强模型整任务直跑；全部 72 次运行均完成交付。',
             '这批证据适合回答“给定同一 DAG 后，拆分执行与节点选模的成本如何”，不回答',
             '“自动策略应不应该拆”或“规划器能否生成正确 DAG”。', '',
+            f'其中 {fixed["multi_node_runs"]} 次使用真实三节点 DAG，'
+            f'{fixed["single_node_plan_runs"]} 次使用单节点冻结计划。比较题的图为 '
+            '`cost || risk → answer`；预算题为 `cost → risk → answer`；改写题本来就不值得拆，',
+            '所以冻结为单一 `answer`。这批实验没有 planner 调用，任务图在测试前已经冻结。', '',
+            '候选模型同样是 `cheap`、`mid`、`strong`，thinking 均关闭。经验节点画像来自',
+            '独立校准任务和独立节点评分；硬约束为每节点预测质量至少 80、整图预测成本不超过',
+            '100 AFP、预测时延不超过 300 秒。每个任务运行 3 次，方法顺序随机化，最终输出',
+            '使用相同 judge。以下先解释路线，再列结果。', '',
+            '| 路线 | 任务图 | 模型分配粒度 | 优化目标 | 最大并发 |',
+            '| --- | --- | --- | --- | ---: |',
+            '| `direct-strong` | 单节点直跑 | 整任务固定 strong | 基线 | 1 |',
+            '| `dag-strong-serial` | 冻结计划 | 全节点 strong | 测串行拆分开销 | 1 |',
+            '| `dag-strong-parallel` | 冻结计划 | 全节点 strong | 隔离并行收益 | 2 |',
+            '| `dag-calibrated-single` | 冻结计划 | 每任务族一个模型 | 校准质量优先、费用次优 | 2 |',
+            '| `dag-node-a` | 冻结计划 | 逐节点异构 | 满足硬约束后成本最低 | 2 |',
+            '| `dag-node-b` | 冻结计划 | 逐节点异构 | 质量/成本/时延加权效用 | 2 |',
+            '| `dag-single-a` | 冻结计划 | 整图同一模型 | node-a 的同模型控制 | 2 |',
+            '| `dag-single-b` | 冻结计划 | 整图同一模型 | node-b 的同模型控制 | 2 |', '',
+        ]
+        route_order = ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel',
+                       'dag-calibrated-single', 'dag-node-a', 'dag-node-b',
+                       'dag-single-a', 'dag-single-b')
+        task_names = {
+            'compare_holdout_v6': '比较题',
+            'cash_holdout_v6': '预算题',
+            'rewrite_holdout_v6': '改写题',
+        }
+        for method in route_order:
+            route = fixed['route_definitions'][method]
+            assignment_parts = []
+            for task_id, assignments in sorted(
+                    fixed['actual_assignments'].get(method, {}).items()):
+                values = '、'.join(f'{node}={model}' for node, model in assignments.items())
+                assignment_parts.append(f'{task_names.get(task_id, task_id)}：{values}')
+            lines += [
+                f'### `{method}`', '',
+                f'- **模型规则：** {route["model_rule"]}',
+                f'- **调度规则：** {route["scheduling_rule"]}',
+                f'- **对照目的：** {route["purpose"]}',
+                f'- **不能说明：** {route["cannot_show"]}',
+                f'- **实际分配：** {"；".join(assignment_parts)}。', '',
+            ]
+        lines += [
+            '### 路线结果对照', '',
             '| 路线 | 运行 | 平均质量分 | 生产 AFP | 相对强模型直跑 | 平均墙钟时间 |',
             '| --- | ---: | ---: | ---: | ---: | ---: |',
         ]
-        for method in ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel',
-                       'dag-node-a', 'dag-node-b', 'dag-single-a', 'dag-single-b'):
+        for method in route_order:
             row = methods[method]
             lines.append(
                 f'| `{method}` | {row["delivered"]}/{row["runs"]} | '
@@ -505,6 +727,8 @@ def main(argv=None):
     parser.add_argument('--moa-reviews', type=Path, required=True)
     parser.add_argument('--final-analysis', type=Path, required=True)
     parser.add_argument('--fixed-dag-results', type=Path)
+    parser.add_argument('--fixed-dag-protocol', type=Path)
+    parser.add_argument('--fixed-dag-summary', type=Path)
     parser.add_argument('--output-dir', type=Path, required=True)
     args = parser.parse_args(argv)
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
@@ -516,7 +740,12 @@ def main(argv=None):
     final_analysis = json.loads(args.final_analysis.read_text())
     fixed_dag_study = (json.loads(args.fixed_dag_results.read_text())
                        if args.fixed_dag_results else None)
-    report = analyze(result, tasks, records, final_analysis, fixed_dag_study)
+    fixed_dag_protocol = (json.loads(args.fixed_dag_protocol.read_text())
+                          if args.fixed_dag_protocol else None)
+    fixed_dag_summary = (json.loads(args.fixed_dag_summary.read_text())
+                         if args.fixed_dag_summary else None)
+    report = analyze(result, tasks, records, final_analysis, fixed_dag_study,
+                     fixed_dag_protocol, fixed_dag_summary)
     report['provenance'] = {
         'results_sha256': file_digest(args.results),
         'tasks_sha256': file_digest(args.tasks),
@@ -526,6 +755,10 @@ def main(argv=None):
     }
     if args.fixed_dag_results:
         report['provenance']['fixed_dag_results_sha256'] = file_digest(args.fixed_dag_results)
+    if args.fixed_dag_protocol:
+        report['provenance']['fixed_dag_protocol_sha256'] = file_digest(args.fixed_dag_protocol)
+    if args.fixed_dag_summary:
+        report['provenance']['fixed_dag_summary_sha256'] = file_digest(args.fixed_dag_summary)
     (args.output_dir / 'analysis.json').write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     (args.output_dir / 'README.md').write_text(markdown(report))
