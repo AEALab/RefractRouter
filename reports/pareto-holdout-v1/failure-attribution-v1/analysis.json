@@ -404,6 +404,136 @@
     ],
     "identification_limit": "只有 1 次真实多节点运行，无法从本批数据识别 DAG 拆分对成本的平均因果效应。"
   },
+  "historical_fixed_dag_evidence": {
+    "scope": "issue-32-usage-verified 的固定人工 DAG 留出实验；3 个任务 × 3 次重复 × 8 条路线。它检验给定 DAG 后的执行与节点选模，不检验自动规划器或是否拆分。",
+    "fixed_dag_runs": 63,
+    "direct_runs": 9,
+    "methods": {
+      "dag-calibrated-single": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 97.22222222222223,
+        "production_afp": 10.4149,
+        "deployment_afp": 17.5879,
+        "mean_wall_ms": 22619.467657667377,
+        "production_change_vs_direct_strong": 1.7415928504679048,
+        "wall_change_vs_direct_strong": 0.19520836640898742
+      },
+      "dag-node-a": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 95.44444444444444,
+        "production_afp": 4.38525,
+        "deployment_afp": 13.08625,
+        "mean_wall_ms": 23978.83387969341,
+        "production_change_vs_direct_strong": 0.15436250444213395,
+        "wall_change_vs_direct_strong": 0.26703701888519005
+      },
+      "dag-node-b": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 95.77777777777777,
+        "production_afp": 6.318,
+        "deployment_afp": 14.07,
+        "mean_wall_ms": 22897.334240777935,
+        "production_change_vs_direct_strong": 0.6631348960869736,
+        "wall_change_vs_direct_strong": 0.2098907837808499
+      },
+      "dag-single-a": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 96.33333333333333,
+        "production_afp": 7.16325,
+        "deployment_afp": 17.39925,
+        "mean_wall_ms": 23779.39637055776,
+        "production_change_vs_direct_strong": 0.8856364426076313,
+        "wall_change_vs_direct_strong": 0.2564987788566322
+      },
+      "dag-single-b": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 95.22222222222223,
+        "production_afp": 6.66245,
+        "deployment_afp": 15.95145,
+        "mean_wall_ms": 21858.20280098253,
+        "production_change_vs_direct_strong": 0.7538070731932032,
+        "wall_change_vs_direct_strong": 0.15498327625508868
+      },
+      "dag-strong-parallel": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 98.33333333333333,
+        "production_afp": 10.7514,
+        "deployment_afp": 17.6814,
+        "mean_wall_ms": 22462.0828840804,
+        "production_change_vs_direct_strong": 1.830172288982192,
+        "wall_change_vs_direct_strong": 0.18689218492393045
+      },
+      "dag-strong-serial": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 97.11111111111111,
+        "production_afp": 10.95765,
+        "deployment_afp": 18.71465,
+        "mean_wall_ms": 27085.958911895028,
+        "production_change_vs_direct_strong": 1.884465035471261,
+        "wall_change_vs_direct_strong": 0.4312169142819475
+      },
+      "direct-strong": {
+        "runs": 9,
+        "delivered": 9,
+        "mean_score": 98.0,
+        "production_afp": 3.79885,
+        "deployment_afp": 12.89485,
+        "mean_wall_ms": 18925.12493501676,
+        "production_change_vs_direct_strong": 0.0,
+        "wall_change_vs_direct_strong": 0.0
+      }
+    },
+    "pairwise": {
+      "dag-strong-parallel vs dag-strong-serial": {
+        "pairs": 9,
+        "mean_quality_delta": 1.2222222222222223,
+        "mean_cost_saving": 0.040777718512462605
+      },
+      "dag-strong-serial vs direct-strong": {
+        "pairs": 9,
+        "mean_quality_delta": -0.8888888888888888,
+        "mean_cost_saving": -0.40227129980017706
+      },
+      "dag-node-a vs dag-calibrated-single": {
+        "pairs": 9,
+        "mean_quality_delta": -1.7777777777777777,
+        "mean_cost_saving": 0.18096846772136613
+      },
+      "dag-node-b vs dag-calibrated-single": {
+        "pairs": 9,
+        "mean_quality_delta": -1.4444444444444444,
+        "mean_cost_saving": 0.1258857967322076
+      },
+      "dag-node-a vs dag-strong-parallel": {
+        "pairs": 9,
+        "mean_quality_delta": -2.888888888888889,
+        "mean_cost_saving": 0.26038281560093796
+      },
+      "dag-node-b vs dag-strong-parallel": {
+        "pairs": 9,
+        "mean_quality_delta": -2.5555555555555554,
+        "mean_cost_saving": 0.2064324566552206
+      },
+      "dag-node-a vs dag-single-a": {
+        "pairs": 9,
+        "mean_quality_delta": -0.8888888888888888,
+        "mean_cost_saving": 0.1797987724705502
+      },
+      "dag-node-b vs dag-single-b": {
+        "pairs": 9,
+        "mean_quality_delta": 0.5555555555555556,
+        "mean_cost_saving": 0.06214804488141003
+      }
+    },
+    "interpretation": "强制固定 DAG 的历史证据具有实验价值：全强模型 DAG 的生产 AFP 明显高于强模型整任务直跑；节点级异构路由可回收部分费用，但尚未在同等质量下形成稳定正收益。该结论与 live-01 的自动拆分覆盖不足是两个不同问题。"
+  },
   "run_rows": [
     {
       "run_id": "analysis-03-r1-direct-strong",
@@ -2248,6 +2378,7 @@
     "tasks_sha256": "66d19285fe201344ce01f94fea84260cc99f13615b6b5037324cd09f6b3bc5d9",
     "moa_reviews_sha256": "572611161d7ac3b7a9da017dd1ae8fbfbbcb54c175d8832fd972ed81e43476ee",
     "final_analysis_sha256": "5b4da9ab9400e8faae2c4d8d95aa75d22234fa936d67626fa56bc5309cd317e3",
-    "analysis_implementation_sha256": "58b20b4a97657946dc866d299c1e33e4af1a3c1b6dcfa1971710dcd2f2465b00"
+    "analysis_implementation_sha256": "29a3b545d2e01c5fcab2feca252765e978ab612224fb8285eda11c7ee44c90f9",
+    "fixed_dag_results_sha256": "235918862b2c78c88b674e2d2a74693007fd36d3d3d45a79147e13614b2f1898"
   }
 }

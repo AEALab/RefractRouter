@@ -139,7 +139,58 @@ def _cost_analysis(result, rows, final_analysis):
     }
 
 
-def analyze(result, tasks, moa_records, final_analysis):
+def _fixed_dag_evidence(study):
+    """汇总历史用量已核验的固定 DAG 留出实验，避免与自动拆分混为一谈。"""
+    if study is None:
+        return None
+    test_runs = [row for row in study['runs'] if row['split'] == 'test']
+    methods = {}
+    for method in sorted({row['method'] for row in test_runs}):
+        group = [row for row in test_runs if row['method'] == method]
+        methods[method] = {
+            'runs': len(group),
+            'delivered': sum(row['delivered'] for row in group),
+            'mean_score': sum(row['score'] for row in group) / len(group),
+            'production_afp': sum(row['production_cost'] for row in group),
+            'deployment_afp': sum(row['deployment_cost'] for row in group),
+            'mean_wall_ms': sum(row['wall_time_ms'] for row in group) / len(group),
+        }
+    direct = methods['direct-strong']
+    for method, row in methods.items():
+        row['production_change_vs_direct_strong'] = (
+            row['production_afp'] / direct['production_afp'] - 1
+        )
+        row['wall_change_vs_direct_strong'] = row['mean_wall_ms'] / direct['mean_wall_ms'] - 1
+
+    pairwise = {}
+    for comparison in study['comparison']['comparisons']:
+        key = f'{comparison["candidate"]} vs {comparison["baseline"]}'
+        pairwise[key] = {
+            'pairs': len(comparison['joint_graded_pairs']),
+            'mean_quality_delta': sum(
+                row['quality_delta'] for row in comparison['joint_graded_pairs']
+            ) / len(comparison['joint_graded_pairs']),
+            'mean_cost_saving': sum(
+                row['cost_saving'] for row in comparison['joint_graded_pairs']
+            ) / len(comparison['joint_graded_pairs']),
+        }
+    return {
+        'scope': ('issue-32-usage-verified 的固定人工 DAG 留出实验；3 个任务 × 3 次重复 × '
+                  '8 条路线。它检验给定 DAG 后的执行与节点选模，不检验自动规划器或是否拆分。'),
+        'fixed_dag_runs': sum(row['runs'] for method, row in methods.items()
+                              if method.startswith('dag-')),
+        'direct_runs': methods['direct-strong']['runs'],
+        'methods': methods,
+        'pairwise': pairwise,
+        'interpretation': (
+            '强制固定 DAG 的历史证据具有实验价值：全强模型 DAG 的生产 AFP 明显高于'
+            '强模型整任务直跑；节点级异构路由可回收部分费用，但尚未在同等质量下形成'
+            '稳定正收益。该结论与 live-01 的自动拆分覆盖不足是两个不同问题。'
+        ),
+    }
+
+
+def analyze(result, tasks, moa_records, final_analysis, fixed_dag_study=None):
     """返回可复算的失败分层、任务稳定性与路由行为。"""
     task_by_id = {task['task_id']: task for task in tasks}
     rows = []
@@ -229,6 +280,7 @@ def analyze(result, tasks, moa_records, final_analysis):
     }
 
     cost = _cost_analysis(result, rows, final_analysis)
+    fixed_dag = _fixed_dag_evidence(fixed_dag_study)
 
     expected = {arm: final_analysis['arms'][arm]['run_counts'] for arm in ARMS}
     observed = {arm: arms[arm]['final_status'] for arm in ARMS}
@@ -245,6 +297,7 @@ def analyze(result, tasks, moa_records, final_analysis):
         'arms': arms,
         'routing_behavior': routing,
         'cost_analysis': cost,
+        'historical_fixed_dag_evidence': fixed_dag,
         'run_rows': rows,
         'decision': {
             'current_result': '三条路线均未达到 90% 质量门槛，当前确认性前沿为空。',
@@ -265,8 +318,9 @@ def markdown(report):
         '本报告只复算既有证据，不产生模型调用，也不改变冻结协议与最终质量结论。', '',
         '## 结论', '',
         '三条路线都没有达到 90% 质量门槛。当前主要问题是输出质量，不是路由费用。',
-        '更关键的是，`direct-or-dag` 的 36 次运行中只有 1 次真正产生多节点 DAG，',
-        '因此本批数据不能证明 DAG 拆分带来质量、成本或时间收益。', '',
+        '更关键的是，live-01 的 `direct-or-dag` 36 次运行中只有 1 次真正产生多节点 DAG，',
+        '因此本批数据不能证明自动拆分带来质量、成本或时间收益。历史固定 DAG 实验另行',
+        '汇总，不能遗漏或与自动拆分实验混算。', '',
         '## 失败发生在哪一层', '',
         '| 路线 | 通过 | 执行失败 | 交付门禁失败 | 确定性检查失败 | MoA 语义失败 |',
         '| --- | ---: | ---: | ---: | ---: | ---: |',
@@ -317,8 +371,55 @@ def markdown(report):
         f'`{", ".join(report["routing_behavior"]["multi_node_run_ids"])}`；',
         '- 唯一多节点运行失败，所以现有路线名称不能当成“DAG 已被充分测试”的证据；',
         '- 目前观察到的成本差异主要来自选模与提示链路，无法隔离出拆分本身的因果贡献。', '',
+    ]
+    fixed = report.get('historical_fixed_dag_evidence')
+    if fixed:
+        methods = fixed['methods']
+        lines += [
+            '## 历史强制固定 DAG 实验', '',
+            f'项目并非只有一个 DAG 样本。`issue-32-usage-verified` 有 '
+            f'{fixed["fixed_dag_runs"]} 次固定人工 DAG 留出运行，另有 '
+            f'{fixed["direct_runs"]} 次强模型整任务直跑；全部 72 条路线均完成交付。',
+            '这批证据适合回答“给定同一 DAG 后，拆分执行与节点选模的成本如何”，不回答',
+            '“自动策略应不应该拆”或“规划器能否生成正确 DAG”。', '',
+            '| 路线 | 运行 | 平均质量分 | 生产 AFP | 相对强模型直跑 | 平均墙钟时间 |',
+            '| --- | ---: | ---: | ---: | ---: | ---: |',
+        ]
+        for method in ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel',
+                       'dag-node-a', 'dag-node-b', 'dag-single-a', 'dag-single-b'):
+            row = methods[method]
+            lines.append(
+                f'| `{method}` | {row["delivered"]}/{row["runs"]} | '
+                f'{row["mean_score"]:.2f} | {row["production_afp"]:.3f} | '
+                f'{row["production_change_vs_direct_strong"]:+.1%} | '
+                f'{row["mean_wall_ms"] / 1000:.2f} 秒 |'
+            )
+        serial = methods['dag-strong-serial']
+        parallel = methods['dag-strong-parallel']
+        node_a = methods['dag-node-a']
+        node_b = methods['dag-node-b']
+        lines += [
+            '',
+            f'- 全强模型固定 DAG：串行生产 AFP 比直跑高 '
+            f'{serial["production_change_vs_direct_strong"]:.1%}，并行高 '
+            f'{parallel["production_change_vs_direct_strong"]:.1%}。这直接证明在这三个任务上，'
+            '若节点仍全部使用强模型，拆分新增调用与上下文的成本没有被抵消。',
+            f'- 并行 DAG 将平均墙钟时间从 {serial["mean_wall_ms"] / 1000:.2f} 秒降至 '
+            f'{parallel["mean_wall_ms"] / 1000:.2f} 秒，但仍慢于直跑的 '
+            f'{methods["direct-strong"]["mean_wall_ms"] / 1000:.2f} 秒。并行降低了串行等待，'
+            '没有消除规划外的多调用开销。',
+            f'- 节点路由 A/B 把生产 AFP 压到 {node_a["production_afp"]:.3f} / '
+            f'{node_b["production_afp"]:.3f}，但平均质量为 {node_a["mean_score"]:.2f} / '
+            f'{node_b["mean_score"]:.2f}，低于强模型并行 DAG 的 '
+            f'{parallel["mean_score"]:.2f}。历史配对比较未达到冻结的正收益门槛。',
+            '- 因此这批实验非常有价值：它显示成本问题来自“拆分后多次模型调用”，而节点级',
+            '  便宜模型只能回收一部分成本；当前还没有证明这种回收能在同等质量下成立。', '',
+            '这批实验只有 3 个固定人工任务，评分体系也早于 live-01，不能把两批样本直接',
+            '合并计算一个总体比例；可以用来形成机制假设和下一轮实验设计。', '',
+        ]
+    lines += [
         '## 为什么低价路线的单位合格成本反而更高', '',
-        '现有证据没有证明“拆分天然比直跑贵”。实际结果是：两条路由路线都降低了总 AFP，',
+        'live-01 没有充分测试自动拆分。实际结果是：两条路由路线都降低了总 AFP，',
         '但合格任务数量下降得更快，所以 `AFP / accepted task` 反而升高。', '',
         '| 路线 | 全部任务 AFP | 相对 direct-strong | 合格任务 | 每个合格任务 AFP | 相对 direct-strong |',
         '| --- | ---: | ---: | ---: | ---: | ---: |',
@@ -403,6 +504,7 @@ def main(argv=None):
     parser.add_argument('--tasks', type=Path, required=True)
     parser.add_argument('--moa-reviews', type=Path, required=True)
     parser.add_argument('--final-analysis', type=Path, required=True)
+    parser.add_argument('--fixed-dag-results', type=Path)
     parser.add_argument('--output-dir', type=Path, required=True)
     args = parser.parse_args(argv)
     if args.output_dir.exists() and any(args.output_dir.iterdir()):
@@ -412,7 +514,9 @@ def main(argv=None):
     tasks = json.loads(args.tasks.read_text())['tasks']
     records = json.loads(args.moa_reviews.read_text())['records']
     final_analysis = json.loads(args.final_analysis.read_text())
-    report = analyze(result, tasks, records, final_analysis)
+    fixed_dag_study = (json.loads(args.fixed_dag_results.read_text())
+                       if args.fixed_dag_results else None)
+    report = analyze(result, tasks, records, final_analysis, fixed_dag_study)
     report['provenance'] = {
         'results_sha256': file_digest(args.results),
         'tasks_sha256': file_digest(args.tasks),
@@ -420,6 +524,8 @@ def main(argv=None):
         'final_analysis_sha256': file_digest(args.final_analysis),
         'analysis_implementation_sha256': file_digest(Path(__file__)),
     }
+    if args.fixed_dag_results:
+        report['provenance']['fixed_dag_results_sha256'] = file_digest(args.fixed_dag_results)
     (args.output_dir / 'analysis.json').write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     (args.output_dir / 'README.md').write_text(markdown(report))

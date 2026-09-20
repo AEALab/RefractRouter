@@ -1,6 +1,6 @@
 import pytest
 
-from experiments.analyze_quality_failures import analyze
+from experiments.analyze_quality_failures import _fixed_dag_evidence, analyze
 from refractrouter.moa_review import MOA_POLICY, digest
 
 
@@ -78,3 +78,27 @@ def test_deterministic_failure_overrides_moa_pass():
     selected = report['arms']['task-selector']
     assert selected['failure_layer']['deterministic-check'] == 1
     assert selected['deterministic_failed_check_instances'] == {'citation': 1}
+
+
+def test_fixed_dag_evidence_is_not_counted_as_automatic_split_coverage():
+    methods = ('direct-strong', 'dag-strong-serial', 'dag-strong-parallel',
+               'dag-calibrated-single', 'dag-node-a', 'dag-node-b',
+               'dag-single-a', 'dag-single-b')
+    study = {
+        'runs': [
+            {
+                'split': 'test', 'method': method, 'delivered': True, 'score': 95,
+                'production_cost': 1.0 if method == 'direct-strong' else 2.0,
+                'deployment_cost': 2.0 if method == 'direct-strong' else 3.0,
+                'wall_time_ms': 1000 if method == 'direct-strong' else 1500,
+            }
+            for method in methods
+        ],
+        'comparison': {'comparisons': []},
+    }
+    evidence = _fixed_dag_evidence(study)
+    assert evidence['fixed_dag_runs'] == 7
+    assert evidence['direct_runs'] == 1
+    assert evidence['methods']['dag-strong-serial'][
+        'production_change_vs_direct_strong'] == pytest.approx(1.0)
+    assert '不检验自动规划器' in evidence['scope']
