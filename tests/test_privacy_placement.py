@@ -148,6 +148,13 @@ def test_v3_trusted_cloud_requires_and_accepts_an_explicit_policy():
     assert record['local_execution_model_ids'] == ['local-work']
 
 
+def test_v3_trusted_cloud_classifier_is_decided_by_the_security_contract():
+    raw = security_configuration(trusted=True)
+    raw['security']['classifier'] = {'enabled': True, 'modelId': 'local-work'}
+    compiled = compile_configuration(raw)
+    assert compiled.privacy['classifier'] == {'enabled': True, 'modelId': 'local-work'}
+
+
 def test_v4_compiles_cost_first_objective_and_multi_role_pools():
     compiled = compile_configuration(automatic_configuration(), strategy='auto')
     assert compiled.objective == {'qualityMin': 80, 'primary': 'cost',

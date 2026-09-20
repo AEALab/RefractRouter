@@ -109,7 +109,8 @@ def deployment_value(value, *, provider_deployment, schema_version, label):
     return value
 
 
-def compile_privacy(raw, *, models, schema_version, require_local_candidate=True):
+def compile_privacy(raw, *, models, schema_version, require_local_candidate=True,
+                    enforce_zero_cost_classifier=True):
     """编译可选的隐私约束；未配置时返回关闭形态，路由行为与现状一致。"""
     if raw is None:
         return default_privacy()
@@ -136,7 +137,7 @@ def compile_privacy(raw, *, models, schema_version, require_local_candidate=True
         target = next((model for model in models if model.model_id == model_id), None)
         if target is None:
             raise ValueError('privacy.classifier.modelId must reference a configured model')
-        if target.deployment not in ZERO_COST_DEPLOYMENTS:
+        if enforce_zero_cost_classifier and target.deployment not in ZERO_COST_DEPLOYMENTS:
             raise ValueError('privacy.classifier.modelId must reference a local or simulated-local model')
     elif classifier_enabled:
         raise ValueError('privacy.classifier.modelId is required when the local classifier is enabled')
@@ -163,7 +164,7 @@ def compile_security(raw, *, models):
                      'classifier': raw.get('classifier', {}),
                      'maxPromptBytes': raw.get('maxPromptBytes', DEFAULT_MAX_PROMPT_BYTES)}
     compiled = compile_privacy(compatibility, models=models, schema_version=SCHEMA_V2,
-                               require_local_candidate=False)
+                               require_local_candidate=False, enforce_zero_cost_classifier=False)
     compiled['dataMode'] = data_mode
     classifier_id = compiled['classifier'].get('modelId')
     if classifier_id is not None:
@@ -267,7 +268,7 @@ def compile_security_v4(raw, *, models, policies):
                      'classifier': raw.get('classifier', {}),
                      'maxPromptBytes': raw.get('maxPromptBytes', DEFAULT_MAX_PROMPT_BYTES)}
     compiled = compile_privacy(compatibility, models=models, schema_version=SCHEMA_V2,
-                               require_local_candidate=False)
+                               require_local_candidate=False, enforce_zero_cost_classifier=False)
     compiled['dataMode'] = data_mode
     simulated = [model for model in models if model.deployment == 'simulated-local']
     acknowledged = all(
