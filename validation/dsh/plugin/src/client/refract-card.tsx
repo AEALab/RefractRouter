@@ -1,7 +1,10 @@
 /** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
 import { useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
-import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey, type RefractCardProjection } from '../settings-card.js'
+import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
+import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
+  type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
+import { V4Settings } from './v4-settings.js'
 
 export interface RefractCardOwnerProps {
   t: (key: string) => string
@@ -11,6 +14,13 @@ export interface RefractCardOwnerProps {
   editStrategyEffort(mode: ModeKey, value: string): void
   editStrategyAfpCeiling(mode: ModeKey, value: string): void
   editStrategyModels(mode: ModeKey, text: string): void
+  editV4QualityMin(value: number): void
+  editV4DagMode(value: V4DagMode): void
+  editV4DataMode(value: V4DataMode): void
+  editV4SensitiveTerms(text: string): void
+  editV4Classifier(enabled: boolean, modelId?: string): void
+  upsertV4Row(collection: V4CollectionKey, value: Record<string, unknown>, previousId?: string): void
+  removeV4Row(collection: V4CollectionKey, id: string): void
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
   resetField(field: CardField): void
@@ -43,11 +53,12 @@ const css = `
 .rra-label{font-size:13px;font-weight:500;color:var(--dsw-alias-label-primary);flex:1}
 .rra-field-hint,.rra-hint{margin:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-tertiary);overflow-wrap:anywhere}
 .rra-hint{margin-top:12px}
-.rra-select,.rra-textarea{box-sizing:border-box;font:inherit;font-size:13px;color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-3);padding:8px 10px}
+.rra-select,.rra-textarea,.rra-input{box-sizing:border-box;font:inherit;font-size:13px;color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-3);padding:8px 10px}
 .rra-select{height:34px;width:220px;max-width:100%}
+.rra-input{height:34px;width:100%;min-width:0}
 .rra-textarea{width:100%;min-height:76px;line-height:1.5;resize:vertical}
 .rra-textarea::placeholder{color:var(--dsw-alias-label-tertiary)}
-.rra-select:disabled,.rra-textarea:disabled{opacity:.4;cursor:default}
+.rra-select:disabled,.rra-textarea:disabled,.rra-input:disabled{opacity:.4;cursor:default}
 .rra-strategy{display:flex;flex-direction:column;gap:12px;margin-top:16px;padding:20px 16px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-3);min-width:0}
 .rra-strategy-name{margin:0;padding-bottom:12px;border-bottom:1px solid var(--dsw-alias-border-l2);font-size:15px;font-weight:600;line-height:1.4;color:var(--dsw-alias-label-primary)}
 .rra-models{display:flex;flex-direction:column;gap:8px;border:0;margin:0;padding:4px 0;min-width:0}
@@ -55,13 +66,31 @@ const css = `
 .rra-models .rra-reset{align-self:flex-start;padding:0}
 .rra-json{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;min-height:240px}
 .rra-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-primary)}
+.rra-v4-section{display:flex;flex-direction:column;gap:14px;padding:18px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.rra-v4-section h3{margin:0;font-size:15px;color:var(--dsw-alias-label-primary)}
+.rra-section-head,.rra-row-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.rra-section-head>div{display:flex;flex-direction:column;gap:4px}
+.rra-grid{display:grid;gap:12px}.rra-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.rra-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.rra-compact-field{display:flex;flex-direction:column;gap:6px;min-width:0}.rra-compact-field .rra-select{width:100%}
+.rra-preview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rra-preview-cell{display:flex;flex-direction:column;gap:4px;padding:10px;border-radius:8px;background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-tertiary);font-size:12px}
+.rra-preview-cell strong{color:var(--dsw-alias-label-primary);font-size:18px}
+.rra-scenarios{display:grid;gap:8px}.rra-scenarios>div{display:flex;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;font-size:12px;color:var(--dsw-alias-label-secondary)}
+.rra-scenarios strong{color:var(--dsw-alias-label-primary)}
+.rra-status{white-space:nowrap;border-radius:999px;padding:2px 8px;font-size:11px;background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-secondary)}
+.rra-status-bad{color:var(--dsw-alias-label-error)}.rra-status-warn{color:var(--dsw-alias-label-secondary)}
+.rra-row-card{display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-3)}
+.rra-row-title strong{font-size:13px;color:var(--dsw-alias-label-primary)}
+.rra-check-row,.rra-role-grid{display:flex;flex-wrap:wrap;gap:12px 18px;border:0;margin:0;padding:0}.rra-role-grid legend{margin-bottom:8px;padding:0}
+.rra-empty{margin:0;padding:12px;border:1px dashed var(--dsw-alias-border-l2);border-radius:8px;text-align:center;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .rra-reset{font:inherit;font-size:12px;color:var(--dsw-alias-label-secondary);background:none;border:none;cursor:pointer}
 .rra-invalid{margin:8px 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-error)}
 .rra-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 0 4px}
 .rra-button{appearance:none;font:inherit;font-size:13px;line-height:1.5;cursor:pointer;border:1px solid transparent;border-radius:8px;padding:5px 14px;background:var(--dsw-alias-label-primary);color:var(--dsw-alias-bg-layer-3)}
 .rra-button-secondary{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);background:none}
 .rra-button:disabled,.rra-reset:disabled{opacity:.4;cursor:default}
-.rra-head:focus-visible,.rra-button:focus-visible,.rra-select:focus-visible,.rra-textarea:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.rra-head:focus-visible,.rra-button:focus-visible,.rra-select:focus-visible,.rra-textarea:focus-visible,.rra-input:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+@media(max-width:760px){.rra-grid-2,.rra-grid-3{grid-template-columns:1fr}.rra-preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rra-scenarios>div{flex-direction:column;gap:4px}}
 `
 
 if (typeof document !== 'undefined' && document.querySelector('style[data-plugin-css="refractagent-settings-card"]') === null) {
@@ -108,7 +137,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
         onClick={() => setExpanded(value => !value)}>
         <span className="rra-head-text">
           <span className="rra-name">{t('title')}</span>
-          <span className="rra-desc">{t('description')}</span>
+          <span className="rra-desc">{t(state.automaticRouting ? 'v4Description' : 'description')}</span>
         </span>
         {state.dirty ? <span className="rra-badge">{t('unsaved')}</span> : null}
         <svg className="rra-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -118,6 +147,11 @@ export function RefractCard(props: RefractCardOwnerProps) {
       {expanded ? (
         <div className="rra-body">
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
+          {state.automaticRouting && provider ? <V4Settings t={t} provider={provider} disabled={disabled}
+            editV4QualityMin={props.editV4QualityMin} editV4DagMode={props.editV4DagMode}
+            editV4DataMode={props.editV4DataMode} editV4SensitiveTerms={props.editV4SensitiveTerms}
+            editV4Classifier={props.editV4Classifier} upsertV4Row={props.upsertV4Row}
+            removeV4Row={props.removeV4Row} /> : <>
           <div className="rra-field">
             <div className="rra-label-row">
               <span className="rra-label">{t('defaultEffort')}</span>
@@ -190,6 +224,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
               )
             })}
           </div>
+          </>}
           <div className="rra-field">
             <div className="rra-label-row">
               <span className="rra-label">{t('limitsTitle')}</span>
@@ -220,11 +255,13 @@ export function RefractCard(props: RefractCardOwnerProps) {
             <div className="rra-label-row">
               <span className="rra-label">{t('providerJsonTitle')}</span>
               <button type="button" className="rra-reset" disabled={disabled}
-                onClick={() => props.editProviderJson(JSON.stringify(examples['openai-compatible'], null, 2))}>{t('insertExample')}</button>
+                onClick={() => props.editProviderJson(JSON.stringify(
+                  state.automaticRouting ? v4Example : examples['openai-compatible'], null, 2))}>{t('insertExample')}</button>
             </div>
             <p className="rra-field-hint">{t('providerJsonHint')}</p>
             <textarea className="rra-textarea rra-json" rows={12} disabled={disabled} spellCheck={false}
-              aria-label={t('providerJsonTitle')} placeholder={JSON.stringify(examples['openai-compatible'], null, 2)}
+              aria-label={t('providerJsonTitle')} placeholder={JSON.stringify(
+                state.automaticRouting ? v4Example : examples['openai-compatible'], null, 2)}
               value={state.providerJson}
               onChange={event => props.editProviderJson(event.target.value)} />
             {state.providerJsonError !== null
