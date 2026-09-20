@@ -1,0 +1,186 @@
+{
+  "schema_version": "security-benchmark-v1",
+  "issue": 112,
+  "frozen_at": "2026-09-20",
+  "billingUnit": "USD",
+  "arms": [
+    "external-reference",
+    "trusted-direct",
+    "constrained-direct",
+    "constrained-fixed-dag"
+  ],
+  "constraints": {
+    "qualityMin": 80,
+    "maxReferenceGap": 3,
+    "privacyViolations": 0,
+    "repetitions": 1,
+    "maxCalls": 64
+  },
+  "models": [
+    {
+      "id": "external-strong",
+      "deployment": "external-cloud",
+      "role": "candidate",
+      "qualityProxy": 95,
+      "inputPer1k": 0.01,
+      "outputPer1k": 0.03,
+      "latencyMs": 3500,
+      "researchOnly": false
+    },
+    {
+      "id": "external-cheap",
+      "deployment": "external-cloud",
+      "role": "candidate",
+      "qualityProxy": 84,
+      "inputPer1k": 0.001,
+      "outputPer1k": 0.003,
+      "latencyMs": 1800,
+      "researchOnly": false
+    },
+    {
+      "id": "trusted-strong",
+      "deployment": "trusted-cloud",
+      "role": "candidate",
+      "qualityProxy": 90,
+      "inputPer1k": 0.004,
+      "outputPer1k": 0.012,
+      "latencyMs": 5000,
+      "researchOnly": false
+    },
+    {
+      "id": "local-worker",
+      "deployment": "local",
+      "role": "candidate",
+      "qualityProxy": 82,
+      "inputPer1k": 0,
+      "outputPer1k": 0,
+      "latencyMs": 9000,
+      "researchOnly": false
+    },
+    {
+      "id": "local-judge",
+      "deployment": "local",
+      "role": "judge",
+      "qualityProxy": 90,
+      "inputPer1k": 0,
+      "outputPer1k": 0,
+      "latencyMs": 7000,
+      "researchOnly": false
+    },
+    {
+      "id": "simulated-local-worker",
+      "deployment": "simulated-local",
+      "role": "candidate",
+      "qualityProxy": 88,
+      "inputPer1k": 0,
+      "outputPer1k": 0,
+      "latencyMs": 3000,
+      "researchOnly": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "dev-separable-01",
+      "class": "separable",
+      "sourceId": "synthetic-contract-a",
+      "materialMode": "synthetic",
+      "originalGrade": "S1",
+      "task": "根据虚构客户 A 的内部合同数据与公开行业规则，分别核对金额并提出摘要。联系人 dev-a@example.invalid。",
+      "referenceView": "根据已脱敏的虚构客户合同统计与公开行业规则，分别核对金额并提出摘要。",
+      "referenceGrade": "S3",
+      "criteria": ["金额核对正确", "区分内部事实与公开规则", "结论包含限制"],
+      "directInputTokens": 2400,
+      "directOutputTokens": 900,
+      "externalReferenceModel": "external-strong",
+      "trustedDirectModel": "trusted-strong",
+      "constrainedDirectModel": "local-worker",
+      "fixedDag": [
+        {"id": "private-facts", "parents": [], "grade": "S1", "modelId": "local-worker", "inputTokens": 1200, "outputTokens": 300},
+        {"id": "public-rules", "parents": [], "grade": "S3", "modelId": "external-cheap", "inputTokens": 900, "outputTokens": 300},
+        {"id": "merge", "parents": ["private-facts", "public-rules"], "grade": "S1", "modelId": "trusted-strong", "inputTokens": 1800, "outputTokens": 900}
+      ]
+    },
+    {
+      "id": "dev-sensitive-01",
+      "class": "all-sensitive",
+      "sourceId": "synthetic-incident-b",
+      "materialMode": "synthetic",
+      "originalGrade": "S1",
+      "task": "整理虚构安全事件：值班电话 13800138000，分析时间线、影响和修复优先级。",
+      "referenceView": "整理已移除身份字段的虚构安全事件，分析时间线、影响和修复优先级。",
+      "referenceGrade": "S3",
+      "criteria": ["时间线完整", "影响与证据对应", "修复顺序明确"],
+      "directInputTokens": 2600,
+      "directOutputTokens": 1000,
+      "externalReferenceModel": "external-strong",
+      "trustedDirectModel": "trusted-strong",
+      "constrainedDirectModel": "local-worker",
+      "fixedDag": [
+        {"id": "timeline", "parents": [], "grade": "S1", "modelId": "local-worker", "inputTokens": 1300, "outputTokens": 350},
+        {"id": "impact", "parents": [], "grade": "S1", "modelId": "local-worker", "inputTokens": 1300, "outputTokens": 350},
+        {"id": "remediation", "parents": ["timeline", "impact"], "grade": "S1", "modelId": "trusted-strong", "inputTokens": 1900, "outputTokens": 1000}
+      ]
+    },
+    {
+      "id": "dev-public-01",
+      "class": "all-public",
+      "sourceId": "synthetic-public-c",
+      "materialMode": "synthetic",
+      "originalGrade": "S3",
+      "task": "比较三种公开的软件许可条款摘要，列出适用场景和已知限制。",
+      "referenceView": "比较三种公开的软件许可条款摘要，列出适用场景和已知限制。",
+      "referenceGrade": "S3",
+      "criteria": ["覆盖三种许可", "不扩张材料结论", "列出限制"],
+      "directInputTokens": 1800,
+      "directOutputTokens": 800,
+      "externalReferenceModel": "external-strong",
+      "trustedDirectModel": "trusted-strong",
+      "constrainedDirectModel": "local-worker",
+      "fixedDag": [
+        {"id": "compare-a", "parents": [], "grade": "S3", "modelId": "external-cheap", "inputTokens": 800, "outputTokens": 250},
+        {"id": "compare-b", "parents": [], "grade": "S3", "modelId": "external-cheap", "inputTokens": 800, "outputTokens": 250},
+        {"id": "merge", "parents": ["compare-a", "compare-b"], "grade": "S3", "modelId": "external-cheap", "inputTokens": 1300, "outputTokens": 800}
+      ]
+    },
+    {
+      "id": "dev-short-01",
+      "class": "short-negative",
+      "sourceId": "synthetic-short-d",
+      "materialMode": "synthetic",
+      "originalGrade": "S3",
+      "task": "把公开标题改写得更清楚：季度维护公告。",
+      "referenceView": "把公开标题改写得更清楚：季度维护公告。",
+      "referenceGrade": "S3",
+      "criteria": ["含义不变", "表达简洁"],
+      "directInputTokens": 300,
+      "directOutputTokens": 120,
+      "externalReferenceModel": "external-strong",
+      "trustedDirectModel": "trusted-strong",
+      "constrainedDirectModel": "local-worker",
+      "fixedDag": [
+        {"id": "rewrite", "parents": [], "grade": "S3", "modelId": "external-cheap", "inputTokens": 300, "outputTokens": 120}
+      ]
+    },
+    {
+      "id": "dev-dependent-01",
+      "class": "strong-dependency-negative",
+      "sourceId": "synthetic-ledger-e",
+      "materialMode": "synthetic",
+      "originalGrade": "S1",
+      "task": "按顺序核对虚构内部账本并解释最终余额。内部项目代号 R-ECHO。",
+      "referenceView": "按顺序核对已脱敏的虚构账本并解释最终余额。",
+      "referenceGrade": "S3",
+      "criteria": ["逐步余额正确", "保持顺序依赖", "解释最终余额"],
+      "directInputTokens": 2200,
+      "directOutputTokens": 900,
+      "externalReferenceModel": "external-strong",
+      "trustedDirectModel": "trusted-strong",
+      "constrainedDirectModel": "local-worker",
+      "fixedDag": [
+        {"id": "first-half", "parents": [], "grade": "S1", "modelId": "local-worker", "inputTokens": 1100, "outputTokens": 300},
+        {"id": "second-half", "parents": ["first-half"], "grade": "S1", "modelId": "local-worker", "inputTokens": 1400, "outputTokens": 350},
+        {"id": "explain", "parents": ["second-half"], "grade": "S1", "modelId": "trusted-strong", "inputTokens": 1600, "outputTokens": 900}
+      ]
+    }
+  ]
+}

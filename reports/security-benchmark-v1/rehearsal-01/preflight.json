@@ -1,0 +1,380 @@
+{
+  "schema_version": "security-benchmark-preflight-v1",
+  "real_model_calls": 0,
+  "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b",
+  "coverage": {
+    "task_count": 5,
+    "classes": [
+      "all-public",
+      "all-sensitive",
+      "separable",
+      "short-negative",
+      "strong-dependency-negative"
+    ],
+    "model_count": 6,
+    "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b"
+  },
+  "runs": [
+    {
+      "task_id": "dev-separable-01",
+      "class": "separable",
+      "repeat": 1,
+      "arm": "external-reference",
+      "reference_only": true,
+      "deployable": false,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.051000000000000004,
+      "projected_wall_time_ms": 10500,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-separable-01",
+      "class": "separable",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0204,
+      "projected_wall_time_ms": 12000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-separable-01",
+      "class": "separable",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "local-worker"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0,
+      "projected_wall_time_ms": 16000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-separable-01",
+      "class": "separable",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "local-worker",
+        "external-cheap",
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0198,
+      "projected_wall_time_ms": 21000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-sensitive-01",
+      "class": "all-sensitive",
+      "repeat": 1,
+      "arm": "external-reference",
+      "reference_only": true,
+      "deployable": false,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.056,
+      "projected_wall_time_ms": 10500,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-sensitive-01",
+      "class": "all-sensitive",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.022400000000000003,
+      "projected_wall_time_ms": 12000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-sensitive-01",
+      "class": "all-sensitive",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "local-worker"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0,
+      "projected_wall_time_ms": 16000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-sensitive-01",
+      "class": "all-sensitive",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "local-worker",
+        "local-worker",
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0196,
+      "projected_wall_time_ms": 21000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-public-01",
+      "class": "all-public",
+      "repeat": 1,
+      "arm": "external-reference",
+      "reference_only": true,
+      "deployable": false,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.042,
+      "projected_wall_time_ms": 10500,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-public-01",
+      "class": "all-public",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S3",
+      "model_ids": [
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.016800000000000002,
+      "projected_wall_time_ms": 12000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-public-01",
+      "class": "all-public",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S3",
+      "model_ids": [
+        "local-worker"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0,
+      "projected_wall_time_ms": 16000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-public-01",
+      "class": "all-public",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-cheap",
+        "external-cheap",
+        "external-cheap"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0068000000000000005,
+      "projected_wall_time_ms": 10600,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-short-01",
+      "class": "short-negative",
+      "repeat": 1,
+      "arm": "external-reference",
+      "reference_only": true,
+      "deployable": false,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0066,
+      "projected_wall_time_ms": 10500,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-short-01",
+      "class": "short-negative",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S3",
+      "model_ids": [
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.00264,
+      "projected_wall_time_ms": 12000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-short-01",
+      "class": "short-negative",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S3",
+      "model_ids": [
+        "local-worker"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0,
+      "projected_wall_time_ms": 16000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-short-01",
+      "class": "short-negative",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-cheap"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.00066,
+      "projected_wall_time_ms": 8800,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-dependent-01",
+      "class": "strong-dependency-negative",
+      "repeat": 1,
+      "arm": "external-reference",
+      "reference_only": true,
+      "deployable": false,
+      "security_grade": "S3",
+      "model_ids": [
+        "external-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.049,
+      "projected_wall_time_ms": 10500,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-dependent-01",
+      "class": "strong-dependency-negative",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0196,
+      "projected_wall_time_ms": 12000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-dependent-01",
+      "class": "strong-dependency-negative",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "local-worker"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0,
+      "projected_wall_time_ms": 16000,
+      "quality_status": "unmeasured"
+    },
+    {
+      "task_id": "dev-dependent-01",
+      "class": "strong-dependency-negative",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "reference_only": false,
+      "deployable": true,
+      "security_grade": "S1",
+      "model_ids": [
+        "local-worker",
+        "local-worker",
+        "trusted-strong"
+      ],
+      "judge_model_id": "local-judge",
+      "privacy_violations": 0,
+      "projected_cost": 0.0172,
+      "projected_wall_time_ms": 30000,
+      "quality_status": "unmeasured"
+    }
+  ],
+  "planned_calls": {
+    "production": 28,
+    "evaluation": 20
+  },
+  "maximum_calls": 48,
+  "maximum_declared_cost": 0.3505,
+  "billing_unit": "USD",
+  "live_execution_ready": false,
+  "blocking_requirements": [
+    "开发批次尚未取得真实调用预算授权。",
+    "开发批次完成前不冻结留出材料，也不运行 #113 在线策略。"
+  ],
+  "frontier_policy": "external-reference 只计算质量差距，不进入可部署前沿；主比较以最佳合法基线为准。"
+}
