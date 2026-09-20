@@ -74,7 +74,8 @@ def allows_sensitive(deployment, privacy):
     if deployment in SENSITIVE_DEPLOYMENTS:
         return True
     return (deployment == 'simulated-local'
-            and ('dataMode' not in (privacy or {})
+            and ((privacy or {}).get('allowSimulatedLocalSensitive') is True
+                 or 'dataMode' not in (privacy or {})
                  or (privacy or {}).get('dataMode') in {'synthetic', 'desensitized'}))
 
 
@@ -98,7 +99,8 @@ def local_execution_model_ids(models, privacy=None):
     """可作为节点执行者的本地候选：评审与规划器等非候选角色不参与派发。"""
     return tuple(sorted(m.model_id for m in models
                         if allows_sensitive(deployment_of(m), privacy)
-                        and getattr(m, 'role', 'candidate') == 'candidate'))
+                        and (getattr(m, 'role', 'candidate') == 'candidate'
+                             or 'worker' in getattr(m, 'roles', ()))))
 
 
 def scan_deterministic(text, sensitive_terms=()):

@@ -156,6 +156,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
+    if isinstance(provider_config, dict) and provider_config.get('schemaVersion') == 'refractagent-providers-v4':
+        raise ValueError('v4 automatic routing execution is not enabled yet; configuration validation and migration are zero-call only')
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')
     number(evaluation_budget, 'evaluation budget', positive=True)

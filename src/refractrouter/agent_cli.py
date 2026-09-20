@@ -10,7 +10,7 @@ import sys
 from threading import Event
 
 from .agent import PRESETS, POLICY_VERSION, resource, run_agent
-from .application_config import SCHEMA, compile_configuration
+from .application_config import SCHEMA, SCHEMA_V4, compile_configuration, migrate_v3_to_v4
 from .routing_actions import action_identity
 from .openai_compatible import write_host_record
 
@@ -46,6 +46,10 @@ def main(argv=None):
     models.add_argument('--provider-config', type=Path)
     example = commands.add_parser('config-example', help='生成可编辑的 provider/model 配置示例')
     example.add_argument('--output', type=Path, required=True)
+    migrate = commands.add_parser('migrate-config-v4', help='显式迁移 v3 provider 配置，不覆盖来源文件')
+    migrate.add_argument('--input', type=Path, required=True)
+    migrate.add_argument('--output', type=Path, required=True)
+    migrate.add_argument('--planner-model-id', required=True)
     example.add_argument('--provider-type', choices=['openai-compatible', 'openai-responses', 'dsh', 'ark-agent-plan'], default='openai-compatible')
     run = commands.add_parser('run', help='执行文本任务，默认零调用预检')
     source = run.add_mutually_exclusive_group(required=True)
@@ -76,7 +80,7 @@ def main(argv=None):
     setup.add_argument('--mode', choices=['demo', 'live'], default='demo')
     setup.add_argument('--production-budget', type=float, default=40)
     setup.add_argument('--evaluation-budget', type=float, default=80)
-    setup.add_argument('--strategy', choices=tuple(PRESETS), default='balanced')
+    setup.add_argument('--strategy', choices=(*PRESETS, 'auto'))
     setup.add_argument('--template', choices=['single', 'compare', 'auto'], default='single')
     setup_config = setup.add_mutually_exclusive_group()
     setup_config.add_argument('--provider-config', type=Path)
@@ -97,14 +101,29 @@ def main(argv=None):
                 stream.write('\n')
             print(json.dumps({'config': str(args.output.resolve()), 'requires_user_configuration': True, 'model_calls': 0}))
             return 0
+        if args.command == 'migrate-config-v4':
+            data = migrate_v3_to_v4(json.loads(args.input.read_text()), planner_model_id=args.planner_model_id)
+            compile_configuration(data)
+            with args.output.open('x') as stream:
+                json.dump(data, stream, ensure_ascii=False, indent=2)
+                stream.write('\n')
+            print(json.dumps({'source': str(args.input.resolve()), 'config': str(args.output.resolve()),
+                              'model_calls': 0}, ensure_ascii=False))
+            return 0
         if args.command == 'models':
-            result = {'provider': 'refractagent', 'policy_version': POLICY_VERSION,
-                'models': [{'id': key, 'name': 'RefractAgent · '+p['name'],
-                            'description': '按用户配置的可用模型进行文本任务路由。'} for key,p in PRESETS.items()]}
+            exposed = PRESETS
+            compiled = None
             if args.provider_config:
                 raw = json.loads(args.provider_config.read_text())
                 compiled = compile_configuration(raw)
-                result['available_models'] = [{**action_identity(m), 'role': m.role}
+                if raw.get('schemaVersion') == SCHEMA_V4:
+                    exposed = {'auto': {'name': '自动路由'}}
+            result = {'provider': 'refractagent', 'policy_version': POLICY_VERSION,
+                'models': [{'id': key, 'name': 'RefractAgent · '+p['name'],
+                            'description': '按用户配置的可用模型进行文本任务路由。'} for key,p in exposed.items()]}
+            if compiled is not None:
+                result['available_models'] = [{**action_identity(m), 'role': m.role,
+                                               **({'roles': list(m.roles)} if m.roles else {})}
                                               for m in compiled.manifest.models]
                 result['billing_unit'] = compiled.manifest.billing_unit
                 for key in ('defaultReasoningEffort', 'strategies'):
@@ -126,10 +145,12 @@ def main(argv=None):
                       'maxOutputTokens': args.max_output_tokens,
                       'template': args.template,
                       'maxProductionCost': args.production_budget, 'maxEvaluationCost': args.evaluation_budget}
+            provider_schema = None
             if args.provider_config:
                 raw = json.loads(args.provider_config.read_text())
                 compile_configuration(raw)
                 config['providerConfig'] = raw
+                provider_schema = raw.get('schemaVersion')
             if args.preset:
                 config.update(preset=args.preset, credentialEnv=args.credential_env or 'CODEX_ARK_API_KEY')
             elif args.credential_env:
@@ -138,8 +159,11 @@ def main(argv=None):
                 config['limits'] = {'relaxBudget': args.relax_budget, 'relaxContext': args.relax_context}
             if args.mode=='live' and not (args.provider_config or args.preset):
                 raise ValueError('live configuration requires --provider-config or an explicit --preset')
+            strategy = args.strategy or ('auto' if provider_schema == SCHEMA_V4 else 'balanced')
+            if (provider_schema == SCHEMA_V4) != (strategy == 'auto'):
+                raise ValueError('v4 provider configuration requires strategy auto; v1-v3 use legacy strategies')
             patch = [{'id': 'refractagent', 'config': config},
-                     {'id': 'agent-default-model', 'config': {'provider': 'refractagent', 'model': args.strategy}}]
+                     {'id': 'agent-default-model', 'config': {'provider': 'refractagent', 'model': strategy}}]
             with args.output.open('x') as stream:
                 json.dump(patch, stream, ensure_ascii=False, indent=2)
                 stream.write('\n')
