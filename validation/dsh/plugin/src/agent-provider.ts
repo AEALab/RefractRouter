@@ -14,11 +14,16 @@ export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credent
 const MAX_CONTEXT_BYTES = 120_000
 const RELAXED_CONTEXT_BYTES = 1_000_000
 
-const MODELS = [
+const LEGACY_MODELS = [
   { id: 'economy', name: 'RefractAgent · 省成本' },
   { id: 'balanced', name: 'RefractAgent · 均衡' },
   { id: 'quality', name: 'RefractAgent · 质量优先' },
 ] as const
+const AUTO_MODELS = [{ id: 'auto', name: 'RefractAgent · 自动路由' }] as const
+
+function configuredModels(config: Readonly<Configuration>): readonly { id: string; name: string }[] {
+  return config.providerConfig?.schemaVersion === 'refractagent-providers-v4' ? AUTO_MODELS : LEGACY_MODELS
+}
 
 export interface Configuration {
   pythonExecutable: string
@@ -150,6 +155,9 @@ function conversation(options: ModelOptions, contextLimitBytes: number): { task:
 
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions, onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
+  if (config.providerConfig?.schemaVersion === 'refractagent-providers-v4') {
+    throw new Error('RefractAgent v4 自动路由执行器尚未启用；当前配置仅支持零调用校验和迁移')
+  }
   const live = config.executionMode === 'live'
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
@@ -284,7 +292,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
 export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>): AgentAdapter {
   const metadata = (provider: string, model: string): ModelMetadata => {
     const config = source()
-    const entry = MODELS.find(m => m.id === model)
+    const entry = configuredModels(config).find(m => m.id === model)
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
     return { ...entry, provider, name: entry.name + (config.executionMode === 'demo' ? '（模拟）' : ''),
       description: '支持整任务、自动 DAG 和宿主原生工具；执行遵循 DSH 权限与审批。',
@@ -293,7 +301,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
   const adapter: AgentAdapter = {
     providerInfo: provider => ({ id: provider, name: 'RefractAgent 本地路由' }),
     providerRetryPolicy: () => ({ mode: 'normal', maxRetries: 0, retryableCodes: [] }),
-    listModels: async provider => MODELS.map(m => metadata(provider, m.id)),
+    listModels: async provider => configuredModels(source()).map(m => metadata(provider, m.id)),
     resolveModel: async (provider, model) => metadata(provider, model),
     prepareCall: async (provider, model) => ({ model: metadata(provider, model), stream: options => adapter.stream(options) }),
     async *stream(options) {

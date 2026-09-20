@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from refractrouter.agent import run_agent
-from refractrouter.application_config import SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, compile_configuration
+from refractrouter.application_config import (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4,
+    compile_configuration, migrate_v3_to_v4)
 from refractrouter.privacy_placement import (PlacementGuard, PrivacyRouteViolation, classify_view,
     default_privacy, grade_nodes, judge_isolation, marginal_pricing, new_record, resolve_placement,
     restricted_eligible_models, role_isolation, safe_tool_audit, scan_deterministic, static_node_views)
@@ -57,6 +58,23 @@ def security_configuration(*, local_deployment='local', data_mode='live', truste
         raw['providers'][1].update(deployment='trusted-cloud', trustPolicy='team-cn')
         raw['trustPolicies'] = [{'id': 'team-cn', 'residency': 'CN', 'auditLogging': True,
                                  'allowsSensitiveData': True}]
+    return raw
+
+
+def automatic_configuration(*, local_deployment='local', acknowledge=False):
+    raw = security_configuration(local_deployment=local_deployment)
+    raw['schemaVersion'] = SCHEMA_V4
+    raw.pop('qualityMin')
+    raw['objective'] = {'qualityMin': 80, 'primary': 'cost', 'secondary': 'latency', 'dagMode': 'auto'}
+    for model in raw['models']:
+        legacy = model.pop('role')
+        model['roles'] = (['planner', 'worker'] if model['id'] == 'local-work' else
+                          ['worker'] if legacy == 'candidate' else ['judge'])
+    if local_deployment == 'simulated-local':
+        raw['providers'][1]['trustPolicy'] = 'simulated-cn'
+        raw['trustPolicies'] = [{'id': 'simulated-cn', 'residency': 'CN', 'auditLogging': True,
+                                 'allowsSensitiveData': True,
+                                 'acknowledgeExternalTransmission': acknowledge}]
     return raw
 
 
@@ -128,6 +146,47 @@ def test_v3_trusted_cloud_requires_and_accepts_an_explicit_policy():
     record = new_record(compiled.privacy, compiled.manifest.models)
     assert record['policy_version'] == 'security-placement-v2'
     assert record['local_execution_model_ids'] == ['local-work']
+
+
+def test_v4_compiles_cost_first_objective_and_multi_role_pools():
+    compiled = compile_configuration(automatic_configuration(), strategy='auto')
+    assert compiled.objective == {'qualityMin': 80, 'primary': 'cost',
+                                  'secondary': 'latency', 'dagMode': 'auto'}
+    assert compiled.role_pools == {
+        'planner': ('local-work',), 'worker': ('cloud-strong', 'local-work'),
+        'judge': ('judge',), 'classifier': (),
+    }
+    assert {model.model_id for model in compiled.manifest.candidates} == {'cloud-strong', 'local-work'}
+    assert compiled.manifest.judge.model_id == 'judge'
+
+
+def test_published_v4_example_compiles_without_model_calls():
+    compiled = compile_configuration(json.loads(
+        (ROOT / 'data/schema/refractagent-providers-v4-example.json').read_text()))
+    assert compiled.manifest.schema_version == SCHEMA_V4
+    assert compiled.role_pools['classifier'] == ('local-router',)
+
+
+def test_v4_simulated_local_live_data_requires_explicit_external_transmission_acknowledgement():
+    with pytest.raises(ValueError, match='acknowledgeExternalTransmission'):
+        compile_configuration(automatic_configuration(local_deployment='simulated-local'))
+    compiled = compile_configuration(automatic_configuration(
+        local_deployment='simulated-local', acknowledge=True))
+    assert compiled.privacy['allowSimulatedLocalSensitive'] is True
+    assert compiled.privacy['simulatedLocalExternalTransmissionAcknowledged'] is True
+    assert new_record(compiled.privacy, compiled.manifest.models)['local_execution_model_ids'] == ['local-work']
+
+
+def test_v3_to_v4_migration_is_explicit_and_keeps_source_unchanged():
+    source = security_configuration()
+    before = deepcopy(source)
+    migrated = migrate_v3_to_v4(source, planner_model_id='local-work')
+    compiled = compile_configuration(migrated)
+    assert source == before
+    assert migrated['schemaVersion'] == SCHEMA_V4 and 'strategies' not in migrated
+    assert compiled.role_pools['planner'] == ('local-work',)
+    with pytest.raises(ValueError, match='explicit planner'):
+        migrate_v3_to_v4(source)
 
 
 def test_local_provider_cannot_declare_cloud_models():

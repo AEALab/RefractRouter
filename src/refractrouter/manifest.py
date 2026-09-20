@@ -23,11 +23,13 @@ class ModelManifest:
 
     @property
     def candidates(self) -> tuple[ModelSpec, ...]:
-        return tuple(model for model in self.models if model.role == "candidate")
+        return tuple(model for model in self.models if model.role == "candidate"
+                     or "worker" in getattr(model, "roles", ()))
 
     @property
     def judge(self) -> ModelSpec:
-        judges = tuple(model for model in self.models if model.role == "judge")
+        judges = tuple(model for model in self.models if model.role == "judge"
+                       or "judge" in getattr(model, "roles", ()))
         if len(judges) != 1:
             raise ValueError("Model manifest requires exactly one judge model")
         return judges[0]

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "refractagent-providers-v4",
+  "billingUnit": "USD",
+  "objective": {
+    "qualityMin": 80,
+    "primary": "cost",
+    "secondary": "latency",
+    "dagMode": "auto"
+  },
+  "security": {
+    "dataMode": "live",
+    "sensitiveTerms": [],
+    "classifier": {
+      "enabled": true,
+      "modelId": "local-router"
+    }
+  },
+  "trustPolicies": [],
+  "providers": [
+    {
+      "id": "external",
+      "type": "openai-compatible",
+      "baseUrl": "https://provider.example/v1",
+      "credentialEnv": "EXTERNAL_MODEL_KEY",
+      "deployment": "external-cloud"
+    },
+    {
+      "id": "local",
+      "type": "dsh",
+      "dshProvider": "local-model-provider",
+      "deployment": "local"
+    }
+  ],
+  "models": [
+    {
+      "id": "external-worker",
+      "provider": "external",
+      "model": "EXTERNAL_MODEL_ID",
+      "roles": ["worker"],
+      "contextWindow": 131072,
+      "maxOutputTokens": 4096,
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.001,
+        "outputPer1k": 0.002
+      },
+      "routing": {
+        "quality": 90,
+        "latencyMs": 3000
+      }
+    },
+    {
+      "id": "local-router",
+      "provider": "local",
+      "model": "LOCAL_ROUTER_MODEL_ID",
+      "roles": ["planner", "worker", "classifier"],
+      "contextWindow": 131072,
+      "maxOutputTokens": 4096,
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0,
+        "outputPer1k": 0
+      },
+      "routing": {
+        "quality": 85,
+        "latencyMs": 10000
+      }
+    },
+    {
+      "id": "local-judge",
+      "provider": "local",
+      "model": "LOCAL_JUDGE_MODEL_ID",
+      "roles": ["judge"],
+      "contextWindow": 131072,
+      "maxOutputTokens": 4096,
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0,
+        "outputPer1k": 0
+      }
+    }
+  ]
+}
