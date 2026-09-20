@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from refractrouter.agent import run_agent
-from refractrouter.application_config import SCHEMA_V1, SCHEMA_V2, compile_configuration
+from refractrouter.application_config import SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, compile_configuration
 from refractrouter.privacy_placement import (PlacementGuard, PrivacyRouteViolation, classify_view,
     default_privacy, grade_nodes, judge_isolation, marginal_pricing, new_record, resolve_placement,
-    restricted_eligible_models, role_isolation, scan_deterministic, static_node_views)
+    restricted_eligible_models, role_isolation, safe_tool_audit, scan_deterministic, static_node_views)
 from refractrouter.task_plan import validate_plan
 from tests.test_text_tasks import Client
 
@@ -45,6 +45,18 @@ def configuration(*, schema=SCHEMA_V2, local_deployment='simulated-local', priva
             raw['privacy']['classifier'] = classifier
     elif isinstance(privacy, dict):
         raw['privacy'] = privacy
+    return raw
+
+
+def security_configuration(*, local_deployment='local', data_mode='live', trusted=False):
+    raw = configuration(schema=SCHEMA_V2, local_deployment=local_deployment, privacy=None)
+    raw['schemaVersion'] = SCHEMA_V3
+    raw['providers'][0]['deployment'] = 'external-cloud'
+    raw['security'] = {'dataMode': data_mode, 'sensitiveTerms': [], 'maxPromptBytes': 1048576}
+    if trusted:
+        raw['providers'][1].update(deployment='trusted-cloud', trustPolicy='team-cn')
+        raw['trustPolicies'] = [{'id': 'team-cn', 'residency': 'CN', 'auditLogging': True,
+                                 'allowsSensitiveData': True}]
     return raw
 
 
@@ -85,6 +97,37 @@ def test_v2_without_new_fields_matches_v1_compilation():
             and first.quality_min == second.quality_min)
     assert first.privacy is None and second.privacy is None
     assert second.manifest.schema_version == SCHEMA_V2
+
+
+def test_v3_enables_security_and_requires_explicit_trust_domains():
+    compiled = compile_configuration(security_configuration())
+    assert compiled.privacy['enabled'] is True
+    assert compiled.privacy['dataMode'] == 'live'
+    assert compiled.manifest.schema_version == SCHEMA_V3
+    assert {m.deployment for m in compiled.manifest.models} == {'external-cloud', 'local'}
+
+
+def test_v3_rejects_simulated_local_for_live_sensitive_material():
+    with pytest.raises(ValueError, match='simulated-local is allowed only'):
+        compile_configuration(security_configuration(local_deployment='simulated-local'))
+    compiled = compile_configuration(security_configuration(
+        local_deployment='simulated-local', data_mode='synthetic'))
+    assert compiled.privacy['dataMode'] == 'synthetic'
+    raw = security_configuration(local_deployment='simulated-local', data_mode='live')
+    raw['security']['classifier'] = {'enabled': True, 'modelId': 'local-work'}
+    with pytest.raises(ValueError, match='local or trusted-cloud'):
+        compile_configuration(raw)
+
+
+def test_v3_trusted_cloud_requires_and_accepts_an_explicit_policy():
+    raw = security_configuration(local_deployment='trusted-cloud')
+    with pytest.raises(ValueError, match='configured trustPolicy'):
+        compile_configuration(raw)
+    compiled = compile_configuration(security_configuration(trusted=True))
+    assert {m.deployment for m in compiled.manifest.models} == {'external-cloud', 'trusted-cloud'}
+    record = new_record(compiled.privacy, compiled.manifest.models)
+    assert record['policy_version'] == 'security-placement-v2'
+    assert record['local_execution_model_ids'] == ['local-work']
 
 
 def test_local_provider_cannot_declare_cloud_models():
@@ -295,6 +338,29 @@ def test_guard_blocks_when_no_local_candidate_can_take_the_view():
     assert guard.record['violations'][0]['action'] == 'blocked'
 
 
+def test_tool_result_is_rechecked_before_cloud_followup():
+    compiled = compile_configuration(security_configuration())
+    guard = PlacementGuard(new_record(compiled.privacy, compiled.manifest.models),
+                           compiled.manifest.models)
+    followup = [{'role': 'user', 'content': '查询公开天气'},
+                {'role': 'tool', 'content': '联系人 wang@example.com'}]
+    with pytest.raises(PrivacyRouteViolation, match='sensitive-tool-result'):
+        guard.require('weather', 'cloud-strong', followup, stage='sensitive-tool-result')
+    row = guard.record['violations'][0]
+    assert row['detail'] == 'sensitive-tool-result' and row['reasons'] == ['email']
+
+
+def test_tool_audit_contains_hashes_without_sensitive_payloads():
+    records = [{'node': 'weather', 'status': 'completed',
+                'call': {'id': 'c1', 'function': {'name': 'lookup',
+                         'arguments': '{"email":"wang@example.com"}'}},
+                'result': {'content': [{'type': 'text', 'text': 'wang@example.com'}]}}]
+    audit = safe_tool_audit(records, privacy=compile_configuration(security_configuration()).privacy)
+    encoded = json.dumps(audit, ensure_ascii=False)
+    assert 'wang@example.com' not in encoded and 'arguments' not in encoded and 'content' not in encoded
+    assert audit[0]['tool_name'] == 'lookup' and audit[0]['result_grade']['grade'] == 'S1'
+
+
 def test_role_and_judge_isolation():
     models = models_of(configuration(judge_local=False))
     record = new_record(configuration(judge_local=False)['privacy'], models.values())
@@ -344,6 +410,7 @@ def test_sensitive_run_places_every_node_and_the_judge_locally(tmp_path):
     assert record['privacy_placement']['grades']['cost']['grade'] == 'S1'
     assert record['privacy_placement']['judge_isolation']['satisfied'] is True
     assert {row['deployment'] for row in record['nodes']} == {'simulated-local'}
+    assert all('request_messages' not in call for call in record['calls'])
 
 
 def test_cloud_judge_is_blocked_before_the_review_call(tmp_path):
@@ -361,6 +428,15 @@ def test_preflight_preview_reports_placement_without_calls(tmp_path):
     assert result['status'] == 'preview'
     placement = record_of(result)['privacy_placement']
     assert placement['status'] == 'selected' and placement['local_model_ids'] == ['judge', 'local-work']
+
+
+def test_v3_preflight_routes_sensitive_direct_answer_to_a_real_trust_domain(tmp_path):
+    result = run_agent({'task': SENSITIVE_TASK, 'template': 'single'},
+                       provider_config=security_configuration(), mode='preflight', runs_dir=tmp_path)
+    placement = record_of(result)['privacy_placement']
+    assert result['status'] == 'preview'
+    assert placement['policy_version'] == 'security-placement-v2'
+    assert placement['eligible_models']['answer'] == ['local-work']
 
 
 def test_preflight_reports_judge_isolation_before_any_paid_call(tmp_path):

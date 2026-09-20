@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "refractagent-providers-v3",
+  "billingUnit": "USD",
+  "qualityMin": 80,
+  "security": {
+    "dataMode": "live",
+    "sensitiveTerms": ["内部项目代号"],
+    "maxPromptBytes": 1048576
+  },
+  "trustPolicies": [
+    {
+      "id": "team-cn-audited",
+      "residency": "CN",
+      "auditLogging": true,
+      "allowsSensitiveData": true
+    }
+  ],
+  "providers": [
+    {
+      "id": "public-cloud",
+      "type": "openai-compatible",
+      "baseUrl": "https://public.example/v1",
+      "credentialEnv": "PUBLIC_CLOUD_KEY",
+      "deployment": "external-cloud"
+    },
+    {
+      "id": "team-cloud",
+      "type": "openai-compatible",
+      "baseUrl": "https://trusted.example/v1",
+      "credentialEnv": "TEAM_CLOUD_KEY",
+      "deployment": "trusted-cloud",
+      "trustPolicy": "team-cn-audited"
+    },
+    {
+      "id": "local-runtime",
+      "type": "openai-compatible",
+      "baseUrl": "http://127.0.0.1:8000/v1",
+      "deployment": "local"
+    }
+  ],
+  "models": [
+    {
+      "id": "external-strong",
+      "provider": "public-cloud",
+      "model": "EXTERNAL_STRONG",
+      "role": "candidate",
+      "contextWindow": 131072,
+      "maxOutputTokens": 8192,
+      "pricing": {"unit": "USD", "inputPer1k": 0.01, "outputPer1k": 0.03},
+      "routing": {"quality": 95, "latencyMs": 3000}
+    },
+    {
+      "id": "trusted-worker",
+      "provider": "team-cloud",
+      "model": "TRUSTED_WORKER",
+      "role": "candidate",
+      "contextWindow": 131072,
+      "maxOutputTokens": 8192,
+      "pricing": {"unit": "USD", "inputPer1k": 0.004, "outputPer1k": 0.012},
+      "routing": {"quality": 88, "latencyMs": 5000}
+    },
+    {
+      "id": "local-worker",
+      "provider": "local-runtime",
+      "model": "LOCAL_WORKER",
+      "role": "candidate",
+      "contextWindow": 32768,
+      "maxOutputTokens": 4096,
+      "pricing": {"unit": "USD", "inputPer1k": 0, "outputPer1k": 0},
+      "routing": {"quality": 82, "latencyMs": 9000}
+    },
+    {
+      "id": "local-judge",
+      "provider": "local-runtime",
+      "model": "LOCAL_JUDGE",
+      "role": "judge",
+      "contextWindow": 32768,
+      "maxOutputTokens": 4096,
+      "pricing": {"unit": "USD", "inputPer1k": 0, "outputPer1k": 0}
+    }
+  ]
+}

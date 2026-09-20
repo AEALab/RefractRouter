@@ -30,7 +30,7 @@ from .selective_context import build_node_context
 from .task_materials import validate_materials
 from .privacy_placement import (PlacementGuard, PrivacyRouteViolation, judge_isolation, new_record,
                                 privacy_enabled, resolve_placement, restricted_eligible_models,
-                                role_isolation, static_node_views)
+                                role_isolation, safe_tool_audit, static_node_views)
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
@@ -200,12 +200,24 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result['dependency_evidence'] = content_guard.evidence()
     if configuration is not None and not configured_application:
         raise ValueError('automatic configuration requires configured application mode')
+    # v3 安全合同始终启用；历史 v1/v2 只有显式 privacy.enabled 才进入这条路径。
+    placement = new_record(privacy, manifest.models) if privacy_enabled(privacy) else None
+    guard = (PlacementGuard(placement, candidates.values(), classifier=classifier)
+             if placement is not None else None)
+    if placement is not None:
+        result['privacy_placement'] = placement
     persist_lock = RLock()
     def persist():
         with persist_lock:
             result["charged"], result["calls"] = budget.snapshot()
+            if placement is not None:
+                # 安全运行只保存摘要；完整输入已由 input_sha256 关联，敏感原文不落盘。
+                for call in result['calls']:
+                    call.pop('request_messages', None)
             if tool_runtime is not None:
-                result["tool_calls"] = tool_runtime.snapshot()
+                records = tool_runtime.snapshot()
+                result["tool_calls"] = (safe_tool_audit(records, privacy=privacy)
+                                        if placement is not None else records)
             if configured_application:
                 actions = {m.model_id: action_identity(m) for m in manifest.models}
                 for call in result['calls']:
@@ -213,13 +225,6 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             result["wall_time_ms"] = round((time.monotonic() - started) * 1000)
             checkpoint(result)
     budget.on_reserve = lambda reservation: persist()
-    # 隐私感知放置：默认关闭（privacy 缺省时 placement 为 None，路径与现状一致）。
-    # 记录涵盖全部模型（含评审与规划器角色），便于审计本地可用集合；执行派发仍只用候选池。
-    placement = new_record(privacy, manifest.models) if privacy_enabled(privacy) else None
-    guard = (PlacementGuard(placement, candidates.values(), classifier=classifier)
-             if placement is not None else None)
-    if placement is not None:
-        result['privacy_placement'] = placement
 
     def privacy_block(rows, append=True):
         """启用约束后无法在本地候选内完成时明确失败，不静默放行云端。"""
