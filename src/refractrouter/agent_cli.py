@@ -44,6 +44,10 @@ def main(argv=None):
     commands = parser.add_subparsers(dest='command', required=True)
     models = commands.add_parser('models', help='列出策略；可校验用户模型配置，零调用')
     models.add_argument('--provider-config', type=Path)
+    validate = commands.add_parser('validate-config', help='使用 Python 核心校验 provider/model 配置，零调用')
+    validate_source = validate.add_mutually_exclusive_group(required=True)
+    validate_source.add_argument('--provider-config', type=Path)
+    validate_source.add_argument('--request-stdin', action='store_true')
     example = commands.add_parser('config-example', help='生成可编辑的 provider/model 配置示例')
     example.add_argument('--output', type=Path, required=True)
     migrate = commands.add_parser('migrate-config-v4', help='显式迁移 v3 provider 配置，不覆盖来源文件')
@@ -130,6 +134,38 @@ def main(argv=None):
                     if key in raw:
                         result[key] = raw[key]
             print(json.dumps(result, ensure_ascii=False))
+            return 0
+        if args.command == 'validate-config':
+            try:
+                raw = (json.loads(args.provider_config.read_text()) if args.provider_config else
+                       json.loads(sys.stdin.read(2097153)))
+                compiled = compile_configuration(raw)
+            except (ValueError, FileNotFoundError, json.JSONDecodeError) as exc:
+                print(json.dumps({
+                    'schema_version': 'refractagent-config-validation-v1',
+                    'valid': False,
+                    'error': str(exc)[:500],
+                    'model_calls': 0,
+                }, ensure_ascii=False))
+                return 1
+            role_counts = {
+                role: sum(role in model.roles for model in compiled.manifest.models)
+                for role in ('planner', 'worker', 'judge', 'classifier')
+            }
+            credential_references = sorted({
+                provider['credentialEnv'] for provider in raw.get('providers', [])
+                if isinstance(provider, dict) and isinstance(provider.get('credentialEnv'), str)
+            })
+            print(json.dumps({
+                'schema_version': 'refractagent-config-validation-v1',
+                'valid': True,
+                'config_schema': raw.get('schemaVersion'),
+                'provider_count': len(raw.get('providers', [])),
+                'model_count': len(raw.get('models', [])),
+                'role_counts': role_counts,
+                'credential_references': credential_references,
+                'model_calls': 0,
+            }, ensure_ascii=False))
             return 0
         if args.command == 'show':
             print((args.run_dir/'summary.json').read_text())

@@ -4,6 +4,22 @@
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
 provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
 
+## 0.18.0：v4 自动路由设置合同
+
+设置控制器现已支持 `refractagent-providers-v4` 的路由质量门槛、DAG 模式、数据模式、
+敏感词，以及 Provider、模型和信任策略的结构化增删改。所有编辑先进入同一草稿，保存、放弃和
+重置沿用 DSH settings namespace；高级 JSON 与结构化字段双向同步，不丢失合法的嵌套扩展字段。
+
+Provider 只能保存 `credentialEnv` 引用。浏览器草稿会拒绝 `apiKey`、`token`、`secret` 等
+凭证值字段；最终配置语义由 Python 核心执行：
+
+```bash
+refractagent validate-config --provider-config ./providers-v4.json
+```
+
+该命令不解析凭证、不调用模型。TypeScript 仍不实现安全准入、模型筛选、费用求解或
+direct/DAG 判定。当前版本先冻结设置读写合同；新版卡片布局和可行性预览在后续版本接入。
+
 ## 0.14.0：官方文字模型清单与 AFP 成本档位
 
 配合 Python 核心 0.4.1，DSH 的 Ark 预设默认展开官方 11 个文字生成模型，使用实际模型 ID，
