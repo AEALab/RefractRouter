@@ -35,7 +35,9 @@ PRESETS = {
     'quality': {'name': '质量优先', 'method': 'B', 'qualityMin': 80,
                 'weights': {'quality': 1, 'cost': 0, 'latency': 0}},
 }
+AUTO_PRESET = {'name': '自动路由', 'method': 'A', 'qualityMin': 0}
 POLICY_VERSION = 'refractagent-presets-v1'
+AUTO_POLICY_VERSION = 'refractagent-auto-runtime-v1'
 MAX_CONTEXT_BYTES = 120000
 RELAXED_CONTEXT_BYTES = 1000000
 RELAXED_COST_MAX = 1e12
@@ -82,7 +84,7 @@ def plan_template(name, criteria=None):
     return validate_plan(plan).to_dict()
 
 
-def build_request(payload, *, mode, production_budget, timeout_ms):
+def build_request(payload, *, mode, production_budget, timeout_ms, automatic_routing=False):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
@@ -94,16 +96,22 @@ def build_request(payload, *, mode, production_budget, timeout_ms):
         raise ValueError('limits may only contain boolean relaxBudget, relaxContext and unlimitedTime')
     relax_budget = limits.get('relaxBudget', False)
     relax_context = limits.get('relaxContext', False)
-    strategy = payload.get('strategy', 'balanced')
-    if not isinstance(strategy, str) or strategy not in PRESETS:
-        raise ValueError('strategy must be economy, balanced or quality')
+    strategy = payload.get('strategy', 'auto' if automatic_routing else 'balanced')
+    allowed_strategies = {'auto'} if automatic_routing else set(PRESETS)
+    if not isinstance(strategy, str) or strategy not in allowed_strategies:
+        raise ValueError('v4 strategy must be auto' if automatic_routing else
+                         'strategy must be economy, balanced or quality')
+    template = payload.get('template', 'auto' if automatic_routing else 'single')
+    if automatic_routing and (template != 'auto' or 'plan' in payload):
+        raise ValueError('v4 automatic routing requires template auto without an explicit plan')
     budget = number(production_budget, 'production budget', positive=True)
     task = text(payload.get('task'), 'task')
     criteria = payload.get('acceptanceCriteria')
-    automatic = payload.get('template') == 'auto' and 'plan' not in payload
+    automatic = template == 'auto' and 'plan' not in payload
     plan = (None if automatic else validate_plan(payload['plan'], required_criteria=criteria).to_dict() if 'plan' in payload
-            else plan_template(payload.get('template', 'single'), criteria))
-    request = {**deepcopy(PRESETS[strategy]), 'task': task,
+            else plan_template(template, criteria))
+    preset = AUTO_PRESET if automatic_routing else PRESETS[strategy]
+    request = {**deepcopy(preset), 'task': task,
                'mode': {'preflight': 'preflight', 'demo': 'demo', 'live': 'run'}[mode],
                'costMax': RELAXED_COST_MAX if relax_budget else budget,
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
@@ -156,15 +164,18 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
-    if isinstance(provider_config, dict) and provider_config.get('schemaVersion') == 'refractagent-providers-v4':
-        raise ValueError('v4 automatic routing execution is not enabled yet; configuration validation and migration are zero-call only')
+    automatic_routing = (isinstance(provider_config, dict)
+                         and provider_config.get('schemaVersion') == 'refractagent-providers-v4')
+    if automatic_routing and mode == 'live':
+        raise ValueError('v4 live automatic routing is not enabled yet; use preflight or demo')
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')
     number(evaluation_budget, 'evaluation budget', positive=True)
     if type(max_output_tokens) is not int or not 1000 <= max_output_tokens <= 128000:
         raise ValueError('output cap must be an integer in 1000..128000')
-    strategy, request, context, limits = build_request(payload, mode=mode, production_budget=production_budget,
-                                                       timeout_ms=timeout_ms)
+    strategy, request, context, limits = build_request(
+        payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
+        automatic_routing=automatic_routing)
     relax_budget, relax_context = limits['relaxBudget'], limits['relaxContext']
     if preset not in {None, 'ark-agent-plan'}:
         raise ValueError('unknown provider preset')
@@ -191,11 +202,11 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         prepare_configured_plan(request, context, explicit_plan='plan' in payload,
                                 output_cap=max_output_tokens, input_cap=input_cap)
     temperature = number(payload.get('temperature', 0), 'temperature', maximum=2)
-    manifest = replace(manifest, models=tuple(execution_capacity_model(m) if m.role == 'candidate' else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
+    manifest = replace(manifest, models=tuple(execution_capacity_model(m) if 'worker' in getattr(m, 'roles', ()) else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
                                              for m in manifest.models))
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
-                                             if m.role == 'candidate' and m.wire_api != 'responses' else m for m in manifest.models))
-    if payload.get('template') == 'auto' and 'plan' not in payload:
+                                             if (m.role == 'candidate' or 'worker' in getattr(m, 'roles', ())) and m.wire_api != 'responses' else m for m in manifest.models))
+    if (automatic_routing or payload.get('template') == 'auto') and 'plan' not in payload:
         request['maxConcurrency'] = payload.get('maxConcurrency',
             1 if any(m.wire_api == 'dsh-llm' for m in manifest.models) else 4)
     if configured:
@@ -225,7 +236,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     directory.mkdir(parents=True, exist_ok=False, mode=0o700)
     request_path = directory / 'request.json'
     atomic_json(request_path, {'schema_version': 'refractagent-request-v1', 'payload': payload,
-        'runtime_request': request, 'policy_version': POLICY_VERSION, 'mode': mode,
+        'runtime_request': request,
+        'policy_version': AUTO_POLICY_VERSION if automatic_routing else POLICY_VERSION, 'mode': mode,
         'production_budget': production_budget, 'evaluation_budget': evaluation_budget,
         'max_output_tokens': max_output_tokens, 'limits': limits})
     atomic_json(directory / 'profile.json', profile)
@@ -255,7 +267,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     actions = {m.model_id: action_identity(m) for m in manifest.models}
     if mode == 'demo' and result['final_output']:
         result['final_output'] = ('[SIMULATED] RefractAgent 安装演示，未调用真实模型。\n\n'
-            + '策略：' + PRESETS[strategy]['name'] + '\n'
+            + '策略：' + (AUTO_PRESET if automatic_routing else PRESETS[strategy])['name'] + '\n'
             + '模型分配：' + json.dumps({nid: models[mid] for nid,mid in assignments.items()}, ensure_ascii=False) + '\n'
             + '任务：' + request['task'] + '\n\n'
             + '安装、选路和结果保存已完成；启用真实执行后才会生成该任务的答案与独立评审。')
@@ -267,7 +279,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               for kind in ('production', 'evaluation')}
     totals['unconfirmed'] = sum(c['charged'] for c in calls if c['status'] in {'reserved', 'unknown-usage'})
     output = {'schema_version': 'refractagent-result-v1', 'run_id': run_id, 'mode': mode,
-        'strategy': strategy, 'strategy_name': PRESETS[strategy]['name'], 'policy_version': POLICY_VERSION,
+        'strategy': strategy,
+        'strategy_name': (AUTO_PRESET if automatic_routing else PRESETS[strategy])['name'],
+        'policy_version': AUTO_POLICY_VERSION if automatic_routing else POLICY_VERSION,
         'limits': limits,
         'status': result['status'], 'answer': result['final_output'], 'issues': result['issues'],
         'models': {nid: models[mid] for nid, mid in assignments.items()},
