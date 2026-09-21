@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
 import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
-  type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
+  DEPLOYMENT_OPTIONS, type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
 import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
 import type {DshModelCatalog,RouterProjectDirectory} from './types.js'
 import { V4Settings } from './v4-settings.js'
@@ -243,7 +243,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <input type="checkbox" checked={!!selected} disabled={disabled} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
                 <strong>{row.providerName} / {row.name}</strong></label>{selected?<><label className="rra-compact-field">部署属性
                 <select className="rra-select" value={selected.deployment} onChange={event=>{const deployment=event.target.value;patchRoute(row.provider,row.model,{deployment,...(['trusted-cloud','simulated-local'].includes(deployment)?{}:{trustPolicy:undefined})})}}>
-                  <option value="">请选择部署属性</option>{['local','external-cloud','trusted-cloud','simulated-local'].map(value=><option key={value}>{value}</option>)}</select></label>
+                  <option value="">请选择部署属性</option>{DEPLOYMENT_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 {selected.deployment==='trusted-cloud'||selected.deployment==='simulated-local'?<label className="rra-compact-field">信任策略<select className="rra-select" value={selected.trustPolicy??''} onChange={event=>patchRoute(row.provider,row.model,{trustPolicy:event.target.value||undefined})}><option value="">请选择信任策略</option>{trustPolicyOptions.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>:null}
                 {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k','输入价 / 1k'],['cachedInputPer1k','缓存输入价 / 1k'],['outputPer1k','输出价 / 1k'],['quality','质量预测'],['latencyMs','时延预测（ms）']].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
                 <label className="rra-compact-field">说明<input className="rra-input" value={String(selected.overrides?.note??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,note:event.target.value||undefined}})}/></label>
