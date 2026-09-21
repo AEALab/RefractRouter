@@ -1,0 +1,150 @@
+{
+  "schema_version": "security-benchmark-bindings-v2",
+  "issue": 112,
+  "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b",
+  "frozen_at": "2026-09-21",
+  "pricing_snapshot_date": "2026-09-07",
+  "execution_billing_unit": "AFP",
+  "sources": [
+    {
+      "id": "ark-model-directory",
+      "kind": "official-documentation",
+      "uri": "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+      "retrievedAt": "2026-09-07",
+      "sha256": "19b55606bc82f40154f32aa9975d54ba9f8a41d1b0c0b5c970994d02335f0ff6"
+    },
+    {
+      "id": "ark-afp-pricing",
+      "kind": "official-documentation",
+      "uri": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+      "retrievedAt": "2026-09-07",
+      "sha256": "6e5aebe70fc3a3ce5ca4a27eef6747b5bb1ba824d50c9553fd672e0845c7b4f3"
+    },
+    {
+      "id": "ark-frozen-catalog",
+      "kind": "frozen-catalog",
+      "uri": "data/model-catalogs/ark-agent-plan-2026-09-07.json",
+      "retrievedAt": "2026-09-07",
+      "sha256": "1b68c1f2a80328d3315bf6bc58a3d0270f1ac31b59caf5584c148dc081712b98"
+    },
+    {
+      "id": "ark-frozen-manifest",
+      "kind": "frozen-manifest",
+      "uri": "data/model-manifests/volcengine-agent-plan.json",
+      "retrievedAt": "2026-09-06",
+      "sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367"
+    }
+  ],
+  "endpointPolicies": [
+    {
+      "id": "ark-plan-external-cn-beijing",
+      "provider": "ark-plan",
+      "type": "openai-compatible",
+      "baseUrl": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "credentialEnv": "CODEX_ARK_API_KEY",
+      "region": "cn-beijing",
+      "trustPolicyId": null
+    }
+  ],
+  "bindings": [
+    {
+      "roleId": "external-strong",
+      "status": "bound",
+      "blockers": [],
+      "binding": {
+        "provider": "ark-plan",
+        "model": "deepseek-v4-pro",
+        "version": {
+          "kind": "documented-model-name",
+          "value": "deepseek-v4-pro",
+          "observedAt": "2026-09-07"
+        },
+        "endpointPolicyId": "ark-plan-external-cn-beijing",
+        "deployment": "external-cloud",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 384000,
+        "qualityProxy": 95,
+        "latencyMs": 3500,
+        "executionPricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.55,
+          "cachedInputPer1k": 0.55,
+          "outputPer1k": 0.55,
+          "sourceId": "ark-afp-pricing"
+        },
+        "referencePricing": null,
+        "referencePricingBlockers": [
+          "MODEL_EQUIVALENCE_UNVERIFIED：Ark deepseek-v4-pro 尚无证据证明与某个 DeepSeek 原厂公开计价型号及版本完全等价。"
+        ],
+        "profileProvenance": "protocol-prior",
+        "evidenceSources": ["ark-model-directory", "ark-afp-pricing", "ark-frozen-catalog", "ark-frozen-manifest"]
+      }
+    },
+    {
+      "roleId": "external-cheap",
+      "status": "bound",
+      "blockers": [],
+      "binding": {
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "version": {
+          "kind": "documented-model-name",
+          "value": "deepseek-v4-flash",
+          "observedAt": "2026-09-07"
+        },
+        "endpointPolicyId": "ark-plan-external-cn-beijing",
+        "deployment": "external-cloud",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 384000,
+        "qualityProxy": 84,
+        "latencyMs": 1800,
+        "executionPricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.05,
+          "cachedInputPer1k": 0.05,
+          "outputPer1k": 0.05,
+          "sourceId": "ark-afp-pricing"
+        },
+        "referencePricing": null,
+        "referencePricingBlockers": [
+          "MODEL_EQUIVALENCE_UNVERIFIED：Ark deepseek-v4-flash 尚无证据证明与某个 DeepSeek 原厂公开计价型号及版本完全等价。"
+        ],
+        "profileProvenance": "protocol-prior",
+        "evidenceSources": ["ark-model-directory", "ark-afp-pricing", "ark-frozen-catalog", "ark-frozen-manifest"]
+      }
+    },
+    {
+      "roleId": "trusted-strong",
+      "status": "blocked",
+      "blockers": [
+        "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+        "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。"
+      ],
+      "binding": null
+    },
+    {
+      "roleId": "local-worker",
+      "status": "blocked",
+      "blockers": [
+        "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。"
+      ],
+      "binding": null
+    },
+    {
+      "roleId": "local-judge",
+      "status": "blocked",
+      "blockers": [
+        "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。"
+      ],
+      "binding": null
+    },
+    {
+      "roleId": "simulated-local-worker",
+      "status": "blocked",
+      "blockers": [
+        "DEPLOYMENT_MISMATCH：simulated-local 仅用于研究，不允许绑定为真实可部署路线。"
+      ],
+      "binding": null
+    }
+  ]
+}

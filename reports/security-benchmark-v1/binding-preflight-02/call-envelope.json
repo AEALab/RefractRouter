@@ -1,0 +1,566 @@
+{
+  "schema_version": "security-benchmark-budget-freeze-v2",
+  "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b",
+  "binding_sha256": "40ecaf7d80b1fc6ab4a108f86610860bd4ccd64a2506f0383434f62534a92942",
+  "execution_billing_unit": "AFP",
+  "calls": [
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 2400,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 2400,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 2400,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "private-facts",
+      "role_id": "local-worker",
+      "input_tokens": 1200,
+      "output_tokens": 300
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "public-rules",
+      "role_id": "external-cheap",
+      "input_tokens": 900,
+      "output_tokens": 300
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "merge",
+      "role_id": "trusted-strong",
+      "input_tokens": 1800,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 2600,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 2600,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 2600,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "timeline",
+      "role_id": "local-worker",
+      "input_tokens": 1300,
+      "output_tokens": 350
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "impact",
+      "role_id": "local-worker",
+      "input_tokens": 1300,
+      "output_tokens": 350
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "remediation",
+      "role_id": "trusted-strong",
+      "input_tokens": 1900,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 1800,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 1800,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 1800,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "compare-a",
+      "role_id": "external-cheap",
+      "input_tokens": 800,
+      "output_tokens": 250
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "compare-b",
+      "role_id": "external-cheap",
+      "input_tokens": 800,
+      "output_tokens": 250
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "merge",
+      "role_id": "external-cheap",
+      "input_tokens": 1300,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "rewrite",
+      "role_id": "external-cheap",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 2200,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 2200,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 2200,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "first-half",
+      "role_id": "local-worker",
+      "input_tokens": 1100,
+      "output_tokens": 300
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "second-half",
+      "role_id": "local-worker",
+      "input_tokens": 1400,
+      "output_tokens": 350
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "explain",
+      "role_id": "trusted-strong",
+      "input_tokens": 1600,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    }
+  ],
+  "role_totals": [
+    {
+      "role_id": "external-cheap",
+      "calls": 5,
+      "purposes": {
+        "production": 5
+      },
+      "input_tokens": 4100,
+      "output_tokens": 1720,
+      "projected_execution_usage": 0.291,
+      "execution_billing_unit": "AFP",
+      "projected_reference_cost": null,
+      "reference_billing_unit": null
+    },
+    {
+      "role_id": "external-strong",
+      "calls": 5,
+      "purposes": {
+        "production": 5
+      },
+      "input_tokens": 9300,
+      "output_tokens": 3720,
+      "projected_execution_usage": 7.161,
+      "execution_billing_unit": "AFP",
+      "projected_reference_cost": null,
+      "reference_billing_unit": null
+    },
+    {
+      "role_id": "local-judge",
+      "calls": 20,
+      "purposes": {
+        "evaluation": 20
+      },
+      "input_tokens": 25120,
+      "output_tokens": 10240,
+      "projected_execution_usage": null,
+      "execution_billing_unit": "AFP",
+      "projected_reference_cost": null,
+      "reference_billing_unit": null
+    },
+    {
+      "role_id": "local-worker",
+      "calls": 10,
+      "purposes": {
+        "production": 10
+      },
+      "input_tokens": 15600,
+      "output_tokens": 5370,
+      "projected_execution_usage": null,
+      "execution_billing_unit": "AFP",
+      "projected_reference_cost": null,
+      "reference_billing_unit": null
+    },
+    {
+      "role_id": "trusted-strong",
+      "calls": 8,
+      "purposes": {
+        "production": 8
+      },
+      "input_tokens": 14600,
+      "output_tokens": 6520,
+      "projected_execution_usage": null,
+      "execution_billing_unit": "AFP",
+      "projected_reference_cost": null,
+      "reference_billing_unit": null
+    }
+  ],
+  "planned_calls": {
+    "production": 28,
+    "evaluation": 20,
+    "total": 48
+  },
+  "authorization_call_cap": 48,
+  "protocol_hard_call_cap": 64,
+  "automatic_http_retries": 0,
+  "node_fallbacks": 0,
+  "recovery_calls_authorized": 0,
+  "cache_discount_assumed": false
+}

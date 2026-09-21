@@ -7,7 +7,7 @@ import re
 from .security_benchmark import digest, validate_protocol
 
 
-SCHEMA = 'security-benchmark-bindings-v1'
+SCHEMA = 'security-benchmark-bindings-v2'
 STATUSES = {'bound', 'blocked'}
 DEPLOYMENTS = {'local', 'trusted-cloud', 'external-cloud', 'simulated-local'}
 SOURCE_KINDS = {'official-documentation', 'frozen-catalog', 'frozen-manifest',
@@ -34,6 +34,55 @@ def _number(value, label, *, maximum=None):
     if maximum is not None and value > maximum:
         raise ValueError(f'invalid {label}')
     return float(value)
+
+
+def _validate_price(value, label, sources, *, expected_unit=None):
+    value = _record(value, label)
+    _keys(value, {'unit', 'inputPer1k', 'cachedInputPer1k', 'outputPer1k',
+                  'sourceId'}, label)
+    if (not isinstance(value['unit'], str) or not value['unit']
+            or (expected_unit is not None and value['unit'] != expected_unit)
+            or value['sourceId'] not in sources):
+        raise ValueError(f'{label} unit or source is invalid')
+    for field in ('inputPer1k', 'cachedInputPer1k', 'outputPer1k'):
+        _number(value[field], field)
+    if value['cachedInputPer1k'] > value['inputPer1k']:
+        raise ValueError('cached input price cannot exceed input price')
+    return deepcopy(value)
+
+
+def _validate_reference_pricing(value, blockers, sources):
+    if (not isinstance(blockers, list)
+            or any(not isinstance(item, str) or not item for item in blockers)):
+        raise ValueError('invalid reference pricing blockers')
+    if value is None:
+        if not blockers:
+            raise ValueError('missing reference pricing requires an explicit blocker')
+        return None
+    if blockers:
+        raise ValueError('resolved reference pricing cannot contain blockers')
+    value = _record(value, 'reference pricing')
+    _keys(value, {'provider', 'model', 'version', 'equivalenceEvidenceSources',
+                  'pricing'}, 'reference pricing')
+    if (not isinstance(value['provider'], str) or not value['provider']
+            or not isinstance(value['model'], str) or not value['model']):
+        raise ValueError('reference pricing requires an exact provider/model identity')
+    version = _record(value['version'], 'reference model version')
+    _keys(version, {'kind', 'value', 'observedAt'}, 'reference model version')
+    if (version['kind'] not in {'immutable-version', 'documented-model-name'}
+            or not isinstance(version['value'], str) or not version['value']
+            or not isinstance(version['observedAt'], str) or not version['observedAt']):
+        raise ValueError('reference pricing requires a frozen model version')
+    evidence = value['equivalenceEvidenceSources']
+    if (not isinstance(evidence, list) or not evidence
+            or any(source not in sources for source in evidence)):
+        raise ValueError('reference pricing requires known equivalence evidence')
+    pricing = _validate_price(value['pricing'], 'reference pricing', sources)
+    if pricing['sourceId'] not in evidence:
+        raise ValueError('reference price source must be part of equivalence evidence')
+    if sources[pricing['sourceId']]['kind'] != 'official-documentation':
+        raise ValueError('reference pricing requires an official public price source')
+    return deepcopy(value)
 
 
 def _validate_sources(raw):
@@ -76,11 +125,12 @@ def _validate_endpoints(raw):
     return endpoints
 
 
-def _validate_binding(value, role, endpoints, sources, billing_unit):
+def _validate_binding(value, role, endpoints, sources, execution_billing_unit):
     value = _record(value, 'model binding')
     _keys(value, {'provider', 'model', 'version', 'endpointPolicyId', 'deployment',
                   'contextWindow', 'maxOutputTokens', 'qualityProxy', 'latencyMs',
-                  'pricing', 'profileProvenance', 'evidenceSources'}, 'model binding')
+                  'executionPricing', 'referencePricing', 'referencePricingBlockers',
+                  'profileProvenance', 'evidenceSources'}, 'model binding')
     if not isinstance(value['provider'], str) or not value['provider']:
         raise ValueError('binding requires provider')
     if not isinstance(value['model'], str) or not value['model']:
@@ -109,15 +159,10 @@ def _validate_binding(value, role, endpoints, sources, billing_unit):
     _number(value['latencyMs'], 'latencyMs')
     if value['qualityProxy'] < role['qualityProxy']:
         raise ValueError('binding quality proxy is below the frozen role')
-    pricing = _record(value['pricing'], 'binding pricing')
-    _keys(pricing, {'unit', 'inputPer1k', 'cachedInputPer1k', 'outputPer1k',
-                    'sourceId'}, 'binding pricing')
-    if pricing['unit'] != billing_unit or pricing['sourceId'] not in sources:
-        raise ValueError('binding pricing unit or source is invalid')
-    for field in ('inputPer1k', 'cachedInputPer1k', 'outputPer1k'):
-        _number(pricing[field], field)
-    if pricing['cachedInputPer1k'] > pricing['inputPer1k']:
-        raise ValueError('cached input price cannot exceed input price')
+    _validate_price(value['executionPricing'], 'execution pricing', sources,
+                    expected_unit=execution_billing_unit)
+    _validate_reference_pricing(value['referencePricing'],
+                                value['referencePricingBlockers'], sources)
     if value['profileProvenance'] not in PROFILE_PROVENANCE:
         raise ValueError('invalid profile provenance')
     if (not isinstance(value['evidenceSources'], list) or not value['evidenceSources']
@@ -131,7 +176,7 @@ def audit_bindings(protocol, raw):
     validate_protocol(protocol)
     raw = _record(raw, 'binding inventory')
     _keys(raw, {'schema_version', 'issue', 'protocol_sha256', 'frozen_at',
-                'pricing_snapshot_date', 'billing_unit', 'sources', 'endpointPolicies',
+                'pricing_snapshot_date', 'execution_billing_unit', 'sources', 'endpointPolicies',
                 'bindings'}, 'binding inventory')
     if raw['schema_version'] != SCHEMA or raw['issue'] != 112:
         raise ValueError('invalid binding inventory schema')
@@ -139,8 +184,9 @@ def audit_bindings(protocol, raw):
         raise ValueError('binding inventory protocol digest mismatch')
     if (not isinstance(raw['frozen_at'], str) or not raw['frozen_at']
             or not isinstance(raw['pricing_snapshot_date'], str)
-            or not raw['pricing_snapshot_date'] or not isinstance(raw['billing_unit'], str)
-            or not raw['billing_unit']):
+            or not raw['pricing_snapshot_date']
+            or not isinstance(raw['execution_billing_unit'], str)
+            or not raw['execution_billing_unit']):
         raise ValueError('binding inventory requires snapshot metadata')
     sources = _validate_sources(raw['sources'])
     endpoints = _validate_endpoints(raw['endpointPolicies'])
@@ -158,7 +204,7 @@ def audit_bindings(protocol, raw):
         binding = None
         if row['binding'] is not None:
             binding = _validate_binding(row['binding'], roles[role_id], endpoints, sources,
-                                        raw['billing_unit'])
+                                        raw['execution_billing_unit'])
         if row['status'] == 'bound' and (binding is None or row['blockers']):
             raise ValueError('bound role cannot contain blockers or omit its binding')
         if row['status'] == 'blocked' and not row['blockers']:
@@ -185,11 +231,11 @@ def audit_bindings(protocol, raw):
                          if row['status'] == 'bound')
     required_blocked = [row for row in blocked if not roles[row['role_id']]['researchOnly']]
     return {
-        'schema_version': 'security-benchmark-binding-audit-v1',
+        'schema_version': 'security-benchmark-binding-audit-v2',
         'real_model_calls': 0,
         'protocol_sha256': raw['protocol_sha256'],
         'binding_sha256': digest(raw),
-        'billing_unit': raw['billing_unit'],
+        'execution_billing_unit': raw['execution_billing_unit'],
         'roles_total': len(roles),
         'bound_roles': bound_roles,
         'blocked_roles': blocked,
