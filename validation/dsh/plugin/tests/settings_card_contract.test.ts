@@ -76,6 +76,18 @@ test('overlaySettings overlays limits and keeps the rest of the composed configu
   assert.equal(next.allowPaidRuns, true)
 })
 
+test('Router URL settings overlay a real remote connection and enforce transport safety', () => {
+  const config=configure({})
+  const router={url:'https://router.example/team',credential:'ROUTER_TOKEN'}
+  validateSettingsSection({router})
+  const next=overlaySettings(config,{router})
+  assert.equal(next.routerUrl,'https://router.example/team')
+  assert.equal(next.routerCredential,'ROUTER_TOKEN')
+  assert.deepEqual(buildSettingsBase(next).router,router)
+  assert.throws(()=>validateSettingsSection({router:{url:'http://router.example'}}),/requires HTTPS/)
+  assert.throws(()=>validateSettingsSection({router:{url:'https://user:secret@router.example'}}),/without credentials/)
+})
+
 test('overlaySettings providerConfig override replaces the composed preset', () => {
   const config = configure({ executionMode: 'live', allowPaidRuns: true, preset: 'ark-agent-plan' })
   const providerConfig = dshProviderConfig()
@@ -238,6 +250,21 @@ test('controller projects the resolved section and stages limit edits', async ()
   assert.deepEqual(scope.writes, [{ op: 'set', field: 'limits', value: { relaxBudget: true, relaxContext: false } }])
   assert.equal(controller.getSnapshot().dirty, false)
   assert.equal(controller.getSnapshot().overriddenLimits, true)
+  controller.dispose()
+})
+
+test('controller saves and resets the Router service URL without storing a token',async()=>{
+  const scope=fakeScope({})
+  const controller=new RefractCardController(scope)
+  const face=controller.inject()
+  face.editRouter({url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN'})
+  assert.deepEqual(controller.getSnapshot().router,{url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN'})
+  await controller.save()
+  assert.deepEqual(scope.writes[0],{op:'set',field:'router',value:{url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN'}})
+  assert.equal(JSON.stringify(scope.writes).includes('private-test-key'),false)
+  face.resetField('router')
+  await controller.save()
+  assert.deepEqual(scope.writes[1],{op:'unset',field:'router'})
   controller.dispose()
 })
 

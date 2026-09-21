@@ -11,7 +11,7 @@ export const SETTINGS_NAMESPACE = 'refractagent'
 export type ModeKey = 'economy' | 'balanced' | 'quality'
 export const MODE_KEYS: readonly ModeKey[] = ['economy', 'balanced', 'quality']
 export type LimitKey = 'relaxBudget' | 'relaxContext' | 'unlimitedTime'
-export type CardField = 'providerConfig' | 'dshModelPool' | 'limits'
+export type CardField = 'router' | 'providerConfig' | 'dshModelPool' | 'limits'
 export type V4CollectionKey = 'providers' | 'models' | 'trustPolicies'
 export type V4DagMode = 'auto' | 'never' | 'force'
 export type V4DataMode = 'live' | 'desensitized' | 'synthetic'
@@ -107,10 +107,12 @@ export interface LimitsView {
   unlimitedTime?: boolean
 }
 export interface SectionView {
+  router?: RouterConnectionView
   providerConfig?: ProviderConfigView
   dshModelPool?: DshModelPoolView
   limits?: LimitsView
 }
+export interface RouterConnectionView { url:string; credential?:string }
 export interface DshModelPoolView {
   schemaVersion: 'refractagent-dsh-model-pool-v1'
   billingUnit?: string
@@ -148,6 +150,8 @@ export interface RefractCardProjection {
   overriddenProvider: boolean
   overriddenDshPool: boolean
   overriddenLimits: boolean
+  overriddenRouter: boolean
+  router: RouterConnectionView | undefined
   provider: ProviderConfigView | undefined
   dshModelPool: DshModelPoolView | undefined
   providerCleared: boolean
@@ -178,6 +182,7 @@ export interface RefractCardFace {
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
   editDshModelPool(value: DshModelPoolView): void
+  editRouter(value: RouterConnectionView | undefined): void
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -261,6 +266,7 @@ export class RefractCardController {
       editLimit: (key, checked) => this.editLimit(key, checked),
       editProviderJson: text => this.editProviderJson(text),
       editDshModelPool: value => this.editDshModelPool(value),
+      editRouter: value => this.editRouter(value),
       resetField: field => this.resetField(field),
       save: () => { void this.save() },
       discard: () => this.discard(),
@@ -414,6 +420,14 @@ export class RefractCardController {
     this.publish()
   }
 
+  editRouter(value: RouterConnectionView | undefined): void {
+    if (value === undefined) {
+      if (this.overridden('router')) this.staged.set('router',{kind:'clear'})
+      else this.staged.delete('router')
+    } else this.staged.set('router',{kind:'set',value:structuredClone(value)})
+    this.publish()
+  }
+
   resetField(field: CardField): void {
     if (!this.overridden(field)) return
     this.staged.set(field, { kind: 'clear' })
@@ -444,6 +458,12 @@ export class RefractCardController {
     const snap = this.snapshot()
     if (snap.status !== 'ready' || !snap.writable) return
     const writes: Array<{ field: CardField; run: () => Promise<void> }> = []
+    const router = this.staged.get('router')
+    if (router?.kind === 'clear') {
+      if (this.overridden('router')) writes.push({field:'router',run:()=>this.scope.unset('router')})
+    } else if (router?.kind === 'set' && stableStringify(router.value)!==stableStringify(snap.value?.router)) {
+      writes.push({field:'router',run:()=>this.scope.set('router',router.value)})
+    }
     const provider = this.staged.get('providerConfig')
     if (provider?.kind === 'clear') {
       if (this.overridden('providerConfig')) writes.push({ field: 'providerConfig', run: () => this.scope.unset('providerConfig') })
@@ -521,6 +541,13 @@ export class RefractCardController {
     return this.snapshot().value?.providerConfig
   }
 
+  private currentRouter(): RouterConnectionView | undefined {
+    const staged=this.staged.get('router')
+    if(staged?.kind==='set')return staged.value as RouterConnectionView
+    if(staged?.kind==='clear')return this.baseSection()?.router
+    return this.snapshot().value?.router
+  }
+
   private currentDshPool(): DshModelPoolView | undefined {
     const staged=this.staged.get('dshModelPool')
     if(staged?.kind==='set')return staged.value as DshModelPoolView
@@ -582,6 +609,8 @@ export class RefractCardController {
       overriddenProvider: this.overridden('providerConfig'),
       overriddenDshPool:this.overridden('dshModelPool'),
       overriddenLimits: this.overridden('limits'),
+      overriddenRouter:this.overridden('router'),
+      router:this.currentRouter(),
       provider: this.currentProvider(),
       dshModelPool:this.currentDshPool(),
       providerCleared: providerStage?.kind === 'clear',

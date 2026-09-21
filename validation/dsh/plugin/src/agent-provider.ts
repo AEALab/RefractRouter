@@ -34,6 +34,8 @@ function normalizeConfiguredModel(config: Readonly<Configuration>, model: string
 
 export interface Configuration {
   pythonExecutable: string
+  routerUrl?: string
+  routerCredential?: string
   runsDir: string
   executionMode: 'demo' | 'live'
   allowPaidRuns: boolean
@@ -120,7 +122,7 @@ function publicFailure(error: unknown, aborted: boolean): PublicFailure {
     kind: 'error', code: 'REFRACTAGENT_MODEL_CONTEXT_LIMIT',
     message: 'RefractAgent 未执行：当前模型没有足够的输入或输出容量。请选择更大上下文模型。',
   }
-  if (/provider|route|model.+(?:missing|unknown|unavailable)|no local candidate/i.test(detail)) return {
+  if (/provider|route|model.+(?:missing|unknown|unavailable)|no local candidate|Router (?:service|HTTP)/i.test(detail)) return {
     kind: 'error', code: 'REFRACTAGENT_ROUTE_UNAVAILABLE',
     message: 'RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。',
   }
@@ -133,10 +135,11 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
     allowPaidRuns: false, maxProductionCost: 40, maxEvaluationCost: 80,
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
+    routerUrl: undefined as unknown, routerCredential: undefined as unknown,
     preset: undefined as unknown, providerConfig: undefined as unknown, dshModelPool: undefined as unknown, limits: undefined as unknown,
     outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
-    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
+    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'routerUrl', 'routerCredential', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
     'limits', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
@@ -151,6 +154,20 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   }
   if (!Number.isInteger(result.timeoutMs) || result.timeoutMs > 7200000) throw new Error('invalid timeoutMs')
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(result.credentialEnv)) throw new Error('invalid credentialEnv')
+  if (result.routerUrl !== undefined) {
+    if (typeof result.routerUrl !== 'string') throw new Error('invalid routerUrl')
+    let url: URL
+    try { url = new URL(result.routerUrl) } catch { throw new Error('invalid routerUrl') }
+    if (!['http:','https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+      throw new Error('routerUrl must be an HTTP(S) service root without credentials, query or fragment')
+    }
+    const loopback = ['localhost','127.0.0.1','::1'].includes(url.hostname)
+    if (url.protocol !== 'https:' && !loopback) throw new Error('non-loopback routerUrl requires HTTPS')
+    result.routerUrl = url.toString().replace(/\/$/, '')
+  }
+  if (result.routerCredential !== undefined && (typeof result.routerCredential !== 'string'
+    || !/^[A-Za-z_][A-Za-z0-9_.:-]*$/.test(result.routerCredential))) throw new Error('invalid routerCredential')
+  if (result.routerCredential !== undefined && result.routerUrl === undefined) throw new Error('routerCredential requires routerUrl')
   if (result.preset !== undefined && result.preset !== 'ark-agent-plan') throw new Error('unknown provider preset')
   if (result.limits !== undefined) {
     if (!object(result.limits) || Object.keys(result.limits).some(k => !['relaxBudget', 'relaxContext', 'unlimitedTime'].includes(k))
@@ -239,10 +256,96 @@ async function dshCatalogSnapshot(ctx: AgentContext, pool: DshModelPool): Promis
   return {schemaVersion:'refractagent-dsh-catalog-v1',routes:groups,failures}
 }
 
+function validateResult(result: unknown, config: Readonly<Configuration>, options: ModelOptions,
+  live: boolean, progressEnabled: boolean): Record<string, unknown> {
+  if (!object(result) || result.schema_version !== 'refractagent-result-v1') {
+    const detail = object(result) && typeof result.error === 'string' ? result.error : 'invalid application result'
+    throw new Error(detail)
+  }
+  if (typeof result.answer !== 'string' || !result.answer || !object(result.costs) || !object(result.models)
+    || !object(result.usage) || typeof result.result_path !== 'string') throw new Error('invalid RefractAgent result fields')
+  const billingUnit=config.dshModelPool?.billingUnit??config.providerConfig?.billingUnit
+  if (typeof result.billing_unit !== 'string' || (billingUnit && result.billing_unit !== billingUnit)) {
+    throw new Error('RefractAgent returned a different billing unit')
+  }
+  for (const key of ['production', 'evaluation', 'unconfirmed']) {
+    const value = result.costs[key]
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error('invalid RefractAgent costs')
+  }
+  for (const key of ['input_tokens', 'output_tokens', 'cache_read_tokens', 'reasoning_tokens']) {
+    const value = result.usage[key] ?? (key === 'cache_read_tokens' || key === 'reasoning_tokens' ? 0 : undefined)
+    if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw new Error('invalid RefractAgent usage')
+  }
+  if (result.strategy !== options.model || result.mode !== config.executionMode
+    || result.simulated !== !live) throw new Error('RefractAgent returned a different strategy or execution mode')
+  if (live && config.template === 'auto' && (result.plan_origin !== 'model'
+    || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
+    throw new Error('installed core did not return an automatically generated DAG')
+  }
+  if (progressEnabled) result.dag = decodeDag(result.dag)
+  if (result.format_validation !== undefined) {
+    const check = decodeFormatValidation(result.format_validation)
+    if (config.outputConstraints && JSON.stringify(check.constraints) !== JSON.stringify(config.outputConstraints)) {
+      throw new Error('installed core returned different output constraints')
+    }
+    result.format_validation = check
+  }
+  else if (config.outputConstraints) throw new Error('installed core did not return output constraint validation')
+  return result
+}
+
+async function invokeRemote(ctx: AgentContext, config: Readonly<Configuration>, payload: Record<string, unknown>,
+  signal: AbortSignal, options: ModelOptions, progressEnabled: boolean,
+  onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
+  let token: string | undefined
+  if (config.routerCredential) {
+    const resolved = await ctx.credentials.resolve(config.routerCredential)
+    if (!resolved?.value) throw new Error(`Missing Router service credential: ${config.routerCredential}`)
+    token = resolved.value
+  }
+  let response: Response
+  try {
+    response = await fetch(`${config.routerUrl}/v1/run`, {
+      method: 'POST', signal,
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/x-ndjson',
+        ...(token ? {Authorization: `Bearer ${token}`} : {}) },
+      body: JSON.stringify({protocol:'refractagent-http-v1',request:payload,execution:{
+        mode:config.executionMode,productionBudget:config.maxProductionCost,
+        evaluationBudget:config.maxEvaluationCost,timeoutMs:config.timeoutMs,
+        maxOutputTokens:Math.min(config.maxOutputTokens,options.maxTokens??config.maxOutputTokens)}}),
+    })
+  } catch (error) {
+    throw new Error(`Router service unavailable: ${error instanceof Error ? error.message : String(error)}`)
+  }
+  if (!response.ok || !response.body) throw new Error(`Router HTTP ${response.status}: ${await response.text()}`)
+  const reader=response.body.getReader(),decoder=new TextDecoder()
+  let buffer='',result:unknown
+  while(true){
+    const chunk=await reader.read()
+    buffer+=decoder.decode(chunk.value??new Uint8Array(),{stream:!chunk.done})
+    const lines=buffer.split('\n');buffer=lines.pop()??''
+    for(const line of lines){
+      if(!line.trim())continue
+      let record:unknown
+      try{record=JSON.parse(line)}catch{throw new Error('Router HTTP returned invalid NDJSON')}
+      if(!object(record)||record.protocol!=='refractagent-http-v1'||!['progress','result','error'].includes(String(record.type))){
+        throw new Error('Router HTTP returned an invalid record')
+      }
+      if(record.type==='progress')onProgress?.(decodeProgress(record.value))
+      else if(record.type==='result')result=record.value
+      else {const failure=object(record.value)?record.value:{};throw new Error(typeof failure.message==='string'?failure.message:'Router service failed')}
+    }
+    if(chunk.done)break
+  }
+  if(buffer.trim())throw new Error('Router HTTP returned an unterminated record')
+  return validateResult(result,config,options,config.executionMode==='live',progressEnabled)
+}
+
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions, onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
   const automaticRouting = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
   const live = config.executionMode === 'live'
+  if (config.routerUrl && live) throw new Error('Router HTTP v1 only permits preview or demo execution')
   if (automaticRouting && live) throw new Error('RefractAgent v4 实时自动路由尚未启用；请先使用模拟模式验证配置')
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
@@ -275,6 +378,12 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     const issues = await dshProviderIssues(host, routes)
     if (issues.length) throw new Error(issues.join('; '))
   }
+  const failed = new AbortController()
+  const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), ...(config.template === 'auto' || config.limits?.unlimitedTime ? [] : [AbortSignal.timeout(config.timeoutMs + 5000)])])
+  if (config.routerUrl) {
+    if (useBridge || nativeTools) throw new Error('Router HTTP v1 does not support DSH host callbacks')
+    return invokeRemote(ctx,config,payload,signal,options,progressEnabled,onProgress)
+  }
   const policy = ctx.sandboxPolicy.resolve({})
   const runsDir = resolve(policy.workspaceRoot, config.runsDir)
   const env: Record<string, string> = {}
@@ -298,8 +407,6 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     else if (references.length) env.REFRACTROUTER_PROVIDER_CREDENTIALS = JSON.stringify(credentials)
   }
   if (useBridge) env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
-  const failed = new AbortController()
-  const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), ...(config.template === 'auto' || config.limits?.unlimitedTime ? [] : [AbortSignal.timeout(config.timeoutMs + 5000)])])
   let python: string
   try { python = await ctx.subprocess.resolveExecutable(config.pythonExecutable, env, signal) }
   catch { throw new Error('RefractAgent Python not found; install the core and generate a dsh-config overlay') }
@@ -339,36 +446,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       throw new Error(detail)
     }
     if (outcome.exitCode !== 0) throw new Error(`RefractAgent ${String(result.status)}: ${JSON.stringify(result.issues)}`)
-    if (typeof result.answer !== 'string' || !result.answer || !object(result.costs) || !object(result.models)
-      || !object(result.usage) || typeof result.result_path !== 'string') throw new Error('invalid RefractAgent result fields')
-    const billingUnit=config.dshModelPool?.billingUnit??config.providerConfig?.billingUnit
-    if (typeof result.billing_unit !== 'string' || (billingUnit && result.billing_unit !== billingUnit)) {
-      throw new Error('RefractAgent returned a different billing unit')
-    }
-    for (const key of ['production', 'evaluation', 'unconfirmed']) {
-      const value = result.costs[key]
-      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error('invalid RefractAgent costs')
-    }
-    for (const key of ['input_tokens', 'output_tokens', 'cache_read_tokens', 'reasoning_tokens']) {
-      const value = result.usage[key] ?? (key === 'cache_read_tokens' || key === 'reasoning_tokens' ? 0 : undefined)
-      if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw new Error('invalid RefractAgent usage')
-    }
-    if (result.strategy !== options.model || result.mode !== config.executionMode
-      || result.simulated !== !live) throw new Error('RefractAgent returned a different strategy or execution mode')
-    if (live && config.template === 'auto' && (result.plan_origin !== 'model'
-      || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
-      throw new Error('installed core did not return an automatically generated DAG')
-    }
-    if (progressEnabled) result.dag = decodeDag(result.dag)
-    if (result.format_validation !== undefined) {
-      const check = decodeFormatValidation(result.format_validation)
-      if (config.outputConstraints && JSON.stringify(check.constraints) !== JSON.stringify(config.outputConstraints)) {
-        throw new Error('installed core returned different output constraints')
-      }
-      result.format_validation = check
-    }
-    else if (config.outputConstraints) throw new Error('installed core did not return output constraint validation')
-    return result
+    return validateResult(result,config,options,live,progressEnabled)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'RefractAgent execution failed'
     failed.abort()

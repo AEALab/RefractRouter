@@ -1,7 +1,7 @@
 # RefractRouter 安装、启动与 DSH 使用指南
 
 本指南帮助首次接触项目的用户安装 Python 核心、为 DSH 安装插件，并提交真实文本任务。
-适用版本：RefractRouter `0.4.0`、DSH 插件 `0.12.0`；核对日期：2026-09-11。
+适用版本：RefractRouter `0.8.0`、DSH 插件 `0.21.0`；核对日期：2026-09-21。
 
 项目名称为 **RefractRouter**；用户命令和 DSH 模型入口名称为 **RefractAgent（析衡）**。
 
@@ -23,13 +23,13 @@ flowchart LR
 
 | 组件 | 如何运行 | 地址或入口 |
 | --- | --- | --- |
-| RefractRouter 核心 | 插件自动调用；也可独立运行 CLI | `refractagent`，没有 HTTP 监听端口 |
+| RefractRouter 核心 | 插件自动调用本机核心，或显式启动 HTTP 服务 | `refractagent` / `http://127.0.0.1:8787` |
 | DSH 网页服务 | 在终端运行本指南的启动命令 | 本指南指定 `http://127.0.0.1:53611/` |
 | 模型服务 | 核心直连用户配置的 HTTP provider，或经 DSH 调用已配置模型 | 用户的模型 API；Ark Agent Plan 可选 |
 
-当前没有 `refractrouter serve`、独立 REST API 或已交付的团队集中后端。
-不能将 DSH 网页地址填写为 OpenAI-compatible 模型 API 地址。
-团队集中部署进展见 [应用交付 #41](https://github.com/AEALab/RefractRouter/issues/41)。
+`refractagent serve` 已提供预检和模拟所需的最小 HTTP 接口；默认本机模式仍无需常驻服务。
+不能将 DSH 网页地址填写为 Router URL 或 OpenAI-compatible 模型 API 地址。远程配置、
+认证和当前限制见 [RefractRouter HTTP 服务](router-http-service.md)。
 
 本机版本支持文本分析与生成、对话上下文、整任务处理及预设 DAG。
 三个 RefractAgent 模型入口暂不执行 Shell、浏览器等 DSH 工具，也不生成图片或视频。
@@ -80,8 +80,8 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 
 生成以下文件：
 
-- `dist/refractrouter-0.4.0-py3-none-any.whl`：Python 核心及其内置配置。
-- `dist/dsh-refractrouter-validation-0.12.0.tgz`：DSH 插件及已编译的 TypeScript 产物。
+- `dist/refractrouter-0.8.0-py3-none-any.whl`：Python 核心及其内置配置。
+- `dist/dsh-refractrouter-validation-0.21.0.tgz`：DSH 插件及已编译的 TypeScript 产物。
 
 `npm pack` 会先构建插件；不要跳过依赖安装，也不要手动修改 `dist/index.js`。
 普通使用者无需安装 DeepAgents 测试依赖、运行 benchmark 或复制整个实验报告目录。
@@ -94,7 +94,7 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 接着在同一终端执行：
 
 ```bash
-uv tool install "$REFRACT_REPO/dist/refractrouter-0.4.0-py3-none-any.whl"
+uv tool install "$REFRACT_REPO/dist/refractrouter-0.8.0-py3-none-any.whl"
 export PATH="$(uv tool dir --bin):$PATH"
 refractagent models
 ```
@@ -110,7 +110,7 @@ refractagent models
 
 ```bash
 export DSH_HOME="$HOME/.local/share/refractagent/dsh"
-dsh plugin --profile web add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.12.0.tgz"
+dsh plugin --profile web add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.21.0.tgz"
 ```
 
 已有 DSH、希望沿用原有插件和会话的用户，可以沿用现有 `DSH_HOME`，不执行上面的
@@ -120,7 +120,7 @@ dsh plugin --profile web add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.
 `web` 与 `headless` 分别管理插件；需要无网页模式时额外安装：
 
 ```bash
-dsh plugin --profile headless add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.12.0.tgz"
+dsh plugin --profile headless add "$REFRACT_REPO/dist/dsh-refractrouter-validation-0.21.0.tgz"
 ```
 
 ## 5. 创建固定工作目录，先跑模拟演示

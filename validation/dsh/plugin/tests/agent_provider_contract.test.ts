@@ -139,6 +139,46 @@ test('demo uses installed core through native sandboxed subprocess and preserves
   assert.equal(result.filter(c=>c.type==='finish').length,1)
   assert.equal(result.find(c=>c.type==='text-delta')?.text,'[SIMULATED] answer')
 })
+test('Router URL uses authenticated NDJSON transport without starting local Python',async()=>{
+  const f=fixture()
+  const originalFetch=globalThis.fetch
+  let request:Request|undefined
+  globalThis.fetch=async(input,init)=>{
+    request=new Request(input,init)
+    const result={schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',
+      mode:'demo',status:'simulated',answer:'[SIMULATED] remote answer',
+      costs:{production:0,evaluation:0,unconfirmed:0},models:{answer:'physical-model'},
+      usage:{input_tokens:0,output_tokens:0},simulated:true,billing_unit:'AFP',
+      dag:{phase:'finished',status:'simulated',simulated:true,reason:'远程模拟',nodes:[]},
+      result_path:'/srv/runs/id/result.json',run_id:'id'}
+    const progress={protocol:'refractagent-progress/v1',run_id:'id',sequence:1,elapsed_ms:1,
+      phase:'routing',status:'started',simulated:true,reason:'远程模拟',nodes:[]}
+    return new Response(JSON.stringify({protocol:'refractagent-http-v1',type:'progress',value:progress})+'\n'
+      +JSON.stringify({protocol:'refractagent-http-v1',type:'result',value:result})+'\n',{
+      status:200,headers:{'content-type':'application/x-ndjson'}})
+  }
+  try{
+    const output=await chunks(createAdapter(f.ctx,()=>configure({
+      routerUrl:'http://127.0.0.1:8787/',routerCredential:'ROUTER_TOKEN',template:'auto'})))
+    assert.equal(f.spawns.length,0)
+    assert.deepEqual(f.credentialReferences,['ROUTER_TOKEN'])
+    assert.equal(request!.url,'http://127.0.0.1:8787/v1/run')
+    assert.equal(request!.headers.get('authorization'),'Bearer private-test-key')
+    const body=JSON.parse(await request!.text())
+    assert.equal(body.protocol,'refractagent-http-v1')
+    assert.equal(body.execution.mode,'demo')
+    assert.equal(body.request.task,'比较两个方案')
+    assert.ok(output.some(chunk=>chunk.type==='reasoning-delta'&&String(chunk.text).includes('远程模拟')))
+    assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'[SIMULATED] remote answer')
+    assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
+  }finally{globalThis.fetch=originalFetch}
+})
+test('Router URL validation rejects insecure remote endpoints and embedded credentials',()=>{
+  assert.equal(configure({routerUrl:'http://127.0.0.1:8787/'}).routerUrl,'http://127.0.0.1:8787')
+  assert.throws(()=>configure({routerUrl:'http://router.example/v1'}),/requires HTTPS/)
+  assert.throws(()=>configure({routerUrl:'https://user:secret@router.example'}),/without credentials/)
+  assert.throws(()=>configure({routerCredential:'ROUTER_TOKEN'}),/requires routerUrl/)
+})
 test('automatic decomposition is passed to Python without a fabricated plan',async()=>{
   const f=fixture()
   await chunks(createAdapter(f.ctx, () => configure({template:'auto'})))

@@ -95,6 +95,15 @@ def main(argv=None):
                        help='生成放开预算拦截的配置；账本仍完整记录每次调用')
     setup.add_argument('--relax-context', action='store_true',
                        help='放开对话上下文上限；仍受各模型 contextWindow 约束')
+    server = commands.add_parser('serve', help='启动 RefractRouter HTTP 服务；默认仅监听本机且禁止付费执行')
+    server.add_argument('--host', default='127.0.0.1')
+    server.add_argument('--port', type=int, default=8787)
+    server.add_argument('--runs-dir', type=Path, default=Path.home()/'.local/share/refractagent/runs')
+    server.add_argument('--auth-token-env', help='Bearer token 的环境变量名称；非回环监听时必填')
+    server.add_argument('--production-budget', type=float, default=40)
+    server.add_argument('--evaluation-budget', type=float, default=80)
+    server.add_argument('--timeout-ms', type=int, default=300000)
+    server.add_argument('--max-output-tokens', type=int, default=128000)
     args = parser.parse_args(argv)
     try:
         if args.command == 'config-example':
@@ -204,6 +213,17 @@ def main(argv=None):
                 json.dump(patch, stream, ensure_ascii=False, indent=2)
                 stream.write('\n')
             print(json.dumps({'config': str(args.output.resolve()), 'paid_enabled': False}))
+            return 0
+        if args.command == 'serve':
+            from .agent_server import ServerConfiguration, serve
+            if not 1 <= args.port <= 65535:
+                raise ValueError('port must be in 1..65535')
+            if args.auth_token_env is not None and not args.auth_token_env.isidentifier():
+                raise ValueError('invalid auth token environment reference')
+            serve(host=args.host, port=args.port, config=ServerConfiguration(
+                runs_dir=args.runs_dir, auth_token_env=args.auth_token_env,
+                production_budget=args.production_budget, evaluation_budget=args.evaluation_budget,
+                timeout_ms=args.timeout_ms, max_output_tokens=args.max_output_tokens))
             return 0
         if args.host_stdio:
             if os.environ.get('REFRACTROUTER_DSH_BRIDGE') != 'stdio':
