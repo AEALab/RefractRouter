@@ -26,14 +26,16 @@ DSH 插件承担两项用途：验证核心功能在真实宿主中的可行性�
 
 ## 调用与执行边界
 
-下图表示当前本地调用关系；其他入口和独立部署仍可在此职责边界上演进。
+下图表示当前本地与 HTTP 调用关系。两条路径共用同一 Python 业务实现。
 
 ```mermaid
 flowchart LR
     DSH[DSH 宿主] --> Plugin[DSH 插件：工具与宿主适配]
     Plugin --> Runner[本地 Python runner]
+    Plugin --> HTTP[RefractRouter HTTP 服务]
     CLI[本地命令与实验入口] --> Core[RefractRouter 核心与任务运行时]
     Runner --> Core
+    HTTP --> Core
     Core --> Models[已选模型与独立评审模型]
     Core --> Results[执行结果与评估证据]
     Results --> Plugin
@@ -48,7 +50,9 @@ flowchart LR
 Python 负责。文本任务的质量 profile 是选模预测依据，实际质量由最终独立评估检验。
 
 DSH 提供会话、工具调度、进程生命周期、沙箱和凭证服务。插件检查宿主输入及部署上限，
-通过原生子进程服务启动固定 Python runner，并转换返回的证据。DSH 外层助手的模型配置
+可通过原生子进程启动固定 Python runner，也可把同一请求发送到用户明确配置的 Router URL，
+并转换返回的证据。HTTP v1 只开放预检和模拟，非回环地址要求 HTTPS；服务端部署上限不能被
+客户端放大。DSH 外层助手的模型配置
 与 Router 对 DAG 节点的选模分别管理；采用 DSH LLM 桥时，桥按核心指定的模型执行请求。
 
 核心业务接口不得绑定 DSH 类型或要求 DSH 会话。DSH 相关协议适配应留在集成边界，
@@ -90,7 +94,10 @@ Python 根据节点类型、难度、风险和输入包络匹配该候选的预�
 
 ## 当前交付边界
 
-- RefractAgent 0.3.0 提供可安装的 Python 应用命令和随包资源。
+- RefractAgent 0.8.0 提供可安装的 Python 应用命令、随包资源和最小 HTTP 服务。
+  DSH 插件 0.21.0 可选择本地 Python 核心或远程 Router URL；远程接口当前只允许预检和模拟，
+  不开放 DSH 宿主工具回调或 v4 付费执行。参见 [HTTP 服务](router-http-service.md)。
+- 历史 RefractAgent 0.3.0 首次提供可安装的 Python 应用命令和随包资源。
   DSH 插件 0.11.0 的 `refractagent` provider 注册省成本、均衡、质量优先三个模型接口，
   通过原生子进程服务调用已安装核心，传入会话与部署上限；策略及记账仍完全由 Python 决定。
   该入口自核心 0.6.0／插件 0.17.0 起支持节点内原生工具循环：Python 负责逐轮预留、

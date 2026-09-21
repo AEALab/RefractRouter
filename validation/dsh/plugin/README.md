@@ -2,7 +2,18 @@
 
 首次安装请阅读 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 或
 [仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
-provider 配置和网页启动。当前由插件按请求启动 Python 核心，无需另起 Router HTTP 服务。
+provider 配置和网页启动。默认由插件按请求启动本机 Python 核心；也可在设置卡片填写
+RefractRouter URL，改走远程服务。
+
+## 0.21.0：RefractRouter URL
+
+设置卡片新增“RefractRouter 连接”，可选择本地 Python 核心或远程 Router URL。远程模式
+支持可选的 DSH 凭证引用，通过 NDJSON 接收 Python 核心的实时进度和最终结果，不再启动本机
+Python 子进程。非回环 HTTP URL 会被拒绝，团队地址必须使用 HTTPS；URL 中不得嵌入凭证。
+
+配套核心 `0.8.0` 提供 `refractagent serve`。HTTP v1 当前只开放预检和模拟，不开启 v4
+真实付费执行，也不承载 DSH 原生工具回调。详见
+[RefractRouter HTTP 服务](../../../docs/router-http-service.md)。
 
 ## 0.20.0：DSH 模型目录与自动职责
 

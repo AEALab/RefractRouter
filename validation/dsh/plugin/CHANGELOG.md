@@ -1,3 +1,10 @@
+# 0.21.0
+
+- 新增本地核心／远程 Router URL 连接选择；远程模式不再启动本机 Python 子进程。
+- Router 凭证只保存 DSH 引用，非回环地址强制 HTTPS，拒绝 URL 内嵌凭证与查询参数。
+- 接入 `refractagent-http-v1` NDJSON 进度和结果协议；连接、认证与协议失败继续使用原生终止事件。
+- 当前 HTTP v1 只允许预检和模拟，不开放 v4 付费执行或 DSH 宿主工具回调。
+
 # 0.20.0
 
 - 普通设置改为从 DSH 当前模型目录勾选 `provider/model` 路线，不再要求手填 Provider、URL、

@@ -4,7 +4,7 @@ import examples from '../provider-examples.json' with { type: 'json' }
 import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
   type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
-import type {DshModelPoolView} from '../settings-card.js'
+import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
 import type {DshModelCatalog} from './types.js'
 import { V4Settings } from './v4-settings.js'
 
@@ -26,6 +26,7 @@ export interface RefractCardOwnerProps {
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
   editDshModelPool(value:DshModelPoolView):void
+  editRouter(value:RouterConnectionView|undefined):void
   loadCatalog():Promise<DshModelCatalog>
   resetField(field: CardField): void
   save(): void
@@ -190,6 +191,21 @@ export function RefractCard(props: RefractCardOwnerProps) {
       </button>
       {expanded ? (
         <div className="rra-body">
+          <div className="rra-v4-section"><div className="rra-section-head"><div><h3>RefractRouter 连接</h3>
+            <p className="rra-field-hint">本地模式由插件启动已安装的 Python 核心；远程模式把任务发送到指定 Router 服务。</p></div>
+            {state.overriddenRouter?<button type="button" className="rra-reset" disabled={disabled} onClick={()=>props.resetField('router')}>恢复默认</button>:null}</div>
+            <label className="rra-compact-field">连接方式<select className="rra-select" disabled={disabled}
+              value={state.router?'remote':'local'} onChange={event=>props.editRouter(event.target.value==='remote'?{url:'http://127.0.0.1:8787'}:undefined)}>
+              <option value="local">本地 Python 核心</option><option value="remote">远程 Router URL</option></select></label>
+            {state.router?<div className="rra-grid rra-grid-2"><label className="rra-compact-field">Router URL
+              <input className="rra-input" type="url" disabled={disabled} value={state.router.url}
+                onChange={event=>props.editRouter({...state.router!,url:event.target.value})}/>
+              <span className="rra-field-hint">例如 http://127.0.0.1:8787；非本机地址必须使用 HTTPS。</span></label>
+              <label className="rra-compact-field">凭证引用（可选）<input className="rra-input" disabled={disabled}
+                value={state.router.credential??''} placeholder="REFRACTROUTER_SERVICE_TOKEN"
+                onChange={event=>props.editRouter({...state.router!,credential:event.target.value||undefined})}/>
+              <span className="rra-field-hint">只保存 DSH 凭证名称，不保存 token。</span></label></div>:null}
+          </div>
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
           {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>DSH 模型目录</h3>
             <p className="rra-field-hint">只显示“设置 → 模型”中当前可调用的路线；RefractAgent 自身已排除。</p></div>
