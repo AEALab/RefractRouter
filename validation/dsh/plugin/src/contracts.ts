@@ -114,7 +114,8 @@ export type StreamChunk =
   | { type: 'block-start' | 'block-end' | 'reasoning-delta' | 'tool-call-delta'; index?: number; id?: string; name?: string; argumentsDelta?: string; block?: { type: string; id?: string; name?: string; arguments?: string } }
 export interface LlmService {
   stream(options: LlmOptions): AsyncIterable<StreamChunk>
-  listProviders(): Array<{ id: string }>
+  listProviders(): Array<{ id: string; name?: string }>
+  listModels?(provider: string): Promise<Array<{ id: string; name?: string; description?: string }>>
   providerRetryPolicy(provider: string): { mode: string; maxRetries?: number }
   resolveModelInfo(provider: string, model: string): Promise<unknown>
 }

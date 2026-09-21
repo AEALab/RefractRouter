@@ -25,5 +25,12 @@ export interface ClientContext {
   slots: ClientSlotsService
   locale: ClientLocaleService
   settingsScope: ClientSettingsScopeBinder
+  remote: { session: { modelCatalog(): Promise<{ok:boolean;value?:DshModelCatalog;error?:{message:string}}> } }
   effect(setup: () => unknown, label?: string): unknown
+}
+
+export interface DshModelCatalog {
+  groups: Array<{id:string;name:string;models:Array<{id:string;name:string;description?:string;
+    reasoning?:{efforts:Array<{id:string;name:string}>;defaultEffort?:string}}> }>
+  failures: Array<{id:string;name:string;message:string}>
 }

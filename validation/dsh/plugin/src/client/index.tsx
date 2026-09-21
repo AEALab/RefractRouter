@@ -11,7 +11,7 @@ export const parse = graph.parse
 export const layout = graph.layout
 export const applyGraph = graph.apply
 
-export const inject = ['slots', 'locale', 'settingsScope']
+export const inject = ['slots', 'locale', 'remote', 'remote.session', 'settingsScope']
 
 export function apply(ctx: ClientContext): void {
   graph.apply(ctx)
@@ -25,7 +25,11 @@ export function apply(ctx: ClientContext): void {
       name: 'settings.plugin.item',
       key: SETTINGS_NAMESPACE,
       locale: LOCALE_NS,
-      inject: () => controller.inject(),
+      inject: () => ({...controller.inject(),loadCatalog:async()=>{
+        const result=await ctx.remote.session.modelCatalog()
+        if(!result.ok||!result.value)throw new Error(result.error?.message??'DSH model catalog unavailable')
+        return result.value
+      }}),
     }, RefractCard)
   })
 }

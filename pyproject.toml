@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "refractrouter"
-version = "0.6.4"
+version = "0.7.0"
 description = "Local task routing with RefractAgent strategy models and DSH integration"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,6 +31,9 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 refractrouter = ["resources/*.json"]
+
+[tool.setuptools.data-files]
+"share/refractrouter" = ["data/model-profiles-v1.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

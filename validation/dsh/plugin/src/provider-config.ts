@@ -35,10 +35,100 @@ export interface LimitsConfiguration {
   unlimitedTime?: boolean
 }
 
+export type DshDeployment = 'local' | 'external-cloud' | 'trusted-cloud' | 'simulated-local'
+export interface DshModelPoolRoute {
+  provider: string
+  model: string
+  enabled?: boolean
+  deployment: DshDeployment
+  trustPolicy?: string
+  overrides?: { inputPer1k?: number; cachedInputPer1k?: number; outputPer1k?: number;
+    quality?: number; latencyMs?: number; note?: string }
+}
+export interface DshModelPool {
+  schemaVersion: 'refractagent-dsh-model-pool-v1'
+  billingUnit?: string
+  routes: DshModelPoolRoute[]
+  roleOverrides?: { planner?: string; judge?: string; classifier?: string; workers?: string[] }
+  objective?: Record<string, unknown>
+  security?: Record<string, unknown>
+  trustPolicies?: Array<Record<string, unknown>>
+}
+
 /** DSH 设置命名空间承载的用户可调子集。 */
 export interface SettingsSection {
   providerConfig?: ProviderConfiguration
+  dshModelPool?: DshModelPool
   limits?: LimitsConfiguration
+}
+
+export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
+  if (!isRecordValue(value) || value.schemaVersion !== 'refractagent-dsh-model-pool-v1'
+    || !Array.isArray(value.routes) || value.routes.length > 128
+    || Object.keys(value).some(key => !['schemaVersion','billingUnit','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
+    throw new Error('invalid dshModelPool')
+  }
+  const identities = new Set<string>()
+  for (const route of value.routes) {
+    if (!isRecordValue(route) || typeof route.provider !== 'string' || !route.provider
+      || typeof route.model !== 'string' || !route.model || route.provider === 'refractagent'
+      || !['local','external-cloud','trusted-cloud','simulated-local'].includes(String(route.deployment))
+      || (route.enabled !== undefined && typeof route.enabled !== 'boolean')
+      || Object.keys(route).some(key => !['provider','model','enabled','deployment','trustPolicy','overrides'].includes(key))) {
+      throw new Error('invalid dshModelPool route')
+    }
+    const identity = `${route.provider}\u0000${route.model}`
+    if (identities.has(identity)) throw new Error('dshModelPool route identities must be unique')
+    identities.add(identity)
+    if (route.overrides !== undefined && (!isRecordValue(route.overrides)
+      || Object.keys(route.overrides).some(key => !['inputPer1k','cachedInputPer1k','outputPer1k','quality','latencyMs','note'].includes(key))
+      || Object.entries(route.overrides).some(([key, entry]) => key === 'note'
+        ? typeof entry !== 'string' : typeof entry !== 'number' || !Number.isFinite(entry) || entry < 0))) {
+      throw new Error('invalid dshModelPool route overrides')
+    }
+  }
+  if (value.roleOverrides !== undefined) {
+    if (!isRecordValue(value.roleOverrides)
+      || Object.keys(value.roleOverrides).some(key => !['planner','judge','classifier','workers'].includes(key))) {
+      throw new Error('invalid dshModelPool roleOverrides')
+    }
+    const roles = value.roleOverrides
+    if (['planner','judge','classifier'].some(key => roles[key] !== undefined
+      && (typeof roles[key] !== 'string' || !roles[key]))
+      || (roles.workers !== undefined && (!Array.isArray(roles.workers) || roles.workers.length === 0
+        || roles.workers.some(entry => typeof entry !== 'string' || !entry)))) {
+      throw new Error('invalid dshModelPool roleOverrides')
+    }
+  }
+  if (value.billingUnit !== undefined && (typeof value.billingUnit !== 'string' || !value.billingUnit.trim())) {
+    throw new Error('invalid dshModelPool billingUnit')
+  }
+  const routeKeys = new Set(value.routes.filter(route => route.enabled !== false)
+    .map(route => `${route.provider}/${route.model}`))
+  const policyIds = new Set((Array.isArray(value.trustPolicies) ? value.trustPolicies : [])
+    .filter(isRecordValue).map(policy => policy.id).filter((id): id is string => typeof id === 'string' && !!id))
+  const liveData = !isRecordValue(value.security) || (value.security.dataMode ?? 'live') === 'live'
+  for (const route of value.routes) {
+    if ((route.deployment === 'trusted-cloud' || (route.deployment === 'simulated-local' && liveData))
+      && (typeof route.trustPolicy !== 'string' || !policyIds.has(route.trustPolicy))) {
+      throw new Error(`${route.deployment} requires a configured trustPolicy`)
+    }
+    if (!['trusted-cloud','simulated-local'].includes(route.deployment) && route.trustPolicy !== undefined) {
+      throw new Error('trustPolicy requires trusted-cloud or simulated-local')
+    }
+  }
+  const roles = value.roleOverrides as DshModelPool['roleOverrides']
+  if (roles !== undefined) {
+    for (const key of ['planner','judge','classifier'] as const) {
+      if (roles[key] !== undefined && !routeKeys.has(roles[key])) {
+        throw new Error(`dshModelPool roleOverrides.${key} references an unavailable route`)
+      }
+    }
+    if (roles.workers?.some(entry => !routeKeys.has(entry))) {
+      throw new Error('dshModelPool roleOverrides.workers references an unavailable route')
+    }
+  }
+  if (Buffer.byteLength(JSON.stringify(value)) > 100000) throw new Error('dshModelPool is too large')
 }
 
 export function isRecordValue(value: unknown): value is Record<string, unknown> {

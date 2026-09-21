@@ -214,10 +214,17 @@ def main(argv=None):
                        json.loads(sys.stdin.read(262145)) if args.request_stdin else
                        {'task': args.task, 'strategy': args.strategy, 'template': args.template})
         provider_config = json.loads(args.provider_config.read_text()) if args.provider_config else None
+        model_profile_provenance = None
         if isinstance(payload, dict) and 'providerConfig' in payload:
             if provider_config is not None or args.preset:
                 raise ValueError('conflicting provider configuration sources')
             provider_config = payload.pop('providerConfig')
+        if isinstance(payload, dict) and ('dshModelPool' in payload or 'dshCatalogSnapshot' in payload):
+            if provider_config is not None or args.preset or 'dshModelPool' not in payload or 'dshCatalogSnapshot' not in payload:
+                raise ValueError('conflicting or incomplete DSH model pool configuration')
+            from .dsh_model_pool import compile_dsh_model_pool
+            provider_config, model_profile_provenance = compile_dsh_model_pool(
+                payload.pop('dshModelPool'), payload.pop('dshCatalogSnapshot'))
         tool_runtime = None
         if isinstance(payload, dict) and 'hostTools' in payload:
             if not args.host_stdio:
@@ -234,7 +241,8 @@ def main(argv=None):
                 manifest_path=args.manifest, profile_path=args.profile,
                 execute_paid_run=args.execute_paid_run, cancel_event=cancelled,
                 provider_config=provider_config, preset=args.preset, tool_runtime=tool_runtime,
-                progress=write_host_record if args.progress_stdio else None)
+                progress=write_host_record if args.progress_stdio else None,
+                model_profile_provenance=model_profile_provenance)
         finally:
             for sig, handler in previous.items():
                 signal.signal(sig, handler)

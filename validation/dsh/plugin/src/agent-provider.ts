@@ -5,7 +5,8 @@ import { bindNativeTools, type NativeToolContext, type ToolSchema } from './nati
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
 import { dshProviderIssues, pumpDshBridge } from './index.js'
 import { decodeOutputConstraints, decodeFormatValidation, formatValidationSummary, type OutputConstraints } from './output-constraints.js'
-import { freezeConfiguration, validateProviderConfiguration, type LimitsConfiguration, type ProviderConfiguration } from './provider-config.js'
+import { freezeConfiguration, validateDshModelPool, validateProviderConfiguration, type DshModelPool,
+  type LimitsConfiguration, type ProviderConfiguration } from './provider-config.js'
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
 
 export const name = 'refractagent'
@@ -22,12 +23,12 @@ const LEGACY_MODELS = [
 const AUTO_MODELS = [{ id: 'auto', name: 'RefractAgent · 自动路由' }] as const
 
 function configuredModels(config: Readonly<Configuration>): readonly { id: string; name: string }[] {
-  return config.providerConfig?.schemaVersion === 'refractagent-providers-v4' ? AUTO_MODELS : LEGACY_MODELS
+  return config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4' ? AUTO_MODELS : LEGACY_MODELS
 }
 
 /** DSH 会保留新会话上次选择的模型 ID；升级到 v4 后把旧三模式选择收敛到唯一自动入口。 */
 function normalizeConfiguredModel(config: Readonly<Configuration>, model: string): string {
-  return config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
+  return (config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4')
     && LEGACY_MODELS.some(entry => entry.id === model) ? 'auto' : model
 }
 
@@ -43,6 +44,7 @@ export interface Configuration {
   credentialEnv: string
   preset?: 'ark-agent-plan'
   providerConfig?: ProviderConfiguration
+  dshModelPool?: DshModelPool
   limits?: LimitsConfiguration
   template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
@@ -131,10 +133,10 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
     allowPaidRuns: false, maxProductionCost: 40, maxEvaluationCost: 80,
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
-    preset: undefined as unknown, providerConfig: undefined as unknown, limits: undefined as unknown,
+    preset: undefined as unknown, providerConfig: undefined as unknown, dshModelPool: undefined as unknown, limits: undefined as unknown,
     outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
-    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'outputConstraints',
+    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
     'limits', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
@@ -165,8 +167,12 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (raw.plannerModelId !== undefined && (typeof raw.plannerModelId !== 'string' || !raw.plannerModelId.trim())) throw new Error('invalid plannerModelId')
   if (raw.verifyDependencies !== undefined && typeof raw.verifyDependencies !== 'boolean') throw new Error('invalid verifyDependencies')
   if (result.providerConfig !== undefined) {
-    if (result.preset !== undefined) throw new Error('providerConfig and preset are mutually exclusive')
+    if (result.preset !== undefined || result.dshModelPool !== undefined) throw new Error('providerConfig, dshModelPool and preset are mutually exclusive')
     validateProviderConfiguration(result.providerConfig)
+  }
+  if (result.dshModelPool !== undefined) {
+    if (result.preset !== undefined) throw new Error('providerConfig, dshModelPool and preset are mutually exclusive')
+    validateDshModelPool(result.dshModelPool)
   }
   return freezeConfiguration(JSON.parse(JSON.stringify(result)) as Configuration)
 }
@@ -192,15 +198,57 @@ function conversation(options: ModelOptions, contextLimitBytes: number): { task:
   return { task, context }
 }
 
+async function dshCatalogSnapshot(ctx: AgentContext, pool: DshModelPool): Promise<Record<string, unknown>> {
+  if (!ctx.llm.listProviders || !ctx.llm.listModels || !ctx.llm.resolveModelInfo) {
+    throw new Error('DSH model catalog requires listProviders, listModels and resolveModelInfo')
+  }
+  const groups: Array<Record<string, unknown>> = []
+  const failures: Array<{provider:string;model?:string;message:string}> = []
+  for (const provider of ctx.llm.listProviders().filter(entry=>entry.id!=='refractagent')) {
+    try {
+      const models=await ctx.llm.listModels(provider.id)
+      for (const model of models) {
+        try {
+          const raw=await ctx.llm.resolveModelInfo(provider.id,model.id)
+          if (!object(raw)) throw new Error('invalid resolved model metadata')
+          const context=object(raw.context)?raw.context:{}
+          const reasoning=object(raw.reasoning)&&Array.isArray(raw.reasoning.efforts)
+            ? raw.reasoning.efforts.filter(object).map(row=>String(row.id)) : []
+          groups.push({provider:provider.id,model:model.id,name:model.name??model.id,
+            contextWindow:context.contextWindow,maxOutputTokens:raw.defaultMaxTokens,
+            reasoningEfforts:reasoning})
+        } catch(error) {
+          failures.push({provider:provider.id,model:model.id,message:error instanceof Error?error.message:String(error)})
+        }
+      }
+    } catch(error) {
+      failures.push({provider:provider.id,message:error instanceof Error?error.message:String(error)})
+    }
+  }
+  const available=new Set(groups.map(row=>`${String(row.provider)}\u0000${String(row.model)}`))
+  for (const route of pool.routes.filter(row=>row.enabled!==false)) {
+    if (!available.has(`${route.provider}\u0000${route.model}`)) {
+      throw new Error(`DSH route unavailable: ${route.provider}/${route.model}`)
+    }
+    const row=groups.find(entry=>entry.provider===route.provider&&entry.model===route.model)!
+    if (!Number.isSafeInteger(row.contextWindow)||Number(row.contextWindow)<=0
+      ||!Number.isSafeInteger(row.maxOutputTokens)||Number(row.maxOutputTokens)<=0) {
+      throw new Error(`DSH model capacity unavailable: ${route.provider}/${route.model}`)
+    }
+  }
+  return {schemaVersion:'refractagent-dsh-catalog-v1',routes:groups,failures}
+}
+
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions, onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
-  const automaticRouting = config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
+  const automaticRouting = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
   const live = config.executionMode === 'live'
   if (automaticRouting && live) throw new Error('RefractAgent v4 实时自动路由尚未启用；请先使用模拟模式验证配置')
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.preset) throw new Error('configure providerConfig or explicitly choose preset: ark-agent-plan')
   const nativeTools = live && !options.purpose ? bindNativeTools(ctx, options.tools ?? []) : undefined
+  const catalogSnapshot=config.dshModelPool?await dshCatalogSnapshot(ctx,config.dshModelPool):undefined
   const payload = { ...conversation(options, config.limits?.relaxContext ? RELAXED_CONTEXT_BYTES : MAX_CONTEXT_BYTES),
     strategy: options.model, template: automaticRouting ? 'auto' : config.template,
     ...(nativeTools ? { hostTools: nativeTools.schemas } : {}),
@@ -208,7 +256,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),
     ...(config.outputConstraints ? { outputConstraints: config.outputConstraints } : {}),
     temperature: options.temperature ?? 0, ...(config.limits ? { limits: config.limits } : {}),
-    ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}) }
+    ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}),
+    ...(config.dshModelPool ? {dshModelPool:config.dshModelPool,dshCatalogSnapshot:catalogSnapshot} : {}) }
   const routes: ModelRoute[] = []
   for (const model of config.providerConfig?.models ?? []) {
     const provider = config.providerConfig!.providers.find(p=>p.id===model.provider)!
@@ -292,7 +341,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     if (outcome.exitCode !== 0) throw new Error(`RefractAgent ${String(result.status)}: ${JSON.stringify(result.issues)}`)
     if (typeof result.answer !== 'string' || !result.answer || !object(result.costs) || !object(result.models)
       || !object(result.usage) || typeof result.result_path !== 'string') throw new Error('invalid RefractAgent result fields')
-    if (typeof result.billing_unit !== 'string' || (config.providerConfig && result.billing_unit !== config.providerConfig.billingUnit)) {
+    const billingUnit=config.dshModelPool?.billingUnit??config.providerConfig?.billingUnit
+    if (typeof result.billing_unit !== 'string' || (billingUnit && result.billing_unit !== billingUnit)) {
       throw new Error('RefractAgent returned a different billing unit')
     }
     for (const key of ['production', 'evaluation', 'unconfirmed']) {
@@ -347,7 +397,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       metadata(options.provider, options.model)
       const config = source()
       const model = normalizeConfiguredModel(config, options.model)
-      const automatic = config.providerConfig?.schemaVersion === 'refractagent-providers-v4' || config.template === 'auto'
+      const automatic = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4' || config.template === 'auto'
       const pending = automatic ? (config.executionMode === 'live'
         ? '正在快速拆分任务，随后执行可并行的步骤。\n' : '正在预览自动拆分流程。\n') : ''
       if (pending) {

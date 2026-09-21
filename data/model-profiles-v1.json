@@ -1,0 +1,37 @@
+{
+  "schema_version": "refractrouter-model-profiles-v1",
+  "frozen_at": "2026-09-21T03:50:00Z",
+  "quality_normalization": {
+    "method": "cohort-min-max-0-100",
+    "note": "第三方质量数据仅在许可允许的冻结快照中填写；运行时不联网更新。"
+  },
+  "profiles": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0003,
+        "cachedInputPer1k": 0.000006,
+        "outputPer1k": 0.0012
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing",
+          "retrieved_at": "2026-09-21T03:48:00Z",
+          "metric_version": "DeepSeek-V4.1-Flash peak price"
+        },
+        {
+          "kind": "quality-methodology",
+          "url": "https://artificialanalysis.ai/methodology",
+          "retrieved_at": "2026-09-21T03:49:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2",
+          "note": "未提交需要 API 许可的数值；可由用户本地缓存补充。"
+        }
+      ]
+    }
+  ]
+}
