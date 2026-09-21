@@ -1,0 +1,61 @@
+{
+  "schema_version": "security-benchmark-binding-audit-v1",
+  "real_model_calls": 0,
+  "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b",
+  "binding_sha256": "72ef8391b9c6c3425d73e872ce34e8ce116d629a4d5250a105d4306c68fa784a",
+  "billing_unit": "AFP",
+  "roles_total": 6,
+  "bound_roles": [
+    "external-cheap",
+    "external-strong"
+  ],
+  "blocked_roles": [
+    {
+      "role_id": "trusted-strong",
+      "requirements": [
+        "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+        "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。"
+      ]
+    },
+    {
+      "role_id": "local-worker",
+      "requirements": [
+        "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。"
+      ]
+    },
+    {
+      "role_id": "local-judge",
+      "requirements": [
+        "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。"
+      ]
+    },
+    {
+      "role_id": "simulated-local-worker",
+      "requirements": [
+        "DEPLOYMENT_MISMATCH：simulated-local 仅用于研究，不允许绑定为真实可部署路线。"
+      ]
+    }
+  ],
+  "required_blocked_roles": [
+    {
+      "role_id": "trusted-strong",
+      "requirements": [
+        "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+        "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。"
+      ]
+    },
+    {
+      "role_id": "local-worker",
+      "requirements": [
+        "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。"
+      ]
+    },
+    {
+      "role_id": "local-judge",
+      "requirements": [
+        "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。"
+      ]
+    }
+  ],
+  "live_execution_ready": false
+}

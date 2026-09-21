@@ -183,6 +183,7 @@ def audit_bindings(protocol, raw):
                 raise ValueError('judge binding must be independent from production roles')
     bound_roles = sorted(role_id for role_id, row in bindings.items()
                          if row['status'] == 'bound')
+    required_blocked = [row for row in blocked if not roles[row['role_id']]['researchOnly']]
     return {
         'schema_version': 'security-benchmark-binding-audit-v1',
         'real_model_calls': 0,
@@ -192,5 +193,6 @@ def audit_bindings(protocol, raw):
         'roles_total': len(roles),
         'bound_roles': bound_roles,
         'blocked_roles': blocked,
-        'live_execution_ready': not blocked,
+        'required_blocked_roles': required_blocked,
+        'live_execution_ready': not required_blocked,
     }

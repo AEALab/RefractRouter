@@ -1,0 +1,651 @@
+{
+  "schema_version": "security-benchmark-budget-freeze-v1",
+  "real_model_calls": 0,
+  "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b",
+  "binding_sha256": "72ef8391b9c6c3425d73e872ce34e8ce116d629a4d5250a105d4306c68fa784a",
+  "billing_unit": "AFP",
+  "calls": [
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 2400,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 2400,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 2400,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "private-facts",
+      "role_id": "local-worker",
+      "input_tokens": 1200,
+      "output_tokens": 300
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "public-rules",
+      "role_id": "external-cheap",
+      "input_tokens": 900,
+      "output_tokens": 300
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "merge",
+      "role_id": "trusted-strong",
+      "input_tokens": 1800,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-separable-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 2600,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 2600,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 2600,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "timeline",
+      "role_id": "local-worker",
+      "input_tokens": 1300,
+      "output_tokens": 350
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "impact",
+      "role_id": "local-worker",
+      "input_tokens": 1300,
+      "output_tokens": 350
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "remediation",
+      "role_id": "trusted-strong",
+      "input_tokens": 1900,
+      "output_tokens": 1000
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-sensitive-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1512,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 1800,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 1800,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 1800,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "compare-a",
+      "role_id": "external-cheap",
+      "input_tokens": 800,
+      "output_tokens": 250
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "compare-b",
+      "role_id": "external-cheap",
+      "input_tokens": 800,
+      "output_tokens": 250
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "merge",
+      "role_id": "external-cheap",
+      "input_tokens": 1300,
+      "output_tokens": 800
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-public-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1312,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "rewrite",
+      "role_id": "external-cheap",
+      "input_tokens": 300,
+      "output_tokens": 120
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-short-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 632,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "external-strong",
+      "input_tokens": 2200,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "external-reference",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "trusted-strong",
+      "input_tokens": 2200,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "trusted-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-worker",
+      "input_tokens": 2200,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-direct",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "first-half",
+      "role_id": "local-worker",
+      "input_tokens": 1100,
+      "output_tokens": 300
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "second-half",
+      "role_id": "local-worker",
+      "input_tokens": 1400,
+      "output_tokens": 350
+    },
+    {
+      "purpose": "production",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": "explain",
+      "role_id": "trusted-strong",
+      "input_tokens": 1600,
+      "output_tokens": 900
+    },
+    {
+      "purpose": "evaluation",
+      "task_id": "dev-dependent-01",
+      "repeat": 1,
+      "arm": "constrained-fixed-dag",
+      "node_id": null,
+      "role_id": "local-judge",
+      "input_tokens": 1412,
+      "output_tokens": 512
+    }
+  ],
+  "role_totals": [
+    {
+      "role_id": "external-cheap",
+      "calls": 5,
+      "purposes": {
+        "production": 5
+      },
+      "input_tokens": 4100,
+      "output_tokens": 1720,
+      "projected_cost": 0.291
+    },
+    {
+      "role_id": "external-strong",
+      "calls": 5,
+      "purposes": {
+        "production": 5
+      },
+      "input_tokens": 9300,
+      "output_tokens": 3720,
+      "projected_cost": 7.161
+    },
+    {
+      "role_id": "local-judge",
+      "calls": 20,
+      "purposes": {
+        "evaluation": 20
+      },
+      "input_tokens": 25120,
+      "output_tokens": 10240,
+      "projected_cost": null
+    },
+    {
+      "role_id": "local-worker",
+      "calls": 10,
+      "purposes": {
+        "production": 10
+      },
+      "input_tokens": 15600,
+      "output_tokens": 5370,
+      "projected_cost": null
+    },
+    {
+      "role_id": "trusted-strong",
+      "calls": 8,
+      "purposes": {
+        "production": 8
+      },
+      "input_tokens": 14600,
+      "output_tokens": 6520,
+      "projected_cost": null
+    }
+  ],
+  "planned_calls": {
+    "production": 28,
+    "evaluation": 20,
+    "total": 48
+  },
+  "authorization_call_cap": 48,
+  "protocol_hard_call_cap": 64,
+  "automatic_http_retries": 0,
+  "node_fallbacks": 0,
+  "recovery_calls_authorized": 0,
+  "cache_discount_assumed": false,
+  "known_bound_cost": 7.452,
+  "maximum_total_cost": null,
+  "unresolved_cost_roles": [
+    {
+      "role_id": "local-judge",
+      "requirements": [
+        "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。"
+      ]
+    },
+    {
+      "role_id": "local-worker",
+      "requirements": [
+        "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。"
+      ]
+    },
+    {
+      "role_id": "trusted-strong",
+      "requirements": [
+        "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+        "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。"
+      ]
+    }
+  ],
+  "binding_audit": {
+    "schema_version": "security-benchmark-binding-audit-v1",
+    "real_model_calls": 0,
+    "protocol_sha256": "8a1c3ecad58f7189c7f3ec21c4943d5e4773d2db3794c7d6cb06a86e0b95389b",
+    "binding_sha256": "72ef8391b9c6c3425d73e872ce34e8ce116d629a4d5250a105d4306c68fa784a",
+    "billing_unit": "AFP",
+    "roles_total": 6,
+    "bound_roles": [
+      "external-cheap",
+      "external-strong"
+    ],
+    "blocked_roles": [
+      {
+        "role_id": "trusted-strong",
+        "requirements": [
+          "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+          "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。"
+        ]
+      },
+      {
+        "role_id": "local-worker",
+        "requirements": [
+          "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。"
+        ]
+      },
+      {
+        "role_id": "local-judge",
+        "requirements": [
+          "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。"
+        ]
+      },
+      {
+        "role_id": "simulated-local-worker",
+        "requirements": [
+          "DEPLOYMENT_MISMATCH：simulated-local 仅用于研究，不允许绑定为真实可部署路线。"
+        ]
+      }
+    ],
+    "required_blocked_roles": [
+      {
+        "role_id": "trusted-strong",
+        "requirements": [
+          "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+          "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。"
+        ]
+      },
+      {
+        "role_id": "local-worker",
+        "requirements": [
+          "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。"
+        ]
+      },
+      {
+        "role_id": "local-judge",
+        "requirements": [
+          "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。"
+        ]
+      }
+    ],
+    "live_execution_ready": false
+  },
+  "authorization_request_ready": false,
+  "paid_execution_authorized": false,
+  "live_execution_ready": false,
+  "blocking_requirements": [
+    "BINDING_MISSING：当前 DSH 目录没有独立于生产模型的真实本地评审模型。",
+    "BINDING_MISSING：当前 DSH 目录没有已验证的真实本地执行模型、推理引擎与模型制品摘要。",
+    "TRUST_POLICY_INCOMPLETE：glm-5.3 只有开发期 DSH 声明，尚无可提交的生产信任、驻留与审计证明。",
+    "MODEL_VERSION_UNRESOLVED：glm-5.3 是文档模型名，尚未确认是否可固定到不可变版本。",
+    "PAID_EXECUTION_UNAUTHORIZED：开发批次尚未取得明确调用与预算授权。"
+  ],
+  "stop_policy": {
+    "task_route_failure": "停止该任务该路线的下游，结算在途调用，保留失败分母。",
+    "batch_failure": "隐私违规、凭证异常、用量未知、账本异常或证据写入失败时停止整批。",
+    "no_expansion": "不补样、不临时换模型、不自动消耗协议硬上限与计划调用之间的余量。"
+  }
+}
