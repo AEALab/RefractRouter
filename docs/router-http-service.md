@@ -1,8 +1,11 @@
 # RefractRouter HTTP 服务
 
-RefractRouter `0.8.0` 提供最小 HTTP 服务，使 DSH 插件可以连接本机或团队部署的
+RefractRouter `0.9.0` 提供 HTTP 服务，使 DSH 插件可以连接本机或团队部署的
 Router URL。服务仍由 Python 核心执行规划、选模、模拟、证据保存与失败判定；插件只负责
 传输请求和展示结果。
+
+本页说明兼容的同步 HTTP v1。需要成员、项目、幂等、取消和重启恢复时，参见
+[团队 Router 持久服务](team-router-service.md)。
 
 ## 启动
 
@@ -51,4 +54,5 @@ refractagent serve \
 - 不开放 v4 真实付费执行；
 - 不通过远程接口传递 DSH 原生工具回调；
 - 不在 URL、查询参数或插件设置中保存密钥；
-- 团队级成员、项目台账、幂等与重启恢复仍是后续服务化工作。
+- HTTP v2 已提供单机团队任务状态、成员/项目访问、幂等、取消与重启恢复；DSH 客户端接入
+  属于下一阶段。

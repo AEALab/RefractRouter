@@ -11,7 +11,8 @@ RefractRouter URL，改走远程服务。
 支持可选的 DSH 凭证引用，通过 NDJSON 接收 Python 核心的实时进度和最终结果，不再启动本机
 Python 子进程。非回环 HTTP URL 会被拒绝，团队地址必须使用 HTTPS；URL 中不得嵌入凭证。
 
-配套核心 `0.8.0` 提供 `refractagent serve`。HTTP v1 当前只开放预检和模拟，不开启 v4
+配套核心 `0.9.0` 提供 `refractagent serve`。HTTP v1 当前只开放预检和模拟，HTTP v2
+另提供持久团队任务服务；插件本版本仍使用 v1。两个协议都不开启 v4
 真实付费执行，也不承载 DSH 原生工具回调。详见
 [RefractRouter HTTP 服务](../../../docs/router-http-service.md)。
 
