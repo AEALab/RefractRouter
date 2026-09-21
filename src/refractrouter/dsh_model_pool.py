@@ -9,9 +9,12 @@ from .application_config import compile_configuration
 
 
 PROFILE_PATHS = (
+    Path(__file__).resolve().parents[2] / 'data/model-profiles-v2.json',
+    Path(sys.prefix) / 'share/refractrouter/model-profiles-v2.json',
     Path(__file__).resolve().parents[2] / 'data/model-profiles-v1.json',
     Path(sys.prefix) / 'share/refractrouter/model-profiles-v1.json',
 )
+PROFILE_SCHEMAS = {'refractrouter-model-profiles-v1', 'refractrouter-model-profiles-v2'}
 DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
 
 
@@ -39,7 +42,7 @@ def load_frozen_profiles(path=None):
     if path is None:
         path = next((candidate for candidate in PROFILE_PATHS if candidate.is_file()), PROFILE_PATHS[0])
     raw = json.loads(Path(path).read_text())
-    if raw.get('schema_version') != 'refractrouter-model-profiles-v1' or not isinstance(raw.get('profiles'), list):
+    if raw.get('schema_version') not in PROFILE_SCHEMAS or not isinstance(raw.get('profiles'), list):
         raise ValueError('invalid frozen model profile resource')
     identities = set()
     for profile in raw['profiles']:
@@ -50,7 +53,66 @@ def load_frozen_profiles(path=None):
         if identity in identities:
             raise ValueError('frozen model profile identities must be unique')
         identities.add(identity)
+        if raw['schema_version'] == 'refractrouter-model-profiles-v2':
+            _validate_price_schedule(profile)
     return raw
+
+
+def _validate_price_schedule(profile):
+    pricing = _record(profile.get('pricing'), 'profile pricing')
+    if pricing.get('unit') != 'USD' or set(pricing) != {
+            'unit', 'inputPer1k', 'cachedInputPer1k', 'outputPer1k'}:
+        raise ValueError('v2 frozen profiles require complete USD budget pricing')
+    for key in ('inputPer1k', 'cachedInputPer1k', 'outputPer1k'):
+        _number(pricing[key], f'profile pricing {key}')
+    if pricing['cachedInputPer1k'] > pricing['inputPer1k']:
+        raise ValueError('profile cachedInputPer1k cannot exceed inputPer1k')
+    basis = _record(profile.get('pricing_basis'), 'profile pricing basis')
+    if basis.get('kind') not in {'direct-provider-public-price', 'manufacturer-reference'}:
+        raise ValueError('invalid profile pricing basis')
+    if basis.get('equivalence') not in {'official-route', 'official-alias', 'unverified'}:
+        raise ValueError('invalid profile price equivalence')
+    if basis['kind'] == 'manufacturer-reference' and basis['equivalence'] != 'unverified':
+        raise ValueError('manufacturer reference must not imply provider equivalence')
+    schedule = _record(profile.get('pricing_schedule'), 'profile pricing schedule')
+    if schedule.get('unit') != 'USD' or schedule.get('perTokens') != 1000:
+        raise ValueError('invalid profile price schedule unit')
+    tiers = schedule.get('tiers')
+    if not isinstance(tiers, list) or not tiers:
+        raise ValueError('profile price schedule requires tiers')
+    tier_ids = set()
+    for tier in tiers:
+        tier = _record(tier, 'profile pricing tier')
+        tier_id = tier.get('id')
+        if not isinstance(tier_id, str) or not tier_id or tier_id in tier_ids:
+            raise ValueError('profile pricing tier ids must be unique')
+        tier_ids.add(tier_id)
+        if not isinstance(tier.get('conditions'), dict):
+            raise ValueError('profile pricing tier requires conditions')
+        prices = _record(tier.get('prices'), 'profile tier prices')
+        for key in ('inputPer1k', 'cachedInputPer1k', 'outputPer1k'):
+            _number(prices.get(key), f'profile tier {key}')
+        for key in set(prices) - {'inputPer1k', 'cachedInputPer1k', 'outputPer1k',
+                                  'cacheWritePer1k'}:
+            raise ValueError(f'unsupported profile tier price: {key}')
+        if 'cacheWritePer1k' in prices:
+            _number(prices['cacheWritePer1k'], 'profile tier cacheWritePer1k')
+        budget = _record(tier.get('budgetPricing'), 'profile tier budget pricing')
+        if set(budget) != {'inputPer1k', 'cachedInputPer1k', 'outputPer1k'}:
+            raise ValueError('profile tier requires complete budget pricing')
+        for key in budget:
+            _number(budget[key], f'profile tier budget {key}')
+    materialization = _record(profile.get('pricing_materialization'),
+                              'profile pricing materialization')
+    if materialization.get('strategy') != 'conservative-upper-bound':
+        raise ValueError('v2 frozen profiles require conservative price materialization')
+    selected = materialization.get('selectedTier')
+    if selected not in tier_ids:
+        raise ValueError('profile pricing materialization references an unknown tier')
+    selected_budget = next(tier['budgetPricing'] for tier in tiers if tier['id'] == selected)
+    if any(pricing[key] != selected_budget[key]
+           for key in ('inputPer1k', 'cachedInputPer1k', 'outputPer1k')):
+        raise ValueError('profile pricing must match the selected conservative tier')
 
 
 def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
@@ -71,6 +133,12 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
                for row in snapshot.get('routes', [])}
     frozen = profiles or load_frozen_profiles()
     public = {(row['provider'], row['model']): row for row in frozen['profiles']}
+    if profiles is None and frozen['schema_version'] == 'refractrouter-model-profiles-v2':
+        legacy_path = next((candidate for candidate in PROFILE_PATHS[2:] if candidate.is_file()), None)
+        if legacy_path is not None:
+            legacy = load_frozen_profiles(legacy_path)
+            for row in legacy['profiles']:
+                public.setdefault((row['provider'], row['model']), row)
     selected, evidence = [], {}
     seen = set()
     for raw in routes:
@@ -123,13 +191,17 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
             'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
             'quality': quality, 'latencyMs': latency})
-        evidence[_route_key(provider, model)] = {
+        route_evidence = {
             'profile': 'user-declared-uncalibrated' if manual_complete and not base else 'frozen-public-profile',
             'samples': 0,
             'sources': deepcopy(base.get('sources', [])),
             'overrides': sorted(overrides),
             'note': overrides.get('note'),
         }
+        for key in ('pricing_basis', 'pricing_schedule', 'pricing_materialization'):
+            if key in base:
+                route_evidence[key] = deepcopy(base[key])
+        evidence[_route_key(provider, model)] = route_evidence
     if not selected:
         raise ValueError('dshModelPool requires at least one enabled route')
     overrides = _record(pool.get('roleOverrides', {}), 'roleOverrides')
