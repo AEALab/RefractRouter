@@ -1,0 +1,95 @@
+{
+  "schema_version": "security-benchmark-pricing-snapshot-v2",
+  "pricing_snapshot_date": "2026-09-07",
+  "execution_billing_unit": "AFP",
+  "routes": [
+    {
+      "role_id": "external-strong",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-pro",
+      "deployment": "external-cloud",
+      "version": {
+        "kind": "documented-model-name",
+        "value": "deepseek-v4-pro",
+        "observedAt": "2026-09-07"
+      },
+      "execution_pricing": {
+        "unit": "AFP",
+        "inputPer1k": 0.55,
+        "cachedInputPer1k": 0.55,
+        "outputPer1k": 0.55,
+        "sourceId": "ark-afp-pricing"
+      },
+      "reference_pricing": null,
+      "reference_pricing_blockers": [
+        "MODEL_EQUIVALENCE_UNVERIFIED：Ark deepseek-v4-pro 尚无证据证明与某个 DeepSeek 原厂公开计价型号及版本完全等价。"
+      ],
+      "profile_provenance": "protocol-prior",
+      "evidence_sources": [
+        "ark-model-directory",
+        "ark-afp-pricing",
+        "ark-frozen-catalog",
+        "ark-frozen-manifest"
+      ]
+    },
+    {
+      "role_id": "external-cheap",
+      "provider": "ark-plan",
+      "model": "deepseek-v4-flash",
+      "deployment": "external-cloud",
+      "version": {
+        "kind": "documented-model-name",
+        "value": "deepseek-v4-flash",
+        "observedAt": "2026-09-07"
+      },
+      "execution_pricing": {
+        "unit": "AFP",
+        "inputPer1k": 0.05,
+        "cachedInputPer1k": 0.05,
+        "outputPer1k": 0.05,
+        "sourceId": "ark-afp-pricing"
+      },
+      "reference_pricing": null,
+      "reference_pricing_blockers": [
+        "MODEL_EQUIVALENCE_UNVERIFIED：Ark deepseek-v4-flash 尚无证据证明与某个 DeepSeek 原厂公开计价型号及版本完全等价。"
+      ],
+      "profile_provenance": "protocol-prior",
+      "evidence_sources": [
+        "ark-model-directory",
+        "ark-afp-pricing",
+        "ark-frozen-catalog",
+        "ark-frozen-manifest"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "ark-model-directory",
+      "kind": "official-documentation",
+      "uri": "https://www.volcengine.com/docs/82379/2366394?lang=zh",
+      "retrievedAt": "2026-09-07",
+      "sha256": "19b55606bc82f40154f32aa9975d54ba9f8a41d1b0c0b5c970994d02335f0ff6"
+    },
+    {
+      "id": "ark-afp-pricing",
+      "kind": "official-documentation",
+      "uri": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+      "retrievedAt": "2026-09-07",
+      "sha256": "6e5aebe70fc3a3ce5ca4a27eef6747b5bb1ba824d50c9553fd672e0845c7b4f3"
+    },
+    {
+      "id": "ark-frozen-catalog",
+      "kind": "frozen-catalog",
+      "uri": "data/model-catalogs/ark-agent-plan-2026-09-07.json",
+      "retrievedAt": "2026-09-07",
+      "sha256": "1b68c1f2a80328d3315bf6bc58a3d0270f1ac31b59caf5584c148dc081712b98"
+    },
+    {
+      "id": "ark-frozen-manifest",
+      "kind": "frozen-manifest",
+      "uri": "data/model-manifests/volcengine-agent-plan.json",
+      "retrievedAt": "2026-09-06",
+      "sha256": "32502475294effe6b3ddbec64d9421a10bc9d968c6c0ad3e828ab50e99fc9367"
+    }
+  ]
+}

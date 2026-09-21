@@ -45,16 +45,24 @@
 真实本地模型，可以另跑 `simulated-local` 探索调度与质量，但只能报告为模拟证据，不能用来
 证明隐私部署可行。
 
-真实绑定使用 `data/research/security-benchmark-bindings-v1.json`，并通过原协议摘要与本文件
-分离冻结。当前只确认了 Ark Agent Plan 的 `external-strong` 与 `external-cheap`：分别绑定
+历史单账本绑定保留在 `data/research/security-benchmark-bindings-v1.json`；当前合同升级为
+`data/research/security-benchmark-bindings-v2.json`，并通过原协议摘要与本文件分离冻结。
+当前只确认了 Ark Agent Plan 的 `external-strong` 与 `external-cheap`：分别绑定
 `deepseek-v4-pro` 与 `deepseek-v4-flash`，按 2026-09-07 的官方 AFP 快照计价。开发期 DSH
 中的 `glm-5.3` 可信云声明没有生产信任、驻留和审计证明，因此不能直接升级为
 `trusted-strong`；真实本地执行器和独立本地评审器也仍缺失。绑定审计必须返回明确阻断，
 不得使用演示配置、占位模型或 `simulated-local` 补齐。
 
 角色质量值在绑定阶段仍是协议冷启动先验，不是实测结论；模型目录、价格和容量来源与该
-先验分别记录。绑定档案使用模型或套餐的原生计费单位，不把 AFP、USD 或本地拥有成本静默
-换算为同一货币。
+先验分别记录。v2 绑定档案把实际路线的 `executionPricing` 与原厂公开价格的
+`referencePricing` 分开；价格身份始终包含 `(provider, model)`，不把 AFP、USD、CNY 或
+本地拥有成本静默换算或跨单位求和。
+
+Ark 的 `deepseek-v4-pro` 与 `deepseek-v4-flash` 尚无可提交证据证明它们与某个 DeepSeek
+原厂公开计价型号及版本完全等价，因此当前 `referencePricing` 保持 `null`，并记录
+`MODEL_EQUIVALENCE_UNVERIFIED`。原厂价格不能覆盖实际 AFP 账本；如果后续取得精确等价证据，
+只新增公开参考账本。若要按 DeepSeek 原厂价格实际结算，必须另行绑定 DeepSeek 原生 provider
+与端点。
 
 ## 指标与判定
 
@@ -87,6 +95,8 @@
 展开为 28 次生产调用和 20 次独立评审，共 48 次计划调用；协议的 64 次是绝对硬上限，
 不是默认可消费的恢复额度。本批自动 HTTP 重试、节点模型切换和失败补跑均冻结为 0。
 
-当前只有外部强模型和外部经济模型具有可复算的 AFP 价格，已知部分为 7.452 AFP；可信强
-模型、真实本地执行器与独立本地评审器尚未绑定，因此完整费用上限保持 `null`，授权草案
-明确不可执行。补齐绑定后必须重新生成全部摘要和价格证据，并另行取得明确调用与预算授权。
+当前只有外部强模型和外部经济模型具有可复算的 AFP 执行用量，已知部分为 7.452 AFP；可信强
+模型、真实本地执行器与独立本地评审器尚未绑定，因此完整执行用量上限保持 `null`，授权草案
+明确不可执行。AFP 是订阅资源消耗，不是现金成本；在订阅费用、包含 AFP、有效期和利用率
+没有冻结前，`execution_cash_cost` 必须保持 `null`。补齐绑定后必须重新生成全部摘要和价格
+证据，并另行取得明确调用与预算授权。

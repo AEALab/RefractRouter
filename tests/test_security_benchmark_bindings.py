@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def documents():
     protocol = json.loads((ROOT / 'data/research/security-benchmark-v1.json').read_text())
-    bindings = json.loads((ROOT / 'data/research/security-benchmark-bindings-v1.json').read_text())
+    bindings = json.loads((ROOT / 'data/research/security-benchmark-bindings-v2.json').read_text())
     return protocol, bindings
 
 
@@ -24,7 +24,7 @@ def test_inventory_binds_external_roles_and_fails_closed_on_missing_private_rout
     assert {row['role_id'] for row in result['blocked_roles']} == {
         'local-judge', 'local-worker', 'simulated-local-worker', 'trusted-strong'}
     assert result['live_execution_ready'] is False
-    assert result['billing_unit'] == 'AFP'
+    assert result['execution_billing_unit'] == 'AFP'
 
 
 def test_inventory_is_bound_to_the_exact_protocol_digest():
@@ -73,6 +73,46 @@ def test_simulated_local_cannot_be_promoted_by_a_binding():
 
 def test_bound_role_rejects_unknown_pricing_evidence():
     protocol, bindings = documents()
-    bindings['bindings'][0]['binding']['pricing']['sourceId'] = 'missing'
-    with pytest.raises(ValueError, match='pricing unit or source'):
+    bindings['bindings'][0]['binding']['executionPricing']['sourceId'] = 'missing'
+    with pytest.raises(ValueError, match='execution pricing unit or source'):
+        audit_bindings(protocol, bindings)
+
+
+def test_missing_reference_price_requires_an_explicit_equivalence_blocker():
+    protocol, bindings = documents()
+    binding = bindings['bindings'][0]['binding']
+    binding['referencePricingBlockers'] = []
+    with pytest.raises(ValueError, match='explicit blocker'):
+        audit_bindings(protocol, bindings)
+
+
+def test_reference_price_requires_exact_identity_and_known_equivalence_evidence():
+    protocol, bindings = documents()
+    binding = bindings['bindings'][0]['binding']
+    binding['referencePricingBlockers'] = []
+    binding['referencePricing'] = {
+        'provider': 'deepseek', 'model': 'deepseek-chat',
+        'version': {'kind': 'documented-model-name', 'value': 'DeepSeek-V3.2',
+                    'observedAt': '2026-09-21'},
+        'equivalenceEvidenceSources': ['missing'],
+        'pricing': {'unit': 'USD', 'inputPer1k': .001, 'cachedInputPer1k': .0001,
+                    'outputPer1k': .002, 'sourceId': 'missing'},
+    }
+    with pytest.raises(ValueError, match='known equivalence evidence'):
+        audit_bindings(protocol, bindings)
+
+
+def test_reference_price_rejects_a_non_public_manifest_as_its_price_source():
+    protocol, bindings = documents()
+    binding = bindings['bindings'][0]['binding']
+    binding['referencePricingBlockers'] = []
+    binding['referencePricing'] = {
+        'provider': 'deepseek', 'model': 'frozen-model',
+        'version': {'kind': 'immutable-version', 'value': 'v1',
+                    'observedAt': '2026-09-21'},
+        'equivalenceEvidenceSources': ['ark-frozen-manifest'],
+        'pricing': {'unit': 'USD', 'inputPer1k': .001, 'cachedInputPer1k': .0001,
+                    'outputPer1k': .002, 'sourceId': 'ark-frozen-manifest'},
+    }
+    with pytest.raises(ValueError, match='official public price source'):
         audit_bindings(protocol, bindings)
