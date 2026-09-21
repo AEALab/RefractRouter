@@ -58,6 +58,7 @@ export interface DshModelPool {
 export interface RouterConnection {
   url: string
   credential?: string
+  project?: string
 }
 
 /** DSH 设置命名空间承载的用户可调子集。 */
@@ -70,7 +71,7 @@ export interface SettingsSection {
 
 export function validateRouterConnection(value: unknown): asserts value is RouterConnection {
   if (!isRecordValue(value) || typeof value.url !== 'string'
-    || Object.keys(value).some(key => !['url','credential'].includes(key))) throw new Error('invalid Router connection')
+    || Object.keys(value).some(key => !['url','credential','project'].includes(key))) throw new Error('invalid Router connection')
   let url: URL
   try { url = new URL(value.url) } catch { throw new Error('invalid Router URL') }
   if (!['http:','https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
@@ -81,6 +82,8 @@ export function validateRouterConnection(value: unknown): asserts value is Route
   }
   if (value.credential !== undefined && (typeof value.credential !== 'string'
     || !/^[A-Za-z_][A-Za-z0-9_.:-]*$/.test(value.credential))) throw new Error('invalid Router credential reference')
+  if (value.project !== undefined && (typeof value.project !== 'string'
+    || !/^[A-Za-z0-9._-]{1,128}$/.test(value.project))) throw new Error('invalid Router project')
 }
 
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {

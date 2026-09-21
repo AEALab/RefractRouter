@@ -5,11 +5,13 @@ import { apply, configure, createAdapter, type AgentAdapter, type AgentContext }
 
 function fixture(result: Record<string, unknown> = {}) {
   let adapter: AgentAdapter | undefined
+  let discovery: ((request:{provider?:string;baseURL?:string;api?:string;apiKey?:string},signal?:AbortSignal)=>Promise<readonly {id:string;name?:string}[]>)|undefined
   let credentials = 0
   const credentialReferences: string[] = []
   const spawns: Array<{ argv: string[]; env: Record<string,string>; input: () => string }> = []
   const ctx: AgentContext = {
-    llm: { registerAdapter(providers, value) { assert.deepEqual(providers,['refractagent']); adapter=value } },
+    llm: { registerAdapter(providers, value) { assert.deepEqual(providers,['refractagent']); adapter=value },
+      registerModelDiscovery(settingsNs,callback){assert.equal(settingsNs,'refractagent-router-projects');discovery=callback;return()=>{}} },
     credentials: { async describe() { return {configured:true} }, async resolve(reference) {
       credentials++; credentialReferences.push(reference)
       // Native DSH CredentialRef is the identifier itself, without an env: prefix.
@@ -35,7 +37,7 @@ function fixture(result: Record<string, unknown> = {}) {
       },
     },
   }
-  return {ctx,spawns,credentialReferences,get adapter(){return adapter!},get credentials(){return credentials}}
+  return {ctx,spawns,credentialReferences,get adapter(){return adapter!},get discovery(){return discovery!},get credentials(){return credentials}}
 }
 const options = {provider:'refractagent',model:'balanced',system:'保留系统要求',
   messages:[{role:'user',content:[{type:'text',text:'比较两个方案'}]}],signal:new AbortController().signal}
@@ -142,9 +144,10 @@ test('demo uses installed core through native sandboxed subprocess and preserves
 test('Router URL uses authenticated NDJSON transport without starting local Python',async()=>{
   const f=fixture()
   const originalFetch=globalThis.fetch
-  let request:Request|undefined
+  const requests:Request[]=[]
   globalThis.fetch=async(input,init)=>{
-    request=new Request(input,init)
+    const request=new Request(input,init);requests.push(request)
+    if(request.url.endsWith('/healthz'))return Response.json({protocol:'refractagent-http-v1',status:'ok',paid_execution:false})
     const result={schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',
       mode:'demo',status:'simulated',answer:'[SIMULATED] remote answer',
       costs:{production:0,evaluation:0,unconfirmed:0},models:{answer:'physical-model'},
@@ -162,9 +165,9 @@ test('Router URL uses authenticated NDJSON transport without starting local Pyth
       routerUrl:'http://127.0.0.1:8787/',routerCredential:'ROUTER_TOKEN',template:'auto'})))
     assert.equal(f.spawns.length,0)
     assert.deepEqual(f.credentialReferences,['ROUTER_TOKEN'])
-    assert.equal(request!.url,'http://127.0.0.1:8787/v1/run')
-    assert.equal(request!.headers.get('authorization'),'Bearer private-test-key')
-    const body=JSON.parse(await request!.text())
+    assert.deepEqual(requests.map(request=>new URL(request.url).pathname),['/healthz','/v1/run'])
+    assert.equal(requests[1]!.headers.get('authorization'),'Bearer private-test-key')
+    const body=JSON.parse(await requests[1]!.text())
     assert.equal(body.protocol,'refractagent-http-v1')
     assert.equal(body.execution.mode,'demo')
     assert.equal(body.request.task,'比较两个方案')
@@ -173,11 +176,98 @@ test('Router URL uses authenticated NDJSON transport without starting local Pyth
     assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
   }finally{globalThis.fetch=originalFetch}
 })
+test('Router HTTP v2 resumes durable events without resubmitting and exposes task metadata',async()=>{
+  const f=fixture();const originalFetch=globalThis.fetch;const requests:Request[]=[]
+  const result={schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',mode:'demo',
+    status:'simulated',answer:'[SIMULATED] durable answer',costs:{production:0,evaluation:0,unconfirmed:0},
+    models:{answer:'physical-model'},usage:{input_tokens:0,output_tokens:0},simulated:true,billing_unit:'AFP',
+    dag:{phase:'finished',status:'simulated',simulated:true,reason:'持久模拟',nodes:[]},
+    result_path:'/srv/runs/durable/result.json',run_id:'durable'}
+  let eventReads=0
+  globalThis.fetch=async(input,init)=>{
+    const request=new Request(input,init);requests.push(request);const url=new URL(request.url)
+    if(url.pathname==='/healthz')return Response.json({protocol:'refractagent-http-v1',status:'ok',paid_execution:false,
+      protocols:['refractagent-http-v1','refractagent-http-v2']})
+    if(url.pathname==='/v2/projects')return Response.json({protocol:'refractagent-http-v2',projects:[{id:'alpha',maxConcurrentTasks:2}]})
+    if(url.pathname==='/v2/tasks')return Response.json({protocol:'refractagent-http-v2',taskId:'task-1',projectId:'alpha',
+      memberId:'alice',status:'queued',createdAt:'now',updatedAt:'now',reused:false},{status:202})
+    if(url.pathname==='/v2/tasks/task-1/events'){
+      eventReads+=1
+      if(eventReads===1)return new Response([
+        {sequence:1,type:'status',value:{status:'queued'}},
+        {sequence:2,type:'status',value:{status:'running'}},
+        {sequence:3,type:'progress',value:{protocol:'refractagent-progress/v1',run_id:'durable',sequence:1,
+          elapsed_ms:1,phase:'routing',status:'started',simulated:true,reason:'持久模拟',nodes:[]}},
+      ].map(row=>JSON.stringify({protocol:'refractagent-http-v2',taskId:'task-1',...row})+'\n').join(''))
+      assert.equal(url.searchParams.get('after'),'3')
+      return new Response([
+        {sequence:4,type:'result',value:result},
+        {sequence:5,type:'status',value:{status:'completed'}},
+      ].map(row=>JSON.stringify({protocol:'refractagent-http-v2',taskId:'task-1',...row})+'\n').join(''))
+    }
+    throw new Error('unexpected URL '+request.url)
+  }
+  try{
+    const output=await chunks(createAdapter(f.ctx,()=>configure({routerUrl:'http://127.0.0.1:8787',
+      routerCredential:'ROUTER_TOKEN',routerProject:'alpha',template:'auto'})))
+    assert.equal(requests.filter(request=>new URL(request.url).pathname==='/v2/tasks'&&request.method==='POST').length,1)
+    const submitted=requests.find(request=>new URL(request.url).pathname==='/v2/tasks'&&request.method==='POST')!
+    assert.match(submitted.headers.get('idempotency-key')??'',/^[0-9a-f-]{36}$/)
+    assert.equal((JSON.parse(await submitted.text())).projectId,'alpha')
+    assert.equal(eventReads,2)
+    assert.ok(output.some(chunk=>chunk.type==='reasoning-delta'&&String(chunk.text).includes('团队任务：task-1 · 项目 alpha')))
+    assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'[SIMULATED] durable answer')
+    const replay=output.at(-1)?.replayState as {response:{refractagent:{routerTask:{resumed:boolean,idempotencyKey:string}}}}
+    assert.equal(replay.response.refractagent.routerTask.resumed,true)
+    assert.equal(replay.response.refractagent.routerTask.idempotencyKey,submitted.headers.get('idempotency-key'))
+  }finally{globalThis.fetch=originalFetch}
+})
+test('Router HTTP v2 cancellation reaches the persistent task endpoint',async()=>{
+  const f=fixture();const originalFetch=globalThis.fetch;const controller=new AbortController();let cancelled=false
+  globalThis.fetch=async(input,init)=>{
+    const request=new Request(input,init);const url=new URL(request.url)
+    if(url.pathname==='/healthz')return Response.json({protocol:'refractagent-http-v1',status:'ok',
+      protocols:['refractagent-http-v1','refractagent-http-v2']})
+    if(url.pathname==='/v2/projects')return Response.json({protocol:'refractagent-http-v2',projects:[{id:'alpha',maxConcurrentTasks:2}]})
+    if(url.pathname==='/v2/tasks'&&request.method==='POST'){
+      queueMicrotask(()=>controller.abort())
+      return Response.json({protocol:'refractagent-http-v2',taskId:'task-cancel',status:'queued'},{status:202})
+    }
+    if(url.pathname==='/v2/tasks/task-cancel/cancel'){cancelled=true;return Response.json({status:'cancelled'},{status:202})}
+    if(url.pathname==='/v2/tasks/task-cancel/events')throw new DOMException('aborted','AbortError')
+    throw new Error('unexpected URL '+request.url)
+  }
+  try{
+    const output=[]
+    for await(const chunk of createAdapter(f.ctx,()=>configure({routerUrl:'http://127.0.0.1:8787',
+      routerCredential:'ROUTER_TOKEN',routerProject:'alpha',template:'auto'})).stream({...options,signal:controller.signal}))output.push(chunk)
+    assert.equal(cancelled,true)
+    assert.equal((output.at(-1)?.reason as {kind:string}).kind,'aborted')
+  }finally{globalThis.fetch=originalFetch}
+})
+test('Router project discovery stays on the host and returns only authorized project ids',async()=>{
+  const f=fixture();const originalFetch=globalThis.fetch;apply(f.ctx)
+  globalThis.fetch=async(input,init)=>{
+    const request=new Request(input,init)
+    assert.equal(request.headers.get('authorization'),'Bearer private-test-key')
+    if(request.url.endsWith('/healthz'))return Response.json({protocol:'refractagent-http-v1',status:'ok',
+      protocols:['refractagent-http-v1','refractagent-http-v2']})
+    return Response.json({protocol:'refractagent-http-v2',projects:[{id:'alpha',maxConcurrentTasks:2}]})
+  }
+  try{
+    const projects=await f.discovery({baseURL:'http://127.0.0.1:8787',api:'ROUTER_TOKEN'})
+    assert.deepEqual(projects,[{id:'alpha',name:'alpha（并发上限 2）'}])
+    assert.deepEqual(f.credentialReferences,['ROUTER_TOKEN'])
+    await assert.rejects(f.discovery({baseURL:'http://127.0.0.1:8787',apiKey:'raw-secret'}),/never a token/)
+  }finally{globalThis.fetch=originalFetch}
+})
 test('Router URL validation rejects insecure remote endpoints and embedded credentials',()=>{
   assert.equal(configure({routerUrl:'http://127.0.0.1:8787/'}).routerUrl,'http://127.0.0.1:8787')
   assert.throws(()=>configure({routerUrl:'http://router.example/v1'}),/requires HTTPS/)
   assert.throws(()=>configure({routerUrl:'https://user:secret@router.example'}),/without credentials/)
   assert.throws(()=>configure({routerCredential:'ROUTER_TOKEN'}),/requires routerUrl/)
+  assert.equal(configure({routerUrl:'http://127.0.0.1:8787',routerProject:'alpha'}).routerProject,'alpha')
+  assert.throws(()=>configure({routerUrl:'http://127.0.0.1:8787',routerProject:'bad/project'}),/routerProject/)
 })
 test('automatic decomposition is passed to Python without a fabricated plan',async()=>{
   const f=fixture()

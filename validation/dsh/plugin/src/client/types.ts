@@ -26,7 +26,15 @@ export interface ClientContext {
   locale: ClientLocaleService
   settingsScope: ClientSettingsScopeBinder
   remote: { session: { modelCatalog(): Promise<{ok:boolean;value?:DshModelCatalog;error?:{message:string}}> } }
+    & {llm:{discoverModels(settingsNs:string,request:{baseURL?:string;api?:string}):Promise<{
+      ok:boolean;value?:Array<{id:string;name?:string}>;error?:{message:string}
+    }>}}
   effect(setup: () => unknown, label?: string): unknown
+}
+
+export interface RouterProjectDirectory {
+  protocol:'refractagent-http-v1'|'refractagent-http-v2'
+  projects:Array<{id:string;name:string}>
 }
 
 export interface DshModelCatalog {

@@ -118,6 +118,11 @@ export interface LlmService {
   listModels?(provider: string): Promise<Array<{ id: string; name?: string; description?: string }>>
   providerRetryPolicy(provider: string): { mode: string; maxRetries?: number }
   resolveModelInfo(provider: string, model: string): Promise<unknown>
+  registerModelDiscovery?(settingsNs: string, discover: (request: {
+    provider?: string; baseURL?: string; api?: string; apiKey?: string
+  }, signal?: AbortSignal) => Promise<readonly {
+    id: string; name?: string; contextWindow?: number; maxTokens?: number
+  }[]>): () => void
 }
 export interface BridgeResponseBase { protocol: string; type: 'response'; id: string }
 export type BridgeResponse = BridgeResponseBase & (

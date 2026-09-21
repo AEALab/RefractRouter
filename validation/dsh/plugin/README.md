@@ -5,6 +5,15 @@
 provider 配置和网页启动。默认由插件按请求启动本机 Python 核心；也可在设置卡片填写
 RefractRouter URL，改走远程服务。
 
+## 0.22.0：持久团队任务
+
+远程连接会先检查 Router 协议与当前成员可用项目。HTTP v2 必须从服务端返回的项目清单中
+选择项目，不能自由填写项目 ID；项目发现由 DSH 宿主解析凭证，浏览器不接触 token。
+
+提交后插件按任务 ID读取持久事件。NDJSON 连接断开会从最后事件序号继续，不重复提交、节点或
+最终答案；DSH 取消会调用任务取消接口。运行结果显示任务 ID、项目、持久状态，以及发生重连时
+“连接恢复后继续显示”的提示。只有提交前确认服务不支持 v2 时才使用 HTTP v1 兼容路径。
+
 ## 0.21.0：RefractRouter URL
 
 设置卡片新增“RefractRouter 连接”，可选择本地 Python 核心或远程 Router URL。远程模式
@@ -12,7 +21,7 @@ RefractRouter URL，改走远程服务。
 Python 子进程。非回环 HTTP URL 会被拒绝，团队地址必须使用 HTTPS；URL 中不得嵌入凭证。
 
 配套核心 `0.9.0` 提供 `refractagent serve`。HTTP v1 当前只开放预检和模拟，HTTP v2
-另提供持久团队任务服务；插件本版本仍使用 v1。两个协议都不开启 v4
+另提供持久团队任务服务；插件 `0.22.0` 起优先使用 v2。两个协议都不开启 v4
 真实付费执行，也不承载 DSH 原生工具回调。详见
 [RefractRouter HTTP 服务](../../../docs/router-http-service.md)。
 

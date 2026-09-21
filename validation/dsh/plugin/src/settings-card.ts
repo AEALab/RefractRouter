@@ -112,7 +112,7 @@ export interface SectionView {
   dshModelPool?: DshModelPoolView
   limits?: LimitsView
 }
-export interface RouterConnectionView { url:string; credential?:string }
+export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
   schemaVersion: 'refractagent-dsh-model-pool-v1'
   billingUnit?: string
