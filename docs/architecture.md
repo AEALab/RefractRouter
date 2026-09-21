@@ -51,7 +51,8 @@ Python 负责。文本任务的质量 profile 是选模预测依据，实际质�
 
 DSH 提供会话、工具调度、进程生命周期、沙箱和凭证服务。插件检查宿主输入及部署上限，
 可通过原生子进程启动固定 Python runner，也可把同一请求发送到用户明确配置的 Router URL，
-并转换返回的证据。HTTP v1 只开放预检和模拟，非回环地址要求 HTTPS；服务端部署上限不能被
+并转换返回的证据。HTTP v1 保留同步兼容，HTTP v2 增加持久任务、成员/项目访问、幂等与
+事件续读；两个协议都只开放预检和模拟。非回环地址要求 HTTPS，服务端部署上限不能被
 客户端放大。DSH 外层助手的模型配置
 与 Router 对 DAG 节点的选模分别管理；采用 DSH LLM 桥时，桥按核心指定的模型执行请求。
 
@@ -94,9 +95,10 @@ Python 根据节点类型、难度、风险和输入包络匹配该候选的预�
 
 ## 当前交付边界
 
-- RefractAgent 0.8.0 提供可安装的 Python 应用命令、随包资源和最小 HTTP 服务。
-  DSH 插件 0.21.0 可选择本地 Python 核心或远程 Router URL；远程接口当前只允许预检和模拟，
-  不开放 DSH 宿主工具回调或 v4 付费执行。参见 [HTTP 服务](router-http-service.md)。
+- RefractAgent 0.9.0 提供可安装的 Python 应用命令、随包资源、兼容 HTTP v1 和持久任务
+  HTTP v2。v2 使用静态成员 token、项目 ACL 和 SQLite WAL，支持幂等、取消、事件续读与
+  重启恢复；仍不开放 DSH 宿主工具回调或 v4 付费执行。参见
+  [HTTP 服务](router-http-service.md)和[团队服务](team-router-service.md)。
 - 历史 RefractAgent 0.3.0 首次提供可安装的 Python 应用命令和随包资源。
   DSH 插件 0.11.0 的 `refractagent` provider 注册省成本、均衡、质量优先三个模型接口，
   通过原生子进程服务调用已安装核心，传入会话与部署上限；策略及记账仍完全由 Python 决定。

@@ -100,6 +100,8 @@ def main(argv=None):
     server.add_argument('--port', type=int, default=8787)
     server.add_argument('--runs-dir', type=Path, default=Path.home()/'.local/share/refractagent/runs')
     server.add_argument('--auth-token-env', help='Bearer token 的环境变量名称；非回环监听时必填')
+    server.add_argument('--service-config', type=Path,
+                        help='团队项目、成员 token 引用与 SQLite 状态配置；启用 HTTP v2')
     server.add_argument('--production-budget', type=float, default=40)
     server.add_argument('--evaluation-budget', type=float, default=80)
     server.add_argument('--timeout-ms', type=int, default=300000)
@@ -216,14 +218,17 @@ def main(argv=None):
             return 0
         if args.command == 'serve':
             from .agent_server import ServerConfiguration, serve
+            from .team_service import load_team_configuration
             if not 1 <= args.port <= 65535:
                 raise ValueError('port must be in 1..65535')
             if args.auth_token_env is not None and not args.auth_token_env.isidentifier():
                 raise ValueError('invalid auth token environment reference')
+            team = (load_team_configuration(args.service_config, default_runs_dir=args.runs_dir)
+                    if args.service_config is not None else None)
             serve(host=args.host, port=args.port, config=ServerConfiguration(
                 runs_dir=args.runs_dir, auth_token_env=args.auth_token_env,
                 production_budget=args.production_budget, evaluation_budget=args.evaluation_budget,
-                timeout_ms=args.timeout_ms, max_output_tokens=args.max_output_tokens))
+                timeout_ms=args.timeout_ms, max_output_tokens=args.max_output_tokens, team=team))
             return 0
         if args.host_stdio:
             if os.environ.get('REFRACTROUTER_DSH_BRIDGE') != 'stdio':
