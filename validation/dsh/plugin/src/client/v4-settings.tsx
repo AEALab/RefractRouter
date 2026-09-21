@@ -7,6 +7,7 @@ export interface V4SettingsProps {
   t(key: string): string
   provider: ProviderConfigView
   disabled: boolean
+  advanced: boolean
   editV4QualityMin(value: number): void
   editV4DagMode(value: V4DagMode): void
   editV4DataMode(value: V4DataMode): void
@@ -83,6 +84,34 @@ export function V4Settings(props: V4SettingsProps) {
         step={options.step ?? '1'} disabled={disabled} onChange={event => onChange(numberDraft(event.target.value))} />
     </label>
   )
+
+  if (!props.advanced) return <section className="rra-v4-section rra-simple" aria-label={t('v4SimpleTitle')}>
+    <div className="rra-section-head">
+      <div><h3>{t('v4SimpleTitle')}</h3><p className="rra-field-hint">{t('v4SimpleHint')}</p></div>
+      <span className={'rra-status ' + (preview.missingRoles.length ? 'rra-status-bad' : '')}>
+        {preview.missingRoles.length ? t('v4ConfigIncomplete') : t('v4ConfigReady')}
+      </span>
+    </div>
+    <div className="rra-simple-status">
+      <strong>{t('v4AutomaticEnabled')}</strong>
+      <span>{preview.modelCount} {t('v4ModelsAvailable')} · {preview.providerCount} {t('v4ProvidersAvailable')}</span>
+      <span>{preview.hasLocalDeployment ? t('v4LocalAvailable') : t('v4ExternalOnly')}</span>
+    </div>
+    <div className="rra-grid rra-grid-2">
+      {numberInput(t('v4QualityMin'), objective.qualityMin,
+        value => value !== undefined && props.editV4QualityMin(value), { min: 0, max: 100 })}
+      <label className="rra-compact-field">
+        <span className="rra-label">{t('v4DataMode')}</span>
+        <select className="rra-select" value={stringValue(security.dataMode) || 'live'} disabled={disabled}
+          onChange={event => props.editV4DataMode(event.target.value as V4DataMode)}>
+          <option value="live">{t('v4DataLive')}</option>
+          <option value="desensitized">{t('v4DataDesensitized')}</option>
+          <option value="synthetic">{t('v4DataSynthetic')}</option>
+        </select>
+      </label>
+    </div>
+    <p className="rra-field-hint">{t('v4SimpleBoundaryHint')}</p>
+  </section>
 
   return <>
     <section className="rra-v4-section" aria-label={t('v4Objective')}>

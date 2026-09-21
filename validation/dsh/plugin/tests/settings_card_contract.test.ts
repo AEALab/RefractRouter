@@ -258,6 +258,8 @@ test('client bundle registers in the host module format and exports the plugin f
   const source = await readFile(new URL('../dist/client.js', import.meta.url), 'utf8')
   assert.ok(source.startsWith('window.__ModuleLoader__.load({'), 'bundle must register a module factory')
   assert.ok(source.includes('"dsh-refractrouter-validation"'))
+  assert.ok(source.includes('v4ShowAdvanced'))
+  assert.ok(source.includes('v4HideAdvanced'))
   const registrations: Array<{ id: string; factory: (require: (spec: string) => unknown) => unknown }> = []
   const sandboxWindow = {
     __ModuleLoader__: {
