@@ -162,6 +162,7 @@ interface PublicFailure {
 
 function publicFailure(error: unknown, aborted: boolean): PublicFailure {
   const detail = error instanceof Error ? error.message : String(error)
+  const summary=detail.replace(/\s+/g,' ').trim().slice(0,300)
   if (aborted || /cancelled|canceled|aborted|timed out/i.test(detail)) return {
     kind: 'aborted', code: 'REFRACTAGENT_EXECUTION_ABORTED',
     message: 'RefractAgent 已停止：任务被取消或超时；请核对已保存的运行记录后再重试。',
@@ -180,15 +181,15 @@ function publicFailure(error: unknown, aborted: boolean): PublicFailure {
   }
   if (/provider|route|model.+(?:missing|unknown|unavailable)|no local candidate|Router (?:service|HTTP)/i.test(detail)) return {
     kind: 'error', code: 'REFRACTAGENT_ROUTE_UNAVAILABLE',
-    message: 'RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。',
+    message: `RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。${summary?` 诊断：${summary}`:''}`,
   }
   return { kind: 'error', code: 'REFRACTAGENT_EXECUTION_FAILED',
-    message: 'RefractAgent 未执行：运行失败。请查看运行记录中的诊断信息。' }
+    message: `RefractAgent 未执行：运行失败。${summary ? `诊断：${summary}` : '请查看运行记录中的诊断信息。'}` }
 }
 
 export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (!object(raw)) throw new Error('RefractAgent configuration must be an object')
-  const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
+  const result = { pythonExecutable: 'refractagent', runsDir: '.refractagent/runs', executionMode: 'demo',
     allowPaidRuns: false, maxProductionCost: 40, maxEvaluationCost: 80,
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
     routerUrl: undefined as unknown, routerCredential: undefined as unknown, routerProject: undefined as unknown,
@@ -280,12 +281,19 @@ async function dshCatalogSnapshot(ctx: AgentContext, pool: DshModelPool): Promis
   }
   const groups: Array<Record<string, unknown>> = []
   const failures: Array<{provider:string;model?:string;message:string}> = []
+  const selected=new Set(pool.routes.filter(row=>row.enabled!==false)
+    .map(row=>`${row.provider}\u0000${row.model}`))
+  const bounded=async<T>(promise:Promise<T>,label:string):Promise<T>=>Promise.race([
+    promise,
+    new Promise<T>((_,reject)=>setTimeout(()=>reject(new Error(`${label} timed out`)),10000)),
+  ])
   for (const provider of ctx.llm.listProviders().filter(entry=>entry.id!=='refractagent')) {
     try {
-      const models=await ctx.llm.listModels(provider.id)
-      for (const model of models) {
+      const models=await bounded(ctx.llm.listModels(provider.id),`listModels(${provider.id})`)
+      for (const model of models.filter(entry=>selected.has(`${provider.id}\u0000${entry.id}`))) {
         try {
-          const raw=await ctx.llm.resolveModelInfo(provider.id,model.id)
+          const raw=await bounded(ctx.llm.resolveModelInfo(provider.id,model.id),
+            `resolveModelInfo(${provider.id}/${model.id})`)
           if (!object(raw)) throw new Error('invalid resolved model metadata')
           const context=object(raw.context)?raw.context:{}
           const reasoning=object(raw.reasoning)&&Array.isArray(raw.reasoning.efforts)
@@ -555,12 +563,14 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     else if (references.length) env.REFRACTROUTER_PROVIDER_CREDENTIALS = JSON.stringify(credentials)
   }
   if (useBridge) env.REFRACTROUTER_DSH_BRIDGE = 'stdio'
-  let python: string
-  try { python = await ctx.subprocess.resolveExecutable(config.pythonExecutable, env, signal) }
-  catch { throw new Error('RefractAgent Python not found; install the core and generate a dsh-config overlay') }
+  let executable: string
+  try { executable = await ctx.subprocess.resolveExecutable(config.pythonExecutable, env, signal) }
+  catch { throw new Error('RefractAgent 可执行程序未找到；请安装核心并检查插件的运行配置') }
   const outputCap = Math.min(config.maxOutputTokens, options.maxTokens ?? config.maxOutputTokens)
   if (!Number.isInteger(outputCap) || outputCap < 1000) throw new Error('RefractAgent requires maxTokens >= 1000')
-  const argv = [python, '-m', 'refractrouter.agent_cli', 'run', useBridge ? '--host-stdio' : '--request-stdin', '--mode', config.executionMode,
+  const pythonModule = /(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
+  const argv = [executable, ...(pythonModule ? ['-m', 'refractrouter.agent_cli'] : []), 'run',
+    useBridge ? '--host-stdio' : '--request-stdin', '--mode', config.executionMode,
     '--runs-dir', runsDir, '--production-budget', String(config.maxProductionCost),
     '--evaluation-budget', String(config.maxEvaluationCost), '--timeout-ms', String(config.timeoutMs),
     '--max-output-tokens', String(outputCap), ...(live ? ['--execute-paid-run'] : []), ...(progressEnabled ? ['--progress-stdio'] : []),
@@ -588,7 +598,11 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     if (!stdout || stdout.lossy) throw new Error('RefractAgent result is missing or exceeds the output limit')
     let result: unknown
     try { result = JSON.parse(stdout.text) }
-    catch { throw new Error('RefractAgent returned no structured result; verify the installed Python core') }
+    catch {
+      const stderr=handle.collected.stderr?.readFrom(0)
+      const detail=stderr&&!stderr.lossy?stderr.text.replace(/\s+/g,' ').trim().slice(0,500):''
+      throw new Error(`RefractAgent returned no structured result; verify the installed Python core${detail?`: ${detail}`:''}`)
+    }
     if (!object(result) || result.schema_version !== 'refractagent-result-v1') {
       const detail = object(result) && typeof result.error === 'string' ? result.error : 'invalid application result'
       throw new Error(detail)

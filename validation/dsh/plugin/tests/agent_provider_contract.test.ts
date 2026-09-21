@@ -53,6 +53,7 @@ const modelPool = () => ({schemaVersion:'refractagent-dsh-model-pool-v1' as cons
   ]})
 
 test('native registration advertises three strategy models with zero retries',async()=>{
+  assert.equal(configure({}).pythonExecutable,'refractagent')
   const f=fixture();apply(f.ctx)
   assert.deepEqual((await f.adapter.listModels('refractagent')).map(m=>m.id),['economy','balanced','quality'])
   assert.equal(f.adapter.providerRetryPolicy('refractagent').maxRetries,0)
@@ -92,7 +93,7 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
   assert.equal(blockedChunks.filter(chunk=>chunk.type==='finish').length,1)
   assert.deepEqual(blockedChunks.at(-1)?.reason,{kind:'error',failure:{
     code:'REFRACTAGENT_EXECUTION_FAILED',
-    message:'RefractAgent 未执行：运行失败。请查看运行记录中的诊断信息。',
+    message:'RefractAgent 未执行：运行失败。诊断：RefractAgent v4 实时自动路由尚未启用；请先使用模拟模式验证配置',
   }})
   assert.equal(blockedChunks.some(chunk=>chunk.type==='text-delta'),false)
   assert.equal(blocked.credentials,0)
@@ -125,7 +126,7 @@ test('已删除的 DSH 路线在启动 Python 前以稳定错误终止',async()=
   const result=await chunks(createAdapter(f.ctx,()=>configure({dshModelPool:modelPool()})))
   assert.equal(f.spawns.length,0)
   assert.deepEqual(result.at(-1)?.reason,{kind:'error',failure:{code:'REFRACTAGENT_ROUTE_UNAVAILABLE',
-    message:'RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。'}})
+    message:'RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。 诊断：DSH route unavailable: team/worker'}})
   assert.equal(result.some(chunk=>chunk.type==='text-delta'),false)
 })
 test('demo uses installed core through native sandboxed subprocess and preserves conversation',async()=>{

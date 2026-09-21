@@ -61,6 +61,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
         raise ValueError('invalid dshModelPool schemaVersion')
     if snapshot.get('schemaVersion') != 'refractagent-dsh-catalog-v1':
         raise ValueError('invalid dshCatalogSnapshot schemaVersion')
+    allow_shared_judge = pool.get('allowSharedJudge', False)
+    if not isinstance(allow_shared_judge, bool):
+        raise ValueError('dshModelPool.allowSharedJudge must be a boolean')
     routes = pool.get('routes')
     if not isinstance(routes, list):
         raise ValueError('dshModelPool.routes must be an array')
@@ -127,8 +130,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
             'overrides': sorted(overrides),
             'note': overrides.get('note'),
         }
-    if len(selected) < 2:
-        raise ValueError('dshModelPool requires at least two enabled routes')
+    if not selected:
+        raise ValueError('dshModelPool requires at least one enabled route')
     overrides = _record(pool.get('roleOverrides', {}), 'roleOverrides')
     by_key = {_route_key(row['provider'], row['model']): row for row in selected}
     ranked = sorted(selected, key=lambda row: (row['quality'], row['contextWindow']), reverse=True)
@@ -143,12 +146,16 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
     workers = overrides.get('workers')
     if workers is None:
         worker_rows = [row for row in ranked if row is not judge]
+        if not worker_rows and allow_shared_judge:
+            worker_rows = [judge]
     else:
         if not isinstance(workers, list) or not workers or any(key not in by_key for key in workers):
             raise ValueError('roleOverrides.workers must reference available routes')
         worker_rows = [by_key[key] for key in dict.fromkeys(workers)]
     if not worker_rows:
-        raise ValueError('automatic role assignment requires a worker route separate from the judge')
+        raise ValueError('worker and judge must use separate routes unless allowSharedJudge is enabled')
+    if judge in worker_rows and not allow_shared_judge:
+        raise ValueError('shared worker and judge route requires allowSharedJudge')
     planner = exact('planner') or ranked[0]
     classifier_candidates = [row for row in ranked if row['deployment'] in {'local','trusted-cloud','simulated-local'}]
     classifier = exact('classifier') or (classifier_candidates[0] if classifier_candidates else None)
@@ -171,6 +178,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
         if row is classifier: roles.append('classifier')
         if not roles:
             continue
+        evidence[_route_key(row['provider'], row['model'])]['assigned_roles'] = roles
+        evidence[_route_key(row['provider'], row['model'])]['independent_judge'] = (
+            'worker' not in roles if 'judge' in roles else None)
         models.append({'id': _stable_id('dsh-model', _route_key(row['provider'], row['model'])),
             'provider': provider_ids[_route_key(row['provider'], row['model'])],
             'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
@@ -183,6 +193,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):
         security['classifier']['modelId'] = _stable_id('dsh-model', _route_key(classifier['provider'], classifier['model']))
     config = {'schemaVersion':'refractagent-providers-v4', 'billingUnit':pool.get('billingUnit','USD'),
+        'allowSharedJudge':allow_shared_judge,
         'objective':deepcopy(pool.get('objective', {'qualityMin':80,'primary':'cost','secondary':'latency','dagMode':'auto'})),
         'security':security, 'trustPolicies':deepcopy(pool.get('trustPolicies', [])),
         'providers':providers, 'models':models}
