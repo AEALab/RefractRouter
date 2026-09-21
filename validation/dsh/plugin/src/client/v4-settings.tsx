@@ -1,4 +1,4 @@
-import { buildV4FeasibilityPreview, type ProviderConfigView, type V4CollectionKey,
+import { buildV4FeasibilityPreview, DEPLOYMENT_OPTIONS, type ProviderConfigView, type V4CollectionKey,
   type V4DagMode, type V4DataMode } from '../settings-card.js'
 
 type Row = Record<string, unknown>
@@ -18,7 +18,6 @@ export interface V4SettingsProps {
 }
 
 const ROLE_KEYS = ['planner', 'worker', 'judge', 'classifier'] as const
-const DEPLOYMENTS = ['external-cloud', 'trusted-cloud', 'local', 'simulated-local'] as const
 const PROVIDER_TYPES = ['openai-compatible', 'openai-responses', 'ark-agent-plan', 'dsh'] as const
 
 function records(value: unknown): Row[] {
@@ -244,7 +243,7 @@ export function V4Settings(props: V4SettingsProps) {
             <label className="rra-compact-field"><span className="rra-label">{t('v4Deployment')}</span>
               <select className="rra-select" value={stringValue(row.deployment)} disabled={disabled}
                 onChange={event => update('providers', row, { deployment: event.target.value })}>
-                {DEPLOYMENTS.map(value => <option key={value}>{value}</option>)}
+                {DEPLOYMENT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>
             {type === 'dsh'

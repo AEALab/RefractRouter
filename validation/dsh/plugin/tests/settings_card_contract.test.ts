@@ -6,7 +6,7 @@ import {
   buildSettingsBase, installRefractSettings, overlaySettings, validateSettingsSection,
 } from '../dist/settings-integration.js'
 import {
-  buildV4FeasibilityPreview, candidateChoices, RefractCardController, SETTINGS_NAMESPACE,
+  buildV4FeasibilityPreview, candidateChoices, DEPLOYMENT_OPTIONS, RefractCardController, SETTINGS_NAMESPACE,
   type CardScope, type CardScopeSnapshot, type SectionView,
 } from '../dist/settings-card.js'
 
@@ -342,6 +342,15 @@ test('controller reports failure and keeps drafts when the host rejects a write'
   assert.equal(controller.getSnapshot().dirty, true)
   assert.deepEqual(controller.getSnapshot().limits, { relaxBudget: false, relaxContext: true })
   controller.dispose()
+})
+
+test('部署属性选项同时展示中文含义与稳定合同值', () => {
+  assert.deepEqual(DEPLOYMENT_OPTIONS, [
+    { value: 'local', label: '真实本地（local）' },
+    { value: 'external-cloud', label: '普通外部云（external-cloud）' },
+    { value: 'trusted-cloud', label: '可信外部云（trusted-cloud）' },
+    { value: 'simulated-local', label: '云模型模拟本地（simulated-local）' },
+  ])
 })
 
 test('client bundle registers in the host module format and exports the plugin face', async () => {
