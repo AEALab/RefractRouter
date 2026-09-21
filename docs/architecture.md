@@ -68,7 +68,9 @@ DSH 提供会话、工具调度、进程生命周期、沙箱和凭证服务。�
 
 DSH 插件的普通设置保存 `dshModelPool`，只记录用户从宿主目录选择的 `(provider, model)`、
 部署属性与高级覆盖。插件在每次运行前解析 `dshCatalogSnapshot`，检查路线仍存在且容量元数据
-完整；Python 再将目录事实、冻结公开档案和用户覆盖编译为 v4 配置。TypeScript 不分配模型职责，
+完整；Python 再将目录事实、冻结公开档案和用户覆盖编译为 v4 配置。冻结价格档案保存完整的
+条件价格计划，并为现有标量预算合同选择保守阶梯；订阅 provider 的执行资源与模型原厂参考价
+保持不同语义。TypeScript 不分配模型职责，
 也不计算价格、质量或时延。旧 `providerConfig` 继续作为 CLI、历史配置和非 DSH 入口。
 
 应用的 `providerConfig` 由 Python 编译为模型清单与 `configured` 路由 profile，

@@ -33,7 +33,7 @@ where = ["src"]
 refractrouter = ["resources/*.json"]
 
 [tool.setuptools.data-files]
-"share/refractrouter" = ["data/model-profiles-v1.json"]
+"share/refractrouter" = ["data/model-profiles-v1.json", "data/model-profiles-v2.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

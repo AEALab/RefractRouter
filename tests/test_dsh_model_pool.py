@@ -7,7 +7,7 @@ import tomllib
 
 import pytest
 
-from refractrouter.dsh_model_pool import compile_dsh_model_pool
+from refractrouter.dsh_model_pool import compile_dsh_model_pool, load_frozen_profiles
 from refractrouter.agent import run_agent
 from refractrouter.agent_cli import main
 
@@ -101,17 +101,70 @@ def test_user_override_wins_without_mutating_frozen_profile_and_deleted_route_fa
         compile_dsh_model_pool(raw,snapshot(('local','fast',131072,4096)),profiles=profiles)
 
 
-def test_repository_profile_freezes_sources_but_not_licensed_quality_values():
+def test_repository_profile_freezes_all_current_dsh_prices_without_quality_claims():
     root=Path(__file__).resolve().parents[1]
-    raw=json.loads((root/'data/model-profiles-v1.json').read_text())
-    assert raw['schema_version']=='refractrouter-model-profiles-v1'
-    profile=raw['profiles'][0]
-    assert profile['provider']=='deepseek'
-    assert profile['pricing']['unit']=='USD'
-    assert profile['quality'] is None and profile['latencyMs'] is None
-    assert {source['kind'] for source in profile['sources']}=={'official-pricing','quality-methodology'}
+    raw=load_frozen_profiles(root/'data/model-profiles-v2.json')
+    assert raw['schema_version']=='refractrouter-model-profiles-v2'
+    identities={(row['provider'],row['model']) for row in raw['profiles']}
+    assert identities=={
+        ('deepseek-official','deepseek-flash'),
+        ('deepseek-official','deepseek-v4-flash'),
+        ('deepseek-official','deepseek-v4-flash-vision-exp'),
+        ('deepseek-official','deepseek-v4-pro'),
+        ('ark','deepseek-v4-flash'),('ark','deepseek-v4-pro'),('ark','glm-5.3'),
+        ('ark','kimi-k3'),('ark','minimax-m3')}
+    assert all(row['quality'] is None and row['latencyMs'] is None
+               for row in raw['profiles'])
+    direct=next(row for row in raw['profiles']
+                if (row['provider'],row['model'])==('deepseek-official','deepseek-v4-flash'))
+    assert direct['effective_model']=='DeepSeek-V4.1-Flash'
+    assert direct['pricing_basis']['equivalence']=='official-alias'
+    assert direct['pricing']=={'unit':'USD','inputPer1k':.0003,
+                               'cachedInputPer1k':.000006,'outputPer1k':.0012}
+    ark=next(row for row in raw['profiles']
+             if (row['provider'],row['model'])==('ark','deepseek-v4-flash'))
+    assert ark['pricing_basis']['kind']=='manufacturer-reference'
+    assert ark['pricing_basis']['equivalence']=='unverified'
+    assert ark['pricing_basis']['actualProviderBilling'] is False
+    kimi=next(row for row in raw['profiles']
+              if (row['provider'],row['model'])==('ark','kimi-k3'))
+    assert kimi['pricing']['inputPer1k']==.006
+    assert kimi['pricing_schedule']['tiers'][0]['prices']['cacheWritePer1k']==.003
+    minimax=next(row for row in raw['profiles']
+                 if (row['provider'],row['model'])==('ark','minimax-m3'))
+    assert minimax['pricing_materialization']['selectedTier']=='standard-over-512k'
+    assert len(minimax['pricing_schedule']['tiers'])==4
     package=tomllib.loads((root/'pyproject.toml').read_text())
     assert 'data/model-profiles-v1.json' in package['tool']['setuptools']['data-files']['share/refractrouter']
+    assert 'data/model-profiles-v2.json' in package['tool']['setuptools']['data-files']['share/refractrouter']
+
+
+def test_v2_profile_supplies_prices_but_still_requires_quality_and_latency():
+    profiles=load_frozen_profiles()
+    raw={'schemaVersion':'refractagent-dsh-model-pool-v1','billingUnit':'USD',
+        'security':{'dataMode':'synthetic','sensitiveTerms':[],'classifier':{'enabled':True}},
+        'allowSharedJudge':True,
+        'routes':[{'provider':'deepseek-official','model':'deepseek-v4-pro','deployment':'local',
+                   'overrides':{'quality':91,'latencyMs':2200}}]}
+    config,provenance=compile_dsh_model_pool(raw,snapshot(
+        ('deepseek-official','deepseek-v4-pro',1048576,393216)),profiles=profiles)
+    model=config['models'][0]
+    assert model['pricing']=={'unit':'USD','inputPer1k':.00132,
+                              'cachedInputPer1k':.000044,'outputPer1k':.00396}
+    route=provenance['deepseek-official/deepseek-v4-pro']
+    assert route['pricing_basis']['kind']=='direct-provider-public-price'
+    assert route['pricing_materialization']['selectedTier']=='peak'
+    assert route['overrides']==['latencyMs','quality']
+
+
+def test_v2_profile_rejects_a_materialized_price_not_in_its_selected_tier(tmp_path):
+    root=Path(__file__).resolve().parents[1]
+    raw=json.loads((root/'data/model-profiles-v2.json').read_text())
+    raw['profiles'][0]['pricing']['inputPer1k']=999
+    path=tmp_path/'profiles.json'
+    path.write_text(json.dumps(raw))
+    with pytest.raises(ValueError,match='selected conservative tier'):
+        load_frozen_profiles(path)
 
 
 def test_run_evidence_contains_effective_profile_provenance(tmp_path):

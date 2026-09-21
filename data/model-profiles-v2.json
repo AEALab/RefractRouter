@@ -1,0 +1,486 @@
+{
+  "schema_version": "refractrouter-model-profiles-v2",
+  "frozen_at": "2026-09-22T08:00:00Z",
+  "pricing_policy": {
+    "method": "conservative-upper-bound-under-route-defaults",
+    "note": "路由核心继续消费每千 token 的预算单价；完整条件价格计划用于解释峰谷、上下文阶梯、服务等级与缓存写入。Ark 路线只使用原厂价格作比较参考，不表示 Ark 的实际结算。"
+  },
+  "quality_normalization": {
+    "method": "cohort-min-max-0-100",
+    "note": "第三方质量数据仅在许可允许的冻结快照中填写；运行时不联网更新。"
+  },
+  "profiles": [
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "effective_model": "DeepSeek-V4.1-Flash",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0003,
+        "cachedInputPer1k": 0.000006,
+        "outputPer1k": 0.0012
+      },
+      "pricing_basis": {
+        "kind": "direct-provider-public-price",
+        "equivalence": "official-route",
+        "manufacturer": "DeepSeek",
+        "actualProviderBilling": true
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["timeBand"],
+        "tiers": [
+          {
+            "id": "off-peak",
+            "conditions": {"timeBand": "official-off-peak"},
+            "prices": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006},
+            "budgetPricing": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006}
+          },
+          {
+            "id": "peak",
+            "conditions": {"timeBand": "official-peak"},
+            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012},
+            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "peak",
+        "note": "硬预算采用工作日高峰价；运行时不按日历联网漂移。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "DeepSeek-V4.1-Flash peak/off-peak pricing"
+        }
+      ]
+    },
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-flash",
+      "effective_model": "DeepSeek-V4.1-Flash",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0003,
+        "cachedInputPer1k": 0.000006,
+        "outputPer1k": 0.0012
+      },
+      "pricing_basis": {
+        "kind": "direct-provider-public-price",
+        "equivalence": "official-alias",
+        "manufacturer": "DeepSeek",
+        "actualProviderBilling": true,
+        "note": "官方已将此旧名称路由到 DeepSeek-V4.1-Flash，并按 Flash 价格计费。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["timeBand"],
+        "tiers": [
+          {
+            "id": "off-peak",
+            "conditions": {"timeBand": "official-off-peak"},
+            "prices": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006},
+            "budgetPricing": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006}
+          },
+          {
+            "id": "peak",
+            "conditions": {"timeBand": "official-peak"},
+            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012},
+            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "peak",
+        "note": "硬预算采用工作日高峰价。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "DeepSeek legacy alias to V4.1 Flash"
+        }
+      ]
+    },
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-flash-vision-exp",
+      "effective_model": "DeepSeek-V4.1-Flash",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0003,
+        "cachedInputPer1k": 0.000006,
+        "outputPer1k": 0.0012
+      },
+      "pricing_basis": {
+        "kind": "direct-provider-public-price",
+        "equivalence": "official-alias",
+        "manufacturer": "DeepSeek",
+        "actualProviderBilling": true,
+        "note": "官方已将此旧名称路由到 DeepSeek-V4.1-Flash，并按 Flash 价格计费。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["timeBand"],
+        "tiers": [
+          {
+            "id": "off-peak",
+            "conditions": {"timeBand": "official-off-peak"},
+            "prices": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006},
+            "budgetPricing": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006}
+          },
+          {
+            "id": "peak",
+            "conditions": {"timeBand": "official-peak"},
+            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012},
+            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "peak",
+        "note": "硬预算采用工作日高峰价。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "DeepSeek legacy vision alias to V4.1 Flash"
+        }
+      ]
+    },
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "effective_model": "DeepSeek-V4-Pro-0813",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.00132,
+        "cachedInputPer1k": 0.000044,
+        "outputPer1k": 0.00396
+      },
+      "pricing_basis": {
+        "kind": "direct-provider-public-price",
+        "equivalence": "official-route",
+        "manufacturer": "DeepSeek",
+        "actualProviderBilling": true
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["timeBand"],
+        "tiers": [
+          {
+            "id": "off-peak",
+            "conditions": {"timeBand": "official-off-peak"},
+            "prices": {"inputPer1k": 0.00066, "cachedInputPer1k": 0.000022, "outputPer1k": 0.00198},
+            "budgetPricing": {"inputPer1k": 0.00066, "cachedInputPer1k": 0.000022, "outputPer1k": 0.00198}
+          },
+          {
+            "id": "peak",
+            "conditions": {"timeBand": "official-peak"},
+            "prices": {"inputPer1k": 0.00132, "cachedInputPer1k": 0.000044, "outputPer1k": 0.00396},
+            "budgetPricing": {"inputPer1k": 0.00132, "cachedInputPer1k": 0.000044, "outputPer1k": 0.00396}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "peak",
+        "note": "硬预算采用工作日高峰价。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "DeepSeek-V4-Pro-0813 peak/off-peak pricing"
+        }
+      ]
+    },
+    {
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "effective_model": "DeepSeek-V4.1-Flash manufacturer reference",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0003,
+        "cachedInputPer1k": 0.000006,
+        "outputPer1k": 0.0012
+      },
+      "pricing_basis": {
+        "kind": "manufacturer-reference",
+        "equivalence": "unverified",
+        "manufacturer": "DeepSeek",
+        "actualProviderBilling": false,
+        "note": "Ark Agent Plan 实际按 AFP 订阅资源结算；此 USD 价格只用于原厂参考比较。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["timeBand"],
+        "tiers": [
+          {
+            "id": "off-peak",
+            "conditions": {"timeBand": "official-off-peak"},
+            "prices": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006},
+            "budgetPricing": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006}
+          },
+          {
+            "id": "peak",
+            "conditions": {"timeBand": "official-peak"},
+            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012},
+            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "peak",
+        "note": "原厂参考采用高峰价；不得解释为 Ark 现金账单。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "DeepSeek-V4.1-Flash manufacturer reference"
+        }
+      ]
+    },
+    {
+      "provider": "ark",
+      "model": "deepseek-v4-pro",
+      "effective_model": "DeepSeek-V4-Pro-0813 manufacturer reference",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.00132,
+        "cachedInputPer1k": 0.000044,
+        "outputPer1k": 0.00396
+      },
+      "pricing_basis": {
+        "kind": "manufacturer-reference",
+        "equivalence": "unverified",
+        "manufacturer": "DeepSeek",
+        "actualProviderBilling": false,
+        "note": "Ark Agent Plan 实际按 AFP 订阅资源结算；此 USD 价格只用于原厂参考比较。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["timeBand"],
+        "tiers": [
+          {
+            "id": "off-peak",
+            "conditions": {"timeBand": "official-off-peak"},
+            "prices": {"inputPer1k": 0.00066, "cachedInputPer1k": 0.000022, "outputPer1k": 0.00198},
+            "budgetPricing": {"inputPer1k": 0.00066, "cachedInputPer1k": 0.000022, "outputPer1k": 0.00198}
+          },
+          {
+            "id": "peak",
+            "conditions": {"timeBand": "official-peak"},
+            "prices": {"inputPer1k": 0.00132, "cachedInputPer1k": 0.000044, "outputPer1k": 0.00396},
+            "budgetPricing": {"inputPer1k": 0.00132, "cachedInputPer1k": 0.000044, "outputPer1k": 0.00396}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "peak",
+        "note": "原厂参考采用高峰价；不得解释为 Ark 现金账单。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "DeepSeek-V4-Pro-0813 manufacturer reference"
+        }
+      ]
+    },
+    {
+      "provider": "ark",
+      "model": "glm-5.3",
+      "effective_model": "GLM-5.3 manufacturer reference",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0014,
+        "cachedInputPer1k": 0.00026,
+        "outputPer1k": 0.0044
+      },
+      "pricing_basis": {
+        "kind": "manufacturer-reference",
+        "equivalence": "unverified",
+        "manufacturer": "Z.AI",
+        "actualProviderBilling": false,
+        "note": "Ark Agent Plan 实际按 AFP 订阅资源结算；此 USD 价格只用于原厂参考比较。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": [],
+        "tiers": [
+          {
+            "id": "public-list-price",
+            "conditions": {},
+            "prices": {"inputPer1k": 0.0014, "cachedInputPer1k": 0.00026, "outputPer1k": 0.0044},
+            "budgetPricing": {"inputPer1k": 0.0014, "cachedInputPer1k": 0.00026, "outputPer1k": 0.0044}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "public-list-price",
+        "note": "当前官方页未列条件阶梯；不得解释为 Ark 现金账单。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://docs.z.ai/guides/overview/pricing",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "GLM-5.3 public API pricing"
+        }
+      ]
+    },
+    {
+      "provider": "ark",
+      "model": "kimi-k3",
+      "effective_model": "Kimi K3 manufacturer reference",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.006,
+        "cachedInputPer1k": 0.0003,
+        "outputPer1k": 0.015
+      },
+      "pricing_basis": {
+        "kind": "manufacturer-reference",
+        "equivalence": "unverified",
+        "manufacturer": "Moonshot AI",
+        "actualProviderBilling": false,
+        "note": "Ark Agent Plan 实际按 AFP 订阅资源结算；此 USD 价格只用于原厂参考比较。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["cacheWriteTtl"],
+        "tiers": [
+          {
+            "id": "default-5m-cache-write",
+            "conditions": {"cacheWriteTtl": "5m-default"},
+            "prices": {"inputPer1k": 0.003, "cachedInputPer1k": 0.0003, "cacheWritePer1k": 0.003, "outputPer1k": 0.015},
+            "budgetPricing": {"inputPer1k": 0.006, "cachedInputPer1k": 0.0003, "outputPer1k": 0.015}
+          },
+          {
+            "id": "extended-1h-cache-write",
+            "conditions": {"cacheWriteTtl": "1h"},
+            "prices": {"inputPer1k": 0.003, "cachedInputPer1k": 0.0003, "cacheWritePer1k": 0.006, "outputPer1k": 0.015},
+            "budgetPricing": {"inputPer1k": 0.009, "cachedInputPer1k": 0.0003, "outputPer1k": 0.015}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "default-5m-cache-write",
+        "note": "DSH 路线未声明 1h TTL，按官方默认 5m 将缓存写入与普通输入一并预留；不得解释为 Ark 现金账单。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://platform.kimi.ai/docs/pricing/chat",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "Kimi K3 input, cache write, cached input and output pricing"
+        }
+      ]
+    },
+    {
+      "provider": "ark",
+      "model": "minimax-m3",
+      "effective_model": "MiniMax-M3 manufacturer reference",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.0006,
+        "cachedInputPer1k": 0.00012,
+        "outputPer1k": 0.0024
+      },
+      "pricing_basis": {
+        "kind": "manufacturer-reference",
+        "equivalence": "unverified",
+        "manufacturer": "MiniMax",
+        "actualProviderBilling": false,
+        "note": "Ark Agent Plan 实际按 AFP 订阅资源结算；此 USD 价格只用于原厂参考比较。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": ["inputTokens", "serviceTier"],
+        "tiers": [
+          {
+            "id": "standard-up-to-512k",
+            "conditions": {"serviceTier": "standard", "inputTokensMaxInclusive": 524288},
+            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.00006, "outputPer1k": 0.0012},
+            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.00006, "outputPer1k": 0.0012}
+          },
+          {
+            "id": "standard-over-512k",
+            "conditions": {"serviceTier": "standard", "inputTokensMin": 524289},
+            "prices": {"inputPer1k": 0.0006, "cachedInputPer1k": 0.00012, "outputPer1k": 0.0024},
+            "budgetPricing": {"inputPer1k": 0.0006, "cachedInputPer1k": 0.00012, "outputPer1k": 0.0024}
+          },
+          {
+            "id": "priority-up-to-512k",
+            "conditions": {"serviceTier": "priority", "inputTokensMaxInclusive": 524288},
+            "prices": {"inputPer1k": 0.00045, "cachedInputPer1k": 0.00009, "outputPer1k": 0.0018},
+            "budgetPricing": {"inputPer1k": 0.00045, "cachedInputPer1k": 0.00009, "outputPer1k": 0.0018}
+          },
+          {
+            "id": "priority-over-512k",
+            "conditions": {"serviceTier": "priority", "inputTokensMin": 524289},
+            "prices": {"inputPer1k": 0.0009, "cachedInputPer1k": 0.00018, "outputPer1k": 0.0036},
+            "budgetPricing": {"inputPer1k": 0.0009, "cachedInputPer1k": 0.00018, "outputPer1k": 0.0036}
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "standard-over-512k",
+        "note": "DSH 路线未启用 Priority，按 Standard 的长上下文阶梯预留；不得解释为 Ark 现金账单。"
+      },
+      "quality": null,
+      "latencyMs": null,
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "MiniMax-M3 standard and priority context-tier pricing"
+        }
+      ]
+    }
+  ]
+}
