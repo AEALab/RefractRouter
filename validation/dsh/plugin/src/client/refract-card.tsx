@@ -83,6 +83,9 @@ const css = `
 .rra-row-title strong{font-size:13px;color:var(--dsw-alias-label-primary)}
 .rra-check-row,.rra-role-grid{display:flex;flex-wrap:wrap;gap:12px 18px;border:0;margin:0;padding:0}.rra-role-grid legend{margin-bottom:8px;padding:0}
 .rra-empty{margin:0;padding:12px;border:1px dashed var(--dsw-alias-border-l2);border-radius:8px;text-align:center;font-size:12px;color:var(--dsw-alias-label-tertiary)}
+.rra-simple-status{display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-radius:10px;background:var(--dsw-alias-bg-module-platform);font-size:12px;color:var(--dsw-alias-label-secondary)}
+.rra-simple-status strong{font-size:14px;color:var(--dsw-alias-label-primary)}
+.rra-advanced-toggle{display:flex;justify-content:flex-start;padding:12px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .rra-reset{font:inherit;font-size:12px;color:var(--dsw-alias-label-secondary);background:none;border:none;cursor:pointer}
 .rra-invalid{margin:8px 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-error)}
 .rra-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 0 4px}
@@ -104,6 +107,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const { t } = props
   const state = props.useRefractCard(snapshot => snapshot)
   const [expanded, setExpanded] = useState(false)
+  const [v4Advanced, setV4Advanced] = useState(false)
 
   if (state.status === 'unavailable') {
     return (
@@ -147,11 +151,16 @@ export function RefractCard(props: RefractCardOwnerProps) {
       {expanded ? (
         <div className="rra-body">
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
-          {state.automaticRouting && provider ? <V4Settings t={t} provider={provider} disabled={disabled}
+          {state.automaticRouting && provider ? <><V4Settings t={t} provider={provider} disabled={disabled}
+            advanced={v4Advanced}
             editV4QualityMin={props.editV4QualityMin} editV4DagMode={props.editV4DagMode}
             editV4DataMode={props.editV4DataMode} editV4SensitiveTerms={props.editV4SensitiveTerms}
             editV4Classifier={props.editV4Classifier} upsertV4Row={props.upsertV4Row}
-            removeV4Row={props.removeV4Row} /> : <>
+            removeV4Row={props.removeV4Row} />
+            <div className="rra-advanced-toggle"><button type="button" className="rra-reset"
+              onClick={() => setV4Advanced(value => !value)}>
+              {t(v4Advanced ? 'v4HideAdvanced' : 'v4ShowAdvanced')}
+            </button></div></> : <>
           <div className="rra-field">
             <div className="rra-label-row">
               <span className="rra-label">{t('defaultEffort')}</span>
@@ -225,7 +234,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             })}
           </div>
           </>}
-          <div className="rra-field">
+          {(!state.automaticRouting || v4Advanced) ? <div className="rra-field">
             <div className="rra-label-row">
               <span className="rra-label">{t('limitsTitle')}</span>
               {state.overriddenLimits
@@ -250,8 +259,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
               <span>{t('unlimitedTime')}</span>
             </label>
             <p className="rra-field-hint">{t('unlimitedTimeHint')}</p>
-          </div>
-          <div className="rra-field">
+          </div> : null}
+          {(!state.automaticRouting || v4Advanced) ? <div className="rra-field">
             <div className="rra-label-row">
               <span className="rra-label">{t('providerJsonTitle')}</span>
               <button type="button" className="rra-reset" disabled={disabled}
@@ -266,7 +275,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
               onChange={event => props.editProviderJson(event.target.value)} />
             {state.providerJsonError !== null
               ? <p className="rra-invalid">{t('invalidJson') + ': ' + state.providerJsonError}</p> : null}
-          </div>
+          </div> : null}
           <div className="rra-actions">
             <button type="button" className="rra-button" disabled={disabled || !state.dirty || state.providerJsonError !== null}
               onClick={() => props.save()}>{state.saving ? t('saving') : t('save')}</button>
