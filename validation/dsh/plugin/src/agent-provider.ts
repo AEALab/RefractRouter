@@ -93,6 +93,39 @@ function positive(value: unknown, key: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) throw new Error(`invalid ${key}`)
   return value
 }
+
+interface PublicFailure {
+  kind: 'error' | 'aborted'
+  code: string
+  message: string
+}
+
+function publicFailure(error: unknown, aborted: boolean): PublicFailure {
+  const detail = error instanceof Error ? error.message : String(error)
+  if (aborted || /cancelled|canceled|aborted|timed out/i.test(detail)) return {
+    kind: 'aborted', code: 'REFRACTAGENT_EXECUTION_ABORTED',
+    message: 'RefractAgent 已停止：任务被取消或超时；请核对已保存的运行记录后再重试。',
+  }
+  if (/node-input-budget-exceeded|automatic-plan-input-capacity-exceeded/.test(detail)) return {
+    kind: 'error', code: 'REFRACTAGENT_NODE_INPUT_CAPACITY',
+    message: 'RefractAgent 未执行：当前任务所需输入超过节点容量。请缩短会话、新建会话或选择更大上下文模型。',
+  }
+  if (/conversation (?:context )?is too large|conversation context exceeds/.test(detail)) return {
+    kind: 'error', code: 'REFRACTAGENT_CONTEXT_LIMIT',
+    message: 'RefractAgent 未执行：当前会话超过应用上下文上限。请新建较短会话，或在高级设置中放开上下文限制。',
+  }
+  if (/input-or-output-capacity|contextWindow|context window|no assignment satisfies/.test(detail)) return {
+    kind: 'error', code: 'REFRACTAGENT_MODEL_CONTEXT_LIMIT',
+    message: 'RefractAgent 未执行：当前模型没有足够的输入或输出容量。请选择更大上下文模型。',
+  }
+  if (/provider|route|model.+(?:missing|unknown|unavailable)|no local candidate/i.test(detail)) return {
+    kind: 'error', code: 'REFRACTAGENT_ROUTE_UNAVAILABLE',
+    message: 'RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。',
+  }
+  return { kind: 'error', code: 'REFRACTAGENT_EXECUTION_FAILED',
+    message: 'RefractAgent 未执行：运行失败。请查看运行记录中的诊断信息。' }
+}
+
 export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (!object(raw)) throw new Error('RefractAgent configuration must be an object')
   const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
@@ -352,9 +385,13 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         if (!result) throw new Error('missing RefractAgent result')
       } catch (error) {
         if (pending) {
-          const text = '\n执行已中断；以上为最后收到的节点状态，请核对运行记录中的用量。\n'
+          const failure = publicFailure(error, options.signal?.aborted === true)
+          const text = `\n${failure.message}\n以上为最后收到的节点状态，请核对运行记录中的用量。\n`
           yield { type: 'reasoning-delta', index: 0, text }
           yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + text } }
+          yield { type: 'finish', reason: { kind: failure.kind,
+            failure: { code: failure.code, message: failure.message } } }
+          return
         }
         throw error
       } finally {
