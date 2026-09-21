@@ -1,5 +1,6 @@
 import { decodeDag, decodeProgress, progressText, runSummary, type ProgressEvent } from './dag-progress.js'
 /** Native DSH virtual models. Python owns presets, routing and all cost accounting. */
+import { randomUUID } from 'node:crypto'
 import { resolve } from 'node:path'
 import { bindNativeTools, type NativeToolContext, type ToolSchema } from './native-tools.js'
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
@@ -14,6 +15,8 @@ export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credent
 
 const MAX_CONTEXT_BYTES = 120_000
 const RELAXED_CONTEXT_BYTES = 1_000_000
+const ROUTER_PROJECT_DISCOVERY = 'refractagent-router-projects'
+const ROUTER_V1_SENTINEL = '__refractrouter_http_v1__'
 
 const LEGACY_MODELS = [
   { id: 'economy', name: 'RefractAgent · 省成本' },
@@ -36,6 +39,7 @@ export interface Configuration {
   pythonExecutable: string
   routerUrl?: string
   routerCredential?: string
+  routerProject?: string
   runsDir: string
   executionMode: 'demo' | 'live'
   allowPaidRuns: boolean
@@ -93,6 +97,58 @@ export type AgentContext = NativeToolContext & Pick<DshContext, 'subprocess' | '
 function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
+
+interface RouterProjectCatalog {
+  protocol: 'refractagent-http-v1' | 'refractagent-http-v2'
+  projects: Array<{id:string;maxConcurrentTasks:number}>
+}
+
+async function routerToken(ctx: AgentContext, reference: string | undefined): Promise<string | undefined> {
+  if (!reference) return undefined
+  const resolved = await ctx.credentials.resolve(reference)
+  if (!resolved?.value) throw new Error(`Missing Router service credential: ${reference}`)
+  return resolved.value
+}
+
+async function routerProjectCatalogWithToken(url: string, token: string | undefined,
+  signal?: AbortSignal): Promise<RouterProjectCatalog> {
+  const normalized=configure({routerUrl:url})
+  const headers={...(token?{Authorization:`Bearer ${token}`}:{})}
+  let health:Response
+  try{health=await fetch(`${normalized.routerUrl}/healthz`,{headers,signal})}
+  catch(error){throw new Error(`Router service unavailable: ${error instanceof Error?error.message:String(error)}`)}
+  if(!health.ok)throw new Error(`Router HTTP ${health.status}: ${await health.text()}`)
+  let value:unknown
+  try{value=await health.json()}catch{throw new Error('Router health check returned invalid JSON')}
+  if(!object(value)||value.protocol!=='refractagent-http-v1'||value.status!=='ok'){
+    throw new Error('Router health check returned an incompatible protocol')
+  }
+  if(!Array.isArray(value.protocols)||!value.protocols.includes('refractagent-http-v2')){
+    return {protocol:'refractagent-http-v1',projects:[]}
+  }
+  let response:Response
+  try{response=await fetch(`${normalized.routerUrl}/v2/projects`,{headers,signal})}
+  catch(error){throw new Error(`Router project discovery failed: ${error instanceof Error?error.message:String(error)}`)}
+  if(!response.ok)throw new Error(`Router HTTP ${response.status}: ${await response.text()}`)
+  let catalog:unknown
+  try{catalog=await response.json()}catch{throw new Error('Router projects returned invalid JSON')}
+  if(!object(catalog)||catalog.protocol!=='refractagent-http-v2'||!Array.isArray(catalog.projects)){
+    throw new Error('Router projects returned an invalid response')
+  }
+  const projects=catalog.projects.map(row=>{
+    if(!object(row)||typeof row.id!=='string'||!/^[A-Za-z0-9._-]{1,128}$/.test(row.id)
+      ||typeof row.maxConcurrentTasks!=='number'||!Number.isSafeInteger(row.maxConcurrentTasks)||row.maxConcurrentTasks<=0){
+      throw new Error('Router projects returned an invalid project')
+    }
+    return {id:row.id,maxConcurrentTasks:row.maxConcurrentTasks}
+  })
+  return {protocol:'refractagent-http-v2',projects}
+}
+
+async function routerProjectCatalog(ctx: AgentContext, url: string, credential: string | undefined,
+  signal?: AbortSignal): Promise<RouterProjectCatalog> {
+  return routerProjectCatalogWithToken(url,await routerToken(ctx,credential),signal)
+}
 function positive(value: unknown, key: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) throw new Error(`invalid ${key}`)
   return value
@@ -135,11 +191,11 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   const result = { pythonExecutable: 'python3', runsDir: '.refractagent/runs', executionMode: 'demo',
     allowPaidRuns: false, maxProductionCost: 40, maxEvaluationCost: 80,
     timeoutMs: 300000, maxOutputTokens: 2048, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
-    routerUrl: undefined as unknown, routerCredential: undefined as unknown,
+    routerUrl: undefined as unknown, routerCredential: undefined as unknown, routerProject: undefined as unknown,
     preset: undefined as unknown, providerConfig: undefined as unknown, dshModelPool: undefined as unknown, limits: undefined as unknown,
     outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
-    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'routerUrl', 'routerCredential', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
+    'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'routerUrl', 'routerCredential', 'routerProject', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
     'limits', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
@@ -168,6 +224,9 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
   if (result.routerCredential !== undefined && (typeof result.routerCredential !== 'string'
     || !/^[A-Za-z_][A-Za-z0-9_.:-]*$/.test(result.routerCredential))) throw new Error('invalid routerCredential')
   if (result.routerCredential !== undefined && result.routerUrl === undefined) throw new Error('routerCredential requires routerUrl')
+  if (result.routerProject !== undefined && (typeof result.routerProject !== 'string'
+    || !/^[A-Za-z0-9._-]{1,128}$/.test(result.routerProject))) throw new Error('invalid routerProject')
+  if (result.routerProject !== undefined && result.routerUrl === undefined) throw new Error('routerProject requires routerUrl')
   if (result.preset !== undefined && result.preset !== 'ark-agent-plan') throw new Error('unknown provider preset')
   if (result.limits !== undefined) {
     if (!object(result.limits) || Object.keys(result.limits).some(k => !['relaxBudget', 'relaxContext', 'unlimitedTime'].includes(k))
@@ -294,25 +353,22 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   return result
 }
 
-async function invokeRemote(ctx: AgentContext, config: Readonly<Configuration>, payload: Record<string, unknown>,
-  signal: AbortSignal, options: ModelOptions, progressEnabled: boolean,
+function remoteExecution(config:Readonly<Configuration>,options:ModelOptions){return {
+  mode:config.executionMode,productionBudget:config.maxProductionCost,
+  evaluationBudget:config.maxEvaluationCost,timeoutMs:config.timeoutMs,
+  maxOutputTokens:Math.min(config.maxOutputTokens,options.maxTokens??config.maxOutputTokens),
+}}
+
+async function invokeRemoteV1(config: Readonly<Configuration>, payload: Record<string, unknown>,
+  signal: AbortSignal, options: ModelOptions, progressEnabled: boolean, token:string|undefined,
   onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
-  let token: string | undefined
-  if (config.routerCredential) {
-    const resolved = await ctx.credentials.resolve(config.routerCredential)
-    if (!resolved?.value) throw new Error(`Missing Router service credential: ${config.routerCredential}`)
-    token = resolved.value
-  }
   let response: Response
   try {
     response = await fetch(`${config.routerUrl}/v1/run`, {
       method: 'POST', signal,
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/x-ndjson',
         ...(token ? {Authorization: `Bearer ${token}`} : {}) },
-      body: JSON.stringify({protocol:'refractagent-http-v1',request:payload,execution:{
-        mode:config.executionMode,productionBudget:config.maxProductionCost,
-        evaluationBudget:config.maxEvaluationCost,timeoutMs:config.timeoutMs,
-        maxOutputTokens:Math.min(config.maxOutputTokens,options.maxTokens??config.maxOutputTokens)}}),
+      body: JSON.stringify({protocol:'refractagent-http-v1',request:payload,execution:remoteExecution(config,options)}),
     })
   } catch (error) {
     throw new Error(`Router service unavailable: ${error instanceof Error ? error.message : String(error)}`)
@@ -341,11 +397,103 @@ async function invokeRemote(ctx: AgentContext, config: Readonly<Configuration>, 
   return validateResult(result,config,options,config.executionMode==='live',progressEnabled)
 }
 
+async function invokeRemoteV2(config:Readonly<Configuration>,payload:Record<string,unknown>,signal:AbortSignal,
+  options:ModelOptions,progressEnabled:boolean,token:string|undefined,onProgress?: (event:ProgressEvent)=>void){
+  const headers={'Content-Type':'application/json','Accept':'application/json',
+    ...(token?{Authorization:`Bearer ${token}`}:{})}
+  const idempotencyKey=randomUUID()
+  const envelope={protocol:'refractagent-http-v2',projectId:config.routerProject,request:payload,
+    execution:remoteExecution(config,options)}
+  let submitted:unknown
+  for(let attempt=0;attempt<2;attempt+=1){
+    try{
+      const response=await fetch(`${config.routerUrl}/v2/tasks`,{method:'POST',signal,headers:{...headers,
+        'Idempotency-Key':idempotencyKey},body:JSON.stringify(envelope)})
+      if(!response.ok)throw new Error(`Router HTTP ${response.status}: ${await response.text()}`)
+      submitted=await response.json();break
+    }catch(error){
+      if(signal.aborted||attempt===1||error instanceof Error&&error.message.startsWith('Router HTTP '))throw error
+    }
+  }
+  if(!object(submitted)||submitted.protocol!=='refractagent-http-v2'||typeof submitted.taskId!=='string'
+    ||typeof submitted.status!=='string')throw new Error('Router HTTP v2 returned an invalid task receipt')
+  const taskId=submitted.taskId
+  let cursor=0,result:unknown,failure:Record<string,unknown>|undefined,terminal:string|undefined,reconnects=0
+  const cancel=async()=>{
+    try{await fetch(`${config.routerUrl}/v2/tasks/${encodeURIComponent(taskId)}/cancel`,{method:'POST',
+      headers,signal:AbortSignal.timeout(2000)})}catch{/* best effort; persistent task remains queryable */}
+  }
+  try{
+    while(!terminal){
+      let response:Response
+      try{response=await fetch(`${config.routerUrl}/v2/tasks/${encodeURIComponent(taskId)}/events?after=${cursor}&follow=true`,{
+        headers:{Accept:'application/x-ndjson',...(token?{Authorization:`Bearer ${token}`}:{})},signal})}
+      catch(error){
+        if(signal.aborted)throw error
+        if(reconnects>=3)throw new Error(`Router event stream unavailable: ${error instanceof Error?error.message:String(error)}`)
+        reconnects+=1;continue
+      }
+      if(!response.ok||!response.body)throw new Error(`Router HTTP ${response.status}: ${await response.text()}`)
+      const reader=response.body.getReader(),decoder=new TextDecoder();let buffer=''
+      while(true){
+        const chunk=await reader.read()
+        buffer+=decoder.decode(chunk.value??new Uint8Array(),{stream:!chunk.done})
+        const lines=buffer.split('\n');buffer=lines.pop()??''
+        for(const line of lines){
+          if(!line.trim())continue
+          let record:unknown
+          try{record=JSON.parse(line)}catch{throw new Error('Router HTTP v2 returned invalid NDJSON')}
+          if(!object(record)||record.protocol!=='refractagent-http-v2'||record.taskId!==taskId
+            ||typeof record.sequence!=='number'||!Number.isSafeInteger(record.sequence)||record.sequence<=cursor
+            ||!['status','progress','result','error'].includes(String(record.type))){
+            throw new Error('Router HTTP v2 returned an invalid event')
+          }
+          cursor=record.sequence
+          if(record.type==='progress')onProgress?.(decodeProgress(record.value))
+          else if(record.type==='result')result=record.value
+          else if(record.type==='error')failure=object(record.value)?record.value:{message:'Router service failed'}
+          else if(object(record.value)&&typeof record.value.status==='string'
+            &&['completed','failed','cancelled','recovery_required'].includes(record.value.status))terminal=record.value.status
+        }
+        if(chunk.done)break
+      }
+      if(buffer.trim())throw new Error('Router HTTP v2 returned an unterminated record')
+      if(!terminal)reconnects+=1
+      if(reconnects>3)throw new Error('Router event stream ended before a terminal task state')
+    }
+  }finally{if(signal.aborted)await cancel()}
+  if(terminal!=='completed'){
+    const detail=typeof failure?.message==='string'?failure.message:
+      terminal==='recovery_required'?'Router 服务重启；任务需要人工核对，未自动重放。':
+      terminal==='cancelled'?'Router task cancelled':'Router service failed'
+    throw new Error(detail)
+  }
+  const validated=validateResult(result,config,options,false,progressEnabled)
+  validated.router_task={taskId,idempotencyKey,projectId:config.routerProject,status:terminal,resumed:reconnects>0,
+    message:reconnects>0?'连接恢复后继续显示持久任务。':'任务由 Router 持久保存，断线后可继续显示。'}
+  return validated
+}
+
+async function invokeRemote(ctx: AgentContext, config: Readonly<Configuration>, payload: Record<string, unknown>,
+  signal: AbortSignal, options: ModelOptions, progressEnabled: boolean,
+  onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
+  const token=await routerToken(ctx,config.routerCredential)
+  const catalog=await routerProjectCatalogWithToken(config.routerUrl!,token,signal)
+  if(catalog.protocol==='refractagent-http-v1'){
+    return invokeRemoteV1(config,payload,signal,options,progressEnabled,token,onProgress)
+  }
+  if(!config.routerProject)throw new Error('Router HTTP v2 requires a selected team project')
+  if(!catalog.projects.some(project=>project.id===config.routerProject)){
+    throw new Error(`Router project is unavailable: ${config.routerProject}`)
+  }
+  return invokeRemoteV2(config,payload,signal,options,progressEnabled,token,onProgress)
+}
+
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions, onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
   const automaticRouting = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
   const live = config.executionMode === 'live'
-  if (config.routerUrl && live) throw new Error('Router HTTP v1 only permits preview or demo execution')
+  if (config.routerUrl && live) throw new Error('Router HTTP only permits preview or demo execution')
   if (automaticRouting && live) throw new Error('RefractAgent v4 实时自动路由尚未启用；请先使用模拟模式验证配置')
   if (live && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
@@ -381,7 +529,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   const failed = new AbortController()
   const signal = AbortSignal.any([failed.signal, ...(options.signal ? [options.signal] : []), ...(config.template === 'auto' || config.limits?.unlimitedTime ? [] : [AbortSignal.timeout(config.timeoutMs + 5000)])])
   if (config.routerUrl) {
-    if (useBridge || nativeTools) throw new Error('Router HTTP v1 does not support DSH host callbacks')
+    if (useBridge || nativeTools) throw new Error('Router HTTP does not support DSH host callbacks')
     return invokeRemote(ctx,config,payload,signal,options,progressEnabled,onProgress)
   }
   const policy = ctx.sandboxPolicy.resolve({})
@@ -527,7 +675,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         await work
       }
 
-      const info = pending ? runSummary(result) + `长度检查：${formatValidationSummary(result.format_validation)}\n` : `${result.simulated ? '【模拟演示，无真实模型调用】' : ''}策略：${String(result.strategy_name)}；`
+      const routerTask=object(result.router_task)?`团队任务：${String(result.router_task.taskId)} · 项目 ${String(result.router_task.projectId)} · 状态 ${String(result.router_task.status)}；${String(result.router_task.message)}\n`:''
+      const info = pending ? routerTask+runSummary(result) + `长度检查：${formatValidationSummary(result.format_validation)}\n` : routerTask+`${result.simulated ? '【模拟演示，无真实模型调用】' : ''}策略：${String(result.strategy_name)}；`
         + `模型：${JSON.stringify(result.model_routes ?? result.models)}；状态：${String(result.status)}；`
         + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${object(result.quality) ? JSON.stringify({ passed: result.quality.passed, score: result.quality.score }) : '未评审'}；`
         + `长度检查：${formatValidationSummary(result.format_validation)}；`
@@ -556,7 +705,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           planner: result.planner, planReadyMs: result.plan_ready_ms,
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
-          costs: result.costs, simulated: result.simulated, resultPath: result.result_path },
+          costs: result.costs, simulated: result.simulated, resultPath: result.result_path,
+          ...(object(result.router_task) ? {routerTask: result.router_task} : {}) },
       } } }
     },
   }
@@ -567,6 +717,16 @@ export function apply(ctx: AgentContext, raw: unknown = {}): void {
   const composed = configure(raw)
   let effective: Readonly<Configuration> = composed
   ctx.llm.registerAdapter(['refractagent'], createAdapter(ctx, () => effective))
+  ctx.llm.registerModelDiscovery?.(ROUTER_PROJECT_DISCOVERY, async (request, signal) => {
+    if (request.apiKey !== undefined) throw new Error('Router project discovery accepts a credential reference, never a token')
+    const url=request.baseURL??effective.routerUrl
+    const credential=request.api??effective.routerCredential
+    if(!url)return []
+    const catalog=await routerProjectCatalog(ctx,url,credential,signal)
+    if(catalog.protocol==='refractagent-http-v1')return [{id:ROUTER_V1_SENTINEL,name:'HTTP v1 同步兼容'}]
+    return catalog.projects.map(project=>({id:project.id,
+      name:`${project.id}（并发上限 ${project.maxConcurrentTasks}）`}))
+  })
   installRefractSettings(ctx, composed, section => {
     effective = overlaySettings(composed, section)
   })

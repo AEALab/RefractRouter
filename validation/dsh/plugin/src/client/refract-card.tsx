@@ -5,7 +5,7 @@ import v4Example from '../../../../../data/schema/refractagent-providers-v4-exam
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
   type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
 import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
-import type {DshModelCatalog} from './types.js'
+import type {DshModelCatalog,RouterProjectDirectory} from './types.js'
 import { V4Settings } from './v4-settings.js'
 
 export interface RefractCardOwnerProps {
@@ -28,6 +28,7 @@ export interface RefractCardOwnerProps {
   editDshModelPool(value:DshModelPoolView):void
   editRouter(value:RouterConnectionView|undefined):void
   loadCatalog():Promise<DshModelCatalog>
+  loadRouterProjects(connection:{url:string;credential?:string}):Promise<RouterProjectDirectory>
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -115,8 +116,23 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const [v4Advanced, setV4Advanced] = useState(false)
   const [catalog,setCatalog]=useState<DshModelCatalog|undefined>()
   const [catalogError,setCatalogError]=useState<string|undefined>()
+  const [routerProjects,setRouterProjects]=useState<RouterProjectDirectory|undefined>()
+  const [routerError,setRouterError]=useState<string|undefined>()
   useEffect(()=>{let active=true;void props.loadCatalog().then(value=>{if(active){setCatalog(value);setCatalogError(undefined)}})
     .catch(error=>{if(active)setCatalogError(error instanceof Error?error.message:String(error))});return()=>{active=false}},[])
+  useEffect(()=>{let active=true
+    const router=state.router
+    if(!router){setRouterProjects(undefined);setRouterError(undefined);return()=>{active=false}}
+    setRouterProjects(undefined);setRouterError(undefined)
+    void props.loadRouterProjects({url:router.url,credential:router.credential}).then(value=>{
+      if(!active)return
+      setRouterProjects(value)
+      if(value.protocol==='refractagent-http-v2'&&!router.project&&value.projects.length===1){
+        props.editRouter({...router,project:value.projects[0]!.id})
+      }
+    }).catch(error=>{if(active)setRouterError(error instanceof Error?error.message:String(error))})
+    return()=>{active=false}
+  },[state.router?.url,state.router?.credential])
 
   const pool=state.dshModelPool
   const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v1',billingUnit:state.provider?.billingUnit??'USD',routes:[],
@@ -199,12 +215,22 @@ export function RefractCard(props: RefractCardOwnerProps) {
               <option value="local">本地 Python 核心</option><option value="remote">远程 Router URL</option></select></label>
             {state.router?<div className="rra-grid rra-grid-2"><label className="rra-compact-field">Router URL
               <input className="rra-input" type="url" disabled={disabled} value={state.router.url}
-                onChange={event=>props.editRouter({...state.router!,url:event.target.value})}/>
+                onChange={event=>props.editRouter({...state.router!,url:event.target.value,project:undefined})}/>
               <span className="rra-field-hint">例如 http://127.0.0.1:8787；非本机地址必须使用 HTTPS。</span></label>
               <label className="rra-compact-field">凭证引用（可选）<input className="rra-input" disabled={disabled}
                 value={state.router.credential??''} placeholder="REFRACTROUTER_SERVICE_TOKEN"
-                onChange={event=>props.editRouter({...state.router!,credential:event.target.value||undefined})}/>
+                onChange={event=>props.editRouter({...state.router!,credential:event.target.value||undefined,project:undefined})}/>
               <span className="rra-field-hint">只保存 DSH 凭证名称，不保存 token。</span></label></div>:null}
+            {state.router?<>{routerError?<p className="rra-invalid">连接检查失败：{routerError}</p>:null}
+              {!routerError&&!routerProjects?<p className="rra-field-hint">正在检查 Router 协议和项目权限…</p>:null}
+              {routerProjects?.protocol==='refractagent-http-v1'?<div className="rra-simple-status"><strong>HTTP v1 同步兼容</strong><span>服务未开放持久任务协议；提交前将继续使用 v1。</span></div>:null}
+              {routerProjects?.protocol==='refractagent-http-v2'?<label className="rra-compact-field">团队项目
+                <select className="rra-select" disabled={disabled} value={state.router.project??''}
+                  onChange={event=>props.editRouter({...state.router!,project:event.target.value||undefined})}>
+                  <option value="">请选择项目</option>{routerProjects.projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select>
+                <span className="rra-field-hint">项目来自 Router 当前成员权限，不支持自由填写。</span></label>:null}
+              {routerProjects?.protocol==='refractagent-http-v2'&&state.router.project
+                &&!routerProjects.projects.some(project=>project.id===state.router?.project)?<p className="rra-invalid">已保存项目当前不可用，请重新选择。</p>:null}</>:null}
           </div>
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
           {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>DSH 模型目录</h3>

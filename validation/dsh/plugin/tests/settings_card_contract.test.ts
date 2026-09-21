@@ -78,7 +78,7 @@ test('overlaySettings overlays limits and keeps the rest of the composed configu
 
 test('Router URL settings overlay a real remote connection and enforce transport safety', () => {
   const config=configure({})
-  const router={url:'https://router.example/team',credential:'ROUTER_TOKEN'}
+  const router={url:'https://router.example/team',credential:'ROUTER_TOKEN',project:'alpha'}
   validateSettingsSection({router})
   const next=overlaySettings(config,{router})
   assert.equal(next.routerUrl,'https://router.example/team')
@@ -86,6 +86,7 @@ test('Router URL settings overlay a real remote connection and enforce transport
   assert.deepEqual(buildSettingsBase(next).router,router)
   assert.throws(()=>validateSettingsSection({router:{url:'http://router.example'}}),/requires HTTPS/)
   assert.throws(()=>validateSettingsSection({router:{url:'https://user:secret@router.example'}}),/without credentials/)
+  assert.throws(()=>validateSettingsSection({router:{url:'https://router.example',project:'bad/project'}}),/project/)
 })
 
 test('overlaySettings providerConfig override replaces the composed preset', () => {
@@ -257,10 +258,10 @@ test('controller saves and resets the Router service URL without storing a token
   const scope=fakeScope({})
   const controller=new RefractCardController(scope)
   const face=controller.inject()
-  face.editRouter({url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN'})
-  assert.deepEqual(controller.getSnapshot().router,{url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN'})
+  face.editRouter({url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN',project:'alpha'})
+  assert.deepEqual(controller.getSnapshot().router,{url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN',project:'alpha'})
   await controller.save()
-  assert.deepEqual(scope.writes[0],{op:'set',field:'router',value:{url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN'}})
+  assert.deepEqual(scope.writes[0],{op:'set',field:'router',value:{url:'http://127.0.0.1:8787',credential:'ROUTER_TOKEN',project:'alpha'}})
   assert.equal(JSON.stringify(scope.writes).includes('private-test-key'),false)
   face.resetField('router')
   await controller.save()
@@ -343,7 +344,7 @@ test('client bundle registers in the host module format and exports the plugin f
     throw new Error('unexpected require: ' + spec)
   }) as { apply: (ctx: unknown) => void; inject: string[] }
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'settingsScope'])
+  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'settingsScope'])
 
   const effects: Array<() => unknown> = []
   let boundNamespace: string | undefined
@@ -352,7 +353,8 @@ test('client bundle registers in the host module format and exports the plugin f
   exports.apply({
     effect: (setup: () => unknown) => { effects.push(setup) },
     locale: { register: () => undefined },
-    remote: { session: { modelCatalog: async () => ({ ok: true, value: { groups: [], failures: [] } }) } },
+    remote: { session: { modelCatalog: async () => ({ ok: true, value: { groups: [], failures: [] } }) },
+      llm:{discoverModels:async()=>({ok:true,value:[]})} },
     settingsScope: { bind: (spec: { namespace: string }) => { boundNamespace = spec.namespace; return fakeScope({}) } },
     slots: {
       inject: (_key: string, declaration: () => Generator<unknown>) => { slotDeclaration = declaration },

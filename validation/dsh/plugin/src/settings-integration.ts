@@ -76,7 +76,8 @@ export function buildSettingsSchema(): RefractSettingsSchema {
 export function buildSettingsBase(config: Readonly<Configuration>): Readonly<SettingsSection> {
   const base: SettingsSection = {}
   if (config.routerUrl !== undefined) base.router = {url:config.routerUrl,
-    ...(config.routerCredential?{credential:config.routerCredential}:{})}
+    ...(config.routerCredential?{credential:config.routerCredential}:{}),
+    ...(config.routerProject?{project:config.routerProject}:{})}
   if (config.providerConfig !== undefined) base.providerConfig = config.providerConfig
   if (config.dshModelPool !== undefined) base.dshModelPool = config.dshModelPool
   else if (config.preset === 'ark-agent-plan') {
@@ -111,6 +112,7 @@ export function overlaySettings(
   if (section.router !== undefined) {
     next.routerUrl = new URL(section.router.url).toString().replace(/\/$/,'')
     next.routerCredential = section.router.credential
+    next.routerProject = section.router.project
   }
   if (section.providerConfig !== undefined) {
     next.preset = undefined

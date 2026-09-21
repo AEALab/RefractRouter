@@ -99,6 +99,8 @@ Python 根据节点类型、难度、风险和输入包络匹配该候选的预�
   HTTP v2。v2 使用静态成员 token、项目 ACL 和 SQLite WAL，支持幂等、取消、事件续读与
   重启恢复；仍不开放 DSH 宿主工具回调或 v4 付费执行。参见
   [HTTP 服务](router-http-service.md)和[团队服务](team-router-service.md)。
+- DSH 插件 0.22.0 接入 HTTP v2：宿主侧解析 Router 凭证并发现授权项目，提交后以任务 ID 和
+  事件序号恢复显示；提交后的故障不会自动回退本地执行或创建第二个任务。
 - 历史 RefractAgent 0.3.0 首次提供可安装的 Python 应用命令和随包资源。
   DSH 插件 0.11.0 的 `refractagent` provider 注册省成本、均衡、质量优先三个模型接口，
   通过原生子进程服务调用已安装核心，传入会话与部署上限；策略及记账仍完全由 Python 决定。
@@ -108,8 +110,8 @@ Python 根据节点类型、难度、风险和输入包络匹配该候选的预�
   [本机安装说明](refractagent-local-quickstart.md)。
 - `refractrouter_validate` 调用基准验证入口；`refractrouter_task` 调用文本任务入口。
   这两个历史工具仍依赖匹配的 Python 源码环境和配置数据。
-- RefractAgent 模型入口可脱离源码目录运行；当前仍是本机执行，没有独立 Router 服务。
-  后续团队服务继续复用核心接口，DSH 保持为一种宿主接入方式。
+- RefractAgent 模型入口可脱离源码目录运行；默认仍为本机执行，也可连接独立 Router 服务。
+  DSH 保持为一种宿主接入方式。
 
 ## 实现语言与构建分发
 
