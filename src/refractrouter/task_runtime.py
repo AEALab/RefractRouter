@@ -323,6 +323,18 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 result['routing_profile'] = profile
         else:
             plan = preview_plan(request["task"], required_criteria=request.get("acceptanceCriteria"))
+            if configuration is not None:
+                # 自动预览也必须按真实会话和工具包络编译容量。preview_plan 的静态值
+                # 只是通用模板预算，不能成为长会话在模拟模式下的隐含上限。
+                plan, estimates = compile_generated_capacity(plan, node_task, candidates,
+                    output_constraints=request.get('outputConstraints'), input_cap=input_cap,
+                    prefix_policy=request.get('prefixPolicy', 'legacy'),
+                    tools=tool_runtime.schemas if tool_runtime is not None else None)
+                result['compiled_input_estimates'] = estimates
+                profile = configured_profile(configuration, manifest, plan.to_dict(),
+                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
+                profiles = load_profile(profile, manifest)
+                result['routing_profile'] = profile
         before_call()
         result["prefix_policy"] = request.get("prefixPolicy", "legacy")
         result["plan"] = plan.to_dict()

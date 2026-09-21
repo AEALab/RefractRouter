@@ -210,6 +210,23 @@ def test_cli_v4_auto_entry_runs_zero_call_demo_and_blocks_live(tmp_path, capsys)
     assert not (tmp_path / 'live-runs').exists()
 
 
+def test_v4_demo_recompiles_long_session_capacity_without_relaxing_context(tmp_path):
+    source = Path(__file__).resolve().parents[1] / 'data/schema/refractagent-providers-v4-example.json'
+    raw = json.loads(source.read_text())
+    for model in raw['models']:
+        model['contextWindow'] = 262144
+    context = 'x' * 71000
+    with patch('socket.socket', side_effect=AssertionError('network forbidden')):
+        demo = run_agent({'task': '整理当前长会话并给出结论', 'context': context, 'strategy': 'auto'},
+                         provider_config=raw, mode='demo', runs_dir=tmp_path / 'runs')
+    assert demo['status'] == 'simulated', demo['issues']
+    result = json.loads(Path(demo['result_path']).read_text())
+    capacity = result['plan']['nodes'][0]['contract']['capability']['input_budget_tokens']
+    assert capacity > 65536
+    assert result['compiled_input_estimates']['deliverable']['base_input_bound'] > 65536
+    assert demo['limits'] == {'relaxBudget': False, 'relaxContext': False}
+
+
 def test_validate_config_reports_core_summary_from_file_and_stdin(tmp_path, capsys, monkeypatch):
     source = Path(__file__).resolve().parents[1] / 'data/schema/refractagent-providers-v4-example.json'
     assert main(['validate-config', '--provider-config', str(source)]) == 0

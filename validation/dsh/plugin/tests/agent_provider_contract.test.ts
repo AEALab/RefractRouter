@@ -80,9 +80,14 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
 
   const blocked=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
   const live=createAdapter(blocked.ctx,()=>configure({providerConfig,executionMode:'live',allowPaidRuns:true}))
-  await assert.rejects(async()=>{
-    for await(const _ of live.stream({...options,model:'auto'})){}
-  },/尚未启用/)
+  const blockedChunks=[]
+  for await(const chunk of live.stream({...options,model:'auto'})) blockedChunks.push(chunk)
+  assert.equal(blockedChunks.filter(chunk=>chunk.type==='finish').length,1)
+  assert.deepEqual(blockedChunks.at(-1)?.reason,{kind:'error',failure:{
+    code:'REFRACTAGENT_EXECUTION_FAILED',
+    message:'RefractAgent 未执行：运行失败。请查看运行记录中的诊断信息。',
+  }})
+  assert.equal(blockedChunks.some(chunk=>chunk.type==='text-delta'),false)
   assert.equal(blocked.credentials,0)
   assert.equal(blocked.spawns.length,0)
 })
@@ -450,6 +455,50 @@ test('停止消费进度时取消子进程，不产生伪完成答案', {timeout
   }
   await h.stream.return?.()
   assert.equal(h.aborted,true)
+})
+
+test('自动流程失败立即结束思考并发出可读错误，不生成伪成功答案',async()=>{
+  const f=fixture({schema_version:'refractagent-error-v1',
+    error:'node-input-budget-exceeded before deliverable'})
+  const output=[]
+  for await(const chunk of createAdapter(f.ctx,()=>configure({template:'auto'})).stream(options)) output.push(chunk)
+  assert.equal(output.filter(chunk=>chunk.type==='block-end'&&chunk.index===0).length,1)
+  assert.equal(output.some(chunk=>chunk.type==='text-delta'),false)
+  assert.equal(output.filter(chunk=>chunk.type==='finish').length,1)
+  assert.deepEqual(output.at(-1)?.reason,{kind:'error',failure:{
+    code:'REFRACTAGENT_NODE_INPUT_CAPACITY',
+    message:'RefractAgent 未执行：当前任务所需输入超过节点容量。请缩短会话、新建会话或选择更大上下文模型。',
+  }})
+})
+
+test('自动流程区分应用上下文、模型窗口、路线与一般执行失败',async()=>{
+  const cases:[string,string][]=[
+    ['conversation context exceeds the RefractAgent input limit','REFRACTAGENT_CONTEXT_LIMIT'],
+    ['input-or-output-capacity','REFRACTAGENT_MODEL_CONTEXT_LIMIT'],
+    ['configured route unavailable','REFRACTAGENT_ROUTE_UNAVAILABLE'],
+    ['ledger write failed','REFRACTAGENT_EXECUTION_FAILED'],
+  ]
+  for(const [error,code] of cases){
+    const output=[]
+    const f=fixture({schema_version:'refractagent-error-v1',error})
+    for await(const chunk of createAdapter(f.ctx,()=>configure({template:'auto'})).stream(options)) output.push(chunk)
+    const reason=output.at(-1)?.reason as {kind:string;failure:{code:string}}
+    assert.equal(reason.kind,'error')
+    assert.equal(reason.failure.code,code)
+    assert.equal(output.some(chunk=>chunk.type==='text-delta'),false)
+  }
+})
+
+test('自动流程取消保留取消语义并结束思考',async()=>{
+  const controller=new AbortController();controller.abort()
+  const output=[]
+  for await(const chunk of createAdapter(fixture().ctx,()=>configure({template:'auto'}))
+    .stream({...options,signal:controller.signal})) output.push(chunk)
+  assert.equal(output.some(chunk=>chunk.type==='text-delta'),false)
+  assert.deepEqual(output.at(-1)?.reason,{kind:'aborted',failure:{
+    code:'REFRACTAGENT_EXECUTION_ABORTED',
+    message:'RefractAgent 已停止：任务被取消或超时；请核对已保存的运行记录后再重试。',
+  }})
 })
 
 test('strategy-scoped provider configuration passes through unchanged',async()=>{
