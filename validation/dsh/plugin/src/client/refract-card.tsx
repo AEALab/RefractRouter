@@ -250,7 +250,11 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <button type="button" className="rra-reset" onClick={()=>patchRoute(row.provider,row.model,{overrides:{}})}>恢复公开档案</button></>:null}</>:null}</div>})}
             {!catalog?<p className="rra-field-hint">正在读取 DSH 模型目录…</p>:null}
             <div className="rra-advanced-toggle"><button type="button" className="rra-reset" onClick={()=>setV4Advanced(value=>!value)}>{v4Advanced?'收起高级设置':'展开高级设置'}</button></div>
-            {v4Advanced?<><div className="rra-grid rra-grid-3">{([['planner','规划模型'],['judge','评审模型'],['classifier','分类模型']] as const).map(([role,label])=><label className="rra-compact-field" key={role}>{label}<select className="rra-select" value={pool.roleOverrides?.[role]??''} onChange={event=>patchRole(role,event.target.value)}><option value="">自动分配</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>)}</div>
+            {v4Advanced?<><label className="rra-check"><input type="checkbox" disabled={disabled}
+              checked={pool.allowSharedJudge??false} onChange={event=>updatePool({...pool,allowSharedJudge:event.target.checked})}/>
+              允许同一路线兼任执行与评审（开发测试）</label>
+            <p className="rra-field-hint">启用后允许单一模型承担多个职责；运行证据会标记同模型评审，不能作为独立评审或研究结论。</p>
+            <div className="rra-grid rra-grid-3">{([['planner','规划模型'],['judge','评审模型'],['classifier','分类模型']] as const).map(([role,label])=><label className="rra-compact-field" key={role}>{label}<select className="rra-select" value={pool.roleOverrides?.[role]??''} onChange={event=>patchRole(role,event.target.value)}><option value="">自动分配</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>)}</div>
             <fieldset className="rra-models"><legend className="rra-label">执行模型池</legend><p className="rra-field-hint">不勾选时由 Python 核心自动分配；勾选后仅使用指定路线。</p>{routeOptions.map(row=>{const key=identity(row.provider,row.model);return <label className="rra-check" key={key}><input type="checkbox" checked={pool.roleOverrides?.workers?.includes(key)??false} onChange={event=>patchWorkers(key,event.target.checked)}/>{key}</label>})}</fieldset></>:null}
           </div> : state.automaticRouting && provider ? <><div className="rra-v4-section"><h3>迁移到 DSH 模型目录</h3><p className="rra-field-hint">旧 providerConfig 会保留供 CLI 和历史运行使用；预览确认后再保存新模型池，不会静默覆盖。</p><button type="button" className="rra-button" onClick={beginPool}>查看迁移预览</button></div><V4Settings t={t} provider={provider} disabled={true}
             advanced={v4Advanced}
@@ -383,7 +387,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             <button type="button" className="rra-button rra-button-secondary" disabled={disabled || !state.dirty}
               onClick={() => props.discard()}>{t('discard')}</button>
           </div>
-          {state.failed ? <p className="rra-invalid">{t('saveFailed')}</p> : null}
+          {state.failed ? <p className="rra-invalid">{t('saveFailed')}{state.failureMessage?` ${state.failureMessage}`:''}</p> : null}
         </div>
       ) : null}
     </li>

@@ -10,6 +10,7 @@ export interface StrategyConfiguration {
 export interface ProviderConfiguration {
   schemaVersion: 'refractagent-providers-v1' | 'refractagent-providers-v2' | 'refractagent-providers-v3' | 'refractagent-providers-v4'
   billingUnit: string
+  allowSharedJudge?: boolean
   qualityMin?: number
   objective?: { qualityMin: number; primary: 'cost'; secondary: 'latency'; dagMode: 'auto' | 'never' | 'force' }
   plannerThinking?: 'inherit' | 'enabled' | 'disabled'
@@ -48,6 +49,7 @@ export interface DshModelPoolRoute {
 export interface DshModelPool {
   schemaVersion: 'refractagent-dsh-model-pool-v1'
   billingUnit?: string
+  allowSharedJudge?: boolean
   routes: DshModelPoolRoute[]
   roleOverrides?: { planner?: string; judge?: string; classifier?: string; workers?: string[] }
   objective?: Record<string, unknown>
@@ -89,8 +91,11 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
   if (!isRecordValue(value) || value.schemaVersion !== 'refractagent-dsh-model-pool-v1'
     || !Array.isArray(value.routes) || value.routes.length > 128
-    || Object.keys(value).some(key => !['schemaVersion','billingUnit','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
+    || Object.keys(value).some(key => !['schemaVersion','billingUnit','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
+  }
+  if (value.allowSharedJudge !== undefined && typeof value.allowSharedJudge !== 'boolean') {
+    throw new Error('invalid dshModelPool allowSharedJudge')
   }
   const identities = new Set<string>()
   for (const route of value.routes) {
@@ -172,7 +177,7 @@ export function validateProviderConfiguration(value: unknown): asserts value is 
   const schemas = ['refractagent-providers-v1','refractagent-providers-v2','refractagent-providers-v3','refractagent-providers-v4']
   if (!isRecordValue(config) || !schemas.includes(String(config.schemaVersion))
     || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
-    || Object.keys(config).some(k => !['schemaVersion','billingUnit','qualityMin','objective','defaultReasoningEffort','plannerThinking','strategies','providers','models','privacy','security','trustPolicies'].includes(k))) {
+    || Object.keys(config).some(k => !['schemaVersion','billingUnit','allowSharedJudge','qualityMin','objective','defaultReasoningEffort','plannerThinking','strategies','providers','models','privacy','security','trustPolicies'].includes(k))) {
     throw new Error('invalid providerConfig; use refractagent config-example')
   }
   const v3 = config.schemaVersion === 'refractagent-providers-v3'
@@ -187,7 +192,11 @@ export function validateProviderConfiguration(value: unknown): asserts value is 
       || !['auto','never','force'].includes(String(config.objective.dagMode))) {
       throw new Error('providerConfig v4 requires a cost-first objective and no legacy strategies')
     }
+    if (config.allowSharedJudge !== undefined && typeof config.allowSharedJudge !== 'boolean') {
+      throw new Error('invalid allowSharedJudge')
+    }
   } else if (config.objective !== undefined) throw new Error('objective requires providerConfig v4')
+  else if (config.allowSharedJudge !== undefined) throw new Error('allowSharedJudge requires providerConfig v4')
   if (config.plannerThinking !== undefined && (typeof config.plannerThinking !== 'string' || !['inherit','enabled','disabled'].includes(config.plannerThinking))) {
     throw new Error('invalid plannerThinking')
   }

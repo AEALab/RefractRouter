@@ -297,7 +297,7 @@ def compile_security_v4(raw, *, models, policies):
 def compile_configuration(raw, strategy=None):
     raw = obj(raw, {'schemaVersion', 'billingUnit', 'providers', 'models', 'qualityMin',
                     'defaultReasoningEffort', 'plannerThinking', 'strategies', 'privacy',
-                    'security', 'trustPolicies', 'objective'},
+                    'security', 'trustPolicies', 'objective', 'allowSharedJudge'},
               'provider configuration')
     schema_version = raw.get('schemaVersion')
     if schema_version not in SCHEMAS:
@@ -311,8 +311,12 @@ def compile_configuration(raw, strategy=None):
             raise ValueError('schemaVersion v4 requires objective')
         if {'qualityMin', 'strategies'} & set(raw):
             raise ValueError('schemaVersion v4 uses objective and does not expose legacy strategies')
+        if not isinstance(raw.get('allowSharedJudge', False), bool):
+            raise ValueError('allowSharedJudge must be a boolean')
     elif 'objective' in raw:
         raise ValueError(f'objective requires schemaVersion {SCHEMA_V4}')
+    elif 'allowSharedJudge' in raw:
+        raise ValueError(f'allowSharedJudge requires schemaVersion {SCHEMA_V4}')
     objective = compile_v4_objective(raw['objective']) if schema_version == SCHEMA_V4 else None
     policies = {}
     for policy in raw.get('trustPolicies', []):
@@ -420,8 +424,9 @@ def compile_configuration(raw, strategy=None):
         providers[pid] = {**p, 'baseUrl': url, 'maxTokensParameter': parameter,
                           'deployment': provider_deployment}
     model_rows = raw.get('models')
-    if not isinstance(model_rows, list) or not 2 <= len(model_rows) <= 65:
-        raise ValueError('configure at least two models with the required execution roles')
+    minimum_models = 1 if schema_version == SCHEMA_V4 else 2
+    if not isinstance(model_rows, list) or not minimum_models <= len(model_rows) <= 65:
+        raise ValueError('configure models with the required execution roles')
     models, predictions, model_ids = [], {}, set()
     for row in model_rows:
         m = obj(row, {'id', 'provider', 'model', 'role', 'roles', 'contextWindow', 'maxOutputTokens',
@@ -532,6 +537,9 @@ def compile_configuration(raw, strategy=None):
                 raise ValueError(f'v4 requires at least one {required} model')
         if sum('judge' in model.roles for model in models) != 1:
             raise ValueError('v4 currently requires exactly one judge model')
+        judge = next(model for model in models if 'judge' in model.roles)
+        if 'worker' in judge.roles and raw.get('allowSharedJudge') is not True:
+            raise ValueError('shared worker and judge role requires allowSharedJudge')
     elif not predictions or sum(m.role=='judge' for m in models) != 1:
         raise ValueError('configure at least one candidate and exactly one judge')
     # 隐私约束在策略收窄之前编译，分类器引用与本地候选要求按声明的完整模型池判定。

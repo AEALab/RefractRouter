@@ -116,6 +116,7 @@ export interface RouterConnectionView { url:string; credential?:string; project?
 export interface DshModelPoolView {
   schemaVersion: 'refractagent-dsh-model-pool-v1'
   billingUnit?: string
+  allowSharedJudge?: boolean
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
     overrides?:Record<string,unknown>}>
   roleOverrides?: {planner?:string;judge?:string;classifier?:string;workers?:string[]}
@@ -146,6 +147,7 @@ export interface RefractCardProjection {
   dirty: boolean
   saving: boolean
   failed: boolean
+  failureMessage: string | null
   hasProvider: boolean
   overriddenProvider: boolean
   overriddenDshPool: boolean
@@ -214,6 +216,11 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(value) ?? 'null'
 }
 
+/** DSH 远程设置协议只接受 JsonValue；表单清空字段时产生的 undefined 必须在写入前移除。 */
+function jsonValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T
+}
+
 export class RefractCardController {
   private readonly scope: CardScope
   private readonly listeners = new Set<() => void>()
@@ -224,6 +231,7 @@ export class RefractCardController {
   private providerJsonError: string | null = null
   private saving = false
   private failed = false
+  private failureMessage: string | null = null
   private cached: RefractCardProjection | undefined
   private readonly offScope: () => void
 
@@ -443,6 +451,7 @@ export class RefractCardController {
     if (this.staged.size === 0 && !this.failed && !this.jsonEdited) return
     this.staged.clear()
     this.failed = false
+    this.failureMessage = null
     this.syncProviderJson()
     this.publish()
   }
@@ -452,8 +461,12 @@ export class RefractCardController {
     if (this.saving) return
     if (this.providerJsonError !== null) {
       this.failed = true
+      this.failureMessage = this.providerJsonError
       this.publish()
       return
+    }
+    for (const [field, edit] of this.staged) {
+      if (edit.kind === 'set') this.staged.set(field, {kind:'set', value:jsonValue(edit.value)})
     }
     const snap = this.snapshot()
     if (snap.status !== 'ready' || !snap.writable) return
@@ -490,8 +503,14 @@ export class RefractCardController {
     }
     this.saving = true
     this.failed = false
+    this.failureMessage = null
     this.publish()
-    for (const write of writes) await write.run().catch(() => undefined)
+    for (const write of writes) await write.run().catch(error => {
+      if (this.failureMessage === null) {
+        const detail = error instanceof Error ? error.message : String(error)
+        this.failureMessage = `${write.field}: ${detail}`
+      }
+    })
     let landed = true
     const user = this.userLayer()
     for (const write of writes) {
@@ -509,6 +528,7 @@ export class RefractCardController {
     }
     this.saving = false
     this.failed = !landed
+    if (!landed && this.failureMessage === null) this.failureMessage = '宿主未回读刚写入的设置值。'
     this.publish()
   }
 
@@ -605,6 +625,7 @@ export class RefractCardController {
       dirty: this.staged.size > 0 || this.jsonEdited,
       saving: this.saving,
       failed: this.failed,
+      failureMessage: this.failureMessage,
       hasProvider: this.currentProvider() !== undefined || this.currentDshPool() !== undefined,
       overriddenProvider: this.overridden('providerConfig'),
       overriddenDshPool:this.overridden('dshModelPool'),

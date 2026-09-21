@@ -43,6 +43,8 @@ def test_auto_roles_keep_judge_out_of_worker_pool_and_record_sources():
     assert roles['fast']==['worker']
     assert provenance['cloud/strong']['profile']=='frozen-public-profile'
     assert provenance['cloud/strong']['samples']==0
+    assert provenance['cloud/strong']['assigned_roles']==['planner','judge','classifier']
+    assert provenance['cloud/strong']['independent_judge'] is True
     assert {(row['dshProvider'],row['deployment']) for row in config['providers']}=={
         ('cloud','trusted-cloud'),('local','local')}
 
@@ -54,6 +56,24 @@ def test_role_overrides_use_route_identity_and_worker_pool_selector():
         ('cloud','strong',262144,8192),('local','fast',131072,4096)),profiles=full_profiles())
     roles={model['model']:model['roles'] for model in config['models']}
     assert roles=={'strong':['judge'],'fast':['planner','worker','classifier']}
+
+
+def test_single_user_declared_route_requires_explicit_shared_judge_opt_in():
+    raw={'schemaVersion':'refractagent-dsh-model-pool-v1','billingUnit':'USD',
+        'security':{'dataMode':'synthetic','sensitiveTerms':[],'classifier':{'enabled':True}},
+        'routes':[{'provider':'deepseek-official','model':'deepseek-v4-flash','deployment':'local',
+            'overrides':{'inputPer1k':.0003,'cachedInputPer1k':.000006,'outputPer1k':.0012,
+                'quality':84,'latencyMs':1800,'note':'开发测试临时替代，未经项目校准'}}]}
+    catalog=snapshot(('deepseek-official','deepseek-v4-flash',131072,8192))
+    with pytest.raises(ValueError,match='allowSharedJudge'):
+        compile_dsh_model_pool(raw,catalog,profiles=full_profiles())
+    raw['allowSharedJudge']=True
+    config,provenance=compile_dsh_model_pool(raw,catalog,profiles=full_profiles())
+    assert config['models'][0]['roles']==['planner','worker','judge','classifier']
+    route=provenance['deepseek-official/deepseek-v4-flash']
+    assert route['profile']=='user-declared-uncalibrated'
+    assert route['assigned_roles']==['planner','worker','judge','classifier']
+    assert route['independent_judge'] is False
 
 
 def test_unknown_route_requires_complete_manual_profile_and_is_marked_uncalibrated():

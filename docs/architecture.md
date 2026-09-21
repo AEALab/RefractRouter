@@ -74,6 +74,8 @@ DSH 插件的普通设置保存 `dshModelPool`，只记录用户从宿主目录�
 应用的 `providerConfig` 由 Python 编译为模型清单与 `configured` 路由 profile，
 支持一个或多个生产候选及一个评审模型。用户声明的质量和时延预测使用零观测样本，
 不能替代经验数据；历史研究运行时仍要求实测 profile，不能直接借用应用配置绕过该条件。
+产品开发测试可通过显式 `allowSharedJudge` 让一个模型兼任执行与评审；默认仍保持职责隔离，
+共享时证据必须标记非独立评审。该能力只放宽产品配置形态，不降低研究协议的独立评审门槛。
 
 Ark Agent Plan 是可选 provider 类型或显式预设。其他 provider 可由 Python 通过
 Chat Completions / Responses 接口调用，或通过 DSH 原生模型服务适配。目标 provider 和模型均由

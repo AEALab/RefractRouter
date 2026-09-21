@@ -111,6 +111,10 @@ test('validateSettingsSection accepts a valid providerConfig and rejects an inva
 test('DSH 模型池只接受目录身份、明确部署和有效职责覆盖', () => {
   const pool = dshModelPool()
   validateSettingsSection({ dshModelPool: pool })
+  validateSettingsSection({ dshModelPool: {...pool, allowSharedJudge:true} })
+  assert.throws(() => validateSettingsSection({ dshModelPool: {
+    ...pool, allowSharedJudge:'yes',
+  } as never }), /allowSharedJudge/)
   assert.throws(() => validateSettingsSection({ dshModelPool: {
     ...pool, routes: [...pool.routes, {...pool.routes[0]}],
   } }), /unique/)
@@ -266,6 +270,23 @@ test('controller saves and resets the Router service URL without storing a token
   face.resetField('router')
   await controller.save()
   assert.deepEqual(scope.writes[1],{op:'unset',field:'router'})
+  controller.dispose()
+})
+
+test('controller strips undefined form fields before sending DSH settings mutations',async()=>{
+  const scope=fakeScope({})
+  const controller=new RefractCardController(scope)
+  const pool=dshModelPool()
+  controller.inject().editDshModelPool({...pool,routes:[{
+    ...pool.routes[0],trustPolicy:undefined,overrides:{...pool.routes[0].overrides,note:undefined},
+  }]})
+  await controller.save()
+  const saved=scope.writes[0]?.value as Record<string,unknown>
+  assert.equal(JSON.stringify(saved).includes('undefined'),false)
+  const route=(saved.routes as Array<Record<string,unknown>>)[0]!
+  assert.equal(Object.hasOwn(route,'trustPolicy'),false)
+  assert.equal(Object.hasOwn(route.overrides as object,'note'),false)
+  assert.equal(controller.getSnapshot().failed,false)
   controller.dispose()
 })
 
