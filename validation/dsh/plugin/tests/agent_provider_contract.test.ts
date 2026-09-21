@@ -140,6 +140,8 @@ test('demo uses installed core through native sandboxed subprocess and preserves
   assert.deepEqual(result.at(-1)?.reason,{kind:'stop'})
   assert.equal(result.filter(c=>c.type==='finish').length,1)
   assert.equal(result.find(c=>c.type==='text-delta')?.text,'[SIMULATED] answer')
+  const replay=result.at(-1)?.replayState as {response:{refractagent:Record<string,unknown>}}
+  assert.equal(Object.hasOwn(replay.response.refractagent,'routerTask'),false)
 })
 test('Router URL uses authenticated NDJSON transport without starting local Python',async()=>{
   const f=fixture()

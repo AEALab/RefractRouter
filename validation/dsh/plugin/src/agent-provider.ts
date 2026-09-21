@@ -706,7 +706,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
           costs: result.costs, simulated: result.simulated, resultPath: result.result_path,
-          routerTask: result.router_task },
+          ...(object(result.router_task) ? {routerTask: result.router_task} : {}) },
       } } }
     },
   }
