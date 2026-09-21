@@ -3,7 +3,7 @@ import examples from './provider-examples.json' with { type: 'json' }
  * 命名空间出现在「设置 → 插件 → 插件配置」，浏览器半边由 src/client/ 提供。
  */
 import {
-  freezeConfiguration, isRecordValue, validateProviderConfiguration, type SettingsSection,
+  freezeConfiguration, isRecordValue, validateDshModelPool, validateProviderConfiguration, type SettingsSection,
 } from './provider-config.js'
 import { SETTINGS_NAMESPACE } from './settings-card.js'
 import type { Configuration } from './agent-provider.js'
@@ -57,7 +57,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
   }) as RefractSettingsSchema
   schema.type = 'object'
   schema.meta = { default: {} }
-  schema.dict = { providerConfig: anyNode, limits: limitsNode }
+  schema.dict = { providerConfig: anyNode, dshModelPool: anyNode, limits: limitsNode }
   schema.toJSON = () => ({
     uid: 4,
     refs: {
@@ -66,7 +66,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
       2: limitsNode.dict!.relaxContext,
       5: limitsNode.dict!.unlimitedTime,
       3: { type: limitsNode.type, meta: limitsNode.meta, dict: { relaxBudget: 1, relaxContext: 2, unlimitedTime: 5 } },
-      4: { type: 'object', meta: { default: {} }, dict: { providerConfig: 0, limits: 3 } },
+      4: { type: 'object', meta: { default: {} }, dict: { providerConfig: 0, dshModelPool: 0, limits: 3 } },
     },
   })
   return schema
@@ -76,6 +76,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
 export function buildSettingsBase(config: Readonly<Configuration>): Readonly<SettingsSection> {
   const base: SettingsSection = {}
   if (config.providerConfig !== undefined) base.providerConfig = config.providerConfig
+  if (config.dshModelPool !== undefined) base.dshModelPool = config.dshModelPool
   else if (config.preset === 'ark-agent-plan') {
     base.providerConfig = structuredClone(examples['ark-agent-plan']) as SettingsSection['providerConfig']
     base.providerConfig!.providers[0].credentialEnv = config.credentialEnv
@@ -87,6 +88,7 @@ export function buildSettingsBase(config: Readonly<Configuration>): Readonly<Set
 /** 宿主 validate 钩子：schema 之外约束不了一个完整 providerConfig 的场景。 */
 export function validateSettingsSection(section: Readonly<SettingsSection>): void {
   if (section.providerConfig !== undefined) validateProviderConfiguration(section.providerConfig)
+  if (section.dshModelPool !== undefined) validateDshModelPool(section.dshModelPool)
   if (section.limits !== undefined && (
     !isRecordValue(section.limits)
     || Object.keys(section.limits).some(key => !['relaxBudget', 'relaxContext', 'unlimitedTime'].includes(key))
@@ -101,11 +103,17 @@ export function overlaySettings(
   composed: Readonly<Configuration>,
   section: Readonly<SettingsSection>,
 ): Readonly<Configuration> {
-  if (section.providerConfig === undefined && section.limits === undefined) return composed
+  if (section.providerConfig === undefined && section.dshModelPool === undefined && section.limits === undefined) return composed
   const next: Configuration = { ...composed }
   if (section.providerConfig !== undefined) {
     next.preset = undefined
+    next.dshModelPool = undefined
     next.providerConfig = section.providerConfig
+  }
+  if (section.dshModelPool !== undefined) {
+    next.preset = undefined
+    next.providerConfig = undefined
+    next.dshModelPool = section.dshModelPool
   }
   if (section.limits !== undefined) next.limits = section.limits
   return freezeConfiguration(next)

@@ -1,0 +1,190 @@
+"""把 DSH 宿主模型目录编译为核心 v4 配置；运行时不联网更新公开档案。"""
+from copy import deepcopy
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+from .application_config import compile_configuration
+
+
+PROFILE_PATHS = (
+    Path(__file__).resolve().parents[2] / 'data/model-profiles-v1.json',
+    Path(sys.prefix) / 'share/refractrouter/model-profiles-v1.json',
+)
+DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
+
+
+def _route_key(provider, model):
+    return f'{provider}/{model}'
+
+
+def _stable_id(prefix, value):
+    return f'{prefix}-{hashlib.sha256(value.encode()).hexdigest()[:16]}'
+
+
+def _record(value, label):
+    if not isinstance(value, dict):
+        raise ValueError(f'{label} must be an object')
+    return value
+
+
+def _number(value, label):
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value < float('inf'):
+        raise ValueError(f'{label} must be a non-negative finite number')
+    return float(value)
+
+
+def load_frozen_profiles(path=None):
+    if path is None:
+        path = next((candidate for candidate in PROFILE_PATHS if candidate.is_file()), PROFILE_PATHS[0])
+    raw = json.loads(Path(path).read_text())
+    if raw.get('schema_version') != 'refractrouter-model-profiles-v1' or not isinstance(raw.get('profiles'), list):
+        raise ValueError('invalid frozen model profile resource')
+    identities = set()
+    for profile in raw['profiles']:
+        if (not isinstance(profile, dict) or not isinstance(profile.get('provider'), str)
+                or not profile['provider'] or not isinstance(profile.get('model'), str) or not profile['model']):
+            raise ValueError('frozen model profiles require provider/model identities')
+        identity = (profile['provider'], profile['model'])
+        if identity in identities:
+            raise ValueError('frozen model profile identities must be unique')
+        identities.add(identity)
+    return raw
+
+
+def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
+    """返回可交给现有核心的 v4 配置与逐路线来源证据。"""
+    pool = _record(pool, 'dshModelPool')
+    snapshot = _record(catalog_snapshot, 'dshCatalogSnapshot')
+    if pool.get('schemaVersion') != 'refractagent-dsh-model-pool-v1':
+        raise ValueError('invalid dshModelPool schemaVersion')
+    if snapshot.get('schemaVersion') != 'refractagent-dsh-catalog-v1':
+        raise ValueError('invalid dshCatalogSnapshot schemaVersion')
+    routes = pool.get('routes')
+    if not isinstance(routes, list):
+        raise ValueError('dshModelPool.routes must be an array')
+    catalog = {(_record(row, 'catalog route').get('provider'), row.get('model')): row
+               for row in snapshot.get('routes', [])}
+    frozen = profiles or load_frozen_profiles()
+    public = {(row['provider'], row['model']): row for row in frozen['profiles']}
+    selected, evidence = [], {}
+    seen = set()
+    for raw in routes:
+        row = _record(raw, 'dshModelPool route')
+        if row.get('enabled', True) is False:
+            continue
+        provider, model = row.get('provider'), row.get('model')
+        if not isinstance(provider, str) or not provider or not isinstance(model, str) or not model:
+            raise ValueError('dshModelPool routes require provider and model')
+        if provider == 'refractagent':
+            raise ValueError('RefractAgent cannot route recursively to itself')
+        identity = (provider, model)
+        if identity in seen:
+            raise ValueError('dshModelPool route identities must be unique')
+        seen.add(identity)
+        resolved = catalog.get(identity)
+        if resolved is None:
+            raise ValueError(f'DSH route is unavailable: {_route_key(provider, model)}')
+        deployment = row.get('deployment')
+        if deployment not in DEPLOYMENTS:
+            raise ValueError('every DSH route requires an explicit deployment')
+        base = deepcopy(public.get(identity, {}))
+        overrides = _record(row.get('overrides', {}), 'route overrides')
+        manual_complete = all(key in overrides for key in ('inputPer1k','outputPer1k','quality','latencyMs'))
+        if not base and not manual_complete:
+            raise ValueError(f'{_route_key(provider, model)} has no public profile; complete manual overrides are required')
+        pricing = {**deepcopy(base.get('pricing') or {}),
+                   **{k: overrides[k] for k in ('inputPer1k','cachedInputPer1k','outputPer1k') if k in overrides}}
+        quality = overrides.get('quality', base.get('quality'))
+        latency = overrides.get('latencyMs', base.get('latencyMs'))
+        for key in ('inputPer1k', 'outputPer1k'):
+            if key not in pricing:
+                raise ValueError(f'{_route_key(provider, model)} requires complete manual pricing')
+            pricing[key] = _number(pricing[key], key)
+        pricing['cachedInputPer1k'] = _number(pricing.get('cachedInputPer1k', pricing['inputPer1k']), 'cachedInputPer1k')
+        if pricing['cachedInputPer1k'] > pricing['inputPer1k']:
+            raise ValueError('cachedInputPer1k cannot exceed inputPer1k')
+        quality = _number(quality, 'quality') if quality is not None else None
+        latency = _number(latency, 'latencyMs') if latency is not None else None
+        if quality is None or quality > 100 or latency is None:
+            raise ValueError(f'{_route_key(provider, model)} requires quality and latency predictions')
+        context_window = resolved.get('contextWindow')
+        max_output_tokens = resolved.get('maxOutputTokens')
+        if not isinstance(context_window, int) or isinstance(context_window, bool) or context_window <= 0:
+            raise ValueError(f'{_route_key(provider, model)} has no valid context window')
+        if max_output_tokens is not None and (not isinstance(max_output_tokens, int)
+                or isinstance(max_output_tokens, bool) or max_output_tokens <= 0):
+            raise ValueError(f'{_route_key(provider, model)} has no valid output limit')
+        selected.append({'provider': provider, 'model': model, 'deployment': deployment,
+            'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
+            'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
+            'quality': quality, 'latencyMs': latency})
+        evidence[_route_key(provider, model)] = {
+            'profile': 'user-declared-uncalibrated' if manual_complete and not base else 'frozen-public-profile',
+            'samples': 0,
+            'sources': deepcopy(base.get('sources', [])),
+            'overrides': sorted(overrides),
+            'note': overrides.get('note'),
+        }
+    if len(selected) < 2:
+        raise ValueError('dshModelPool requires at least two enabled routes')
+    overrides = _record(pool.get('roleOverrides', {}), 'roleOverrides')
+    by_key = {_route_key(row['provider'], row['model']): row for row in selected}
+    ranked = sorted(selected, key=lambda row: (row['quality'], row['contextWindow']), reverse=True)
+    def exact(name):
+        value = overrides.get(name)
+        if value is None:
+            return None
+        if value not in by_key:
+            raise ValueError(f'roleOverrides.{name} references an unavailable route')
+        return by_key[value]
+    judge = exact('judge') or ranked[0]
+    workers = overrides.get('workers')
+    if workers is None:
+        worker_rows = [row for row in ranked if row is not judge]
+    else:
+        if not isinstance(workers, list) or not workers or any(key not in by_key for key in workers):
+            raise ValueError('roleOverrides.workers must reference available routes')
+        worker_rows = [by_key[key] for key in dict.fromkeys(workers)]
+    if not worker_rows:
+        raise ValueError('automatic role assignment requires a worker route separate from the judge')
+    planner = exact('planner') or ranked[0]
+    classifier_candidates = [row for row in ranked if row['deployment'] in {'local','trusted-cloud','simulated-local'}]
+    classifier = exact('classifier') or (classifier_candidates[0] if classifier_candidates else None)
+    if classifier is None:
+        raise ValueError('no deployment-compatible classifier route')
+    provider_ids = {_route_key(row['provider'], row['model']):
+                    _stable_id('dsh-provider', _route_key(row['provider'], row['model'])) for row in selected}
+    providers = []
+    for row in selected:
+        route_key = _route_key(row['provider'], row['model'])
+        providers.append({'id': provider_ids[route_key], 'type': 'dsh', 'dshProvider': row['provider'],
+            'deployment': row['deployment'],
+            **({'trustPolicy': row['trustPolicy']} if row.get('trustPolicy') else {})})
+    models = []
+    for row in selected:
+        roles = []
+        if row is planner: roles.append('planner')
+        if row in worker_rows: roles.append('worker')
+        if row is judge: roles.append('judge')
+        if row is classifier: roles.append('classifier')
+        if not roles:
+            continue
+        models.append({'id': _stable_id('dsh-model', _route_key(row['provider'], row['model'])),
+            'provider': provider_ids[_route_key(row['provider'], row['model'])],
+            'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
+            'maxOutputTokens': row['maxOutputTokens'], 'deployment': row['deployment'],
+            'pricing': {'unit': pool.get('billingUnit', 'USD'), **row['pricing']},
+            'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs']} if 'worker' in roles else None})
+        if models[-1]['routing'] is None: models[-1].pop('routing')
+    security = deepcopy(pool.get('security', {'dataMode':'live','sensitiveTerms':[],
+        'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
+    if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):
+        security['classifier']['modelId'] = _stable_id('dsh-model', _route_key(classifier['provider'], classifier['model']))
+    config = {'schemaVersion':'refractagent-providers-v4', 'billingUnit':pool.get('billingUnit','USD'),
+        'objective':deepcopy(pool.get('objective', {'qualityMin':80,'primary':'cost','secondary':'latency','dagMode':'auto'})),
+        'security':security, 'trustPolicies':deepcopy(pool.get('trustPolicies', [])),
+        'providers':providers, 'models':models}
+    compile_configuration(config)
+    return config, evidence

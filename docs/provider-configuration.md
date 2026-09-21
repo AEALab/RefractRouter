@@ -1,12 +1,33 @@
 # 自行配置 providers 与 models
 
-适用：RefractRouter 0.4.0、DSH 插件 0.12.0。Ark Agent Plan 是一个可选 provider。
+适用：RefractRouter 0.7.0、DSH 插件 0.20.0。Ark Agent Plan 是一个可选 provider。
 RefractRouter 根据用户声明的可用模型路由；不会自动启用账户下全部模型。
 当前 RefractAgent 处理文本任务，图片、视频生成模型暂不在这个执行入口的支持范围内。
 
+## DSH 普通设置
+
+DSH 用户不需要手写本页后续的 `providerConfig`。插件从宿主的 `listProviders()`、
+`listModels()` 与 `resolveModelInfo()` 读取「设置 → 模型」中当前可调用的路线，并在
+RefractAgent 设置卡片中提供勾选器。`refractagent` 自身不会进入候选，单个 Provider
+枚举失败也不会阻断其他 Provider。
+
+每条路线以 `(provider, model)` 为稳定身份，必须声明 `local`、`external-cloud`、
+`trusted-cloud` 或 `simulated-local` 部署属性；可信云还必须选择已有信任策略。保存的是
+`dshModelPool`，运行前宿主会重新解析只读 `dshCatalogSnapshot`，因此被删除、失效或容量
+不完整的路线会在启动 Python 前拒绝。
+
+Python 核心负责自动分配规划、执行、评审和分类职责。高级设置可以覆盖这四类职责，以及
+输入、缓存输入、输出价格、质量、时延和说明；“恢复公开档案”只清除用户覆盖，不改动冻结
+档案。优先级为“用户覆盖 > 冻结公开档案 > 不可用”。未知路线补齐全部预测后可参与路由，
+但 `model_profile_provenance` 会标记为用户声明且未经项目校准。
+
+公开档案位于 `data/model-profiles-v1.json`，记录来源 URL、抓取时间、指标版本与归一化说明，
+运行时不会联网漂移。不能公开再分发的第三方数值不进入仓库。本阶段 v4 仍只允许预检和模拟，
+不会因为完成模型池配置而启用真实付费执行。
+
 ## 配置在哪里
 
-DSH 的 `refractagent` 插件配置接受 `providerConfig`，其中包含 `providers` 和 `models`。
+CLI、历史配置和非 DSH 核心入口继续接受 `providerConfig`，其中包含 `providers` 和 `models`。
 可以直接编辑 profile 的覆盖配置，也可以用 CLI 生成配置后嵌入 DSH：
 
 ```bash

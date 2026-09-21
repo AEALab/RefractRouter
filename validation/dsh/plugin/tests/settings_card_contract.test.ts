@@ -38,6 +38,20 @@ const v4ProviderConfig = () => ({
   ],
 })
 
+const dshModelPool = () => ({
+  schemaVersion: 'refractagent-dsh-model-pool-v1' as const,
+  billingUnit: 'USD',
+  security: { dataMode: 'synthetic' },
+  routes: [
+    { provider: 'team', model: 'planner', deployment: 'local' as const, overrides: {
+      inputPer1k: 0, outputPer1k: 0, quality: 90, latencyMs: 100,
+    } },
+    { provider: 'team', model: 'worker', deployment: 'local' as const, overrides: {
+      inputPer1k: 0, outputPer1k: 0, quality: 80, latencyMs: 50,
+    } },
+  ],
+})
+
 test('settings base reflects the tunable subset of the composed configuration', () => {
   const config = configure({ executionMode: 'live', allowPaidRuns: true, preset: 'ark-agent-plan',
     limits: { relaxBudget: false, relaxContext: false } })
@@ -79,6 +93,33 @@ test('validateSettingsSection accepts a valid providerConfig and rejects an inva
     providerConfig: { ...dshProviderConfig(), strategies: { economy: { models: ['unknown'] } } },
   }), /model ids/)
   assert.throws(() => validateSettingsSection({ limits: { unexpected: true } as never }), /limits/)
+})
+
+test('DSH 模型池只接受目录身份、明确部署和有效职责覆盖', () => {
+  const pool = dshModelPool()
+  validateSettingsSection({ dshModelPool: pool })
+  assert.throws(() => validateSettingsSection({ dshModelPool: {
+    ...pool, routes: [...pool.routes, {...pool.routes[0]}],
+  } }), /unique/)
+  assert.throws(() => validateSettingsSection({ dshModelPool: {
+    ...pool, routes: [{...pool.routes[0], provider:'refractagent'}, pool.routes[1]],
+  } }), /route/)
+  assert.throws(() => validateSettingsSection({ dshModelPool: {
+    ...pool, roleOverrides: {planner:'missing/model'},
+  } }), /unavailable route/)
+  assert.throws(() => validateSettingsSection({ dshModelPool: {
+    ...pool, routes: [{...pool.routes[0], deployment:'trusted-cloud'}, pool.routes[1]],
+  } as never }), /trustPolicy/)
+})
+
+test('DSH 模型池覆盖保留旧 providerConfig 供迁移回退，但运行时选择模型池', () => {
+  const config = configure({providerConfig:dshProviderConfig()})
+  const pool = dshModelPool()
+  const section = {providerConfig:dshProviderConfig(), dshModelPool:pool}
+  validateSettingsSection(section)
+  const next = overlaySettings(config, section)
+  assert.deepEqual(next.dshModelPool, pool)
+  assert.equal(next.providerConfig, undefined)
 })
 
 test('v3 security configuration passes through while trust domains stay explicit', () => {
@@ -275,7 +316,7 @@ test('client bundle registers in the host module format and exports the plugin f
     throw new Error('unexpected require: ' + spec)
   }) as { apply: (ctx: unknown) => void; inject: string[] }
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual(exports.inject, ['slots', 'locale', 'settingsScope'])
+  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'settingsScope'])
 
   const effects: Array<() => unknown> = []
   let boundNamespace: string | undefined
@@ -284,6 +325,7 @@ test('client bundle registers in the host module format and exports the plugin f
   exports.apply({
     effect: (setup: () => unknown) => { effects.push(setup) },
     locale: { register: () => undefined },
+    remote: { session: { modelCatalog: async () => ({ ok: true, value: { groups: [], failures: [] } }) } },
     settingsScope: { bind: (spec: { namespace: string }) => { boundNamespace = spec.namespace; return fakeScope({}) } },
     slots: {
       inject: (_key: string, declaration: () => Generator<unknown>) => { slotDeclaration = declaration },

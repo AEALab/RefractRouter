@@ -44,6 +44,11 @@ async function chunks(adapter: AgentAdapter) {
   for await (const chunk of adapter.stream(options)) output.push(chunk)
   return output
 }
+const modelPool = () => ({schemaVersion:'refractagent-dsh-model-pool-v1' as const,billingUnit:'USD',
+  security:{dataMode:'synthetic'},routes:[
+    {provider:'team',model:'planner',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:90,latencyMs:100}},
+    {provider:'team',model:'worker',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:80,latencyMs:50}},
+  ]})
 
 test('native registration advertises three strategy models with zero retries',async()=>{
   const f=fixture();apply(f.ctx)
@@ -90,6 +95,36 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
   assert.equal(blockedChunks.some(chunk=>chunk.type==='text-delta'),false)
   assert.equal(blocked.credentials,0)
   assert.equal(blocked.spawns.length,0)
+})
+test('DSH 模型池在执行前解析宿主目录、隔离枚举失败并排除自身',async()=>{
+  const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
+  Object.assign(f.ctx.llm,{
+    listProviders:()=>[{id:'refractagent',name:'RefractAgent'},{id:'broken',name:'失效 Provider'},{id:'team',name:'团队模型'}],
+    listModels:async(provider:string)=>{if(provider==='broken')throw new Error('枚举失败');return [
+      {id:'planner',name:'规划模型'},{id:'worker',name:'执行模型'}]},
+    resolveModelInfo:async(_provider:string,model:string)=>({id:model,context:{contextWindow:131072},defaultMaxTokens:8192,
+      reasoning:{efforts:[{id:'low'},{id:'high'}]}}),
+  })
+  const result=await chunks(createAdapter(f.ctx,()=>configure({dshModelPool:modelPool()})))
+  assert.deepEqual(result.at(-1)?.reason,{kind:'stop'})
+  const payload=JSON.parse(f.spawns[0]!.input())
+  assert.deepEqual(payload.dshCatalogSnapshot.routes.map((row:{provider:string;model:string})=>`${row.provider}/${row.model}`),
+    ['team/planner','team/worker'])
+  assert.deepEqual(payload.dshCatalogSnapshot.failures,[{provider:'broken',message:'枚举失败'}])
+  assert.equal(payload.providerConfig,undefined)
+})
+test('已删除的 DSH 路线在启动 Python 前以稳定错误终止',async()=>{
+  const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
+  Object.assign(f.ctx.llm,{
+    listProviders:()=>[{id:'team'}],
+    listModels:async()=>[{id:'planner'}],
+    resolveModelInfo:async()=>({context:{contextWindow:131072},defaultMaxTokens:8192}),
+  })
+  const result=await chunks(createAdapter(f.ctx,()=>configure({dshModelPool:modelPool()})))
+  assert.equal(f.spawns.length,0)
+  assert.deepEqual(result.at(-1)?.reason,{kind:'error',failure:{code:'REFRACTAGENT_ROUTE_UNAVAILABLE',
+    message:'RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。'}})
+  assert.equal(result.some(chunk=>chunk.type==='text-delta'),false)
 })
 test('demo uses installed core through native sandboxed subprocess and preserves conversation',async()=>{
   const f=fixture(); const result=await chunks(createAdapter(f.ctx, () => configure()))

@@ -161,7 +161,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
 def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               evaluation_budget=80, timeout_ms=300000, max_output_tokens=2048,
               manifest_path=None, profile_path=None, execute_paid_run=False,
-              client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None):
+              client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None,
+              model_profile_provenance=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     automatic_routing = (isinstance(provider_config, dict)
@@ -244,6 +245,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     atomic_json(directory / 'manifest.json', manifest_data)
     if configured:
         atomic_json(directory / 'provider-config.json', configured.snapshot)
+    if model_profile_provenance is not None:
+        atomic_json(directory / 'model-profile-provenance.json', model_profile_provenance)
     result_path = directory / 'result.json'
     recorder = ProgressRecorder(directory, manifest, progress)
     def checkpoint(value):
@@ -308,6 +311,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                   'cache_read_tokens': sum(c.get('cached_input_tokens', 0) for c in calls if c['status'] == 'billed'),
                   'reasoning_tokens': sum(c.get('reasoning_tokens', 0) for c in calls if c['status'] == 'billed')},
         'profile_scope': profile['scope'], 'limitations': result['limitations'],
+        'model_profile_provenance': model_profile_provenance,
         'artifact_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                            for p in sorted(directory.iterdir()) if p.is_file()}}
     if result.get('compact_planning', {}).get('policy_version'):

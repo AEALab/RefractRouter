@@ -1,9 +1,11 @@
 /** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
 import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
   type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
+import type {DshModelPoolView} from '../settings-card.js'
+import type {DshModelCatalog} from './types.js'
 import { V4Settings } from './v4-settings.js'
 
 export interface RefractCardOwnerProps {
@@ -23,6 +25,8 @@ export interface RefractCardOwnerProps {
   removeV4Row(collection: V4CollectionKey, id: string): void
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
+  editDshModelPool(value:DshModelPoolView):void
+  loadCatalog():Promise<DshModelCatalog>
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -108,6 +112,42 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const state = props.useRefractCard(snapshot => snapshot)
   const [expanded, setExpanded] = useState(false)
   const [v4Advanced, setV4Advanced] = useState(false)
+  const [catalog,setCatalog]=useState<DshModelCatalog|undefined>()
+  const [catalogError,setCatalogError]=useState<string|undefined>()
+  useEffect(()=>{let active=true;void props.loadCatalog().then(value=>{if(active){setCatalog(value);setCatalogError(undefined)}})
+    .catch(error=>{if(active)setCatalogError(error instanceof Error?error.message:String(error))});return()=>{active=false}},[])
+
+  const pool=state.dshModelPool
+  const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v1',billingUnit:state.provider?.billingUnit??'USD',routes:[],
+    ...(state.provider?.objective?{objective:state.provider.objective}:{}),
+    ...(state.provider?.security?{security:state.provider.security}:{}),
+    ...(state.provider?.trustPolicies?{trustPolicies:state.provider.trustPolicies.filter((row):row is Record<string,unknown>=>row!==null&&typeof row==='object'&&!Array.isArray(row))}:{})})
+  const updatePool=(next:DshModelPoolView)=>props.editDshModelPool(next)
+  const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
+    .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
+  const identity=(provider:string,model:string)=>provider+'/'+model
+  const updateRoute=(provider:string,model:string,enabled:boolean)=>{
+    if(!pool)return
+    const routes=pool.routes.filter(row=>!(row.provider===provider&&row.model===model))
+    if(enabled)routes.push({provider,model,enabled:true,deployment:''})
+    updatePool({...pool,routes})
+  }
+  const patchRoute=(provider:string,model:string,patch:Record<string,unknown>)=>{
+    if(!pool)return
+    updatePool({...pool,routes:pool.routes.map(row=>row.provider===provider&&row.model===model?{...row,...patch}:row)})
+  }
+  const routeOptions=pool?.routes.filter(row=>row.enabled!==false)??[]
+  const trustPolicyOptions=(pool?.trustPolicies??[]).filter(row=>typeof row.id==='string')
+  const patchRole=(role:'planner'|'judge'|'classifier',value:string)=>{
+    if(!pool)return
+    updatePool({...pool,roleOverrides:{...pool.roleOverrides,[role]:value||undefined}})
+  }
+  const patchWorkers=(route:string,checked:boolean)=>{
+    if(!pool)return
+    const current=pool.roleOverrides?.workers??[]
+    const workers=checked?[...new Set([...current,route])]:current.filter(value=>value!==route)
+    updatePool({...pool,roleOverrides:{...pool.roleOverrides,workers:workers.length?workers:undefined}})
+  }
 
   if (state.status === 'unavailable') {
     return (
@@ -151,7 +191,26 @@ export function RefractCard(props: RefractCardOwnerProps) {
       {expanded ? (
         <div className="rra-body">
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
-          {state.automaticRouting && provider ? <><V4Settings t={t} provider={provider} disabled={disabled}
+          {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>DSH 模型目录</h3>
+            <p className="rra-field-hint">只显示“设置 → 模型”中当前可调用的路线；RefractAgent 自身已排除。</p></div>
+            {state.overriddenDshPool?<button type="button" className="rra-reset" onClick={()=>props.resetField('dshModelPool')}>恢复旧配置</button>:null}</div>
+            {catalogError?<p className="rra-invalid">{catalogError}</p>:null}
+            {catalog?.failures.map(row=><p className="rra-invalid" key={row.id}>{row.name}: {row.message}</p>)}
+            {catalogRows.map(row=>{const selected=pool.routes.find(route=>route.provider===row.provider&&route.model===row.model)
+              return <div className="rra-row-card" key={identity(row.provider,row.model)}><label className="rra-check">
+                <input type="checkbox" checked={!!selected} disabled={disabled} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
+                <strong>{row.providerName} / {row.name}</strong></label>{selected?<><label className="rra-compact-field">部署属性
+                <select className="rra-select" value={selected.deployment} onChange={event=>{const deployment=event.target.value;patchRoute(row.provider,row.model,{deployment,...(['trusted-cloud','simulated-local'].includes(deployment)?{}:{trustPolicy:undefined})})}}>
+                  <option value="">请选择部署属性</option>{['local','external-cloud','trusted-cloud','simulated-local'].map(value=><option key={value}>{value}</option>)}</select></label>
+                {selected.deployment==='trusted-cloud'||selected.deployment==='simulated-local'?<label className="rra-compact-field">信任策略<select className="rra-select" value={selected.trustPolicy??''} onChange={event=>patchRoute(row.provider,row.model,{trustPolicy:event.target.value||undefined})}><option value="">请选择信任策略</option>{trustPolicyOptions.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>:null}
+                {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k','输入价 / 1k'],['cachedInputPer1k','缓存输入价 / 1k'],['outputPer1k','输出价 / 1k'],['quality','质量预测'],['latencyMs','时延预测（ms）']].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
+                <label className="rra-compact-field">说明<input className="rra-input" value={String(selected.overrides?.note??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,note:event.target.value||undefined}})}/></label>
+                <button type="button" className="rra-reset" onClick={()=>patchRoute(row.provider,row.model,{overrides:{}})}>恢复公开档案</button></>:null}</>:null}</div>})}
+            {!catalog?<p className="rra-field-hint">正在读取 DSH 模型目录…</p>:null}
+            <div className="rra-advanced-toggle"><button type="button" className="rra-reset" onClick={()=>setV4Advanced(value=>!value)}>{v4Advanced?'收起高级设置':'展开高级设置'}</button></div>
+            {v4Advanced?<><div className="rra-grid rra-grid-3">{([['planner','规划模型'],['judge','评审模型'],['classifier','分类模型']] as const).map(([role,label])=><label className="rra-compact-field" key={role}>{label}<select className="rra-select" value={pool.roleOverrides?.[role]??''} onChange={event=>patchRole(role,event.target.value)}><option value="">自动分配</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>)}</div>
+            <fieldset className="rra-models"><legend className="rra-label">执行模型池</legend><p className="rra-field-hint">不勾选时由 Python 核心自动分配；勾选后仅使用指定路线。</p>{routeOptions.map(row=>{const key=identity(row.provider,row.model);return <label className="rra-check" key={key}><input type="checkbox" checked={pool.roleOverrides?.workers?.includes(key)??false} onChange={event=>patchWorkers(key,event.target.checked)}/>{key}</label>})}</fieldset></>:null}
+          </div> : state.automaticRouting && provider ? <><div className="rra-v4-section"><h3>迁移到 DSH 模型目录</h3><p className="rra-field-hint">旧 providerConfig 会保留供 CLI 和历史运行使用；预览确认后再保存新模型池，不会静默覆盖。</p><button type="button" className="rra-button" onClick={beginPool}>查看迁移预览</button></div><V4Settings t={t} provider={provider} disabled={true}
             advanced={v4Advanced}
             editV4QualityMin={props.editV4QualityMin} editV4DagMode={props.editV4DagMode}
             editV4DataMode={props.editV4DataMode} editV4SensitiveTerms={props.editV4SensitiveTerms}
@@ -260,7 +319,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             </label>
             <p className="rra-field-hint">{t('unlimitedTimeHint')}</p>
           </div> : null}
-          {(!state.automaticRouting || v4Advanced) ? <div className="rra-field">
+          {!pool&&(!state.automaticRouting || v4Advanced) ? <div className="rra-field">
             <div className="rra-label-row">
               <span className="rra-label">{t('providerJsonTitle')}</span>
               <button type="button" className="rra-reset" disabled={disabled}

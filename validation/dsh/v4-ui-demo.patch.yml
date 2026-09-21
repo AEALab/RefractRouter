@@ -23,7 +23,11 @@
         classifier:
           enabled: true
           modelId: local-router
-      trustPolicies: []
+      trustPolicies:
+        - id: demo-trusted-cloud
+          residency: CN
+          auditLogging: true
+          allowsSensitiveData: true
       providers:
         - id: external
           type: openai-compatible

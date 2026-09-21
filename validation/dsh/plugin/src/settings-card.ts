@@ -11,7 +11,7 @@ export const SETTINGS_NAMESPACE = 'refractagent'
 export type ModeKey = 'economy' | 'balanced' | 'quality'
 export const MODE_KEYS: readonly ModeKey[] = ['economy', 'balanced', 'quality']
 export type LimitKey = 'relaxBudget' | 'relaxContext' | 'unlimitedTime'
-export type CardField = 'providerConfig' | 'limits'
+export type CardField = 'providerConfig' | 'dshModelPool' | 'limits'
 export type V4CollectionKey = 'providers' | 'models' | 'trustPolicies'
 export type V4DagMode = 'auto' | 'never' | 'force'
 export type V4DataMode = 'live' | 'desensitized' | 'synthetic'
@@ -108,7 +108,19 @@ export interface LimitsView {
 }
 export interface SectionView {
   providerConfig?: ProviderConfigView
+  dshModelPool?: DshModelPoolView
   limits?: LimitsView
+}
+export interface DshModelPoolView {
+  schemaVersion: 'refractagent-dsh-model-pool-v1'
+  billingUnit?: string
+  routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
+    overrides?:Record<string,unknown>}>
+  roleOverrides?: {planner?:string;judge?:string;classifier?:string;workers?:string[]}
+  objective?:Record<string,unknown>
+  security?:Record<string,unknown>
+  trustPolicies?:Array<Record<string,unknown>>
+  [field:string]:unknown
 }
 
 /** 浏览器 settingsScope 的结构化契约（dsh-client-ui-settings 提供实现）。 */
@@ -134,8 +146,10 @@ export interface RefractCardProjection {
   failed: boolean
   hasProvider: boolean
   overriddenProvider: boolean
+  overriddenDshPool: boolean
   overriddenLimits: boolean
   provider: ProviderConfigView | undefined
+  dshModelPool: DshModelPoolView | undefined
   providerCleared: boolean
   providerJson: string
   providerJsonError: string | null
@@ -163,6 +177,7 @@ export interface RefractCardFace {
   removeV4Row(collection: V4CollectionKey, id: string): void
   editLimit(key: LimitKey, checked: boolean): void
   editProviderJson(text: string): void
+  editDshModelPool(value: DshModelPoolView): void
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -245,6 +260,7 @@ export class RefractCardController {
       removeV4Row: (collection, id) => this.removeV4Row(collection, id),
       editLimit: (key, checked) => this.editLimit(key, checked),
       editProviderJson: text => this.editProviderJson(text),
+      editDshModelPool: value => this.editDshModelPool(value),
       resetField: field => this.resetField(field),
       save: () => { void this.save() },
       discard: () => this.discard(),
@@ -393,6 +409,11 @@ export class RefractCardController {
     this.publish()
   }
 
+  editDshModelPool(value: DshModelPoolView): void {
+    this.staged.set('dshModelPool', {kind:'set',value:structuredClone(value)})
+    this.publish()
+  }
+
   resetField(field: CardField): void {
     if (!this.overridden(field)) return
     this.staged.set(field, { kind: 'clear' })
@@ -428,6 +449,12 @@ export class RefractCardController {
       if (this.overridden('providerConfig')) writes.push({ field: 'providerConfig', run: () => this.scope.unset('providerConfig') })
     } else if (provider?.kind === 'set' && stableStringify(provider.value) !== stableStringify(snap.value?.providerConfig)) {
       writes.push({ field: 'providerConfig', run: () => this.scope.set('providerConfig', provider.value) })
+    }
+    const pool = this.staged.get('dshModelPool')
+    if (pool?.kind === 'clear') {
+      if (this.overridden('dshModelPool')) writes.push({field:'dshModelPool',run:()=>this.scope.unset('dshModelPool')})
+    } else if (pool?.kind === 'set' && stableStringify(pool.value)!==stableStringify(snap.value?.dshModelPool)) {
+      writes.push({field:'dshModelPool',run:()=>this.scope.set('dshModelPool',pool.value)})
     }
     const limits = this.staged.get('limits')
     if (limits?.kind === 'clear') {
@@ -494,6 +521,13 @@ export class RefractCardController {
     return this.snapshot().value?.providerConfig
   }
 
+  private currentDshPool(): DshModelPoolView | undefined {
+    const staged=this.staged.get('dshModelPool')
+    if(staged?.kind==='set')return staged.value as DshModelPoolView
+    if(staged?.kind==='clear')return this.baseSection()?.dshModelPool
+    return this.snapshot().value?.dshModelPool
+  }
+
   private v4Provider(): ProviderConfigView {
     const provider = this.currentProvider()
     if (provider?.schemaVersion !== 'refractagent-providers-v4') {
@@ -544,15 +578,17 @@ export class RefractCardController {
       dirty: this.staged.size > 0 || this.jsonEdited,
       saving: this.saving,
       failed: this.failed,
-      hasProvider: this.currentProvider() !== undefined,
+      hasProvider: this.currentProvider() !== undefined || this.currentDshPool() !== undefined,
       overriddenProvider: this.overridden('providerConfig'),
+      overriddenDshPool:this.overridden('dshModelPool'),
       overriddenLimits: this.overridden('limits'),
       provider: this.currentProvider(),
+      dshModelPool:this.currentDshPool(),
       providerCleared: providerStage?.kind === 'clear',
       providerJson: this.providerJson,
       providerJsonError: this.providerJsonError,
       limits: this.currentLimits(),
-      automaticRouting: this.currentProvider()?.schemaVersion === 'refractagent-providers-v4',
+      automaticRouting: this.currentDshPool()!==undefined||this.currentProvider()?.schemaVersion === 'refractagent-providers-v4',
       strategyModelText: { ...this.modelText },
       limitsCleared: limitsStage?.kind === 'clear',
     }
