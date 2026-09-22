@@ -181,6 +181,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     strategy, request, context, limits = build_request(
         payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
         automatic_routing=automatic_routing)
+    if automatic_routing and mode in {'preflight', 'live'}:
+        request['costMax'] = production_budget
     gate = (complexity_gate(payload, context, policy=payload.get('complexityPolicy', 'auto'))
             if automatic_routing else None)
     review = (review_decision(payload, gate, policy=payload.get('reviewPolicy', 'adaptive'))
@@ -287,9 +289,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         recorder.record(value)
     result = run_task(request, manifest, profile,
         client=client if mode == 'live' else None,
-        production_limit=(production_budget if automatic_routing and mode == 'live'
+        production_limit=(production_budget if automatic_routing and mode in {'preflight', 'live'}
                           else RELAXED_COST_MAX if relax_budget else production_budget),
-        evaluation_limit=(evaluation_budget if automatic_routing and mode == 'live'
+        evaluation_limit=(evaluation_budget if automatic_routing and mode in {'preflight', 'live'}
                           else RELAXED_COST_MAX if relax_budget else evaluation_budget),
         checkpoint=checkpoint, cancel_event=cancel_event, tool_runtime=tool_runtime,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
@@ -380,7 +382,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             output['live_authorization_preview'] = create_authorization_preview(
                 binding, billing_unit=manifest.billing_unit,
                 production_estimate=production_estimate,
-                evaluation_estimate=0 if not review['required'] else evaluation_budget)
+                evaluation_estimate=0 if not review['required'] else evaluation_budget,
+                ready=result.get('status') == 'preview')
     if result.get('compact_planning', {}).get('policy_version'):
         output['planning_policy'] = result['compact_planning']['policy_version']
         output['planning_decision'] = result['compact_planning'].get('decision')

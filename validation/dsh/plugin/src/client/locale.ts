@@ -148,6 +148,16 @@ export const zh: LocaleDictionary = {
   poolWorkers: '执行模型池（Workers）', poolWorkersHint: '执行 DAG 节点，可由多个模型并行完成；是主要生产调用和成本来源。不勾选时由核心自动分配。',
   poolAutoAssign: '自动分配', poolRoleRules: '了解自动分配规则',
   poolRoleRulesBody: '核心优先从质量和上下文容量较高的合格路线选择规划模型；评审模型优先使用最高质量且容量足够的独立路线；其余合格路线进入执行模型池；分类模型只从满足部署与信任要求的路线中选择。最终分配以 Python 核心编译和运行证据为准。',
+  liveTitle: '真实执行（实验性）', liveEnabled: '启用逐任务真实执行入口',
+  liveBoundary: '首版仅处理 synthetic 纯文本；数据可能外传，不传递 DSH 工具，不启用回退、动态拆分或远程 Router live。每个任务都必须重新审批。',
+  liveUnavailable: '真实执行暂不可用', liveReady: '设置已满足静态条件',
+  liveApprovalHint: '运行时还会检查模型目录与零重试策略，并请求 DSH 一次性审批；未批准前不会解析凭证或派发模型。',
+  liveComplexity: '任务处理方式', liveComplexityAuto: '自动判断', liveComplexityDirect: '始终直接回答',
+  liveComplexityDag: '始终拆分', liveComplexityHint: '自动判断只使用任务长度、上下文与结构信号，不调用模型。工具需求无论选择哪档都会被拒绝。',
+  liveReview: '评审方式', liveReviewAdaptive: '自适应', liveReviewAlways: '始终评审',
+  liveReviewHint: '自适应仅对自动判定的低风险简单任务跳过评审；DAG 和强制 direct 的复杂任务仍评审。',
+  liveProductionBudget: '单任务生产硬上限（USD）', liveEvaluationBudget: '单任务评审硬上限（USD）',
+  liveCallEnvelope: '固定调用包络', liveCallEnvelopeBody: '简单任务最多 1 次执行（始终评审时共 2 次）；DAG 最多 1 次规划 + 6 次执行 + 1 次评审，共 8 次。',
 }
 
 export const en: LocaleDictionary = {
@@ -294,4 +304,14 @@ export const en: LocaleDictionary = {
   poolWorkers: 'Worker model pool', poolWorkersHint: 'Executes DAG nodes, possibly in parallel; it is the main production cost. Leave empty for automatic assignment.',
   poolAutoAssign: 'Automatic assignment', poolRoleRules: 'How automatic assignment works',
   poolRoleRulesBody: 'The core favors eligible routes with stronger quality and context for planning, uses the strongest capacity-qualified independent route for judging, places other eligible routes in the worker pool, and selects classifiers only from deployment- and trust-compatible routes. Python compilation and run evidence are authoritative.',
+  liveTitle: 'Live execution (experimental)', liveEnabled: 'Enable per-task live execution',
+  liveBoundary: 'The first release accepts synthetic text only. Data may leave the device; DSH tools, fallback, dynamic splitting, and remote Router live are disabled. Every task needs fresh approval.',
+  liveUnavailable: 'Live execution is unavailable', liveReady: 'Static settings are ready',
+  liveApprovalHint: 'Runtime also checks the model catalog and zero-retry policy, then requests one-time DSH approval. Credentials are not resolved and models are not dispatched before approval.',
+  liveComplexity: 'Task handling', liveComplexityAuto: 'Automatic', liveComplexityDirect: 'Always direct',
+  liveComplexityDag: 'Always decompose', liveComplexityHint: 'Automatic classification uses only task, context, and structural signals; it makes no model call. Tool-requiring tasks are rejected in every mode.',
+  liveReview: 'Review policy', liveReviewAdaptive: 'Adaptive', liveReviewAlways: 'Always review',
+  liveReviewHint: 'Adaptive skips review only for automatically detected low-risk direct tasks. DAG and forced complex direct tasks are reviewed.',
+  liveProductionBudget: 'Per-task production hard limit (USD)', liveEvaluationBudget: 'Per-task review hard limit (USD)',
+  liveCallEnvelope: 'Fixed call envelope', liveCallEnvelopeBody: 'Simple tasks use at most one worker call (two with always-review). DAG uses at most one planner, six workers, and one judge: eight calls total.',
 }

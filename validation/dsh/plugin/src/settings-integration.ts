@@ -3,7 +3,8 @@ import examples from './provider-examples.json' with { type: 'json' }
  * 命名空间出现在「设置 → 插件 → 插件配置」，浏览器半边由 src/client/ 提供。
  */
 import {
-  freezeConfiguration, isRecordValue, validateDshModelPool, validateProviderConfiguration, validateRouterConnection, type SettingsSection,
+  freezeConfiguration, isRecordValue, validateDshModelPool, validateLiveExecution,
+  validateProviderConfiguration, validateRouterConnection, type SettingsSection,
 } from './provider-config.js'
 import { SETTINGS_NAMESPACE } from './settings-card.js'
 import type { Configuration } from './agent-provider.js'
@@ -57,7 +58,8 @@ export function buildSettingsSchema(): RefractSettingsSchema {
   }) as RefractSettingsSchema
   schema.type = 'object'
   schema.meta = { default: {} }
-  schema.dict = { router: anyNode, providerConfig: anyNode, dshModelPool: anyNode, limits: limitsNode }
+  schema.dict = { router: anyNode, providerConfig: anyNode, dshModelPool: anyNode,
+    liveExecution:anyNode, limits: limitsNode }
   schema.toJSON = () => ({
     uid: 4,
     refs: {
@@ -66,7 +68,8 @@ export function buildSettingsSchema(): RefractSettingsSchema {
       2: limitsNode.dict!.relaxContext,
       5: limitsNode.dict!.unlimitedTime,
       3: { type: limitsNode.type, meta: limitsNode.meta, dict: { relaxBudget: 1, relaxContext: 2, unlimitedTime: 5 } },
-      4: { type: 'object', meta: { default: {} }, dict: { router: 0, providerConfig: 0, dshModelPool: 0, limits: 3 } },
+      4: { type: 'object', meta: { default: {} }, dict: {
+        router: 0, providerConfig: 0, dshModelPool: 0, liveExecution:0, limits: 3 } },
     },
   })
   return schema
@@ -85,6 +88,7 @@ export function buildSettingsBase(config: Readonly<Configuration>): Readonly<Set
     base.providerConfig!.providers[0].credentialEnv = config.credentialEnv
   }
   if (config.limits !== undefined) base.limits = config.limits
+  if (config.liveExecution !== undefined) base.liveExecution = config.liveExecution
   return freezeConfiguration(base)
 }
 
@@ -93,6 +97,7 @@ export function validateSettingsSection(section: Readonly<SettingsSection>): voi
   if (section.router !== undefined) validateRouterConnection(section.router)
   if (section.providerConfig !== undefined) validateProviderConfiguration(section.providerConfig)
   if (section.dshModelPool !== undefined) validateDshModelPool(section.dshModelPool)
+  if (section.liveExecution !== undefined) validateLiveExecution(section.liveExecution)
   if (section.limits !== undefined && (
     !isRecordValue(section.limits)
     || Object.keys(section.limits).some(key => !['relaxBudget', 'relaxContext', 'unlimitedTime'].includes(key))
@@ -107,7 +112,8 @@ export function overlaySettings(
   composed: Readonly<Configuration>,
   section: Readonly<SettingsSection>,
 ): Readonly<Configuration> {
-  if (section.router === undefined && section.providerConfig === undefined && section.dshModelPool === undefined && section.limits === undefined) return composed
+  if (section.router === undefined && section.providerConfig === undefined && section.dshModelPool === undefined
+    && section.liveExecution === undefined && section.limits === undefined) return composed
   const next: Configuration = { ...composed }
   if (section.router !== undefined) {
     next.routerUrl = new URL(section.router.url).toString().replace(/\/$/,'')
@@ -125,6 +131,7 @@ export function overlaySettings(
     next.dshModelPool = section.dshModelPool
   }
   if (section.limits !== undefined) next.limits = section.limits
+  if (section.liveExecution !== undefined) next.liveExecution = section.liveExecution
   return freezeConfiguration(next)
 }
 

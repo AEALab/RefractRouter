@@ -3,13 +3,14 @@ import { PassThrough } from 'node:stream'
 import test from 'node:test'
 import { apply, configure, createAdapter, type AgentAdapter, type AgentContext } from '../dist/agent-provider.js'
 
-function fixture(result: Record<string, unknown> = {}) {
+function fixture(result: Record<string, unknown> | Array<Record<string, unknown>> = {}) {
   let adapter: AgentAdapter | undefined
   let discovery: ((request:{provider?:string;baseURL?:string;api?:string;apiKey?:string},signal?:AbortSignal)=>Promise<readonly {id:string;name?:string}[]>)|undefined
   const discoveries:Record<string,typeof discovery>={}
   let credentials = 0
   const credentialReferences: string[] = []
   const spawns: Array<{ argv: string[]; env: Record<string,string>; input: () => string }> = []
+  let runIndex=0
   const ctx: AgentContext = {
     llm: { registerAdapter(providers, value) { assert.deepEqual(providers,['refractagent']); adapter=value },
       registerModelDiscovery(settingsNs,callback){discoveries[settingsNs]=callback
@@ -35,11 +36,12 @@ function fixture(result: Record<string, unknown> = {}) {
           return {done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
             collected:{stdout:{readFrom:()=>({text,lossy:false})}}}
         }
+        const overlay=Array.isArray(result)?result[runIndex++]??{}:result
         const output = { schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',
           mode:'demo',status:'simulated',answer:'[SIMULATED] answer',costs:{production:0,evaluation:0,unconfirmed:0},
           models:{answer:'physical-model'},usage:{input_tokens:20,output_tokens:30},simulated:true,
           dag:{phase:'finished',status:'simulated',simulated:true,reason:'模拟',nodes:[]},
-          billing_unit:'AFP',result_path:'/tmp/agent-contract/runs/id/result.json',run_id:'id',...result }
+          billing_unit:'AFP',result_path:'/tmp/agent-contract/runs/id/result.json',run_id:'id',...overlay }
         const stdout = new PassThrough()
         stdin.on('finish', () => stdout.end(JSON.stringify(output)+'\n'))
         return {stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
@@ -61,6 +63,25 @@ const modelPool = () => ({schemaVersion:'refractagent-dsh-model-pool-v1' as cons
     {provider:'team',model:'planner',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:90,latencyMs:100}},
     {provider:'team',model:'worker',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:80,latencyMs:50}},
   ]})
+const liveProviderConfig=()=>({schemaVersion:'refractagent-providers-v4' as const,billingUnit:'USD',
+  objective:{qualityMin:80,primary:'cost' as const,secondary:'latency' as const,dagMode:'auto' as const},
+  security:{dataMode:'synthetic'},providers:[{id:'external',type:'openai-compatible' as const,
+    baseUrl:'https://models.example/v1',credentialEnv:'MODEL_KEY',deployment:'external-cloud' as const}],
+  models:[
+    {id:'worker',provider:'external',model:'worker',roles:['planner' as const,'worker' as const,'classifier' as const],
+      contextWindow:131072,maxOutputTokens:4096,pricing:{unit:'USD',inputPer1k:.001,outputPer1k:.002},
+      routing:{quality:90,latencyMs:1000}},
+    {id:'judge',provider:'external',model:'judge',roles:['judge' as const],contextWindow:131072,
+      maxOutputTokens:4096,pricing:{unit:'USD',inputPer1k:.001,outputPer1k:.002}},
+  ]})
+const liveExecution=()=>({schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
+  maxProductionCost:.1,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const})
+const previewResult={strategy:'auto',strategy_name:'自动路由',mode:'preflight',status:'preview',answer:'',
+  simulated:false,billing_unit:'USD',live_authorization_preview:{schema_version:'refractagent-live-authorization-v1',
+    authorization_id:'auth-1',issued_at:'2026-09-22T00:00:00Z',expires_at:'2026-09-22T00:10:00Z',
+    preview_sha256:'a'.repeat(64),ready:true,complexity:{decision:'direct'},review:{required:false},
+    calls:{maximum:1},costs:{production_estimate:.01,evaluation_estimate:0,production_hard_limit:.1,
+      evaluation_hard_limit:.1}}}
 
 test('native registration advertises three strategy models with zero retries',async()=>{
   assert.equal(configure({}).pythonExecutable,'refractagent')
@@ -69,6 +90,16 @@ test('native registration advertises three strategy models with zero retries',as
   assert.equal(f.adapter.providerRetryPolicy('refractagent').maxRetries,0)
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
+})
+test('legacy demo replay omits unavailable live fields for strict DSH JSON serialization',async()=>{
+  const f=fixture();apply(f.ctx)
+  const output=await chunks(f.adapter)
+  const finish=output.find(chunk=>chunk.type==='finish') as Record<string,unknown>
+  const replay=((finish.replayState as Record<string,unknown>).response as Record<string,unknown>)
+    .refractagent as Record<string,unknown>
+  assert.equal(Object.hasOwn(replay,'complexityGate'),false)
+  assert.equal(Object.hasOwn(replay,'review'),false)
+  assert.equal(Object.hasOwn(replay,'modelCallLimit'),false)
 })
 test('route profile discovery reads local persisted observations without a model call',async()=>{
   const f=fixture();apply(f.ctx)
@@ -105,18 +136,62 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
   assert.ok(v4Chunks.some(chunk=>chunk.type==='reasoning-delta' && /自动路由/.test(String(chunk.text))))
   assert.ok(f.spawns[0]!.argv.includes('--progress-stdio'))
 
-  const blocked=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
-  const live=createAdapter(blocked.ctx,()=>configure({providerConfig,executionMode:'live',allowPaidRuns:true}))
-  const blockedChunks=[]
-  for await(const chunk of live.stream({...options,model:'auto'})) blockedChunks.push(chunk)
-  assert.equal(blockedChunks.filter(chunk=>chunk.type==='finish').length,1)
-  assert.deepEqual(blockedChunks.at(-1)?.reason,{kind:'error',failure:{
-    code:'REFRACTAGENT_EXECUTION_FAILED',
-    message:'RefractAgent 未执行：运行失败。诊断：RefractAgent v4 实时自动路由尚未启用；请先使用模拟模式验证配置',
-  }})
-  assert.equal(blockedChunks.some(chunk=>chunk.type==='text-delta'),false)
-  assert.equal(blocked.credentials,0)
-  assert.equal(blocked.spawns.length,0)
+  const legacyLive=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
+  const legacyAdapter=createAdapter(legacyLive.ctx,()=>configure({providerConfig,executionMode:'live',allowPaidRuns:true}))
+  const legacyChunks=[]
+  for await(const chunk of legacyAdapter.stream({...options,model:'auto'})) legacyChunks.push(chunk)
+  assert.deepEqual(legacyChunks.at(-1)?.reason,{kind:'stop'})
+  assert.equal(legacyLive.credentials,0)
+  assert.equal(legacyLive.spawns.length,1)
+  assert.ok(legacyLive.spawns[0]!.argv.includes('demo'))
+  assert.ok(!legacyLive.spawns[0]!.argv.includes('--execute-paid-run'))
+})
+test('auto-live rejection performs zero-call preview but never resolves credentials or dispatches live',async()=>{
+  const f=fixture(previewResult)
+  const agent={session:{events:[],append(){}}}
+  f.ctx.agents={requireInitiator:()=>agent}
+  let approvals=0
+  f.ctx.approval={async request(input){approvals++;assert.equal(input.agent,agent);assert.match(input.reason,/最多模型调用：1/);return 'rejected'}}
+  const config=configure({providerConfig:liveProviderConfig(),liveExecution:liveExecution()})
+  const adapter=createAdapter(f.ctx,()=>config)
+  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live'])
+  const output=[]
+  for await(const chunk of adapter.stream({...options,model:'auto-live'}))output.push(chunk)
+  assert.equal(approvals,1)
+  assert.equal(f.spawns.length,1)
+  assert.ok(f.spawns[0]!.argv.includes('preflight'))
+  assert.equal(f.credentials,0)
+  assert.equal(output.some(chunk=>chunk.type==='text-delta'),false)
+  assert.deepEqual(output.at(-1)?.reason,{kind:'error',failure:{code:'REFRACTAGENT_APPROVAL_REQUIRED',
+    message:'RefractAgent 未执行：本次真实执行没有获得 DSH 一次性审批；未解析凭证、未派发模型、未产生费用。'}})
+})
+
+test('one allowed-once approval starts exactly one local live process with bound preview and no tools',async()=>{
+  const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'真实答案',
+    simulated:false,billing_unit:'USD',plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},
+    dag:{phase:'finished',status:'completed',simulated:false,reason:'直接回答',nodes:[]}}
+  const f=fixture([previewResult,liveResult])
+  const agent={session:{events:[],append(){}}}
+  f.ctx.agents={requireInitiator:()=>agent}
+  let approvals=0
+  f.ctx.approval={async request(){approvals++;return 'allowed-once'}}
+  const adapter=createAdapter(f.ctx,()=>configure({routerUrl:'http://127.0.0.1:8787',
+    providerConfig:liveProviderConfig(),liveExecution:liveExecution()}))
+  const output=[]
+  for await(const chunk of adapter.stream({...options,model:'auto-live',tools:[{name:'forbidden',description:'x',parameters:{}}]}))output.push(chunk)
+  assert.equal(approvals,1)
+  assert.equal(f.spawns.length,2)
+  assert.ok(f.spawns[0]!.argv.includes('preflight'))
+  assert.ok(f.spawns[1]!.argv.includes('live'))
+  assert.ok(f.spawns[1]!.argv.includes('--execute-paid-run'))
+  const previewPayload=JSON.parse(f.spawns[0]!.input()),livePayload=JSON.parse(f.spawns[1]!.input())
+  assert.equal(previewPayload.authorization,undefined)
+  assert.equal(livePayload.authorization.authorization_id,'auth-1')
+  assert.equal(livePayload.hostTools,undefined)
+  assert.equal(livePayload.maxDynamicSplits,0);assert.equal(livePayload.maxConcurrency,1)
+  assert.equal(f.credentials,1)
+  assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'真实答案')
+  assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
 })
 test('DSH 模型池在执行前解析宿主目录、隔离枚举失败并排除自身',async()=>{
   const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})

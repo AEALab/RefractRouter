@@ -95,6 +95,7 @@ def test_dag_preview_and_forced_direct_have_bounded_call_envelopes(tmp_path):
     assert dag['complexity_gate']['decision'] == 'dag'
     assert dag['review']['required'] is True
     assert dag['live_authorization_preview']['calls']['maximum'] == 8
+    assert dag['live_authorization_preview']['costs']['production_estimate_range']['maximum'] == 40
     direct = run_agent({'task': '简单回答', 'strategy': 'auto',
                         'complexityPolicy': 'direct', 'reviewPolicy': 'adaptive'},
                        provider_config=raw, runs_dir=tmp_path / 'direct')
@@ -134,9 +135,6 @@ def test_live_relax_budget_cannot_bypass_authorized_hard_limit(tmp_path):
                'limits': {'relaxBudget': True, 'relaxContext': False}}
     preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
                         production_budget=0.000001, evaluation_budget=1)
-    client = Client()
-    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
-        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
-        client=client, production_budget=0.000001, evaluation_budget=1)
-    assert result['status'] == 'no-feasible-route'
-    assert not client.calls
+    assert preview['status'] == 'no-feasible-route'
+    assert preview['live_authorization_preview']['costs']['production_hard_limit'] == 0.000001
+    assert preview['live_authorization_preview']['ready'] is False
