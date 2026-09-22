@@ -104,6 +104,8 @@ const css = `
 .rra-profile{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;background:var(--dsw-alias-bg-module-platform);font-size:12px;color:var(--dsw-alias-label-secondary)}
 .rra-profile strong{color:var(--dsw-alias-label-primary)}.rra-profile-prices{display:flex;flex-wrap:wrap;gap:5px 14px}
 .rra-role-field{display:flex;flex-direction:column;gap:6px;min-width:0}.rra-role-field .rra-select{width:100%}
+.rra-action-area{display:flex;flex-direction:column;gap:8px}.rra-save-block{padding:10px 12px;border:1px solid var(--dsw-alias-label-error);border-radius:8px;color:var(--dsw-alias-label-error);font-size:12px;line-height:1.5}
+.rra-save-block strong{display:block}.rra-save-block ul{margin:6px 0 0;padding-left:18px}
 .rra-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 0 4px}
 .rra-button{appearance:none;font:inherit;font-size:13px;line-height:1.5;cursor:pointer;border:1px solid transparent;border-radius:8px;padding:5px 14px;background:var(--dsw-alias-label-primary);color:var(--dsw-alias-bg-layer-3)}
 .rra-button-secondary{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);background:none}
@@ -457,11 +459,17 @@ export function RefractCard(props: RefractCardOwnerProps) {
             {state.providerJsonError !== null
               ? <p className="rra-invalid">{t('invalidJson') + ': ' + state.providerJsonError}</p> : null}
           </div> : null}
-          <div className="rra-actions">
-            <button type="button" className="rra-button" disabled={disabled || !state.dirty || state.providerJsonError !== null}
-              onClick={() => props.save()}>{state.saving ? t('saving') : t('save')}</button>
-            <button type="button" className="rra-button rra-button-secondary" disabled={disabled || !state.dirty}
-              onClick={() => props.discard()}>{t('discard')}</button>
+          <div className="rra-action-area">
+            {blockingIssues.length?<div className="rra-save-block" role="alert"><strong>{t('saveBlockedAction')}</strong><ul>
+              {blockingIssues.map(issue=><li key={`save-${issue.code}-${issue.field}-${String(issue.route)}`}>{issue.message}</li>)}
+            </ul></div>:null}
+            <div className="rra-actions">
+              <button type="button" className="rra-button"
+                disabled={disabled || !state.dirty || state.providerJsonError !== null || blockingIssues.length>0}
+                onClick={() => props.save()}>{state.saving ? t('saving') : blockingIssues.length?t('saveBlockedButton'):t('save')}</button>
+              <button type="button" className="rra-button rra-button-secondary" disabled={disabled || !state.dirty}
+                onClick={() => props.discard()}>{t('discard')}</button>
+            </div>
           </div>
           {state.failed ? <p className="rra-invalid">{state.failureMessage??t('saveFailed')}</p> : null}
         </div>

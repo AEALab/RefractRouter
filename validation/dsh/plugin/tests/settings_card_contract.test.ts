@@ -465,6 +465,8 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.ok(source.includes('Planner model'))
   assert.ok(localeSource.includes('当前生产合同也要求存在'))
   assert.ok(source.includes('Manufacturer reference only'))
+  assert.ok(localeSource.includes('请先修正以下阻断问题'))
+  assert.ok(source.includes('saveBlockedButton'))
   const registrations: Array<{ id: string; factory: (require: (spec: string) => unknown) => unknown }> = []
   const sandboxWindow = {
     __ModuleLoader__: {
