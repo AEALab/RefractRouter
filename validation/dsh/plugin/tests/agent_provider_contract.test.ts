@@ -102,7 +102,7 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
   assert.equal(payload.strategy,'auto')
   assert.equal(payload.template,'auto')
   assert.deepEqual(payload.providerConfig,providerConfig)
-  assert.ok(v4Chunks.some(chunk=>chunk.type==='reasoning-delta' && /预览自动拆分流程/.test(String(chunk.text))))
+  assert.ok(v4Chunks.some(chunk=>chunk.type==='reasoning-delta' && /自动路由/.test(String(chunk.text))))
   assert.ok(f.spawns[0]!.argv.includes('--progress-stdio'))
 
   const blocked=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
@@ -557,17 +557,13 @@ test('node effort profiles pass to Python and selected efforts survive display a
   assert.deepEqual(replay.response.refractagent.evaluationModel,evaluationModel)
 })
 
-test('automatic mode reports progress before spawning and forwards bounded planning controls', async()=>{
+test('automatic mode starts reasoning lazily and forwards bounded planning controls', async()=>{
   const f=fixture()
   const adapter=createAdapter(f.ctx, () => configure({template:'auto',plannerModelId:'small',
     plannerTimeoutMs:8000,plannerMaxOutputTokens:900,maxDynamicSplits:1,maxConcurrency:3,verifyDependencies:true}))
-  const stream=adapter.stream(options)[Symbol.asyncIterator]()
-  assert.equal((await stream.next()).value?.type,'block-start')
-  const progress=(await stream.next()).value
-  assert.equal(progress?.type,'reasoning-delta')
-  assert.match(String(progress?.text),/正在/)
-  assert.equal(f.spawns.length,0)
-  while(!(await stream.next()).done) {}
+  const output=await chunks(adapter)
+  assert.equal(output[0]?.type,'block-start')
+  assert.equal(f.spawns.length,1)
   const spawn=f.spawns[0]!
   const payload=JSON.parse(spawn.input())
   assert.equal(payload.plannerModelId,'small')
@@ -649,7 +645,9 @@ test('自动流程失败立即结束思考并发出可读错误，不生成伪�
     error:'node-input-budget-exceeded before deliverable'})
   const output=[]
   for await(const chunk of createAdapter(f.ctx,()=>configure({template:'auto'})).stream(options)) output.push(chunk)
-  assert.equal(output.filter(chunk=>chunk.type==='block-end'&&chunk.index===0).length,1)
+  assert.equal(output.some(chunk=>chunk.type==='block-start'),false)
+  assert.equal(output.some(chunk=>chunk.type==='reasoning-delta'),false)
+  assert.equal(output.some(chunk=>chunk.type==='block-end'),false)
   assert.equal(output.some(chunk=>chunk.type==='text-delta'),false)
   assert.equal(output.filter(chunk=>chunk.type==='finish').length,1)
   assert.deepEqual(output.at(-1)?.reason,{kind:'error',failure:{
@@ -663,6 +661,7 @@ test('自动流程区分应用上下文、模型窗口、路线与一般执行�
     ['conversation context exceeds the RefractAgent input limit','REFRACTAGENT_CONTEXT_LIMIT'],
     ['input-or-output-capacity','REFRACTAGENT_MODEL_CONTEXT_LIMIT'],
     ['configured route unavailable','REFRACTAGENT_ROUTE_UNAVAILABLE'],
+    ['security requires at least one sensitive-data-capable worker model','REFRACTAGENT_ROUTE_UNAVAILABLE'],
     ['ledger write failed','REFRACTAGENT_EXECUTION_FAILED'],
   ]
   for(const [error,code] of cases){
