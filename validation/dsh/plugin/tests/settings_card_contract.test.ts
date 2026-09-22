@@ -500,6 +500,7 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'settingsScope'])
 
   const effects: Array<() => unknown> = []
+  const discoveryCalls: Array<{namespace:string;request:Record<string,unknown>}> = []
   let boundNamespace: string | undefined
   let slotDeclaration: (() => Generator<unknown>) | undefined
   let registeredOptions: Record<string, unknown> | undefined
@@ -507,7 +508,8 @@ test('client bundle registers in the host module format and exports the plugin f
     effect: (setup: () => unknown) => { effects.push(setup) },
     locale: { register: () => undefined },
     remote: { session: { modelCatalog: async () => ({ ok: true, value: { groups: [], failures: [] } }) },
-      llm:{discoverModels:async()=>({ok:true,value:[]})} },
+      llm:{discoverModels:async(namespace:string,request:Record<string,unknown>)=>{
+        discoveryCalls.push({namespace,request});return {ok:true,value:[]}}} },
     settingsScope: { bind: (spec: { namespace: string }) => { boundNamespace = spec.namespace; return fakeScope({}) } },
     slots: {
       inject: (_key: string, declaration: () => Generator<unknown>) => { slotDeclaration = declaration },
@@ -522,6 +524,11 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.equal(registeredOptions?.name, 'settings.plugin.item')
   assert.equal(registeredOptions?.key, SETTINGS_NAMESPACE)
   assert.equal(typeof registeredOptions?.inject, 'function')
+  const injected = (registeredOptions!.inject as () => {
+    loadRouteProfiles(connection?:unknown):Promise<unknown>
+  })()
+  await injected.loadRouteProfiles()
+  assert.deepEqual(discoveryCalls, [{namespace:'refractagent-route-profiles',request:{provider:'local'}}])
   for (const dispose of effects.map(effect => effect as () => (() => void) | void)) {
     const result = dispose()
     if (typeof result === 'function') result()

@@ -22,6 +22,7 @@ from refractrouter.team_service import (
     TeamProject,
     load_team_configuration,
 )
+from refractrouter.route_observations import RouteObservationStore
 
 
 def project(tmp_path, *, identity='alpha', concurrency=2):
@@ -116,6 +117,11 @@ def test_http_v2_projects_idempotency_events_and_access(monkeypatch, tmp_path):
         'status': 'simulated', 'answer': '模拟完成',
     })
     configuration = team(tmp_path, monkeypatch)
+    RouteObservationStore(configuration.state_path, scope='alpha').record_run('observed-run', [{
+        'label':'node','model_id':'route','category':'production','status':'billed',
+        'latency_ms':432,'finish_reason':'stop','input_tokens':10,'output_tokens':5,
+        'cached_input_tokens':0}], {'route':{'provider':'cloud','model':'fast',
+        'effective_model':'Fast-v1','reasoning_effort':'default'}})
     server = ThreadingHTTPServer(('127.0.0.1', 0), handler_factory(
         ServerConfiguration(tmp_path / 'legacy', team=configuration)))
     thread = Thread(target=server.serve_forever, daemon=True)
@@ -124,6 +130,12 @@ def test_http_v2_projects_idempotency_events_and_access(monkeypatch, tmp_path):
     try:
         _, projects = api(root, '/v2/projects', 'alice-secret')
         assert [row['id'] for row in projects['projects']] == ['alpha']
+        _, profiles = api(root, '/v2/projects/alpha/route-profiles', 'alice-secret')
+        assert profiles['modelCalls'] == 0
+        assert profiles['profiles'][0]['prediction_ms'] == 432
+        with pytest.raises(HTTPError) as profile_denied:
+            api(root, '/v2/projects/beta/route-profiles', 'alice-secret')
+        assert profile_denied.value.code == 403
         response, submitted = api(
             root, '/v2/tasks', 'alice-secret', method='POST', body=v2_envelope(),
             headers={'Idempotency-Key': 'request-1'},
@@ -190,4 +202,3 @@ def test_http_v2_cancel_is_idempotent_and_stops_core(monkeypatch, tmp_path):
         server.shutdown()
         thread.join()
         server.server_close()
-

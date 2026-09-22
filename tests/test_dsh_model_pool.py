@@ -118,6 +118,21 @@ def test_price_override_wins_without_mutating_frozen_profile_and_deleted_route_f
         compile_dsh_model_pool(raw,snapshot(('local','fast',131072,4096)),profiles=profiles)
 
 
+def test_route_observation_replaces_bootstrap_only_for_exact_effective_identity():
+    observed={'cloud/strong\0strong\0default':{'prediction_ms':1234,'samples':4,
+        'window':'latest-50-successful-p90','last_observed_at':'2026-09-22T00:00:00Z',
+        'snapshot_id':'a'*64,'effective_model':'strong','reasoning_effort':'default'}}
+    config,provenance=compile_dsh_model_pool(pool(),snapshot(
+        ('cloud','strong',262144,8192),('local','fast',131072,4096)),
+        profiles=full_profiles(),latency_profiles=observed)
+    strong=next(model for model in config['models'] if model['model']=='strong')
+    assert provenance['cloud/strong']['latency_source']=='route-observation'
+    assert provenance['cloud/strong']['latency']['samples']==4
+    worker=next(model for model in config['models'] if model['model']=='fast')
+    assert worker['routing']['latencyMs']==60000
+    assert strong.get('routing') is None  # 规划/评审路线不重复生成执行器预测。
+
+
 def test_repository_profile_freezes_all_current_dsh_prices_without_quality_claims():
     root=Path(__file__).resolve().parents[1]
     raw=load_frozen_profiles(root/'data/model-profiles-v2.json')

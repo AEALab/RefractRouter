@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from .agent import run_agent
 from .dsh_model_pool import compile_dsh_model_pool
+from .route_observations import RouteObservationStore, local_observation_path
 from .team_service import (
     IdempotencyConflict,
     ProjectCapacityExceeded,
@@ -38,6 +39,8 @@ class ServerConfiguration:
     timeout_ms: int = 300_000
     max_output_tokens: int = 128_000
     team: TeamConfiguration | None = None
+    route_observation_path: Path | None = None
+    route_observation_scope: str = 'local'
 
     def token(self) -> str | None:
         if self.auth_token_env is None:
@@ -46,6 +49,9 @@ class ServerConfiguration:
         if not value:
             raise ValueError(f'missing Router service credential: {self.auth_token_env}')
         return value
+
+    def observation_path(self) -> Path:
+        return (self.route_observation_path or local_observation_path(self.runs_dir)).resolve()
 
 
 def _positive_number(value: object, name: str, maximum: float) -> float:
@@ -88,7 +94,9 @@ def _prepare_http_request(envelope: object, config: ServerConfiguration) -> dict
         if provider_config is not None or 'dshModelPool' not in payload or 'dshCatalogSnapshot' not in payload:
             raise ValueError('conflicting or incomplete DSH model pool configuration')
         provider_config, provenance = compile_dsh_model_pool(
-            payload.pop('dshModelPool'), payload.pop('dshCatalogSnapshot'))
+            payload.pop('dshModelPool'), payload.pop('dshCatalogSnapshot'),
+            latency_profiles=RouteObservationStore(config.observation_path(),
+                scope=config.route_observation_scope).latency_profiles())
     if 'hostTools' in payload:
         raise ValueError('host tools are unavailable through Router HTTP v1')
     return {
@@ -96,6 +104,8 @@ def _prepare_http_request(envelope: object, config: ServerConfiguration) -> dict
         'production_budget': production, 'evaluation_budget': evaluation,
         'timeout_ms': int(timeout), 'max_output_tokens': int(output),
         'provider_config': provider_config, 'model_profile_provenance': provenance,
+        'route_observation_path': config.observation_path(),
+        'route_observation_scope': config.route_observation_scope,
     }
 
 
@@ -142,6 +152,8 @@ class TeamRuntime:
             evaluation_budget=project.evaluation_budget,
             timeout_ms=project.timeout_ms,
             max_output_tokens=project.max_output_tokens,
+            route_observation_path=self.team.state_path,
+            route_observation_scope=project_id,
         )
         try:
             _prepare_http_request(legacy, project_config)
@@ -172,6 +184,8 @@ class TeamRuntime:
                 evaluation_budget=project.evaluation_budget,
                 timeout_ms=project.timeout_ms,
                 max_output_tokens=project.max_output_tokens,
+                route_observation_path=self.team.state_path,
+                route_observation_scope=project_id,
             )
             result = execute_http_request(
                 legacy, config,
@@ -251,6 +265,18 @@ def handler_factory(config: ServerConfiguration):
                     'id': project_id,
                     'maxConcurrentTasks': config.team.projects[project_id].max_concurrent_tasks,
                 } for project_id in member.projects]})
+                return
+            parts = parsed.path.strip('/').split('/')
+            if len(parts) == 4 and parts[:2] == ['v2', 'projects'] and parts[3] == 'route-profiles':
+                project_id = parts[2]
+                if project_id not in member.projects:
+                    self._json(HTTPStatus.FORBIDDEN, {'protocol': PROTOCOL_V2,
+                                                      'error': 'project access denied'})
+                    return
+                catalog = RouteObservationStore(
+                    config.team.state_path, scope=project_id).catalog()
+                self._json(HTTPStatus.OK, {'protocol': PROTOCOL_V2,
+                                           'projectId': project_id, **catalog})
                 return
             if parsed.path == '/v2/tasks':
                 query = parse_qs(parsed.query)
