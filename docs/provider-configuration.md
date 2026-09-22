@@ -43,12 +43,18 @@ DeepSeek 的峰谷价、MiniMax 的上下文与服务等级阶梯，以及 Kimi 
 核心把价格计划按路线默认条件物化为保守预算单价，并把所选阶梯和完整计划写入
 `model_profile_provenance`；运行时不会联网漂移。
 
-`deepseek-official` 路线使用 DeepSeek 官方实际计费价格，其中两个旧 Flash 名称按官方说明
-映射到 V4.1 Flash。`ark` 路线继续按 Agent Plan 的 AFP 订阅资源执行；档案中的 USD 只作为
-对应模型原厂公开价的比较参考，并标记 provider 等价性未经验证，不能当作 Ark 账单或覆盖
-AFP 执行账本。不能公开再分发的第三方质量数值不进入仓库，只能从有许可的本地冻结缓存
-导入；用户不能用手工分数替代。缺少第三方质量时核心保持 fail closed。本阶段 v4 仍只允许
-预检和模拟，不会因为完成模型池配置而启用真实付费执行。
+`deepseek-official` 的 `deepseek-flash` 与 `deepseek-v4-flash` 分别冻结为 V4.1 Flash 和
+V4 Flash 0731，避免把两个不同版本错误合并。`ark` 路线继续按 Agent Plan 的 AFP 订阅资源
+执行；档案中的 USD 只作为对应模型原厂公开价的比较参考，不能当作 Ark 账单或覆盖 AFP
+执行账本。Ark 发布记录能够确认的同名模型才复用质量先验，不能只凭名称猜测等价。
+
+当前质量冷启动采用 Artificial Analysis Intelligence Index v4.3.2。它综合多个独立评测，
+档案同时冻结原始分数、同类开放权重推理模型排名，以及按
+`(队列数量 - 排名) / (队列数量 - 1) × 100` 计算的 0–100 百分位。仓库只引用各模型公开页面
+上的单项分数和排名并明确署名，不复制其批量数据集；这符合 Artificial Analysis Brand Kit
+对单项引用的说明。无法确认模型版本或 provider 等价性的路线仍然 fail closed；目前包括
+`deepseek-v4-flash-vision-exp`。用户不能用手工分数绕过准入。本阶段 v4 仍只允许预检和模拟，
+不会因为完成模型池配置而启用真实付费执行。
 
 ## 配置在哪里
 

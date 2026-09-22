@@ -73,7 +73,9 @@ def _validate_price_schedule(profile):
     basis = _record(profile.get('pricing_basis'), 'profile pricing basis')
     if basis.get('kind') not in {'direct-provider-public-price', 'manufacturer-reference'}:
         raise ValueError('invalid profile pricing basis')
-    if basis.get('equivalence') not in {'official-route', 'official-alias', 'unverified'}:
+    if basis.get('equivalence') not in {
+            'official-route', 'official-versioned-route', 'official-alias',
+            'unverified'}:
         raise ValueError('invalid profile price equivalence')
     if basis['kind'] == 'manufacturer-reference' and basis['equivalence'] != 'unverified':
         raise ValueError('manufacturer reference must not imply provider equivalence')
