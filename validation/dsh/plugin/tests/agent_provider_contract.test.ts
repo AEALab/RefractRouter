@@ -91,6 +91,16 @@ test('native registration advertises three strategy models with zero retries',as
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
 })
+test('legacy demo replay omits unavailable live fields for strict DSH JSON serialization',async()=>{
+  const f=fixture();apply(f.ctx)
+  const output=await chunks(f.adapter)
+  const finish=output.find(chunk=>chunk.type==='finish') as Record<string,unknown>
+  const replay=((finish.replayState as Record<string,unknown>).response as Record<string,unknown>)
+    .refractagent as Record<string,unknown>
+  assert.equal(Object.hasOwn(replay,'complexityGate'),false)
+  assert.equal(Object.hasOwn(replay,'review'),false)
+  assert.equal(Object.hasOwn(replay,'modelCallLimit'),false)
+})
 test('route profile discovery reads local persisted observations without a model call',async()=>{
   const f=fixture();apply(f.ctx)
   const discover=f.discoveries['refractagent-route-profiles']!

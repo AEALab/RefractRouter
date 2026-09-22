@@ -910,7 +910,9 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           planner: result.planner, planReadyMs: result.plan_ready_ms,
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
-          complexityGate:result.complexity_gate,review:result.review,modelCallLimit:result.model_call_limit,
+          ...(result.complexity_gate !== undefined ? {complexityGate: result.complexity_gate} : {}),
+          ...(result.review !== undefined ? {review: result.review} : {}),
+          ...(result.model_call_limit !== undefined ? {modelCallLimit: result.model_call_limit} : {}),
           costs: result.costs, simulated: result.simulated, resultPath: result.result_path,
           ...(object(result.router_task) ? {routerTask: result.router_task} : {}) },
       } } }
