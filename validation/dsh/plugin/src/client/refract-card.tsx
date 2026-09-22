@@ -7,6 +7,8 @@ import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey
 import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
 import type {DshModelCatalog,RouterProjectDirectory} from './types.js'
 import { V4Settings } from './v4-settings.js'
+import { FROZEN_MODEL_PROFILES, formatPriceConditions, formatUsdPricePer1k,
+  frozenModelProfile } from './model-profiles.js'
 
 export interface RefractCardOwnerProps {
   t: (key: string) => string
@@ -94,6 +96,14 @@ const css = `
 .rra-advanced-toggle{display:flex;justify-content:flex-start;padding:12px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .rra-reset{font:inherit;font-size:12px;color:var(--dsw-alias-label-secondary);background:none;border:none;cursor:pointer}
 .rra-invalid{margin:8px 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-error)}
+.rra-warning{margin:8px 0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-secondary)}
+.rra-issue-summary{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-module-platform)}
+.rra-details{border:1px solid var(--dsw-alias-border-l2);border-radius:8px;padding:10px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.6}
+.rra-details summary{cursor:pointer;color:var(--dsw-alias-label-primary);font-weight:500}
+.rra-details p{margin:8px 0 0}.rra-details ul{margin:8px 0 0;padding-left:20px}
+.rra-profile{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;background:var(--dsw-alias-bg-module-platform);font-size:12px;color:var(--dsw-alias-label-secondary)}
+.rra-profile strong{color:var(--dsw-alias-label-primary)}.rra-profile-prices{display:flex;flex-wrap:wrap;gap:5px 14px}
+.rra-role-field{display:flex;flex-direction:column;gap:6px;min-width:0}.rra-role-field .rra-select{width:100%}
 .rra-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 0 4px}
 .rra-button{appearance:none;font:inherit;font-size:13px;line-height:1.5;cursor:pointer;border:1px solid transparent;border-radius:8px;padding:5px 14px;background:var(--dsw-alias-label-primary);color:var(--dsw-alias-bg-layer-3)}
 .rra-button-secondary{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);background:none}
@@ -153,8 +163,38 @@ export function RefractCard(props: RefractCardOwnerProps) {
     if(!pool)return
     updatePool({...pool,routes:pool.routes.map(row=>row.provider===provider&&row.model===model?{...row,...patch}:row)})
   }
+  const clearRouteOverrides=(provider:string,model:string)=>{
+    if(!pool)return
+    updatePool({...pool,routes:pool.routes.map(row=>{
+      if(row.provider!==provider||row.model!==model)return row
+      const {overrides: _removed,...rest}=row
+      return rest
+    })})
+  }
   const routeOptions=pool?.routes.filter(row=>row.enabled!==false)??[]
   const trustPolicyOptions=(pool?.trustPolicies??[]).filter(row=>typeof row.id==='string')
+  const dataMode=typeof pool?.security?.dataMode==='string'?pool.security.dataMode:'live'
+  const patchSecurity=(patch:Record<string,unknown>)=>{
+    if(pool)updatePool({...pool,security:{...pool.security,...patch}})
+  }
+  const addTrustPolicy=()=>{
+    if(!pool)return
+    const ids=new Set((pool.trustPolicies??[]).map(row=>String(row.id??'')))
+    let index=1
+    while(ids.has(`trust-${index}`))index+=1
+    updatePool({...pool,trustPolicies:[...(pool.trustPolicies??[]),{id:`trust-${index}`,residency:'CN',
+      auditLogging:true,allowsSensitiveData:true,acknowledgeExternalTransmission:false}]})
+  }
+  const patchTrustPolicy=(index:number,patch:Record<string,unknown>)=>{
+    if(!pool)return
+    updatePool({...pool,trustPolicies:(pool.trustPolicies??[]).map((row,rowIndex)=>rowIndex===index?{...row,...patch}:row)})
+  }
+  const removeTrustPolicy=(index:number)=>{
+    if(pool)updatePool({...pool,trustPolicies:(pool.trustPolicies??[]).filter((_row,rowIndex)=>rowIndex!==index)})
+  }
+  const blockingIssues=state.issues.filter(issue=>issue.severity==='error')
+  const warningIssues=state.issues.filter(issue=>issue.severity==='warning')
+  const routeIssues=(route:string)=>state.issues.filter(issue=>issue.route===route)
   const patchRole=(role:'planner'|'judge'|'classifier',value:string)=>{
     if(!pool)return
     updatePool({...pool,roleOverrides:{...pool.roleOverrides,[role]:value||undefined}})
@@ -233,29 +273,65 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 &&!routerProjects.projects.some(project=>project.id===state.router?.project)?<p className="rra-invalid">已保存项目当前不可用，请重新选择。</p>:null}</>:null}
           </div>
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
-          {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>DSH 模型目录</h3>
-            <p className="rra-field-hint">只显示“设置 → 模型”中当前可调用的路线；RefractAgent 自身已排除。</p></div>
-            {state.overriddenDshPool?<button type="button" className="rra-reset" onClick={()=>props.resetField('dshModelPool')}>恢复旧配置</button>:null}</div>
+          {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>{t('poolCatalogTitle')}</h3>
+            <p className="rra-field-hint">{t('poolCatalogHint')}</p></div>
+            {state.overriddenDshPool?<button type="button" className="rra-reset" disabled={disabled} onClick={()=>props.resetField('dshModelPool')}>{t('poolRestoreOld')}</button>:null}</div>
+            {blockingIssues.length||warningIssues.length?<div className="rra-issue-summary" role="status">
+              <strong>{blockingIssues.length?t('poolBlockedTitle'):t('poolDraftTitle')}</strong>
+              {blockingIssues.map(issue=><span className="rra-invalid" key={issue.code+issue.field+String(issue.route)}>{issue.message}</span>)}
+              {warningIssues.map(issue=><span className="rra-warning" key={issue.code+issue.field+String(issue.route)}>{issue.message}</span>)}
+            </div>:null}
+            <label className="rra-compact-field"><span className="rra-label">{t('poolDataMode')}</span>
+              <select className="rra-select" disabled={disabled} value={dataMode} onChange={event=>patchSecurity({dataMode:event.target.value})}>
+                <option value="live">{t('poolDataLive')}</option><option value="desensitized">{t('poolDataDesensitized')}</option>
+                <option value="synthetic">{t('poolDataSynthetic')}</option></select>
+              <span className="rra-field-hint">{t(`poolData_${dataMode}`)}</span></label>
+            <details className="rra-details"><summary>{t('poolDeploymentHelp')}</summary><ul>
+              <li>{t('poolDeploymentLocal')}</li><li>{t('poolDeploymentExternal')}</li>
+              <li>{t('poolDeploymentTrusted')}</li><li>{t('poolDeploymentSimulated')}</li></ul></details>
             {catalogError?<p className="rra-invalid">{catalogError}</p>:null}
             {catalog?.failures.map(row=><p className="rra-invalid" key={row.id}>{row.name}: {row.message}</p>)}
             {catalogRows.map(row=>{const selected=pool.routes.find(route=>route.provider===row.provider&&route.model===row.model)
-              return <div className="rra-row-card" key={identity(row.provider,row.model)}><label className="rra-check">
+              const routeKey=identity(row.provider,row.model);const profile=frozenModelProfile(row.provider,row.model)
+              const selectedIssues=routeIssues(routeKey)
+              return <div className="rra-row-card" key={routeKey}><label className="rra-check">
                 <input type="checkbox" checked={!!selected} disabled={disabled} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
-                <strong>{row.providerName} / {row.name}</strong></label>{selected?<><label className="rra-compact-field">部署属性
-                <select className="rra-select" value={selected.deployment} onChange={event=>{const deployment=event.target.value;patchRoute(row.provider,row.model,{deployment,...(['trusted-cloud','simulated-local'].includes(deployment)?{}:{trustPolicy:undefined})})}}>
-                  <option value="">请选择部署属性</option>{DEPLOYMENT_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-                {selected.deployment==='trusted-cloud'||selected.deployment==='simulated-local'?<label className="rra-compact-field">信任策略<select className="rra-select" value={selected.trustPolicy??''} onChange={event=>patchRoute(row.provider,row.model,{trustPolicy:event.target.value||undefined})}><option value="">请选择信任策略</option>{trustPolicyOptions.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>:null}
-                {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k','输入价 / 1k'],['cachedInputPer1k','缓存输入价 / 1k'],['outputPer1k','输出价 / 1k'],['quality','质量预测'],['latencyMs','时延预测（ms）']].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
-                <label className="rra-compact-field">说明<input className="rra-input" value={String(selected.overrides?.note??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,note:event.target.value||undefined}})}/></label>
-                <button type="button" className="rra-reset" onClick={()=>patchRoute(row.provider,row.model,{overrides:{}})}>恢复公开档案</button></>:null}</>:null}</div>})}
-            {!catalog?<p className="rra-field-hint">正在读取 DSH 模型目录…</p>:null}
-            <div className="rra-advanced-toggle"><button type="button" className="rra-reset" onClick={()=>setV4Advanced(value=>!value)}>{v4Advanced?'收起高级设置':'展开高级设置'}</button></div>
-            {v4Advanced?<><label className="rra-check"><input type="checkbox" disabled={disabled}
-              checked={pool.allowSharedJudge??false} onChange={event=>updatePool({...pool,allowSharedJudge:event.target.checked})}/>
-              允许同一路线兼任执行与评审（开发测试）</label>
-            <p className="rra-field-hint">启用后允许单一模型承担多个职责；运行证据会标记同模型评审，不能作为独立评审或研究结论。</p>
-            <div className="rra-grid rra-grid-3">{([['planner','规划模型'],['judge','评审模型'],['classifier','分类模型']] as const).map(([role,label])=><label className="rra-compact-field" key={role}>{label}<select className="rra-select" value={pool.roleOverrides?.[role]??''} onChange={event=>patchRole(role,event.target.value)}><option value="">自动分配</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>)}</div>
-            <fieldset className="rra-models"><legend className="rra-label">执行模型池</legend><p className="rra-field-hint">不勾选时由 Python 核心自动分配；勾选后仅使用指定路线。</p>{routeOptions.map(row=>{const key=identity(row.provider,row.model);return <label className="rra-check" key={key}><input type="checkbox" checked={pool.roleOverrides?.workers?.includes(key)??false} onChange={event=>patchWorkers(key,event.target.checked)}/>{key}</label>})}</fieldset></>:null}
+                <strong>{row.providerName} / {row.name}</strong></label>{selected?<><label className="rra-compact-field">{t('poolDeployment')}
+                <select className="rra-select" disabled={disabled} value={selected.deployment} onChange={event=>{const deployment=event.target.value;patchRoute(row.provider,row.model,{deployment,...(['trusted-cloud','simulated-local'].includes(deployment)?{}:{trustPolicy:undefined})})}}>
+                  <option value="">{t('poolSelectDeployment')}</option>{DEPLOYMENT_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+                {selected.deployment==='trusted-cloud'||selected.deployment==='simulated-local'?<label className="rra-compact-field">{t('poolTrustPolicy')}<select className="rra-select" disabled={disabled} value={selected.trustPolicy??''} onChange={event=>patchRoute(row.provider,row.model,{trustPolicy:event.target.value||undefined})}><option value="">{t('poolSelectTrustPolicy')}</option>{trustPolicyOptions.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>:null}
+                {profile?<div className="rra-profile"><strong>{t('poolPublicProfile')} · {profile.effective_model??routeKey}</strong>
+                  <span>{t('poolFrozenAt')}: {FROZEN_MODEL_PROFILES.frozen_at}</span><div className="rra-profile-prices">
+                    <span>{t('poolInputPrice')}: {formatUsdPricePer1k(profile.pricing.inputPer1k)}</span>
+                    <span>{t('poolCachedPrice')}: {formatUsdPricePer1k(profile.pricing.cachedInputPer1k)}</span>
+                    <span>{t('poolOutputPrice')}: {formatUsdPricePer1k(profile.pricing.outputPer1k)}</span></div>
+                  {profile.pricing_basis?.actualProviderBilling===false?<span className="rra-warning">{t('poolManufacturerReference')}</span>:null}
+                  <details className="rra-details"><summary>{t('poolPriceDetails')}</summary>
+                    <p>{profile.pricing_materialization?.note}</p>{profile.pricing_schedule?.tiers.map(tier=><p key={tier.id}><strong>{tier.id}</strong> · {formatPriceConditions(tier.conditions)} · {Object.entries(tier.prices).map(([key,value])=>`${key} ${formatUsdPricePer1k(value)}`).join(' · ')}</p>)}
+                    {profile.sources.map(source=><p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.metric_version}</a> · {source.retrieved_at}</p>)}</details>
+                </div>:<div className="rra-profile"><strong>{t('poolNoPublicProfile')}</strong><span>{t('poolManualProfileHint')}</span></div>}
+                {selectedIssues.map(issue=><p className={issue.severity==='error'?'rra-invalid':'rra-warning'} key={issue.code}>{issue.message}</p>)}
+                {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k',t('poolInputPer1k')],['cachedInputPer1k',t('poolCachedPer1k')],['outputPer1k',t('poolOutputPer1k')],['quality',t('poolQuality')],['latencyMs',t('poolLatency')]].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" min="0" disabled={disabled} placeholder={profile?String(key==='quality'?profile.quality??'':key==='latencyMs'?profile.latencyMs??'':profile.pricing[key as keyof typeof profile.pricing]??''):''} value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
+                <label className="rra-compact-field">{t('poolNote')}<input className="rra-input" disabled={disabled} value={String(selected.overrides?.note??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,note:event.target.value||undefined}})}/></label>
+                <button type="button" className="rra-reset" disabled={disabled} onClick={()=>clearRouteOverrides(row.provider,row.model)}>{t('poolRestoreProfile')}</button></>:null}</>:null}</div>})}
+            {!catalog?<p className="rra-field-hint">{t('poolLoadingCatalog')}</p>:null}
+            <div className="rra-advanced-toggle"><button type="button" className="rra-reset" onClick={()=>setV4Advanced(value=>!value)}>{t(v4Advanced?'v4HideAdvanced':'v4ShowAdvanced')}</button></div>
+            {v4Advanced?<><section className="rra-v4-section"><div className="rra-section-head"><div><h3>{t('poolTrustPoliciesTitle')}</h3><p className="rra-field-hint">{t('poolTrustPoliciesHint')}</p></div>
+              <button type="button" className="rra-button rra-button-secondary" disabled={disabled} onClick={addTrustPolicy}>{t('poolAddPolicy')}</button></div>
+              {(pool.trustPolicies??[]).map((policy,index)=><div className="rra-row-card" key={`${String(policy.id)}-${index}`}><div className="rra-row-title"><strong>{String(policy.id||t('poolUntitledPolicy'))}</strong>
+                <button type="button" className="rra-reset" disabled={disabled} onClick={()=>removeTrustPolicy(index)}>{t('v4Remove')}</button></div>
+                <div className="rra-grid rra-grid-3"><label className="rra-compact-field">ID<input className="rra-input" disabled={disabled} value={String(policy.id??'')} onChange={event=>patchTrustPolicy(index,{id:event.target.value})}/></label>
+                  <label className="rra-compact-field">{t('v4Residency')}<input className="rra-input" disabled={disabled} value={String(policy.residency??'')} onChange={event=>patchTrustPolicy(index,{residency:event.target.value})}/></label>
+                  <label className="rra-compact-field">{t('v4ExpiresOn')}<input className="rra-input" type="date" disabled={disabled} value={String(policy.expiresOn??'')} onChange={event=>patchTrustPolicy(index,{expiresOn:event.target.value||undefined})}/></label></div>
+                <div className="rra-check-row">{([['auditLogging','v4AuditLogging'],['allowsSensitiveData','v4AllowsSensitive'],['acknowledgeExternalTransmission','v4ExternalAck']] as const).map(([field,label])=><label className="rra-check" key={field}><input type="checkbox" disabled={disabled} checked={policy[field]===true} onChange={event=>patchTrustPolicy(index,{[field]:event.target.checked})}/>{t(label)}</label>)}</div></div>)}
+              {(pool.trustPolicies??[]).length===0?<p className="rra-empty">{t('v4NoPolicies')}</p>:null}</section>
+            <section className="rra-v4-section"><h3>{t('poolRolesTitle')}</h3><p className="rra-field-hint">{t('poolRolesHint')}</p>
+              <label className="rra-check"><input type="checkbox" disabled={disabled}
+                checked={pool.allowSharedJudge??false} onChange={event=>updatePool({...pool,allowSharedJudge:event.target.checked})}/>
+                {t('poolSharedJudge')}</label><p className="rra-field-hint">{t('poolSharedJudgeHint')}</p>
+              <div className="rra-grid rra-grid-3">{([['planner','poolPlanner','poolPlannerHint'],['judge','poolJudge','poolJudgeHint'],['classifier','poolClassifier','poolClassifierHint']] as const).map(([role,label,hint])=><label className="rra-role-field" key={role}><span className="rra-label">{t(label)}</span><span className="rra-field-hint">{t(hint)}</span><select className="rra-select" disabled={disabled} value={pool.roleOverrides?.[role]??''} onChange={event=>patchRole(role,event.target.value)}><option value="">{t('poolAutoAssign')}</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>)}</div>
+              <fieldset className="rra-models" disabled={disabled}><legend className="rra-label">{t('poolWorkers')}</legend><p className="rra-field-hint">{t('poolWorkersHint')}</p>{routeOptions.map(row=>{const key=identity(row.provider,row.model);return <label className="rra-check" key={key}><input type="checkbox" checked={pool.roleOverrides?.workers?.includes(key)??false} onChange={event=>patchWorkers(key,event.target.checked)}/>{key}</label>})}</fieldset>
+              <details className="rra-details"><summary>{t('poolRoleRules')}</summary><p>{t('poolRoleRulesBody')}</p></details></section></>:null}
           </div> : state.automaticRouting && provider ? <><div className="rra-v4-section"><h3>迁移到 DSH 模型目录</h3><p className="rra-field-hint">旧 providerConfig 会保留供 CLI 和历史运行使用；预览确认后再保存新模型池，不会静默覆盖。</p><button type="button" className="rra-button" onClick={beginPool}>查看迁移预览</button></div><V4Settings t={t} provider={provider} disabled={true}
             advanced={v4Advanced}
             editV4QualityMin={props.editV4QualityMin} editV4DagMode={props.editV4DagMode}
@@ -387,7 +463,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             <button type="button" className="rra-button rra-button-secondary" disabled={disabled || !state.dirty}
               onClick={() => props.discard()}>{t('discard')}</button>
           </div>
-          {state.failed ? <p className="rra-invalid">{t('saveFailed')}{state.failureMessage?` ${state.failureMessage}`:''}</p> : null}
+          {state.failed ? <p className="rra-invalid">{state.failureMessage??t('saveFailed')}</p> : null}
         </div>
       ) : null}
     </li>
