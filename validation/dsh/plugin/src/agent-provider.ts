@@ -214,7 +214,11 @@ function publicFailure(error: unknown, aborted: boolean): PublicFailure {
   }
   if (/provider|route|model.+(?:missing|unknown|unavailable)|no local candidate|Router (?:service|HTTP)/i.test(detail)) return {
     kind: 'error', code: 'REFRACTAGENT_ROUTE_UNAVAILABLE',
-    message: `RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。${summary?` 诊断：${summary}`:''}`,
+      message: `RefractAgent 未执行：配置的 Provider 或模型路线当前不可用，请检查 DSH 模型设置。${summary?` 诊断：${summary}`:''}`,
+  }
+  if (/security requires at least one sensitive-data-capable (?:planner|worker|judge)|no deployment-compatible classifier/i.test(detail)) return {
+    kind: 'error', code: 'REFRACTAGENT_ROUTE_UNAVAILABLE',
+    message: 'RefractAgent 未执行：当前职责分配没有可处理敏感数据的模型。请在设置页检查规划、执行、评审和分类模型的部署属性与信任策略。',
   }
   return { kind: 'error', code: 'REFRACTAGENT_EXECUTION_FAILED',
     message: `RefractAgent 未执行：运行失败。${summary ? `诊断：${summary}` : '请查看运行记录中的诊断信息。'}` }
@@ -673,16 +677,13 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       const automatic = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4' || config.template === 'auto'
       const pending = automatic ? (config.executionMode === 'live'
         ? '正在快速拆分任务，随后执行可并行的步骤。\n' : '正在预览自动拆分流程。\n') : ''
-      if (pending) {
-        yield { type: 'block-start', index: 0, blockType: 'reasoning' }
-        yield { type: 'reasoning-delta', index: 0, text: pending }
-      }
       const queue: string[] = []
       let wake: (() => void) | undefined
       let ended = false, failure: unknown
       let result: Record<string, unknown> | undefined
       let previous: ProgressEvent | undefined
-      let transcript = pending
+      let transcript = ''
+      let reasoningStarted = false
       const cancelled = new AbortController()
       const work = invoke(ctx, config, { ...options, model,
         signal: AbortSignal.any([cancelled.signal, ...(options.signal ? [options.signal] : [])]) }, event => {
@@ -699,6 +700,14 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         while (!ended || queue.length) {
           if (queue.length) {
             const text = queue.shift()!
+            if (!reasoningStarted) {
+              reasoningStarted = true
+              yield { type: 'block-start', index: 0, blockType: 'reasoning' }
+              if (pending) {
+                transcript += pending
+                yield { type: 'reasoning-delta', index: 0, text: pending }
+              }
+            }
             transcript += text
             yield { type: 'reasoning-delta', index: 0, text }
           } else await new Promise<void>(resolve => { wake = resolve })
@@ -709,9 +718,11 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       } catch (error) {
         if (pending) {
           const failure = publicFailure(error, options.signal?.aborted === true)
-          const text = `\n${failure.message}\n以上为最后收到的节点状态，请核对运行记录中的用量。\n`
-          yield { type: 'reasoning-delta', index: 0, text }
-          yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + text } }
+          if (reasoningStarted) {
+            const text = `\n${failure.message}\n以上为最后收到的节点状态，请核对运行记录中的用量。\n`
+            yield { type: 'reasoning-delta', index: 0, text }
+            yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + text } }
+          }
           yield { type: 'finish', reason: { kind: failure.kind,
             failure: { code: failure.code, message: failure.message } } }
           return
@@ -734,7 +745,10 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         + (object(result.cost_breakdown) ? `规划／执行／评审：${JSON.stringify(result.cost_breakdown)} ${String(result.billing_unit)}；` : '')
         + `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}；记录：${String(result.result_path)}`
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
-      if (!pending) yield { type: 'block-start', index: 0, blockType: 'reasoning' }
+      if (!reasoningStarted) {
+        reasoningStarted = true
+        yield { type: 'block-start', index: 0, blockType: 'reasoning' }
+      }
       yield { type: 'reasoning-delta', index: 0, text: info }
       yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + info } }
       yield { type: 'block-start', index: 1, blockType: 'text' }

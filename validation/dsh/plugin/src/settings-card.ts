@@ -139,6 +139,7 @@ export type SettingsIssueCode =
   | 'DSH_POOL_EXTERNAL_ACK_REQUIRED'
   | 'DSH_POOL_ROLE_ROUTE_UNAVAILABLE'
   | 'DSH_POOL_SHARED_JUDGE_FORBIDDEN'
+  | 'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE'
   | 'DSH_POOL_LEGACY_SCHEMA'
   | 'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'
   | 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'
@@ -189,7 +190,7 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
     .filter((row): row is [string, Record<string, unknown>] => row[0] !== undefined))
   const dataMode = typeof pool.security?.dataMode === 'string' ? pool.security.dataMode : 'live'
   const enabledRoutes = pool.routes.filter(row => row.enabled !== false)
-  const routeKeys = new Set(enabledRoutes.map(row => `${row.provider}/${row.model}`))
+  const routeKeys = new Set<string>(enabledRoutes.map(row => `${row.provider}/${row.model}`))
   for (const route of enabledRoutes) {
     const identity = `${route.provider}/${route.model}`
     if (!DEPLOYMENT_OPTIONS.some(option => option.value === route.deployment)) {
@@ -242,6 +243,39 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
     if (!pool.allowSharedJudge && roles.judge && roles.workers?.includes(roles.judge)) {
       issues.push({code:'DSH_POOL_SHARED_JUDGE_FORBIDDEN',severity:'error',field:'roleOverrides',route:roles.judge,
         message:'评审模型与执行模型默认必须分离；仅开发测试可启用共用职责。'})
+    }
+    if (dataMode === 'live') {
+      const byKey = new Map<string, DshModelPoolView['routes'][number]>(
+        enabledRoutes.map(route => [`${route.provider}/${route.model}`, route]),
+      )
+      const sensitiveCapable = (routeKey: string): boolean => {
+        const route = byKey.get(routeKey)
+        if (!route) return false
+        if (route.deployment === 'local') return true
+        if (route.deployment === 'trusted-cloud') {
+          const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
+          return policy?.auditLogging === true && policy.allowsSensitiveData === true
+        }
+        if (route.deployment === 'simulated-local') {
+          const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
+          return policy?.auditLogging === true && policy.allowsSensitiveData === true
+            && policy.acknowledgeExternalTransmission === true
+        }
+        return false
+      }
+      for (const role of ['planner','judge','classifier'] as const) {
+        const route = roles[role]
+        if (route && routeKeys.has(route) && !sensitiveCapable(route)) {
+          issues.push({code:'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE',severity:'error',
+            field:`roleOverrides.${role}`,route,
+            message:`${role} 当前固定为 ${route}，但该路线不能处理 live 数据中的敏感内容。请选择真实本地、可信外部云，或已确认外传的云模型模拟本地路线。`})
+        }
+      }
+      if (roles.workers?.length && roles.workers.every(route => routeKeys.has(route) && !sensitiveCapable(route))) {
+        issues.push({code:'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE',severity:'error',
+          field:'roleOverrides.workers',
+          message:'执行模型池没有可处理 live 敏感数据的路线。请至少加入一条真实本地、可信外部云，或已确认外传的云模型模拟本地路线。'})
+      }
     }
   }
   return issues

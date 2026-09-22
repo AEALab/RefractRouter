@@ -138,6 +138,31 @@ test('DSH 模型池只接受目录身份、明确部署和有效职责覆盖', (
   } as never }), /trustPolicy/)
 })
 
+test('live 职责覆盖必须为每个职责保留可处理敏感数据的路线', () => {
+  const pool = dshModelPool()
+  const live = {
+    ...pool,
+    security: {dataMode:'live'},
+    trustPolicies: [{id:'trusted',residency:'CN',auditLogging:true,allowsSensitiveData:true,
+      acknowledgeExternalTransmission:true}],
+    routes: [
+      {...pool.routes[0],deployment:'simulated-local' as const,trustPolicy:'trusted'},
+      {...pool.routes[1],deployment:'external-cloud' as const},
+    ],
+    allowSharedJudge:true,
+    roleOverrides: {
+      planner:'team/planner',judge:'team/planner',classifier:'team/planner',workers:['team/worker'],
+    },
+  }
+  const issues = buildDshModelPoolIssues(live, [])
+  assert.equal(issues.some(issue => issue.code === 'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE'
+    && issue.field === 'roleOverrides.workers'), true)
+  assert.equal(issues.some(issue => issue.severity === 'error'), true)
+  const fixed = {...live,roleOverrides:{...live.roleOverrides,workers:['team/planner','team/worker']}}
+  assert.equal(buildDshModelPoolIssues(fixed, []).some(
+    issue => issue.code === 'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE'), false)
+})
+
 test('DSH 模型池覆盖保留旧 providerConfig 供迁移回退，但运行时选择模型池', () => {
   const config = configure({providerConfig:dshProviderConfig()})
   const pool = dshModelPool()
