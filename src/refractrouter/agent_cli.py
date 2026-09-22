@@ -13,6 +13,7 @@ from .agent import PRESETS, POLICY_VERSION, resource, run_agent
 from .application_config import SCHEMA, SCHEMA_V4, compile_configuration, migrate_v3_to_v4
 from .routing_actions import action_identity
 from .openai_compatible import write_host_record
+from .route_observations import RouteObservationStore, local_observation_path
 
 
 def example_configuration(kind):
@@ -78,6 +79,9 @@ def main(argv=None):
     run.add_argument('--progress-stdio', action='store_true', help='输出脱敏节点进度 NDJSON，最后一行为完整结果')
     inspect = commands.add_parser('show', help='查看已保存任务的策略、模型、结果和费用')
     inspect.add_argument('run_dir', type=Path)
+    route_profiles = commands.add_parser('route-profiles', help='读取本地路线时延观测，零调用')
+    route_profiles.add_argument('--runs-dir', type=Path,
+                                default=Path.home()/'.local/share/refractagent/runs')
     setup = commands.add_parser('dsh-config', help='生成 DSH 配置覆盖文件；不修改现有用户配置')
     setup.add_argument('--output', type=Path, required=True)
     setup.add_argument('--runs-dir', type=Path, default=Path('.refractagent/runs'))
@@ -181,6 +185,10 @@ def main(argv=None):
         if args.command == 'show':
             print((args.run_dir/'summary.json').read_text())
             return 0
+        if args.command == 'route-profiles':
+            store = RouteObservationStore(local_observation_path(args.runs_dir))
+            print(json.dumps(store.catalog(), ensure_ascii=False))
+            return 0
         if args.command == 'dsh-config':
             from .node_routing import number
             number(args.production_budget, 'production budget', positive=True)
@@ -240,6 +248,7 @@ def main(argv=None):
                        {'task': args.task, 'strategy': args.strategy, 'template': args.template})
         provider_config = json.loads(args.provider_config.read_text()) if args.provider_config else None
         model_profile_provenance = None
+        route_observation_path = local_observation_path(args.runs_dir)
         if isinstance(payload, dict) and 'providerConfig' in payload:
             if provider_config is not None or args.preset:
                 raise ValueError('conflicting provider configuration sources')
@@ -249,7 +258,8 @@ def main(argv=None):
                 raise ValueError('conflicting or incomplete DSH model pool configuration')
             from .dsh_model_pool import compile_dsh_model_pool
             provider_config, model_profile_provenance = compile_dsh_model_pool(
-                payload.pop('dshModelPool'), payload.pop('dshCatalogSnapshot'))
+                payload.pop('dshModelPool'), payload.pop('dshCatalogSnapshot'),
+                latency_profiles=RouteObservationStore(route_observation_path).latency_profiles())
         tool_runtime = None
         if isinstance(payload, dict) and 'hostTools' in payload:
             if not args.host_stdio:
@@ -267,7 +277,8 @@ def main(argv=None):
                 execute_paid_run=args.execute_paid_run, cancel_event=cancelled,
                 provider_config=provider_config, preset=args.preset, tool_runtime=tool_runtime,
                 progress=write_host_record if args.progress_stdio else None,
-                model_profile_provenance=model_profile_provenance)
+                model_profile_provenance=model_profile_provenance,
+                route_observation_path=route_observation_path)
         finally:
             for sig, handler in previous.items():
                 signal.signal(sig, handler)

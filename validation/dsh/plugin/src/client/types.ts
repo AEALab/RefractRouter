@@ -26,7 +26,7 @@ export interface ClientContext {
   locale: ClientLocaleService
   settingsScope: ClientSettingsScopeBinder
   remote: { session: { modelCatalog(): Promise<{ok:boolean;value?:DshModelCatalog;error?:{message:string}}> } }
-    & {llm:{discoverModels(settingsNs:string,request:{baseURL?:string;api?:string}):Promise<{
+    & {llm:{discoverModels(settingsNs:string,request:{provider?:string;baseURL?:string;api?:string}):Promise<{
       ok:boolean;value?:Array<{id:string;name?:string}>;error?:{message:string}
     }>}}
   effect(setup: () => unknown, label?: string): unknown
@@ -35,6 +35,12 @@ export interface ClientContext {
 export interface RouterProjectDirectory {
   protocol:'refractagent-http-v1'|'refractagent-http-v2'
   projects:Array<{id:string;name:string}>
+}
+
+export interface RouteLatencyDirectory {
+  profiles:Array<{route:string;effectiveModel:string;reasoningEffort:string;prediction_ms:number;
+    samples:number;window:string;last_observed_at:string;snapshot_id:string;
+    statusCounts:Record<string,number>}>
 }
 
 export interface DshModelCatalog {

@@ -16,6 +16,7 @@ export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credent
 const MAX_CONTEXT_BYTES = 120_000
 const RELAXED_CONTEXT_BYTES = 1_000_000
 const ROUTER_PROJECT_DISCOVERY = 'refractagent-router-projects'
+const ROUTER_PROFILE_DISCOVERY = 'refractagent-route-profiles'
 const ROUTER_V1_SENTINEL = '__refractrouter_http_v1__'
 
 const LEGACY_MODELS = [
@@ -143,6 +144,38 @@ async function routerProjectCatalogWithToken(url: string, token: string | undefi
     return {id:row.id,maxConcurrentTasks:row.maxConcurrentTasks}
   })
   return {protocol:'refractagent-http-v2',projects}
+}
+
+async function routeProfileCatalog(ctx: AgentContext, config: Readonly<Configuration>, request: {
+  provider?:string;baseURL?:string;api?:string;apiKey?:string}, signal?:AbortSignal):Promise<Record<string,unknown>> {
+  if(request.apiKey!==undefined)throw new Error('Route profile discovery accepts a credential reference, never a token')
+  if(request.baseURL){
+    if(!request.provider)throw new Error('Route profile discovery requires a Router project')
+    const normalized=configure({routerUrl:request.baseURL})
+    const token=await routerToken(ctx,request.api)
+    const response=await fetch(`${normalized.routerUrl}/v2/projects/${encodeURIComponent(request.provider)}/route-profiles`,{
+      headers:{...(token?{Authorization:`Bearer ${token}`}:{})},signal})
+    if(!response.ok)throw new Error(`Router HTTP ${response.status}: ${await response.text()}`)
+    return await response.json() as Record<string,unknown>
+  }
+  const env:Record<string,string>={}
+  for(const key of ['PATH','HOME','LANG','LC_ALL','TMPDIR','SYSTEMROOT']){const value=process.env[key];if(value)env[key]=value}
+  let executable:string
+  try{executable=await ctx.subprocess.resolveExecutable(config.pythonExecutable,env,signal??new AbortController().signal)}
+  catch{throw new Error('RefractAgent 可执行程序未找到；无法读取本地时延观测')}
+  const pythonModule=/(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
+  const argv=[executable,...(pythonModule?['-m','refractrouter.agent_cli']:[]),'route-profiles','--runs-dir',resolve(config.runsDir)]
+  const policy=ctx.sandboxPolicy.resolve({})
+  const confined=ctx.sandbox.confine(argv,policy)
+  const handle=ctx.subprocess.spawn({argv:confined.argv,cwd:policy.workspaceRoot,env,
+    stdio:{stdin:'ignore',stdout:{maxBytes:1048576},stderr:{maxBytes:16384}},
+    signal:signal??new AbortController().signal,graceMs:2000})
+  const outcome=await handle.done;await handle.waitForExit()
+  const stdout=handle.collected.stdout?.readFrom(0)
+  if(outcome.exitCode!==0||!stdout||stdout.lossy)throw new Error('无法读取本地路线时延观测')
+  const value=JSON.parse(stdout.text) as unknown
+  if(!object(value)||value.schemaVersion!=='refractrouter-route-profiles-v1')throw new Error('本地路线时延观测格式无效')
+  return value
 }
 
 async function routerProjectCatalog(ctx: AgentContext, url: string, credential: string | undefined,
@@ -740,6 +773,11 @@ export function apply(ctx: AgentContext, raw: unknown = {}): void {
     if(catalog.protocol==='refractagent-http-v1')return [{id:ROUTER_V1_SENTINEL,name:'HTTP v1 同步兼容'}]
     return catalog.projects.map(project=>({id:project.id,
       name:`${project.id}（并发上限 ${project.maxConcurrentTasks}）`}))
+  })
+  ctx.llm.registerModelDiscovery?.(ROUTER_PROFILE_DISCOVERY, async (request, signal) => {
+    const catalog=await routeProfileCatalog(ctx,effective,request,signal)
+    const profiles=Array.isArray(catalog.profiles)?catalog.profiles:[]
+    return profiles.filter(object).map(row=>({id:String(row.route??''),name:JSON.stringify(row)}))
   })
   installRefractSettings(ctx, composed, section => {
     effective = overlaySettings(composed, section)

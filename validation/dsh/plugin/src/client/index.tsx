@@ -4,7 +4,7 @@ import { graphModule } from './graph.js'
 import { RefractCardController, SETTINGS_NAMESPACE } from '../settings-card.js'
 import { RefractCard } from './refract-card.js'
 import { en, LOCALE_NS, zh } from './locale.js'
-import type { ClientContext, RouterProjectDirectory } from './types.js'
+import type { ClientContext, RouteLatencyDirectory, RouterProjectDirectory } from './types.js'
 import { FROZEN_MODEL_PROFILES } from './model-profiles.js'
 
 const graph = graphModule(createElement as unknown as Parameters<typeof graphModule>[0])
@@ -38,6 +38,13 @@ export function apply(ctx: ClientContext): void {
         const legacy=result.value.some(row=>row.id==='__refractrouter_http_v1__')
         return {protocol:legacy?'refractagent-http-v1':'refractagent-http-v2',projects:legacy?[]:
           result.value.map(row=>({id:row.id,name:row.name??row.id}))}
+      },loadRouteProfiles:async(connection?:{url:string;credential?:string;project?:string}):Promise<RouteLatencyDirectory>=>{
+        const result=await ctx.remote.llm.discoverModels('refractagent-route-profiles',connection?{
+          baseURL:connection.url,...(connection.credential?{api:connection.credential}:{}),
+          ...(connection.project?{provider:connection.project}:{})}: {provider:'local'})
+        if(!result.ok||!result.value)throw new Error(result.error?.message??'Route latency observations unavailable')
+        return {profiles:result.value.map(row=>{try{return JSON.parse(row.name??'') as RouteLatencyDirectory['profiles'][number]}
+          catch{throw new Error('Route latency observation is invalid')}})}
       }}),
     }, RefractCard)
   })

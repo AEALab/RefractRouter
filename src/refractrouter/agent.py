@@ -27,6 +27,7 @@ from .task_plan import text, validate_plan, preview_plan
 from .task_runtime import run_task
 from .task_materials import validate_materials
 from .agent_progress import ProgressRecorder, dag_snapshot
+from .route_observations import RouteObservationStore
 
 PRESETS = {
     'economy': {'name': '省成本', 'method': 'A', 'qualityMin': 80},
@@ -162,7 +163,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               evaluation_budget=80, timeout_ms=300000, max_output_tokens=2048,
               manifest_path=None, profile_path=None, execute_paid_run=False,
               client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None,
-              model_profile_provenance=None):
+              model_profile_provenance=None, route_observation_path=None,
+              route_observation_scope='local'):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     automatic_routing = (isinstance(provider_config, dict)
@@ -278,6 +280,21 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if result['final_output']:
         (directory / 'answer.md').write_text(result['final_output'])
     calls = result['calls']
+    observation_evidence = None
+    if mode == 'live' and route_observation_path is not None and model_profile_provenance is not None:
+        bindings = {row['compiled_model_id']: {
+            'provider': route.split('/', 1)[0], 'model': route.split('/', 1)[1],
+            'effective_model': row['effective_model'],
+            'reasoning_effort': row.get('reasoning_effort', 'default'),
+        } for route, row in model_profile_provenance.items()
+            if isinstance(row, dict) and isinstance(row.get('compiled_model_id'), str)
+            and isinstance(row.get('effective_model'), str)
+            and isinstance(row.get('reasoning_effort', 'default'), str)
+            and '/' in route}
+        recorded = RouteObservationStore(
+            route_observation_path, scope=route_observation_scope).record_run(run_id, calls, bindings)
+        observation_evidence = {'recorded': recorded, 'path': str(Path(route_observation_path).resolve()),
+                                'policy': 'latest-50-successful-p90-v1'}
     totals = {kind: sum(c['charged'] for c in calls if c['category'] == kind and c['status'] == 'billed')
               for kind in ('production', 'evaluation')}
     totals['unconfirmed'] = sum(c['charged'] for c in calls if c['status'] in {'reserved', 'unknown-usage'})
@@ -312,6 +329,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                   'reasoning_tokens': sum(c.get('reasoning_tokens', 0) for c in calls if c['status'] == 'billed')},
         'profile_scope': profile['scope'], 'limitations': result['limitations'],
         'model_profile_provenance': model_profile_provenance,
+        **({'route_observations': observation_evidence} if observation_evidence is not None else {}),
         'artifact_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                            for p in sorted(directory.iterdir()) if p.is_file()}}
     if result.get('compact_planning', {}).get('policy_version'):

@@ -6,7 +6,7 @@ import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey
   blocksDshModelPoolRun, DEPLOYMENT_OPTIONS, type RefractCardProjection, type V4CollectionKey,
   type V4DagMode, type V4DataMode } from '../settings-card.js'
 import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
-import type {DshModelCatalog,RouterProjectDirectory} from './types.js'
+import type {DshModelCatalog,RouteLatencyDirectory,RouterProjectDirectory} from './types.js'
 import { V4Settings } from './v4-settings.js'
 import { FROZEN_MODEL_PROFILES, formatPriceConditions, formatUsdPricePer1k,
   frozenModelProfile } from './model-profiles.js'
@@ -32,6 +32,7 @@ export interface RefractCardOwnerProps {
   editRouter(value:RouterConnectionView|undefined):void
   loadCatalog():Promise<DshModelCatalog>
   loadRouterProjects(connection:{url:string;credential?:string}):Promise<RouterProjectDirectory>
+  loadRouteProfiles(connection?:{url:string;credential?:string;project?:string}):Promise<RouteLatencyDirectory>
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -131,6 +132,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const [catalogError,setCatalogError]=useState<string|undefined>()
   const [routerProjects,setRouterProjects]=useState<RouterProjectDirectory|undefined>()
   const [routerError,setRouterError]=useState<string|undefined>()
+  const [routeProfiles,setRouteProfiles]=useState<RouteLatencyDirectory|undefined>()
+  const [routeProfilesError,setRouteProfilesError]=useState<string|undefined>()
   useEffect(()=>{let active=true;void props.loadCatalog().then(value=>{if(active){setCatalog(value);setCatalogError(undefined)}})
     .catch(error=>{if(active)setCatalogError(error instanceof Error?error.message:String(error))});return()=>{active=false}},[])
   useEffect(()=>{let active=true
@@ -146,6 +149,13 @@ export function RefractCard(props: RefractCardOwnerProps) {
     }).catch(error=>{if(active)setRouterError(error instanceof Error?error.message:String(error))})
     return()=>{active=false}
   },[state.router?.url,state.router?.credential])
+  useEffect(()=>{let active=true
+    const connection=state.router
+    if(connection&&!connection.project){setRouteProfiles(undefined);setRouteProfilesError(undefined);return()=>{active=false}}
+    void props.loadRouteProfiles(connection).then(value=>{if(active){setRouteProfiles(value);setRouteProfilesError(undefined)}})
+      .catch(error=>{if(active){setRouteProfiles(undefined);setRouteProfilesError(error instanceof Error?error.message:String(error))}})
+    return()=>{active=false}
+  },[state.router?.url,state.router?.credential,state.router?.project])
 
   const pool=state.dshModelPool
   const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v2',billingUnit:state.provider?.billingUnit??'USD',routes:[],
@@ -202,8 +212,12 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const blockingIssues=state.issues.filter(issue=>issue.severity==='error')
   const warningIssues=state.issues.filter(issue=>issue.severity==='warning')
   const readinessIssues=state.issues.filter(blocksDshModelPoolRun)
+  const enabledRouteKeys=(pool?.routes??[]).filter(route=>route.enabled!==false).map(route=>identity(route.provider,route.model))
+  const observedProfile=(route:string)=>{const [provider,...modelParts]=route.split('/');const model=modelParts.join('/')
+    const effective=frozenModelProfile(provider,model)?.effective_model??model
+    return routeProfiles?.profiles.find(row=>row.route===route&&row.effectiveModel===effective&&row.reasoningEffort==='default')}
   const poolStatus=blockingIssues.length?'poolStatusCannotSave':readinessIssues.length?'poolStatusCannotRun':
-    pool&&pool.routes.some(route=>route.enabled!==false)?'poolStatusLatencyBootstrap':undefined
+    enabledRouteKeys.length?(enabledRouteKeys.every(route=>!!observedProfile(route))?'poolStatusReady':'poolStatusLatencyBootstrap'):undefined
   const routeIssues=(route:string)=>state.issues.filter(issue=>issue.route===route)
   const patchRole=(role:'planner'|'judge'|'classifier',value:string)=>{
     if(!pool)return
@@ -297,6 +311,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
               disabled={disabled} onClick={()=>updatePool(pool)}>{t('poolMigrateV2')}</button>:null}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
+            {routeProfilesError?<p className="rra-warning">{t('poolLatencyReadError')}: {routeProfilesError}</p>:null}
             <label className="rra-compact-field"><span className="rra-label">{t('poolDataMode')}</span>
               <select className="rra-select" disabled={disabled} value={dataMode} onChange={event=>patchSecurity({dataMode:event.target.value})}>
                 <option value="live">{t('poolDataLive')}</option><option value="desensitized">{t('poolDataDesensitized')}</option>
@@ -309,7 +324,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             {catalog?.failures.map(row=><p className="rra-invalid" key={row.id}>{row.name}: {row.message}</p>)}
             {catalogRows.map(row=>{const selected=pool.routes.find(route=>route.provider===row.provider&&route.model===row.model)
               const routeKey=identity(row.provider,row.model);const profile=frozenModelProfile(row.provider,row.model)
-              const selectedIssues=routeIssues(routeKey)
+              const selectedIssues=routeIssues(routeKey);const latencyProfile=observedProfile(routeKey)
               return <div className="rra-row-card" key={routeKey}><label className="rra-check">
                 <input type="checkbox" checked={!!selected} disabled={disabled} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
                 <strong>{row.providerName} / {row.name}</strong></label>{selected?<><label className="rra-compact-field">{t('poolDeployment')}
@@ -322,8 +337,10 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     <span>{t('poolCachedPrice')}: {formatUsdPricePer1k(profile.pricing.cachedInputPer1k)}</span>
                     <span>{t('poolOutputPrice')}: {formatUsdPricePer1k(profile.pricing.outputPer1k)}</span></div>
                   {profile.quality_profile?<><span>{t('poolQualityEvidence')}: {profile.quality_profile.score}/100</span>
-                    <span>{t('poolLatencyBootstrapEvidence')}</span><a href={profile.quality_profile.source.url} target="_blank" rel="noreferrer">{profile.quality_profile.source.metric_version}</a></>
+                    <a href={profile.quality_profile.source.url} target="_blank" rel="noreferrer">{profile.quality_profile.source.metric_version}</a></>
                     :<span className="rra-invalid">{t('poolMissingQualityEvidence')}</span>}
+                  <span>{latencyProfile?`${t('poolLatencyObservedEvidence')}: ${latencyProfile.prediction_ms} ms · ${latencyProfile.samples} ${t('poolSamples')} · ${latencyProfile.window}`:t('poolLatencyBootstrapEvidence')}</span>
+                  {latencyProfile?<span>{t('poolLastObserved')}: {latencyProfile.last_observed_at}</span>:null}
                   {profile.pricing_basis?.actualProviderBilling===false?<span className="rra-warning">{t('poolManufacturerReference')}</span>:null}
                   <details className="rra-details"><summary>{t('poolPriceDetails')}</summary>
                     <p>{profile.pricing_materialization?.note}</p>{profile.pricing_schedule?.tiers.map(tier=><p key={tier.id}><strong>{tier.id}</strong> · {formatPriceConditions(tier.conditions)} · {Object.entries(tier.prices).map(([key,value])=>`${key} ${formatUsdPricePer1k(value)}`).join(' · ')}</p>)}

@@ -6,12 +6,14 @@ import { apply, configure, createAdapter, type AgentAdapter, type AgentContext }
 function fixture(result: Record<string, unknown> = {}) {
   let adapter: AgentAdapter | undefined
   let discovery: ((request:{provider?:string;baseURL?:string;api?:string;apiKey?:string},signal?:AbortSignal)=>Promise<readonly {id:string;name?:string}[]>)|undefined
+  const discoveries:Record<string,typeof discovery>={}
   let credentials = 0
   const credentialReferences: string[] = []
   const spawns: Array<{ argv: string[]; env: Record<string,string>; input: () => string }> = []
   const ctx: AgentContext = {
     llm: { registerAdapter(providers, value) { assert.deepEqual(providers,['refractagent']); adapter=value },
-      registerModelDiscovery(settingsNs,callback){assert.equal(settingsNs,'refractagent-router-projects');discovery=callback;return()=>{}} },
+      registerModelDiscovery(settingsNs,callback){discoveries[settingsNs]=callback
+        if(settingsNs==='refractagent-router-projects')discovery=callback;return()=>{}} },
     credentials: { async describe() { return {configured:true} }, async resolve(reference) {
       credentials++; credentialReferences.push(reference)
       // Native DSH CredentialRef is the identifier itself, without an env: prefix.
@@ -25,6 +27,14 @@ function fixture(result: Record<string, unknown> = {}) {
         const stdin=new PassThrough(); let input=''
         stdin.on('data',chunk=>{input+=String(chunk)})
         spawns.push({argv:spec.argv,env:spec.env,input:()=>input})
+        if(spec.argv.includes('route-profiles')){
+          const text=JSON.stringify({schemaVersion:'refractrouter-route-profiles-v1',modelCalls:0,profiles:[{
+            route:'team/worker',effectiveModel:'worker-v1',reasoningEffort:'default',prediction_ms:1250,
+            samples:4,window:'latest-50-successful-p90',last_observed_at:'2026-09-22T00:00:00Z',
+            snapshot_id:'a'.repeat(64),statusCounts:{success:4}}]})
+          return {done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
+            collected:{stdout:{readFrom:()=>({text,lossy:false})}}}
+        }
         const output = { schema_version:'refractagent-result-v1',strategy:'balanced',strategy_name:'均衡',
           mode:'demo',status:'simulated',answer:'[SIMULATED] answer',costs:{production:0,evaluation:0,unconfirmed:0},
           models:{answer:'physical-model'},usage:{input_tokens:20,output_tokens:30},simulated:true,
@@ -37,7 +47,7 @@ function fixture(result: Record<string, unknown> = {}) {
       },
     },
   }
-  return {ctx,spawns,credentialReferences,get adapter(){return adapter!},get discovery(){return discovery!},get credentials(){return credentials}}
+  return {ctx,spawns,credentialReferences,discoveries,get adapter(){return adapter!},get discovery(){return discovery!},get credentials(){return credentials}}
 }
 const options = {provider:'refractagent',model:'balanced',system:'保留系统要求',
   messages:[{role:'user',content:[{type:'text',text:'比较两个方案'}]}],signal:new AbortController().signal}
@@ -59,6 +69,15 @@ test('native registration advertises three strategy models with zero retries',as
   assert.equal(f.adapter.providerRetryPolicy('refractagent').maxRetries,0)
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
+})
+test('route profile discovery reads local persisted observations without a model call',async()=>{
+  const f=fixture();apply(f.ctx)
+  const discover=f.discoveries['refractagent-route-profiles']!
+  const rows=await discover({})
+  assert.equal(rows[0]?.id,'team/worker')
+  assert.equal(JSON.parse(rows[0]?.name??'{}').samples,4)
+  assert.ok(f.spawns[0]?.argv.includes('route-profiles'))
+  assert.equal(f.credentials,0)
 })
 test('v4 advertises only automatic routing and normalizes a stale DSH legacy selection',async()=>{
   const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})

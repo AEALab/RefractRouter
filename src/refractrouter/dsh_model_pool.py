@@ -204,7 +204,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         _validate_quality_profile(quality_profile)
         quality = quality_profile['score']
         route_key = _route_key(provider, model)
-        observed = (latency_profiles or {}).get(route_key)
+        effective_model = base.get('effective_model', model)
+        observation_key = f'{route_key}\0{effective_model}\0default'
+        observed = (latency_profiles or {}).get(observation_key)
         if observed is None:
             latency = CONSERVATIVE_BOOTSTRAP_LATENCY_MS
             latency_evidence = {'source': 'conservative-bootstrap', 'samples': 0,
@@ -239,7 +241,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         selected.append({'provider': provider, 'model': model, 'deployment': deployment,
             'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
-            'quality': quality, 'latencyMs': latency})
+            'effectiveModel': effective_model, 'quality': quality, 'latencyMs': latency})
         route_evidence = {
             'profile': 'frozen-public-profile',
             'quality_source': 'independent-third-party',
@@ -317,6 +319,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'pricing': {'unit': pool.get('billingUnit', 'USD'), **row['pricing']},
             'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs']} if 'worker' in roles else None})
         if models[-1]['routing'] is None: models[-1].pop('routing')
+        evidence[_route_key(row['provider'], row['model'])].update(
+            compiled_model_id=models[-1]['id'], effective_model=row['effectiveModel'],
+            reasoning_effort='default')
     security = deepcopy(pool.get('security', {'dataMode':'live','sensitiveTerms':[],
         'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):
