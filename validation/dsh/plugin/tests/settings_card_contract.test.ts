@@ -2,18 +2,22 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { configure } from '../dist/agent-provider.js'
+import { migrateDshModelPool } from '../dist/provider-config.js'
 import {
   buildSettingsBase, installRefractSettings, overlaySettings, validateSettingsSection,
 } from '../dist/settings-integration.js'
 import {
-  buildDshModelPoolIssues, buildV4FeasibilityPreview, candidateChoices, DEPLOYMENT_OPTIONS,
+  blocksDshModelPoolRun, buildDshModelPoolIssues, buildV4FeasibilityPreview, candidateChoices, DEPLOYMENT_OPTIONS,
   RefractCardController, SETTINGS_NAMESPACE,
   type CardScope, type CardScopeSnapshot, type DshModelPoolView, type SectionView,
 } from '../dist/settings-card.js'
 
 const publicProfiles = [{ provider: 'deepseek-official', model: 'deepseek-v4-pro',
   pricing: { unit: 'USD', inputPer1k: 0.00132, cachedInputPer1k: 0.000044, outputPer1k: 0.00396 },
-  quality: null, latencyMs: null }]
+  quality_profile: null }]
+const qualityPublicProfiles = [{ ...publicProfiles[0], quality_profile: {
+  score: 91, source: { kind: 'independent-third-party' },
+} }]
 
 const dshProviderConfig = () => ({
   schemaVersion: 'refractagent-providers-v1' as const,
@@ -363,7 +367,7 @@ test('部署属性选项同时展示中文含义与稳定合同值', () => {
   ])
 })
 
-test('DSH 模型池在保存前区分安全错误、档案警告与用户未校准声明', () => {
+test('DSH 模型池区分安全错误、独立质量缺口与旧合同迁移', () => {
   const blocked: DshModelPoolView = structuredClone(dshModelPool())
   blocked.security = { dataMode: 'live' }
   blocked.routes[0] = { ...blocked.routes[0], deployment: 'simulated-local' as const,
@@ -372,14 +376,25 @@ test('DSH 模型池在保存前区分安全错误、档案警告与用户未校�
     allowsSensitiveData: true, acknowledgeExternalTransmission: false }] })
   const issues = buildDshModelPoolIssues(blocked)
   assert.ok(issues.some(issue => issue.code === 'DSH_POOL_EXTERNAL_ACK_REQUIRED' && issue.severity === 'error'))
-  assert.ok(issues.some(issue => issue.code === 'DSH_POOL_USER_DECLARED_UNCALIBRATED'))
+  assert.ok(issues.some(issue => issue.code === 'DSH_POOL_LEGACY_SCHEMA'))
+  assert.ok(issues.some(issue => issue.code === 'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'
+    && blocksDshModelPoolRun(issue)))
 
   const publicDraft = { schemaVersion: 'refractagent-dsh-model-pool-v1' as const, security: { dataMode: 'synthetic' },
     routes: [{ provider: 'deepseek-official', model: 'deepseek-v4-pro', deployment: 'external-cloud' }] }
   const publicIssues = buildDshModelPoolIssues(publicDraft, publicProfiles)
-  assert.ok(publicIssues.some(issue => issue.code === 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'
+  assert.ok(publicIssues.some(issue => issue.code === 'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'
     && issue.severity === 'warning'))
   assert.equal(publicIssues.some(issue => issue.severity === 'error'), false)
+  const readyIssues = buildDshModelPoolIssues({ ...publicDraft,
+    schemaVersion: 'refractagent-dsh-model-pool-v2' }, qualityPublicProfiles)
+  assert.equal(readyIssues.some(blocksDshModelPoolRun), false)
+})
+
+test('模型池 v1 显式迁移到 v2 并移除手工质量与时延', () => {
+  const migrated = migrateDshModelPool(dshModelPool())
+  assert.equal(migrated.schemaVersion, 'refractagent-dsh-model-pool-v2')
+  assert.deepEqual(migrated.routes[0]?.overrides, { inputPer1k: 0, outputPer1k: 0 })
 })
 
 test('合成与已脱敏数据不会套用 live 的 simulated-local 外传确认门槛', () => {
@@ -407,13 +422,13 @@ test('阻断问题不写入宿主，档案警告允许保存草稿', async () =>
 
   const draftScope = fakeScope({})
   const draftController = new RefractCardController(draftScope, publicProfiles)
-  draftController.inject().editDshModelPool({ schemaVersion: 'refractagent-dsh-model-pool-v1',
+  draftController.inject().editDshModelPool({ schemaVersion: 'refractagent-dsh-model-pool-v2',
     security: { dataMode: 'synthetic' }, routes: [{ provider: 'deepseek-official',
       model: 'deepseek-v4-pro', deployment: 'external-cloud' }] })
   await draftController.save()
   assert.equal(draftScope.writes.length, 1)
   assert.equal(draftController.getSnapshot().failed, false)
-  assert.ok(draftController.getSnapshot().issues.some(issue => issue.code === 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'))
+  assert.ok(draftController.getSnapshot().issues.some(issue => issue.code === 'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'))
   draftController.dispose()
 })
 

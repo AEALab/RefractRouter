@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
 import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
-  DEPLOYMENT_OPTIONS, type RefractCardProjection, type V4CollectionKey, type V4DagMode, type V4DataMode } from '../settings-card.js'
+  blocksDshModelPoolRun, DEPLOYMENT_OPTIONS, type RefractCardProjection, type V4CollectionKey,
+  type V4DagMode, type V4DataMode } from '../settings-card.js'
 import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
 import type {DshModelCatalog,RouterProjectDirectory} from './types.js'
 import { V4Settings } from './v4-settings.js'
@@ -147,11 +148,15 @@ export function RefractCard(props: RefractCardOwnerProps) {
   },[state.router?.url,state.router?.credential])
 
   const pool=state.dshModelPool
-  const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v1',billingUnit:state.provider?.billingUnit??'USD',routes:[],
+  const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v2',billingUnit:state.provider?.billingUnit??'USD',routes:[],
     ...(state.provider?.objective?{objective:state.provider.objective}:{}),
     ...(state.provider?.security?{security:state.provider.security}:{}),
     ...(state.provider?.trustPolicies?{trustPolicies:state.provider.trustPolicies.filter((row):row is Record<string,unknown>=>row!==null&&typeof row==='object'&&!Array.isArray(row))}:{})})
-  const updatePool=(next:DshModelPoolView)=>props.editDshModelPool(next)
+  const migratePool=(next:DshModelPoolView):DshModelPoolView=>({...next,
+    schemaVersion:'refractagent-dsh-model-pool-v2',routes:next.routes.map(route=>{const overrides={...route.overrides}
+      delete overrides.quality;delete overrides.latencyMs
+      return {...route,...(Object.keys(overrides).length?{overrides}:{overrides:undefined})}})})
+  const updatePool=(next:DshModelPoolView)=>props.editDshModelPool(migratePool(next))
   const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
     .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
   const identity=(provider:string,model:string)=>provider+'/'+model
@@ -196,6 +201,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
   }
   const blockingIssues=state.issues.filter(issue=>issue.severity==='error')
   const warningIssues=state.issues.filter(issue=>issue.severity==='warning')
+  const readinessIssues=state.issues.filter(blocksDshModelPoolRun)
+  const poolStatus=blockingIssues.length?'poolStatusCannotSave':readinessIssues.length?'poolStatusCannotRun':
+    pool&&pool.routes.some(route=>route.enabled!==false)?'poolStatusLatencyBootstrap':undefined
   const routeIssues=(route:string)=>state.issues.filter(issue=>issue.route===route)
   const patchRole=(role:'planner'|'judge'|'classifier',value:string)=>{
     if(!pool)return
@@ -243,6 +251,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
           <span className="rra-desc">{t(state.automaticRouting ? 'v4Description' : 'description')}</span>
         </span>
         {state.dirty ? <span className="rra-badge">{t('unsaved')}</span> : null}
+        {poolStatus?<span className={'rra-badge '+(blockingIssues.length||readinessIssues.length?'rra-status-bad':'')}>{t(poolStatus)}</span>:null}
         <svg className="rra-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <path d="M3 5.5L7 9.5L11 5.5" stroke="currentColor" strokeWidth="1.5" />
         </svg>
@@ -278,11 +287,16 @@ export function RefractCard(props: RefractCardOwnerProps) {
           {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>{t('poolCatalogTitle')}</h3>
             <p className="rra-field-hint">{t('poolCatalogHint')}</p></div>
             {state.overriddenDshPool?<button type="button" className="rra-reset" disabled={disabled} onClick={()=>props.resetField('dshModelPool')}>{t('poolRestoreOld')}</button>:null}</div>
-            {blockingIssues.length||warningIssues.length?<div className="rra-issue-summary" role="status">
-              <strong>{blockingIssues.length?t('poolBlockedTitle'):t('poolDraftTitle')}</strong>
+            {blockingIssues.length||warningIssues.length?<div className="rra-issue-summary" role={blockingIssues.length?'alert':'status'}>
+              <strong>{blockingIssues.length?t('poolBlockedTitle'):readinessIssues.length?t('poolNotRunnableTitle'):t('poolAdvisoryTitle')}</strong>
+              {readinessIssues.length?<span className="rra-field-hint">{t('poolNotRunnableBody')}</span>:null}
               {blockingIssues.map(issue=><span className="rra-invalid" key={issue.code+issue.field+String(issue.route)}>{issue.message}</span>)}
-              {warningIssues.map(issue=><span className="rra-warning" key={issue.code+issue.field+String(issue.route)}>{issue.message}</span>)}
+              {warningIssues.map(issue=><span className={blocksDshModelPoolRun(issue)?'rra-invalid':'rra-warning'} key={issue.code+issue.field+String(issue.route)}>{issue.message}</span>)}
             </div>:null}
+            {pool.schemaVersion==='refractagent-dsh-model-pool-v1'?<button type="button" className="rra-button rra-button-secondary"
+              disabled={disabled} onClick={()=>updatePool(pool)}>{t('poolMigrateV2')}</button>:null}
+            <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
+              <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
             <label className="rra-compact-field"><span className="rra-label">{t('poolDataMode')}</span>
               <select className="rra-select" disabled={disabled} value={dataMode} onChange={event=>patchSecurity({dataMode:event.target.value})}>
                 <option value="live">{t('poolDataLive')}</option><option value="desensitized">{t('poolDataDesensitized')}</option>
@@ -307,13 +321,16 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     <span>{t('poolInputPrice')}: {formatUsdPricePer1k(profile.pricing.inputPer1k)}</span>
                     <span>{t('poolCachedPrice')}: {formatUsdPricePer1k(profile.pricing.cachedInputPer1k)}</span>
                     <span>{t('poolOutputPrice')}: {formatUsdPricePer1k(profile.pricing.outputPer1k)}</span></div>
+                  {profile.quality_profile?<><span>{t('poolQualityEvidence')}: {profile.quality_profile.score}/100</span>
+                    <span>{t('poolLatencyBootstrapEvidence')}</span><a href={profile.quality_profile.source.url} target="_blank" rel="noreferrer">{profile.quality_profile.source.metric_version}</a></>
+                    :<span className="rra-invalid">{t('poolMissingQualityEvidence')}</span>}
                   {profile.pricing_basis?.actualProviderBilling===false?<span className="rra-warning">{t('poolManufacturerReference')}</span>:null}
                   <details className="rra-details"><summary>{t('poolPriceDetails')}</summary>
                     <p>{profile.pricing_materialization?.note}</p>{profile.pricing_schedule?.tiers.map(tier=><p key={tier.id}><strong>{tier.id}</strong> · {formatPriceConditions(tier.conditions)} · {Object.entries(tier.prices).map(([key,value])=>`${key} ${formatUsdPricePer1k(value)}`).join(' · ')}</p>)}
                     {profile.sources.map(source=><p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.metric_version}</a> · {source.retrieved_at}</p>)}</details>
-                </div>:<div className="rra-profile"><strong>{t('poolNoPublicProfile')}</strong><span>{t('poolManualProfileHint')}</span></div>}
+                </div>:<div className="rra-profile"><strong>{t('poolNoPublicProfile')}</strong><span>{t('poolManualProfileHint')}</span><span className="rra-invalid">{t('poolMissingQualityEvidence')}</span></div>}
                 {selectedIssues.map(issue=><p className={issue.severity==='error'?'rra-invalid':'rra-warning'} key={issue.code}>{issue.message}</p>)}
-                {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k',t('poolInputPer1k')],['cachedInputPer1k',t('poolCachedPer1k')],['outputPer1k',t('poolOutputPer1k')],['quality',t('poolQuality')],['latencyMs',t('poolLatency')]].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" min="0" disabled={disabled} placeholder={profile?String(key==='quality'?profile.quality??'':key==='latencyMs'?profile.latencyMs??'':profile.pricing[key as keyof typeof profile.pricing]??''):''} value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
+                {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k',t('poolInputPer1k')],['cachedInputPer1k',t('poolCachedPer1k')],['outputPer1k',t('poolOutputPer1k')]].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" min="0" disabled={disabled} placeholder={profile?String(profile.pricing[key as keyof typeof profile.pricing]??''):''} value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
                 <label className="rra-compact-field">{t('poolNote')}<input className="rra-input" disabled={disabled} value={String(selected.overrides?.note??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,note:event.target.value||undefined}})}/></label>
                 <button type="button" className="rra-reset" disabled={disabled} onClick={()=>clearRouteOverrides(row.provider,row.model)}>{t('poolRestoreProfile')}</button></>:null}</>:null}</div>})}
             {!catalog?<p className="rra-field-hint">{t('poolLoadingCatalog')}</p>:null}
@@ -466,7 +483,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             <div className="rra-actions">
               <button type="button" className="rra-button"
                 disabled={disabled || !state.dirty || state.providerJsonError !== null || blockingIssues.length>0}
-                onClick={() => props.save()}>{state.saving ? t('saving') : blockingIssues.length?t('saveBlockedButton'):t('save')}</button>
+                onClick={() => props.save()}>{state.saving ? t('saving') : blockingIssues.length?t('saveBlockedButton'):readinessIssues.length?t('saveDraftButton'):t('save')}</button>
               <button type="button" className="rra-button rra-button-secondary" disabled={disabled || !state.dirty}
                 onClick={() => props.discard()}>{t('discard')}</button>
             </div>

@@ -16,8 +16,9 @@ export interface FrozenModelProfile {
     actualProviderBilling?: boolean; note?: string }
   pricing_schedule?: { unit: string; perTokens: number; dimensions: string[]; tiers: FrozenPriceTier[] }
   pricing_materialization?: { strategy?: string; selectedTier?: string; note?: string }
-  quality: number | null
-  latencyMs: number | null
+  quality_profile?: { score: number; raw_score: number; raw_scale: string; cohort: string;
+    normalization: string; source: { kind: 'independent-third-party'; url: string;
+      retrieved_at: string; metric_version: string; license: string; redistributable: boolean } } | null
   sources: Array<{ kind: string; url: string; retrieved_at: string; metric_version: string }>
 }
 

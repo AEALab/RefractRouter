@@ -16,6 +16,8 @@ PROFILE_PATHS = (
 )
 PROFILE_SCHEMAS = {'refractrouter-model-profiles-v1', 'refractrouter-model-profiles-v2'}
 DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
+POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2'}
+CONSERVATIVE_BOOTSTRAP_LATENCY_MS = 60_000.0
 
 
 def _route_key(provider, model):
@@ -55,6 +57,7 @@ def load_frozen_profiles(path=None):
         identities.add(identity)
         if raw['schema_version'] == 'refractrouter-model-profiles-v2':
             _validate_price_schedule(profile)
+            _validate_quality_profile(profile.get('quality_profile'))
     return raw
 
 
@@ -115,11 +118,35 @@ def _validate_price_schedule(profile):
         raise ValueError('profile pricing must match the selected conservative tier')
 
 
-def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
+def _validate_quality_profile(value):
+    if value is None:
+        return
+    quality = _record(value, 'quality profile')
+    if set(quality) != {'score', 'raw_score', 'raw_scale', 'cohort', 'normalization', 'source'}:
+        raise ValueError('invalid quality profile fields')
+    score = _number(quality['score'], 'quality profile score')
+    _number(quality['raw_score'], 'quality profile raw score')
+    if score > 100:
+        raise ValueError('quality profile score must be in 0..100')
+    for key in ('raw_scale', 'cohort', 'normalization'):
+        if not isinstance(quality[key], str) or not quality[key]:
+            raise ValueError(f'invalid quality profile {key}')
+    source = _record(quality['source'], 'quality profile source')
+    if set(source) != {'kind', 'url', 'retrieved_at', 'metric_version', 'license', 'redistributable'}:
+        raise ValueError('invalid quality profile source fields')
+    if source['kind'] != 'independent-third-party' or source['redistributable'] is not True:
+        raise ValueError('quality profile must be independently sourced and redistributable')
+    for key in ('url', 'retrieved_at', 'metric_version', 'license'):
+        if not isinstance(source[key], str) or not source[key]:
+            raise ValueError(f'invalid quality profile source {key}')
+
+
+def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_profiles=None):
     """返回可交给现有核心的 v4 配置与逐路线来源证据。"""
     pool = _record(pool, 'dshModelPool')
     snapshot = _record(catalog_snapshot, 'dshCatalogSnapshot')
-    if pool.get('schemaVersion') != 'refractagent-dsh-model-pool-v1':
+    pool_schema = pool.get('schemaVersion')
+    if pool_schema not in POOL_SCHEMAS:
         raise ValueError('invalid dshModelPool schemaVersion')
     if snapshot.get('schemaVersion') != 'refractagent-dsh-catalog-v1':
         raise ValueError('invalid dshCatalogSnapshot schemaVersion')
@@ -162,13 +189,35 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
             raise ValueError('every DSH route requires an explicit deployment')
         base = deepcopy(public.get(identity, {}))
         overrides = _record(row.get('overrides', {}), 'route overrides')
-        manual_complete = all(key in overrides for key in ('inputPer1k','outputPer1k','quality','latencyMs'))
-        if not base and not manual_complete:
-            raise ValueError(f'{_route_key(provider, model)} has no public profile; complete manual overrides are required')
+        if pool_schema == 'refractagent-dsh-model-pool-v2' and set(overrides) - {
+                'inputPer1k', 'cachedInputPer1k', 'outputPer1k', 'note'}:
+            raise ValueError('dshModelPool v2 only permits pricing and note overrides')
+        manual_prices = all(key in overrides for key in ('inputPer1k','outputPer1k'))
+        if not base and not manual_prices:
+            raise ValueError(f'{_route_key(provider, model)} has no public price profile; complete manual pricing is required')
         pricing = {**deepcopy(base.get('pricing') or {}),
                    **{k: overrides[k] for k in ('inputPer1k','cachedInputPer1k','outputPer1k') if k in overrides}}
-        quality = overrides.get('quality', base.get('quality'))
-        latency = overrides.get('latencyMs', base.get('latencyMs'))
+        quality_profile = deepcopy(base.get('quality_profile'))
+        if quality_profile is None or quality_profile.get('source', {}).get('kind') != 'independent-third-party':
+            raise ValueError(f'{_route_key(provider, model)} has no compliant independent third-party quality prior; '
+                             'this is not a pricing or latency configuration issue')
+        _validate_quality_profile(quality_profile)
+        quality = quality_profile['score']
+        route_key = _route_key(provider, model)
+        observed = (latency_profiles or {}).get(route_key)
+        if observed is None:
+            latency = CONSERVATIVE_BOOTSTRAP_LATENCY_MS
+            latency_evidence = {'source': 'conservative-bootstrap', 'samples': 0,
+                                'prediction_ms': latency}
+        else:
+            latency = _number(observed.get('prediction_ms'), 'observed latency')
+            samples = observed.get('samples')
+            if type(samples) is not int or samples < 1:
+                raise ValueError('observed latency requires positive samples')
+            latency_evidence = {'source': 'route-observation', 'samples': samples,
+                                'prediction_ms': latency,
+                                **{key: observed[key] for key in ('window', 'last_observed_at', 'snapshot_id')
+                                   if key in observed}}
         for key in ('inputPer1k', 'outputPer1k'):
             if key not in pricing:
                 raise ValueError(f'{_route_key(provider, model)} requires complete manual pricing')
@@ -176,10 +225,10 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
         pricing['cachedInputPer1k'] = _number(pricing.get('cachedInputPer1k', pricing['inputPer1k']), 'cachedInputPer1k')
         if pricing['cachedInputPer1k'] > pricing['inputPer1k']:
             raise ValueError('cachedInputPer1k cannot exceed inputPer1k')
-        quality = _number(quality, 'quality') if quality is not None else None
-        latency = _number(latency, 'latencyMs') if latency is not None else None
-        if quality is None or quality > 100 or latency is None:
-            raise ValueError(f'{_route_key(provider, model)} requires quality and latency predictions')
+        quality = _number(quality, 'quality')
+        latency = _number(latency, 'latencyMs')
+        if quality > 100:
+            raise ValueError('quality profile score must be in 0..100')
         context_window = resolved.get('contextWindow')
         max_output_tokens = resolved.get('maxOutputTokens')
         if not isinstance(context_window, int) or isinstance(context_window, bool) or context_window <= 0:
@@ -192,10 +241,18 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None):
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
             'quality': quality, 'latencyMs': latency})
         route_evidence = {
-            'profile': 'user-declared-uncalibrated' if manual_complete and not base else 'frozen-public-profile',
-            'samples': 0,
+            'profile': 'frozen-public-profile',
+            'quality_source': 'independent-third-party',
+            'quality_profile': quality_profile,
+            'latency_source': latency_evidence['source'],
+            'latency': latency_evidence,
+            'samples': latency_evidence['samples'],
             'sources': deepcopy(base.get('sources', [])),
-            'overrides': sorted(overrides),
+            'overrides': sorted(key for key in overrides if key in {
+                'inputPer1k', 'cachedInputPer1k', 'outputPer1k', 'note'}),
+            **({'ignored_legacy_overrides': sorted(key for key in overrides
+                if key in {'quality', 'latencyMs'})} if pool_schema == 'refractagent-dsh-model-pool-v1'
+                and any(key in overrides for key in {'quality', 'latencyMs'}) else {}),
             'note': overrides.get('note'),
         }
         for key in ('pricing_basis', 'pricing_schedule', 'pricing_materialization'):
