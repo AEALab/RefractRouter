@@ -44,10 +44,10 @@ export interface DshModelPoolRoute {
   deployment: DshDeployment
   trustPolicy?: string
   overrides?: { inputPer1k?: number; cachedInputPer1k?: number; outputPer1k?: number;
-    quality?: number; latencyMs?: number; note?: string }
+    note?: string; quality?: number; latencyMs?: number }
 }
 export interface DshModelPool {
-  schemaVersion: 'refractagent-dsh-model-pool-v1'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2'
   billingUnit?: string
   allowSharedJudge?: boolean
   routes: DshModelPoolRoute[]
@@ -89,7 +89,7 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 }
 
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
-  if (!isRecordValue(value) || value.schemaVersion !== 'refractagent-dsh-model-pool-v1'
+  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2'].includes(String(value.schemaVersion))
     || !Array.isArray(value.routes) || value.routes.length > 128
     || Object.keys(value).some(key => !['schemaVersion','billingUnit','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
@@ -109,8 +109,11 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
     const identity = `${route.provider}\u0000${route.model}`
     if (identities.has(identity)) throw new Error('dshModelPool route identities must be unique')
     identities.add(identity)
+    const allowedOverrides = value.schemaVersion === 'refractagent-dsh-model-pool-v2'
+      ? ['inputPer1k','cachedInputPer1k','outputPer1k','note']
+      : ['inputPer1k','cachedInputPer1k','outputPer1k','quality','latencyMs','note']
     if (route.overrides !== undefined && (!isRecordValue(route.overrides)
-      || Object.keys(route.overrides).some(key => !['inputPer1k','cachedInputPer1k','outputPer1k','quality','latencyMs','note'].includes(key))
+      || Object.keys(route.overrides).some(key => !allowedOverrides.includes(key))
       || Object.entries(route.overrides).some(([key, entry]) => key === 'note'
         ? typeof entry !== 'string' : typeof entry !== 'number' || !Number.isFinite(entry) || entry < 0))) {
       throw new Error('invalid dshModelPool route overrides')
@@ -170,6 +173,20 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
     }
   }
   if (Buffer.byteLength(JSON.stringify(value)) > 100000) throw new Error('dshModelPool is too large')
+}
+
+/** 显式迁移旧模型池；旧的质量和时延声明不会成为 v2 的运行证据。 */
+export function migrateDshModelPool(value: DshModelPool): DshModelPool {
+  if (value.schemaVersion === 'refractagent-dsh-model-pool-v2') return structuredClone(value)
+  return {
+    ...structuredClone(value),
+    schemaVersion: 'refractagent-dsh-model-pool-v2',
+    routes: value.routes.map(route => {
+      if (route.overrides === undefined) return structuredClone(route)
+      const { quality: _quality, latencyMs: _latency, ...overrides } = route.overrides
+      return { ...route, ...(overrides === undefined ? {} : { overrides }) }
+    }),
+  }
 }
 
 export function isRecordValue(value: unknown): value is Record<string, unknown> {

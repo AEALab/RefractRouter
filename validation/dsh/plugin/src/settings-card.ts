@@ -120,7 +120,7 @@ export interface SectionView {
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
-  schemaVersion: 'refractagent-dsh-model-pool-v1'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2'
   billingUnit?: string
   allowSharedJudge?: boolean
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
@@ -139,6 +139,8 @@ export type SettingsIssueCode =
   | 'DSH_POOL_EXTERNAL_ACK_REQUIRED'
   | 'DSH_POOL_ROLE_ROUTE_UNAVAILABLE'
   | 'DSH_POOL_SHARED_JUDGE_FORBIDDEN'
+  | 'DSH_POOL_LEGACY_SCHEMA'
+  | 'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'
   | 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'
   | 'DSH_POOL_MANUAL_PROFILE_INCOMPLETE'
   | 'DSH_POOL_USER_DECLARED_UNCALIBRATED'
@@ -157,8 +159,17 @@ export interface PublicModelProfileSummary {
   provider: string
   model: string
   pricing: Record<string, number | string>
-  quality: number | null
-  latencyMs: number | null
+  quality_profile?: { score: number; source: { kind: string } } | null
+}
+
+const NON_RUNNABLE_CODES = new Set<SettingsIssueCode>([
+  'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED',
+  'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE',
+  'DSH_POOL_MANUAL_PROFILE_INCOMPLETE',
+])
+
+export function blocksDshModelPoolRun(issue: SettingsIssue): boolean {
+  return NON_RUNNABLE_CODES.has(issue.code)
 }
 
 function policyId(value: Record<string, unknown>): string | undefined {
@@ -170,6 +181,10 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
   publicProfiles: readonly PublicModelProfileSummary[] = []): SettingsIssue[] {
   if (!pool) return []
   const issues: SettingsIssue[] = []
+  if (pool.schemaVersion === 'refractagent-dsh-model-pool-v1') {
+    issues.push({code:'DSH_POOL_LEGACY_SCHEMA',severity:'warning',field:'schemaVersion',
+      message:'这是旧版模型池配置。迁移到 v2 后，旧的手工质量与时延值将被移除，不会作为运行证据。'})
+  }
   const policies = new Map((pool.trustPolicies ?? []).map(row => [policyId(row), row] as const)
     .filter((row): row is [string, Record<string, unknown>] => row[0] !== undefined))
   const dataMode = typeof pool.security?.dataMode === 'string' ? pool.security.dataMode : 'live'
@@ -201,24 +216,16 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
     const profile = publicProfiles.find(row => row.provider === route.provider && row.model === route.model)
     const overrides = route.overrides ?? {}
     if (!profile) {
-      const missing = ['inputPer1k','outputPer1k','quality','latencyMs']
+      const missing = ['inputPer1k','outputPer1k']
         .filter(key => typeof overrides[key] !== 'number')
       if (missing.length) {
         issues.push({code:'DSH_POOL_MANUAL_PROFILE_INCOMPLETE',severity:'warning',field:'overrides',route:identity,
-          message:`${identity}：没有公开档案，仍缺少 ${missing.join('、')}；可以保存草稿，但尚不能运行。`})
-      } else {
-        issues.push({code:'DSH_POOL_USER_DECLARED_UNCALIBRATED',severity:'warning',field:'overrides',route:identity,
-          message:`${identity}：使用用户声明参数，未经项目校准。`})
+          message:`${identity}：没有公开价格档案，仍缺少 ${missing.join('、')}；可以保存草稿，但尚不能运行。`})
       }
-    } else {
-      const missing = [
-        ...(typeof overrides.quality !== 'number' && profile.quality === null ? ['quality'] : []),
-        ...(typeof overrides.latencyMs !== 'number' && profile.latencyMs === null ? ['latencyMs'] : []),
-      ]
-      if (missing.length) {
-        issues.push({code:'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE',severity:'warning',field:'overrides',route:identity,
-          message:`${identity}：公开档案尚无${missing.includes('quality')?'质量预测':''}${missing.length===2?'和':''}${missing.includes('latencyMs')?'时延预测':''}；可以保存草稿，但尚不能参与路由。`})
-      }
+    }
+    if (profile?.quality_profile?.source.kind !== 'independent-third-party') {
+      issues.push({code:'DSH_POOL_INDEPENDENT_QUALITY_REQUIRED',severity:'warning',field:'quality_profile',route:identity,
+        message:`${identity}：没有合规的独立第三方质量先验，无法参与路由；这不是价格或时延配置问题。`})
     }
   }
   const roles = pool.roleOverrides
