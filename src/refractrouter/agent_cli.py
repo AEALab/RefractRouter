@@ -248,6 +248,7 @@ def main(argv=None):
                        {'task': args.task, 'strategy': args.strategy, 'template': args.template})
         provider_config = json.loads(args.provider_config.read_text()) if args.provider_config else None
         model_profile_provenance = None
+        dsh_catalog_snapshot = None
         route_observation_path = local_observation_path(args.runs_dir)
         if isinstance(payload, dict) and 'providerConfig' in payload:
             if provider_config is not None or args.preset:
@@ -257,6 +258,7 @@ def main(argv=None):
             if provider_config is not None or args.preset or 'dshModelPool' not in payload or 'dshCatalogSnapshot' not in payload:
                 raise ValueError('conflicting or incomplete DSH model pool configuration')
             from .dsh_model_pool import compile_dsh_model_pool
+            dsh_catalog_snapshot = payload['dshCatalogSnapshot']
             provider_config, model_profile_provenance = compile_dsh_model_pool(
                 payload.pop('dshModelPool'), payload.pop('dshCatalogSnapshot'),
                 latency_profiles=RouteObservationStore(route_observation_path).latency_profiles())
@@ -278,7 +280,8 @@ def main(argv=None):
                 provider_config=provider_config, preset=args.preset, tool_runtime=tool_runtime,
                 progress=write_host_record if args.progress_stdio else None,
                 model_profile_provenance=model_profile_provenance,
-                route_observation_path=route_observation_path)
+                route_observation_path=route_observation_path,
+                dsh_catalog_snapshot=dsh_catalog_snapshot)
         finally:
             for sig, handler in previous.items():
                 signal.signal(sig, handler)

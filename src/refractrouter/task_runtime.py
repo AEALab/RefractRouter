@@ -138,7 +138,8 @@ class DemoTaskClient:
 def run_task(request, manifest, profile, *, client=None, production_limit=None, evaluation_limit=None,
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
              configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072,
-             tool_runtime=None, privacy=None, classifier=None):
+             tool_runtime=None, privacy=None, classifier=None, decision_evidence=None, review_evidence=None,
+             max_model_calls=None):
     request = validate_request(request)
     if request.get('contextPolicy') == 'selective-v1' and tool_runtime is not None:
         raise ValueError('selective-v1 currently requires text-only material tasks without native tools')
@@ -176,21 +177,30 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     planner_id = planner.model_id
     if planner_id not in planner_candidates:
         raise ValueError("plannerModelId must be available in the planner role pool")
+    if max_model_calls is not None and (type(max_model_calls) is not int or max_model_calls < 1):
+        raise ValueError('max_model_calls must be a positive integer')
+    runtime_call_limit = (max_model_calls if max_model_calls is not None else
+                          10 + request.get('maxPlanRepairs',0) + 2*request.get('maxDynamicSplits',0)
+                          if request.get('maxDynamicSplits',0) and tool_runtime is None else None)
     budget = TaskCallBudget(client if live else DemoTaskClient(),
                           production_limit if live else 1e12, evaluation_limit if live else 1e12,
-                          max_calls=10 + request.get('maxPlanRepairs',0) + 2*request.get('maxDynamicSplits',0)
-                              if request.get('maxDynamicSplits',0) and tool_runtime is None else None,
+                          max_calls=runtime_call_limit,
                           capture_payload=True)
     started = time.monotonic()
     deadline_ms = float("inf") if request.get("unlimitedTime") else request["latencyMaxMs"]
     result = {"schema_version": "task-run-v1", "mode": mode, "status": "started", "task": request["task"],
-              "plan_origin": "provided" if "plan" in request else "model" if live else "template-preview",
+              "plan_origin": ("direct-gate" if decision_evidence and decision_evidence.get('decision') == 'direct'
+                              else "provided" if "plan" in request else "model" if live else "template-preview"),
               "planner_output": None, "planner_prompt_sha256": hashlib.sha256(PLANNER_SYSTEM.encode()).hexdigest(),
               "plan": None, "plan_analysis": None, "routing": None, "nodes": [], "final_output": "", "evaluation": None,
               "conversation_context_sha256": hashlib.sha256(conversation_context.encode()).hexdigest(),
               "billing_unit": manifest.billing_unit, "charged": {},
               "calls": [], "issues": [], "profile_scope": profile["scope"],
               "generation_status": "not-started",
+              "model_call_limit": runtime_call_limit,
+              "complexity_gate": decision_evidence,
+              "review": ({**review_evidence, "status": "pending"} if review_evidence else
+                         {"policy": "always", "required": True, "reason": "legacy-always-review", "status": "pending"}),
               "format_validation": check_output_constraints(request.get('outputConstraints')),
               "profile_provenance": profile["provenance"],
               "limitations": [("执行节点通过宿主权限管线调用工具；规划与评审不执行工具。" if tool_runtime else "Text generation only; no shell, retrieval or filesystem actions."),
@@ -395,6 +405,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                                 max_fallbacks=fallback_limit) if fallback_limit else None
         if mode in {"preflight", "plan"}:
             result["status"] = "preview" if mode == "preflight" else "planned"
+            result["review"]["status"] = "not-run"
             return result
         result['generation_status'] = 'running'
         dynamic = DynamicDecomposition(request=request, manifest=manifest, configuration=configuration,
@@ -421,7 +432,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if result['format_validation']['passed'] is False:
                 result['issues'].append('output-length-exceeded')
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
-            if placement is not None:
+            if result['review']['required'] and placement is not None:
                 isolation = judge_isolation(placement, manifest.judge)
                 placement['judge_isolation'] = isolation
                 if not isolation['satisfied']:
@@ -432,15 +443,22 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     result['status'] = 'privacy-route-blocked'
                     persist()
                     return result
-            before_call()
-            judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
-                criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000))
-            result["evaluation"] = judged
-            result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
+            if result['review']['required']:
+                before_call()
+                judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
+                    criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000))
+                result["evaluation"] = judged
+                result["review"].update(status="completed", score=judged['score'], passed=judged['passed'])
+                result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
+            else:
+                result["evaluation"] = None
+                result["review"]["status"] = "skipped"
+                result["status"] = "completed"
             if result['format_validation']['passed'] is False:
                 result['status'] = 'output-constraint-failed'
         else:
             result["status"] = "simulated"
+            result["review"]["status"] = "not-run"
         before_call()  # Detect a final response that arrived after the task deadline.
     except ToolTurnConcluded as exc:
         result.update(status='completed', generation_status='tool-concluded', final_output=exc.content)

@@ -28,6 +28,9 @@ from .task_runtime import run_task
 from .task_materials import validate_materials
 from .agent_progress import ProgressRecorder, dag_snapshot
 from .route_observations import RouteObservationStore
+from .live_execution import (authorization_binding, complexity_gate,
+                             create_authorization_preview, review_decision,
+                             validate_authorization)
 
 PRESETS = {
     'economy': {'name': '省成本', 'method': 'A', 'qualityMin': 80},
@@ -88,7 +91,8 @@ def plan_template(name, criteria=None):
 def build_request(payload, *, mode, production_budget, timeout_ms, automatic_routing=False):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
-            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits'}:
+            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits',
+            'complexityPolicy', 'reviewPolicy', 'authorization'}:
         raise ValueError('invalid RefractAgent request fields')
     validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
@@ -130,8 +134,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
         request['unrestrictedPlanning'] = request['planningMode'] == 'compact'
         if 'plannerPolicy' in payload:
             request['plannerPolicy'] = payload['plannerPolicy']
-        request['maxDynamicSplits'] = payload.get('maxDynamicSplits',
-            0 if payload.get('plannerPolicy') in ('minimal-v1', 'minimal-v2') else 1)
+        request['maxDynamicSplits'] = payload.get('maxDynamicSplits', 0 if automatic_routing
+            or payload.get('plannerPolicy') in ('minimal-v1', 'minimal-v2') else 1)
     elif 'maxPlanRepairs' in payload:
         raise ValueError('maxPlanRepairs requires the automatic template')
     if 'plannerPolicy' in payload and not automatic:
@@ -164,13 +168,11 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               manifest_path=None, profile_path=None, execute_paid_run=False,
               client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None,
               model_profile_provenance=None, route_observation_path=None,
-              route_observation_scope='local'):
+              route_observation_scope='local', dsh_catalog_snapshot=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     automatic_routing = (isinstance(provider_config, dict)
                          and provider_config.get('schemaVersion') == 'refractagent-providers-v4')
-    if automatic_routing and mode == 'live':
-        raise ValueError('v4 live automatic routing is not enabled yet; use preflight or demo')
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')
     number(evaluation_budget, 'evaluation budget', positive=True)
@@ -179,6 +181,12 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     strategy, request, context, limits = build_request(
         payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
         automatic_routing=automatic_routing)
+    gate = (complexity_gate(payload, context, policy=payload.get('complexityPolicy', 'auto'))
+            if automatic_routing else None)
+    review = (review_decision(payload, gate, policy=payload.get('reviewPolicy', 'adaptive'))
+              if automatic_routing else None)
+    if gate is not None and gate['decision'] == 'blocked-tools':
+        raise ValueError('REFRACTAGENT_TOOLS_DISABLED: 首版真实自动路由不支持搜索、文件、命令或外部工具任务')
     relax_budget, relax_context = limits['relaxBudget'], limits['relaxContext']
     if preset not in {None, 'ark-agent-plan'}:
         raise ValueError('unknown provider preset')
@@ -199,6 +207,18 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         manifest_file = Path(manifest_path) if manifest_path else Path(str(resource('agent-plan.json')))
         manifest = load_model_manifest(manifest_file)
         manifest_data = json.loads(manifest_file.read_text())
+    if automatic_routing and gate['decision'] == 'direct':
+        request['plan'] = plan_template('single', payload.get('acceptanceCriteria'))
+    if automatic_routing and mode == 'live':
+        if configured.snapshot.get('security', {}).get('dataMode') != 'synthetic':
+            raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 首版真实执行仅允许 synthetic 数据模式')
+        if manifest.billing_unit != 'USD':
+            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 首版真实执行仅支持 USD 模型池')
+        if tool_runtime is not None:
+            raise ValueError('REFRACTAGENT_TOOLS_DISABLED: 首版真实执行不接受 hostTools')
+        if (request.get('maxPlanRepairs', 0) != 0 or request.get('maxDynamicSplits', 0) != 0
+                or request.get('maxNodeFallbacks', 0) != 0 or payload.get('maxConcurrency', 1) != 1):
+            raise ValueError('live canary requires zero repair/split/fallback and maxConcurrency=1')
     input_cap = (min(RELAXED_INPUT_CAP, max(131072, max(m.context_window for m in manifest.models) - max_output_tokens))
                  if relax_context else 131072)
     if 'plan' in request and (configured or relax_context):
@@ -210,14 +230,23 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
                                              if (m.role == 'candidate' or 'worker' in getattr(m, 'roles', ())) and m.wire_api != 'responses' else m for m in manifest.models))
     if (automatic_routing or payload.get('template') == 'auto') and 'plan' not in payload:
-        request['maxConcurrency'] = payload.get('maxConcurrency',
-            1 if any(m.wire_api == 'dsh-llm' for m in manifest.models) else 4)
+        request['maxConcurrency'] = payload.get('maxConcurrency', 1 if (automatic_routing and mode == 'live')
+            or any(m.wire_api == 'dsh-llm' for m in manifest.models) else 4)
     if configured:
         manifest_data = {'schema_version': manifest.schema_version, 'billing_unit': manifest.billing_unit,
                          'models': [asdict(m) for m in manifest.models]}
     profile = (configured_profile(configured, manifest, request.get('plan') or preview_plan(request['task'],
                    required_criteria=request.get('acceptanceCriteria')).to_dict()) if configured else
                json.loads(Path(profile_path).read_text() if profile_path else resource('report-profile.json').read_text()))
+    binding = (authorization_binding(payload, provider_config=provider_config,
+        catalog_snapshot=dsh_catalog_snapshot, production_budget=production_budget,
+        evaluation_budget=evaluation_budget, max_output_tokens=max_output_tokens,
+        gate=gate, review=review,
+        data_mode=configured.snapshot.get('security', {}).get('dataMode'),
+        billing_unit=manifest.billing_unit) if automatic_routing else None)
+    approved_authorization = None
+    if automatic_routing and mode == 'live':
+        approved_authorization = validate_authorization(payload.get('authorization'), binding)
     if mode == 'live' and client is None and any(m.wire_api == 'dsh-llm' for m in manifest.models):
         if os.environ.get('REFRACTROUTER_DSH_BRIDGE') != 'stdio':
             raise ValueError('DSH providers require execution through the DSH plugin')
@@ -242,7 +271,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'runtime_request': request,
         'policy_version': AUTO_POLICY_VERSION if automatic_routing else POLICY_VERSION, 'mode': mode,
         'production_budget': production_budget, 'evaluation_budget': evaluation_budget,
-        'max_output_tokens': max_output_tokens, 'limits': limits})
+        'max_output_tokens': max_output_tokens, 'limits': limits,
+        **({'complexity_gate': gate, 'review': review,
+            'authorization': approved_authorization} if automatic_routing else {})})
     atomic_json(directory / 'profile.json', profile)
     atomic_json(directory / 'manifest.json', manifest_data)
     if configured:
@@ -256,12 +287,17 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         recorder.record(value)
     result = run_task(request, manifest, profile,
         client=client if mode == 'live' else None,
-        production_limit=RELAXED_COST_MAX if relax_budget else production_budget,
-        evaluation_limit=RELAXED_COST_MAX if relax_budget else evaluation_budget,
+        production_limit=(production_budget if automatic_routing and mode == 'live'
+                          else RELAXED_COST_MAX if relax_budget else production_budget),
+        evaluation_limit=(evaluation_budget if automatic_routing and mode == 'live'
+                          else RELAXED_COST_MAX if relax_budget else evaluation_budget),
         checkpoint=checkpoint, cancel_event=cancel_event, tool_runtime=tool_runtime,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
         context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap,
-        privacy=configured.privacy if configured else None)
+        privacy=configured.privacy if configured else None,
+        decision_evidence=gate, review_evidence=review,
+        max_model_calls=((1 + int(review['required'])) if gate and gate['decision'] == 'direct'
+                         else 8 if gate else None))
     if result.get('routing_profile'):
         profile = result['routing_profile']
         atomic_json(directory / 'profile.json', profile)
@@ -314,6 +350,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'plan_origin': result['plan_origin'], 'plan': result['plan'], 'dag': dag_snapshot(result, manifest),
         'plan_admission': result.get('plan_admission'),
         'planner': result.get('planner_selection'), 'plan_ready_ms': result.get('plan_ready_ms'),
+        'model_call_limit': result.get('model_call_limit'),
         'content_validation': result.get('content_validation'),
         'dynamic_decomposition': result.get('dynamic_decomposition'),
         'cost_breakdown': {
@@ -332,6 +369,18 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         **({'route_observations': observation_evidence} if observation_evidence is not None else {}),
         'artifact_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                            for p in sorted(directory.iterdir()) if p.is_file()}}
+    if automatic_routing:
+        output['complexity_gate'] = gate
+        output['review'] = result.get('review', review)
+        if mode == 'preflight':
+            prediction = (result.get('routing') or {}).get('prediction') or {}
+            production_estimate = prediction.get('cost', 0)
+            if not isinstance(production_estimate, (int, float)):
+                production_estimate = 0
+            output['live_authorization_preview'] = create_authorization_preview(
+                binding, billing_unit=manifest.billing_unit,
+                production_estimate=production_estimate,
+                evaluation_estimate=0 if not review['required'] else evaluation_budget)
     if result.get('compact_planning', {}).get('policy_version'):
         output['planning_policy'] = result['compact_planning']['policy_version']
         output['planning_decision'] = result['compact_planning'].get('decision')

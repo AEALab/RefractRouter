@@ -4,6 +4,23 @@ RefractAgent 的 `auto` 模式由快速规划模型描述节点职责与依赖�
 再选模型、并行执行就绪节点、核对最终答案。默认入口仍为 `single`；`compare` 为固定模板。
 预检和模拟不会调用规划模型，不能当作拆分质量证据。
 
+## 单任务真实执行门禁
+
+v4 单任务入口在付费调用前先运行 `refractagent-complexity-gate-v1`。门禁只读取任务长度、
+序列化上下文、编号要求、材料、验收条件、输出合同和冻结关键词，不调用分类模型。
+`complexityPolicy` 支持 `auto`、`direct` 和 `dag`；明确要求搜索、文件、命令或外部工具时，
+即使强制 `direct` 也会以 `REFRACTAGENT_TOOLS_DISABLED` 停止。
+
+`reviewPolicy` 支持 `adaptive` 与 `always`。只有自动判定的短单交付任务可以跳过最终评审；
+强制 direct、多节点 DAG、材料、验收条件和严格输出合同仍须评审。跳过会记录
+`review.status=skipped`，不会伪造成评审通过。研究入口不采用该省略规则。
+
+首版真实合同固定串行、零规划修复、零动态拆分、零节点回退且不接受宿主工具。直接任务最多
+一轮执行，始终评审时再加一轮；紧凑 DAG 最多一轮规划、六个节点和一轮评审，共八轮。
+preflight 返回 `refractagent-live-authorization-v1`，绑定请求、模型配置、DSH 目录快照、策略、
+输出上限与生产／评审硬预算。授权摘要十分钟有效；live 在创建客户端和派发模型前重新计算，
+任何漂移均以 `REFRACTAGENT_PREVIEW_MISMATCH` 失败。`relaxBudget` 不放开这两个 live 硬上限。
+
 显式启用的必要拆分策略与第一阶段实现边界见
 [必要拆分优化](minimal-dag-optimization.md)。它不会替换下述历史默认策略。
 
