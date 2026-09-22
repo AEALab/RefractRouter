@@ -47,6 +47,7 @@ class DSHPluginTests(unittest.TestCase):
     def test_bundle_manifest_and_safe_defaults(self) -> None:
         package = json.loads((PLUGIN / "package.json").read_text(encoding="utf-8"))
         patch = (PLUGIN / "cordis.patch.yml").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "validate.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
         self.assertEqual(package["version"], "0.22.0")
@@ -69,6 +70,8 @@ class DSHPluginTests(unittest.TestCase):
         self.assertIn("maxProductionCost: 2", patch)
         self.assertIn("maxEvaluationCost: 1", patch)
         self.assertIn("maxRetries: 0", patch)
+        self.assertIn("--before=2026-09-08T00:00:00Z", workflow)
+        self.assertIn("@deepseek-ai/dsh@0.1.1-rc.2", workflow)
 
     def test_plugin_is_valid_esm_and_uses_native_dsh_seams(self) -> None:
         source = (PLUGIN / "src" / "index.ts").read_text(encoding="utf-8")
