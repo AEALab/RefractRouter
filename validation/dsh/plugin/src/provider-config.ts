@@ -134,8 +134,11 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
   }
   const routeKeys = new Set(value.routes.filter(route => route.enabled !== false)
     .map(route => `${route.provider}/${route.model}`))
-  const policyIds = new Set((Array.isArray(value.trustPolicies) ? value.trustPolicies : [])
-    .filter(isRecordValue).map(policy => policy.id).filter((id): id is string => typeof id === 'string' && !!id))
+  const policyRows = (Array.isArray(value.trustPolicies) ? value.trustPolicies : []).filter(isRecordValue)
+  const policyIds = new Set(policyRows.map(policy => policy.id)
+    .filter((id): id is string => typeof id === 'string' && !!id))
+  const policies = new Map(policyRows.map(policy => [policy.id, policy] as const)
+    .filter((row): row is [string, Record<string, unknown>] => typeof row[0] === 'string' && !!row[0]))
   const liveData = !isRecordValue(value.security) || (value.security.dataMode ?? 'live') === 'live'
   for (const route of value.routes) {
     if ((route.deployment === 'trusted-cloud' || (route.deployment === 'simulated-local' && liveData))
@@ -144,6 +147,15 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
     }
     if (!['trusted-cloud','simulated-local'].includes(route.deployment) && route.trustPolicy !== undefined) {
       throw new Error('trustPolicy requires trusted-cloud or simulated-local')
+    }
+    const policy = typeof route.trustPolicy === 'string' ? policies.get(route.trustPolicy) : undefined
+    if (policy && (typeof policy.residency !== 'string' || !policy.residency.trim()
+      || policy.auditLogging !== true || policy.allowsSensitiveData !== true)) {
+      throw new Error('trustPolicy must declare residency, audit logging and sensitive-data permission')
+    }
+    if (route.deployment === 'simulated-local' && liveData && policy
+      && policy.acknowledgeExternalTransmission !== true) {
+      throw new Error('live simulated-local requires acknowledgeExternalTransmission')
     }
   }
   const roles = value.roleOverrides as DshModelPool['roleOverrides']

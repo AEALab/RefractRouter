@@ -6,9 +6,14 @@ import {
   buildSettingsBase, installRefractSettings, overlaySettings, validateSettingsSection,
 } from '../dist/settings-integration.js'
 import {
-  buildV4FeasibilityPreview, candidateChoices, DEPLOYMENT_OPTIONS, RefractCardController, SETTINGS_NAMESPACE,
-  type CardScope, type CardScopeSnapshot, type SectionView,
+  buildDshModelPoolIssues, buildV4FeasibilityPreview, candidateChoices, DEPLOYMENT_OPTIONS,
+  RefractCardController, SETTINGS_NAMESPACE,
+  type CardScope, type CardScopeSnapshot, type DshModelPoolView, type SectionView,
 } from '../dist/settings-card.js'
+
+const publicProfiles = [{ provider: 'deepseek-official', model: 'deepseek-v4-pro',
+  pricing: { unit: 'USD', inputPer1k: 0.00132, cachedInputPer1k: 0.000044, outputPer1k: 0.00396 },
+  quality: null, latencyMs: null }]
 
 const dshProviderConfig = () => ({
   schemaVersion: 'refractagent-providers-v1' as const,
@@ -205,14 +210,17 @@ function fakeScope(section: SectionView, user?: SectionView, base?: SectionView)
   const listeners = new Set<() => void>()
   const writes: Array<{ op: 'set' | 'unset'; field: string; value?: unknown }> = []
   let acceptWrites = true
+  let writeError: Error | undefined
   let snapshot: CardScopeSnapshot = {
     status: 'ready', value: section, base: base ?? section, user, writable: true,
   }
   const publish = () => { for (const listener of [...listeners]) listener() }
-  const scope: CardScope & { writes: typeof writes; setAccepting(next: boolean): void; refresh(): void } = {
+  const scope: CardScope & { writes: typeof writes; setAccepting(next: boolean): void;
+    setWriteError(next: Error | undefined): void; refresh(): void } = {
     writes,
     refresh: publish,
     setAccepting: (next: boolean) => { acceptWrites = next },
+    setWriteError: next => { writeError = next },
     getSnapshot: () => snapshot,
     subscribe: listener => {
       listeners.add(listener)
@@ -220,6 +228,7 @@ function fakeScope(section: SectionView, user?: SectionView, base?: SectionView)
     },
     set: async (field, value) => {
       writes.push({ op: 'set', field, value })
+      if (writeError) throw writeError
       if (!acceptWrites) return
       const user = { ...((snapshot.user as Record<string, unknown> | undefined) ?? {}), [field]: value }
       const merged = { ...((snapshot.value as Record<string, unknown> | undefined) ?? {}), [field]: value }
@@ -228,6 +237,7 @@ function fakeScope(section: SectionView, user?: SectionView, base?: SectionView)
     },
     unset: async field => {
       writes.push({ op: 'unset', field })
+      if (writeError) throw writeError
       if (!acceptWrites) return
       const user = { ...((snapshot.user as Record<string, unknown> | undefined) ?? {}) }
       delete user[field]
@@ -353,12 +363,108 @@ test('部署属性选项同时展示中文含义与稳定合同值', () => {
   ])
 })
 
+test('DSH 模型池在保存前区分安全错误、档案警告与用户未校准声明', () => {
+  const blocked: DshModelPoolView = structuredClone(dshModelPool())
+  blocked.security = { dataMode: 'live' }
+  blocked.routes[0] = { ...blocked.routes[0], deployment: 'simulated-local' as const,
+    trustPolicy: 'cloud-cn' }
+  Object.assign(blocked, { trustPolicies: [{ id: 'cloud-cn', residency: 'CN', auditLogging: true,
+    allowsSensitiveData: true, acknowledgeExternalTransmission: false }] })
+  const issues = buildDshModelPoolIssues(blocked)
+  assert.ok(issues.some(issue => issue.code === 'DSH_POOL_EXTERNAL_ACK_REQUIRED' && issue.severity === 'error'))
+  assert.ok(issues.some(issue => issue.code === 'DSH_POOL_USER_DECLARED_UNCALIBRATED'))
+
+  const publicDraft = { schemaVersion: 'refractagent-dsh-model-pool-v1' as const, security: { dataMode: 'synthetic' },
+    routes: [{ provider: 'deepseek-official', model: 'deepseek-v4-pro', deployment: 'external-cloud' }] }
+  const publicIssues = buildDshModelPoolIssues(publicDraft, publicProfiles)
+  assert.ok(publicIssues.some(issue => issue.code === 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'
+    && issue.severity === 'warning'))
+  assert.equal(publicIssues.some(issue => issue.severity === 'error'), false)
+})
+
+test('合成与已脱敏数据不会套用 live 的 simulated-local 外传确认门槛', () => {
+  for (const dataMode of ['synthetic', 'desensitized'] as const) {
+    const pool: DshModelPoolView = structuredClone(dshModelPool())
+    pool.security = { dataMode }
+    pool.routes[0] = { ...pool.routes[0], deployment: 'simulated-local', trustPolicy: undefined }
+    const issues = buildDshModelPoolIssues(pool)
+    assert.equal(issues.some(issue => issue.code === 'DSH_POOL_EXTERNAL_ACK_REQUIRED'), false)
+    assert.equal(issues.some(issue => issue.code === 'DSH_POOL_TRUST_POLICY_REQUIRED'), false)
+  }
+})
+
+test('阻断问题不写入宿主，档案警告允许保存草稿', async () => {
+  const blockedScope = fakeScope({})
+  const blockedController = new RefractCardController(blockedScope)
+  const blocked: DshModelPoolView = structuredClone(dshModelPool())
+  blocked.routes[0] = { ...blocked.routes[0], deployment: '' as 'local' }
+  blockedController.inject().editDshModelPool(blocked)
+  await blockedController.save()
+  assert.deepEqual(blockedScope.writes, [])
+  assert.equal(blockedController.getSnapshot().failed, true)
+  assert.match(String(blockedController.getSnapshot().failureMessage), /保存前检查/)
+  blockedController.dispose()
+
+  const draftScope = fakeScope({})
+  const draftController = new RefractCardController(draftScope, publicProfiles)
+  draftController.inject().editDshModelPool({ schemaVersion: 'refractagent-dsh-model-pool-v1',
+    security: { dataMode: 'synthetic' }, routes: [{ provider: 'deepseek-official',
+      model: 'deepseek-v4-pro', deployment: 'external-cloud' }] })
+  await draftController.save()
+  assert.equal(draftScope.writes.length, 1)
+  assert.equal(draftController.getSnapshot().failed, false)
+  assert.ok(draftController.getSnapshot().issues.some(issue => issue.code === 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'))
+  draftController.dispose()
+})
+
+test('宿主拒绝与无回读使用不同诊断并保留草稿', async () => {
+  const rejectedScope = fakeScope({ limits: {} })
+  rejectedScope.setWriteError(new Error('policy denied token=super-secret'))
+  const rejected = new RefractCardController(rejectedScope)
+  rejected.inject().editLimit('relaxBudget', true)
+  await rejected.save()
+  assert.match(String(rejected.getSnapshot().failureMessage), /宿主拒绝保存.*policy denied/)
+  assert.doesNotMatch(String(rejected.getSnapshot().failureMessage), /super-secret/)
+  assert.match(String(rejected.getSnapshot().failureMessage), /token=\[REDACTED\]/)
+  assert.ok(rejected.getSnapshot().issues.some(issue => issue.code === 'SETTINGS_HOST_REJECTED'))
+  assert.equal(rejected.getSnapshot().dirty, true)
+  rejected.dispose()
+
+  const unreadScope = fakeScope({ limits: {} })
+  unreadScope.setAccepting(false)
+  const unread = new RefractCardController(unreadScope)
+  unread.inject().editLimit('relaxContext', true)
+  await unread.save()
+  assert.match(String(unread.getSnapshot().failureMessage), /保存结果未确认/)
+  assert.ok(unread.getSnapshot().issues.some(issue => issue.code === 'SETTINGS_READBACK_UNCONFIRMED'))
+  assert.equal(unread.getSnapshot().dirty, true)
+  unread.dispose()
+})
+
+test('设置页直接复用核心冻结档案并保留条件价格来源', async () => {
+  const raw = JSON.parse(await readFile(new URL('../../../../data/model-profiles-v2.json', import.meta.url), 'utf8'))
+  const direct = raw.profiles.find((row: {provider:string;model:string}) =>
+    row.provider === 'deepseek-official' && row.model === 'deepseek-v4-pro')
+  assert.equal(raw.schema_version, 'refractrouter-model-profiles-v2')
+  assert.equal(direct.pricing_materialization.selectedTier, 'peak')
+  assert.equal(direct.pricing.inputPer1k * 1000, 1.32)
+  const ark = raw.profiles.find((row: {provider:string;model:string}) =>
+    row.provider === 'ark' && row.model === 'deepseek-v4-pro')
+  assert.equal(ark.pricing_basis.actualProviderBilling, false)
+  assert.ok(ark.sources[0].url.startsWith('https://'))
+})
+
 test('client bundle registers in the host module format and exports the plugin face', async () => {
   const source = await readFile(new URL('../dist/client.js', import.meta.url), 'utf8')
+  const localeSource = await readFile(new URL('../src/client/locale.ts', import.meta.url), 'utf8')
   assert.ok(source.startsWith('window.__ModuleLoader__.load({'), 'bundle must register a module factory')
   assert.ok(source.includes('"dsh-refractrouter-validation"'))
   assert.ok(source.includes('v4ShowAdvanced'))
   assert.ok(source.includes('v4HideAdvanced'))
+  assert.ok(localeSource.includes('规划模型（Planner）'))
+  assert.ok(source.includes('Planner model'))
+  assert.ok(localeSource.includes('当前生产合同也要求存在'))
+  assert.ok(source.includes('Manufacturer reference only'))
   const registrations: Array<{ id: string; factory: (require: (spec: string) => unknown) => unknown }> = []
   const sandboxWindow = {
     __ModuleLoader__: {

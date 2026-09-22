@@ -132,6 +132,114 @@ export interface DshModelPoolView {
   [field:string]:unknown
 }
 
+export type SettingsIssueCode =
+  | 'DSH_POOL_DEPLOYMENT_REQUIRED'
+  | 'DSH_POOL_TRUST_POLICY_REQUIRED'
+  | 'DSH_POOL_TRUST_POLICY_INVALID'
+  | 'DSH_POOL_EXTERNAL_ACK_REQUIRED'
+  | 'DSH_POOL_ROLE_ROUTE_UNAVAILABLE'
+  | 'DSH_POOL_SHARED_JUDGE_FORBIDDEN'
+  | 'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE'
+  | 'DSH_POOL_MANUAL_PROFILE_INCOMPLETE'
+  | 'DSH_POOL_USER_DECLARED_UNCALIBRATED'
+  | 'SETTINGS_HOST_REJECTED'
+  | 'SETTINGS_READBACK_UNCONFIRMED'
+
+export interface SettingsIssue {
+  code: SettingsIssueCode
+  severity: 'error' | 'warning'
+  field: string
+  route?: string
+  message: string
+}
+
+export interface PublicModelProfileSummary {
+  provider: string
+  model: string
+  pricing: Record<string, number | string>
+  quality: number | null
+  latencyMs: number | null
+}
+
+function policyId(value: Record<string, unknown>): string | undefined {
+  return typeof value.id === 'string' && value.id.trim() ? value.id : undefined
+}
+
+/** 仅检查设置与部署边界；质量排序、职责分配和运行准入仍由 Python 核心决定。 */
+export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
+  publicProfiles: readonly PublicModelProfileSummary[] = []): SettingsIssue[] {
+  if (!pool) return []
+  const issues: SettingsIssue[] = []
+  const policies = new Map((pool.trustPolicies ?? []).map(row => [policyId(row), row] as const)
+    .filter((row): row is [string, Record<string, unknown>] => row[0] !== undefined))
+  const dataMode = typeof pool.security?.dataMode === 'string' ? pool.security.dataMode : 'live'
+  const enabledRoutes = pool.routes.filter(row => row.enabled !== false)
+  const routeKeys = new Set(enabledRoutes.map(row => `${row.provider}/${row.model}`))
+  for (const route of enabledRoutes) {
+    const identity = `${route.provider}/${route.model}`
+    if (!DEPLOYMENT_OPTIONS.some(option => option.value === route.deployment)) {
+      issues.push({code:'DSH_POOL_DEPLOYMENT_REQUIRED',severity:'error',field:'deployment',route:identity,
+        message:`${identity}：请选择部署属性。`})
+    }
+    const needsPolicy = route.deployment === 'trusted-cloud'
+      || (route.deployment === 'simulated-local' && dataMode === 'live')
+    const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
+    if (needsPolicy && !policy) {
+      issues.push({code:'DSH_POOL_TRUST_POLICY_REQUIRED',severity:'error',field:'trustPolicy',route:identity,
+        message:`${identity}：当前部署和数据模式需要选择有效的信任策略。`})
+    }
+    if (policy && (typeof policy.residency !== 'string' || !policy.residency.trim()
+      || policy.auditLogging !== true || policy.allowsSensitiveData !== true)) {
+      issues.push({code:'DSH_POOL_TRUST_POLICY_INVALID',severity:'error',field:'trustPolicies',route:identity,
+        message:`${identity}：信任策略必须填写驻留区域，并明确启用审计及允许敏感数据。`})
+    }
+    if (route.deployment === 'simulated-local' && dataMode === 'live' && policy
+      && policy.acknowledgeExternalTransmission !== true) {
+      issues.push({code:'DSH_POOL_EXTERNAL_ACK_REQUIRED',severity:'error',field:'trustPolicies',route:identity,
+        message:`${identity}：云模型模拟本地仍会外传真实数据，必须明确确认外部传输。`})
+    }
+    const profile = publicProfiles.find(row => row.provider === route.provider && row.model === route.model)
+    const overrides = route.overrides ?? {}
+    if (!profile) {
+      const missing = ['inputPer1k','outputPer1k','quality','latencyMs']
+        .filter(key => typeof overrides[key] !== 'number')
+      if (missing.length) {
+        issues.push({code:'DSH_POOL_MANUAL_PROFILE_INCOMPLETE',severity:'warning',field:'overrides',route:identity,
+          message:`${identity}：没有公开档案，仍缺少 ${missing.join('、')}；可以保存草稿，但尚不能运行。`})
+      } else {
+        issues.push({code:'DSH_POOL_USER_DECLARED_UNCALIBRATED',severity:'warning',field:'overrides',route:identity,
+          message:`${identity}：使用用户声明参数，未经项目校准。`})
+      }
+    } else {
+      const missing = [
+        ...(typeof overrides.quality !== 'number' && profile.quality === null ? ['quality'] : []),
+        ...(typeof overrides.latencyMs !== 'number' && profile.latencyMs === null ? ['latencyMs'] : []),
+      ]
+      if (missing.length) {
+        issues.push({code:'DSH_POOL_PUBLIC_PROFILE_INCOMPLETE',severity:'warning',field:'overrides',route:identity,
+          message:`${identity}：公开档案尚无${missing.includes('quality')?'质量预测':''}${missing.length===2?'和':''}${missing.includes('latencyMs')?'时延预测':''}；可以保存草稿，但尚不能参与路由。`})
+      }
+    }
+  }
+  const roles = pool.roleOverrides
+  if (roles) {
+    for (const role of ['planner','judge','classifier'] as const) {
+      const route = roles[role]
+      if (route && !routeKeys.has(route)) issues.push({code:'DSH_POOL_ROLE_ROUTE_UNAVAILABLE',severity:'error',
+        field:`roleOverrides.${role}`,route,message:`${role} 引用了已删除或未启用的路线 ${route}。`})
+    }
+    for (const route of roles.workers ?? []) {
+      if (!routeKeys.has(route)) issues.push({code:'DSH_POOL_ROLE_ROUTE_UNAVAILABLE',severity:'error',
+        field:'roleOverrides.workers',route,message:`执行模型池引用了已删除或未启用的路线 ${route}。`})
+    }
+    if (!pool.allowSharedJudge && roles.judge && roles.workers?.includes(roles.judge)) {
+      issues.push({code:'DSH_POOL_SHARED_JUDGE_FORBIDDEN',severity:'error',field:'roleOverrides',route:roles.judge,
+        message:'评审模型与执行模型默认必须分离；仅开发测试可启用共用职责。'})
+    }
+  }
+  return issues
+}
+
 /** 浏览器 settingsScope 的结构化契约（dsh-client-ui-settings 提供实现）。 */
 export interface CardScopeSnapshot {
   status: 'loading' | 'ready' | 'unavailable'
@@ -154,6 +262,7 @@ export interface RefractCardProjection {
   saving: boolean
   failed: boolean
   failureMessage: string | null
+  issues: SettingsIssue[]
   hasProvider: boolean
   overriddenProvider: boolean
   overriddenDshPool: boolean
@@ -227,8 +336,18 @@ function jsonValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
+function sanitizeHostErrorDetail(value: unknown): string {
+  return (value instanceof Error ? value.message : String(value))
+    .replace(/\b(Bearer)\s+[^\s,;]+/gi, '$1 [REDACTED]')
+    .replace(/(["']?(?:api[_-]?key|token|secret|password|credential)["']?\s*[:=]\s*)["']?[^\s,;}"']+["']?/gi,
+      '$1[REDACTED]')
+    .replace(/(https?:\/\/)[^\s/@:]+:[^\s/@]+@/gi, '$1[REDACTED]@')
+    .slice(0, 500)
+}
+
 export class RefractCardController {
   private readonly scope: CardScope
+  private readonly publicProfiles: readonly PublicModelProfileSummary[]
   private readonly listeners = new Set<() => void>()
   private readonly staged = new Map<CardField, StagedEdit>()
   private providerJson = ''
@@ -238,11 +357,13 @@ export class RefractCardController {
   private saving = false
   private failed = false
   private failureMessage: string | null = null
+  private saveIssue: SettingsIssue | null = null
   private cached: RefractCardProjection | undefined
   private readonly offScope: () => void
 
-  constructor(scope: CardScope) {
+  constructor(scope: CardScope, publicProfiles: readonly PublicModelProfileSummary[] = []) {
     this.scope = scope
+    this.publicProfiles = publicProfiles
     this.offScope = scope.subscribe(() => {
       if (!this.jsonEdited && !this.staged.has('providerConfig')) this.syncProviderJson()
       this.publish()
@@ -402,6 +523,7 @@ export class RefractCardController {
   }
 
   editProviderJson(text: string): void {
+    this.beginEdit()
     this.jsonEdited = true
     this.modelText = {}
     this.providerJson = text
@@ -430,11 +552,13 @@ export class RefractCardController {
   }
 
   editDshModelPool(value: DshModelPoolView): void {
+    this.beginEdit()
     this.staged.set('dshModelPool', {kind:'set',value:structuredClone(value)})
     this.publish()
   }
 
   editRouter(value: RouterConnectionView | undefined): void {
+    this.beginEdit()
     if (value === undefined) {
       if (this.overridden('router')) this.staged.set('router',{kind:'clear'})
       else this.staged.delete('router')
@@ -444,6 +568,7 @@ export class RefractCardController {
 
   resetField(field: CardField): void {
     if (!this.overridden(field)) return
+    this.beginEdit()
     this.staged.set(field, { kind: 'clear' })
     if (field === 'providerConfig') {
       const baseProvider = this.baseSection()?.providerConfig
@@ -458,6 +583,7 @@ export class RefractCardController {
     this.staged.clear()
     this.failed = false
     this.failureMessage = null
+    this.saveIssue = null
     this.syncProviderJson()
     this.publish()
   }
@@ -468,6 +594,15 @@ export class RefractCardController {
     if (this.providerJsonError !== null) {
       this.failed = true
       this.failureMessage = this.providerJsonError
+      this.publish()
+      return
+    }
+    const blocking = buildDshModelPoolIssues(this.currentDshPool(), this.publicProfiles)
+      .filter(issue => issue.severity === 'error')
+    if (blocking.length) {
+      this.failed = true
+      this.failureMessage = '保存前检查未通过，请修正下方标记的问题。'
+      this.saveIssue = null
       this.publish()
       return
     }
@@ -510,11 +645,14 @@ export class RefractCardController {
     this.saving = true
     this.failed = false
     this.failureMessage = null
+    this.saveIssue = null
     this.publish()
     for (const write of writes) await write.run().catch(error => {
       if (this.failureMessage === null) {
-        const detail = error instanceof Error ? error.message : String(error)
-        this.failureMessage = `${write.field}: ${detail}`
+        const detail = sanitizeHostErrorDetail(error)
+        this.failureMessage = `宿主拒绝保存 ${write.field}：${detail}`
+        this.saveIssue = {code:'SETTINGS_HOST_REJECTED',severity:'error',field:write.field,
+          message:this.failureMessage}
       }
     })
     let landed = true
@@ -534,7 +672,11 @@ export class RefractCardController {
     }
     this.saving = false
     this.failed = !landed
-    if (!landed && this.failureMessage === null) this.failureMessage = '宿主未回读刚写入的设置值。'
+    if (!landed && this.failureMessage === null) {
+      this.failureMessage = '保存结果未确认，修改仍保留在页面中；请检查宿主状态后重试。'
+      this.saveIssue = {code:'SETTINGS_READBACK_UNCONFIRMED',severity:'error',field:'dshModelPool',
+        message:this.failureMessage}
+    }
     this.publish()
   }
 
@@ -597,6 +739,7 @@ export class RefractCardController {
   }
 
   private stageProvider(value: ProviderConfigView): void {
+    this.beginEdit()
     this.staged.set('providerConfig', { kind: 'set', value })
     this.providerJson = JSON.stringify(value, null, 2)
     try {
@@ -609,6 +752,7 @@ export class RefractCardController {
   }
 
   private stageLimits(value: LimitsView): void {
+    this.beginEdit()
     this.staged.set('limits', { kind: 'set', value })
     this.publish()
   }
@@ -621,10 +765,18 @@ export class RefractCardController {
     this.providerJsonError = null
   }
 
+  private beginEdit(): void {
+    this.failed = false
+    this.failureMessage = null
+    this.saveIssue = null
+  }
+
   private project(): RefractCardProjection {
     const snap = this.snapshot()
     const providerStage = this.staged.get('providerConfig')
     const limitsStage = this.staged.get('limits')
+    const issues = buildDshModelPoolIssues(this.currentDshPool(), this.publicProfiles)
+    if (this.saveIssue) issues.push(this.saveIssue)
     return {
       status: snap.status,
       writable: snap.writable,
@@ -632,6 +784,7 @@ export class RefractCardController {
       saving: this.saving,
       failed: this.failed,
       failureMessage: this.failureMessage,
+      issues,
       hasProvider: this.currentProvider() !== undefined || this.currentDshPool() !== undefined,
       overriddenProvider: this.overridden('providerConfig'),
       overriddenDshPool:this.overridden('dshModelPool'),

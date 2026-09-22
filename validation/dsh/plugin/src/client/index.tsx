@@ -5,6 +5,7 @@ import { RefractCardController, SETTINGS_NAMESPACE } from '../settings-card.js'
 import { RefractCard } from './refract-card.js'
 import { en, LOCALE_NS, zh } from './locale.js'
 import type { ClientContext, RouterProjectDirectory } from './types.js'
+import { FROZEN_MODEL_PROFILES } from './model-profiles.js'
 
 const graph = graphModule(createElement as unknown as Parameters<typeof graphModule>[0])
 export const parse = graph.parse
@@ -16,7 +17,8 @@ export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.ll
 export function apply(ctx: ClientContext): void {
   graph.apply(ctx)
   ctx.effect(() => ctx.locale.register(LOCALE_NS, { zh, en }), 'refractagent-settings-card: dictionaries')
-  const controller = new RefractCardController(ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE }))
+  const controller = new RefractCardController(ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE }),
+    FROZEN_MODEL_PROFILES.profiles)
   ctx.effect(() => () => {
     controller.dispose()
   }, 'refractagent-settings-card: card controller')
