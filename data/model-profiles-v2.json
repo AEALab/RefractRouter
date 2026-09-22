@@ -6,8 +6,8 @@
     "note": "路由核心继续消费每千 token 的预算单价；完整条件价格计划用于解释峰谷、上下文阶梯、服务等级与缓存写入。Ark 路线只使用原厂价格作比较参考，不表示 Ark 的实际结算。"
   },
   "quality_normalization": {
-    "method": "cohort-min-max-0-100",
-    "note": "第三方质量数据仅在许可允许的冻结快照中填写；运行时不联网更新。"
+    "method": "large-open-weights-reasoning-cohort-percentile-0-100",
+    "note": "以 Artificial Analysis 同版本页面公布的同类模型排名冻结百分位：(cohort_size-rank)/(cohort_size-1)*100。原始 Intelligence Index 是多个独立评测的综合指标；运行时不联网更新。"
   },
   "profiles": [
     {
@@ -50,7 +50,21 @@
         "selectedTier": "peak",
         "note": "硬预算采用工作日高峰价；运行时不按日历联网漂移。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 94.69,
+        "raw_score": 39,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 7 of 114",
+        "normalization": "(114-7)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/deepseek-v4-1-flash",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; DeepSeek V4.1 Flash max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
@@ -63,19 +77,19 @@
     {
       "provider": "deepseek-official",
       "model": "deepseek-v4-flash",
-      "effective_model": "DeepSeek-V4.1-Flash",
+      "effective_model": "DeepSeek-V4-Flash-0731",
       "pricing": {
         "unit": "USD",
-        "inputPer1k": 0.0003,
-        "cachedInputPer1k": 0.000006,
-        "outputPer1k": 0.0012
+        "inputPer1k": 0.00044,
+        "cachedInputPer1k": 0.000014,
+        "outputPer1k": 0.00132
       },
       "pricing_basis": {
         "kind": "direct-provider-public-price",
-        "equivalence": "official-alias",
+        "equivalence": "official-versioned-route",
         "manufacturer": "DeepSeek",
         "actualProviderBilling": true,
-        "note": "官方已将此旧名称路由到 DeepSeek-V4.1-Flash，并按 Flash 价格计费。"
+        "note": "DSH 目录将此路线与 DeepSeek-V4.1-Flash 分开列出；按 DeepSeek-V4-Flash-0731 冻结。"
       },
       "pricing_schedule": {
         "unit": "USD",
@@ -85,14 +99,14 @@
           {
             "id": "off-peak",
             "conditions": {"timeBand": "official-off-peak"},
-            "prices": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006},
-            "budgetPricing": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006}
+            "prices": {"inputPer1k": 0.00022, "cachedInputPer1k": 0.000007, "outputPer1k": 0.00066},
+            "budgetPricing": {"inputPer1k": 0.00022, "cachedInputPer1k": 0.000007, "outputPer1k": 0.00066}
           },
           {
             "id": "peak",
             "conditions": {"timeBand": "official-peak"},
-            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012},
-            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012}
+            "prices": {"inputPer1k": 0.00044, "cachedInputPer1k": 0.000014, "outputPer1k": 0.00132},
+            "budgetPricing": {"inputPer1k": 0.00044, "cachedInputPer1k": 0.000014, "outputPer1k": 0.00132}
           }
         ]
       },
@@ -101,20 +115,34 @@
         "selectedTier": "peak",
         "note": "硬预算采用工作日高峰价。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 92.86,
+        "raw_score": 34,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 9 of 113",
+        "normalization": "(113-9)/(113-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/deepseek-v4-flash/",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; DeepSeek V4 Flash 0731 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
           "url": "https://api-docs.deepseek.com/quick_start/pricing/",
           "retrieved_at": "2026-09-22T08:00:00Z",
-          "metric_version": "DeepSeek legacy alias to V4.1 Flash"
+          "metric_version": "DeepSeek-V4-Flash-0731"
         }
       ]
     },
     {
       "provider": "deepseek-official",
       "model": "deepseek-v4-flash-vision-exp",
-      "effective_model": "DeepSeek-V4.1-Flash",
+      "effective_model": "DeepSeek-V4-Flash-Vision-Exp",
       "pricing": {
         "unit": "USD",
         "inputPer1k": 0.0003,
@@ -123,10 +151,10 @@
       },
       "pricing_basis": {
         "kind": "direct-provider-public-price",
-        "equivalence": "official-alias",
+        "equivalence": "unverified",
         "manufacturer": "DeepSeek",
         "actualProviderBilling": true,
-        "note": "官方已将此旧名称路由到 DeepSeek-V4.1-Flash，并按 Flash 价格计费。"
+        "note": "实验视觉路线没有足够证据证明与 DeepSeek-V4.1-Flash 或 V4-Flash-0731 等价。"
       },
       "pricing_schedule": {
         "unit": "USD",
@@ -158,7 +186,7 @@
           "kind": "official-pricing",
           "url": "https://api-docs.deepseek.com/quick_start/pricing/",
           "retrieved_at": "2026-09-22T08:00:00Z",
-          "metric_version": "DeepSeek legacy vision alias to V4.1 Flash"
+          "metric_version": "DeepSeek-V4-Flash-Vision-Exp price reference only; quality equivalence unavailable"
         }
       ]
     },
@@ -202,7 +230,21 @@
         "selectedTier": "peak",
         "note": "硬预算采用工作日高峰价。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 93.81,
+        "raw_score": 36,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 8 of 114",
+        "normalization": "(114-8)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/deepseek-v4-pro",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; DeepSeek V4 Pro 0813 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
@@ -215,12 +257,12 @@
     {
       "provider": "ark",
       "model": "deepseek-v4-flash",
-      "effective_model": "DeepSeek-V4.1-Flash manufacturer reference",
+      "effective_model": "DeepSeek-V4-Flash-0731",
       "pricing": {
         "unit": "USD",
-        "inputPer1k": 0.0003,
-        "cachedInputPer1k": 0.000006,
-        "outputPer1k": 0.0012
+        "inputPer1k": 0.00044,
+        "cachedInputPer1k": 0.000014,
+        "outputPer1k": 0.00132
       },
       "pricing_basis": {
         "kind": "manufacturer-reference",
@@ -237,14 +279,14 @@
           {
             "id": "off-peak",
             "conditions": {"timeBand": "official-off-peak"},
-            "prices": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006},
-            "budgetPricing": {"inputPer1k": 0.00015, "cachedInputPer1k": 0.000003, "outputPer1k": 0.0006}
+            "prices": {"inputPer1k": 0.00022, "cachedInputPer1k": 0.000007, "outputPer1k": 0.00066},
+            "budgetPricing": {"inputPer1k": 0.00022, "cachedInputPer1k": 0.000007, "outputPer1k": 0.00066}
           },
           {
             "id": "peak",
             "conditions": {"timeBand": "official-peak"},
-            "prices": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012},
-            "budgetPricing": {"inputPer1k": 0.0003, "cachedInputPer1k": 0.000006, "outputPer1k": 0.0012}
+            "prices": {"inputPer1k": 0.00044, "cachedInputPer1k": 0.000014, "outputPer1k": 0.00132},
+            "budgetPricing": {"inputPer1k": 0.00044, "cachedInputPer1k": 0.000014, "outputPer1k": 0.00132}
           }
         ]
       },
@@ -253,20 +295,40 @@
         "selectedTier": "peak",
         "note": "原厂参考采用高峰价；不得解释为 Ark 现金账单。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 92.86,
+        "raw_score": 34,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 9 of 113",
+        "normalization": "(113-9)/(113-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/deepseek-v4-flash/",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; DeepSeek V4 Flash 0731 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
           "url": "https://api-docs.deepseek.com/quick_start/pricing/",
           "retrieved_at": "2026-09-22T08:00:00Z",
-          "metric_version": "DeepSeek-V4.1-Flash manufacturer reference"
+          "metric_version": "DeepSeek-V4-Flash-0731 manufacturer reference"
+        },
+        {
+          "kind": "provider-model-equivalence",
+          "url": "https://docs.volcengine.com/docs/ark/coding-plan-personal-model-release",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Ark deepseek-v4-flash GA model name; 2026-08-07"
         }
       ]
     },
     {
       "provider": "ark",
       "model": "deepseek-v4-pro",
-      "effective_model": "DeepSeek-V4-Pro-0813 manufacturer reference",
+      "effective_model": "DeepSeek-V4-Pro-0813",
       "pricing": {
         "unit": "USD",
         "inputPer1k": 0.00132,
@@ -304,20 +366,40 @@
         "selectedTier": "peak",
         "note": "原厂参考采用高峰价；不得解释为 Ark 现金账单。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 93.81,
+        "raw_score": 36,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 8 of 114",
+        "normalization": "(114-8)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/deepseek-v4-pro",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; DeepSeek V4 Pro 0813 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
           "url": "https://api-docs.deepseek.com/quick_start/pricing/",
           "retrieved_at": "2026-09-22T08:00:00Z",
           "metric_version": "DeepSeek-V4-Pro-0813 manufacturer reference"
+        },
+        {
+          "kind": "provider-model-equivalence",
+          "url": "https://docs.volcengine.com/docs/ark/coding-plan-personal-model-release",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Ark deepseek-v4-pro GA model name; 2026-08-26"
         }
       ]
     },
     {
       "provider": "ark",
       "model": "glm-5.3",
-      "effective_model": "GLM-5.3 manufacturer reference",
+      "effective_model": "GLM-5.3",
       "pricing": {
         "unit": "USD",
         "inputPer1k": 0.0014,
@@ -349,20 +431,40 @@
         "selectedTier": "public-list-price",
         "note": "当前官方页未列条件阶梯；不得解释为 Ark 现金账单。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 99.12,
+        "raw_score": 45,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 2 of 114",
+        "normalization": "(114-2)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/glm-5-3",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; GLM-5.3 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
           "url": "https://docs.z.ai/guides/overview/pricing",
           "retrieved_at": "2026-09-22T08:00:00Z",
           "metric_version": "GLM-5.3 public API pricing"
+        },
+        {
+          "kind": "provider-model-equivalence",
+          "url": "https://docs.volcengine.com/docs/ark/coding-plan-personal-model-release",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Ark glm-5.3 model name; 2026-08-14"
         }
       ]
     },
     {
       "provider": "ark",
       "model": "kimi-k3",
-      "effective_model": "Kimi K3 manufacturer reference",
+      "effective_model": "Kimi-K3",
       "pricing": {
         "unit": "USD",
         "inputPer1k": 0.006,
@@ -400,20 +502,40 @@
         "selectedTier": "default-5m-cache-write",
         "note": "DSH 路线未声明 1h TTL，按官方默认 5m 将缓存写入与普通输入一并预留；不得解释为 Ark 现金账单。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 98.23,
+        "raw_score": 44,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 3 of 114",
+        "normalization": "(114-3)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/kimi-k3/",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; Kimi K3 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
           "url": "https://platform.kimi.ai/docs/pricing/chat",
           "retrieved_at": "2026-09-22T08:00:00Z",
           "metric_version": "Kimi K3 input, cache write, cached input and output pricing"
+        },
+        {
+          "kind": "provider-model-equivalence",
+          "url": "https://docs.volcengine.com/docs/ark/coding-plan-personal-model-release",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Ark kimi-k3 model name; 2026-09-08"
         }
       ]
     },
     {
       "provider": "ark",
       "model": "minimax-m3",
-      "effective_model": "MiniMax-M3 manufacturer reference",
+      "effective_model": "MiniMax-M3",
       "pricing": {
         "unit": "USD",
         "inputPer1k": 0.0006,
@@ -463,13 +585,33 @@
         "selectedTier": "standard-over-512k",
         "note": "DSH 路线未启用 Priority，按 Standard 的长上下文阶梯预留；不得解释为 Ark 现金账单。"
       },
-      "quality_profile": null,
+      "quality_profile": {
+        "score": 86.73,
+        "raw_score": 29,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 16 of 114",
+        "normalization": "(114-16)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/minimax-m3",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; MiniMax-M3",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
       "sources": [
         {
           "kind": "official-pricing",
           "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
           "retrieved_at": "2026-09-22T08:00:00Z",
           "metric_version": "MiniMax-M3 standard and priority context-tier pricing"
+        },
+        {
+          "kind": "provider-model-equivalence",
+          "url": "https://docs.volcengine.com/docs/ark/coding-plan-personal-get-started?lang=zh",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Ark minimax-m3 supported model name"
         }
       ]
     }

@@ -133,7 +133,7 @@ def test_route_observation_replaces_bootstrap_only_for_exact_effective_identity(
     assert strong.get('routing') is None  # 规划/评审路线不重复生成执行器预测。
 
 
-def test_repository_profile_freezes_all_current_dsh_prices_without_quality_claims():
+def test_repository_profile_freezes_public_prices_and_independent_quality_priors():
     root=Path(__file__).resolve().parents[1]
     raw=load_frozen_profiles(root/'data/model-profiles-v2.json')
     assert raw['schema_version']=='refractrouter-model-profiles-v2'
@@ -145,19 +145,39 @@ def test_repository_profile_freezes_all_current_dsh_prices_without_quality_claim
         ('deepseek-official','deepseek-v4-pro'),
         ('ark','deepseek-v4-flash'),('ark','deepseek-v4-pro'),('ark','glm-5.3'),
         ('ark','kimi-k3'),('ark','minimax-m3')}
-    assert all(row['quality_profile'] is None
-               for row in raw['profiles'])
+    assert raw['quality_normalization']['method']==(
+        'large-open-weights-reasoning-cohort-percentile-0-100')
+    scores={(row['provider'],row['model']):(
+        None if row['quality_profile'] is None else row['quality_profile']['score'])
+        for row in raw['profiles']}
+    assert scores=={
+        ('deepseek-official','deepseek-flash'):94.69,
+        ('deepseek-official','deepseek-v4-flash'):92.86,
+        ('deepseek-official','deepseek-v4-flash-vision-exp'):None,
+        ('deepseek-official','deepseek-v4-pro'):93.81,
+        ('ark','deepseek-v4-flash'):92.86,('ark','deepseek-v4-pro'):93.81,
+        ('ark','glm-5.3'):99.12,('ark','kimi-k3'):98.23,('ark','minimax-m3'):86.73}
+    for row in raw['profiles']:
+        if row['quality_profile'] is None:
+            continue
+        source=row['quality_profile']['source']
+        assert source['kind']=='independent-third-party'
+        assert source['url'].startswith('https://artificialanalysis.ai/models/')
+        assert source['redistributable'] is True
+        assert 'individual score citation permitted' in source['license']
     direct=next(row for row in raw['profiles']
                 if (row['provider'],row['model'])==('deepseek-official','deepseek-v4-flash'))
-    assert direct['effective_model']=='DeepSeek-V4.1-Flash'
-    assert direct['pricing_basis']['equivalence']=='official-alias'
-    assert direct['pricing']=={'unit':'USD','inputPer1k':.0003,
-                               'cachedInputPer1k':.000006,'outputPer1k':.0012}
+    assert direct['effective_model']=='DeepSeek-V4-Flash-0731'
+    assert direct['pricing_basis']['equivalence']=='official-versioned-route'
+    assert direct['pricing']=={'unit':'USD','inputPer1k':.00044,
+                               'cachedInputPer1k':.000014,'outputPer1k':.00132}
+    assert direct['quality_profile']['raw_score']==34
     ark=next(row for row in raw['profiles']
              if (row['provider'],row['model'])==('ark','deepseek-v4-flash'))
     assert ark['pricing_basis']['kind']=='manufacturer-reference'
     assert ark['pricing_basis']['equivalence']=='unverified'
     assert ark['pricing_basis']['actualProviderBilling'] is False
+    assert any(source['kind']=='provider-model-equivalence' for source in ark['sources'])
     kimi=next(row for row in raw['profiles']
               if (row['provider'],row['model'])==('ark','kimi-k3'))
     assert kimi['pricing']['inputPer1k']==.006
@@ -176,10 +196,26 @@ def test_public_price_without_independent_quality_fails_closed():
     raw={'schemaVersion':'refractagent-dsh-model-pool-v1','billingUnit':'USD',
         'security':{'dataMode':'synthetic','sensitiveTerms':[],'classifier':{'enabled':True}},
         'allowSharedJudge':True,
-        'routes':[{'provider':'deepseek-official','model':'deepseek-v4-pro','deployment':'local'}]}
+        'routes':[{'provider':'deepseek-official','model':'deepseek-v4-flash-vision-exp','deployment':'local'}]}
     with pytest.raises(ValueError,match='independent third-party quality prior'):
         compile_dsh_model_pool(raw,snapshot(
-            ('deepseek-official','deepseek-v4-pro',1048576,393216)),profiles=profiles)
+            ('deepseek-official','deepseek-v4-flash-vision-exp',131072,8192)),profiles=profiles)
+
+
+def test_packaged_independent_quality_enters_latency_bootstrap_without_model_call():
+    profiles=load_frozen_profiles()
+    raw={'schemaVersion':'refractagent-dsh-model-pool-v2','billingUnit':'USD',
+        'security':{'dataMode':'synthetic','sensitiveTerms':[],'classifier':{'enabled':True}},
+        'allowSharedJudge':True,
+        'routes':[{'provider':'deepseek-official','model':'deepseek-v4-pro','deployment':'local'}]}
+    config,provenance=compile_dsh_model_pool(raw,snapshot(
+        ('deepseek-official','deepseek-v4-pro',1048576,393216)),profiles=profiles)
+    assert config['models'][0]['routing']['quality']==93.81
+    route=provenance['deepseek-official/deepseek-v4-pro']
+    assert route['quality_source']=='independent-third-party'
+    assert route['quality_profile']['raw_score']==36
+    assert route['latency_source']=='conservative-bootstrap'
+    assert route['samples']==0
 
 
 def test_v2_profile_rejects_a_materialized_price_not_in_its_selected_tier(tmp_path):
@@ -208,12 +244,11 @@ def test_cli_reports_missing_independent_quality_from_packaged_profile(tmp_path,
         'schemaVersion':'refractagent-dsh-model-pool-v2','billingUnit':'USD',
         'security':{'dataMode':'synthetic'},
         'trustPolicies':[{'id':'team','residency':'CN','auditLogging':True,'allowsSensitiveData':True}],
-        'routes':[
-            {'provider':'deepseek-official','model':'deepseek-flash','deployment':'trusted-cloud','trustPolicy':'team'},
-            {'provider':'local','model':'private','deployment':'local','overrides':{
-                'inputPer1k':0,'outputPer1k':0}},
-        ]},'dshCatalogSnapshot':snapshot(
-            ('deepseek-official','deepseek-flash',131072,8192),('local','private',65536,4096))}
+        'allowSharedJudge':True,
+        'routes':[{'provider':'deepseek-official','model':'deepseek-v4-flash-vision-exp',
+                   'deployment':'trusted-cloud','trustPolicy':'team'}]},
+        'dshCatalogSnapshot':snapshot(
+            ('deepseek-official','deepseek-v4-flash-vision-exp',131072,8192))}
     monkeypatch.setattr(sys,'stdin',StringIO(json.dumps(request)))
     assert main(['run','--request-stdin','--mode','preflight','--runs-dir',str(tmp_path)])==1
     result=json.loads(capsys.readouterr().out)

@@ -463,10 +463,23 @@ test('设置页直接复用核心冻结档案并保留条件价格来源', async
   assert.equal(raw.schema_version, 'refractrouter-model-profiles-v2')
   assert.equal(direct.pricing_materialization.selectedTier, 'peak')
   assert.equal(direct.pricing.inputPer1k * 1000, 1.32)
+  assert.equal(direct.quality_profile.score, 93.81)
+  assert.equal(direct.quality_profile.raw_score, 36)
+  assert.equal(direct.quality_profile.source.kind, 'independent-third-party')
+  assert.match(direct.quality_profile.source.url, /^https:\/\/artificialanalysis\.ai\/models\//)
   const ark = raw.profiles.find((row: {provider:string;model:string}) =>
     row.provider === 'ark' && row.model === 'deepseek-v4-pro')
   assert.equal(ark.pricing_basis.actualProviderBilling, false)
+  assert.equal(ark.pricing_basis.equivalence, 'unverified')
+  assert.ok(ark.sources.some((source: {kind:string}) => source.kind === 'provider-model-equivalence'))
   assert.ok(ark.sources[0].url.startsWith('https://'))
+  const v41 = raw.profiles.find((row: {provider:string;model:string}) =>
+    row.provider === 'deepseek-official' && row.model === 'deepseek-flash')
+  const v4 = raw.profiles.find((row: {provider:string;model:string}) =>
+    row.provider === 'deepseek-official' && row.model === 'deepseek-v4-flash')
+  assert.equal(v41.effective_model, 'DeepSeek-V4.1-Flash')
+  assert.equal(v4.effective_model, 'DeepSeek-V4-Flash-0731')
+  assert.notEqual(v41.quality_profile.raw_score, v4.quality_profile.raw_score)
 })
 
 test('client bundle registers in the host module format and exports the plugin face', async () => {
