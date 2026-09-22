@@ -134,7 +134,7 @@ def authorization_binding(payload, *, provider_config, catalog_snapshot, product
 
 
 def create_authorization_preview(binding, *, billing_unit, production_estimate,
-                                 evaluation_estimate, now=None):
+                                 evaluation_estimate, ready=True, now=None):
     now = now or datetime.now(timezone.utc)
     authorization_id = uuid4().hex
     issued_at = now.isoformat().replace("+00:00", "Z")
@@ -161,8 +161,12 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
             "evaluation_estimate": evaluation_estimate,
             "production_hard_limit": binding["production_budget"],
             "evaluation_hard_limit": binding["evaluation_budget"],
+            **({"production_estimate_range": {
+                "minimum": production_estimate,
+                "maximum": binding["production_budget"],
+            }} if gate["decision"] == "dag" else {}),
         },
-        "ready": (binding["canary"]["data_mode"] == "synthetic"
+        "ready": (ready and binding["canary"]["data_mode"] == "synthetic"
                   and binding["canary"]["billing_unit"] == "USD"),
         "data_mode": binding["canary"]["data_mode"],
         "tools_allowed": False,

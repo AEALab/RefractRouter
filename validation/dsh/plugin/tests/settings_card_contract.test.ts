@@ -507,6 +507,41 @@ test('设置页直接复用核心冻结档案并保留条件价格来源', async
   assert.notEqual(v41.quality_profile.raw_score, v4.quality_profile.raw_score)
 })
 
+test('真实执行设置必须显式使用 synthetic、USD 和双硬预算，并可往返保存', async () => {
+  const live={schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
+    maxProductionCost:.2,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
+  validateSettingsSection({liveExecution:live})
+  assert.throws(()=>validateSettingsSection({liveExecution:{...live,maxProductionCost:0}}),/positive USD hard limit/)
+  const base=configure({dshModelPool:{...dshModelPool(),schemaVersion:'refractagent-dsh-model-pool-v2',
+    routes:dshModelPool().routes.map(route=>({...route,overrides:{inputPer1k:0,outputPer1k:0}}))}})
+  const scope=fakeScope(buildSettingsBase(base) as SectionView)
+  const controller=new RefractCardController(scope)
+  controller.inject().editLiveExecution(live)
+  assert.equal(controller.getSnapshot().issues.some(issue=>issue.code.startsWith('LIVE_EXECUTION_')),false)
+  await controller.save()
+  assert.deepEqual(scope.getSnapshot().value?.liveExecution,live)
+  assert.deepEqual(overlaySettings(base,{liveExecution:live}).liveExecution,live)
+  controller.dispose()
+})
+
+test('真实执行的静态缺项在保存前逐项说明', async () => {
+  const pool={...dshModelPool(),schemaVersion:'refractagent-dsh-model-pool-v2' as const,billingUnit:'AFP',
+    security:{dataMode:'live'},routes:dshModelPool().routes.map(route=>({...route,
+      overrides:{inputPer1k:0,outputPer1k:0}}))}
+  const scope=fakeScope({dshModelPool:pool})
+  const controller=new RefractCardController(scope)
+  controller.inject().editLiveExecution({schemaVersion:'refractagent-live-execution-v1',enabled:true,
+    complexityPolicy:'dag',reviewPolicy:'always'})
+  const codes=controller.getSnapshot().issues.map(issue=>issue.code)
+  assert.ok(codes.includes('LIVE_EXECUTION_USD_REQUIRED'))
+  assert.ok(codes.includes('LIVE_EXECUTION_SYNTHETIC_REQUIRED'))
+  assert.ok(codes.includes('LIVE_EXECUTION_BUDGET_REQUIRED'))
+  await controller.save()
+  assert.equal(scope.writes.length,0)
+  assert.match(String(controller.getSnapshot().failureMessage),/保存前检查未通过/)
+  controller.dispose()
+})
+
 test('client bundle registers in the host module format and exports the plugin face', async () => {
   const source = await readFile(new URL('../dist/client.js', import.meta.url), 'utf8')
   const localeSource = await readFile(new URL('../src/client/locale.ts', import.meta.url), 'utf8')
@@ -520,6 +555,9 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.ok(source.includes('Manufacturer reference only'))
   assert.ok(localeSource.includes('请先修正以下阻断问题'))
   assert.ok(source.includes('saveBlockedButton'))
+  assert.ok(localeSource.includes('真实执行（实验性）'))
+  assert.ok(localeSource.includes('最多 1 次执行'))
+  assert.ok(source.includes('one-time DSH approval'))
   const registrations: Array<{ id: string; factory: (require: (spec: string) => unknown) => unknown }> = []
   const sandboxWindow = {
     __ModuleLoader__: {

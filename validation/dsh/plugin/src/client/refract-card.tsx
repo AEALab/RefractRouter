@@ -5,7 +5,7 @@ import v4Example from '../../../../../data/schema/refractagent-providers-v4-exam
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
   blocksDshModelPoolRun, DEPLOYMENT_OPTIONS, type RefractCardProjection, type V4CollectionKey,
   type V4DagMode, type V4DataMode } from '../settings-card.js'
-import type {DshModelPoolView,RouterConnectionView} from '../settings-card.js'
+import type {DshModelPoolView,LiveExecutionView,RouterConnectionView} from '../settings-card.js'
 import type {DshModelCatalog,RouteLatencyDirectory,RouterProjectDirectory} from './types.js'
 import { V4Settings } from './v4-settings.js'
 import { FROZEN_MODEL_PROFILES, formatPriceConditions, formatUsdPricePer1k,
@@ -30,6 +30,7 @@ export interface RefractCardOwnerProps {
   editProviderJson(text: string): void
   editDshModelPool(value:DshModelPoolView):void
   editRouter(value:RouterConnectionView|undefined):void
+  editLiveExecution(value:LiveExecutionView|undefined):void
   loadCatalog():Promise<DshModelCatalog>
   loadRouterProjects(connection:{url:string;credential?:string}):Promise<RouterProjectDirectory>
   loadRouteProfiles(connection?:{url:string;credential?:string;project?:string}):Promise<RouteLatencyDirectory>
@@ -158,6 +159,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
   },[state.router?.url,state.router?.credential,state.router?.project])
 
   const pool=state.dshModelPool
+  const live=state.liveExecution??{schemaVersion:'refractagent-live-execution-v1' as const,enabled:false,
+    complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
+  const updateLive=(patch:Partial<LiveExecutionView>)=>props.editLiveExecution({...live,...patch})
   const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v2',billingUnit:state.provider?.billingUnit??'USD',routes:[],
     ...(state.provider?.objective?{objective:state.provider.objective}:{}),
     ...(state.provider?.security?{security:state.provider.security}:{}),
@@ -209,9 +213,11 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const removeTrustPolicy=(index:number)=>{
     if(pool)updatePool({...pool,trustPolicies:(pool.trustPolicies??[]).filter((_row,rowIndex)=>rowIndex!==index)})
   }
-  const blockingIssues=state.issues.filter(issue=>issue.severity==='error')
-  const warningIssues=state.issues.filter(issue=>issue.severity==='warning')
-  const readinessIssues=state.issues.filter(blocksDshModelPoolRun)
+  const liveIssues=state.issues.filter(issue=>issue.code.startsWith('LIVE_EXECUTION_'))
+  const poolIssues=state.issues.filter(issue=>!issue.code.startsWith('LIVE_EXECUTION_'))
+  const blockingIssues=poolIssues.filter(issue=>issue.severity==='error')
+  const warningIssues=poolIssues.filter(issue=>issue.severity==='warning')
+  const readinessIssues=poolIssues.filter(blocksDshModelPoolRun)
   const enabledRouteKeys=(pool?.routes??[]).filter(route=>route.enabled!==false).map(route=>identity(route.provider,route.model))
   const observedProfile=(route:string)=>{const [provider,...modelParts]=route.split('/');const model=modelParts.join('/')
     const effective=frozenModelProfile(provider,model)?.effective_model??model
@@ -296,6 +302,36 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <span className="rra-field-hint">项目来自 Router 当前成员权限，不支持自由填写。</span></label>:null}
               {routerProjects?.protocol==='refractagent-http-v2'&&state.router.project
                 &&!routerProjects.projects.some(project=>project.id===state.router?.project)?<p className="rra-invalid">已保存项目当前不可用，请重新选择。</p>:null}</>:null}
+          </div>
+          <div className="rra-v4-section"><div className="rra-section-head"><div><h3>{t('liveTitle')}</h3>
+            <p className="rra-field-hint">{t('liveBoundary')}</p></div>
+            {state.overriddenLiveExecution?<button type="button" className="rra-reset" disabled={disabled}
+              onClick={()=>props.resetField('liveExecution')}>{t('reset')}</button>:null}</div>
+            <label className="rra-check"><input type="checkbox" disabled={disabled} checked={live.enabled}
+              onChange={event=>updateLive({enabled:event.target.checked})}/>{t('liveEnabled')}</label>
+            {live.enabled?<><div className="rra-issue-summary" role={liveIssues.length?'alert':'status'}>
+              <strong>{liveIssues.length?t('liveUnavailable'):t('liveReady')}</strong>
+              {liveIssues.map(issue=><span className="rra-invalid" key={issue.code}>{issue.message}</span>)}
+              <span className="rra-field-hint">{t('liveApprovalHint')}</span></div>
+              <div className="rra-grid rra-grid-2"><label className="rra-compact-field">{t('liveComplexity')}
+                <select className="rra-select" disabled={disabled} value={live.complexityPolicy}
+                  onChange={event=>updateLive({complexityPolicy:event.target.value as LiveExecutionView['complexityPolicy']})}>
+                  <option value="auto">{t('liveComplexityAuto')}</option><option value="direct">{t('liveComplexityDirect')}</option>
+                  <option value="dag">{t('liveComplexityDag')}</option></select>
+                <span className="rra-field-hint">{t('liveComplexityHint')}</span></label>
+                <label className="rra-compact-field">{t('liveReview')}
+                  <select className="rra-select" disabled={disabled} value={live.reviewPolicy}
+                    onChange={event=>updateLive({reviewPolicy:event.target.value as LiveExecutionView['reviewPolicy']})}>
+                    <option value="adaptive">{t('liveReviewAdaptive')}</option><option value="always">{t('liveReviewAlways')}</option></select>
+                  <span className="rra-field-hint">{t('liveReviewHint')}</span></label></div>
+              <div className="rra-grid rra-grid-2"><label className="rra-compact-field">{t('liveProductionBudget')}
+                <input className="rra-input" type="number" min="0" step="0.001" disabled={disabled}
+                  value={live.maxProductionCost??''} onChange={event=>updateLive({maxProductionCost:event.target.value===''?undefined:Number(event.target.value)})}/></label>
+                <label className="rra-compact-field">{t('liveEvaluationBudget')}
+                  <input className="rra-input" type="number" min="0" step="0.001" disabled={disabled}
+                    value={live.maxEvaluationCost??''} onChange={event=>updateLive({maxEvaluationCost:event.target.value===''?undefined:Number(event.target.value)})}/></label></div>
+              <div className="rra-simple-status"><strong>{t('liveCallEnvelope')}</strong>
+                <span>{t('liveCallEnvelopeBody')}</span></div></>:null}
           </div>
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
           {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>{t('poolCatalogTitle')}</h3>

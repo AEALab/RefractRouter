@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 
 export const TOOL_PROTOCOL = 'refractrouter-tools/v1'
 export interface ToolSchema { name: string; description: string; parameters: Record<string, unknown> }
-interface NativeAgent {
+export interface NativeAgent {
   session: {
     events: readonly { type: string; data: Record<string, unknown> }[]
     append(type: string, data: Record<string, unknown>): unknown

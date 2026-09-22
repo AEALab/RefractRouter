@@ -17,7 +17,7 @@ export const DEPLOYMENT_OPTIONS = [
 export type ModeKey = 'economy' | 'balanced' | 'quality'
 export const MODE_KEYS: readonly ModeKey[] = ['economy', 'balanced', 'quality']
 export type LimitKey = 'relaxBudget' | 'relaxContext' | 'unlimitedTime'
-export type CardField = 'router' | 'providerConfig' | 'dshModelPool' | 'limits'
+export type CardField = 'router' | 'providerConfig' | 'dshModelPool' | 'liveExecution' | 'limits'
 export type V4CollectionKey = 'providers' | 'models' | 'trustPolicies'
 export type V4DagMode = 'auto' | 'never' | 'force'
 export type V4DataMode = 'live' | 'desensitized' | 'synthetic'
@@ -117,6 +117,15 @@ export interface SectionView {
   providerConfig?: ProviderConfigView
   dshModelPool?: DshModelPoolView
   limits?: LimitsView
+  liveExecution?: LiveExecutionView
+}
+export interface LiveExecutionView {
+  schemaVersion:'refractagent-live-execution-v1'
+  enabled:boolean
+  maxProductionCost?:number
+  maxEvaluationCost?:number
+  complexityPolicy:'auto'|'direct'|'dag'
+  reviewPolicy:'adaptive'|'always'
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
@@ -147,6 +156,10 @@ export type SettingsIssueCode =
   | 'DSH_POOL_USER_DECLARED_UNCALIBRATED'
   | 'SETTINGS_HOST_REJECTED'
   | 'SETTINGS_READBACK_UNCONFIRMED'
+  | 'LIVE_EXECUTION_MODEL_POOL_REQUIRED'
+  | 'LIVE_EXECUTION_USD_REQUIRED'
+  | 'LIVE_EXECUTION_SYNTHETIC_REQUIRED'
+  | 'LIVE_EXECUTION_BUDGET_REQUIRED'
 
 export interface SettingsIssue {
   code: SettingsIssueCode
@@ -171,6 +184,27 @@ const NON_RUNNABLE_CODES = new Set<SettingsIssueCode>([
 
 export function blocksDshModelPoolRun(issue: SettingsIssue): boolean {
   return NON_RUNNABLE_CODES.has(issue.code)
+}
+
+export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
+  pool: DshModelPoolView | undefined, provider: ProviderConfigView | undefined): SettingsIssue[] {
+  if (!live?.enabled) return []
+  const issues: SettingsIssue[] = []
+  const automatic = pool !== undefined || provider?.schemaVersion === 'refractagent-providers-v4'
+  if (!automatic) issues.push({code:'LIVE_EXECUTION_MODEL_POOL_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行需要可用的自动路由模型池；旧三策略配置只能继续使用原有入口。'})
+  const unit = pool?.billingUnit ?? provider?.billingUnit
+  if (unit !== 'USD') issues.push({code:'LIVE_EXECUTION_USD_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行首版只接受 USD 计费模型池。AFP 或其他单位不能用于本次硬预算审批。'})
+  const security = pool?.security ?? provider?.security
+  if (security?.dataMode !== 'synthetic') issues.push({code:'LIVE_EXECUTION_SYNTHETIC_REQUIRED',severity:'error',
+    field:'liveExecution',message:'真实执行首版只允许合成测试数据（synthetic）；真实数据和脱敏材料暂未开放。'})
+  if (!(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)
+    || !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) {
+    issues.push({code:'LIVE_EXECUTION_BUDGET_REQUIRED',severity:'error',field:'liveExecution',
+      message:'请明确填写单任务生产与评审 USD 硬上限；真实执行没有隐式付费默认值。'})
+  }
+  return issues
 }
 
 function policyId(value: Record<string, unknown>): string | undefined {
@@ -309,9 +343,11 @@ export interface RefractCardProjection {
   overriddenDshPool: boolean
   overriddenLimits: boolean
   overriddenRouter: boolean
+  overriddenLiveExecution:boolean
   router: RouterConnectionView | undefined
   provider: ProviderConfigView | undefined
   dshModelPool: DshModelPoolView | undefined
+  liveExecution:LiveExecutionView|undefined
   providerCleared: boolean
   providerJson: string
   providerJsonError: string | null
@@ -341,6 +377,7 @@ export interface RefractCardFace {
   editProviderJson(text: string): void
   editDshModelPool(value: DshModelPoolView): void
   editRouter(value: RouterConnectionView | undefined): void
+  editLiveExecution(value:LiveExecutionView|undefined):void
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -443,6 +480,7 @@ export class RefractCardController {
       editProviderJson: text => this.editProviderJson(text),
       editDshModelPool: value => this.editDshModelPool(value),
       editRouter: value => this.editRouter(value),
+      editLiveExecution:value=>this.editLiveExecution(value),
       resetField: field => this.resetField(field),
       save: () => { void this.save() },
       discard: () => this.discard(),
@@ -607,6 +645,15 @@ export class RefractCardController {
     this.publish()
   }
 
+  editLiveExecution(value:LiveExecutionView|undefined):void {
+    this.beginEdit()
+    if(value===undefined){
+      if(this.overridden('liveExecution'))this.staged.set('liveExecution',{kind:'clear'})
+      else this.staged.delete('liveExecution')
+    }else this.staged.set('liveExecution',{kind:'set',value:structuredClone(value)})
+    this.publish()
+  }
+
   resetField(field: CardField): void {
     if (!this.overridden(field)) return
     this.beginEdit()
@@ -638,7 +685,8 @@ export class RefractCardController {
       this.publish()
       return
     }
-    const blocking = buildDshModelPoolIssues(this.currentDshPool(), this.publicProfiles)
+    const blocking = [...buildDshModelPoolIssues(this.currentDshPool(), this.publicProfiles),
+      ...buildLiveExecutionIssues(this.currentLiveExecution(),this.currentDshPool(),this.currentProvider())]
       .filter(issue => issue.severity === 'error')
     if (blocking.length) {
       this.failed = true
@@ -670,6 +718,12 @@ export class RefractCardController {
       if (this.overridden('dshModelPool')) writes.push({field:'dshModelPool',run:()=>this.scope.unset('dshModelPool')})
     } else if (pool?.kind === 'set' && stableStringify(pool.value)!==stableStringify(snap.value?.dshModelPool)) {
       writes.push({field:'dshModelPool',run:()=>this.scope.set('dshModelPool',pool.value)})
+    }
+    const liveExecution=this.staged.get('liveExecution')
+    if(liveExecution?.kind==='clear'){
+      if(this.overridden('liveExecution'))writes.push({field:'liveExecution',run:()=>this.scope.unset('liveExecution')})
+    }else if(liveExecution?.kind==='set'&&stableStringify(liveExecution.value)!==stableStringify(snap.value?.liveExecution)){
+      writes.push({field:'liveExecution',run:()=>this.scope.set('liveExecution',liveExecution.value)})
     }
     const limits = this.staged.get('limits')
     if (limits?.kind === 'clear') {
@@ -764,6 +818,13 @@ export class RefractCardController {
     return this.snapshot().value?.dshModelPool
   }
 
+  private currentLiveExecution():LiveExecutionView|undefined{
+    const staged=this.staged.get('liveExecution')
+    if(staged?.kind==='set')return staged.value as LiveExecutionView
+    if(staged?.kind==='clear')return this.baseSection()?.liveExecution
+    return this.snapshot().value?.liveExecution
+  }
+
   private v4Provider(): ProviderConfigView {
     const provider = this.currentProvider()
     if (provider?.schemaVersion !== 'refractagent-providers-v4') {
@@ -816,7 +877,8 @@ export class RefractCardController {
     const snap = this.snapshot()
     const providerStage = this.staged.get('providerConfig')
     const limitsStage = this.staged.get('limits')
-    const issues = buildDshModelPoolIssues(this.currentDshPool(), this.publicProfiles)
+    const issues = [...buildDshModelPoolIssues(this.currentDshPool(), this.publicProfiles),
+      ...buildLiveExecutionIssues(this.currentLiveExecution(),this.currentDshPool(),this.currentProvider())]
     if (this.saveIssue) issues.push(this.saveIssue)
     return {
       status: snap.status,
@@ -831,9 +893,11 @@ export class RefractCardController {
       overriddenDshPool:this.overridden('dshModelPool'),
       overriddenLimits: this.overridden('limits'),
       overriddenRouter:this.overridden('router'),
+      overriddenLiveExecution:this.overridden('liveExecution'),
       router:this.currentRouter(),
       provider: this.currentProvider(),
       dshModelPool:this.currentDshPool(),
+      liveExecution:this.currentLiveExecution(),
       providerCleared: providerStage?.kind === 'clear',
       providerJson: this.providerJson,
       providerJsonError: this.providerJsonError,

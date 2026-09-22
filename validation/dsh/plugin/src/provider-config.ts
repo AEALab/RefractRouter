@@ -36,6 +36,15 @@ export interface LimitsConfiguration {
   unlimitedTime?: boolean
 }
 
+export interface LiveExecutionConfiguration {
+  schemaVersion: 'refractagent-live-execution-v1'
+  enabled: boolean
+  maxProductionCost?: number
+  maxEvaluationCost?: number
+  complexityPolicy: 'auto' | 'direct' | 'dag'
+  reviewPolicy: 'adaptive' | 'always'
+}
+
 export type DshDeployment = 'local' | 'external-cloud' | 'trusted-cloud' | 'simulated-local'
 export interface DshModelPoolRoute {
   provider: string
@@ -69,6 +78,27 @@ export interface SettingsSection {
   providerConfig?: ProviderConfiguration
   dshModelPool?: DshModelPool
   limits?: LimitsConfiguration
+  liveExecution?: LiveExecutionConfiguration
+}
+
+export function validateLiveExecution(value: unknown): asserts value is LiveExecutionConfiguration {
+  if (!isRecordValue(value) || value.schemaVersion !== 'refractagent-live-execution-v1'
+    || typeof value.enabled !== 'boolean'
+    || !['auto','direct','dag'].includes(String(value.complexityPolicy))
+    || !['adaptive','always'].includes(String(value.reviewPolicy))
+    || Object.keys(value).some(key => !['schemaVersion','enabled','maxProductionCost','maxEvaluationCost',
+      'complexityPolicy','reviewPolicy'].includes(key))) {
+    throw new Error('invalid liveExecution configuration')
+  }
+  for (const key of ['maxProductionCost','maxEvaluationCost'] as const) {
+    const entry = value[key]
+    if (entry !== undefined && (typeof entry !== 'number' || !Number.isFinite(entry) || entry <= 0)) {
+      throw new Error(`liveExecution.${key} must be a positive USD hard limit`)
+    }
+  }
+  if (value.enabled && (value.maxProductionCost === undefined || value.maxEvaluationCost === undefined)) {
+    throw new Error('enabled liveExecution requires explicit production and evaluation hard limits')
+  }
 }
 
 export function validateRouterConnection(value: unknown): asserts value is RouterConnection {
