@@ -177,7 +177,7 @@ def test_cli_compiles_user_configuration_into_dsh_overlay(tmp_path,capsys):
     assert main(['dsh-config','--mode','live','--runs-dir',str(tmp_path/'runs'),'--output',str(tmp_path/'missing.json')])==1
 
 
-def test_cli_v4_auto_entry_runs_zero_call_demo_and_blocks_live(tmp_path, capsys):
+def test_cli_v4_auto_entry_runs_zero_call_demo_and_requires_synthetic_live(tmp_path, capsys):
     source = Path(__file__).resolve().parents[1] / 'data/schema/refractagent-providers-v4-example.json'
     assert main(['models', '--provider-config', str(source)]) == 0
     listed = json.loads(capsys.readouterr().out)
@@ -204,7 +204,7 @@ def test_cli_v4_auto_entry_runs_zero_call_demo_and_blocks_live(tmp_path, capsys)
     with pytest.raises(ValueError, match='requires template auto'):
         run_agent({'task': '拒绝旧模板', 'strategy': 'auto', 'template': 'single'},
                   provider_config=raw, mode='demo', runs_dir=tmp_path / 'invalid-runs')
-    with pytest.raises(ValueError, match='live automatic routing is not enabled yet'):
+    with pytest.raises(ValueError, match='DATA_MODE_UNSUPPORTED'):
         run_agent({'task': '不得误入旧执行器', 'strategy': 'auto'}, provider_config=json.loads(source.read_text()),
                   mode='live', execute_paid_run=True, runs_dir=tmp_path / 'live-runs', client=Client())
     assert not (tmp_path / 'live-runs').exists()
