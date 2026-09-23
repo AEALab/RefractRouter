@@ -113,6 +113,7 @@ export interface LimitsView {
   unlimitedTime?: boolean
 }
 export interface SectionView {
+  planningRouting?:import('./planning-config.js').PlanningConfig
   router?: RouterConnectionView
   providerConfig?: ProviderConfigView
   dshModelPool?: DshModelPoolView

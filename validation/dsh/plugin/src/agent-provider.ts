@@ -1,3 +1,5 @@
+import { PlanningController } from './planning-routing.js'
+import { validatePlanningShape, PLANNING_NAMES, type PlanningConfig } from './planning-config.js'
 import { decodeDag, decodeProgress, progressText, runSummary, type ProgressEvent } from './dag-progress.js'
 /** Native DSH virtual models. Python owns presets, routing and all cost accounting. */
 import { randomUUID } from 'node:crypto'
@@ -12,7 +14,7 @@ import { dshToolCallLimit, freezeConfiguration, validateDshModelPool, validatePr
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
 
 export const name = 'refractagent'
-export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents']
+export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents', 'settings']
 
 const MAX_CONTEXT_BYTES = 120_000
 const RELAXED_CONTEXT_BYTES = 1_000_000
@@ -45,11 +47,11 @@ function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
 }
 
 function configuredModels(config: Readonly<Configuration>): readonly { id: string; name: string }[] {
-  if (config.dshModelPool === undefined && config.providerConfig?.schemaVersion !== 'refractagent-providers-v4') return LEGACY_MODELS
+  if (config.dshModelPool === undefined && config.providerConfig?.schemaVersion !== 'refractagent-providers-v4') return [...LEGACY_MODELS,{id:'planning',name:'RefractAgent 规划路由'}]
   // DSH caches provider model discovery while plugin fibers are starting, before the user settings
   // layer is necessarily available. Always advertise the entry; invokeAutoLive performs the current
   // settings, catalog and budget checks immediately before any credential resolution or dispatch.
-  return [...AUTO_MODELS, AUTO_LIVE_MODEL]
+  return [...AUTO_MODELS, AUTO_LIVE_MODEL,{id:'planning',name:'RefractAgent 规划路由'}]
 }
 
 /** DSH 会保留新会话上次选择的模型 ID；升级到 v4 后把旧三模式选择收敛到唯一自动入口。 */
@@ -75,6 +77,7 @@ export interface Configuration {
   providerConfig?: ProviderConfiguration
   dshModelPool?: DshModelPool
   limits?: LimitsConfiguration
+  planningRouting?: PlanningConfig
   liveExecution?: LiveExecutionConfiguration
   template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
@@ -85,7 +88,9 @@ export interface Configuration {
   maxConcurrency?: number
   verifyDependencies?: boolean
 }
-interface ModelOptions {
+export interface ModelOptions {
+  reasoningEffort?: string
+  sessionId?: string
   provider: string
   model: string
   messages: Array<{ role: string; source?: { kind: string; [key: string]: unknown };
@@ -100,6 +105,7 @@ interface ModelOptions {
 }
 interface ModelMetadata {
   provider: string; id: string; name: string
+  reasoning?: {efforts:Array<{id:string;name:string}>;defaultEffort:string}
   inputModalities: readonly string[]
   description: string
   context?: { contextWindow: number }
@@ -114,7 +120,10 @@ export interface AgentAdapter {
   stream(options: ModelOptions): AsyncIterable<Record<string, unknown>>
 }
 export type AgentContext = NativeToolContext & Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
+  settings?: SettingsFiberContext['settings']
   llm: Partial<LlmService> & { registerAdapter(providers: string[], adapter: AgentAdapter): unknown }
+  on?: (event:'session/event',callback:(session:{header:{id:string}},event:{type:string;data:Record<string,unknown>})=>void)=>unknown
+  effect?: (setup:()=>unknown,label?:string)=>unknown
   inject?: (deps: readonly string[], callback: (sctx: SettingsFiberContext) => void) => unknown
 }
 
@@ -280,10 +289,10 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     timeoutMs: 300000, maxOutputTokens: 8192, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
     routerUrl: undefined as unknown, routerCredential: undefined as unknown, routerProject: undefined as unknown,
     preset: undefined as unknown, providerConfig: undefined as unknown, dshModelPool: undefined as unknown, limits: undefined as unknown,
-    liveExecution: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
+    planningRouting: undefined as unknown, liveExecution: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
     'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'routerUrl', 'routerCredential', 'routerProject', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
-    'limits', 'liveExecution', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
+    'limits', 'liveExecution', 'planningRouting', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
     if (typeof result[key] !== 'string' || !result[key].trim()) throw new Error(`invalid ${key}`)
@@ -337,6 +346,7 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     if (result.preset !== undefined) throw new Error('providerConfig, dshModelPool and preset are mutually exclusive')
     validateDshModelPool(result.dshModelPool)
   }
+  if (result.planningRouting !== undefined) validatePlanningShape(result.planningRouting)
   if (result.liveExecution !== undefined) validateLiveExecution(result.liveExecution)
   return freezeConfiguration(JSON.parse(JSON.stringify(result)) as Configuration)
 }
@@ -789,11 +799,28 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
 }
 
 export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>): AgentAdapter {
+  const planning = new PlanningController(ctx,source)
+  ctx.llm.registerModelDiscovery?.('refractagent-planning',async request=>{
+    const value=request.api==='simulate'?await planning.simulate():request.provider && request.provider!=='local' ? await planning.history(request.provider) : await planning.preview()
+    return [{id:'planning',name:JSON.stringify(value)}]
+  })
   const metadata = (provider: string, model: string): ModelMetadata => {
     const config = source()
     const normalized = normalizeConfiguredModel(config, model)
     const entry = configuredModels(config).find(m => m.id === normalized)
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
+    if(entry.id==='planning'){
+      const models=config.planningRouting?.models??[]
+      const windows=models.map(m=>m.contextWindow).filter(n=>Number.isSafeInteger(n)&&n>=512)
+      const caps=models.map(m=>m.maxOutputTokens).filter(n=>Number.isSafeInteger(n)&&n>0)
+      const contextWindow=windows.length?Math.min(...windows):24000
+      return {...entry,provider,inputModalities:['text'],
+        description:'保留 DSH 原生工具循环；Python 策略选模、审核与记账。',
+        context:{contextWindow},
+        defaultMaxTokens:Math.min(contextWindow-1,caps.length?Math.min(...caps):2048),
+        reasoning:{efforts:Object.entries(PLANNING_NAMES).map(([id,name])=>({id:'rr:'+id,name})),
+          defaultEffort:'rr:'+(config.planningRouting?.defaultStrategy??'stage')}}
+    }
     return { ...entry, id: model, provider, name: entry.name,
       description: entry.id === 'auto-live'
         ? '本机核心开发真实执行；每个任务先零调用预检，首版仅支持 synthetic 纯文本。'
@@ -808,6 +835,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     prepareCall: async (provider, model) => ({ model: metadata(provider, model), stream: options => adapter.stream(options) }),
     async *stream(options) {
       metadata(options.provider, options.model)
+      if(options.model==='planning'){yield* planning.stream(options);return}
       const config = source()
       const model = normalizeConfiguredModel(config, options.model)
       const automatic = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4' || config.template === 'auto'

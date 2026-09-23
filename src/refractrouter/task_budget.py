@@ -131,7 +131,7 @@ class TaskCallBudget:
             for category in self.charged:
                 self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)
 
-    def invoke(self, reservation, *, timeout_seconds=None, cancel_event=None, unlimited=False):
+    def dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):
         row, model = reservation.row, reservation.model
         with self.lock:
             if cancel_event is not None and cancel_event.is_set():
@@ -143,6 +143,10 @@ class TaskCallBudget:
                 self.stop()
                 raise ValueError('task-deadline-exhausted')
             row.update(status='unknown-usage', dispatch_monotonic=time.monotonic())
+
+    def invoke(self, reservation, *, timeout_seconds=None, cancel_event=None, unlimited=False):
+        row, model = reservation.row, reservation.model
+        self.dispatch(reservation, timeout_seconds=timeout_seconds, cancel_event=cancel_event)
         call_client = self.client
         if (unlimited or timeout_seconds is not None) and hasattr(call_client, 'for_task_call'):
             call_client = call_client.for_task_call(None if unlimited or timeout_seconds == float("inf") else timeout_seconds)
@@ -157,6 +161,14 @@ class TaskCallBudget:
         finally:
             if unlimited:
                 self.planning_elapsed += time.monotonic() - planning_started
+        return self.settle(reservation, response)
+
+    def settle(self, reservation, response):
+        """结算宿主实际执行的调用；与内置 complete 共用费用和输出验收。"""
+        row, model = reservation.row, reservation.model
+        with self.lock:
+            if row['status'] != 'unknown-usage':
+                raise ValueError('call receipt already settled or not dispatched')
         if self.on_response is not None:
             self.on_response(row, response)
         if self.capture_payload:

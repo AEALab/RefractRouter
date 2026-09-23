@@ -1,3 +1,4 @@
+import type { PlanningConfig } from './planning-config.js'
 /** RefractAgent provider/model 配置契约与校验。
  * 被 configure() 与设置命名空间集成共用；仅宿主侧使用（依赖 Buffer）。
  */
@@ -88,6 +89,7 @@ export interface RouterConnection {
 
 /** DSH 设置命名空间承载的用户可调子集。 */
 export interface SettingsSection {
+  planningRouting?:PlanningConfig
   router?: RouterConnection
   providerConfig?: ProviderConfiguration
   dshModelPool?: DshModelPool

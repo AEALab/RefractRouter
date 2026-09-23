@@ -24,6 +24,15 @@ DSH 插件承担两项用途：验证核心功能在真实宿主中的可行性�
 保留 `validation/dsh/` 路径以沿用现有安装、脚本与 CI 引用；该目录承载 DSH 验证和
 产品入口探索，其名称不代表核心必须经由 DSH 才能使用。
 
+## 规划路由的独立执行入口
+
+新增 RefractAgent 规划路由，与原 DAG 自动路由并存。
+DSH 拥有原生 Agent 循环、工具、审批、会话与上下文压缩；Python 通过持久工作进程
+拥有 Static、Stage、Task、Composite、Advisor、Escalation 的策略状态、准入与账本。
+TypeScript 只传递原生请求、执行核心签发的模型调用及展示轨迹。
+此路径不创建 DAG，也不复用 Python 内部工具循环。完整合同见
+[规划路由](trajectory-routing-strategies.md)。
+
 ## 调用与执行边界
 
 下图表示当前本地与 HTTP 调用关系。两条路径共用同一 Python 业务实现。

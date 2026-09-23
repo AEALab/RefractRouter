@@ -1,6 +1,6 @@
 {
   "name": "dsh-refractrouter-validation",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "description": "DeepSeek Harness bundle for structured RefractRouter benchmark validation",
   "private": true,
   "license": "MIT",
@@ -55,12 +55,13 @@
       "inject": [
         "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-settings"
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-model-selection"
       ],
       "platform": "web"
     },
     "compatibility": {
-      "cli": "0.1.1-rc.2",
+      "cli": "0.1.5-rc.1",
       "node": ">=22.19.0 <23"
     }
   },

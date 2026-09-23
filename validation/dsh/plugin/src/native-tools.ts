@@ -4,10 +4,18 @@ import { randomUUID } from 'node:crypto'
 export const TOOL_PROTOCOL = 'refractrouter-tools/v1'
 export interface ToolSchema { name: string; description: string; parameters: Record<string, unknown> }
 export interface NativeAgent {
+  id?: string
   session: {
-    events: readonly { type: string; data: Record<string, unknown> }[]
+    header?: {id:string;cwd?:string;origin?:'subagent';delegationDepth?:number}
+    events?: readonly { type: string; data: Record<string, unknown> }[]
+    snapshotEvents?():readonly {type:string;data:Record<string,unknown>}[]
     append(type: string, data: Record<string, unknown>): unknown
   }
+}
+export function sessionEvents(agent:NativeAgent):readonly {type:string;data:Record<string,unknown>}[] {
+  const events=agent.session.snapshotEvents?.()??agent.session.events
+  if(!events)throw new Error('宿主未提供会话事件快照')
+  return events
 }
 export interface NativeToolContext {
   agents?: { requireInitiator(): NativeAgent }
@@ -23,7 +31,7 @@ export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
   if (!schemas.length) return undefined
   if (!ctx.tools || !ctx.agents) throw new Error('RefractAgent requires DSH native tools and agents services')
   const agent = ctx.agents.requireInitiator()
-  const stepEvent = [...agent.session.events].reverse().find(e=>e.type === 'step/start' || e.type === 'step/end' || e.type === 'turn/end')
+  const stepEvent = [...sessionEvents(agent)].reverse().find(e=>e.type === 'step/start' || e.type === 'step/end' || e.type === 'turn/end')
   if (stepEvent?.type !== 'step/start' || typeof stepEvent.data.turn !== 'number' || typeof stepEvent.data.step !== 'number') {
     throw new Error('RefractAgent tool execution requires an active DSH step')
   }

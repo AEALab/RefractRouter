@@ -602,12 +602,12 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.equal(registrations.length, 1)
   assert.equal(registrations[0].id, 'dsh-refractrouter-validation')
   const exports = registrations[0].factory(spec => {
-    if (spec === 'react') return { useState: () => [false, () => undefined] }
+    if (spec === 'react') return { useState: () => [false, () => undefined], createElement:()=>null }
     if (spec === 'react/jsx-runtime') return { jsx: () => null, jsxs: () => null, Fragment: 'rra-fragment' }
     throw new Error('unexpected require: ' + spec)
   }) as { apply: (ctx: unknown) => void; inject: string[] }
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope'])
+  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'modelDirectories'])
 
   const effects: Array<() => unknown> = []
   const discoveryCalls: Array<{namespace:string;request:Record<string,unknown>}> = []

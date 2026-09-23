@@ -1,5 +1,5 @@
 /** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
 import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
 import currencyRate from '../../../../../data/currency-rates-v1.json' with { type: 'json' }
@@ -13,6 +13,7 @@ import { FROZEN_MODEL_PROFILES, formatPriceConditions, formatUsdPricePer1k,
   frozenModelProfile } from './model-profiles.js'
 
 export interface RefractCardOwnerProps {
+  planningControls?:ReactNode
   t: (key: string) => string
   useRefractCard: <T>(selector: (snapshot: RefractCardProjection) => T) => T
   editPlannerThinking(value: string): void
@@ -293,6 +294,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
       </button>
       {expanded ? (
         <div className="rra-body">
+          {props.planningControls}
           <div className="rra-v4-section"><div className="rra-section-head"><div><h3>RefractRouter 连接</h3>
             <p className="rra-field-hint">本地模式由插件启动已安装的 Python 核心；远程模式把任务发送到指定 Router 服务。</p></div>
             {state.overriddenRouter?<button type="button" className="rra-reset" disabled={disabled} onClick={()=>props.resetField('router')}>恢复默认</button>:null}</div>

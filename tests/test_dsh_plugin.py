@@ -50,7 +50,7 @@ class DSHPluginTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "validate.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.22.0")
+        self.assertEqual(package["version"], "0.23.0")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")
@@ -60,7 +60,7 @@ class DSHPluginTests(unittest.TestCase):
         )
         self.assertEqual(
             package["dsh"]["compatibility"]["cli"],
-            "0.1.1-rc.2",
+            "0.1.5-rc.1",
         )
         self.assertEqual(package["exports"]["./client"]["default"], "./dist/client.js")
         self.assertEqual(package["dsh"]["client"]["platform"], "web")
@@ -70,8 +70,8 @@ class DSHPluginTests(unittest.TestCase):
         self.assertIn("maxProductionCost: 2", patch)
         self.assertIn("maxEvaluationCost: 1", patch)
         self.assertIn("maxRetries: 0", patch)
-        self.assertIn("--before=2026-09-08T00:00:00Z", workflow)
-        self.assertIn("@deepseek-ai/dsh@0.1.1-rc.2", workflow)
+        self.assertIn("--before=2026-09-24T00:00:00Z", workflow)
+        self.assertIn("@deepseek-ai/dsh@0.1.5-rc.1", workflow)
 
     def test_plugin_is_valid_esm_and_uses_native_dsh_seams(self) -> None:
         source = (PLUGIN / "src" / "index.ts").read_text(encoding="utf-8")

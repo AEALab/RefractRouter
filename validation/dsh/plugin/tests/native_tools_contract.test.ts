@@ -87,7 +87,7 @@ test('DSH model bridge assembles native calls and replays matched assistant/tool
     {protocol:'refractrouter-dsh-llm/v1',type:'request',id:'1',provider:'test',model:'fixture',
       timeout_ms:null,max_tokens:1000,tools:schemas,messages:[
         {role:'system',content:'system'}, {role:'user',content:'query'},
-        {role:'assistant',content:null,tool_calls:[request.call],_dsh_replay_state:{response:{id:'previous'}}},
+        {role:'assistant',content:null,tool_calls:[request.call],_dsh_source:{provider:'historical',model:'previous-model'},_dsh_replay_state:{response:{id:'previous'}}},
         {role:'tool',tool_call_id:'c1',content:'工具证据'},
       ]})
   assert.equal(result.ok,true)
@@ -98,5 +98,7 @@ test('DSH model bridge assembles native calls and replays matched assistant/tool
   assert.deepEqual(seen[0]!.tools,schemas)
   assert.equal(seen[0]!.messages[1]!.role,'assistant')
   assert.equal(seen[0]!.messages[2]!.content[0]!.toolCallId,'c1')
+  assert.equal(seen[0]!.messages[1]!.source.provider,'historical')
+  assert.equal(seen[0]!.messages[1]!.source.model,'previous-model')
   assert.deepEqual(seen[0]!.messages[1]!.source.replayState,{response:{id:'previous'}})
 })
