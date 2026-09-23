@@ -1,3 +1,14 @@
+## 0.23.0：规划路由
+
+新增独立模型 `refractagent/planning`，保留原自动路由与 DAG 页签。
+六类策略默认 Stage；模型、预算和信任域须在「规划路由」设置分区显式配置。
+输入区策略选择使用 `rr:*`，物理模型推理等级由角色配置决定。
+
+需要 Python 核心 0.10.0 与 DSH 0.1.5-rc.1；先升级核心，再安装插件。
+规划路由保持 DSH 原生工具与委派；主任务账本尚不汇总子 Agent 支出。
+原入口额度和实验限制不随此次升级改变。关闭 `planningRouting.enabled` 可回滚入口，
+运行证据保留。详见 [配置、协议与策略说明](../../../docs/trajectory-routing-strategies.md)。
+
 # RefractRouter DSH 验证与接入插件
 
 首次安装请阅读 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 或

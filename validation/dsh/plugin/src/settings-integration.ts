@@ -1,3 +1,4 @@
+import { validatePlanningShape } from './planning-config.js'
 import examples from './provider-examples.json' with { type: 'json' }
 /** DSH 设置命名空间集成：schema、组合 base、覆盖合成与宿主注册。
  * 命名空间出现在「设置 → 插件 → 插件配置」，浏览器半边由 src/client/ 提供。
@@ -59,7 +60,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
   schema.type = 'object'
   schema.meta = { default: {} }
   schema.dict = { router: anyNode, providerConfig: anyNode, dshModelPool: anyNode,
-    liveExecution:anyNode, limits: limitsNode }
+    planningRouting:anyNode, liveExecution:anyNode, limits: limitsNode }
   schema.toJSON = () => ({
     uid: 4,
     refs: {
@@ -69,7 +70,7 @@ export function buildSettingsSchema(): RefractSettingsSchema {
       5: limitsNode.dict!.unlimitedTime,
       3: { type: limitsNode.type, meta: limitsNode.meta, dict: { relaxBudget: 1, relaxContext: 2, unlimitedTime: 5 } },
       4: { type: 'object', meta: { default: {} }, dict: {
-        router: 0, providerConfig: 0, dshModelPool: 0, liveExecution:0, limits: 3 } },
+        router: 0, providerConfig: 0, dshModelPool: 0, planningRouting:0, liveExecution:0, limits: 3 } },
     },
   })
   return schema
@@ -88,6 +89,7 @@ export function buildSettingsBase(config: Readonly<Configuration>): Readonly<Set
     base.providerConfig!.providers[0].credentialEnv = config.credentialEnv
   }
   if (config.limits !== undefined) base.limits = config.limits
+  if (config.planningRouting !== undefined) base.planningRouting = config.planningRouting
   if (config.liveExecution !== undefined) base.liveExecution = config.liveExecution
   return freezeConfiguration(base)
 }
@@ -97,6 +99,7 @@ export function validateSettingsSection(section: Readonly<SettingsSection>): voi
   if (section.router !== undefined) validateRouterConnection(section.router)
   if (section.providerConfig !== undefined) validateProviderConfiguration(section.providerConfig)
   if (section.dshModelPool !== undefined) validateDshModelPool(section.dshModelPool)
+  if (section.planningRouting !== undefined) validatePlanningShape(section.planningRouting)
   if (section.liveExecution !== undefined) validateLiveExecution(section.liveExecution)
   if (section.limits !== undefined && (
     !isRecordValue(section.limits)
@@ -113,7 +116,7 @@ export function overlaySettings(
   section: Readonly<SettingsSection>,
 ): Readonly<Configuration> {
   if (section.router === undefined && section.providerConfig === undefined && section.dshModelPool === undefined
-    && section.liveExecution === undefined && section.limits === undefined) return composed
+    && section.planningRouting === undefined && section.liveExecution === undefined && section.limits === undefined) return composed
   const next: Configuration = { ...composed }
   if (section.router !== undefined) {
     next.routerUrl = new URL(section.router.url).toString().replace(/\/$/,'')
@@ -131,6 +134,7 @@ export function overlaySettings(
     next.dshModelPool = section.dshModelPool
   }
   if (section.limits !== undefined) next.limits = section.limits
+  if (section.planningRouting !== undefined) next.planningRouting = section.planningRouting
   if (section.liveExecution !== undefined) next.liveExecution = section.liveExecution
   return freezeConfiguration(next)
 }
@@ -153,11 +157,11 @@ export interface SettingsFiberContext {
 
 /** 注册命名空间并让配置源跟随设置变化；未组合 settings 服务时静默保持组合配置。 */
 export function installRefractSettings(
-  host: { inject?: (deps: readonly string[], callback: (sctx: SettingsFiberContext) => void) => unknown },
+  host: { settings?: HostSettingsService; effect?: (setup:()=>unknown)=>unknown; inject?: (deps: readonly string[], callback: (sctx: SettingsFiberContext) => void) => unknown },
   composed: Readonly<Configuration>,
   onChange: (section: Readonly<SettingsSection>) => void,
 ): void {
-  host.inject?.(['settings'], sctx => {
+  const register = (sctx: SettingsFiberContext) => {
     const scope = sctx.settings.register(SETTINGS_NAMESPACE, buildSettingsSchema(), {
       base: buildSettingsBase(composed),
       validate: validateSettingsSection,
@@ -168,5 +172,7 @@ export function installRefractSettings(
     })
     apply()
     scope.watch(apply)
-  })
+  }
+  if(host.settings&&host.effect)register(host as SettingsFiberContext)
+  else host.inject?.(['settings'],register)
 }

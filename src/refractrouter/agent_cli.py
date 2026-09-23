@@ -110,8 +110,14 @@ def main(argv=None):
     server.add_argument('--evaluation-budget', type=float, default=80)
     server.add_argument('--timeout-ms', type=int, default=300000)
     server.add_argument('--max-output-tokens', type=int, default=128000)
+    planning = commands.add_parser("planning-worker", help="规划路由宿主进程协议")
+    planning.add_argument("--runs-dir", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == "planning-worker":
+            from .planning_worker import serve
+            serve(args.runs_dir)
+            return 0
         if args.command == 'config-example':
             data = example_configuration(args.provider_type)
             compile_configuration(data)

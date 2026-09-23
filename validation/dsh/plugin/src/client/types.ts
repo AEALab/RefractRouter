@@ -16,12 +16,13 @@ export interface ClientSettingsScopeBinder {
 export interface ClientSlotsService {
   inject(key: string, declaration: () => Generator<unknown>): unknown
   register(
-    options: { name: string; key?: string; locale?: string; inject?: () => unknown },
+    options: { name: string; key?: string; locale?: string; inject?: (...args: any[]) => unknown; id?:string;order?:number;label?:()=>string },
     component: unknown,
   ): unknown
 }
 
 export interface ClientContext {
+  modelDirectories?:{directoryFor(sessionId:string):import('./planning.js').ModelDirectory}
   slots: ClientSlotsService
   locale: ClientLocaleService
   settingsScope: ClientSettingsScopeBinder

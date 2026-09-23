@@ -1,0 +1,201 @@
+{
+  "date": "2026-09-23",
+  "scope": "源码、文档与公开实验审查；零模型调用；未独立复现效果实验",
+  "switchyard": {
+    "commit": "c6e5958a663a879541f4674744b52be6cb969fe6",
+    "release": "v0.3.0",
+    "release_commit": "336196f6fbfc97ddc71c1700f6092e564e9f23c2",
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "fbb00593918664523eb47acb48036e82e36d025754fb1fdf0e7ee335df88cb45"
+      },
+      {
+        "path": "CHANGELOG.md",
+        "sha256": "78a7548121af562eb4455662ddb61e6bedae916f8b6dc304934983d2425ac72a"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "9bbe3aae2b51d4e19c773e7b57fcc02dc10e43fb1a4641ea2f0c7f5f6f716583"
+      },
+      {
+        "path": "Cargo.toml",
+        "sha256": "6dad935f50c6d0e2929d28e1235d969fbd31eef78c33757b897e7dd2c43f0aa6"
+      },
+      {
+        "path": "docs/routing_algorithms/overview.md",
+        "sha256": "244d777fadf05784143567698c93553d63d679d545cb96f6a9333a10b378963a"
+      },
+      {
+        "path": "docs/routing_algorithms/stage_router_routing.md",
+        "sha256": "248993c5e6e70dbf573db2faf363a03447e945481f0a6e12cd0fbecb643ff56a"
+      },
+      {
+        "path": "docs/routing_algorithms/llm_classifier_routing.md",
+        "sha256": "5ecf41d119a00aa24879d78b573850159fc61d52494dfa21c0cf8053e09231f1"
+      },
+      {
+        "path": "docs/routing_algorithms/escalation_router_routing.md",
+        "sha256": "ed507350c0d8e9828c7201f275102a6fb13a330ea529900d8a14b2ad3ed64b57"
+      },
+      {
+        "path": "docs/routing_algorithms/advisor_gate_routing.md",
+        "sha256": "be07399f13d3f8e58cca9ab2f7d2acf22a1b641b0ed44ae13f9f71d6dcf05b77"
+      },
+      {
+        "path": "docs/routing_algorithms/plan_execute_routing.md",
+        "sha256": "4d92b98239460d20f53edf09eed2f8e80e729cf5ae773cb1c3a3c17a438b120b"
+      },
+      {
+        "path": "docs/routing_algorithms/composite_routing.md",
+        "sha256": "a98ff4180111b23e8108b20c4bbbdef6e153ef41b41bc7f0acdb18afd552d2c5"
+      },
+      {
+        "path": "docs/routing_algorithms/subagent_routing.md",
+        "sha256": "f2c0c9ccd2c67ac5090f4f150aaf50e609356798c69316f8553c7bcd593acfba"
+      },
+      {
+        "path": "docs/routing_algorithms/prefill_routing.md",
+        "sha256": "8f9e544ee066757c6588cd6702afb9b34d7cad3eac8d7b92e5610f75cdfeb718"
+      },
+      {
+        "path": "crates/libsy/src/core/algorithm.rs",
+        "sha256": "47dde311f645d6a88f76e95bd053ec59dcbd0fff2c886a20fe0881687ad4c874"
+      },
+      {
+        "path": "crates/libsy/src/algorithms/util/stage.rs",
+        "sha256": "7b2641e7392ea3da809fdac0b40a6cf18739942291f271c3129430488f74f821"
+      },
+      {
+        "path": "crates/libsy/src/algorithms/plan_execute.rs",
+        "sha256": "d54cc50e33bc3a96446516ce3a8be32c87bae9bcee41dc2a30f5d89503fdc39c"
+      },
+      {
+        "path": "crates/libsy/src/algorithms/advisor_gate/budget.rs",
+        "sha256": "25ff9c14e2ff110a42eb0990f05754ccafedb714965110d00552e5865106ff5a"
+      },
+      {
+        "path": "crates/libsy/src/algorithms/advisor_gate/tests.rs",
+        "sha256": "0ef229f9c3064843f6d04ba3108736c2e778dcc593799e3026a63dd8ce91ed3c"
+      },
+      {
+        "path": "crates/libsy-llm-client/src/run.rs",
+        "sha256": "225df8dbd41e72fc8d2b335afc659c3273ffd40bed9f1efc8374abe515503761"
+      },
+      {
+        "path": "switchyard_rust/libsy.py",
+        "sha256": "2a60188721b93f801e39f40652dec35567b50d2a1f919fecb446a907bf7fe1e2"
+      },
+      {
+        "path": "examples/litellm/README.md",
+        "sha256": "7f5e3fd93dd07df535db2f19215ad35169a3da045a770f3d585105fca4d1534f"
+      },
+      {
+        "path": "benchmark/README.md",
+        "sha256": "5cf0095b12e17d0592ade9978b4c7332386cabd240a91f1fb192d681c34a5db2"
+      },
+      {
+        "path": "benchmark/DEEPSWE_V11_QUALIFICATION.md",
+        "sha256": "2cdbf175d17e3d11bb2567720807b61633134cf9d68b9ad108a89cb66705938b"
+      },
+      {
+        "path": "benchmark/routing-profiles/tb21-escalation-opus-glm-deepseek.toml",
+        "sha256": "5259e851f5f2c45059423409b8904feac1fe3a6c03f73c71aab32e150a1dce42"
+      },
+      {
+        "path": "docs/routing_algorithms/random_routing.md",
+        "sha256": "84baf28f2abb4820d595b873eda51cb997ff704f143079252322e4f3c64c5d50"
+      },
+      {
+        "path": "crates/libsy/src/algorithms/util/tool_signals.rs",
+        "sha256": "8fb48242c61d9e96ea0a6999f963cca533f1ed8353eb16384b0e4e1980f166c3"
+      }
+    ]
+  },
+  "refractrouter": {
+    "commit_prefix": "256c1bd",
+    "files": [
+      {
+        "path": "docs/architecture.md",
+        "sha256": "02fbdbd3cc6d0543b2a12dafe1cbbd6ee9f0ae33f88e3a42f936e69f8f96b966"
+      },
+      {
+        "path": "docs/native-tool-execution.md",
+        "sha256": "98f205f99a4ba59041cce6dfffae466a3ef649ab0b34da8fa23c83c9c2c7a69d"
+      },
+      {
+        "path": "src/refractrouter/node_routing.py",
+        "sha256": "d7d262cf23ba8aed6a2e77d33187d7df8309c28c6936fb7ef962dd64e6cab014"
+      },
+      {
+        "path": "src/refractrouter/automatic_routing.py",
+        "sha256": "66fb6ddc2da813dbcc2c9ff1ef307a82e36ac26c1ed2bb84b29fb9ffcd7c76fb"
+      },
+      {
+        "path": "src/refractrouter/live_execution.py",
+        "sha256": "6185df55c2e2d560127c85080b2b189784b275b9fbf0cad49660afa9dbcf7795"
+      },
+      {
+        "path": "reports/pareto-holdout-v1/failure-attribution-v1/README.md",
+        "sha256": "f9584110301b5c4a9bab76d81cea31fca3b5555f828e5c7b8e5d7bb8dd9f58ed"
+      },
+      {
+        "path": "reports/dag-decomposition/joint-39-40-v1-analysis/结项评估.md",
+        "sha256": "54aa4ab09cd59315f7519413040a75a0345f8f154bb844aca0617e64f6a3abcf"
+      },
+      {
+        "path": "src/refractrouter/tool_runtime.py",
+        "sha256": "d91bba323908ac92b93e026eff5d5a92cf8239a793e0969d2e578c1db56b74d8"
+      },
+      {
+        "path": "src/refractrouter/task_execution.py",
+        "sha256": "af6a2af8ccb2ec66f5a29e6c24d88f923ed8d1919402da62ede1fd99f031d03b"
+      },
+      {
+        "path": "src/refractrouter/task_budget.py",
+        "sha256": "d836ed328214500fccb7644a79b613048836fdb4266d14b997a575f81d68d61a"
+      },
+      {
+        "path": "src/refractrouter/application_config.py",
+        "sha256": "510d3b6800d948c7acd9683e97e55d8ddd9fd940669eac7aa221a543dd0e7f40"
+      },
+      {
+        "path": "src/refractrouter/configured_routing.py",
+        "sha256": "759fddb9f5c401b329a6ea3d78000fb2f65833a6adb1258a26c66358cbe20670"
+      }
+    ]
+  },
+  "external_sources": [
+    {
+      "url": "https://github.com/NVIDIA-NeMo/Switchyard/releases/tag/v0.3.0",
+      "status": "已读取 GitHub API 发布正文"
+    },
+    {
+      "url": "https://github.com/NVIDIA-NeMo/Switchyard/issues/299",
+      "status": "调研时开放"
+    },
+    {
+      "url": "https://github.com/NVIDIA-NeMo/Switchyard/issues/665",
+      "status": "调研时开放"
+    },
+    {
+      "url": "https://www.langchain.com/blog/switchyard-agent-routing-benchmark",
+      "status": "公开实验结果，未经本次独立复现"
+    },
+    {
+      "url": "https://developer.nvidia.com/blog/route-ai-agent-workloads-across-models-with-nvidia-nemo-switchyard/",
+      "status": "发布方技术说明"
+    },
+    {
+      "url": "https://github.com/AEALab/RefractRouter/issues/116",
+      "status": "调研时已关闭；正文作意图证据，不替代实现验收"
+    }
+  ],
+  "direction": "依据用户七类策略图，独立实现适用机制；LiteLLM、项目合并、库接入与合作不在当前开发范围",
+  "development_proposal": "../../docs/trajectory-routing-strategies.md",
+  "user_reference": {
+    "filename": "98C36EBE-7588-42D3-ABB4-B532678617E6.png",
+    "sha256": "643c07415ab9f06fa11e101d60d06642b0aecce43623795ccb4166d2999ab149",
+    "status": "已查看；七类模式用于组织开发提案，事实以固定源码为准"
+  }
+}

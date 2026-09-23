@@ -651,8 +651,12 @@ def model_response_cost(model: ModelSpec, response: ChatResponse) -> float:
         if model.cached_input_cost_per_1k is not None
         else model.input_cost_per_1k
     )
+    write_rate = getattr(model, "cache_write_cost_per_1k", None)
+    write_tokens = ((response.raw_usage or {}).get("cacheWriteTokens", 0)
+                    if write_rate is not None and isinstance(response.raw_usage, dict) else 0)
+    write_adjustment = write_tokens / 1000 * (write_rate - model.input_cost_per_1k) if write_tokens else 0
     return round(
-        uncached_tokens / 1000 * model.input_cost_per_1k
+        write_adjustment + uncached_tokens / 1000 * model.input_cost_per_1k
         + cached_tokens / 1000 * cached_rate
         + response.output_tokens / 1000 * model.output_cost_per_1k,
         8,

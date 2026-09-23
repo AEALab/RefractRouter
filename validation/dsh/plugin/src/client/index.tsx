@@ -1,3 +1,4 @@
+import { applyPlanning, planningUi, PlanningSettings } from './planning.js'
 import { createElement } from 'react'
 import { graphModule } from './graph.js'
 /** RefractAgent 浏览器半边：在「设置 → 插件 → 插件配置」注册自己的设置卡片。 */
@@ -12,10 +13,12 @@ export const parse = graph.parse
 export const layout = graph.layout
 export const applyGraph = graph.apply
 
-export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope']
+export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'modelDirectories']
 
 export function apply(ctx: ClientContext): void {
   graph.apply(ctx)
+  const planning=planningUi(ctx,ctx.settingsScope.bind({namespace:SETTINGS_NAMESPACE}))
+  applyPlanning(ctx,planning)
   ctx.effect(() => ctx.locale.register(LOCALE_NS, { zh, en }), 'refractagent-settings-card: dictionaries')
   const scope = ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE })
   const controller = new RefractCardController({...scope,
@@ -35,7 +38,7 @@ export function apply(ctx: ClientContext): void {
       name: 'settings.plugin.item',
       key: SETTINGS_NAMESPACE,
       locale: LOCALE_NS,
-      inject: () => ({...controller.inject(),loadCatalog:async()=>{
+      inject: () => ({...controller.inject(),planningControls:createElement(PlanningSettings,planning),loadCatalog:async()=>{
         const result=await ctx.remote.session.modelCatalog()
         if(!result.ok||!result.value)throw new Error(result.error?.message??'DSH model catalog unavailable')
         return result.value

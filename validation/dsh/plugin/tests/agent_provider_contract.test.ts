@@ -86,10 +86,10 @@ const previewResult={strategy:'auto',strategy_name:'自动路由',mode:'prefligh
     calls:{maximum:1},costs:{production_estimate:.01,evaluation_estimate:0,production_hard_limit:.1,
       evaluation_hard_limit:.1}}}
 
-test('native registration advertises three strategy models with zero retries',async()=>{
+test('原入口与规划路由共同注册，保持零重试',async()=>{
   assert.equal(configure({}).pythonExecutable,'refractagent')
   const f=fixture();apply(f.ctx)
-  assert.deepEqual((await f.adapter.listModels('refractagent')).map(m=>m.id),['economy','balanced','quality'])
+  assert.deepEqual((await f.adapter.listModels('refractagent')).map(m=>m.id),['economy','balanced','quality','planning'])
   assert.equal(f.adapter.providerRetryPolicy('refractagent').maxRetries,0)
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
@@ -113,7 +113,7 @@ test('route profile discovery reads local persisted observations without a model
   assert.ok(f.spawns[0]?.argv.includes('route-profiles'))
   assert.equal(f.credentials,0)
 })
-test('v4 advertises only automatic routing and normalizes a stale DSH legacy selection',async()=>{
+test('v4 同时发现自动与规划路由，并兼容旧自动模型 ID',async()=>{
   const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
   const providerConfig={schemaVersion:'refractagent-providers-v4',billingUnit:'USD',
     objective:{qualityMin:80,primary:'cost',secondary:'latency',dagMode:'auto'},
@@ -126,7 +126,7 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
        pricing:{unit:'USD',inputPer1k:0,outputPer1k:0}},
     ]}
   const adapter=createAdapter(f.ctx,()=>configure({providerConfig}))
-  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live'])
+  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live','planning'])
   assert.equal((await adapter.resolveModel('refractagent','balanced')).id,'balanced')
   const v4Chunks=[]
   for await(const chunk of adapter.stream({...options,model:'balanced'})) v4Chunks.push(chunk)
@@ -158,7 +158,7 @@ test('settings-enabled developer live starts one local preflight and one bound l
     providerConfig:liveProviderConfig(),liveExecution:{...liveExecution(),maxOutputTokens:'unlimited'}}))
   const output=[]
   for await(const chunk of adapter.stream({...options,model:'auto-live',tools:[{name:'forbidden',description:'x',parameters:{}}]}))output.push(chunk)
-  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live'])
+  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live','planning'])
   assert.equal(f.spawns.length,2)
   assert.ok(f.spawns[0]!.argv.includes('preflight'))
   assert.ok(f.spawns[1]!.argv.includes('live'))

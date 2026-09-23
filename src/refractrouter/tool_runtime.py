@@ -146,8 +146,10 @@ def run_tool_node(runtime, reservation, budget, invoke, persist, *, cancel_event
                             if response.replay_messages and 'reasoning_content' in response.replay_messages[0] else {})})
         if initial.model.wire_api == 'responses':
             messages[-1]['_response_items'] = list(response.replay_messages)
-        elif initial.model.wire_api == 'dsh-llm' and response.replay_state is not None:
-            messages[-1]['_dsh_replay_state'] = response.replay_state
+        elif initial.model.wire_api == 'dsh-llm':
+            messages[-1]['_dsh_source'] = {'provider': initial.model.provider, 'model': initial.model.api_model}
+            if response.replay_state is not None:
+                messages[-1]['_dsh_replay_state'] = response.replay_state
         additional = []
         for call in calls:
             if budget.stopped or (cancel_event is not None and cancel_event.is_set()):

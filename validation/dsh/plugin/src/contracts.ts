@@ -2,7 +2,7 @@ import type { ToolSchema } from './native-tools.js'
 import type { Readable, Writable } from 'node:stream'
 import type { FormatValidation } from './output-constraints.js'
 
-/** The host surface consumed by this bundle, matched to DSH 0.1.1-rc.2.
+/** The host surface consumed by this bundle, matched to DSH 0.1.5-rc.1.
  * These structural ports keep DSH supplied by the host, with no runtime npm dependencies.
  * Changes must also pass the clean-profile lifecycle and service contract tests.
  */

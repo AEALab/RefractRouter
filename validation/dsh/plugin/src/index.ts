@@ -487,8 +487,11 @@ export async function callDshLlm(
           blocks.push({ type: 'tool-call', id: call.id, name: call.function.name, arguments: call.function.arguments })
         }
         messages.push({ id: randomUUID(), role: 'assistant', content: blocks,
-          source: { kind: 'model', provider: request.provider, model: request.model,
-            ...(message._dsh_replay_state ? { replayState: message._dsh_replay_state } : {}) } })
+          source: isRecord(message._dsh_source) && typeof message._dsh_source.provider==='string'
+            && typeof message._dsh_source.model==='string'
+            ? {kind:'model',provider:message._dsh_source.provider,model:message._dsh_source.model,
+                ...(message._dsh_replay_state?{replayState:message._dsh_replay_state}:{})}
+            : {kind:'plugin',plugin:name} })
       } else if (message.role === 'tool' && typeof message.tool_call_id === 'string') {
         messages.push({ id: randomUUID(), role: 'user', source: { kind: 'tool', callId: message.tool_call_id },
           content: [{ type: 'tool-result', toolCallId: message.tool_call_id,

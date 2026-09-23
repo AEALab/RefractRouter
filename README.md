@@ -1,5 +1,8 @@
 # Refract Agent（析衡）
 
+新增 [RefractAgent 规划路由](docs/trajectory-routing-strategies.md)：保留 DSH 原生 Agent 循环，
+提供六类模型策略；与现有 DAG 自动路由并存，默认不启用真实调用。
+
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
 RefractRouter 是面向团队集中路由的应用项目。RefractAgent 提供本机任务入口，按质量、成本和时延偏好选择模型，支持整任务处理及 DAG 节点分配，并保存结果与费用。
