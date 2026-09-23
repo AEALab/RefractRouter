@@ -163,6 +163,12 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const live=state.liveExecution??{schemaVersion:'refractagent-live-execution-v1' as const,enabled:false,
     complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
   const updateLive=(patch:Partial<LiveExecutionView>)=>props.editLiveExecution({...live,...patch})
+  const toolLimit=live.maxDshToolCalls??(live.allowDshTools?8:0)
+  const updateToolLimit=(value:number|'unlimited')=>{
+    const next={...live,maxDshToolCalls:value}
+    delete next.allowDshTools
+    props.editLiveExecution(next)
+  }
   const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v2',billingUnit:'CNY',routes:[],
     ...(state.provider?.objective?{objective:state.provider.objective}:{}),
     ...(state.provider?.security?{security:state.provider.security}:{}),
@@ -176,8 +182,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
     if(!pool||pool.billingUnit==='CNY')return
     updatePool({...pool,billingUnit:'CNY'})
     if(state.liveExecution)updateLive({
-      maxProductionCost:live.maxProductionCost===undefined?undefined:live.maxProductionCost*currencyRate.rate,
-      maxEvaluationCost:live.maxEvaluationCost===undefined?undefined:live.maxEvaluationCost*currencyRate.rate})
+      maxProductionCost:typeof live.maxProductionCost==='number'?live.maxProductionCost*currencyRate.rate:live.maxProductionCost,
+      maxEvaluationCost:typeof live.maxEvaluationCost==='number'?live.maxEvaluationCost*currencyRate.rate:live.maxEvaluationCost})
   }
   const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
     .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
@@ -322,6 +328,15 @@ export function RefractCard(props: RefractCardOwnerProps) {
               <strong>{liveIssues.length?t('liveUnavailable'):t('liveReady')}</strong>
               {liveIssues.map(issue=><span className="rra-invalid" key={issue.code}>{issue.message}</span>)}
               <span className="rra-field-hint">{t('liveApprovalHint')}</span></div>
+              <div className="rra-compact-field"><label htmlFor="rra-tool-call-limit">{t('liveMaxDshToolCalls')}</label>
+                <input id="rra-tool-call-limit" className="rra-input" type="number" min="0" max="100000" step="1" disabled={disabled||toolLimit==='unlimited'}
+                  value={toolLimit==='unlimited'?'':toolLimit}
+                  onChange={event=>updateToolLimit(event.target.value===''?0:Number(event.target.value))}/>
+                <label className="rra-check"><input type="checkbox" disabled={disabled}
+                  checked={toolLimit==='unlimited'} onChange={event=>updateToolLimit(event.target.checked?'unlimited':0)}/>
+                  {t('liveToolsUnlimited')}</label>
+                <span className="rra-field-hint">{t('liveMaxDshToolCallsHint')}</span>
+                {toolLimit==='unlimited'?<span className="rra-warning">{t('liveToolsUnlimitedWarning')}</span>:null}</div>
               <div className="rra-grid rra-grid-2"><label className="rra-compact-field">{t('liveComplexity')}
                 <select className="rra-select" disabled={disabled} value={live.complexityPolicy}
                   onChange={event=>updateLive({complexityPolicy:event.target.value as LiveExecutionView['complexityPolicy']})}>
@@ -333,14 +348,26 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     onChange={event=>updateLive({reviewPolicy:event.target.value as LiveExecutionView['reviewPolicy']})}>
                     <option value="adaptive">{t('liveReviewAdaptive')}</option><option value="always">{t('liveReviewAlways')}</option></select>
                   <span className="rra-field-hint">{t('liveReviewHint')}</span></label></div>
-              <div className="rra-grid rra-grid-2"><label className="rra-compact-field">{t('liveProductionBudget')}
-                <input className="rra-input" type="number" min="0" step="0.001" disabled={disabled}
-                  value={live.maxProductionCost??''} onChange={event=>updateLive({maxProductionCost:event.target.value===''?undefined:Number(event.target.value)})}/></label>
-                <label className="rra-compact-field">{t('liveEvaluationBudget')}
-                  <input className="rra-input" type="number" min="0" step="0.001" disabled={disabled}
-                  value={live.maxEvaluationCost??''} onChange={event=>updateLive({maxEvaluationCost:event.target.value===''?undefined:Number(event.target.value)})}/></label></div>
+              <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{t('liveProductionBudget')}</label>
+                <input id="rra-production-budget" className="rra-input" type="number" min="0" step="0.001"
+                  disabled={disabled||live.maxProductionCost==='unlimited'}
+                  value={live.maxProductionCost==='unlimited'?'':live.maxProductionCost??''}
+                  onChange={event=>updateLive({maxProductionCost:event.target.value===''?undefined:Number(event.target.value)})}/>
+                <label className="rra-check"><input type="checkbox" disabled={disabled} aria-label={t('liveProductionUnlimited')}
+                  checked={live.maxProductionCost==='unlimited'}
+                  onChange={event=>updateLive({maxProductionCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div>
+                <div className="rra-compact-field"><label htmlFor="rra-evaluation-budget">{t('liveEvaluationBudget')}</label>
+                  <input id="rra-evaluation-budget" className="rra-input" type="number" min="0" step="0.001"
+                    disabled={disabled||live.maxEvaluationCost==='unlimited'}
+                    value={live.maxEvaluationCost==='unlimited'?'':live.maxEvaluationCost??''}
+                    onChange={event=>updateLive({maxEvaluationCost:event.target.value===''?undefined:Number(event.target.value)})}/>
+                  <label className="rra-check"><input type="checkbox" disabled={disabled} aria-label={t('liveEvaluationUnlimited')}
+                    checked={live.maxEvaluationCost==='unlimited'}
+                    onChange={event=>updateLive({maxEvaluationCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div></div>
+              <p className="rra-field-hint">{t('liveUnlimitedBudgetHint')}</p>
               <details className="rra-details"><summary>并发、Provider 节流与输出上限</summary>
-                <p>模型／Provider 的物理最大输出由 DSH 目录只读提供；实际节点上限取物理上限、此处任务安全上限、节点目标和剩余预算中的最小值。</p>
+                <p>{t('liveOutputCapacityHint')}</p>
+                <p>实际节点上限还会受此处单节点上限、节点目标和剩余费用可承担量影响。</p>
                 <div className="rra-grid rra-grid-2"><label className="rra-compact-field">总并发上限
                   <input className="rra-input" type="number" min="1" max="8" step="1" disabled={disabled}
                     value={live.maxConcurrency??1} onChange={event=>updateLive({maxConcurrency:Number(event.target.value)})}/>
@@ -370,7 +397,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
                       onChange={event=>updateLive({providerMinIntervalMs:{...live.providerMinIntervalMs,[provider]:Number(event.target.value)}})}/></label></div>)}
               </details>
               <div className="rra-simple-status"><strong>{t('liveCallEnvelope')}</strong>
-                <span>{t('liveCallEnvelopeBody')}</span></div></>:null}
+                <span>{t('liveCallEnvelopeBody')}{toolLimit!==0
+                  ? toolLimit==='unlimited'?' 工具续调不设 Router 总次数上限；每轮仍由 DSH 审批并产生模型费用。'
+                    :` 启用工具后，最多再增加 ${toolLimit} 次工具结果后的模型续调。`:''}</span></div></>:null}
           </div>
           {!state.hasProvider ? <p className="rra-hint">{t('providerAbsentHint')}</p> : null}
           {pool ? <div className="rra-v4-section"><div className="rra-section-head"><div><h3>{t('poolCatalogTitle')}</h3>
@@ -387,7 +416,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
             {pool.billingUnit!=='CNY'?<div className="rra-issue-summary" role="status"><strong>旧配置使用 USD 记账</strong>
               <span>点击迁移后，原厂 USD 单价按中国银行 {currencyRate.as_of} 冻结中间价 1 USD = {currencyRate.rate} CNY 换算；现有生产和评审预算同时按同一汇率转换，保存后人民币金额生效。</span>
               <button type="button" className="rra-button rra-button-secondary" disabled={disabled} onClick={migrateCurrency}>迁移为人民币（CNY）记账</button></div>:null}
-            {pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与硬预算：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
+            {pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与费用记账：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
             {routeProfilesError?<p className="rra-warning">{t('poolLatencyReadError')}: {routeProfilesError}</p>:null}

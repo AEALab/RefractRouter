@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 import { configure } from '../dist/agent-provider.js'
-import { migrateDshModelPool } from '../dist/provider-config.js'
+import { dshToolCallLimit, migrateDshModelPool } from '../dist/provider-config.js'
 import {
   buildSettingsBase, installRefractSettings, overlaySettings, validateSettingsSection,
 } from '../dist/settings-integration.js'
@@ -475,10 +475,27 @@ test('宿主拒绝与无回读使用不同诊断并保留草稿', async () => {
   const unread = new RefractCardController(unreadScope)
   unread.inject().editLimit('relaxContext', true)
   await unread.save()
-  assert.match(String(unread.getSnapshot().failureMessage), /保存结果未确认/)
+  assert.match(String(unread.getSnapshot().failureMessage), /保存 limits 后宿主未回读新值/)
   assert.ok(unread.getSnapshot().issues.some(issue => issue.code === 'SETTINGS_READBACK_UNCONFIRMED'))
   assert.equal(unread.getSnapshot().dirty, true)
   unread.dispose()
+})
+
+test('宿主吞掉写入拒绝时，诊断重试显示具体字段和脱敏原因', async () => {
+  const scope = fakeScope({liveExecution:{schemaVersion:'refractagent-live-execution-v1',enabled:false,
+    complexityPolicy:'auto',reviewPolicy:'adaptive'}})
+  scope.setAccepting(false)
+  scope.diagnoseWrite = async () => ({ok:false,code:'settings/rejected',
+    message:'liveExecution.maxDshToolCalls must be an integer in 1..64; token=private-token'})
+  const controller = new RefractCardController(scope)
+  controller.inject().editLiveExecution({schemaVersion:'refractagent-live-execution-v1',enabled:false,
+    complexityPolicy:'auto',reviewPolicy:'adaptive',maxDshToolCalls:64})
+  await controller.save()
+  assert.match(String(controller.getSnapshot().failureMessage), /宿主拒绝保存 liveExecution.*maxDshToolCalls/)
+  assert.doesNotMatch(String(controller.getSnapshot().failureMessage), /private-token/)
+  assert.equal(controller.getSnapshot().issues.at(-1)?.field,'liveExecution')
+  assert.equal(controller.getSnapshot().dirty,true)
+  controller.dispose()
 })
 
 test('设置页直接复用核心冻结档案并保留条件价格来源', async () => {
@@ -509,9 +526,23 @@ test('设置页直接复用核心冻结档案并保留条件价格来源', async
 
 test('真实执行设置必须显式使用 synthetic、CNY 和双硬预算，并可往返保存', async () => {
   const live={schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
-    maxProductionCost:.2,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
+    maxProductionCost:.2,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const,
+    maxDshToolCalls:8}
   validateSettingsSection({liveExecution:live})
-  assert.throws(()=>validateSettingsSection({liveExecution:{...live,maxProductionCost:0}}),/positive CNY hard limit/)
+  assert.throws(()=>validateSettingsSection({liveExecution:{...live,maxProductionCost:0}}),/positive CNY limit/)
+  assert.throws(()=>validateSettingsSection({liveExecution:{...live,maxDshToolCalls:100001}}),/maxDshToolCalls/)
+  validateSettingsSection({liveExecution:{...live,maxDshToolCalls:0}})
+  validateSettingsSection({liveExecution:{...live,maxDshToolCalls:'unlimited'}})
+  assert.equal(dshToolCallLimit({allowDshTools:true}),8)
+  assert.equal(dshToolCallLimit({allowDshTools:true,maxDshToolCalls:0}),0)
+  assert.equal(dshToolCallLimit({allowDshTools:false,maxDshToolCalls:'unlimited'}),'unlimited')
+  const invalid = new RefractCardController(fakeScope({}))
+  invalid.inject().editLiveExecution({...live,maxDshToolCalls:100001})
+  await invalid.save()
+  assert.equal(invalid.getSnapshot().issues.some(issue=>issue.code==='LIVE_EXECUTION_TOOL_CALLS_INVALID'),true)
+  assert.equal(invalid.getSnapshot().failureMessage,'保存前检查未通过，请修正下方标记的问题。')
+  invalid.dispose()
+  validateSettingsSection({liveExecution:{...live,maxProductionCost:'unlimited',maxEvaluationCost:'unlimited'}})
   const base=configure({dshModelPool:{...dshModelPool(),schemaVersion:'refractagent-dsh-model-pool-v2',
     billingUnit:'CNY',
     routes:dshModelPool().routes.map(route=>({...route,overrides:{inputPer1k:0,outputPer1k:0}}))}})
@@ -557,7 +588,9 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.ok(localeSource.includes('请先修正以下阻断问题'))
   assert.ok(source.includes('saveBlockedButton'))
   assert.ok(localeSource.includes('真实执行（开发试用）'))
-  assert.ok(localeSource.includes('最多 1 次执行'))
+  assert.ok(localeSource.includes('最多 1 次模型请求'))
+  assert.ok(source.includes('liveMaxDshToolCalls'))
+  assert.ok(localeSource.includes('0 次关闭'))
   assert.ok(source.includes('developer trial'))
   const registrations: Array<{ id: string; factory: (require: (spec: string) => unknown) => unknown }> = []
   const sandboxWindow = {
@@ -574,7 +607,7 @@ test('client bundle registers in the host module format and exports the plugin f
     throw new Error('unexpected require: ' + spec)
   }) as { apply: (ctx: unknown) => void; inject: string[] }
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'settingsScope'])
+  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope'])
 
   const effects: Array<() => unknown> = []
   const discoveryCalls: Array<{namespace:string;request:Record<string,unknown>}> = []

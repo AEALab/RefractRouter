@@ -45,6 +45,9 @@ AUTO_POLICY_VERSION = 'refractagent-auto-runtime-v1'
 MAX_CONTEXT_BYTES = 120000
 RELAXED_CONTEXT_BYTES = 1000000
 RELAXED_COST_MAX = 1e12
+# 下游选模与原子账本要求有限数；该内部值仅表示用户显式取消金额上限，
+# 不作为审计硬预算披露，实际调用仍受模型容量与 v4 调用次数限制。
+UNLIMITED_COST_INTERNAL = 1e300
 RELAXED_INPUT_CAP = 1_000_000
 
 
@@ -92,7 +95,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
-            'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput'}:
+            'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls'}:
         raise ValueError('invalid RefractAgent request fields')
     validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
@@ -103,6 +106,10 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
     relax_context = limits.get('relaxContext', False)
     if 'unlimitedNodeOutput' in payload and (type(payload['unlimitedNodeOutput']) is not bool or not automatic_routing):
         raise ValueError('unlimitedNodeOutput requires a v4 boolean setting')
+    if 'maxDshToolCalls' in payload and (not automatic_routing or
+            (payload['maxDshToolCalls'] != 'unlimited' and
+             (type(payload['maxDshToolCalls']) is not int or not 1 <= payload['maxDshToolCalls'] <= 100000))):
+        raise ValueError('maxDshToolCalls requires a v4 integer in 1..100000 or unlimited')
     strategy = payload.get('strategy', 'auto' if automatic_routing else 'balanced')
     allowed_strategies = {'auto'} if automatic_routing else set(PRESETS)
     if not isinstance(strategy, str) or strategy not in allowed_strategies:
@@ -180,6 +187,12 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                          and provider_config.get('schemaVersion') == 'refractagent-providers-v4')
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')
+    if (production_budget == 'unlimited' or evaluation_budget == 'unlimited') and not (
+            automatic_routing and mode in {'preflight', 'live'}):
+        raise ValueError('unlimited budgets require v4 preflight or live execution')
+    production_choice, evaluation_choice = production_budget, evaluation_budget
+    production_budget = UNLIMITED_COST_INTERNAL if production_budget == 'unlimited' else production_budget
+    evaluation_budget = UNLIMITED_COST_INTERNAL if evaluation_budget == 'unlimited' else evaluation_budget
     number(evaluation_budget, 'evaluation budget', positive=True)
     if type(max_output_tokens) is not int or not 1000 <= max_output_tokens <= 128000:
         raise ValueError('output cap must be an integer in 1000..128000')
@@ -187,13 +200,21 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
         automatic_routing=automatic_routing)
     if automatic_routing and mode in {'preflight', 'live'}:
+        if (tool_runtime is None) != ('maxDshToolCalls' not in payload):
+            raise ValueError('REFRACTAGENT_TOOLS_DISABLED: DSH 工具目录与调用上限必须同时提供')
+        if tool_runtime is not None and tool_runtime.max_calls != payload['maxDshToolCalls']:
+            raise ValueError('REFRACTAGENT_PREVIEW_MISMATCH: DSH 工具调用上限不一致')
+    if automatic_routing and mode in {'preflight', 'live'}:
         request['costMax'] = production_budget
-    gate = (complexity_gate(payload, context, policy=payload.get('complexityPolicy', 'auto'))
+    tools_allowed = tool_runtime is not None
+    gate = (complexity_gate(payload, context, policy=payload.get('complexityPolicy', 'auto'),
+                            tools_allowed=tools_allowed)
             if automatic_routing else None)
-    review = (review_decision(payload, gate, policy=payload.get('reviewPolicy', 'adaptive'))
+    review = (review_decision(payload, gate, policy=payload.get('reviewPolicy', 'adaptive'),
+                              tools_allowed=tools_allowed)
               if automatic_routing else None)
     if gate is not None and gate['decision'] == 'blocked-tools':
-        raise ValueError('REFRACTAGENT_TOOLS_DISABLED: 首版真实自动路由不支持搜索、文件、命令或外部工具任务')
+        raise ValueError('REFRACTAGENT_TOOLS_DISABLED: 当前任务未启用 DSH 工具，或宿主未提供可用工具')
     relax_budget, relax_context = limits['relaxBudget'], limits['relaxContext']
     if preset not in {None, 'ark-agent-plan'}:
         raise ValueError('unknown provider preset')
@@ -221,8 +242,6 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 首版真实执行仅允许 synthetic 数据模式')
         if manifest.billing_unit not in {'USD', 'CNY'}:
             raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD 或 CNY 模型池')
-        if tool_runtime is not None:
-            raise ValueError('REFRACTAGENT_TOOLS_DISABLED: 首版真实执行不接受 hostTools')
         if (request.get('maxPlanRepairs', 0) != 0 or request.get('maxDynamicSplits', 0) != 0
                 or request.get('maxNodeFallbacks', 0) != 0):
             raise ValueError('live canary requires zero repair/split/fallback')
@@ -267,11 +286,13 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                    required_criteria=request.get('acceptanceCriteria')).to_dict()) if configured else
                json.loads(Path(profile_path).read_text() if profile_path else resource('report-profile.json').read_text()))
     binding = (authorization_binding(payload, provider_config=provider_config,
-        catalog_snapshot=dsh_catalog_snapshot, production_budget=production_budget,
-        evaluation_budget=evaluation_budget, max_output_tokens=max_output_tokens,
+        catalog_snapshot=dsh_catalog_snapshot, production_budget=production_choice,
+        evaluation_budget=evaluation_choice, max_output_tokens=max_output_tokens,
         gate=gate, review=review,
         data_mode=configured.snapshot.get('security', {}).get('dataMode'),
-        billing_unit=manifest.billing_unit) if automatic_routing else None)
+        billing_unit=manifest.billing_unit,
+        tool_schemas=tool_runtime.schemas if tools_allowed else None,
+        max_tool_calls=tool_runtime.max_calls if tools_allowed else 0) if automatic_routing else None)
     approved_authorization = None
     if automatic_routing and mode == 'live':
         approved_authorization = validate_authorization(payload.get('authorization'), binding)
@@ -298,7 +319,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     atomic_json(request_path, {'schema_version': 'refractagent-request-v1', 'payload': payload,
         'runtime_request': request,
         'policy_version': AUTO_POLICY_VERSION if automatic_routing else POLICY_VERSION, 'mode': mode,
-        'production_budget': production_budget, 'evaluation_budget': evaluation_budget,
+        'production_budget': production_choice, 'evaluation_budget': evaluation_choice,
         'max_output_tokens': max_output_tokens, 'limits': limits,
         **({'complexity_gate': gate, 'review': review,
             'authorization': approved_authorization} if automatic_routing else {})})
@@ -313,6 +334,11 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     def checkpoint(value):
         atomic_json(result_path, value)
         recorder.record(value)
+    max_model_calls = None
+    if gate is not None and not (tools_allowed and tool_runtime.max_calls == 'unlimited'):
+        max_model_calls = ((1 + int(review['required'])) if gate['decision'] == 'direct' else 8)
+        if tools_allowed:
+            max_model_calls += tool_runtime.max_calls
     result = run_task(request, manifest, profile,
         client=client if mode == 'live' else None,
         production_limit=(production_budget if automatic_routing and mode in {'preflight', 'live'}
@@ -323,9 +349,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
         context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap,
         privacy=configured.privacy if configured else None,
-        decision_evidence=gate, review_evidence=review,
-        max_model_calls=((1 + int(review['required'])) if gate and gate['decision'] == 'direct'
-                         else 8 if gate else None))
+        decision_evidence=gate, review_evidence=review, max_model_calls=max_model_calls)
     if result.get('routing_profile'):
         profile = result['routing_profile']
         atomic_json(directory / 'profile.json', profile)
@@ -408,7 +432,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             output['live_authorization_preview'] = create_authorization_preview(
                 binding, billing_unit=manifest.billing_unit,
                 production_estimate=production_estimate,
-                evaluation_estimate=0 if not review['required'] else evaluation_budget,
+                evaluation_estimate=0 if not review['required'] else (
+                    None if evaluation_choice == 'unlimited' else evaluation_budget),
                 ready=result.get('status') == 'preview')
     if result.get('compact_planning', {}).get('policy_version'):
         output['planning_policy'] = result['compact_planning']['policy_version']

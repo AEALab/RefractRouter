@@ -14,12 +14,12 @@ function object(v: unknown): v is Record<string, unknown> { return v !== null &&
 function short(v: unknown, max = 400): v is string { return typeof v === 'string' && v.length <= max }
 export function decodeDag(value: unknown): DagView {
   if (!object(value) || !short(value.phase, 40) || !short(value.status, 80) || !short(value.reason, 400)
-    || typeof value.simulated !== 'boolean' || !Array.isArray(value.nodes) || value.nodes.length > 8) throw new Error('invalid DAG progress')
+    || typeof value.simulated !== 'boolean' || !Array.isArray(value.nodes) || value.nodes.length > 12) throw new Error('invalid DAG progress')
   const ids = new Set<string>()
   for (const row of value.nodes) {
     if (!object(row) || !short(row.id, 100) || !row.id || ids.has(row.id) || !short(row.objective, 240)
       || !short(row.state, 80) || !Number.isSafeInteger(row.attempt) || Number(row.attempt) < 0
-      || !Array.isArray(row.parents) || row.parents.length > 8 || !row.parents.every(p => short(p, 100))
+      || !Array.isArray(row.parents) || row.parents.length > 12 || !row.parents.every(p => short(p, 100))
       || !(row.recovery === null || short(row.recovery, 100))) throw new Error('invalid DAG node progress')
     for (const key of ['node_type', 'difficulty', 'risk']) {
       if (row[key] != null && !short(row[key], 40)) throw new Error('invalid DAG classification')
@@ -40,17 +40,21 @@ export function decodeProgress(value: unknown): ProgressEvent {
   return value as unknown as ProgressEvent
 }
 const states: Record<string,string> = { pending: '等待依赖／选模', scheduled: '排队', running: '运行中', ok: '已完成',
-  'tool-concluded': '工具已结束本轮', failed: '失败', 'invalid-output': '输出校验失败', 'cancelled-before-dispatch': '已取消', blocked: '未执行（任务停止）', 'not-run': '未执行（预览）' }
-const phases: Record<string,string> = { planning: '规划任务', routing: '计划就绪／模型分配', executing: '执行节点', evaluating: '独立评审', finished: '执行结束' }
+  skipped: '按策略跳过', 'tool-concluded': '工具已结束本轮', failed: '失败', 'invalid-output': '输出校验失败', 'cancelled-before-dispatch': '已取消', blocked: '未执行（任务停止）', 'not-run': '未执行（预览）' }
+const phases: Record<string,string> = { classifying: '数据分级与部署准入', planning: '规划任务', routing: '计划就绪／模型分配', executing: '执行节点', evaluating: '独立评审', finished: '执行结束' }
 function escape(value: string): string {
   // DSH 0.1 的 reasoning 区域使用纯文本；保留易读文字并去掉控制字符。
   return value.replace(/[\x00-\x1f\x7f\u202a-\u202e\u2066-\u2069]/g, ' ').replace(/</g, '‹').replace(/>/g, '›')
 }
 function model(row: NodeView): string {
+  if (row.node_type === 'role-classifier' || row.node_type === 'role-placement') return '规则／分类器与部署策略检查'
   return row.model ? escape(`${row.model.provider}/${row.model.model}${row.model.reasoning_effort ? ' (' + row.model.reasoning_effort + ')' : ''}`) : '待分配'
 }
 function state(row: NodeView): string {
-  return escape(states[row.state] ?? row.state) + (row.attempt > 1 ? `（第 ${row.attempt} 次）` : '')
+  const label = row.node_type === 'role-classifier' || row.node_type === 'role-placement'
+    ? row.state === 'blocked' ? '准入阻断' : states[row.state] ?? row.state
+    : states[row.state] ?? row.state
+  return escape(label) + (row.attempt > 1 ? `（第 ${row.attempt} 次）` : '')
     + (row.recovery ? ` · ${escape(row.recovery)}` : '')
 }
 export function dagListing(view: DagView): string {

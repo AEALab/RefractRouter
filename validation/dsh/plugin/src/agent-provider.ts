@@ -6,7 +6,7 @@ import { bindNativeTools, type NativeToolContext, type ToolSchema } from './nati
 import type { DshContext, LlmService, ModelRoute, ProcessHandle } from './contracts.js'
 import { dshProviderIssues, pumpDshBridge } from './index.js'
 import { decodeOutputConstraints, decodeFormatValidation, formatValidationSummary, type OutputConstraints } from './output-constraints.js'
-import { freezeConfiguration, validateDshModelPool, validateProviderConfiguration, type DshModelPool,
+import { dshToolCallLimit, freezeConfiguration, validateDshModelPool, validateProviderConfiguration, type DshModelPool,
   validateLiveExecution, type LimitsConfiguration, type LiveExecutionConfiguration,
   type ProviderConfiguration } from './provider-config.js'
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
@@ -39,8 +39,8 @@ function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
   const issues: string[] = []
   if (billingUnit !== 'CNY') issues.push('模型池计费单位必须为 CNY（人民币）')
   if (dataMode !== 'synthetic') issues.push('首版真实执行只允许 synthetic 数据模式')
-  if (!(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)) issues.push('缺少生产费用硬上限')
-  if (!(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) issues.push('缺少评审费用硬上限')
+  if (live.maxProductionCost !== 'unlimited' && !(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)) issues.push('缺少生产费用上限选择')
+  if (live.maxEvaluationCost !== 'unlimited' && !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) issues.push('缺少评审费用上限选择')
   return issues
 }
 
@@ -229,7 +229,11 @@ function publicFailure(error: unknown, aborted: boolean): PublicFailure {
   }
   if (/REFRACTAGENT_TOOLS_DISABLED/.test(detail)) return {
     kind: 'error', code: 'REFRACTAGENT_TOOLS_DISABLED',
-    message: 'RefractAgent 未执行：首版真实入口不支持搜索、文件、命令或外部工具任务。',
+    message: 'RefractAgent 未执行：请在设置页启用 DSH 工具，并确认 DSH 当前回合提供所需工具。',
+  }
+  if (/host-tool-call-limit-exhausted/.test(detail)) return {
+    kind: 'error', code: 'REFRACTAGENT_EXECUTION_FAILED',
+    message: 'RefractAgent 已停止：本任务达到设置的 DSH 工具调用次数上限；已发生的调用和费用仍保留在运行记录中。',
   }
   if (/REFRACTAGENT_LIVE_DISABLED|DATA_MODE_UNSUPPORTED|BILLING_UNIT_UNSUPPORTED/.test(detail)) return {
     kind: 'error', code: 'REFRACTAGENT_LIVE_DISABLED',
@@ -585,8 +589,8 @@ async function invokeRemote(ctx: AgentContext, config: Readonly<Configuration>, 
 
 interface InvocationControl {
   mode: 'preflight' | 'demo' | 'live'
-  productionBudget: number
-  evaluationBudget: number
+  productionBudget: number | 'unlimited'
+  evaluationBudget: number | 'unlimited'
   authorization?: Record<string, unknown>
   localOnly?: boolean
   allowHostTools?: boolean
@@ -637,9 +641,11 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
       throw new Error(`Missing RefractAgent credential: ${reference}`)
     }
   }
-  const coreOptions = {...options,model:'auto',tools:[]}
+  const toolLimit = dshToolCallLimit(live)
+  const allowTools = toolLimit !== 0
+  const coreOptions = {...options,model:'auto',tools:allowTools ? options.tools : []}
   const common = {productionBudget:live.maxProductionCost!,evaluationBudget:live.maxEvaluationCost!,
-    localOnly:true,allowHostTools:false}
+    localOnly:true,allowHostTools:allowTools}
   const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'})
   if (!object(preview.live_authorization_preview) || preview.live_authorization_preview.ready !== true) {
     throw new Error('REFRACTAGENT_LIVE_DISABLED: 核心预检未满足真实执行条件')
@@ -660,7 +666,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   if (live && !control?.localOnly && !config.allowPaidRuns) throw new Error('RefractAgent paid execution is disabled; enable it with scoped production/evaluation budgets')
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.dshModelPool && !config.preset) throw new Error('configure providerConfig, dshModelPool or explicitly choose preset: ark-agent-plan')
-  const nativeTools = live && control?.allowHostTools !== false && !options.purpose ? bindNativeTools(ctx, options.tools ?? []) : undefined
+  const nativeTools = (live || control?.mode === 'preflight') && control?.allowHostTools !== false
+    && !options.purpose ? bindNativeTools(ctx, options.tools ?? []) : undefined
   const catalogSnapshot=config.dshModelPool?await dshCatalogSnapshot(ctx,config.dshModelPool):undefined
   const payload = { ...conversation(options, config.limits?.relaxContext ? RELAXED_CONTEXT_BYTES : MAX_CONTEXT_BYTES),
     strategy: options.model, template: automaticRouting ? 'auto' : config.template,
@@ -671,7 +678,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       ...(config.liveExecution!.maxOutputTokens === 'unlimited' ? {unlimitedNodeOutput:true} : {}),
       ...(config.liveExecution!.maxTotalOutputTokens ? {maxTotalOutputTokens:config.liveExecution!.maxTotalOutputTokens} : {}),
       ...(config.liveExecution!.providerConcurrency ? {providerConcurrency:config.liveExecution!.providerConcurrency} : {}),
-      ...(config.liveExecution!.providerMinIntervalMs ? {providerMinIntervalMs:config.liveExecution!.providerMinIntervalMs} : {})} : {}),
+      ...(config.liveExecution!.providerMinIntervalMs ? {providerMinIntervalMs:config.liveExecution!.providerMinIntervalMs} : {}),
+      ...(nativeTools ? {maxDshToolCalls:dshToolCallLimit(config.liveExecution!)} : {})} : {}),
     ...(nativeTools ? { hostTools: nativeTools.schemas } : {}),
     ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
       .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),
@@ -680,11 +688,11 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}),
     ...(config.dshModelPool ? {dshModelPool:config.dshModelPool,dshCatalogSnapshot:catalogSnapshot} : {}) }
   const routes = configuredRoutes(config)
-  const useBridge = live && (routes.length > 0 || !!nativeTools)
+  const useBridge = (live && routes.length > 0) || !!nativeTools
   const progressEnabled = automaticRouting || config.template === 'auto'
   const piped = useBridge || progressEnabled
   let host: { llm: LlmService } | undefined
-  if (useBridge) {
+  if (live && routes.length) {
     if (!ctx.llm.stream || !ctx.llm.listProviders || !ctx.llm.providerRetryPolicy || !ctx.llm.resolveModelInfo) {
       throw new Error('DSH provider routing requires the native LLM service')
     }

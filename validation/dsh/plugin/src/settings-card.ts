@@ -122,10 +122,12 @@ export interface SectionView {
 export interface LiveExecutionView {
   schemaVersion:'refractagent-live-execution-v1'
   enabled:boolean
-  maxProductionCost?:number
-  maxEvaluationCost?:number
+  maxProductionCost?:number|'unlimited'
+  maxEvaluationCost?:number|'unlimited'
   complexityPolicy:'auto'|'direct'|'dag'
   reviewPolicy:'adaptive'|'always'
+  allowDshTools?:boolean
+  maxDshToolCalls?:number|'unlimited'
   maxConcurrency?:number
   providerConcurrency?:Record<string,number>
   providerMinIntervalMs?:Record<string,number>
@@ -165,6 +167,7 @@ export type SettingsIssueCode =
   | 'LIVE_EXECUTION_CNY_REQUIRED'
   | 'LIVE_EXECUTION_SYNTHETIC_REQUIRED'
   | 'LIVE_EXECUTION_BUDGET_REQUIRED'
+  | 'LIVE_EXECUTION_TOOL_CALLS_INVALID'
 
 export interface SettingsIssue {
   code: SettingsIssueCode
@@ -193,8 +196,14 @@ export function blocksDshModelPoolRun(issue: SettingsIssue): boolean {
 
 export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
   pool: DshModelPoolView | undefined, provider: ProviderConfigView | undefined): SettingsIssue[] {
-  if (!live?.enabled) return []
   const issues: SettingsIssue[] = []
+  if (live?.maxDshToolCalls !== undefined && live.maxDshToolCalls !== 'unlimited'
+    && (typeof live.maxDshToolCalls !== 'number' || !Number.isInteger(live.maxDshToolCalls)
+      || live.maxDshToolCalls < 0 || live.maxDshToolCalls > 100000)) {
+    issues.push({code:'LIVE_EXECUTION_TOOL_CALLS_INVALID',severity:'error',field:'liveExecution.maxDshToolCalls',
+      message:'DSH 工具调用次数必须是 0～100000 的整数，或选择「不限次数」；0 表示禁用工具。'})
+  }
+  if (!live?.enabled) return issues
   const automatic = pool !== undefined || provider?.schemaVersion === 'refractagent-providers-v4'
   if (!automatic) issues.push({code:'LIVE_EXECUTION_MODEL_POOL_REQUIRED',severity:'error',field:'liveExecution',
     message:'真实执行需要可用的自动路由模型池；旧三策略配置只能继续使用原有入口。'})
@@ -204,10 +213,10 @@ export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
   const security = pool?.security ?? provider?.security
   if (security?.dataMode !== 'synthetic') issues.push({code:'LIVE_EXECUTION_SYNTHETIC_REQUIRED',severity:'error',
     field:'liveExecution',message:'真实执行首版只允许合成测试数据（synthetic）；真实数据和脱敏材料暂未开放。'})
-  if (!(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)
-    || !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) {
+  if (!([live.maxProductionCost,live.maxEvaluationCost].every(value=>value==='unlimited'
+    || typeof value==='number'&&Number.isFinite(value)&&value>0))) {
     issues.push({code:'LIVE_EXECUTION_BUDGET_REQUIRED',severity:'error',field:'liveExecution',
-      message:'请明确填写单任务生产与评审人民币硬上限；真实执行没有隐式付费默认值。'})
+      message:'请分别设置单任务生产与评审人民币上限，或明确选择无限制；真实执行没有隐式付费默认值。'})
   }
   return issues
 }
@@ -327,12 +336,16 @@ export interface CardScopeSnapshot {
   base?: SectionView
   user?: SectionView
   writable: boolean
+  revision?: number
 }
 export interface CardScope {
   getSnapshot(): CardScopeSnapshot
   subscribe(listener: () => void): () => void
   set(field: string, value: unknown): Promise<void>
   unset(field: string): Promise<void>
+  /** DSH scope.set 会吞掉远端拒绝；仅回读失败时重试并取回原始错误。 */
+  diagnoseWrite?(field: string, edit: {kind:'set';value:unknown}|{kind:'clear'},
+    revision?:number):Promise<{ok:true}|{ok:false;code:string;message:string}>
 }
 
 export interface RefractCardProjection {
@@ -756,14 +769,41 @@ export class RefractCardController {
       }
     })
     let landed = true
+    let missingField:CardField|undefined
     const user = this.userLayer()
     for (const write of writes) {
       const staged = this.staged.get(write.field)
       if (staged?.kind === 'set') {
         if (user === undefined || user[write.field] === undefined
-          || stableStringify(user[write.field]) !== stableStringify(staged.value)) landed = false
+          || stableStringify(user[write.field]) !== stableStringify(staged.value)) {
+          landed = false
+          missingField ??= write.field
+        }
       } else if (staged?.kind === 'clear') {
-        if (user !== undefined && Object.hasOwn(user, write.field)) landed = false
+        if (user !== undefined && Object.hasOwn(user, write.field)) {
+          landed = false
+          missingField ??= write.field
+        }
+      }
+    }
+    if (!landed && this.failureMessage === null && missingField && this.scope.diagnoseWrite) {
+      const edit = this.staged.get(missingField)
+      if (edit) {
+        try {
+          const diagnosis = await this.scope.diagnoseWrite(missingField, edit, this.snapshot().revision)
+          if (!diagnosis.ok) {
+            const detail = sanitizeHostErrorDetail(diagnosis.message)
+            this.failureMessage = diagnosis.code === 'settings/conflict'
+              ? `保存 ${missingField} 时设置已被其他操作修改：${detail}。请刷新页面后重试。`
+              : `宿主拒绝保存 ${missingField}：${detail}。请检查该字段或重启已更新的 DSH 服务后重试。`
+            this.saveIssue = {code:'SETTINGS_HOST_REJECTED',severity:'error',field:missingField,
+              message:this.failureMessage}
+          } else {
+            this.failureMessage = `宿主已接受 ${missingField}，但设置页未同步到新值；请刷新页面确认，修改暂保留。`
+          }
+        } catch (error) {
+          this.failureMessage = `无法确认 ${missingField} 的写入：${sanitizeHostErrorDetail(error)}；修改暂保留。`
+        }
       }
     }
     if (landed) {
@@ -773,9 +813,11 @@ export class RefractCardController {
     this.saving = false
     this.failed = !landed
     if (!landed && this.failureMessage === null) {
-      this.failureMessage = '保存结果未确认，修改仍保留在页面中；请检查宿主状态后重试。'
-      this.saveIssue = {code:'SETTINGS_READBACK_UNCONFIRMED',severity:'error',field:'dshModelPool',
-        message:this.failureMessage}
+      this.failureMessage = `保存 ${missingField??'设置'} 后宿主未回读新值；修改暂保留。请刷新页面确认，若仍未生效请重启 DSH 服务。`
+    }
+    if (!landed && this.saveIssue === null) {
+      this.saveIssue = {code:'SETTINGS_READBACK_UNCONFIRMED',severity:'error',field:missingField??'settings',
+        message:this.failureMessage!}
     }
     this.publish()
   }

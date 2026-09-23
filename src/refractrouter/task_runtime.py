@@ -229,6 +229,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
              if placement is not None else None)
     if placement is not None:
         result['privacy_placement'] = placement
+        result['input_classification_state'] = 'pending'
+        result['placement_state'] = 'pending'
     persist_lock = RLock()
     def persist():
         with persist_lock:
@@ -277,12 +279,19 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         elif live:
             before_call()
             if placement is not None:
+                result['input_classification_state'] = 'running'
+                persist()
                 check = role_isolation(view=planning_task, privacy=privacy, classifier=classifier,
                                        model=planner, role='planner', source='planner-view')
                 placement['role_checks'].append(check)
                 if not check['satisfied']:
                     check['detail'] = 'planner-not-local'
+                    result['input_classification_state'] = 'blocked'
                     return privacy_block([check])
+                result['input_classification_state'] = 'ok'
+                persist()
+            result['planning_state'] = 'running'
+            persist()
             if request.get('planningMode') == 'compact':
                 result['compact_planning'] = {}
                 minimal = request.get('plannerPolicy') in ('minimal-v1', 'minimal-v2')
@@ -356,6 +365,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         before_call()
         result["prefix_policy"] = request.get("prefixPolicy", "legacy")
         result["plan"] = plan.to_dict()
+        if live and result.get('plan_origin') == 'model':
+            result['planning_state'] = 'ok'
         result['plan_ready_ms'] = round((time.monotonic()-started)*1000)
         result["plan_analysis"] = plan.diagnostics()
         result["plan_analysis"]["execution_mode"] = "bounded-parallel" if policy.max_concurrency > 1 else "serial"
@@ -373,16 +384,22 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
         if placement is not None:
+            result['placement_state'] = 'running'
+            persist()
             resolve_placement(plan=plan, models=candidates.values(), privacy=privacy, classifier=classifier,
                               node_views=static_node_views(plan, node_task, node_context.tasks if node_context else None),
                               record=placement)
             if placement['status'] == 'no-local-candidate':
+                result['placement_state'] = 'blocked'
                 return privacy_block(placement['blocked'], append=False)
+            result['placement_state'] = 'ok'
+            persist()
             eligible_models = restricted_eligible_models(eligible_models, placement)
             starved = [{'node_id': nid, 'grade': placement['grades'][nid]['grade'],
                         'reasons': placement['grades'][nid]['reasons'], 'detail': 'no-local-candidate'}
                        for nid in placement['eligible_models'] if not eligible_models.get(nid)]
             if starved:
+                result['placement_state'] = 'blocked'
                 return privacy_block(starved)
             # 评审会读到节点输出；预检按静态视图先给出结论，真实运行前以运行期分级重算。
             placement['judge_isolation'] = judge_isolation(placement, manifest.judge)
@@ -453,10 +470,13 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     return result
             if result['review']['required']:
                 before_call()
+                result['review']['status'] = 'running'
+                persist()
                 judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
                     criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000))
                 result["evaluation"] = judged
                 result["review"].update(status="completed", score=judged['score'], passed=judged['passed'])
+                persist()
                 result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
             else:
                 result["evaluation"] = None

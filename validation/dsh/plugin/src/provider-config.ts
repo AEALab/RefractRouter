@@ -39,8 +39,8 @@ export interface LimitsConfiguration {
 export interface LiveExecutionConfiguration {
   schemaVersion: 'refractagent-live-execution-v1'
   enabled: boolean
-  maxProductionCost?: number
-  maxEvaluationCost?: number
+  maxProductionCost?: number | 'unlimited'
+  maxEvaluationCost?: number | 'unlimited'
   complexityPolicy: 'auto' | 'direct' | 'dag'
   reviewPolicy: 'adaptive' | 'always'
   maxConcurrency?: number
@@ -48,6 +48,15 @@ export interface LiveExecutionConfiguration {
   providerMinIntervalMs?: Record<string, number>
   maxOutputTokens?: number | 'unlimited'
   maxTotalOutputTokens?: number
+  allowDshTools?: boolean
+  /** 0 关闭工具；正整数限制总调用；unlimited 不施加 Router 的总次数上限。 */
+  maxDshToolCalls?: number | 'unlimited'
+}
+
+/** 兼容旧开关；新设置仅写入一个次数字段。 */
+export function dshToolCallLimit(value: Pick<LiveExecutionConfiguration,'allowDshTools'|'maxDshToolCalls'>): number|'unlimited' {
+  if (value.maxDshToolCalls !== undefined) return value.maxDshToolCalls
+  return value.allowDshTools === true ? 8 : 0
 }
 
 export type DshDeployment = 'local' | 'external-cloud' | 'trusted-cloud' | 'simulated-local'
@@ -93,13 +102,14 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     || !['adaptive','always'].includes(String(value.reviewPolicy))
     || Object.keys(value).some(key => !['schemaVersion','enabled','maxProductionCost','maxEvaluationCost',
       'complexityPolicy','reviewPolicy','maxConcurrency','providerConcurrency','providerMinIntervalMs',
-      'maxOutputTokens','maxTotalOutputTokens'].includes(key))) {
+      'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls'].includes(key))) {
     throw new Error('invalid liveExecution configuration')
   }
   for (const key of ['maxProductionCost','maxEvaluationCost'] as const) {
     const entry = value[key]
-    if (entry !== undefined && (typeof entry !== 'number' || !Number.isFinite(entry) || entry <= 0)) {
-      throw new Error(`liveExecution.${key} must be a positive CNY hard limit`)
+    if (entry !== undefined && entry !== 'unlimited'
+      && (typeof entry !== 'number' || !Number.isFinite(entry) || entry <= 0)) {
+      throw new Error(`liveExecution.${key} must be a positive CNY limit or unlimited`)
     }
   }
   const maxConcurrency = value.maxConcurrency
@@ -118,6 +128,14 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     || !Number.isInteger(maxTotalOutputTokens) || maxTotalOutputTokens < 1000 || maxTotalOutputTokens > 1_000_000)) {
     throw new Error('liveExecution.maxTotalOutputTokens must be an integer in 1000..1000000')
   }
+  if (value.allowDshTools !== undefined && typeof value.allowDshTools !== 'boolean') {
+    throw new Error('liveExecution.allowDshTools must be boolean')
+  }
+  if (value.maxDshToolCalls !== undefined && value.maxDshToolCalls !== 'unlimited'
+    && (typeof value.maxDshToolCalls !== 'number' || !Number.isInteger(value.maxDshToolCalls)
+      || value.maxDshToolCalls < 0 || value.maxDshToolCalls > 100000)) {
+    throw new Error('liveExecution.maxDshToolCalls must be 0, an integer in 1..100000, or unlimited')
+  }
   for (const [field, minimum, maximum] of [['providerConcurrency', 1, 8],
       ['providerMinIntervalMs', 0, 60000]] as const) {
     const rows = value[field]
@@ -127,7 +145,7 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     }
   }
   if (value.enabled && (value.maxProductionCost === undefined || value.maxEvaluationCost === undefined)) {
-    throw new Error('enabled liveExecution requires explicit production and evaluation hard limits')
+    throw new Error('enabled liveExecution requires explicit production and evaluation budget choices')
   }
 }
 

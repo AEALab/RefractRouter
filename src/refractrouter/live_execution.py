@@ -47,7 +47,7 @@ def _timestamp(value, field):
     return parsed.astimezone(timezone.utc)
 
 
-def complexity_gate(payload, context, *, policy="auto"):
+def complexity_gate(payload, context, *, policy="auto", tools_allowed=False):
     """只消费请求结构与文本特征，不调用模型。"""
     if policy not in {"auto", "direct", "dag"}:
         raise ValueError("complexityPolicy must be auto, direct or dag")
@@ -62,7 +62,8 @@ def complexity_gate(payload, context, *, policy="auto"):
         "enumerated_items": len(_ENUMERATED.findall(task)),
         "sentence_count": len(_SENTENCE_END.findall(task)),
     }
-    if _TOOL_MARKERS.search(task):
+    requires_tools = bool(_TOOL_MARKERS.search(task))
+    if requires_tools and not tools_allowed:
         return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
                 "decision": "blocked-tools", "forced": policy != "auto",
                 "reasons": ["explicit-tool-requirement"], "statistics": statistics}
@@ -87,12 +88,14 @@ def complexity_gate(payload, context, *, policy="auto"):
         reasons.append("strict-output-contract")
     if _COMPLEX_MARKERS.search(task):
         reasons.append("complex-task-marker")
+    if requires_tools:
+        reasons.append("explicit-tool-requirement")
     return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
             "decision": "dag" if reasons else "direct", "forced": False,
             "reasons": reasons or ["short-single-deliverable"], "statistics": statistics}
 
 
-def review_decision(payload, gate, *, policy="adaptive"):
+def review_decision(payload, gate, *, policy="adaptive", tools_allowed=False):
     if policy not in {"adaptive", "always"}:
         raise ValueError("reviewPolicy must be adaptive or always")
     reasons = []
@@ -109,12 +112,15 @@ def review_decision(payload, gate, *, policy="adaptive"):
             reasons.append("acceptance-criteria-present")
         if payload.get("outputConstraints"):
             reasons.append("strict-output-contract")
+        if tools_allowed:
+            reasons.append("host-tools-available")
     return {"policy": policy, "required": bool(reasons),
             "reason": ",".join(reasons) if reasons else "adaptive-low-risk-direct"}
 
 
 def authorization_binding(payload, *, provider_config, catalog_snapshot, production_budget,
-                          evaluation_budget, max_output_tokens, gate, review, data_mode, billing_unit):
+                          evaluation_budget, max_output_tokens, gate, review, data_mode, billing_unit,
+                          tool_schemas=None, max_tool_calls=0):
     clean = deepcopy(payload)
     clean.pop("authorization", None)
     return {
@@ -126,7 +132,11 @@ def authorization_binding(payload, *, provider_config, catalog_snapshot, product
         "max_output_tokens": max_output_tokens,
         "complexity": gate,
         "review": review,
-        "canary": {"data_mode": data_mode, "billing_unit": billing_unit, "tools_allowed": False,
+        "canary": {"data_mode": data_mode, "billing_unit": billing_unit,
+                   "tools_allowed": tool_schemas is not None,
+                   "tool_schema_sha256": (hashlib.sha256(_canonical(tool_schemas).encode()).hexdigest()
+                                          if tool_schemas is not None else None),
+                   "max_tool_calls": max_tool_calls,
                    "max_plan_repairs": 0, "max_dynamic_splits": 0,
                    "max_node_fallbacks": 0, "max_concurrency": 1,
                    "max_dag_nodes": 6},
@@ -141,6 +151,8 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
     expires_at = (now + timedelta(seconds=AUTHORIZATION_TTL_SECONDS)).isoformat().replace("+00:00", "Z")
     gate, review = binding["complexity"], binding["review"]
     maximum_calls = ((1 + int(review["required"])) if gate["decision"] == "direct" else 8)
+    tool_limit = binding["canary"]["max_tool_calls"]
+    maximum_calls = None if tool_limit == 'unlimited' else maximum_calls + tool_limit
     digest_input = {"authorization_id": authorization_id, "issued_at": issued_at,
                     "expires_at": expires_at, "binding": binding}
     preview_sha256 = hashlib.sha256(_canonical(digest_input).encode()).hexdigest()
@@ -153,23 +165,33 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
         "complexity": gate,
         "review": review,
         "calls": {"maximum": maximum_calls,
-                  "estimate": maximum_calls if gate["decision"] == "direct" else None},
+                  "estimate": maximum_calls if gate["decision"] == "direct"
+                  and not binding["canary"]["tools_allowed"] else None},
         "costs": {
             "billing_unit": billing_unit,
-            "estimate_kind": "conservative-route-reserve" if gate["decision"] == "direct" else "bounded-range",
+            "estimate_kind": ("base-route-only-tool-continuations-unestimated"
+                              if binding["canary"]["tools_allowed"] else
+                              "conservative-route-reserve" if gate["decision"] == "direct" else "bounded-range"),
             "production_estimate": production_estimate,
             "evaluation_estimate": evaluation_estimate,
-            "production_hard_limit": binding["production_budget"],
-            "evaluation_hard_limit": binding["evaluation_budget"],
+            "production_hard_limit": (None if binding["production_budget"] == "unlimited"
+                                      else binding["production_budget"]),
+            "evaluation_hard_limit": (None if binding["evaluation_budget"] == "unlimited"
+                                      else binding["evaluation_budget"]),
+            "production_unlimited": binding["production_budget"] == "unlimited",
+            "evaluation_unlimited": binding["evaluation_budget"] == "unlimited",
             **({"production_estimate_range": {
                 "minimum": production_estimate,
-                "maximum": binding["production_budget"],
-            }} if gate["decision"] == "dag" else {}),
+                "maximum": (None if binding["production_budget"] == "unlimited"
+                            else binding["production_budget"]),
+            }} if gate["decision"] == "dag" or binding["canary"]["tools_allowed"] else {}),
         },
         "ready": (ready and binding["canary"]["data_mode"] == "synthetic"
                   and binding["canary"]["billing_unit"] in {"USD", "CNY"}),
         "data_mode": binding["canary"]["data_mode"],
-        "tools_allowed": False,
+        "tools_allowed": binding["canary"]["tools_allowed"],
+        "tools": {"maximum_calls": binding["canary"]["max_tool_calls"],
+                  "schema_sha256": binding["canary"]["tool_schema_sha256"]},
     }
 
 

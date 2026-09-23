@@ -66,8 +66,8 @@ def main(argv=None):
     run.add_argument('--template', choices=['single', 'compare', 'auto'], default='single')
     run.add_argument('--mode', choices=['preflight', 'demo', 'live'], default='preflight')
     run.add_argument('--runs-dir', type=Path, default=Path.home()/'.local/share/refractagent/runs')
-    run.add_argument('--production-budget', type=float, default=40)
-    run.add_argument('--evaluation-budget', type=float, default=80)
+    run.add_argument('--production-budget', type=lambda raw: raw if raw == 'unlimited' else float(raw), default=40)
+    run.add_argument('--evaluation-budget', type=lambda raw: raw if raw == 'unlimited' else float(raw), default=80)
     run.add_argument('--timeout-ms', type=int, default=300000)
     run.add_argument('--max-output-tokens', type=int, default=2048)
     run.add_argument('--manifest', type=Path)
@@ -268,7 +268,8 @@ def main(argv=None):
                 raise ValueError('host tools require the host stdio channel')
             from .tool_runtime import StdioToolRuntime
             from .openai_compatible import DshStdioBridge
-            tool_runtime = StdioToolRuntime(payload.pop('hostTools'), DshStdioBridge())
+            tool_runtime = StdioToolRuntime(payload.pop('hostTools'), DshStdioBridge(),
+                max_calls=payload.get('maxDshToolCalls', 64))
         cancelled = Event()
         previous = {sig: signal.signal(sig, lambda *_: cancelled.set()) for sig in (signal.SIGINT, signal.SIGTERM)}
         try:
