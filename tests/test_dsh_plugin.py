@@ -70,7 +70,7 @@ class DSHPluginTests(unittest.TestCase):
         self.assertIn("maxProductionCost: 2", patch)
         self.assertIn("maxEvaluationCost: 1", patch)
         self.assertIn("maxRetries: 0", patch)
-        self.assertIn("--before=2026-09-24T00:00:00Z", workflow)
+        self.assertIn("--before=2026-09-21T00:00:00Z", workflow)
         self.assertIn("@deepseek-ai/dsh@0.1.5-rc.1", workflow)
 
     def test_plugin_is_valid_esm_and_uses_native_dsh_seams(self) -> None:

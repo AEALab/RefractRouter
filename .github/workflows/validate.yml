@@ -77,9 +77,9 @@ jobs:
           npm run --prefix validation/dsh/plugin typecheck
           npm test --prefix validation/dsh/plugin
       - name: Install pinned DSH plugin tooling
-        # DSH 0.1.5-rc.1 的内部依赖使用宽松版本范围；冻结到最后一次已验证日期，
-        # 避免旧 CLI 与后来发布的 patch-layer watch 行为形成版本混装。
-        run: npm install --global --before=2026-09-24T00:00:00Z pnpm@10.15.0 @deepseek-ai/dsh@0.1.5-rc.1
+        # DSH 0.1.5-rc.1 的内部依赖使用宽松版本范围；截止到 rc.2 发布后的冻结日，
+        # 避免 CI 意外解析到 2026-09-22 发布的 rc.3 组件。
+        run: npm install --global --before=2026-09-21T00:00:00Z pnpm@10.15.0 @deepseek-ai/dsh@0.1.5-rc.1
       - name: Validate native tools with real DSH session
         run: node --experimental-strip-types validation/dsh/plugin/scripts/check-native-tools.ts "$(npm root -g)/@deepseek-ai/dsh/node_modules"
       - name: 验证规划路由的两轮原生工具交互
