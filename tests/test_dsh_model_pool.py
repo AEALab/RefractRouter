@@ -7,7 +7,7 @@ import tomllib
 
 import pytest
 
-from refractrouter.dsh_model_pool import compile_dsh_model_pool, load_frozen_profiles
+from refractrouter.dsh_model_pool import compile_dsh_model_pool, frozen_usd_cny_rate, load_frozen_profiles
 from refractrouter.agent import run_agent
 from refractrouter.agent_cli import main
 
@@ -61,6 +61,26 @@ def test_auto_roles_keep_judge_out_of_worker_pool_and_record_sources():
     assert provenance['cloud/strong']['independent_judge'] is True
     assert {(row['dshProvider'],row['deployment']) for row in config['providers']}=={
         ('cloud','trusted-cloud'),('local','local')}
+
+
+def test_cny_accounting_converts_public_and_manual_usd_prices_with_frozen_rate(tmp_path):
+    raw=pool();raw['billingUnit']='CNY';raw['routes'][0]['overrides']={'inputPer1k':.008}
+    catalog=snapshot(('cloud','strong',262144,8192),('local','fast',131072,32768))
+    config,provenance=compile_dsh_model_pool(raw,catalog,profiles=full_profiles())
+    rate,exchange=frozen_usd_cny_rate()
+    assert config['billingUnit']=='CNY'
+    strong=next(model for model in config['models'] if model['model']=='strong')
+    assert strong['pricing']['unit']=='CNY'
+    assert strong['pricing']['inputPer1k']==pytest.approx(.008*rate)
+    assert strong['pricing']['outputPer1k']==pytest.approx(.02*rate)
+    assert provenance['cloud/strong']['currency_conversion']==exchange
+    result=run_agent({'task':'零调用预览','template':'auto','unlimitedNodeOutput':True},
+        mode='preflight',runs_dir=tmp_path,provider_config=config,
+        model_profile_provenance=provenance,max_output_tokens=2048)
+    assert result['billing_unit']=='CNY'
+    manifest=json.loads((Path(result['run_dir'])/'manifest.json').read_text())
+    worker=next(model for model in manifest['models'] if 'worker' in model['roles'])
+    assert worker['max_output_tokens']==32768
 
 
 def test_role_overrides_use_route_identity_and_worker_pool_selector():

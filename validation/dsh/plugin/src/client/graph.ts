@@ -18,7 +18,10 @@ export function graphModule(h: ElementFactory) {
   // 解析本插件受契约测试保护的纯文本展示格式；不从任务内容猜类型、模型或边。
   // 流式末尾的不完整条目被忽略，完整条目到达后再显示；无效拓扑不绘制。
   function parse(text: string): GraphData | null {
-    if (!text.startsWith('正在快速拆分任务，') && !text.startsWith('正在预览自动拆分流程。')) return null
+    if (!text.startsWith('正在快速拆分任务，')
+      && !text.startsWith('正在预览自动拆分流程。')
+      && !text.startsWith('正在预检并执行真实自动路由。')
+      && !text.startsWith('已获一次性授权，正在执行真实自动路由。')) return null
     const nodes = new Map<string, GraphNode>()
     let phase = '规划任务'
     for (const match of text.matchAll(/^【([^\n】]+)】|^([^\n]+?) · ([^\n]*)\n(?:  类型：([^\n；]+)；难度：([^\n；]+)；风险：([^\n]+)\n)?  依赖：([^\n]+)\n  模型：([^\n]+)\n  状态：([^\n]+)\n|^- ([^\n：]+)：([^\n；]+)；模型 ([^\n；]+)；依赖 ([^\n]+)\n/gm)) {

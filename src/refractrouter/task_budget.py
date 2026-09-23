@@ -6,6 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass, asdict, replace
 import hashlib
 import json
+import math
 from threading import RLock
 import time
 
@@ -34,7 +35,8 @@ class Reservation:
 
 
 class TaskCallBudget:
-    def __init__(self, client, production: float, evaluation: float, *, max_calls=None, capture_payload=False):
+    def __init__(self, client, production: float, evaluation: float, *, max_calls=None, capture_payload=False,
+                 max_total_output_tokens=None, adaptive_output_reservation=False):
         self.client = client
         self.limits = {'production': number(production, 'production budget', positive=True),
                        'evaluation': number(evaluation, 'evaluation budget', positive=True)}
@@ -44,6 +46,8 @@ class TaskCallBudget:
         self.stopped = False
         self.max_calls = max_calls
         self.capture_payload = capture_payload
+        self.max_total_output_tokens = max_total_output_tokens
+        self.adaptive_output_reservation = adaptive_output_reservation
         self.planning_elapsed = 0.0
         self.on_reserve = None
         self.on_response = None
@@ -71,17 +75,34 @@ class TaskCallBudget:
             model = replace(model, max_output_tokens=output_bound)
         if input_bound + output_bound > model.context_window:
             raise ValueError('request exceeds conservative context bound')
-        reserve = input_bound / 1000 * model.input_cost_per_1k + output_bound / 1000 * model.output_cost_per_1k
         with self.lock:
             if self.stopped:
                 raise CancelledError('task execution stopped')
             if self.max_calls is not None and len(self.records) >= self.max_calls:
                 raise ValueError('study-call-limit-exhausted')
-            if self.charged[category] + reserve > min(self.limits[category], category_limit if category_limit is not None else float('inf')):
+            ceiling = min(self.limits[category], category_limit if category_limit is not None else float('inf'))
+            input_reserve = input_bound / 1000 * model.input_cost_per_1k
+            remaining = ceiling - self.charged[category] - input_reserve
+            if remaining < 0:
+                raise ValueError(f'{category}-budget-exhausted before {label}')
+            if self.adaptive_output_reservation and model.output_cost_per_1k > 0:
+                affordable = math.floor((remaining + 1e-12) * 1000 / model.output_cost_per_1k)
+                output_bound = min(output_bound, affordable)
+            if output_bound <= 0:
+                raise ValueError(f'{category}-budget-exhausted before {label}')
+            if self.adaptive_output_reservation:
+                model = replace(model, max_output_tokens=output_bound)
+            reserve = input_reserve + output_bound / 1000 * model.output_cost_per_1k
+            reserved_output = sum(row.get('reserved_output_tokens', 0) for row in self.records)
+            if (self.max_total_output_tokens is not None
+                    and reserved_output + output_bound > self.max_total_output_tokens):
+                raise ValueError(f'task-output-budget-exhausted before {label}')
+            if self.charged[category] + reserve > ceiling + 1e-12:
                 raise ValueError(f'{category}-budget-exhausted before {label}')
             self.charged[category] += reserve
             row = {'label': label, 'model_id': model.model_id, 'category': category,
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
+                   'reserved_output_tokens': output_bound,
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
             if category_limit is not None:
                 row['category_limit'] = category_limit

@@ -60,15 +60,17 @@ def test_custom_capacity_stays_authoritative():
     assert rows['organize_data']['upstream_capacity_check']=='at-dispatch'
 
 
-def test_automatic_agent_with_long_context_and_host_tools_completes_without_relaxation(tmp_path):
+def test_automatic_agent_compiles_generated_capacity_after_output_cap(tmp_path):
     import json
     from refractrouter.agent import run_agent
     from refractrouter.agent_cli import example_configuration
     from refractrouter.compact_planning import COMPACT_PLANNER_SYSTEM
     from tests.test_native_tool_runtime import StdioToolRuntime, Host, reply
     config=example_configuration('openai-compatible')
+    # DSH 目录可报告远高于本轮请求的输出上限。容量编译必须先应用本轮
+    # 2K 上限，不能把 128K 当成每个父节点都会交接的实际文本量。
     for model in config['models']:
-        model.update(contextWindow=262144,maxOutputTokens=8192)
+        model.update(contextWindow=262144,maxOutputTokens=128000)
     class Client:
         max_retries=0
         def complete(self,model,messages,**kwargs):
@@ -85,8 +87,10 @@ def test_automatic_agent_with_long_context_and_host_tools_completes_without_rela
             return reply('模拟的简短资料')
     result=run_agent({'task':'根据已有材料提取并整理','context':'x'*71000,'template':'auto'},
         mode='live',runs_dir=tmp_path,execute_paid_run=True,provider_config=config,client=Client(),
-        max_output_tokens=8192,tool_runtime=StdioToolRuntime(SCHEMAS,Host()))
+        max_output_tokens=2048,tool_runtime=StdioToolRuntime(SCHEMAS,Host()))
     assert result['status']=='completed',result['issues']
     saved=json.loads(__import__('pathlib').Path(result['result_path']).read_text())
-    assert saved['compiled_input_estimates']['organize_data']['upstream_capacity_check']=='at-dispatch'
-    assert saved['plan']['nodes'][1]['contract']['capability']['input_budget_tokens']==131072
+    row=saved['compiled_input_estimates']['organize_data']
+    assert row['upstream_allowance']==2048*8
+    assert row['upstream_capacity_check'] in {'compiled','reserved'}
+    assert saved['plan']['nodes'][1]['contract']['capability']['input_budget_tokens']<131072

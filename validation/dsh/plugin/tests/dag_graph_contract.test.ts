@@ -45,6 +45,11 @@ test('动态图替换旧拓扑，流式截断不生成虚构节点，拒绝环�
   assert.equal(api.parse(prefix + progressText(event('cycle', ['cycle']))), null)
 })
 
+test('真实自动路由的进度文本也能在 DAG 页签回放', () => {
+  const api = client(), livePrefix = '正在预检并执行真实自动路由。\n'
+  assert.equal(api.parse(livePrefix + progressText(event('answer'))).nodes[0].id, 'answer')
+})
+
 test('客户端只贡献独立页签，不发起请求或改动原会话渲染器', () => {
   const api = client(); let config: any, View: any
   api.applyGraph({ slots: { inject: (_: string, cb: () => void) => [...(cb() as any)], register: (value: any, component: any) => { config = value; View = component } } })

@@ -45,7 +45,7 @@ function number(value: unknown): number {
   return value
 }
 function unit(value: unknown): BillingUnit {
-  if (value !== 'USD' && value !== 'AFP') throw new Error('evidence billing unit must be USD or AFP')
+  if (value !== 'USD' && value !== 'CNY' && value !== 'AFP') throw new Error('evidence billing unit must be USD, CNY or AFP')
   return value
 }
 

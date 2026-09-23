@@ -42,7 +42,7 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies"}
+               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     if raw.get('prefixPolicy', 'legacy') not in ('legacy', 'stable-v1'):
@@ -61,6 +61,11 @@ def validate_request(raw):
         raise ValueError('unlimitedTime must be boolean')
     if type(raw.get('unrestrictedPlanning', False)) is not bool:
         raise ValueError('unrestrictedPlanning must be boolean')
+    if type(raw.get('adaptiveOutputBudget', False)) is not bool:
+        raise ValueError('adaptiveOutputBudget must be boolean')
+    if 'maxTotalOutputTokens' in raw and (type(raw['maxTotalOutputTokens']) is not int
+            or not 1000 <= raw['maxTotalOutputTokens'] <= 1_000_000):
+        raise ValueError('maxTotalOutputTokens must be an integer in 1000..1000000')
     if raw.get('plannerThinking', 'inherit') not in {'inherit', 'enabled', 'disabled'}:
         raise ValueError('invalid plannerThinking')
     if raw.get('planningMode', 'full') not in ('full', 'compact'):
@@ -185,7 +190,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     budget = TaskCallBudget(client if live else DemoTaskClient(),
                           production_limit if live else 1e12, evaluation_limit if live else 1e12,
                           max_calls=runtime_call_limit,
-                          capture_payload=True)
+                          capture_payload=True,
+        max_total_output_tokens=request.get('maxTotalOutputTokens'),
+        adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
     started = time.monotonic()
     deadline_ms = float("inf") if request.get("unlimitedTime") else request["latencyMaxMs"]
     result = {"schema_version": "task-run-v1", "mode": mode, "status": "started", "task": request["task"],
@@ -198,6 +205,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
               "calls": [], "issues": [], "profile_scope": profile["scope"],
               "generation_status": "not-started",
               "model_call_limit": runtime_call_limit,
+              "max_total_output_tokens": request.get('maxTotalOutputTokens'),
               "complexity_gate": decision_evidence,
               "review": ({**review_evidence, "status": "pending"} if review_evidence else
                          {"policy": "always", "required": True, "reason": "legacy-always-review", "status": "pending"}),
