@@ -29,6 +29,8 @@ export interface ClientContext {
     & {llm:{discoverModels(settingsNs:string,request:{provider?:string;baseURL?:string;api?:string}):Promise<{
       ok:boolean;value?:Array<{id:string;name?:string}>;error?:{message:string}
     }>}}
+    & {settings:{mutate(ns:string,ops:Array<{op:'set'|'unset';path:string[];value?:unknown}>,
+      expectedRevision?:number):Promise<{ok:true;value:unknown}|{ok:false;error:{code:string;message:string}}>}}
   effect(setup: () => unknown, label?: string): unknown
 }
 

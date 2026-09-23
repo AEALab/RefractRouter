@@ -99,6 +99,34 @@ def test_duplicate_call_does_not_repeat_effect():
     assert len(budget.records) == 2
 
 
+def test_configured_task_tool_limit_stops_before_second_dispatch():
+    host = Host()
+    runtime = StdioToolRuntime(SCHEMAS, host, max_calls=1)
+    runtime.execute(call(), 'fetch')
+    with pytest.raises(ValueError, match='host-tool-call-limit-exhausted'):
+        runtime.execute(call(id='c2'), 'fetch')
+    assert len(host.calls) == 1
+    assert len(runtime.snapshot()) == 1
+
+
+def test_unlimited_tool_choice_removes_router_total_cap_without_bypassing_host():
+    host = Host()
+    runtime = StdioToolRuntime(SCHEMAS, host, max_calls='unlimited')
+    for index in range(65):
+        runtime.execute(call(id=f'c{index}'), 'fetch')
+    assert len(host.calls) == 65
+    assert len(runtime.snapshot()) == 65
+
+
+def test_unlimited_tool_choice_allows_more_than_legacy_node_round_cap():
+    responses = [reply(calls=[call(id=f'c{index}')]) for index in range(17)] + [reply('完成')]
+    run, runtime, client, _ = loop(responses, limit=1000)
+    runtime.max_calls = 'unlimited'
+    assert run().content == '完成'
+    assert len(runtime.bridge.calls) == 17
+    assert len(client.requests) == 18
+
+
 def test_denial_returned_to_same_model_without_fabricated_success():
     host = Host({'isError': True, 'content': [{'type': 'text', 'text': '权限拒绝'}]})
     run, runtime, client, _ = loop([reply(calls=[call()]), reply('工具被拒绝，无法查询。')], host=host)

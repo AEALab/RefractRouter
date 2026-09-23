@@ -12,12 +12,20 @@ export const parse = graph.parse
 export const layout = graph.layout
 export const applyGraph = graph.apply
 
-export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'settingsScope']
+export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope']
 
 export function apply(ctx: ClientContext): void {
   graph.apply(ctx)
   ctx.effect(() => ctx.locale.register(LOCALE_NS, { zh, en }), 'refractagent-settings-card: dictionaries')
-  const controller = new RefractCardController(ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE }),
+  const scope = ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE })
+  const controller = new RefractCardController({...scope,
+    getSnapshot:()=>scope.getSnapshot(),subscribe:listener=>scope.subscribe(listener),
+    set:(field,value)=>scope.set(field,value),unset:field=>scope.unset(field),
+    diagnoseWrite:async(field,edit,revision)=>{
+      const result=await ctx.remote.settings.mutate(SETTINGS_NAMESPACE,[edit.kind==='set'
+        ? {op:'set',path:[field],value:edit.value}:{op:'unset',path:[field]}],revision)
+      return result.ok?{ok:true}:{ok:false,code:result.error.code,message:result.error.message}
+    }},
     FROZEN_MODEL_PROFILES.profiles)
   ctx.effect(() => () => {
     controller.dispose()

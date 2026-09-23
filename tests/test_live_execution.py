@@ -9,6 +9,7 @@ from refractrouter.agent import run_agent
 from refractrouter.live_execution import (authorization_binding, complexity_gate,
                                            create_authorization_preview,
                                            review_decision, validate_authorization)
+from refractrouter.tool_runtime import StdioToolRuntime
 from tests.test_text_tasks import Client
 
 
@@ -67,6 +68,41 @@ def test_preview_digest_binds_request_configuration_and_expiry():
         validate_authorization(approved, binding, now=now + timedelta(minutes=11))
 
 
+def test_tool_preview_binds_host_catalog_and_enforced_call_limit(tmp_path):
+    schemas = [{'name': 'web_search', 'description': '查询网页', 'parameters': {'type': 'object'}}]
+    runtime = StdioToolRuntime(schemas, object(), max_calls=2)
+    payload = {'task': '请搜索网页并回答', 'strategy': 'auto', 'maxDshToolCalls': 2}
+    preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path / 'runs',
+                        tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    authorization_preview = preview['live_authorization_preview']
+    assert preview['complexity_gate']['decision'] == 'dag'
+    assert authorization_preview['tools_allowed'] is True
+    assert authorization_preview['tools']['maximum_calls'] == 2
+    assert authorization_preview['calls']['maximum'] == 10
+    assert authorization_preview['calls']['estimate'] is None
+    assert authorization_preview['costs']['estimate_kind'] == 'base-route-only-tool-continuations-unestimated'
+    assert preview['review']['required'] is True
+    approved = authorization(authorization_preview)
+    changed_catalog = StdioToolRuntime([{'name': 'file_write', 'description': '写文件',
+        'parameters': {'type': 'object'}}], object(), max_calls=2)
+    with pytest.raises(ValueError, match='PREVIEW_MISMATCH'):
+        run_agent({**payload, 'authorization': approved}, provider_config=config(),
+                  runs_dir=tmp_path / 'changed', mode='live', execute_paid_run=True,
+                  client=Client(), tool_runtime=changed_catalog, production_budget=10,
+                  evaluation_budget=10)
+
+
+def test_unlimited_tool_preview_has_no_fabricated_call_ceiling(tmp_path):
+    schemas = [{'name': 'web_search', 'description': '查询网页', 'parameters': {'type': 'object'}}]
+    runtime = StdioToolRuntime(schemas, object(), max_calls='unlimited')
+    payload = {'task': '请搜索网页并回答', 'strategy': 'auto', 'maxDshToolCalls': 'unlimited'}
+    result = run_agent(payload, provider_config=config(), runs_dir=tmp_path / 'runs',
+                       tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    preview = result['live_authorization_preview']
+    assert preview['tools']['maximum_calls'] == 'unlimited'
+    assert preview['calls']['maximum'] is None
+
+
 def test_simple_v4_preflight_then_live_uses_one_worker_and_skips_judge(tmp_path):
     raw = config()
     payload = {'task': '现在应该可以了吧', 'strategy': 'auto',
@@ -85,6 +121,34 @@ def test_simple_v4_preflight_then_live_uses_one_worker_and_skips_judge(tmp_path)
     assert result['plan_origin'] == 'direct-gate'
     assert result['review']['status'] == 'skipped' and result['quality'] is None
     assert result['costs']['evaluation'] == 0
+
+
+def test_unlimited_cost_choices_are_independent_and_bound_to_preview(tmp_path):
+    raw = config()
+    payload = {'task': '简单回答', 'strategy': 'auto', 'reviewPolicy': 'adaptive'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'runs',
+                        production_budget='unlimited', evaluation_budget=1)
+    costs = preview['live_authorization_preview']['costs']
+    assert costs['production_unlimited'] is True and costs['production_hard_limit'] is None
+    assert costs['evaluation_unlimited'] is False and costs['evaluation_hard_limit'] == 1
+    approved = authorization(preview['live_authorization_preview'])
+    with pytest.raises(ValueError, match='PREVIEW_MISMATCH'):
+        run_agent({**payload, 'authorization': approved}, provider_config=raw,
+                  runs_dir=tmp_path / 'mismatch', mode='live', execute_paid_run=True,
+                  client=Client(), production_budget=1, evaluation_budget=1)
+    client = Client()
+    result = run_agent({**payload, 'authorization': approved}, provider_config=raw,
+                       runs_dir=tmp_path / 'runs', mode='live', execute_paid_run=True,
+                       client=client, production_budget='unlimited', evaluation_budget=1)
+    assert result['status'] == 'completed' and len(client.calls) == 1
+    review_preview = run_agent({**payload, 'reviewPolicy': 'always'}, provider_config=raw,
+                               runs_dir=tmp_path / 'review', production_budget=1,
+                               evaluation_budget='unlimited')
+    review_costs = review_preview['live_authorization_preview']['costs']
+    assert review_costs['production_unlimited'] is False
+    assert review_costs['evaluation_unlimited'] is True
+    assert review_costs['evaluation_hard_limit'] is None
+    assert review_costs['evaluation_estimate'] is None
 
 
 def test_dag_preview_and_forced_direct_have_bounded_call_envelopes(tmp_path):

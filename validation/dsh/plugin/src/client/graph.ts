@@ -15,6 +15,12 @@ export function graphModule(h: ElementFactory) {
     ['generation', '生成', '撰写分析、预测、建议或最终交付正文。'],
     ['verification', '验证', '核对事实、逻辑、覆盖范围与输出要求；不同于最终独立评审。'],
   ]
+  const roles: Record<string, { label: string; description: string; fill: string }> = {
+    'role-classifier': { label: '规划前输入分级', description: '规划模型调用前检查任务输入的敏感级别与部署许可。', fill: '#3b2f1b' },
+    'role-placement': { label: '节点放置准入', description: '规划完成后逐节点检查敏感级别与可用部署路线；按策略可使用分类器。', fill: '#49351b' },
+    'role-planner': { label: '规划器', description: '由规划模型生成任务 DAG 与依赖。', fill: '#30264c' },
+    'role-reviewer': { label: '独立评审器', description: '检查最终交付；自适应策略可能明确跳过。', fill: '#163d3c' },
+  }
   // 解析本插件受契约测试保护的纯文本展示格式；不从任务内容猜类型、模型或边。
   // 流式末尾的不完整条目被忽略，完整条目到达后再显示；无效拓扑不绘制。
   function parse(text: string): GraphData | null {
@@ -33,7 +39,7 @@ export function graphModule(h: ElementFactory) {
       }
     }
     const result = { nodes: [...nodes.values()], phase, interrupted: text.includes('执行已中断；') }
-    if (result.nodes.length > 8 || result.nodes.some(n => n.parents.some(p => !nodes.has(p)))) return null
+    if (result.nodes.length > 12 || result.nodes.some(n => n.parents.some(p => !nodes.has(p)))) return null
     return layout(result.nodes) ? result : null
   }
   function layout(nodes: GraphNode[]): Map<string, { x: number; y: number }> | null {
@@ -52,9 +58,10 @@ export function graphModule(h: ElementFactory) {
       return [n.id, { x: 24 + (widest - counts.get(level)!) * 155 + column * 310, y: 24 + level * 200 }]
     }))
   }
-  function color(state: string): string {
+  function color(state: string, role = false): string {
     if (state.startsWith('已完成')) return '#34d399'
     if (state.includes('失败')) return '#fb7185'
+    if (role && (state === 'blocked' || state.includes('阻断'))) return '#fb7185'
     if (state.startsWith('运行中')) return '#60a5fa'
     if (state.startsWith('排队')) return '#fbbf24'
     return '#94a3b8'
@@ -72,15 +79,16 @@ export function graphModule(h: ElementFactory) {
         h('title', null, '任务 DAG：箭头表示下游消费上游结果'),
         h('defs', null, h('marker', { id: 'refract-dag-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, h('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#94a3b8' }))),
         ...edges, ...data.nodes.map(n => {
-          const p = positions.get(n.id)!, label = catalog.find(row => row[0] === n.type)?.[1] ?? n.type
+          const p = positions.get(n.id)!, role = roles[n.type]
+          const label = role?.label ?? catalog.find(row => row[0] === n.type)?.[1] ?? n.type
           return h('g', { key: n.id, transform: `translate(${p.x},${p.y})` },
             h('title', null, `${n.id}：${n.objective}\n${n.model}\n依赖：${n.parents.join('、') || '无'}`),
-            h('rect', { width: 280, height: 148, rx: 12, fill: '#1e293b', stroke: color(n.state), strokeWidth: 2 }),
+            h('rect', { width: 280, height: 148, rx: role ? 22 : 12, fill: role?.fill ?? '#1e293b', stroke: color(n.state, Boolean(role)), strokeWidth: role ? 3 : 2, strokeDasharray: role ? '8 5' : undefined }),
             h('text', { x: 14, y: 26, fill: '#f8fafc', fontSize: 16, fontWeight: 600 }, n.id.slice(0, 28)),
-            h('text', { x: 14, y: 50, fill: '#cbd5e1', fontSize: 12 }, `${label} · 难度 ${n.difficulty} · 风险 ${n.risk}`),
+            h('text', { x: 14, y: 50, fill: '#cbd5e1', fontSize: 12 }, role ? `${label} · 流程角色` : `${label} · 难度 ${n.difficulty} · 风险 ${n.risk}`),
             h('text', { x: 14, y: 76, fill: '#e2e8f0', fontSize: 13 }, n.objective.slice(0, 18) + (n.objective.length > 18 ? '…' : '')),
             h('text', { x: 14, y: 102, fill: '#cbd5e1', fontSize: 11 }, n.model.slice(0, 37) + (n.model.length > 37 ? '…' : '')),
-            h('text', { x: 14, y: 130, fill: color(n.state), fontSize: 13 }, n.state.slice(0, 28)))
+            h('text', { x: 14, y: 130, fill: color(n.state, Boolean(role)), fontSize: 13 }, n.state.slice(0, 28)))
         })))
   }
   function View({ useChat }: GraphProps) {
@@ -92,15 +100,20 @@ export function graphModule(h: ElementFactory) {
     for (const list of blocks) for (const b of list) if (b.kind === 'reasoning' && b.text) { const candidate = parse(b.text); if (candidate) data = candidate }
     return h('section', { style: { padding: '20px 24px', color: 'var(--dsw-alias-label-primary)', maxWidth: 1100, margin: 'auto', width: '100%', boxSizing: 'border-box' } },
       h('h2', null, '任务 DAG'),
-      h('p', null, '展示当前已加载会话中最近一次自动拆分。箭头表示下游需要上游结果；同层无依赖节点可以并行。'),
-      h('p', { role: 'status' }, data ? `${data.phase}${data.interrupted ? ' · 已中断，图中保留最后收到的状态' : ''}` : '尚无自动 DAG。提交新任务后，规划完成时会在这里显示。'),
+      h('p', null, '展示当前已加载会话中最近一次任务流程。实线方框是实际执行任务，带色虚线框是规划、数据分级／部署准入或评审等流程角色；箭头表示先后依赖，不代表相邻节点一定串行。'),
+      h('p', { role: 'status' }, data ? `${data.phase}${data.interrupted ? ' · 已中断，图中保留最后收到的状态' : ''}` : '尚无任务流程图。提交新任务后，会显示本轮实际发生的规划、执行、数据准入与评审环节。'),
       data?.nodes.length ? graph(data) : null,
       data?.nodes.length ? h('details', null, h('summary', null, '节点完整说明与依赖'), ...data.nodes.map(n => h('p', { key: n.id }, `${n.id} · ${n.objective}｜类型 ${n.type}｜模型 ${n.model}｜状态 ${n.state}｜依赖 ${n.parents.join('、') || '无'}`))) : null,
+      h('h3', null, '流程角色节点'),
+      h('p', null, '角色节点表示 DAG 的控制与质量环节，不是普通交付节点；它们使用虚线边框，并按核心进度显示运行、完成、阻断或跳过状态。'),
+      h('table', { style: { width: '100%', borderCollapse: 'collapse', lineHeight: 1.8 } }, h('thead', null, h('tr', null, h('th', { style: { textAlign: 'left' } }, '角色'), h('th', { style: { textAlign: 'left' } }, '作用与出现条件'))),
+        h('tbody', null, ...Object.entries(roles).map(([id, row]) => h('tr', { key: id }, h('td', { style: { padding: '8px 12px 8px 0', verticalAlign: 'top' } }, `${row.label} · ${id}`), h('td', null, row.description))))),
+      h('p', null, '简单直答可能不调用规划器；安全策略启用时，规划前输入分级与规划后的节点放置准入会分开显示；自适应评审跳过时仍显示评审节点及“按策略跳过”，不会伪装成已评审。'),
       h('h3', null, '任务分类清单'),
       h('p', null, 'forecast（预测）、drivers（驱动因素）、trend（趋势）、answer（最终回答）是自由命名的节点 ID，没有固定清单；名称不能决定正式类型。'),
       h('table', { style: { width: '100%', borderCollapse: 'collapse', lineHeight: 1.8 } }, h('thead', null, h('tr', null, h('th', { style: { textAlign: 'left' } }, '正式类型'), h('th', { style: { textAlign: 'left' } }, '说明'))),
         h('tbody', null, ...catalog.map(([id, label, description]) => h('tr', { key: id }, h('td', { style: { padding: '8px 12px 8px 0', verticalAlign: 'top' } }, `${label} · ${id}`), h('td', null, description))))),
-      h('p', null, '难度 difficulty、风险 risk 均为 low / medium / high，由规划器估计。模型分配还考虑预算、上下文与输出需求及配置中的能力、质量和时延预测，不由节点名称直接决定。'))
+      h('p', null, '上表只说明实际执行节点的正式类型，不包含规划、分类和评审等流程角色。难度 difficulty、风险 risk 均为 low / medium / high，由规划器估计；模型分配还考虑预算、上下文与输出需求及核心配置，不由节点名称直接决定。'))
   }
   return { inject: ['slots'], apply(ctx: GraphContext) {
     ctx.slots.inject('conversation.view', function* () { yield ctx.slots.register({ name: 'conversation.view', id: 'refractagent-dag', order: 15, label: () => '任务 DAG' }, View) })

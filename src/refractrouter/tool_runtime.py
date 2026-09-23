@@ -2,6 +2,7 @@
 from concurrent.futures import CancelledError
 from copy import deepcopy
 import json
+from itertools import count
 from threading import Lock, RLock
 
 TOOL_PROTOCOL = 'refractrouter-tools/v1'
@@ -40,9 +41,12 @@ class ToolTurnConcluded(Exception):
 
 
 class StdioToolRuntime:
-    def __init__(self, schemas, bridge):
+    def __init__(self, schemas, bridge, *, max_calls=MAX_TOOL_CALLS):
+        if max_calls != 'unlimited' and (type(max_calls) is not int or not 1 <= max_calls <= 100000):
+            raise ValueError('maxDshToolCalls must be an integer in 1..100000 or unlimited')
         self.schemas = validate_schemas(schemas)
         self.bridge = bridge
+        self.max_calls = max_calls
         self.lock = RLock()
         self.execution_lock = Lock()
         self.records = []
@@ -63,7 +67,7 @@ class StdioToolRuntime:
             with self.lock:
                 if self.closed or (cancel_event is not None and cancel_event.is_set()):
                     raise CancelledError('host-tool-execution-stopped')
-                if len(self.records) >= MAX_TOOL_CALLS:
+                if self.max_calls != 'unlimited' and len(self.records) >= self.max_calls:
                     raise ValueError('host-tool-call-limit-exhausted')
                 identity = (node, call['id'])
                 if identity in self.dispatched:
@@ -124,7 +128,7 @@ def run_tool_node(runtime, reservation, budget, invoke, persist, *, cancel_event
                   before_followup=None):
     messages = deepcopy(reservation.messages)
     initial = reservation
-    for turn in range(MAX_TOOL_ROUNDS + 1):
+    for turn in count() if runtime.max_calls == 'unlimited' else range(MAX_TOOL_ROUNDS + 1):
         response, error, _, _ = invoke(reservation)
         if error is not None:
             raise error
@@ -135,7 +139,7 @@ def run_tool_node(runtime, reservation, budget, invoke, persist, *, cancel_event
                 raise ValueError('模型输出了工具协议文本，未返回原生 tool_calls；未执行任何文本指令')
             return response
         calls = native_calls(calls, runtime.schemas)
-        if turn >= MAX_TOOL_ROUNDS:
+        if runtime.max_calls != 'unlimited' and turn >= MAX_TOOL_ROUNDS:
             raise ValueError('node-tool-round-limit-exhausted')
         messages.append({'role': 'assistant', 'content': response.content or None, 'tool_calls': calls,
                          **({'reasoning_content': response.replay_messages[0]['reasoning_content']}

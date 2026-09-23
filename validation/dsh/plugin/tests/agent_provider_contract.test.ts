@@ -43,7 +43,10 @@ function fixture(result: Record<string, unknown> | Array<Record<string, unknown>
           dag:{phase:'finished',status:'simulated',simulated:true,reason:'模拟',nodes:[]},
           billing_unit:'AFP',result_path:'/tmp/agent-contract/runs/id/result.json',run_id:'id',...overlay }
         const stdout = new PassThrough()
-        stdin.on('finish', () => stdout.end(JSON.stringify(output)+'\n'))
+        if(spec.argv.includes('--host-stdio')) stdin.on('data', chunk=>{
+          if(String(chunk).includes('\n')) stdout.end(JSON.stringify(output)+'\n')
+        })
+        else stdin.on('finish', () => stdout.end(JSON.stringify(output)+'\n'))
         return {stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
           collected:{stdout:{readFrom:()=>({text:JSON.stringify(output),lossy:false})}} }
       },
@@ -170,6 +173,42 @@ test('settings-enabled developer live starts one local preflight and one bound l
   assert.equal(f.credentials,1)
   assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'真实答案')
   assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
+})
+test('enabled DSH tools reach preflight and live with the same bounded catalog',async()=>{
+  const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'结果',
+    simulated:false,billing_unit:'CNY',plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},
+    dag:{phase:'finished',status:'completed',simulated:false,reason:'直接回答',nodes:[]}}
+  const f=fixture([previewResult,liveResult])
+  const agent={session:{events:[{type:'step/start',data:{turn:1,step:1}}],append(){}}}
+  f.ctx.agents={requireInitiator:()=>agent}
+  f.ctx.tools={async execute(){return {isError:false,content:[{type:'text',text:'模拟结果'}]}}}
+  const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),
+    liveExecution:{...liveExecution(),maxDshToolCalls:3}}))
+  const schemas=[{name:'web_search',description:'查询网页',parameters:{type:'object'}}]
+  for await(const _ of adapter.stream({...options,model:'auto-live',tools:schemas})) { /* consume */ }
+  assert.equal(f.spawns.length,2)
+  const preview=JSON.parse(f.spawns[0]!.input()),live=JSON.parse(f.spawns[1]!.input())
+  assert.deepEqual(preview.hostTools,schemas)
+  assert.deepEqual(live.hostTools,schemas)
+  assert.equal(preview.maxDshToolCalls,3)
+  assert.equal(live.maxDshToolCalls,3)
+  assert.ok(f.spawns.every(spawn=>spawn.argv.includes('--host-stdio')))
+})
+test('production and review unlimited choices reach both preview and live unchanged',async()=>{
+  const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'答案',
+    simulated:false,billing_unit:'CNY',plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},
+    dag:{phase:'finished',status:'completed',simulated:false,reason:'直接回答',nodes:[]}}
+  const f=fixture([previewResult,liveResult])
+  const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),
+    liveExecution:{...liveExecution(),maxProductionCost:'unlimited',maxEvaluationCost:'unlimited'}}))
+  for await(const _ of adapter.stream({...options,model:'auto-live'})) { /* consume */ }
+  assert.equal(f.spawns.length,2)
+  for(const spawn of f.spawns){
+    const production=spawn.argv.indexOf('--production-budget')
+    const evaluation=spawn.argv.indexOf('--evaluation-budget')
+    assert.equal(spawn.argv[production+1],'unlimited')
+    assert.equal(spawn.argv[evaluation+1],'unlimited')
+  }
 })
 test('DSH 模型池在执行前解析宿主目录、隔离枚举失败并排除自身',async()=>{
   const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
