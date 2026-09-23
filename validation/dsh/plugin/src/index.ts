@@ -32,7 +32,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function billingUnit(value: string): BillingUnit {
-  if (value !== 'USD' && value !== 'AFP') throw new Error('billingUnit must be USD or AFP')
+  if (value !== 'USD' && value !== 'CNY' && value !== 'AFP') throw new Error('billingUnit must be USD, CNY or AFP')
   return value
 }
 
@@ -689,6 +689,7 @@ export async function pumpDshBridge(
 export async function dshProviderIssues(ctx: Pick<DshContext, 'llm'>, routes: ModelRoute[]): Promise<string[]> {
   const providers = new Set(ctx.llm.listProviders().map(provider => provider.id))
   const issues = []
+  const diagnostics: string[] = []
   const checkedPolicies = new Set()
   for (const route of routes) {
     if (!providers.has(route.provider)) {
@@ -701,6 +702,9 @@ export async function dshProviderIssues(ctx: Pick<DshContext, 'llm'>, routes: Mo
         const policy = ctx.llm.providerRetryPolicy(route.provider)
         if (policy?.mode !== 'normal' || policy.maxRetries !== 0) {
           issues.push(`llm-provider-retry-policy-not-zero:${route.provider}`)
+          diagnostics.push(
+            `llm-provider-retry-policy:${route.provider}:${String(policy?.mode ?? 'unavailable')}/${String(policy?.maxRetries ?? 'unavailable')}`,
+          )
         }
       } catch {
         issues.push(`unresolved-llm-retry-policy:${route.provider}`)
@@ -712,7 +716,10 @@ export async function dshProviderIssues(ctx: Pick<DshContext, 'llm'>, routes: Mo
       issues.push(`unresolved-llm-model:${route.provider}/${route.model}`)
     }
   }
-  return [...new Set(issues)]
+  if (issues.length > 0) {
+    diagnostics.push(`available-llm-providers:${[...providers].sort().join(',') || 'none'}`)
+  }
+  return [...new Set([...issues, ...diagnostics])]
 }
 
 async function executeValidation(
@@ -968,7 +975,7 @@ const OUTPUT_SCHEMA: JsonSchema = {
     outputDir: { type: 'string' },
     credentialConfigured: { type: 'boolean' },
     modelProviderConfigured: { type: 'boolean' },
-    billingUnit: { type: 'string', enum: ['USD', 'AFP'] },
+    billingUnit: { type: 'string', enum: ['USD', 'CNY', 'AFP'] },
     sandboxMode: {
       type: 'string',
       enum: ['read-only', 'workspace-write', 'danger-full-access'],
@@ -996,7 +1003,7 @@ const OUTPUT_SCHEMA: JsonSchema = {
       additionalProperties: false,
       required: ['billingUnit', 'production', 'evaluation', 'total'],
       properties: {
-        billingUnit: { type: 'string', enum: ['USD', 'AFP'] },
+        billingUnit: { type: 'string', enum: ['USD', 'CNY', 'AFP'] },
         production: { type: 'number' },
         evaluation: { type: 'number' },
         total: { type: 'number' },

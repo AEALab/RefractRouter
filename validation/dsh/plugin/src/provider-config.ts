@@ -43,6 +43,11 @@ export interface LiveExecutionConfiguration {
   maxEvaluationCost?: number
   complexityPolicy: 'auto' | 'direct' | 'dag'
   reviewPolicy: 'adaptive' | 'always'
+  maxConcurrency?: number
+  providerConcurrency?: Record<string, number>
+  providerMinIntervalMs?: Record<string, number>
+  maxOutputTokens?: number | 'unlimited'
+  maxTotalOutputTokens?: number
 }
 
 export type DshDeployment = 'local' | 'external-cloud' | 'trusted-cloud' | 'simulated-local'
@@ -87,13 +92,38 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     || !['auto','direct','dag'].includes(String(value.complexityPolicy))
     || !['adaptive','always'].includes(String(value.reviewPolicy))
     || Object.keys(value).some(key => !['schemaVersion','enabled','maxProductionCost','maxEvaluationCost',
-      'complexityPolicy','reviewPolicy'].includes(key))) {
+      'complexityPolicy','reviewPolicy','maxConcurrency','providerConcurrency','providerMinIntervalMs',
+      'maxOutputTokens','maxTotalOutputTokens'].includes(key))) {
     throw new Error('invalid liveExecution configuration')
   }
   for (const key of ['maxProductionCost','maxEvaluationCost'] as const) {
     const entry = value[key]
     if (entry !== undefined && (typeof entry !== 'number' || !Number.isFinite(entry) || entry <= 0)) {
-      throw new Error(`liveExecution.${key} must be a positive USD hard limit`)
+      throw new Error(`liveExecution.${key} must be a positive CNY hard limit`)
+    }
+  }
+  const maxConcurrency = value.maxConcurrency
+  if (maxConcurrency !== undefined && (typeof maxConcurrency !== 'number' || !Number.isInteger(maxConcurrency)
+    || maxConcurrency < 1 || maxConcurrency > 8)) {
+    throw new Error('liveExecution.maxConcurrency must be an integer in 1..8')
+  }
+  const maxOutputTokens = value.maxOutputTokens
+  if (maxOutputTokens !== undefined && maxOutputTokens !== 'unlimited'
+    && (typeof maxOutputTokens !== 'number' || !Number.isInteger(maxOutputTokens)
+      || maxOutputTokens < 1000 || maxOutputTokens > 128000)) {
+    throw new Error('liveExecution.maxOutputTokens must be unlimited or an integer in 1000..128000')
+  }
+  const maxTotalOutputTokens = value.maxTotalOutputTokens
+  if (maxTotalOutputTokens !== undefined && (typeof maxTotalOutputTokens !== 'number'
+    || !Number.isInteger(maxTotalOutputTokens) || maxTotalOutputTokens < 1000 || maxTotalOutputTokens > 1_000_000)) {
+    throw new Error('liveExecution.maxTotalOutputTokens must be an integer in 1000..1000000')
+  }
+  for (const [field, minimum, maximum] of [['providerConcurrency', 1, 8],
+      ['providerMinIntervalMs', 0, 60000]] as const) {
+    const rows = value[field]
+    if (rows !== undefined && (!isRecordValue(rows) || Object.entries(rows).some(([provider, entry]) => !provider
+      || typeof entry !== 'number' || !Number.isInteger(entry) || entry < minimum || entry > maximum))) {
+      throw new Error(`invalid liveExecution.${field}`)
     }
   }
   if (value.enabled && (value.maxProductionCost === undefined || value.maxEvaluationCost === undefined)) {

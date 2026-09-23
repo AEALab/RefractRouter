@@ -507,12 +507,13 @@ test('设置页直接复用核心冻结档案并保留条件价格来源', async
   assert.notEqual(v41.quality_profile.raw_score, v4.quality_profile.raw_score)
 })
 
-test('真实执行设置必须显式使用 synthetic、USD 和双硬预算，并可往返保存', async () => {
+test('真实执行设置必须显式使用 synthetic、CNY 和双硬预算，并可往返保存', async () => {
   const live={schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
     maxProductionCost:.2,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
   validateSettingsSection({liveExecution:live})
-  assert.throws(()=>validateSettingsSection({liveExecution:{...live,maxProductionCost:0}}),/positive USD hard limit/)
+  assert.throws(()=>validateSettingsSection({liveExecution:{...live,maxProductionCost:0}}),/positive CNY hard limit/)
   const base=configure({dshModelPool:{...dshModelPool(),schemaVersion:'refractagent-dsh-model-pool-v2',
+    billingUnit:'CNY',
     routes:dshModelPool().routes.map(route=>({...route,overrides:{inputPer1k:0,outputPer1k:0}}))}})
   const scope=fakeScope(buildSettingsBase(base) as SectionView)
   const controller=new RefractCardController(scope)
@@ -533,7 +534,7 @@ test('真实执行的静态缺项在保存前逐项说明', async () => {
   controller.inject().editLiveExecution({schemaVersion:'refractagent-live-execution-v1',enabled:true,
     complexityPolicy:'dag',reviewPolicy:'always'})
   const codes=controller.getSnapshot().issues.map(issue=>issue.code)
-  assert.ok(codes.includes('LIVE_EXECUTION_USD_REQUIRED'))
+  assert.ok(codes.includes('LIVE_EXECUTION_CNY_REQUIRED'))
   assert.ok(codes.includes('LIVE_EXECUTION_SYNTHETIC_REQUIRED'))
   assert.ok(codes.includes('LIVE_EXECUTION_BUDGET_REQUIRED'))
   await controller.save()
@@ -555,9 +556,9 @@ test('client bundle registers in the host module format and exports the plugin f
   assert.ok(source.includes('Manufacturer reference only'))
   assert.ok(localeSource.includes('请先修正以下阻断问题'))
   assert.ok(source.includes('saveBlockedButton'))
-  assert.ok(localeSource.includes('真实执行（实验性）'))
+  assert.ok(localeSource.includes('真实执行（开发试用）'))
   assert.ok(localeSource.includes('最多 1 次执行'))
-  assert.ok(source.includes('one-time DSH approval'))
+  assert.ok(source.includes('developer trial'))
   const registrations: Array<{ id: string; factory: (require: (spec: string) => unknown) => unknown }> = []
   const sandboxWindow = {
     __ModuleLoader__: {

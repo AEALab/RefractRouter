@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
 import v4Example from '../../../../../data/schema/refractagent-providers-v4-example.json' with { type: 'json' }
+import currencyRate from '../../../../../data/currency-rates-v1.json' with { type: 'json' }
 import { afpMetadata, candidateChoices, MODE_KEYS, type CardField, type LimitKey, type ModeKey,
   blocksDshModelPoolRun, DEPLOYMENT_OPTIONS, type RefractCardProjection, type V4CollectionKey,
   type V4DagMode, type V4DataMode } from '../settings-card.js'
@@ -162,7 +163,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const live=state.liveExecution??{schemaVersion:'refractagent-live-execution-v1' as const,enabled:false,
     complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
   const updateLive=(patch:Partial<LiveExecutionView>)=>props.editLiveExecution({...live,...patch})
-  const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v2',billingUnit:state.provider?.billingUnit??'USD',routes:[],
+  const beginPool=()=>props.editDshModelPool({schemaVersion:'refractagent-dsh-model-pool-v2',billingUnit:'CNY',routes:[],
     ...(state.provider?.objective?{objective:state.provider.objective}:{}),
     ...(state.provider?.security?{security:state.provider.security}:{}),
     ...(state.provider?.trustPolicies?{trustPolicies:state.provider.trustPolicies.filter((row):row is Record<string,unknown>=>row!==null&&typeof row==='object'&&!Array.isArray(row))}:{})})
@@ -171,6 +172,13 @@ export function RefractCard(props: RefractCardOwnerProps) {
       delete overrides.quality;delete overrides.latencyMs
       return {...route,...(Object.keys(overrides).length?{overrides}:{overrides:undefined})}})})
   const updatePool=(next:DshModelPoolView)=>props.editDshModelPool(migratePool(next))
+  const migrateCurrency=()=>{
+    if(!pool||pool.billingUnit==='CNY')return
+    updatePool({...pool,billingUnit:'CNY'})
+    if(state.liveExecution)updateLive({
+      maxProductionCost:live.maxProductionCost===undefined?undefined:live.maxProductionCost*currencyRate.rate,
+      maxEvaluationCost:live.maxEvaluationCost===undefined?undefined:live.maxEvaluationCost*currencyRate.rate})
+  }
   const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
     .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
   const identity=(provider:string,model:string)=>provider+'/'+model
@@ -193,6 +201,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
     })})
   }
   const routeOptions=pool?.routes.filter(row=>row.enabled!==false)??[]
+  const activeProviders=[...new Set(routeOptions.map(route=>route.provider))]
   const trustPolicyOptions=(pool?.trustPolicies??[]).filter(row=>typeof row.id==='string')
   const dataMode=typeof pool?.security?.dataMode==='string'?pool.security.dataMode:'live'
   const patchSecurity=(patch:Record<string,unknown>)=>{
@@ -329,7 +338,37 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   value={live.maxProductionCost??''} onChange={event=>updateLive({maxProductionCost:event.target.value===''?undefined:Number(event.target.value)})}/></label>
                 <label className="rra-compact-field">{t('liveEvaluationBudget')}
                   <input className="rra-input" type="number" min="0" step="0.001" disabled={disabled}
-                    value={live.maxEvaluationCost??''} onChange={event=>updateLive({maxEvaluationCost:event.target.value===''?undefined:Number(event.target.value)})}/></label></div>
+                  value={live.maxEvaluationCost??''} onChange={event=>updateLive({maxEvaluationCost:event.target.value===''?undefined:Number(event.target.value)})}/></label></div>
+              <details className="rra-details"><summary>并发、Provider 节流与输出上限</summary>
+                <p>模型／Provider 的物理最大输出由 DSH 目录只读提供；实际节点上限取物理上限、此处任务安全上限、节点目标和剩余预算中的最小值。</p>
+                <div className="rra-grid rra-grid-2"><label className="rra-compact-field">总并发上限
+                  <input className="rra-input" type="number" min="1" max="8" step="1" disabled={disabled}
+                    value={live.maxConcurrency??1} onChange={event=>updateLive({maxConcurrency:Number(event.target.value)})}/>
+                  <span className="rra-field-hint">无依赖节点最多同时执行的数量；默认 1。</span></label>
+                  <label className="rra-compact-field">单节点输出上限 token
+                    <input className="rra-input" type="number" min="1000" max="128000" step="256"
+                      disabled={disabled||live.maxOutputTokens==='unlimited'}
+                      value={live.maxOutputTokens==='unlimited'?8192:live.maxOutputTokens??8192}
+                      onChange={event=>updateLive({maxOutputTokens:Number(event.target.value)})}/>
+                    <span className="rra-field-hint">默认 8192。仅限制每个执行节点，不是整张 DAG 的总量。</span></label></div>
+                <label className="rra-check"><input type="checkbox" disabled={disabled}
+                  checked={live.maxOutputTokens==='unlimited'}
+                  onChange={event=>updateLive({maxOutputTokens:event.target.checked?'unlimited':8192})}/>
+                  无限制（依模型窗口、Provider 上限与费用预算决定）</label>
+                <label className="rra-compact-field">DAG 总输出 token 上限（可选）
+                  <input className="rra-input" type="number" min="1000" max="1000000" step="512" disabled={disabled}
+                    value={live.maxTotalOutputTokens??''} placeholder="不额外限制"
+                    onChange={event=>updateLive({maxTotalOutputTokens:event.target.value===''?undefined:Number(event.target.value)})}/>
+                  <span className="rra-field-hint">对规划、节点执行和评审的保守输出预留总和生效；留空表示只受节点上限与费用预算限制。</span></label>
+                {activeProviders.map(provider=><div className="rra-grid rra-grid-2" key={provider}><label className="rra-compact-field">{provider} 并发上限
+                  <input className="rra-input" type="number" min="1" max="8" step="1" disabled={disabled}
+                    value={live.providerConcurrency?.[provider]??live.maxConcurrency??1}
+                    onChange={event=>updateLive({providerConcurrency:{...live.providerConcurrency,[provider]:Number(event.target.value)}})}/></label>
+                  <label className="rra-compact-field">{provider} 最小派发间隔（毫秒）
+                    <input className="rra-input" type="number" min="0" max="60000" step="100" disabled={disabled}
+                      value={live.providerMinIntervalMs?.[provider]??0}
+                      onChange={event=>updateLive({providerMinIntervalMs:{...live.providerMinIntervalMs,[provider]:Number(event.target.value)}})}/></label></div>)}
+              </details>
               <div className="rra-simple-status"><strong>{t('liveCallEnvelope')}</strong>
                 <span>{t('liveCallEnvelopeBody')}</span></div></>:null}
           </div>
@@ -345,6 +384,10 @@ export function RefractCard(props: RefractCardOwnerProps) {
             </div>:null}
             {pool.schemaVersion==='refractagent-dsh-model-pool-v1'?<button type="button" className="rra-button rra-button-secondary"
               disabled={disabled} onClick={()=>updatePool(pool)}>{t('poolMigrateV2')}</button>:null}
+            {pool.billingUnit!=='CNY'?<div className="rra-issue-summary" role="status"><strong>旧配置使用 USD 记账</strong>
+              <span>点击迁移后，原厂 USD 单价按中国银行 {currencyRate.as_of} 冻结中间价 1 USD = {currencyRate.rate} CNY 换算；现有生产和评审预算同时按同一汇率转换，保存后人民币金额生效。</span>
+              <button type="button" className="rra-button rra-button-secondary" disabled={disabled} onClick={migrateCurrency}>迁移为人民币（CNY）记账</button></div>:null}
+            {pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与硬预算：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
             {routeProfilesError?<p className="rra-warning">{t('poolLatencyReadError')}: {routeProfilesError}</p>:null}

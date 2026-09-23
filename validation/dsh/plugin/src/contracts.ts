@@ -6,7 +6,7 @@ import type { FormatValidation } from './output-constraints.js'
  * These structural ports keep DSH supplied by the host, with no runtime npm dependencies.
  * Changes must also pass the clean-profile lifecycle and service contract tests.
  */
-export type BillingUnit = 'USD' | 'AFP'
+export type BillingUnit = 'USD' | 'CNY' | 'AFP'
 export type SelectionPolicy = 'all-candidates-required-v1' | 'exclude-known-contract-rejections-v2'
 export type Phase = 'dry-run' | 'pilot' | 'final' | 'contract-replay' | 'execution-modes' | 'k3-baseline'
 export type SandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access'

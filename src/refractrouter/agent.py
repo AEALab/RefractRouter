@@ -91,8 +91,8 @@ def plan_template(name, criteria=None):
 def build_request(payload, *, mode, production_budget, timeout_ms, automatic_routing=False):
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
-            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'verifyDependencies', 'limits',
-            'complexityPolicy', 'reviewPolicy', 'authorization'}:
+            'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
+            'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput'}:
         raise ValueError('invalid RefractAgent request fields')
     validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
@@ -101,6 +101,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
         raise ValueError('limits may only contain boolean relaxBudget, relaxContext and unlimitedTime')
     relax_budget = limits.get('relaxBudget', False)
     relax_context = limits.get('relaxContext', False)
+    if 'unlimitedNodeOutput' in payload and (type(payload['unlimitedNodeOutput']) is not bool or not automatic_routing):
+        raise ValueError('unlimitedNodeOutput requires a v4 boolean setting')
     strategy = payload.get('strategy', 'auto' if automatic_routing else 'balanced')
     allowed_strategies = {'auto'} if automatic_routing else set(PRESETS)
     if not isinstance(strategy, str) or strategy not in allowed_strategies:
@@ -145,9 +147,12 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
             request[key] = deepcopy(payload[key])
     request['verifyDependencies'] = payload.get('verifyDependencies',True)
     for key in ('plannerModelId','plannerMaxOutputTokens','plannerTimeoutMs','maxDynamicSplits',
-                'maxConcurrency','providerConcurrency','providerMinIntervalMs'):
+                'maxConcurrency','providerConcurrency','providerMinIntervalMs','maxTotalOutputTokens'):
         if key in payload:
             request[key] = payload[key]
+    if 'maxTotalOutputTokens' in request:
+        if type(request['maxTotalOutputTokens']) is not int or not 1000 <= request['maxTotalOutputTokens'] <= 1_000_000:
+            raise ValueError('maxTotalOutputTokens must be an integer in 1000..1000000')
     if request.get('unrestrictedPlanning'):
         request.pop('plannerMaxOutputTokens', None)
         request.pop('plannerTimeoutMs', None)
@@ -214,21 +219,42 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if automatic_routing and mode == 'live':
         if configured.snapshot.get('security', {}).get('dataMode') != 'synthetic':
             raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 首版真实执行仅允许 synthetic 数据模式')
-        if manifest.billing_unit != 'USD':
-            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 首版真实执行仅支持 USD 模型池')
+        if manifest.billing_unit not in {'USD', 'CNY'}:
+            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD 或 CNY 模型池')
         if tool_runtime is not None:
             raise ValueError('REFRACTAGENT_TOOLS_DISABLED: 首版真实执行不接受 hostTools')
         if (request.get('maxPlanRepairs', 0) != 0 or request.get('maxDynamicSplits', 0) != 0
-                or request.get('maxNodeFallbacks', 0) != 0 or payload.get('maxConcurrency', 1) != 1):
-            raise ValueError('live canary requires zero repair/split/fallback and maxConcurrency=1')
+                or request.get('maxNodeFallbacks', 0) != 0):
+            raise ValueError('live canary requires zero repair/split/fallback')
+    # 容量编译、规划模型选择与实际派发必须看到同一输出上限。若在编译 DAG 后才
+    # 收窄 worker，会把 DSH 目录的模型最大输出（例如 256K）错误当成每个父节点
+    # 都会交接的文本量，导致普通多节点任务虚假地失去可用的本地路线。
+    unlimited_node_output = automatic_routing and payload.get('unlimitedNodeOutput', False)
+    generated_automatic = automatic_routing or (payload.get('template') == 'auto' and 'plan' not in payload)
+    if generated_automatic:
+        manifest = replace(manifest, models=tuple(
+            # 先读取模型真实容量，再应用本次任务的单节点上限。
+            (lambda capacity: replace(capacity,
+                                      max_output_tokens=(capacity.max_output_tokens if unlimited_node_output
+                                                         else min(capacity.max_output_tokens,
+                                                                  max_output_tokens))))(execution_capacity_model(m))
+            if 'worker' in getattr(m, 'roles', ())
+            else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
+            for m in manifest.models
+        ))
     input_cap = (min(RELAXED_INPUT_CAP, max(131072, max(m.context_window for m in manifest.models) - max_output_tokens))
                  if relax_context else 131072)
     if 'plan' in request and (configured or relax_context):
         prepare_configured_plan(request, context, explicit_plan='plan' in payload,
                                 output_cap=max_output_tokens, input_cap=input_cap)
     temperature = number(payload.get('temperature', 0), 'temperature', maximum=2)
-    manifest = replace(manifest, models=tuple(execution_capacity_model(m) if 'worker' in getattr(m, 'roles', ()) else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
-                                             for m in manifest.models))
+    if not generated_automatic:
+        manifest = replace(manifest, models=tuple(
+            execution_capacity_model(m) if 'worker' in getattr(m, 'roles', ())
+            else replace(m, max_output_tokens=min(m.max_output_tokens, max_output_tokens))
+            for m in manifest.models))
+    if automatic_routing and mode == 'live':
+        request['adaptiveOutputBudget'] = True
     manifest = replace(manifest, models=tuple(replace(m, request_options={**m.request_options, 'temperature': temperature})
                                              if (m.role == 'candidate' or 'worker' in getattr(m, 'roles', ())) and m.wire_api != 'responses' else m for m in manifest.models))
     if (automatic_routing or payload.get('template') == 'auto') and 'plan' not in payload:

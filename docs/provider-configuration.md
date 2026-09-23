@@ -54,8 +54,15 @@ V4 Flash 0731，避免把两个不同版本错误合并。`ark` 路线继续按 
 上的单项分数和排名并明确署名，不复制其批量数据集；这符合 Artificial Analysis Brand Kit
 对单项引用的说明。无法确认模型版本或 provider 等价性的路线仍然 fail closed；目前包括
 `deepseek-v4-flash-vision-exp`。用户不能用手工分数绕过准入。DSH 的 `auto` 入口仍只允许预检
-和模拟；实验性 `auto-live` 还要求 `synthetic`、USD 双硬预算与逐任务一次性审批，且固定使用
+和模拟；开发试用 `auto-live` 还要求 `synthetic`、CNY（人民币）双硬预算与设置级显式启用，且固定使用
 本机核心。完成模型池配置本身不会启用真实付费执行。
+
+DSH 模型池的冻结原厂报价与手工价格覆盖继续按 USD/千 token 输入。选择 CNY 记账后，
+Python 核心按 `data/currency-rates-v1.json` 中冻结的中国银行中间价换算路由价格，
+生产与评审预算、预览和运行账本均以 CNY 比较与记录。来源、日期、汇率和原价单位写入
+`model_profile_provenance`。旧 USD 模型池与预算由设置页显式一次性迁移，历史运行证据不改写。
+“单节点输出无限制”仅取消插件的 8192 token 应用上限，模型/Provider 物理上限、上下文
+容量、DAG 总输出上限和单任务人民币费用硬上限仍生效。
 
 ## 配置在哪里
 
@@ -165,8 +172,9 @@ Responses 只发送模型 `requestOptions` 中显式声明的采样参数，不�
 没有配置实测数据时，三个策略以这些声明值做预测；保存的 profile 标记为 `configured`、
 观测样本为 0，不能称为实测效果或 SLA。最终评审是另外一次调用。
 
-所有价格必须使用同一个 `billingUnit`，例如 USD、CNY 或 AFP。核心不自动换算汇率或把
-AFP 与现金相加。混用单位会拒绝执行；跨 provider 比较前由用户按明确口径配置共同单位。
+所有价格必须使用同一个 `billingUnit`，例如 USD、CNY 或 AFP。通用 `providerConfig` 核心
+不自动换算汇率，也不把 AFP 与现金相加；跨 provider 比较前由用户配置共同单位。
+DSH 模型池的冻结 USD→CNY 物化是上述规则的显式例外，使用仓库内固定汇率快照。
 订阅的比较价格可设为零，但这时成本策略无法区分这些同价模型。
 
 ## OpenAI Responses 与推理模型

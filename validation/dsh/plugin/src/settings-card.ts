@@ -126,6 +126,11 @@ export interface LiveExecutionView {
   maxEvaluationCost?:number
   complexityPolicy:'auto'|'direct'|'dag'
   reviewPolicy:'adaptive'|'always'
+  maxConcurrency?:number
+  providerConcurrency?:Record<string,number>
+  providerMinIntervalMs?:Record<string,number>
+  maxOutputTokens?:number|'unlimited'
+  maxTotalOutputTokens?:number
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
@@ -157,7 +162,7 @@ export type SettingsIssueCode =
   | 'SETTINGS_HOST_REJECTED'
   | 'SETTINGS_READBACK_UNCONFIRMED'
   | 'LIVE_EXECUTION_MODEL_POOL_REQUIRED'
-  | 'LIVE_EXECUTION_USD_REQUIRED'
+  | 'LIVE_EXECUTION_CNY_REQUIRED'
   | 'LIVE_EXECUTION_SYNTHETIC_REQUIRED'
   | 'LIVE_EXECUTION_BUDGET_REQUIRED'
 
@@ -194,15 +199,15 @@ export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
   if (!automatic) issues.push({code:'LIVE_EXECUTION_MODEL_POOL_REQUIRED',severity:'error',field:'liveExecution',
     message:'真实执行需要可用的自动路由模型池；旧三策略配置只能继续使用原有入口。'})
   const unit = pool?.billingUnit ?? provider?.billingUnit
-  if (unit !== 'USD') issues.push({code:'LIVE_EXECUTION_USD_REQUIRED',severity:'error',field:'liveExecution',
-    message:'真实执行首版只接受 USD 计费模型池。AFP 或其他单位不能用于本次硬预算审批。'})
+  if (unit !== 'CNY') issues.push({code:'LIVE_EXECUTION_CNY_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行需要人民币（CNY）模型池；请在模型目录中将旧 USD 配置迁移为人民币记账。'})
   const security = pool?.security ?? provider?.security
   if (security?.dataMode !== 'synthetic') issues.push({code:'LIVE_EXECUTION_SYNTHETIC_REQUIRED',severity:'error',
     field:'liveExecution',message:'真实执行首版只允许合成测试数据（synthetic）；真实数据和脱敏材料暂未开放。'})
   if (!(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)
     || !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) {
     issues.push({code:'LIVE_EXECUTION_BUDGET_REQUIRED',severity:'error',field:'liveExecution',
-      message:'请明确填写单任务生产与评审 USD 硬上限；真实执行没有隐式付费默认值。'})
+      message:'请明确填写单任务生产与评审人民币硬上限；真实执行没有隐式付费默认值。'})
   }
   return issues
 }

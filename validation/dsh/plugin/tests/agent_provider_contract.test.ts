@@ -63,21 +63,21 @@ const modelPool = () => ({schemaVersion:'refractagent-dsh-model-pool-v1' as cons
     {provider:'team',model:'planner',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:90,latencyMs:100}},
     {provider:'team',model:'worker',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:80,latencyMs:50}},
   ]})
-const liveProviderConfig=()=>({schemaVersion:'refractagent-providers-v4' as const,billingUnit:'USD',
+const liveProviderConfig=()=>({schemaVersion:'refractagent-providers-v4' as const,billingUnit:'CNY',
   objective:{qualityMin:80,primary:'cost' as const,secondary:'latency' as const,dagMode:'auto' as const},
   security:{dataMode:'synthetic'},providers:[{id:'external',type:'openai-compatible' as const,
     baseUrl:'https://models.example/v1',credentialEnv:'MODEL_KEY',deployment:'external-cloud' as const}],
   models:[
     {id:'worker',provider:'external',model:'worker',roles:['planner' as const,'worker' as const,'classifier' as const],
-      contextWindow:131072,maxOutputTokens:4096,pricing:{unit:'USD',inputPer1k:.001,outputPer1k:.002},
+      contextWindow:131072,maxOutputTokens:4096,pricing:{unit:'CNY',inputPer1k:.0067459,outputPer1k:.0134918},
       routing:{quality:90,latencyMs:1000}},
     {id:'judge',provider:'external',model:'judge',roles:['judge' as const],contextWindow:131072,
-      maxOutputTokens:4096,pricing:{unit:'USD',inputPer1k:.001,outputPer1k:.002}},
+      maxOutputTokens:4096,pricing:{unit:'CNY',inputPer1k:.0067459,outputPer1k:.0134918}},
   ]})
 const liveExecution=()=>({schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
   maxProductionCost:.1,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const})
 const previewResult={strategy:'auto',strategy_name:'自动路由',mode:'preflight',status:'preview',answer:'',
-  simulated:false,billing_unit:'USD',live_authorization_preview:{schema_version:'refractagent-live-authorization-v1',
+  simulated:false,billing_unit:'CNY',live_authorization_preview:{schema_version:'refractagent-live-authorization-v1',
     authorization_id:'auth-1',issued_at:'2026-09-22T00:00:00Z',expires_at:'2026-09-22T00:10:00Z',
     preview_sha256:'a'.repeat(64),ready:true,complexity:{decision:'direct'},review:{required:false},
     calls:{maximum:1},costs:{production_estimate:.01,evaluation_estimate:0,production_hard_limit:.1,
@@ -123,7 +123,7 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
        pricing:{unit:'USD',inputPer1k:0,outputPer1k:0}},
     ]}
   const adapter=createAdapter(f.ctx,()=>configure({providerConfig}))
-  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto'])
+  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live'])
   assert.equal((await adapter.resolveModel('refractagent','balanced')).id,'balanced')
   const v4Chunks=[]
   for await(const chunk of adapter.stream({...options,model:'balanced'})) v4Chunks.push(chunk)
@@ -146,40 +146,16 @@ test('v4 advertises only automatic routing and normalizes a stale DSH legacy sel
   assert.ok(legacyLive.spawns[0]!.argv.includes('demo'))
   assert.ok(!legacyLive.spawns[0]!.argv.includes('--execute-paid-run'))
 })
-test('auto-live rejection performs zero-call preview but never resolves credentials or dispatches live',async()=>{
-  const f=fixture(previewResult)
-  const agent={session:{events:[],append(){}}}
-  f.ctx.agents={requireInitiator:()=>agent}
-  let approvals=0
-  f.ctx.approval={async request(input){approvals++;assert.equal(input.agent,agent);assert.match(input.reason,/最多模型调用：1/);return 'rejected'}}
-  const config=configure({providerConfig:liveProviderConfig(),liveExecution:liveExecution()})
-  const adapter=createAdapter(f.ctx,()=>config)
-  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live'])
-  const output=[]
-  for await(const chunk of adapter.stream({...options,model:'auto-live'}))output.push(chunk)
-  assert.equal(approvals,1)
-  assert.equal(f.spawns.length,1)
-  assert.ok(f.spawns[0]!.argv.includes('preflight'))
-  assert.equal(f.credentials,0)
-  assert.equal(output.some(chunk=>chunk.type==='text-delta'),false)
-  assert.deepEqual(output.at(-1)?.reason,{kind:'error',failure:{code:'REFRACTAGENT_APPROVAL_REQUIRED',
-    message:'RefractAgent 未执行：本次真实执行没有获得 DSH 一次性审批；未解析凭证、未派发模型、未产生费用。'}})
-})
-
-test('one allowed-once approval starts exactly one local live process with bound preview and no tools',async()=>{
+test('settings-enabled developer live starts one local preflight and one bound live process without host approval',async()=>{
   const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'真实答案',
-    simulated:false,billing_unit:'USD',plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},
+    simulated:false,billing_unit:'CNY',plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},
     dag:{phase:'finished',status:'completed',simulated:false,reason:'直接回答',nodes:[]}}
   const f=fixture([previewResult,liveResult])
-  const agent={session:{events:[],append(){}}}
-  f.ctx.agents={requireInitiator:()=>agent}
-  let approvals=0
-  f.ctx.approval={async request(){approvals++;return 'allowed-once'}}
   const adapter=createAdapter(f.ctx,()=>configure({routerUrl:'http://127.0.0.1:8787',
-    providerConfig:liveProviderConfig(),liveExecution:liveExecution()}))
+    providerConfig:liveProviderConfig(),liveExecution:{...liveExecution(),maxOutputTokens:'unlimited'}}))
   const output=[]
   for await(const chunk of adapter.stream({...options,model:'auto-live',tools:[{name:'forbidden',description:'x',parameters:{}}]}))output.push(chunk)
-  assert.equal(approvals,1)
+  assert.deepEqual((await adapter.listModels('refractagent')).map(model=>model.id),['auto','auto-live'])
   assert.equal(f.spawns.length,2)
   assert.ok(f.spawns[0]!.argv.includes('preflight'))
   assert.ok(f.spawns[1]!.argv.includes('live'))
@@ -189,6 +165,8 @@ test('one allowed-once approval starts exactly one local live process with bound
   assert.equal(livePayload.authorization.authorization_id,'auth-1')
   assert.equal(livePayload.hostTools,undefined)
   assert.equal(livePayload.maxDynamicSplits,0);assert.equal(livePayload.maxConcurrency,1)
+  assert.equal(previewPayload.unlimitedNodeOutput,true)
+  assert.equal(livePayload.unlimitedNodeOutput,true)
   assert.equal(f.credentials,1)
   assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'真实答案')
   assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
@@ -737,6 +715,7 @@ test('自动流程区分应用上下文、模型窗口、路线与一般执行�
     ['input-or-output-capacity','REFRACTAGENT_MODEL_CONTEXT_LIMIT'],
     ['configured route unavailable','REFRACTAGENT_ROUTE_UNAVAILABLE'],
     ['security requires at least one sensitive-data-capable worker model','REFRACTAGENT_ROUTE_UNAVAILABLE'],
+    ['invalid or truncated output for answer (finish_reason=length, output_cap=2048)','REFRACTAGENT_EXECUTION_FAILED'],
     ['ledger write failed','REFRACTAGENT_EXECUTION_FAILED'],
   ]
   for(const [error,code] of cases){

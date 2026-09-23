@@ -15,6 +15,8 @@ PROFILE_PATHS = (
     Path(sys.prefix) / 'share/refractrouter/model-profiles-v1.json',
 )
 PROFILE_SCHEMAS = {'refractrouter-model-profiles-v1', 'refractrouter-model-profiles-v2'}
+FX_PATHS = (Path(__file__).resolve().parents[2] / 'data/currency-rates-v1.json',
+            Path(sys.prefix) / 'share/refractrouter/currency-rates-v1.json')
 DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
 POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2'}
 CONSERVATIVE_BOOTSTRAP_LATENCY_MS = 60_000.0
@@ -59,6 +61,20 @@ def load_frozen_profiles(path=None):
             _validate_price_schedule(profile)
             _validate_quality_profile(profile.get('quality_profile'))
     return raw
+
+
+def frozen_usd_cny_rate(path=None):
+    source = path or next((candidate for candidate in FX_PATHS if candidate.is_file()), FX_PATHS[0])
+    snapshot = json.loads(Path(source).read_text())
+    if (snapshot.get('schema_version') != 'refractrouter-currency-rates-v1'
+            or snapshot.get('base') != 'USD' or snapshot.get('quote') != 'CNY'
+            or not isinstance(snapshot.get('as_of'), str)
+            or not isinstance(snapshot.get('source'), str)):
+        raise ValueError('invalid frozen USD/CNY rate snapshot')
+    rate = _number(snapshot.get('rate'), 'USD/CNY rate')
+    if rate <= 0:
+        raise ValueError('USD/CNY rate must be positive')
+    return rate, snapshot
 
 
 def _validate_price_schedule(profile):
@@ -150,6 +166,10 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
     pool_schema = pool.get('schemaVersion')
     if pool_schema not in POOL_SCHEMAS:
         raise ValueError('invalid dshModelPool schemaVersion')
+    accounting_unit = pool.get('billingUnit', 'USD')
+    if accounting_unit not in {'USD', 'CNY'}:
+        raise ValueError('dshModelPool billingUnit must be USD or CNY')
+    exchange_rate, exchange_snapshot = frozen_usd_cny_rate() if accounting_unit == 'CNY' else (1.0, None)
     if snapshot.get('schemaVersion') != 'refractagent-dsh-catalog-v1':
         raise ValueError('invalid dshCatalogSnapshot schemaVersion')
     allow_shared_judge = pool.get('allowSharedJudge', False)
@@ -258,6 +278,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
                 if key in {'quality', 'latencyMs'})} if pool_schema == 'refractagent-dsh-model-pool-v1'
                 and any(key in overrides for key in {'quality', 'latencyMs'}) else {}),
             'note': overrides.get('note'),
+            'accounting_unit': accounting_unit,
+            'price_source_unit': 'USD',
+            **({'currency_conversion': deepcopy(exchange_snapshot)} if exchange_snapshot else {}),
         }
         for key in ('pricing_basis', 'pricing_schedule', 'pricing_materialization'):
             if key in base:
@@ -318,7 +341,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'provider': provider_ids[_route_key(row['provider'], row['model'])],
             'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
             'maxOutputTokens': row['maxOutputTokens'], 'deployment': row['deployment'],
-            'pricing': {'unit': pool.get('billingUnit', 'USD'), **row['pricing']},
+            'pricing': {'unit': accounting_unit,
+                        **{key: value * exchange_rate for key, value in row['pricing'].items()
+                           if key != 'unit'}},
             'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs']} if 'worker' in roles else None})
         if models[-1]['routing'] is None: models[-1].pop('routing')
         evidence[_route_key(row['provider'], row['model'])].update(
@@ -328,7 +353,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):
         security['classifier']['modelId'] = _stable_id('dsh-model', _route_key(classifier['provider'], classifier['model']))
-    config = {'schemaVersion':'refractagent-providers-v4', 'billingUnit':pool.get('billingUnit','USD'),
+    config = {'schemaVersion':'refractagent-providers-v4', 'billingUnit':accounting_unit,
         'allowSharedJudge':allow_shared_judge,
         'objective':deepcopy(pool.get('objective', {'qualityMin':80,'primary':'cost','secondary':'latency','dagMode':'auto'})),
         'security':security, 'trustPolicies':deepcopy(pool.get('trustPolicies', [])),
