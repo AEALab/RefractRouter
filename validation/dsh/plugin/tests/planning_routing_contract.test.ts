@@ -93,6 +93,37 @@ test('真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件
   }finally{await f.cleanup()}
 })
 
+test('Stage 重复失败升级、保持两次后恢复高效模型，并保留结构化决策',async()=>{
+  const f=await fixture('stage')
+  try{
+    await collect(f.controller.stream({...f.options,reasoningEffort:'rr:stage'}))
+    const messages:any[]=[...f.options.messages]
+    for(let index=0;index<2;index++){
+      const callId=`failed-${index}`
+      const call={type:'tool-call',id:callId,name:'bash',arguments:'{"cmd":"pytest"}'}
+      const result={type:'tool-result',toolCallId:callId,isError:true,
+        content:[{type:'text',text:'test failed'}]}
+      messages.push({role:'assistant',content:[call]},{role:'user',content:[result]})
+      f.events.push({type:'tool/call',data:{turn:1,step:index+1,callId,name:'bash',arguments:'{"cmd":"pytest"}'}})
+      f.events.push({type:'tool/result',data:{turn:1,step:index+1,message:{content:[result]},
+        error:{name:'CommandError',code:'EXIT_NONZERO'},meta:{exitCode:1}}})
+    }
+    for(let step=2;step<=4;step++){
+      f.events.push({type:'step/start',data:{turn:1,step}})
+      await collect(f.controller.stream({...f.options,reasoningEffort:'rr:stage',messages}))
+    }
+    assert.deepEqual(f.calls.map(call=>call.model),['small','large','large','small'])
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.deepEqual(record.decisions.map((decision:any)=>decision.reason),
+      ['no-signal','repeated-failure','capable-hold','no-signal'])
+    assert.deepEqual(record.decisions[1].evidenceIds,['1:1:failed-0','1:2:failed-1'])
+    assert.equal(record.decisions[1].holdBefore,0)
+    assert.equal(record.decisions[1].holdAfter,1)
+    assert.equal(record.decisions[1].ruleVersion,'stage-v2')
+    assert.equal(record.calls[1].reasoning_effort,'low')
+  }finally{await f.cleanup()}
+})
+
 test('审核丢弃的回复与工具不泄漏，全部实际调用记账',async()=>{
   const f=await fixture('advisor')
   try{

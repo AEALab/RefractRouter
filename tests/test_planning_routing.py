@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from refractrouter.planning_config import compile_config, preview, DEFAULTS
-from refractrouter.planning_policy import stage, tool_events
+from refractrouter.planning_policy import stage, stage_decision, tool_events
 from refractrouter.planning_runtime import PlanningRuntime, historical_billing_warning
 from refractrouter.task_budget import TaskCallBudget
 from refractrouter.deepseek_official_pricing import pricing as deepseek_cny_pricing
@@ -106,6 +106,45 @@ def test_static_preflight_uses_actual_request_instead_of_entire_context_window(t
     action = step(runtime, run)
     assert action["model"]["id"] == "small"
     assert runtime.runs[run]["budget"].records[0]["reserved"] < cfg["maxProductionCost"]
+
+
+def test_stage_reserves_only_selected_model(tmp_path):
+    cfg = configuration("stage")
+    cfg["maxProductionCost"] = .01
+    cfg["models"][1]["outputPer1k"] = 100
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "stage", config=cfg)
+    action = step(runtime, run)
+    assert action["model"]["id"] == "small"
+    assert runtime.runs[run]["budget"].records[0]["model_id"] == "small"
+    assert len(runtime.runs[run]["budget"].records) == 1
+
+
+def test_stage_selected_capable_model_budget_shortage_stops_explicitly(tmp_path):
+    cfg = configuration("stage")
+    cfg["maxProductionCost"] = .01
+    cfg["models"][1]["outputPer1k"] = 100
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "stage", config=cfg)
+    messages, events = [], []
+    for index in range(2):
+        call_id = f"call-{index}"
+        call = {"type": "tool-call", "id": call_id, "name": "bash",
+                "arguments": '{"cmd":"pytest"}'}
+        result = {"type": "tool-result", "toolCallId": call_id, "isError": True,
+                  "content": [{"type": "text", "text": "test failed"}]}
+        messages.extend([{"role": "assistant", "content": [call]},
+                         {"role": "user", "content": [result]}])
+        events.extend([
+            {"type": "tool/call", "data": {"turn": 1, "step": index, "callId": call_id,
+             "name": "bash", "arguments": '{"cmd":"pytest"}'}},
+            {"type": "tool/result", "data": {"turn": 1, "step": index,
+             "message": {"content": [result]}, "error": {"name": "CommandError", "code": "EXIT_NONZERO"},
+             "meta": {"exitCode": 1}}},
+        ])
+    with pytest.raises(ValueError, match="无法派发 capable 模型 fake/large"):
+        step(runtime, run, messages, events=events)
+    assert runtime.runs[run]["status"] == "failed"
 
 
 @pytest.mark.parametrize("strategy", ["task", "composite"])
@@ -216,10 +255,9 @@ def test_stage_structured_evidence_and_hold():
                  {"role": "user", "content": [{"type": "tool-result", "toolCallId": str(i), "isError": True, "error": {"code": "CODE_RUN_FAILED"}}]}]
     events = tool_events(msgs)
     role, reason, hold, _ = stage(events, {"hold": 0}, DEFAULTS, "efficient")
-    assert (role, reason, hold) == ("capable", "repeated-failure", 2)
-    for remaining in (1, 0):
-        role, _, hold, _ = stage([], {"hold": hold}, DEFAULTS, "efficient")
-        assert role == "capable" and hold == remaining
+    assert (role, reason, hold) == ("capable", "repeated-failure", 1)
+    role, _, hold, _ = stage([], {"hold": hold}, DEFAULTS, "efficient")
+    assert role == "capable" and hold == 0
     assert stage([], {"hold": hold}, DEFAULTS, "efficient")[0] == "efficient"
     msgs[-1]["content"][0]["error"] = {"code": "PERMISSION_DENIED"}
     assert tool_events(msgs)[-1]["status"] == "denied"
@@ -227,6 +265,41 @@ def test_stage_structured_evidence_and_hold():
     msgs[-1]["content"][0].pop("error")
     msgs[-1]["content"][0]["content"] = [{"type": "text", "text": "失败失败失败"}]
     assert tool_events(msgs)[-1]["status"] == "completed"
+
+
+def test_stage_consumes_old_failure_and_does_not_retrigger():
+    events = [
+        {"id": "one", "status": "failed", "kind": "mutate", "fingerprint": "same"},
+        {"id": "two", "status": "failed", "kind": "mutate", "fingerprint": "same"},
+    ]
+    decision = stage_decision(events, {"hold": 0, "consumedEvidenceIds": []}, DEFAULTS, "efficient")
+    assert decision["reason"] == "repeated-failure"
+    assert decision["holdBefore"] == 0 and decision["holdAfter"] == 1
+    state = {"hold": 0, "consumedEvidenceIds": ["one", "two"]}
+    decision = stage_decision(events + [
+        {"id": "three", "status": "completed", "kind": "observe", "fingerprint": "read"}
+    ], state, DEFAULTS, "efficient")
+    assert decision["role"] == "efficient"
+    assert decision["reason"] == "ambiguous"
+
+
+def test_stage_uses_structured_exit_code_and_ignores_failure_words():
+    call = {"type": "tool-call", "id": "x", "name": "bash", "arguments": '{"cmd":"pytest"}'}
+    result = {"type": "tool-result", "toolCallId": "x", "isError": False,
+              "content": [{"type": "text", "text": "失败"}]}
+    messages = [{"role": "assistant", "content": [call]}, {"role": "user", "content": [result]}]
+    native = [{"type": "tool/call", "data": {"turn": 4, "step": 2, "callId": "x",
+               "name": "bash", "arguments": '{"cmd":"pytest"}'}},
+              {"type": "tool/result", "data": {"turn": 4, "step": 2,
+               "message": {"content": [result]}, "meta": {"process": {"exitCode": 1}}}}]
+    event = tool_events(messages, native)[0]
+    assert event["status"] == "failed"
+    assert event["failure"]["exitCode"] == 1
+    assert event["id"] == "4:2:x"
+    native[1]["data"].pop("meta")
+    assert tool_events(messages, native)[0]["status"] == "completed"
+    result["isError"] = True
+    assert tool_events(messages, native)[0]["status"] == "unclassified-error"
 
 
 def test_native_error_origin_and_turn_filter():

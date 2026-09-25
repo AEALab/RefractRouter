@@ -10,7 +10,7 @@ import time
 import uuid
 
 from .planning_config import compile_config, preview, PROTOCOL, REQUIRED
-from .planning_policy import tool_events, stage, static_choice, text_of
+from .planning_policy import tool_events, stage_decision, static_choice, text_of
 from .privacy_placement import classify_view, allows_sensitive
 from .task_budget import request_input_bound
 from .planning_budget import PlanningBudget
@@ -109,7 +109,8 @@ class PlanningRuntime:
             "deadline": time.monotonic() + config["timeout"] / 1000 if config["timeout"] else None,
             "budget": PlanningBudget(config["budgets"], max_calls=config["max_calls"] or None),
             "state": {"hold": 0, "default": "efficient", "classified": False, "streak": 0,
-                      "latched": False, "reviews": 0, "redos": 0, "step": 0, "last_model": None, "last_evidence": None, "compactions": 0},
+                      "latched": False, "reviews": 0, "redos": 0, "step": 0, "last_model": None,
+                      "last_evidence": None, "consumedEvidenceIds": [], "compactions": 0},
             "decisions": []}
         self.runs[key] = run
         self.persist(run)
@@ -185,7 +186,8 @@ class PlanningRuntime:
             raise ValueError("工具结果未确认")
         c, s = run["config"], run["state"]
         strategy = "static" if request.get("purpose") == "compaction" else run["strategy"]
-        # 一个任务只允许一个在途策略流程；完整最坏调用包络在开始前检查，期间不接受第二个步骤。
+        # 一个任务只允许一个在途策略流程。Stage 先选本轮目标模型，再由 issue
+        # 按实际输入和该模型输出上限做原子预留；未被选择的模型不占用预算。
         purposes = ["efficient"]
         if strategy in ("stage", "task", "composite", "escalation"):
             purposes.append("capable")
@@ -197,24 +199,23 @@ class PlanningRuntime:
             purposes += ["advisor"] * (c["parameters"]["maxReviews"] - s["reviews"]) + ["efficient"] * (c["parameters"]["maxRedos"] - s["redos"])
         if strategy == "static" and c["parameters"]["staticMode"] == "random":
             purposes.append("capable")
-        bounds = {}
-        for role in purposes:
-            model = c["models"][c["roles"][role]]
-            if model.provider == "deepseek-official" and model.billing_unit == "CNY":
-                price = deepseek_cny_pricing(model.api_model, conservative=True)
-                if price:
-                    model = replace(model, input_cost_per_1k=price["inputPer1k"],
-                                    output_cost_per_1k=price["outputPer1k"],
-                                    cached_input_cost_per_1k=price["cachedInputPer1k"])
-            # Static 只有当前这一次执行调用；按真实输入检查，避免把 1M 上下文窗
-            # 误计为本次已使用量。多调用策略仍保留既有的完整路径保守上界。
-            input_bound = request_input_bound(messages, tools) if strategy == "static" else model.context_window
-            bounds[model.billing_unit] = bounds.get(model.billing_unit, 0) + (
-                input_bound / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0)
-                + model.max_output_tokens / 1000 * model.output_cost_per_1k)
-        if any(bound > run["budget"].remaining(unit) for unit, bound in bounds.items()) \
-                or (c["max_calls"] and len(run["budget"].records) + len(purposes) > c["max_calls"]):
-            raise ValueError("剩余预算或调用次数不足以覆盖完整策略路径")
+        if strategy != "stage":
+            bounds = {}
+            for role in purposes:
+                model = c["models"][c["roles"][role]]
+                if model.provider == "deepseek-official" and model.billing_unit == "CNY":
+                    price = deepseek_cny_pricing(model.api_model, conservative=True)
+                    if price:
+                        model = replace(model, input_cost_per_1k=price["inputPer1k"],
+                                        output_cost_per_1k=price["outputPer1k"],
+                                        cached_input_cost_per_1k=price["cachedInputPer1k"])
+                input_bound = request_input_bound(messages, tools) if strategy == "static" else model.context_window
+                bounds[model.billing_unit] = bounds.get(model.billing_unit, 0) + (
+                    input_bound / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0)
+                    + model.max_output_tokens / 1000 * model.output_cost_per_1k)
+            if any(bound > run["budget"].remaining(unit) for unit, bound in bounds.items()) \
+                    or (c["max_calls"] and len(run["budget"].records) + len(purposes) > c["max_calls"]):
+                raise ValueError("剩余预算或调用次数不足以覆盖完整策略路径")
         run["flow"] = {"messages": messages, "tools": tools, "events": events, "pending": None,
                        "responses": {}, "feedback": None, "requestId": request.get("requestId"), "evidence": evidence,
                        "fresh": fresh, "maxTokens": request.get("maxTokens"), "purpose": request.get("purpose")}
@@ -284,12 +285,20 @@ class PlanningRuntime:
             input_cost_per_1k=max(reserve_pricing["inputPer1k"] if reserve_pricing else model.input_cost_per_1k,
                                   model.cache_write_cost_per_1k or 0),
             output_cost_per_1k=reserve_pricing["outputPer1k"] if reserve_pricing else model.output_cost_per_1k)
-        reservation = run["budget"].reserve(reserve_model, messages, label=f'{run["id"]}:{len(run["budget"].records)}',
-            tools=tools or None)
+        try:
+            reservation = run["budget"].reserve(reserve_model, messages,
+                label=f'{run["id"]}:{len(run["budget"].records)}', tools=tools or None)
+        except ValueError as exc:
+            if "budget-exhausted" in str(exc) or "call-limit" in str(exc):
+                raise ValueError(
+                    f"无法派发 {role} 模型 {model.provider}/{model.api_model}："
+                    f"{model.billing_unit} 预算或最大调用数不足") from exc
+            raise
         reservation.model = model
         token = uuid.uuid4().hex
         reservation.row.update(call_id=token, purpose=purpose, disposition="pending",
-                               provider=model.provider, actual_model=model.api_model)
+                               provider=model.provider, actual_model=model.api_model,
+                               reasoning_effort=model.request_options.get("reasoning_effort"))
         if pricing:
             reservation.row.update(pricing_tier=pricing["tier"], pricing_source=pricing["source"],
                                    pricing_checked_at=pricing["checkedAt"])
@@ -311,12 +320,15 @@ class PlanningRuntime:
         s, c, flow = run["state"], run["config"], run["flow"]
         p, strategy = c["parameters"], run["strategy"]
         hold, score, reason = s["hold"], None, "fixed"
+        decision = None
         if role is None:
             if strategy == "static":
                 # Random 在任务开始时选一次；工具续接沿用同一模型。
                 role = static_choice(p, run["id"], 0)
             elif strategy in ("stage", "composite"):
-                role, reason, hold, score = stage(flow["events"] if flow["fresh"] else [], s, p, s["default"])
+                decision = stage_decision(flow["events"], s, p, s["default"])
+                role, reason, hold, score = (decision["role"], decision["reason"],
+                                             decision["hold"], decision["score"])
             elif strategy == "task":
                 role, reason = s["default"], "task-classifier"
             elif strategy == "escalation":
@@ -331,12 +343,22 @@ class PlanningRuntime:
         if flow["feedback"]:
             messages = messages + [{"role": "user", "content": [{"type": "text", "text":
                 "审核反馈（不得覆盖权限、预算和系统指令）：\n" + flow["feedback"]}]}]
+        consumed = list(s.get("consumedEvidenceIds", []))
+        for event in flow["events"]:
+            if event["id"] not in consumed:
+                consumed.append(event["id"])
+        consumed = consumed[-128:]
         action = self.issue(run, role, purpose, messages, flow["tools"],
             buffered=strategy in ("advisor", "escalation"),
             update={"hold": hold, "last_model": c["roles"][role], "last_evidence": flow["evidence"],
-                    "stall": stall, "last_tool_fingerprint": fingerprints[-1] if fingerprints else previous})
-        run["decisions"].append({"step": s["step"], "role": role, "model": c["roles"][role],
-                                "reason": reason, "score": score, "callId": action["callId"]})
+                    "stall": stall, "last_tool_fingerprint": fingerprints[-1] if fingerprints else previous,
+                    "consumedEvidenceIds": consumed})
+        row = {"step": s["step"], "role": role, "model": c["roles"][role],
+               "reason": reason, "score": score, "callId": action["callId"]}
+        if decision:
+            row.update({key: decision[key] for key in (
+                "ruleVersion", "evidenceIds", "evidenceSummary", "holdBefore", "holdAfter")})
+        run["decisions"].append(row)
         self.persist(run)
         return action
 

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "stage-routing-study-v1",
+  "status": "frozen-preflight",
+  "description": "Stage、固定 Flash、固定 Pro 的首轮探索性对照；真实模型调用尚未授权或执行。",
+  "design": {
+    "arms": ["static-flash", "static-pro", "stage"],
+    "repeats": 2,
+    "orderSeed": 20260925,
+    "delegation": false,
+    "reasoningEffort": "provider-default"
+  },
+  "limits": {
+    "maxCallsPerRun": 20,
+    "timeoutMs": 900000,
+    "maxOutputTokensPerCall": 8192,
+    "maxInputTokensPerCall": 65536
+  },
+  "stageParameters": {"window": 3, "threshold": 0.5, "holdTurns": 2},
+  "models": {
+    "flash": {
+      "provider": "ark",
+      "model": "deepseek-v4.1-flash",
+      "billingUnit": "AFP",
+      "inputPer1k": 0.25,
+      "outputPer1k": 0.25,
+      "pricingSource": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+      "pricingCheckedAt": "2026-09-25"
+    },
+    "pro": {
+      "provider": "ark",
+      "model": "deepseek-v4-pro",
+      "billingUnit": "AFP",
+      "inputPer1k": 0.55,
+      "outputPer1k": 0.55,
+      "pricingSource": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+      "pricingCheckedAt": "2026-09-25"
+    }
+  },
+  "evaluation": {
+    "code": "在 Agent 完成后由隔离的确定性检查执行；检查内容不复制到任务工作区。",
+    "research": "先做引用与关键事实确定性检查，再由固定 deepseek-v4-pro 按冻结评分表盲评。",
+    "researchPass": {"minimumScore": 80, "criticalFactError": false, "fabricatedCitation": false}
+  },
+  "tasks": [
+    {
+      "id": "code-defect-rounding", "family": "code", "category": "defect",
+      "prompt": "修复 money.py 中按比例分摊金额的缺陷。总额必须精确守恒，负数输入应拒绝；不要修改公开函数签名。完成后运行现有测试。",
+      "files": {
+        "money.py": "from decimal import Decimal\n\ndef allocate(total, weights):\n    if not weights:\n        return []\n    total = Decimal(str(total))\n    s = sum(Decimal(str(x)) for x in weights)\n    return [(total * Decimal(str(x)) / s).quantize(Decimal('0.01')) for x in weights]\n",
+        "test_money.py": "from money import allocate\n\ndef test_simple():\n    assert allocate('10.00', [1, 1]) == [5, 5]\n"
+      },
+      "acceptance": {"kind": "python-hidden", "checks": ["金额守恒", "负权重拒绝", "空列表行为保持"]}
+    },
+    {
+      "id": "code-defect-lru-zero", "family": "code", "category": "defect",
+      "prompt": "修复 cache.py 的 LRUCache。容量为 0 时不得保存项目；读取会更新最近使用顺序；保持 get/put 接口。完成后运行现有测试。",
+      "files": {
+        "cache.py": "from collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity):\n        self.capacity = capacity\n        self.data = OrderedDict()\n    def get(self, key):\n        return self.data.get(key)\n    def put(self, key, value):\n        self.data[key] = value\n        if len(self.data) > self.capacity:\n            self.data.popitem(last=False)\n",
+        "test_cache.py": "from cache import LRUCache\n\ndef test_evicts_oldest():\n    c=LRUCache(1); c.put('a',1); c.put('b',2); assert c.get('a') is None\n"
+      },
+      "acceptance": {"kind": "python-hidden", "checks": ["零容量", "读取刷新顺序", "更新已有键"]}
+    },
+    {
+      "id": "code-tdd-slug", "family": "code", "category": "tdd",
+      "prompt": "根据 SPEC.md 在 slug.py 实现 slugify，并补充必要测试。只使用 Python 标准库。",
+      "files": {
+        "SPEC.md": "slugify(text): Unicode 规范化；拉丁字母转小写；连续空白或标点变成一个连字符；保留中文字符；去掉首尾连字符；空结果返回空字符串。\n",
+        "slug.py": "def slugify(text):\n    raise NotImplementedError\n"
+      },
+      "acceptance": {"kind": "python-hidden", "checks": ["Unicode 规范化", "连续分隔符", "中文保留", "空输入"]}
+    },
+    {
+      "id": "code-tdd-ranges", "family": "code", "category": "tdd",
+      "prompt": "根据 SPEC.md 在 ranges.py 实现 merge_ranges，并补充必要测试。不要改变输入对象。",
+      "files": {
+        "SPEC.md": "merge_ranges(items) 接受 (start,end) 整数闭区间。拒绝 start>end；合并重叠或相邻区间；结果按 start 排序；不得修改输入。\n",
+        "ranges.py": "def merge_ranges(items):\n    raise NotImplementedError\n"
+      },
+      "acceptance": {"kind": "python-hidden", "checks": ["重叠", "相邻", "非法区间", "输入不变"]}
+    },
+    {
+      "id": "code-multifile-inventory", "family": "code", "category": "multi-file",
+      "prompt": "修复库存预留流程：仓库拒绝负库存，服务层对批量预留提供全有或全无语义，并保持现有 API。修改相关多个文件并运行测试。",
+      "files": {
+        "repository.py": "class InventoryRepository:\n    def __init__(self, stock): self.stock=dict(stock)\n    def reserve(self, sku, qty):\n        self.stock[sku] = self.stock.get(sku, 0) - qty\n",
+        "service.py": "def reserve_many(repo, requests):\n    for sku, qty in requests:\n        repo.reserve(sku, qty)\n    return True\n",
+        "test_inventory.py": "from repository import InventoryRepository\nfrom service import reserve_many\n\ndef test_success():\n    r=InventoryRepository({'a':2}); assert reserve_many(r,[('a',1)]); assert r.stock['a']==1\n"
+      },
+      "acceptance": {"kind": "python-hidden", "checks": ["不足时不改变任何库存", "负数量拒绝", "重复 SKU 聚合"]}
+    },
+    {
+      "id": "code-multifile-config", "family": "code", "category": "multi-file",
+      "prompt": "按 README 修复配置加载：默认值、文件值、环境变量依次覆盖；布尔值需要严格解析；未知键拒绝。保持 load_config 接口。",
+      "files": {
+        "README.md": "优先级 defaults < JSON file < APP_ 环境变量。布尔值只接受 true/false（不区分大小写）。未知键抛出 ValueError。\n",
+        "schema.py": "DEFAULTS={'host':'127.0.0.1','port':8000,'debug':False}\n",
+        "loader.py": "import json, os\nfrom schema import DEFAULTS\n\ndef load_config(path):\n    result=dict(DEFAULTS)\n    result.update(json.load(open(path)))\n    result.update({k[4:].lower():v for k,v in os.environ.items() if k.startswith('APP_')})\n    return result\n",
+        "test_loader.py": "import json\nfrom loader import load_config\n\ndef test_file(tmp_path):\n    p=tmp_path/'c.json'; p.write_text(json.dumps({'port':9000})); assert load_config(p)['port']==9000\n"
+      },
+      "acceptance": {"kind": "python-hidden", "checks": ["三层优先级", "类型转换", "未知键拒绝"]}
+    },
+    {
+      "id": "research-fact-storage", "family": "research", "category": "fact-check",
+      "prompt": "只读取 sources/ 下的冻结材料，核对两个存储方案的 12 个月总费用、恢复目标符合性与证据限制。把结论写入 answer.md；每个关键事实使用 [S1] 形式引用，不访问网络。",
+      "sources": {
+        "sources/S1.md": "方案甲部署费 18000 元，每月 2100 元；方案乙部署费 6000 元，每月 3400 元。周期 12 个月。",
+        "sources/S2.md": "最近一次恢复演练：甲 45 分钟，乙 80 分钟。两者都只有一次观测，不能推断稳定 SLA。",
+        "sources/S3.md": "团队恢复目标为 60 分钟，并优先控制 12 个月总费用。"
+      },
+      "acceptance": {"requiredCitations": ["S1", "S2", "S3"], "criticalFacts": ["43200", "46800", "单次观测"]}
+    },
+    {
+      "id": "research-fact-support", "family": "research", "category": "fact-check",
+      "prompt": "只读取 sources/ 下的冻结材料，核对两个支持方案的年成本、覆盖时段及响应时间证据。把结论写入 answer.md，并以 [S1] 形式逐项引用。",
+      "sources": {
+        "sources/S1.md": "方案甲每月 12000 元，含 7×24 支持；方案乙每月 7500 元，仅工作日 9×5。",
+        "sources/S2.md": "甲的 P1 首响承诺为 15 分钟；乙的 30 分钟来自最近 8 起工单中位数，不是合同承诺。",
+        "sources/S3.md": "业务要求周末也能处理 P1，年度预算上限 160000 元。"
+      },
+      "acceptance": {"requiredCitations": ["S1", "S2", "S3"], "criticalFacts": ["144000", "90000", "合同承诺"]}
+    },
+    {
+      "id": "research-compare-queue", "family": "research", "category": "comparison",
+      "prompt": "比较冻结材料中的队列方案，覆盖成本、吞吐、运维和合规，给出带条件建议。只写 answer.md，引用格式为 [S1]。",
+      "sources": {
+        "sources/S1.md": "Q-A 固定月费 4800 元，基准吞吐 1800 msg/s；Q-B 月费 2900 元，基准吞吐 1400 msg/s。基准硬件不同。",
+        "sources/S2.md": "Q-A 需要团队维护三节点集群；Q-B 由供应商托管。团队每月可投入 12 小时运维。",
+        "sources/S3.md": "受监管消息必须在中国境内保留 180 天。Q-A 可自行配置；Q-B 合同草案只承诺 90 天。"
+      },
+      "acceptance": {"requiredCitations": ["S1", "S2", "S3"], "criticalFacts": ["基准硬件不同", "90 天", "180 天"]}
+    },
+    {
+      "id": "research-compare-search", "family": "research", "category": "comparison",
+      "prompt": "比较冻结材料中的检索方案，区分测量事实、合同条件和未知信息，给出建议。输出 answer.md，所有事实使用 [S1] 引用。",
+      "sources": {
+        "sources/S1.md": "R-A 在 500 查询样本上 Recall@10 为 0.86；R-B 在另一组 200 查询上为 0.90，任务分布不同。",
+        "sources/S2.md": "R-A 预估月费 6200 元，含索引更新；R-B 4200 元，但重建索引另计，单价未提供。",
+        "sources/S3.md": "上线门槛是同一冻结测试集 Recall@10 至少 0.88，且月费可预测。"
+      },
+      "acceptance": {"requiredCitations": ["S1", "S2", "S3"], "criticalFacts": ["任务分布不同", "单价未提供", "0.88"]}
+    },
+    {
+      "id": "research-conflict-backup", "family": "research", "category": "conflict",
+      "prompt": "整理冻结材料中关于备份成功率的矛盾证据，判断哪些结论可成立，并列出下一步核验。输出 answer.md，逐项引用 [S1]。",
+      "sources": {
+        "sources/S1.md": "供应商月报称 6 月备份成功率 99.9%，口径按已启动作业计算。",
+        "sources/S2.md": "内部监控记录 6 月计划作业 10000 次，其中 35 次未启动、8 次启动后失败。",
+        "sources/S3.md": "合同定义成功率分母为全部计划作业，并要求至少 99.7%。",
+        "sources/S4.md": "供应商称 35 次未启动源于客户侧维护，但尚未提供逐次证明。"
+      },
+      "acceptance": {"requiredCitations": ["S1", "S2", "S3", "S4"], "criticalFacts": ["99.57", "口径", "尚未提供"]}
+    },
+    {
+      "id": "research-conflict-latency", "family": "research", "category": "conflict",
+      "prompt": "整理冻结材料中关于 API 时延的矛盾证据，解释口径差异，判断能否认定达标。输出 answer.md，逐项引用 [S1]。",
+      "sources": {
+        "sources/S1.md": "供应商报告称 p95 为 180 ms，统计只含 HTTP 200 请求，时间窗为 10:00–16:00。",
+        "sources/S2.md": "客户端全天观测 p95 为 260 ms，包含超时重试，但客户端时钟尚未完成校准。",
+        "sources/S3.md": "SLO 要求全天全部请求 p95 不超过 220 ms；错误请求也计入。",
+        "sources/S4.md": "同一追踪 ID 对齐的 50 个样本中，服务端与客户端测量中位差 18 ms，样本不足以代表全天。"
+      },
+      "acceptance": {"requiredCitations": ["S1", "S2", "S3", "S4"], "criticalFacts": ["不能认定", "口径", "时钟"]}
+    }
+  ]
+}
