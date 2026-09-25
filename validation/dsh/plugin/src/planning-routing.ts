@@ -6,6 +6,7 @@ import type { AgentContext, Configuration, ModelOptions } from './agent-provider
 import type { LlmOptions, ProcessHandle, TokenUsage } from './contracts.js'
 
 import { EMPTY_PLANNING, PLANNING_PROTOCOL } from './planning-config.js'
+import { ToolEvidenceCapture } from './tool-evidence.js'
 type Json=Record<string,any>
 export interface PlanningRpc {request(value:Json):Promise<Json>;dispose():void}
 export class PlanningWorker implements PlanningRpc {
@@ -104,7 +105,8 @@ export class PlanningController {
   readonly rpc:PlanningRpc
   private tasks=new Map<string,string>()
   private settings:AgentContext['settings']
-  constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc){
+  constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc,
+    private evidence=new ToolEvidenceCapture()){
     this.rpc=rpc??new PlanningWorker(ctx,source)
     this.settings=ctx.settings
     ctx.inject?.(['settings'],sctx=>{this.settings=sctx.settings})
@@ -203,10 +205,12 @@ export class PlanningController {
       }
       const messages=planningMessages(options.messages)
       if(options.system)messages.unshift({role:'system',content:options.system})
+      const nativeEvents=sessionEvents(agent)
+        .filter(e=>(e.type==='tool/result'||e.type==='tool/call'||e.type==='compaction/end')&&e.data.turn===turn)
+        .map(e=>({type:e.type,data:e.data}))
       let action=await this.rpc.request({op:'step',runId,messages,tools:options.tools??[],
         requestId:randomUUID(),maxTokens:options.maxTokens,purpose:options.purpose,
-        events:sessionEvents(agent).filter(e=>(e.type==='tool/result'||e.type==='tool/call'||e.type==='compaction/end')&&e.data.turn===turn)
-          .map(e=>({type:e.type,data:e.data}))})
+        events:this.evidence.enrich(session,nativeEvents)})
       const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean}>()
       const total:TokenUsage={}
       while(action.action==='call'){

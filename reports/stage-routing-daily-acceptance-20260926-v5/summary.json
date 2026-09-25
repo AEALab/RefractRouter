@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "stage-daily-acceptance-summary-v1",
+  "acceptanceSha256": "00822ff8ef14d3dfd45c7b76db068fb4dae1df13d0328fea98506948110b382c",
+  "profile": "headless",
+  "tasks": [
+    {
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "elapsedMs": 36309,
+      "dshExitCode": 0,
+      "modelCalls": 6,
+      "capableCalls": 0,
+      "modelSwitches": 0,
+      "recovered": false,
+      "firstByteMs": 15292.582875,
+      "productionAfp": 4.56855,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash"
+      ],
+      "evaluation": {
+        "success": true,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "checks": {
+        "dshCompleted": true,
+        "taskPassed": true,
+        "withinCallLimit": true,
+        "withinAfpLimit": true
+      },
+      "success": true
+    }
+  ],
+  "productionAfp": 4.56855,
+  "withinTotalAfpLimit": true,
+  "automaticRetryCount": 0,
+  "success": true
+}

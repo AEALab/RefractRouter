@@ -1,0 +1,695 @@
+{
+  "schemaVersion": "stage-routing-preflight-v1",
+  "protocolSha256": "3f4ac1125dc1a676353abc4d18de8ccd0caf9f91d244cc1f4e46241993a1a870",
+  "taskSha256": {
+    "code-defect-rounding": "03ec6f452a6b010d9af2ba97082b77364a74fd970bbea1d6aeb96ba3141984c4",
+    "code-defect-lru-zero": "c12c938ff7a569444104e22b8ac7034e15336869e5c00db2c74a3c7fc0c52949",
+    "code-tdd-slug": "c2a86cc8ef830b6fdc3271a6379497a8ca5a2a617ed106fbc4f1d9ad1111c70b",
+    "code-tdd-ranges": "1b33da9b13adee1c884dc15e9dedb31ae065a3d4a4fa5497377d3b699cc31794",
+    "code-multifile-inventory": "9e7241a654813e3e9f59210734800d8f27dfb653d7be68eeb75cd6896c043ed3",
+    "code-multifile-config": "e2584d15432df7bf53f73d9781dee24a77773050adae693c1f19c2837fba2e36",
+    "research-fact-storage": "28e21c11cad92085cc3bd06cf8df6a596ce283f5fe3f23cef646dd8524683091",
+    "research-fact-support": "a7375e8614581c8122d9772bb84b4614a8a8c6bce175b46b564f77ca19084f1d",
+    "research-compare-queue": "4e91b5d871efbbc22b4c126789e3c2a29c365a5da8933a2eb954338f3dd5328c",
+    "research-compare-search": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69",
+    "research-conflict-backup": "8521e4a66e3ab32354d370bc9b5916d85bbebae0a51ab8443557bdf2375458b6",
+    "research-conflict-latency": "5bab6e8712f4c7b84d6e79a639e1c339827e8093d93a483d8d23c7c9ab4e3976"
+  },
+  "runs": 72,
+  "productionRuns": 72,
+  "evaluationCalls": 36,
+  "maxExecutionCalls": 1440,
+  "maxCallsIncludingEvaluation": 1476,
+  "afpUpperBound": {
+    "production": 47244.9024,
+    "evaluation": 1459.8144,
+    "total": 48704.7168
+  },
+  "callUpperBoundByModel": {
+    "deepseek-v4.1-flash": 504,
+    "deepseek-v4-pro": 972
+  },
+  "limits": {
+    "maxCallsPerRun": 20,
+    "timeoutMs": 900000,
+    "maxOutputTokensPerCall": 8192,
+    "maxInputTokensPerCall": 65536
+  },
+  "scheduleSha256": "8c32e5a1d155f9e27fb9fe2965f6389f91903ebef5d453dfff51af5f27622a0c",
+  "schedule": [
+    {
+      "runId": "research-conflict-latency--stage--r2",
+      "taskId": "research-conflict-latency",
+      "family": "research",
+      "category": "conflict",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 1
+    },
+    {
+      "runId": "research-fact-storage--stage--r2",
+      "taskId": "research-fact-storage",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 2
+    },
+    {
+      "runId": "code-defect-rounding--static-pro--r2",
+      "taskId": "code-defect-rounding",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 3
+    },
+    {
+      "runId": "research-conflict-backup--static-pro--r2",
+      "taskId": "research-conflict-backup",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 4
+    },
+    {
+      "runId": "research-compare-search--static-pro--r1",
+      "taskId": "research-compare-search",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 5
+    },
+    {
+      "runId": "code-tdd-slug--stage--r2",
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "category": "tdd",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 6
+    },
+    {
+      "runId": "code-defect-lru-zero--static-flash--r1",
+      "taskId": "code-defect-lru-zero",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 7
+    },
+    {
+      "runId": "research-conflict-latency--static-pro--r2",
+      "taskId": "research-conflict-latency",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 8
+    },
+    {
+      "runId": "code-tdd-ranges--stage--r2",
+      "taskId": "code-tdd-ranges",
+      "family": "code",
+      "category": "tdd",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 9
+    },
+    {
+      "runId": "research-fact-support--static-pro--r2",
+      "taskId": "research-fact-support",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 10
+    },
+    {
+      "runId": "research-compare-search--stage--r2",
+      "taskId": "research-compare-search",
+      "family": "research",
+      "category": "comparison",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 11
+    },
+    {
+      "runId": "research-compare-queue--static-pro--r2",
+      "taskId": "research-compare-queue",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 12
+    },
+    {
+      "runId": "research-compare-queue--static-flash--r2",
+      "taskId": "research-compare-queue",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 13
+    },
+    {
+      "runId": "code-tdd-ranges--stage--r1",
+      "taskId": "code-tdd-ranges",
+      "family": "code",
+      "category": "tdd",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 14
+    },
+    {
+      "runId": "code-defect-lru-zero--static-pro--r1",
+      "taskId": "code-defect-lru-zero",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 15
+    },
+    {
+      "runId": "research-fact-support--stage--r1",
+      "taskId": "research-fact-support",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 16
+    },
+    {
+      "runId": "code-tdd-ranges--static-flash--r2",
+      "taskId": "code-tdd-ranges",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 17
+    },
+    {
+      "runId": "code-multifile-inventory--static-flash--r1",
+      "taskId": "code-multifile-inventory",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 18
+    },
+    {
+      "runId": "code-defect-lru-zero--stage--r2",
+      "taskId": "code-defect-lru-zero",
+      "family": "code",
+      "category": "defect",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 19
+    },
+    {
+      "runId": "code-tdd-slug--static-flash--r2",
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 20
+    },
+    {
+      "runId": "code-multifile-config--stage--r1",
+      "taskId": "code-multifile-config",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 21
+    },
+    {
+      "runId": "research-compare-search--static-flash--r1",
+      "taskId": "research-compare-search",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 22
+    },
+    {
+      "runId": "code-defect-rounding--stage--r2",
+      "taskId": "code-defect-rounding",
+      "family": "code",
+      "category": "defect",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 23
+    },
+    {
+      "runId": "research-compare-queue--stage--r1",
+      "taskId": "research-compare-queue",
+      "family": "research",
+      "category": "comparison",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 24
+    },
+    {
+      "runId": "code-defect-rounding--stage--r1",
+      "taskId": "code-defect-rounding",
+      "family": "code",
+      "category": "defect",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 25
+    },
+    {
+      "runId": "code-multifile-config--stage--r2",
+      "taskId": "code-multifile-config",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 26
+    },
+    {
+      "runId": "code-defect-lru-zero--static-pro--r2",
+      "taskId": "code-defect-lru-zero",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 27
+    },
+    {
+      "runId": "code-multifile-inventory--static-flash--r2",
+      "taskId": "code-multifile-inventory",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 28
+    },
+    {
+      "runId": "research-conflict-latency--static-flash--r1",
+      "taskId": "research-conflict-latency",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 29
+    },
+    {
+      "runId": "research-fact-support--stage--r2",
+      "taskId": "research-fact-support",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 30
+    },
+    {
+      "runId": "code-defect-rounding--static-pro--r1",
+      "taskId": "code-defect-rounding",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 31
+    },
+    {
+      "runId": "code-defect-rounding--static-flash--r2",
+      "taskId": "code-defect-rounding",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 32
+    },
+    {
+      "runId": "code-multifile-inventory--stage--r1",
+      "taskId": "code-multifile-inventory",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 33
+    },
+    {
+      "runId": "code-multifile-config--static-flash--r2",
+      "taskId": "code-multifile-config",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 34
+    },
+    {
+      "runId": "code-multifile-inventory--static-pro--r2",
+      "taskId": "code-multifile-inventory",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 35
+    },
+    {
+      "runId": "research-fact-storage--stage--r1",
+      "taskId": "research-fact-storage",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 36
+    },
+    {
+      "runId": "research-compare-queue--static-flash--r1",
+      "taskId": "research-compare-queue",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 37
+    },
+    {
+      "runId": "research-conflict-backup--stage--r1",
+      "taskId": "research-conflict-backup",
+      "family": "research",
+      "category": "conflict",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 38
+    },
+    {
+      "runId": "code-tdd-ranges--static-pro--r1",
+      "taskId": "code-tdd-ranges",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 39
+    },
+    {
+      "runId": "code-multifile-inventory--static-pro--r1",
+      "taskId": "code-multifile-inventory",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 40
+    },
+    {
+      "runId": "research-fact-storage--static-flash--r1",
+      "taskId": "research-fact-storage",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 41
+    },
+    {
+      "runId": "research-conflict-backup--static-flash--r1",
+      "taskId": "research-conflict-backup",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 42
+    },
+    {
+      "runId": "code-multifile-config--static-pro--r1",
+      "taskId": "code-multifile-config",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 43
+    },
+    {
+      "runId": "code-tdd-slug--static-flash--r1",
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 44
+    },
+    {
+      "runId": "code-defect-lru-zero--static-flash--r2",
+      "taskId": "code-defect-lru-zero",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 45
+    },
+    {
+      "runId": "research-conflict-latency--static-flash--r2",
+      "taskId": "research-conflict-latency",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 46
+    },
+    {
+      "runId": "research-fact-storage--static-flash--r2",
+      "taskId": "research-fact-storage",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 47
+    },
+    {
+      "runId": "code-multifile-inventory--stage--r2",
+      "taskId": "code-multifile-inventory",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 48
+    },
+    {
+      "runId": "code-tdd-slug--static-pro--r1",
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 49
+    },
+    {
+      "runId": "research-fact-support--static-pro--r1",
+      "taskId": "research-fact-support",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 50
+    },
+    {
+      "runId": "research-fact-support--static-flash--r2",
+      "taskId": "research-fact-support",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 51
+    },
+    {
+      "runId": "research-fact-storage--static-pro--r1",
+      "taskId": "research-fact-storage",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 52
+    },
+    {
+      "runId": "research-fact-storage--static-pro--r2",
+      "taskId": "research-fact-storage",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 53
+    },
+    {
+      "runId": "research-conflict-latency--static-pro--r1",
+      "taskId": "research-conflict-latency",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 54
+    },
+    {
+      "runId": "code-tdd-ranges--static-pro--r2",
+      "taskId": "code-tdd-ranges",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 55
+    },
+    {
+      "runId": "research-compare-search--stage--r1",
+      "taskId": "research-compare-search",
+      "family": "research",
+      "category": "comparison",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 56
+    },
+    {
+      "runId": "research-compare-queue--stage--r2",
+      "taskId": "research-compare-queue",
+      "family": "research",
+      "category": "comparison",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 57
+    },
+    {
+      "runId": "code-tdd-ranges--static-flash--r1",
+      "taskId": "code-tdd-ranges",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 58
+    },
+    {
+      "runId": "code-defect-rounding--static-flash--r1",
+      "taskId": "code-defect-rounding",
+      "family": "code",
+      "category": "defect",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 59
+    },
+    {
+      "runId": "research-compare-search--static-pro--r2",
+      "taskId": "research-compare-search",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 60
+    },
+    {
+      "runId": "research-conflict-latency--stage--r1",
+      "taskId": "research-conflict-latency",
+      "family": "research",
+      "category": "conflict",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 61
+    },
+    {
+      "runId": "code-multifile-config--static-pro--r2",
+      "taskId": "code-multifile-config",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 62
+    },
+    {
+      "runId": "research-conflict-backup--static-flash--r2",
+      "taskId": "research-conflict-backup",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 63
+    },
+    {
+      "runId": "code-defect-lru-zero--stage--r1",
+      "taskId": "code-defect-lru-zero",
+      "family": "code",
+      "category": "defect",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 64
+    },
+    {
+      "runId": "research-compare-queue--static-pro--r1",
+      "taskId": "research-compare-queue",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 65
+    },
+    {
+      "runId": "research-conflict-backup--static-pro--r1",
+      "taskId": "research-conflict-backup",
+      "family": "research",
+      "category": "conflict",
+      "arm": "static-pro",
+      "repeat": 1,
+      "order": 66
+    },
+    {
+      "runId": "code-multifile-config--static-flash--r1",
+      "taskId": "code-multifile-config",
+      "family": "code",
+      "category": "multi-file",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 67
+    },
+    {
+      "runId": "research-compare-search--static-flash--r2",
+      "taskId": "research-compare-search",
+      "family": "research",
+      "category": "comparison",
+      "arm": "static-flash",
+      "repeat": 2,
+      "order": 68
+    },
+    {
+      "runId": "code-tdd-slug--static-pro--r2",
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "category": "tdd",
+      "arm": "static-pro",
+      "repeat": 2,
+      "order": 69
+    },
+    {
+      "runId": "research-conflict-backup--stage--r2",
+      "taskId": "research-conflict-backup",
+      "family": "research",
+      "category": "conflict",
+      "arm": "stage",
+      "repeat": 2,
+      "order": 70
+    },
+    {
+      "runId": "code-tdd-slug--stage--r1",
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "category": "tdd",
+      "arm": "stage",
+      "repeat": 1,
+      "order": 71
+    },
+    {
+      "runId": "research-fact-support--static-flash--r1",
+      "taskId": "research-fact-support",
+      "family": "research",
+      "category": "fact-check",
+      "arm": "static-flash",
+      "repeat": 1,
+      "order": 72
+    }
+  ],
+  "notes": [
+    "上界按每次调用同时达到 65536 输入与 8192 输出 token 计算；实际结算通常更低。",
+    "Stage 上界按首轮 Flash、其余 19 轮全部 Pro 计算。",
+    "研究任务每次另计一次固定 Pro 盲评；功能验收调用不混入本实验。",
+    "预检不发起模型调用；真实运行必须提供匹配的协议指纹和 AFP 双预算。"
+  ]
+}

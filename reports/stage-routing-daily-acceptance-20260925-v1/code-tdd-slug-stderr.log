@@ -1,0 +1,119 @@
+dsh: reasoning:
+Let me check the .refractagent settings and run json for context (maybe irrelevant). Let me focus on the task: implement slugify per spec + tests, stdlib only.
+
+Spec: 
+- Unicode normalization (NFKC or NFKD?) — "Unicode 规范化". Likely NFKC. But careful: NFKC on Chinese keeps them. NFKC converts full-width Latin to ASCII. That seems desirable.
+- Latin letters lowered. Preserve Chinese chars.
+- Consecutive whitespace or punctuation become a single hyphen.
+- Strip leading/trailing hyphens.
+- Empty result → "".
+
+Design:
+- normalize NFKC
+- lowercase (casefold? spec says lowercase Latin letters; str.lower is fine; casefold could change ß→ss which is arguably fine but let's use lower to keep it simple... Actually NFKC then lower). Hmm, for accented Latin like "Café" → "café". Spec doesn't say strip accents. Keep them.
+- Keep alphanumeric (Latin letters, digits) + Chinese chars. What about other Unicode letters e.g. Cyrillic, Japanese kana? Spec says preserve Chinese chars. Reasonable implementation: keep any word character that is a letter or digit, but replace punctuation/whitespace with hyphen. Using str.isalnum() covers Chinese and other scripts. That's simplest and gives sensible behavior: preserve Chinese, keep Latin lowercased.
+
+But punctuation detection: anything not alnum → hyphen. Consecutive collapsed. That satisfies "连续空白或标点变成一个连字符".
+
+Hyphens in input are punctuation → become hyphen separator. Underscore is punctuation (not alnum) → hyphen. Good.
+
+Edge: combining marks after NFKC? NFKC composes. Use unicodedata category maybe. Simpler: iterate chars, if char.isalnum() keep, else separator.
+
+But careful: some characters like superscripts NFKC→digits. Fine.
+
+Chinese punctuation like ，。 are not alnum → hyphen. Reasonable.
+
+Also should we treat full-width space? NFKC converts U+3000 to space. Fine.
+
+Tests: create test_slug.py using unittest or pytest? Task says "补充必要测试" (add necessary tests). Repo uses pytest, but stdlib only constraint applies to implementation; "只使用 Python 标准库" likely means implementation. Safer: use unittest (stdlib) so tests run without pytest. But repo convention says tests in tests/ with pytest. Since only stdlib allowed, unittest is safest and pytest can still collect unittest TestCase classes. Let me put tests in test_slug.py at workspace root alongside slug.py? The workspace is a scratch workspace (not the real repo). Only slug.py exists. I'll create test_slug.py in same dir. Maybe also tests/ dir? Keep simple: test_slug.py next to slug.py, importable.
+
+Let me check .refractagent/settings.yaml quickly for any constraints.
+
+dsh: reasoning:
+Now implement. Let me write slug.py.
+
+Implementation:
+
+```python
+"""把任意文本转换为 URL 友好的 slug。
+
+规范见 SPEC.md：
+- 先做 Unicode 规范化；
+- 拉丁字母转小写；
+- 连续空白或标点折叠为一个连字符；
+- 保留中文字符；
+- 去掉首尾连字符；
+- 空结果返回空字符串。
+"""
+
+from __future__ import annotations
+
+import unicodedata
+
+_SEPARATOR = "-"
+
+
+def slugify(text):
+    if text is None:
+        raise TypeError(...)
+```
+
+Hmm, spec doesn't mention None. Keep it simple: accept str; raise TypeError for non-str explicitly? Simpler to just use str operations and let it fail naturally. I'll add a type check raising TypeError with clear message — but tests must match. Fine.
+
+Normalization: NFKC is the common choice for slug (compatibility composition). But note NFKC maps some characters like "①"→"1", "½"→"1⁄2" (with fraction slash U+2044, which is punctuation → hyphen, giving "1-2"). Acceptable.
+
+Actually careful: NFKC on "㍿" etc. Fine.
+
+Lowercase: use .lower().
+
+Then build chars:
+```
+out = []
+pending_sep = False
+for ch in normalized:
+    if ch.isalnum():
+        if pending_sep and out:
+            out.append(_SEPARATOR)
+        pending_sep = False
+        out.append(ch.lower())
+    else:
+        pending_sep = True
+```
+This collapses runs and strips leading (out empty → no hyphen) automatically; trailing pending_sep ignored. 
+
+But isalnum() for combining marks returns False → becomes separator. E.g. after NFKC, "é" composes to single char, so fine. Some scripts' combining marks (Devanagari) would break, but spec only cares about Latin + Chinese. Could use unicodedata.category to keep Mn marks attached. Let's keep it a bit more robust: treat category starting with "M" (combining mark) as part of previous word if out has content and no pending separator. Hmm, extra complexity, might introduce weirdness. Spec simplicity wins; but Chinese preserved via isalnum.
+
+Wait: characters like "·" (middle dot) are Po → separator. fine.
+
+Another consideration: underscores. "hello_world" → "hello-world". Usually expected. fine.
+
+Also digits kept.
+
+Now `isalnum()` returns True for e.g. Roman numeral "Ⅻ"? NFKC converts Ⅻ → XII. fine.
+
+Do we want NFKC to convert full-width "Ｈｅｌｌｏ" → "Hello" → lower "hello". Good.
+
+Now tests. Write test_slug.py using unittest with pytest-compatible style. Cases:
+1. 基本英文与大小写: "Hello World" → "hello-world"
+2. 空白折叠与去首尾: "  Hello   World  " → "hello-world"
+3. 标点折叠: "Hello, World!!!" → "hello-world"
+4. 中英文混合保留中文: "Hello 世界" → "hello-世界"
+5. 中文标点: "你好，世界" → "你好-世界"
+6. 中文字符全部保留: "你好世界" → "你好世界"
+7. Unicode 规范化：全角 "Ｈｅｌｌｏ　Ｗｏｒｌｄ" → "hello-world"; 带重音 "Café" → "café"; decomposed "Cafe\u0301" → "café"
+8. 空字符串 "" → ""; 纯标点 "!!!" → ""; 纯空白 "   " → ""
+9. 连续标点与空白混合 "a -_- b" → "a-b"
+10. 数字保留 "Python 3.12" → "python-3-12"
+11. 首尾连字符去掉 "--hello--" → "hello"
+12. 下划线/斜杠 "a/b_c" → "a-b-c"
+13. None/non-str TypeError? optional.
+
+Also test idempotence maybe.
+
+Let me write the files and run tests with pytest and unittest.
+
+Regarding "只使用 Python 标准库" — tests use unittest, stdlib. Good.
+
+Let me create test file named test_slug.py.
+
+dsh: UNKNOWN: 无法派发 efficient 模型 ark/deepseek-v4.1-flash：AFP 预算或最大调用数不足

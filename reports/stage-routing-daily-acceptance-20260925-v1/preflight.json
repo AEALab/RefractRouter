@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "stage-daily-acceptance-v1",
+  "strategy": "stage",
+  "stageRuleVersion": "stage-v3",
+  "profile": "headless",
+  "tasks": [
+    {
+      "id": "code-tdd-slug",
+      "family": "code",
+      "sha256": "c2a86cc8ef830b6fdc3271a6379497a8ca5a2a617ed106fbc4f1d9ad1111c70b"
+    },
+    {
+      "id": "research-compare-search",
+      "family": "research",
+      "sha256": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69"
+    }
+  ],
+  "models": {
+    "efficient": "deepseek-v4.1-flash",
+    "capable": "glm-5.3-flash"
+  },
+  "limits": {
+    "maxCallsPerTask": 6,
+    "timeoutMsPerTask": 300000,
+    "maxInputTokensPerCall": 65536,
+    "maxOutputTokensPerCall": 4096,
+    "maxProductionAfpPerTask": 34.816,
+    "maxProductionAfpTotal": 69.632
+  },
+  "evaluationAfp": 0,
+  "httpRetries": 0,
+  "delegation": false,
+  "patchSha256": "a1e486208bff955856a7c1f79d235493869b0f577e6a9a7d213d344b641ea420",
+  "notes": [
+    "代码任务由确定性隐藏检查验收，研究任务只做确定性引用与关键事实检查。",
+    "本批次验证日常可用性，不比较 Static，也不用于证明 Stage 的收益。",
+    "AFP 上限按首轮高效模型、其余调用全部强模型且每次达到冻结 token 上限计算。"
+  ],
+  "acceptanceSha256": "4d991a7c5d242d9c33e382e31c96553dd2d1e732050a0799c642fed399083a64"
+}

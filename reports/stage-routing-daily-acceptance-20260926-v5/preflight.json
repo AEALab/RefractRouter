@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "stage-daily-acceptance-v1",
+  "strategy": "stage",
+  "stageRuleVersion": "stage-v3",
+  "profile": "headless",
+  "tasks": [
+    {
+      "id": "code-tdd-slug",
+      "family": "code",
+      "sha256": "a8e60e5ed77a3d09d586a6dac31b20ecfb39755ad252522e516c922a0d7aa5dd"
+    }
+  ],
+  "models": {
+    "efficient": {
+      "id": "deepseek-v4-flash",
+      "reasoningEffort": "low"
+    },
+    "capable": {
+      "id": "deepseek-v4.1-flash",
+      "reasoningEffort": "provider-default"
+    }
+  },
+  "limits": {
+    "maxCallsPerTask": 8,
+    "timeoutMsPerTask": 300000,
+    "maxInputTokensPerCall": 32768,
+    "maxOutputTokensPerCall": 4096,
+    "maxProductionAfpPerTask": 66.3552,
+    "maxProductionAfpTotal": 66.3552
+  },
+  "evaluationAfp": 0,
+  "httpRetries": 0,
+  "delegation": false,
+  "patchSha256": "672863df448c21f0912963ff8642fd17bfd907df539da987a550a2ea6754968f",
+  "notes": [
+    "代码任务由确定性隐藏检查验收，研究任务只做确定性引用与关键事实检查。",
+    "本批次验证日常可用性，不比较 Static，也不用于证明 Stage 的收益。",
+    "AFP 上限按首轮高效模型、其余轮次中较贵的路线和冻结 token 上限计算。",
+    "Stage 不调用 classifier；当前判断模型的价格不进入本批次账本。",
+    "日常提示忽略 .refractagent 运行元数据，并澄清研究引用须对应实际来源。",
+    "代码规格明确要求 Unicode 规范化保留拉丁重音字符。"
+  ],
+  "acceptanceSha256": "00822ff8ef14d3dfd45c7b76db068fb4dae1df13d0328fea98506948110b382c"
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "stage-daily-acceptance-summary-v1",
+  "acceptanceSha256": "4d991a7c5d242d9c33e382e31c96553dd2d1e732050a0799c642fed399083a64",
+  "profile": "headless",
+  "tasks": [
+    {
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "elapsedMs": 20099,
+      "dshExitCode": 1,
+      "modelCalls": 4,
+      "capableCalls": 0,
+      "modelSwitches": 0,
+      "recovered": false,
+      "firstByteMs": 1904.841875,
+      "productionAfp": 13.6935,
+      "models": [
+        "deepseek-v4.1-flash",
+        "deepseek-v4.1-flash",
+        "deepseek-v4.1-flash",
+        "deepseek-v4.1-flash"
+      ],
+      "evaluation": {
+        "success": true,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "checks": {
+        "dshCompleted": false,
+        "taskPassed": true,
+        "withinCallLimit": true,
+        "withinAfpLimit": true
+      },
+      "success": false
+    },
+    {
+      "taskId": "research-compare-search",
+      "family": "research",
+      "elapsedMs": 9223,
+      "dshExitCode": 1,
+      "modelCalls": 4,
+      "capableCalls": 0,
+      "modelSwitches": 0,
+      "recovered": false,
+      "firstByteMs": null,
+      "productionAfp": 12.750250000000001,
+      "models": [
+        "deepseek-v4.1-flash",
+        "deepseek-v4.1-flash",
+        "deepseek-v4.1-flash",
+        "deepseek-v4.1-flash"
+      ],
+      "evaluation": {
+        "success": false,
+        "issues": [
+          "missing-answer"
+        ]
+      },
+      "checks": {
+        "dshCompleted": false,
+        "taskPassed": false,
+        "withinCallLimit": true,
+        "withinAfpLimit": true
+      },
+      "success": false
+    }
+  ],
+  "productionAfp": 26.44375,
+  "withinTotalAfpLimit": true,
+  "automaticRetryCount": 0,
+  "success": false
+}

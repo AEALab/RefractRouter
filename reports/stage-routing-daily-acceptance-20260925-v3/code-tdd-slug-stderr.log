@@ -1,0 +1,55 @@
+dsh: reasoning:
+Let me start by exploring the workspace to understand the structure, TASK.md, and SPEC.md.
+
+dsh: reasoning:
+Let me check the .refractagent directory for any additional instructions.
+
+dsh: reasoning:
+The refractagent planning run file is just metadata from previous planning turns, not instructions I need to follow beyond TASK.md/SPEC.md. I should implement slugify in slug.py per SPEC.md and add tests. This is a single-turn task; no goal needed.
+
+SPEC.md spec:
+- slugify(text): Unicode normalization
+- Latin letters to lowercase
+- consecutive whitespace or punctuation → single hyphen
+- preserve Chinese characters
+- strip leading/trailing hyphens
+- empty result returns empty string
+
+Let me implement. Need to determine what counts as "punctuation" to replace with hyphen, while preserving Chinese characters. 
+
+Approach: normalize with unicodedata.normalize('NFKC') (Unicode normalization). Then lower() for latin. Then for each char: keep alphanumeric and CJK; else replace with hyphen. Whitespace and punctuation → hyphen. Collapse consecutive hyphens into one. Strip leading/trailing hyphens.
+
+"保留中文字符" - preserve Chinese characters. Using a regex to keep characters: letters (a-z after lower), digits, and CJK unicode range. Everything else (whitespace, punctuation) becomes hyphen.
+
+Let me write it:
+
+```python
+import re
+import unicodedata
+
+def slugify(text):
+    text = unicodedata.normalize('NFKC', text).lower()
+    # keep latin letters, digits, and CJK; replace everything else with hyphen
+    result = []
+    for ch in text:
+        if ch.isalnum() or '\u4e00' <= ch <= '\u9fff':
+            result.append(ch)
+        else:
+            result.append('-')
+    s = ''.join(result)
+    s = re.sub(r'-+', '-', s)
+    s = s.strip('-')
+    return s
+```
+
+Wait, ch.isalnum() would include non-ASCII letters like é (already decomposed by NFKC to e + combining accent, but isalnum on combining mark? combining marks are not alnum, so they'd become hyphens — good). Also Chinese chars are alnum already actually (str.isalnum returns True for CJK). So `ch.isalnum()` alone would keep Chinese. But to be safe about keeping CJK specifically, isalnum covers CJK. Let me keep it simple with isalnum which keeps CJK letters and digits. Actually the spec says preserve Chinese characters and lower latin letters. isalnum keeps CJK (which aren't affected by lower). Good.
+
+But careful: isalnum keeps CJK punctuation? No, CJK punctuation like 。 is not alnum. The spec says punctuation becomes hyphen. Chinese full stop 。 → hyphen. That's per spec (punct → hyphen). Good.
+
+Let me use isalnum to keep all letters/digits incl CJK. NFKC normalization already lowercases? No, NFKC doesn't lowercase. So apply .lower().
+
+Let me write tests too. Create a tests file. Task says "补充必要测试" (add necessary tests). Let me create test_slug.py.
+
+Let me write both.
+
+dsh: UNKNOWN: 无法派发 efficient 模型 ark/deepseek-v4-flash：AFP 预算或最大调用数不足

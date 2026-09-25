@@ -166,6 +166,10 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     const unit=draft.models?.find(model=>model.id===id)?.billingUnit??draft.billingUnit??'CNY'
     return unit==='USD'?'CNY':unit
   }))]
+  const efficientModel=draft.models?.find(model=>model.id===draft.roles?.efficient)
+  const capableModel=draft.models?.find(model=>model.id===draft.roles?.capable)
+  const sameStageModel=Boolean(efficientModel&&capableModel&&efficientModel.provider===capableModel.provider&&
+    efficientModel.model===capableModel.model&&efficientModel.reasoningEffort===capableModel.reasoningEffort)
   return <section className="rra-v4-section rra-planning" aria-label="规划路由设置">
     <div className="rra-section-head"><div><h3>规划路由</h3><p className="rra-field-hint">根据任务与执行轨迹选择模型，使用 DSH 原生工具、审批与委派。</p></div>{dirty&&<span className="rra-badge">未保存</span>}</div>
     <label className="rra-check"><input type="checkbox" checked={draft.enabled} onChange={e=>patch({enabled:e.target.checked})}/>启用独立规划路由</label>
@@ -233,21 +237,42 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     })}</div>
     <div className="rra-row-card"><h3>策略设置</h3><label className="rra-compact-field">默认路由策略 <select className="rra-select" value={draft.defaultStrategy??'stage'} onChange={e=>patch({defaultStrategy:e.target.value as PlanningStrategy})}>
       {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><p className="rra-field-hint">{HELP[draft.defaultStrategy??'stage']}</p><p className="rra-field-hint">保存后从下个任务生效；当前任务继续使用启动时配置。</p>
-    <details className="rra-details"><summary>{draft.defaultStrategy==='static'?'Static 设置':'策略参数'}</summary><div className="rra-planning-fields">
+    {draft.defaultStrategy==='stage'&&<div className="rra-planning-fields">
+      <p>通常使用高效模型，检测到相同任务失败持续出现时切换强模型；Stage 不调用判别或审核模型。</p>
+      <p className="rra-field-hint">高效：{efficientModel?`${efficientModel.provider}/${efficientModel.model} · ${efficientModel.reasoningEffort??'提供方默认推理等级'}`:'未配置'}<br/>
+        强执行：{capableModel?`${capableModel.provider}/${capableModel.model} · ${capableModel.reasoningEffort??'提供方默认推理等级'}`:'未配置'}。模型与推理等级在上方通用角色设置中编辑。</p>
+      {sameStageModel&&<p className="rra-field-hint" role="status">两个角色绑定相同模型和推理等级，可以运行，但不会发生实际模型切换。</p>}
+      <label className="rra-compact-field">强模型保持轮数 <input className="rra-input" type="number" min="0" step="1"
+        value={draft.parameters?.holdTurns??2} onChange={e=>patch({parameters:{...draft.parameters,holdTurns:Number(e.target.value)}})}/></label>
+      <p className="rra-field-hint">2 轮表示触发升级的当前执行调用加下一次执行调用，共连续两次使用强模型。新的重复失败会重新开始保持期。</p>
+      <details className="rra-details"><summary>Stage 高级参数</summary><div className="rra-planning-fields">
+        <p>参数会在新任务开始时冻结。默认值用于首轮验证，尚未证明适合所有任务。</p>
+        <label className="rra-compact-field">证据窗口 <input className="rra-input" type="number" min="1" step="1" value={draft.parameters?.window??3}
+          onChange={e=>patch({parameters:{...draft.parameters,window:Number(e.target.value)}})}/><span className="rra-field-hint">默认 3：只看最近三条有效且已完成的工具结果。</span></label>
+        <label className="rra-compact-field">判断阈值 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.parameters?.threshold??.5}
+          onChange={e=>patch({parameters:{...draft.parameters,threshold:Number(e.target.value)}})}/><span className="rra-field-hint">默认 0.5：有符号评分绝对值不超过阈值时视为含糊，使用高效模型。</span></label>
+      </div></details>
+    </div>}
+    {draft.defaultStrategy==='static'&&<details className="rra-details"><summary>Static 设置</summary><div className="rra-planning-fields">
       <p>参数尚未校准。修改只影响新任务。</p>
-      {draft.defaultStrategy==='static'&&<>
+      <>
         <p className="rra-field-hint">选模方式默认「固定高效角色」，这是当前程序默认值，不表示你曾主动设置。</p>
         <label className="rra-compact-field">选模方式 <select className="rra-select" value={draft.parameters?.staticMode??'fixed'} onChange={e=>patch({parameters:{...draft.parameters,staticMode:e.target.value}})}>
           <option value="fixed">固定高效执行模型</option><option value="random">按权重每任务随机选择一次</option></select></label>
         {(draft.parameters?.staticMode??'fixed')==='fixed'&&<p className="rra-field-hint">当前固定使用上方「高效执行模型」：{draft.models?.find(m=>m.id===draft.roles?.efficient)?.provider??'未配置'}/{draft.models?.find(m=>m.id===draft.roles?.efficient)?.model??'未配置'}；其推理等级读取该模型的「推理等级」字段。</p>}
-      </>}
+      </>
       {Object.entries({window:3,threshold:.5,holdTurns:2,baseThreshold:.5,thresholdStep:.1,maxReviews:1,maxRedos:1,stallTurns:0,confirmations:2,seed:0,efficientWeight:1,capableWeight:1}).filter(([key])=>({stage:['window','threshold','holdTurns'],task:['baseThreshold','thresholdStep'],composite:['window','threshold','holdTurns','baseThreshold','thresholdStep'],advisor:['maxReviews','maxRedos','stallTurns'],escalation:['confirmations'],static:(draft.parameters?.staticMode??'fixed')==='random'?['seed','efficientWeight','capableWeight']:[]}[draft.defaultStrategy??'stage']).includes(key)).map(([key,value])=>
         <label className="rra-compact-field" key={key}>{({window:'证据窗口',threshold:'阶段判断阈值',holdTurns:'强模型保持轮数',baseThreshold:'任务基础阈值',
             thresholdStep:'能力边界修正步长',maxReviews:'审核次数上限',maxRedos:'返工次数上限',
             stallTurns:'停滞审核轮数（0 为关闭）',confirmations:'连续升级判断次数',seed:'随机种子',
             efficientWeight:'高效模型权重',capableWeight:'强模型权重'} as Record<string,string>)[key]} <input className="rra-input" type="number"  step="any" value={draft.parameters?.[key]??value}
           onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
-      </div></details></div>
+      </div></details>}
+    {draft.defaultStrategy!=='stage'&&draft.defaultStrategy!=='static'&&<details className="rra-details"><summary>策略参数</summary><div className="rra-planning-fields">
+      <p>参数尚未校准。修改只影响新任务。</p>
+      {Object.entries({window:3,threshold:.5,holdTurns:2,baseThreshold:.5,thresholdStep:.1,maxReviews:1,maxRedos:1,stallTurns:0,confirmations:2}).filter(([key])=>(({task:['baseThreshold','thresholdStep'],composite:['window','threshold','holdTurns','baseThreshold','thresholdStep'],advisor:['maxReviews','maxRedos','stallTurns'],escalation:['confirmations']} as Record<string,string[]>)[draft.defaultStrategy??'task']??[]).includes(key)).map(([key,value])=>
+        <label className="rra-compact-field" key={key}>{({window:'证据窗口',threshold:'阶段判断阈值',holdTurns:'强模型保持轮数',baseThreshold:'任务基础阈值',thresholdStep:'能力边界修正步长',maxReviews:'审核次数上限',maxRedos:'返工次数上限',stallTurns:'停滞审核轮数（0 为关闭）',confirmations:'连续升级判断次数'} as Record<string,string>)[key]} <input className="rra-input" type="number" step="any" value={draft.parameters?.[key]??value} onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
+    </div></details>}</div>
     <details className="rra-details"><summary>数据与历史兼容（高级）</summary><div className="rra-planning-fields">
       <p>数据域决定请求能否发送到目标模型；信任策略是已登记的数据处理许可；能力卡只供 Task 等判别策略参考。它们都不是 Static 的选模参数。</p>
       <p>敏感词、信任策略和已验收的跨模型 replay 组合保留在高级配置中。模型容量与价格由系统查询。</p>
@@ -274,8 +299,11 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
 }
 type History={records:Array<{runId:string;strategy:string;status:string;costs:{production:number|null};billingUnit:string|null;billingWarning?:string;
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
-  calls:Array<{call_id:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;charged:number;billing_unit?:string;latency_ms?:number}>;
-  decisions:Array<{callId:string;reason:string}>}>}
+  calls:Array<{call_id:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;charged:number;billing_unit?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string}>;
+  decisions:Array<{callId:string;reason:string;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string}>}>}
+const REASON:Record<string,string>={fixed:'固定模型','no-signal':'无有效信号，保持高效','ambiguous':'证据含糊，保持高效',
+  'repeated-failure':'重复失败，升级强模型','capable-hold':'强模型保持期','tool-signal':'Stage 信号选模',
+  'task-classifier':'任务判别','escalation-latch':'升级锁定'}
 function Trace({load}:{load:()=>Promise<History>}){
   const [data,setData]=useState<History>(),[error,setError]=useState('')
   useEffect(()=>{let active=true
@@ -290,9 +318,13 @@ function Trace({load}:{load:()=>Promise<History>}){
           .map(([unit,amount])=>`${amount.production} ${unit}`).join('；')||'尚无调用'}</p>:
         <p>{r.costs.production} {r.billingUnit}</p>}
       {r.billingWarning&&<p role="status">{r.billingWarning}</p>}
-      <table><thead><tr>{['模型','用途','交付状态','费用','耗时 ms','理由'].map(h=><th key={h}>{h}</th>)}</tr></thead>
-        <tbody>{r.calls.map(c=><tr key={c.call_id}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}</td><td>{c.purpose}</td><td>{c.disposition}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}</td>
-          <td>{c.charged}{r.billingWarning?'（单位待核对）':c.billing_unit?` ${c.billing_unit}`:''}</td><td>{c.latency_ms?.toFixed(0)??'待核对'}</td><td>{r.decisions.find(d=>d.callId===c.call_id)?.reason??'策略判别'}</td></tr>)}</tbody></table></article>)}
+      <table><thead><tr>{['模型／推理等级','用途','交付状态','本次／累计费用','首字／总耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
+        <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
+          const d=r.decisions.find(row=>row.callId===c.call_id)
+          return <tr key={c.call_id}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.reasoning_effort??'提供方默认'}</small></td><td>{c.purpose}</td><td>{c.disposition}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}</td>
+          <td>{c.charged}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计 {totals[unit]}{unit?` ${unit}`:''}</small></td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
+          <td>{REASON[d?.reason??'']??d?.reason??'策略判别'}{typeof d?.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}<br/>
+            <small>{d?.evidenceSummary??'旧记录无证据摘要'}{d?.holdBefore!==undefined?`；保持 ${d.holdBefore} → ${d.holdAfter}`:''}{d?.ruleVersion?`；${d.ruleVersion}`:''}</small></td></tr>})})()}</tbody></table></article>)}
   </section>
 }
 export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {

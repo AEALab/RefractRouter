@@ -120,7 +120,7 @@ Ark Agent Plan AFP 系数相同的记录只显示单位待核对，不改写原�
 | 策略 | 行为与默认参数 |
 | --- | --- |
 | Static | 固定 efficient；高级随机按冻结权重和 seed 在每个任务开始时选一次，工具续接保持同一模型，默认两档权重 1 |
-| Stage | 最近 3 条工具证据、阈值 0.5、强模型保持 2 轮；无信号使用默认高效模型 |
+| Stage | 最近 3 条有效工具证据、阈值 0.5、强模型保持 2 轮；无信号使用默认高效模型 |
 | Task | 每任务一次能力判别；基础阈值 0.5，边界修正步长 0.1；无效结果保守选择 capable |
 | Composite | 一次 Task 形成默认档位，再逐轮 Stage；普通续接不重复分类 |
 | Advisor | efficient 执行，结束轮审核；默认最多审核 1 次、返工 1 次；停滞审核默认关闭 |
@@ -152,6 +152,8 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
 - 缺少错误来源的结果记作 unclassified-error，不臆测为任务能力失败。
   明确拒绝不升级；执行结果未知、派发后中止会阻止后续受管调用。
 - 重复结构化错误优先于保持；其次处理保持，再比较有符号信号与阈值。
+  默认保持 2 轮包含触发升级的当前调用和下一次调用，不会额外执行第三次强模型。
+  已消费证据 ID 最多保留 128 条；旧的重复失败不会因后续无关事件再次触发升级。
   当前简化分数为 `tanh(0.5 × (severity / 0.7 + spinning - production / 0.7))`。
   不把持续检索自动判为空转。默认数值未经收益实验校准。
 - Task 判别输出不合法时走强模型；审核／升级判别不合法则停止交付。
@@ -160,7 +162,7 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
 ## 进程协议与任务状态
 
 执行 `refractagent planning-worker --runs-dir PATH`。
-协议版本 `refractagent-planning/1`，UTF-8 NDJSON，单条上限 16 MiB。
+协议版本 `refractagent-planning/2`，UTF-8 NDJSON，单条上限 16 MiB。
 每个请求带唯一 id、protocol、op；响应回传同一 id、ok 和 result／error。
 
 | 操作 | 结果 |
@@ -196,9 +198,9 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
 无法证明来源的旧纯文本记录使用插件来源，不伪造模型及不透明 replay。
 
 每个真实调用依次经过输入检查、模型准入、原子预留、派发、结算。
-多调用策略在开始前核对完整剩余调用包络，再占用该任务的唯一流程；
-因此后续审核额度不会被同任务另一步抢占。使用整个模型窗口的保守上界，
-可能提前拒绝实际可负担的大窗口配置，这是当前安全性与可用性的取舍。
+Stage 先决定本轮目标模型，再按实际请求输入和该模型输出上限预留；未被选择的模型不占用预算。
+强模型被选中但对应单位余额不足时停止并说明目标模型，不会静默降级。
+包含审核或判别的多调用策略仍在开始前核对必要调用包络，避免执行预算挤占必须完成的审核。
 
 证据位于 `runsDir/planning/<identity-digest>.json`，目录 0700、文件 0600，
 原子替换前 fsync。记录配置、状态、全部费用、真实来源和被丢弃回复。
@@ -236,8 +238,17 @@ uv run pytest
 发布另行核对 Python 安装包、插件 tarball、实际安装版本和浏览器界面。
 运行记录见 [本次验收](../reports/planning-routing-20260923/README.md)。
 
-没有启动付费效果实验。先比较固定高效、固定强模型与 Stage，
-再消融 Task、Composite、Advisor、Escalation；分别冻结允许／禁止委派组。
+Stage 首轮三路线协议已冻结在
+[stage-routing-v1.json](../data/benchmarks/stage-routing-v1.json)，包含 6 个代码任务、
+6 个冻结资料研究任务、每路线两次重复和 72 次交错执行顺序。默认命令只产生零调用预检：
+
+```sh
+uv run python experiments/run_stage_routing_study.py \
+  --output-dir reports/stage-routing-preflight-YYYYMMDD
+```
+
+真实批次需要另行确认协议指纹与 production／evaluation AFP 双预算；功能完成不以首轮实验必须
+证明省钱为条件。完成该对照后再消融 Task、Composite、Advisor、Escalation；分别冻结允许／禁止委派组。
 报告成功率、所有尝试的单位成功成本、首字及总时延、判别开销与换模比例。
 轨迹回放不证明换模后的收益。回滚时关闭 planningRouting.enabled，
 保留配置、证据及自动路由。

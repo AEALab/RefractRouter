@@ -2,6 +2,8 @@
 
 新增 [RefractAgent 规划路由](docs/trajectory-routing-strategies.md)：保留 DSH 原生 Agent 循环，
 提供六类模型策略；与现有 DAG 自动路由并存，默认不启用真实调用。
+Stage 已完成结构化工具证据、精确保持语义与单模型预算修正；首轮三路线效果协议见
+[Stage 阶段路由实验](docs/stage-routing-study.md)。
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
