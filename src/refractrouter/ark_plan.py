@@ -24,6 +24,7 @@ def validate_thinking_auto(model, options):
 def afp_metadata():
     data = catalog()
     models = [row for row in data['models'] if row['capability'] == 'text-generation']
+    thinking_auto = {row['model']: row['auto'] for row in thinking_capabilities()['models']}
     coefficients = sorted({max(m['pricing']['input_coefficient'], m['pricing']['output_coefficient']) for m in models})
     return {
         'snapshotDate': data['snapshot_date'], 'sourceUrl': data['pricing_url'],
@@ -32,7 +33,7 @@ def afp_metadata():
             'model': m['model_id'], 'coefficient': max(m['pricing']['input_coefficient'], m['pricing']['output_coefficient']),
             'inputCoefficient': m['pricing']['input_coefficient'], 'outputCoefficient': m['pricing']['output_coefficient'],
             'planTiers': m['plan_tiers'],
-            'thinkingAuto': next(row['auto'] for row in thinking_capabilities()['models'] if row['model'] == m['model_id']),
+            'thinkingAuto': thinking_auto.get(m['model_id'], 'unverified'),
         } for m in models],
     }
 

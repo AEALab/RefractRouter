@@ -7,7 +7,8 @@ from refractrouter.application_config import compile_configuration
 def test_catalog_has_all_text_models_and_six_regular_cost_tiers():
     data = afp_metadata()
     assert data['tiers'] == [0.25, 0.5, 2.5, 4.5, 5.5, 10]
-    assert len(data['models']) == 11
+    assert len(data['models']) == 12
+    assert next(m for m in data['models'] if m['model'] == 'deepseek-v4.1-flash')['coefficient'] == 2.5
     assert next(m for m in data['models'] if m['model'] == 'glm-5.3-flash')['coefficient'] == 0.5
     config = application_configuration()
     candidates = [m for m in config['models'] if m['role'] == 'candidate']
@@ -17,7 +18,7 @@ def test_catalog_has_all_text_models_and_six_regular_cost_tiers():
                if row['model'] == m['model'])['inputCoefficient'] / 10 for m in candidates)
 
 
-@pytest.mark.parametrize('ceiling,count', [(0.25, 1), (0.5, 4), (2.5, 7), (4.5, 9), (5.5, 10), (10, 11)])
+@pytest.mark.parametrize('ceiling,count', [(0.25, 1), (0.5, 4), (2.5, 8), (4.5, 10), (5.5, 11), (10, 12)])
 def test_each_tier_restricts_actual_candidate_manifest(ceiling, count):
     config = application_configuration()
     config['strategies'] = {'economy': {'maxAfpCoefficient': ceiling, 'reasoningEffort': 'high'}}
@@ -27,7 +28,7 @@ def test_each_tier_restricts_actual_candidate_manifest(ceiling, count):
     assert all(max(m.input_cost_per_1k, m.output_cost_per_1k) * 10 <= ceiling for m in candidates)
     assert all(m.request_options['reasoning_effort'] == 'high' for m in candidates)
     assert len([m for m in compiled.manifest.models if m.role == 'judge']) == 1
-    assert len(compile_configuration(config, strategy='quality').predictions) == 11
+    assert len(compile_configuration(config, strategy='quality').predictions) == 12
 
 
 def test_manual_selection_intersects_cost_ceiling_and_empty_pool_fails():
@@ -44,7 +45,8 @@ def test_manual_selection_intersects_cost_ceiling_and_empty_pool_fails():
 def test_cost_ceiling_checks_input_and_output_and_requires_afp():
     config = application_configuration()
     config['strategies'] = {'economy': {'maxAfpCoefficient': 0.25}}
-    config['models'][0]['pricing']['outputPer1k'] = 0.1
+    next(model for model in config['models'] if model['id'] == 'doubao-seed-2.0-mini')[
+        'pricing']['outputPer1k'] = 0.1
     with pytest.raises(ValueError, match='no candidate'):
         compile_configuration(config, strategy='economy')
     config['billingUnit'] = 'USD'

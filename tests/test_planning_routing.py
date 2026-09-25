@@ -1,14 +1,18 @@
 """规划路由离线行为验收：真实策略和账本，模拟宿主执行。"""
 from copy import deepcopy
+from datetime import datetime
 import json
 import threading
+from zoneinfo import ZoneInfo
 
 import pytest
 
 from refractrouter.planning_config import compile_config, preview, DEFAULTS
 from refractrouter.planning_policy import stage, tool_events
-from refractrouter.planning_runtime import PlanningRuntime
+from refractrouter.planning_runtime import PlanningRuntime, historical_billing_warning
 from refractrouter.task_budget import TaskCallBudget
+from refractrouter.deepseek_official_pricing import pricing as deepseek_cny_pricing
+from refractrouter.dsh_model_pool import frozen_usd_cny_rate
 
 
 def configuration(strategy="stage"):
@@ -54,6 +58,24 @@ def test_zero_call_availability_and_freeze(tmp_path):
     assert runtime.runs[run]["strategy"] == "stage"
 
 
+def test_unpriced_optional_model_does_not_block_static(tmp_path):
+    cfg = configuration("static")
+    cfg["models"].append({"id": "unpriced", "provider": "fake", "model": "new",
+        "contextWindow": 32000, "maxOutputTokens": 1024,
+        "inputPer1k": None, "outputPer1k": None, "deployment": "local"})
+    cfg["roles"]["classifier"] = "unpriced"
+    report = preview(cfg)
+    assert report["valid"]
+    assert next(s for s in report["strategies"] if s["id"] == "static")["available"]
+    task = next(s for s in report["strategies"] if s["id"] == "task")
+    assert not task["available"] and "unpriced" in task["issues"][0]
+    assert "inputPer1k" in report["issues"][0]
+    runtime = PlanningRuntime(tmp_path)
+    assert step(runtime, begin(runtime, "static", config=cfg))["model"]["id"] == "small"
+    with pytest.raises(ValueError, match="配置未完成"):
+        begin(runtime, "task", turn=2, config=cfg)
+
+
 def test_native_tools_no_dag_and_complete_two_steps(tmp_path, monkeypatch):
     import refractrouter.planning_runtime as module
     # 模块依赖中没有图执行入口；步骤回执只返回工具，不执行工具。
@@ -74,6 +96,18 @@ def test_native_tools_no_dag_and_complete_two_steps(tmp_path, monkeypatch):
     assert len(runtime.runs[run]["budget"].records) == 2
 
 
+def test_static_preflight_uses_actual_request_instead_of_entire_context_window(tmp_path):
+    cfg = configuration("static")
+    cfg["models"][0]["contextWindow"] = 1_048_576
+    cfg["models"][0]["inputPer1k"] = 0.05
+    cfg["models"][0]["outputPer1k"] = 0.05
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static", config=cfg)
+    action = step(runtime, run)
+    assert action["model"]["id"] == "small"
+    assert runtime.runs[run]["budget"].records[0]["reserved"] < cfg["maxProductionCost"]
+
+
 @pytest.mark.parametrize("strategy", ["task", "composite"])
 def test_classifier_once_per_turn(strategy, tmp_path):
     r = PlanningRuntime(tmp_path)
@@ -88,6 +122,91 @@ def test_classifier_once_per_turn(strategy, tmp_path):
     assert step(r, new)["purpose"] == "task"
     other = begin(r, strategy, session="b")
     assert step(r, other)["purpose"] == "task"
+
+
+def test_afp_and_cny_calls_keep_separate_budgets_and_history(tmp_path):
+    cfg = configuration("task")
+    legacy = deepcopy(cfg)
+    legacy["models"][2]["billingUnit"] = "AFP"
+    with pytest.raises(ValueError, match="需要 refractagent-planning-v2"):
+        compile_config(legacy)
+    cfg["schemaVersion"] = "refractagent-planning-v2"
+    cfg["billingUnit"] = "USD"
+    cfg["maxProductionCost"] = 10
+    cfg["maxProductionCostByUnit"] = {"AFP": 10, "CNY": 10}
+    cfg["models"][2]["billingUnit"] = "AFP"
+    compiled = compile_config(cfg)
+    fx, _ = frozen_usd_cny_rate()
+    assert compiled["budgets"]["CNY"] == 10  # 显式 CNY 预算优先于遗留 USD 预算
+    assert compiled["models"]["small"].billing_unit == "CNY"
+    assert compiled["models"]["small"].input_cost_per_1k == pytest.approx(.001 * fx)
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    judge = step(r, run)
+    assert judge["model"]["id"] == "judge"
+    execute = receipt(r, run, judge, '{"p_solve":0.8,"capability_boundary":"supported"}')
+    assert execute["model"]["id"] == "small"
+    result = receipt(r, run, execute)
+    record = result["record"]
+    assert record["billingUnit"] is None
+    assert record["costs"]["production"] is None
+    assert record["costsByUnit"]["AFP"]["production"] > 0
+    assert record["costsByUnit"]["CNY"]["production"] > 0
+    assert [call["billing_unit"] for call in record["calls"]] == ["AFP", "CNY"]
+    cash_call = next(call for call in record["calls"] if call["billing_unit"] == "CNY")
+    assert cash_call["source_billing_unit"] == "USD"
+    assert cash_call["conversion_rate"] > 0
+    assert cash_call["conversion_source"]
+    assert cash_call["conversion_as_of"]
+    history = r.handle({"op": "history", "session": "a"})["records"][0]
+    assert history["costsByUnit"] == record["costsByUnit"]
+    capped = deepcopy(cfg)
+    capped["maxProductionCostByUnit"] = {"AFP": .001}
+    capped_runtime = PlanningRuntime(tmp_path / "capped-other")
+    capped_run = begin(capped_runtime, "task", config=capped)
+    with pytest.raises(ValueError, match="剩余预算"):
+        step(capped_runtime, capped_run)
+    assert capped_runtime.runs[capped_run]["budget"].records == []
+    del cfg["maxProductionCostByUnit"]
+    unavailable = preview(cfg)
+    assert "缺少 AFP 生产预算" in next(row for row in unavailable["strategies"]
+        if row["id"] == "task")["issues"]
+    with pytest.raises(ValueError, match="缺少 AFP 生产预算"):
+        begin(PlanningRuntime(tmp_path / "other"), "task", config=cfg)
+
+
+def test_legacy_usd_only_cash_budget_migrates_to_cny(tmp_path):
+    cfg = configuration("static")
+    cfg["schemaVersion"] = "refractagent-planning-v2"
+    cfg["billingUnit"] = "USD"
+    cfg["maxProductionCost"] = 0
+    cfg["maxProductionCostByUnit"] = {"USD": 4}
+    compiled = compile_config(cfg)
+    rate, _ = frozen_usd_cny_rate()
+    assert compiled["budgets"] == {"CNY": pytest.approx(4 * rate)}
+    assert all(model.billing_unit == "CNY" for model in compiled["models"].values())
+    fx = PlanningRuntime(tmp_path).handle({"op": "fx"})
+    assert fx["rate"] == rate and fx["source"] and fx["asOf"]
+
+
+def test_mixed_budget_unknown_afp_usage_stops_all_managed_calls(tmp_path):
+    cfg = configuration("task")
+    cfg.update(schemaVersion="refractagent-planning-v2", billingUnit="USD",
+               maxProductionCostByUnit={"AFP": 10, "CNY": 10})
+    cfg["models"][2]["billingUnit"] = "AFP"
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    judge = step(runtime, run)
+    with pytest.raises(ValueError, match="missing or unconfirmed model usage"):
+        receipt(runtime, run, judge, usageAvailable=False)
+    record = runtime.handle({"op": "query", "runId": run})
+    assert record["status"] == "call-failed"
+    assert record["calls"][0]["billing_unit"] == "AFP"
+    assert record["calls"][0]["status"] == "unknown-usage"
+    assert record["costsByUnit"]["AFP"]["production"] > 0
+    assert record["costsByUnit"]["CNY"]["production"] == 0
+    with pytest.raises(ValueError, match="已停止"):
+        step(runtime, run)
 
 
 def test_stage_structured_evidence_and_hold():
@@ -134,7 +253,8 @@ def test_advisor_discard_redo_all_billed(tmp_path):
     calls = released["record"]["calls"]
     assert [c["disposition"] for c in calls] == ["discarded", "consult", "accepted"]
     assert calls[0]["response_output"] == "不合格候选"
-    assert released["record"]["costs"]["production"] == pytest.approx(.00042)
+    rate, _ = frozen_usd_cny_rate()
+    assert released["record"]["costs"]["production"] == pytest.approx(.00042 * rate, abs=2e-8)
     assert calls[-1]["review_status"] == "revised-unreviewed"
 
 
@@ -191,7 +311,8 @@ def test_atomic_budget_envelope_and_no_duplicate_step(tmp_path):
         step(r, run)
     assert not r.runs[run]["budget"].records
     model = compile_config(configuration())["models"]["small"]
-    b = TaskCallBudget(None, .0026, 1)
+    rate, _ = frozen_usd_cny_rate()
+    b = TaskCallBudget(None, .0026 * rate, 1)
     outcomes = []
     def reserve():
         try:
@@ -205,13 +326,145 @@ def test_atomic_budget_envelope_and_no_duplicate_step(tmp_path):
     assert sorted(outcomes) == [False, True]
 
 
+def test_zero_limits_are_unbounded_without_changing_cost_ledger(tmp_path):
+    cfg = configuration("static")
+    cfg.update(maxProductionCost=0, timeoutMs=0, maxCalls=0)
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "static", config=cfg)
+    assert r.runs[run]["deadline"] is None
+    assert r.describe(r.runs[run])["remainingMs"] is None
+    assert r.runs[run]["budget"].max_calls is None
+    first = step(r, run)
+    receipt(r, run, first)
+    second = step(r, run)
+    result = receipt(r, run, second)
+    assert result["record"]["costs"]["production"] > 0
+    assert len(result["record"]["calls"]) == 2
+
+
+def test_model_metadata_only_fills_verified_matching_billing_unit(tmp_path):
+    r = PlanningRuntime(tmp_path)
+    official = r.handle({"op": "metadata", "provider": "deepseek-official",
+        "model": "deepseek-flash", "billingUnit": "USD",
+        "host": {"contextWindow": 64000, "maxOutputTokens": 4096}})
+    assert official["capacity"] == {"contextWindow": 64000, "maxOutputTokens": 4096}
+    assert official["pricing"]["inputPer1k"] > 0
+    assert official["sources"]["pricing"].startswith("https://")
+    direct = r.handle({"op": "metadata", "provider": "deepseek-official",
+        "model": "deepseek-flash", "billingUnit": "AUTO", "host": {}})
+    assert direct["billingUnit"] == "CNY"
+    assert direct["pricing"]["inputPer1k"] in (0.001, 0.002)
+    assert direct["sources"]["pricing"] == "https://api-docs.deepseek.com/zh-cn/quick_start/pricing"
+    assert "冻结汇率" not in direct["sources"].get("pricingNote", "")
+    reference_only = r.handle({"op": "metadata", "provider": "ark",
+        "model": "minimax-m3", "billingUnit": "CNY", "host": {}})
+    assert reference_only["pricing"] is None
+    assert reference_only["capacity"] is None
+    plan = r.handle({"op": "metadata", "provider": "ark-plan", "model": "minimax-m3",
+        "billingUnit": "AFP", "host": {}})
+    assert plan["pricing"]["inputPer1k"] >= 0
+    assert plan["capacity"]["contextWindow"] > plan["capacity"]["maxOutputTokens"]
+    alias = r.handle({"op": "metadata", "provider": "ark", "model": "minimax-m3",
+        "billingUnit": "AFP", "host": {},
+        "providerBaseURL": "https://ark.cn-beijing.volces.com/api/plan/v3"})
+    assert alias["pricing"] == plan["pricing"]
+    newly_documented = r.handle({"op": "metadata", "provider": "ark",
+        "model": "deepseek-v4.1-flash", "billingUnit": "AUTO", "host": {},
+        "providerBaseURL": "https://ark.cn-beijing.volces.com/api/plan/v3"})
+    assert newly_documented["billingUnit"] == "AFP"
+    assert newly_documented["pricing"] == {"inputPer1k": .25, "outputPer1k": .25,
+                                            "cachedInputPer1k": .25}
+    assert newly_documented["issues"] == []
+    assert newly_documented["sources"]["pricingCheckedAt"] == "2026-09-25"
+    mixed = r.handle({"op": "metadata", "provider": "ark", "model": "minimax-m3",
+        "billingUnit": "CNY", "host": {},
+        "providerBaseURL": "https://ark.cn-beijing.volces.com/api/plan/v3"})
+    assert mixed["pricing"] is None
+    assert any("按 AFP 计量" in issue for issue in mixed["issues"])
+
+
+def test_deepseek_official_cny_peak_and_offpeak_price_snapshot():
+    cn = ZoneInfo("Asia/Shanghai")
+    offpeak = deepseek_cny_pricing("deepseek-flash", at=datetime(2026, 9, 26, 10, tzinfo=cn))
+    peak = deepseek_cny_pricing("deepseek-v4-flash", at=datetime(2026, 9, 25, 10, tzinfo=cn))
+    assert (offpeak["inputPer1k"], offpeak["outputPer1k"], offpeak["cachedInputPer1k"]) == (.001, .004, .00002)
+    assert (peak["inputPer1k"], peak["outputPer1k"], peak["cachedInputPer1k"]) == (.002, .008, .00004)
+    assert peak["tier"] == "peak"
+    assert deepseek_cny_pricing("deepseek-flash", at=datetime(2026, 9, 26, 10, tzinfo=cn),
+                                conservative=True)["tier"] == "peak-upper-bound"
+    pro = deepseek_cny_pricing("deepseek-v4-pro", at=datetime(2026, 9, 26, 10, tzinfo=cn))
+    assert (pro["inputPer1k"], pro["outputPer1k"]) == (.0045, .0135)
+    assert deepseek_cny_pricing("unknown") is None
+
+
+def test_deepseek_official_cny_reserves_peak_and_settles_call_tier(tmp_path, monkeypatch):
+    import refractrouter.planning_runtime as module
+    actual = {"inputPer1k": .001, "outputPer1k": .004, "cachedInputPer1k": .00002,
+              "tier": "offpeak", "source": "official", "checkedAt": "2026-09-24"}
+    upper = {**actual, "inputPer1k": .002, "outputPer1k": .008, "tier": "peak-upper-bound"}
+    monkeypatch.setattr(module, "deepseek_cny_pricing", lambda model, conservative=False:
+                        upper if conservative else actual)
+    cfg = configuration("static")
+    cfg.update(schemaVersion="refractagent-planning-v2", billingUnit="CNY",
+               maxProductionCostByUnit={"CNY": 0})
+    cfg["models"][0].update(provider="deepseek-official", model="deepseek-flash",
+                             billingUnit="CNY", cachedInputPer1k=.00002)
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static", config=cfg)
+    action = step(runtime, run)
+    pending = runtime.runs[run]["flow"]["pending"][1]
+    assert pending.row["pricing_tier"] == "offpeak"
+    assert pending.row["reserved"] > .008
+    result = receipt(runtime, run, action)
+    call = result["record"]["calls"][0]
+    assert call["charged"] == pytest.approx(.00018)
+    assert call["charged"] < call["reserved"]
+
+
+def test_agent_plan_unit_conflict_blocks_dispatch_and_flags_legacy_display(tmp_path):
+    cfg = configuration("static")
+    cfg["billingUnit"] = "CNY"
+    cfg["models"][0].update(provider="ark", model="deepseek-v4-pro",
+                            inputPer1k=.55, outputPer1k=.55)
+    runtime = PlanningRuntime(tmp_path)
+    issue = "Ark Agent Plan 按 AFP 计量；当前预算单位 CNY，不能把订阅点数当作现金价格"
+    with pytest.raises(ValueError, match="按 AFP 计量"):
+        runtime.handle({"op": "begin", "identity": {"session": "a", "agent": "a", "turn": 1},
+            "strategy": "static", "config": cfg, "hostIssues": {"small": issue}})
+    assert not list((tmp_path / "planning").glob("*.json"))
+    record = {"billingUnit": "CNY", "configuration": cfg,
+        "calls": [{"provider": "ark", "model_id": "small", "actual_model": "deepseek-v4-pro",
+                   "status": "billed"}]}
+    assert "不能视为人民币" in historical_billing_warning(record)
+
+
+def test_preview_explains_unpriced_agent_plan_role_without_disabling_static():
+    cfg = configuration("static")
+    cfg["models"][2].update(provider="ark", model="minimax-m3",
+                            inputPer1k=None, outputPer1k=None)
+    report = preview(cfg, {"judge": "Ark Agent Plan 按 AFP 计量；当前预算单位 CNY"})
+    assert next(row for row in report["strategies"] if row["id"] == "static")["available"]
+    task = next(row for row in report["strategies"] if row["id"] == "task")
+    assert not task["available"]
+    assert "按 AFP 计量" in task["issues"][0]
+    assert "inputPer1k 数值不合法" not in task["issues"][0]
+
+
 def test_replay_admission_child_isolation_compaction(tmp_path):
     r = PlanningRuntime(tmp_path)
     run = begin(r, "static")
     messages = [{"role": "assistant", "source": {"kind": "model", "provider": "fake", "model": "large",
-        "replayState": {"response": {"opaque": True}}}, "content": [{"type": "text", "text": "历史"}]}]
+        "replayState": {"response": {"opaque": True}}}, "content": [{"type": "tool-call",
+            "id": "read1", "name": "read", "arguments": "{}"}]},
+        {"role": "user", "content": [{"type": "tool-result", "toolCallId": "read1",
+            "content": [{"type": "text", "text": "完成"}]}]}]
+    forwarded = step(r, run, deepcopy(messages))["messages"]
+    assert forwarded[0]["content"] == messages[0]["content"]
+    assert forwarded[0]["source"] == {"kind": "model", "provider": "fake", "model": "large"}
+    malformed = deepcopy(messages)
+    del malformed[0]["content"][0]["name"]
     with pytest.raises(ValueError, match="兼容"):
-        step(r, run, messages)
+        step(r, begin(r, "static", turn=3), malformed)
     cfg = configuration("static")
     cfg["compatiblePairs"] = [["large", "small"]]
     run = begin(r, "static", turn=2, config=cfg)
@@ -223,6 +476,21 @@ def test_replay_admission_child_isolation_compaction(tmp_path):
     receipt(r, child, action)
     assert r.runs[child]["state"]["step"] == 0
     assert r.runs[child]["state"]["compactions"] == 1
+
+
+def test_plain_legacy_model_history_needs_no_replay_pair(tmp_path):
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "static")
+    messages = [{"role": "assistant", "source": {"kind": "model", "provider": "refract-fixture",
+        "model": "small"}, "content": [{"type": "text", "text": "历史普通文本"}]}]
+    assert step(r, run, messages)["model"]["id"] == "small"
+    opaque = [{**messages[0], "source": {**messages[0]["source"],
+        "replayState": {"response": {"providerSpecific": True}}}, "content": [
+            {"type": "reasoning", "text": "旧提供方思考"}, *messages[0]["content"]]}]
+    run = begin(r, "static", turn=2)
+    forwarded = step(r, run, opaque)["messages"][0]
+    assert forwarded["source"] == {"kind": "model", "provider": "refract-fixture", "model": "small"}
+    assert forwarded["content"] == messages[0]["content"]
 
 
 def test_random_seed_reproducible_and_sensitive_preflight(tmp_path):
@@ -237,6 +505,44 @@ def test_random_seed_reproducible_and_sensitive_preflight(tmp_path):
     with pytest.raises(ValueError, match="数据域"):
         step(r, run, [{"role": "user", "content": "confidential-project"}])
     assert not r.runs[run]["budget"].records
+
+
+def test_static_random_keeps_one_model_for_native_tool_continuation(tmp_path):
+    cfg = configuration("static")
+    cfg["parameters"] = {"staticMode": "random", "seed": 4}
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static", config=cfg)
+    first = step(runtime, run)
+    call = {"type": "tool-call", "id": "read1", "name": "read", "arguments": "{}"}
+    receipt(runtime, run, first, content="", tools=(call,))
+    continued = step(runtime, run, [
+        {"role": "assistant", "content": [call]},
+        {"role": "user", "content": [{"type": "tool-result", "toolCallId": "read1",
+            "content": [{"type": "text", "text": "数据"}]}]}])
+    assert continued["model"]["id"] == first["model"]["id"]
+    assert [row["role"] for row in runtime.runs[run]["decisions"]] in (
+        ["efficient", "efficient"], ["capable", "capable"])
+
+
+def test_authorized_cloud_accepts_native_system_path_without_disabling_data_guard(tmp_path):
+    cfg = configuration("static")
+    cfg["models"][0].update(provider="deepseek-official", model="deepseek-flash",
+                            deployment="external-cloud")
+    messages = [{"role": "system", "content": "工作目录 /Users/alice/project/repo"},
+                {"role": "user", "content": "只回答 21"}]
+    runtime = PlanningRuntime(tmp_path)
+    blocked = begin(runtime, "static", config=cfg)
+    with pytest.raises(ValueError, match="local-absolute-path"):
+        step(runtime, blocked, messages)
+    assert not runtime.runs[blocked]["budget"].records
+
+    cfg["trustPolicies"] = [{"id": "deepseek-paths", "residency": "CN",
+                              "auditLogging": True, "allowsSensitiveData": True}]
+    cfg["models"][0].update(deployment="trusted-cloud", trustPolicy="deepseek-paths")
+    allowed = begin(runtime, "static", turn=2, config=cfg)
+    action = step(runtime, allowed, messages)
+    assert action["model"]["provider"] == "deepseek-official"
+    assert action["messages"] == messages
 
 
 @pytest.mark.parametrize("strategy", ["static", "stage", "task", "composite", "advisor", "escalation"])
@@ -255,7 +561,8 @@ def test_cache_write_price_and_billed_cancellation(tmp_path):
     run = begin(r, "static", config=cfg)
     action = step(r, run)
     result = receipt(r, run, action, cacheWriteTokens=30)
-    assert result["record"]["costs"]["production"] == pytest.approx(.00023)
+    rate, _ = frozen_usd_cny_rate()
+    assert result["record"]["costs"]["production"] == pytest.approx(.00023 * rate, abs=5e-9)
     assert result["record"]["calls"][0]["reserved"] >= .002
     run = begin(r, "static", turn=2)
     action = step(r, run)

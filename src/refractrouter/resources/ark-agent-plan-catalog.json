@@ -1,6 +1,6 @@
 {
   "schema_version": "ark-agent-plan-catalog-v1",
-  "snapshot_date": "2026-09-12",
+  "snapshot_date": "2026-09-25",
   "provider": "ark-plan",
   "base_url": "https://ark.cn-beijing.volces.com/api/plan/v3",
   "billing_unit": "AFP",
@@ -17,6 +17,11 @@
       "url": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
       "format": "browser-visible-table",
       "retrieved_at": "2026-09-12"
+    },
+    {
+      "url": "https://docs.volcengine.com/docs/ark/agent-plan-enterprise-afp-credits-billing-rules?lang=zh",
+      "format": "browser-visible-table",
+      "retrieved_at": "2026-09-25"
     }
   ],
   "account_plan_tier": null,
@@ -313,6 +318,28 @@
         "output_coefficient": 10
       },
       "thinking_policy": "disabled-in-frozen-manifest"
+    },
+    {
+      "model_id": "deepseek-v4.1-flash",
+      "capability": "text-generation",
+      "plan_tiers": [],
+      "lifecycle": "active",
+      "identifier_kind": "documented-model-name",
+      "context_window_tokens": 1024000,
+      "max_output_tokens": 393216,
+      "integration": "text-manifest-required",
+      "live_verified": false,
+      "sources": [
+        "https://docs.volcengine.com/docs/ark/agent-plan-personal-zcode?lang=zh",
+        "https://docs.volcengine.com/docs/ark/agent-plan-enterprise-afp-credits-billing-rules?lang=zh"
+      ],
+      "pricing_checked_at": "2026-09-25",
+      "pricing_source_url": "https://docs.volcengine.com/docs/ark/agent-plan-enterprise-afp-credits-billing-rules?lang=zh",
+      "pricing": {
+        "unit": "afp-per-10000-tokens",
+        "input_coefficient": 2.5,
+        "output_coefficient": 2.5
+      }
     },
     {
       "model_id": "doubao-embedding-vision",

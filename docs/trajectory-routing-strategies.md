@@ -27,6 +27,7 @@ flowchart LR
 | 文件 | 职责 |
 | --- | --- |
 | `src/refractrouter/planning_config.py` | 版本化配置、角色、价格、信任域及零调用策略目录 |
+| `src/refractrouter/planning_model_metadata.py` | 按宿主容量与已核对的实际路线档案查询模型资料 |
 | `src/refractrouter/planning_policy.py` | Stage 信号、宿主工具事件归一、固定与随机选择 |
 | `src/refractrouter/planning_runtime.py` | 冻结任务、六类策略状态机、预算包络及证据 |
 | `src/refractrouter/planning_worker.py` | 无网络 NDJSON 工作进程 |
@@ -43,19 +44,22 @@ TypeScript 不计算路由分数或费用，也不执行规划路由产生的工
 
 ## 配置与界面
 
-设置卡片新增「规划路由」，通过同一 DSH 模型目录引用 provider/model，
-不复制密钥。角色为 efficient、capable、classifier、advisor；
+「设置 → 插件」分别显示「RefractAgent 规划路由」和「RefractAgent 自动路由」卡片。
+规划路由卡片把通用运行设置、模型与角色、策略设置、数据与历史兼容分开。
+模型通过同一 DSH 模型目录引用 provider/model，不复制密钥。
+角色为 efficient、capable、classifier、advisor；
 允许多个角色引用同一模型。Static 只需要 efficient，Stage 不需要 classifier。
 
 最低配置结构：
 
 ```json
 {
-  "schemaVersion": "refractagent-planning-v1",
+  "schemaVersion": "refractagent-planning-v2",
   "enabled": false,
   "defaultStrategy": "stage",
-  "billingUnit": "USD",
+  "billingUnit": "CNY",
   "maxProductionCost": 1,
+  "maxProductionCostByUnit": {"AFP": 0, "CNY": 0},
   "timeoutMs": 300000,
   "maxCalls": 128,
   "models": [],
@@ -65,33 +69,57 @@ TypeScript 不计算路由分数或费用，也不执行规划路由产生的工
 }
 ```
 
-示例预算仅说明字段，不会自动写入或启用用户配置。真实执行前必须填写模型与准确价格。
-每个模型需要 id、provider、model、contextWindow、maxOutputTokens、inputPer1k、
-outputPer1k，可填写 cachedInputPer1k、cacheWritePer1k、reasoningEffort、
-deployment、trustPolicy、capabilityCard。
+示例预算仅说明字段，不会自动写入或启用用户配置。生产预算、任务期限和最大调用数
+分别使用 `0` 表示无该项规划路由上限；费用仍逐次记账，宿主取消和提供方限制继续生效。
+真实执行前，相关模型仍须有容量和实际计价资料。
+模型选择后，插件从 DSH 目录读取可选推理等级，从宿主模型适配器读取容量，
+并请求 Python 核心查找带来源的路线价格。DeepSeek 官方路线直接使用官方人民币
+价格，按北京时间工作日峰谷时段计算；调用前使用高峰价格作为预算上界，实际扣费以
+提供方账单为准。其他直接提供方的 USD 价格可按冻结汇率
+折算为 CNY 预算价；明确使用 `/api/plan/v3` 的 Ark Agent Plan 路线可采用 AFP 档案。
+Ark 普通路线的原厂参考价不作为实际 AFP 或人民币账单价。
+缺少可核对资料时显示待核对，不以猜测值或 0 填充。
+
+### AFP 与人民币预算
+
+`refractagent-planning-v2` 允许每个模型绑定 `billingUnit`，并用
+`maxProductionCostByUnit` 设置 AFP 与 CNY 生产预算。USD 字段保留为旧配置兼容项，
+设置页不再显示 USD 预算或允许新模型选 USD。插件查询实际路线价格：先采用精确模型与
+provider 路线对应的官方 CNY 价格；缺少官方 CNY 价时，将可核对的 USD 价格按冻结汇率
+折算为 CNY。Ark Agent Plan 仍以 AFP 计量。旧配置的 USD 价格与预算在运行时按冻结汇率
+转为 CNY；历史运行记录不改写。缺少所需 AFP 或 CNY 预算时，相关策略在派发前阻断。
+`0` 明确表示该单位不限额。
+
+任务账本按 AFP 与 CNY 记录每次调用的预留、已结算和待核对值。复合策略开始前分别检查
+所需单位的完整调用包络，任一单位不足即零派发。现金与 AFP 不相加；调用数与期限仍为
+任务共用上限。未知用量、取消与进程中断保留原单位证据，不自动重发。USD 来源的折算
+汇率、来源和日期随调用账本保存。
+
+现有配置使用 AFP 执行模型时，直接提供方模型另计 CNY 预算；若价格或单位资料无法核对，
+所需策略继续阻断。旧历史中以 CNY 标记、但价格与
+Ark Agent Plan AFP 系数相同的记录只显示单位待核对，不改写原始证据。
 
 缓存读取与写入分开计价；发生缓存写入而未配置写入价格时停止并保留预留，
 不会将其当作普通输入虚报成本。价格为 0 表示明确确认零费用，缺价不是 0。
 可信云需要具名、有效、允许敏感数据并启用审计的信任策略；
 真实本地与外部云分别声明。所有角色都经过实际输入的数据域检查。
 
-选择规划路由后，`conversation.composer.dock` 显示具名横向策略选项，
-支持点击、左右键、Home/End 和窄屏滚动。不可用策略显示缺项原因。
-选择经 DSH 的会话模型服务写成 adapter-owned `rr:stage` 等标识，
-原生选择入口与控件共用状态。浏览器仅记住会话上一次规划选择，返回入口时通过
-同一宿主服务恢复；当前选择的持久化仍由 DSH 负责。
-DSH 欢迎页尚未建立会话时不渲染 composer dock，首条任务前通过原生模型菜单选择；
-会话建立后显示横向控件。
+会话模式在原生模型菜单的「路由模式」项中选择，交互与选择推理等级相同；
+对话输入区不注册策略控件。插件设置中的策略是新会话的默认值，
+模型角色、预算和具体参数在独立的「RefractAgent 规划路由」卡片配置。
+设置页沿用自动路由的卡片与控件样式，按当前策略展示适用参数。
+零调用检查显示各策略的配置缺项。
 
-设置修改与运行中策略切换只在下个任务生效。插件默认值用于尚未选定策略的会话。
-物理模型推理等级取角色配置，虚拟 `rr:*` 不会传给实际模型。
+会话已选择 `rr:*` 时，新任务优先使用该模式；未选择时使用
+`planningRouting.defaultStrategy`。已启动任务继续使用冻结配置。
+物理模型推理等级始终取角色配置。
 「路由轨迹」与「任务 DAG」独立页签共同注册。
 
 ## 六种策略
 
 | 策略 | 行为与默认参数 |
 | --- | --- |
-| Static | 固定 efficient；高级随机按冻结权重和 seed 可复现选择，默认两档权重 1 |
+| Static | 固定 efficient；高级随机按冻结权重和 seed 在每个任务开始时选一次，工具续接保持同一模型，默认两档权重 1 |
 | Stage | 最近 3 条工具证据、阈值 0.5、强模型保持 2 轮；无信号使用默认高效模型 |
 | Task | 每任务一次能力判别；基础阈值 0.5，边界修正步长 0.1；无效结果保守选择 capable |
 | Composite | 一次 Task 形成默认档位，再逐轮 Stage；普通续接不重复分类 |

@@ -236,6 +236,26 @@
         }
       },
       {
+        "id": "deepseek-v4.1-flash",
+        "model": "deepseek-v4.1-flash",
+        "provider": "ark-plan",
+        "role": "candidate",
+        "contextWindow": 1024000,
+        "maxOutputTokens": 8192,
+        "jsonMode": "json-object-hint",
+        "requestOptions": {},
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.25,
+          "outputPer1k": 0.25,
+          "cachedInputPer1k": 0.25
+        },
+        "routing": {
+          "quality": 80,
+          "latencyMs": 10000
+        }
+      },
+      {
         "id": "evaluation-kimi-k3",
         "model": "kimi-k3",
         "provider": "ark-plan",

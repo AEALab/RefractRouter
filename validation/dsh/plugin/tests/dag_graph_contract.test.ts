@@ -65,15 +65,14 @@ test('客户端只贡献独立页签，不发起请求或改动原会话渲染�
 })
 
 
-test('设置卡片、DAG、路由轨迹与策略控件共同注册', () => {
+test('设置卡片、DAG 与路由轨迹共同注册，输入区不增加策略控件', () => {
   const api = client(), registered: string[] = []
   api.apply({
     slots: { inject: (_: string, declaration: () => Iterable<unknown>) => [...declaration()],
       register: (options: any) => { registered.push(options.name) } },
-    modelDirectories:{directoryFor(){throw new Error('不应在注册时创建会话目录')}},
     locale: { register() {} }, effect: (setup: () => unknown) => setup(),
     settingsScope: { bind: () => ({ getSnapshot: () => ({ status: 'ready', value: {} }),
       subscribe: () => () => {} }) },
   })
-  assert.deepEqual(registered.sort(), ['conversation.composer.dock', 'conversation.view', 'conversation.view', 'settings.plugin.item'])
+  assert.deepEqual(registered.sort(), ['conversation.view', 'conversation.view', 'settings.plugin.item', 'settings.plugin.item'])
 })

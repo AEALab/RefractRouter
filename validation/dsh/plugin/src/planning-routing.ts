@@ -103,8 +103,11 @@ function sumUsage(total:TokenUsage,usage:TokenUsage):void {
 export class PlanningController {
   readonly rpc:PlanningRpc
   private tasks=new Map<string,string>()
+  private settings:AgentContext['settings']
   constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc){
     this.rpc=rpc??new PlanningWorker(ctx,source)
+    this.settings=ctx.settings
+    ctx.inject?.(['settings'],sctx=>{this.settings=sctx.settings})
     ctx.effect?.(()=>()=>this.rpc.dispose(),'refractagent planning worker')
     ctx.on?.('session/event',(session,event)=>{
       if(event.type!=='turn/end')return
@@ -113,15 +116,59 @@ export class PlanningController {
       if(runId)void this.rpc.request({op:'end',runId}).catch(()=>{})
     })
   }
-  async preview():Promise<Json>{
-    const config=this.source().planningRouting??EMPTY_PLANNING,hostIssues:Record<string,string>={}
-    if(this.ctx.llm.resolveModelInfo)await Promise.all((config.models??[]).map(async m=>{
-      try{await this.ctx.llm.resolveModelInfo!(m.provider,m.model)}
-      catch{hostIssues[m.id]='目标模型不能解析'}
+  private async completeMetadata(config:Json):Promise<Record<string,string>>{
+    const hostIssues:Record<string,string>={}
+    if(!this.ctx.llm.resolveModelInfo)return hostIssues
+    await Promise.all((config.models??[]).map(async (model:Json)=>{
+      try{
+        const info=await this.metadata(model.provider,model.model,'AUTO')
+        // Python 已识别实际 Ark Agent Plan 端点；旧配置中的手填价格不能覆盖单位冲突。
+        const unitIssue=Array.isArray(info.issues)?info.issues.find((issue:unknown)=>
+          typeof issue==='string'&&issue.includes('Ark Agent Plan 按 AFP 计量')):undefined
+        if(unitIssue){hostIssues[model.id]=unitIssue;return}
+        if(info.billingUnit==='AFP'||info.billingUnit==='CNY'){
+          model.billingUnit=info.billingUnit
+          if(config.schemaVersion==='refractagent-planning-v1')config.schemaVersion='refractagent-planning-v2'
+        }
+        if(info.capacity)for(const key of ['contextWindow','maxOutputTokens']){
+          const value=info.capacity[key]
+          if(Number.isInteger(value)&&value>0)model[key]=value
+        }
+        if(info.pricing)for(const key of ['inputPer1k','outputPer1k','cachedInputPer1k']){
+          const value=info.pricing[key]
+          if(typeof value==='number'&&Number.isFinite(value)&&value>=0)model[key]=value
+        }
+        if((typeof model.inputPer1k!=='number'||!Number.isFinite(model.inputPer1k)
+            ||typeof model.outputPer1k!=='number'||!Number.isFinite(model.outputPer1k))
+            &&Array.isArray(info.issues)){
+          const reason=info.issues.find((issue:unknown)=>typeof issue==='string'&&issue.includes('价格'))
+          if(reason)hostIssues[model.id]=reason
+        }
+      }catch{hostIssues[model.id]='目标模型不能解析或资料查询失败'}
     }))
+    return hostIssues
+  }
+  async preview():Promise<Json>{
+    const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
+    const hostIssues=await this.completeMetadata(config)
     return this.rpc.request({op:'preview',config,hostIssues})
   }
-  async simulate():Promise<Json>{return this.rpc.request({op:'simulate',config:this.source().planningRouting??EMPTY_PLANNING})}
+  async simulate():Promise<Json>{
+    const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
+    await this.completeMetadata(config)
+    return this.rpc.request({op:'simulate',config})
+  }
+  async metadata(provider:string,model:string,billingUnit:string):Promise<Json>{
+    if(!this.ctx.llm.resolveModelInfo)throw new Error('DSH 不提供模型资料查询')
+    const raw=await this.ctx.llm.resolveModelInfo(provider,model) as Json
+    const context=raw.context as Json|undefined
+    const llmSettings=this.settings?.get?.('llm-pi-ai') as Json|undefined
+    const route=llmSettings?.providers?.[provider] as Json|undefined
+    return this.rpc.request({op:'metadata',provider,model,billingUnit,host:{
+      contextWindow:context?.contextWindow,maxOutputTokens:raw.defaultMaxTokens,
+    },providerBaseURL:route?.baseURL})
+  }
+  async fx():Promise<Json>{return this.rpc.request({op:'fx'})}
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
   async *stream(options:ModelOptions):AsyncGenerator<Record<string,unknown>> {
     if(!this.ctx.llm.stream||!this.ctx.agents)throw new Error('规划路由需要 DSH 原生模型与 Agent 服务')
@@ -137,15 +184,18 @@ export class PlanningController {
     const identity={session,agent:agentId,turn}
     const key=JSON.stringify(identity)
     const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
-    const strategy=options.reasoningEffort?.startsWith('rr:')?options.reasoningEffort.slice(3):undefined
-    if(options.reasoningEffort&&!strategy)throw new Error('规划路由选择值必须使用 rr: 策略标识')
+    // 会话菜单选择优先；未选择时使用插件设置默认值。物理模型推理等级由角色配置决定。
+    const strategy=options.reasoningEffort?.startsWith('rr:')?options.reasoningEffort.slice(3):config.defaultStrategy
+    if(options.reasoningEffort&&!options.reasoningEffort.startsWith('rr:'))
+      throw new Error('规划路由选择值必须使用 rr: 策略标识')
     const cancelled=new AbortController()
     const signal=AbortSignal.any([cancelled.signal,...(options.signal?[options.signal]:[])])
     let runId=this.tasks.get(key),done=false
     try{
       signal.throwIfAborted()
       if(!runId){
-        const started=await this.rpc.request({op:'begin',identity,config,strategy,
+        const hostIssues=await this.completeMetadata(config)
+        const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,
           child:agent.session.header?.origin==='subagent'})
         runId=String(started.runId);this.tasks.set(key,runId)
         if(this.ctx.llm.resolveModelInfo)for(const route of started.models??[])
@@ -161,7 +211,7 @@ export class PlanningController {
       const total:TokenUsage={}
       while(action.action==='call'){
         signal.throwIfAborted()
-        const callSignal=AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,action.remainingMs))])
+        const callSignal=action.remainingMs===null?signal:AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,action.remainingMs))])
         const chunks:Json[]=[],blocks=new Map<number,Json>()
         let content='',usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
         const started=performance.now()
@@ -179,7 +229,17 @@ export class PlanningController {
           chunks.push(chunk)
           if(!action.buffered)yield chunk
         }}catch(error){streamError=error}
-        if(streamError||callSignal.aborted)await this.rpc.request({op:'cancel',runId})
+        if(!streamError&&finish?.reason?.kind==='error'){
+          const failure=finish.reason.failure as Json|undefined
+          streamError=new Error('底层模型调用失败'+(failure?.code?'（'+String(failure.code)+'）':'')+
+            (failure?.message?'：'+String(failure.message).slice(0,500):''))
+        }
+        if(!streamError&&!finish)streamError=new Error('底层模型没有返回完成回执；用量待核对')
+        if(streamError||callSignal.aborted){
+          await this.rpc.request({op:'cancel',runId})
+          if(streamError)throw streamError
+          callSignal.throwIfAborted()
+        }
         const tools=[...blocks.values()].filter(b=>b.type==='tool-call')
         if(!content)content=[...blocks.values()].filter(b=>b.type==='text').map(b=>b.text).join('')
         if(usage)sumUsage(total,usage)
@@ -191,7 +251,6 @@ export class PlanningController {
           cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,
           cachedInputTokens:usage?.cacheReadTokens??0,outputTokens:usage?.outputTokens??0,
           reasoningTokens:usage?.reasoningTokens??0,latencyMs:performance.now()-started}})
-        if(streamError)throw streamError
         callSignal.throwIfAborted()
       }
       signal.throwIfAborted()

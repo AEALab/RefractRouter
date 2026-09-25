@@ -7,6 +7,7 @@ import examples from './provider-examples.json' with { type: 'json' }
  * 宿主契约测试与浏览器 client bundle 共用；不依赖 React、Node API 或 DSH 包。
  */
 export const SETTINGS_NAMESPACE = 'refractagent'
+export const PLANNING_CARD_NAMESPACE = 'refractagent-planning'
 export const DEPLOYMENT_OPTIONS = [
   { value: 'local', label: '真实本地（local）' },
   { value: 'external-cloud', label: '普通外部云（external-cloud）' },
