@@ -47,11 +47,11 @@ function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
 }
 
 function configuredModels(config: Readonly<Configuration>): readonly { id: string; name: string }[] {
-  if (config.dshModelPool === undefined && config.providerConfig?.schemaVersion !== 'refractagent-providers-v4') return [...LEGACY_MODELS,{id:'planning',name:'RefractAgent 规划路由'}]
+  if (config.dshModelPool === undefined && config.providerConfig?.schemaVersion !== 'refractagent-providers-v4') return [...LEGACY_MODELS,{id:'planning',name:'RefractAgent · 规划路由'}]
   // DSH caches provider model discovery while plugin fibers are starting, before the user settings
   // layer is necessarily available. Always advertise the entry; invokeAutoLive performs the current
   // settings, catalog and budget checks immediately before any credential resolution or dispatch.
-  return [...AUTO_MODELS, AUTO_LIVE_MODEL,{id:'planning',name:'RefractAgent 规划路由'}]
+  return [...AUTO_MODELS, AUTO_LIVE_MODEL,{id:'planning',name:'RefractAgent · 规划路由'}]
 }
 
 /** DSH 会保留新会话上次选择的模型 ID；升级到 v4 后把旧三模式选择收敛到唯一自动入口。 */
@@ -801,7 +801,12 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
 export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>): AgentAdapter {
   const planning = new PlanningController(ctx,source)
   ctx.llm.registerModelDiscovery?.('refractagent-planning',async request=>{
-    const value=request.api==='simulate'?await planning.simulate():request.provider && request.provider!=='local' ? await planning.history(request.provider) : await planning.preview()
+    const metadata=request.api?.startsWith('metadata:')?request.api.slice('metadata:'.length).split(':'):null
+    const value=metadata&&metadata.length===2&&request.provider
+      ?await planning.metadata(request.provider,decodeURIComponent(metadata[0]!),metadata[1]!)
+      :request.api==='simulate'?await planning.simulate()
+      :request.api==='fx'?await planning.fx()
+      :request.provider && request.provider!=='local' ? await planning.history(request.provider) : await planning.preview()
     return [{id:'planning',name:JSON.stringify(value)}]
   })
   const metadata = (provider: string, model: string): ModelMetadata => {
@@ -811,8 +816,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     if (provider !== 'refractagent' || !entry) throw new Error('Unknown RefractAgent strategy model')
     if(entry.id==='planning'){
       const models=config.planningRouting?.models??[]
-      const windows=models.map(m=>m.contextWindow).filter(n=>Number.isSafeInteger(n)&&n>=512)
-      const caps=models.map(m=>m.maxOutputTokens).filter(n=>Number.isSafeInteger(n)&&n>0)
+      const windows=models.map(m=>m.contextWindow).filter((n):n is number=>typeof n==='number'&&Number.isSafeInteger(n)&&n>=512)
+      const caps=models.map(m=>m.maxOutputTokens).filter((n):n is number=>typeof n==='number'&&Number.isSafeInteger(n)&&n>0)
       const contextWindow=windows.length?Math.min(...windows):24000
       return {...entry,provider,inputModalities:['text'],
         description:'保留 DSH 原生工具循环；Python 策略选模、审核与记账。',

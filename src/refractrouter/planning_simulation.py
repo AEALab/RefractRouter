@@ -25,4 +25,5 @@ def simulate(config):
         return {"simulated": True, "actualModelCalls": 0, "strategy": begin["strategy"],
             "simulatedCalls": len(record["calls"]), "models": [r["model_id"] for r in record["calls"]],
             "simulatedCost": record["costs"]["production"], "billingUnit": record["billingUnit"],
+            "simulatedCostsByUnit": record["costsByUnit"],
             "message": "仅模拟协议与状态；费用为模拟用量，不能证明实际质量、成本或时延收益。"}

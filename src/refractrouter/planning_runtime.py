@@ -12,7 +12,9 @@ import uuid
 from .planning_config import compile_config, preview, PROTOCOL, REQUIRED
 from .planning_policy import tool_events, stage, static_choice, text_of
 from .privacy_placement import classify_view, allows_sensitive
-from .task_budget import TaskCallBudget, request_input_bound
+from .task_budget import request_input_bound
+from .planning_budget import PlanningBudget
+from .deepseek_official_pricing import pricing as deepseek_cny_pricing
 from .openai_compatible import ChatResponse
 
 MAX_WIRE_BYTES = 16 * 1024 * 1024
@@ -20,6 +22,24 @@ MAX_WIRE_BYTES = 16 * 1024 * 1024
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+
+
+def historical_billing_warning(record):
+    """只标注有明确 AFP 系数吻合证据的旧账，不改写原始费用证据。"""
+    if record.get("billingUnit") != "CNY":
+        return None
+    from .ark_plan import catalog
+    plan = {item["model_id"]: item for item in catalog()["models"]}
+    configured = {item.get("id"): item for item in record.get("configuration", {}).get("models", [])}
+    for call in record.get("calls", []):
+        if call.get("provider") != "ark" or call.get("status") != "billed":
+            continue
+        model = configured.get(call.get("model_id"), {})
+        ark = plan.get(call.get("actual_model"))
+        if ark and model.get("inputPer1k") == ark["pricing"]["input_coefficient"] / 10 \
+                and model.get("outputPer1k") == ark["pricing"]["output_coefficient"] / 10:
+            return "历史配置标为 CNY，但 Ark 模型价格与 AFP 系数相同；不能视为人民币实付金额"
+    return None
 
 
 class PlanningRuntime:
@@ -31,11 +51,14 @@ class PlanningRuntime:
     def persist(self, run):
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         path = self.root / (run["id"] + ".json")
-        charged, calls = run["budget"].snapshot()
+        costs_by_unit, calls = run["budget"].snapshot()
+        active_units = {call["billing_unit"] for call in calls if "billing_unit" in call}
+        single_unit = next(iter(active_units)) if len(active_units) == 1 else None
+        legacy_costs = costs_by_unit[single_unit] if single_unit else {"production": None, "evaluation": None}
         public = {"protocol": PROTOCOL, "runId": run["id"], "identity": run["identity"],
             "strategy": run["strategy"], "configDigest": run["config_digest"], "status": run["status"],
             "configuration": run["config"]["raw"], "state": run["state"], "decisions": run["decisions"], "calls": calls,
-            "costs": charged, "billingUnit": run["config"]["unit"],
+            "costs": legacy_costs, "billingUnit": single_unit, "costsByUnit": costs_by_unit,
             "phase": run["flow"]["pending"][2] if run["flow"] and run["flow"]["pending"] else "idle",
             "coverage": "managed-agent-only", "resultPath": str(path.resolve())}
         temporary = path.with_suffix(".tmp")
@@ -72,7 +95,7 @@ class PlanningRuntime:
         preview_raw = deepcopy(request["config"])
         if child:
             preview_raw["parameters"] = {**preview_raw.get("parameters", {}), "staticMode": "fixed"}
-        catalog = preview(preview_raw)
+        catalog = preview(preview_raw, request.get("hostIssues"))
         selected = next((r for r in catalog["strategies"] if r["id"] == strategy), None)
         if not selected or not selected["available"]:
             raise ValueError("策略不可执行：" + "；".join(selected["issues"] if selected else ["未知策略"]))
@@ -83,8 +106,8 @@ class PlanningRuntime:
             config["parameters"]["staticMode"] = "fixed"
         run = {"id": key, "identity": deepcopy(identity), "config": config, "strategy": strategy,
             "config_digest": digest(request["config"]), "status": "running", "flow": None,
-            "deadline": time.monotonic() + config["timeout"] / 1000,
-            "budget": TaskCallBudget(None, config["budget"], 1, max_calls=config["max_calls"], capture_payload=True),
+            "deadline": time.monotonic() + config["timeout"] / 1000 if config["timeout"] else None,
+            "budget": PlanningBudget(config["budgets"], max_calls=config["max_calls"] or None),
             "state": {"hold": 0, "default": "efficient", "classified": False, "streak": 0,
                       "latched": False, "reviews": 0, "redos": 0, "step": 0, "last_model": None, "last_evidence": None, "compactions": 0},
             "decisions": []}
@@ -99,7 +122,8 @@ class PlanningRuntime:
 
     def describe(self, run):
         return {"runId": run["id"], "strategy": run["strategy"], "status": run["status"],
-                "remainingMs": max(0, int((run["deadline"] - time.monotonic()) * 1000))}
+                "remainingMs": max(0, int((run["deadline"] - time.monotonic()) * 1000))
+                    if run["deadline"] is not None else None}
 
     def require(self, key):
         if key not in self.runs:
@@ -107,7 +131,7 @@ class PlanningRuntime:
         run = self.runs[key]
         if run["status"] != "running" or run["budget"].stopped:
             raise ValueError("规划路由任务已停止")
-        if time.monotonic() >= run["deadline"]:
+        if run["deadline"] is not None and time.monotonic() >= run["deadline"]:
             self.stop(run, "deadline-exhausted")
             raise ValueError("规划路由任务期限耗尽")
         return run
@@ -173,11 +197,23 @@ class PlanningRuntime:
             purposes += ["advisor"] * (c["parameters"]["maxReviews"] - s["reviews"]) + ["efficient"] * (c["parameters"]["maxRedos"] - s["redos"])
         if strategy == "static" and c["parameters"]["staticMode"] == "random":
             purposes.append("capable")
-        bound = 0
+        bounds = {}
         for role in purposes:
             model = c["models"][c["roles"][role]]
-            bound += model.context_window / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0) + model.max_output_tokens / 1000 * model.output_cost_per_1k
-        if bound > run["budget"].remaining() or len(run["budget"].records) + len(purposes) > c["max_calls"]:
+            if model.provider == "deepseek-official" and model.billing_unit == "CNY":
+                price = deepseek_cny_pricing(model.api_model, conservative=True)
+                if price:
+                    model = replace(model, input_cost_per_1k=price["inputPer1k"],
+                                    output_cost_per_1k=price["outputPer1k"],
+                                    cached_input_cost_per_1k=price["cachedInputPer1k"])
+            # Static 只有当前这一次执行调用；按真实输入检查，避免把 1M 上下文窗
+            # 误计为本次已使用量。多调用策略仍保留既有的完整路径保守上界。
+            input_bound = request_input_bound(messages, tools) if strategy == "static" else model.context_window
+            bounds[model.billing_unit] = bounds.get(model.billing_unit, 0) + (
+                input_bound / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0)
+                + model.max_output_tokens / 1000 * model.output_cost_per_1k)
+        if any(bound > run["budget"].remaining(unit) for unit, bound in bounds.items()) \
+                or (c["max_calls"] and len(run["budget"].records) + len(purposes) > c["max_calls"]):
             raise ValueError("剩余预算或调用次数不足以覆盖完整策略路径")
         run["flow"] = {"messages": messages, "tools": tools, "events": events, "pending": None,
                        "responses": {}, "feedback": None, "requestId": request.get("requestId"), "evidence": evidence,
@@ -193,32 +229,74 @@ class PlanningRuntime:
         model = c["models"][c["roles"][role]]
         grade = classify_view(json.dumps({"messages": messages, "tools": tools}, ensure_ascii=False), privacy=c["security"])
         if grade["grade"] != "S3" and not allows_sensitive(model.deployment, c["security"]):
-            raise ValueError("当前输入不允许发送到目标模型的数据域")
-        # 原生公共历史可跨模型；含不透明 replay 的组合必须有明确验收记录。
+            reasons = [str(reason).split(":", 1)[0] for reason in grade["reasons"]]
+            raise ValueError("当前输入不允许发送到目标模型的数据域：" + "、".join(reasons))
+        # 普通文本与标准工具块可跨模型；只有模型专用 replay 数据需要组合验收。
         for message in messages:
             source = message.get("source", {})
             if not isinstance(source, dict) or source.get("kind") != "model":
                 continue
+            replay = source.get("replayState")
+            if not isinstance(replay, dict) or not (replay.get("response") or replay.get("blocks")):
+                continue
             old = next((m.model_id for m in c["models"].values()
                         if m.provider == source.get("provider") and m.api_model == source.get("model")), None)
             if old != model.model_id and [old, model.model_id] not in c["pairs"]:
-                raise ValueError("模型历史 replay 组合未经兼容验收")
+                content = message.get("content")
+                # 宿主标准文本与已配对的工具调用可按原结构发送；去掉提供方专用
+                # replay 和思考块，避免把旧模型的私有状态交给新模型。
+                def standard(block):
+                    if not isinstance(block, dict):
+                        return False
+                    if block.get("type") == "text":
+                        return isinstance(block.get("text"), str)
+                    if block.get("type") == "reasoning":
+                        return True
+                    return (block.get("type") == "tool-call"
+                            and all(isinstance(block.get(key), str) for key in ("id", "name", "arguments")))
+
+                if (message.get("role") == "assistant" and isinstance(content, list)
+                        and any(isinstance(block, dict) and block.get("type") in ("text", "tool-call")
+                                for block in content) and all(standard(block) for block in content)):
+                    message["content"] = [block for block in content if block["type"] != "reasoning"]
+                    source.pop("replayState", None)
+                else:
+                    raise ValueError("模型历史 replay 组合未经兼容验收")
         return model
 
     def issue(self, run, role, purpose, messages, tools, *, buffered=True, update=None):
         model = self.admit(run, role, messages, tools)
+        pricing = None
+        reserve_pricing = None
+        if model.provider == "deepseek-official" and model.billing_unit == "CNY":
+            pricing = deepseek_cny_pricing(model.api_model)
+            reserve_pricing = deepseek_cny_pricing(model.api_model, conservative=True)
+            if pricing:
+                model = replace(model, input_cost_per_1k=pricing["inputPer1k"],
+                                output_cost_per_1k=pricing["outputPer1k"],
+                                cached_input_cost_per_1k=pricing["cachedInputPer1k"])
         cap = run["flow"].get("maxTokens")
         if cap is not None:
             if type(cap) is not int or cap <= 0:
                 raise ValueError("无效输出容量")
             model = replace(model, max_output_tokens=min(model.max_output_tokens, cap))
-        reserve_model = replace(model, input_cost_per_1k=max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0))
+        reserve_model = replace(model,
+            input_cost_per_1k=max(reserve_pricing["inputPer1k"] if reserve_pricing else model.input_cost_per_1k,
+                                  model.cache_write_cost_per_1k or 0),
+            output_cost_per_1k=reserve_pricing["outputPer1k"] if reserve_pricing else model.output_cost_per_1k)
         reservation = run["budget"].reserve(reserve_model, messages, label=f'{run["id"]}:{len(run["budget"].records)}',
             tools=tools or None)
         reservation.model = model
         token = uuid.uuid4().hex
         reservation.row.update(call_id=token, purpose=purpose, disposition="pending",
                                provider=model.provider, actual_model=model.api_model)
+        if pricing:
+            reservation.row.update(pricing_tier=pricing["tier"], pricing_source=pricing["source"],
+                                   pricing_checked_at=pricing["checkedAt"])
+        if model.source_billing_unit == "USD":
+            reservation.row.update(source_billing_unit="USD", conversion_rate=model.conversion_rate,
+                                   conversion_source=model.conversion_source,
+                                   conversion_as_of=model.conversion_as_of)
         run["budget"].dispatch(reservation)
         run["flow"]["pending"] = (token, reservation, purpose)
         if update:
@@ -235,7 +313,8 @@ class PlanningRuntime:
         hold, score, reason = s["hold"], None, "fixed"
         if role is None:
             if strategy == "static":
-                role = static_choice(p, run["id"], s["step"])
+                # Random 在任务开始时选一次；工具续接沿用同一模型。
+                role = static_choice(p, run["id"], 0)
             elif strategy in ("stage", "composite"):
                 role, reason, hold, score = stage(flow["events"] if flow["fresh"] else [], s, p, s["default"])
             elif strategy == "task":
@@ -306,7 +385,7 @@ class PlanningRuntime:
         flow["responses"][token] = {"content": response.content, "toolCalls": response.tool_calls}
         reservation.row["disposition"] = "consult" if purpose in ("task", "advisor", "escalation") else "buffered"
         self.persist(run)
-        if run["status"] != "running" or time.monotonic() >= run["deadline"]:
+        if run["status"] != "running" or (run["deadline"] is not None and time.monotonic() >= run["deadline"]):
             self.stop(run, run["status"] if run["status"] != "running" else "deadline-exhausted")
             return {"action": "stop", **self.describe(run)}
         s, p, strategy = run["state"], run["config"]["parameters"], run["strategy"]
@@ -389,6 +468,13 @@ class PlanningRuntime:
 
     def _handle(self, request):
         operation = request.get("op")
+        if operation == "fx":
+            from .dsh_model_pool import frozen_usd_cny_rate
+            rate, snapshot = frozen_usd_cny_rate()
+            return {"rate": rate, "source": snapshot["source"], "asOf": snapshot["as_of"]}
+        if operation == "metadata":
+            from .planning_model_metadata import lookup
+            return lookup(request)
         if operation == "simulate":
             from .planning_simulation import simulate
             return simulate(request.get("config", {}))
@@ -399,6 +485,9 @@ class PlanningRuntime:
                 row = json.loads(path.read_text())
                 if row["identity"]["session"] == session:
                     # UI 查询只暴露状态与费用；原始提示与丢弃回复只留本机证据。
+                    warning = historical_billing_warning(row)
+                    if warning:
+                        row["billingWarning"] = warning
                     for call in row["calls"]:
                         for field in ("request_messages", "request_tools", "response", "response_output"):
                             call.pop(field, None)

@@ -67,7 +67,7 @@ test('settings base reflects the tunable subset of the composed configuration', 
   const base = buildSettingsBase(config)
   assert.equal(base.providerConfig?.providers[0].type, 'ark-agent-plan')
   assert.ok(base.providerConfig!.models.length > 1)
-  assert.equal(overlaySettings(config, base).providerConfig?.models.filter(m => m.role === 'candidate').length, 11)
+  assert.equal(overlaySettings(config, base).providerConfig?.models.filter(m => m.role === 'candidate').length, 12)
   assert.deepEqual(base.limits, { relaxBudget: false, relaxContext: false })
 
   const withProviders = configure({ executionMode: 'live', allowPaidRuns: true,
@@ -221,10 +221,11 @@ test('installRefractSettings registers the namespace and follows the settings sc
     config,
     section => { sections.push(section as Record<string, unknown>) },
   )
-  assert.equal(registrations.length, 1)
-  assert.equal(registrations[0].ns, SETTINGS_NAMESPACE)
-  assert.deepEqual(registrations[0].options.base, buildSettingsBase(config))
-  assert.equal(typeof registrations[0].options.validate, 'function')
+  assert.equal(registrations.length, 2)
+  assert.equal(registrations[0].ns, 'refractagent-planning')
+  assert.equal(registrations[1].ns, SETTINGS_NAMESPACE)
+  assert.deepEqual(registrations[1].options.base, buildSettingsBase(config))
+  assert.equal(typeof registrations[1].options.validate, 'function')
   assert.equal(sections.length, 1)
   current = { limits: { relaxBudget: true, relaxContext: false } }
   notify?.(current)
@@ -607,13 +608,13 @@ test('client bundle registers in the host module format and exports the plugin f
     throw new Error('unexpected require: ' + spec)
   }) as { apply: (ctx: unknown) => void; inject: string[] }
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'modelDirectories'])
+  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope'])
 
   const effects: Array<() => unknown> = []
   const discoveryCalls: Array<{namespace:string;request:Record<string,unknown>}> = []
   let boundNamespace: string | undefined
   let slotDeclaration: (() => Generator<unknown>) | undefined
-  let registeredOptions: Record<string, unknown> | undefined
+  const registeredOptions: Record<string, unknown>[] = []
   exports.apply({
     effect: (setup: () => unknown) => { effects.push(setup) },
     locale: { register: () => undefined },
@@ -623,18 +624,20 @@ test('client bundle registers in the host module format and exports the plugin f
     settingsScope: { bind: (spec: { namespace: string }) => { boundNamespace = spec.namespace; return fakeScope({}) } },
     slots: {
       inject: (_key: string, declaration: () => Generator<unknown>) => { slotDeclaration = declaration },
-      register: (options: Record<string, unknown>) => { registeredOptions = options; return () => undefined },
+      register: (options: Record<string, unknown>) => { registeredOptions.push(options); return () => undefined },
     },
   })
   assert.equal(boundNamespace, SETTINGS_NAMESPACE)
   assert.ok(slotDeclaration !== undefined)
   const slotResults = [...(slotDeclaration as () => Generator<unknown>)()]
-  assert.equal(slotResults.length, 1)
+  assert.equal(slotResults.length, 2)
   assert.equal(typeof slotResults[0], 'function')
-  assert.equal(registeredOptions?.name, 'settings.plugin.item')
-  assert.equal(registeredOptions?.key, SETTINGS_NAMESPACE)
-  assert.equal(typeof registeredOptions?.inject, 'function')
-  const injected = (registeredOptions!.inject as () => {
+  assert.deepEqual(registeredOptions.map(value=>value.name),['settings.plugin.item','settings.plugin.item'])
+  assert.deepEqual(registeredOptions.map(value=>value.key),['refractagent-planning',SETTINGS_NAMESPACE])
+  assert.notEqual(registeredOptions[0]?.locale,registeredOptions[1]?.locale)
+  assert.equal(typeof registeredOptions[0]?.inject,'function')
+  assert.equal(typeof registeredOptions[1]?.inject,'function')
+  const injected = (registeredOptions[1]!.inject as () => {
     loadRouteProfiles(connection?:unknown):Promise<unknown>
   })()
   await injected.loadRouteProfiles()

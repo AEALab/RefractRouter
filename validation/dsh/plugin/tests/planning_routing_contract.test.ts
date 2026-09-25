@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { configure,createAdapter,type AgentContext,type ModelOptions } from '../dist/agent-provider.js'
 import { PlanningController,PlanningWorker,planningMessages } from '../dist/planning-routing.js'
-import type { PlanningConfig } from '../dist/planning-config.js'
+import type { PlanningConfig, PlanningStrategy } from '../dist/planning-config.js'
 import type { StreamChunk } from '../dist/contracts.js'
 
 const root=resolve('../../..')
@@ -29,13 +29,15 @@ function* reply(text:string,blocks:Record<string,unknown>[]=[]):Generator<Stream
   yield {type:'usage',usage:{inputTokens:100,outputTokens:20}}
   yield {type:'finish',reason:{kind:blocks.length?'tool-calls':'stop'},replayState:{response:{native:'source'}}}
 }
-async function fixture(strategy='static'){
+async function fixture(strategy:PlanningStrategy='static'){
   const path=await mkdtemp(resolve(tmpdir(),'rr-planning-'))
   const events=[{type:'step/start',data:{turn:1,step:1} as Record<string,unknown>}]
   const calls:any[]=[]
   let replies:Array<()=>Iterable<StreamChunk>>=[]
   let toolExecutions=0,disposal:(()=>void)|undefined
+  const providerRoutes:Record<string,{baseURL:string}>={}
   const ctx:AgentContext={
+    settings:{get:(key:string)=>key==='llm-pi-ai'?{providers:providerRoutes}:undefined} as any,
     llm:{registerAdapter(){},async *stream(options){calls.push(options);yield* (replies.shift()?.()??reply('完成'))}},
     agents:{requireInitiator:()=>({id:'native-session',session:{header:{id:'native-session'},events,append(){}}})},
     tools:{async execute(){toolExecutions++;throw new Error('插件不应执行宿主工具')}},
@@ -53,13 +55,16 @@ async function fixture(strategy='static'){
       }
     }
   }
-  const frozen=configure({pythonExecutable:resolve(root,'.venv/bin/python'),runsDir:path,planningRouting:config})
+  let frozen=configure({pythonExecutable:resolve(root,'.venv/bin/python'),runsDir:path,planningRouting:{...config,defaultStrategy:strategy}})
   const worker=new PlanningWorker(ctx,()=>frozen)
   const controller=new PlanningController(ctx,()=>frozen,worker)
   const options:ModelOptions={provider:'refractagent',model:'planning',reasoningEffort:'rr:'+strategy,
     sessionId:'native-session',messages:[{role:'user',content:[{type:'text',text:'测试'}]}],
     tools:[{name:'read',description:'read',parameters:{type:'object'}}]}
   return {ctx,controller,calls,events,options,path,
+    setProviderBaseURL(provider:string,baseURL:string){providerRoutes[provider]={baseURL}},
+    setStrategy(value:PlanningStrategy){frozen=configure({...frozen,planningRouting:{...config,defaultStrategy:value}})},
+    setPlanning(value:PlanningConfig){frozen=configure({...frozen,planningRouting:value})},
     setReplies(v:typeof replies){replies=v},get toolExecutions(){return toolExecutions},
     async cleanup(){disposal?.();worker.dispose();await new Promise(r=>setTimeout(r,50));await rm(path,{recursive:true,force:true})}}
 }
@@ -84,7 +89,7 @@ test('真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件
     assert.ok(second.some(c=>c.type==='text-delta'&&c.text==='完成'))
     const history=await f.controller.history('native-session')
     assert.equal(history.records[0].calls.length,2)
-    assert.ok(Math.abs(history.records[0].costs.production-.00028)<1e-10)
+    assert.ok(Math.abs(history.records[0].costs.production-.00028*6.7459)<2e-8)
   }finally{await f.cleanup()}
 })
 
@@ -119,6 +124,7 @@ test('切换策略当前轮保持冻结，新轮重新分类；取消不释放�
   const f=await fixture('static')
   try{
     await collect(f.controller.stream(f.options))
+    f.setStrategy('task')
     await collect(f.controller.stream({...f.options,reasoningEffort:'rr:task'}))
     assert.equal(f.calls.length,2)
     f.events.push({type:'step/start',data:{turn:2,step:1}})
@@ -126,6 +132,7 @@ test('切换策略当前轮保持冻结，新轮重新分类；取消不释放�
     await collect(f.controller.stream({...f.options,reasoningEffort:'rr:task'}))
     assert.equal(f.calls.length,4)
     f.events.push({type:'step/start',data:{turn:3,step:1}})
+    f.setStrategy('advisor')
     const cancel=new AbortController()
     f.setReplies([()=>({*[Symbol.iterator](){yield* reply('候选');cancel.abort()}})])
     await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor',signal:cancel.signal})))
@@ -140,10 +147,119 @@ test('规划入口可发现但未配置零调用拒绝；原生历史来源保�
     const adapter=createAdapter(f.ctx,()=>configure({}))
     assert.ok((await adapter.listModels('refractagent')).some(m=>m.id==='planning'))
     assert.equal((await adapter.resolveModel('refractagent','planning')).reasoning?.defaultEffort,'rr:stage')
+    assert.deepEqual((await adapter.resolveModel('refractagent','planning')).reasoning?.efforts.map(e=>e.id),
+      ['rr:stage','rr:task','rr:composite','rr:advisor','rr:escalation','rr:static'])
     const original=[{role:'assistant',source:{kind:'model',provider:'other',model:'old'},
       content:[{type:'text',text:'历史'}]}]
     assert.deepEqual(planningMessages(original),original)
+    const legacy=[{role:'assistant',source:{kind:'model',provider:'refractagent',model:'planning',
+      replayState:{response:{refractPlanning:{version:1,provider:'refract-fixture',model:'small'}}}},
+      content:[{type:'text',text:'离线验收历史'}]}]
+    assert.deepEqual(planningMessages(legacy)[0].source,
+      {kind:'model',provider:'refract-fixture',model:'small'})
     assert.throws(()=>planningMessages([{...original[0],source:{kind:'model',provider:'refractagent',model:'auto'}}]),/真实来源/)
+  }finally{await f.cleanup()}
+})
+
+test('宿主容量经 Python 模型资料查询核对，参考价格不冒充实际计费',async()=>{
+  const f=await fixture()
+  try{
+    f.ctx.llm.resolveModelInfo=async()=>({provider:'deepseek-official',id:'deepseek-flash',name:'DeepSeek Flash',
+      context:{contextWindow:64000},defaultMaxTokens:4096})
+    const verified=await f.controller.metadata('deepseek-official','deepseek-flash','USD')
+    assert.deepEqual(verified.capacity,{contextWindow:64000,maxOutputTokens:4096})
+    assert.ok(verified.pricing.inputPer1k>0)
+    const direct=await f.controller.metadata('deepseek-official','deepseek-flash','AUTO')
+    assert.equal(direct.billingUnit,'CNY')
+    assert.ok(direct.pricing.inputPer1k>0)
+    assert.equal(direct.sources.pricing,'https://api-docs.deepseek.com/zh-cn/quick_start/pricing')
+    const unknown=await f.controller.metadata('ark','minimax-m3','CNY')
+    assert.equal(unknown.pricing,null)
+  }finally{await f.cleanup()}
+})
+
+test('同一任务的 AFP 判别与 CNY 现金执行分账展示，不生成跨单位总价',async()=>{
+  const f=await fixture('task')
+  try{
+    const saved:PlanningConfig=structuredClone(config)
+    saved.schemaVersion='refractagent-planning-v2'
+    saved.billingUnit='USD'
+    saved.maxProductionCostByUnit={AFP:10,CNY:10}
+    saved.models![2].billingUnit='AFP'
+    f.setPlanning(saved)
+    f.setReplies([()=>reply('{"p_solve":0.8,"capability_boundary":"supported"}'),()=>reply('完成')])
+    await collect(f.controller.stream(f.options))
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.equal(record.billingUnit,null)
+    assert.equal(record.costs.production,null)
+    assert.ok(record.costsByUnit.AFP.production>0)
+    assert.ok(record.costsByUnit.CNY.production>0)
+    assert.deepEqual(record.calls.map((call:any)=>call.billing_unit),['AFP','CNY'])
+  }finally{await f.cleanup()}
+})
+
+test('新 Ark Agent Plan 路线可自动识别 AFP 单位',async()=>{
+  const f=await fixture()
+  try{
+    f.setProviderBaseURL('ark','https://ark.cn-beijing.volces.com/api/plan/v3')
+    f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
+      context:{contextWindow:64000},defaultMaxTokens:4096})
+    const metadata=await f.controller.metadata('ark','deepseek-v4-pro','AUTO')
+    assert.equal(metadata.billingUnit,'AFP')
+    assert.equal(metadata.pricing.inputPer1k,.55)
+  }finally{await f.cleanup()}
+})
+
+test('Ark Agent Plan 将旧 CNY 价格迁移到 AFP 账本并要求 AFP 预算',async()=>{
+  const f=await fixture()
+  try{
+    f.setProviderBaseURL('ark','https://ark.cn-beijing.volces.com/api/plan/v3')
+    const saved:PlanningConfig=structuredClone(config)
+    saved.billingUnit='CNY'
+    saved.models![0]={...saved.models![0],provider:'ark',model:'deepseek-v4-pro',
+      inputPer1k:.55,outputPer1k:.55}
+    f.setPlanning(saved)
+    f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
+      context:{contextWindow:64000},defaultMaxTokens:4096})
+    const report=await f.controller.preview()
+    const staticRoute=report.strategies.find((row:any)=>row.id==='static')
+    assert.equal(staticRoute.available,false)
+    assert.match(staticRoute.issues.join(' '),/缺少 AFP 生产预算/)
+    await assert.rejects(collect(f.controller.stream(f.options)),/缺少 AFP 生产预算/)
+    assert.equal(f.calls.length,0)
+  }finally{await f.cleanup()}
+})
+
+test('宿主 finish 错误保留未知用量预留，并显示原始失败原因',async()=>{
+  const f=await fixture()
+  try{
+    f.setReplies([()=>({*[Symbol.iterator](){
+      yield {type:'finish',reason:{kind:'error',failure:{code:'PROVIDER_FAILURE',message:'模型请求被拒绝'}}} as StreamChunk
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream(f.options)),/PROVIDER_FAILURE.*模型请求被拒绝/)
+    const history=await f.controller.history('native-session')
+    assert.equal(history.records[0].calls[0].status,'unknown-usage')
+    assert.equal(history.records[0].costs.production>0,true)
+  }finally{await f.cleanup()}
+})
+
+test('已保存配置缺少价格时，预检和真实派发使用系统核对的模型资料',async()=>{
+  const f=await fixture()
+  try{
+    const saved:PlanningConfig=structuredClone(config)
+    saved.billingUnit='CNY'
+    saved.models![0]={id:'small',provider:'deepseek-official',model:'deepseek-flash',deployment:'local'}
+    f.setPlanning(saved)
+    f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
+      context:{contextWindow:64000},defaultMaxTokens:4096})
+    const report=await f.controller.preview()
+    assert.equal(report.strategies.find((row:any)=>row.id==='static').available,true)
+    assert.equal(saved.models![0].inputPer1k,undefined)
+    await collect(f.controller.stream(f.options))
+    assert.equal(f.calls[0].provider,'deepseek-official')
+    assert.equal(f.calls[0].model,'deepseek-flash')
+    const history=await f.controller.history('native-session')
+    assert.ok(history.records[0].costs.production>0)
   }finally{await f.cleanup()}
 })
 

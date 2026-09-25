@@ -3,7 +3,7 @@ import type { LocaleDictionary } from './types.js'
 export const LOCALE_NS = 'refractagent-settings-card'
 
 export const zh: LocaleDictionary = {
-  title: 'RefractAgent 路由',
+  title: 'RefractAgent 自动路由',
   description: '配置 RefractAgent 的 providers、模型与推理强度、三种模式策略和预算限制。',
   v4Description: '自动选择安全且满足质量要求的执行路线。',
   v4SimpleTitle: '自动路由',
@@ -169,7 +169,7 @@ export const zh: LocaleDictionary = {
 }
 
 export const en: LocaleDictionary = {
-  title: 'RefractAgent routing',
+  title: 'RefractAgent automatic routing',
   description: 'Configure RefractAgent providers, models, reasoning effort, mode strategies and budget limits.',
   v4Description: 'Automatically choose an execution route that meets safety and quality requirements.',
   v4SimpleTitle: 'Automatic routing',

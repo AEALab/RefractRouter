@@ -22,7 +22,6 @@ export interface ClientSlotsService {
 }
 
 export interface ClientContext {
-  modelDirectories?:{directoryFor(sessionId:string):import('./planning.js').ModelDirectory}
   slots: ClientSlotsService
   locale: ClientLocaleService
   settingsScope: ClientSettingsScopeBinder

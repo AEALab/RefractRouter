@@ -1,25 +1,30 @@
-import { applyPlanning, planningUi, PlanningSettings } from './planning.js'
+import { applyPlanning, planningUi, PlanningCard } from './planning.js'
 import { createElement } from 'react'
 import { graphModule } from './graph.js'
 /** RefractAgent 浏览器半边：在「设置 → 插件 → 插件配置」注册自己的设置卡片。 */
-import { RefractCardController, SETTINGS_NAMESPACE } from '../settings-card.js'
+import { RefractCardController, PLANNING_CARD_NAMESPACE, SETTINGS_NAMESPACE } from '../settings-card.js'
 import { RefractCard } from './refract-card.js'
 import { en, LOCALE_NS, zh } from './locale.js'
 import type { ClientContext, RouteLatencyDirectory, RouterProjectDirectory } from './types.js'
 import { FROZEN_MODEL_PROFILES } from './model-profiles.js'
 
 const graph = graphModule(createElement as unknown as Parameters<typeof graphModule>[0])
+const PLANNING_LOCALE_NS = 'refractagent-planning-card'
 export const parse = graph.parse
 export const layout = graph.layout
 export const applyGraph = graph.apply
 
-export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'modelDirectories']
+export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope']
 
 export function apply(ctx: ClientContext): void {
   graph.apply(ctx)
   const planning=planningUi(ctx,ctx.settingsScope.bind({namespace:SETTINGS_NAMESPACE}))
-  applyPlanning(ctx,planning)
+  applyPlanning(ctx)
   ctx.effect(() => ctx.locale.register(LOCALE_NS, { zh, en }), 'refractagent-settings-card: dictionaries')
+  ctx.effect(() => ctx.locale.register(PLANNING_LOCALE_NS, {
+    zh:{title:'RefractAgent 规划路由',description:'在 DSH 原生 Agent 循环中选择模型与策略。'},
+    en:{title:'RefractAgent planned routing',description:'Choose models and strategies in the native DSH agent loop.'},
+  }), 'refractagent-planning-card: dictionaries')
   const scope = ctx.settingsScope.bind({ namespace: SETTINGS_NAMESPACE })
   const controller = new RefractCardController({...scope,
     getSnapshot:()=>scope.getSnapshot(),subscribe:listener=>scope.subscribe(listener),
@@ -35,10 +40,14 @@ export function apply(ctx: ClientContext): void {
   }, 'refractagent-settings-card: card controller')
   ctx.slots.inject('settings.plugin.item', function* () {
     yield ctx.slots.register({
+      name:'settings.plugin.item',key:PLANNING_CARD_NAMESPACE,locale:PLANNING_LOCALE_NS,
+      inject:()=>planning,
+    },PlanningCard)
+    yield ctx.slots.register({
       name: 'settings.plugin.item',
       key: SETTINGS_NAMESPACE,
       locale: LOCALE_NS,
-      inject: () => ({...controller.inject(),planningControls:createElement(PlanningSettings,planning),loadCatalog:async()=>{
+      inject: () => ({...controller.inject(),loadCatalog:async()=>{
         const result=await ctx.remote.session.modelCatalog()
         if(!result.ok||!result.value)throw new Error(result.error?.message??'DSH model catalog unavailable')
         return result.value

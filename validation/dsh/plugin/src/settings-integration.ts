@@ -7,7 +7,7 @@ import {
   freezeConfiguration, isRecordValue, validateDshModelPool, validateLiveExecution,
   validateProviderConfiguration, validateRouterConnection, type SettingsSection,
 } from './provider-config.js'
-import { SETTINGS_NAMESPACE } from './settings-card.js'
+import { PLANNING_CARD_NAMESPACE, SETTINGS_NAMESPACE } from './settings-card.js'
 import type { Configuration } from './agent-provider.js'
 
 interface SchemaNode {
@@ -73,6 +73,22 @@ export function buildSettingsSchema(): RefractSettingsSchema {
         router: 0, providerConfig: 0, dshModelPool: 0, planningRouting:0, liveExecution:0, limits: 3 } },
     },
   })
+  return schema
+}
+
+/** 仅用于让宿主派发规划路由卡片，不移动或复制用户已有配置。 */
+function buildPlanningCardSchema(): RefractSettingsSchema {
+  const schema = ((value: unknown): SettingsSection => {
+    if (value === undefined || value === null) return {}
+    if (!isRecordValue(value) || Object.keys(value).length > 0) {
+      throw new TypeError('规划路由卡片命名空间不保存配置')
+    }
+    return {}
+  }) as RefractSettingsSchema
+  schema.type = 'object'
+  schema.meta = { default: {} }
+  schema.dict = {}
+  schema.toJSON = () => ({ uid: 0, refs: { 0: { type: 'object', meta: { default: {} }, dict: {} } } })
   return schema
 }
 
@@ -144,6 +160,7 @@ export interface HostSettingsScope {
   watch(callback: (next: Readonly<SettingsSection>) => void): unknown
 }
 export interface HostSettingsService {
+  get?(ns: string): unknown
   register(
     ns: string,
     schema: unknown,
@@ -162,6 +179,7 @@ export function installRefractSettings(
   onChange: (section: Readonly<SettingsSection>) => void,
 ): void {
   const register = (sctx: SettingsFiberContext) => {
+    sctx.settings.register(PLANNING_CARD_NAMESPACE, buildPlanningCardSchema())
     const scope = sctx.settings.register(SETTINGS_NAMESPACE, buildSettingsSchema(), {
       base: buildSettingsBase(composed),
       validate: validateSettingsSection,

@@ -38,7 +38,7 @@ class TaskCallBudget:
     def __init__(self, client, production: float, evaluation: float, *, max_calls=None, capture_payload=False,
                  max_total_output_tokens=None, adaptive_output_reservation=False):
         self.client = client
-        self.limits = {'production': number(production, 'production budget', positive=True),
+        self.limits = {'production': float('inf') if production is None else number(production, 'production budget', positive=True),
                        'evaluation': number(evaluation, 'evaluation budget', positive=True)}
         self.charged = {'production': 0.0, 'evaluation': 0.0}
         self.records = []
