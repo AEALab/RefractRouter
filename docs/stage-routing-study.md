@@ -55,7 +55,8 @@ evaluation AFP。预检给出的金额是理论上界，按每次请求都达到
 `tools/result` 通知取得规范结果并交给 Python；渲染正文不作为成败证据。v7 复验使用 5 次调用、
 23.2942 AFP，实际完成 Flash → Pro → Flash；同时发现两次等价 Bash 调用的展示 `description`
 不同，使原因被记录为通用 `tool-signal`。`stage-v3` 现从 shell 失败指纹中去除该展示字段，
-并把规则版本纳入后续预检指纹。v7 原记录保留失败状态，不事后改写。原始记录见
+并把规则版本纳入后续预检指纹。v7 原记录保留失败状态，不事后改写。v8 使用 5 次调用、
+23.1789 AFP，模型序列与理由序列全部通过，完成 Flash → Pro → Flash 的真实功能验收。原始记录见
 [Stage 真实小样本执行记录](../reports/stage-routing-live-pilot-20260925-summary.md)。
 
 认证失败、用量未知、账本或证据写入失败停止整批。普通任务失败、超时或预算耗尽保留为结果，
