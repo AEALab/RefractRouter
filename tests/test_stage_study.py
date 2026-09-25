@@ -5,9 +5,10 @@ from pathlib import Path
 
 import pytest
 
+import refractrouter.stage_study as stage_study
 from refractrouter.stage_study import (_judge_payload, _metrics, load_protocol, planning_config,
-                                       preflight, prepare, render_dsh_patch, run_paid_batch,
-                                       schedule, summarize)
+                                       pilot_preflight, preflight, prepare, prepare_live_pilot,
+                                       render_dsh_patch, run_paid_batch, schedule, summarize)
 
 
 PROTOCOL = Path("data/benchmarks/stage-routing-v1.json")
@@ -40,6 +41,45 @@ def test_paid_batch_rejects_unfrozen_reasoning_effort(tmp_path):
         run_paid_batch(protocol, tmp_path)
 
 
+def test_live_pilot_freezes_authorized_envelope(tmp_path):
+    protocol = load_protocol(PROTOCOL)
+    preview = pilot_preflight(protocol)
+    assert preview["profile"] == "headless"
+    assert preview["maxCalls"] == 6
+    assert preview["maxProductionAfp"] == pytest.approx(221.184)
+    assert preview["evaluationAfp"] == 0
+    assert preview["httpRetries"] == 0
+    output = prepare_live_pilot(protocol, tmp_path / "pilot")
+    patch = (output / "stage-pilot.patch.yml").read_text()
+    assert '"runsDir":".refractagent/runs"' in patch
+    assert '"path":".refractagent/settings.yaml","watch":false' in patch
+    assert (output / "workspace" / ".refractagent" / "settings.yaml").read_text() == "{}\n"
+    assert '"maxCalls":6' in patch
+    assert '"AFP":221.184' in patch
+    assert "maxRetries\":0" in patch
+    assert "tool-subagent\n  disabled: true" in patch
+    with pytest.raises(ValueError, match="拒绝覆盖"):
+        prepare_live_pilot(protocol, output)
+
+
+def test_dsh_invocation_resolves_patch_before_changing_workspace(tmp_path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    patch = tmp_path / "pilot.yml"
+    patch.write_text("[]\n")
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured.update(command=command, kwargs=kwargs)
+        return stage_study.subprocess.CompletedProcess(command, 0, "ok", "")
+
+    monkeypatch.setattr(stage_study.subprocess, "run", fake_run)
+    outcome, _ = stage_study._invoke_dsh("web", patch, workspace, "prompt", 1000)
+    assert outcome.returncode == 0
+    assert captured["command"][4] == str(patch.resolve())
+    assert captured["kwargs"]["cwd"] == workspace.resolve()
+
+
 def test_prepare_materializes_isolated_workspaces_without_hidden_checks(tmp_path):
     protocol = load_protocol(PROTOCOL)
     output = tmp_path / "batch"
@@ -47,6 +87,7 @@ def test_prepare_materializes_isolated_workspaces_without_hidden_checks(tmp_path
     assert len(rows) == 72
     first = output / "workspaces" / rows[0]["runId"]
     assert (first / "TASK.md").is_file()
+    assert (first / ".refractagent" / "settings.yaml").read_text() == "{}\n"
     assert {path.name for path in (output / "patches").iterdir()} == {
         "static-flash.yml", "static-pro.yml", "stage.yml", "research-judge.yml"}
     assert not any("hidden" in path.name.lower() for path in first.rglob("*"))
@@ -92,7 +133,7 @@ def test_dsh_patches_use_planning_static_baselines_and_disable_delegation():
     assert stage["defaultStrategy"] == "stage"
     assert stage["roles"] == {"efficient": "flash", "capable": "pro"}
     assert stage["maxCalls"] == 20 and stage["timeoutMs"] == 900000
-    assert all(model["contextWindow"] == 65536 + 8192 for model in stage["models"])
+    assert all(model["contextWindow"] == 1024000 for model in stage["models"])
     patch = render_dsh_patch(protocol, "stage")
     assert '"provider":"refractagent","model":"planning"' in patch
     assert "https://ark.cn-beijing.volces.com/api/plan/v3" in patch

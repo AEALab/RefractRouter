@@ -81,14 +81,22 @@ def tool_events(messages, native=None):
             error = native_result.get("error") or block.get("error") or {}
             code = str(error.get("code", "")) if isinstance(error, dict) else ""
             error_name = str(error.get("name", "")) if isinstance(error, dict) else ""
-            exit_code = _structured_exit_code(native_result.get("meta"))
+            host_result = native_result.get("hostResult", {})
+            sandbox = host_result.get("sandbox", {}) if isinstance(host_result, dict) else {}
+            exit_code = (_structured_exit_code(host_result) if host_result
+                         else _structured_exit_code(native_result.get("meta")))
             status = ("unconfirmed" if code in (
                     "EXECUTION_UNCONFIRMED", "UNKNOWN_RESULT", "ABORTED", "TOOL_RESULT_UNKNOWN")
+                or (isinstance(host_result, dict) and (host_result.get("aborted") is True
+                    or host_result.get("signal") is not None))
                 else "denied" if code in (
                     "PERMISSION_DENIED", "APPROVAL_REJECTED", "FS_PERMISSION_DENIED",
                     "ABORTED_BEFORE_DISPATCH", "TOOL_ABORTED_BEFORE_DISPATCH", "TOOL_NOT_STARTED")
+                or (isinstance(sandbox, dict) and sandbox.get("denied") is True)
                 else "infrastructure" if code in (
                     "AUTH", "AUTHENTICATION", "TRANSPORT", "TIMEOUT", "NETWORK")
+                or (isinstance(host_result, dict) and host_result.get("timedOut") is True)
+                or (isinstance(sandbox, dict) and sandbox.get("runnerFailed") is True)
                 else "failed" if (exit_code is not None and exit_code != 0)
                   or (block.get("isError") is True and code) else
                   "unclassified-error" if block.get("isError") is True else "completed")

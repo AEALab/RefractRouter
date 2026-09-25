@@ -147,6 +147,33 @@ def test_stage_selected_capable_model_budget_shortage_stops_explicitly(tmp_path)
     assert runtime.runs[run]["status"] == "failed"
 
 
+def test_stage_uses_canonical_host_shell_result_without_parsing_body(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "stage")
+    messages, events = [], []
+    for index in range(2):
+        call_id = f"shell-{index}"
+        call = {"type": "tool-call", "id": call_id, "name": "bash",
+                "arguments": '{"command":"python -m pytest"}'}
+        result = {"type": "tool-result", "toolCallId": call_id, "isError": False,
+                  "content": [{"type": "text", "text": "test output"}]}
+        messages.extend([{"role": "assistant", "content": [call]},
+                         {"role": "user", "content": [result]}])
+        events.extend([
+            {"type": "tool/call", "data": {"turn": 1, "step": index + 1,
+             "callId": call_id, "name": "bash", "arguments": call["arguments"]}},
+            {"type": "tool/result", "data": {"turn": 1, "step": index + 1,
+             "message": {"source": {"kind": "tool", "callId": call_id}, "content": [result]},
+             "hostResult": {"exitCode": 7, "signal": None, "timedOut": False,
+                            "aborted": False}}},
+        ])
+    action = step(runtime, run, messages, events=events)
+    assert action["model"]["id"] == "large"
+    decision = runtime.runs[run]["decisions"][-1]
+    assert decision["reason"] == "repeated-failure"
+    assert decision["evidenceSummary"] == "任务失败 2"
+
+
 @pytest.mark.parametrize("strategy", ["task", "composite"])
 def test_classifier_once_per_turn(strategy, tmp_path):
     r = PlanningRuntime(tmp_path)

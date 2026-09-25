@@ -1,0 +1,27 @@
+{
+  "protocolSha256": "b8137dd763df71d64d14521afad3e5e3cd5be1f90a107a44a83b2cafffcec78b",
+  "prompt": "这是 Stage 路由的受控功能验收。禁止委派或启动子 Agent。严格按顺序执行，\n每次模型回复最多发起一个工具调用，不得并行，也不得跳过已失败的步骤：\n1. 使用 Bash 执行：python3 -c 'import sys; sys.exit(7)'\n2. 工具返回后，在下一次续接中再次使用 Bash 执行完全相同的命令。\n3. 第二次失败返回后，在下一次续接中使用 Bash 执行：pwd\n4. pwd 返回后，在下一次续接中再次使用 Bash 执行：pwd\n5. 第二次 pwd 返回后，不再调用工具，只输出 STAGE_PILOT_OK。\n前两次非零退出是验收输入，不要修复文件、改写命令或提前结束。\n",
+  "strategy": "stage",
+  "profile": "headless",
+  "maxCalls": 6,
+  "timeoutMs": 300000,
+  "maxProductionAfp": 221.184,
+  "evaluationAfp": 0,
+  "httpRetries": 0,
+  "patchSha256": "d926b2ec6b0164056258c872cf404a3a98a98926164ee992acb49d8b08a94098",
+  "expectedModels": [
+    "deepseek-v4.1-flash",
+    "deepseek-v4.1-flash",
+    "deepseek-v4-pro",
+    "deepseek-v4-pro",
+    "deepseek-v4.1-flash"
+  ],
+  "expectedReasons": [
+    "no-signal",
+    "ambiguous",
+    "repeated-failure",
+    "capable-hold",
+    "ambiguous"
+  ],
+  "pilotSha256": "f24c7b015e4c73d22ae0bfdd08d8f6a7c552af3dea3254909ba41297553c24fe"
+}

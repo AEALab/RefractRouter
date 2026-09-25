@@ -12,6 +12,7 @@ import { dshToolCallLimit, freezeConfiguration, validateDshModelPool, validatePr
   validateLiveExecution, type LimitsConfiguration, type LiveExecutionConfiguration,
   type ProviderConfiguration } from './provider-config.js'
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
+import { ToolEvidenceCapture } from './tool-evidence.js'
 
 export const name = 'refractagent'
 export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents', 'settings']
@@ -122,7 +123,11 @@ export interface AgentAdapter {
 export type AgentContext = NativeToolContext & Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
   settings?: SettingsFiberContext['settings']
   llm: Partial<LlmService> & { registerAdapter(providers: string[], adapter: AgentAdapter): unknown }
-  on?: (event:'session/event',callback:(session:{header:{id:string}},event:{type:string;data:Record<string,unknown>})=>void)=>unknown
+  on?: {
+    (event:'session/event',callback:(session:{header:{id:string}},event:{type:string;data:Record<string,unknown>})=>void):unknown
+    (event:'tools/result',callback:(exec:{callId:string;name:string;agent?:{session:{header?:{id?:string}}}},
+      result:{isError:boolean;value?:unknown})=>void):unknown
+  }
   effect?: (setup:()=>unknown,label?:string)=>unknown
   inject?: (deps: readonly string[], callback: (sctx: SettingsFiberContext) => void) => unknown
 }
@@ -798,8 +803,9 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   }
 }
 
-export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>): AgentAdapter {
-  const planning = new PlanningController(ctx,source)
+export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>,
+  evidence=new ToolEvidenceCapture()): AgentAdapter {
+  const planning = new PlanningController(ctx,source,undefined,evidence)
   ctx.llm.registerModelDiscovery?.('refractagent-planning',async request=>{
     const metadata=request.api?.startsWith('metadata:')?request.api.slice('metadata:'.length).split(':'):null
     const value=metadata&&metadata.length===2&&request.provider
@@ -949,7 +955,9 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
 export function apply(ctx: AgentContext, raw: unknown = {}): void {
   const composed = configure(raw)
   let effective: Readonly<Configuration> = composed
-  ctx.llm.registerAdapter(['refractagent'], createAdapter(ctx, () => effective))
+  const evidence = new ToolEvidenceCapture()
+  ctx.on?.('tools/result',(exec,result)=>evidence.observe(exec,result))
+  ctx.llm.registerAdapter(['refractagent'], createAdapter(ctx, () => effective, evidence))
   ctx.llm.registerModelDiscovery?.(ROUTER_PROJECT_DISCOVERY, async (request, signal) => {
     if (request.apiKey !== undefined) throw new Error('Router project discovery accepts a credential reference, never a token')
     const url=request.baseURL??effective.routerUrl

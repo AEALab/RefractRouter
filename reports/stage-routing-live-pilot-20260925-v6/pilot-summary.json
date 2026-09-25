@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "stage-routing-live-pilot-v1",
+  "pilotSha256": "fe49c711cd572806aead4277f35b733f8bd12314c47bf87a1b9b436fd39de23d",
+  "profile": "headless",
+  "authorizedProductionAfp": 221.184,
+  "evaluationAfp": 0,
+  "elapsedMs": 9699,
+  "dshExitCode": 0,
+  "modelCalls": 5,
+  "capableCalls": 0,
+  "modelSwitches": 0,
+  "recovered": false,
+  "firstByteMs": 1402.4767080000001,
+  "productionAfp": 15.65375,
+  "models": [
+    "deepseek-v4.1-flash",
+    "deepseek-v4.1-flash",
+    "deepseek-v4.1-flash",
+    "deepseek-v4.1-flash",
+    "deepseek-v4.1-flash"
+  ],
+  "decisionReasons": [
+    "no-signal",
+    "ambiguous",
+    "ambiguous",
+    "ambiguous",
+    "ambiguous"
+  ],
+  "checks": {
+    "withinCallLimit": true,
+    "withinAfpLimit": true,
+    "modelSequence": false,
+    "decisionSequence": false,
+    "finalMarker": true,
+    "dshCompleted": true
+  },
+  "success": false,
+  "automaticRetryCount": 0
+}

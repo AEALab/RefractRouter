@@ -14,6 +14,16 @@ import time
 
 
 SCHEMA = "stage-routing-study-v1"
+PILOT_MAX_AFP = 221.184
+PILOT_PROMPT = """这是 Stage 路由的受控功能验收。禁止委派或启动子 Agent。严格按顺序执行，
+每次模型回复最多发起一个工具调用，不得并行，也不得跳过已失败的步骤：
+1. 使用 Bash 执行：python3 -c 'import sys; sys.exit(7)'
+2. 工具返回后，在下一次续接中再次使用 Bash 执行完全相同的命令。
+3. 第二次失败返回后，在下一次续接中使用 Bash 执行：pwd
+4. pwd 返回后，在下一次续接中再次使用 Bash 执行：pwd
+5. 第二次 pwd 返回后，不再调用工具，只输出 STAGE_PILOT_OK。
+前两次非零退出是验收输入，不要修复文件、改写命令或提前结束。
+"""
 
 HIDDEN_CODE_CHECKS = {
     "code-defect-rounding": """from decimal import Decimal
@@ -136,11 +146,19 @@ def planning_config(protocol, arm):
     maximum = (limits["maxCallsPerRun"] * _route_cost(models[efficient], limits)
                if strategy == "static" else _route_cost(models["flash"], limits)
                + (limits["maxCallsPerRun"] - 1) * _route_cost(models["pro"], limits))
+    from .ark_plan import catalog
+    ark_models = {row["model_id"]: row for row in catalog()["models"]}
     rows = []
     for key in ("flash", "pro"):
         source = models[key]
+        metadata = ark_models.get(source["model"])
+        if metadata is None:
+            raise ValueError(f"冻结模型缺少 Ark 官方容量元数据：{source['model']}")
         row = {"id": key, "provider": source["provider"], "model": source["model"],
-               "contextWindow": limits["maxInputTokensPerCall"] + limits["maxOutputTokensPerCall"],
+               # contextWindow 描述提供方真实容量；实验的输入与输出上限分别由
+               # limits 和调用包络控制，不能把实验上限伪装成模型容量。DSH
+               # 原生工具定义也属于请求输入，核心会用保守字节界限做准入。
+               "contextWindow": metadata["context_window_tokens"],
                "maxOutputTokens": limits["maxOutputTokensPerCall"],
                "inputPer1k": source["inputPer1k"], "outputPer1k": source["outputPer1k"],
                "cachedInputPer1k": source["inputPer1k"], "billingUnit": "AFP",
@@ -159,7 +177,7 @@ def planning_config(protocol, arm):
             "security": {"maxPromptBytes": 16 * 1024 * 1024}}
 
 
-def render_dsh_patch(protocol, arm, runs_dir="${RUNS_DIR}"):
+def render_dsh_patch(protocol, arm, runs_dir=".refractagent/runs"):
     """生成不含凭证的 headless profile 补丁；三个路线都走规划入口。"""
     config = planning_config(protocol, arm)
     provider = {"apiKeyEnv": "ARK_API_KEY", "api": "openai-responses",
@@ -170,6 +188,7 @@ def render_dsh_patch(protocol, arm, runs_dir="${RUNS_DIR}"):
                             "maxTokens": row["maxOutputTokens"]} for row in config["models"]]}
     entries = [
         ("agent-default-model", {"provider": "refractagent", "model": "planning"}, False),
+        ("settings", {"path": ".refractagent/settings.yaml", "watch": False}, False),
         ("llm-pi-ai", {"providers": {"ark": provider}}, False),
         ("refractagent", {"pythonExecutable": "refractagent", "runsDir": runs_dir,
                           "planningRouting": config}, False),
@@ -221,6 +240,81 @@ def preflight(protocol):
             ]}
 
 
+def pilot_preflight(protocol):
+    """冻结真实小样本包络；不发起模型调用。"""
+    pilot = deepcopy(protocol)
+    pilot["limits"]["maxCallsPerRun"] = 6
+    pilot["limits"]["timeoutMs"] = 300000
+    config = planning_config(pilot, "stage")
+    upper = config["maxProductionCostByUnit"]["AFP"]
+    if upper != PILOT_MAX_AFP:
+        raise ValueError("Stage 小样本 AFP 包络发生漂移")
+    frozen = {"protocolSha256": canonical_digest(protocol), "prompt": PILOT_PROMPT,
+              "strategy": "stage", "profile": "headless", "maxCalls": 6,
+              "timeoutMs": 300000, "maxProductionAfp": upper,
+              "evaluationAfp": 0, "httpRetries": 0,
+              "patchSha256": hashlib.sha256(render_dsh_patch(pilot, "stage").encode()).hexdigest(),
+              "expectedModels": ["deepseek-v4.1-flash", "deepseek-v4.1-flash",
+                                 "deepseek-v4-pro", "deepseek-v4-pro",
+                                 "deepseek-v4.1-flash"],
+              "expectedReasons": ["no-signal", "ambiguous", "repeated-failure",
+                                  "capable-hold", "ambiguous"]}
+    return {**frozen, "pilotSha256": canonical_digest(frozen)}
+
+
+def prepare_live_pilot(protocol, output_dir):
+    """建立独立的 Stage 真实小样本目录，不读取或修改用户规划路由设置。"""
+    output = Path(output_dir)
+    if output.exists():
+        raise ValueError("小样本输出目录已存在，拒绝覆盖或自动重跑")
+    workspace = output / "workspace"
+    workspace.mkdir(parents=True)
+    settings = workspace / ".refractagent" / "settings.yaml"
+    settings.parent.mkdir()
+    settings.write_text("{}\n")
+    pilot = deepcopy(protocol)
+    pilot["limits"]["maxCallsPerRun"] = 6
+    pilot["limits"]["timeoutMs"] = 300000
+    (output / "pilot-preflight.json").write_text(
+        json.dumps(pilot_preflight(protocol), ensure_ascii=False, indent=2) + "\n")
+    (output / "stage-pilot.patch.yml").write_text(
+        render_dsh_patch(pilot, "stage"))
+    (workspace / "TASK.md").write_text(PILOT_PROMPT)
+    return output
+
+
+def run_live_pilot(protocol, output_dir, *, profile="headless"):
+    """执行一次已授权小样本；无论成功或失败都不自动重发。"""
+    output = Path(output_dir)
+    preview = pilot_preflight(protocol)
+    run_root = output / "workspace" / ".refractagent" / "runs"
+    before = set(run_root.glob("planning/*.json")) if run_root.exists() else set()
+    outcome, elapsed = _invoke_dsh(profile, output / "stage-pilot.patch.yml",
+                                   output / "workspace", PILOT_PROMPT, 300000)
+    (output / "dsh-stdout.txt").write_text(outcome.stdout or "")
+    (output / "dsh-stderr.txt").write_text(outcome.stderr or "")
+    record = _new_record(run_root, before)
+    metrics = _metrics(record)
+    reasons = [row.get("reason") for row in record.get("decisions", [])]
+    checks = {
+        "withinCallLimit": metrics["modelCalls"] <= preview["maxCalls"],
+        "withinAfpLimit": metrics["productionAfp"] <= preview["maxProductionAfp"],
+        "modelSequence": metrics["models"] == preview["expectedModels"],
+        "decisionSequence": reasons == preview["expectedReasons"],
+        "finalMarker": "STAGE_PILOT_OK" in (outcome.stdout or ""),
+        "dshCompleted": outcome.returncode == 0 and record.get("status") == "completed",
+    }
+    summary = {"schemaVersion": "stage-routing-live-pilot-v1",
+               "pilotSha256": preview["pilotSha256"], "profile": profile,
+               "authorizedProductionAfp": PILOT_MAX_AFP, "evaluationAfp": 0,
+               "elapsedMs": elapsed, "dshExitCode": outcome.returncode,
+               **metrics, "decisionReasons": reasons, "checks": checks,
+               "success": all(checks.values()), "automaticRetryCount": 0}
+    (output / "pilot-summary.json").write_text(
+        json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
+    return summary
+
+
 def prepare(protocol, output_dir):
     output = Path(output_dir)
     if output.exists():
@@ -232,6 +326,9 @@ def prepare(protocol, output_dir):
         task = task_by_id[row["taskId"]]
         workspace = output / "workspaces" / row["runId"]
         workspace.mkdir(parents=True)
+        settings = workspace / ".refractagent" / "settings.yaml"
+        settings.parent.mkdir()
+        settings.write_text("{}\n")
         payload = task.get("files") if task["family"] == "code" else task.get("sources")
         for name, content in payload.items():
             relative = Path(name)
@@ -246,12 +343,11 @@ def prepare(protocol, output_dir):
     patches = output / "patches"
     patches.mkdir()
     for arm in protocol["design"]["arms"]:
-        (patches / f"{arm}.yml").write_text(render_dsh_patch(
-            protocol, arm, str((output / "runs" / arm).resolve())))
+        (patches / f"{arm}.yml").write_text(render_dsh_patch(protocol, arm))
     judge_protocol = deepcopy(protocol)
     judge_protocol["limits"]["maxCallsPerRun"] = 1
     (patches / "research-judge.yml").write_text(render_dsh_patch(
-        judge_protocol, "static-pro", str((output / "runs" / "evaluation").resolve())))
+        judge_protocol, "static-pro"))
     return rows
 
 
@@ -326,6 +422,8 @@ def _judge_payload(stdout):
 
 
 def _invoke_dsh(profile, patch, workspace, prompt, timeout_ms):
+    patch = Path(patch).resolve()
+    workspace = Path(workspace).resolve()
     started = time.monotonic()
     try:
         outcome = subprocess.run(["dsh", "--profile", profile, "--patch", str(patch), prompt],
@@ -351,7 +449,7 @@ def run_paid_batch(protocol, output_dir, *, profile="headless"):
             continue
         task = task_by_id[row["taskId"]]
         workspace = output / "workspaces" / row["runId"]
-        run_root = output / "runs" / row["arm"]
+        run_root = workspace / ".refractagent" / "runs"
         before = set(run_root.glob("planning/*.json")) if run_root.exists() else set()
         prompt = ("主实验禁止委派或启动子 Agent。严格遵守 TASK.md；研究任务禁止访问网络。\n\n"
                   + task["prompt"])
@@ -369,9 +467,12 @@ def run_paid_batch(protocol, output_dir, *, profile="headless"):
             answer = (workspace / "answer.md").read_text() if (workspace / "answer.md").exists() else ""
             judge_workspace = output / "judge-workspaces" / row["runId"]
             judge_workspace.mkdir(parents=True, exist_ok=False)
+            settings = judge_workspace / ".refractagent" / "settings.yaml"
+            settings.parent.mkdir()
+            settings.write_text("{}\n")
             (judge_workspace / "answer.md").write_text(answer)
             (judge_workspace / "rubric.json").write_text(json.dumps(protocol["evaluation"], ensure_ascii=False))
-            judge_root = output / "runs" / "evaluation"
+            judge_root = judge_workspace / ".refractagent" / "runs"
             judge_before = set(judge_root.glob("planning/*.json")) if judge_root.exists() else set()
             judge_prompt = ("只审核 answer.md，不使用工具、不修改文件。按 rubric.json 返回单个 JSON："
                             '{"score":0到100,"criticalFactError":true或false,'
