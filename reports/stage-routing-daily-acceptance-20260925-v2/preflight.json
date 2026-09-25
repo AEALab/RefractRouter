@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "stage-daily-acceptance-v1",
+  "strategy": "stage",
+  "stageRuleVersion": "stage-v3",
+  "profile": "headless",
+  "tasks": [
+    {
+      "id": "code-tdd-slug",
+      "family": "code",
+      "sha256": "c2a86cc8ef830b6fdc3271a6379497a8ca5a2a617ed106fbc4f1d9ad1111c70b"
+    },
+    {
+      "id": "research-compare-search",
+      "family": "research",
+      "sha256": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69"
+    }
+  ],
+  "models": {
+    "efficient": {
+      "id": "deepseek-v4-flash",
+      "reasoningEffort": "low"
+    },
+    "capable": {
+      "id": "glm-5.3-flash",
+      "reasoningEffort": "provider-default"
+    }
+  },
+  "limits": {
+    "maxCallsPerTask": 6,
+    "timeoutMsPerTask": 300000,
+    "maxInputTokensPerCall": 32768,
+    "maxOutputTokensPerCall": 2048,
+    "maxProductionAfpPerTask": 10.4448,
+    "maxProductionAfpTotal": 20.8896
+  },
+  "evaluationAfp": 0,
+  "httpRetries": 0,
+  "delegation": false,
+  "patchSha256": "cec6dcedad80b59928e84b7ac255b2f08de4c7c0e0a8162b9f610ea5831c777d",
+  "notes": [
+    "代码任务由确定性隐藏检查验收，研究任务只做确定性引用与关键事实检查。",
+    "本批次验证日常可用性，不比较 Static，也不用于证明 Stage 的收益。",
+    "AFP 上限按两条路线中较贵的模型覆盖全部六轮，并按冻结 token 上限计算。"
+  ],
+  "acceptanceSha256": "c7e42e946ac34a56d24e98817e6d112380be101cf4c6604d47a283852c6def3c"
+}

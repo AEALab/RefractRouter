@@ -391,7 +391,8 @@ def _new_record(root, before):
     return json.loads(created.pop().read_text())
 
 
-def _metrics(record):
+def _metrics(record, *, capable_model="deepseek-v4-pro",
+             efficient_model="deepseek-v4.1-flash"):
     calls = [call for call in record.get("calls", []) if call.get("purpose") not in ("compaction",)]
     if any(call.get("status") == "unknown-usage" for call in calls):
         raise RuntimeError("模型用量未知，停止整个实验批次")
@@ -399,9 +400,9 @@ def _metrics(record):
         raise RuntimeError("模型调用没有完成结算，停止整个实验批次")
     models = [call.get("actual_model") for call in calls if call.get("purpose") in ("execute", "redo", "takeover")]
     costs = record.get("costsByUnit", {}).get("AFP", {})
-    return {"modelCalls": len(models), "capableCalls": sum(model == "deepseek-v4-pro" for model in models),
+    return {"modelCalls": len(models), "capableCalls": sum(model == capable_model for model in models),
             "modelSwitches": sum(left != right for left, right in zip(models, models[1:])),
-            "recovered": any(models[index] == "deepseek-v4-pro" and "deepseek-v4.1-flash" in models[index + 1:]
+            "recovered": any(models[index] == capable_model and efficient_model in models[index + 1:]
                              for index in range(len(models))),
             "firstByteMs": next((call.get("ttft_ms") for call in calls if call.get("ttft_ms") is not None), None),
             "productionAfp": float(costs.get("production", 0)), "models": models}

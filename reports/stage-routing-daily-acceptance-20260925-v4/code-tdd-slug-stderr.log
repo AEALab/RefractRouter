@@ -1,0 +1,78 @@
+dsh: reasoning:
+Let me start by exploring the workspace and reading TASK.md and SPEC.md.
+
+dsh: reasoning:
+Let me read slug.py and look for tests directory.
+
+dsh: reasoning:
+No tests directory exists. Let me understand the spec:
+
+slugify(text):
+- Unicode normalization (NFKD likely)
+- Latin letters to lowercase
+- consecutive whitespace or punctuation becomes one hyphen
+- preserve Chinese characters
+- remove leading/trailing hyphens
+- empty result returns empty string
+
+Let me implement using only standard library. Use unicodedata.normalize('NFKD') to decompose, then strip combining marks (category Mn), keep latin letters, digits, and Chinese characters.
+
+Approach:
+- Normalize NFKD
+- Iterate over chars: keep if char is alphanumeric (latin) → lower; keep Chinese chars; keep digits; whitespace or punctuation → replace with hyphen, collapsing consecutive.
+- What about non-latin non-Chinese, e.g. Cyrillic? Punctuation/whitespace becomes hyphen. Hmm.
+
+Let me define: 
+- If char is whitespace or is punctuation (not alnum, not a Chinese char), treat as separator → hyphen.
+- Keep characters: latin letters (lowercased), digits, Chinese characters.
+- What about combining marks (accents)? After NFKD, "é" → "e" + combining acute. The combining mark is punctuation/category Mn. We should drop it, not convert to hyphen. 
+
+Let me be careful. Design:
+- NFKD normalize
+- For each char:
+  - If category starts with 'M' (combining mark) → skip (drop).
+  - If it's a letter (category 'L'):
+    - if it's a CJK ideograph or any CJK unified ideograph → keep as is.
+    - else → lowercase, keep if latin (in 'a'-'z' after lower). Actually non-latin letters like Cyrillic would lowercase. The spec says "拉丁字母转小写" (latin letters to lowercase). So only latin letters are kept as letters? Or should other letters be dropped/replaced?
+
+Let me interpret conservatively: keep latin letters (A-Z, a-z) lowercased, keep digits, keep Chinese characters. Everything else (whitespace, punctuation, combining marks, non-latin letters) → treated as separator (hyphen) except combining marks which are dropped.
+
+Actually let me handle: after NFKD, filter out combining marks (drop). Then for remaining chars:
+- if alnum:
+  - if ascii alnum → lowercase for letters
+  - else if it's a Chinese char (CJK unified ideographs range) → keep
+  - else (other unicode letters like Cyrillic, or unicode digits) → separator? Hmm, unicode digits... Let's treat non-ascii, non-Chinese as separator.
+- else (whitespace or punctuation) → separator
+
+Chinese char range: CJK Unified Ideographs \u4e00-\u9fff. Also CJK Extension A, etc. Let me include common: \u4e00-\u9fff plus \u3400-\u4dbf (extension A). Also fullwidth forms are normalized by NFKD to ASCII. Chinese punctuation like ，is punctuation → separator.
+
+Then collapse consecutive separators into one hyphen, strip leading/trailing hyphens. If result empty → "".
+
+Let me write it.
+
+For tests, create a tests directory with a test file. Use pytest? Only standard library. Use unittest. But running requires pytest maybe. "只使用 Python 标准库" refers to implementation. For tests, use unittest to be safe, runnable with `python -m unittest` or via pytest. Let me use unittest.
+
+Let me write slug.py.
+
+dsh: reasoning:
+Now write tests. Create tests directory with test_slug.py using unittest.
+
+dsh: reasoning:
+Let me check the fullwidth punctuation normalization. NFKD of "，" (U+FF0C fullwidth comma) → "," (U+002C). That's a punctuation → hyphen. Good. "！" fullwidth exclamation → "!" → hyphen.
+
+Also note "ＡＢＣ" fullwidth A → "A" → lower "a". Good.
+
+Let me run the tests.
+
+dsh: reasoning:
+The spec says "去掉首尾连字符" (remove leading/trailing hyphens). So "привет world" should produce "-world" but leading hyphen gets stripped → "world". My test expectation was wrong. The spec says remove leading/trailing hyphens, so the correct result is "world". Let me fix the test expectation.
+
+Actually wait — should non-latin letters be treated as separator? The spec: "连续空白或标点变成一个连字符" (consecutive whitespace OR punctuation become one hyphen). It says whitespace or punctuation. Non-latin letters aren't whitespace or punctuation. So maybe Cyrillic should be... hmm. The spec doesn't explicitly say what to do with non-latin non-Chinese letters. My interpretation treats them as separator. That's reasonable but let me reconsider.
+
+The spec lists: Unicode normalization, latin lowercase, consecutive whitespace/punctuation → one hyphen, preserve Chinese, strip leading/trailing hyphens, empty→empty. It doesn't mention non-latin letters like Cyrillic. Treating them as separator is a reasonable choice. But it's ambiguous. My implementation treats them as separator, then leading hyphen stripped → "world". That matches the spec's "去掉首尾连字符". So the correct output is "world", not "-world". Fix the test.
+
+Actually, is treating Cyrillic as separator right? It's defensible. The test should reflect the actual spec behavior. Let me fix the test to expect "world" for "привет world" and "" for "привет".
+
+dsh: reasoning:
+All 15 tests pass. Done. Let me provide a brief result.
+

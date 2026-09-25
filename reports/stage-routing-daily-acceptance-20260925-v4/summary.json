@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "stage-daily-acceptance-summary-v1",
+  "acceptanceSha256": "d6f04a352555aae0f64c64a48e5e0b6e8cad7f52971dce7fcbb6c4dd41bb20fc",
+  "profile": "headless",
+  "tasks": [
+    {
+      "taskId": "code-tdd-slug",
+      "family": "code",
+      "elapsedMs": 47987,
+      "dshExitCode": 0,
+      "modelCalls": 8,
+      "capableCalls": 0,
+      "modelSwitches": 0,
+      "recovered": false,
+      "firstByteMs": 6005.773541999999,
+      "productionAfp": 6.0238,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash"
+      ],
+      "evaluation": {
+        "success": false,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 3, in <module>\nAssertionError\n"
+      },
+      "checks": {
+        "dshCompleted": true,
+        "taskPassed": false,
+        "withinCallLimit": true,
+        "withinAfpLimit": true
+      },
+      "success": false
+    },
+    {
+      "taskId": "research-compare-search",
+      "family": "research",
+      "elapsedMs": 22288,
+      "dshExitCode": 0,
+      "modelCalls": 4,
+      "capableCalls": 0,
+      "modelSwitches": 0,
+      "recovered": false,
+      "firstByteMs": 7205.056458000001,
+      "productionAfp": 2.7359,
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash"
+      ],
+      "evaluation": {
+        "success": true,
+        "issues": [],
+        "deterministicScore": 100
+      },
+      "checks": {
+        "dshCompleted": true,
+        "taskPassed": true,
+        "withinCallLimit": true,
+        "withinAfpLimit": true
+      },
+      "success": true
+    }
+  ],
+  "productionAfp": 8.759699999999999,
+  "withinTotalAfpLimit": true,
+  "automaticRetryCount": 0,
+  "success": false
+}

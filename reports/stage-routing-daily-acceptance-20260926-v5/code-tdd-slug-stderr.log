@@ -1,0 +1,162 @@
+dsh: reasoning:
+Let me start by reading TASK.md and SPEC.md to understand the requirements.
+
+dsh: reasoning:
+Let me understand the requirements:
+
+SPEC.md: `slugify(text)`: Unicode 规范化；拉丁字母转小写；连续空白或标点变成一个连字符；保留中文字符；去掉首尾连字符；空结果返回空字符串。
+
+Translation:
+- Unicode normalization
+- Latin letters to lowercase
+- Consecutive whitespace or punctuation become a single hyphen
+- Preserve Chinese characters
+- Remove leading/trailing hyphens
+- Empty result returns empty string
+
+Daily acceptance note: Unicode normalization must preserve Latin accented characters; e.g., decomposed form `Cafe\u0301` should output `café`, cannot delete combining marks to get `cafe`.
+
+So the key point: use NFKC or NFC normalization (not NFD which would decompose accents). If we used NFD and then stripped combining marks, we'd lose accents. We should normalize with NFC which composes accents. Actually "Unicode 规范化" — to preserve accented Latin characters like é, we should keep the combining mark. `Cafe\u0301` is NFC-normalized to `café` (single precomposed char). Then lowercased becomes `café`. Since é is not whitespace or punctuation, it's kept.
+
+So normalization should be NFC (or NFKC). Let me think about what characters to keep.
+
+The approach: 
+- Normalize with NFC to compose combining marks into single accented characters (preserving accents).
+- Lowercase.
+- Replace whitespace/punctuation with hyphen.
+- Keep Latin letters (including accented) and Chinese characters.
+- Collapse consecutive hyphens into one.
+- Strip leading/trailing hyphens.
+- Empty -> "".
+
+But wait — what about punctuation. The spec says "连续空白或标点变成一个连字符" — consecutive whitespace or punctuation become a single hyphen. So punctuation → hyphen, whitespace → hyphen, and consecutive ones collapse into one hyphen.
+
+Let me think about what "标点" (punctuation) means. I'll consider any character that is not a letter (Latin or Chinese), not a digit, not a hyphen... Actually let me think more carefully.
+
+Let me design:
+1. NFC normalize.
+2. For each char:
+   - If it's a Latin letter (including accented) → keep lowercase.
+   - If it's a Chinese char → keep.
+   - If it's digit → keep? Spec doesn't mention digits. Probably keep digits. Let me consider. The spec focuses on Latin letters, whitespace, punctuation, Chinese. Digits... probably keep them. I'll keep digits as well since a slug usually includes digits.
+   - Otherwise (whitespace, punctuation, symbols) → replace with '-'.
+3. Collapse consecutive '-'.
+4. Strip leading/trailing '-'.
+5. Return.
+
+Wait, but for punctuation→hyphen, I need to decide what counts. Let me use a regex approach: keep `[a-z0-9]` (after lowercase), and Chinese chars (range \u4e00-\u9fff and perhaps extended). Everything else becomes a separator.
+
+But accented characters like é — after lowercase they stay é which is > \u4e00? No, é is U+00E9, which is below \u4e00. So it's fine. Let me use regex `[^\w]`? No, `\w` includes underscore which we might not want. Let me be explicit.
+
+Approach:
+```python
+import re
+
+def slugify(text):
+    text = unicodedata.normalize("NFKC", text).lower()
+    # Keep Latin letters, digits, and CJK chars; everything else -> hyphen
+    text = re.sub(r"[^a-z0-9\u4e00-\u9fff\uff00-\uffef]", "-", text)
+    # collapse hyphens
+    text = re.sub(r"-+", "-", text)
+    # strip
+    text = text.strip("-")
+    return text
+```
+
+Wait, but NFC vs NFKC. The acceptance note says `Cafe\u0301` → `café`. With NFC, `Cafe\u0301` → `café` (precomposed é). Good. NFKC also composes é. NFKC additionally does compatibility decomposition/composition (e.g., fullwidth chars → ASCII). Both work for the accent case. The spec says "Unicode 规范化" which is generic. I'll use NFKC since it's a common choice for slugs (handles fullwidth, etc.), but let me make sure it doesn't break the accent requirement. NFKC on `café` keeps `café`. Good.
+
+Actually, let me reconsider. The daily acceptance note emphasizes: "Unicode 规范化必须保留拉丁重音字符；例如分解形式 Cafe\u0301 应输出 café，不能删除组合标记得到 cafe。"
+
+So we must NOT do: normalize NFD then strip combining marks. We should normalize so the accent is preserved as a composed character. Using NFC/NFKC then keeping it works.
+
+Now, let me consider what characters to keep. Using `[^a-z0-9\u4e00-\u9fff]` would remove é. So I must include accented Latin chars. Since the requirement is to preserve accented characters, I need a broader keep-set.
+
+Options: keep all characters that are letters or digits (including accented). Use `\w` but exclude underscore. Or use Unicode properties. Let me think about a robust approach.
+
+A cleaner approach: keep any character that is a Unicode letter or digit (via `char.isalnum()`), except keep CJK too (alnum covers CJK letters? Chinese chars — `isalnum()` returns True for Chinese ideographs). Yes, `'中'.isalnum()` is True. So I can use `isalnum()` to decide what to keep.
+
+Let me design:
+```python
+def slugify(text):
+    text = unicodedata.normalize("NFKC", text).lower()
+    parts = []
+    for ch in text:
+        if ch.isalnum():
+            parts.append(ch)
+        else:
+            parts.append("-")
+    result = re.sub(r"-+", "-", "".join(parts)).strip("-")
+    return result
+```
+
+But wait — `isalnum()` returns True for many characters that might not be "letters" like superscripts, etc. But NFKC normalizes many of those. For CJK, isalnum returns True (they're classified as letters). Good.
+
+But there's a subtlety: underscore `_`. `'_'.isalnum()` is False, so underscore → hyphen. That's fine, spec doesn't mention underscore.
+
+Hmm, but should digits be kept? isalnum keeps them. Fine.
+
+Let me verify the accent case:
+- Input: `Cafe\u0301` = "Cafe" + combining acute (U+0301).
+- NFKC → "café" (é precomposed U+00E9).
+- lower → "café".
+- é.isalnum() → True (letter).
+- Output: "café". 
+
+Now whitespace and punctuation:
+- "Hello, World!" → "hello-world". Let's trace: NFKC, lower → "hello, world!". Each char: letters kept, ',' → '-', ' ' → '-', '!' → '-'. So "hello--world-" → collapse → "hello-world" → strip → "hello-world". 
+
+Chinese:
+- "你好 世界" → "你好-世界". Good.
+
+Leading/trailing hyphens:
+- "  Hello  " → lower "  hello  " → "---hello---" → collapse → "-hello-" → strip → "hello". Good.
+
+Empty result:
+- "" → NFKC "" → "" → re.sub → "" → strip → "". Good.
+- "!!!" → "---" → collapse → "-" → strip → "". Good.
+
+This looks solid. Let me also handle the case where input might be non-string? The spec says slugify(text). I'll assume string input. Could be robust but keep simple.
+
+Now, should I use a regex instead of loop for cleanliness? Both fine. Let me use a clean implementation.
+
+Let me write slug.py:
+
+```python
+import re
+import unicodedata
+
+
+def slugify(text):
+    """按 SPEC.md 生成 slug：Unicode 规范化、小写、空白/标点连字符化、保留中文、去首尾连字符。"""
+    if not isinstance(text, str):
+        text = str(text)
+    text = unicodedata.normalize("NFKC", text).lower()
+    # 字母或数字（含中文）保留，其余（空白、标点、符号）转连字符
+    text = "".join("-" if not ch.isalnum() else ch for ch in text)
+    text = re.sub(r"-+", "-", text).strip("-")
+    return text
+```
+
+Wait, `str(text)` — if text is None, becomes "None". Hmm, that might be unexpected. Let me not over-engineer; SPEC says text. But maybe handle None → "". Actually keep it simple; input is a string per spec. I'll keep a mild guard but not convert None to "None". Let me just assume string. Actually to be safe, I'll keep the isinstance check but return "" for non-string falsy? No, let's keep it simple and assume str input. Actually I'll leave it minimal without type coercion to avoid surprises. But the spec says "空结果返回空字符串" — empty result returns empty string, meaning if the result after processing is empty, return "". My implementation handles that.
+
+Let me not add the str() coercion to avoid None→"None". I'll just process as-is assuming string input. But maybe a defensive check. I'll keep it simple.
+
+Now tests. Let me write a test file. Where do tests go? The task says "补充必要测试". Let me check the structure. There's no tests/ dir. Let me create a test file. Since it's a standalone workspace, I'll create `test_slug.py` next to slug.py.
+
+Tests to include:
+1. Basic lowercase: "Hello World" → "hello-world".
+2. Punctuation collapse: "Hello, World!" → "hello-world".
+3. Multiple whitespace: "a   b" → "a-b".
+4. Accent preserved (decomposed form): "Cafe\u0301" → "café". Also composed "café" → "café".
+5. Chinese preserved: "你好 世界" → "你好-世界".
+6. Leading/trailing hyphens: "  Hello  " → "hello".
+7. Empty: "" → "".
+8. Only punctuation: "!!!" → "".
+9. Digits kept: "v1.2" → "v1-2" (dot becomes hyphen). Hmm, "v1.2" → v,1,-,2 → "v1-2". That's reasonable.
+
+Let me write test_slug.py using unittest (stdlib).
+
+Let me also run a quick check with python to verify.
+
+Let me write both files and run tests.
+

@@ -1,0 +1,45 @@
+dsh: reasoning:
+Let me start by reading the TASK.md and the frozen materials in the workspace. This is a research task with no network access. Let me explore the workspace.
+
+Let me not read .refractagent. Let me find the files.
+
+dsh: reasoning:
+Let me analyze the task.
+
+Task: 比较冻结材料中的检索方案，区分测量事实、合同条件和未知信息，给出建议。输出 answer.md，所有事实使用 [S1] 引用。
+
+Actually the reference format note clarifies: facts must cite actual source numbers, using [S1], [S2], or [S3] respectively — not label other sources as [S1]. So the "所有事实使用 [S1] 引用" in TASK.md is just a format example; we should cite actual sources.
+
+Let me classify the information:
+
+**S1 (measurement facts / 测量事实):**
+- R-A Recall@10 = 0.86 on 500-query sample
+- R-B Recall@10 = 0.90 on another 200-query set, different task distribution
+
+**S2 (cost info):**
+- R-A 预估月费 6200 元，含索引更新
+- R-B 4200 元，但重建索引另计，单价未提供
+
+**S3 (合同条件 / 上线门槛 / contract conditions):**
+- 上线门槛：同一冻结测试集 Recall@10 ≥ 0.88，且月费可预测
+
+Now classify:
+
+测量事实 (measured facts): S1 recall numbers. But note: R-A and R-B tested on different task distributions — that's an unknown/limitation. S2's costs are 预估 (estimated) — estimates are not measured facts exactly; they are provided facts but "预估" and "单价未提供" make them uncertain.
+
+合同条件 (contract conditions): S3 — the launch threshold.
+
+未知信息 (unknowns):
+- 两者不在同一测试集上比较 (S1) — cannot directly compare recall because different distributions.
+- R-B 重建索引另计、单价未提供 (S2) — cost not fully predictable.
+- 月费是否可预测：R-A 含索引更新故月费可预测；R-B 重建索引另计且单价未提供，月费不可预测 (S2). This connects to S3 requirement of "月费可预测".
+
+Recommendation: 
+- R-A recall 0.86 < 0.88 threshold → 不满足上线门槛的 Recall 条件 (S1, S3).
+- R-B recall 0.90 ≥ 0.88 on its own test set, but tested on different task distribution (S1), so cannot be assumed to meet threshold on the frozen test set. Also cost not predictable (S2, S3).
+- 建议：在同一冻结测试集上统一评测两者 (S3 要求同一冻结测试集 Recall≥0.88)，并澄清 R-B 重建索引费用 (S2) 以确认月费可预测 (S3)。
+
+Let me write answer.md. All facts cited with actual source numbers.
+
+Let me write it concisely in Chinese.
+
