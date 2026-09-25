@@ -12,6 +12,8 @@ import subprocess
 import sys
 import time
 
+from .planning_policy import STAGE_RULE_VERSION
+
 
 SCHEMA = "stage-routing-study-v1"
 PILOT_MAX_AFP = 221.184
@@ -221,6 +223,7 @@ def preflight(protocol):
     task_hashes = {task["id"]: canonical_digest(task) for task in protocol["tasks"]}
     return {"schemaVersion": "stage-routing-preflight-v1",
             "protocolSha256": canonical_digest(protocol), "taskSha256": task_hashes,
+            "stageRuleVersion": STAGE_RULE_VERSION,
             "runs": len(rows), "productionRuns": len(rows), "evaluationCalls": research_runs,
             "maxExecutionCalls": len(rows) * calls, "maxCallsIncludingEvaluation": len(rows) * calls + research_runs,
             "afpUpperBound": {"production": round(production, 6),
@@ -250,7 +253,8 @@ def pilot_preflight(protocol):
     if upper != PILOT_MAX_AFP:
         raise ValueError("Stage 小样本 AFP 包络发生漂移")
     frozen = {"protocolSha256": canonical_digest(protocol), "prompt": PILOT_PROMPT,
-              "strategy": "stage", "profile": "headless", "maxCalls": 6,
+              "strategy": "stage", "stageRuleVersion": STAGE_RULE_VERSION,
+              "profile": "headless", "maxCalls": 6,
               "timeoutMs": 300000, "maxProductionAfp": upper,
               "evaluationAfp": 0, "httpRetries": 0,
               "patchSha256": hashlib.sha256(render_dsh_patch(pilot, "stage").encode()).hexdigest(),

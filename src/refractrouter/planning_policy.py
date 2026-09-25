@@ -4,7 +4,7 @@ import json
 import math
 import random
 
-STAGE_RULE_VERSION = "stage-v2"
+STAGE_RULE_VERSION = "stage-v3"
 
 
 def text_of(message):
@@ -29,6 +29,15 @@ def _structured_exit_code(meta):
             if value is not None:
                 return value
     return None
+
+
+def _fingerprint_args(name, args):
+    """移除不影响执行的宿主展示参数，保留其余工具实参。"""
+    if not isinstance(args, dict):
+        return args
+    if name in ("bash", "pwsh", "shell"):
+        return {key: value for key, value in args.items() if key != "description"}
+    return args
 
 
 def _evidence_summary(events):
@@ -105,7 +114,7 @@ def tool_events(messages, native=None):
                 else "plan" if name in ("todo", "todo_write", "update_plan") else "unknown")
             failure = {"name": error_name, "code": code, "exitCode": exit_code}
             fingerprint = hashlib.sha256(json.dumps(
-                [name, args, failure if status == "failed" else None],
+                [name, _fingerprint_args(name, args), failure if status == "failed" else None],
                 sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             event_id = ":".join(str(value) for value in (
                 native_result.get("turn", "history"), native_result.get("step", "history"),

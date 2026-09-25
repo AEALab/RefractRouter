@@ -119,7 +119,7 @@ test('Stage 重复失败升级、保持两次后恢复高效模型，并保留�
     assert.deepEqual(record.decisions[1].evidenceIds,['1:1:failed-0','1:2:failed-1'])
     assert.equal(record.decisions[1].holdBefore,0)
     assert.equal(record.decisions[1].holdAfter,1)
-    assert.equal(record.decisions[1].ruleVersion,'stage-v2')
+    assert.equal(record.decisions[1].ruleVersion,'stage-v3')
     assert.equal(record.calls[1].reasoning_effort,'low')
   }finally{await f.cleanup()}
 })

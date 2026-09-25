@@ -153,8 +153,10 @@ def test_stage_uses_canonical_host_shell_result_without_parsing_body(tmp_path):
     messages, events = [], []
     for index in range(2):
         call_id = f"shell-{index}"
+        arguments = json.dumps({"command": "python -m pytest",
+                               "description": f"第 {index + 1} 次执行"})
         call = {"type": "tool-call", "id": call_id, "name": "bash",
-                "arguments": '{"command":"python -m pytest"}'}
+                "arguments": arguments}
         result = {"type": "tool-result", "toolCallId": call_id, "isError": False,
                   "content": [{"type": "text", "text": "test output"}]}
         messages.extend([{"role": "assistant", "content": [call]},
@@ -172,6 +174,7 @@ def test_stage_uses_canonical_host_shell_result_without_parsing_body(tmp_path):
     decision = runtime.runs[run]["decisions"][-1]
     assert decision["reason"] == "repeated-failure"
     assert decision["evidenceSummary"] == "任务失败 2"
+    assert decision["ruleVersion"] == "stage-v3"
 
 
 @pytest.mark.parametrize("strategy", ["task", "composite"])

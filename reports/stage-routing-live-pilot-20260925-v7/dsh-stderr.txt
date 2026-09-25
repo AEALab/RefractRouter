@@ -1,0 +1,9 @@
+dsh: reasoning:
+The user asks me to execute a specific sequence, one tool call per response. I don't have a "Bash" tool exactly, but I have `bash`. Let's follow.
+
+Step 1: run python3 -c 'import sys; sys.exit(7)'.
+
+One tool call only.
+
+dsh: reasoning:
+Step 2: run same command again.
