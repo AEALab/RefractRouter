@@ -1,0 +1,18 @@
+- id: agent-default-model
+  config: {"provider":"refractagent","model":"planning","reasoningEffort":"rr:escalation"}
+- id: settings
+  config: {"path":".refractagent/settings.yaml","watch":false}
+- id: llm-pi-ai
+  config: {"providers":{"ark":{"apiKeyEnv":"CODEX_ARK_API_KEY","api":"openai-responses","baseURL":"https://ark.cn-beijing.volces.com/api/plan/v3","retryPolicy":{"mode":"normal","maxRetries":0},"models":[{"id":"deepseek-v4-flash","name":"deepseek-v4-flash","contextWindow":1024000,"maxTokens":2048,"reasoningEfforts":{"low":"low","high":"high","max":"max"}},{"id":"deepseek-v4.1-flash","name":"deepseek-v4.1-flash","contextWindow":1024000,"maxTokens":2048,"reasoningEfforts":{"low":"low","high":"high","max":"max"}}]}}}
+- id: refractagent
+  config: {"pythonExecutable":"/Users/chun-hsianglee/.codex/worktrees/80c0/RefractRouter/.venv/bin/refractagent","runsDir":".refractagent/runs","planningRouting":{"schemaVersion":"refractagent-planning-v4","enabled":true,"defaultStrategy":"escalation","billingUnit":"AFP","maxProductionCostByUnit":{"AFP":80},"timeoutMs":300000,"maxCalls":6,"models":[{"id":"initial","provider":"ark","model":"deepseek-v4-flash","contextWindow":1024000,"maxOutputTokens":2048,"inputPer1k":0.05,"outputPer1k":0.05,"cachedInputPer1k":0.05,"billingUnit":"AFP","reasoningEffort":"low","deployment":"trusted-cloud","trustPolicy":"escalation-ark","capabilities":{"mainExecutor":true,"toolCalling":"verified","modalities":{}},"capabilityCard":"文本与 DSH 原生工具接口已接通。"},{"id":"takeover","provider":"ark","model":"deepseek-v4.1-flash","contextWindow":1024000,"maxOutputTokens":2048,"inputPer1k":0.25,"outputPer1k":0.25,"cachedInputPer1k":0.25,"billingUnit":"AFP","reasoningEffort":"high","deployment":"trusted-cloud","trustPolicy":"escalation-ark","capabilities":{"mainExecutor":true,"toolCalling":"verified","modalities":{}},"capabilityCard":"文本与 DSH 原生工具接口已接通。"}],"roles":{"efficient":"initial","capable":"takeover","classifier":"initial"},"parameters":{},"escalation":{"initial":"initial","takeover":"takeover","judge":{"type":"llm","modelId":"initial"},"stallConfirmations":2,"threshold":0.8,"judgeTimeoutMs":30000,"maxJudgeInputBytes":65536,"maxExecutionOutputTokens":2048,"maxJudgeOutputTokens":1024},"trustPolicies":[{"id":"escalation-ark","residency":"CN","auditLogging":true,"allowsSensitiveData":true}],"compatiblePairs":[["initial","takeover"],["takeover","initial"]],"security":{"maxPromptBytes":80000}}}
+- id: tool-subagent-control
+  disabled: true
+- id: tool-subagent-list-agents
+  disabled: true
+- id: tool-subagent
+  disabled: true
+- id: tool-subagent-fork
+  disabled: true
+- id: tool-ralph
+  disabled: true

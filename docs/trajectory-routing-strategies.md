@@ -30,6 +30,8 @@ flowchart LR
 | `src/refractrouter/planning_model_metadata.py` | 按宿主容量与已核对的实际路线档案查询模型资料 |
 | `src/refractrouter/planning_policy.py` | Stage 信号、宿主工具事件归一、固定与随机选择 |
 | `src/refractrouter/planning_runtime.py` | 冻结任务、六类策略状态机、预算包络及证据 |
+| `src/refractrouter/escalation_decision.py` | Escalation 独立判别合同与严格结果校验 |
+| `src/refractrouter/local_judge_service.py` | Task／Escalation 共用的本地 Judge 常驻进程与可取消 job |
 | `src/refractrouter/planning_worker.py` | 无网络 NDJSON 工作进程 |
 | `src/refractrouter/task_budget.py` | 原子预留、派发、实际用量结算，与 DAG 共用 |
 | `validation/dsh/plugin/src/planning-routing.ts` | 工作进程生命周期、原生模型流与代理 replay |
@@ -54,7 +56,7 @@ TypeScript 不计算路由分数或费用，也不执行规划路由产生的工
 
 ```json
 {
-  "schemaVersion": "refractagent-planning-v2",
+  "schemaVersion": "refractagent-planning-v4",
   "enabled": false,
   "defaultStrategy": "stage",
   "billingUnit": "CNY",
@@ -124,7 +126,7 @@ Ark Agent Plan AFP 系数相同的记录只显示单位待核对，不改写原�
 | Task | v3 从有序模型池选择一次；单一合格候选直选，多候选使用一次 LLM 或本地 Judge；不确定时只使用指定备援 |
 | Composite | 一次 Task 形成默认档位，再逐轮 Stage；普通续接不重复分类 |
 | Advisor | efficient 执行，结束轮审核；默认最多审核 1 次、返工 1 次；停滞审核默认关闭 |
-| Escalation | 高效输出后判别，连续 2 次升级判断后丢弃当轮弱回复，强模型接管并锁定当前任务 |
+| Escalation | v4 缓冲起始模型回复；明确缺陷、最终轮停滞或无法判断立即接管，工具过程连续 2 次停滞才接管；接管后锁定强模型且不再审核 |
 
 Advisor 支持 APPROVE、REDO、无法判断。无效结果不会当作批准。
 默认一次审核后如要求返工，返工结果标为「未复审」，不得描述成已通过审核；
@@ -158,22 +160,27 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
   不把持续检索自动判为空转。默认数值未经收益实验校准。
 - Task v3 判别输出不合法时停止，不自动修复或重复调用；正常不确定才检查指定备援。
   Composite 仍维持既有两档判别合同，后续升级另行验收。
+- Escalation v4 使用独立 `escalation-decision-v1`，不会把 Task 适合度分数当作回复审核。
+  `PROCEED` 放行，`DEFECT` 立即接管，工具过程 `STALL` 连续达到门槛后接管，最终回复
+  `STALL` 与 `UNCERTAIN` 立即接管。无效结构、认证、传输和用量未知都会停止，不会转成升级。
 - Prefill、任意策略编排、在线训练及全局子 Agent 预算不在本轮实现中。
 
 ## 进程协议与任务状态
 
 执行 `refractagent planning-worker --runs-dir PATH`。
-协议版本 `refractagent-planning/3`，UTF-8 NDJSON，单条上限 16 MiB。
+协议版本 `refractagent-planning/4`，UTF-8 NDJSON，单条上限 16 MiB。
 每个请求带唯一 id、protocol、op；响应回传同一 id、ok 和 result／error。
 
 | 操作 | 结果 |
 | --- | --- |
+| handshake | 在任何付费派发前核对协议版本与 Escalation、本地 job、媒体引用能力 |
 | preview | 零模型调用配置诊断与策略可用性 |
 | begin | 以真实 session/agent/turn 冻结配置、策略、角色与预算 |
 | step | 接受当前原生消息、工具及当前轮事件；返回 call 指令 |
 | complete | 实际回复、用量与结束状态结算；返回下一 call、release 或 stop |
 | query / history | 当前任务详情／会话最近 20 条去除原始提示的轨迹 |
 | cancel / end | 停止后续派发；在途调用保留预留或继续结算真实回执 |
+| local-judge / local-judge-poll | 明确下载／加载／卸载本地权重，或轮询当前任务的本地判别 job |
 
 同一任务最多一个策略流程在途。工作进程串行处理请求并以锁保护状态。
 不同任务具有独立账本，可交错完成物理请求。
@@ -183,6 +190,11 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
 
 工作进程归插件生命周期管理；退出或协议超时不会自动重启并重放请求。
 宿主调用无自动重试，策略接管与传输错误分别处理。
+
+Task 与 Escalation 共用独立的本地 Judge 子进程，但使用各自问题模板。模型实例按权重、
+revision、装置、精度与方法隔离，同一实例串行推论；主路由仍可响应查询和取消。
+取消后的迟到结果不能推进状态。排队、冷启动和推论时间都计入期限；容量检查使用实际
+tokenizer，超限不会静默截断。
 
 ## 历史、预算与恢复
 
@@ -202,6 +214,9 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
 Stage 先决定本轮目标模型，再按实际请求输入和该模型输出上限预留；未被选择的模型不占用预算。
 强模型被选中但对应单位余额不足时停止并说明目标模型，不会静默降级。
 包含审核或判别的多调用策略仍在开始前核对必要调用包络，避免执行预算挤占必须完成的审核。
+Escalation 未接管时保护“起始执行＋一次 Judge＋可能的一次强模型接管”；同一任务只允许一个
+流程在途，因此检查与派发在 Python 锁内原子完成。未派发保护额度只用于可执行性判断，不会
+作为已消费费用展示；真实派发后才形成账本预留。接管后每轮只保护一次强模型调用。
 
 证据位于 `runsDir/planning/<identity-digest>.json`，目录 0700、文件 0600，
 原子替换前 fsync。记录配置、状态、全部费用、真实来源和被丢弃回复。
@@ -238,6 +253,9 @@ uv run pytest
 契约测试通过只能说明离线行为与集成合同成立。
 发布另行核对 Python 安装包、插件 tarball、实际安装版本和浏览器界面。
 运行记录见 [本次验收](../reports/planning-routing-20260923/README.md)。
+Escalation v4 的合同、有限 Judge 验收与当前限制见
+[Escalation 升级策略](escalation-routing.md)及
+[验收记录](../reports/escalation-acceptance-20260927/README.md)。
 
 Stage 首轮三路线协议已冻结在
 [stage-routing-v1.json](../data/benchmarks/stage-routing-v1.json)，包含 6 个代码任务、

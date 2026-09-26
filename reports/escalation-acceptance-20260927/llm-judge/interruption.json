@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "escalation-judge-interruption-v1",
+  "status": "stopped-invalid-judge-output",
+  "caseId": "zh-proceed-1",
+  "model": "glm-5.3-flash",
+  "requestId": "0217904403734958df8e1a1401bb5aa62b5b494646ada584abc7f",
+  "attempts": 1,
+  "httpRetries": 0,
+  "finishReason": "length",
+  "usage": {
+    "inputTokens": 372,
+    "outputTokens": 1024,
+    "cachedInputTokens": 0,
+    "reasoningTokens": 1023
+  },
+  "response": "",
+  "reason": "输出额度被推理 token 占满，没有可解析的判别正文；本批次停止，不自动重试。",
+  "nextBatchChange": "冻结 thinking.type=disabled，并生成新的预检摘要。"
+}

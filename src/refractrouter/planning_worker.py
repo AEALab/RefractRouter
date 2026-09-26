@@ -29,3 +29,4 @@ def serve(runs_dir, input_stream=None, output_stream=None):
     for run in runtime.runs.values():
         if run["status"] == "running":
             runtime.stop(run, "interrupted")
+    runtime.local_service.close()
