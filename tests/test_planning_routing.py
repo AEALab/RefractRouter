@@ -247,7 +247,7 @@ def test_stage_uses_canonical_host_shell_result_without_parsing_body(tmp_path):
     decision = runtime.runs[run]["decisions"][-1]
     assert decision["reason"] == "repeated-failure"
     assert decision["evidenceSummary"] == "任务失败 2"
-    assert decision["ruleVersion"] == "stage-v3"
+    assert decision["ruleVersion"] == "stage-v4"
 
 
 @pytest.mark.parametrize("strategy", ["task", "composite"])

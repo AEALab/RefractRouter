@@ -296,7 +296,7 @@ def compile_config(raw):
                 input_price * (fx_rate if converted else 1), output_price * (fx_rate if converted else 1), 0,
                 billing_unit="CNY" if converted else model_unit, api_model=m["model"],
                 cached_input_cost_per_1k=cached * (fx_rate if converted else 1),
-                context_window=context, max_output_tokens=output, wire_api="dsh-llm",
+                context_window=context, max_output_tokens=output, wire_api="chat-completions",
                 request_options=({"reasoning_effort": effort} if effort else {}),
                 deployment=deployment, trust_policy=m.get("trustPolicy"),
                 cache_write_cost_per_1k=cache_write * (fx_rate if converted and cache_write is not None else 1)

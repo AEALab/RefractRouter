@@ -11,6 +11,7 @@ import uuid
 
 from .planning_config import compile_config, preview, PROTOCOL, REQUIRED
 from .planning_policy import tool_events, stage_decision, static_choice, text_of
+from .host_evidence import validate_evidence
 from .privacy_placement import classify_view, allows_sensitive
 from .task_budget import request_input_bound
 from .planning_budget import PlanningBudget
@@ -220,7 +221,8 @@ class PlanningRuntime:
             raise ValueError("工具调用尚未完成，不能开始下一次模型请求")
         if request_input_bound(messages, tools) > MAX_WIRE_BYTES:
             raise ValueError("请求超过协议上限")
-        events = tool_events(messages, request.get("events"))
+        events = (validate_evidence(request["toolEvidence"]) if "toolEvidence" in request
+                  else tool_events(messages, request.get("events")))
         evidence = digest(events)
         fresh = evidence != run["state"]["last_evidence"]
         if any(e["status"] == "unconfirmed" for e in events[-run["config"]["parameters"]["window"]:]):
@@ -243,8 +245,8 @@ class PlanningRuntime:
         if strategy == "static" and c["parameters"]["staticMode"] == "random":
             purposes.append("capable")
         if configured_escalation:
-            self._preflight_escalation_path(run, messages, tools)
-        elif strategy != "stage" and not task_v3:
+            self._preflight_escalation_path(run, messages, tools, request.get("maxTokens"))
+        elif strategy not in ("stage", "static") and not task_v3:
             bounds = {}
             for role in purposes:
                 model = c["models"][c["roles"][role]]
@@ -401,20 +403,23 @@ class PlanningRuntime:
         input_price = max(reserve.input_cost_per_1k, reserve.cache_write_cost_per_1k or 0)
         return input_bound / 1000 * input_price + max_output / 1000 * reserve.output_cost_per_1k
 
-    def _preflight_escalation_path(self, run, messages, tools):
+    def _preflight_escalation_path(self, run, messages, tools, output_cap=None):
         """同一任务同一时间只有一个 flow；在初始派发前原子保护最坏调用路径。"""
         c, s = run["config"], run["state"]
         escalation = c["escalation"]
+        if output_cap is not None and (type(output_cap) is not int or output_cap <= 0):
+            raise ValueError("无效输出容量")
+        output_cap = min(escalation["maxExecutionOutputTokens"], output_cap) if output_cap is not None else escalation["maxExecutionOutputTokens"]
         initial = self._resolve_model(run, model_id=escalation["initial"])
         takeover = self._resolve_model(run, model_id=escalation["takeover"])
         required = {}
         if s["latched"]:
             required[takeover.billing_unit] = self._cost_bound(
-                takeover, messages, tools, escalation["maxExecutionOutputTokens"])
+                takeover, messages, tools, output_cap)
             calls = 1
         else:
             for model in (initial, takeover):
-                amount = self._cost_bound(model, messages, tools, escalation["maxExecutionOutputTokens"])
+                amount = self._cost_bound(model, messages, tools, output_cap)
                 required[model.billing_unit] = required.get(model.billing_unit, 0) + amount
             calls = 2
             judge = escalation["judge"]
@@ -723,8 +728,10 @@ class PlanningRuntime:
                 self.persist(run)
                 return {"action": "wait", "kind": "local-judge", "jobId": job_id,
                         "pollAfterMs": 25, **self.describe(run)}
-            return self.issue(run, "escalation-judge", purpose, judge_messages, [],
+            action = self.issue(run, "escalation-judge", purpose, judge_messages, [],
                 model_id=config["judge"]["modelId"], output_cap=config["maxJudgeOutputTokens"])
+            action["timeoutMs"] = min(config["judgeTimeoutMs"], action["remainingMs"]) if action["remainingMs"] is not None else config["judgeTimeoutMs"]
+            return action
         content = {"task_and_trajectory": flow["messages"]}
         if purpose != "task":
             content["candidate_reply"] = flow["responses"][flow["executor"]]
@@ -1204,6 +1211,11 @@ class PlanningRuntime:
                 self.stop(run, "cancelled" if operation == "cancel" else
                           "interrupted-needs-reconciliation" if run["flow"] else "completed")
             return self.describe(run)
+        # 新请求与现有 flow 冲突时，只拒绝新请求，不能取消正在结算的原调用。
+        if operation == "step":
+            self.require(key)
+            if run["flow"] is not None:
+                raise ValueError("相同任务存在未结算的模型请求")
         try:
             if operation == "media-reserve":
                 return self.media_reserve(self.require(key), request)
