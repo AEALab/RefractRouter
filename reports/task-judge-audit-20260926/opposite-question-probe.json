@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "task-judge-opposite-probe-v1",
+  "date": "2026-09-26",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "state": "用户请求：使用终端执行 pwd。候选A：已验证支持终端工具调用。候选B：仅支持纯文本回答。",
+  "questions": {
+    "missing_cn": "是否缺少足以判断候选A能力的关键信息？",
+    "enough_cn": "现有信息是否足够判断候选A能否执行终端命令？",
+    "missing_en": "Is key information missing for deciding if candidate A can run the terminal command?",
+    "enough_en": "Is there enough evidence to decide whether candidate A can run the terminal command?"
+  },
+  "pTrue": {
+    "missing_cn": 0.9941,
+    "enough_cn": 0.9852,
+    "missing_en": 0.9515,
+    "enough_en": 0.9625
+  },
+  "interpretation": "相反问法均得到高 P(true)；仅用于判定该题型不可靠，不作总体校准结论。"
+}

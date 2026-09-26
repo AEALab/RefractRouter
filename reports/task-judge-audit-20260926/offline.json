@@ -1,0 +1,529 @@
+{
+  "schemaVersion": "task-judge-audit-result-v1",
+  "recordedAt": "2026-09-26T09:53:28.965201+00:00",
+  "suite": "data/task-judge-audit-20260926.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "coldStartMs": 929.6150830341503,
+  "matched": 2,
+  "total": 6,
+  "cases": [
+    {
+      "id": "zh-terminal",
+      "expected": "terminal",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "text-only",
+      "score": 0.6132,
+      "missingInformation": 0.7024,
+      "latencyMs": 90.53262509405613,
+      "usage": {
+        "input_tokens": 454,
+        "output_tokens": 0,
+        "questions": 4,
+        "forwards": 1
+      },
+      "raw": [
+        {
+          "candidateId": "terminal",
+          "score": 0.58235,
+          "missingInformation": 0.5137,
+          "priority": 0,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1187,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 1.1647,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.1421,
+                "1": 0.551,
+                "2": 0.3068
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.5137,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.5137
+            }
+          }
+        },
+        {
+          "candidateId": "text-only",
+          "score": 0.6132,
+          "missingInformation": 0.7024,
+          "priority": 1,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.0942,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 1.2264,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.1422,
+                "1": 0.4891,
+                "2": 0.3687
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.7024,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.7024
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "en-terminal",
+      "expected": "terminal",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "terminal",
+      "score": 0.56785,
+      "missingInformation": 0.6327,
+      "latencyMs": 66.04000006336719,
+      "usage": {
+        "input_tokens": 424,
+        "output_tokens": 0,
+        "questions": 4,
+        "forwards": 1
+      },
+      "raw": [
+        {
+          "candidateId": "terminal",
+          "score": 0.56785,
+          "missingInformation": 0.6327,
+          "priority": 0,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1171,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 1.1357,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.1523,
+                "1": 0.5596,
+                "2": 0.2881
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.6327,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.6327
+            }
+          }
+        },
+        {
+          "candidateId": "text-only",
+          "score": 0.46965,
+          "missingInformation": 0.9438,
+          "priority": 1,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.0926,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 0.9393,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.2559,
+                "1": 0.5489,
+                "2": 0.1952
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.9438,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.9438
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "zh-image",
+      "expected": "vision",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "vision",
+      "score": 0.6354,
+      "missingInformation": 0.8598,
+      "latencyMs": 55.45958306174725,
+      "usage": {
+        "input_tokens": 422,
+        "output_tokens": 0,
+        "questions": 4,
+        "forwards": 1
+      },
+      "raw": [
+        {
+          "candidateId": "vision",
+          "score": 0.6354,
+          "missingInformation": 0.8598,
+          "priority": 0,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1567,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 1.2708,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.0959,
+                "1": 0.5374,
+                "2": 0.3667
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.8598,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.8598
+            }
+          }
+        },
+        {
+          "candidateId": "text-only",
+          "score": 0.48145,
+          "missingInformation": 0.918,
+          "priority": 1,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1206,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 0.9629,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.2268,
+                "1": 0.5835,
+                "2": 0.1897
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.918,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.918
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "en-image",
+      "expected": "vision",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "vision",
+      "score": 0.6887,
+      "missingInformation": 0.8171,
+      "latencyMs": 53.34737501107156,
+      "usage": {
+        "input_tokens": 402,
+        "output_tokens": 0,
+        "questions": 4,
+        "forwards": 1
+      },
+      "raw": [
+        {
+          "candidateId": "vision",
+          "score": 0.6887,
+          "missingInformation": 0.8171,
+          "priority": 0,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.2052,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 1.3774,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.0586,
+                "1": 0.5053,
+                "2": 0.436
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.8171,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.8171
+            }
+          }
+        },
+        {
+          "candidateId": "text-only",
+          "score": 0.6262,
+          "missingInformation": 0.8854,
+          "priority": 1,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.118,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 1.2524,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.1215,
+                "1": 0.5047,
+                "2": 0.3738
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.8854,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.8854
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "zh-unclear",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": "a",
+      "score": 0.47015,
+      "missingInformation": 0.5959,
+      "latencyMs": 54.83137501869351,
+      "usage": {
+        "input_tokens": 392,
+        "output_tokens": 0,
+        "questions": 4,
+        "forwards": 1
+      },
+      "raw": [
+        {
+          "candidateId": "a",
+          "score": 0.47015,
+          "missingInformation": 0.5959,
+          "priority": 0,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1105,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 0.9403,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.2448,
+                "1": 0.57,
+                "2": 0.1852
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.5959,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.5959
+            }
+          }
+        },
+        {
+          "candidateId": "b",
+          "score": 0.46865,
+          "missingInformation": 0.584,
+          "priority": 1,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1202,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 0.9373,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.2413,
+                "1": 0.5802,
+                "2": 0.1786
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.584,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.584
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "en-unclear",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": "b",
+      "score": 0.3203,
+      "missingInformation": 0.8619,
+      "latencyMs": 51.346124964766204,
+      "usage": {
+        "input_tokens": 384,
+        "output_tokens": 0,
+        "questions": 4,
+        "forwards": 1
+      },
+      "raw": [
+        {
+          "candidateId": "a",
+          "score": 0.3061,
+          "missingInformation": 0.8178,
+          "priority": 0,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1694,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 0.6122,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.4656,
+                "1": 0.4566,
+                "2": 0.0778
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.8178,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.8178
+            }
+          }
+        },
+        {
+          "candidateId": "b",
+          "score": 0.3203,
+          "missingInformation": 0.8619,
+          "priority": 1,
+          "raw": {
+            "suitability": {
+              "type": "score",
+              "confidence": 0.1546,
+              "action": {
+                "act_probability": 1.0
+              },
+              "score": 0.6406,
+              "legend": {
+                "0": "不适合",
+                "1": "证据不足",
+                "2": "适合"
+              },
+              "probabilities": {
+                "0": 0.4467,
+                "1": 0.4659,
+                "2": 0.0874
+              }
+            },
+            "missing_information": {
+              "type": "noul",
+              "confidence": 0.8619,
+              "action": {
+                "act_probability": 1.0
+              },
+              "noul": 0.8619
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

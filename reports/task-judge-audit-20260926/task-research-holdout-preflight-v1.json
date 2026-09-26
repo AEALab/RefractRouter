@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "task-research-holdout-preflight-v1",
+  "realModelCalls": 0,
+  "protocolDigest": "54508cea7b6173f9ae11b678bed537876919c891905b51b7b5e2ddc06f35a547",
+  "taskDigest": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69",
+  "calibrationSha256": "5d4e876c109235825254cd5fd944445b768ceb253c03c54b4d11ba4356744968",
+  "cards": {
+    "deepseek-v4-flash": "文本和工具已接通；code校准：通过；research校准：通过",
+    "deepseek-v4.1-flash": "文本和工具已接通；code校准：通过；research校准：未通过"
+  },
+  "pricingSnapshot": "2026-09-25",
+  "runs": [
+    {
+      "arm": "static-flash",
+      "taskId": "research-compare-search",
+      "costUpperAfp": 31.3056
+    },
+    {
+      "arm": "static-v4.1-flash",
+      "taskId": "research-compare-search",
+      "costUpperAfp": 156.528
+    },
+    {
+      "arm": "task-choice-v2",
+      "taskId": "research-compare-search",
+      "costUpperAfp": 156.528
+    }
+  ],
+  "maximumModelCalls": 18,
+  "maximumProductionAfp": 344.3616,
+  "priorAfpWorstCase": 95.25155,
+  "maximumIncludingPriorAfp": 439.61315,
+  "note": "先前未知用量按全额预留计入总授权；旧批次不并入本批次质量分母。",
+  "preflightDigest": "5777754cecdde474d0063e0de7efc2fd1b70a7986da2f15ea71934a3e747458a"
+}

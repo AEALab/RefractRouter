@@ -13,9 +13,10 @@ import { dshToolCallLimit, freezeConfiguration, validateDshModelPool, validatePr
   type ProviderConfiguration } from './provider-config.js'
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
 import { ToolEvidenceCapture } from './tool-evidence.js'
+import { registerPlanningMediaTools } from './media-tools.js'
 
 export const name = 'refractagent'
-export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents', 'settings']
+export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents', 'settings', 'attachments']
 
 const MAX_CONTEXT_BYTES = 120_000
 const RELAXED_CONTEXT_BYTES = 1_000_000
@@ -121,6 +122,8 @@ export interface AgentAdapter {
   stream(options: ModelOptions): AsyncIterable<Record<string, unknown>>
 }
 export type AgentContext = NativeToolContext & Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
+  attachments?:DshContext['attachments']
+  tools?:NativeToolContext['tools']&{register?(tool:unknown):void}
   settings?: SettingsFiberContext['settings']
   llm: Partial<LlmService> & { registerAdapter(providers: string[], adapter: AgentAdapter): unknown }
   on?: {
@@ -804,11 +807,13 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
 }
 
 export function createAdapter(ctx: AgentContext, source: () => Readonly<Configuration>,
-  evidence=new ToolEvidenceCapture()): AgentAdapter {
-  const planning = new PlanningController(ctx,source,undefined,evidence)
+  evidence=new ToolEvidenceCapture(),planning=new PlanningController(ctx,source,undefined,evidence)): AgentAdapter {
   ctx.llm.registerModelDiscovery?.('refractagent-planning',async request=>{
     const metadata=request.api?.startsWith('metadata:')?request.api.slice('metadata:'.length).split(':'):null
-    const value=metadata&&metadata.length===2&&request.provider
+    const localJudge=request.api?.startsWith('local-judge:')?request.api.slice('local-judge:'.length):null
+    const value=localJudge&&request.provider
+      ?await planning.localJudge(JSON.parse(request.provider),localJudge as 'status'|'download'|'load'|'unload')
+      :metadata&&metadata.length===2&&request.provider
       ?await planning.metadata(request.provider,decodeURIComponent(metadata[0]!),metadata[1]!)
       :request.api==='simulate'?await planning.simulate()
       :request.api==='fx'?await planning.fx()
@@ -825,7 +830,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       const windows=models.map(m=>m.contextWindow).filter((n):n is number=>typeof n==='number'&&Number.isSafeInteger(n)&&n>=512)
       const caps=models.map(m=>m.maxOutputTokens).filter((n):n is number=>typeof n==='number'&&Number.isSafeInteger(n)&&n>0)
       const contextWindow=windows.length?Math.min(...windows):24000
-      return {...entry,provider,inputModalities:['text'],
+      const image=models.some(model=>['connected','verified'].includes(model.capabilities?.modalities?.imageInput??''))
+      return {...entry,provider,inputModalities:image?['text','image']:['text'],
         description:'保留 DSH 原生工具循环；Python 策略选模、审核与记账。',
         context:{contextWindow},
         defaultMaxTokens:Math.min(contextWindow-1,caps.length?Math.min(...caps):2048),
@@ -957,7 +963,11 @@ export function apply(ctx: AgentContext, raw: unknown = {}): void {
   let effective: Readonly<Configuration> = composed
   const evidence = new ToolEvidenceCapture()
   ctx.on?.('tools/result',(exec,result)=>evidence.observe(exec,result))
-  ctx.llm.registerAdapter(['refractagent'], createAdapter(ctx, () => effective, evidence))
+  const planning=new PlanningController(ctx,()=>effective,undefined,evidence)
+  const adapter=createAdapter(ctx, () => effective, evidence,planning)
+  ctx.llm.registerAdapter(['refractagent'], adapter)
+  // 媒体工具始终由宿主登记；执行时由 Python 对当前 Task、路线与预算做资格检查。
+  registerPlanningMediaTools(ctx,planning)
   ctx.llm.registerModelDiscovery?.(ROUTER_PROJECT_DISCOVERY, async (request, signal) => {
     if (request.apiKey !== undefined) throw new Error('Router project discovery accepts a credential reference, never a token')
     const url=request.baseURL??effective.routerUrl

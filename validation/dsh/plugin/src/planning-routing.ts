@@ -1,4 +1,4 @@
-import { sessionEvents } from './native-tools.js'
+import { sessionEvents, type NativeAgent } from './native-tools.js'
 /** DSH 只执行核心签发的单次模型调用；原生工具始终由宿主循环执行。 */
 import { randomUUID } from 'node:crypto'
 import { resolve } from 'node:path'
@@ -62,9 +62,10 @@ export class PlanningWorker implements PlanningRpc {
     const id=randomUUID(),line=JSON.stringify({protocol:PLANNING_PROTOCOL,id,...value})+'\n'
     if(Buffer.byteLength(line)>16*1024*1024)throw new Error('规划路由请求过大')
     return new Promise((resolve,reject)=>{
+      const timeout=value.op==='local-judge'&&value.action==='download'?15*60*1000:30000
       const timer=setTimeout(()=>{
         this.fail(new Error('规划路由进程响应超时；不自动重新派发'));this.handle?.terminate?.()
-      },30000)
+      },timeout)
       this.pending.set(id,{resolve:v=>{clearTimeout(timer);resolve(v)},reject:e=>{clearTimeout(timer);reject(e)}})
       this.handle!.stdin!.write(line,(error)=>{if(error){this.pending.get(id)?.reject(error);this.pending.delete(id)}})
     })
@@ -77,7 +78,7 @@ export function planningMessages(messages:ModelOptions['messages']):Json[] {
     if(source?.kind==='model'&&source.provider==='refractagent'){
       const replay=source.replayState as Json|undefined
       const envelope=replay?.response?.refractPlanning as Json|undefined
-      if(!envelope||envelope.version!==1||typeof envelope.provider!=='string'||typeof envelope.model!=='string')
+      if(!envelope||![1,2].includes(Number(envelope.version))||typeof envelope.provider!=='string'||typeof envelope.model!=='string')
         throw new Error('旧虚拟模型回复缺少真实来源，无法安全转换；请新建会话')
       if(envelope.feedback&&typeof envelope.feedback!=='string')throw new Error('无效的规划路由审核反馈')
       message.source={kind:'model',provider:envelope.provider,model:envelope.model,
@@ -124,6 +125,28 @@ export class PlanningController {
     await Promise.all((config.models??[]).map(async (model:Json)=>{
       try{
         const info=await this.metadata(model.provider,model.model,'AUTO')
+        const hostModel=await this.ctx.llm.resolveModelInfo!(model.provider,model.model) as Json
+        const reasoning=hostModel.reasoning as Json|undefined
+        const efforts=Array.isArray(reasoning?.efforts)
+          ?reasoning.efforts.map((entry:Json)=>entry.id).filter((id:unknown):id is string=>typeof id==='string')
+          :[]
+        if(model.reasoningEffort){
+          if(!efforts.includes(model.reasoningEffort)){
+            hostIssues[model.id]=`目标模型不支持推理等级 ${model.reasoningEffort}`
+            return
+          }
+        }else if(efforts.length){
+          model.reasoningEffort=typeof reasoning?.defaultEffort==='string'
+            ?reasoning.defaultEffort:efforts[0]
+        }else{
+          // DSH 通用模型层不接受未声明的 off；pi-ai 又会继承 provider 默认档位。
+          const llmSettings=this.settings?.get?.('llm-pi-ai') as Json|undefined
+          const provider=(llmSettings?.providers as Json|undefined)?.[model.provider] as Json|undefined
+          if(typeof provider?.reasoning==='string'){
+            hostIssues[model.id]=`DSH 模型未声明推理等级，且 provider 默认 ${provider.reasoning}；请先补齐模型能力`
+            return
+          }
+        }
         // Python 已识别实际 Ark Agent Plan 端点；旧配置中的手填价格不能覆盖单位冲突。
         const unitIssue=Array.isArray(info.issues)?info.issues.find((issue:unknown)=>
           typeof issue==='string'&&issue.includes('Ark Agent Plan 按 AFP 计量')):undefined
@@ -136,6 +159,7 @@ export class PlanningController {
           const value=info.capacity[key]
           if(Number.isInteger(value)&&value>0)model[key]=value
         }
+        if(info.capabilities&&typeof info.capabilities==='object')model.capabilities=info.capabilities
         if(info.pricing)for(const key of ['inputPer1k','outputPer1k','cachedInputPer1k']){
           const value=info.pricing[key]
           if(typeof value==='number'&&Number.isFinite(value)&&value>=0)model[key]=value
@@ -168,10 +192,38 @@ export class PlanningController {
     const route=llmSettings?.providers?.[provider] as Json|undefined
     return this.rpc.request({op:'metadata',provider,model,billingUnit,host:{
       contextWindow:context?.contextWindow,maxOutputTokens:raw.defaultMaxTokens,
+      inputModalities:Array.isArray(raw.inputModalities)?raw.inputModalities:undefined,
     },providerBaseURL:route?.baseURL})
   }
   async fx():Promise<Json>{return this.rpc.request({op:'fx'})}
+  async localJudge(config:Json,action:'status'|'download'|'load'|'unload'):Promise<Json>{
+    return this.rpc.request({op:'local-judge',config,action,confirmed:action==='download'})
+  }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
+  private runForAgent(agent:NativeAgent):string{
+    const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
+    const session=agent.session.header?.id,agentId=agent.id,turn=event?.data.turn
+    if(!session||!agentId||typeof turn!=='number')throw new Error('媒体工具缺少可信任务身份')
+    const runId=this.tasks.get(JSON.stringify({session,agent:agentId,turn}))
+    if(!runId)throw new Error('媒体工具只能在已启动的规划路由任务中使用')
+    return runId
+  }
+  async reserveMedia(agent:NativeAgent,input:Json):Promise<Json>{
+    return this.rpc.request({op:'media-reserve',runId:this.runForAgent(agent),...input})
+  }
+  async updateMedia(agent:NativeAgent,input:Json):Promise<Json>{
+    return this.rpc.request({op:'media-update',runId:this.runForAgent(agent),...input})
+  }
+  async mediaCredential(provider:string):Promise<string>{
+    if(!/^[A-Za-z0-9._-]{1,128}$/.test(provider))throw new Error('媒体凭证 provider ID 无效')
+    const settings=this.settings?.get?.('llm-pi-ai') as Json|undefined
+    const route=(settings?.providers as Json|undefined)?.[provider] as Json|undefined
+    const reference=typeof route?.apiKeyEnv==='string'&&route.apiKeyEnv
+      ?route.apiKeyEnv:`llm-pi-ai/${provider}`
+    const credential=await this.ctx.credentials.resolve(reference)
+    if(!credential?.value)throw new Error(`媒体路线 ${provider} 的 DSH 凭证不可用；请为该 provider 登录或登记 apiKeyEnv`)
+    return credential.value
+  }
   async *stream(options:ModelOptions):AsyncGenerator<Record<string,unknown>> {
     if(!this.ctx.llm.stream||!this.ctx.agents)throw new Error('规划路由需要 DSH 原生模型与 Agent 服务')
     const agent=this.ctx.agents.requireInitiator()
@@ -267,7 +319,7 @@ export class PlanningController {
       done=true
       if(standalone)await this.rpc.request({op:'end',runId})
       yield {...accepted.finish,type:'finish',replayState:{response:{refractPlanning:{
-        version:1,provider:accepted.model.provider,model:accepted.model.model,
+        version:2,contentContract:'dsh-content-blocks-v1',provider:accepted.model.provider,model:accepted.model.model,
         ...(replay?{response:replay.response}:{}),...(action.feedback?{feedback:action.feedback}:{}),runId}},...(replay?.blocks?{blocks:replay.blocks}:{})}}
     }finally{
       cancelled.abort()

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "task-judge-audit-v1",
+  "date": "2026-09-26",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "modelSources": [
+    "https://docs.volcengine.com/docs/ark/model-list?lang=zh",
+    "https://docs.volcengine.com/docs/ark/coding-plan-personal-feature-release?lang=zh"
+  ],
+  "modelCards": [
+    {
+      "route": "ark/deepseek-v4-flash",
+      "providerDeclared": ["文本生成", "工具调用", "结构化输出"],
+      "projectConnected": ["文本 Agent 接口", "原生工具接口"],
+      "projectVerified": [],
+      "unknown": ["Agent Plan 别名的实际固定版本", "代码与研究任务的相对质量", "图片及影片输入"],
+      "source": "https://docs.volcengine.com/docs/ark/model-list?lang=zh",
+      "checkedAt": "2026-09-26"
+    },
+    {
+      "route": "ark/deepseek-v4.1-flash",
+      "providerDeclared": ["文本生成", "工具调用", "结构化输出", "多模态理解"],
+      "projectConnected": ["文本 Agent 接口", "原生工具接口"],
+      "projectVerified": ["2026-09-26 两轮文本调用与一次原生 Bash 工具续接"],
+      "unknown": ["Agent Plan 别名的实际固定版本", "代码与研究任务的相对质量", "图片及影片实际输入"],
+      "source": "https://docs.volcengine.com/docs/ark/model-list?lang=zh",
+      "checkedAt": "2026-09-26"
+    }
+  ],
+  "cases": [
+    {
+      "id": "zh-terminal",
+      "task": "请用终端执行 pwd，并根据实际输出回答工作目录。",
+      "candidates": [
+        {"id": "terminal", "card": "经宿主工具验收，可调用终端并读取返回结果。"},
+        {"id": "text-only", "card": "只能生成文本，没有工具调用接口。"}
+      ],
+      "expected": "terminal"
+    },
+    {
+      "id": "en-terminal",
+      "task": "Run pwd in a terminal and report its actual output.",
+      "candidates": [
+        {"id": "terminal", "card": "Verified terminal tool access and result reading."},
+        {"id": "text-only", "card": "Text generation only; no tool calling."}
+      ],
+      "expected": "terminal"
+    },
+    {
+      "id": "zh-image",
+      "task": "查看我上传的图片并描述其中的文字。",
+      "candidates": [
+        {"id": "vision", "card": "已验收图片输入与文字识别。"},
+        {"id": "text-only", "card": "只接通文本输入。"}
+      ],
+      "expected": "vision"
+    },
+    {
+      "id": "en-image",
+      "task": "Read the text in the attached image.",
+      "candidates": [
+        {"id": "vision", "card": "Verified image input and text extraction."},
+        {"id": "text-only", "card": "Text input only."}
+      ],
+      "expected": "vision"
+    },
+    {
+      "id": "zh-unclear",
+      "task": "帮我处理一下这个。",
+      "candidates": [
+        {"id": "a", "card": "接通文字与工具调用。"},
+        {"id": "b", "card": "接通文字与工具调用。"}
+      ],
+      "expected": "insufficient"
+    },
+    {
+      "id": "en-unclear",
+      "task": "Please handle this.",
+      "candidates": [
+        {"id": "a", "card": "Text and tool calling are connected."},
+        {"id": "b", "card": "Text and tool calling are connected."}
+      ],
+      "expected": "insufficient"
+    }
+  ]
+}

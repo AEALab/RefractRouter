@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "task-quality-pilot-v2",
+  "status": "corrected-preflight",
+  "description": "修正 v1 把序列化请求字节数误当 token 的费用上界；v1 批次原始记录不改写。",
+  "taskSource": "data/benchmarks/stage-routing-v1.json",
+  "calibration": ["code-defect-lru-zero", "research-fact-storage"],
+  "holdout": ["code-tdd-slug", "research-compare-search"],
+  "arms": {
+    "calibration": ["static-flash", "static-v4.1-flash"],
+    "holdout": ["static-flash", "static-v4.1-flash", "task-choice-v2"]
+  },
+  "models": {
+    "static-flash": {"provider": "ark", "model": "deepseek-v4-flash", "reasoningEffort": "low"},
+    "static-v4.1-flash": {"provider": "ark", "model": "deepseek-v4.1-flash", "reasoningEffort": "high"},
+    "task-choice-v2": {"pool": ["deepseek-v4-flash", "deepseek-v4.1-flash"],
+      "judge": "aac6fef/laya-multilingual-mlx@f2b4faf51023039425946074e2cf1361d2db11d5",
+      "method": "choice-v2", "threshold": 0.8,
+      "fallback": "deepseek-v4.1-flash"}
+  },
+  "limits": {
+    "maxCallsPerRun": 5,
+    "maxRequestBytesPerCall": 64000,
+    "maxOutputTokensPerCall": 2048,
+    "timeoutMsPerRun": 300000,
+    "httpRetries": 0,
+    "delegation": false
+  },
+  "evaluation": {
+    "code": "隔离工作区的冻结隐藏测试；模型不可读取隐藏测试。",
+    "research": "冻结材料的确定性引用、关键事实及错误检查，不增加付费评审。",
+    "selection": "逐任务记录选定模型、备援、输出正确性和两条固定路线的反事实结果；只报告小样本观察。"
+  },
+  "stopRules": {
+    "batch": ["认证失败", "模型用量未知", "账本异常", "证据写入失败"],
+    "sample": ["普通任务错误", "预算耗尽", "超时"],
+    "restart": "不覆盖旧批次；提交结果不明不自动重发。"
+  }
+}
