@@ -62,7 +62,8 @@ export class PlanningWorker implements PlanningRpc {
     const id=randomUUID(),line=JSON.stringify({protocol:PLANNING_PROTOCOL,id,...value})+'\n'
     if(Buffer.byteLength(line)>16*1024*1024)throw new Error('规划路由请求过大')
     return new Promise((resolve,reject)=>{
-      const timeout=value.op==='local-judge'&&value.action==='download'?15*60*1000:30000
+      const timeout=value.op==='local-judge'&&value.action==='download'?15*60*1000:
+        value.op==='local-judge'&&value.action==='load'?5*60*1000:30000
       const timer=setTimeout(()=>{
         this.fail(new Error('规划路由进程响应超时；不自动重新派发'));this.handle?.terminate?.()
       },timeout)
@@ -102,10 +103,19 @@ function sumUsage(total:TokenUsage,usage:TokenUsage):void {
   for(const key of ['inputTokens','outputTokens','cacheReadTokens','cacheWriteTokens','reasoningTokens'] as const)
     total[key]=(total[key]??0)+(usage[key]??0)
 }
+function waitFor(ms:number,signal:AbortSignal):Promise<void>{
+  return new Promise((resolve,reject)=>{
+    if(signal.aborted){reject(signal.reason);return}
+    const timer=setTimeout(()=>{signal.removeEventListener('abort',abort);resolve()},ms)
+    const abort=()=>{clearTimeout(timer);reject(signal.reason)}
+    signal.addEventListener('abort',abort,{once:true})
+  })
+}
 export class PlanningController {
   readonly rpc:PlanningRpc
   private tasks=new Map<string,string>()
   private settings:AgentContext['settings']
+  private handshake?:Promise<void>
   constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc,
     private evidence=new ToolEvidenceCapture()){
     this.rpc=rpc??new PlanningWorker(ctx,source)
@@ -200,6 +210,15 @@ export class PlanningController {
     return this.rpc.request({op:'local-judge',config,action,confirmed:action==='download'})
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
+  private async ensureHandshake():Promise<void>{
+    this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
+      if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
+          ||!result.capabilities.includes('escalation-decision-v1')
+          ||!result.capabilities.includes('local-judge-jobs'))
+        throw new Error('规划路由核心与插件能力不兼容；请同时升级核心和插件')
+    })
+    return this.handshake
+  }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
     const session=agent.session.header?.id,agentId=agent.id,turn=event?.data.turn
@@ -247,6 +266,7 @@ export class PlanningController {
     let runId=this.tasks.get(key),done=false
     try{
       signal.throwIfAborted()
+      await this.ensureHandshake()
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,
@@ -265,7 +285,12 @@ export class PlanningController {
         events:this.evidence.enrich(session,nativeEvents)})
       const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean}>()
       const total:TokenUsage={}
-      while(action.action==='call'){
+      while(action.action==='call'||action.action==='wait'){
+        if(action.action==='wait'){
+          await waitFor(Math.max(10,Math.min(1000,Number(action.pollAfterMs) || 25)),signal)
+          action=await this.rpc.request({op:'local-judge-poll',runId,jobId:action.jobId})
+          continue
+        }
         signal.throwIfAborted()
         const callSignal=action.remainingMs===null?signal:AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,action.remainingMs))])
         const chunks:Json[]=[],blocks=new Map<number,Json>()

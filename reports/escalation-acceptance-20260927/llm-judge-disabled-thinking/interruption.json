@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "escalation-judge-interruption-v1",
+  "status": "stopped-provider-rejection",
+  "caseId": "zh-proceed-1",
+  "model": "glm-5.3-flash",
+  "requestId": "02179044047165589d0c17fc196b3c940c12dd7ad5b500b841110",
+  "attempts": 1,
+  "httpRetries": 0,
+  "failureType": "HTTP 400",
+  "reason": "当前 Agent Plan 路线不支持 thinking.type=disabled；本批次停止，不自动重试。",
+  "nextBatchChange": "改用已验证可关闭思考的 deepseek-v4-flash 作为轻量 Judge，并生成新的预检摘要。"
+}

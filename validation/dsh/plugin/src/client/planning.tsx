@@ -147,7 +147,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   },[dirty,draft.billingUnit,draft.maxProductionCost,draft.maxProductionCostByUnit,loadFx])
   async function save(){
     setBusy(true);setStatus('')
-    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:'refractagent-planning-v3'})));setDirty(false)
+    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:'refractagent-planning-v4'})));setDirty(false)
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
       setStatus(selected?.available
@@ -157,7 +157,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   async function operateLocalJudge(action:'status'|'download'|'load'|'unload'){
     setBusy(true);setStatus(action==='download'?'正在明确下载固定 revision；任务执行不会触发此操作。':'')
-    try{const result=await localJudge({...draft,schemaVersion:'refractagent-planning-v3'},action)
+    try{const result=await localJudge({...draft,schemaVersion:'refractagent-planning-v4'},action)
       setLocalJudgeStatus(result);setStatus(`本地 Judge：依赖${result.installed?'已安装':'未安装'}；权重${result.downloaded?'已就绪':'未就绪'}；revision ${result.revisionVerified?'已核对':'未核对'}；本地文件 ${(result.sizeBytes/1024/1024).toFixed(1)} MiB；进程${result.loaded?'已加载':'未加载'}。`)
     }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
   }
@@ -231,8 +231,34 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       judge:{type:'llm',modelId:draft.roles?.classifier??pool[0]},threshold:.8,maxInputChars:12000,
       maxExecutionOutputTokens:8192}})
   }
+  function migrateEscalationSettings(){
+    const initial=draft.roles?.efficient,takeover=draft.roles?.capable
+    const judgeId=draft.roles?.classifier
+    if(!initial||!takeover||!judgeId){setStatus('请先配置高效、强执行和任务／升级判别模型。');return}
+    patch({escalation:{initial,takeover,judge:{type:'llm',modelId:judgeId},stallConfirmations:2,
+      threshold:.8,judgeTimeoutMs:30000,maxJudgeInputBytes:65536,
+      maxExecutionOutputTokens:8192,maxJudgeOutputTokens:1024}})
+  }
+  function addEscalationCatalog(field:'initial'|'takeover'|'judge',provider:string,model:string){
+    const existing=draft.models?.find(item=>item.provider===provider&&item.model===model)
+    let id=existing?.id,models=draft.models??[]
+    if(!id){
+      const base=`escalation-${field}-${provider}-${model}`.replace(/[^a-zA-Z0-9_-]/g,'-')
+      id=base;let index=2
+      while(models.some(item=>item.id===id))id=`${base}-${index++}`
+      models=[...models,{id,provider,model,deployment:'external-cloud',capabilities:{
+        mainExecutor:field!=='judge',toolCalling:'unknown',modalities:{}}}]
+    }
+    const current=draft.escalation??{initial:draft.roles?.efficient??id,
+      takeover:draft.roles?.capable??id,judge:{type:'llm' as const,modelId:draft.roles?.classifier??id}}
+    const escalation=field==='judge'?{...current,judge:{type:'llm' as const,modelId:id}}:{...current,[field]:id}
+    patch({models,escalation});void retrieveMetadata(provider,model,'AUTO')
+  }
   const activeModelIds=[...new Set([...Object.values(draft.roles??{}),...(draft.task?.pool??[]),
-    ...(draft.task?.judge.type==='llm'?[draft.task.judge.modelId]:[])].filter((id):id is string=>Boolean(id)))]
+    ...(draft.task?.judge.type==='llm'?[draft.task.judge.modelId]:[]),
+    ...(draft.escalation?[draft.escalation.initial,draft.escalation.takeover]:[]),
+    ...(draft.escalation?.judge.type==='llm'?[draft.escalation.judge.modelId]:[])]
+    .filter((id):id is string=>Boolean(id)))]
   const activeUnits=[...new Set([...activeModelIds.map(id=>{
     const unit=draft.models?.find(model=>model.id===id)?.billingUnit??draft.billingUnit??'CNY'
     return unit==='USD'?'CNY':unit
@@ -388,6 +414,89 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>
       </>}
     </div>}
+    {draft.defaultStrategy==='escalation'&&<div className="rra-planning-fields">
+      <p>先缓冲起始模型回复，由 Judge 判定后放行；明确缺陷、最终回复停滞或无法判断时，由接管模型继续当前任务。</p>
+      {!draft.escalation&&<div className="rra-simple-status"><strong>尚未升级 Escalation 设置</strong>
+        <span>旧配置仍使用通用高效、强执行和判别角色。升级只预填草稿，不切换默认策略。</span>
+        <button className="rra-button rra-button-secondary" type="button" onClick={migrateEscalationSettings}>从现有角色预填</button></div>}
+      {draft.escalation&&<>
+        {(['initial','takeover'] as const).map(field=>{const id=draft.escalation![field]
+          const model=draft.models?.find(item=>item.id===id)
+          const efforts=catalog?.groups.find(group=>group.id===model?.provider)?.models
+            .find(item=>item.id===model?.model)?.reasoning?.efforts??[]
+          return <div className="rra-row-card" key={field}><strong>{field==='initial'?'起始执行模型':'强模型接管'}</strong>
+            <label className="rra-compact-field">从 DSH 目录选择 <select className="rra-select" value="" onChange={e=>{
+              if(!e.target.value)return;const [provider,selected]=JSON.parse(e.target.value) as string[]
+              addEscalationCatalog(field,provider,selected)}}><option value="">选择并登记…</option>
+              {catalog?.groups.filter(group=>group.id!=='refractagent').map(group=><optgroup key={group.id} label={group.name}>
+                {group.models.map(item=><option key={item.id} value={JSON.stringify([group.id,item.id])}>{item.name}</option>)}</optgroup>)}</select></label>
+            <label className="rra-compact-field">复用已登记配置 <select className="rra-select" value={id} onChange={e=>patch({
+              escalation:{...draft.escalation!,[field]:e.target.value}})}>{draft.models?.map(item=><option key={item.id} value={item.id}>
+                {item.id} · {item.provider}/{item.model}</option>)}</select></label>
+            {model&&<label className="rra-compact-field">推理等级 <select className="rra-select" value={model.reasoningEffort??''}
+              onChange={e=>modelPatch(model.id,{reasoningEffort:e.target.value||undefined})}><option value="">使用提供方默认</option>
+              {efforts.map(entry=><option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label>}
+            {model&&<div className="rra-grid rra-grid-2"><label className="rra-compact-field">数据域 <select className="rra-select" value={model.deployment??'external-cloud'}
+              onChange={e=>modelPatch(model.id,{deployment:e.target.value,trustPolicy:e.target.value==='trusted-cloud'?model.trustPolicy:undefined})}>
+              <option value="external-cloud">外部云</option><option value="trusted-cloud">已授权的可信云</option><option value="local">本地部署</option></select></label>
+              {model.deployment==='trusted-cloud'&&<label className="rra-compact-field">信任策略 <select className="rra-select" value={model.trustPolicy??''}
+                onChange={e=>modelPatch(model.id,{trustPolicy:e.target.value||undefined})}><option value="">选择已登记的许可…</option>
+                {draft.trustPolicies?.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>}</div>}
+          </div>})}
+        {draft.escalation.initial===draft.escalation.takeover&&<p role="status">起始与接管模型不能相同，否则无法形成有效接管。</p>}
+        <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.escalation.judge.type}
+          onChange={e=>patch({escalation:{...draft.escalation!,judge:e.target.value==='local-decision'
+            ?{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',
+              revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'choice-v2'}
+            :{type:'llm',modelId:draft.roles?.classifier??draft.escalation!.initial}}})}>
+          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option></select></label>
+        {draft.escalation.judge.type==='llm'?<>
+          <label className="rra-compact-field">从 DSH 目录选择 Judge <select className="rra-select" value="" onChange={e=>{
+            if(!e.target.value)return;const [provider,selected]=JSON.parse(e.target.value) as string[]
+            addEscalationCatalog('judge',provider,selected)}}><option value="">选择并登记…</option>
+            {catalog?.groups.filter(group=>group.id!=='refractagent').map(group=><optgroup key={group.id} label={group.name}>
+              {group.models.map(item=><option key={item.id} value={JSON.stringify([group.id,item.id])}>{item.name}</option>)}</optgroup>)}</select></label>
+          <label className="rra-compact-field">Judge 模型 <select className="rra-select" value={draft.escalation.judge.modelId}
+            onChange={e=>patch({escalation:{...draft.escalation!,judge:{type:'llm',modelId:e.target.value}}})}>
+            {draft.models?.map(item=><option key={item.id} value={item.id}>{item.id} · {item.provider}/{item.model}</option>)}</select></label>
+          {(()=>{const judge=draft.escalation?.judge
+            const model=judge?.type==='llm'?draft.models?.find(item=>item.id===judge.modelId):undefined
+            if(!model)return null
+            const efforts=catalog?.groups.find(group=>group.id===model.provider)?.models.find(item=>item.id===model.model)?.reasoning?.efforts??[]
+            return <div className="rra-row-card"><label className="rra-compact-field">Judge 推理等级 <select className="rra-select" value={model.reasoningEffort??''}
+              onChange={e=>modelPatch(model.id,{reasoningEffort:e.target.value||undefined})}><option value="">使用提供方默认</option>
+              {efforts.map(entry=><option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label>
+              <div className="rra-grid rra-grid-2"><label className="rra-compact-field">Judge 数据域 <select className="rra-select" value={model.deployment??'external-cloud'}
+                onChange={e=>modelPatch(model.id,{deployment:e.target.value,trustPolicy:e.target.value==='trusted-cloud'?model.trustPolicy:undefined})}>
+                <option value="external-cloud">外部云</option><option value="trusted-cloud">已授权的可信云</option><option value="local">本地部署</option></select></label>
+                {model.deployment==='trusted-cloud'&&<label className="rra-compact-field">Judge 信任策略 <select className="rra-select" value={model.trustPolicy??''}
+                  onChange={e=>modelPatch(model.id,{trustPolicy:e.target.value||undefined})}><option value="">选择已登记的许可…</option>
+                  {draft.trustPolicies?.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>}</div>
+              {model.provider==='ark'&&model.model==='glm-5.3-flash'&&<p role="status">当前 Agent Plan 路线不支持关闭思考；真实验收中默认思考占满 1024 token 判别输出。增加输出上限并重新验收前，请将它视为实验 Judge。</p>}
+            </div>})()}
+        </>:<div className="rra-planning-fields">
+          <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.escalation.judge.modelPath}
+            onChange={e=>patch({escalation:{...draft.escalation!,judge:{...draft.escalation!.judge as Extract<typeof draft.escalation.judge,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
+          <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.escalation.judge.revision??''}
+            onChange={e=>patch({escalation:{...draft.escalation!,judge:{...draft.escalation!.judge as Extract<typeof draft.escalation.judge,{type:'local-decision'}>,revision:e.target.value}}})}/></label>
+          <div className="rra-actions"><button className="rra-button rra-button-secondary" type="button" disabled={busy} onClick={()=>void operateLocalJudge('status')}>检查本地状态</button>
+            <button className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.escalation.judge.modelPath||!draft.escalation.judge.revision} onClick={()=>void operateLocalJudge('download')}>下载固定权重</button>
+            <button className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.escalation.judge.modelPath} onClick={()=>void operateLocalJudge('load')}>加载并预热</button>
+            <button className="rra-button rra-button-secondary" type="button" disabled={busy||!localJudgeStatus?.loaded} onClick={()=>void operateLocalJudge('unload')}>卸载</button></div>
+          {localJudgeStatus&&<p role="status">本地 Judge：{localJudgeStatus.loaded?'已加载并预热':localJudgeStatus.downloaded?'权重已下载，尚未加载':'尚未就绪'}；revision {localJudgeStatus.revisionVerified?'已核对':'未核对'}。</p>}
+          <p className="rra-field-hint">固定多语言 Laya revision 的 24 条 Escalation 案例仅匹配 5 条，尚未达到日常使用门槛；当前保留为低时延实验后端。</p>
+        </div>}
+        <p className="rra-field-hint">接管后本任务固定使用强模型，不再调用 Judge；轨迹会注明“接管后未追加审核”。</p>
+        <details className="rra-details"><summary>Escalation 高级参数</summary><div className="rra-planning-fields">
+          <label className="rra-compact-field">工具过程连续停滞次数 <input className="rra-input" type="number" min="1" step="1" value={draft.escalation.stallConfirmations??2} onChange={e=>patch({escalation:{...draft.escalation!,stallConfirmations:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">本地判别确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.escalation.threshold??.8} onChange={e=>patch({escalation:{...draft.escalation!,threshold:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" step="100" value={draft.escalation.judgeTimeoutMs??30000} onChange={e=>patch({escalation:{...draft.escalation!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">Judge 输入包络（bytes） <input className="rra-input" type="number" min="1024" step="1024" value={draft.escalation.maxJudgeInputBytes??65536} onChange={e=>patch({escalation:{...draft.escalation!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">执行输出上限 <input className="rra-input" type="number" min="256" step="1" value={draft.escalation.maxExecutionOutputTokens??8192} onChange={e=>patch({escalation:{...draft.escalation!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">LLM Judge 输出上限 <input className="rra-input" type="number" min="64" step="1" value={draft.escalation.maxJudgeOutputTokens??1024} onChange={e=>patch({escalation:{...draft.escalation!,maxJudgeOutputTokens:Number(e.target.value)}})}/></label>
+        </div></details>
+      </>}
+    </div>}
     {draft.defaultStrategy==='static'&&<details className="rra-details"><summary>Static 设置</summary><div className="rra-planning-fields">
       <p>参数尚未校准。修改只影响新任务。</p>
       <>
@@ -403,7 +512,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
             efficientWeight:'高效模型权重',capableWeight:'强模型权重'} as Record<string,string>)[key]} <input className="rra-input" type="number"  step="any" value={draft.parameters?.[key]??value}
           onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
       </div></details>}
-    {draft.defaultStrategy!=='stage'&&draft.defaultStrategy!=='static'&&draft.defaultStrategy!=='task'&&<details className="rra-details"><summary>策略参数</summary><div className="rra-planning-fields">
+    {draft.defaultStrategy!=='stage'&&draft.defaultStrategy!=='static'&&draft.defaultStrategy!=='task'&&draft.defaultStrategy!=='escalation'&&<details className="rra-details"><summary>策略参数</summary><div className="rra-planning-fields">
       <p>参数尚未校准。修改只影响新任务。</p>
       {Object.entries({window:3,threshold:.5,holdTurns:2,baseThreshold:.5,thresholdStep:.1,maxReviews:1,maxRedos:1,stallTurns:0,confirmations:2}).filter(([key])=>(({task:['baseThreshold','thresholdStep'],composite:['window','threshold','holdTurns','baseThreshold','thresholdStep'],advisor:['maxReviews','maxRedos','stallTurns'],escalation:['confirmations']} as Record<string,string[]>)[draft.defaultStrategy??'task']??[]).includes(key)).map(([key,value])=>
         <label className="rra-compact-field" key={key}>{({window:'证据窗口',threshold:'阶段判断阈值',holdTurns:'强模型保持轮数',baseThreshold:'任务基础阈值',thresholdStep:'能力边界修正步长',maxReviews:'审核次数上限',maxRedos:'返工次数上限',stallTurns:'停滞审核轮数（0 为关闭）',confirmations:'连续升级判断次数'} as Record<string,string>)[key]} <input className="rra-input" type="number" step="any" value={draft.parameters?.[key]??value} onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
@@ -456,6 +565,7 @@ type History={records:Array<{runId:string;strategy:string;status:string;costs:{p
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
   calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number}}>;
   decisions:Array<{callId?:string;reason:string;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
+    streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
     decision?:TaskRouteEvidence&{backend?:string;coldStartMs?:number;latencyMs?:number};judgeDecision?:TaskRouteEvidence;
     rejectedCandidates?:Array<{id:string;reason:string}>}>}>}
 const REASON:Record<string,string>={fixed:'固定模型','no-signal':'无有效信号，保持高效','ambiguous':'证据含糊，保持高效',
@@ -469,7 +579,11 @@ const REASON:Record<string,string>={fixed:'固定模型','no-signal':'无有效�
   'no-quality-qualified-candidate':'无质量达标候选，使用指定备援',
   'incomparable-billing-units':'候选计费单位不可比较，使用指定备援',
   'single-choice-no-comparative-evidence':'直选仅有单一候选证据，未比较费用',
-  'escalation-latch':'升级锁定'}
+  'escalation-latch':'升级锁定','escalation-initial':'起始模型候选',
+  'escalation-proceed':'Judge 放行','escalation-defect':'明确缺陷，立即接管',
+  'escalation-stall':'工具过程疑似停滞','escalation-final-stall':'最终回复停滞，立即接管',
+  'escalation-uncertain':'Judge 无法判断，交给强模型',
+  'escalation-takeover-unreviewed':'强模型接管后未追加审核'}
 function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]}){
   const value=row.judgeDecision?.decision??row.judgeDecision??row.decision
   if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length)return null
@@ -505,7 +619,7 @@ function Trace({load}:{load:()=>Promise<History>}){
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{c.purpose}</td><td>{c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}</td>
           <td>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{c.charged}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {totals[unit]}{unit?` ${unit}`:''}</small></td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
           <td>{REASON[d?.reason??'']??d?.reason??'策略判别'}{typeof d?.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}<br/>
-            <small>{d?.evidenceSummary??(d?.decision?.backend?`后端 ${d.decision.backend}`:'旧记录无证据摘要')}{d?.holdBefore!==undefined?`；保持 ${d.holdBefore} → ${d.holdAfter}`:''}{d?.decision?.coldStartMs!==undefined?`；冷启动 ${d.decision.coldStartMs.toFixed(0)} ms`:''}{d?.ruleVersion?`；${d.ruleVersion}`:''}</small>{d&&<TaskEvidence row={d}/>}</td></tr>})})()}</tbody></table></article>)}
+            <small>{d?.evidenceSummary??(d?.decision?.backend?`后端 ${d.decision.backend}`:'旧记录无证据摘要')}{d?.holdBefore!==undefined?`；保持 ${d.holdBefore} → ${d.holdAfter}`:''}{d?.streakBefore!==undefined?`；连续停滞 ${d.streakBefore} → ${d.streakAfter}`:''}{d?.decision?.coldStartMs!==undefined?`；冷启动 ${d.decision.coldStartMs.toFixed(0)} ms`:''}{d?.ruleVersion?`；${d.ruleVersion}`:''}</small>{d&&<TaskEvidence row={d}/>}</td></tr>})})()}</tbody></table></article>)}
   </section>
 }
 export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {

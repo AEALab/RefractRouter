@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "escalation-acceptance-preflight-v1",
+  "status": "zero-call-preflight",
+  "realModelCalls": 0,
+  "suite": "data/benchmarks/escalation-judge-v1.json",
+  "suiteDigest": "a964eeefb6e8e34894e05ada1285b0148b014b62b146e6f4edcd7196b22d31b2",
+  "models": {
+    "initial": "deepseek-v4-flash",
+    "takeover": "deepseek-v4.1-flash",
+    "judge": "glm-5.3-flash"
+  },
+  "limits": {
+    "judgeCases": 24,
+    "dshFlows": 4,
+    "maxCallsPerDshFlow": 6,
+    "judgeOutputTokens": 1024,
+    "executionOutputTokens": 2048,
+    "flowInputBytes": 80000,
+    "timeoutMsPerFlow": 300000,
+    "httpRetries": 0,
+    "delegation": false
+  },
+  "callPlan": {
+    "judgeCases": 24,
+    "normalDshFlowCallsUpper": 2,
+    "takeoverDshFlowCallsUpper": 5,
+    "maximumModelCalls": 38
+  },
+  "costUpper": {
+    "judgeCasesAfp": 3.18305,
+    "dshWiringAfp": 156.1728,
+    "productionAfp": 159.35585,
+    "priorAfpWorstCase": 134.94255,
+    "maximumIncludingPriorAfp": 294.2984,
+    "authorizedCumulativeAfp": 2000
+  },
+  "perCallUpperAfp": {
+    "deepseek-v4-flash": 4.1152,
+    "deepseek-v4.1-flash": 20.576,
+    "glm-5.3-flash": 4.064
+  },
+  "credentialEnv": "CODEX_ARK_API_KEY",
+  "credentialAvailable": true,
+  "pricingSnapshot": "2026-09-25",
+  "pricingSource": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+  "notes": [
+    "本地 Laya 24 条案例无 API AFP，另记冷启动、暖机延迟和推论次数。",
+    "四条 DSH 流程分为两个正常工具流程和两个明确标记的受控错误候选流程。",
+    "预检不会下载权重、启动本地推论或派发任何真实模型调用。"
+  ],
+  "preflightDigest": "fa2d8771c9e0866d74accfb5874a533ec65391a3545a10fddb4445bfb38da225"
+}

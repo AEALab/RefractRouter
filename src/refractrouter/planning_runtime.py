@@ -17,6 +17,10 @@ from .planning_budget import PlanningBudget
 from .planning_decision import (LayaDecisionAdapter, LocalDecisionCapacityError, candidate_assessments,
                                 decision_request, filter_candidates, parse_decision, select_task_candidate,
                                 task_state)
+from .escalation_decision import (decision_request as escalation_request,
+                                  llm_messages as escalation_messages,
+                                  parse_decision as parse_escalation_decision)
+from .local_judge_service import LocalJudgeProcess
 from .deepseek_official_pricing import pricing as deepseek_cny_pricing
 from .openai_compatible import ChatResponse
 
@@ -51,6 +55,12 @@ class PlanningRuntime:
         self.runs = {}
         self.lock = RLock()
         self.local_judges = {}
+        self.local_service = LocalJudgeProcess()
+
+    @staticmethod
+    def local_judge_key(config):
+        return digest({name: config.get(name) for name in
+                      ("adapter", "modelPath", "revision", "device", "dtype", "method")})
 
     def persist(self, run):
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -125,6 +135,23 @@ class PlanningRuntime:
             model_ids.extend(config["task"]["pool"])
             if config["task"]["judge"]["type"] == "llm":
                 model_ids.append(config["task"]["judge"]["modelId"])
+            else:
+                judge = config["task"]["judge"]
+                status = self.local_service.call("status", self.local_judge_key(judge), judge)
+                if not status["loaded"]:
+                    self.stop(run, "local-judge-not-ready")
+                    raise ValueError("Task 本地 Judge 尚未加载；请先在设置中加载并预热")
+        elif strategy == "escalation" and config["escalation"]["mode"] == "configured":
+            escalation = config["escalation"]
+            model_ids.extend((escalation["initial"], escalation["takeover"]))
+            if escalation["judge"]["type"] == "llm":
+                model_ids.append(escalation["judge"]["modelId"])
+            else:
+                key = self.local_judge_key(escalation["judge"])
+                status = self.local_service.call("status", key, escalation["judge"])
+                if not status["loaded"]:
+                    self.stop(run, "local-judge-not-ready")
+                    raise ValueError("Escalation 本地 Judge 尚未加载；请先在设置中加载并预热")
         else:
             model_ids.extend(config["roles"][role] for role in roles)
         if strategy == "static" and config["parameters"]["staticMode"] == "random":
@@ -204,17 +231,20 @@ class PlanningRuntime:
         # 一个任务只允许一个在途策略流程。Stage 先选本轮目标模型，再由 issue
         # 按实际输入和该模型输出上限做原子预留；未被选择的模型不占用预算。
         purposes = ["efficient"]
-        if strategy in ("stage", "task", "composite", "escalation") and not task_v3:
+        configured_escalation = strategy == "escalation" and c["escalation"]["mode"] == "configured"
+        if strategy in ("stage", "task", "composite", "escalation") and not task_v3 and not configured_escalation:
             purposes.append("capable")
         if strategy in ("task", "composite") and not s["classified"]:
             purposes.append("classifier")
-        if strategy == "escalation" and not s["latched"]:
+        if strategy == "escalation" and not s["latched"] and not configured_escalation:
             purposes.append("classifier")
         if strategy == "advisor" and s["reviews"] < c["parameters"]["maxReviews"]:
             purposes += ["advisor"] * (c["parameters"]["maxReviews"] - s["reviews"]) + ["efficient"] * (c["parameters"]["maxRedos"] - s["redos"])
         if strategy == "static" and c["parameters"]["staticMode"] == "random":
             purposes.append("capable")
-        if strategy != "stage" and not task_v3:
+        if configured_escalation:
+            self._preflight_escalation_path(run, messages, tools)
+        elif strategy != "stage" and not task_v3:
             bounds = {}
             for role in purposes:
                 model = c["models"][c["roles"][role]]
@@ -235,6 +265,9 @@ class PlanningRuntime:
         if task_v3:
             task_cap = c["task"]["maxExecutionOutputTokens"]
             output_cap = min(task_cap, output_cap) if output_cap is not None else task_cap
+        if configured_escalation:
+            escalation_cap = c["escalation"]["maxExecutionOutputTokens"]
+            output_cap = min(escalation_cap, output_cap) if output_cap is not None else escalation_cap
         run["flow"] = {"messages": messages, "tools": tools, "events": events, "pending": None,
                        "responses": {}, "feedback": None, "requestId": request.get("requestId"), "evidence": evidence,
                        "fresh": fresh, "maxTokens": output_cap, "purpose": request.get("purpose")}
@@ -299,18 +332,23 @@ class PlanningRuntime:
                 item["capabilityCard"].strip() for item in flow["candidates"]}) == 1:
             return self._task_fallback(run, "local-judge-no-differentiating-evidence",
                                        flow["rejectedCandidates"])
-        key = digest({key: config.get(key) for key in
-                      ("adapter", "modelPath", "revision", "device", "dtype", "method")})
+        key = self.local_judge_key(config)
+        job_id = self.local_service.submit("task", key, config, request)
+        flow["localJudge"] = {"jobId": job_id, "kind": "task",
+                              "deadline": run["deadline"] or time.monotonic() + 30}
+        self.persist(run)
+        return {"action": "wait", "kind": "local-judge", "jobId": job_id,
+                "pollAfterMs": 25, **self.describe(run)}
+
+    def _finish_local_task_decision(self, run, result):
+        c, flow = run["config"], run["flow"]
+        config = c["task"]["judge"]
+        payload = result["payload"]
         try:
-            adapter = self.local_judges.get(key)
-            if adapter is None:
-                adapter = LayaDecisionAdapter(config)
-                self.local_judges[key] = adapter
-            result = adapter.decide(request)
-            decision = parse_decision(result.payload, [item["id"] for item in flow["candidates"]],
+            decision = parse_decision(payload, [item["id"] for item in flow["candidates"]],
                                       c["task"]["threshold"])
-            if result.payload.get("rawPerCandidate") is not None:
-                assessments = candidate_assessments(result.payload,
+            if payload.get("rawPerCandidate") is not None:
+                assessments = candidate_assessments(payload,
                     [item["id"] for item in flow["candidates"]], c["task"]["threshold"])
                 decision.update(self._task_rank(run, assessments))
                 decision["candidateAssessments"] = assessments
@@ -322,22 +360,15 @@ class PlanningRuntime:
             else:
                 decision["reason"] = "single-choice-no-comparative-evidence"
                 decision["costBasis"] = "unavailable"
-        except LocalDecisionCapacityError as exc:
-            run["decisions"].append({"step": run["state"]["step"], "role": "judge",
-                "model": config.get("sourceModel"), "reason": "local-judge-capacity",
-                "decision": {"backend": "local-decision", "issue": str(exc)},
-                "rejectedCandidates": flow["rejectedCandidates"]})
-            return self._task_fallback(run, "local-judge-capacity", flow["rejectedCandidates"],
-                                       {"issue": str(exc), "uncertain": True})
         except Exception as exc:
             raise ValueError(f"本地 Judge 无法完成判别：{exc}") from exc
         decision.update({"backend": "local-decision", "adapter": "laya-mlx",
-                         "actualModel": result.model, "coldStartMs": result.cold_start_ms,
-                         "latencyMs": result.latency_ms, "usage": result.usage,
-                         "ruleVersion": result.payload.get("ruleVersion", "task-local-ordinal-v1"),
-                         "scoreKind": result.payload.get("scoreKind", "ordinal-suitability")})
+                         "actualModel": result["model"], "coldStartMs": result["coldStartMs"],
+                         "latencyMs": result["latencyMs"], "usage": result["usage"],
+                         "ruleVersion": payload.get("ruleVersion", "task-local-ordinal-v1"),
+                         "scoreKind": payload.get("scoreKind", "ordinal-suitability")})
         run["decisions"].append({"step": run["state"]["step"], "role": "judge",
-            "model": result.model, "reason": "task-local-judge", "score": decision["score"],
+            "model": result["model"], "reason": "task-local-judge", "score": decision["score"],
             "decision": decision, "rejectedCandidates": flow["rejectedCandidates"]})
         if decision["uncertain"]:
             return self._task_fallback(run, "local-judge-uncertain", flow["rejectedCandidates"], decision)
@@ -356,6 +387,55 @@ class PlanningRuntime:
         max_output = min(reserve.max_output_tokens, output_cap) if output_cap is not None else reserve.max_output_tokens
         return (request_input_bound(messages, tools) / 1000 * input_price
                 + max_output / 1000 * reserve.output_cost_per_1k)
+
+    def _bounded_input_cost(self, model, input_bound, output_cap):
+        reserve = model
+        if model.provider == "deepseek-official" and model.billing_unit == "CNY":
+            pricing = deepseek_cny_pricing(model.api_model, conservative=True)
+            if pricing:
+                reserve = replace(model, input_cost_per_1k=pricing["inputPer1k"],
+                                  output_cost_per_1k=pricing["outputPer1k"])
+        max_output = min(reserve.max_output_tokens, output_cap)
+        if input_bound + max_output > reserve.context_window:
+            raise ValueError(f"模型 {model.model_id} 容量不足以覆盖冻结输入与输出")
+        input_price = max(reserve.input_cost_per_1k, reserve.cache_write_cost_per_1k or 0)
+        return input_bound / 1000 * input_price + max_output / 1000 * reserve.output_cost_per_1k
+
+    def _preflight_escalation_path(self, run, messages, tools):
+        """同一任务同一时间只有一个 flow；在初始派发前原子保护最坏调用路径。"""
+        c, s = run["config"], run["state"]
+        escalation = c["escalation"]
+        initial = self._resolve_model(run, model_id=escalation["initial"])
+        takeover = self._resolve_model(run, model_id=escalation["takeover"])
+        required = {}
+        if s["latched"]:
+            required[takeover.billing_unit] = self._cost_bound(
+                takeover, messages, tools, escalation["maxExecutionOutputTokens"])
+            calls = 1
+        else:
+            for model in (initial, takeover):
+                amount = self._cost_bound(model, messages, tools, escalation["maxExecutionOutputTokens"])
+                required[model.billing_unit] = required.get(model.billing_unit, 0) + amount
+            calls = 2
+            judge = escalation["judge"]
+            if judge["type"] == "llm":
+                model = self._resolve_model(run, model_id=judge["modelId"])
+                amount = self._bounded_input_cost(model, escalation["maxJudgeInputBytes"],
+                                                  escalation["maxJudgeOutputTokens"])
+                required[model.billing_unit] = required.get(model.billing_unit, 0) + amount
+                calls += 1
+        for unit, amount in required.items():
+            try:
+                remaining = run["budget"].remaining(unit)
+            except KeyError as exc:
+                raise ValueError(f"Escalation 缺少 {unit} 生产预算") from exc
+            if amount > remaining:
+                raise ValueError(f"Escalation 剩余 {unit} 预算不足以覆盖高效执行、Judge 与可能的强模型接管"
+                                 f"（需要 {amount:.4f}，剩余 {remaining:.4f}）")
+        if c["max_calls"] and len(run["budget"].records) + calls > c["max_calls"]:
+            raise ValueError("Escalation 最大调用数不足以覆盖完整审核与接管路径")
+        s["protectedBudget"] = required
+        s["protectedCalls"] = calls
 
     def _task_admissible_candidates(self, run, candidates, *, include_judge=False):
         """付费判别前排除数据域、上下文和本轮预算不合格的路线。"""
@@ -482,7 +562,8 @@ class PlanningRuntime:
                     raise ValueError("模型历史 replay 组合未经兼容验收")
         return model
 
-    def issue(self, run, role, purpose, messages, tools, *, model_id=None, buffered=True, update=None):
+    def issue(self, run, role, purpose, messages, tools, *, model_id=None, buffered=True, update=None,
+              output_cap=None):
         model = self.admit(run, role, messages, tools, model_id=model_id)
         pricing = None
         reserve_pricing = None
@@ -493,7 +574,7 @@ class PlanningRuntime:
                 model = replace(model, input_cost_per_1k=pricing["inputPer1k"],
                                 output_cost_per_1k=pricing["outputPer1k"],
                                 cached_input_cost_per_1k=pricing["cachedInputPer1k"])
-        cap = run["flow"].get("maxTokens")
+        cap = output_cap if output_cap is not None else run["flow"].get("maxTokens")
         if cap is not None:
             if type(cap) is not int or cap <= 0:
                 raise ValueError("无效输出容量")
@@ -557,7 +638,13 @@ class PlanningRuntime:
                 else:
                     role, reason = s["default"], "task-classifier"
             elif strategy == "escalation":
-                role, reason = ("capable" if s["latched"] else "efficient"), "escalation-latch"
+                if c["escalation"]["mode"] == "configured":
+                    selected_model_id = (c["escalation"]["takeover"] if s["latched"]
+                                         else c["escalation"]["initial"])
+                    role = "escalation-takeover" if s["latched"] else "escalation-initial"
+                    reason = "escalation-takeover-unreviewed" if s["latched"] else "escalation-initial"
+                else:
+                    role, reason = ("capable" if s["latched"] else "efficient"), "escalation-latch"
             else:
                 role = "efficient"
         previous = s.get("last_tool_fingerprint")
@@ -573,8 +660,9 @@ class PlanningRuntime:
             if event["id"] not in consumed:
                 consumed.append(event["id"])
         consumed = consumed[-128:]
+        configured_escalation = strategy == "escalation" and c["escalation"]["mode"] == "configured"
         action = self.issue(run, role, purpose, messages, flow["tools"], model_id=selected_model_id,
-            buffered=strategy in ("advisor", "escalation"),
+            buffered=strategy == "advisor" or (strategy == "escalation" and not s["latched"]),
             update={"hold": hold, "last_model": selected_model_id or c["roles"][role],
                     "last_evidence": flow["evidence"],
                     "stall": stall, "last_tool_fingerprint": fingerprints[-1] if fingerprints else previous,
@@ -583,6 +671,9 @@ class PlanningRuntime:
                "reason": reason, "score": score, "callId": action["callId"]}
         if strategy == "task" and c["task"]["mode"] == "pool":
             row["judgeDecision"] = deepcopy(s.get("judge_decision"))
+        if configured_escalation:
+            row["ruleVersion"] = "escalation-decision-v1"
+            row["takeoverUnreviewed"] = bool(s["latched"])
             row["rejectedCandidates"] = deepcopy(flow.get("rejectedCandidates", []))
         if decision:
             row.update({key: decision[key] for key in (
@@ -611,6 +702,29 @@ class PlanningRuntime:
             return self.issue(run, "task-judge", purpose,
                 self._task_judge_messages(run), [],
                 model_id=c["task"]["judge"]["modelId"])
+        if purpose == "escalation" and c["escalation"]["mode"] == "configured":
+            config = c["escalation"]
+            candidate = flow["responses"][flow["executor"]]
+            request = escalation_request(flow["messages"], flow["events"], candidate,
+                                         candidate.get("finishReason"), config["threshold"])
+            judge_messages = escalation_messages(request)
+            if request_input_bound(judge_messages, []) > config["maxJudgeInputBytes"]:
+                return self._apply_escalation_decision(run, {
+                    "verdict": "UNCERTAIN", "rawVerdict": "UNCERTAIN", "confidence": 0,
+                    "evidenceIds": [], "reason": "judge-input-capacity",
+                    "threshold": config["threshold"], "ruleVersion": "escalation-decision-v1",
+                    "backend": config["judge"]["type"]}, None)
+            if config["judge"]["type"] == "local-decision":
+                key = self.local_judge_key(config["judge"])
+                job_id = self.local_service.submit("escalation", key, config["judge"], request)
+                timeout = min(config["judgeTimeoutMs"], self.describe(run)["remainingMs"] or config["judgeTimeoutMs"])
+                flow["localJudge"] = {"jobId": job_id, "kind": "escalation",
+                                      "deadline": time.monotonic() + timeout / 1000}
+                self.persist(run)
+                return {"action": "wait", "kind": "local-judge", "jobId": job_id,
+                        "pollAfterMs": 25, **self.describe(run)}
+            return self.issue(run, "escalation-judge", purpose, judge_messages, [],
+                model_id=config["judge"]["modelId"], output_cap=config["maxJudgeOutputTokens"])
         content = {"task_and_trajectory": flow["messages"]}
         if purpose != "task":
             content["candidate_reply"] = flow["responses"][flow["executor"]]
@@ -651,7 +765,8 @@ class PlanningRuntime:
             self.stop(run, "call-failed")
             raise
         flow["pending"] = None
-        flow["responses"][token] = {"content": response.content, "toolCalls": response.tool_calls}
+        flow["responses"][token] = {"content": response.content, "toolCalls": response.tool_calls,
+                                    "finishReason": response.finish_reason}
         reservation.row["disposition"] = "consult" if purpose in ("task", "advisor", "escalation") else "buffered"
         self.persist(run)
         if run["status"] != "running" or (run["deadline"] is not None and time.monotonic() >= run["deadline"]):
@@ -723,6 +838,22 @@ class PlanningRuntime:
             self.stop(run, "review-unresolved")
             raise ValueError("审核未通过或返工次数耗尽")
         if purpose == "escalation":
+            if run["config"]["escalation"]["mode"] == "configured":
+                try:
+                    raw_verdict = json.loads(response.content)
+                    decision = parse_escalation_decision(raw_verdict,
+                        {item["id"] for item in flow["events"]},
+                        run["config"]["escalation"]["threshold"])
+                except (ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
+                    self.stop(run, "escalation-judge-invalid")
+                    raise ValueError(f"Escalation Judge 返回无效结构；不会自动修复或重复调用：{exc}") from exc
+                decision.update({"backend": "llm", "actualModel": reservation.model.api_model,
+                                 "provider": reservation.model.provider,
+                                 "latencyMs": response.latency_ms,
+                                 "usage": {"inputTokens": response.input_tokens,
+                                           "outputTokens": response.output_tokens,
+                                           "cachedInputTokens": response.cached_input_tokens}})
+                return self._apply_escalation_decision(run, decision, token)
             try:
                 verdict = json.loads(response.content)
                 escalation = verdict["escalate"]
@@ -746,7 +877,50 @@ class PlanningRuntime:
         # 返工结果明确标记为未复审，不能伪称已 APPROVE。
         if purpose == "redo":
             reservation.row["review_status"] = "revised-unreviewed"
+        if purpose == "takeover" and strategy == "escalation":
+            reservation.row["review_status"] = "takeover-unreviewed"
         return self.release(run, token)
+
+    def _apply_escalation_decision(self, run, decision, judge_call_id):
+        flow, state, config = run["flow"], run["state"], run["config"]["escalation"]
+        executor = flow["executor"]
+        candidate = flow["responses"][executor]
+        verdict = decision["verdict"]
+        final = candidate.get("finishReason") != "tool_calls"
+        before = state["streak"]
+        if verdict == "PROCEED":
+            state["streak"] = 0
+            action = "release"
+        elif verdict == "STALL" and not final:
+            state["streak"] += 1
+            action = "takeover" if state["streak"] >= config["stallConfirmations"] else "release"
+        else:
+            # DEFECT、UNCERTAIN，以及没有下一轮可等待的最终 STALL 都立即接管。
+            action = "takeover"
+        run["decisions"].append({"step": state["step"], "role": "judge",
+            "model": decision.get("actualModel") or config["judge"].get("sourceModel"),
+            "reason": {"PROCEED": "escalation-proceed", "DEFECT": "escalation-defect",
+                       "STALL": "escalation-final-stall" if final else "escalation-stall",
+                       "UNCERTAIN": "escalation-uncertain"}[verdict],
+            "score": decision.get("confidence"), "callId": judge_call_id,
+            "evidenceIds": decision.get("evidenceIds", []),
+            "evidenceSummary": decision.get("reason"), "streakBefore": before,
+            "streakAfter": state["streak"], "decision": decision,
+            "ruleVersion": "escalation-decision-v1"})
+        if action == "release":
+            return self.release(run, executor)
+        self.discard(run, executor)
+        state["latched"] = True
+        state["takeoverReason"] = verdict
+        self.persist(run)
+        takeover = self.issue(run, "escalation-takeover", "takeover",
+            flow["messages"], flow["tools"], model_id=config["takeover"], buffered=False,
+            update={"last_model": config["takeover"]})
+        run["decisions"].append({"step": state["step"], "role": "escalation-takeover",
+            "model": config["takeover"], "reason": "escalation-takeover-unreviewed",
+            "callId": takeover["callId"], "ruleVersion": "escalation-decision-v1"})
+        self.persist(run)
+        return takeover
 
     def discard(self, run, token):
         next(r for r in run["budget"].records if r["call_id"] == token)["disposition"] = "discarded"
@@ -761,19 +935,73 @@ class PlanningRuntime:
         record = self.persist(run)
         return {"action": "release", "callId": token, "feedback": feedback, "record": record, **self.describe(run)}
 
+    def poll_local_judge(self, run, request):
+        flow = run["flow"]
+        job = flow.get("localJudge") if flow else None
+        if not job or request.get("jobId") != job["jobId"]:
+            raise ValueError("未知或已完成的本地 Judge job")
+        if time.monotonic() >= job["deadline"]:
+            self.local_service.cancel(job["jobId"])
+            self.stop(run, "local-judge-timeout")
+            raise ValueError("本地 Judge 超时；不会自动重发或切换云端")
+        row = self.local_service.poll(job["jobId"])
+        if row["status"] == "pending":
+            return {"action": "wait", "kind": "local-judge", "jobId": job["jobId"],
+                    "pollAfterMs": 25, **self.describe(run)}
+        flow.pop("localJudge", None)
+        if row["status"] == "cancelled":
+            self.stop(run, "cancelled")
+            return {"action": "stop", **self.describe(run)}
+        if row["status"] == "failed":
+            if row.get("errorCode") == "capacity":
+                if job["kind"] == "task":
+                    run["decisions"].append({"step": run["state"]["step"], "role": "judge",
+                        "model": run["config"]["task"]["judge"].get("sourceModel"),
+                        "reason": "local-judge-capacity",
+                        "decision": {"backend": "local-decision", "issue": row["error"]},
+                        "rejectedCandidates": flow["rejectedCandidates"]})
+                    return self._task_fallback(run, "local-judge-capacity",
+                        flow["rejectedCandidates"], {"issue": row["error"], "uncertain": True})
+                decision = {"verdict": "UNCERTAIN", "rawVerdict": "UNCERTAIN", "confidence": 0,
+                    "evidenceIds": [], "reason": "local-judge-capacity: " + row["error"],
+                    "threshold": run["config"]["escalation"]["threshold"],
+                    "ruleVersion": "escalation-decision-v1", "backend": "local-decision"}
+                return self._apply_escalation_decision(run, decision, None)
+            self.stop(run, "local-judge-failed")
+            raise ValueError("本地 Judge 进程失败；不会自动重发或切换云端：" + row["error"])
+        result = row["result"]
+        if job["kind"] == "task":
+            return self._finish_local_task_decision(run, result)
+        decision = dict(result["payload"])
+        decision.update({"backend": "local-decision", "adapter": "laya-mlx",
+                         "actualModel": result["model"], "coldStartMs": result["coldStartMs"],
+                         "latencyMs": result["latencyMs"], "usage": result["usage"]})
+        run["budget"].records.append({"call_id": job["jobId"], "model_id": result["model"],
+            "provider": "local", "actual_model": result["model"], "purpose": "escalation",
+            "disposition": "consult", "status": "local-inference", "charged": 0,
+            "latency_ms": result["latencyMs"], "usage_type": "local-decision",
+            "usage": result["usage"]})
+        return self._apply_escalation_decision(run, decision, job["jobId"])
+
     def handle(self, request):
         with self.lock:
             return self._handle(request)
 
     def local_judge(self, request):
         config = compile_config(request.get("config", {}))
-        judge = config["task"]["judge"]
-        if config["task"]["mode"] != "pool" or judge.get("type") != "local-decision":
-            raise ValueError("当前 Task 未配置本地 Judge")
+        if (config["strategy"] == "escalation"
+                and config["escalation"]["mode"] == "configured"):
+            judge = config["escalation"]["judge"]
+            label = "Escalation"
+        else:
+            judge = config["task"]["judge"]
+            label = "Task"
+        if judge.get("type") != "local-decision":
+            raise ValueError(f"当前 {label} 未配置本地 Judge")
         action = request.get("action", "status")
         if action not in ("status", "download", "load", "unload"):
             raise ValueError("未知本地 Judge 操作")
-        key = digest({name: judge.get(name) for name in ("adapter", "modelPath", "revision", "device", "dtype")})
+        key = self.local_judge_key(judge)
         path = Path(judge["modelPath"]).expanduser()
         if action == "download":
             if request.get("confirmed") is not True:
@@ -805,9 +1033,9 @@ class PlanningRuntime:
             if not all((path / name).exists() for name in (
                     "model.safetensors", "mlx_config.json", "rl_agent_config.json", "encoder/config.json")):
                 raise ValueError("本地 Judge 权重文件不完整")
-            self.local_judges[key] = LayaDecisionAdapter(judge)
+            self.local_service.call("load", key, judge, timeout_ms=300000)
         elif action == "unload":
-            self.local_judges.pop(key, None)
+            self.local_service.call("unload", key, judge)
         try:
             import importlib.util
             installed = importlib.util.find_spec("laya_mlx") is not None
@@ -821,10 +1049,16 @@ class PlanningRuntime:
         revision_verified = (manifest.get("sourceModel") == judge["sourceModel"]
                              and manifest.get("revision") == judge["revision"])
         size_bytes = sum(item.stat().st_size for item in path.rglob("*") if item.is_file()) if path.is_dir() else 0
+        loaded = False
+        if action != "download":
+            try:
+                loaded = self.local_service.call("status", key, judge)["loaded"]
+            except ValueError:
+                loaded = False
         return {"adapter": "laya-mlx", "installed": installed, "path": str(path),
                 "downloaded": path.is_dir() and all((path / name).exists() for name in required)
                               and revision_verified,
-                "loaded": key in self.local_judges, "sourceModel": judge["sourceModel"],
+                "loaded": loaded, "sourceModel": judge["sourceModel"],
                 "revision": judge["revision"], "revisionVerified": revision_verified,
                 "sizeBytes": size_bytes}
 
@@ -917,6 +1151,9 @@ class PlanningRuntime:
 
     def _handle(self, request):
         operation = request.get("op")
+        if operation == "handshake":
+            return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
+                "local-judge-jobs", "planning-routing-v4", "media-reference-v1"]}
         if operation == "fx":
             from .dsh_model_pool import frozen_usd_cny_rate
             rate, snapshot = frozen_usd_cny_rate()
@@ -958,8 +1195,12 @@ class PlanningRuntime:
         run = self.runs[key]
         if operation == "query":
             return self.persist(run)
+        if operation == "local-judge-poll":
+            return self.poll_local_judge(self.require(key), request)
         if operation in ("cancel", "end"):
             if run["status"] == "running":
+                if run["flow"] and run["flow"].get("localJudge"):
+                    self.local_service.cancel(run["flow"]["localJudge"]["jobId"])
                 self.stop(run, "cancelled" if operation == "cancel" else
                           "interrupted-needs-reconciliation" if run["flow"] else "completed")
             return self.describe(run)
