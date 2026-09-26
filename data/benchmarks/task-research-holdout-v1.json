@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "task-research-holdout-v1",
+  "status": "frozen-preflight",
+  "description": "独立资料研究保留题；引用第二批完整校准记录，不重跑出错的 slug 样本。",
+  "taskSource": "data/benchmarks/stage-routing-v1.json",
+  "taskId": "research-compare-search",
+  "arms": ["static-flash", "static-v4.1-flash", "task-choice-v2"],
+  "calibrationRecords": "reports/task-judge-audit-20260926/task-quality-pilot-paid-v3-records.jsonl",
+  "calibrationSha256": "5d4e876c109235825254cd5fd944445b768ceb253c03c54b4d11ba4356744968",
+  "priorAfpWorstCase": 95.25155,
+  "models": {
+    "static-flash": {"provider": "ark", "model": "deepseek-v4-flash", "reasoningEffort": "low"},
+    "static-v4.1-flash": {"provider": "ark", "model": "deepseek-v4.1-flash", "reasoningEffort": "high"},
+    "task-choice-v2": {"pool": ["deepseek-v4-flash", "deepseek-v4.1-flash"],
+      "judge": "aac6fef/laya-multilingual-mlx@f2b4faf51023039425946074e2cf1361d2db11d5",
+      "method": "choice-v2", "threshold": 0.8,
+      "fallback": "deepseek-v4.1-flash"}
+  },
+  "limits": {
+    "maxCallsPerRun": 6,
+    "maxRequestBytesPerCall": 100000,
+    "maxOutputTokensPerCall": 4096,
+    "timeoutMsPerRun": 300000,
+    "httpRetries": 0,
+    "delegation": false
+  },
+  "evaluation": "冻结材料的确定性引用、关键事实及错误检查，不增加付费评审。",
+  "stopRules": ["认证失败", "用量未知", "账本或证据写入失败", "不自动重试或补跑"]
+}

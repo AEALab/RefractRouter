@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "task-quality-pilot-preflight-v1",
+  "realModelCalls": 0,
+  "protocolDigest": "b68affce445fe87f903e1a9a77549cf87952600471328c32afb137511c58162c",
+  "taskSourceDigest": "b8137dd763df71d64d14521afad3e5e3cd5be1f90a107a44a83b2cafffcec78b",
+  "pricingSnapshot": "2026-09-25",
+  "pricingSource": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+  "modelCostUpperPerCallAfp": {
+    "deepseek-v4-flash": 0.9024,
+    "deepseek-v4.1-flash": 4.512
+  },
+  "runs": [
+    {
+      "split": "calibration",
+      "taskId": "code-defect-lru-zero",
+      "taskDigest": "c12c938ff7a569444104e22b8ac7034e15336869e5c00db2c74a3c7fc0c52949",
+      "arm": "static-flash",
+      "costUpperAfp": 4.512
+    },
+    {
+      "split": "calibration",
+      "taskId": "code-defect-lru-zero",
+      "taskDigest": "c12c938ff7a569444104e22b8ac7034e15336869e5c00db2c74a3c7fc0c52949",
+      "arm": "static-v4.1-flash",
+      "costUpperAfp": 22.56
+    },
+    {
+      "split": "calibration",
+      "taskId": "research-fact-storage",
+      "taskDigest": "28e21c11cad92085cc3bd06cf8df6a596ce283f5fe3f23cef646dd8524683091",
+      "arm": "static-flash",
+      "costUpperAfp": 4.512
+    },
+    {
+      "split": "calibration",
+      "taskId": "research-fact-storage",
+      "taskDigest": "28e21c11cad92085cc3bd06cf8df6a596ce283f5fe3f23cef646dd8524683091",
+      "arm": "static-v4.1-flash",
+      "costUpperAfp": 22.56
+    },
+    {
+      "split": "holdout",
+      "taskId": "code-tdd-slug",
+      "taskDigest": "c2a86cc8ef830b6fdc3271a6379497a8ca5a2a617ed106fbc4f1d9ad1111c70b",
+      "arm": "static-flash",
+      "costUpperAfp": 4.512
+    },
+    {
+      "split": "holdout",
+      "taskId": "code-tdd-slug",
+      "taskDigest": "c2a86cc8ef830b6fdc3271a6379497a8ca5a2a617ed106fbc4f1d9ad1111c70b",
+      "arm": "static-v4.1-flash",
+      "costUpperAfp": 22.56
+    },
+    {
+      "split": "holdout",
+      "taskId": "code-tdd-slug",
+      "taskDigest": "c2a86cc8ef830b6fdc3271a6379497a8ca5a2a617ed106fbc4f1d9ad1111c70b",
+      "arm": "task-choice-v2",
+      "costUpperAfp": 22.56
+    },
+    {
+      "split": "holdout",
+      "taskId": "research-compare-search",
+      "taskDigest": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69",
+      "arm": "static-flash",
+      "costUpperAfp": 4.512
+    },
+    {
+      "split": "holdout",
+      "taskId": "research-compare-search",
+      "taskDigest": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69",
+      "arm": "static-v4.1-flash",
+      "costUpperAfp": 22.56
+    },
+    {
+      "split": "holdout",
+      "taskId": "research-compare-search",
+      "taskDigest": "e27b5d09d15ea9f7bc9bc215a8c04c24a232289010353b8f58ebb2c5de197b69",
+      "arm": "task-choice-v2",
+      "costUpperAfp": 22.56
+    }
+  ],
+  "maximumRuns": 10,
+  "maximumModelCalls": 50,
+  "maximumProductionAfp": 153.408,
+  "judgeApiAfp": 0,
+  "limitations": [
+    "该金额按每次调用均达到冻结输入和输出上限计算。",
+    "本地 Judge 不计 API AFP，另记推论时间和次数。",
+    "预检未授权或执行任何真实模型调用；质量结论须由结果记录支持。"
+  ],
+  "preflightDigest": "d6e55bd53b0d7126aeae63d777f38d9a059ba3c40343106292364db845e7d5bd"
+}

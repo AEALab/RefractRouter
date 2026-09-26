@@ -10,6 +10,9 @@ import pytest
 from refractrouter.planning_config import compile_config, preview, DEFAULTS
 from refractrouter.planning_policy import stage, stage_decision, tool_events
 from refractrouter.planning_runtime import PlanningRuntime, historical_billing_warning
+from refractrouter.planning_decision import (LayaDecisionAdapter, LocalDecisionCapacityError,
+                                             candidate_assessments, decision_request, filter_candidates,
+                                             parse_decision, select_task_candidate, task_state)
 from refractrouter.task_budget import TaskCallBudget
 from refractrouter.deepseek_official_pricing import pricing as deepseek_cny_pricing
 from refractrouter.dsh_model_pool import frozen_usd_cny_rate
@@ -23,6 +26,35 @@ def configuration(strategy="stage"):
                     "deployment": "local", "reasoningEffort": "low"}
                    for id in ("small", "large", "judge")],
         "roles": {"efficient": "small", "capable": "large", "classifier": "judge", "advisor": "judge"}}
+
+
+def task_pool_configuration(*, judge_type="llm", model_path=None):
+    cfg = configuration("task")
+    cfg.update(schemaVersion="refractagent-planning-v3", billingUnit="CNY",
+               maxProductionCostByUnit={"CNY": 10})
+    for model in cfg["models"]:
+        model["billingUnit"] = "CNY"
+        model["capabilities"] = {"mainExecutor": model["id"] != "judge",
+            "toolCalling": "verified", "modalities": {}}
+    judge = ({"type": "llm", "modelId": "judge"} if judge_type == "llm" else
+             {"type": "local-decision", "adapter": "laya-mlx", "modelPath": str(model_path),
+              "sourceModel": "aac6fef/laya-multilingual-mlx", "revision": "test", "device": "cpu",
+              "dtype": "float32"})
+    cfg["task"] = {"pool": ["small", "large"], "fallback": "large", "judge": judge,
+                   "threshold": .8, "maxInputChars": 12000}
+    return cfg
+
+
+def write_laya_fixture(path, revision="test"):
+    path.mkdir()
+    (path / "model.safetensors").write_bytes(b"fixture")
+    (path / "mlx_config.json").write_text("{}")
+    (path / "rl_agent_config.json").write_text("{}")
+    (path / "encoder").mkdir()
+    (path / "encoder/config.json").write_text("{}")
+    (path / "refractrouter-laya.json").write_text(json.dumps({
+        "sourceModel": "aac6fef/laya-multilingual-mlx", "revision": revision,
+        "adapter": "laya-mlx"}))
 
 
 def begin(runtime, strategy="stage", turn=1, session="a", child=False, config=None):
@@ -191,6 +223,510 @@ def test_classifier_once_per_turn(strategy, tmp_path):
     assert step(r, new)["purpose"] == "task"
     other = begin(r, strategy, session="b")
     assert step(r, other)["purpose"] == "task"
+
+
+def test_task_v3_llm_judge_selects_once_and_keeps_model(tmp_path):
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=task_pool_configuration())
+    judge = step(r, run)
+    assert judge["purpose"] == "task" and judge["model"]["id"] == "judge"
+    payload = {"answers": {
+        "candidates": {"small": {"score": .91, "missingInformation": .02},
+                       "large": {"score": .08, "missingInformation": .1}}}}
+    execute = receipt(r, run, judge, json.dumps(payload))
+    assert execute["model"]["id"] == "small"
+    receipt(r, run, execute)
+    followup = step(r, run)
+    assert followup["purpose"] == "execute" and followup["model"]["id"] == "small"
+    assert [row["purpose"] for row in r.runs[run]["budget"].records] == ["task", "execute", "execute"]
+
+
+def test_task_quality_gate_precedes_cost_and_uses_pool_order_on_equal_cost():
+    assessments = candidate_assessments({"answers": {"candidates": {
+        "fast": {"score": .83, "missingInformation": 0},
+        "strong": {"score": .97, "missingInformation": 0}}}}, ["fast", "strong"], .8)
+    selected = select_task_candidate(assessments, "strong", {
+        "fast": {"unit": "AFP", "amount": 2}, "strong": {"unit": "AFP", "amount": 5}})
+    assert selected["candidateId"] == "fast"
+    assert selected["reason"] == "quality-then-first-call-cost"
+    assert selected["latencyBasis"] == "unavailable"
+    missing = candidate_assessments({"answers": {"candidates": {
+        "fast": {"score": .99, "missingInformation": .9},
+        "strong": {"score": .83, "missingInformation": .1}}}}, ["fast", "strong"], .8)
+    assert select_task_candidate(missing, "strong", {
+        "fast": {"unit": "AFP", "amount": 2},
+        "strong": {"unit": "AFP", "amount": 5}})["candidateId"] == "strong"
+
+
+def test_task_cross_unit_and_missing_quality_use_explicit_fallback():
+    rows = [{"candidateId": "a", "score": .9, "missingInformation": 0, "qualified": True},
+            {"candidateId": "b", "score": .9, "missingInformation": 0, "qualified": True}]
+    result = select_task_candidate(rows, "b", {
+        "a": {"unit": "AFP", "amount": 1}, "b": {"unit": "CNY", "amount": 1}})
+    assert result["candidateId"] == "b" and result["reason"] == "incomparable-billing-units"
+    rows[0]["qualified"] = rows[1]["qualified"] = False
+    assert select_task_candidate(rows, "b", {
+        "a": {"unit": "AFP", "amount": 1}, "b": {"unit": "CNY", "amount": 1}})["reason"] == \
+        "no-quality-qualified-candidate"
+
+
+def test_task_judge_rejects_partial_or_forged_candidate_assessments():
+    for entries in ({"small": {"score": .9, "missingInformation": 0}},
+                    {"small": {"score": .9, "missingInformation": 0},
+                     "forged": {"score": .9, "missingInformation": 0}},
+                    {"small": {"score": float("nan"), "missingInformation": 0},
+                     "large": {"score": .9, "missingInformation": 0}}):
+        with pytest.raises(ValueError):
+            candidate_assessments({"answers": {"candidates": entries}}, ["small", "large"], .8)
+
+
+def test_task_filters_unaffordable_candidate_before_paid_judge(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["maxProductionCostByUnit"] = {"CNY": .2}
+    cfg["models"][1]["inputPer1k"] = 20
+    cfg["models"][1]["outputPer1k"] = 20
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run)
+    assert action["purpose"] == "execute" and action["model"]["id"] == "small"
+    assert [row["purpose"] for row in runtime.runs[run]["budget"].records] == ["execute"]
+    assert any(row["id"] == "large" and "预算不足" in row["reason"]
+               for row in runtime.runs[run]["flow"]["rejectedCandidates"])
+
+
+def test_task_llm_judge_cannot_override_cost_order_after_quality_gate(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["models"][0]["inputPer1k"] = cfg["models"][0]["outputPer1k"] = .001
+    cfg["models"][1]["inputPer1k"] = cfg["models"][1]["outputPer1k"] = .1
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    judge = step(runtime, run)
+    execute = receipt(runtime, run, judge, json.dumps({"answers": {"candidates": {
+        "small": {"score": .81, "missingInformation": .1},
+        "large": {"score": .99, "missingInformation": 0}}}}))
+    assert execute["model"]["id"] == "small"
+    decision = runtime.runs[run]["state"]["judge_decision"]
+    assert decision["reason"] == "quality-then-first-call-cost"
+    assert decision["candidateId"] == "small"
+    assert decision["firstCallUpperBounds"]["small"]["amount"] < \
+           decision["firstCallUpperBounds"]["large"]["amount"]
+
+
+def test_task_privacy_filters_cloud_candidate_before_judge(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["models"][1]["deployment"] = "external-cloud"
+    cfg["models"][0]["deployment"] = "local"
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run, [{"role": "user", "content": "查看 /Users/example/work/README.md"}])
+    assert action["purpose"] == "execute" and action["model"]["id"] == "small"
+    assert any(item["id"] == "large" and "数据域" in item["reason"]
+               for item in runtime.runs[run]["flow"]["rejectedCandidates"])
+
+
+def test_task_v3_preflight_respects_request_output_limit(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["maxProductionCostByUnit"] = {"CNY": 1}
+    for model in cfg["models"]:
+        model.update(contextWindow=200000, maxOutputTokens=100000,
+                     inputPer1k=.25, outputPer1k=.25)
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run, maxTokens=512)
+    assert action["purpose"] == "task"
+    assert action["model"]["maxTokens"] == 512
+
+
+def test_task_judge_preflight_prices_the_exact_dispatched_request(tmp_path, monkeypatch):
+    runtime = PlanningRuntime(tmp_path)
+    run_id = begin(runtime, "task", config=task_pool_configuration())
+    priced = []
+    original = runtime._cost_bound
+
+    def capture(model, messages, tools, output_cap=None):
+        amount = original(model, messages, tools, output_cap)
+        if model.model_id == "judge":
+            priced.append((deepcopy(messages), amount))
+        return amount
+
+    monkeypatch.setattr(runtime, "_cost_bound", capture)
+    step(runtime, run_id)
+    row = runtime.runs[run_id]["budget"].records[0]
+    assert len(priced) == 2
+    assert all(messages == row["request_messages"] for messages, _ in priced)
+    assert all(amount == pytest.approx(row["reserved"]) for _, amount in priced)
+
+
+@pytest.mark.parametrize("score", [1.01, 1.8, 2, float("nan"), float("inf"), True])
+def test_task_judge_rejects_out_of_contract_scores(score):
+    with pytest.raises(ValueError, match="适合度分数"):
+        parse_decision({"answers": {"selection": "small", "suitability": {"score": score},
+                                   "missing_information": False}}, ["small", "large"], .8)
+
+
+def test_local_judge_does_not_prefer_an_incomplete_candidate(monkeypatch):
+    class Agent:
+        batch_size = 16
+
+        def predict(self, state, questions):
+            return {"answers": {
+                "candidate:small:suitability": {"score": 1.8},
+                "candidate:small:missing": {"noul": .1},
+                "candidate:large:suitability": {"score": 1.98},
+                "candidate:large:missing": {"noul": .9}}}
+
+    adapter = object.__new__(LayaDecisionAdapter)
+    adapter.agent, adapter.model, adapter.cold_start_ms = Agent(), "fixture", None
+    monkeypatch.setattr(adapter, "_ensure_complete", lambda state, questions: None)
+    request = decision_request({"text": "任务", "media": [], "tools": []},
+                               [{"id": "small"}, {"id": "large"}], .8)
+    result = adapter.decide(request)
+    parsed = parse_decision(result.payload, ["small", "large"], .8)
+    assert parsed["candidateId"] == "small"
+    assert not parsed["uncertain"]
+
+
+def test_task_v3_uses_task_output_cap_below_model_capacity(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["maxProductionCostByUnit"] = {"CNY": 3}
+    cfg["task"]["maxExecutionOutputTokens"] = 1024
+    for model in cfg["models"]:
+        model.update(contextWindow=500000, maxOutputTokens=393216,
+                     inputPer1k=.25, outputPer1k=.25)
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run)
+    assert action["purpose"] == "task"
+    assert action["model"]["maxTokens"] == 1024
+
+
+def test_task_v3_single_eligible_media_candidate_skips_judge(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["models"][1]["capabilities"]["modalities"] = {"imageInput": "verified"}
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    messages = [{"role": "user", "content": [{"type": "image", "attachment": {
+        "id": "att-1", "mediaType": "image/png", "name": "sample.png", "byteLength": 12}}]}]
+    action = step(r, run, messages)
+    assert action["purpose"] == "execute" and action["model"]["id"] == "large"
+    assert len(r.runs[run]["budget"].records) == 1
+    assert r.runs[run]["state"]["judge_decision"]["reason"] == "single-eligible-candidate"
+
+
+def test_task_v3_media_candidate_checks_format_dimensions_and_count():
+    cfg = compile_config(task_pool_configuration())
+    small = cfg["models"]["small"]
+    small.capabilities["modalities"]["imageInput"] = "verified"
+    small.capabilities["formats"] = {"imageInput": ["image/png"]}
+    small.capabilities["limits"] = {"maxImages": 1, "maxWidth": 1024}
+    large = cfg["models"]["large"]
+    large.capabilities["modalities"]["imageInput"] = "verified"
+    large.capabilities["formats"] = {"imageInput": ["image/jpeg"]}
+    messages = [{"role": "user", "content": [{"type": "image", "attachment": {
+        "mediaType": "image/png", "byteLength": 12, "width": 2048, "height": 512}}]}]
+    state = task_state(messages, [], 12000)
+    accepted, rejected = filter_candidates(cfg, state)
+    assert accepted == []
+    assert rejected == [{"id": "small", "reason": "image-dimensions-unsupported"},
+                        {"id": "large", "reason": "image-format-unsupported"}]
+
+
+def test_task_judge_state_ignores_dsh_injected_skill_catalog():
+    messages = [
+        {"role": "user", "source": {"kind": "user"},
+         "content": [{"type": "text", "text": "只执行 pwd"}]},
+        {"role": "user", "source": {"kind": "plugin", "plugin": "system-prompt"},
+         "content": [{"type": "text", "text": "插件环境说明" * 2000}]},
+        {"role": "user", "source": {"kind": "skill-catalog"},
+         "content": [{"type": "text", "text": "技能目录" * 2000}]},
+    ]
+    state = task_state(messages, [], 12000)
+    assert state["complete"]
+    assert state["text"] == "只执行 pwd"
+
+
+def test_task_v3_uncertain_uses_only_configured_fallback(tmp_path):
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=task_pool_configuration())
+    judge = step(r, run)
+    payload = {"answers": {"candidates": {
+        "small": {"score": .2, "missingInformation": .9},
+        "large": {"score": .3, "missingInformation": .8}}}}
+    execute = receipt(r, run, judge, json.dumps(payload))
+    assert execute["model"]["id"] == "large"
+    assert r.runs[run]["state"]["judge_decision"]["reason"] == "llm-judge-uncertain"
+
+
+def test_task_v3_invalid_llm_result_stops_without_repair_call(tmp_path):
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=task_pool_configuration())
+    judge = step(r, run)
+    with pytest.raises(ValueError, match="不会自动修复"):
+        receipt(r, run, judge, '{"answers":{"selection":{"choice":"forged"}}}')
+    assert r.runs[run]["status"] == "task-judge-invalid"
+    assert len(r.runs[run]["budget"].records) == 1
+
+
+def test_task_v3_local_judge_is_persistent_and_has_no_api_call(tmp_path, monkeypatch):
+    model_path = tmp_path / "laya"
+    write_laya_fixture(model_path)
+    cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
+    cfg["models"][0]["capabilityCard"] = "已验证可处理短文本与简单代码修改"
+    calls = []
+
+    class Result:
+        payload = {"answers": {"selection": {"choice": "small", "probabilities": {"small": .9}},
+            "suitability": {"score": .9}, "missing_information": {"noul": .0}}}
+        model = "local-laya"
+        cold_start_ms = 50
+        latency_ms = 4
+        usage = {"forwards": 2}
+
+    class FakeLocal:
+        def __init__(self, config):
+            calls.append(("load", config["modelPath"]))
+        def decide(self, request):
+            assert request["candidates"][0]["capabilityCard"] == "已验证可处理短文本与简单代码修改"
+            calls.append(("decide", request["contract"]))
+            return Result()
+
+    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter", FakeLocal)
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    action = step(r, run)
+    assert action["model"]["id"] == "small"
+    assert len(r.runs[run]["budget"].records) == 1
+    assert calls == [("load", str(model_path)), ("decide", "task-decision-v2")]
+
+
+def test_task_v3_local_capacity_uses_only_configured_fallback(tmp_path, monkeypatch):
+    model_path = tmp_path / "laya"
+    write_laya_fixture(model_path)
+    cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
+
+    class CapacityLimited:
+        def __init__(self, _config):
+            pass
+
+        def decide(self, _request):
+            raise LocalDecisionCapacityError("输入需要 800 tokens，但只剩 400 tokens")
+
+    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter", CapacityLimited)
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run)
+    assert action["model"]["id"] == "large"
+    assert runtime.runs[run]["state"]["judge_decision"]["reason"] == "local-judge-capacity"
+    assert [row["purpose"] for row in runtime.runs[run]["budget"].records] == ["execute"]
+    decision = next(item for item in runtime.runs[run]["decisions"]
+                    if item["reason"] == "local-judge-capacity")
+    assert decision["reason"] == "local-judge-capacity"
+    assert "800 tokens" in decision["decision"]["issue"]
+
+
+def test_laya_adapter_scores_every_candidate_in_one_task_batch(monkeypatch):
+    class Agent:
+        batch_size = 16
+        def predict(self, state, questions):
+            assert "candidates" not in state
+            assert len(questions) == 4
+            return {"model": "laya-local", "usage": {"input_tokens": 40, "output_tokens": 0},
+                "answers": {
+                    "candidate:small:suitability": {"score": 1.2},
+                    "candidate:small:missing": {"noul": .1},
+                    "candidate:large:suitability": {"score": 1.8},
+                    "candidate:large:missing": {"noul": .1}}}
+    adapter = object.__new__(LayaDecisionAdapter)
+    adapter.agent, adapter.model, adapter.cold_start_ms = Agent(), "laya-local", 12
+    monkeypatch.setattr(adapter, "_ensure_complete", lambda state, questions: None)
+    state = {"text": "复杂中文任务", "media": [], "tools": ["read"]}
+    candidates = [{"id": "small", "provider": "p", "model": "s", "capabilities": {}},
+                  {"id": "large", "provider": "p", "model": "l", "capabilities": {}}]
+    result = adapter.decide(decision_request(state, candidates, .8))
+    assert result.payload["answers"]["selection"]["choice"] == "large"
+    assert result.payload["rawPerCandidate"][1]["score"] == .9
+    assert result.usage["questions"] == 4 and result.usage["forwards"] == 1
+    parsed = parse_decision(result.payload, ["small", "large"], .8)
+    assert parsed["candidateId"] == "large" and not parsed["uncertain"]
+
+
+def test_laya_noul_probability_means_missing_information(monkeypatch):
+    class Agent:
+        batch_size = 16
+        def predict(self, _state, _questions):
+            return {"model": "laya-local", "usage": {"input_tokens": 20}, "answers": {
+                "candidate:small:suitability": {"score": 1.9},
+                "candidate:small:missing": {"noul": .98},
+                "candidate:large:suitability": {"score": 1.7},
+                "candidate:large:missing": {"noul": .1}}}
+
+    adapter = object.__new__(LayaDecisionAdapter)
+    adapter.agent, adapter.model, adapter.cold_start_ms = Agent(), "laya-local", None
+    monkeypatch.setattr(adapter, "_ensure_complete", lambda _state, _questions: None)
+    state = {"text": "需要工具的任务", "media": [], "tools": ["bash"]}
+    candidates = [{"id": "small", "capabilities": {}}, {"id": "large", "capabilities": {}}]
+    result = adapter.decide(decision_request(state, candidates, .8))
+    parsed = parse_decision(result.payload, ["small", "large"], .8)
+    assert parsed["candidateId"] == "large"
+    assert parsed["score"] == .85
+    assert parsed["missingInformation"] == .1
+    assert not parsed["uncertain"]
+    assert result.payload["rawPerCandidate"][0]["missingInformation"] == .98
+
+
+def test_laya_choice_v2_uses_one_question_and_preserves_score_kind(monkeypatch):
+    class Agent:
+        def predict(self, state, questions):
+            assert state == "执行 pwd"
+            assert list(questions) == ["selection"]
+            assert questions["selection"]["criteria"]["small"] == "已验证终端工具"
+            return {"model": "laya-local", "usage": {"input_tokens": 80}, "answers": {
+                "selection": {"choice": "small", "probabilities": {
+                    "small": .9, "large": .06, "insufficient": .04}}}}
+
+    adapter = object.__new__(LayaDecisionAdapter)
+    adapter.agent, adapter.model, adapter.cold_start_ms = Agent(), "laya-local", None
+    adapter.method = "choice-v2"
+    monkeypatch.setattr(adapter, "_ensure_complete", lambda _state, _questions: None)
+    state = {"text": "执行 pwd", "media": [], "tools": ["bash"]}
+    candidates = [{"id": "small", "model": "s", "capabilities": {},
+                   "capabilityCard": "已验证终端工具"},
+                  {"id": "large", "model": "l", "capabilities": {},
+                   "capabilityCard": "仅支持文字"}]
+    result = adapter.decide(decision_request(state, candidates, .8))
+    parsed = parse_decision(result.payload, ["small", "large"], .8)
+    assert parsed["candidateId"] == "small" and not parsed["uncertain"]
+    assert parsed["score"] == .9 and parsed["missingInformation"] == .04
+    assert result.payload["scoreKind"] == "choice-probability"
+    assert result.usage["questions"] == result.usage["forwards"] == 1
+
+
+def test_task_choice_v2_missing_card_uses_fallback_without_judge(tmp_path, monkeypatch):
+    model_path = tmp_path / "laya"
+    write_laya_fixture(model_path)
+    cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
+    cfg["task"]["judge"]["method"] = "choice-v2"
+    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter",
+                        lambda _config: (_ for _ in ()).throw(AssertionError("不应加载 Judge")))
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run)
+    assert action["model"]["id"] == "large"
+    assert runtime.runs[run]["state"]["judge_decision"]["reason"] == \
+        "local-judge-no-capability-evidence"
+
+
+def test_task_choice_v2_equal_evidence_uses_fallback_without_judge(tmp_path, monkeypatch):
+    model_path = tmp_path / "laya"
+    write_laya_fixture(model_path)
+    cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
+    cfg["task"]["judge"]["method"] = "choice-v2"
+    for model in cfg["models"]:
+        if model["id"] in cfg["task"]["pool"]:
+            model["capabilityCard"] = "文字与工具已接通；任务质量待验收。"
+    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter",
+                        lambda _config: (_ for _ in ()).throw(AssertionError("无区分证据不应加载 Judge")))
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "task", config=cfg)
+    action = step(runtime, run)
+    assert action["model"]["id"] == "large"
+    assert runtime.runs[run]["state"]["judge_decision"]["reason"] == \
+        "local-judge-no-differentiating-evidence"
+
+
+def test_task_choice_v2_rejects_unknown_method():
+    cfg = task_pool_configuration()
+    cfg["task"]["judge"] = {"type": "local-decision", "adapter": "laya-mlx",
+                            "modelPath": "/tmp/laya", "sourceModel": "laya",
+                            "revision": "fixed", "method": "other"}
+    with pytest.raises(ValueError, match="method 无效"):
+        compile_config(cfg)
+
+
+def test_media_non_token_reservation_and_async_state_are_persisted(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["mediaRoutes"] = [{"id": "seedream", "provider": "ark-plan",
+        "model": "doubao-seedream-5.0-lite", "operations": ["image-generate", "image-edit"],
+        "billingUnit": "AFP", "pricing": {"basis": "image", "unitCost": 99,
+            "source": "火山方舟 Agent Plan", "checkedAt": "2026-09-26"},
+        "deployment": "external-cloud", "verified": True,
+        "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3"}]
+    cfg["maxProductionCostByUnit"]["AFP"] = 500
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    reserved = r.handle({"op": "media-reserve", "runId": run, "routeId": "seedream",
+        "operation": "image-generate", "maxUnits": 2, "requestHash": "abc",
+        "input": {"prompt": "公开风景", "references": []}})
+    assert reserved["reserved"] == 198 and reserved["billingUnit"] == "AFP"
+    submitted = r.handle({"op": "media-update", "runId": run,
+        "operationId": reserved["operationId"], "status": "submitted", "providerTaskId": "image-1"})
+    assert submitted["status"] == "submitted"
+    completed = r.handle({"op": "media-update", "runId": run,
+        "operationId": reserved["operationId"], "status": "succeeded", "providerTaskId": "image-1",
+        "actualUnits": 1, "artifacts": [{"attachmentId": "sha256:1"}]})
+    assert completed["status"] == "succeeded"
+    costs, rows = r.runs[run]["budget"].snapshot()
+    assert costs["AFP"]["production"] == 99
+    assert rows[-1]["usage_type"] == "non-token" and rows[-1]["artifacts"][0]["attachmentId"] == "sha256:1"
+
+
+def test_media_unknown_submission_stops_without_resubmission(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["mediaRoutes"] = [{"id": "seedance", "provider": "ark-plan", "model": "seedance",
+        "operations": ["video-generate"], "billingUnit": "AFP",
+        "pricing": {"basis": "output-10k-token", "unitCost": 2,
+            "source": "火山方舟 Agent Plan", "checkedAt": "2026-09-26"},
+        "verified": True, "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3"}]
+    cfg["maxProductionCostByUnit"]["AFP"] = 500
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    reserved = r.handle({"op": "media-reserve", "runId": run, "routeId": "seedance",
+        "operation": "video-generate", "maxUnits": 100,
+        "input": {"prompt": "公开风景", "references": []}})
+    result = r.handle({"op": "media-update", "runId": run,
+        "operationId": reserved["operationId"], "status": "unknown"})
+    assert result == {"operationId": reserved["operationId"], "status": "unknown", "retry": False}
+    assert r.runs[run]["status"] == "media-usage-unknown"
+    with pytest.raises(ValueError, match="已停止"):
+        r.handle({"op": "media-reserve", "runId": run, "routeId": "seedance",
+            "operation": "video-generate", "maxUnits": 100,
+            "input": {"prompt": "公开风景", "references": []}})
+
+
+def test_connected_media_route_can_be_saved_but_not_dispatched_before_acceptance(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["mediaRoutes"] = [{"id": "seedream", "provider": "ark-plan", "credentialProvider": "ark",
+        "model": "doubao-seedream-5.0-lite", "operations": ["image-generate"],
+        "billingUnit": "AFP", "pricing": {"basis": "image", "unitCost": 99,
+            "source": "火山方舟 Agent Plan", "checkedAt": "2026-09-26"},
+        "verification": "connected", "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3"}]
+    cfg["maxProductionCostByUnit"]["AFP"] = 500
+    report = preview(cfg)
+    assert report["mediaRoutes"][0]["available"] is False
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    with pytest.raises(ValueError, match="尚未通过真实接口验收"):
+        r.handle({"op": "media-reserve", "runId": run, "routeId": "seedream",
+            "operation": "image-generate", "maxUnits": 1,
+            "input": {"prompt": "公开风景", "references": []}})
+
+
+def test_media_cancellation_before_dispatch_releases_reservation(tmp_path):
+    cfg = task_pool_configuration()
+    cfg["mediaRoutes"] = [{"id": "seedream", "provider": "ark-plan", "model": "seedream",
+        "operations": ["image-generate"], "billingUnit": "AFP",
+        "pricing": {"basis": "image", "unitCost": 99, "source": "官方", "checkedAt": "2026-09-26"},
+        "verified": True, "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3"}]
+    cfg["maxProductionCostByUnit"]["AFP"] = 500
+    r = PlanningRuntime(tmp_path)
+    run = begin(r, "task", config=cfg)
+    reserved = r.handle({"op": "media-reserve", "runId": run, "routeId": "seedream",
+        "operation": "image-generate", "maxUnits": 1, "input": {"prompt": "公开风景"}})
+    r.handle({"op": "media-update", "runId": run, "operationId": reserved["operationId"],
+        "status": "cancelled", "actualUnits": 0})
+    costs, rows = r.runs[run]["budget"].snapshot()
+    assert costs["AFP"]["production"] == 0
+    assert rows[-1]["status"] == "cancelled-before-dispatch"
 
 
 def test_afp_and_cny_calls_keep_separate_budgets_and_history(tmp_path):

@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "task-judge-audit-result-v1",
+  "recordedAt": "2026-09-26T10:27:19.040307+00:00",
+  "suite": "data/task-judge-holdout-20260926.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "mode": "choice-v2",
+  "coldStartMs": 663.1581250112504,
+  "matched": 6,
+  "total": 8,
+  "cases": [
+    {
+      "id": "zh-json",
+      "expected": "schema",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "schema",
+      "score": 0.6634,
+      "missingInformation": 0.0861,
+      "scoreKind": "choice-probability",
+      "latencyMs": 21.14983298815787,
+      "usage": {
+        "input_tokens": 73,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2443,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "schema",
+        "probabilities": {
+          "schema": 0.6634,
+          "plain": 0.2505,
+          "insufficient": 0.0861
+        }
+      }
+    },
+    {
+      "id": "en-web",
+      "expected": "browser",
+      "outcome": "browser",
+      "matched": true,
+      "selected": "browser",
+      "score": 0.9683,
+      "missingInformation": 0.0269,
+      "scoreKind": "choice-probability",
+      "latencyMs": 19.912707968614995,
+      "usage": {
+        "input_tokens": 73,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.8597,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "browser",
+        "probabilities": {
+          "browser": 0.9683,
+          "offline": 0.0048,
+          "insufficient": 0.0269
+        }
+      }
+    },
+    {
+      "id": "zh-video",
+      "expected": "video",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "video",
+      "score": 0.7611,
+      "missingInformation": 0.1546,
+      "scoreKind": "choice-probability",
+      "latencyMs": 20.04204096738249,
+      "usage": {
+        "input_tokens": 83,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.3583,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "video",
+        "probabilities": {
+          "video": 0.7611,
+          "image": 0.0844,
+          "insufficient": 0.1546
+        }
+      }
+    },
+    {
+      "id": "en-edit",
+      "expected": "editor",
+      "outcome": "editor",
+      "matched": true,
+      "selected": "editor",
+      "score": 0.9063,
+      "missingInformation": 0.0518,
+      "scoreKind": "choice-probability",
+      "latencyMs": 18.56075006071478,
+      "usage": {
+        "input_tokens": 74,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6582,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "editor",
+        "probabilities": {
+          "editor": 0.9063,
+          "reader": 0.0419,
+          "insufficient": 0.0518
+        }
+      }
+    },
+    {
+      "id": "zh-unclear-holdout",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": "b",
+      "score": 0.4176,
+      "missingInformation": 0.231,
+      "scoreKind": "choice-probability",
+      "latencyMs": 12.351874960586429,
+      "usage": {
+        "input_tokens": 61,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0254,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "b",
+        "probabilities": {
+          "a": 0.3514,
+          "b": 0.4176,
+          "insufficient": 0.231
+        }
+      }
+    },
+    {
+      "id": "en-unclear-holdout",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": null,
+      "score": 0.6155,
+      "missingInformation": 0.6155,
+      "scoreKind": "choice-probability",
+      "latencyMs": 12.40120898000896,
+      "usage": {
+        "input_tokens": 61,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1546,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "insufficient",
+        "probabilities": {
+          "a": 0.1647,
+          "b": 0.2197,
+          "insufficient": 0.6155
+        }
+      }
+    },
+    {
+      "id": "zh-equal",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": "b",
+      "score": 0.3959,
+      "missingInformation": 0.2422,
+      "scoreKind": "choice-probability",
+      "latencyMs": 18.007208942435682,
+      "usage": {
+        "input_tokens": 68,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0187,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "b",
+        "probabilities": {
+          "a": 0.3619,
+          "b": 0.3959,
+          "insufficient": 0.2422
+        }
+      }
+    },
+    {
+      "id": "en-equal",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": "b",
+      "score": 0.494,
+      "missingInformation": 0.0444,
+      "scoreKind": "choice-probability",
+      "latencyMs": 12.306291959248483,
+      "usage": {
+        "input_tokens": 63,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2323,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "b",
+        "probabilities": {
+          "a": 0.4616,
+          "b": 0.494,
+          "insufficient": 0.0444
+        }
+      }
+    }
+  ]
+}

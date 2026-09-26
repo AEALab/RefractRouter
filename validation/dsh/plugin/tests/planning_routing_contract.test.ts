@@ -35,7 +35,7 @@ async function fixture(strategy:PlanningStrategy='static'){
   const calls:any[]=[]
   let replies:Array<()=>Iterable<StreamChunk>>=[]
   let toolExecutions=0,disposal:(()=>void)|undefined
-  const providerRoutes:Record<string,{baseURL:string}>={}
+  const providerRoutes:Record<string,{baseURL?:string;reasoning?:string}>={}
   const ctx:AgentContext={
     settings:{get:(key:string)=>key==='llm-pi-ai'?{providers:providerRoutes}:undefined} as any,
     llm:{registerAdapter(){},async *stream(options){calls.push(options);yield* (replies.shift()?.()??reply('完成'))}},
@@ -63,6 +63,7 @@ async function fixture(strategy:PlanningStrategy='static'){
     tools:[{name:'read',description:'read',parameters:{type:'object'}}]}
   return {ctx,controller,calls,events,options,path,
     setProviderBaseURL(provider:string,baseURL:string){providerRoutes[provider]={baseURL}},
+    setProviderReasoning(provider:string,reasoning:string){providerRoutes[provider]={reasoning}},
     setStrategy(value:PlanningStrategy){frozen=configure({...frozen,planningRouting:{...config,defaultStrategy:value}})},
     setPlanning(value:PlanningConfig){frozen=configure({...frozen,planningRouting:value})},
     setReplies(v:typeof replies){replies=v},get toolExecutions(){return toolExecutions},
@@ -76,6 +77,8 @@ test('真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件
     f.setReplies([()=>reply('',[tool]),()=>reply('完成')])
     const first=await collect(f.controller.stream(f.options))
     const finish=first.find(c=>c.type==='finish') as any
+    assert.equal(finish.replayState.response.refractPlanning.version,2)
+    assert.equal(finish.replayState.response.refractPlanning.contentContract,'dsh-content-blocks-v1')
     assert.equal(f.toolExecutions,0)
     assert.equal(f.calls[0].reasoningEffort,'low')
     assert.ok(!JSON.stringify(f.calls[0]).includes('rr:'))
@@ -90,6 +93,48 @@ test('真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件
     const history=await f.controller.history('native-session')
     assert.equal(history.records[0].calls.length,2)
     assert.ok(Math.abs(history.records[0].costs.production-.00028*6.7459)<2e-8)
+  }finally{await f.cleanup()}
+})
+
+test('没有 provider 默认档位时未声明推理能力的模型不传推理等级',async()=>{
+  const f=await fixture()
+  try{
+    const saved=structuredClone(config)
+    delete saved.models![0].reasoningEffort
+    f.setPlanning(saved)
+    f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
+      context:{contextWindow:32000},defaultMaxTokens:1024})
+    await collect(f.controller.stream(f.options))
+    assert.equal(f.calls[0].reasoningEffort,undefined)
+  }finally{await f.cleanup()}
+})
+
+test('provider 默认推理档位与模型能力不符时零调用阻断',async()=>{
+  const f=await fixture()
+  try{
+    const saved=structuredClone(config)
+    delete saved.models![0].reasoningEffort
+    f.setPlanning(saved)
+    f.setProviderReasoning('fake','high')
+    f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
+      context:{contextWindow:32000},defaultMaxTokens:1024})
+    await assert.rejects(()=>collect(f.controller.stream(f.options)),/模型未声明推理等级.*provider 默认 high/)
+    assert.equal(f.calls.length,0)
+  }finally{await f.cleanup()}
+})
+
+test('使用宿主已声明且支持的模型默认推理等级',async()=>{
+  const f=await fixture()
+  try{
+    const saved=structuredClone(config)
+    delete saved.models![0].reasoningEffort
+    f.setPlanning(saved)
+    f.setProviderReasoning('fake','high')
+    f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
+      context:{contextWindow:32000},defaultMaxTokens:1024,
+      reasoning:{efforts:[{id:'low',name:'Low'},{id:'high',name:'High'}],defaultEffort:'high'}})
+    await collect(f.controller.stream(f.options))
+    assert.equal(f.calls[0].reasoningEffort,'high')
   }finally{await f.cleanup()}
 })
 
@@ -192,6 +237,21 @@ test('规划入口可发现但未配置零调用拒绝；原生历史来源保�
   }finally{await f.cleanup()}
 })
 
+test('媒体路线优先复用 apiKeyEnv，并支持 DSH provider 登录记录',async()=>{
+  const f=await fixture()
+  try{
+    const references:string[]=[]
+    f.ctx.credentials.resolve=async reference=>{references.push(reference);return {value:'secret'}}
+    f.setProviderBaseURL('ark','https://ark.cn-beijing.volces.com/api/plan/v3')
+    const settings=f.ctx.settings?.get?.('llm-pi-ai') as any
+    settings.providers.ark.apiKeyEnv='ARK_PLAN_KEY'
+    assert.equal(await f.controller.mediaCredential('ark'),'secret')
+    delete settings.providers.ark.apiKeyEnv
+    assert.equal(await f.controller.mediaCredential('ark'),'secret')
+    assert.deepEqual(references,['ARK_PLAN_KEY','llm-pi-ai/ark'])
+  }finally{await f.cleanup()}
+})
+
 test('宿主容量经 Python 模型资料查询核对，参考价格不冒充实际计费',async()=>{
   const f=await fixture()
   try{
@@ -206,6 +266,26 @@ test('宿主容量经 Python 模型资料查询核对，参考价格不冒充实
     assert.equal(direct.sources.pricing,'https://api-docs.deepseek.com/zh-cn/quick_start/pricing')
     const unknown=await f.controller.metadata('ark','minimax-m3','CNY')
     assert.equal(unknown.pricing,null)
+  }finally{await f.cleanup()}
+})
+
+test('Task 单一图片候选把原生图片引用送达底层模型且不增加 Judge 调用',async()=>{
+  const f=await fixture('task')
+  try{
+    const taskConfig:PlanningConfig={schemaVersion:'refractagent-planning-v3',enabled:true,
+      defaultStrategy:'task',billingUnit:'CNY',maxProductionCostByUnit:{CNY:10},
+      models:[{id:'vision',provider:'fake',model:'vision',contextWindow:32000,maxOutputTokens:1024,
+        inputPer1k:.001,outputPer1k:.002,billingUnit:'CNY',deployment:'local',
+        capabilities:{mainExecutor:true,toolCalling:'verified',modalities:{imageInput:'connected'},
+          formats:{imageInput:['image/png']}}}],roles:{},task:{pool:['vision'],fallback:'vision',
+          judge:{type:'llm',modelId:'vision'},threshold:.8,maxInputChars:12000}}
+    f.setPlanning(taskConfig)
+    f.setReplies([()=>reply('看到了图片')])
+    const image={type:'image',attachment:{attachmentId:'sha256:image',mediaType:'image/png',bytes:3,width:1,height:1}}
+    await collect(f.controller.stream({...f.options,reasoningEffort:'rr:task',messages:[
+      {role:'user',content:[{type:'text',text:'描述图片'},image] as any}]}))
+    assert.equal(f.calls.length,1)
+    assert.deepEqual((f.calls[0].messages[0].content as any[])[1],image)
   }finally{await f.cleanup()}
 })
 
@@ -251,7 +331,8 @@ test('Ark Agent Plan 将旧 CNY 价格迁移到 AFP 账本并要求 AFP 预算',
       inputPer1k:.55,outputPer1k:.55}
     f.setPlanning(saved)
     f.ctx.llm.resolveModelInfo=async(provider,model)=>({provider,id:model,name:model,
-      context:{contextWindow:64000},defaultMaxTokens:4096})
+      context:{contextWindow:64000},defaultMaxTokens:4096,
+      reasoning:{efforts:[{id:'low',name:'Low'}],defaultEffort:'low'}})
     const report=await f.controller.preview()
     const staticRoute=report.strategies.find((row:any)=>row.id==='static')
     assert.equal(staticRoute.available,false)
