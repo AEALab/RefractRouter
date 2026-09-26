@@ -16,7 +16,11 @@ def test_research_holdout_preflight_counts_unknown_usage_reservation():
     assert cards["deepseek-v4-flash"] != cards["deepseek-v4.1-flash"]
 
 
-def test_research_holdout_prepares_three_independent_workspaces(tmp_path):
+def test_research_holdout_prepares_three_independent_workspaces(tmp_path, monkeypatch):
+    # CI 不下载本地 Judge 权重；这里只检查独立工作区和冻结补丁。
+    monkeypatch.setattr("experiments.run_task_quality_pilot.preview",
+                        lambda raw: {"strategies": [{"id": raw["defaultStrategy"],
+                                                      "available": True, "issues": []}]})
     protocol, task, cards = _inputs()
     output = tmp_path / "holdout"
     result = prepare(protocol, task, cards, output)

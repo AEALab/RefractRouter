@@ -51,7 +51,11 @@ def test_task_quality_pilot_preflight_uses_dearest_candidate_for_task_bound():
         [row["costUpperAfp"] for row in strong_runs]
 
 
-def test_task_quality_pilot_prepares_isolated_workspaces_and_routes(tmp_path):
+def test_task_quality_pilot_prepares_isolated_workspaces_and_routes(tmp_path, monkeypatch):
+    # 本测试只验证冻结文件与路线编译；本地权重就绪由运行期零调用诊断覆盖。
+    monkeypatch.setattr("experiments.run_task_quality_pilot.preview",
+                        lambda raw: {"strategies": [{"id": raw["defaultStrategy"],
+                                                      "available": True, "issues": []}]})
     protocol, tasks = inputs()
     output = tmp_path / "pilot"
     evidence = prepare(protocol, tasks, output)
