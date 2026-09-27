@@ -8,7 +8,8 @@ from urllib.error import HTTPError
 
 import pytest
 
-from refractrouter.model_gateway import ModelGateway, HttpModelCaller, chat_messages, wire_messages, create_server
+from refractrouter.model_gateway import ModelGateway, HttpModelCaller, chat_messages, wire_messages, create_server, bound_tool_evidence, ordinary_evidence
+from refractrouter.host_evidence import EVIDENCE_VERSION
 from refractrouter.openai_compatible import ChatResponse, TransportResponse
 from refractrouter.host_evidence import validate_evidence
 from refractrouter.planning_policy import stage_decision
@@ -195,6 +196,66 @@ def test_stage_old_failures_cannot_escalate_new_research():
     events.append({'id': '2', 'callId': '2', 'tool': 'read', 'kind': 'observe', 'status': 'completed', 'fingerprint': '2'})
     decision = stage_decision(events, {'consumedEvidenceIds': ['0','1']}, {'window': 3, 'threshold': .1, 'holdTurns': 2}, 'efficient')
     assert decision['role'] == 'efficient'
+
+
+def test_stage_gateway_accepts_only_paired_host_facts_and_recovers(tmp_path):
+    ids = ['a', 'b', 'c', 'd']
+    caller = Caller(*(reply(calls=[call(cid)]) for cid in ids), reply())
+    gw = gateway(tmp_path, caller, configuration('stage'))
+    req = request('stage')
+    evidence = []
+    for index, cid in enumerate(ids):
+        result = gw.complete(req)
+        req = follow(req, result)
+        event = ordinary_evidence(chat_messages(req['messages']))[-1]
+        evidence.append({**event, 'status': 'failed' if index < 2 else 'completed'})
+        req['metadata'] = {'refract_tool_evidence': {'version': EVIDENCE_VERSION,
+            'events': list(evidence)}}
+    gw.complete(req)
+    assert [action['model']['id'] for action in caller.actions] == [
+        'small', 'small', 'large', 'large', 'small']
+    run = next(iter(gw.runtime.runs.values()))
+    assert [row['reason'] for row in run['decisions'] if row.get('ruleVersion') == 'stage-v4'][2:5] == [
+        'repeated-failure', 'capable-hold', 'ambiguous']
+    gw.close()
+
+
+def test_host_facts_cannot_claim_other_calls_or_change_after_commit(tmp_path):
+    caller = Caller(reply(calls=[call('a')]), reply(calls=[call('b')]))
+    gw = gateway(tmp_path, caller, configuration('stage'))
+    req = request('stage'); req = follow(req, gw.complete(req))
+    event = ordinary_evidence(chat_messages(req['messages']))[0]
+    fact = {**event, 'status': 'failed'}
+    package = {'version': EVIDENCE_VERSION, 'events': [fact]}
+    for invalid in ({**fact, 'callId': 'different'}, {**fact, 'tool': 'other'},
+                    {**fact, 'id': 'other'}, {**fact, 'extra': 'unknown'}):
+        with pytest.raises(ValueError):
+            gw.complete({**req, 'metadata': {'refract_tool_evidence':
+                {**package, 'events': [invalid]}}})
+    assert len(caller.actions) == 1
+    req['metadata'] = {'refract_tool_evidence': package}
+    req = follow(req, gw.complete(req))
+    changed = {**fact, 'status': 'completed'}
+    with pytest.raises(ValueError, match='矛盾'):
+        gw.complete({**req, 'metadata': {'refract_tool_evidence':
+            {**package, 'events': [changed]}}})
+    assert len(caller.actions) == 2
+    gw.close()
+
+
+def test_stage_evidence_write_failure_never_dispatches_or_leaves_memory_fact(tmp_path, monkeypatch):
+    caller = Caller(reply(calls=[call('a')]))
+    gw = gateway(tmp_path, caller, configuration('stage'))
+    req = follow(request('stage'), gw.complete(request('stage')))
+    event = ordinary_evidence(chat_messages(req['messages']))[0]
+    req['metadata'] = {'refract_tool_evidence': {'version': EVIDENCE_VERSION,
+        'events': [{**event, 'status': 'failed'}]}}
+    monkeypatch.setattr(gw, 'save', lambda: (_ for _ in ()).throw(OSError('写入失败')))
+    with pytest.raises(OSError, match='写入失败'):
+        gw.complete(req)
+    assert len(caller.actions) == 1
+    assert not any(gw.state.get('toolEvidence', {}).values())
+    gw.close()
 
 
 def test_static_random_only_selected_candidate_consumes_budget(tmp_path):

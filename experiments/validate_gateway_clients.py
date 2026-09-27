@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--dsh-modules',type=Path);parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
     parser.add_argument('--hermes-root',type=Path)
+    parser.add_argument('--strategy',choices=['static','stage'],default='static')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=False)
     observed=[]
     class Upstream(BaseHTTPRequestHandler):
@@ -45,21 +46,26 @@ def main():
         'models':[{'id':'fixture','provider':'fixture','model':'fixture','contextWindow':1000000,
             'maxOutputTokens':256,'inputPer1k':.001,'outputPer1k':.002,'deployment':'local'}],
         'roles':{'efficient':'fixture'}}
-    if args.client=='hermes': config['models'][0]['reasoningEffort']='low'
+    if args.strategy=='stage':
+        config['models'][0]['reasoningEffort']='low'
+        config['models'].append({**config['models'][0], 'id':'capable-fixture',
+            'model':'capable-fixture'})
+        config['roles']['capable']='capable-fixture'
+    elif args.client=='hermes': config['models'][0]['reasoningEffort']='low'
     gw=ModelGateway({'planningRouting':config,'providers':{'fixture':{'baseURL':f'http://127.0.0.1:{up.server_port}/v1'}}},args.output/'runs')
     server=create_server(gw,port=0);threading.Thread(target=server.serve_forever,daemon=True).start()
     base=f'http://127.0.0.1:{server.server_port}/v1'
     if args.client=='dsh':
         if not args.dsh_modules: raise ValueError('请指定实际 DSH 模块目录')
-        command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base]
+        command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base,'256',args.strategy]
     elif args.client=='hermes':
         if not args.hermes_root: raise ValueError('请指定本机 Hermes 安装目录')
-        command=[str(args.hermes_root/'venv/bin/python'), 'validation/hermes/check_gateway.py',str(args.hermes_root),base]
+        command=[str(args.hermes_root/'venv/bin/python'), 'validation/hermes/check_gateway.py',str(args.hermes_root),base,args.strategy]
     else:
         command=['codex','exec','--ignore-user-config','--ignore-rules','--ephemeral','--skip-git-repo-check',
             '-s','read-only','-c','web_search="disabled"','-c','model_provider="refract-fixture"',
             '-c',f'model_providers.refract-fixture={{name="Refract fixture",base_url="{base}",wire_api="responses",request_max_retries=0,stream_max_retries=0}}',
-            '-m','refract/static','请执行 printf REFRACT_HOST_TOOL_OK 一次，收到标记后回答 GATEWAY_CLIENT_OK。']
+            '-m','refract/'+args.strategy,'请执行 printf REFRACT_HOST_TOOL_OK 一次，收到标记后回答 GATEWAY_CLIENT_OK。']
     if args.client == 'codex' and args.codex_baseline:
         import importlib.util
         spec=importlib.util.spec_from_file_location('codex_catalog','validation/codex/model_catalog.py')
@@ -71,7 +77,7 @@ def main():
     try:
         result=subprocess.run(command,text=True,capture_output=True,timeout=60)
         success=result.returncode==0 and 'GATEWAY_CLIENT_OK' in result.stdout if args.client=='codex' else result.returncode==0
-        summary={'client':args.client,'success':success,'exitCode':result.returncode,'upstreamCalls':observed,'paidCalls':0,
+        summary={'client':args.client,'strategy':args.strategy,'success':success,'exitCode':result.returncode,'upstreamCalls':observed,'paidCalls':0,
             'routerTasks':len(gw.runtime.runs),'hostToolResultReceived':any(r['toolResults'] for r in observed)}
         (args.output/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
         (args.output/'client-stdout.txt').write_text(result.stdout)

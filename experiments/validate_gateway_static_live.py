@@ -1,4 +1,4 @@
-"""两次 Static 真模型调用的有界接线验收；默认仅冻结零调用预检。"""
+"""两次 Static/Stage 真模型调用的有界接线验收；默认仅冻结零调用预检。"""
 import argparse
 import hashlib
 import json
@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--client',choices=['dsh','codex','hermes'],default='dsh')
     parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
     parser.add_argument('--hermes-root',type=Path)
+    parser.add_argument('--strategy',choices=['static','stage'],default='static')
     args=parser.parse_args()
     if args.client=='dsh' and not args.dsh_modules: parser.error('DSH 需要模块路径')
     if args.client=='codex' and not (args.codex_baseline and args.codex_baseline_model):
@@ -29,20 +30,22 @@ def main():
     if not 1 <= input_limit <= 1048576: parser.error('输入上界必须在 1—1048576 内')
     raw=args.config.read_bytes();config=json.loads(raw);p=compile_config(config['planningRouting'])
     model=p['models'][p['roles']['efficient']]
-    if p['parameters']['staticMode']!='fixed':
+    if args.strategy=='static' and p['parameters']['staticMode']!='fixed':
         raise ValueError('只验收固定高效角色的 Static')
+    if args.strategy=='stage' and 'capable' not in p['roles']:
+        raise ValueError('Stage 验收需要强执行角色')
     envelope={'configSha256':hashlib.sha256(raw).hexdigest(),'provider':model.provider,'model':model.api_model,
         'modelParameters':dict(model.request_options),'maxCalls':2,'maxInputBoundPerCall':input_limit,'maxOutputTokens':512,
         'billingUnit':model.billing_unit,'upperBound':2*(input_limit/1000*model.input_cost_per_1k+512/1000*model.output_cost_per_1k),
-        'timeoutMs':60000,'httpRetries':0,'hostTools':1,'scenario':args.client+' 原生工具往返','strategy':'static'}
+        'timeoutMs':60000,'httpRetries':0,'hostTools':1,'scenario':args.client+' 原生工具往返','strategy':args.strategy}
     if args.client=='codex':
         envelope['hostCatalogSha256']=hashlib.sha256(args.codex_baseline.read_bytes()).hexdigest()
         envelope['hostBaselineModel']=args.codex_baseline_model
     if not args.execute and not args.probe_client:
         args.output.mkdir(parents=True,exist_ok=False)
         check=ModelGateway(config,args.output/'runs');check.close()
-        if not next(row for row in preview(config['planningRouting'])['strategies'] if row['id']=='static')['available']:
-            raise ValueError('Static 预检不可用')
+        if not next(row for row in preview(config['planningRouting'])['strategies'] if row['id']==args.strategy)['available']:
+            raise ValueError('选择的策略预检不可用')
         (args.output/'preflight.json').write_text(json.dumps(envelope,ensure_ascii=False,indent=2)+'\n')
         print(json.dumps({'modelCalls':0,**envelope},ensure_ascii=False));return
     if args.probe_client:
@@ -76,9 +79,9 @@ def main():
     try:
         base=f'http://127.0.0.1:{server.server_port}/v1'
         if args.client=='dsh':
-            command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base,'512']
+            command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base,'512',args.strategy]
         elif args.client=='hermes':
-            command=[str(args.hermes_root/'venv/bin/python'),'validation/hermes/check_gateway.py',str(args.hermes_root),base]
+            command=[str(args.hermes_root/'venv/bin/python'),'validation/hermes/check_gateway.py',str(args.hermes_root),base,args.strategy]
         else:
             import importlib.util
             spec=importlib.util.spec_from_file_location('catalog','validation/codex/model_catalog.py')
@@ -89,7 +92,7 @@ def main():
                 '-s','read-only','-c','web_search="disabled"','-c','model_provider="refract-static-test"',
                 '-c',f'model_catalog_json={json.dumps(str(path))}',
                 '-c',f'model_providers.refract-static-test={{name="Refract Static",base_url="{base}",wire_api="responses",request_max_retries=0,stream_max_retries=0}}',
-                '-m','refract/static','只做这项功能验收：通过终端工具执行 printf REFRACT_HOST_TOOL_OK 一次，收到结果后只回答 GATEWAY_CLIENT_OK。不要调用其他工具。']
+                '-m','refract/'+args.strategy,'只做这项功能验收：通过终端工具执行 printf REFRACT_HOST_TOOL_OK 一次，收到结果后只回答 GATEWAY_CLIENT_OK。不要调用其他工具。']
         result=subprocess.run(command,text=True,capture_output=True,timeout=90)
         (args.output/'client-stdout.txt').write_text(result.stdout);(args.output/'client-stderr.txt').write_text(result.stderr)
         calls=[row for run in gw.runtime.runs.values() for row in run['budget'].records]

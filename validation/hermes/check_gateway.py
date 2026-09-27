@@ -5,6 +5,9 @@ from pathlib import Path
 import sys
 
 root, base = sys.argv[1:3]
+strategy = sys.argv[3] if len(sys.argv) > 3 else 'static'
+if strategy not in ('static', 'stage'): raise ValueError('验收策略只支持 Static 或 Stage')
+virtual_model = 'refract/' + strategy
 sys.path.insert(0, root)
 if not os.environ.get('HERMES_HOME'):
     home=Path.home()/'.hermes'
@@ -15,17 +18,18 @@ if not os.environ.get('HERMES_HOME'):
 from urllib.request import urlopen
 with urlopen(base+'/models') as response:
     advertised=json.load(response)
-entry=next(row for row in advertised['data'] if row['id']=='refract/static')
+entry=next(row for row in advertised['data'] if row['id']==virtual_model)
 efforts=entry['refract']['acceptedReasoningEfforts']
-if len(efforts)!=1: raise ValueError('本次 Hermes 验收要求一个明确冻结的推理档位')
+if len(efforts)>1: raise ValueError('无法协商本次 Hermes 路由推理档位')
+reasoning = {'effort':efforts[0]} if efforts else {'enabled':False}
 
 os.environ['HERMES_STREAM_RETRIES'] = '0'
 from run_agent import AIAgent
 
 chunks=[]
-agent=AIAgent(model='refract/static',base_url=base,api_key='local-router-test',
+agent=AIAgent(model=virtual_model,base_url=base,api_key='local-router-test',
     provider='custom',api_mode='chat_completions',enabled_toolsets=['terminal'],
-    reasoning_config={'effort':efforts[0]},max_iterations=3,max_tokens=256,quiet_mode=True,skip_memory=True,
+    reasoning_config=reasoning,max_iterations=3,max_tokens=256,quiet_mode=True,skip_memory=True,
     skip_background_review=True,skip_context_files=True,load_soul_identity=False,
     save_trajectories=False,run_budget_seconds=45,
     stream_delta_callback=lambda text,**kwargs:chunks.append(str(text)))

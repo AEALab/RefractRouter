@@ -1,6 +1,6 @@
 # 独立模型路由与宿主边界
 
-决策日期：2026-09-27。适用版本：Router 0.15.1、DSH 插件 0.27.0。
+决策日期：2026-09-27。适用版本：Router 0.15.2、DSH 插件 0.27.0。
 
 ## 产品目标
 
@@ -125,6 +125,13 @@ DSH 插件自身流式行为保持原状。
 旧插件协议仍可读取。独立接口仅凭文本工具结果不能确认退出状态，记录为 `unclassified`；
 Stage 不把它当作成功或模型能力失败。Escalation 的 Judge 仍可审查文本轨迹，但分数需独立验收。
 
+宿主如能提供可信的结构化工具结果，可在当前请求的 `metadata.refract_tool_evidence` 中传入
+`{"version":"refract-tool-evidence-v1","events":[...]}`。每条事件只含 `id`、`callId`、
+`tool`、`kind`、`status`、`fingerprint`，其中 `id` 与 `callId` 均为已完成的 function call ID；
+`tool` 必须匹配原调用名称。Router 核对调用与结果已配对，再保存事实、推进 Stage。
+同一调用后续不得改写事实。缺少扩展时沿用保守的 `unclassified`；不会从工具正文猜测
+成功、失败或权限状态。扩展由接入方提供，Router 不运行工具或接管 Agent 循环。
+
 同一事实去重，矛盾事实拒绝。并发的第二个 step 只拒绝该请求，不能取消原在途调用。
 认证、传输、未知用量及证据写入故障停止后续受管调用。客户端断开后不再派发下一 Judge
 或接管；已派发调用返回后结算，未知用量保留预留。没有底层自动 HTTP 重试。
@@ -160,9 +167,11 @@ DSH 使用标准 Chat Completions Base URL 和 `refract/static` 模型即可走�
 
 最新增量验收见 [客户端能力协商报告](../reports/client-capability-negotiation-20260927/README.md)。
 
-本轮客户端往返使用 Static。其他策略的核心与流式边界有确定性覆盖，
-尚未分别执行每个客户端、每个策略的真模型验收。
-标准工具文本没有可信退出状态时，Stage 仍使用高效默认；这不代表已取得完整轨迹信号。
+Static 与 Stage 的三客户端原生工具往返分别完成真实模型验收，Stage 详见
+[三客户端 Stage 报告](../reports/stage-three-client-acceptance-20260927/README.md)。
+三种原生客户端目前没有传入上述扩展，因此该次 Stage 工具结果均为 `unclassified`，
+实际选择保持高效模型；确定性注入可信事实的测试另行证明升级、保持与恢复规则。
+真实客户端依据工具结果换模仍待接入方传递可信事实后验收。
 
 
 ## Codex 本机目录适配

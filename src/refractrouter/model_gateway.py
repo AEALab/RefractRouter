@@ -16,7 +16,7 @@ import time
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from .host_evidence import validate_evidence
+from .host_evidence import EVIDENCE_VERSION, validate_evidence
 from . import gateway_responses
 from .gateway_streaming import stream_chat, WireStream
 from .openai_compatible import OpenAICompatibleClient, UrllibTransport
@@ -165,6 +165,36 @@ def ordinary_evidence(messages):
                     "status": "unclassified", "kind": "unknown",
                     "fingerprint": digest([call.get("name"), call.get("arguments")])})
     return validate_evidence(result)
+
+
+def bound_tool_evidence(messages, supplied, known=None):
+    """只接受与当前已完成工具调用配对的宿主事实。"""
+    ordinary = ordinary_evidence(messages)
+    known = known or {}
+    if supplied is None:
+        supplied = {'version': EVIDENCE_VERSION, 'events': []}
+    if (not isinstance(supplied, dict) or set(supplied) != {'version', 'events'}
+            or supplied['version'] != EVIDENCE_VERSION):
+        raise ValueError('工具证据协议版本或结构无效')
+    facts = validate_evidence(supplied['events'])
+    expected = {event['callId']: event for event in ordinary}
+    for call_id, fact in known.items():
+        original = expected.get(call_id)
+        if original is not None and (fact['id'] != call_id or fact['tool'] != original['tool']):
+            raise ValueError('已保存的工具事实与当前历史不匹配')
+    overrides = {}
+    for fact in facts:
+        if set(fact) != {'id', 'callId', 'tool', 'kind', 'status', 'fingerprint'}:
+            raise ValueError('宿主工具证据包含未知字段')
+        original = expected.get(fact['callId'])
+        if (original is None or fact['id'] != fact['callId']
+                or fact['tool'] != original['tool'] or fact['callId'] in overrides):
+            raise ValueError('宿主工具证据与当前历史的调用或结果不匹配')
+        if fact['callId'] in known and known[fact['callId']] != fact:
+            raise ValueError('同一工具调用的宿主事实发生矛盾变化')
+        overrides[fact['callId']] = fact
+    return [overrides.get(event['callId'], known.get(event['callId'], event))
+            for event in ordinary]
 
 
 class HttpModelCaller:
@@ -356,8 +386,27 @@ class ModelGateway:
             run_id = begun['runId']
             if begun['strategy'] != strategy:
                 raise ValueError('当前任务的路由策略已冻结；新任务才能切换策略')
+            all_facts = self.state.setdefault('toolEvidence', {})
+            scope_facts = all_facts.get(run_id, {})
+            evidence = bound_tool_evidence(messages,
+                (request.get('metadata') or {}).get('refract_tool_evidence'), scope_facts)
+            new_facts = dict(scope_facts)
+            for fact in evidence:
+                if fact['status'] != 'unclassified' and fact['callId'] not in scope_facts:
+                    new_facts[fact['callId']] = fact
+            if new_facts != scope_facts:
+                all_facts[run_id] = new_facts
+                try:
+                    self.save()
+                except Exception:
+                    if run_id in all_facts:
+                        if scope_facts:
+                            all_facts[run_id] = scope_facts
+                        else:
+                            del all_facts[run_id]
+                    raise
             action = self.runtime.handle({'op': 'step', 'runId': run_id, 'messages': messages,
-                'tools': schemas, 'toolEvidence': ordinary_evidence(messages),
+                'tools': schemas, 'toolEvidence': evidence,
                 **({'maxTokens': cap} if cap is not None else {})})
         responses, targets, total_in, total_out = {}, {}, 0, 0
         meta = {'id':'chatcmpl-' + uuid4().hex, 'created':int(time.time()), 'model':request['model']}
