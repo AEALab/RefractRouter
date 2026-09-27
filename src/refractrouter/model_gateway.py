@@ -256,10 +256,35 @@ class ModelGateway:
             os.fsync(f.fileno())
         os.replace(tmp, self.path)
 
+    def capabilities(self, strategy):
+        """保守公开执行路线的交集；判别模型不影响主模型参数声明。"""
+        c = compile_config(self.planning)
+        if strategy == 'static':
+            ids = [c['roles'].get('efficient')]
+            if c['parameters']['staticMode'] == 'random':
+                ids.append(c['roles'].get('capable'))
+        elif strategy == 'task':
+            ids = [*c['task']['pool'], c['task']['fallback']]
+        elif strategy == 'escalation':
+            ids = [c['escalation']['initial'], c['escalation']['takeover']]
+        else:
+            ids = [c['roles'].get('efficient'), c['roles'].get('capable')]
+        models = [c['models'][key] for key in dict.fromkeys(ids) if key in c['models']]
+        efforts = {m.request_options.get('reasoning_effort', self.config.get('providers', {})
+            .get(m.provider, {}).get('requestOptions', {}).get('reasoning_effort')) for m in models}
+        common = next(iter(efforts)) if len(efforts) == 1 else None
+        return {'schemaVersion': 'refract-model-capabilities/1',
+            'inputModalities': ['text'], 'outputModalities': ['text'], 'toolTypes': ['function'],
+            'historyMode': 'full', 'reasoningPolicy': 'frozen-role-assertion',
+            'acceptedReasoningEfforts': [common] if common else [],
+            'contextWindow': min((m.context_window for m in models), default=0),
+            'maxOutputTokens': min((m.max_output_tokens for m in models), default=0),
+            'streaming': True, 'toolExecution': 'client'}
+
     def models(self):
         available = {row['id'] for row in preview(self.planning)['strategies'] if row['available']}
         return {"object": "list", "data": [{"id": "refract/" + strategy, "object": "model",
-            "created": 0, "owned_by": "refractrouter"} for strategy in ROUTES if strategy in available]}
+            "created": 0, "owned_by": "refractrouter", "refract": self.capabilities(strategy)} for strategy in ROUTES if strategy in available]}
 
     def _identity(self, request, scope):
         metadata = request.get('metadata') or {}
@@ -293,12 +318,16 @@ class ModelGateway:
     def complete(self, request, *, scope='default', cancelled=lambda: False, on_text=None):
         started = time.monotonic()
         allowed = {'model', 'messages', 'tools', 'stream', 'stream_options', 'max_tokens', 'max_completion_tokens',
-                   'metadata', 'n', *EXECUTION_OPTIONS}
+                   'metadata', 'n', 'reasoning_effort', *EXECUTION_OPTIONS}
         if not isinstance(request, dict) or set(request) - allowed:
             raise ValueError("请求包含当前网关未接通的参数")
         strategy = str(request.get('model', '')).removeprefix('refract/')
         if strategy not in ROUTES or request.get('n', 1) != 1:
             raise ValueError("请选择 refract/static、stage、task 或 escalation；只支持 n=1")
+        if 'reasoning_effort' in request:
+            effort = request['reasoning_effort']
+            if not isinstance(effort, str) or effort not in self.capabilities(strategy)['acceptedReasoningEfforts']:
+                raise ValueError('reasoning_effort 与冻结执行角色不一致；请省略该参数或使用模型目录声明的值')
         if not isinstance(request.get('stream', False), bool):
             raise ValueError("stream 必须是布尔值")
         if request.get('stream_options') not in (None, {}, {'include_usage': True}, {'include_usage': False}):

@@ -125,8 +125,8 @@ def test_namespace_conversion_preserves_schema_choice_and_return_identity():
     assert replay['messages'][-2]['tool_calls'][0]['function']['name']==name
     with pytest.raises(ValueError,match='function'):
         to_chat({**request,'tools':[{'type':'web_search'}]})
-    with pytest.raises(ValueError,match='推理等级'):
-        to_chat({**request,'reasoning':{'effort':'high'}})
+    with pytest.raises(ValueError,match='字符串'):
+        to_chat({**request,'reasoning':{'effort':False}})
 
 
 def test_cancel_after_text_settles_dispatched_stream_without_replacement(tmp_path):

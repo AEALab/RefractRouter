@@ -1,6 +1,6 @@
 # 独立模型路由与宿主边界
 
-决策日期：2026-09-27。适用版本：Router 0.15.0、DSH 插件 0.27.0。
+决策日期：2026-09-27。适用版本：Router 0.15.1、DSH 插件 0.27.0。
 
 ## 产品目标
 
@@ -83,7 +83,7 @@ refractrouter-gateway --config /absolute/path/gateway.json \
 | 媒体、托管工具、custom tool、加密 reasoning replay | 当前网关拒绝，不静默丢弃 |
 | `previous_response_id`、Responses 存储式增量会话 | 当前网关拒绝；由客户端保存并回传完整历史 |
 | DSH 0.1.5-rc.3 标准适配器与 ToolRuntime | 无 RefractAgent 插件的模拟上游、真实 Ark 两轮均通过 |
-| 本机 Codex CLI 0.154.0 | 实际 CLI + 模拟上游的工具往返通过；限定下述配置 |
+| 本机 Codex CLI 0.154.0 | 实际 CLI + 模拟及真实 Ark 上游工具往返通过；限定 Static 与下述配置 |
 | Hermes、OpenClaw、Claude | 尚未分别验收 |
 
 `stream=true` 时，Static/Stage/Task 及已接管的 Escalation 实时转发上游文字增量。
@@ -149,12 +149,43 @@ DSH 使用标准 Chat Completions Base URL 和 `refract/static` 模型即可走�
 - `prompt_cache_key` 作为不透明缓存提示转发；不将其当作真实任务 ID。
 - `reasoning.summary=auto` 与 `include=[reasoning.encrypted_content]` 可作为可选返回提示。
   本网关不生成加密推理项；收到真正的 reasoning 历史项仍明确拒绝。
-- 实际推理档位由路由角色配置冻结；客户端显式指定其他 reasoning 参数目前明确拒绝。
-- Codex 使用其默认模型元数据回退，仍会提示虚拟模型不在专用模型目录中。
-  不能为消除提示而向 Router 添加 Codex 的 Agent 指令或工具编排。
+- 实际推理档位由路由角色配置冻结。`reasoning.effort` / `reasoning_effort` 可作为一致性断言：
+  仅当所有可能执行模型的有效冻结值相同且与请求一致时接受；不覆盖角色或 Judge 参数。
+  混合档位或未配置档位时应省略该参数，不把“未设置”等同于 `none`。
+- `/v1/models` 的 `refract` 扩展公开文本/function 范围、执行模型容量交集及可接受推理档位。
+  不公开凭证、地址或宿主提示；Judge 的容量和推理参数不混入主执行模型声明。
+- Codex 可使用独立集成脚本生成本机目录，见下节；Router 核心不提供 Codex 的 Agent 指令。
 - 未接通 hosted web search、custom tool、媒体、完整 Codex App/远程代理流程。
   不会悄悄删除这些工具让调用通过；不支持的请求在派发前明确失败。
+
+最新增量验收见 [客户端能力协商报告](../reports/client-capability-negotiation-20260927/README.md)。
 
 本轮客户端往返使用 Static。其他策略的核心与流式边界有确定性覆盖，
 尚未分别执行每个客户端、每个策略的真模型验收。
 标准工具文本没有可信退出状态时，Stage 仍使用高效默认；这不代表已取得完整轨迹信号。
+
+
+## Codex 本机目录适配
+
+`validation/codex/model_catalog.py` 读取使用者明确指定的本机 Codex 目录和宿主基线模型，
+保留原目录、`base_instructions`、`model_messages` 与工具执行方式，追加虚拟路由模型。
+仅按 Router 实际能力收紧媒体、工具格式、推理和容量声明；上下文压缩继续由 Codex 执行。
+此文件包含宿主提示，只保存本机，不上传到 Router，也不替换日常配置。
+
+先将经认证读取的 `/v1/models` 保存为本机 JSON，再运行：
+
+```sh
+uv run python validation/codex/model_catalog.py \
+  --baseline /绝对路径/models_cache.json --baseline-model 已安装的宿主基线模型 \
+  --gateway-models /绝对路径/router-models.json --output /绝对路径/router-codex-models.json
+```
+
+在该次 Codex 启动中传入 `model_catalog_json`，配合自定义 provider 的 `base_url`、
+`wire_api="responses"`、`request_max_retries=0`、`stream_max_retries=0`。
+关闭尚未接通的托管 web search；并非所有客户端都只改 URL 即可启用全部功能。
+
+参数协商不能将成本限制改写为承诺的模型能力。调用仍独立检查真实输入、输出、数据域与余额。
+工具较多的客户端可通过 `validate_gateway_static_live.py --probe-client` 在不派发模型的条件下
+测量真实输入包络；该探测故意返回错误终止客户端，费用为零。
+
+依据：[Codex 官方配置说明](https://learn.chatgpt.com/docs/config-file/config-reference)。

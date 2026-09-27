@@ -211,7 +211,7 @@ def test_static_random_only_selected_candidate_consumes_budget(tmp_path):
 
 def test_invalid_request_rejected_before_spend(tmp_path):
     caller = Caller(reply());gw = gateway(tmp_path, caller)
-    with pytest.raises(ValueError, match='未接通'):
+    with pytest.raises(ValueError, match='冻结'):
         gw.complete({**request(), 'reasoning_effort': 'rr:stage'})
     with pytest.raises(ValueError, match='媒体'):
         gw.complete(request(messages=[{'role': 'user', 'content': [{'type': 'image_url', 'image_url': {'url': 'https://example.test/x'}}]}]))

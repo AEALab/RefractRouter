@@ -42,8 +42,10 @@ def to_chat(request):
     if request.get('store', False) is not False:
         raise ValueError('当前 Responses 接口要求 store=false，并由客户端保存完整历史')
     reasoning=request.get('reasoning') or {}
-    if not isinstance(reasoning,dict) or set(reasoning)-{'summary'} or reasoning.get('summary') not in (None,'auto'):
+    if not isinstance(reasoning,dict) or set(reasoning)-{'summary','effort'} or reasoning.get('summary') not in (None,'auto'):
         raise ValueError('虚拟路由的实际推理等级由角色配置冻结；当前仅支持自动摘要提示')
+    if 'effort' in reasoning and not isinstance(reasoning['effort'], str):
+        raise ValueError('reasoning.effort 必须是字符串')
     if request.get('include') not in (None,[],['reasoning.encrypted_content']):
         raise ValueError('不支持的 Responses include')
     if request.get('client_metadata') is not None and not isinstance(request['client_metadata'],dict):
@@ -101,6 +103,8 @@ def to_chat(request):
     for key in ('temperature', 'top_p', 'parallel_tool_calls', 'metadata', 'prompt_cache_key'):
         if key in request:
             result[key] = deepcopy(request[key])
+    if 'effort' in reasoning:
+        result['reasoning_effort'] = reasoning['effort']
     if request.get('client_metadata'):
         result['metadata']={**result.get('metadata',{}),'client_metadata':deepcopy(request['client_metadata'])}
     if 'max_output_tokens' in request:

@@ -12,6 +12,7 @@ from refractrouter.model_gateway import ModelGateway, create_server
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--client',choices=['dsh','codex'],required=True)
     parser.add_argument('--dsh-modules',type=Path);parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=False)
     observed=[]
     class Upstream(BaseHTTPRequestHandler):
@@ -53,6 +54,14 @@ def main():
             '-s','read-only','-c','web_search="disabled"','-c','model_provider="refract-fixture"',
             '-c',f'model_providers.refract-fixture={{name="Refract fixture",base_url="{base}",wire_api="responses",request_max_retries=0,stream_max_retries=0}}',
             '-m','refract/static','请执行 printf REFRACT_HOST_TOOL_OK 一次，收到标记后回答 GATEWAY_CLIENT_OK。']
+    if args.client == 'codex' and args.codex_baseline:
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('codex_catalog','validation/codex/model_catalog.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        adapted=module.catalog(json.loads(args.codex_baseline.read_text()),args.codex_baseline_model,gw.models())
+        path=(args.output/'codex-models.json').resolve()
+        path.write_text(json.dumps(adapted));path.chmod(0o600)
+        command[-1:-1]=['-c',f'model_catalog_json={json.dumps(str(path))}']
     try:
         result=subprocess.run(command,text=True,capture_output=True,timeout=60)
         success=result.returncode==0 and 'GATEWAY_CLIENT_OK' in result.stdout if args.client=='codex' else result.returncode==0
