@@ -196,6 +196,42 @@ test('升级判别丢弃工具调用后只释放强模型回复',async()=>{
   }finally{await f.cleanup()}
 })
 
+test('Escalation v4 明确缺陷立即丢弃候选并由强模型流式接管',async()=>{
+  const f=await fixture('escalation')
+  try{
+    const upgraded:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v4',
+      defaultStrategy:'escalation',escalation:{initial:'small',takeover:'large',judge:{type:'llm',modelId:'judge'},
+        stallConfirmations:2,threshold:.8,judgeTimeoutMs:30000,maxJudgeInputBytes:8000,
+        maxExecutionOutputTokens:1024,maxJudgeOutputTokens:256}}
+    f.setPlanning(upgraded)
+    f.setReplies([()=>reply('不应显示'),()=>reply(JSON.stringify({verdict:'DEFECT',confidence:.98,
+      evidenceIds:[],reason:'与任务要求冲突'})),()=>reply('强模型完成')])
+    const chunks=await collect(f.controller.stream({...f.options,reasoningEffort:'rr:escalation'}))
+    assert.deepEqual(chunks.filter(c=>c.type==='text-delta').map(c=>c.text),['强模型完成'])
+    assert.deepEqual(f.calls.map(call=>call.model),['small','judge','large'])
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.deepEqual(record.calls.map((call:any)=>call.disposition),['discarded','consult','accepted'])
+    assert.equal(record.calls[2].review_status,'takeover-unreviewed')
+    assert.ok(record.decisions.some((row:any)=>row.reason==='escalation-defect'))
+  }finally{await f.cleanup()}
+})
+
+test('Escalation v4 合格候选经一次 Judge 后原样释放',async()=>{
+  const f=await fixture('escalation')
+  try{
+    const upgraded:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v4',
+      defaultStrategy:'escalation',escalation:{initial:'small',takeover:'large',judge:{type:'llm',modelId:'judge'},
+        stallConfirmations:2,threshold:.8,judgeTimeoutMs:30000,maxJudgeInputBytes:8000,
+        maxExecutionOutputTokens:1024,maxJudgeOutputTokens:256}}
+    f.setPlanning(upgraded)
+    f.setReplies([()=>reply('候选完成'),()=>reply(JSON.stringify({verdict:'PROCEED',confidence:.95,
+      evidenceIds:[],reason:'符合任务要求'}))])
+    const chunks=await collect(f.controller.stream({...f.options,reasoningEffort:'rr:escalation'}))
+    assert.deepEqual(chunks.filter(c=>c.type==='text-delta').map(c=>c.text),['候选完成'])
+    assert.deepEqual(f.calls.map(call=>call.model),['small','judge'])
+  }finally{await f.cleanup()}
+})
+
 test('切换策略当前轮保持冻结，新轮重新分类；取消不释放候选',async()=>{
   const f=await fixture('static')
   try{

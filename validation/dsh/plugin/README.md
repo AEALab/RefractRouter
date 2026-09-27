@@ -1,3 +1,14 @@
+## 0.26.0：Escalation 缓冲审核与一次接管
+
+Escalation 使用独立 `escalation-decision-v1`，起始模型的正文和工具调用在 Judge 放行前
+全部缓冲。明确缺陷、最终停滞或无法判断立即由强模型接管；工具过程中连续两次停滞才接管。
+接管后当前任务固定使用强模型且不再追加审核。协议升级为 `refractagent-planning/4`，本地
+Judge 使用可查询、可取消的独立 job；设置页分别配置三个模型的推理等级、数据域和信任策略。
+
+有限真实验收中，`deepseek-v4-flash` Judge 的明确缺陷 6/6 未放行、合格 6/6 放行；当前
+Laya revision 与 `glm-5.3-flash` 的 1024 token 路线仍标为实验状态。需要 Python 核心
+0.13.0 与 DSH 0.1.5-rc.1。
+
 ## 0.25.0：Task 多模型池与本地 Judge
 
 Task 从用户配置的有序模型池选定一次主执行模型；单一合格候选不调用 Judge，多候选可使用

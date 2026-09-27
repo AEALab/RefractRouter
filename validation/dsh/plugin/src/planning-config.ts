@@ -25,6 +25,11 @@ export interface TaskRoutingConfig {
   pool:string[];fallback:string;judge:TaskJudgeConfig;threshold?:number;maxInputChars?:number
   maxExecutionOutputTokens?:number
 }
+export interface EscalationRoutingConfig {
+  initial:string;takeover:string;judge:TaskJudgeConfig
+  stallConfirmations?:number;threshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
+  maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number
+}
 export interface MediaRouteConfig {
   id:string;provider:string;credentialProvider?:string;model:string
   operations:Array<'image-understand'|'video-understand'|'image-generate'|'image-edit'|'video-generate'|'image-to-video'>
@@ -33,7 +38,7 @@ export interface MediaRouteConfig {
   verified?:boolean;verification?:CapabilityLevel;endpoint?:string
 }
 export interface PlanningConfig {
-  schemaVersion:'refractagent-planning-v1'|'refractagent-planning-v2'|'refractagent-planning-v3'
+  schemaVersion:'refractagent-planning-v1'|'refractagent-planning-v2'|'refractagent-planning-v3'|'refractagent-planning-v4'
   enabled:boolean;defaultStrategy?:PlanningStrategy
   billingUnit?:'USD'|'AFP'|'CNY';maxProductionCost?:number
   maxProductionCostByUnit?:Partial<Record<'USD'|'AFP'|'CNY',number>>;timeoutMs?:number;maxCalls?:number
@@ -44,18 +49,19 @@ export interface PlanningConfig {
   trustPolicies?:Array<Record<string,unknown>>
   compatiblePairs?:string[][]
   task?:TaskRoutingConfig
+  escalation?:EscalationRoutingConfig
   mediaRoutes?:MediaRouteConfig[]
 }
-export const EMPTY_PLANNING:PlanningConfig={schemaVersion:'refractagent-planning-v3',enabled:false,defaultStrategy:'stage'}
+export const EMPTY_PLANNING:PlanningConfig={schemaVersion:'refractagent-planning-v4',enabled:false,defaultStrategy:'stage'}
 export const PLANNING_NAMES={stage:'阶段 Stage',task:'任务 Task',composite:'组合 Composite',
   advisor:'审核 Advisor',escalation:'升级 Escalation',static:'静态 Static'} as const
-export const PLANNING_PROTOCOL='refractagent-planning/3'
+export const PLANNING_PROTOCOL='refractagent-planning/4'
 type Json=Record<string,unknown>
 export function validatePlanningShape(value:unknown):asserts value is PlanningConfig {
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('planningRouting 必须为对象')
   // 这里只约束传输类型。候选资格、计价、安全准入与 Judge 合同统一由 Python 检查。
   const v=value as Json
-  if(!['refractagent-planning-v1','refractagent-planning-v2','refractagent-planning-v3'].includes(String(v.schemaVersion))||typeof v.enabled!=='boolean')
+  if(!['refractagent-planning-v1','refractagent-planning-v2','refractagent-planning-v3','refractagent-planning-v4'].includes(String(v.schemaVersion))||typeof v.enabled!=='boolean')
     throw new Error('planningRouting 需要 schemaVersion 与 enabled')
   if(v.defaultStrategy!==undefined&&(typeof v.defaultStrategy!=='string'||!(v.defaultStrategy in PLANNING_NAMES)))
     throw new Error('未知规划路由策略')
@@ -68,5 +74,7 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
     throw new Error('planningRouting.parameters 需要对象')
   if(v.task!==undefined&&(!v.task||typeof v.task!=='object'||Array.isArray(v.task)))
     throw new Error('planningRouting.task 需要 Task 设置对象')
+  if(v.escalation!==undefined&&(!v.escalation||typeof v.escalation!=='object'||Array.isArray(v.escalation)))
+    throw new Error('planningRouting.escalation 需要 Escalation 设置对象')
   if(v.mediaRoutes!==undefined&&!Array.isArray(v.mediaRoutes))throw new Error('planningRouting.mediaRoutes 需要列表')
 }

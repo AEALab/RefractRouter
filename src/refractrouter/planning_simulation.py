@@ -14,9 +14,13 @@ def simulate(config):
                 "messages": [{"role": "user", "content": "离线协议模拟任务"}], "tools": []})
             while action["action"] == "call":
                 purpose = action["purpose"]
+                configured_escalation = (begin["strategy"] == "escalation"
+                    and runtime.runs[run_id]["config"]["escalation"]["mode"] == "configured")
                 content = ('{"p_solve":0.8,"capability_boundary":"supported","crux":"模拟"}'
                     if purpose == "task" else '{"verdict":"APPROVE","feedback":"模拟通过"}'
                     if purpose == "advisor" else '{"escalate":true,"reason":"模拟困难"}'
+                    if purpose == "escalation" and not configured_escalation else
+                    '{"verdict":"DEFECT","confidence":0.9,"evidenceIds":[],"reason":"模拟缺陷"}'
                     if purpose == "escalation" else "模拟回复")
                 action = runtime.handle({"op": "complete", "runId": run_id, "callId": action["callId"],
                     "response": {"content": content, "inputTokens": 20, "outputTokens": 20,

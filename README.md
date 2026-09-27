@@ -8,6 +8,9 @@ Task 多模型池、轻量 LLM Judge、本地 Laya-MLX Judge 与图片接线见
 [Task 多模型路由、本地 Judge 与媒体接入](docs/task-local-judge-media.md)。当前 DSH 0.1.5 缺少
 原生影片合同，影片输入、播放与持久化尚未完成。
 
+Escalation 的缓冲审核、一次接管、本地 Judge job、完整调用路径预算与有限真实验收见
+[Escalation 升级策略](docs/escalation-routing.md)。
+
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
 RefractRouter 是面向团队集中路由的应用项目。RefractAgent 提供本机任务入口，按质量、成本和时延偏好选择模型，支持整任务处理及 DAG 节点分配，并保存结果与费用。

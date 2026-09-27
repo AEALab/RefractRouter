@@ -13,7 +13,9 @@ from .dsh_model_pool import frozen_usd_cny_rate
 SCHEMA = "refractagent-planning-v1"
 SCHEMA_V2 = "refractagent-planning-v2"
 SCHEMA_V3 = "refractagent-planning-v3"
-PROTOCOL = "refractagent-planning/3"
+SCHEMA_V4 = "refractagent-planning-v4"
+PROTOCOL = "refractagent-planning/4"
+MAX_CONFIG_BYTES = 16 * 1024 * 1024
 STRATEGIES = ("stage", "task", "composite", "advisor", "escalation", "static")
 NAMES = dict(zip(STRATEGIES, ("阶段", "任务", "组合", "审核", "升级", "静态")))
 REQUIRED = {
@@ -21,7 +23,7 @@ REQUIRED = {
     "task": (),
     "composite": ("efficient", "capable", "classifier"),
     "advisor": ("efficient", "advisor"),
-    "escalation": ("efficient", "capable", "classifier"),
+    "escalation": (),
 }
 DEFAULTS = {"window": 3, "threshold": .5, "holdTurns": 2, "baseThreshold": .5,
             "thresholdStep": .1, "maxReviews": 1, "maxRedos": 1, "stallTurns": 0,
@@ -98,8 +100,8 @@ def _task_config(raw, schema, declared_ids, roles):
         return {"mode": "legacy", "pool": list(dict.fromkeys(pool)),
             "fallback": roles.get("capable"), "judge": {"type": "llm", "modelId": roles.get("classifier")},
             "threshold": .8, "maxInputChars": 12000}
-    if schema != SCHEMA_V3:
-        raise ValueError(f"Task 模型池需要 {SCHEMA_V3}")
+    if schema not in (SCHEMA_V3, SCHEMA_V4):
+        raise ValueError(f"Task 模型池需要 {SCHEMA_V3} 或 {SCHEMA_V4}")
     task = obj(supplied, ("pool", "fallback", "judge", "threshold", "maxInputChars",
                           "maxExecutionOutputTokens"), "task")
     pool = task.get("pool")
@@ -142,11 +144,70 @@ def _task_config(raw, schema, declared_ids, roles):
             "task.maxExecutionOutputTokens", 256, 1000000, True)}
 
 
+def _escalation_config(raw, schema, declared_ids, roles):
+    supplied = raw.get("escalation")
+    if supplied is None:
+        parameters = {**DEFAULTS, **raw.get("parameters", {})}
+        return {"mode": "legacy", "initial": roles.get("efficient"),
+            "takeover": roles.get("capable"),
+            "judge": {"type": "llm", "modelId": roles.get("classifier")},
+            "stallConfirmations": parameters["confirmations"], "threshold": .8,
+            "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536,
+            "maxExecutionOutputTokens": 8192, "maxJudgeOutputTokens": 1024}
+    if schema != SCHEMA_V4:
+        raise ValueError(f"Escalation 独立设置需要 {SCHEMA_V4}")
+    value = obj(supplied, ("initial", "takeover", "judge", "stallConfirmations", "threshold",
+        "judgeTimeoutMs", "maxJudgeInputBytes", "maxExecutionOutputTokens", "maxJudgeOutputTokens"),
+        "escalation")
+    initial, takeover = value.get("initial"), value.get("takeover")
+    if initial not in declared_ids or takeover not in declared_ids:
+        raise ValueError("escalation.initial/takeover 必须引用已配置模型")
+    if initial == takeover:
+        raise ValueError("Escalation 起始模型与接管模型不能相同")
+    judge = obj(value.get("judge", {}), ("type", "modelId", "adapter", "modelPath", "sourceModel",
+        "revision", "device", "dtype", "method"), "escalation.judge")
+    judge_type = judge.get("type")
+    if judge_type == "llm":
+        if judge.get("modelId") not in declared_ids:
+            raise ValueError("Escalation 轻量 LLM Judge 必须引用已配置模型")
+    elif judge_type == "local-decision":
+        if judge.get("adapter") != "laya-mlx":
+            raise ValueError("Escalation 本地 Judge 仅支持 laya-mlx")
+        path = judge.get("modelPath")
+        if not isinstance(path, str) or not path or len(path) > 4096:
+            raise ValueError("Escalation 本地 Judge 需要明确 modelPath")
+        if judge.get("device", "gpu") not in ("gpu", "metal", "cpu"):
+            raise ValueError("Escalation 本地 Judge device 无效")
+        if judge.get("dtype", "float16") not in ("float16", "float32", "bfloat16"):
+            raise ValueError("Escalation 本地 Judge dtype 无效")
+        source_model, revision = judge.get("sourceModel"), judge.get("revision")
+        if not isinstance(source_model, str) or not source_model or len(source_model) > 256:
+            raise ValueError("Escalation 本地 Judge 需要明确 sourceModel")
+        if (not isinstance(revision, str) or not revision or len(revision) > 128
+                or any(char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+                       for char in revision)):
+            raise ValueError("Escalation 本地 Judge 需要固定且合法的 revision")
+    else:
+        raise ValueError("escalation.judge.type 必须是 llm 或 local-decision")
+    return {"mode": "configured", "initial": initial, "takeover": takeover, "judge": judge,
+        "stallConfirmations": number(value.get("stallConfirmations", 2),
+            "escalation.stallConfirmations", 1, 100, True),
+        "threshold": number(value.get("threshold", .8), "escalation.threshold", 0, 1),
+        "judgeTimeoutMs": number(value.get("judgeTimeoutMs", 30000),
+            "escalation.judgeTimeoutMs", 100, 300000, True),
+        "maxJudgeInputBytes": number(value.get("maxJudgeInputBytes", 65536),
+            "escalation.maxJudgeInputBytes", 1024, MAX_CONFIG_BYTES, True),
+        "maxExecutionOutputTokens": number(value.get("maxExecutionOutputTokens", 8192),
+            "escalation.maxExecutionOutputTokens", 256, 1000000, True),
+        "maxJudgeOutputTokens": number(value.get("maxJudgeOutputTokens", 1024),
+            "escalation.maxJudgeOutputTokens", 64, 16384, True)}
+
+
 def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
-        "security", "trustPolicies", "compatiblePairs", "task", "mediaRoutes"), "planningRouting"))
-    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3) or type(raw.get("enabled")) is not bool:
+        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "mediaRoutes"), "planningRouting"))
+    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
             isinstance(model, dict) and "billingUnit" in model for model in raw.get("models", []))):
@@ -252,6 +313,7 @@ def compile_config(raw):
         if not isinstance(value, str) or value not in declared_ids:
             raise ValueError("角色引用不存在的模型")
     task = _task_config(raw, raw["schemaVersion"], declared_ids, roles)
+    escalation = _escalation_config(raw, raw["schemaVersion"], declared_ids, roles)
     media_routes = raw.get("mediaRoutes", [])
     if not isinstance(media_routes, list) or len(media_routes) > 32:
         raise ValueError("mediaRoutes 无效")
@@ -329,7 +391,7 @@ def compile_config(raw):
     return {"raw": raw, "enabled": raw["enabled"], "strategy": strategy, "unit": unit, "budget": budget,
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
-        "task": task, "media_routes": normalized_media,
+        "task": task, "escalation": escalation, "media_routes": normalized_media,
         "model_issues": model_issues}
 
 
@@ -345,6 +407,9 @@ def preview(raw, host_issues=None):
             required = ["efficient", "capable", "classifier"]
         if strategy == "static" and c["parameters"]["staticMode"] == "random":
             required.append("capable")
+        if strategy == "escalation":
+            e = c["escalation"]
+            required = [] if e["mode"] == "configured" else ["efficient", "capable", "classifier"]
         issues = [f"缺少 {r} 模型" for r in required if r not in c["roles"]]
         for role in required:
             model_id = c["roles"].get(role)
@@ -391,6 +456,31 @@ def preview(raw, host_issues=None):
                         or manifest.get("sourceModel") != judge["sourceModel"]
                         or manifest.get("revision") != judge["revision"]):
                     issues.append("本地 Judge 权重或固定 revision 尚未核对；任务执行不会隐式下载")
+        if strategy == "escalation" and c["escalation"]["mode"] == "configured":
+            e = c["escalation"]
+            escalation_ids = [e["initial"], e["takeover"]]
+            if e["judge"]["type"] == "llm":
+                escalation_ids.append(e["judge"]["modelId"])
+            for model_id in escalation_ids:
+                if model_id in c["model_issues"]:
+                    issues.append(f"Escalation 模型 {model_id} 配置未完成（{c['model_issues'][model_id]}）")
+                elif model_id in (host_issues or {}):
+                    issues.append(f"Escalation 模型 {model_id}：{host_issues[model_id]}")
+                elif model_id in c["models"] and c["models"][model_id].billing_unit not in c["budgets"]:
+                    issues.append(f"Escalation 模型 {model_id} 缺少 {c['models'][model_id].billing_unit} 生产预算")
+            if e["judge"]["type"] == "local-decision":
+                judge = e["judge"]
+                path = Path(judge["modelPath"])
+                try:
+                    manifest = json.loads((path / "refractrouter-laya.json").read_text())
+                except (OSError, ValueError, TypeError):
+                    manifest = {}
+                if (not path.is_dir() or not all((path / name).exists()
+                        for name in ("model.safetensors", "mlx_config.json",
+                                     "rl_agent_config.json", "encoder/config.json"))
+                        or manifest.get("sourceModel") != judge["sourceModel"]
+                        or manifest.get("revision") != judge["revision"]):
+                    issues.append("Escalation 本地 Judge 权重或固定 revision 尚未核对")
         if not c["enabled"]:
             issues.append("尚未启用规划路由")
         rows.append({"id": strategy, "name": NAMES[strategy], "available": not issues, "issues": issues})

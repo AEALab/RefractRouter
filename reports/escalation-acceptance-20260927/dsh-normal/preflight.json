@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "escalation-dsh-acceptance-v1",
+  "realModelCalls": 0,
+  "prompt": "只使用终端工具执行 pwd，然后只报告工具实际返回的绝对路径。不要访问网络或修改文件。",
+  "configDigest": "36cb4b17135e9feaad8b4672a83697c0fb6fd19cc395e6a33901092c0c0f3d34",
+  "profile": "headless",
+  "models": {
+    "initial": "deepseek-v4-flash",
+    "judge": "deepseek-v4-flash",
+    "takeover": "deepseek-v4.1-flash"
+  },
+  "maximumModelCalls": 6,
+  "expectedCalls": 4,
+  "maximumProductionAfp": 16.4608,
+  "priorAfpWorstCase": 135.52625,
+  "maximumIncludingPriorAfp": 151.98705,
+  "authorizedCumulativeAfp": 2000,
+  "httpRetries": 0,
+  "delegation": false,
+  "acceptance": [
+    "宿主执行一次原生 pwd 工具",
+    "两个高效候选均由 Judge 放行",
+    "不创建 DAG",
+    "真实来源、用量和 AFP 可核对"
+  ],
+  "preflightDigest": "218ac2e128a053f0529cc8f867244b166466fd5d9480e74b464ef4738b52c733"
+}

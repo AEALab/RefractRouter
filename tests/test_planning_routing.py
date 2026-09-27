@@ -2,6 +2,7 @@
 from copy import deepcopy
 from datetime import datetime
 import json
+import os
 import threading
 from zoneinfo import ZoneInfo
 
@@ -13,6 +14,7 @@ from refractrouter.planning_runtime import PlanningRuntime, historical_billing_w
 from refractrouter.planning_decision import (LayaDecisionAdapter, LocalDecisionCapacityError,
                                              candidate_assessments, decision_request, filter_candidates,
                                              parse_decision, select_task_candidate, task_state)
+from refractrouter.local_judge_service import LocalJudgeProcess
 from refractrouter.task_budget import TaskCallBudget
 from refractrouter.deepseek_official_pricing import pricing as deepseek_cny_pricing
 from refractrouter.dsh_model_pool import frozen_usd_cny_rate
@@ -45,6 +47,25 @@ def task_pool_configuration(*, judge_type="llm", model_path=None):
     return cfg
 
 
+def escalation_configuration(*, judge_type="llm", model_path=None):
+    cfg = configuration("escalation")
+    cfg.update(schemaVersion="refractagent-planning-v4", billingUnit="CNY",
+               maxProductionCostByUnit={"CNY": 100})
+    for model in cfg["models"]:
+        model["billingUnit"] = "CNY"
+        model["capabilities"] = {"mainExecutor": model["id"] != "judge",
+            "toolCalling": "verified", "modalities": {}}
+    judge = ({"type": "llm", "modelId": "judge"} if judge_type == "llm" else
+             {"type": "local-decision", "adapter": "laya-mlx", "modelPath": str(model_path),
+              "sourceModel": "aac6fef/laya-multilingual-mlx", "revision": "test", "device": "cpu",
+              "dtype": "float32", "method": "choice-v2"})
+    cfg["escalation"] = {"initial": "small", "takeover": "large", "judge": judge,
+        "stallConfirmations": 2, "threshold": .8, "judgeTimeoutMs": 30000,
+        "maxJudgeInputBytes": 8000, "maxExecutionOutputTokens": 1024,
+        "maxJudgeOutputTokens": 256}
+    return cfg
+
+
 def write_laya_fixture(path, revision="test"):
     path.mkdir()
     (path / "model.safetensors").write_bytes(b"fixture")
@@ -55,6 +76,26 @@ def write_laya_fixture(path, revision="test"):
     (path / "refractrouter-laya.json").write_text(json.dumps({
         "sourceModel": "aac6fef/laya-multilingual-mlx", "revision": revision,
         "adapter": "laya-mlx"}))
+
+
+class FakeLocalService:
+    def __init__(self, result=None, error=None):
+        self.result, self.error, self.requests = result, error, []
+    def call(self, operation, _key, _config, **_kwargs):
+        assert operation == "status"
+        return {"loaded": True}
+    def submit(self, operation, _key, _config, request=None):
+        self.requests.append((operation, request))
+        return "local-job"
+    def poll(self, job_id):
+        assert job_id == "local-job"
+        if self.error:
+            return {"status": "failed", **self.error}
+        return {"status": "completed", "result": self.result}
+    def cancel(self, _job_id):
+        pass
+    def close(self):
+        pass
 
 
 def begin(runtime, strategy="stage", turn=1, session="a", child=False, config=None):
@@ -467,54 +508,38 @@ def test_task_v3_invalid_llm_result_stops_without_repair_call(tmp_path):
     assert len(r.runs[run]["budget"].records) == 1
 
 
-def test_task_v3_local_judge_is_persistent_and_has_no_api_call(tmp_path, monkeypatch):
+def test_task_v3_local_judge_is_persistent_and_has_no_api_call(tmp_path):
     model_path = tmp_path / "laya"
     write_laya_fixture(model_path)
     cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
     cfg["models"][0]["capabilityCard"] = "已验证可处理短文本与简单代码修改"
-    calls = []
-
-    class Result:
-        payload = {"answers": {"selection": {"choice": "small", "probabilities": {"small": .9}},
+    payload = {"answers": {"selection": {"choice": "small", "probabilities": {"small": .9}},
             "suitability": {"score": .9}, "missing_information": {"noul": .0}}}
-        model = "local-laya"
-        cold_start_ms = 50
-        latency_ms = 4
-        usage = {"forwards": 2}
-
-    class FakeLocal:
-        def __init__(self, config):
-            calls.append(("load", config["modelPath"]))
-        def decide(self, request):
-            assert request["candidates"][0]["capabilityCard"] == "已验证可处理短文本与简单代码修改"
-            calls.append(("decide", request["contract"]))
-            return Result()
-
-    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter", FakeLocal)
     r = PlanningRuntime(tmp_path)
+    r.local_service = FakeLocalService({"payload": payload, "model": "local-laya",
+        "coldStartMs": 50, "latencyMs": 4, "usage": {"forwards": 2}})
     run = begin(r, "task", config=cfg)
-    action = step(r, run)
+    wait = step(r, run)
+    assert wait["action"] == "wait"
+    operation, request = r.local_service.requests[0]
+    assert operation == "task" and request["contract"] == "task-decision-v2"
+    assert request["candidates"][0]["capabilityCard"] == "已验证可处理短文本与简单代码修改"
+    action = r.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
     assert action["model"]["id"] == "small"
     assert len(r.runs[run]["budget"].records) == 1
-    assert calls == [("load", str(model_path)), ("decide", "task-decision-v2")]
 
 
-def test_task_v3_local_capacity_uses_only_configured_fallback(tmp_path, monkeypatch):
+def test_task_v3_local_capacity_uses_only_configured_fallback(tmp_path):
     model_path = tmp_path / "laya"
     write_laya_fixture(model_path)
     cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
 
-    class CapacityLimited:
-        def __init__(self, _config):
-            pass
-
-        def decide(self, _request):
-            raise LocalDecisionCapacityError("输入需要 800 tokens，但只剩 400 tokens")
-
-    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter", CapacityLimited)
     runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService(error={"errorCode": "capacity",
+        "error": "输入需要 800 tokens，但只剩 400 tokens"})
     run = begin(runtime, "task", config=cfg)
-    action = step(runtime, run)
+    wait = step(runtime, run)
+    action = runtime.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
     assert action["model"]["id"] == "large"
     assert runtime.runs[run]["state"]["judge_decision"]["reason"] == "local-judge-capacity"
     assert [row["purpose"] for row in runtime.runs[run]["budget"].records] == ["execute"]
@@ -609,6 +634,7 @@ def test_task_choice_v2_missing_card_uses_fallback_without_judge(tmp_path, monke
     monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter",
                         lambda _config: (_ for _ in ()).throw(AssertionError("不应加载 Judge")))
     runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService()
     run = begin(runtime, "task", config=cfg)
     action = step(runtime, run)
     assert action["model"]["id"] == "large"
@@ -627,6 +653,7 @@ def test_task_choice_v2_equal_evidence_uses_fallback_without_judge(tmp_path, mon
     monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter",
                         lambda _config: (_ for _ in ()).throw(AssertionError("无区分证据不应加载 Judge")))
     runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService()
     run = begin(runtime, "task", config=cfg)
     action = step(runtime, run)
     assert action["model"]["id"] == "large"
@@ -923,6 +950,118 @@ def test_escalation_two_confirmations_and_new_task_reset(tmp_path):
     assert step(r, run)["model"]["id"] == "large"
     new = begin(r, "escalation", turn=2)
     assert step(r, new)["model"]["id"] == "small"
+
+
+def escalation_verdict(verdict, confidence=.95, evidence_ids=None):
+    return json.dumps({"verdict": verdict, "confidence": confidence,
+        "evidenceIds": evidence_ids or [], "reason": "冻结测试依据"})
+
+
+def test_escalation_v4_proceed_releases_candidate_and_resets_stall(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "escalation", config=escalation_configuration())
+    runtime.runs[run]["state"]["streak"] = 1
+    candidate = step(runtime, run)
+    assert candidate["buffered"] and candidate["model"]["id"] == "small"
+    judge = receipt(runtime, run, candidate, "已完成")
+    assert judge["model"]["id"] == "judge" and judge["tools"] == []
+    released = receipt(runtime, run, judge, escalation_verdict("PROCEED"))
+    assert released["callId"] == candidate["callId"]
+    assert runtime.runs[run]["state"]["streak"] == 0
+
+
+@pytest.mark.parametrize("verdict", ["DEFECT", "UNCERTAIN"])
+def test_escalation_v4_defect_or_uncertain_immediately_takes_over(tmp_path, verdict):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "escalation", config=escalation_configuration())
+    candidate = step(runtime, run)
+    judge = receipt(runtime, run, candidate, "错误候选")
+    takeover = receipt(runtime, run, judge, escalation_verdict(verdict))
+    assert takeover["purpose"] == "takeover" and takeover["model"]["id"] == "large"
+    assert not takeover["buffered"]
+    released = receipt(runtime, run, takeover, "强模型完成")
+    assert [row["disposition"] for row in released["record"]["calls"]] == \
+        ["discarded", "consult", "accepted"]
+    assert released["record"]["calls"][-1]["review_status"] == "takeover-unreviewed"
+
+
+def test_escalation_v4_tool_stall_requires_two_fresh_confirmations(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "escalation", config=escalation_configuration())
+    tool = {"id": "call-1", "name": "read", "arguments": "{}"}
+    first = step(runtime, run)
+    first_judge = receipt(runtime, run, first, tools=[tool])
+    first_release = receipt(runtime, run, first_judge, escalation_verdict("STALL"))
+    assert first_release["callId"] == first["callId"]
+    messages = [{"role": "user", "content": [{"type": "text", "text": "完成任务"}]},
+        {"role": "assistant", "content": [{"type": "tool-call", **tool}]},
+        {"role": "user", "content": [{"type": "tool-result", "toolCallId": "call-1",
+            "content": [{"type": "text", "text": "内容"}]}]}]
+    second = step(runtime, run, messages=messages)
+    second_judge = receipt(runtime, run, second, tools=[{"id": "call-2", "name": "read", "arguments": "{}"}])
+    takeover = receipt(runtime, run, second_judge, escalation_verdict("STALL"))
+    assert takeover["model"]["id"] == "large"
+    assert runtime.runs[run]["state"]["streak"] == 2
+
+
+def test_escalation_v4_final_stall_takes_over_without_waiting(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "escalation", config=escalation_configuration())
+    candidate = step(runtime, run)
+    judge = receipt(runtime, run, candidate, "看似完成但缺乏进展")
+    takeover = receipt(runtime, run, judge, escalation_verdict("STALL"))
+    assert takeover["model"]["id"] == "large"
+    decision = runtime.runs[run]["decisions"][-2]
+    assert decision["reason"] == "escalation-final-stall"
+
+
+def test_escalation_v4_low_confidence_becomes_uncertain_and_takes_over(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "escalation", config=escalation_configuration())
+    candidate = step(runtime, run)
+    judge = receipt(runtime, run, candidate)
+    takeover = receipt(runtime, run, judge, escalation_verdict("PROCEED", confidence=.4))
+    assert takeover["model"]["id"] == "large"
+    assert runtime.runs[run]["decisions"][-2]["decision"]["rawVerdict"] == "PROCEED"
+
+
+def test_escalation_v4_invalid_judge_stops_without_repair(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "escalation", config=escalation_configuration())
+    judge = receipt(runtime, run, step(runtime, run))
+    with pytest.raises(ValueError, match="不会自动修复"):
+        receipt(runtime, run, judge, '{"verdict":"PROCEED"}')
+    assert runtime.runs[run]["status"] == "escalation-judge-invalid"
+
+
+def test_escalation_v4_local_job_is_polled_and_capacity_takes_over(tmp_path):
+    model_path = tmp_path / "laya"
+    write_laya_fixture(model_path)
+    runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService(error={"errorCode": "capacity", "error": "输入超出容量"})
+    run = begin(runtime, "escalation",
+                config=escalation_configuration(judge_type="local-decision", model_path=model_path))
+    wait = receipt(runtime, run, step(runtime, run), "需要审核")
+    assert wait["action"] == "wait"
+    takeover = runtime.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
+    assert takeover["model"]["id"] == "large"
+
+
+def test_escalation_v4_rejects_same_initial_and_takeover():
+    cfg = escalation_configuration()
+    cfg["escalation"]["takeover"] = cfg["escalation"]["initial"]
+    assert not preview(cfg)["valid"]
+
+
+def test_local_judge_service_uses_separate_pollable_process(tmp_path):
+    service = LocalJudgeProcess()
+    config = {"adapter": "laya-mlx", "modelPath": str(tmp_path), "revision": "test",
+              "device": "cpu", "dtype": "float32", "method": "choice-v2"}
+    try:
+        assert service.call("status", "fixture", config, timeout_ms=5000) == {"loaded": False}
+        assert service.process is not None and service.process.pid != os.getpid()
+    finally:
+        service.close()
 
 
 def test_unknown_usage_crash_and_cancel_settlement(tmp_path):

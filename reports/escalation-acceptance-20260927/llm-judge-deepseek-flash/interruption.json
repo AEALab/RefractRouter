@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "escalation-judge-interruption-v1",
+  "status": "stopped-invalid-judge-output",
+  "caseId": "en-proceed-1",
+  "model": "deepseek-v4-flash",
+  "attempts": 1,
+  "httpRetries": 0,
+  "completedValidCases": 2,
+  "invalidResponse": {
+    "verdict": "PROCEED",
+    "confidence": 0.95,
+    "evidenceIds": ["c2"],
+    "reason": "候选正在执行读取 package.json 的工具调用。"
+  },
+  "reason": "候选工具调用 ID 被错误地当成已接受证据 ID；严格校验停止批次。",
+  "nextBatchChange": "明确工具调用 ID 不是证据 ID，并把 Judge 合同摘要纳入预检。"
+}
