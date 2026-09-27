@@ -348,6 +348,23 @@ class LayaDecisionAdapter:
                       "forwards": (len(questions) + self.agent.batch_size - 1) // self.agent.batch_size})
         return LocalDecisionResult(normalized, result.get("model", self.model), cold, elapsed, usage)
 
+    def decide_stage(self, request):
+        from .stage_hybrid import VERSION, QUESTIONS
+        if request.get("version") != VERSION or request.get("questions") != QUESTIONS:
+            raise ValueError("Stage 本地判别合同不兼容")
+        self._ensure_complete(request["state"], QUESTIONS)
+        started = time.perf_counter()
+        result = self.agent.predict(request["state"], QUESTIONS)
+        elapsed = (time.perf_counter() - started) * 1000
+        cold, self.cold_start_ms = self.cold_start_ms, None
+        usage = dict(result.get("usage", {}))
+        usage.update(questions=len(QUESTIONS),
+                     forwards=(len(QUESTIONS) + self.agent.batch_size - 1) // self.agent.batch_size)
+        # 只投影模型返回的答案字段，规则及阈值由主进程校验与执行。
+        answers = {key: {field: value.get(field) for field in ("choice", "probabilities")}
+                   for key, value in result.get("answers", {}).items() if isinstance(value, dict)}
+        return LocalDecisionResult({"answers": answers}, result.get("model", self.model), cold, elapsed, usage)
+
     def decide_escalation(self, request):
         """用单个 Choice 问题审核回复；低确定性由 Python 归为 UNCERTAIN。"""
         compact = {"taskAndAcceptedHistory": request["taskAndAcceptedHistory"],

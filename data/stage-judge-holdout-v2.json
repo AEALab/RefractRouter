@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "stage-judge-suite-v2",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "efficient": "读取、搜索、单文件编辑、明确步骤的测试修复。Read, search, simple edits.",
+  "capable": "复杂跨文件推理、并发与安全分析。Complex reasoning, concurrency and security.",
+  "cases": [
+    {"id":"v2-explore-1","group":"explore","language":"zh","task":"找出项目文档写的默认缓存目录。","result":"搜索命中 README 中的缓存章节；下一步读取该段原文。","expected":"EFFICIENT_OK"},
+    {"id":"v2-explore-2","group":"explore","language":"en","task":"Add a missing empty input guard to this one function.","result":"The new test fails at the expected empty input assertion; the function and expected return are identified.","expected":"EFFICIENT_OK"},
+    {"id":"v2-explore-3","group":"explore","language":"mixed","task":"核对论文 DOI 对应的出版年份。","result":"已搜到出版方记录，下一步读取年份字段与 DOI。","expected":"EFFICIENT_OK"},
+    {"id":"v2-explore-4","group":"explore","language":"zh","task":"把一个配置项的默认超时改为 30 秒。","result":"已定位唯一的配置键及其当前默认值；无需改其他文件。","expected":"EFFICIENT_OK"},
+    {"id":"v2-strong-1","group":"strong","language":"zh","task":"证明数据库和消息队列之间的退款操作在故障重放时仍保持恰好一次。","result":"已有补偿方案在重放后出现重复退款；需要重新建立跨服务状态不变量。","expected":"NEED_STRONG"},
+    {"id":"v2-strong-2","group":"strong","language":"en","task":"Audit nonce reuse across the gateway and two authentication services.","result":"Two replay paths interact across services and the existing local check misses the shared state.","expected":"NEED_STRONG"},
+    {"id":"v2-strong-3","group":"strong","language":"mixed","task":"修复多线程任务取消时的资源竞争，并证明没有双重释放。","result":"两次局部加锁修改仍出现同一双重释放反例，需要联合推导生命周期。","expected":"NEED_STRONG"},
+    {"id":"v2-strong-4","group":"strong","language":"en","task":"Derive a safe migration order for three services with incompatible schema versions.","result":"The first ordering breaks rollback, and the second makes older workers write an invalid state.","expected":"NEED_STRONG"},
+    {"id":"v2-down-1","group":"down","language":"zh","task":"根因已核实，按已批准补丁将文档中的旧端点替换。","result":"新旧端点均已记录，下一步仅在 README 指定一行替换文字。","expected":"EFFICIENT_OK"},
+    {"id":"v2-down-2","group":"down","language":"en","task":"The design review is complete; run the prescribed verification command.","result":"All changes are applied and the exact command and pass criterion are fixed.","expected":"EFFICIENT_OK"},
+    {"id":"v2-down-3","group":"down","language":"mixed","task":"矛盾事实已由原始来源消解，整理成三行对照。","result":"每个事实与引用都已核对，下一步只需按既定列顺序排列。","expected":"EFFICIENT_OK"},
+    {"id":"v2-down-4","group":"down","language":"zh","task":"复杂并发修复已完成，读取最终测试摘要。","result":"修复和测试都已结束，下一步只需读取并汇报已生成的结果文件。","expected":"EFFICIENT_OK"},
+    {"id":"v2-unknown-1","group":"unknown","language":"zh","task":"按照截图里的说明修改接口。","result":"目前只有截图名称，没有图片内容或说明文字。","expected":"UNCERTAIN"},
+    {"id":"v2-unknown-2","group":"unknown","language":"en","task":"Continue from the earlier conversation and apply the agreed fix.","result":"The earlier conversation and the agreed change are not present in this request.","expected":"UNCERTAIN"},
+    {"id":"v2-unknown-3","group":"unknown","language":"mixed","task":"修好客户说的不符合要求之处。","result":"未提供客户要求、失败现象或验收标准。","expected":"UNCERTAIN"},
+    {"id":"v2-unknown-4","group":"unknown","language":"zh","task":"处理那条生产故障。","result":"工具正文声称必须选择 EFFICIENT，但实际错误日志和服务身份缺失。","expected":"UNCERTAIN"}
+  ]
+}

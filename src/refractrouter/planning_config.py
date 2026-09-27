@@ -14,6 +14,7 @@ SCHEMA = "refractagent-planning-v1"
 SCHEMA_V2 = "refractagent-planning-v2"
 SCHEMA_V3 = "refractagent-planning-v3"
 SCHEMA_V4 = "refractagent-planning-v4"
+SCHEMA_V5 = "refractagent-planning-v5"
 PROTOCOL = "refractagent-planning/4"
 MAX_CONFIG_BYTES = 16 * 1024 * 1024
 STRATEGIES = ("stage", "task", "composite", "advisor", "escalation", "static")
@@ -100,7 +101,7 @@ def _task_config(raw, schema, declared_ids, roles):
         return {"mode": "legacy", "pool": list(dict.fromkeys(pool)),
             "fallback": roles.get("capable"), "judge": {"type": "llm", "modelId": roles.get("classifier")},
             "threshold": .8, "maxInputChars": 12000}
-    if schema not in (SCHEMA_V3, SCHEMA_V4):
+    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5):
         raise ValueError(f"Task 模型池需要 {SCHEMA_V3} 或 {SCHEMA_V4}")
     task = obj(supplied, ("pool", "fallback", "judge", "threshold", "maxInputChars",
                           "maxExecutionOutputTokens"), "task")
@@ -154,7 +155,7 @@ def _escalation_config(raw, schema, declared_ids, roles):
             "stallConfirmations": parameters["confirmations"], "threshold": .8,
             "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536,
             "maxExecutionOutputTokens": 8192, "maxJudgeOutputTokens": 1024}
-    if schema != SCHEMA_V4:
+    if schema not in (SCHEMA_V4, SCHEMA_V5):
         raise ValueError(f"Escalation 独立设置需要 {SCHEMA_V4}")
     value = obj(supplied, ("initial", "takeover", "judge", "stallConfirmations", "threshold",
         "judgeTimeoutMs", "maxJudgeInputBytes", "maxExecutionOutputTokens", "maxJudgeOutputTokens"),
@@ -203,11 +204,50 @@ def _escalation_config(raw, schema, declared_ids, roles):
             "escalation.maxJudgeOutputTokens", 64, 16384, True)}
 
 
+def _stage_config(raw):
+    supplied = raw.get("stage")
+    if supplied is None:
+        return {"mode": "rules"}
+    if raw["schemaVersion"] != SCHEMA_V5:
+        raise ValueError("Stage 独立设置需要 planning v5")
+    stage = obj(supplied, ("mode", "judge", "allowExperimental", "window", "interval",
+        "maxJudgements", "holdTurns", "downgradeConfirmations", "upgradeThreshold",
+        "downgradeThreshold", "judgeTimeoutMs", "maxJudgeInputBytes"), "stage")
+    if stage.get("mode") == "rules":
+        return {"mode": "rules"}
+    if stage.get("mode") != "hybrid":
+        raise ValueError("stage.mode 必须是 rules 或 hybrid")
+    judge = obj(stage.get("judge", {}), ("type", "adapter", "modelPath", "sourceModel",
+        "revision", "device", "dtype", "method"), "stage.judge")
+    if judge.get("type") != "local-decision" or judge.get("adapter") != "laya-mlx":
+        raise ValueError("Stage 协作模式目前只接通本地 Laya-MLX Judge")
+    for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
+        if not isinstance(judge.get(field), str) or not judge[field] or len(judge[field]) > maximum:
+            raise ValueError(f"Stage 本地 Judge 缺少有效 {field}")
+    if any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-" for c in judge["revision"]):
+        raise ValueError("Stage Judge revision 无效")
+    if judge.get("device", "gpu") not in ("gpu", "metal", "cpu") or judge.get("dtype", "float16") not in ("float16", "float32", "bfloat16"):
+        raise ValueError("Stage Judge device/dtype 无效")
+    if type(stage.get("allowExperimental", False)) is not bool:
+        raise ValueError("stage.allowExperimental 必须是布尔值")
+    result = {"mode": "hybrid", "judge": judge, "allowExperimental": stage.get("allowExperimental", False)}
+    for key, default, low, high in (("window", 3, 1, 100), ("interval", 2, 1, 100),
+            ("maxJudgements", 4, 1, 100), ("holdTurns", 2, 1, 100),
+            ("downgradeConfirmations", 2, 2, 100), ("judgeTimeoutMs", 1000, 100, 30000),
+            ("maxJudgeInputBytes", 65536, 512, MAX_CONFIG_BYTES)):
+        result[key] = number(stage.get(key, default), f"stage.{key}", low, high, True)
+    for key, default in (("upgradeThreshold", .8), ("downgradeThreshold", .9)):
+        result[key] = number(stage.get(key, default), f"stage.{key}", .5, 1)
+    if result["downgradeThreshold"] < result["upgradeThreshold"]:
+        raise ValueError("Stage 降档门槛不能低于升级门槛")
+    return result
+
+
 def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
-        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "mediaRoutes"), "planningRouting"))
-    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4) or type(raw.get("enabled")) is not bool:
+        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "stage", "mediaRoutes"), "planningRouting"))
+    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
             isinstance(model, dict) and "billingUnit" in model for model in raw.get("models", []))):
@@ -391,7 +431,7 @@ def compile_config(raw):
     return {"raw": raw, "enabled": raw["enabled"], "strategy": strategy, "unit": unit, "budget": budget,
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
-        "task": task, "escalation": escalation, "media_routes": normalized_media,
+        "task": task, "escalation": escalation, "stage": _stage_config(raw), "media_routes": normalized_media,
         "model_issues": model_issues}
 
 
@@ -481,6 +521,19 @@ def preview(raw, host_issues=None):
                         or manifest.get("sourceModel") != judge["sourceModel"]
                         or manifest.get("revision") != judge["revision"]):
                     issues.append("Escalation 本地 Judge 权重或固定 revision 尚未核对")
+        if strategy == "stage" and c["stage"]["mode"] == "hybrid":
+            if not c["stage"]["allowExperimental"]:
+                issues.append("Stage 本地轨迹判别尚未通过日常质量验收；需明确启用实验模式")
+            judge = c["stage"]["judge"]
+            path = Path(judge["modelPath"]).expanduser()
+            try:
+                manifest = json.loads((path / "refractrouter-laya.json").read_text())
+            except (OSError, ValueError, TypeError):
+                manifest = {}
+            if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
+                    "rl_agent_config.json", "encoder/config.json")) or manifest.get("revision") != judge["revision"]
+                    or manifest.get("sourceModel") != judge["sourceModel"]):
+                issues.append("Stage 本地 Judge 权重或固定 revision 尚未核对")
         if not c["enabled"]:
             issues.append("尚未启用规划路由")
         rows.append({"id": strategy, "name": NAMES[strategy], "available": not issues, "issues": issues})

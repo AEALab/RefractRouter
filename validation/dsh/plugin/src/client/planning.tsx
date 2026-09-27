@@ -24,7 +24,7 @@ export interface PlanningUi {
     revisionVerified:boolean;sizeBytes:number}>
 }
 const HELP:Record<PlanningStrategy,string>={
-  stage:'根据工具执行轨迹调整模型，不额外调用判别模型。',
+  stage:'根据执行轨迹调整模型，可选规则与本地 Judge 协作。',
   task:'开始时判别任务难度，当前任务保持选定模型。',
   composite:'任务判别确定默认模型，再根据执行轨迹调整。',
   advisor:'执行器准备结束时审核，必要时有界返工。',
@@ -147,7 +147,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   },[dirty,draft.billingUnit,draft.maxProductionCost,draft.maxProductionCostByUnit,loadFx])
   async function save(){
     setBusy(true);setStatus('')
-    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:'refractagent-planning-v4'})));setDirty(false)
+    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.stage||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
       setStatus(selected?.available
@@ -157,7 +157,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   async function operateLocalJudge(action:'status'|'download'|'load'|'unload'){
     setBusy(true);setStatus(action==='download'?'正在明确下载固定 revision；任务执行不会触发此操作。':'')
-    try{const result=await localJudge({...draft,schemaVersion:'refractagent-planning-v4'},action)
+    try{const result=await localJudge({...draft,schemaVersion:draft.stage||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action)
       setLocalJudgeStatus(result);setStatus(`本地 Judge：依赖${result.installed?'已安装':'未安装'}；权重${result.downloaded?'已就绪':'未就绪'}；revision ${result.revisionVerified?'已核对':'未核对'}；本地文件 ${(result.sizeBytes/1024/1024).toFixed(1)} MiB；进程${result.loaded?'已加载':'未加载'}。`)
     }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
   }
@@ -335,11 +335,15 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     <div className="rra-row-card"><h3>策略设置</h3><label className="rra-compact-field">默认路由策略 <select className="rra-select" value={draft.defaultStrategy??'stage'} onChange={e=>patch({defaultStrategy:e.target.value as PlanningStrategy})}>
       {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><p className="rra-field-hint">{HELP[draft.defaultStrategy??'stage']}</p><p className="rra-field-hint">保存后从下个任务生效；当前任务继续使用启动时配置。</p>
     {draft.defaultStrategy==='stage'&&<div className="rra-planning-fields">
-      <p>通常使用高效模型，检测到相同任务失败持续出现时切换强模型；Stage 不调用判别或审核模型。</p>
+      <p>通常使用高效模型，遇到困难时切换强模型。规则负责边界和保持，本地 Judge 可判断下一步是否适合高效模型。</p>
+      <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
+        {...draft.stage,mode:'hybrid',judge:draft.stage?.judge??(draft.task?.judge.type==='local-decision'?draft.task.judge:
+          {type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'})}})}>
+        <option value="rules">原规则（兼容现有设置）</option><option value="hybrid">规则＋本地 Judge（实验）</option></select></label>
       <p className="rra-field-hint">高效：{efficientModel?`${efficientModel.provider}/${efficientModel.model} · ${efficientModel.reasoningEffort??'提供方默认推理等级'}`:'未配置'}<br/>
         强执行：{capableModel?`${capableModel.provider}/${capableModel.model} · ${capableModel.reasoningEffort??'提供方默认推理等级'}`:'未配置'}。模型与推理等级在上方通用角色设置中编辑。</p>
       {sameStageModel&&<p className="rra-field-hint" role="status">两个角色绑定相同模型和推理等级，可以运行，但不会发生实际模型切换。</p>}
-      <label className="rra-compact-field">强模型保持轮数 <input className="rra-input" type="number" min="0" step="1"
+      {draft.stage?.mode!=='hybrid'&&<><label className="rra-compact-field">强模型保持轮数 <input className="rra-input" type="number" min="0" step="1"
         value={draft.parameters?.holdTurns??2} onChange={e=>patch({parameters:{...draft.parameters,holdTurns:Number(e.target.value)}})}/></label>
       <p className="rra-field-hint">2 轮表示触发升级的当前执行调用加下一次执行调用，共连续两次使用强模型。新的重复失败会重新开始保持期。</p>
       <details className="rra-details"><summary>Stage 高级参数</summary><div className="rra-planning-fields">
@@ -348,7 +352,23 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           onChange={e=>patch({parameters:{...draft.parameters,window:Number(e.target.value)}})}/><span className="rra-field-hint">默认 3：只看最近三条有效且已完成的工具结果。</span></label>
         <label className="rra-compact-field">判断阈值 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.parameters?.threshold??.5}
           onChange={e=>patch({parameters:{...draft.parameters,threshold:Number(e.target.value)}})}/><span className="rra-field-hint">默认 0.5：有符号评分绝对值不超过阈值时视为含糊，使用高效模型。</span></label>
-      </div></details>
+      </div></details></>}
+      {draft.stage?.mode==='hybrid'&&<>
+        <p className="rra-field-hint">只调用本地结构化 Judge，不接入 Jev 云端。低确定性或超出完整输入容量时选择强模型；推论故障停止任务。判别质量尚未通过 Stage 日常使用验收。</p>
+        <label className="rra-check"><input type="checkbox" checked={draft.stage.allowExperimental??false} onChange={e=>patch({stage:{...draft.stage!,allowExperimental:e.target.checked}})}/>允许本任务使用实验判别规则</label>
+        <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.stage.judge?.modelPath??''} onChange={e=>patch({stage:{...draft.stage!,judge:{...draft.stage!.judge!,modelPath:e.target.value}}})}/></label>
+        <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.stage.judge?.revision??''} onChange={e=>patch({stage:{...draft.stage!,judge:{...draft.stage!.judge!,revision:e.target.value}}})}/></label>
+        <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} type="button" className="rra-button rra-button-secondary" disabled={busy||!draft.stage?.judge?.modelPath} onClick={()=>void operateLocalJudge(action)}>{['检查本地状态','下载固定权重','加载并预热','卸载'][index]}</button>)}</div>
+        <p className="rra-field-hint">{localJudgeStatus?localJudgeStatus.loaded?'已加载；就绪不代表判别质量通过':'尚未加载':'尚未检查本地状态'}。不在任务运行时下载权重。第一次执行使用高效模型，第一次工具结果返回后才判别。</p>
+        <label className="rra-compact-field">强模型保持轮数 <input className="rra-input" type="number" min="1" step="1" value={draft.stage.holdTurns??2} onChange={e=>patch({stage:{...draft.stage!,holdTurns:Number(e.target.value)}})}/><span className="rra-field-hint">2 轮＝升级本轮＋下一轮。保持结束后还需新的、连续适合高效模型的判定才能降回。</span></label>
+        <details className="rra-details"><summary>Stage 本地 Judge 高级参数</summary><div className="rra-planning-fields">
+          {([{key:'window',label:'证据窗口',value:3,min:1},{key:'interval',label:'普通判别间隔（执行次数）',value:2,min:1},
+            {key:'maxJudgements',label:'每任务最多判别批次',value:4,min:1},{key:'downgradeConfirmations',label:'降回高效所需连续确认',value:2,min:2},
+            {key:'upgradeThreshold',label:'强模型判定分数门槛（非成功率）',value:.8,min:.5},{key:'downgradeThreshold',label:'高效模型判定分数门槛（非成功率）',value:.9,min:.5},
+            {key:'judgeTimeoutMs',label:'Judge 期限（含排队，毫秒）',value:1000,min:100},{key:'maxJudgeInputBytes',label:'完整输入字节上限',value:65536,min:512}] as const).map(item=><label className="rra-compact-field" key={item.key}>{item.label}<input className="rra-input" type="number" min={item.min} max={item.min===.5?1:undefined} step={item.min===.5?.05:1} value={draft.stage?.[item.key]??item.value} onChange={e=>patch({stage:{...draft.stage!,[item.key]:Number(e.target.value)}})}/></label>)}
+          <p className="rra-field-hint">只在新证据或指导变化时触发；同一证据不重复判别。不截断超长输入。达到批次上限后冻结当前档位；新困难会保守转向强模型。本地无 API 费用，仍记录 forward 数与等待时间。</p>
+        </div></details>
+      </>}
     </div>}
     {draft.defaultStrategy==='task'&&<div className="rra-planning-fields">
       <p>Task 在新任务开始时从模型池选择一次主执行模型；工具续接、上下文压缩和进行中的追加指导沿用该模型。</p>
@@ -558,19 +578,36 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   </section>
 }
 type TaskRouteEvidence={candidateId?:string;reason?:string;costBasis?:string;latencyBasis?:string;
+  selectedRole?:string;pSolve?:number|null;capabilityBoundary?:string|null;threshold?:number|null;
   candidateAssessments?:Array<{candidateId:string;score:number;missingInformation:number;qualified:boolean}>;
   firstCallUpperBounds?:Record<string,{amount:number;unit:string}>;qualifiedCandidates?:string[];
   decision?:TaskRouteEvidence}
 type History={records:Array<{runId:string;strategy:string;status:string;costs:{production:number|null};billingUnit:string|null;billingWarning?:string;
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
   calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number}}>;
-  decisions:Array<{callId?:string;reason:string;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
+  decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
+    reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
-    decision?:TaskRouteEvidence&{backend?:string;coldStartMs?:number;latencyMs?:number};judgeDecision?:TaskRouteEvidence;
+    reviewVerdict?:string;reviewCount?:number;redoCount?:number;
+    staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
+    decision?:TaskRouteEvidence&{backend?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown};judgeDecision?:TaskRouteEvidence;
+    downgradeConfirmations?:number;judgeBatches?:number;
     rejectedCandidates?:Array<{id:string;reason:string}>}>}>}
-const REASON:Record<string,string>={fixed:'固定模型','no-signal':'无有效信号，保持高效','ambiguous':'证据含糊，保持高效',
+const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 固定模型',
+  'static-random-selected':'Static 按任务冻结的权重随机选模',
+  'no-signal':'无有效信号，保持高效','ambiguous':'证据含糊，保持高效',
+  'efficient-default':'首轮或无新信号，使用高效模型','hold':'继续强模型',
+  'judge-efficient':'本地 Judge 判断高效模型适合下一步','judge-upgrade':'本地 Judge 判断需要强模型',
+  'judge-uncertain':'本地 Judge 无法确定，使用强模型','judge-downgrade':'连续确认适合，恢复高效模型',
+  'judge-hold':'等待保持结束及连续降档确认','judge-limit-frozen':'已达到本地判别上限，冻结档位',
+  'advisor-initial':'由固定执行模型生成候选，等待审核',
+  'advisor-approved':'审核通过，释放候选回复','advisor-redo-required':'审核要求返工，丢弃候选回复',
+  'advisor-redo':'根据审核反馈继续执行','advisor-unresolved':'审核无法确定或返工额度已尽，停止任务',
+  'permission-boundary':'权限结果不作为模型能力升级依据',
   'repeated-failure':'重复失败，升级强模型','capable-hold':'强模型保持期','tool-signal':'Stage 信号选模',
-  'task-classifier':'任务判别','task-local-judge':'本地 Judge 判别','single-eligible-candidate':'单一合格候选',
+  'task-classifier':'任务判别选模','task-classifier-invalid':'任务判别输出无效，使用强模型',
+  'task-llm-judge':'轻量 LLM Judge 判别','task-local-judge':'本地 Judge 判别',
+  'single-eligible-candidate':'只有一个合格候选，跳过 Judge',
   'local-judge-uncertain':'本地 Judge 不确定，使用指定备援',
   'local-judge-no-capability-evidence':'缺少能力卡，使用指定备援',
   'local-judge-no-differentiating-evidence':'候选缺少区分证据，使用指定备援',
@@ -583,11 +620,38 @@ const REASON:Record<string,string>={fixed:'固定模型','no-signal':'无有效�
   'escalation-proceed':'Judge 放行','escalation-defect':'明确缺陷，立即接管',
   'escalation-stall':'工具过程疑似停滞','escalation-final-stall':'最终回复停滞，立即接管',
   'escalation-uncertain':'Judge 无法判断，交给强模型',
-  'escalation-takeover-unreviewed':'强模型接管后未追加审核'}
+  'escalation-takeover-unreviewed':'强模型接管后未追加审核',
+  'escalation-takeover':'连续停滞达到门槛，丢弃候选并接管',
+  'context-compaction-host':'宿主请求上下文压缩；使用通用角色模型，不推进策略状态'}
+const PURPOSE:Record<string,string>={execute:'执行',task:'任务判别',advisor:'审核',
+  escalation:'升级判别',redo:'返工执行',takeover:'强模型接管',compaction:'上下文压缩'}
+const VERDICT:Record<string,string>={APPROVE:'通过',REDO:'要求返工',UNRESOLVED:'无法确定',
+  PROCEED:'放行',DEFECT:'明确缺陷',STALL:'疑似停滞',UNCERTAIN:'无法判断',
+  NEED_STRONG:'需要强模型',EFFICIENT:'高效模型适合',CAPABLE:'需要强模型'}
+const DISPOSITION:Record<string,string>={accepted:'已交付',discarded:'已丢弃',consult:'判别已结算',
+  buffered:'尚未交付',pending:'调用中',reserved:'已预留',failed:'失败'}
+const STATUS:Record<string,string>={running:'运行中',cancelled:'已取消',
+  'interrupted-needs-reconciliation':'进程中断，待核对在途调用',
+  'deadline-exhausted':'任务期限耗尽','call-failed':'模型调用失败或用量待核对',
+  'evidence-failed':'运行证据写入失败','review-unresolved':'审核无法确定或返工额度已尽',
+  'local-judge-timeout':'本地 Judge 超时','local-judge-failed':'本地 Judge 失败',
+  'local-judge-not-ready':'本地 Judge 尚未就绪','task-judge-invalid':'Task Judge 输出无效',
+  'escalation-judge-invalid':'Escalation Judge 输出无效',
+  'stage-invalid-judge-output':'Stage Judge 输出无效'}
 function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]}){
+  if(row.ruleVersion==='stage-decision-v1'||row.ruleVersion==='stage-decision-v2')return <details><summary>查看 Stage 判别依据</summary>
+    <p>结果：{row.decision?.verdict?VERDICT[row.decision.verdict]??row.decision.verdict:'本轮未调用 Judge'}；连续降档确认：{row.downgradeConfirmations??0}；本任务判别批次：{row.judgeBatches??0}。</p>
+    <p>证据 ID：{row.evidenceIds?.join('、')||'无'}。本地无 API 费用。
+      {row.decision?.confidence!==undefined?`${row.ruleVersion==='stage-decision-v2'?'获选项分数':'判别分数'} ${row.decision.confidence.toFixed(3)}（不是任务成功率）。`:''}
+      {row.decision?.elapsedMs!==undefined?`含排队等待 ${row.decision.elapsedMs.toFixed(0)} ms。`:''}</p>
+    {row.decision?.answers!==undefined&&<pre>{JSON.stringify(row.decision.answers,null,2)}</pre>}
+  </details>
   const value=row.judgeDecision?.decision??row.judgeDecision??row.decision
-  if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length)return null
+  if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length&&value?.pSolve===undefined)return null
   return <details><summary>查看 Task 判别依据</summary>
+    {value?.pSolve!==undefined&&<p>高效模型完成任务的判别分数：{value.pSolve?.toFixed(3)??'无有效分数'}；
+      能力边界：{value.capabilityBoundary??'未确认'}；判别门槛：{value.threshold?.toFixed(3)??'未确认'}；
+      选中：{value.candidateId??'未确认'}。</p>}
     {value?.candidateAssessments?.map(item=><p key={item.candidateId}>{item.candidateId}：
       {item.qualified?'达到初始门槛':'未达到初始门槛'}；适合度信号 {item.score.toFixed(3)}；
       关键信息不足信号 {item.missingInformation.toFixed(3)}；
@@ -606,7 +670,7 @@ function Trace({load}:{load:()=>Promise<History>}){
   },[load])
   return <section style={{padding:24}}><h2>路由轨迹</h2><p>只统计当前受管 Agent；普通 DSH 子模型费用尚未汇总。</p>
     <p role="status">{error}</p>{!data?.records.length&&<p>尚无规划路由记录。</p>}
-    {data?.records.map(r=><article key={r.runId}><h3>{r.strategy} · {r.status}</h3>
+    {data?.records.map(r=><article key={r.runId}><h3>{PLANNING_NAMES[r.strategy as PlanningStrategy]??r.strategy} · {STATUS[r.status]??`已停止：${r.status}`}</h3>
       {r.billingWarning?<p>{r.costs.production}（单位待核对）</p>:
         r.costsByUnit?<p>{Object.entries(r.costsByUnit).filter(([unit,amount])=>amount.production!==0||r.calls.some(c=>c.billing_unit===unit))
           .map(([unit,amount])=>`${amount.production} ${unit}`).join('；')||'尚无调用'}</p>:
@@ -615,11 +679,31 @@ function Trace({load}:{load:()=>Promise<History>}){
       {r.calls.some(c=>c.status==='unknown-usage'||c.status==='reserved')&&<p role="status">以上金额包含尚未结算的预留，不等于已确认扣费。用量待核对的调用不会自动重发。</p>}
       <table><thead><tr>{['模型／推理等级','用途','交付状态','本次金额／累计占用','首字／总耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
         <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
-          const d=r.decisions.find(row=>row.callId===c.call_id)
-          return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{c.purpose}</td><td>{c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}</td>
+          const related=c.call_id?r.decisions.filter(row=>row.callId===c.call_id||row.candidateCallId===c.call_id):[]
+          return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{DISPOSITION[c.disposition]??c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}{(c as unknown as {review_status?:string}).review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
           <td>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{c.charged}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {totals[unit]}{unit?` ${unit}`:''}</small></td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
-          <td>{REASON[d?.reason??'']??d?.reason??'策略判别'}{typeof d?.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}<br/>
-            <small>{d?.evidenceSummary??(d?.decision?.backend?`后端 ${d.decision.backend}`:'旧记录无证据摘要')}{d?.holdBefore!==undefined?`；保持 ${d.holdBefore} → ${d.holdAfter}`:''}{d?.streakBefore!==undefined?`；连续停滞 ${d.streakBefore} → ${d.streakAfter}`:''}{d?.decision?.coldStartMs!==undefined?`；冷启动 ${d.decision.coldStartMs.toFixed(0)} ms`:''}{d?.ruleVersion?`；${d.ruleVersion}`:''}</small>{d&&<TaskEvidence row={d}/>}</td></tr>})})()}</tbody></table></article>)}
+          <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
+            {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}
+            {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
+            {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
+            {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
+            <br/><small>{d.evidenceSummary??(d.decision?.backend?`后端 ${d.decision.backend}`:'本次未记录独立证据摘要')}
+              {d.evidenceIds?.length?`；证据 ${d.evidenceIds.join('、')}`:''}
+              {d.holdBefore!==undefined?`；保持 ${d.holdBefore} → ${d.holdAfter}`:''}
+              {d.streakBefore!==undefined?`；连续停滞 ${d.streakBefore} → ${d.streakAfter}`:''}
+              {d.decision?.coldStartMs!==undefined?`；冷启动 ${d.decision.coldStartMs.toFixed(0)} ms`:''}
+              {d.ruleVersion?`；规则 ${d.ruleVersion}`:''}</small><TaskEvidence row={d}/>
+          </div>):<span>{c.status==='reserved'||c.disposition==='pending'?'调用已预留或派发，等待结果':
+            `${PURPOSE[c.purpose]??c.purpose}已记录；历史未保存本次判定依据`}</span>}</td></tr>})})()}</tbody></table>
+      {r.decisions.some(d=>!r.calls.some(c=>c.call_id===d.callId||c.call_id===d.candidateCallId))&&<section>
+        <h4>未关联独立模型调用的判定</h4><ol>{r.decisions.filter(d=>!r.calls.some(c=>c.call_id===d.callId||c.call_id===d.candidateCallId)).map((d,index)=><li key={`${d.step??'unknown'}-${index}`}>
+          第 {d.step===undefined?'未知':d.step+1} 轮：{REASON[d.reason]??d.reason}；
+          {d.model?`判别模型 ${d.model}；`:''}{d.evidenceIds?.length?`证据 ${d.evidenceIds.join('、')}；`:''}
+          {d.decision?.elapsedMs!==undefined?`等待 ${d.decision.elapsedMs.toFixed(0)} ms；`:''}
+          {d.ruleVersion?`规则 ${d.ruleVersion}`:'旧记录未保存规则版本'}。<TaskEvidence row={d}/>
+        </li>)}</ol>
+      </section>}
+    </article>)}
   </section>
 }
 export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {

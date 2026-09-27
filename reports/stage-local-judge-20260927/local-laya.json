@@ -1,0 +1,1136 @@
+{
+  "schemaVersion": "stage-judge-result-v1",
+  "ruleVersion": "stage-decision-v1",
+  "recordedAt": "2026-09-27T09:07:46.535767+00:00",
+  "suiteSha256": "22f455c6a62e2c63d3ef9e4abad34e1f903e8c493c1b61de8e124fa511b62251",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "coldLoadAndWarmupMs": 1395.2658750349656,
+  "warmP50Ms": 112.34154202975333,
+  "warmP95Ms": 125.170832965523,
+  "matched": 6,
+  "total": 24,
+  "capacityFallbacks": 0,
+  "normalAccepted": 0,
+  "unsafeEfficient": 0,
+  "dailyUseAccepted": false,
+  "confusionMatrix": {
+    "EFFICIENT_OK": {
+      "UNCERTAIN": 12
+    },
+    "NEED_STRONG": {
+      "UNCERTAIN": 6
+    },
+    "UNCERTAIN": {
+      "UNCERTAIN": 6
+    }
+  },
+  "apiCalls": 0,
+  "apiCost": 0,
+  "cases": [
+    {
+      "id": "explore-zh-1",
+      "group": "explore",
+      "language": "zh",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 157.44091710075736,
+      "inputDigest": "02e8fe90d7d9765ab6f57f7afb56959b3f42b980d70a75e1623de6e6058f5b51",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3602,
+            "NORMAL_EXPLORATION": 0.1602,
+            "STALLED": 0.227,
+            "INSUFFICIENT": 0.2527
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.2065,
+            "INSUFFICIENT": 0.5044,
+            "UNSUITABLE": 0.2891
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2281,
+            "ABSENT": 0.2222,
+            "UNKNOWN": 0.5497
+          }
+        }
+      },
+      "confidence": 0.5044,
+      "latencyMs": 153.6465419922024,
+      "usage": {
+        "input_tokens": 872,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "explore-en-1",
+      "group": "explore",
+      "language": "en",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 103.15458301920444,
+      "inputDigest": "91d661cf32f83ab74ce99b1219dddba403b3a4702c2ed21927b201e8c83a97fa",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3896,
+            "NORMAL_EXPLORATION": 0.2882,
+            "STALLED": 0.1855,
+            "INSUFFICIENT": 0.1367
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1469,
+            "INSUFFICIENT": 0.444,
+            "UNSUITABLE": 0.4091
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3136,
+            "ABSENT": 0.1831,
+            "UNKNOWN": 0.5033
+          }
+        }
+      },
+      "confidence": 0.444,
+      "latencyMs": 102.50958404503763,
+      "usage": {
+        "input_tokens": 866,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "explore-mix-1",
+      "group": "explore",
+      "language": "mixed",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 111.0720420256257,
+      "inputDigest": "0cd9337d10508b076f813e0034473cb7c2b94d4284ef9c053a22764e7d2c05d1",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0517,
+            "NORMAL_EXPLORATION": 0.107,
+            "STALLED": 0.6258,
+            "INSUFFICIENT": 0.2155
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1175,
+            "INSUFFICIENT": 0.5363,
+            "UNSUITABLE": 0.3463
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1257,
+            "ABSENT": 0.2002,
+            "UNKNOWN": 0.6741
+          }
+        }
+      },
+      "confidence": 0.5363,
+      "latencyMs": 110.44700001366436,
+      "usage": {
+        "input_tokens": 896,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "explore-zh-2",
+      "group": "explore",
+      "language": "zh",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 100.69529199972749,
+      "inputDigest": "01154b95025ab6cd043f522efbb5c26f953ef51b0f8c1448e75a1de83296d919",
+      "answers": {
+        "progress": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.2028,
+            "NORMAL_EXPLORATION": 0.1448,
+            "STALLED": 0.3197,
+            "INSUFFICIENT": 0.3326
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1349,
+            "INSUFFICIENT": 0.5,
+            "UNSUITABLE": 0.3651
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2236,
+            "ABSENT": 0.1829,
+            "UNKNOWN": 0.5934
+          }
+        }
+      },
+      "confidence": 0.5,
+      "latencyMs": 100.07054195739329,
+      "usage": {
+        "input_tokens": 872,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "explore-en-2",
+      "group": "explore",
+      "language": "en",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 108.63820801023394,
+      "inputDigest": "17c7bf366184fd50e5572648c7fe71cb39606f37fc60a85f4646936335acdad4",
+      "answers": {
+        "progress": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.1246,
+            "NORMAL_EXPLORATION": 0.2549,
+            "STALLED": 0.2969,
+            "INSUFFICIENT": 0.3236
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1059,
+            "INSUFFICIENT": 0.3535,
+            "UNSUITABLE": 0.5405
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2775,
+            "ABSENT": 0.1491,
+            "UNKNOWN": 0.5734
+          }
+        }
+      },
+      "confidence": 0.5405,
+      "latencyMs": 107.98783309292048,
+      "usage": {
+        "input_tokens": 869,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "explore-mix-2",
+      "group": "explore",
+      "language": "mixed",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 115.727833006531,
+      "inputDigest": "48ea87a7ca746e7772d720b45bdb9f63d073b1a77c4f24368f8496d70b5ef631",
+      "answers": {
+        "progress": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.0757,
+            "NORMAL_EXPLORATION": 0.1442,
+            "STALLED": 0.1819,
+            "INSUFFICIENT": 0.5983
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.04,
+            "INSUFFICIENT": 0.5144,
+            "UNSUITABLE": 0.4456
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2284,
+            "ABSENT": 0.1178,
+            "UNKNOWN": 0.6538
+          }
+        }
+      },
+      "confidence": 0.5144,
+      "latencyMs": 114.79941697325557,
+      "usage": {
+        "input_tokens": 905,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "strong-zh-1",
+      "group": "strong",
+      "language": "zh",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 112.34154202975333,
+      "inputDigest": "a71bb74d497b0170103114f2239fb33a39eadb858f42e6e0474a26dcee94c945",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1898,
+            "NORMAL_EXPLORATION": 0.2201,
+            "STALLED": 0.3693,
+            "INSUFFICIENT": 0.2207
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.2141,
+            "INSUFFICIENT": 0.5211,
+            "UNSUITABLE": 0.2648
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1473,
+            "ABSENT": 0.3114,
+            "UNKNOWN": 0.5413
+          }
+        }
+      },
+      "confidence": 0.5211,
+      "latencyMs": 111.16558301728219,
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "strong-en-1",
+      "group": "strong",
+      "language": "en",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 115.94770790543407,
+      "inputDigest": "b980872a46708078fa6d6f73deed2068f874a5e4c71225bc4e35f1f952107c57",
+      "answers": {
+        "progress": {
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.1346,
+            "NORMAL_EXPLORATION": 0.5976,
+            "STALLED": 0.1699,
+            "INSUFFICIENT": 0.0979
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0921,
+            "INSUFFICIENT": 0.3987,
+            "UNSUITABLE": 0.5092
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2336,
+            "ABSENT": 0.3177,
+            "UNKNOWN": 0.4486
+          }
+        }
+      },
+      "confidence": 0.4486,
+      "latencyMs": 113.49474999587983,
+      "usage": {
+        "input_tokens": 881,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "strong-mix-1",
+      "group": "strong",
+      "language": "mixed",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 115.20175007171929,
+      "inputDigest": "c14ebd5322371c533728e7b891f0babb284dc4fba4f4dd756c9c82c23aad459a",
+      "answers": {
+        "progress": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.2876,
+            "NORMAL_EXPLORATION": 0.1783,
+            "STALLED": 0.2123,
+            "INSUFFICIENT": 0.3218
+          }
+        },
+        "efficient": {
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.4136,
+            "INSUFFICIENT": 0.2422,
+            "UNSUITABLE": 0.3442
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.218,
+            "ABSENT": 0.2602,
+            "UNKNOWN": 0.5218
+          }
+        }
+      },
+      "confidence": 0.4136,
+      "latencyMs": 114.10775000695139,
+      "usage": {
+        "input_tokens": 911,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "strong-zh-2",
+      "group": "strong",
+      "language": "zh",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 115.89970893692225,
+      "inputDigest": "9325996ce9572f29b9088d972fc131ac96691d3018f5ca9b597b0beac50bbc89",
+      "answers": {
+        "progress": {
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.2647,
+            "NORMAL_EXPLORATION": 0.3266,
+            "STALLED": 0.2209,
+            "INSUFFICIENT": 0.1879
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.3308,
+            "INSUFFICIENT": 0.3491,
+            "UNSUITABLE": 0.32
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2874,
+            "ABSENT": 0.2911,
+            "UNKNOWN": 0.4214
+          }
+        }
+      },
+      "confidence": 0.3491,
+      "latencyMs": 114.79366605635732,
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "strong-en-2",
+      "group": "strong",
+      "language": "en",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 115.46866700518876,
+      "inputDigest": "dfb7296c6c0e765661d941c300a92e059d7ae7c1273e6383c4b2eb90f4ef6071",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0733,
+            "NORMAL_EXPLORATION": 0.1156,
+            "STALLED": 0.5496,
+            "INSUFFICIENT": 0.2614
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0995,
+            "INSUFFICIENT": 0.2778,
+            "UNSUITABLE": 0.6226
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1338,
+            "ABSENT": 0.3008,
+            "UNKNOWN": 0.5655
+          }
+        }
+      },
+      "confidence": 0.5655,
+      "latencyMs": 112.89291607681662,
+      "usage": {
+        "input_tokens": 902,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "strong-mix-2",
+      "group": "strong",
+      "language": "mixed",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 117.1178329968825,
+      "inputDigest": "8d2f5fe8149503ef1db79366f5e9c3f416b99e10f90566f680bc8298202a2a2b",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1637,
+            "NORMAL_EXPLORATION": 0.1943,
+            "STALLED": 0.3268,
+            "INSUFFICIENT": 0.3152
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1249,
+            "INSUFFICIENT": 0.3912,
+            "UNSUITABLE": 0.484
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1875,
+            "ABSENT": 0.1666,
+            "UNKNOWN": 0.6459
+          }
+        }
+      },
+      "confidence": 0.484,
+      "latencyMs": 115.84191699512303,
+      "usage": {
+        "input_tokens": 905,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "down-zh-1",
+      "group": "down",
+      "language": "zh",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 116.43104103859514,
+      "inputDigest": "464fa194b8eced01f39f984fec4d9da16e183700b0017baa0d891a37db8af41b",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1592,
+            "NORMAL_EXPLORATION": 0.0915,
+            "STALLED": 0.5754,
+            "INSUFFICIENT": 0.1738
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2644,
+            "INSUFFICIENT": 0.2217,
+            "UNSUITABLE": 0.5139
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.143,
+            "ABSENT": 0.1622,
+            "UNKNOWN": 0.6948
+          }
+        }
+      },
+      "confidence": 0.5139,
+      "latencyMs": 115.62333290930837,
+      "usage": {
+        "input_tokens": 917,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "down-en-1",
+      "group": "down",
+      "language": "en",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 112.32654191553593,
+      "inputDigest": "6fe16d850d82b294986e313feb084e5cf9eb5832232684c13327ef7dd3414cdf",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.7107,
+            "NORMAL_EXPLORATION": 0.0821,
+            "STALLED": 0.0935,
+            "INSUFFICIENT": 0.1137
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2218,
+            "INSUFFICIENT": 0.3413,
+            "UNSUITABLE": 0.437
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3837,
+            "ABSENT": 0.2201,
+            "UNKNOWN": 0.3962
+          }
+        }
+      },
+      "confidence": 0.3962,
+      "latencyMs": 111.46695807110518,
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "down-mix-1",
+      "group": "down",
+      "language": "mixed",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 111.65083397645503,
+      "inputDigest": "ac5e8fb772ee8a17a6314b434af9e3627f259b44f8452dc8b46dec8afc64586c",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0956,
+            "NORMAL_EXPLORATION": 0.0748,
+            "STALLED": 0.6266,
+            "INSUFFICIENT": 0.203
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0859,
+            "INSUFFICIENT": 0.2294,
+            "UNSUITABLE": 0.6847
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3236,
+            "ABSENT": 0.1792,
+            "UNKNOWN": 0.4973
+          }
+        }
+      },
+      "confidence": 0.4973,
+      "latencyMs": 111.0612500924617,
+      "usage": {
+        "input_tokens": 896,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "down-zh-2",
+      "group": "down",
+      "language": "zh",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 109.78266701567918,
+      "inputDigest": "0ee0069913fc538ce28b6f1e13187989c198b5278e1a3026530f7ec28b804823",
+      "answers": {
+        "progress": {
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.1884,
+            "NORMAL_EXPLORATION": 0.3885,
+            "STALLED": 0.2259,
+            "INSUFFICIENT": 0.1972
+          }
+        },
+        "efficient": {
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.4885,
+            "INSUFFICIENT": 0.2227,
+            "UNSUITABLE": 0.2888
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2829,
+            "ABSENT": 0.3215,
+            "UNKNOWN": 0.3956
+          }
+        }
+      },
+      "confidence": 0.3956,
+      "latencyMs": 109.17275003157556,
+      "usage": {
+        "input_tokens": 917,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "down-en-2",
+      "group": "down",
+      "language": "en",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 111.41145799774677,
+      "inputDigest": "75e110440c1da847005cb197408c29ec3ec0bda3d7607cf8cf070a7e764eed0f",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.5987,
+            "NORMAL_EXPLORATION": 0.1063,
+            "STALLED": 0.1107,
+            "INSUFFICIENT": 0.1843
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1752,
+            "INSUFFICIENT": 0.5142,
+            "UNSUITABLE": 0.3105
+          }
+        },
+        "missing": {
+          "choice": "PRESENT",
+          "probabilities": {
+            "PRESENT": 0.4599,
+            "ABSENT": 0.3052,
+            "UNKNOWN": 0.2349
+          }
+        }
+      },
+      "confidence": 0.4599,
+      "latencyMs": 110.74808402918279,
+      "usage": {
+        "input_tokens": 893,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "down-mix-2",
+      "group": "down",
+      "language": "mixed",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "matched": false,
+      "elapsedMs": 111.6135420743376,
+      "inputDigest": "b49f6eea45cffbad9d91bd0200a6749837d69daafd7ced4b88446feabbfb14cf",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0361,
+            "NORMAL_EXPLORATION": 0.103,
+            "STALLED": 0.6868,
+            "INSUFFICIENT": 0.1741
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1215,
+            "INSUFFICIENT": 0.1773,
+            "UNSUITABLE": 0.7012
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1166,
+            "ABSENT": 0.1006,
+            "UNKNOWN": 0.7828
+          }
+        }
+      },
+      "confidence": 0.7012,
+      "latencyMs": 111.05045804288238,
+      "usage": {
+        "input_tokens": 893,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "unknown-zh-1",
+      "group": "unknown",
+      "language": "zh",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "matched": true,
+      "elapsedMs": 105.43004202190787,
+      "inputDigest": "0284c0b98afeb5c69a2d6df86a4ce2a8102fa34a9b45d27054e9669f6a1609e9",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3074,
+            "NORMAL_EXPLORATION": 0.1072,
+            "STALLED": 0.2972,
+            "INSUFFICIENT": 0.2883
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.213,
+            "INSUFFICIENT": 0.4078,
+            "UNSUITABLE": 0.3792
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.19,
+            "ABSENT": 0.1421,
+            "UNKNOWN": 0.6679
+          }
+        }
+      },
+      "confidence": 0.4078,
+      "latencyMs": 104.71583297476172,
+      "usage": {
+        "input_tokens": 872,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "unknown-en-1",
+      "group": "unknown",
+      "language": "en",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "matched": true,
+      "elapsedMs": 105.49891705159098,
+      "inputDigest": "100ccbbdccbf744389ba6048f1f880ee39911703e5de332dfaebc57bf7950ccd",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.4746,
+            "NORMAL_EXPLORATION": 0.0746,
+            "STALLED": 0.2853,
+            "INSUFFICIENT": 0.1655
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.165,
+            "INSUFFICIENT": 0.3037,
+            "UNSUITABLE": 0.5313
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3808,
+            "ABSENT": 0.104,
+            "UNKNOWN": 0.5151
+          }
+        }
+      },
+      "confidence": 0.5151,
+      "latencyMs": 104.70991698093712,
+      "usage": {
+        "input_tokens": 869,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "unknown-mix-1",
+      "group": "unknown",
+      "language": "mixed",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "matched": true,
+      "elapsedMs": 114.50316698756069,
+      "inputDigest": "93103bf47f76e62f24276e8407708165cc8d9457491d6946ab585c78c7563377",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2135,
+            "NORMAL_EXPLORATION": 0.2533,
+            "STALLED": 0.3451,
+            "INSUFFICIENT": 0.1881
+          }
+        },
+        "efficient": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1271,
+            "INSUFFICIENT": 0.5533,
+            "UNSUITABLE": 0.3196
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2538,
+            "ABSENT": 0.2401,
+            "UNKNOWN": 0.5061
+          }
+        }
+      },
+      "confidence": 0.5061,
+      "latencyMs": 112.88729205261916,
+      "usage": {
+        "input_tokens": 878,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "unknown-zh-2",
+      "group": "unknown",
+      "language": "zh",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "matched": true,
+      "elapsedMs": 125.170832965523,
+      "inputDigest": "ed9be49b376b360b92cef40fc6fef5fc5901dc8b525fab460359dc5002451a2d",
+      "answers": {
+        "progress": {
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1418,
+            "NORMAL_EXPLORATION": 0.123,
+            "STALLED": 0.5321,
+            "INSUFFICIENT": 0.2031
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1408,
+            "INSUFFICIENT": 0.2597,
+            "UNSUITABLE": 0.5996
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.116,
+            "ABSENT": 0.0804,
+            "UNKNOWN": 0.8036
+          }
+        }
+      },
+      "confidence": 0.5996,
+      "latencyMs": 124.09000005573034,
+      "usage": {
+        "input_tokens": 887,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "unknown-en-2",
+      "group": "unknown",
+      "language": "en",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "matched": true,
+      "elapsedMs": 112.93612502049655,
+      "inputDigest": "8cebee9409f7ee99c8cb4773d05d3aa4fedd80594c3a068dd92c48caf4e04ab5",
+      "answers": {
+        "progress": {
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.0945,
+            "NORMAL_EXPLORATION": 0.2972,
+            "STALLED": 0.1964,
+            "INSUFFICIENT": 0.4119
+          }
+        },
+        "efficient": {
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0442,
+            "INSUFFICIENT": 0.2252,
+            "UNSUITABLE": 0.7306
+          }
+        },
+        "missing": {
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1167,
+            "ABSENT": 0.2738,
+            "UNKNOWN": 0.6095
+          }
+        }
+      },
+      "confidence": 0.6095,
+      "latencyMs": 112.04445897601545,
+      "usage": {
+        "input_tokens": 881,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    },
+    {
+      "id": "unknown-mix-2",
+      "group": "unknown",
+      "language": "mixed",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "matched": true,
+      "elapsedMs": 111.42179102171212,
+      "inputDigest": "8834bcd347ebd5b90264454a3b55b61855860555e56b2908d599e19e21314adf",
+      "answers": {
+        "progress": {
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.797,
+            "NORMAL_EXPLORATION": 0.0586,
+            "STALLED": 0.0681,
+            "INSUFFICIENT": 0.0763
+          }
+        },
+        "efficient": {
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.5049,
+            "INSUFFICIENT": 0.2224,
+            "UNSUITABLE": 0.2727
+          }
+        },
+        "missing": {
+          "choice": "PRESENT",
+          "probabilities": {
+            "PRESENT": 0.4976,
+            "ABSENT": 0.1881,
+            "UNKNOWN": 0.3144
+          }
+        }
+      },
+      "confidence": 0.4976,
+      "latencyMs": 110.69708305876702,
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0,
+        "questions": 3,
+        "forwards": 1
+      },
+      "actualModel": "laya-rl-agent"
+    }
+  ]
+}

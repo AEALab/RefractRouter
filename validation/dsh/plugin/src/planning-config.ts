@@ -30,6 +30,11 @@ export interface EscalationRoutingConfig {
   stallConfirmations?:number;threshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
   maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number
 }
+export interface StageRoutingConfig {
+  mode:'rules'|'hybrid';judge?:Extract<TaskJudgeConfig,{type:'local-decision'}>;allowExperimental?:boolean
+  window?:number;interval?:number;maxJudgements?:number;holdTurns?:number;downgradeConfirmations?:number
+  upgradeThreshold?:number;downgradeThreshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
+}
 export interface MediaRouteConfig {
   id:string;provider:string;credentialProvider?:string;model:string
   operations:Array<'image-understand'|'video-understand'|'image-generate'|'image-edit'|'video-generate'|'image-to-video'>
@@ -38,7 +43,7 @@ export interface MediaRouteConfig {
   verified?:boolean;verification?:CapabilityLevel;endpoint?:string
 }
 export interface PlanningConfig {
-  schemaVersion:'refractagent-planning-v1'|'refractagent-planning-v2'|'refractagent-planning-v3'|'refractagent-planning-v4'
+  schemaVersion:'refractagent-planning-v1'|'refractagent-planning-v2'|'refractagent-planning-v3'|'refractagent-planning-v4'|'refractagent-planning-v5'
   enabled:boolean;defaultStrategy?:PlanningStrategy
   billingUnit?:'USD'|'AFP'|'CNY';maxProductionCost?:number
   maxProductionCostByUnit?:Partial<Record<'USD'|'AFP'|'CNY',number>>;timeoutMs?:number;maxCalls?:number
@@ -50,6 +55,7 @@ export interface PlanningConfig {
   compatiblePairs?:string[][]
   task?:TaskRoutingConfig
   escalation?:EscalationRoutingConfig
+  stage?:StageRoutingConfig
   mediaRoutes?:MediaRouteConfig[]
 }
 export const EMPTY_PLANNING:PlanningConfig={schemaVersion:'refractagent-planning-v4',enabled:false,defaultStrategy:'stage'}
@@ -61,7 +67,7 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('planningRouting 必须为对象')
   // 这里只约束传输类型。候选资格、计价、安全准入与 Judge 合同统一由 Python 检查。
   const v=value as Json
-  if(!['refractagent-planning-v1','refractagent-planning-v2','refractagent-planning-v3','refractagent-planning-v4'].includes(String(v.schemaVersion))||typeof v.enabled!=='boolean')
+  if(!['refractagent-planning-v1','refractagent-planning-v2','refractagent-planning-v3','refractagent-planning-v4','refractagent-planning-v5'].includes(String(v.schemaVersion))||typeof v.enabled!=='boolean')
     throw new Error('planningRouting 需要 schemaVersion 与 enabled')
   if(v.defaultStrategy!==undefined&&(typeof v.defaultStrategy!=='string'||!(v.defaultStrategy in PLANNING_NAMES)))
     throw new Error('未知规划路由策略')
@@ -76,5 +82,7 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
     throw new Error('planningRouting.task 需要 Task 设置对象')
   if(v.escalation!==undefined&&(!v.escalation||typeof v.escalation!=='object'||Array.isArray(v.escalation)))
     throw new Error('planningRouting.escalation 需要 Escalation 设置对象')
+  if(v.stage!==undefined&&(!v.stage||typeof v.stage!=='object'||Array.isArray(v.stage)))
+    throw new Error('planningRouting.stage 需要 Stage 设置对象')
   if(v.mediaRoutes!==undefined&&!Array.isArray(v.mediaRoutes))throw new Error('planningRouting.mediaRoutes 需要列表')
 }

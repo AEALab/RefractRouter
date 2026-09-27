@@ -131,6 +131,22 @@ def test_zero_call_availability_and_freeze(tmp_path):
     assert runtime.runs[run]["strategy"] == "stage"
 
 
+@pytest.mark.parametrize("strategy", ["static", "stage", "task", "composite", "advisor", "escalation"])
+def test_host_compaction_has_trace_without_advancing_strategy(tmp_path, strategy):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, strategy)
+    action = step(runtime, run, purpose="compaction")
+    assert action["purpose"] == "compaction"
+    result = receipt(runtime, run, action)
+    assert result["action"] == "release"
+    state = runtime.runs[run]["state"]
+    assert state["step"] == 0
+    assert state["compactions"] == 1
+    row = runtime.runs[run]["decisions"][0]
+    assert row["reason"] == "context-compaction-host"
+    assert row["callId"] == action["callId"]
+
+
 def test_unpriced_optional_model_does_not_block_static(tmp_path):
     cfg = configuration("static")
     cfg["models"].append({"id": "unpriced", "provider": "fake", "model": "new",
@@ -922,6 +938,29 @@ def test_advisor_discard_redo_all_billed(tmp_path):
     rate, _ = frozen_usd_cny_rate()
     assert released["record"]["costs"]["production"] == pytest.approx(.00042 * rate, abs=2e-8)
     assert calls[-1]["review_status"] == "revised-unreviewed"
+
+
+@pytest.mark.parametrize("verdict,reason,disposition", [
+    ("APPROVE", "advisor-approved", "accepted"),
+    ("UNRESOLVED", "advisor-unresolved", "discarded"),
+])
+def test_advisor_review_trace_links_candidate_and_verdict(tmp_path, verdict, reason, disposition):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "advisor")
+    candidate = step(runtime, run)
+    judge = receipt(runtime, run, candidate, "候选回复")
+    if verdict == "UNRESOLVED":
+        with pytest.raises(ValueError, match="审核未通过"):
+            receipt(runtime, run, judge, json.dumps({"verdict": verdict}))
+    else:
+        receipt(runtime, run, judge, json.dumps({"verdict": verdict}))
+    row = runtime.runs[run]["decisions"][-1]
+    assert row["reason"] == reason
+    assert row["callId"] == judge["callId"]
+    assert row["candidateCallId"] == candidate["callId"]
+    assert row["reviewVerdict"] == verdict
+    assert row["candidateDisposition"] == disposition
+    assert runtime.runs[run]["budget"].records[0]["disposition"] == disposition
 
 
 @pytest.mark.parametrize("strategy,verdict", [("advisor", "APPROVE"), ("escalation", "{}")])

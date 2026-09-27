@@ -115,7 +115,7 @@ export class PlanningController {
   readonly rpc:PlanningRpc
   private tasks=new Map<string,string>()
   private settings:AgentContext['settings']
-  private handshake?:Promise<void>
+  private handshake?:Promise<string[]>
   constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc,
     private evidence=new ToolEvidenceCapture()){
     this.rpc=rpc??new PlanningWorker(ctx,source)
@@ -210,14 +210,17 @@ export class PlanningController {
     return this.rpc.request({op:'local-judge',config,action,confirmed:action==='download'})
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
-  private async ensureHandshake():Promise<void>{
+  private async ensureHandshake(hybridStage=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
           ||!result.capabilities.includes('local-judge-jobs'))
         throw new Error('规划路由核心与插件能力不兼容；请同时升级核心和插件')
+      return result.capabilities as string[]
     })
-    return this.handshake
+    const capabilities=await this.handshake
+    if(hybridStage&&(!capabilities.includes('stage-decision-v2')||!capabilities.includes('planning-routing-v5')))
+      throw new Error('当前核心不支持 Stage 本地 Judge；请升级核心')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
@@ -266,7 +269,7 @@ export class PlanningController {
     let runId=this.tasks.get(key),done=false
     try{
       signal.throwIfAborted()
-      await this.ensureHandshake()
+      await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid')
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,

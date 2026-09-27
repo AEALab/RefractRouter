@@ -61,7 +61,7 @@ async function fixture(strategy:PlanningStrategy='static'){
   const options:ModelOptions={provider:'refractagent',model:'planning',reasoningEffort:'rr:'+strategy,
     sessionId:'native-session',messages:[{role:'user',content:[{type:'text',text:'测试'}]}],
     tools:[{name:'read',description:'read',parameters:{type:'object'}}]}
-  return {ctx,controller,calls,events,options,path,
+  return {ctx,controller,calls,events,options,path,worker,
     setProviderBaseURL(provider:string,baseURL:string){providerRoutes[provider]={baseURL}},
     setProviderReasoning(provider:string,reasoning:string){providerRoutes[provider]={reasoning}},
     setStrategy(value:PlanningStrategy){frozen=configure({...frozen,planningRouting:{...config,defaultStrategy:value}})},
@@ -70,6 +70,66 @@ async function fixture(strategy:PlanningStrategy='static'){
     async cleanup(){disposal?.();worker.dispose();await new Promise(r=>setTimeout(r,50));await rm(path,{recursive:true,force:true})}}
 }
 async function collect(iterable:AsyncIterable<Record<string,unknown>>){const out:Record<string,unknown>[]=[];for await(const v of iterable)out.push(v);return out}
+
+test('Stage 新配置保持旧规则及原生工具边界',async()=>{
+  const f=await fixture('stage')
+  try{
+    f.setPlanning({...config,schemaVersion:'refractagent-planning-v5',defaultStrategy:'stage',stage:{mode:'rules'}})
+    await collect(f.controller.stream({...f.options,reasoningEffort:'rr:stage'}))
+    assert.equal(f.calls[0].model,'small')
+    assert.equal(f.toolExecutions,0)
+    const history=await f.controller.history('native-session')
+    assert.equal(history.records[0].configuration.schemaVersion,'refractagent-planning-v5')
+    assert.equal(history.records[0].configuration.stage.mode,'rules')
+    assert.equal(history.records[0].decisions[0].reason,'no-signal')
+  }finally{await f.cleanup()}
+})
+
+test('Static 固定与随机的轨迹记录实际选法和权重',async()=>{
+  const f=await fixture('static')
+  try{
+    const saved:PlanningConfig={...structuredClone(config),defaultStrategy:'static',
+      parameters:{staticMode:'random',seed:7,efficientWeight:1,capableWeight:0}}
+    f.setPlanning(saved)
+    await collect(f.controller.stream(f.options))
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.equal(record.decisions[0].reason,'static-random-selected')
+    assert.deepEqual(record.decisions[0].staticChoice,
+      {mode:'random',selectedRole:'efficient',efficientWeight:1,capableWeight:0})
+    assert.equal(record.decisions[0].callId,record.calls[0].call_id)
+  }finally{await f.cleanup()}
+})
+
+test('Task 与 Composite 的任务判别结果关联到随后执行模型',async()=>{
+  for(const strategy of ['task','composite'] as const){
+    const f=await fixture(strategy)
+    try{
+      f.setReplies([()=>reply('{"p_solve":0.9,"capability_boundary":"supported"}'),()=>reply('完成')])
+      await collect(f.controller.stream({...f.options,reasoningEffort:'rr:'+strategy}))
+      const record=(await f.controller.history('native-session')).records[0]
+      const judge=record.decisions.find((row:any)=>row.role==='judge')
+      const execution=record.decisions.find((row:any)=>row.role!=='judge')
+      assert.equal(judge.reason,'task-classifier')
+      assert.equal(judge.callId,record.calls[0].call_id)
+      assert.equal(judge.judgeDecision.pSolve,0.9)
+      assert.equal(execution.judgeDecision.candidateId,'small')
+      assert.equal(execution.callId,record.calls[1].call_id)
+    }finally{await f.cleanup()}
+  }
+})
+
+test('Stage 协作能力未握手通过时不能开始任务或付费调用',async()=>{
+  const f=await fixture('stage')
+  try{
+    const request=f.worker.request.bind(f.worker)
+    f.worker.request=async value=>value.op==='handshake'?{protocol:'refractagent-planning/4',
+      capabilities:['escalation-decision-v1','local-judge-jobs']}:request(value)
+    f.setPlanning({...config,schemaVersion:'refractagent-planning-v5',defaultStrategy:'stage',stage:{mode:'hybrid'}})
+    await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:stage'})),/不支持 Stage 本地 Judge/)
+    assert.equal(f.calls.length,0)
+    assert.equal((await f.controller.history('native-session')).records.length,0)
+  }finally{await f.cleanup()}
+})
 
 test('真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件不执行工具',async()=>{
   const f=await fixture()
@@ -92,6 +152,8 @@ test('真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件
     assert.ok(second.some(c=>c.type==='text-delta'&&c.text==='完成'))
     const history=await f.controller.history('native-session')
     assert.equal(history.records[0].calls.length,2)
+    assert.deepEqual(history.records[0].decisions.map((row:any)=>row.reason),
+      ['static-fixed','static-fixed'])
     assert.ok(Math.abs(history.records[0].costs.production-.00028*6.7459)<2e-8)
   }finally{await f.cleanup()}
 })
@@ -180,6 +242,10 @@ test('审核丢弃的回复与工具不泄漏，全部实际调用记账',async(
     const history=await f.controller.history('native-session')
     assert.deepEqual(history.records[0].calls.map((c:any)=>c.disposition),['discarded','consult','accepted'])
     assert.equal(history.records[0].calls[0].response_output,undefined)
+    const rows=history.records[0].decisions
+    assert.ok(rows.some((row:any)=>row.reason==='advisor-redo-required'
+      &&row.candidateCallId===history.records[0].calls[0].call_id))
+    assert.ok(rows.some((row:any)=>row.reason==='advisor-redo'))
   }finally{await f.cleanup()}
 })
 
@@ -193,6 +259,9 @@ test('升级判别丢弃工具调用后只释放强模型回复',async()=>{
     assert.ok(!chunks.some(c=>(c.block as any)?.type==='tool-call'))
     assert.equal(f.calls.at(-1).model,'large')
     assert.equal(f.toolExecutions,0)
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.ok(record.decisions.some((row:any)=>row.reason==='escalation-takeover'
+      &&row.candidateCallId===record.calls[2].call_id))
   }finally{await f.cleanup()}
 })
 
@@ -212,7 +281,8 @@ test('Escalation v4 明确缺陷立即丢弃候选并由强模型流式接管',a
     const record=(await f.controller.history('native-session')).records[0]
     assert.deepEqual(record.calls.map((call:any)=>call.disposition),['discarded','consult','accepted'])
     assert.equal(record.calls[2].review_status,'takeover-unreviewed')
-    assert.ok(record.decisions.some((row:any)=>row.reason==='escalation-defect'))
+    assert.ok(record.decisions.some((row:any)=>row.reason==='escalation-defect'
+      &&row.candidateCallId===record.calls[0].call_id&&row.candidateDisposition==='discarded'))
   }finally{await f.cleanup()}
 })
 
@@ -322,6 +392,9 @@ test('Task 单一图片候选把原生图片引用送达底层模型且不增加
       {role:'user',content:[{type:'text',text:'描述图片'},image] as any}]}))
     assert.equal(f.calls.length,1)
     assert.deepEqual((f.calls[0].messages[0].content as any[])[1],image)
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.equal(record.decisions[0].judgeDecision.reason,'single-eligible-candidate')
+    assert.equal(record.decisions[0].callId,record.calls[0].call_id)
   }finally{await f.cleanup()}
 })
 
