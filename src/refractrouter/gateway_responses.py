@@ -1,15 +1,53 @@
 """Responses 文本/function 协议适配；不管理 Agent 工具、压缩或委派。"""
 from copy import deepcopy
+import hashlib
 from uuid import uuid4
+
+
+def namespaced_name(namespace, name):
+    if not all(isinstance(v,str) and v and not any(ord(c)<32 for c in v) for v in (namespace,name)):
+        raise ValueError('工具命名空间或名称无效')
+    return 'rrns_' + hashlib.sha256((namespace+'\0'+name).encode()).hexdigest()[:48]
+
+
+def lower_tools(request):
+    """仅转换名称；保留全部 schema 和命名空间描述，不代替宿主执行。"""
+    lowered, aliases, owners = [], {}, set()
+    for tool in request.get('tools',[]):
+        if not isinstance(tool,dict): raise ValueError('无效工具定义')
+        if tool.get('type')=='namespace':
+            if set(tool)-{'type','name','description','tools'} or not isinstance(tool.get('tools'),list):
+                raise ValueError('不支持的工具命名空间结构')
+            for child in tool['tools']:
+                if not isinstance(child,dict) or child.get('type')!='function':
+                    raise ValueError('命名空间目前仅支持 function 工具')
+                name=namespaced_name(tool.get('name'),child.get('name'))
+                if name in owners: raise ValueError('工具名称冲突')
+                owners.add(name);aliases[name]={'namespace':tool['name'],'name':child['name']}
+                description='\n'.join(v for v in (tool.get('description'),child.get('description')) if v)
+                lowered.append({**child,'name':name,**({'description':description} if description else {})})
+        else:
+            name=tool.get('name')
+            if name in owners: raise ValueError('工具名称冲突')
+            owners.add(name);lowered.append(deepcopy(tool))
+    return lowered,aliases
 
 
 def to_chat(request):
     allowed = {'model', 'input', 'instructions', 'tools', 'stream', 'store', 'max_output_tokens',
-               'temperature', 'top_p', 'parallel_tool_calls', 'tool_choice', 'metadata'}
+               'temperature', 'top_p', 'parallel_tool_calls', 'tool_choice', 'metadata',
+               'reasoning', 'include', 'prompt_cache_key', 'client_metadata'}
     if not isinstance(request, dict) or set(request) - allowed:
         raise ValueError('当前 Responses 接口仅接通全文文本与 function；增量 ID、私有推理和托管工具尚未验收')
     if request.get('store', False) is not False:
         raise ValueError('当前 Responses 接口要求 store=false，并由客户端保存完整历史')
+    reasoning=request.get('reasoning') or {}
+    if not isinstance(reasoning,dict) or set(reasoning)-{'summary'} or reasoning.get('summary') not in (None,'auto'):
+        raise ValueError('虚拟路由的实际推理等级由角色配置冻结；当前仅支持自动摘要提示')
+    if request.get('include') not in (None,[],['reasoning.encrypted_content']):
+        raise ValueError('不支持的 Responses include')
+    if request.get('client_metadata') is not None and not isinstance(request['client_metadata'],dict):
+        raise ValueError('client_metadata 必须是对象')
     raw = request.get('input')
     if isinstance(raw, str):
         raw = [{'role': 'user', 'content': raw}]
@@ -25,10 +63,10 @@ def to_chat(request):
             raise ValueError('无效 Responses input item')
         kind = item.get('type', 'message')
         if kind == 'function_call':
-            if set(item) - {'type', 'id', 'call_id', 'name', 'arguments', 'status'}:
+            if set(item) - {'type', 'id', 'call_id', 'name', 'namespace', 'arguments', 'status'}:
                 raise ValueError('未知 function_call 字段')
             function = {'id': item.get('call_id'), 'type': 'function',
-                        'function': {'name': item.get('name'), 'arguments': item.get('arguments')}}
+                        'function': {'name': namespaced_name(item['namespace'],item.get('name')) if item.get('namespace') else item.get('name'), 'arguments': item.get('arguments')}}
             if messages and messages[-1]['role'] == 'assistant':
                 messages[-1].setdefault('tool_calls', []).append(function)
             else:
@@ -54,28 +92,30 @@ def to_chat(request):
         else:
             raise ValueError('不支持的 Responses 输入类型：' + str(kind))
     tools = []
-    for tool in request.get('tools', []):
+    for tool in lower_tools(request)[0]:
         if not isinstance(tool, dict) or tool.get('type') != 'function':
             raise ValueError('只支持外部 Agent 执行的 function 工具')
         tools.append({'type': 'function', 'function': {k: deepcopy(v) for k,v in tool.items() if k != 'type'}})
     result = {'model': request.get('model'), 'messages': messages, 'tools': tools,
               'stream': request.get('stream', False)}
-    for key in ('temperature', 'top_p', 'parallel_tool_calls', 'metadata'):
+    for key in ('temperature', 'top_p', 'parallel_tool_calls', 'metadata', 'prompt_cache_key'):
         if key in request:
             result[key] = deepcopy(request[key])
+    if request.get('client_metadata'):
+        result['metadata']={**result.get('metadata',{}),'client_metadata':deepcopy(request['client_metadata'])}
     if 'max_output_tokens' in request:
         result['max_tokens'] = request['max_output_tokens']
     if 'tool_choice' in request:
         choice = request['tool_choice']
         if isinstance(choice, dict):
-            if set(choice) != {'type', 'name'} or choice['type'] != 'function':
+            if set(choice)-{'type','name','namespace'} or choice.get('type') != 'function' or not choice.get('name'):
                 raise ValueError('无效 Responses tool_choice')
-            choice = {'type': 'function', 'function': {'name': choice['name']}}
+            choice = {'type': 'function', 'function': {'name': namespaced_name(choice['namespace'],choice['name']) if choice.get('namespace') else choice['name']}}
         result['tool_choice'] = choice
     return result
 
 
-def from_chat(chat):
+def from_chat(chat, aliases=None):
     choice = chat['choices'][0]
     message, output = choice['message'], []
     if message.get('content'):
@@ -84,6 +124,9 @@ def from_chat(chat):
     for call in message.get('tool_calls', []):
         output.append({'type': 'function_call', 'id': 'fc_' + uuid4().hex, 'call_id': call['id'],
             'name': call['function']['name'], 'arguments': call['function']['arguments'], 'status': 'completed'})
+    for item in output:
+        if item['type']=='function_call' and item['name'] in (aliases or {}):
+            item.update(aliases[item['name']])
     incomplete = choice['finish_reason'] == 'length'
     return {'id': 'resp_' + uuid4().hex, 'object': 'response', 'created_at': chat['created'],
         'model': chat['model'], 'status': 'incomplete' if incomplete else 'completed', 'output': output,

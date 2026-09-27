@@ -83,6 +83,8 @@ jobs:
         run: node --experimental-strip-types validation/dsh/plugin/scripts/check-native-tools.ts "$(npm root -g)/@deepseek-ai/dsh/node_modules"
       - name: 验证规划路由的两轮原生工具交互
         run: node --experimental-strip-types validation/dsh/plugin/scripts/check-planning-tools.ts "$(npm root -g)/@deepseek-ai/dsh/node_modules"
+      - name: 验证独立网关与 DSH 标准模型接口
+        run: uv run python experiments/validate_gateway_clients.py --client dsh --dsh-modules "$(npm root -g)/@deepseek-ai/dsh/node_modules" --output "${RUNNER_TEMP}/gateway-dsh"
       - name: Validate clean-profile plugin lifecycle
         run: python3 scripts/validate_dsh_plugin_lifecycle.py
       - name: Validate packaged plugin lifecycle

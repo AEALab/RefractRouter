@@ -1,0 +1,18 @@
+{
+  "configSha256": "4b68761420a636f6971a0205bd8382ef2cc947cd8203b50615c59abf556ea611",
+  "provider": "ark",
+  "model": "deepseek-v4-flash",
+  "modelParameters": {
+    "reasoning_effort": "low"
+  },
+  "maxCalls": 2,
+  "maxInputBoundPerCall": 8192,
+  "maxOutputTokens": 512,
+  "billingUnit": "AFP",
+  "upperBound": 0.8704000000000001,
+  "timeoutMs": 60000,
+  "httpRetries": 0,
+  "hostTools": 1,
+  "scenario": "DSH 原生 echo 工具往返",
+  "strategy": "static"
+}

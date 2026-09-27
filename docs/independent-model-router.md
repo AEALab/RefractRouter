@@ -1,6 +1,6 @@
 # 独立模型路由与宿主边界
 
-决策日期：2026-09-27。适用版本：Router 0.14.0、DSH 插件 0.27.0。
+决策日期：2026-09-27。适用版本：Router 0.15.0、DSH 插件 0.27.0。
 
 ## 产品目标
 
@@ -76,18 +76,26 @@ refractrouter-gateway --config /absolute/path/gateway.json \
 | 路线 | 本版状态 |
 | --- | --- |
 | Chat Completions 文本/function 输入、输出 | 已实现，真实核心与模拟上游验收 |
-| Chat Completions SSE 与 usage | 已实现，只交付已结算且接受的回复 |
+| Chat Completions SSE 与 usage | 普通执行文本实时交付；工具与成功结束事件等待结算 |
 | Responses 完整文本/function 历史、`store=false` | 已实现，协议往返及 HTTP SSE 验收 |
 | 上游 Chat Completions | 已实现，零自动重试，独立凭证引用 |
 | 上游 Responses、Anthropic Messages | 独立网关未接通；原有其他入口的适配不代表这里已通过 |
 | 媒体、托管工具、custom tool、加密 reasoning replay | 当前网关拒绝，不静默丢弃 |
 | `previous_response_id`、Responses 存储式增量会话 | 当前网关拒绝；由客户端保存并回传完整历史 |
-| Codex、Hermes、OpenClaw、Claude 各客户端真实接入 | 尚未分别验收，不能宣称任意客户端仅改 URL 已全部兼容 |
+| DSH 0.1.5-rc.3 标准适配器与 ToolRuntime | 无 RefractAgent 插件的模拟上游、真实 Ark 两轮均通过 |
+| 本机 Codex CLI 0.154.0 | 实际 CLI + 模拟上游的工具往返通过；限定下述配置 |
+| Hermes、OpenClaw、Claude | 尚未分别验收 |
 
-当前网关从上游取得完整回复、结算后才发送 SSE；这证明 SSE 协议兼容，
-不代表已经实现上游逐 token 透传或降低首字等待。
-DSH 插件现有 Static/Stage/Task 直接流式路径保持原有行为。
-后续补充标准接口增量流式时，Escalation 待审回复必须继续缓冲。
+`stream=true` 时，Static/Stage/Task 及已接管的 Escalation 实时转发上游文字增量。
+工具调用在拼接完成、核心接受并结算后输出，防止部分工具参数被执行。
+Escalation 起始候选及 Judge 继续缓冲；审核通过后才释放候选，接管回复可实时输出。
+私有推理保留在服务端 replay，不作为公开文字流输出。
+
+上游缺少最终 usage、流中断或结算失败时，只发送错误，不发送成功结束事件，保留费用预留。
+已经展示的文字不替换。客户端取消后停止进一步交付及后续派发，已在途调用继续尝试结算，
+未知用量不释放。SSE 解析及缓冲总量上限 8 MiB，每次派发零自动重试。
+确定性测试使用上游完成屏障，验证首段文字在上游尚未完成时已到达客户端。
+DSH 插件自身流式行为保持原状。
 
 未知参数在派发前拒绝，不能为了让某个客户端“连上”就删除它的工具约束或推理数据。
 协议转换保留工具名称、调用 ID、参数、结果配对及角色；不执行工具。
@@ -101,6 +109,8 @@ DSH 插件现有 Static/Stage/Task 直接流式路径保持原有行为。
 
 - 新请求分配独立身份，相同提示也不共用预算或升级状态。
 - 客户端返回本服务刚交付的 function call ID 时，核对已接受历史前缀后续接同一任务。
+  比对容许 JSON 对象字段顺序、工具参数 JSON 空白及空 assistant 文本的等价表示，
+  不容许指令、有效文字、工具参数值或调用 ID 改变。
 - 新 user 消息默认建立新任务；无法自动判断它是指导、压缩摘要还是新的任务。
 - 如客户端能提供可信身份，可在 `metadata` 同时传 `refract_session`、`refract_task`。
   两者不随工具续接或追加指导改变，只有新任务才改变 task 值。
@@ -121,3 +131,30 @@ Stage 不把它当作成功或模型能力失败。Escalation 的 Judge 仍可�
 
 标准响应 `usage` 汇总本次流程全部真实模型调用的 token；准确 AFP/CNY 费用、真实模型与
 被丢弃回复以 Python 账本为准，不能用外层虚拟模型的单一价格重新推算混合费用。
+
+## 客户端接入验收范围
+
+2026-09-27 的 [接线与流式报告](../reports/gateway-client-acceptance-20260927/README.md)
+分别保存模拟上游与真实模型证据。它验证已安装的客户端协议及原生工具，不是效果对照实验。
+
+DSH 使用标准 Chat Completions Base URL 和 `refract/static` 模型即可走独立网关。
+验收使用真实 DSH 的 `DeepSeekAdapter`、`Session`、`ToolRuntime`，没有加载 RefractAgent 插件；
+两步调用由验收驱动器组织，不能描述为浏览器中完整 Agent UI 的验收。
+
+本机 Codex CLI 验收使用 Responses、`store=false`，关闭托管 web search，客户端 HTTP
+与流式重连次数均设为零。CLI 自行运行终端工具并返回结果，Router 只返回工具调用。
+验收通过命令行临时覆盖 provider，不修改日常用户配置、认证、模型或默认 Agent。
+
+- function 命名空间映射到稳定无冲突别名，保留 schema；回复还原原始 namespace/name。
+- `prompt_cache_key` 作为不透明缓存提示转发；不将其当作真实任务 ID。
+- `reasoning.summary=auto` 与 `include=[reasoning.encrypted_content]` 可作为可选返回提示。
+  本网关不生成加密推理项；收到真正的 reasoning 历史项仍明确拒绝。
+- 实际推理档位由路由角色配置冻结；客户端显式指定其他 reasoning 参数目前明确拒绝。
+- Codex 使用其默认模型元数据回退，仍会提示虚拟模型不在专用模型目录中。
+  不能为消除提示而向 Router 添加 Codex 的 Agent 指令或工具编排。
+- 未接通 hosted web search、custom tool、媒体、完整 Codex App/远程代理流程。
+  不会悄悄删除这些工具让调用通过；不支持的请求在派发前明确失败。
+
+本轮客户端往返使用 Static。其他策略的核心与流式边界有确定性覆盖，
+尚未分别执行每个客户端、每个策略的真模型验收。
+标准工具文本没有可信退出状态时，Stage 仍使用高效默认；这不代表已取得完整轨迹信号。

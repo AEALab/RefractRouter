@@ -18,6 +18,7 @@ from uuid import uuid4
 
 from .host_evidence import validate_evidence
 from . import gateway_responses
+from .gateway_streaming import stream_chat, WireStream
 from .openai_compatible import OpenAICompatibleClient, UrllibTransport
 from .planning_config import compile_config, preview
 from .planning_runtime import PlanningRuntime
@@ -25,7 +26,7 @@ from .planning_runtime import PlanningRuntime
 ROUTES = ("static", "stage", "task", "escalation")
 MAX_BODY = 8 * 1024 * 1024
 EXECUTION_OPTIONS = {"temperature", "top_p", "stop", "tool_choice", "parallel_tool_calls",
-                     "response_format", "seed", "frequency_penalty", "presence_penalty"}
+                     "response_format", "prompt_cache_key", "seed", "frequency_penalty", "presence_penalty"}
 
 
 def encode(value):
@@ -33,7 +34,7 @@ def encode(value):
 
 
 def digest(value):
-    return hashlib.sha256(encode(value)).hexdigest()
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True).encode()).hexdigest()
 
 
 def chat_messages(raw):
@@ -76,6 +77,30 @@ def chat_messages(raw):
                        "content": blocks, "wireRole": role,
                        **({"wireName": row["name"]} if "name" in row else {})})
     return result
+
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result: raise ValueError('JSON 对象含重复键')
+        result[key] = value
+    return result
+
+
+def canonical_message(message):
+    value = deepcopy(message)
+    value['content'] = [b for b in value['content'] if not (b['type']=='text' and b['text']=='')]
+    for block in value['content']:
+        if block['type']=='tool-call':
+            try:
+                parsed=json.loads(block['arguments'], object_pairs_hook=unique_object)
+                block['arguments']=json.dumps(parsed,ensure_ascii=False,sort_keys=True,allow_nan=False)
+            except (TypeError,ValueError): pass
+    return value
+
+
+def history_digest(messages):
+    return digest([canonical_message(m) for m in chat_messages(messages)])
 
 
 def wire_messages(messages):
@@ -149,7 +174,7 @@ class HttpModelCaller:
         self.transport = transport or UrllibTransport()
         self.parser = OpenAICompatibleClient(max_retries=0)
 
-    def __call__(self, action, options):
+    def _request(self, action, options):
         target = action["model"]
         provider = self.providers[target["provider"]]
         token = os.environ.get(provider.get("apiKeyEnv", ""), "")
@@ -171,10 +196,17 @@ class HttpModelCaller:
             timeout = min(timeout, action["timeoutMs"] / 1000)
         if timeout <= 0:
             raise ValueError("任务期限已耗尽")
-        started = time.perf_counter()
-        response = self.transport.post(provider["baseURL"].rstrip('/') + '/chat/completions',
+        return (provider["baseURL"].rstrip('/') + '/chat/completions',
             {"Content-Type": "application/json", **({"Authorization": "Bearer " + token} if token else {})},
-            encode(payload), timeout)
+            payload, timeout)
+
+    def stream(self, action, options, on_text):
+        return stream_chat(*self._request(action, options), on_text)
+
+    def __call__(self, action, options):
+        url, headers, payload, timeout = self._request(action, options)
+        started = time.perf_counter()
+        response = self.transport.post(url, headers, encode(payload), timeout)
         if not 200 <= response.status < 300:
             raise RuntimeError(f"上游模型 HTTP {response.status}；未自动重试")
         if len(response.body) > MAX_BODY:
@@ -253,12 +285,13 @@ class ModelGateway:
                 entry = known[0]
                 # 检查已接受的历史，防止同一个 call ID 被另一段会话冒用。
                 prefix = messages[:-len(tail)]
-                if digest(prefix) != entry['prefix']:
+                if history_digest(prefix) != entry['prefix']:
                     raise ValueError("工具续接历史已改变；请提供显式任务身份并核对上下文")
                 return entry['identity']
         return {"session": scope + ':' + uuid4().hex, "agent": "api", "turn": 1}
 
-    def complete(self, request, *, scope='default', cancelled=lambda: False):
+    def complete(self, request, *, scope='default', cancelled=lambda: False, on_text=None):
+        started = time.monotonic()
         allowed = {'model', 'messages', 'tools', 'stream', 'stream_options', 'max_tokens', 'max_completion_tokens',
                    'metadata', 'n', *EXECUTION_OPTIONS}
         if not isinstance(request, dict) or set(request) - allowed:
@@ -270,6 +303,8 @@ class ModelGateway:
             raise ValueError("stream 必须是布尔值")
         if request.get('stream_options') not in (None, {}, {'include_usage': True}, {'include_usage': False}):
             raise ValueError("未知 stream_options")
+        if 'prompt_cache_key' in request and (not isinstance(request['prompt_cache_key'],str) or len(request['prompt_cache_key'])>512):
+            raise ValueError('prompt_cache_key 必须是不超过 512 字符的字符串')
         cap = request.get('max_completion_tokens', request.get('max_tokens'))
         if cap is not None and (type(cap) is not int or cap < 1):
             raise ValueError("输出上限必须是正整数")
@@ -283,7 +318,7 @@ class ModelGateway:
             for message in messages:
                 calls = [b for b in message["content"] if b["type"] == "tool-call"]
                 entries = [self.state["tools"].get(scope + ':' + b["id"]) for b in calls]
-                if any(e and e.get("source") and e.get("assistantDigest") != digest(message) for e in entries):
+                if any(e and e.get("source") and e.get("assistantDigest") != digest(canonical_message(message)) for e in entries):
                     raise ValueError("工具调用的原始模型回复已改变，不能附加私有 replay")
                 sources = [e.get("source") for e in entries if e and e.get("source")]
                 if sources and len(sources) == len(calls) and all(s == sources[0] for s in sources):
@@ -296,6 +331,7 @@ class ModelGateway:
                 'tools': schemas, 'toolEvidence': ordinary_evidence(messages),
                 **({'maxTokens': cap} if cap is not None else {})})
         responses, targets, total_in, total_out = {}, {}, 0, 0
+        meta = {'id':'chatcmpl-' + uuid4().hex, 'created':int(time.time()), 'model':request['model']}
         try:
             while action['action'] in ('call', 'wait'):
                 if cancelled():
@@ -304,7 +340,20 @@ class ModelGateway:
                     time.sleep(.02)
                     action = self.runtime.handle({'op': 'local-judge-poll', 'runId': run_id, 'jobId': action['jobId']})
                     continue
-                response = self.caller(action, options)
+                if on_text is not None and not action['buffered'] and hasattr(self.caller, 'stream'):
+                    def deliver(text):
+                        if cancelled(): return
+                        run = self.runtime.runs[run_id]
+                        row = run['flow']['pending'][1].row
+                        if 'userFirstTextMs' not in row:
+                            row['userFirstTextMs'] = round((time.monotonic() - started) * 1000)
+                            row['deliveryMode'] = 'live-text'
+                            self.runtime.persist(run)
+                        row['releasedTextBytes'] = row.get('releasedTextBytes', 0) + len(text.encode())
+                        on_text(meta, text)
+                    response = self.caller.stream(action, options, deliver)
+                else:
+                    response = self.caller(action, options)
                 responses[action['callId']] = response
                 targets[action['callId']] = deepcopy(action['model'])
                 total_in += response.input_tokens
@@ -324,13 +373,12 @@ class ModelGateway:
             message = {'role': 'assistant', 'content': selected.content or (None if selected.tool_calls else '')}
             if selected.tool_calls:
                 message['tool_calls'] = list(selected.tool_calls)
-            result = {'id': 'chatcmpl-' + uuid4().hex, 'object': 'chat.completion', 'created': int(time.time()),
-                'model': request['model'], 'choices': [{'index': 0, 'message': message,
+            result = {**meta, 'object': 'chat.completion', 'choices': [{'index': 0, 'message': message,
                     'finish_reason': selected.finish_reason}],
                 'usage': {'prompt_tokens': total_in, 'completion_tokens': total_out,
                           'total_tokens': total_in + total_out}}
             with self.lock:
-                prefix = digest(request['messages'] + [message])
+                prefix = history_digest(request['messages'] + [message])
                 for call in selected.tool_calls:
                     key = scope + ':' + call['id']
                     if key in self.state['tools']:
@@ -342,7 +390,7 @@ class ModelGateway:
                     if private:
                         source['replayState'] = {'response': {'reasoning_content': private}}
                     self.state['tools'][key] = {'identity': identity, 'prefix': prefix, 'source': source,
-                                                 'assistantDigest': digest(chat_messages([message])[0])}
+                                                 'assistantDigest': digest(canonical_message(chat_messages([message])[0]))}
                 self.save()
                 if not selected.tool_calls and not (request.get('metadata') or {}).get('refract_task'):
                     self.runtime.handle({'op': 'end', 'runId': run_id})
@@ -392,7 +440,7 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
         def do_GET(self):
             if not self.authorized():
                 self.send_json(401, {'error': {'message': '认证失败', 'type': 'authentication_error'}})
-            elif self.path == '/v1/models':
+            elif urlsplit(self.path).path == '/v1/models':
                 self.send_json(200, gateway.models())
             elif self.path == '/health':
                 self.send_json(200, {'status': 'ok', 'service': 'refractrouter-model-gateway-v1'})
@@ -404,51 +452,52 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                 self.send_json(401, {'error': {'message': '认证失败', 'type': 'authentication_error'}})
                 return
             if self.path not in ('/v1/chat/completions', '/v1/responses'):
-                self.send_json(404, {'error': {'message': '当前接口支持 /v1/chat/completions 与 /v1/responses 的文本/function 子集'}})
+                self.send_json(404, {'error': {'message': '未知接口'}})
                 return
+            wire, sent, lost = None, False, False
+            def send(data):
+                nonlocal sent, lost
+                if lost: return
+                try:
+                    if not sent:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'text/event-stream')
+                        self.send_header('Cache-Control', 'no-cache')
+                        self.end_headers()
+                        sent = True
+                    self.wfile.write(data)
+                    self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError, TimeoutError):
+                    lost = True
+            def disconnected():
+                if lost: return True
+                if not select.select([self.connection], [], [], 0)[0]: return False
+                try: return self.connection.recv(1, socket.MSG_PEEK) == b''
+                except OSError: return True
             try:
                 size = int(self.headers.get('Content-Length', '0'))
                 if not 0 < size <= MAX_BODY or self.headers.get('Transfer-Encoding'):
                     raise ValueError('请求大小超限或缺少 Content-Length')
                 self.connection.settimeout(30)
                 request = json.loads(self.rfile.read(size), parse_constant=lambda _: (_ for _ in ()).throw(ValueError('数值非法')))
-                if self.path == '/v1/responses':
-                    request = gateway_responses.to_chat(request)
-                def disconnected():
-                    if not select.select([self.connection], [], [], 0)[0]:
-                        return False
-                    try:
-                        return self.connection.recv(1, socket.MSG_PEEK) == b''
-                    except (ConnectionResetError, OSError):
-                        return True
-                result = gateway.complete(request, cancelled=disconnected)
-                if self.path == '/v1/responses':
-                    result = gateway_responses.from_chat(result)
-            except ValueError as exc:
-                self.send_json(400, {'error': {'message': str(exc), 'type': 'invalid_request_error'}})
-                return
-            except Exception:
-                self.send_json(502, {'error': {'message': '受管模型调用失败；未自动重试，请核对本地账本', 'type': 'upstream_error'}})
-                return
-            try:
-                if not request.get('stream'):
-                    self.send_json(200, result)
-                    return
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/event-stream')
-                self.send_header('Cache-Control', 'no-cache')
-                self.end_headers()
-                if self.path == '/v1/responses':
-                    for event in gateway_responses.stream_events(result):
-                        self.wfile.write(b'event: ' + event['type'].encode() + b'\ndata: ' + encode(event) + b'\n\n')
-                        self.wfile.flush()
-                    return
-                for chunk in chat_stream(result, (request.get('stream_options') or {}).get('include_usage', False)):
-                    self.wfile.write(b'data: ' + encode(chunk) + b'\n\n')
-                    self.wfile.flush()
-                self.wfile.write(b'data: [DONE]\n\n')
-            except (BrokenPipeError, ConnectionResetError):
-                pass  # 已结算调用不能因客户端断开而重发。
+                responses = self.path == '/v1/responses'
+                aliases = gateway_responses.lower_tools(request)[1] if responses else {}
+                if responses: request = gateway_responses.to_chat(request)
+                if request.get('stream'):
+                    wire = WireStream(send, responses=responses, aliases=aliases,
+                        include_usage=(request.get('stream_options') or {}).get('include_usage', False))
+                result = gateway.complete(request, cancelled=disconnected, on_text=wire.text if wire else None)
+                if wire:
+                    wire.finish(result)
+                else:
+                    self.send_json(200, gateway_responses.from_chat(result, aliases) if responses else result)
+            except Exception as exc:
+                if sent:
+                    if wire and not lost: wire.fail()
+                elif not disconnected():
+                    self.send_json(400 if isinstance(exc, ValueError) else 502, {'error': {
+                        'message': str(exc) if isinstance(exc, ValueError) else '受管模型调用失败；未自动重试，请核对本地账本',
+                        'type': 'invalid_request_error' if isinstance(exc, ValueError) else 'upstream_error'}})
 
     return ThreadingHTTPServer((host, port), Handler)
 
