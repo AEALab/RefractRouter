@@ -1,0 +1,20 @@
+{
+  "configSha256": "f51b26b5a27f0e775d3cd62919137a431e58f0b29bb9e30d17f8912d9982c445",
+  "provider": "ark",
+  "model": "deepseek-v4-flash",
+  "modelParameters": {
+    "reasoning_effort": "low"
+  },
+  "maxCalls": 2,
+  "maxInputBoundPerCall": 262144,
+  "maxOutputTokens": 512,
+  "billingUnit": "AFP",
+  "upperBound": 26.265600000000003,
+  "timeoutMs": 60000,
+  "httpRetries": 0,
+  "hostTools": 1,
+  "scenario": "codex 原生工具往返",
+  "strategy": "static",
+  "hostCatalogSha256": "641403d4946e7d20be3ef0549e81392d17795c71117fb598bc5b83631a2af9c0",
+  "hostBaselineModel": "gpt-5.5"
+}

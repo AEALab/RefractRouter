@@ -16,7 +16,7 @@ import time
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from .host_evidence import validate_evidence
+from .host_evidence import EVIDENCE_VERSION, validate_evidence
 from . import gateway_responses
 from .gateway_streaming import stream_chat, WireStream
 from .openai_compatible import OpenAICompatibleClient, UrllibTransport
@@ -167,6 +167,36 @@ def ordinary_evidence(messages):
     return validate_evidence(result)
 
 
+def bound_tool_evidence(messages, supplied, known=None):
+    """只接受与当前已完成工具调用配对的宿主事实。"""
+    ordinary = ordinary_evidence(messages)
+    known = known or {}
+    if supplied is None:
+        supplied = {'version': EVIDENCE_VERSION, 'events': []}
+    if (not isinstance(supplied, dict) or set(supplied) != {'version', 'events'}
+            or supplied['version'] != EVIDENCE_VERSION):
+        raise ValueError('工具证据协议版本或结构无效')
+    facts = validate_evidence(supplied['events'])
+    expected = {event['callId']: event for event in ordinary}
+    for call_id, fact in known.items():
+        original = expected.get(call_id)
+        if original is not None and (fact['id'] != call_id or fact['tool'] != original['tool']):
+            raise ValueError('已保存的工具事实与当前历史不匹配')
+    overrides = {}
+    for fact in facts:
+        if set(fact) != {'id', 'callId', 'tool', 'kind', 'status', 'fingerprint'}:
+            raise ValueError('宿主工具证据包含未知字段')
+        original = expected.get(fact['callId'])
+        if (original is None or fact['id'] != fact['callId']
+                or fact['tool'] != original['tool'] or fact['callId'] in overrides):
+            raise ValueError('宿主工具证据与当前历史的调用或结果不匹配')
+        if fact['callId'] in known and known[fact['callId']] != fact:
+            raise ValueError('同一工具调用的宿主事实发生矛盾变化')
+        overrides[fact['callId']] = fact
+    return [overrides.get(event['callId'], known.get(event['callId'], event))
+            for event in ordinary]
+
+
 class HttpModelCaller:
     """一次派发、零重试；与 DSH 服务和 Agent 工具执行完全独立。"""
     def __init__(self, providers, transport=None):
@@ -256,10 +286,35 @@ class ModelGateway:
             os.fsync(f.fileno())
         os.replace(tmp, self.path)
 
+    def capabilities(self, strategy):
+        """保守公开执行路线的交集；判别模型不影响主模型参数声明。"""
+        c = compile_config(self.planning)
+        if strategy == 'static':
+            ids = [c['roles'].get('efficient')]
+            if c['parameters']['staticMode'] == 'random':
+                ids.append(c['roles'].get('capable'))
+        elif strategy == 'task':
+            ids = [*c['task']['pool'], c['task']['fallback']]
+        elif strategy == 'escalation':
+            ids = [c['escalation']['initial'], c['escalation']['takeover']]
+        else:
+            ids = [c['roles'].get('efficient'), c['roles'].get('capable')]
+        models = [c['models'][key] for key in dict.fromkeys(ids) if key in c['models']]
+        efforts = {m.request_options.get('reasoning_effort', self.config.get('providers', {})
+            .get(m.provider, {}).get('requestOptions', {}).get('reasoning_effort')) for m in models}
+        common = next(iter(efforts)) if len(efforts) == 1 else None
+        return {'schemaVersion': 'refract-model-capabilities/1',
+            'inputModalities': ['text'], 'outputModalities': ['text'], 'toolTypes': ['function'],
+            'historyMode': 'full', 'reasoningPolicy': 'frozen-role-assertion',
+            'acceptedReasoningEfforts': [common] if common else [],
+            'contextWindow': min((m.context_window for m in models), default=0),
+            'maxOutputTokens': min((m.max_output_tokens for m in models), default=0),
+            'streaming': True, 'toolExecution': 'client'}
+
     def models(self):
         available = {row['id'] for row in preview(self.planning)['strategies'] if row['available']}
         return {"object": "list", "data": [{"id": "refract/" + strategy, "object": "model",
-            "created": 0, "owned_by": "refractrouter"} for strategy in ROUTES if strategy in available]}
+            "created": 0, "owned_by": "refractrouter", "refract": self.capabilities(strategy)} for strategy in ROUTES if strategy in available]}
 
     def _identity(self, request, scope):
         metadata = request.get('metadata') or {}
@@ -293,12 +348,16 @@ class ModelGateway:
     def complete(self, request, *, scope='default', cancelled=lambda: False, on_text=None):
         started = time.monotonic()
         allowed = {'model', 'messages', 'tools', 'stream', 'stream_options', 'max_tokens', 'max_completion_tokens',
-                   'metadata', 'n', *EXECUTION_OPTIONS}
+                   'metadata', 'n', 'reasoning_effort', *EXECUTION_OPTIONS}
         if not isinstance(request, dict) or set(request) - allowed:
             raise ValueError("请求包含当前网关未接通的参数")
         strategy = str(request.get('model', '')).removeprefix('refract/')
         if strategy not in ROUTES or request.get('n', 1) != 1:
             raise ValueError("请选择 refract/static、stage、task 或 escalation；只支持 n=1")
+        if 'reasoning_effort' in request:
+            effort = request['reasoning_effort']
+            if not isinstance(effort, str) or effort not in self.capabilities(strategy)['acceptedReasoningEfforts']:
+                raise ValueError('reasoning_effort 与冻结执行角色不一致；请省略该参数或使用模型目录声明的值')
         if not isinstance(request.get('stream', False), bool):
             raise ValueError("stream 必须是布尔值")
         if request.get('stream_options') not in (None, {}, {'include_usage': True}, {'include_usage': False}):
@@ -327,8 +386,27 @@ class ModelGateway:
             run_id = begun['runId']
             if begun['strategy'] != strategy:
                 raise ValueError('当前任务的路由策略已冻结；新任务才能切换策略')
+            all_facts = self.state.setdefault('toolEvidence', {})
+            scope_facts = all_facts.get(run_id, {})
+            evidence = bound_tool_evidence(messages,
+                (request.get('metadata') or {}).get('refract_tool_evidence'), scope_facts)
+            new_facts = dict(scope_facts)
+            for fact in evidence:
+                if fact['status'] != 'unclassified' and fact['callId'] not in scope_facts:
+                    new_facts[fact['callId']] = fact
+            if new_facts != scope_facts:
+                all_facts[run_id] = new_facts
+                try:
+                    self.save()
+                except Exception:
+                    if run_id in all_facts:
+                        if scope_facts:
+                            all_facts[run_id] = scope_facts
+                        else:
+                            del all_facts[run_id]
+                    raise
             action = self.runtime.handle({'op': 'step', 'runId': run_id, 'messages': messages,
-                'tools': schemas, 'toolEvidence': ordinary_evidence(messages),
+                'tools': schemas, 'toolEvidence': evidence,
                 **({'maxTokens': cap} if cap is not None else {})})
         responses, targets, total_in, total_out = {}, {}, 0, 0
         meta = {'id':'chatcmpl-' + uuid4().hex, 'created':int(time.time()), 'model':request['model']}

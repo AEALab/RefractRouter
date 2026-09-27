@@ -1,0 +1,18 @@
+{
+  "configSha256": "72147dc448387cdf9cd41fb9eb7d8e35862a88191f73123858ecd617c82b54d5",
+  "provider": "ark",
+  "model": "deepseek-v4-flash",
+  "modelParameters": {
+    "reasoning_effort": "low"
+  },
+  "maxCalls": 2,
+  "maxInputBoundPerCall": 24576,
+  "maxOutputTokens": 512,
+  "billingUnit": "AFP",
+  "upperBound": 2.5088000000000004,
+  "timeoutMs": 60000,
+  "httpRetries": 0,
+  "hostTools": 1,
+  "scenario": "hermes 原生工具往返",
+  "strategy": "static"
+}

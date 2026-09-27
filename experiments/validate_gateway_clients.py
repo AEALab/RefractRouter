@@ -10,8 +10,11 @@ from refractrouter.model_gateway import ModelGateway, create_server
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--client',choices=['dsh','codex'],required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--client',choices=['dsh','codex','hermes'],required=True)
     parser.add_argument('--dsh-modules',type=Path);parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
+    parser.add_argument('--hermes-root',type=Path)
+    parser.add_argument('--strategy',choices=['static','stage'],default='static')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=False)
     observed=[]
     class Upstream(BaseHTTPRequestHandler):
@@ -26,9 +29,10 @@ def main():
             if found:
                 delta={'content':'GATEWAY_CLIENT_OK'};finish='stop'
             else:
-                name='refract_local_echo' if args.client=='dsh' else 'exec_command'
+                name={'dsh':'refract_local_echo','codex':'exec_command','hermes':'terminal'}[args.client]
                 if name not in names: raise ValueError('宿主工具未暴露')
                 params={} if args.client=='dsh' else {'cmd':'printf REFRACT_HOST_TOOL_OK','max_output_tokens':128}
+                if args.client=='hermes': params={'command':'printf REFRACT_HOST_TOOL_OK'}
                 delta={'tool_calls':[{'index':0,'id':'fixture_host_tool_1','type':'function','function':{'name':name,'arguments':json.dumps(params)}}]};finish='tool_calls'
             self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers()
             for value in ({'choices':[{'index':0,'delta':delta,'finish_reason':None}]},
@@ -42,21 +46,38 @@ def main():
         'models':[{'id':'fixture','provider':'fixture','model':'fixture','contextWindow':1000000,
             'maxOutputTokens':256,'inputPer1k':.001,'outputPer1k':.002,'deployment':'local'}],
         'roles':{'efficient':'fixture'}}
+    if args.strategy=='stage':
+        config['models'][0]['reasoningEffort']='low'
+        config['models'].append({**config['models'][0], 'id':'capable-fixture',
+            'model':'capable-fixture'})
+        config['roles']['capable']='capable-fixture'
+    elif args.client=='hermes': config['models'][0]['reasoningEffort']='low'
     gw=ModelGateway({'planningRouting':config,'providers':{'fixture':{'baseURL':f'http://127.0.0.1:{up.server_port}/v1'}}},args.output/'runs')
     server=create_server(gw,port=0);threading.Thread(target=server.serve_forever,daemon=True).start()
     base=f'http://127.0.0.1:{server.server_port}/v1'
     if args.client=='dsh':
         if not args.dsh_modules: raise ValueError('请指定实际 DSH 模块目录')
-        command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base]
+        command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base,'256',args.strategy]
+    elif args.client=='hermes':
+        if not args.hermes_root: raise ValueError('请指定本机 Hermes 安装目录')
+        command=[str(args.hermes_root/'venv/bin/python'), 'validation/hermes/check_gateway.py',str(args.hermes_root),base,args.strategy]
     else:
         command=['codex','exec','--ignore-user-config','--ignore-rules','--ephemeral','--skip-git-repo-check',
             '-s','read-only','-c','web_search="disabled"','-c','model_provider="refract-fixture"',
             '-c',f'model_providers.refract-fixture={{name="Refract fixture",base_url="{base}",wire_api="responses",request_max_retries=0,stream_max_retries=0}}',
-            '-m','refract/static','请执行 printf REFRACT_HOST_TOOL_OK 一次，收到标记后回答 GATEWAY_CLIENT_OK。']
+            '-m','refract/'+args.strategy,'请执行 printf REFRACT_HOST_TOOL_OK 一次，收到标记后回答 GATEWAY_CLIENT_OK。']
+    if args.client == 'codex' and args.codex_baseline:
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('codex_catalog','validation/codex/model_catalog.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        adapted=module.catalog(json.loads(args.codex_baseline.read_text()),args.codex_baseline_model,gw.models())
+        path=(args.output/'codex-models.json').resolve()
+        path.write_text(json.dumps(adapted));path.chmod(0o600)
+        command[-1:-1]=['-c',f'model_catalog_json={json.dumps(str(path))}']
     try:
         result=subprocess.run(command,text=True,capture_output=True,timeout=60)
         success=result.returncode==0 and 'GATEWAY_CLIENT_OK' in result.stdout if args.client=='codex' else result.returncode==0
-        summary={'client':args.client,'success':success,'exitCode':result.returncode,'upstreamCalls':observed,'paidCalls':0,
+        summary={'client':args.client,'strategy':args.strategy,'success':success,'exitCode':result.returncode,'upstreamCalls':observed,'paidCalls':0,
             'routerTasks':len(gw.runtime.runs),'hostToolResultReceived':any(r['toolResults'] for r in observed)}
         (args.output/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
         (args.output/'client-stdout.txt').write_text(result.stdout)
