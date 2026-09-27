@@ -1,0 +1,322 @@
+{
+  "schemaVersion": "task-judge-acceptance-v2",
+  "analyses": [
+    {
+      "source": "reports/task-judge-audit-20260926/offline.json",
+      "mode": "production",
+      "groups": {
+        "capability-probe": {
+          "total": 4,
+          "acceptable": 0,
+          "selected": 0
+        },
+        "judge-unclear": {
+          "total": 2,
+          "acceptable": 2,
+          "selected": 0
+        },
+        "judge-equal": {
+          "total": 0,
+          "acceptable": 0,
+          "selected": 0
+        }
+      },
+      "cases": [
+        {
+          "id": "zh-terminal",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "终端工具资格应先由准入判断"
+        },
+        {
+          "id": "en-terminal",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "终端工具资格应先由准入判断"
+        },
+        {
+          "id": "zh-image",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "图片输入由附件和适配器能力准入判断"
+        },
+        {
+          "id": "en-image",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "图片输入由附件和适配器能力准入判断"
+        },
+        {
+          "id": "zh-unclear",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        },
+        {
+          "id": "en-unclear",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        }
+      ]
+    },
+    {
+      "source": "reports/task-judge-audit-20260926/choice-probe.json",
+      "mode": "choice-probe",
+      "groups": {
+        "capability-probe": {
+          "total": 4,
+          "acceptable": 3,
+          "selected": 0
+        },
+        "judge-unclear": {
+          "total": 2,
+          "acceptable": 2,
+          "selected": 0
+        },
+        "judge-equal": {
+          "total": 0,
+          "acceptable": 0,
+          "selected": 0
+        }
+      },
+      "cases": [
+        {
+          "id": "zh-terminal",
+          "group": "capability-probe",
+          "outcome": "terminal",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "终端工具资格应先由准入判断"
+        },
+        {
+          "id": "en-terminal",
+          "group": "capability-probe",
+          "outcome": "terminal",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "终端工具资格应先由准入判断"
+        },
+        {
+          "id": "zh-image",
+          "group": "capability-probe",
+          "outcome": "vision",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "图片输入由附件和适配器能力准入判断"
+        },
+        {
+          "id": "en-image",
+          "group": "capability-probe",
+          "outcome": "text-only",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "图片输入由附件和适配器能力准入判断"
+        },
+        {
+          "id": "zh-unclear",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        },
+        {
+          "id": "en-unclear",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        }
+      ]
+    },
+    {
+      "source": "reports/task-judge-audit-20260926/holdout-production.json",
+      "mode": "production",
+      "groups": {
+        "capability-probe": {
+          "total": 4,
+          "acceptable": 0,
+          "selected": 0
+        },
+        "judge-unclear": {
+          "total": 2,
+          "acceptable": 2,
+          "selected": 0
+        },
+        "judge-equal": {
+          "total": 2,
+          "acceptable": 2,
+          "selected": 0
+        }
+      },
+      "cases": [
+        {
+          "id": "zh-json",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "结构化输出能力尚未进入当前硬准入合同，不能计入产品路由质量"
+        },
+        {
+          "id": "en-web",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "网页工具资格尚未按模型逐工具声明，不能计入产品路由质量"
+        },
+        {
+          "id": "zh-video",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "原生影片输入由附件和适配器能力准入判断"
+        },
+        {
+          "id": "en-edit",
+          "group": "capability-probe",
+          "outcome": "insufficient",
+          "acceptable": false,
+          "usefulSelection": false,
+          "reason": "文件编辑和测试工具资格尚未按模型逐工具声明，不能计入产品路由质量"
+        },
+        {
+          "id": "zh-unclear-holdout",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        },
+        {
+          "id": "en-unclear-holdout",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        },
+        {
+          "id": "zh-equal",
+          "group": "judge-equal",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "两候选都具备普通文本能力，平分时按模型池优先顺序"
+        },
+        {
+          "id": "en-equal",
+          "group": "judge-equal",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "两候选都具备普通文本能力，平分时按模型池优先顺序"
+        }
+      ]
+    },
+    {
+      "source": "reports/task-judge-audit-20260926/holdout-choice-probe.json",
+      "mode": "choice-probe",
+      "groups": {
+        "capability-probe": {
+          "total": 4,
+          "acceptable": 4,
+          "selected": 0
+        },
+        "judge-unclear": {
+          "total": 2,
+          "acceptable": 2,
+          "selected": 0
+        },
+        "judge-equal": {
+          "total": 2,
+          "acceptable": 2,
+          "selected": 2
+        }
+      },
+      "cases": [
+        {
+          "id": "zh-json",
+          "group": "capability-probe",
+          "outcome": "schema",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "结构化输出能力尚未进入当前硬准入合同，不能计入产品路由质量"
+        },
+        {
+          "id": "en-web",
+          "group": "capability-probe",
+          "outcome": "browser",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "网页工具资格尚未按模型逐工具声明，不能计入产品路由质量"
+        },
+        {
+          "id": "zh-video",
+          "group": "capability-probe",
+          "outcome": "video",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "原生影片输入由附件和适配器能力准入判断"
+        },
+        {
+          "id": "en-edit",
+          "group": "capability-probe",
+          "outcome": "editor",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "文件编辑和测试工具资格尚未按模型逐工具声明，不能计入产品路由质量"
+        },
+        {
+          "id": "zh-unclear-holdout",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        },
+        {
+          "id": "en-unclear-holdout",
+          "group": "judge-unclear",
+          "outcome": "insufficient",
+          "acceptable": true,
+          "usefulSelection": false,
+          "reason": "任务缺少指代对象"
+        },
+        {
+          "id": "zh-equal",
+          "group": "judge-equal",
+          "outcome": "a",
+          "acceptable": true,
+          "usefulSelection": true,
+          "reason": "两候选都具备普通文本能力，平分时按模型池优先顺序"
+        },
+        {
+          "id": "en-equal",
+          "group": "judge-equal",
+          "outcome": "b",
+          "acceptable": true,
+          "usefulSelection": true,
+          "reason": "两候选都具备普通文本能力，平分时按模型池优先顺序"
+        }
+      ]
+    }
+  ],
+  "limits": "capability-probe 仅检验提问接口；其结果不计入产品选模质量。judge-equal 的备用属于安全结果，有效选模另列。"
+}

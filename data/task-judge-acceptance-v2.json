@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "task-judge-acceptance-v2",
+  "createdAt": "2026-09-26",
+  "note": "原始题目及模型输出保持不变。能力差异题只作为接口探针；生产验收须先核对结构化能力准入。相同能力题允许任一合格候选，备用也属安全结果，另统计有效选模覆盖。",
+  "cases": [
+    {"id": "zh-terminal", "group": "capability-probe", "acceptable": ["terminal"], "reason": "终端工具资格应先由准入判断"},
+    {"id": "en-terminal", "group": "capability-probe", "acceptable": ["terminal"], "reason": "终端工具资格应先由准入判断"},
+    {"id": "zh-image", "group": "capability-probe", "acceptable": ["vision"], "reason": "图片输入由附件和适配器能力准入判断"},
+    {"id": "en-image", "group": "capability-probe", "acceptable": ["vision"], "reason": "图片输入由附件和适配器能力准入判断"},
+    {"id": "zh-json", "group": "capability-probe", "acceptable": ["schema"], "reason": "结构化输出能力尚未进入当前硬准入合同，不能计入产品路由质量"},
+    {"id": "en-web", "group": "capability-probe", "acceptable": ["browser"], "reason": "网页工具资格尚未按模型逐工具声明，不能计入产品路由质量"},
+    {"id": "zh-video", "group": "capability-probe", "acceptable": ["video"], "reason": "原生影片输入由附件和适配器能力准入判断"},
+    {"id": "en-edit", "group": "capability-probe", "acceptable": ["editor"], "reason": "文件编辑和测试工具资格尚未按模型逐工具声明，不能计入产品路由质量"},
+    {"id": "zh-unclear", "group": "judge-unclear", "acceptable": ["insufficient"], "reason": "任务缺少指代对象"},
+    {"id": "en-unclear", "group": "judge-unclear", "acceptable": ["insufficient"], "reason": "任务缺少指代对象"},
+    {"id": "zh-unclear-holdout", "group": "judge-unclear", "acceptable": ["insufficient"], "reason": "任务缺少指代对象"},
+    {"id": "en-unclear-holdout", "group": "judge-unclear", "acceptable": ["insufficient"], "reason": "任务缺少指代对象"},
+    {"id": "zh-equal", "group": "judge-equal", "acceptable": ["a", "b", "insufficient"], "usefulSelection": ["a", "b"], "reason": "两候选都具备普通文本能力，平分时按模型池优先顺序"},
+    {"id": "en-equal", "group": "judge-equal", "acceptable": ["a", "b", "insufficient"], "usefulSelection": ["a", "b"], "reason": "两候选都具备普通文本能力，平分时按模型池优先顺序"}
+  ]
+}

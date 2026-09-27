@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "task-judge-audit-v1",
+  "date": "2026-09-26",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "cases": [
+    {
+      "id": "zh-json",
+      "task": "返回符合指定 JSON Schema 的采购记录。",
+      "candidates": [
+        {"id": "schema", "card": "已验证支持严格 JSON Schema 输出。"},
+        {"id": "plain", "card": "只能输出普通文本，不支持结构化格式约束。"}
+      ],
+      "expected": "schema"
+    },
+    {
+      "id": "en-web",
+      "task": "Look up today's weather using the web and cite the source.",
+      "candidates": [
+        {"id": "browser", "card": "Verified web browsing and source citation tools."},
+        {"id": "offline", "card": "Offline text model without web access."}
+      ],
+      "expected": "browser"
+    },
+    {
+      "id": "zh-video",
+      "task": "分析我上传的原生视频文件，按时间线列出画面变化。",
+      "candidates": [
+        {"id": "video", "card": "已验收原生视频输入和时间信息读取。"},
+        {"id": "image", "card": "仅接通静态图片输入，无法接收视频。"}
+      ],
+      "expected": "video"
+    },
+    {
+      "id": "en-edit",
+      "task": "Edit the repository files and run the existing tests.",
+      "candidates": [
+        {"id": "editor", "card": "Verified file editing and test execution tools."},
+        {"id": "reader", "card": "Can only read files; no write or test execution tools."}
+      ],
+      "expected": "editor"
+    },
+    {
+      "id": "zh-unclear-holdout",
+      "task": "帮我把这个弄好。",
+      "candidates": [
+        {"id": "a", "card": "可处理文本任务。"},
+        {"id": "b", "card": "可处理文本任务。"}
+      ],
+      "expected": "insufficient"
+    },
+    {
+      "id": "en-unclear-holdout",
+      "task": "Fix the issue in that thing.",
+      "candidates": [
+        {"id": "a", "card": "Can process text tasks."},
+        {"id": "b", "card": "Can process text tasks."}
+      ],
+      "expected": "insufficient"
+    },
+    {
+      "id": "zh-equal",
+      "task": "写一句普通的中文问候语。",
+      "candidates": [
+        {"id": "a", "card": "已验证可生成普通中文文本。"},
+        {"id": "b", "card": "已验证可生成普通中文文本。"}
+      ],
+      "expected": "insufficient"
+    },
+    {
+      "id": "en-equal",
+      "task": "Write a short greeting in English.",
+      "candidates": [
+        {"id": "a", "card": "Verified ordinary English text generation."},
+        {"id": "b", "card": "Verified ordinary English text generation."}
+      ],
+      "expected": "insufficient"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "task-judge-audit-result-v1",
+  "recordedAt": "2026-09-26T09:59:06.811340+00:00",
+  "suite": "data/task-judge-holdout-20260926.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "mode": "choice-probe",
+  "coldStartMs": 1020.0750000076368,
+  "matched": 6,
+  "total": 8,
+  "cases": [
+    {
+      "id": "zh-json",
+      "expected": "schema",
+      "outcome": "schema",
+      "matched": true,
+      "probabilities": {
+        "schema": 0.7987,
+        "plain": 0.1389,
+        "insufficient": 0.0624
+      },
+      "confidence": 0.4295,
+      "usage": {
+        "input_tokens": 81,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "en-web",
+      "expected": "browser",
+      "outcome": "browser",
+      "matched": true,
+      "probabilities": {
+        "browser": 0.895,
+        "offline": 0.025,
+        "insufficient": 0.0799
+      },
+      "confidence": 0.6418,
+      "usage": {
+        "input_tokens": 81,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "zh-video",
+      "expected": "video",
+      "outcome": "video",
+      "matched": true,
+      "probabilities": {
+        "video": 0.8239,
+        "image": 0.0849,
+        "insufficient": 0.0912
+      },
+      "confidence": 0.4654,
+      "usage": {
+        "input_tokens": 91,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "en-edit",
+      "expected": "editor",
+      "outcome": "editor",
+      "matched": true,
+      "probabilities": {
+        "editor": 0.9786,
+        "reader": 0.0111,
+        "insufficient": 0.0103
+      },
+      "confidence": 0.8923,
+      "usage": {
+        "input_tokens": 82,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "zh-unclear-holdout",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "probabilities": {
+        "a": 0.1483,
+        "b": 0.1353,
+        "insufficient": 0.7164
+      },
+      "confidence": 0.2786,
+      "usage": {
+        "input_tokens": 69,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "en-unclear-holdout",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "probabilities": {
+        "a": 0.1362,
+        "b": 0.1811,
+        "insufficient": 0.6828
+      },
+      "confidence": 0.234,
+      "usage": {
+        "input_tokens": 69,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "zh-equal",
+      "expected": "insufficient",
+      "outcome": "a",
+      "matched": false,
+      "probabilities": {
+        "a": 0.4553,
+        "b": 0.3096,
+        "insufficient": 0.2351
+      },
+      "confidence": 0.0337,
+      "usage": {
+        "input_tokens": 76,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "en-equal",
+      "expected": "insufficient",
+      "outcome": "b",
+      "matched": false,
+      "probabilities": {
+        "a": 0.4044,
+        "b": 0.5301,
+        "insufficient": 0.0655
+      },
+      "confidence": 0.198,
+      "usage": {
+        "input_tokens": 71,
+        "output_tokens": 0
+      }
+    }
+  ]
+}

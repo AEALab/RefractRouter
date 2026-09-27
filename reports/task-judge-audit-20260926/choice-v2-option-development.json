@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "task-judge-audit-result-v1",
+  "recordedAt": "2026-09-26T10:27:05.521231+00:00",
+  "suite": "data/task-judge-audit-20260926.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "mode": "choice-v2",
+  "coldStartMs": 893.2247500633821,
+  "matched": 3,
+  "total": 6,
+  "cases": [
+    {
+      "id": "zh-terminal",
+      "expected": "terminal",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "terminal",
+      "score": 0.6485,
+      "missingInformation": 0.2287,
+      "scoreKind": "choice-probability",
+      "latencyMs": 38.912042044103146,
+      "usage": {
+        "input_tokens": 84,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2028,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "terminal",
+        "probabilities": {
+          "terminal": 0.6485,
+          "text-only": 0.1228,
+          "insufficient": 0.2287
+        }
+      }
+    },
+    {
+      "id": "en-terminal",
+      "expected": "terminal",
+      "outcome": "terminal",
+      "matched": true,
+      "selected": "terminal",
+      "score": 0.9299,
+      "missingInformation": 0.0564,
+      "scoreKind": "choice-probability",
+      "latencyMs": 15.88912506122142,
+      "usage": {
+        "input_tokens": 73,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.7374,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "terminal",
+        "probabilities": {
+          "terminal": 0.9299,
+          "text-only": 0.0137,
+          "insufficient": 0.0564
+        }
+      }
+    },
+    {
+      "id": "zh-image",
+      "expected": "vision",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "text-only",
+      "score": 0.4529,
+      "missingInformation": 0.2241,
+      "scoreKind": "choice-probability",
+      "latencyMs": 13.667791965417564,
+      "usage": {
+        "input_tokens": 71,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0361,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "text-only",
+        "probabilities": {
+          "vision": 0.323,
+          "text-only": 0.4529,
+          "insufficient": 0.2241
+        }
+      }
+    },
+    {
+      "id": "en-image",
+      "expected": "vision",
+      "outcome": "insufficient",
+      "matched": false,
+      "selected": "text-only",
+      "score": 0.6899,
+      "missingInformation": 0.0841,
+      "scoreKind": "choice-probability",
+      "latencyMs": 14.115500031039119,
+      "usage": {
+        "input_tokens": 65,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2714,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "text-only",
+        "probabilities": {
+          "vision": 0.226,
+          "text-only": 0.6899,
+          "insufficient": 0.0841
+        }
+      }
+    },
+    {
+      "id": "zh-unclear",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": null,
+      "score": 0.891,
+      "missingInformation": 0.891,
+      "scoreKind": "choice-probability",
+      "latencyMs": 9.849083027802408,
+      "usage": {
+        "input_tokens": 64,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6176,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "insufficient",
+        "probabilities": {
+          "a": 0.054,
+          "b": 0.055,
+          "insufficient": 0.891
+        }
+      }
+    },
+    {
+      "id": "en-unclear",
+      "expected": "insufficient",
+      "outcome": "insufficient",
+      "matched": true,
+      "selected": null,
+      "score": 0.8382,
+      "missingInformation": 0.8382,
+      "scoreKind": "choice-probability",
+      "latencyMs": 9.339707903563976,
+      "usage": {
+        "input_tokens": 62,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.4956,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "insufficient",
+        "probabilities": {
+          "a": 0.0885,
+          "b": 0.0733,
+          "insufficient": 0.8382
+        }
+      }
+    }
+  ]
+}

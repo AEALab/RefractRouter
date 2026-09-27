@@ -94,6 +94,21 @@ test('原入口与规划路由共同注册，保持零重试',async()=>{
   assert.equal(f.credentials,0);assert.equal(f.spawns.length,0)
   await assert.rejects(f.adapter.resolveModel('refractagent','unknown'))
 })
+test('规划路由只在底层模型已接通图片输入时向 DSH 声明图片能力',async()=>{
+  const f=fixture()
+  const imageConfig=configure({planningRouting:{schemaVersion:'refractagent-planning-v3',enabled:true,
+    defaultStrategy:'task',models:[{id:'vision',provider:'ark',model:'vision',contextWindow:32000,
+      maxOutputTokens:2048,inputPer1k:1,outputPer1k:1,billingUnit:'AFP',deployment:'local',
+      capabilities:{mainExecutor:true,toolCalling:'verified',modalities:{imageInput:'connected'}}}]}})
+  const adapter=createAdapter(f.ctx,()=>imageConfig)
+  assert.deepEqual((await adapter.resolveModel('refractagent','planning')).inputModalities,['text','image'])
+  const textConfig=configure({planningRouting:{schemaVersion:'refractagent-planning-v3',enabled:true,
+    defaultStrategy:'task',models:[{id:'text',provider:'ark',model:'text',contextWindow:32000,
+      maxOutputTokens:2048,inputPer1k:1,outputPer1k:1,billingUnit:'AFP',deployment:'local',
+      capabilities:{mainExecutor:true,toolCalling:'verified',modalities:{imageInput:'declared'}}}]}})
+  const textAdapter=createAdapter(f.ctx,()=>textConfig)
+  assert.deepEqual((await textAdapter.resolveModel('refractagent','planning')).inputModalities,['text'])
+})
 test('legacy demo replay omits unavailable live fields for strict DSH JSON serialization',async()=>{
   const f=fixture();apply(f.ctx)
   const output=await chunks(f.adapter)

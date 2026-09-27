@@ -205,6 +205,15 @@ export interface ValidationTool {
   // Host input is untrusted even when a caller is type checked.
   execute(args: unknown, exec: ToolExecution): Promise<ValidationResult>
 }
+export interface ImageAttachmentRef {
+  attachmentId:string;mediaType:'image/png'|'image/jpeg'|'image/webp'|'image/gif'
+  bytes:number;width:number;height:number;name?:string
+  originalDimensions?:{width:number;height:number}
+}
+export interface AttachmentService {
+  saveImages(inputs:readonly {data:Uint8Array;mediaType:ImageAttachmentRef['mediaType'];name?:string}[]):Promise<readonly ImageAttachmentRef[]>
+  readImage(ref:ImageAttachmentRef,signal?:AbortSignal):Promise<{ref:ImageAttachmentRef;data:Uint8Array}>
+}
 export interface DshContext {
   tools: { register(tool: ValidationTool): void }
   credentials: {
@@ -212,6 +221,7 @@ export interface DshContext {
     resolve(reference: string): Promise<{ value: string } | undefined>
   }
   llm: LlmService
+  attachments?:AttachmentService
   sandboxPolicy: { resolve(options: { session?: { header: { cwd?: string } } }): SandboxPolicy }
   sandbox: { confine(argv: string[], policy: SandboxPolicy): {
     argv: string[]; enforcement: SandboxEnforcement

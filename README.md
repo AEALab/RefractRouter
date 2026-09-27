@@ -4,6 +4,9 @@
 提供六类模型策略；与现有 DAG 自动路由并存，默认不启用真实调用。
 Stage 已完成结构化工具证据、精确保持语义与单模型预算修正；首轮三路线效果协议见
 [Stage 阶段路由实验](docs/stage-routing-study.md)。
+Task 多模型池、轻量 LLM Judge、本地 Laya-MLX Judge 与图片接线见
+[Task 多模型路由、本地 Judge 与媒体接入](docs/task-local-judge-media.md)。当前 DSH 0.1.5 缺少
+原生影片合同，影片输入、播放与持久化尚未完成。
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 

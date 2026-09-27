@@ -121,7 +121,7 @@ Ark Agent Plan AFP 系数相同的记录只显示单位待核对，不改写原�
 | --- | --- |
 | Static | 固定 efficient；高级随机按冻结权重和 seed 在每个任务开始时选一次，工具续接保持同一模型，默认两档权重 1 |
 | Stage | 最近 3 条有效工具证据、阈值 0.5、强模型保持 2 轮；无信号使用默认高效模型 |
-| Task | 每任务一次能力判别；基础阈值 0.5，边界修正步长 0.1；无效结果保守选择 capable |
+| Task | v3 从有序模型池选择一次；单一合格候选直选，多候选使用一次 LLM 或本地 Judge；不确定时只使用指定备援 |
 | Composite | 一次 Task 形成默认档位，再逐轮 Stage；普通续接不重复分类 |
 | Advisor | efficient 执行，结束轮审核；默认最多审核 1 次、返工 1 次；停滞审核默认关闭 |
 | Escalation | 高效输出后判别，连续 2 次升级判断后丢弃当轮弱回复，强模型接管并锁定当前任务 |
@@ -156,13 +156,14 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
   已消费证据 ID 最多保留 128 条；旧的重复失败不会因后续无关事件再次触发升级。
   当前简化分数为 `tanh(0.5 × (severity / 0.7 + spinning - production / 0.7))`。
   不把持续检索自动判为空转。默认数值未经收益实验校准。
-- Task 判别输出不合法时走强模型；审核／升级判别不合法则停止交付。
+- Task v3 判别输出不合法时停止，不自动修复或重复调用；正常不确定才检查指定备援。
+  Composite 仍维持既有两档判别合同，后续升级另行验收。
 - Prefill、任意策略编排、在线训练及全局子 Agent 预算不在本轮实现中。
 
 ## 进程协议与任务状态
 
 执行 `refractagent planning-worker --runs-dir PATH`。
-协议版本 `refractagent-planning/2`，UTF-8 NDJSON，单条上限 16 MiB。
+协议版本 `refractagent-planning/3`，UTF-8 NDJSON，单条上限 16 MiB。
 每个请求带唯一 id、protocol、op；响应回传同一 id、ok 和 result／error。
 
 | 操作 | 结果 |

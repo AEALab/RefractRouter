@@ -14,11 +14,18 @@ def lookup(request):
     if not isinstance(host, dict):
         raise ValueError("宿主模型资料无效")
     result = {"provider": provider, "model": model, "billingUnit": unit,
-              "capacity": None, "pricing": None, "sources": {}, "issues": []}
+              "capacity": None, "pricing": None, "capabilities": None, "sources": {}, "issues": []}
     context, output = host.get("contextWindow"), host.get("maxOutputTokens")
     if type(context) is int and context >= 512 and type(output) is int and 0 < output < context:
         result["capacity"] = {"contextWindow": context, "maxOutputTokens": output}
         result["sources"]["capacity"] = "DSH 模型适配器"
+    modalities = host.get("inputModalities")
+    modalities = modalities if isinstance(modalities, list) and all(isinstance(item, str) for item in modalities) else []
+    result["capabilities"] = {"mainExecutor": True, "toolCalling": "connected",
+        "modalities": {"imageInput": "connected" if "image" in modalities else "unknown",
+                       "videoInput": "unknown", "imageOutput": "unknown", "videoOutput": "unknown"},
+        "formats": {}, "limits": {}, "source": "DSH 模型适配器",
+        "checkedAt": request.get("checkedAt") or "2026-09-26"}
     ark_plan_route = provider == "ark-plan" or request.get("providerBaseURL") == \
         "https://ark.cn-beijing.volces.com/api/plan/v3"
     if unit == "AUTO":

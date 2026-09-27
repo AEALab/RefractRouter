@@ -32,6 +32,8 @@ DSH 拥有原生 Agent 循环、工具、审批、会话与上下文压缩；Pyt
 TypeScript 只传递原生请求、执行核心签发的模型调用及展示轨迹。
 此路径不创建 DAG，也不复用 Python 内部工具循环。完整合同见
 [规划路由](trajectory-routing-strategies.md)。
+Task v3 的模型池、共同 Judge 合同、本地 Laya-MLX 及媒体边界见
+[Task 多模型路由、本地 Judge 与媒体接入](task-local-judge-media.md)。
 
 ## 调用与执行边界
 
