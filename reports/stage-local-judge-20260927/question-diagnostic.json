@@ -1,0 +1,3842 @@
+{
+  "schemaVersion": "stage-question-diagnostic-v1",
+  "recordedAt": "2026-09-27T09:26:15.394202+00:00",
+  "purpose": "同一批案例的诊断对照；不能作为新问法独立质量验收",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "summary": {
+    "original": {
+      "matched": 6,
+      "outcomes": {
+        "UNCERTAIN": 24
+      },
+      "normalEfficient": 0,
+      "strongSentEfficient": 0,
+      "capacityFallbacks": 0
+    },
+    "explicit": {
+      "matched": 6,
+      "outcomes": {
+        "UNCERTAIN": 24
+      },
+      "normalEfficient": 0,
+      "strongSentEfficient": 0,
+      "capacityFallbacks": 0
+    },
+    "direct-structured": {
+      "matched": 11,
+      "outcomes": {
+        "NEED_STRONG": 14,
+        "EFFICIENT_OK": 10
+      },
+      "normalEfficient": 2,
+      "strongSentEfficient": 1,
+      "capacityFallbacks": 0
+    },
+    "direct-narrative": {
+      "matched": 8,
+      "outcomes": {
+        "NEED_STRONG": 20,
+        "UNCERTAIN": 4
+      },
+      "normalEfficient": 0,
+      "strongSentEfficient": 0,
+      "capacityFallbacks": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "explore-zh-1",
+      "group": "explore",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0295,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3602,
+            "NORMAL_EXPLORATION": 0.1602,
+            "STALLED": 0.227,
+            "INSUFFICIENT": 0.2527
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0627,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.2065,
+            "INSUFFICIENT": 0.5044,
+            "UNSUITABLE": 0.2891
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0895,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2281,
+            "ABSENT": 0.2222,
+            "UNKNOWN": 0.5497
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 872,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-1",
+      "group": "explore",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0377,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.209,
+            "NORMAL_EXPLORATION": 0.1794,
+            "STALLED": 0.3943,
+            "INSUFFICIENT": 0.2173
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0277,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.4084,
+            "INSUFFICIENT": 0.2229,
+            "UNSUITABLE": 0.3686
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0336,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2718,
+            "ABSENT": 0.2637,
+            "UNKNOWN": 0.4646
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 962,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-1",
+      "group": "explore",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2445,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3024,
+            "CAPABLE": 0.6322,
+            "UNKNOWN": 0.0654
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 352,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-1",
+      "group": "explore",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1805,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1706,
+            "CAPABLE": 0.6418,
+            "UNKNOWN": 0.1877
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-1",
+      "group": "explore",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0548,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3896,
+            "NORMAL_EXPLORATION": 0.2882,
+            "STALLED": 0.1855,
+            "INSUFFICIENT": 0.1367
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0825,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1469,
+            "INSUFFICIENT": 0.444,
+            "UNSUITABLE": 0.4091
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0715,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3136,
+            "ABSENT": 0.1831,
+            "UNKNOWN": 0.5033
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 866,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-1",
+      "group": "explore",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0252,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.2894,
+            "NORMAL_EXPLORATION": 0.3286,
+            "STALLED": 0.2236,
+            "INSUFFICIENT": 0.1584
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0345,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.3235,
+            "INSUFFICIENT": 0.2265,
+            "UNSUITABLE": 0.4501
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0151,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PRESENT",
+          "probabilities": {
+            "PRESENT": 0.3954,
+            "ABSENT": 0.2528,
+            "UNKNOWN": 0.3517
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 956,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-1",
+      "group": "explore",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4109,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.7362,
+            "CAPABLE": 0.2441,
+            "UNKNOWN": 0.0197
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 350,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-1",
+      "group": "explore",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.159,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.193,
+            "CAPABLE": 0.6229,
+            "UNKNOWN": 0.1841
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 194,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-1",
+      "group": "explore",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.2668,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0517,
+            "NORMAL_EXPLORATION": 0.107,
+            "STALLED": 0.6258,
+            "INSUFFICIENT": 0.2155
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1326,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1175,
+            "INSUFFICIENT": 0.5363,
+            "UNSUITABLE": 0.3463
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.2276,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1257,
+            "ABSENT": 0.2002,
+            "UNKNOWN": 0.6741
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 896,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-1",
+      "group": "explore",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.2987,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0574,
+            "NORMAL_EXPLORATION": 0.0775,
+            "STALLED": 0.6506,
+            "INSUFFICIENT": 0.2144
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0296,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.3358,
+            "INSUFFICIENT": 0.2291,
+            "UNSUITABLE": 0.4351
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0798,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2073,
+            "ABSENT": 0.2587,
+            "UNKNOWN": 0.534
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 986,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-1",
+      "group": "explore",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.256,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.5667,
+            "CAPABLE": 0.3934,
+            "UNKNOWN": 0.0399
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 360,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-1",
+      "group": "explore",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0637,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.2044,
+            "CAPABLE": 0.505,
+            "UNKNOWN": 0.2906
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 203,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-2",
+      "group": "explore",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0376,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.2028,
+            "NORMAL_EXPLORATION": 0.1448,
+            "STALLED": 0.3197,
+            "INSUFFICIENT": 0.3326
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1037,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1349,
+            "INSUFFICIENT": 0.5,
+            "UNSUITABLE": 0.3651
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1304,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2236,
+            "ABSENT": 0.1829,
+            "UNKNOWN": 0.5934
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 872,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-2",
+      "group": "explore",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0649,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2199,
+            "NORMAL_EXPLORATION": 0.1083,
+            "STALLED": 0.3948,
+            "INSUFFICIENT": 0.2769
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0343,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2346,
+            "INSUFFICIENT": 0.3087,
+            "UNSUITABLE": 0.4567
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1564,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.199,
+            "ABSENT": 0.1808,
+            "UNKNOWN": 0.6202
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 962,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-2",
+      "group": "explore",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1601,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3838,
+            "CAPABLE": 0.5259,
+            "UNKNOWN": 0.0903
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 352,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-zh-2",
+      "group": "explore",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0557,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1778,
+            "CAPABLE": 0.4265,
+            "UNKNOWN": 0.3956
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-2",
+      "group": "explore",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.038,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.1246,
+            "NORMAL_EXPLORATION": 0.2549,
+            "STALLED": 0.2969,
+            "INSUFFICIENT": 0.3236
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1462,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1059,
+            "INSUFFICIENT": 0.3535,
+            "UNSUITABLE": 0.5405
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1276,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2775,
+            "ABSENT": 0.1491,
+            "UNKNOWN": 0.5734
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 869,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-2",
+      "group": "explore",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0958,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1179,
+            "NORMAL_EXPLORATION": 0.1306,
+            "STALLED": 0.3801,
+            "INSUFFICIENT": 0.3714
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.3493,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1134,
+            "INSUFFICIENT": 0.1254,
+            "UNSUITABLE": 0.7612
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.113,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2526,
+            "ABSENT": 0.1771,
+            "UNKNOWN": 0.5703
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 959,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-2",
+      "group": "explore",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1729,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.2865,
+            "CAPABLE": 0.6018,
+            "UNKNOWN": 0.1118
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 351,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-en-2",
+      "group": "explore",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0982,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "EFFICIENT": 0.1315,
+            "CAPABLE": 0.4188,
+            "UNKNOWN": 0.4497
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-2",
+      "group": "explore",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.2124,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.0757,
+            "NORMAL_EXPLORATION": 0.1442,
+            "STALLED": 0.1819,
+            "INSUFFICIENT": 0.5983
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.2437,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.04,
+            "INSUFFICIENT": 0.5144,
+            "UNSUITABLE": 0.4456
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.2107,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2284,
+            "ABSENT": 0.1178,
+            "UNKNOWN": 0.6538
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 905,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-2",
+      "group": "explore",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.089,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.1462,
+            "NORMAL_EXPLORATION": 0.1303,
+            "STALLED": 0.2785,
+            "INSUFFICIENT": 0.445
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.4678,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0448,
+            "INSUFFICIENT": 0.1421,
+            "UNSUITABLE": 0.8131
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0839,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.18,
+            "ABSENT": 0.2939,
+            "UNKNOWN": 0.526
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 995,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-2",
+      "group": "explore",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2442,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3306,
+            "CAPABLE": 0.6121,
+            "UNKNOWN": 0.0574
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 363,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "explore-mix-2",
+      "group": "explore",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2556,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1824,
+            "CAPABLE": 0.6965,
+            "UNKNOWN": 0.121
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 206,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-1",
+      "group": "strong",
+      "variant": "original",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0262,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1898,
+            "NORMAL_EXPLORATION": 0.2201,
+            "STALLED": 0.3693,
+            "INSUFFICIENT": 0.2207
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0702,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.2141,
+            "INSUFFICIENT": 0.5211,
+            "UNSUITABLE": 0.2648
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1101,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1473,
+            "ABSENT": 0.3114,
+            "UNKNOWN": 0.5413
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-1",
+      "group": "strong",
+      "variant": "explicit",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0714,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1892,
+            "NORMAL_EXPLORATION": 0.122,
+            "STALLED": 0.4241,
+            "INSUFFICIENT": 0.2647
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0126,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.3161,
+            "INSUFFICIENT": 0.2751,
+            "UNSUITABLE": 0.4088
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1148,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1942,
+            "ABSENT": 0.2282,
+            "UNKNOWN": 0.5776
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 989,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-1",
+      "group": "strong",
+      "variant": "direct-structured",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2785,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3899,
+            "CAPABLE": 0.5786,
+            "UNKNOWN": 0.0315
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 361,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-1",
+      "group": "strong",
+      "variant": "direct-narrative",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.161,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.124,
+            "CAPABLE": 0.5987,
+            "UNKNOWN": 0.2773
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 204,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-1",
+      "group": "strong",
+      "variant": "original",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.202,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.1346,
+            "NORMAL_EXPLORATION": 0.5976,
+            "STALLED": 0.1699,
+            "INSUFFICIENT": 0.0979
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1535,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0921,
+            "INSUFFICIENT": 0.3987,
+            "UNSUITABLE": 0.5092
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0319,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2336,
+            "ABSENT": 0.3177,
+            "UNKNOWN": 0.4486
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 881,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-1",
+      "group": "strong",
+      "variant": "explicit",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0623,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.164,
+            "NORMAL_EXPLORATION": 0.2231,
+            "STALLED": 0.4356,
+            "INSUFFICIENT": 0.1773
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.2561,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1872,
+            "INSUFFICIENT": 0.1171,
+            "UNSUITABLE": 0.6957
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0832,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.236,
+            "ABSENT": 0.2224,
+            "UNKNOWN": 0.5416
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 971,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-1",
+      "group": "strong",
+      "variant": "direct-structured",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.251,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3978,
+            "CAPABLE": 0.5608,
+            "UNKNOWN": 0.0414
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 355,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-1",
+      "group": "strong",
+      "variant": "direct-narrative",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.256,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1731,
+            "CAPABLE": 0.6988,
+            "UNKNOWN": 0.1281
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 199,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-1",
+      "group": "strong",
+      "variant": "original",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0192,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.2876,
+            "NORMAL_EXPLORATION": 0.1783,
+            "STALLED": 0.2123,
+            "INSUFFICIENT": 0.3218
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0209,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.4136,
+            "INSUFFICIENT": 0.2422,
+            "UNSUITABLE": 0.3442
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0699,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.218,
+            "ABSENT": 0.2602,
+            "UNKNOWN": 0.5218
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 911,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-1",
+      "group": "strong",
+      "variant": "explicit",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0799,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2661,
+            "NORMAL_EXPLORATION": 0.0733,
+            "STALLED": 0.3363,
+            "INSUFFICIENT": 0.3242
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1435,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2125,
+            "INSUFFICIENT": 0.1803,
+            "UNSUITABLE": 0.6072
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0194,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2444,
+            "ABSENT": 0.3467,
+            "UNKNOWN": 0.4089
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 1001,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-1",
+      "group": "strong",
+      "variant": "direct-structured",
+      "expected": "NEED_STRONG",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4145,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.7046,
+            "CAPABLE": 0.2875,
+            "UNKNOWN": 0.0079
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 365,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-1",
+      "group": "strong",
+      "variant": "direct-narrative",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2734,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1414,
+            "CAPABLE": 0.7131,
+            "UNKNOWN": 0.1456
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 208,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-2",
+      "group": "strong",
+      "variant": "original",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0154,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.2647,
+            "NORMAL_EXPLORATION": 0.3266,
+            "STALLED": 0.2209,
+            "INSUFFICIENT": 0.1879
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0006,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.3308,
+            "INSUFFICIENT": 0.3491,
+            "UNSUITABLE": 0.32
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0153,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2874,
+            "ABSENT": 0.2911,
+            "UNKNOWN": 0.4214
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-2",
+      "group": "strong",
+      "variant": "explicit",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0129,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2145,
+            "NORMAL_EXPLORATION": 0.2274,
+            "STALLED": 0.3342,
+            "INSUFFICIENT": 0.2239
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1693,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.286,
+            "INSUFFICIENT": 0.1144,
+            "UNSUITABLE": 0.5997
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.031,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2367,
+            "ABSENT": 0.3147,
+            "UNKNOWN": 0.4486
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 989,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-2",
+      "group": "strong",
+      "variant": "direct-structured",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.3424,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3413,
+            "CAPABLE": 0.6413,
+            "UNKNOWN": 0.0174
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 361,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-zh-2",
+      "group": "strong",
+      "variant": "direct-narrative",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.163,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1445,
+            "CAPABLE": 0.6168,
+            "UNKNOWN": 0.2387
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 204,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-2",
+      "group": "strong",
+      "variant": "original",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1916,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0733,
+            "NORMAL_EXPLORATION": 0.1156,
+            "STALLED": 0.5496,
+            "INSUFFICIENT": 0.2614
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1985,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0995,
+            "INSUFFICIENT": 0.2778,
+            "UNSUITABLE": 0.6226
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1327,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1338,
+            "ABSENT": 0.3008,
+            "UNKNOWN": 0.5655
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 902,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-2",
+      "group": "strong",
+      "variant": "explicit",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.374,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0384,
+            "NORMAL_EXPLORATION": 0.0428,
+            "STALLED": 0.6767,
+            "INSUFFICIENT": 0.242
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.5433,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0456,
+            "INSUFFICIENT": 0.0983,
+            "UNSUITABLE": 0.8561
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.073,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2222,
+            "ABSENT": 0.2505,
+            "UNKNOWN": 0.5273
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 992,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-2",
+      "group": "strong",
+      "variant": "direct-structured",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2054,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3444,
+            "CAPABLE": 0.5826,
+            "UNKNOWN": 0.073
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 362,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-en-2",
+      "group": "strong",
+      "variant": "direct-narrative",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4569,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.0969,
+            "CAPABLE": 0.8196,
+            "UNKNOWN": 0.0835
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 206,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-2",
+      "group": "strong",
+      "variant": "original",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0305,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1637,
+            "NORMAL_EXPLORATION": 0.1943,
+            "STALLED": 0.3268,
+            "INSUFFICIENT": 0.3152
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1096,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1249,
+            "INSUFFICIENT": 0.3912,
+            "UNSUITABLE": 0.484
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1856,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1875,
+            "ABSENT": 0.1666,
+            "UNKNOWN": 0.6459
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 905,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-2",
+      "group": "strong",
+      "variant": "explicit",
+      "expected": "NEED_STRONG",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0511,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1669,
+            "NORMAL_EXPLORATION": 0.1555,
+            "STALLED": 0.3843,
+            "INSUFFICIENT": 0.2933
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.189,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.3183,
+            "INSUFFICIENT": 0.0897,
+            "UNSUITABLE": 0.592
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1804,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1265,
+            "ABSENT": 0.2476,
+            "UNKNOWN": 0.6259
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 995,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-2",
+      "group": "strong",
+      "variant": "direct-structured",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4783,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1918,
+            "CAPABLE": 0.7907,
+            "UNKNOWN": 0.0175
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 363,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "strong-mix-2",
+      "group": "strong",
+      "variant": "direct-narrative",
+      "expected": "NEED_STRONG",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2379,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1171,
+            "CAPABLE": 0.6798,
+            "UNKNOWN": 0.2031
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 206,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-1",
+      "group": "down",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1823,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1592,
+            "NORMAL_EXPLORATION": 0.0915,
+            "STALLED": 0.5754,
+            "INSUFFICIENT": 0.1738
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0644,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2644,
+            "INSUFFICIENT": 0.2217,
+            "UNSUITABLE": 0.5139
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.248,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.143,
+            "ABSENT": 0.1622,
+            "UNKNOWN": 0.6948
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 917,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-1",
+      "group": "down",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.3378,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0945,
+            "NORMAL_EXPLORATION": 0.0447,
+            "STALLED": 0.6912,
+            "INSUFFICIENT": 0.1696
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0994,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.5225,
+            "INSUFFICIENT": 0.1501,
+            "UNSUITABLE": 0.3273
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0708,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "ABSENT",
+          "probabilities": {
+            "PRESENT": 0.1598,
+            "ABSENT": 0.4393,
+            "UNKNOWN": 0.4009
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 1007,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-1",
+      "group": "down",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.3014,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.5574,
+            "CAPABLE": 0.4228,
+            "UNKNOWN": 0.0198
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 367,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-1",
+      "group": "down",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1183,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1463,
+            "CAPABLE": 0.5553,
+            "UNKNOWN": 0.2984
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 210,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-1",
+      "group": "down",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.3387,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.7107,
+            "NORMAL_EXPLORATION": 0.0821,
+            "STALLED": 0.0935,
+            "INSUFFICIENT": 0.1137
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0327,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2218,
+            "INSUFFICIENT": 0.3413,
+            "UNSUITABLE": 0.437
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0283,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3837,
+            "ABSENT": 0.2201,
+            "UNKNOWN": 0.3962
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-1",
+      "group": "down",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.3697,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.7222,
+            "NORMAL_EXPLORATION": 0.0437,
+            "STALLED": 0.1231,
+            "INSUFFICIENT": 0.111
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1216,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1886,
+            "INSUFFICIENT": 0.2269,
+            "UNSUITABLE": 0.5845
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0009,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3186,
+            "ABSENT": 0.3282,
+            "UNKNOWN": 0.3532
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 989,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-1",
+      "group": "down",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2246,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.6155,
+            "CAPABLE": 0.3123,
+            "UNKNOWN": 0.0722
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 361,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-1",
+      "group": "down",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1913,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "EFFICIENT": 0.1283,
+            "CAPABLE": 0.2323,
+            "UNKNOWN": 0.6395
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 205,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-1",
+      "group": "down",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.2534,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0956,
+            "NORMAL_EXPLORATION": 0.0748,
+            "STALLED": 0.6266,
+            "INSUFFICIENT": 0.203
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.2645,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0859,
+            "INSUFFICIENT": 0.2294,
+            "UNSUITABLE": 0.6847
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.071,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3236,
+            "ABSENT": 0.1792,
+            "UNKNOWN": 0.4973
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 896,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-1",
+      "group": "down",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.3812,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0592,
+            "NORMAL_EXPLORATION": 0.0356,
+            "STALLED": 0.7024,
+            "INSUFFICIENT": 0.2028
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.2163,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1651,
+            "INSUFFICIENT": 0.1635,
+            "UNSUITABLE": 0.6714
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0149,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3334,
+            "ABSENT": 0.2596,
+            "UNKNOWN": 0.407
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 986,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-1",
+      "group": "down",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2622,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.4877,
+            "CAPABLE": 0.4811,
+            "UNKNOWN": 0.0313
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 360,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-1",
+      "group": "down",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0671,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.2022,
+            "CAPABLE": 0.5104,
+            "UNKNOWN": 0.2874
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 203,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-2",
+      "group": "down",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0348,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "NORMAL_EXPLORATION",
+          "probabilities": {
+            "PROGRESS": 0.1884,
+            "NORMAL_EXPLORATION": 0.3885,
+            "STALLED": 0.2259,
+            "INSUFFICIENT": 0.1972
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0505,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.4885,
+            "INSUFFICIENT": 0.2227,
+            "UNSUITABLE": 0.2888
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0088,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2829,
+            "ABSENT": 0.3215,
+            "UNKNOWN": 0.3956
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 917,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-2",
+      "group": "down",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0691,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2116,
+            "NORMAL_EXPLORATION": 0.1374,
+            "STALLED": 0.4405,
+            "INSUFFICIENT": 0.2104
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0575,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.444,
+            "INSUFFICIENT": 0.178,
+            "UNSUITABLE": 0.378
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1858,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "ABSENT",
+          "probabilities": {
+            "PRESENT": 0.1217,
+            "ABSENT": 0.6288,
+            "UNKNOWN": 0.2495
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 1007,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-2",
+      "group": "down",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4899,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.7848,
+            "CAPABLE": 0.2055,
+            "UNKNOWN": 0.0097
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 367,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-zh-2",
+      "group": "down",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0771,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.182,
+            "CAPABLE": 0.5144,
+            "UNKNOWN": 0.3036
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 210,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-2",
+      "group": "down",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.206,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.5987,
+            "NORMAL_EXPLORATION": 0.1063,
+            "STALLED": 0.1107,
+            "INSUFFICIENT": 0.1843
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0803,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1752,
+            "INSUFFICIENT": 0.5142,
+            "UNSUITABLE": 0.3105
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0354,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PRESENT",
+          "probabilities": {
+            "PRESENT": 0.4599,
+            "ABSENT": 0.3052,
+            "UNKNOWN": 0.2349
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 893,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-2",
+      "group": "down",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.059,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3419,
+            "NORMAL_EXPLORATION": 0.099,
+            "STALLED": 0.2458,
+            "INSUFFICIENT": 0.3133
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0191,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.3763,
+            "INSUFFICIENT": 0.2396,
+            "UNSUITABLE": 0.3841
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.002,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3207,
+            "ABSENT": 0.3146,
+            "UNKNOWN": 0.3647
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 983,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-2",
+      "group": "down",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.3237,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3734,
+            "CAPABLE": 0.6084,
+            "UNKNOWN": 0.0182
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 359,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-en-2",
+      "group": "down",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0144,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.2557,
+            "CAPABLE": 0.3968,
+            "UNKNOWN": 0.3475
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 203,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-2",
+      "group": "down",
+      "variant": "original",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.339,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0361,
+            "NORMAL_EXPLORATION": 0.103,
+            "STALLED": 0.6868,
+            "INSUFFICIENT": 0.1741
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.2611,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1215,
+            "INSUFFICIENT": 0.1773,
+            "UNSUITABLE": 0.7012
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.3871,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1166,
+            "ABSENT": 0.1006,
+            "UNKNOWN": 0.7828
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 893,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-2",
+      "group": "down",
+      "variant": "explicit",
+      "expected": "EFFICIENT_OK",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.4465,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.0442,
+            "NORMAL_EXPLORATION": 0.0471,
+            "STALLED": 0.7639,
+            "INSUFFICIENT": 0.1448
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0975,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2947,
+            "INSUFFICIENT": 0.1663,
+            "UNSUITABLE": 0.539
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1264,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2191,
+            "ABSENT": 0.1906,
+            "UNKNOWN": 0.5902
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 983,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-2",
+      "group": "down",
+      "variant": "direct-structured",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.29,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.4096,
+            "CAPABLE": 0.5654,
+            "UNKNOWN": 0.0249
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 359,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "down-mix-2",
+      "group": "down",
+      "variant": "direct-narrative",
+      "expected": "EFFICIENT_OK",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0483,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.2008,
+            "CAPABLE": 0.4623,
+            "UNKNOWN": 0.3369
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 202,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-1",
+      "group": "unknown",
+      "variant": "original",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.047,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.3074,
+            "NORMAL_EXPLORATION": 0.1072,
+            "STALLED": 0.2972,
+            "INSUFFICIENT": 0.2883
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0325,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.213,
+            "INSUFFICIENT": 0.4078,
+            "UNSUITABLE": 0.3792
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.215,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.19,
+            "ABSENT": 0.1421,
+            "UNKNOWN": 0.6679
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 872,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-1",
+      "group": "unknown",
+      "variant": "explicit",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1237,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2149,
+            "NORMAL_EXPLORATION": 0.055,
+            "STALLED": 0.428,
+            "INSUFFICIENT": 0.3021
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0363,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.3385,
+            "INSUFFICIENT": 0.2171,
+            "UNSUITABLE": 0.4444
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.3798,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1139,
+            "ABSENT": 0.1072,
+            "UNKNOWN": 0.7789
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 962,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-1",
+      "group": "unknown",
+      "variant": "direct-structured",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2512,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.4163,
+            "CAPABLE": 0.5446,
+            "UNKNOWN": 0.0391
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 352,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-1",
+      "group": "unknown",
+      "variant": "direct-narrative",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1332,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1978,
+            "CAPABLE": 0.5981,
+            "UNKNOWN": 0.2041
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-1",
+      "group": "unknown",
+      "variant": "original",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1323,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.4746,
+            "NORMAL_EXPLORATION": 0.0746,
+            "STALLED": 0.2853,
+            "INSUFFICIENT": 0.1655
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0941,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.165,
+            "INSUFFICIENT": 0.3037,
+            "UNSUITABLE": 0.5313
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.14,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3808,
+            "ABSENT": 0.104,
+            "UNKNOWN": 0.5151
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 869,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-1",
+      "group": "unknown",
+      "variant": "explicit",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1613,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2529,
+            "NORMAL_EXPLORATION": 0.048,
+            "STALLED": 0.4985,
+            "INSUFFICIENT": 0.2006
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1787,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.173,
+            "INSUFFICIENT": 0.1867,
+            "UNSUITABLE": 0.6403
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.3005,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1806,
+            "ABSENT": 0.0961,
+            "UNKNOWN": 0.7233
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 959,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-1",
+      "group": "unknown",
+      "variant": "direct-structured",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0858,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.3663,
+            "CAPABLE": 0.4832,
+            "UNKNOWN": 0.1505
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 351,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-1",
+      "group": "unknown",
+      "variant": "direct-narrative",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0711,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "EFFICIENT": 0.1724,
+            "CAPABLE": 0.3414,
+            "UNKNOWN": 0.4862
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-1",
+      "group": "unknown",
+      "variant": "original",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.0197,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.2135,
+            "NORMAL_EXPLORATION": 0.2533,
+            "STALLED": 0.3451,
+            "INSUFFICIENT": 0.1881
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1314,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "SUITABLE": 0.1271,
+            "INSUFFICIENT": 0.5533,
+            "UNSUITABLE": 0.3196
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0577,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2538,
+            "ABSENT": 0.2401,
+            "UNKNOWN": 0.5061
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 878,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-1",
+      "group": "unknown",
+      "variant": "explicit",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.079,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1918,
+            "NORMAL_EXPLORATION": 0.1241,
+            "STALLED": 0.4472,
+            "INSUFFICIENT": 0.237
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1663,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1804,
+            "INSUFFICIENT": 0.1901,
+            "UNSUITABLE": 0.6295
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1813,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.2033,
+            "ABSENT": 0.1564,
+            "UNKNOWN": 0.6403
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 968,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-1",
+      "group": "unknown",
+      "variant": "direct-structured",
+      "expected": "UNCERTAIN",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.3397,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.6626,
+            "CAPABLE": 0.3136,
+            "UNKNOWN": 0.0238
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 354,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-1",
+      "group": "unknown",
+      "variant": "direct-narrative",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.1069,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1828,
+            "CAPABLE": 0.5643,
+            "UNKNOWN": 0.2529
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 197,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-2",
+      "group": "unknown",
+      "variant": "original",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1386,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1418,
+            "NORMAL_EXPLORATION": 0.123,
+            "STALLED": 0.5321,
+            "INSUFFICIENT": 0.2031
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1509,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.1408,
+            "INSUFFICIENT": 0.2597,
+            "UNSUITABLE": 0.5996
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.4282,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.116,
+            "ABSENT": 0.0804,
+            "UNKNOWN": 0.8036
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 887,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-2",
+      "group": "unknown",
+      "variant": "explicit",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.2195,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "STALLED",
+          "probabilities": {
+            "PROGRESS": 0.1477,
+            "NORMAL_EXPLORATION": 0.0815,
+            "STALLED": 0.6101,
+            "INSUFFICIENT": 0.1607
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1833,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.2344,
+            "INSUFFICIENT": 0.1325,
+            "UNSUITABLE": 0.6331
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.5121,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.0851,
+            "ABSENT": 0.0692,
+            "UNKNOWN": 0.8458
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 977,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-2",
+      "group": "unknown",
+      "variant": "direct-structured",
+      "expected": "UNCERTAIN",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4575,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.768,
+            "CAPABLE": 0.2175,
+            "UNKNOWN": 0.0145
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 357,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-zh-2",
+      "group": "unknown",
+      "variant": "direct-narrative",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.0715,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.2224,
+            "CAPABLE": 0.5252,
+            "UNKNOWN": 0.2525
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 200,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-2",
+      "group": "unknown",
+      "variant": "original",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.085,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.0945,
+            "NORMAL_EXPLORATION": 0.2972,
+            "STALLED": 0.1964,
+            "INSUFFICIENT": 0.4119
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.3602,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.0442,
+            "INSUFFICIENT": 0.2252,
+            "UNSUITABLE": 0.7306
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.1742,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.1167,
+            "ABSENT": 0.2738,
+            "UNKNOWN": 0.6095
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 881,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-2",
+      "group": "unknown",
+      "variant": "explicit",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.1435,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "INSUFFICIENT",
+          "probabilities": {
+            "PROGRESS": 0.0855,
+            "NORMAL_EXPLORATION": 0.115,
+            "STALLED": 0.356,
+            "INSUFFICIENT": 0.4435
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.5026,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNSUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.072,
+            "INSUFFICIENT": 0.0866,
+            "UNSUITABLE": 0.8415
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.4907,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.0729,
+            "ABSENT": 0.0914,
+            "UNKNOWN": 0.8357
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 971,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-2",
+      "group": "unknown",
+      "variant": "direct-structured",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.2436,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.445,
+            "CAPABLE": 0.515,
+            "UNKNOWN": 0.0401
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 355,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-en-2",
+      "group": "unknown",
+      "variant": "direct-narrative",
+      "expected": "UNCERTAIN",
+      "outcome": "NEED_STRONG",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.3415,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "CAPABLE",
+          "probabilities": {
+            "EFFICIENT": 0.1371,
+            "CAPABLE": 0.7557,
+            "UNKNOWN": 0.1072
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 199,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-2",
+      "group": "unknown",
+      "variant": "original",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.4761,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.797,
+            "NORMAL_EXPLORATION": 0.0586,
+            "STALLED": 0.0681,
+            "INSUFFICIENT": 0.0763
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.0591,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.5049,
+            "INSUFFICIENT": 0.2224,
+            "UNSUITABLE": 0.2727
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0667,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PRESENT",
+          "probabilities": {
+            "PRESENT": 0.4976,
+            "ABSENT": 0.1881,
+            "UNKNOWN": 0.3144
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 899,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-2",
+      "group": "unknown",
+      "variant": "explicit",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "progress": {
+          "type": "choice",
+          "confidence": 0.3505,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "PROGRESS",
+          "probabilities": {
+            "PROGRESS": 0.7084,
+            "NORMAL_EXPLORATION": 0.0483,
+            "STALLED": 0.1396,
+            "INSUFFICIENT": 0.1037
+          }
+        },
+        "efficient": {
+          "type": "choice",
+          "confidence": 0.1472,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "SUITABLE",
+          "probabilities": {
+            "SUITABLE": 0.5592,
+            "INSUFFICIENT": 0.1128,
+            "UNSUITABLE": 0.3279
+          }
+        },
+        "missing": {
+          "type": "choice",
+          "confidence": 0.0151,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "PRESENT": 0.3082,
+            "ABSENT": 0.2739,
+            "UNKNOWN": 0.4179
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 989,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-2",
+      "group": "unknown",
+      "variant": "direct-structured",
+      "expected": "UNCERTAIN",
+      "outcome": "EFFICIENT_OK",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.4254,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "EFFICIENT",
+          "probabilities": {
+            "EFFICIENT": 0.7436,
+            "CAPABLE": 0.2396,
+            "UNKNOWN": 0.0168
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 361,
+        "output_tokens": 0
+      }
+    },
+    {
+      "id": "unknown-mix-2",
+      "group": "unknown",
+      "variant": "direct-narrative",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "answers": {
+        "route": {
+          "type": "choice",
+          "confidence": 0.3234,
+          "action": {
+            "act_probability": 1.0
+          },
+          "choice": "UNKNOWN",
+          "probabilities": {
+            "EFFICIENT": 0.0875,
+            "CAPABLE": 0.1754,
+            "UNKNOWN": 0.7371
+          }
+        }
+      },
+      "usage": {
+        "input_tokens": 204,
+        "output_tokens": 0
+      }
+    }
+  ],
+  "apiCalls": 0
+}

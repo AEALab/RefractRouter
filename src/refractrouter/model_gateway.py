@@ -587,6 +587,8 @@ def main():
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8088)
     parser.add_argument('--preflight', action='store_true')
+    parser.add_argument('--load-stage-judge', action='store_true',
+                        help='明确加载已下载的 Stage 本地 Judge；不下载权重')
     args = parser.parse_args()
     config = json.loads(args.config.read_text())
     token_env = config.get('authTokenEnv')
@@ -598,6 +600,14 @@ def main():
         print(json.dumps({'models': gateway.models(), 'modelCalls': 0, 'toolExecution': False}, ensure_ascii=False))
         gateway.close()
         return 0
+    if args.load_stage_judge:
+        local_config = deepcopy(gateway.planning)
+        local_config['defaultStrategy'] = 'stage'
+        try:
+            gateway.runtime.handle({'op': 'local-judge', 'config': local_config, 'action': 'load'})
+        except Exception:
+            gateway.close()
+            raise
     server = create_server(gateway, args.host, args.port, token)
     try:
         server.serve_forever()

@@ -34,6 +34,8 @@ def _worker(requests, responses):
                     value = adapter.decide(message["request"])
                 elif operation == "escalation":
                     value = adapter.decide_escalation(message["request"])
+                elif operation == "stage":
+                    value = adapter.decide_stage(message["request"])
                 else:
                     raise ValueError("未知本地 Judge 操作")
                 result = {"payload": value.payload, "model": value.model,

@@ -121,6 +121,9 @@ DSH 插件自身流式行为保持原状。
 
 ## 证据、错误和费用
 
+Stage 下一版已改为[规则与本地 Judge 协作设计](stage-local-judge-design.md)，撤销“不得调用
+Judge”的约束。下述证据行为描述当前已发布版本；新版判别、保持与降档逻辑尚未实现。
+
 `host_evidence.py` 定义中立工具事实合同。DSH 特定字段转换集中在 `dsh_evidence.py`，
 旧插件协议仍可读取。独立接口仅凭文本工具结果不能确认退出状态，记录为 `unclassified`；
 Stage 不把它当作成功或模型能力失败。Escalation 的 Judge 仍可审查文本轨迹，但分数需独立验收。
