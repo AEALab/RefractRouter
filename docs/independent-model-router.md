@@ -84,7 +84,7 @@ refractrouter-gateway --config /absolute/path/gateway.json \
 | `previous_response_id`、Responses 存储式增量会话 | 当前网关拒绝；由客户端保存并回传完整历史 |
 | DSH 0.1.5-rc.3 标准适配器与 ToolRuntime | 无 RefractAgent 插件的模拟上游、真实 Ark 两轮均通过 |
 | 本机 Codex CLI 0.154.0 | 实际 CLI + 模拟及真实 Ark 上游工具往返通过；限定 Static 与下述配置 |
-| Hermes、OpenClaw、Claude | 尚未分别验收 |
+| Hermes 0.21.5 | 已安装 AIAgent 原生循环及真实 Ark 工具往返通过；限定 Static |
 
 `stream=true` 时，Static/Stage/Task 及已接管的 Escalation 实时转发上游文字增量。
 工具调用在拼接完成、核心接受并结算后输出，防止部分工具参数被执行。
@@ -189,3 +189,15 @@ uv run python validation/codex/model_catalog.py \
 测量真实输入包络；该探测故意返回错误终止客户端，费用为零。
 
 依据：[Codex 官方配置说明](https://learn.chatgpt.com/docs/config-file/config-reference)。
+
+
+## 三客户端验收范围
+
+当前产品接入验证仅覆盖 **DSH、Codex、Hermes**。
+Hermes 的本机原生 Agent 接线及费用证据见
+[Hermes 验收报告](../reports/hermes-gateway-acceptance-20260927/README.md)。
+
+Hermes 应显式选择现有 profile，并使用模型目录声明的冻结推理档位；不更改日常默认配置。
+验收驱动位于 `validation/hermes/check_gateway.py`，直接调用已安装 Hermes 原生 Agent 循环，
+实例级关闭自动重试和模型回退。工具执行、上下文及权限属于 Hermes。
+本轮真模型只覆盖 Static；其他策略与逐客户端取消、故障注入按独立检查项推进。

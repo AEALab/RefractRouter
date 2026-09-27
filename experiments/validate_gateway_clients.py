@@ -10,9 +10,10 @@ from refractrouter.model_gateway import ModelGateway, create_server
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--client',choices=['dsh','codex'],required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--client',choices=['dsh','codex','hermes'],required=True)
     parser.add_argument('--dsh-modules',type=Path);parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
+    parser.add_argument('--hermes-root',type=Path)
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=False)
     observed=[]
     class Upstream(BaseHTTPRequestHandler):
@@ -27,9 +28,10 @@ def main():
             if found:
                 delta={'content':'GATEWAY_CLIENT_OK'};finish='stop'
             else:
-                name='refract_local_echo' if args.client=='dsh' else 'exec_command'
+                name={'dsh':'refract_local_echo','codex':'exec_command','hermes':'terminal'}[args.client]
                 if name not in names: raise ValueError('宿主工具未暴露')
                 params={} if args.client=='dsh' else {'cmd':'printf REFRACT_HOST_TOOL_OK','max_output_tokens':128}
+                if args.client=='hermes': params={'command':'printf REFRACT_HOST_TOOL_OK'}
                 delta={'tool_calls':[{'index':0,'id':'fixture_host_tool_1','type':'function','function':{'name':name,'arguments':json.dumps(params)}}]};finish='tool_calls'
             self.send_response(200);self.send_header('Content-Type','text/event-stream');self.end_headers()
             for value in ({'choices':[{'index':0,'delta':delta,'finish_reason':None}]},
@@ -43,12 +45,16 @@ def main():
         'models':[{'id':'fixture','provider':'fixture','model':'fixture','contextWindow':1000000,
             'maxOutputTokens':256,'inputPer1k':.001,'outputPer1k':.002,'deployment':'local'}],
         'roles':{'efficient':'fixture'}}
+    if args.client=='hermes': config['models'][0]['reasoningEffort']='low'
     gw=ModelGateway({'planningRouting':config,'providers':{'fixture':{'baseURL':f'http://127.0.0.1:{up.server_port}/v1'}}},args.output/'runs')
     server=create_server(gw,port=0);threading.Thread(target=server.serve_forever,daemon=True).start()
     base=f'http://127.0.0.1:{server.server_port}/v1'
     if args.client=='dsh':
         if not args.dsh_modules: raise ValueError('请指定实际 DSH 模块目录')
         command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base]
+    elif args.client=='hermes':
+        if not args.hermes_root: raise ValueError('请指定本机 Hermes 安装目录')
+        command=[str(args.hermes_root/'venv/bin/python'), 'validation/hermes/check_gateway.py',str(args.hermes_root),base]
     else:
         command=['codex','exec','--ignore-user-config','--ignore-rules','--ephemeral','--skip-git-repo-check',
             '-s','read-only','-c','web_search="disabled"','-c','model_provider="refract-fixture"',

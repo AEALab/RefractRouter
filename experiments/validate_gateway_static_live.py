@@ -17,12 +17,14 @@ def main():
     parser.add_argument('--dsh-modules',type=Path)
     parser.add_argument('--probe-client',action='store_true')
     parser.add_argument('--input-limit',type=int,default=8192)
-    parser.add_argument('--client',choices=['dsh','codex'],default='dsh')
+    parser.add_argument('--client',choices=['dsh','codex','hermes'],default='dsh')
     parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
+    parser.add_argument('--hermes-root',type=Path)
     args=parser.parse_args()
     if args.client=='dsh' and not args.dsh_modules: parser.error('DSH 需要模块路径')
     if args.client=='codex' and not (args.codex_baseline and args.codex_baseline_model):
         parser.error('Codex 需要明确的本机模型目录与基线模型')
+    if args.client=='hermes' and not args.hermes_root: parser.error('Hermes 需要安装目录')
     input_limit=args.input_limit
     if not 1 <= input_limit <= 1048576: parser.error('输入上界必须在 1—1048576 内')
     raw=args.config.read_bytes();config=json.loads(raw);p=compile_config(config['planningRouting'])
@@ -75,6 +77,8 @@ def main():
         base=f'http://127.0.0.1:{server.server_port}/v1'
         if args.client=='dsh':
             command=['node','--experimental-strip-types','validation/dsh/plugin/scripts/check-gateway-tools.ts',str(args.dsh_modules),base,'512']
+        elif args.client=='hermes':
+            command=[str(args.hermes_root/'venv/bin/python'),'validation/hermes/check_gateway.py',str(args.hermes_root),base]
         else:
             import importlib.util
             spec=importlib.util.spec_from_file_location('catalog','validation/codex/model_catalog.py')
@@ -89,7 +93,7 @@ def main():
         result=subprocess.run(command,text=True,capture_output=True,timeout=90)
         (args.output/'client-stdout.txt').write_text(result.stdout);(args.output/'client-stderr.txt').write_text(result.stderr)
         calls=[row for run in gw.runtime.runs.values() for row in run['budget'].records]
-        summary={'success':result.returncode==0 and (args.client=='dsh' or 'GATEWAY_CLIENT_OK' in result.stdout),'exitCode':result.returncode,'calls':caller.calls,'billingUnit':model.billing_unit,
+        summary={'success':result.returncode==0 and (args.client in ('dsh','hermes') or 'GATEWAY_CLIENT_OK' in result.stdout),'exitCode':result.returncode,'calls':caller.calls,'billingUnit':model.billing_unit,
             'charged':sum(row['charged'] for row in calls),'statuses':[row['status'] for row in calls],
             'userFirstTextMs':[row.get('userFirstTextMs') for row in calls], 'modelTtftMs':[row.get('ttft_ms') for row in calls],
             'toolOwner':args.client,'routerTasks':len(gw.runtime.runs),'automaticRetries':0}
