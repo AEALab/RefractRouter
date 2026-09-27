@@ -291,6 +291,9 @@ def run_live_pilot(protocol, output_dir, *, profile="headless"):
     """执行一次已授权小样本；无论成功或失败都不自动重发。"""
     output = Path(output_dir)
     preview = pilot_preflight(protocol)
+    frozen = json.loads((output / "pilot-preflight.json").read_text())
+    if frozen != preview:
+        raise ValueError("冻结的 Stage 规则或预检已改变；请建立新批次")
     run_root = output / "workspace" / ".refractagent" / "runs"
     before = set(run_root.glob("planning/*.json")) if run_root.exists() else set()
     outcome, elapsed = _invoke_dsh(profile, output / "stage-pilot.patch.yml",
@@ -344,6 +347,9 @@ def prepare(protocol, output_dir):
         (workspace / "TASK.md").write_text(task["prompt"] + "\n")
     (output / "protocol.json").write_text(json.dumps(protocol, ensure_ascii=False, indent=2) + "\n")
     (output / "schedule.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n")
+    (output / "runtime-contract.json").write_text(json.dumps({
+        "stageRuleVersion": STAGE_RULE_VERSION, "protocolSha256": canonical_digest(protocol)
+    }, ensure_ascii=False, indent=2) + "\n")
     patches = output / "patches"
     patches.mkdir()
     for arm in protocol["design"]["arms"]:
@@ -444,6 +450,10 @@ def run_paid_batch(protocol, output_dir, *, profile="headless"):
     if protocol["design"].get("reasoningEffort") not in {"high", "provider-default"}:
         raise ValueError("推理档位能力尚未冻结，拒绝启动付费批次")
     output = Path(output_dir)
+    manifest = output / "runtime-contract.json"
+    expected = {"stageRuleVersion": STAGE_RULE_VERSION, "protocolSha256": canonical_digest(protocol)}
+    if not manifest.exists() or json.loads(manifest.read_text()) != expected:
+        raise ValueError("冻结的 Stage 规则或预检已改变；请建立新批次，旧记录使用原版本核对")
     rows = json.loads((output / "schedule.json").read_text())
     records_path = output / "run-records.jsonl"
     existing = [] if not records_path.exists() else [json.loads(line) for line in records_path.read_text().splitlines() if line]

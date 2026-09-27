@@ -292,7 +292,9 @@ export class PlanningController {
           continue
         }
         signal.throwIfAborted()
-        const callSignal=action.remainingMs===null?signal:AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,action.remainingMs))])
+        const limits=[action.remainingMs,action.timeoutMs].filter((value):value is number=>
+          typeof value==='number'&&Number.isFinite(value))
+        const callSignal=limits.length?AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,Math.min(...limits)))]):signal
         const chunks:Json[]=[],blocks=new Map<number,Json>()
         let content='',usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
         const started=performance.now()

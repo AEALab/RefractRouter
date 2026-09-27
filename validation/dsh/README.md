@@ -46,12 +46,12 @@ DSH 外层助手的模型配置与核心对 DAG 节点的选模分别管理。
 
 ## 安装与验证
 
-当前兼容范围为 DSH `0.1.1-rc.2`、Node `>=22.19.0 <23`、pnpm `10.15.0`。
+当前兼容范围为 DSH `0.1.5-rc.3`、Node `>=22.19.0 <23`、pnpm `10.15.0`。
 插件保持私有，按仓库路径或同一提交生成的 tarball 安装。完整配置、故障诊断、升级和
 回滚方法见 [插件指南](plugin/README.md)。以下命令从仓库根目录执行：
 
 ```bash
-npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.5-rc.3
 npm ci --prefix validation/dsh/plugin
 npm run --prefix validation/dsh/plugin build
 dsh plugin --profile headless add ./validation/dsh/plugin

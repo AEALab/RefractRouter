@@ -13,7 +13,15 @@ Escalation 的缓冲审核、一次接管、本地 Judge job、完整调用路�
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
-RefractRouter 是面向团队集中路由的应用项目。RefractAgent 提供本机任务入口，按质量、成本和时延偏好选择模型，支持整任务处理及 DAG 节点分配，并保存结果与费用。
+RefractRouter 面向小型开发团队，提供独立的模型路由选择：在用户可接受的质量前提下，
+优先降低模型总费用，再减少响应与等待时间。接入方 Agent 继续负责工具、权限、
+上下文和任务推进。DSH 是宿主适配之一；历史 DAG 研究入口独立保留。
+
+新增标准模型服务 `refractrouter-gateway`，支持 Chat Completions 与 Responses 的文本/function
+子集，复用 Static、Stage、Task、Escalation。配置、兼容边界与任务身份说明见
+[独立模型接口](docs/independent-model-router.md)。当前没有宣称所有 Agent 品牌已通过真实验收。
+四策略的源码审查、论文依据和改进优先级见
+[策略审查](docs/router-strategy-review-20260927.md)。
 
 ## 安装与启动
 

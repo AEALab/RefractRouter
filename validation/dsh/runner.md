@@ -16,7 +16,7 @@ DSH validation is delivered as the installable `dsh-refractrouter-validation` bu
 checkout into a base-backed profile:
 
 ```bash
-npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.5-rc.3
 npm ci --prefix validation/dsh/plugin
 npm run --prefix validation/dsh/plugin build
 dsh plugin --profile headless add ./validation/dsh/plugin

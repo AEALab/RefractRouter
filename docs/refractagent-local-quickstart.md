@@ -46,14 +46,14 @@ flowchart LR
 | uv | 提供 `build`、`tool install`、`tool dir --bin` | `uv --version` |
 | Node.js / npm | Node `>=22.19.0 <23`，即 22.x | `node --version` / `npm --version` |
 | pnpm | CI 验证使用 `10.15.0` | `pnpm --version` |
-| DSH | 本插件验证版本 `0.1.1-rc.2` | `dsh --version` |
+| DSH | 本插件验证版本 `0.1.5-rc.3` | `dsh --version` |
 
 uv 安装方法见 [uv 官方安装文档](https://docs.astral.sh/uv/getting-started/installation/)。
 DSH 安装和 profile 概念见 [DSH 官方仓库](https://github.com/deepseek-ai/deepseek-harness)。
 首次安装 DSH 时执行：
 
 ```bash
-npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
+npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.5-rc.3
 dsh --version
 ```
 

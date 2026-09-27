@@ -1,0 +1,964 @@
+
+> dsh-refractrouter-validation@0.27.0 test
+> npm run build && npm run test:contracts
+
+
+> dsh-refractrouter-validation@0.27.0 build
+> tsc && node scripts/build-client.mjs
+
+
+> dsh-refractrouter-validation@0.27.0 test:contracts
+> tsc -p tsconfig.test.json && node --test .test-dist/*.test.js
+
+TAP version 13
+# Subtest: 原入口与规划路由共同注册，保持零重试
+ok 1 - 原入口与规划路由共同注册，保持零重试
+  ---
+  duration_ms: 3.156292
+  type: 'test'
+  ...
+# Subtest: 规划路由只在底层模型已接通图片输入时向 DSH 声明图片能力
+ok 2 - 规划路由只在底层模型已接通图片输入时向 DSH 声明图片能力
+  ---
+  duration_ms: 0.347333
+  type: 'test'
+  ...
+# Subtest: legacy demo replay omits unavailable live fields for strict DSH JSON serialization
+ok 3 - legacy demo replay omits unavailable live fields for strict DSH JSON serialization
+  ---
+  duration_ms: 2.193084
+  type: 'test'
+  ...
+# Subtest: route profile discovery reads local persisted observations without a model call
+ok 4 - route profile discovery reads local persisted observations without a model call
+  ---
+  duration_ms: 0.508542
+  type: 'test'
+  ...
+# Subtest: v4 同时发现自动与规划路由，并兼容旧自动模型 ID
+ok 5 - v4 同时发现自动与规划路由，并兼容旧自动模型 ID
+  ---
+  duration_ms: 3.050084
+  type: 'test'
+  ...
+# Subtest: settings-enabled developer live starts one local preflight and one bound live process without host approval
+ok 6 - settings-enabled developer live starts one local preflight and one bound live process without host approval
+  ---
+  duration_ms: 5.680083
+  type: 'test'
+  ...
+# Subtest: enabled DSH tools reach preflight and live with the same bounded catalog
+ok 7 - enabled DSH tools reach preflight and live with the same bounded catalog
+  ---
+  duration_ms: 4.81
+  type: 'test'
+  ...
+# Subtest: production and review unlimited choices reach both preview and live unchanged
+ok 8 - production and review unlimited choices reach both preview and live unchanged
+  ---
+  duration_ms: 2.114375
+  type: 'test'
+  ...
+# Subtest: DSH 模型池在执行前解析宿主目录、隔离枚举失败并排除自身
+ok 9 - DSH 模型池在执行前解析宿主目录、隔离枚举失败并排除自身
+  ---
+  duration_ms: 6.007417
+  type: 'test'
+  ...
+# Subtest: 已删除的 DSH 路线在启动 Python 前以稳定错误终止
+ok 10 - 已删除的 DSH 路线在启动 Python 前以稳定错误终止
+  ---
+  duration_ms: 1.157291
+  type: 'test'
+  ...
+# Subtest: demo uses installed core through native sandboxed subprocess and preserves conversation
+ok 11 - demo uses installed core through native sandboxed subprocess and preserves conversation
+  ---
+  duration_ms: 0.921959
+  type: 'test'
+  ...
+# Subtest: Router URL uses authenticated NDJSON transport without starting local Python
+ok 12 - Router URL uses authenticated NDJSON transport without starting local Python
+  ---
+  duration_ms: 25.129875
+  type: 'test'
+  ...
+# Subtest: Router HTTP v2 resumes durable events without resubmitting and exposes task metadata
+ok 13 - Router HTTP v2 resumes durable events without resubmitting and exposes task metadata
+  ---
+  duration_ms: 2.739958
+  type: 'test'
+  ...
+# Subtest: Router HTTP v2 cancellation reaches the persistent task endpoint
+ok 14 - Router HTTP v2 cancellation reaches the persistent task endpoint
+  ---
+  duration_ms: 3.294334
+  type: 'test'
+  ...
+# Subtest: Router project discovery stays on the host and returns only authorized project ids
+ok 15 - Router project discovery stays on the host and returns only authorized project ids
+  ---
+  duration_ms: 1.316667
+  type: 'test'
+  ...
+# Subtest: Router URL validation rejects insecure remote endpoints and embedded credentials
+ok 16 - Router URL validation rejects insecure remote endpoints and embedded credentials
+  ---
+  duration_ms: 0.1935
+  type: 'test'
+  ...
+# Subtest: automatic decomposition is passed to Python without a fabricated plan
+ok 17 - automatic decomposition is passed to Python without a fabricated plan
+  ---
+  duration_ms: 0.745292
+  type: 'test'
+  ...
+# Subtest: explicit length constraints reach Python and failed checks preserve answer and replay verdicts
+ok 18 - explicit length constraints reach Python and failed checks preserve answer and replay verdicts
+  ---
+  duration_ms: 0.665125
+  type: 'test'
+  ...
+# Subtest: explicit checks cannot silently disappear with an older installed core
+ok 19 - explicit checks cannot silently disappear with an older installed core
+  ---
+  duration_ms: 0.87825
+  type: 'test'
+  ...
+# Subtest: host-injected user-role context cannot replace the latest actual user task
+ok 20 - host-injected user-role context cannot replace the latest actual user task
+  ---
+  duration_ms: 0.519333
+  type: 'test'
+  ...
+# Subtest: live deployment gate rejects before credential access or subprocess
+ok 21 - live deployment gate rejects before credential access or subprocess
+  ---
+  duration_ms: 0.121417
+  type: 'test'
+  ...
+# Subtest: live resolves host credential only after enablement and preserves explicit limits
+ok 22 - live resolves host credential only after enablement and preserves explicit limits
+  ---
+  duration_ms: 1.186958
+  type: 'test'
+  ...
+# Subtest: malformed usage or mismatched strategy cannot become a successful model response
+ok 23 - malformed usage or mismatched strategy cannot become a successful model response
+  ---
+  duration_ms: 3.328625
+  type: 'test'
+  ...
+# Subtest: cancelled requests never emit a completed answer
+ok 24 - cancelled requests never emit a completed answer
+  ---
+  duration_ms: 0.496125
+  type: 'test'
+  ...
+# Subtest: live cannot silently select Ark without a provider configuration or preset
+ok 25 - live cannot silently select Ark without a provider configuration or preset
+  ---
+  duration_ms: 0.143041
+  type: 'test'
+  ...
+# Subtest: custom providers receive separate host credential references outside the task payload
+ok 26 - custom providers receive separate host credential references outside the task payload
+  ---
+  duration_ms: 0.433084
+  type: 'test'
+  ...
+# Subtest: custom demo configuration never resolves provider credentials
+ok 27 - custom demo configuration never resolves provider credentials
+  ---
+  duration_ms: 0.345833
+  type: 'test'
+  ...
+# Subtest: demo with DSH provider declarations does not require or call the host model bridge
+ok 28 - demo with DSH provider declarations does not require or call the host model bridge
+  ---
+  duration_ms: 0.695542
+  type: 'test'
+  ...
+# Subtest: provider configuration rejects raw secrets and recursion in the host boundary
+ok 29 - provider configuration rejects raw secrets and recursion in the host boundary
+  ---
+  duration_ms: 0.150209
+  type: 'test'
+  ...
+# Subtest: DSH providers require zero host retries before any model dispatch
+ok 30 - DSH providers require zero host retries before any model dispatch
+  ---
+  duration_ms: 1.131792
+  type: 'test'
+  ...
+# Subtest: native DSH routes reuse the host LLM bridge without exporting host credentials
+ok 31 - native DSH routes reuse the host LLM bridge without exporting host credentials
+  ---
+  duration_ms: 2.697375
+  type: 'test'
+  ...
+# Subtest: all configured credentials are redacted from runner errors
+ok 32 - all configured credentials are redacted from runner errors
+  ---
+  duration_ms: 0.542792
+  type: 'test'
+  ...
+# Subtest: configured provider snapshots cannot be changed after registration
+ok 33 - configured provider snapshots cannot be changed after registration
+  ---
+  duration_ms: 0.184084
+  type: 'test'
+  ...
+# Subtest: Responses provider configuration and reasoning envelope reach the Python core
+ok 34 - Responses provider configuration and reasoning envelope reach the Python core
+  ---
+  duration_ms: 0.438084
+  type: 'test'
+  ...
+# Subtest: node effort profiles pass to Python and selected efforts survive display and replay
+ok 35 - node effort profiles pass to Python and selected efforts survive display and replay
+  ---
+  duration_ms: 0.407834
+  type: 'test'
+  ...
+# Subtest: automatic mode starts reasoning lazily and forwards bounded planning controls
+ok 36 - automatic mode starts reasoning lazily and forwards bounded planning controls
+  ---
+  duration_ms: 0.638333
+  type: 'test'
+  ...
+# Subtest: 节点表在模型完成前显示且运行记录保留完整进度，敏感值与 Markdown 被转义
+ok 37 - 节点表在模型完成前显示且运行记录保留完整进度，敏感值与 Markdown 被转义
+  ---
+  duration_ms: 1.390708
+  type: 'test'
+  ...
+# Subtest: 停止消费进度时取消子进程，不产生伪完成答案
+ok 38 - 停止消费进度时取消子进程，不产生伪完成答案
+  ---
+  duration_ms: 0.399834
+  type: 'test'
+  ...
+# Subtest: 自动流程失败立即结束思考并发出可读错误，不生成伪成功答案
+ok 39 - 自动流程失败立即结束思考并发出可读错误，不生成伪成功答案
+  ---
+  duration_ms: 1.348625
+  type: 'test'
+  ...
+# Subtest: 自动流程区分应用上下文、模型窗口、路线与一般执行失败
+ok 40 - 自动流程区分应用上下文、模型窗口、路线与一般执行失败
+  ---
+  duration_ms: 2.582292
+  type: 'test'
+  ...
+# Subtest: 自动流程取消保留取消语义并结束思考
+ok 41 - 自动流程取消保留取消语义并结束思考
+  ---
+  duration_ms: 0.229167
+  type: 'test'
+  ...
+# Subtest: strategy-scoped provider configuration passes through unchanged
+ok 42 - strategy-scoped provider configuration passes through unchanged
+  ---
+  duration_ms: 1.121209
+  type: 'test'
+  ...
+# Subtest: invalid strategy or limits configuration is rejected at the host boundary
+ok 43 - invalid strategy or limits configuration is rejected at the host boundary
+  ---
+  duration_ms: 0.398667
+  type: 'test'
+  ...
+# Subtest: limit toggles reach Python and relaxed context accepts long conversations
+ok 44 - limit toggles reach Python and relaxed context accepts long conversations
+  ---
+  duration_ms: 2.437042
+  type: 'test'
+  ...
+# Subtest: adapter reads its configuration source on every call (mechanism for settings overrides)
+ok 45 - adapter reads its configuration source on every call (mechanism for settings overrides)
+  ---
+  duration_ms: 0.085042
+  type: 'test'
+  ...
+# Subtest: DSH 图使用同一进度文本实时更新，支持历史回放和类型展示
+ok 46 - DSH 图使用同一进度文本实时更新，支持历史回放和类型展示
+  ---
+  duration_ms: 16.171875
+  type: 'test'
+  ...
+# Subtest: 动态图替换旧拓扑，流式截断不生成虚构节点，拒绝环和未知边
+ok 47 - 动态图替换旧拓扑，流式截断不生成虚构节点，拒绝环和未知边
+  ---
+  duration_ms: 3.014625
+  type: 'test'
+  ...
+# Subtest: 真实自动路由的进度文本也能在 DAG 页签回放
+ok 48 - 真实自动路由的进度文本也能在 DAG 页签回放
+  ---
+  duration_ms: 2.194792
+  type: 'test'
+  ...
+# Subtest: 客户端只贡献独立页签，不发起请求或改动原会话渲染器
+ok 49 - 客户端只贡献独立页签，不发起请求或改动原会话渲染器
+  ---
+  duration_ms: 1.07775
+  type: 'test'
+  ...
+# Subtest: 设置卡片、DAG 与路由轨迹共同注册，输入区不增加策略控件
+ok 50 - 设置卡片、DAG 与路由轨迹共同注册，输入区不增加策略控件
+  ---
+  duration_ms: 2.908875
+  type: 'test'
+  ...
+# Subtest: preflight registers a discoverable tool and uses DSH service seams
+ok 51 - preflight registers a discoverable tool and uses DSH service seams
+  ---
+  duration_ms: 26.583959
+  type: 'test'
+  ...
+# Subtest: danger-full-access bypasses sandbox wrapping
+ok 52 - danger-full-access bypasses sandbox wrapping
+  ---
+  duration_ms: 3.46425
+  type: 'test'
+  ...
+# Subtest: Agent Plan uses only the dedicated direct endpoint and DSH-resolved credential
+ok 53 - Agent Plan uses only the dedicated direct endpoint and DSH-resolved credential
+  ---
+  duration_ms: 6.597166
+  type: 'test'
+  ...
+# Subtest: AFP execution rejects the ordinary Ark pay-as-you-go endpoint
+ok 54 - AFP execution rejects the ordinary Ark pay-as-you-go endpoint
+  ---
+  duration_ms: 3.563917
+  type: 'test'
+  ...
+# Subtest: contract replay is bounded and retains paid deployment controls
+ok 55 - contract replay is bounded and retains paid deployment controls
+  ---
+  duration_ms: 4.719208
+  type: 'test'
+  ...
+# Subtest: paid execution requires deployment enablement, two budgets, and a credential
+ok 56 - paid execution requires deployment enablement, two budgets, and a credential
+  ---
+  duration_ms: 2.266875
+  type: 'test'
+  ...
+# Subtest: paid diagnostics and evidence issues redact the resolved credential
+ok 57 - paid diagnostics and evidence issues redact the resolved credential
+  ---
+  duration_ms: 4.796167
+  type: 'test'
+  ...
+# Subtest: paid subprocess failures redact the resolved credential
+ok 58 - paid subprocess failures redact the resolved credential
+  ---
+  duration_ms: 1.448667
+  type: 'test'
+  ...
+# Subtest: output truncation and oversized evidence fail closed
+ok 59 - output truncation and oversized evidence fail closed
+  ---
+  duration_ms: 3.636541
+  type: 'test'
+  ...
+# Subtest: timeout returns structured failure and caller abort stops before spawn
+ok 60 - timeout returns structured failure and caller abort stops before spawn
+  ---
+  duration_ms: 9.974
+  type: 'test'
+  ...
+# Subtest: the registered tool completes a real zero-cost Python preflight
+ok 61 - the registered tool completes a real zero-cost Python preflight
+  ---
+  duration_ms: 533.782375
+  type: 'test'
+  ...
+# Subtest: execution modes completes the native tool subprocess preflight with no credential access
+ok 62 - execution modes completes the native tool subprocess preflight with no credential access
+  ---
+  duration_ms: 362.4825
+  type: 'test'
+  ...
+# Subtest: K3 baseline completes native zero-call preflight and exposes the prepare budget
+ok 63 - K3 baseline completes native zero-call preflight and exposes the prepare budget
+  ---
+  duration_ms: 392.160375
+  type: 'test'
+  ...
+# Subtest: baseline stage makes a one-call plan through the native subprocess
+ok 64 - baseline stage makes a one-call plan through the native subprocess
+  ---
+  duration_ms: 367.529583
+  type: 'test'
+  ...
+# Subtest: K3 review handoff arguments are typed and paid execution remains disabled
+ok 65 - K3 review handoff arguments are typed and paid execution remains disabled
+  ---
+  duration_ms: 2.2245
+  type: 'test'
+  ...
+# Subtest: 未登记的新代码通过原生子进程拒绝旧 K3 基线迁移
+ok 66 - 未登记的新代码通过原生子进程拒绝旧 K3 基线迁移
+  ---
+  duration_ms: 379.490709
+  type: 'test'
+  ...
+# Subtest: K3 accepts a zero internal evaluation budget after explicit deployment enablement
+ok 67 - K3 accepts a zero internal evaluation budget after explicit deployment enablement
+  ---
+  duration_ms: 1.447458
+  type: 'test'
+  ...
+# Subtest: DSH LLM bridge preserves content, disjoint usage, finish reason, and request id
+ok 68 - DSH LLM bridge preserves content, disjoint usage, finish reason, and request id
+  ---
+  duration_ms: 0.906875
+  type: 'test'
+  ...
+# Subtest: DSH LLM bridge enforces the per-request hard timeout
+ok 69 - DSH LLM bridge enforces the per-request hard timeout
+  ---
+  duration_ms: 7.395834
+  type: 'test'
+  ...
+# Subtest: config schema supplies safe defaults and rejects malformed host configuration
+ok 70 - config schema supplies safe defaults and rejects malformed host configuration
+  ---
+  duration_ms: 0.239375
+  type: 'test'
+  ...
+# Subtest: malformed projected evidence fields fail as structured diagnostics
+ok 71 - malformed projected evidence fields fail as structured diagnostics
+  ---
+  duration_ms: 3.6895
+  type: 'test'
+  ...
+# Subtest: published tarball loads from its compiled export without source or build dependencies
+ok 72 - published tarball loads from its compiled export without source or build dependencies
+  ---
+  duration_ms: 727.051167
+  type: 'test'
+  ...
+# Subtest: both paid budgets are checked before credentials or process launch
+ok 73 - both paid budgets are checked before credentials or process launch
+  ---
+  duration_ms: 0.288833
+  type: 'test'
+  ...
+# Subtest: task tool performs an actual zero-call Python preflight and returns DAG assignments
+ok 74 - task tool performs an actual zero-call Python preflight and returns DAG assignments
+  ---
+  duration_ms: 94.478416
+  type: 'test'
+  ...
+# Subtest: task demo returns clearly simulated outputs without live credentials
+ok 75 - task demo returns clearly simulated outputs without live credentials
+  ---
+  duration_ms: 98.004292
+  type: 'test'
+  ...
+# Subtest: task tool forwards explicit length constraints to Python without claiming preflight acceptance
+ok 76 - task tool forwards explicit length constraints to Python without claiming preflight acceptance
+  ---
+  duration_ms: 101.347125
+  type: 'test'
+  ...
+# Subtest: task live modes retain deployment and both budget gates
+ok 77 - task live modes retain deployment and both budget gates
+  ---
+  duration_ms: 0.611917
+  type: 'test'
+  ...
+# Subtest: task text is a JSON request file and cannot become process arguments
+ok 78 - task text is a JSON request file and cannot become process arguments
+  ---
+  duration_ms: 1.607542
+  type: 'test'
+  ...
+# Subtest: invalid task arguments are rejected before process launch
+ok 79 - invalid task arguments are rejected before process launch
+  ---
+  duration_ms: 0.143458
+  type: 'test'
+  ...
+# Subtest: 新版 DAG 与固定验收条件通过 DSH 原样进入 Python 核心
+ok 80 - 新版 DAG 与固定验收条件通过 DSH 原样进入 Python 核心
+  ---
+  duration_ms: 94.403917
+  type: 'test'
+  ...
+# Subtest: 非法固定验收条件在启动进程前拒绝
+ok 81 - 非法固定验收条件在启动进程前拒绝
+  ---
+  duration_ms: 0.239583
+  type: 'test'
+  ...
+# Subtest: DSH 将并发和 Provider 限制传入核心并展示调度预测
+ok 82 - DSH 将并发和 Provider 限制传入核心并展示调度预测
+  ---
+  duration_ms: 91.405042
+  type: 'test'
+  ...
+# Subtest: DSH 在派发前拒绝非法并发参数
+ok 83 - DSH 在派发前拒绝非法并发参数
+  ---
+  duration_ms: 0.312166
+  type: 'test'
+  ...
+# Subtest: node selection policy is typed, validated and forwarded to Python
+ok 84 - node selection policy is typed, validated and forwarded to Python
+  ---
+  duration_ms: 0.68325
+  type: 'test'
+  ...
+# Subtest: execution modes forwards the bounded v0.4 phase without enabling paid calls
+ok 85 - execution modes forwards the bounded v0.4 phase without enabling paid calls
+  ---
+  duration_ms: 0.5765
+  type: 'test'
+  ...
+# Subtest: 文本任务不接收基准专用候选策略参数
+ok 86 - 文本任务不接收基准专用候选策略参数
+  ---
+  duration_ms: 0.965541
+  type: 'test'
+  ...
+# Subtest: planner bridge accepts no timeout and still follows manual cancellation
+ok 87 - planner bridge accepts no timeout and still follows manual cancellation
+  ---
+  duration_ms: 0.165083
+  type: 'test'
+  ...
+# Subtest: 受管图片工具先取得 Python 预算，生成后保存 DSH 附件并按实际张数结算
+ok 88 - 受管图片工具先取得 Python 预算，生成后保存 DSH 附件并按实际张数结算
+  ---
+  duration_ms: 37.238542
+  type: 'test'
+  ...
+# Subtest: 图片提交结果不明只派发一次并标记 unknown
+ok 89 - 图片提交结果不明只派发一次并标记 unknown
+  ---
+  duration_ms: 0.842959
+  type: 'test'
+  ...
+# Subtest: 凭证或参考图在派发前失败会取消并释放预留
+ok 90 - 凭证或参考图在派发前失败会取消并释放预留
+  ---
+  duration_ms: 0.799208
+  type: 'test'
+  ...
+# Subtest: native execution retains actual initiator, cancellation and native call/result trace
+ok 91 - native execution retains actual initiator, cancellation and native call/result trace
+  ---
+  duration_ms: 3.183042
+  type: 'test'
+  ...
+# Subtest: unavailable tool, missing agent, inactive step and pre-cancel never execute
+ok 92 - unavailable tool, missing agent, inactive step and pre-cancel never execute
+  ---
+  duration_ms: 0.441875
+  type: 'test'
+  ...
+# Subtest: native denial and tool exceptions are recorded without fabricating success or retrying
+ok 93 - native denial and tool exceptions are recorded without fabricating success or retrying
+  ---
+  duration_ms: 0.248833
+  type: 'test'
+  ...
+# Subtest: stdio tool messages coexist with DAG progress and final summary
+ok 94 - stdio tool messages coexist with DAG progress and final summary
+  ---
+  duration_ms: 2.678166
+  type: 'test'
+  ...
+# Subtest: DSH model bridge assembles native calls and replays matched assistant/tool history
+ok 95 - DSH model bridge assembles native calls and replays matched assistant/tool history
+  ---
+  duration_ms: 0.761917
+  type: 'test'
+  ...
+# Subtest: 真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件不执行工具
+ok 96 - 真实 Python worker 经 DSH 模拟循环完成两轮工具续接，插件不执行工具
+  ---
+  duration_ms: 201.331375
+  type: 'test'
+  ...
+# Subtest: 没有 provider 默认档位时未声明推理能力的模型不传推理等级
+ok 97 - 没有 provider 默认档位时未声明推理能力的模型不传推理等级
+  ---
+  duration_ms: 141.838333
+  type: 'test'
+  ...
+# Subtest: provider 默认推理档位与模型能力不符时零调用阻断
+ok 98 - provider 默认推理档位与模型能力不符时零调用阻断
+  ---
+  duration_ms: 126.3205
+  type: 'test'
+  ...
+# Subtest: 使用宿主已声明且支持的模型默认推理等级
+ok 99 - 使用宿主已声明且支持的模型默认推理等级
+  ---
+  duration_ms: 135.429375
+  type: 'test'
+  ...
+# Subtest: Stage 重复失败升级、保持两次后恢复高效模型，并保留结构化决策
+ok 100 - Stage 重复失败升级、保持两次后恢复高效模型，并保留结构化决策
+  ---
+  duration_ms: 144.878375
+  type: 'test'
+  ...
+# Subtest: 审核丢弃的回复与工具不泄漏，全部实际调用记账
+ok 101 - 审核丢弃的回复与工具不泄漏，全部实际调用记账
+  ---
+  duration_ms: 139.146208
+  type: 'test'
+  ...
+# Subtest: 升级判别丢弃工具调用后只释放强模型回复
+ok 102 - 升级判别丢弃工具调用后只释放强模型回复
+  ---
+  duration_ms: 137.603
+  type: 'test'
+  ...
+# Subtest: Escalation v4 明确缺陷立即丢弃候选并由强模型流式接管
+ok 103 - Escalation v4 明确缺陷立即丢弃候选并由强模型流式接管
+  ---
+  duration_ms: 136.557208
+  type: 'test'
+  ...
+# Subtest: Escalation v4 合格候选经一次 Judge 后原样释放
+ok 104 - Escalation v4 合格候选经一次 Judge 后原样释放
+  ---
+  duration_ms: 141.449083
+  type: 'test'
+  ...
+# Subtest: 切换策略当前轮保持冻结，新轮重新分类；取消不释放候选
+ok 105 - 切换策略当前轮保持冻结，新轮重新分类；取消不释放候选
+  ---
+  duration_ms: 147.4915
+  type: 'test'
+  ...
+# Subtest: 规划入口可发现但未配置零调用拒绝；原生历史来源保持
+ok 106 - 规划入口可发现但未配置零调用拒绝；原生历史来源保持
+  ---
+  duration_ms: 53.572959
+  type: 'test'
+  ...
+# Subtest: 媒体路线优先复用 apiKeyEnv，并支持 DSH provider 登录记录
+ok 107 - 媒体路线优先复用 apiKeyEnv，并支持 DSH provider 登录记录
+  ---
+  duration_ms: 52.921125
+  type: 'test'
+  ...
+# Subtest: 宿主容量经 Python 模型资料查询核对，参考价格不冒充实际计费
+ok 108 - 宿主容量经 Python 模型资料查询核对，参考价格不冒充实际计费
+  ---
+  duration_ms: 128.948625
+  type: 'test'
+  ...
+# Subtest: Task 单一图片候选把原生图片引用送达底层模型且不增加 Judge 调用
+ok 109 - Task 单一图片候选把原生图片引用送达底层模型且不增加 Judge 调用
+  ---
+  duration_ms: 132.914291
+  type: 'test'
+  ...
+# Subtest: 同一任务的 AFP 判别与 CNY 现金执行分账展示，不生成跨单位总价
+ok 110 - 同一任务的 AFP 判别与 CNY 现金执行分账展示，不生成跨单位总价
+  ---
+  duration_ms: 139.698875
+  type: 'test'
+  ...
+# Subtest: 新 Ark Agent Plan 路线可自动识别 AFP 单位
+ok 111 - 新 Ark Agent Plan 路线可自动识别 AFP 单位
+  ---
+  duration_ms: 128.666916
+  type: 'test'
+  ...
+# Subtest: Ark Agent Plan 将旧 CNY 价格迁移到 AFP 账本并要求 AFP 预算
+ok 112 - Ark Agent Plan 将旧 CNY 价格迁移到 AFP 账本并要求 AFP 预算
+  ---
+  duration_ms: 162.873708
+  type: 'test'
+  ...
+# Subtest: 宿主 finish 错误保留未知用量预留，并显示原始失败原因
+ok 113 - 宿主 finish 错误保留未知用量预留，并显示原始失败原因
+  ---
+  duration_ms: 133.2475
+  type: 'test'
+  ...
+# Subtest: 已保存配置缺少价格时，预检和真实派发使用系统核对的模型资料
+ok 114 - 已保存配置缺少价格时，预检和真实派发使用系统核对的模型资料
+  ---
+  duration_ms: 144.572417
+  type: 'test'
+  ...
+# Subtest: 宿主读取 finish 后结束消费不会取消任务；缺失 replay 仍保留真实来源
+ok 115 - 宿主读取 finish 后结束消费不会取消任务；缺失 replay 仍保留真实来源
+  ---
+  duration_ms: 140.137792
+  type: 'test'
+  ...
+# Subtest: 审核修正反馈在后续回放中只追加一次，并保留来源
+ok 116 - 审核修正反馈在后续回放中只追加一次，并保留来源
+  ---
+  duration_ms: 0.212
+  type: 'test'
+  ...
+# Subtest: 未完成的规划模型容量不会破坏旧入口的目录元数据
+ok 117 - 未完成的规划模型容量不会破坏旧入口的目录元数据
+  ---
+  duration_ms: 56.119666
+  type: 'test'
+  ...
+# Subtest: settings base reflects the tunable subset of the composed configuration
+ok 118 - settings base reflects the tunable subset of the composed configuration
+  ---
+  duration_ms: 4.245042
+  type: 'test'
+  ...
+# Subtest: overlaySettings overlays limits and keeps the rest of the composed configuration
+ok 119 - overlaySettings overlays limits and keeps the rest of the composed configuration
+  ---
+  duration_ms: 0.154708
+  type: 'test'
+  ...
+# Subtest: Router URL settings overlay a real remote connection and enforce transport safety
+ok 120 - Router URL settings overlay a real remote connection and enforce transport safety
+  ---
+  duration_ms: 0.489333
+  type: 'test'
+  ...
+# Subtest: overlaySettings providerConfig override replaces the composed preset
+ok 121 - overlaySettings providerConfig override replaces the composed preset
+  ---
+  duration_ms: 0.082959
+  type: 'test'
+  ...
+# Subtest: validateSettingsSection accepts a valid providerConfig and rejects an invalid one
+ok 122 - validateSettingsSection accepts a valid providerConfig and rejects an invalid one
+  ---
+  duration_ms: 0.387916
+  type: 'test'
+  ...
+# Subtest: DSH 模型池只接受目录身份、明确部署和有效职责覆盖
+ok 123 - DSH 模型池只接受目录身份、明确部署和有效职责覆盖
+  ---
+  duration_ms: 0.619459
+  type: 'test'
+  ...
+# Subtest: live 职责覆盖必须为每个职责保留可处理敏感数据的路线
+ok 124 - live 职责覆盖必须为每个职责保留可处理敏感数据的路线
+  ---
+  duration_ms: 0.33325
+  type: 'test'
+  ...
+# Subtest: DSH 模型池覆盖保留旧 providerConfig 供迁移回退，但运行时选择模型池
+ok 125 - DSH 模型池覆盖保留旧 providerConfig 供迁移回退，但运行时选择模型池
+  ---
+  duration_ms: 0.244458
+  type: 'test'
+  ...
+# Subtest: v3 security configuration passes through while trust domains stay explicit
+ok 126 - v3 security configuration passes through while trust domains stay explicit
+  ---
+  duration_ms: 0.32525
+  type: 'test'
+  ...
+# Subtest: installRefractSettings registers the namespace and follows the settings scope
+ok 127 - installRefractSettings registers the namespace and follows the settings scope
+  ---
+  duration_ms: 0.6835
+  type: 'test'
+  ...
+# Subtest: controller projects the resolved section and stages limit edits
+ok 128 - controller projects the resolved section and stages limit edits
+  ---
+  duration_ms: 0.641375
+  type: 'test'
+  ...
+# Subtest: controller saves and resets the Router service URL without storing a token
+ok 129 - controller saves and resets the Router service URL without storing a token
+  ---
+  duration_ms: 0.222625
+  type: 'test'
+  ...
+# Subtest: controller strips undefined form fields before sending DSH settings mutations
+ok 130 - controller strips undefined form fields before sending DSH settings mutations
+  ---
+  duration_ms: 0.148917
+  type: 'test'
+  ...
+# Subtest: controller blocks save on invalid provider JSON and keeps drafts
+ok 131 - controller blocks save on invalid provider JSON and keeps drafts
+  ---
+  duration_ms: 0.345541
+  type: 'test'
+  ...
+# Subtest: controller saves a valid providerConfig edit and restores it via reset
+ok 132 - controller saves a valid providerConfig edit and restores it via reset
+  ---
+  duration_ms: 0.731458
+  type: 'test'
+  ...
+# Subtest: controller reports failure and keeps drafts when the host rejects a write
+ok 133 - controller reports failure and keeps drafts when the host rejects a write
+  ---
+  duration_ms: 1.150959
+  type: 'test'
+  ...
+# Subtest: 部署属性选项同时展示中文含义与稳定合同值
+ok 134 - 部署属性选项同时展示中文含义与稳定合同值
+  ---
+  duration_ms: 0.085542
+  type: 'test'
+  ...
+# Subtest: DSH 模型池区分安全错误、独立质量缺口与旧合同迁移
+ok 135 - DSH 模型池区分安全错误、独立质量缺口与旧合同迁移
+  ---
+  duration_ms: 0.268292
+  type: 'test'
+  ...
+# Subtest: 模型池 v1 显式迁移到 v2 并移除手工质量与时延
+ok 136 - 模型池 v1 显式迁移到 v2 并移除手工质量与时延
+  ---
+  duration_ms: 0.075625
+  type: 'test'
+  ...
+# Subtest: 合成与已脱敏数据不会套用 live 的 simulated-local 外传确认门槛
+ok 137 - 合成与已脱敏数据不会套用 live 的 simulated-local 外传确认门槛
+  ---
+  duration_ms: 0.086625
+  type: 'test'
+  ...
+# Subtest: 阻断问题不写入宿主，档案警告允许保存草稿
+ok 138 - 阻断问题不写入宿主，档案警告允许保存草稿
+  ---
+  duration_ms: 0.216542
+  type: 'test'
+  ...
+# Subtest: 宿主拒绝与无回读使用不同诊断并保留草稿
+ok 139 - 宿主拒绝与无回读使用不同诊断并保留草稿
+  ---
+  duration_ms: 0.452417
+  type: 'test'
+  ...
+# Subtest: 宿主吞掉写入拒绝时，诊断重试显示具体字段和脱敏原因
+ok 140 - 宿主吞掉写入拒绝时，诊断重试显示具体字段和脱敏原因
+  ---
+  duration_ms: 0.146625
+  type: 'test'
+  ...
+# Subtest: 设置页直接复用核心冻结档案并保留条件价格来源
+ok 141 - 设置页直接复用核心冻结档案并保留条件价格来源
+  ---
+  duration_ms: 8.702375
+  type: 'test'
+  ...
+# Subtest: 真实执行设置必须显式使用 synthetic、CNY 和双硬预算，并可往返保存
+ok 142 - 真实执行设置必须显式使用 synthetic、CNY 和双硬预算，并可往返保存
+  ---
+  duration_ms: 0.883792
+  type: 'test'
+  ...
+# Subtest: 真实执行的静态缺项在保存前逐项说明
+ok 143 - 真实执行的静态缺项在保存前逐项说明
+  ---
+  duration_ms: 0.108
+  type: 'test'
+  ...
+# Subtest: client bundle registers in the host module format and exports the plugin face
+ok 144 - client bundle registers in the host module format and exports the plugin face
+  ---
+  duration_ms: 10.083459
+  type: 'test'
+  ...
+# Subtest: preset fields can be edited, saved and reset with the complete documented model pool
+ok 145 - preset fields can be edited, saved and reset with the complete documented model pool
+  ---
+  duration_ms: 0.70275
+  type: 'test'
+  ...
+# Subtest: incomplete JSON survives host refresh and can be discarded before attempting save
+ok 146 - incomplete JSON survives host refresh and can be discarded before attempting save
+  ---
+  duration_ms: 0.065542
+  type: 'test'
+  ...
+# Subtest: unconfigured form fields initialize an editable example and preserve multiline input
+ok 147 - unconfigured form fields initialize an editable example and preserve multiline input
+  ---
+  duration_ms: 0.153708
+  type: 'test'
+  ...
+# Subtest: model choices show actual names, exclude judges and disambiguate duplicate names
+ok 148 - model choices show actual names, exclude judges and disambiguate duplicate names
+  ---
+  duration_ms: 0.1215
+  type: 'test'
+  ...
+# Subtest: AFP ceiling is staged, saved and removed independently of reasoning effort
+ok 149 - AFP ceiling is staged, saved and removed independently of reasoning effort
+  ---
+  duration_ms: 0.447917
+  type: 'test'
+  ...
+# Subtest: planner thinking is editable, persisted and can return to inheritance
+ok 150 - planner thinking is editable, persisted and can return to inheritance
+  ---
+  duration_ms: 0.122166
+  type: 'test'
+  ...
+# Subtest: unlimited time overlays independently and can be switched off
+ok 151 - unlimited time overlays independently and can be switched off
+  ---
+  duration_ms: 0.080792
+  type: 'test'
+  ...
+# Subtest: v4 structured edits cover objective, security and repeatable rows without losing JSON-only fields
+ok 152 - v4 structured edits cover objective, security and repeatable rows without losing JSON-only fields
+  ---
+  duration_ms: 1.794583
+  type: 'test'
+  ...
+# Subtest: v4 structured edits can update, rename and remove rows, then discard as one rollback
+ok 153 - v4 structured edits can update, rename and remove rows, then discard as one rollback
+  ---
+  duration_ms: 0.504417
+  type: 'test'
+  ...
+# Subtest: v4 structural preview reports inventory without making a routing or security decision
+ok 154 - v4 structural preview reports inventory without making a routing or security decision
+  ---
+  duration_ms: 0.729083
+  type: 'test'
+  ...
+# Subtest: settings drafts reject embedded secrets and expose incomplete credential references as validation errors
+ok 155 - settings drafts reject embedded secrets and expose incomplete credential references as validation errors
+  ---
+  duration_ms: 0.256208
+  type: 'test'
+  ...
+# Subtest: DSH 规范 Bash 结果作为宿主事实进入下一轮事件
+ok 156 - DSH 规范 Bash 结果作为宿主事实进入下一轮事件
+  ---
+  duration_ms: 0.743125
+  type: 'test'
+  ...
+# Subtest: 不采信渲染正文或其他会话的结果
+ok 157 - 不采信渲染正文或其他会话的结果
+  ---
+  duration_ms: 0.098125
+  type: 'test'
+  ...
+1..157
+# tests 157
+# suites 0
+# pass 157
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10111.64475

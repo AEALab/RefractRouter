@@ -22,7 +22,7 @@ def test_frozen_protocol_builds_72_interleaved_runs_and_afp_envelope():
     assert {row["arm"] for row in rows} == {"static-flash", "static-pro", "stage"}
     assert all(sum(r["taskId"] == task["id"] for r in rows) == 6 for task in protocol["tasks"])
     result = preflight(protocol)
-    assert result["stageRuleVersion"] == "stage-v3"
+    assert result["stageRuleVersion"] == "stage-v4"
     assert result["runs"] == 72
     assert result["maxExecutionCalls"] == 1440
     assert result["evaluationCalls"] == 36
@@ -45,7 +45,7 @@ def test_paid_batch_rejects_unfrozen_reasoning_effort(tmp_path):
 def test_live_pilot_freezes_authorized_envelope(tmp_path):
     protocol = load_protocol(PROTOCOL)
     preview = pilot_preflight(protocol)
-    assert preview["stageRuleVersion"] == "stage-v3"
+    assert preview["stageRuleVersion"] == "stage-v4"
     assert preview["profile"] == "headless"
     assert preview["maxCalls"] == 6
     assert preview["maxProductionAfp"] == pytest.approx(221.184)
@@ -164,3 +164,15 @@ def test_research_judge_requires_strict_json_contract():
     assert valid["valid"] and valid["score"] == 82
     assert not _judge_payload('{"score":"82","criticalFactError":false,"fabricatedCitation":false}')["valid"]
     assert not _judge_payload("APPROVE")["valid"]
+
+
+def test_paid_batch_refuses_old_rule_before_dispatch(tmp_path):
+    protocol = load_protocol(PROTOCOL)
+    output = tmp_path / "batch"
+    prepare(protocol, output)
+    manifest = output / "runtime-contract.json"
+    frozen = json.loads(manifest.read_text())
+    frozen["stageRuleVersion"] = "stage-v3"
+    manifest.write_text(json.dumps(frozen))
+    with pytest.raises(ValueError, match="请建立新批次"):
+        run_paid_batch(protocol, output)
