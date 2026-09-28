@@ -172,9 +172,10 @@ DSH 使用标准 Chat Completions Base URL 和 `refract/static` 模型即可走�
 
 Static 与 Stage 的三客户端原生工具往返分别完成真实模型验收，Stage 详见
 [三客户端 Stage 报告](../reports/stage-three-client-acceptance-20260927/README.md)。
-三种原生客户端目前没有传入上述扩展，因此该次 Stage 工具结果均为 `unclassified`，
-实际选择保持高效模型；确定性注入可信事实的测试另行证明升级、保持与恢复规则。
-真实客户端依据工具结果换模仍待接入方传递可信事实后验收。
+该次验收的纯 Base URL 工具结果均为 `unclassified`，实际选择保持高效模型。
+后续已为 Hermes 与 Codex CLI 增加可选客户端工具证据适配；用模拟模型验证了真实客户端
+终端工具两次失败后的换模。接入方式、边界与未覆盖客户端见
+[客户端工具证据接入](client-tool-evidence.md)。
 
 
 ## Codex 本机目录适配

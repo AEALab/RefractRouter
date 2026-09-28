@@ -197,6 +197,29 @@ def bound_tool_evidence(messages, supplied, known=None):
             for event in ordinary]
 
 
+def merge_host_evidence(messages, supplied, inbox):
+    """合并客户端随请求提供的证据与独立工具钩子提交的事实。"""
+    calls = {event['callId'] for event in ordinary_evidence(messages)}
+    pending = [fact for call_id, fact in inbox.items() if call_id in calls]
+    if not pending:
+        return supplied
+    if supplied is None:
+        return {'version': EVIDENCE_VERSION, 'events': pending}
+    if (not isinstance(supplied, dict) or set(supplied) != {'version', 'events'}
+            or supplied.get('version') != EVIDENCE_VERSION
+            or not isinstance(supplied['events'], list)):
+        raise ValueError('工具证据协议版本或结构无效')
+    events = list(supplied.get('events', []))
+    by_call = {event.get('callId'): event for event in events if isinstance(event, dict)}
+    for fact in pending:
+        previous = by_call.get(fact['callId'])
+        if previous is not None and previous != fact:
+            raise ValueError('客户端与工具钩子的事实矛盾')
+        if previous is None:
+            events.append(fact)
+    return {'version': EVIDENCE_VERSION, 'events': events}
+
+
 class HttpModelCaller:
     """一次派发、零重试；与 DSH 服务和 Agent 工具执行完全独立。"""
     def __init__(self, providers, transport=None):
@@ -352,6 +375,37 @@ class ModelGateway:
                 return entry['identity']
         return {"session": scope + ':' + uuid4().hex, "agent": "api", "turn": 1}
 
+    def record_host_evidence(self, submitted, *, scope='default'):
+        """保存已交付工具调用的宿主事实；工具仍由客户端执行。"""
+        if (not isinstance(submitted, dict) or set(submitted) !=
+                {'version', 'callId', 'status', 'kind', 'fingerprint'}
+                or submitted['version'] != EVIDENCE_VERSION):
+            raise ValueError('宿主工具事实协议版本或结构无效')
+        call_id = submitted['callId']
+        if not isinstance(call_id, str) or not call_id or len(call_id) > 256:
+            raise ValueError('宿主工具事实缺少调用 ID')
+        key = scope + ':' + call_id
+        with self.lock:
+            issued = self.state['tools'].get(key)
+            if not issued or not issued.get('tool'):
+                raise ValueError('工具调用 ID 未由当前 Router 交付')
+            fact = {"id": call_id, "callId": call_id, "tool": issued['tool'],
+                    "kind": submitted['kind'], "status": submitted['status'],
+                    "fingerprint": submitted['fingerprint']}
+            validate_evidence([fact])
+            inbox = self.state.setdefault('hostEvidenceInbox', {})
+            previous = inbox.get(key)
+            if previous is not None and previous != fact:
+                raise ValueError('同一工具调用的宿主事实发生矛盾变化')
+            if previous is None:
+                inbox[key] = fact
+                try:
+                    self.save()
+                except Exception:
+                    del inbox[key]
+                    raise
+        return {'accepted': True, 'callId': call_id}
+
     def complete(self, request, *, scope='default', cancelled=lambda: False, on_text=None):
         started = time.monotonic()
         allowed = {'model', 'messages', 'tools', 'stream', 'stream_options', 'max_tokens', 'max_completion_tokens',
@@ -397,8 +451,11 @@ class ModelGateway:
                 raise ValueError('当前任务的路由策略已冻结；新任务才能切换策略')
             all_facts = self.state.setdefault('toolEvidence', {})
             scope_facts = all_facts.get(run_id, {})
-            evidence = bound_tool_evidence(messages,
-                (request.get('metadata') or {}).get('refract_tool_evidence'), scope_facts)
+            inbox = {cid: fact for key, fact in self.state.get('hostEvidenceInbox', {}).items()
+                     if key.startswith(scope + ':') for cid in [key[len(scope) + 1:]]}
+            submitted = merge_host_evidence(messages,
+                (request.get('metadata') or {}).get('refract_tool_evidence'), inbox)
+            evidence = bound_tool_evidence(messages, submitted, scope_facts)
             new_facts = dict(scope_facts)
             for fact in evidence:
                 if fact['status'] != 'unclassified' and fact['callId'] not in scope_facts:
@@ -477,6 +534,7 @@ class ModelGateway:
                     if private:
                         source['replayState'] = {'response': {'reasoning_content': private}}
                     self.state['tools'][key] = {'identity': identity, 'prefix': prefix, 'source': source,
+                                                 'tool': call['function']['name'],
                                                  'assistantDigest': digest(canonical_message(chat_messages([message])[0]))}
                 self.save()
                 if not selected.tool_calls and not (request.get('metadata') or {}).get('refract_task'):
@@ -538,7 +596,7 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
             if not self.authorized():
                 self.send_json(401, {'error': {'message': '认证失败', 'type': 'authentication_error'}})
                 return
-            if self.path not in ('/v1/chat/completions', '/v1/responses'):
+            if self.path not in ('/v1/chat/completions', '/v1/responses', '/v1/tool-evidence'):
                 self.send_json(404, {'error': {'message': '未知接口'}})
                 return
             wire, sent, lost = None, False, False
@@ -567,6 +625,9 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                     raise ValueError('请求大小超限或缺少 Content-Length')
                 self.connection.settimeout(30)
                 request = json.loads(self.rfile.read(size), parse_constant=lambda _: (_ for _ in ()).throw(ValueError('数值非法')))
+                if self.path == '/v1/tool-evidence':
+                    self.send_json(200, gateway.record_host_evidence(request))
+                    return
                 responses = self.path == '/v1/responses'
                 aliases = gateway_responses.lower_tools(request)[1] if responses else {}
                 if responses: request = gateway_responses.to_chat(request)

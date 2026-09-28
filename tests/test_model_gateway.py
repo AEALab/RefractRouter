@@ -12,6 +12,7 @@ from refractrouter.model_gateway import ModelGateway, HttpModelCaller, chat_mess
 from refractrouter.host_evidence import EVIDENCE_VERSION
 from refractrouter.openai_compatible import ChatResponse, TransportResponse
 from refractrouter.host_evidence import validate_evidence
+from refractrouter.client_tool_evidence import from_codex_hook, from_hermes_hook
 from refractrouter.planning_policy import stage_decision
 from refractrouter.planning_runtime import PlanningRuntime
 from tests.test_planning_routing import (advisor_gate_configuration, configuration,
@@ -298,6 +299,72 @@ def test_stage_gateway_accepts_only_paired_host_facts_and_recovers(tmp_path):
     assert [row['reason'] for row in run['decisions'] if row.get('ruleVersion') == 'stage-v4'][2:5] == [
         'repeated-failure', 'capable-hold', 'ambiguous']
     gw.close()
+
+
+def test_client_hooks_supply_structured_failures_without_changing_agent_tools(tmp_path):
+    ids = ['a', 'b', 'c', 'd']
+    caller = Caller(*(reply(calls=[call(cid)]) for cid in ids), reply())
+    gw = gateway(tmp_path, caller, configuration('stage'))
+    req = request('stage')
+    result = gw.complete(req)
+    for index, cid in enumerate(ids):
+        req = follow(req, result)
+        hook = {'tool_name': 'terminal', 'tool_call_id': cid,
+                'args': {'command': 'false' if index < 2 else 'true'},
+                'result': json.dumps({'output': '', 'exit_code': 1 if index < 2 else 0,
+                                      'error': None})}
+        assert gw.record_host_evidence(from_hermes_hook(hook))['accepted']
+        result = gw.complete(req)
+    assert [action['model']['id'] for action in caller.actions] == [
+        'small', 'small', 'large', 'large', 'small']
+    gw.close()
+
+
+def test_codex_hook_requires_structured_exit_and_exact_issued_call(tmp_path):
+    event = {'hook_event_name': 'PostToolUse', 'tool_name': 'Bash',
+             'tool_use_id': 'a', 'tool_input': {'command': 'false'},
+             'tool_response': {'exit_code': 1, 'output': 'failure'}}
+    fact = from_codex_hook(event)
+    assert fact['status'] == 'failed'
+    assert from_codex_hook({**event, 'tool_response': 'Process exited with code 1'}) is None
+    gw = gateway(tmp_path, Caller(reply(calls=[call('a')])))
+    with pytest.raises(ValueError, match='未由当前 Router'):
+        gw.record_host_evidence(fact)
+    gw.complete(request())
+    assert gw.record_host_evidence(fact)['accepted']
+    assert gw.record_host_evidence(fact)['accepted']
+    with pytest.raises(ValueError, match='矛盾'):
+        gw.record_host_evidence({**fact, 'status': 'completed'})
+    gw.close()
+
+
+def test_tool_evidence_endpoint_requires_auth_and_issued_call(tmp_path):
+    gw = gateway(tmp_path, Caller(reply(calls=[call('hook-call')]), reply()),
+                 configuration('stage'))
+    server = create_server(gw, port=0, token='fixture-only')
+    thread = Thread(target=server.serve_forever, daemon=True); thread.start()
+    root = f'http://127.0.0.1:{server.server_port}'
+    fact = from_codex_hook({'hook_event_name':'PostToolUse', 'tool_name':'Bash',
+        'tool_use_id':'hook-call', 'tool_input':{'command':'false'},
+        'tool_response':{'exit_code':1, 'output':'failed'}})
+    try:
+        with pytest.raises(HTTPError) as unauthenticated:
+            urlopen(Request(root+'/v1/tool-evidence', json.dumps(fact).encode(),
+                            {'Content-Type':'application/json'}))
+        assert unauthenticated.value.code == 401
+        with pytest.raises(HTTPError) as unissued:
+            urlopen(Request(root+'/v1/tool-evidence', json.dumps(fact).encode(),
+                {'Content-Type':'application/json','Authorization':'Bearer fixture-only'}))
+        assert unissued.value.code == 400
+        first = gw.complete(request('stage'))
+        accepted = json.load(urlopen(Request(root+'/v1/tool-evidence', json.dumps(fact).encode(),
+            {'Content-Type':'application/json','Authorization':'Bearer fixture-only'})))
+        assert accepted['callId'] == 'hook-call'
+        gw.complete(follow(request('stage'), first))
+        run = next(iter(gw.runtime.runs.values()))
+        assert any(row.get('evidenceSummary') == '任务失败 1' for row in run['decisions'])
+    finally:
+        server.shutdown(); server.server_close(); gw.close()
 
 
 def test_host_facts_cannot_claim_other_calls_or_change_after_commit(tmp_path):
