@@ -66,6 +66,17 @@ def escalation_configuration(*, judge_type="llm", model_path=None):
     return cfg
 
 
+def advisor_local_configuration(model_path):
+    cfg = configuration("advisor")
+    cfg["schemaVersion"] = "refractagent-planning-v5"
+    cfg["advisor"] = {"judge": {"type": "local-decision", "adapter": "laya-mlx",
+        "modelPath": str(model_path), "sourceModel": "aac6fef/laya-multilingual-mlx",
+        "revision": "test", "device": "cpu", "dtype": "float32"},
+        "threshold": .8, "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536,
+        "allowExperimental": True}
+    return cfg
+
+
 def write_laya_fixture(path, revision="test"):
     path.mkdir()
     (path / "model.safetensors").write_bytes(b"fixture")
@@ -961,6 +972,85 @@ def test_advisor_review_trace_links_candidate_and_verdict(tmp_path, verdict, rea
     assert row["reviewVerdict"] == verdict
     assert row["candidateDisposition"] == disposition
     assert runtime.runs[run]["budget"].records[0]["disposition"] == disposition
+
+
+def test_advisor_local_approve_is_buffered_and_accounted(tmp_path):
+    path = tmp_path / "laya"
+    write_laya_fixture(path)
+    runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService(result={"payload": {"verdict": "APPROVE",
+        "rawVerdict": "APPROVE", "confidence": .95, "ruleVersion": "advisor-local-review-v1"},
+        "model": "aac6fef/laya-multilingual-mlx", "coldStartMs": 0,
+        "latencyMs": 13, "usage": {"questions": 1, "forwards": 1}})
+    run = begin(runtime, "advisor", config=advisor_local_configuration(path))
+    candidate = step(runtime, run)
+    assert candidate["buffered"]
+    wait = receipt(runtime, run, candidate, "候选回复")
+    assert wait["action"] == "wait"
+    assert runtime.local_service.requests[0][0] == "advisor"
+    released = runtime.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
+    assert released["action"] == "release"
+    assert released["record"]["decisions"][-1]["backend"] == "local-decision"
+    assert released["record"]["calls"][-1]["status"] == "local-inference"
+    assert released["record"]["calls"][-1]["charged"] == 0
+
+
+def test_advisor_local_redo_discards_candidate_and_preserves_feedback(tmp_path):
+    path = tmp_path / "laya"
+    write_laya_fixture(path)
+    runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService(result={"payload": {"verdict": "REDO",
+        "rawVerdict": "REDO_REQUIREMENT", "confidence": .9,
+        "feedback": "逐项核对用户要求", "ruleVersion": "advisor-local-review-v1"},
+        "model": "laya", "coldStartMs": 0, "latencyMs": 10, "usage": {}})
+    run = begin(runtime, "advisor", config=advisor_local_configuration(path))
+    candidate = step(runtime, run)
+    wait = receipt(runtime, run, candidate, "不合格候选")
+    redo = runtime.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
+    assert redo["purpose"] == "redo"
+    assert "逐项核对用户要求" in redo["messages"][-1]["content"][0]["text"]
+    assert runtime.runs[run]["budget"].records[0]["disposition"] == "discarded"
+
+
+def test_advisor_local_requires_explicit_experimental_mode_and_capacity_fails_closed(tmp_path):
+    path = tmp_path / "laya"
+    write_laya_fixture(path)
+    cfg = advisor_local_configuration(path)
+    cfg["advisor"]["allowExperimental"] = False
+    assert not preview(cfg)["valid"]
+    cfg["advisor"]["allowExperimental"] = True
+    runtime = PlanningRuntime(tmp_path)
+    runtime.local_service = FakeLocalService(error={"errorCode": "capacity", "error": "token 容量不足"})
+    run = begin(runtime, "advisor", config=cfg)
+    wait = receipt(runtime, run, step(runtime, run), "候选回复")
+    with pytest.raises(ValueError, match="审核未通过"):
+        runtime.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
+    assert runtime.runs[run]["status"] == "review-unresolved"
+    assert runtime.runs[run]["budget"].records[0]["disposition"] == "discarded"
+
+
+@pytest.mark.parametrize("choice,confidence,expected", [
+    ("APPROVE", .95, "APPROVE"),
+    ("REDO_REQUIREMENT", .9, "REDO"),
+    ("REDO_EVIDENCE", .9, "REDO"),
+    ("APPROVE", .4, "UNRESOLVED"),
+])
+def test_advisor_laya_choice_contract(monkeypatch, choice, confidence, expected):
+    adapter = object.__new__(LayaDecisionAdapter)
+    adapter.model = "laya-fixture"
+    adapter.cold_start_ms = 0
+    monkeypatch.setattr(adapter, "_ensure_complete", lambda _state, _questions: None)
+    class Agent:
+        def predict(self, _state, questions):
+            choices = questions["review"]["criteria"]
+            return {"answers": {"review": {"choice": choice,
+                "probabilities": {item: confidence if item == choice else 0 for item in choices}}}}
+    adapter.agent = Agent()
+    result = adapter.decide_advisor({"contract": "advisor-local-review-v1",
+        "messages": [], "events": [], "candidate": {"content": "候选"}, "threshold": .8})
+    assert result.payload["verdict"] == expected
+    assert result.payload["rawVerdict"] == choice
+    assert bool(result.payload["feedback"]) == (expected == "REDO")
 
 
 @pytest.mark.parametrize("strategy,verdict", [("advisor", "APPROVE"), ("escalation", "{}")])
