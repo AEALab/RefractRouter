@@ -19,7 +19,7 @@ export interface PlanningUi {
   loadCatalog():Promise<DshModelCatalog>
   loadMetadata(provider:string,model:string,billingUnit:string):Promise<ModelMetadata>
   loadFx():Promise<{rate:number;source:string;asOf:string}>
-  localJudge(config:PlanningConfig,action:'status'|'download'|'load'|'unload'):Promise<{
+  localJudge(config:PlanningConfig,action:'status'|'download'|'load'|'unload',target?:string):Promise<{
     installed:boolean;downloaded:boolean;loaded:boolean;path:string;sourceModel:string;revision:string;
     revisionVerified:boolean;sizeBytes:number}>
 }
@@ -147,7 +147,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   },[dirty,draft.billingUnit,draft.maxProductionCost,draft.maxProductionCostByUnit,loadFx])
   async function save(){
     setBusy(true);setStatus('')
-    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.schemaVersion==='refractagent-planning-v6'
+    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.composite||draft.schemaVersion==='refractagent-planning-v6'
       ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
@@ -156,10 +156,10 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         :'已保存；当前策略暂不可运行，请查看零调用诊断。')}
     catch(e){setStatus(errorText(e))}finally{setBusy(false)}
   }
-  async function operateLocalJudge(action:'status'|'download'|'load'|'unload'){
+  async function operateLocalJudge(action:'status'|'download'|'load'|'unload',target?:string){
     setBusy(true);setStatus(action==='download'?'正在明确下载固定 revision；任务执行不会触发此操作。':'')
-    try{const result=await localJudge({...draft,schemaVersion:draft.schemaVersion==='refractagent-planning-v6'
-      ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action)
+    try{const result=await localJudge({...draft,schemaVersion:draft.composite||draft.schemaVersion==='refractagent-planning-v6'
+      ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action,target)
       setLocalJudgeStatus(result);setStatus(`本地 Judge：依赖${result.installed?'已安装':'未安装'}；权重${result.downloaded?'已就绪':'未就绪'}；revision ${result.revisionVerified?'已核对':'未核对'}；本地文件 ${(result.sizeBytes/1024/1024).toFixed(1)} MiB；进程${result.loaded?'已加载':'未加载'}。`)
     }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
   }
@@ -233,6 +233,41 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       judge:{type:'llm',modelId:draft.roles?.classifier??pool[0]},threshold:.8,maxInputChars:12000,
       maxExecutionOutputTokens:8192}})
   }
+  function migrateCompositeSettings(){
+    const source=draft.task
+    const pool=source?.pool.length?source.pool:
+      [...new Set([draft.roles?.efficient,draft.roles?.capable].filter((id):id is string=>Boolean(id)))]
+    if(!pool.length){setStatus('请先在上方登记至少一个执行模型。');return}
+    const takeover=source?.fallback&&pool.includes(source.fallback)?source.fallback:
+      draft.roles?.capable&&pool.includes(draft.roles.capable)?draft.roles.capable:pool[pool.length-1]!
+    patch({schemaVersion:'refractagent-planning-v6',composite:{pool,takeover,
+      judge:source?.judge??{type:'llm',modelId:draft.roles?.classifier??pool[0]!},
+      threshold:source?.threshold??.8,maxInputChars:source?.maxInputChars??12000,
+      maxExecutionOutputTokens:source?.maxExecutionOutputTokens??8192,
+      stage:{mode:'rules',window:3,threshold:.5,holdTurns:2}}})
+  }
+  function addCompositePoolModel(provider:string,model:string){
+    const existing=draft.models?.find(item=>item.provider===provider&&item.model===model)
+    let id=existing?.id,models=draft.models??[]
+    if(!id){const base=`composite-${provider}-${model}`.replace(/[^a-zA-Z0-9_-]/g,'-');id=base;let index=2
+      while(models.some(item=>item.id===id))id=`${base}-${index++}`
+      models=[...models,{id,provider,model,deployment:'external-cloud',capabilities:{mainExecutor:true,
+        toolCalling:'unknown',modalities:{}}}]}
+    const current=draft.composite
+    const pool=[...new Set([...(current?.pool??[]),id])]
+    patch({models,schemaVersion:'refractagent-planning-v6',composite:{pool,
+      takeover:current?.takeover??id,judge:current?.judge??{type:'llm',modelId:draft.roles?.classifier??id},
+      threshold:current?.threshold??.8,maxInputChars:current?.maxInputChars??12000,
+      maxExecutionOutputTokens:current?.maxExecutionOutputTokens??8192,
+      stage:current?.stage??{mode:'rules',window:3,threshold:.5,holdTurns:2}}})
+    void retrieveMetadata(provider,model,'AUTO')
+  }
+  function moveCompositePool(index:number,direction:-1|1){
+    if(!draft.composite)return;const target=index+direction
+    if(target<0||target>=draft.composite.pool.length)return
+    const pool=[...draft.composite.pool];[pool[index],pool[target]]=[pool[target],pool[index]]
+    patch({composite:{...draft.composite,pool}})
+  }
   function migrateEscalationSettings(){
     const initial=draft.roles?.efficient,takeover=draft.roles?.capable
     const judgeId=draft.roles?.classifier
@@ -258,6 +293,8 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   const activeModelIds=[...new Set([...Object.values(draft.roles??{}),...(draft.task?.pool??[]),
     ...(draft.task?.judge.type==='llm'?[draft.task.judge.modelId]:[]),
+    ...(draft.composite?.pool??[]),
+    ...(draft.composite?.judge.type==='llm'?[draft.composite.judge.modelId]:[]),
     ...(draft.escalation?[draft.escalation.initial,draft.escalation.takeover]:[]),
     ...(draft.escalation?.judge.type==='llm'?[draft.escalation.judge.modelId]:[])]
     .filter((id):id is string=>Boolean(id)))]
@@ -437,6 +474,63 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>
       </>}
     </div>}
+    {draft.defaultStrategy==='composite'&&<div className="rra-planning-fields">
+      <p>Composite 先用 Task 从模型池选择本任务常用模型；首次执行直接使用该模型。后续只有新增执行证据显示持续困难时，Stage 才临时切换到指定接管模型。</p>
+      {!draft.composite&&<div className="rra-simple-status"><strong>尚未升级 Composite 设置</strong>
+        <span>旧配置继续使用通用高效／强执行／判别角色。升级只预填草稿，不切换默认策略或下载权重。</span>
+        <button className="rra-button rra-button-secondary" type="button" onClick={migrateCompositeSettings}>从 Task／现有角色预填</button></div>}
+      {draft.composite&&<>
+        <label className="rra-compact-field">从 DSH 目录加入执行模型 <select className="rra-select" value="" onChange={e=>{
+          if(!e.target.value)return;const [provider,model]=JSON.parse(e.target.value) as string[];addCompositePoolModel(provider,model)}}>
+          <option value="">选择并加入…</option>{catalog?.groups.filter(group=>group.id!=='refractagent').map(group=><optgroup key={group.id} label={group.name}>
+            {group.models.map(model=><option key={model.id} value={JSON.stringify([group.id,model.id])}>{model.name}</option>)}</optgroup>)}</select></label>
+        {draft.composite.pool.map((id,index)=>{const model=draft.models?.find(item=>item.id===id)
+          const efforts=catalog?.groups.find(group=>group.id===model?.provider)?.models.find(item=>item.id===model?.model)?.reasoning?.efforts??[]
+          return <div className="rra-row-card" key={id}><div className="rra-section-head"><div><strong>{index+1}. {model?`${model.provider}/${model.model}`:id}</strong>
+            <p className="rra-field-hint">Task 质量与费用相同或不可比较时，以此顺序作为稳定决胜顺序。</p></div>
+            <div className="rra-actions"><button type="button" className="rra-button rra-button-secondary" disabled={index===0} onClick={()=>moveCompositePool(index,-1)}>上移</button>
+              <button type="button" className="rra-button rra-button-secondary" disabled={index===draft.composite!.pool.length-1} onClick={()=>moveCompositePool(index,1)}>下移</button>
+              <button type="button" className="rra-button rra-button-secondary" disabled={draft.composite!.pool.length===1} onClick={()=>{const pool=draft.composite!.pool.filter(value=>value!==id)
+                patch({composite:{...draft.composite!,pool,takeover:draft.composite!.takeover===id?pool[pool.length-1]!:draft.composite!.takeover}})}}>移除</button></div></div>
+            {model&&<label className="rra-compact-field">推理等级 <select className="rra-select" value={model.reasoningEffort??''} onChange={e=>modelPatch(id,{reasoningEffort:e.target.value||undefined})}>
+              <option value="">使用提供方默认</option>{efforts.map(entry=><option key={entry.id} value={entry.id}>{entry.name}</option>)}</select></label>}
+            <p className="rra-field-hint">任务能力说明：{model?.capabilityCard??'尚无可核对资料'}；工具调用：{model?.capabilities?.toolCalling??'unknown'}。</p>
+          </div>})}
+        <label className="rra-compact-field">指定接管模型 <select className="rra-select" value={draft.composite.takeover} onChange={e=>patch({composite:{...draft.composite!,takeover:e.target.value}})}>
+          {draft.composite.pool.map(id=><option key={id} value={id}>{id}</option>)}</select><span className="rra-field-hint">同时作为 Task 无法确定时的备援。名称和价格不会被当作能力更强的证据。</span></label>
+        <label className="rra-compact-field">Task Judge 类型 <select className="rra-select" value={draft.composite.judge.type} onChange={e=>patch({composite:{...draft.composite!,judge:e.target.value==='local-decision'
+          ?{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'ordinal-v1'}
+          :{type:'llm',modelId:draft.roles?.classifier??draft.composite!.pool[0]!}}})}>
+          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地 Laya Task Judge（实验）</option></select></label>
+        {draft.composite.judge.type==='llm'?<label className="rra-compact-field">Task Judge 模型 <select className="rra-select" value={draft.composite.judge.modelId} onChange={e=>patch({composite:{...draft.composite!,judge:{type:'llm',modelId:e.target.value}}})}>
+          {(draft.models??[]).map(model=><option key={model.id} value={model.id}>{model.id} · {model.provider}/{model.model}</option>)}</select><span className="rra-field-hint">每任务最多判别一次；单一合格候选会跳过 Judge。</span></label>:
+          <div className="rra-planning-fields"><label className="rra-compact-field">Task Judge 权重目录 <input className="rra-input" value={draft.composite.judge.modelPath} onChange={e=>patch({composite:{...draft.composite!,judge:{...draft.composite!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
+            <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.composite.judge.revision??''} onChange={e=>patch({composite:{...draft.composite!,judge:{...draft.composite!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,revision:e.target.value}}})}/></label>
+            <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.composite?.judge||draft.composite.judge.type!=='local-decision'||!draft.composite.judge.modelPath} onClick={()=>void operateLocalJudge(action,'composite-task')}>{['检查状态','下载权重','加载并预热','卸载'][index]}</button>)}</div></div>}
+        <label className="rra-compact-field">后续轨迹判断 <select className="rra-select" value={draft.composite.stage.mode} onChange={e=>patch({composite:{...draft.composite!,stage:e.target.value==='rules'
+          ?{mode:'rules',window:3,threshold:.5,holdTurns:2}
+          :{mode:'hybrid',allowExperimental:false,judge:{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'},window:3,interval:2,maxJudgements:4,holdTurns:2,downgradeConfirmations:2,upgradeThreshold:.8,downgradeThreshold:.9,judgeTimeoutMs:1000,maxJudgeInputBytes:65536}}})}>
+          <option value="rules">规则（默认）</option><option value="hybrid">规则＋本地 Laya（实验）</option></select></label>
+        {draft.composite.stage.mode==='rules'?<details className="rra-details"><summary>Composite 规则参数</summary><div className="rra-planning-fields">
+          <label className="rra-compact-field">证据窗口 <input className="rra-input" type="number" min="1" value={draft.composite.stage.window??3} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,window:Number(e.target.value)}}})}/></label>
+          <label className="rra-compact-field">判断阈值 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.composite.stage.threshold??.5} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,threshold:Number(e.target.value)}}})}/></label>
+          <label className="rra-compact-field">接管保持次数 <input className="rra-input" type="number" min="1" value={draft.composite.stage.holdTurns??2} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,holdTurns:Number(e.target.value)}}})}/><span className="rra-field-hint">2 次包含触发切换的本次执行和下一次执行。</span></label>
+        </div></details>:<div className="rra-planning-fields">
+          <p className="rra-field-hint">本地 Laya 只参与后续轨迹选档；当前质量未达日常使用门槛，因此必须明确启用实验模式。推论故障会停止任务，不会转云端。</p>
+          <label className="rra-check"><input type="checkbox" checked={draft.composite.stage.allowExperimental===true} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,allowExperimental:e.target.checked}}})}/>启用实验性本地轨迹判别</label>
+          <label className="rra-compact-field">Stage Judge 权重目录 <input className="rra-input" value={draft.composite.stage.judge?.modelPath??''} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judge:{...draft.composite!.stage.judge!,modelPath:e.target.value}}}})}/></label>
+          <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.composite.stage.judge?.revision??''} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judge:{...draft.composite!.stage.judge!,revision:e.target.value}}}})}/></label>
+          <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} type="button" className="rra-button rra-button-secondary" disabled={busy||!draft.composite?.stage.judge?.modelPath} onClick={()=>void operateLocalJudge(action,'composite-stage')}>{['检查状态','下载权重','加载并预热','卸载'][index]}</button>)}</div>
+          <details className="rra-details"><summary>Composite 本地 Judge 高级参数</summary><div className="rra-planning-fields">
+            {([{key:'window',label:'证据窗口',value:3,min:1},{key:'interval',label:'判别间隔',value:2,min:1},{key:'maxJudgements',label:'最多判别批次',value:4,min:1},{key:'holdTurns',label:'接管保持次数',value:2,min:1},{key:'downgradeConfirmations',label:'降回连续确认',value:2,min:2},{key:'upgradeThreshold',label:'接管分数门槛',value:.8,min:.5},{key:'downgradeThreshold',label:'降回分数门槛',value:.9,min:.5},{key:'judgeTimeoutMs',label:'Judge 期限（毫秒）',value:1000,min:100},{key:'maxJudgeInputBytes',label:'完整输入字节上限',value:65536,min:512}] as const).map(item=><label className="rra-compact-field" key={item.key}>{item.label}<input className="rra-input" type="number" min={item.min} max={item.min===.5?1:undefined} step={item.min===.5?.05:1} value={draft.composite?.stage[item.key]??item.value} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,[item.key]:Number(e.target.value)}}})}/></label>)}
+          </div></details></div>}
+        <details className="rra-details"><summary>Composite Task 高级参数</summary><div className="rra-planning-fields">
+          <label className="rra-compact-field">适合度门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.composite.threshold??.8} onChange={e=>patch({composite:{...draft.composite!,threshold:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">Judge 文字输入上限 <input className="rra-input" type="number" min="512" value={draft.composite.maxInputChars??12000} onChange={e=>patch({composite:{...draft.composite!,maxInputChars:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">每次执行输出上限 <input className="rra-input" type="number" min="256" value={draft.composite.maxExecutionOutputTokens??8192} onChange={e=>patch({composite:{...draft.composite!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
+        </div></details>
+      </>}
+    </div>}
     {draft.defaultStrategy==='escalation'&&<div className="rra-planning-fields">
       <p>先缓冲起始模型回复，由 Judge 判定后放行；明确缺陷、最终回复停滞或无法判断时，由接管模型继续当前任务。</p>
       {!draft.escalation&&<div className="rra-simple-status"><strong>尚未升级 Escalation 设置</strong>
@@ -595,11 +689,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         <input className="rra-input" type="number" min="0" step="1" value={draft.parameters?.[item.key]??item.value}
           onChange={e=>patch({parameters:{...draft.parameters,[item.key]:Number(e.target.value)}})}/></label>)}
     </div>}
-    {draft.defaultStrategy==='composite'&&<details className="rra-details"><summary>策略参数</summary><div className="rra-planning-fields">
-      <p>参数尚未校准。修改只影响新任务。</p>
-      {Object.entries({window:3,threshold:.5,holdTurns:2,baseThreshold:.5,thresholdStep:.1}).map(([key,value])=>
-        <label className="rra-compact-field" key={key}>{({window:'证据窗口',threshold:'阶段判断阈值',holdTurns:'强模型保持轮数',baseThreshold:'任务基础阈值',thresholdStep:'能力边界修正步长'} as Record<string,string>)[key]} <input className="rra-input" type="number" step="any" value={draft.parameters?.[key]??value} onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
-    </div></details>}</div>
+    </div>
     <div className="rra-row-card"><h3>图片与影片路线</h3>
       <p className="rra-field-hint">系统资料会区分“提供方声明、适配已接通、真实验收”。只有 verified 路线能由受管工具派发。价格与接口由系统预设，不能手填。</p>
       {!(draft.mediaRoutes??[]).some(route=>route.id===SEEDREAM_CONNECTED.id)&&<button type="button" className="rra-button rra-button-secondary" onClick={()=>patch({mediaRoutes:[...(draft.mediaRoutes??[]),structuredClone(SEEDREAM_CONNECTED)]})}>加入 Ark Agent Plan Seedream 已接通路线</button>}
@@ -681,6 +771,18 @@ const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 
   'no-quality-qualified-candidate':'无质量达标候选，使用指定备援',
   'incomparable-billing-units':'候选计费单位不可比较，使用指定备援',
   'single-choice-no-comparative-evidence':'直选仅有单一候选证据，未比较费用',
+  'composite-task-selected':'Task 已选定本任务常用模型，首次执行跳过 Stage 判断',
+  'composite-base-is-takeover':'常用模型与指定接管模型相同，跳过无意义切换判断',
+  'composite-repeated-failure':'新的同类可信失败重复出现，临时切换接管模型',
+  'composite-takeover-hold':'继续指定接管模型保持期','composite-return-base':'保持结束且无新困难，恢复常用模型',
+  'composite-ambiguous-base':'新增证据含糊，使用常用模型',
+  'composite-tool-signal-takeover':'轨迹规则建议接管模型','composite-tool-signal-base':'轨迹规则建议常用模型',
+  'composite-judge-efficient':'本地 Judge 判断常用模型适合下一步',
+  'composite-judge-upgrade':'本地 Judge 判断需要接管模型',
+  'composite-judge-uncertain':'本地 Judge 无法确定，使用接管模型',
+  'composite-judge-downgrade':'连续确认适合，恢复常用模型',
+  'composite-judge-hold':'等待保持结束及连续降档确认',
+  'composite-judge-limit-frozen':'已达到本地判别上限，冻结档位',
   'escalation-latch':'升级锁定','escalation-initial':'起始模型候选',
   'escalation-proceed':'Judge 放行','escalation-defect':'明确缺陷，立即接管',
   'escalation-stall':'工具过程疑似停滞','escalation-final-stall':'最终回复停滞，立即接管',
@@ -717,7 +819,7 @@ function EvidenceIds({ids}:{ids:string[]}){
   </ul></details>
 }
 function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]}){
-  if(row.ruleVersion==='stage-decision-v1'||row.ruleVersion==='stage-decision-v2')return <details><summary>查看 Stage 判别依据</summary>
+  if(row.ruleVersion==='stage-decision-v1'||row.ruleVersion==='stage-decision-v2'||row.ruleVersion==='composite-stage-hybrid-v1')return <details><summary>查看 Stage 判别依据</summary>
     <p>结果：{row.decision?.verdict?VERDICT[row.decision.verdict]??row.decision.verdict:'本轮未调用 Judge'}；连续降档确认：{row.downgradeConfirmations??0}；本任务判别批次：{row.judgeBatches??0}。</p>
     <p>证据 ID：{row.evidenceIds?.join('、')||'无'}。本地无 API 费用。
       {row.decision?.confidence!==undefined?`${row.ruleVersion==='stage-decision-v2'?'获选项分数':'判别分数'} ${row.decision.confidence.toFixed(3)}（不是任务成功率）。`:''}
@@ -798,8 +900,8 @@ export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {
     loadFx:async()=>{const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider:'local',api:'fx'})
       if(!r.ok)throw new Error(r.error?.message??'汇率资料查询失败')
       return JSON.parse(r.value?.[0]?.name??'{}') as {rate:number;source:string;asOf:string}},
-    localJudge:async(config,action)=>{const r=await ctx.remote.llm.discoverModels('refractagent-planning',{
-      provider:JSON.stringify(config),api:'local-judge:'+action})
+    localJudge:async(config,action,target)=>{const r=await ctx.remote.llm.discoverModels('refractagent-planning',{
+      provider:JSON.stringify(config),api:'local-judge:'+action+(target?':'+target:'')})
       if(!r.ok)throw new Error(r.error?.message??'本地 Judge 操作失败')
       return JSON.parse(r.value?.[0]?.name??'{}') as {installed:boolean;downloaded:boolean;loaded:boolean;path:string;sourceModel:string;revision:string;revisionVerified:boolean;sizeBytes:number}},
     preview:async()=>{const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider:'local'});if(!r.ok)throw new Error(r.error?.message);return JSON.parse(r.value?.[0]?.name??'{}') as Report}}

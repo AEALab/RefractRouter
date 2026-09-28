@@ -15,7 +15,8 @@ from refractrouter.host_evidence import validate_evidence
 from refractrouter.planning_policy import stage_decision
 from refractrouter.planning_runtime import PlanningRuntime
 from tests.test_planning_routing import (advisor_gate_configuration, configuration,
-                                         escalation_configuration, task_pool_configuration)
+                                         composite_configuration, escalation_configuration,
+                                         task_pool_configuration)
 
 
 def reply(text='完成', calls=(), usage=True):
@@ -80,6 +81,50 @@ def test_task_single_candidate_and_followup_do_not_call_judge(tmp_path):
     gw = gateway(tmp_path, caller, cfg)
     req = request('task');first = gw.complete(req);gw.complete(follow(req, first))
     assert [a['purpose'] for a in caller.actions] == ['execute', 'execute']
+    gw.close()
+
+
+def test_composite_standard_api_classifies_once_and_keeps_tool_continuation(tmp_path):
+    decision = json.dumps({"answers": {"candidates": {
+        "small": {"score": .95, "missingInformation": 0},
+        "large": {"score": .2, "missingInformation": 0}}}})
+    caller = Caller(reply(decision), reply(calls=[call()]), reply("完成"))
+    gw = gateway(tmp_path, caller, composite_configuration())
+    req = request("composite")
+    first = gw.complete(req)
+    final = gw.complete(follow(req, first))
+    assert final["choices"][0]["message"]["content"] == "完成"
+    assert [action["purpose"] for action in caller.actions] == ["task", "execute", "execute"]
+    assert [action["model"]["id"] for action in caller.actions] == ["judge", "small", "small"]
+    assert "refract/composite" in [row["id"] for row in gw.models()["data"]]
+    gw.close()
+
+
+def test_composite_trusted_failures_switch_hold_and_return_over_standard_api(tmp_path):
+    decision = json.dumps({"answers": {"candidates": {
+        "small": {"score": .95, "missingInformation": 0},
+        "large": {"score": .2, "missingInformation": 0}}}})
+    caller = Caller(reply(decision), reply(calls=[call("c1")]), reply(calls=[call("c2")]),
+                    reply(calls=[call("c3")]), reply(calls=[call("c4")]), reply("完成"))
+    gw = gateway(tmp_path, caller, composite_configuration())
+    req = request("composite")
+    result = gw.complete(req)
+    statuses = [("c1", "failed", "same"), ("c2", "failed", "same"),
+                ("c3", "completed", "ok-3"), ("c4", "completed", "ok-4")]
+    for call_id, status, fingerprint in statuses:
+        req = follow(req, result)
+        req["metadata"] = {"refract_tool_evidence": {"version": EVIDENCE_VERSION, "events": [{
+            "id": call_id, "callId": call_id, "tool": "read", "kind": "unknown",
+            "status": status, "fingerprint": fingerprint}]}}
+        result = gw.complete(req)
+    assert result["choices"][0]["message"]["content"] == "完成"
+    assert [action["model"]["id"] for action in caller.actions] == [
+        "judge", "small", "small", "large", "large", "small"]
+    run = next(iter(gw.runtime.runs.values()))
+    reasons = [row["reason"] for row in run["decisions"]]
+    assert "composite-repeated-failure" in reasons
+    assert "composite-takeover-hold" in reasons
+    assert reasons[-1] == "composite-return-base"
     gw.close()
 
 

@@ -810,9 +810,9 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
   evidence=new ToolEvidenceCapture(),planning=new PlanningController(ctx,source,undefined,evidence)): AgentAdapter {
   ctx.llm.registerModelDiscovery?.('refractagent-planning',async request=>{
     const metadata=request.api?.startsWith('metadata:')?request.api.slice('metadata:'.length).split(':'):null
-    const localJudge=request.api?.startsWith('local-judge:')?request.api.slice('local-judge:'.length):null
+    const localJudge=request.api?.startsWith('local-judge:')?request.api.slice('local-judge:'.length).split(':'):null
     const value=localJudge&&request.provider
-      ?await planning.localJudge(JSON.parse(request.provider),localJudge as 'status'|'download'|'load'|'unload')
+      ?await planning.localJudge(JSON.parse(request.provider),localJudge[0] as 'status'|'download'|'load'|'unload',localJudge[1])
       :metadata&&metadata.length===2&&request.provider
       ?await planning.metadata(request.provider,decodeURIComponent(metadata[0]!),metadata[1]!)
       :request.api==='simulate'?await planning.simulate()

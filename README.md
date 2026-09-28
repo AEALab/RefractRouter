@@ -10,6 +10,9 @@ Task 多模型池、轻量 LLM Judge、本地 Laya-MLX Judge 与图片接线见
 
 Escalation 的缓冲审核、一次接管、本地 Judge job、完整调用路径预算与有限真实验收见
 [Escalation 升级策略](docs/escalation-routing.md)。
+Advisor Gate 的两次审核、一次返工与复审闭环见
+[Advisor Gate v2](docs/advisor-gate-v2.md)。Composite 的 Task 初选、Stage 临时接管、
+规则模式与实验性本地 Laya 模式见 [Composite v6](docs/composite-v6.md)。
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
@@ -18,7 +21,7 @@ RefractRouter 面向小型开发团队，提供独立的模型路由选择：在
 上下文和任务推进。DSH 是宿主适配之一；历史 DAG 研究入口独立保留。
 
 新增标准模型服务 `refractrouter-gateway`，支持 Chat Completions 与 Responses 的文本/function
-子集，复用 Static、Stage、Task、Escalation。配置、兼容边界与任务身份说明见
+子集，复用 Static、Stage、Task、Advisor、Escalation、Composite。配置、兼容边界与任务身份说明见
 [独立模型接口](docs/independent-model-router.md)。当前没有宣称所有 Agent 品牌已通过真实验收。
 四策略的源码审查、论文依据和改进优先级见
 [策略审查](docs/router-strategy-review-20260927.md)。
