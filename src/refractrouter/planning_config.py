@@ -105,7 +105,7 @@ def _task_config(raw, schema, declared_ids, roles):
     if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6):
         raise ValueError(f"Task 模型池需要 {SCHEMA_V3} 或 {SCHEMA_V4}")
     task = obj(supplied, ("pool", "fallback", "judge", "threshold", "maxInputChars",
-                          "maxExecutionOutputTokens"), "task")
+                          "maxExecutionOutputTokens", "maxJudgeOutputTokens"), "task")
     pool = task.get("pool")
     if (not isinstance(pool, list) or not pool or len(pool) > 64 or len(set(pool)) != len(pool)
             or any(not isinstance(model, str) or model not in declared_ids for model in pool)):
@@ -143,7 +143,9 @@ def _task_config(raw, schema, declared_ids, roles):
         "threshold": number(task.get("threshold", .8), "task.threshold", 0, 1),
         "maxInputChars": number(task.get("maxInputChars", 12000), "task.maxInputChars", 512, 1000000, True),
         "maxExecutionOutputTokens": number(task.get("maxExecutionOutputTokens", 8192),
-            "task.maxExecutionOutputTokens", 256, 1000000, True)}
+            "task.maxExecutionOutputTokens", 256, 1000000, True),
+        "maxJudgeOutputTokens": number(task.get("maxJudgeOutputTokens", 1024),
+            "task.maxJudgeOutputTokens", 64, 16384, True)}
 
 
 def _escalation_config(raw, schema, declared_ids, roles):
@@ -305,12 +307,13 @@ def _composite_config(raw, schema, declared_ids, roles):
     if schema != SCHEMA_V6:
         raise ValueError(f"Composite 独立设置需要 {SCHEMA_V6}")
     value = obj(supplied, ("pool", "takeover", "judge", "threshold", "maxInputChars",
-        "maxExecutionOutputTokens", "stage"), "composite")
+        "maxExecutionOutputTokens", "maxJudgeOutputTokens", "stage"), "composite")
     takeover = value.get("takeover")
     task_raw = {"task": {"pool": value.get("pool"), "fallback": takeover,
         "judge": value.get("judge"), "threshold": value.get("threshold", .8),
         "maxInputChars": value.get("maxInputChars", 12000),
-        "maxExecutionOutputTokens": value.get("maxExecutionOutputTokens", 8192)}}
+        "maxExecutionOutputTokens": value.get("maxExecutionOutputTokens", 8192),
+        "maxJudgeOutputTokens": value.get("maxJudgeOutputTokens", 1024)}}
     task = _task_config(task_raw, schema, declared_ids, roles)
     stage_raw = obj(value.get("stage", {}), ("mode", "judge", "allowExperimental",
         "window", "threshold", "interval", "maxJudgements", "holdTurns",

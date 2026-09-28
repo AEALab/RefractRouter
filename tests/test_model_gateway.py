@@ -360,6 +360,14 @@ def test_invalid_request_rejected_before_spend(tmp_path):
     gw.close()
 
 
+def test_explicit_none_means_no_virtual_reasoning_override(tmp_path):
+    caller = Caller(reply())
+    gw = gateway(tmp_path, caller)
+    gw.complete({**request(), 'reasoning_effort': 'none'})
+    assert caller.actions[0]['model']['reasoning_effort'] == 'low'
+    gw.close()
+
+
 def test_responses_roundtrip_native_function_and_sse(tmp_path):
     from refractrouter.gateway_responses import to_chat, from_chat, stream_events
     caller = Caller(reply('开始读取', [call()]), reply('完成'))

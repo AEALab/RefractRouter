@@ -445,7 +445,7 @@ def test_task_privacy_filters_cloud_candidate_before_judge(tmp_path):
 
 def test_task_v3_preflight_respects_request_output_limit(tmp_path):
     cfg = task_pool_configuration()
-    cfg["maxProductionCostByUnit"] = {"CNY": 1}
+    cfg["maxProductionCostByUnit"] = {"CNY": 2}
     for model in cfg["models"]:
         model.update(contextWindow=200000, maxOutputTokens=100000,
                      inputPer1k=.25, outputPer1k=.25)
@@ -453,7 +453,12 @@ def test_task_v3_preflight_respects_request_output_limit(tmp_path):
     run = begin(runtime, "task", config=cfg)
     action = step(runtime, run, maxTokens=512)
     assert action["purpose"] == "task"
-    assert action["model"]["maxTokens"] == 512
+    # 宿主输出上限约束主执行；任务级 Judge 使用独立的已冻结额度。
+    assert action["model"]["maxTokens"] == 1024
+    execute = receipt(runtime, run, action, json.dumps({"answers": {"candidates": {
+        "C1": {"score": .95, "missingInformation": 0},
+        "C2": {"score": .2, "missingInformation": 0}}}}))
+    assert execute["model"]["maxTokens"] == 512
 
 
 def test_task_judge_preflight_prices_the_exact_dispatched_request(tmp_path, monkeypatch):
@@ -517,6 +522,51 @@ def test_task_v3_uses_task_output_cap_below_model_capacity(tmp_path):
     action = step(runtime, run)
     assert action["purpose"] == "task"
     assert action["model"]["maxTokens"] == 1024
+
+
+@pytest.mark.parametrize("strategy", ["task", "composite"])
+def test_task_judge_has_independent_output_cap_without_host_limit(tmp_path, strategy):
+    cfg = task_pool_configuration() if strategy == "task" else composite_configuration()
+    route = cfg[strategy]
+    route["maxJudgeOutputTokens"] = 256
+    for model in cfg["models"]:
+        if model["id"] == "judge":
+            model["contextWindow"] = 200000
+            model["maxOutputTokens"] = 131072
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, strategy, config=cfg)
+    action = step(runtime, run)
+    assert action["purpose"] == "task"
+    assert action["model"]["maxTokens"] == 256
+
+
+@pytest.mark.parametrize("strategy", ["task", "composite"])
+def test_task_judge_uses_short_candidate_aliases_without_fuzzy_model_ids(tmp_path, strategy):
+    cfg = task_pool_configuration() if strategy == "task" else composite_configuration()
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, strategy, config=cfg)
+    judge = step(runtime, run)
+    request = json.loads(judge["messages"][1]["content"])
+    assert [item["id"] for item in request["candidates"]] == ["C1", "C2"]
+    execute = receipt(runtime, run, judge, json.dumps({"answers": {"candidates": {
+        "C1": {"score": .95, "missingInformation": 0},
+        "C2": {"score": .2, "missingInformation": 0}}}}))
+    assert execute["model"]["id"] == "small"
+    assert runtime.runs[run]["state"]["judge_decision"]["judgeCandidateAliases"] == {
+        "C1": "small", "C2": "large"}
+
+
+@pytest.mark.parametrize("strategy", ["task", "composite"])
+def test_task_judge_rejects_unknown_alias_without_guessing_model_id(tmp_path, strategy):
+    cfg = task_pool_configuration() if strategy == "task" else composite_configuration()
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, strategy, config=cfg)
+    judge = step(runtime, run)
+    with pytest.raises(ValueError, match="Task Judge 返回无效结构"):
+        receipt(runtime, run, judge, json.dumps({"answers": {"candidates": {
+            "C1": {"score": .95, "missingInformation": 0},
+            "small": {"score": .2, "missingInformation": 0}}}}))
+    assert runtime.runs[run]["status"] == "task-judge-invalid"
 
 
 def test_task_v3_single_eligible_media_candidate_skips_judge(tmp_path):
