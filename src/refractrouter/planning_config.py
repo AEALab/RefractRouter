@@ -15,6 +15,7 @@ SCHEMA_V2 = "refractagent-planning-v2"
 SCHEMA_V3 = "refractagent-planning-v3"
 SCHEMA_V4 = "refractagent-planning-v4"
 SCHEMA_V5 = "refractagent-planning-v5"
+SCHEMA_V6 = "refractagent-planning-v6"
 PROTOCOL = "refractagent-planning/4"
 MAX_CONFIG_BYTES = 16 * 1024 * 1024
 STRATEGIES = ("stage", "task", "composite", "advisor", "escalation", "static")
@@ -101,7 +102,7 @@ def _task_config(raw, schema, declared_ids, roles):
         return {"mode": "legacy", "pool": list(dict.fromkeys(pool)),
             "fallback": roles.get("capable"), "judge": {"type": "llm", "modelId": roles.get("classifier")},
             "threshold": .8, "maxInputChars": 12000}
-    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5):
+    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6):
         raise ValueError(f"Task 模型池需要 {SCHEMA_V3} 或 {SCHEMA_V4}")
     task = obj(supplied, ("pool", "fallback", "judge", "threshold", "maxInputChars",
                           "maxExecutionOutputTokens"), "task")
@@ -155,7 +156,7 @@ def _escalation_config(raw, schema, declared_ids, roles):
             "stallConfirmations": parameters["confirmations"], "threshold": .8,
             "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536,
             "maxExecutionOutputTokens": 8192, "maxJudgeOutputTokens": 1024}
-    if schema not in (SCHEMA_V4, SCHEMA_V5):
+    if schema not in (SCHEMA_V4, SCHEMA_V5, SCHEMA_V6):
         raise ValueError(f"Escalation 独立设置需要 {SCHEMA_V4}")
     value = obj(supplied, ("initial", "takeover", "judge", "stallConfirmations", "threshold",
         "judgeTimeoutMs", "maxJudgeInputBytes", "maxExecutionOutputTokens", "maxJudgeOutputTokens"),
@@ -209,10 +210,16 @@ def _advisor_config(raw, schema, declared_ids, roles):
     if supplied is None:
         return {"mode": "legacy", "judge": {"type": "llm", "modelId": roles.get("advisor")},
                 "threshold": .8, "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536}
-    if schema != SCHEMA_V5:
-        raise ValueError(f"Advisor 独立 Judge 设置需要 {SCHEMA_V5}")
-    value = obj(supplied, ("judge", "threshold", "judgeTimeoutMs", "maxJudgeInputBytes",
-                           "allowExperimental"), "advisor")
+    if schema not in (SCHEMA_V5, SCHEMA_V6):
+        raise ValueError(f"Advisor 独立 Judge 设置需要 {SCHEMA_V5} 或 {SCHEMA_V6}")
+    allowed = ("judge", "threshold", "judgeTimeoutMs", "maxJudgeInputBytes",
+               "allowExperimental")
+    if schema == SCHEMA_V6:
+        allowed += ("executor", "maxExecutionOutputTokens", "maxJudgeOutputTokens")
+    value = obj(supplied, allowed, "advisor")
+    executor = value.get("executor", roles.get("efficient"))
+    if executor not in declared_ids:
+        raise ValueError("Advisor 执行模型必须引用已配置模型")
     judge = obj(value.get("judge", {}), ("type", "modelId", "adapter", "modelPath", "sourceModel",
         "revision", "device", "dtype", "method"), "advisor.judge")
     if judge.get("type") == "llm":
@@ -233,20 +240,27 @@ def _advisor_config(raw, schema, declared_ids, roles):
             raise ValueError("Advisor 本地 Judge 尚待专项验收；需明确启用实验模式")
     else:
         raise ValueError("advisor.judge.type 必须是 llm 或 local-decision")
-    return {"mode": "configured", "judge": judge,
+    return {"mode": "configured", "flow": "gate-v2" if schema == SCHEMA_V6 else "legacy",
+        "executor": executor, "judge": judge,
         "allowExperimental": value.get("allowExperimental") is True,
         "threshold": number(value.get("threshold", .8), "advisor.threshold", 0, 1),
         "judgeTimeoutMs": number(value.get("judgeTimeoutMs", 30000), "advisor.judgeTimeoutMs", 100, 300000, True),
         "maxJudgeInputBytes": number(value.get("maxJudgeInputBytes", 65536),
-            "advisor.maxJudgeInputBytes", 1024, MAX_CONFIG_BYTES, True)}
+            "advisor.maxJudgeInputBytes", 1024, MAX_CONFIG_BYTES, True),
+        "maxExecutionOutputTokens": number(value.get("maxExecutionOutputTokens", 8192),
+            "advisor.maxExecutionOutputTokens", 256, 1000000, True),
+        "maxJudgeOutputTokens": number(value.get("maxJudgeOutputTokens", 1024),
+            "advisor.maxJudgeOutputTokens", 64, 16384, True),
+        "maxReviews": 2 if schema == SCHEMA_V6 else None,
+        "maxRedos": 1 if schema == SCHEMA_V6 else None}
 
 
 def _stage_config(raw):
     supplied = raw.get("stage")
     if supplied is None:
         return {"mode": "rules"}
-    if raw["schemaVersion"] != SCHEMA_V5:
-        raise ValueError("Stage 独立设置需要 planning v5")
+    if raw["schemaVersion"] not in (SCHEMA_V5, SCHEMA_V6):
+        raise ValueError("Stage 独立设置需要 planning v5 或 v6")
     stage = obj(supplied, ("mode", "judge", "allowExperimental", "window", "interval",
         "maxJudgements", "holdTurns", "downgradeConfirmations", "upgradeThreshold",
         "downgradeThreshold", "judgeTimeoutMs", "maxJudgeInputBytes"), "stage")
@@ -284,7 +298,7 @@ def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
         "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage", "mediaRoutes"), "planningRouting"))
-    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5) or type(raw.get("enabled")) is not bool:
+    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
             isinstance(model, dict) and "billingUnit" in model for model in raw.get("models", []))):
@@ -489,7 +503,7 @@ def preview(raw, host_issues=None):
             e = c["escalation"]
             required = [] if e["mode"] == "configured" else ["efficient", "capable", "classifier"]
         if strategy == "advisor" and c["advisor"]["mode"] == "configured":
-            required = ["efficient"]
+            required = []
         issues = [f"缺少 {r} 模型" for r in required if r not in c["roles"]]
         for role in required:
             model_id = c["roles"].get(role)
@@ -562,7 +576,15 @@ def preview(raw, host_issues=None):
                         or manifest.get("revision") != judge["revision"]):
                     issues.append("Escalation 本地 Judge 权重或固定 revision 尚未核对")
         if strategy == "advisor" and c["advisor"]["mode"] == "configured":
-            judge = c["advisor"]["judge"]
+            advisor = c["advisor"]
+            judge = advisor["judge"]
+            executor_id = advisor["executor"]
+            if executor_id in c["model_issues"]:
+                issues.append(f"Advisor 执行模型 {executor_id} 配置未完成（{c['model_issues'][executor_id]}）")
+            elif executor_id in (host_issues or {}):
+                issues.append(f"Advisor 执行模型 {executor_id}：{host_issues[executor_id]}")
+            elif executor_id in c["models"] and c["models"][executor_id].billing_unit not in c["budgets"]:
+                issues.append(f"Advisor 执行模型缺少 {c['models'][executor_id].billing_unit} 生产预算")
             if judge["type"] == "llm":
                 model_id = judge["modelId"]
                 if model_id in c["model_issues"]:

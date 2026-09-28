@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 const [modules,baseURL,outputLimit,strategy='static']=process.argv.slice(2)
-if(!['static','stage'].includes(strategy))throw new Error('验收策略只支持 Static 或 Stage')
+if(!['static','stage','advisor'].includes(strategy))throw new Error('验收策略只支持 Static、Stage 或 Advisor')
 const virtualModel=`refract/${strategy}`
 const maxTokens=outputLimit?Number(outputLimit):256
 if(!modules||!baseURL)throw new Error('需要 DSH node_modules 和本地网关 Base URL')

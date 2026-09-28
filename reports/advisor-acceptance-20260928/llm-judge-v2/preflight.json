@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "advisor-acceptance-preflight-v1",
+  "status": "zero-call-preflight",
+  "realModelCalls": 0,
+  "suite": "data/benchmarks/advisor-judge-v1.json",
+  "suiteDigest": "9cdf009226f8f2904e3d828cf763912fd46a579d164cdd471c523bbad17cb4ce",
+  "judgeContractDigest": "bc4e955a3f07299779da8b4d75e265fa51239145ee9b47bc27e90b3dcd0bc9fb",
+  "models": {
+    "executor": "deepseek-v4.1-flash",
+    "judge": "deepseek-v4-flash"
+  },
+  "limits": {
+    "judgeCases": 24,
+    "clientFlows": 6,
+    "clients": [
+      "dsh",
+      "codex",
+      "hermes"
+    ],
+    "maxCallsPerFlow": 4,
+    "judgeOutputTokens": 1024,
+    "executionOutputTokens": 2048,
+    "flowInputBytes": 80000,
+    "timeoutMsPerFlow": 300000,
+    "httpRetries": 0,
+    "delegation": false,
+    "judgeThinking": "disabled"
+  },
+  "callPlan": {
+    "judgeCases": 24,
+    "clientFlowCallsUpper": 18,
+    "maximumModelCalls": 42
+  },
+  "costUpper": {
+    "judgeCasesAfp": 3.30725,
+    "clientWiringAfp": 221.76,
+    "productionAfp": 225.06725,
+    "priorAfpWorstCase": 134.94255,
+    "maximumIncludingPriorAfp": 360.0098,
+    "authorizedCumulativeAfp": 2000
+  },
+  "perCallUpperAfp": {
+    "executor": 20.576,
+    "judge": 4.064
+  },
+  "credentialEnv": "CODEX_ARK_API_KEY",
+  "credentialAvailable": true,
+  "pricingSnapshot": "2026-09-25",
+  "pricingSource": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+  "notes": [
+    "本地 Laya 24 条案例无 API AFP，另记冷启动、暖机延迟和推论次数。",
+    "六条客户端流程含三条正常放行与三条受控返工复审，不用于证明自然任务收益。",
+    "预检不会下载权重、启动本地推论或派发真实模型调用。"
+  ],
+  "preflightDigest": "6a047ec4c37c73f9e3fa97c3de2156fba21e20e81bdbf54eacf9d5ee374424a3"
+}

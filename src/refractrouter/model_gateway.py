@@ -23,7 +23,7 @@ from .openai_compatible import OpenAICompatibleClient, UrllibTransport
 from .planning_config import compile_config, preview
 from .planning_runtime import PlanningRuntime
 
-ROUTES = ("static", "stage", "task", "escalation")
+ROUTES = ("static", "stage", "task", "escalation", "advisor")
 MAX_BODY = 8 * 1024 * 1024
 EXECUTION_OPTIONS = {"temperature", "top_p", "stop", "tool_choice", "parallel_tool_calls",
                      "response_format", "prompt_cache_key", "seed", "frequency_penalty", "presence_penalty"}
@@ -297,6 +297,8 @@ class ModelGateway:
             ids = [*c['task']['pool'], c['task']['fallback']]
         elif strategy == 'escalation':
             ids = [c['escalation']['initial'], c['escalation']['takeover']]
+        elif strategy == 'advisor':
+            ids = [c['advisor'].get('executor', c['roles'].get('efficient'))]
         else:
             ids = [c['roles'].get('efficient'), c['roles'].get('capable')]
         models = [c['models'][key] for key in dict.fromkeys(ids) if key in c['models']]
@@ -353,7 +355,7 @@ class ModelGateway:
             raise ValueError("请求包含当前网关未接通的参数")
         strategy = str(request.get('model', '')).removeprefix('refract/')
         if strategy not in ROUTES or request.get('n', 1) != 1:
-            raise ValueError("请选择 refract/static、stage、task 或 escalation；只支持 n=1")
+            raise ValueError("请选择 refract/static、stage、task、escalation 或 advisor；只支持 n=1")
         if 'reasoning_effort' in request:
             effort = request['reasoning_effort']
             if not isinstance(effort, str) or effort not in self.capabilities(strategy)['acceptedReasoningEfforts']:
