@@ -204,6 +204,43 @@ def _escalation_config(raw, schema, declared_ids, roles):
             "escalation.maxJudgeOutputTokens", 64, 16384, True)}
 
 
+def _advisor_config(raw, schema, declared_ids, roles):
+    supplied = raw.get("advisor")
+    if supplied is None:
+        return {"mode": "legacy", "judge": {"type": "llm", "modelId": roles.get("advisor")},
+                "threshold": .8, "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536}
+    if schema != SCHEMA_V5:
+        raise ValueError(f"Advisor 独立 Judge 设置需要 {SCHEMA_V5}")
+    value = obj(supplied, ("judge", "threshold", "judgeTimeoutMs", "maxJudgeInputBytes",
+                           "allowExperimental"), "advisor")
+    judge = obj(value.get("judge", {}), ("type", "modelId", "adapter", "modelPath", "sourceModel",
+        "revision", "device", "dtype", "method"), "advisor.judge")
+    if judge.get("type") == "llm":
+        if judge.get("modelId") not in declared_ids:
+            raise ValueError("Advisor LLM Judge 必须引用已配置模型")
+    elif judge.get("type") == "local-decision":
+        if judge.get("adapter") != "laya-mlx":
+            raise ValueError("Advisor 本地 Judge 仅支持 laya-mlx")
+        for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
+            if not isinstance(judge.get(field), str) or not judge[field] or len(judge[field]) > maximum:
+                raise ValueError(f"Advisor 本地 Judge 缺少有效 {field}")
+        if any(char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
+               for char in judge["revision"]):
+            raise ValueError("Advisor Judge revision 无效")
+        if judge.get("device", "gpu") not in ("gpu", "metal", "cpu") or judge.get("dtype", "float16") not in ("float16", "float32", "bfloat16"):
+            raise ValueError("Advisor Judge device/dtype 无效")
+        if value.get("allowExperimental") is not True:
+            raise ValueError("Advisor 本地 Judge 尚待专项验收；需明确启用实验模式")
+    else:
+        raise ValueError("advisor.judge.type 必须是 llm 或 local-decision")
+    return {"mode": "configured", "judge": judge,
+        "allowExperimental": value.get("allowExperimental") is True,
+        "threshold": number(value.get("threshold", .8), "advisor.threshold", 0, 1),
+        "judgeTimeoutMs": number(value.get("judgeTimeoutMs", 30000), "advisor.judgeTimeoutMs", 100, 300000, True),
+        "maxJudgeInputBytes": number(value.get("maxJudgeInputBytes", 65536),
+            "advisor.maxJudgeInputBytes", 1024, MAX_CONFIG_BYTES, True)}
+
+
 def _stage_config(raw):
     supplied = raw.get("stage")
     if supplied is None:
@@ -246,7 +283,7 @@ def _stage_config(raw):
 def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
-        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "stage", "mediaRoutes"), "planningRouting"))
+        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage", "mediaRoutes"), "planningRouting"))
     if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
@@ -354,6 +391,7 @@ def compile_config(raw):
             raise ValueError("角色引用不存在的模型")
     task = _task_config(raw, raw["schemaVersion"], declared_ids, roles)
     escalation = _escalation_config(raw, raw["schemaVersion"], declared_ids, roles)
+    advisor = _advisor_config(raw, raw["schemaVersion"], declared_ids, roles)
     media_routes = raw.get("mediaRoutes", [])
     if not isinstance(media_routes, list) or len(media_routes) > 32:
         raise ValueError("mediaRoutes 无效")
@@ -431,7 +469,7 @@ def compile_config(raw):
     return {"raw": raw, "enabled": raw["enabled"], "strategy": strategy, "unit": unit, "budget": budget,
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
-        "task": task, "escalation": escalation, "stage": _stage_config(raw), "media_routes": normalized_media,
+        "task": task, "escalation": escalation, "advisor": advisor, "stage": _stage_config(raw), "media_routes": normalized_media,
         "model_issues": model_issues}
 
 
@@ -450,6 +488,8 @@ def preview(raw, host_issues=None):
         if strategy == "escalation":
             e = c["escalation"]
             required = [] if e["mode"] == "configured" else ["efficient", "capable", "classifier"]
+        if strategy == "advisor" and c["advisor"]["mode"] == "configured":
+            required = ["efficient"]
         issues = [f"缺少 {r} 模型" for r in required if r not in c["roles"]]
         for role in required:
             model_id = c["roles"].get(role)
@@ -521,6 +561,24 @@ def preview(raw, host_issues=None):
                         or manifest.get("sourceModel") != judge["sourceModel"]
                         or manifest.get("revision") != judge["revision"]):
                     issues.append("Escalation 本地 Judge 权重或固定 revision 尚未核对")
+        if strategy == "advisor" and c["advisor"]["mode"] == "configured":
+            judge = c["advisor"]["judge"]
+            if judge["type"] == "llm":
+                model_id = judge["modelId"]
+                if model_id in c["model_issues"]:
+                    issues.append(f"Advisor Judge {model_id} 配置未完成（{c['model_issues'][model_id]}）")
+                elif model_id in c["models"] and c["models"][model_id].billing_unit not in c["budgets"]:
+                    issues.append(f"Advisor Judge 缺少 {c['models'][model_id].billing_unit} 生产预算")
+            else:
+                path = Path(judge["modelPath"]).expanduser()
+                try:
+                    manifest = json.loads((path / "refractrouter-laya.json").read_text())
+                except (OSError, ValueError, TypeError):
+                    manifest = {}
+                if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
+                        "rl_agent_config.json", "encoder/config.json")) or manifest.get("revision") != judge["revision"]
+                        or manifest.get("sourceModel") != judge["sourceModel"]):
+                    issues.append("Advisor 本地 Judge 权重或固定 revision 尚未核对")
         if strategy == "stage" and c["stage"]["mode"] == "hybrid":
             if not c["stage"]["allowExperimental"]:
                 issues.append("Stage 本地轨迹判别尚未通过日常质量验收；需明确启用实验模式")

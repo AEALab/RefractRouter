@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { EMPTY_PLANNING, PLANNING_NAMES, validatePlanningShape, type MediaRouteConfig, type PlanningConfig, type PlanningStrategy } from '../planning-config.js'
+import { EMPTY_PLANNING, PLANNING_NAMES, validatePlanningShape, type MediaRouteConfig, type PlanningConfig, type PlanningStrategy, type TaskJudgeConfig } from '../planning-config.js'
 import type { CardScope } from '../settings-card.js'
 import type { ClientContext, DshModelCatalog } from './types.js'
 
@@ -147,7 +147,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   },[dirty,draft.billingUnit,draft.maxProductionCost,draft.maxProductionCostByUnit,loadFx])
   async function save(){
     setBusy(true);setStatus('')
-    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.stage||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
+    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
       setStatus(selected?.available
@@ -157,7 +157,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   async function operateLocalJudge(action:'status'|'download'|'load'|'unload'){
     setBusy(true);setStatus(action==='download'?'正在明确下载固定 revision；任务执行不会触发此操作。':'')
-    try{const result=await localJudge({...draft,schemaVersion:draft.stage||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action)
+    try{const result=await localJudge({...draft,schemaVersion:draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action)
       setLocalJudgeStatus(result);setStatus(`本地 Judge：依赖${result.installed?'已安装':'未安装'}；权重${result.downloaded?'已就绪':'未就绪'}；revision ${result.revisionVerified?'已核对':'未核对'}；本地文件 ${(result.sizeBytes/1024/1024).toFixed(1)} MiB；进程${result.loaded?'已加载':'未加载'}。`)
     }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
   }
@@ -278,7 +278,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     <div className="rra-grid rra-grid-2"><label className="rra-compact-field">任务期限（毫秒，0 为不限制） <input className="rra-input" type="number" min="0" value={draft.timeoutMs??300000} onChange={e=>patch({timeoutMs:Number(e.target.value)})}/></label>
       <label className="rra-compact-field">最大调用数（0 为不限制） <input className="rra-input" type="number" min="0" value={draft.maxCalls??128} onChange={e=>patch({maxCalls:Number(e.target.value)})}/></label></div></div>
     <div className="rra-row-card"><h3>模型与角色</h3><p className="rra-field-hint">四种角色集中管理；每项策略只要求它实际使用的模型。系统查询容量和价格；历史值保留并注明尚未核对，新路线缺项时不可运行。</p>
-      <p className="rra-field-hint">这里的「Advisor 审核 LLM」只接受 DSH 模型目录中的语言模型。本地 Laya-MLX 是独立的结构化 Judge，不会出现在 DSH 模型下拉菜单；Task 和 Escalation 可在各自的「Judge 类型」中配置它，Stage 的本地协作仍属实验功能。兼容旧策略的判别角色供旧版 Task、Composite 和旧版 Escalation 使用。</p>
+      <p className="rra-field-hint">「Advisor 审核 LLM」引用 DSH 模型目录；Advisor 下方也可选实验性的本地 Laya-MLX Judge。两者使用不同接口，本地权重不会出现在 DSH 模型下拉菜单。兼容旧策略的判别角色供旧版 Task、Composite 和旧版 Escalation 使用。</p>
     {Object.entries(ROLES).map(([r,label])=>{
       const role=r as keyof typeof ROLES,model=draft.models?.find(m=>m.id===draft.roles?.[role])
       const key=model?modelKey(model.provider,model.model,model.billingUnit==='USD'?'CNY':model.billingUnit??draft.billingUnit??'CNY'):''
@@ -534,8 +534,33 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
       </div></details>}
     {draft.defaultStrategy==='advisor'&&<div className="rra-planning-fields"><h4>Advisor 审核设置</h4>
-      <p className="rra-field-hint">执行模型使用上方「高效执行模型」。启用审核时，准备交付的候选由「Advisor 审核 LLM」检查；通过后交付，要求返工时按反馈续作。正常工具探索依宿主流程继续；启用停滞审核后才会提前检查工具过程。每次 LLM 审核会增加费用和等待时间。</p>
-      <p className="rra-field-hint">本地 Laya-MLX 尚未接通 Advisor 的审核合同，也没有 Advisor 专项验收；现有 Escalation 题集中的合格回复 0/6 放行。此处暂不能选用。Task／Escalation 已接通的本地 Judge 不等于 Advisor 审核能力。</p>
+      <p className="rra-field-hint">执行模型使用上方「高效执行模型」。准备交付的候选经过所选 Judge 审核；通过后交付，要求返工时按反馈续作。正常工具探索依宿主流程继续；启用停滞审核后才会提前检查工具过程。</p>
+      <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.advisor?.judge.type??'llm'} onChange={e=>{
+        const previous=draft.advisor?.judge.type==='local-decision'?draft.advisor.judge:
+          draft.task?.judge.type==='local-decision'?draft.task.judge:
+          draft.escalation?.judge.type==='local-decision'?draft.escalation.judge:undefined
+        patch({schemaVersion:'refractagent-planning-v5',advisor:{...draft.advisor,
+          judge:e.target.value==='local-decision'?(previous??{type:'local-decision',adapter:'laya-mlx',modelPath:'',
+            sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',
+            device:'gpu',dtype:'float16'}):{type:'llm',modelId:draft.roles?.advisor??draft.roles?.classifier??''},
+          allowExperimental:e.target.value==='local-decision'}})}}>
+        <option value="llm">DSH 语言模型</option><option value="local-decision">本地 Laya-MLX（实验）</option></select></label>
+      {draft.advisor?.judge.type==='local-decision'&&<>
+        <p className="rra-field-hint">实验功能，尚未通过 Advisor 专项质量验收。Laya 返回分类；返工反馈按分类生成，无法提供自由文字理由。低确定性或输入超出容量时停止本轮，不会误放行或自动切换云端。</p>
+        <label className="rra-check"><input type="checkbox" checked={draft.advisor.allowExperimental===true} onChange={e=>patch({advisor:{...draft.advisor!,allowExperimental:e.target.checked}})}/>启用实验性本地审核</label>
+        <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.advisor.judge.modelPath} onChange={e=>patch({advisor:{...draft.advisor!,judge:{...draft.advisor!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
+        <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.advisor.judge.revision??''} onChange={e=>patch({advisor:{...draft.advisor!,judge:{...draft.advisor!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,revision:e.target.value}}})}/></label>
+        <div className="rra-actions"><button className="rra-button rra-button-secondary" type="button" disabled={busy} onClick={()=>void operateLocalJudge('status')}>检查本地状态</button>
+          <button className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.advisor.judge.modelPath||!draft.advisor.judge.revision} onClick={()=>void operateLocalJudge('download')}>下载固定权重</button>
+          <button className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.advisor.judge.modelPath} onClick={()=>void operateLocalJudge('load')}>加载并预热</button>
+          <button className="rra-button rra-button-secondary" type="button" disabled={busy||!localJudgeStatus?.loaded} onClick={()=>void operateLocalJudge('unload')}>卸载</button></div>
+        {localJudgeStatus&&<p role="status">本地 Judge：{localJudgeStatus.loaded?'已加载并预热':localJudgeStatus.downloaded?'权重已下载，尚未加载':'尚未就绪'}；revision {localJudgeStatus.revisionVerified?'已核对':'未核对'}。</p>}
+        <details className="rra-details"><summary>本地审核高级参数</summary><div className="rra-planning-fields">
+          <label className="rra-compact-field">确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" value={draft.advisor.judgeTimeoutMs??30000} onChange={e=>patch({advisor:{...draft.advisor!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">输入包络（bytes） <input className="rra-input" type="number" min="1024" value={draft.advisor.maxJudgeInputBytes??65536} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
+        </div></details>
+      </>}
       {([{key:'maxReviews',label:'审核次数上限（0 关闭）',value:1},{key:'maxRedos',label:'返工次数上限',value:1},
         {key:'stallTurns',label:'停滞审核轮数（0 为关闭）',value:0}] as const).map(item=><label className="rra-compact-field" key={item.key}>{item.label}
         <input className="rra-input" type="number" min="0" step="1" value={draft.parameters?.[item.key]??item.value}
@@ -597,7 +622,8 @@ type History={records:Array<{runId:string;strategy:string;status:string;costs:{p
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
-    reviewVerdict?:string;reviewCount?:number;redoCount?:number;
+    reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;
+    reviewCount?:number;redoCount?:number;
     staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
     decision?:TaskRouteEvidence&{backend?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown};judgeDecision?:TaskRouteEvidence;
     downgradeConfirmations?:number;judgeBatches?:number;
@@ -702,10 +728,11 @@ function Trace({load}:{load:()=>Promise<History>}){
         <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
           const related=c.call_id?r.decisions.filter(row=>row.callId===c.call_id||row.candidateCallId===c.call_id):[]
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{DISPOSITION[c.disposition]??c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}{(c as unknown as {review_status?:string}).review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
-          <td>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
+          <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
             {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
+            {d.backend==='local-decision'?`；本地 Laya 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，确定性 ${d.confidence.toFixed(3)}`:''}`:''}
             {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
             {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
             <br/><small>{d.evidenceSummary??(d.decision?.backend?`后端 ${d.decision.backend}`:'本次未记录独立证据摘要')}

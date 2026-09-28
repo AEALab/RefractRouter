@@ -30,6 +30,10 @@ export interface EscalationRoutingConfig {
   stallConfirmations?:number;threshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
   maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number
 }
+export interface AdvisorRoutingConfig {
+  judge:TaskJudgeConfig;threshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
+  allowExperimental?:boolean
+}
 export interface StageRoutingConfig {
   mode:'rules'|'hybrid';judge?:Extract<TaskJudgeConfig,{type:'local-decision'}>;allowExperimental?:boolean
   window?:number;interval?:number;maxJudgements?:number;holdTurns?:number;downgradeConfirmations?:number
@@ -55,6 +59,7 @@ export interface PlanningConfig {
   compatiblePairs?:string[][]
   task?:TaskRoutingConfig
   escalation?:EscalationRoutingConfig
+  advisor?:AdvisorRoutingConfig
   stage?:StageRoutingConfig
   mediaRoutes?:MediaRouteConfig[]
 }
@@ -82,6 +87,8 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
     throw new Error('planningRouting.task 需要 Task 设置对象')
   if(v.escalation!==undefined&&(!v.escalation||typeof v.escalation!=='object'||Array.isArray(v.escalation)))
     throw new Error('planningRouting.escalation 需要 Escalation 设置对象')
+  if(v.advisor!==undefined&&(!v.advisor||typeof v.advisor!=='object'||Array.isArray(v.advisor)))
+    throw new Error('planningRouting.advisor 需要 Advisor 设置对象')
   if(v.stage!==undefined&&(!v.stage||typeof v.stage!=='object'||Array.isArray(v.stage)))
     throw new Error('planningRouting.stage 需要 Stage 设置对象')
   if(v.mediaRoutes!==undefined&&!Array.isArray(v.mediaRoutes))throw new Error('planningRouting.mediaRoutes 需要列表')
