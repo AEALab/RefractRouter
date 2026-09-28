@@ -1,0 +1,763 @@
+{
+  "schemaVersion": "advisor-judge-audit-result-v1",
+  "recordedAt": "2026-09-28T08:38:00.738661+00:00",
+  "backend": "local-laya-mlx",
+  "suite": "data/benchmarks/advisor-judge-v1.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "coldStartMs": 1192.9635839769617,
+  "matched": 7,
+  "total": 24,
+  "defectsApproved": 3,
+  "qualifiedApproved": 0,
+  "insufficientApproved": 1,
+  "rechecksMatched": 2,
+  "dailyUseAccepted": false,
+  "cases": [
+    {
+      "id": "zh-qualified-1",
+      "category": "qualified",
+      "language": "zh",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.5731,
+      "matched": false,
+      "latencyMs": 48.70604199822992,
+      "usage": {
+        "input_tokens": 227,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1966,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.5731,
+          "REDO_REQUIREMENT": 0.1077,
+          "REDO_EVIDENCE": 0.2288,
+          "UNRESOLVED": 0.0904
+        }
+      }
+    },
+    {
+      "id": "zh-qualified-2",
+      "category": "qualified",
+      "language": "zh",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.4633,
+      "matched": false,
+      "latencyMs": 38.66791701875627,
+      "usage": {
+        "input_tokens": 232,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1028,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.4633,
+          "REDO_REQUIREMENT": 0.1182,
+          "REDO_EVIDENCE": 0.1454,
+          "UNRESOLVED": 0.273
+        }
+      }
+    },
+    {
+      "id": "en-qualified-1",
+      "category": "qualified",
+      "language": "en",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.3786,
+      "matched": false,
+      "latencyMs": 33.37233397178352,
+      "usage": {
+        "input_tokens": 226,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0774,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.3786,
+          "REDO_REQUIREMENT": 0.0861,
+          "REDO_EVIDENCE": 0.3057,
+          "UNRESOLVED": 0.2296
+        }
+      }
+    },
+    {
+      "id": "en-qualified-2",
+      "category": "qualified",
+      "language": "en",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.5145,
+      "matched": false,
+      "latencyMs": 32.677375013008714,
+      "usage": {
+        "input_tokens": 226,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1225,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.5145,
+          "REDO_REQUIREMENT": 0.119,
+          "REDO_EVIDENCE": 0.1936,
+          "UNRESOLVED": 0.1729
+        }
+      }
+    },
+    {
+      "id": "mix-qualified-1",
+      "category": "qualified",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.5569,
+      "matched": false,
+      "latencyMs": 32.45324990712106,
+      "usage": {
+        "input_tokens": 225,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1646,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.5569,
+          "REDO_REQUIREMENT": 0.1238,
+          "REDO_EVIDENCE": 0.2037,
+          "UNRESOLVED": 0.1156
+        }
+      }
+    },
+    {
+      "id": "mix-qualified-2",
+      "category": "qualified",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.3837,
+      "matched": false,
+      "latencyMs": 33.623750088736415,
+      "usage": {
+        "input_tokens": 233,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0811,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.3837,
+          "REDO_REQUIREMENT": 0.0908,
+          "REDO_EVIDENCE": 0.3231,
+          "UNRESOLVED": 0.2025
+        }
+      }
+    },
+    {
+      "id": "zh-defect-1",
+      "category": "defect",
+      "language": "zh",
+      "expected": "REDO",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.8254,
+      "matched": false,
+      "latencyMs": 32.456791028380394,
+      "usage": {
+        "input_tokens": 222,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.5377,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.8254,
+          "REDO_REQUIREMENT": 0.0733,
+          "REDO_EVIDENCE": 0.0742,
+          "UNRESOLVED": 0.0272
+        }
+      }
+    },
+    {
+      "id": "zh-defect-2",
+      "category": "defect",
+      "language": "zh",
+      "expected": "REDO",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.916,
+      "matched": false,
+      "latencyMs": 32.364250044338405,
+      "usage": {
+        "input_tokens": 187,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.7276,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.916,
+          "REDO_REQUIREMENT": 0.0342,
+          "REDO_EVIDENCE": 0.0178,
+          "UNRESOLVED": 0.032
+        }
+      }
+    },
+    {
+      "id": "en-defect-1",
+      "category": "defect",
+      "language": "en",
+      "expected": "REDO",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "UNRESOLVED",
+      "confidence": 0.374,
+      "matched": false,
+      "latencyMs": 27.590291923843324,
+      "usage": {
+        "input_tokens": 191,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0357,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNRESOLVED",
+        "probabilities": {
+          "APPROVE": 0.2359,
+          "REDO_REQUIREMENT": 0.2377,
+          "REDO_EVIDENCE": 0.1524,
+          "UNRESOLVED": 0.374
+        }
+      }
+    },
+    {
+      "id": "en-defect-2",
+      "category": "defect",
+      "language": "en",
+      "expected": "REDO",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.9018,
+      "matched": false,
+      "latencyMs": 33.475790987722576,
+      "usage": {
+        "input_tokens": 218,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6911,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.9018,
+          "REDO_REQUIREMENT": 0.0285,
+          "REDO_EVIDENCE": 0.032,
+          "UNRESOLVED": 0.0377
+        }
+      }
+    },
+    {
+      "id": "mix-defect-1",
+      "category": "defect",
+      "language": "mixed",
+      "expected": "REDO",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.5531,
+      "matched": false,
+      "latencyMs": 31.34891705121845,
+      "usage": {
+        "input_tokens": 223,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.181,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.5531,
+          "REDO_REQUIREMENT": 0.0632,
+          "REDO_EVIDENCE": 0.1841,
+          "UNRESOLVED": 0.1996
+        }
+      }
+    },
+    {
+      "id": "mix-defect-2",
+      "category": "defect",
+      "language": "mixed",
+      "expected": "REDO",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "UNRESOLVED",
+      "confidence": 0.3455,
+      "matched": false,
+      "latencyMs": 32.3321670293808,
+      "usage": {
+        "input_tokens": 192,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0565,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNRESOLVED",
+        "probabilities": {
+          "APPROVE": 0.3345,
+          "REDO_REQUIREMENT": 0.1165,
+          "REDO_EVIDENCE": 0.2035,
+          "UNRESOLVED": 0.3455
+        }
+      }
+    },
+    {
+      "id": "zh-insufficient-1",
+      "category": "insufficient",
+      "language": "zh",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.5444,
+      "matched": true,
+      "latencyMs": 24.295042036101222,
+      "usage": {
+        "input_tokens": 183,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.198,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.5444,
+          "REDO_REQUIREMENT": 0.0779,
+          "REDO_EVIDENCE": 0.0961,
+          "UNRESOLVED": 0.2816
+        }
+      }
+    },
+    {
+      "id": "zh-insufficient-2",
+      "category": "insufficient",
+      "language": "zh",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "UNRESOLVED",
+      "confidence": 0.3082,
+      "matched": true,
+      "latencyMs": 26.47079201415181,
+      "usage": {
+        "input_tokens": 184,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0173,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNRESOLVED",
+        "probabilities": {
+          "APPROVE": 0.1786,
+          "REDO_REQUIREMENT": 0.2171,
+          "REDO_EVIDENCE": 0.2961,
+          "UNRESOLVED": 0.3082
+        }
+      }
+    },
+    {
+      "id": "en-insufficient-1",
+      "category": "insufficient",
+      "language": "en",
+      "expected": "UNRESOLVED",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.8659,
+      "matched": false,
+      "latencyMs": 24.355958099476993,
+      "usage": {
+        "input_tokens": 182,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6205,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.8659,
+          "REDO_REQUIREMENT": 0.0306,
+          "REDO_EVIDENCE": 0.076,
+          "UNRESOLVED": 0.0275
+        }
+      }
+    },
+    {
+      "id": "en-insufficient-2",
+      "category": "insufficient",
+      "language": "en",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "UNRESOLVED",
+      "confidence": 0.4968,
+      "matched": true,
+      "latencyMs": 25.656208978034556,
+      "usage": {
+        "input_tokens": 184,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1187,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNRESOLVED",
+        "probabilities": {
+          "APPROVE": 0.1136,
+          "REDO_REQUIREMENT": 0.2391,
+          "REDO_EVIDENCE": 0.1505,
+          "UNRESOLVED": 0.4968
+        }
+      }
+    },
+    {
+      "id": "mix-insufficient-1",
+      "category": "insufficient",
+      "language": "mixed",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.4587,
+      "matched": true,
+      "latencyMs": 26.68745897244662,
+      "usage": {
+        "input_tokens": 185,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0937,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.4587,
+          "REDO_REQUIREMENT": 0.1066,
+          "REDO_EVIDENCE": 0.2434,
+          "UNRESOLVED": 0.1912
+        }
+      }
+    },
+    {
+      "id": "mix-insufficient-2",
+      "category": "insufficient",
+      "language": "mixed",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "UNRESOLVED",
+      "confidence": 0.7807,
+      "matched": true,
+      "latencyMs": 24.797249934636056,
+      "usage": {
+        "input_tokens": 185,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.4606,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNRESOLVED",
+        "probabilities": {
+          "APPROVE": 0.033,
+          "REDO_REQUIREMENT": 0.0906,
+          "REDO_EVIDENCE": 0.0957,
+          "UNRESOLVED": 0.7807
+        }
+      }
+    },
+    {
+      "id": "zh-recheck-repaired",
+      "category": "recheck",
+      "language": "zh",
+      "expected": "APPROVE",
+      "outcome": "REDO",
+      "rawVerdict": "REDO_REQUIREMENT",
+      "confidence": 0.976,
+      "matched": false,
+      "latencyMs": 32.85529208369553,
+      "usage": {
+        "input_tokens": 199,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.9045,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "REDO_REQUIREMENT",
+        "probabilities": {
+          "APPROVE": 0.0166,
+          "REDO_REQUIREMENT": 0.976,
+          "REDO_EVIDENCE": 0.005,
+          "UNRESOLVED": 0.0024
+        }
+      }
+    },
+    {
+      "id": "zh-recheck-unrepaired",
+      "category": "recheck",
+      "language": "zh",
+      "expected": "REDO",
+      "outcome": "REDO",
+      "rawVerdict": "REDO_REQUIREMENT",
+      "confidence": 0.9437,
+      "matched": true,
+      "latencyMs": 32.43091597687453,
+      "usage": {
+        "input_tokens": 194,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.8166,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "REDO_REQUIREMENT",
+        "probabilities": {
+          "APPROVE": 0.0442,
+          "REDO_REQUIREMENT": 0.9437,
+          "REDO_EVIDENCE": 0.0068,
+          "UNRESOLVED": 0.0053
+        }
+      }
+    },
+    {
+      "id": "en-recheck-repaired",
+      "category": "recheck",
+      "language": "en",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.7036,
+      "matched": false,
+      "latencyMs": 32.75533299893141,
+      "usage": {
+        "input_tokens": 234,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.3519,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.7036,
+          "REDO_REQUIREMENT": 0.1182,
+          "REDO_EVIDENCE": 0.1409,
+          "UNRESOLVED": 0.0372
+        }
+      }
+    },
+    {
+      "id": "en-recheck-unrepaired",
+      "category": "recheck",
+      "language": "en",
+      "expected": "REDO",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.8584,
+      "matched": false,
+      "latencyMs": 34.29454192519188,
+      "usage": {
+        "input_tokens": 235,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6041,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.8584,
+          "REDO_REQUIREMENT": 0.0643,
+          "REDO_EVIDENCE": 0.0581,
+          "UNRESOLVED": 0.0192
+        }
+      }
+    },
+    {
+      "id": "mix-recheck-repaired",
+      "category": "recheck",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.869,
+      "matched": true,
+      "latencyMs": 31.257000053301454,
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6469,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.869,
+          "REDO_REQUIREMENT": 0.0944,
+          "REDO_EVIDENCE": 0.0241,
+          "UNRESOLVED": 0.0126
+        }
+      }
+    },
+    {
+      "id": "mix-recheck-unrepaired",
+      "category": "recheck",
+      "language": "mixed",
+      "expected": "REDO",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.8882,
+      "matched": false,
+      "latencyMs": 30.991749954409897,
+      "usage": {
+        "input_tokens": 197,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.6858,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.8882,
+          "REDO_REQUIREMENT": 0.0809,
+          "REDO_EVIDENCE": 0.0208,
+          "UNRESOLVED": 0.0101
+        }
+      }
+    }
+  ]
+}

@@ -6,7 +6,7 @@ import sys
 
 root, base = sys.argv[1:3]
 strategy = sys.argv[3] if len(sys.argv) > 3 else 'static'
-if strategy not in ('static', 'stage'): raise ValueError('验收策略只支持 Static 或 Stage')
+if strategy not in ('static', 'stage', 'advisor'): raise ValueError('验收策略只支持 Static、Stage 或 Advisor')
 virtual_model = 'refract/' + strategy
 sys.path.insert(0, root)
 if not os.environ.get('HERMES_HOME'):

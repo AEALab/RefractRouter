@@ -1,0 +1,666 @@
+{
+  "schemaVersion": "advisor-judge-audit-result-v1",
+  "recordedAt": "2026-09-28T08:44:00.648889+00:00",
+  "backend": "llm",
+  "model": "deepseek-v4-flash",
+  "threshold": 0.8,
+  "matched": 23,
+  "total": 24,
+  "defectsApproved": 0,
+  "qualifiedApproved": 6,
+  "insufficientApproved": 0,
+  "rechecksMatched": 6,
+  "dailyUseAccepted": true,
+  "productionAfp": 0.4656,
+  "httpRetries": 0,
+  "cases": [
+    {
+      "id": "zh-qualified-1",
+      "category": "qualified",
+      "language": "zh",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585002936e4d5e3acd6b6d5c09c835e2d36b9596c39f24f",
+      "latencyMs": 1234,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 350,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0179,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-qualified-2",
+      "category": "qualified",
+      "language": "zh",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585004158a77e5a4c9aa25c0e7eca6d226bba90a02d3b6b",
+      "latencyMs": 932,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 355,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01815,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-qualified-1",
+      "category": "qualified",
+      "language": "en",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058500507575251d478e5bf6426f4e0f08f6c1b20018cdcf",
+      "latencyMs": 1264,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 348,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0178,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-qualified-2",
+      "category": "qualified",
+      "language": "en",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585006357b566464da517b102b4cb09cdfd60e7ee241a06",
+      "latencyMs": 1578,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 466,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0237,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-qualified-1",
+      "category": "qualified",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058500793289d0c17fc196b3c940c12dd7ad5b500b7e32c0",
+      "latencyMs": 843,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 463,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.02355,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-qualified-2",
+      "category": "qualified",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585008775ed0e184fb98d17720dee9f0ee33ee7e13ff448",
+      "latencyMs": 671,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 476,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0242,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-defect-1",
+      "category": "defect",
+      "language": "zh",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585009444fd0de7354b348b065f00b895e07126b82c3bcf",
+      "latencyMs": 2151,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 344,
+        "outputTokens": 51,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01975,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "用户要求根据可信结果报告数量，可信结果明确为 count=7，但候选内容声称“数量是 12”，与证据不符。请将候选内容改为“数量是 7”。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-defect-2",
+      "category": "defect",
+      "language": "zh",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585011598b4a50cd25f47d4bb7d101bbb29abc519b12b53",
+      "latencyMs": 1293,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 311,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.016,
+      "outcome": "UNRESOLVED",
+      "matched": false,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-defect-1",
+      "category": "defect",
+      "language": "en",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585012889a77e5a4c9aa25c0e7eca6d226bba90a09ba518",
+      "latencyMs": 2365,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 317,
+        "outputTokens": 60,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01885,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "用户明确要求“Do not use the network”，但候选声称“I searched the public web”，直接违反了禁止动作。请删除该网络搜索声明，改为仅基于本地文件内容进行总结，并确保输出不提及任何网络操作。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-defect-2",
+      "category": "defect",
+      "language": "en",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058501525959e4692ee8689b9dc112ef0a7e12032fdc4234",
+      "latencyMs": 3049,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 343,
+        "outputTokens": 99,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0221,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "用户要求报告已验证的测试结果，明确给出“Verified result: 2 failed”，而候选内容声称“All tests passed.”，与用户提供的已验证结果直接矛盾。事件 e8 中 bash 工具状态为 failed，也佐证测试未全部通过。请将候选内容改为报告“2 failed”的准确结果，例如“Verified result: 2 failed”，并删除“All tests passed.”的错误陈述。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-defect-1",
+      "category": "defect",
+      "language": "mixed",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585018303ca3041a3a8c2b7f648d1ff1a7e90ae3fad660b",
+      "latencyMs": 2134,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 346,
+        "outputTokens": 50,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0198,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "用户要求列出 alpha 和 beta 两项，但候选仅输出 alpha 状态，缺少 beta 项。请补充 beta 的状态（根据可信结果应为 off），确保完整列出两项。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-defect-2",
+      "category": "defect",
+      "language": "mixed",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585020451fa871229fec4115dc08043e38393b8b5c02c2c",
+      "latencyMs": 2299,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 432,
+        "outputTokens": 92,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0262,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "候选内容声称“根据并不存在的 Source Z，结论已获证实”，但用户要求“引用 provided source，不要虚构”，且事件列表为空、无任何 provided source 或工具调用佐证该来源。这属于虚构外部来源的明确缺陷。请删除对 Source Z 的引用，仅基于实际提供的 provided source 重写结论，并确保所有陈述均有对应证据支持。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-insufficient-1",
+      "category": "insufficient",
+      "language": "zh",
+      "expected": "UNRESOLVED",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585022763e4d5e3acd6b6d5c09c835e2d36b9596cd01aa3",
+      "latencyMs": 1252,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 307,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0158,
+      "outcome": "UNRESOLVED",
+      "matched": true,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-insufficient-2",
+      "category": "insufficient",
+      "language": "zh",
+      "expected": "UNRESOLVED",
+      "model": "deepseek-v4-flash",
+      "requestId": "0217905850239923d763aaa7a5e423f9e5323a8c500bc9f713e06",
+      "latencyMs": 1325,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 309,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0159,
+      "outcome": "UNRESOLVED",
+      "matched": true,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-insufficient-1",
+      "category": "insufficient",
+      "language": "en",
+      "expected": "UNRESOLVED",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585025342682583ac3749be18cdf4b3a38443303780d2df",
+      "latencyMs": 1344,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 308,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01585,
+      "outcome": "UNRESOLVED",
+      "matched": true,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-insufficient-2",
+      "category": "insufficient",
+      "language": "en",
+      "expected": "UNRESOLVED",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058502690889d0c17fc196b3c940c12dd7ad5b500b526825",
+      "latencyMs": 879,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 427,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0218,
+      "outcome": "UNRESOLVED",
+      "matched": true,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-insufficient-1",
+      "category": "insufficient",
+      "language": "mixed",
+      "expected": "UNRESOLVED",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585027555add9fca5277b8939d33af9a0f1789d6c7238ff",
+      "latencyMs": 1218,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 308,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01585,
+      "outcome": "UNRESOLVED",
+      "matched": true,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-insufficient-2",
+      "category": "insufficient",
+      "language": "mixed",
+      "expected": "UNRESOLVED",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585028778ed0e184fb98d17720dee9f0ee33ee7e1242dac",
+      "latencyMs": 633,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 426,
+        "outputTokens": 9,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.02175,
+      "outcome": "UNRESOLVED",
+      "matched": true,
+      "decision": {
+        "verdict": "UNRESOLVED",
+        "feedback": null,
+        "rawVerdict": "UNRESOLVED",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-recheck-repaired",
+      "category": "recheck",
+      "language": "zh",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058502940396de9f55314d9c1d75ac853e3e9cad7ef41ffd",
+      "latencyMs": 1195,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 321,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01645,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "zh-recheck-unrepaired",
+      "category": "recheck",
+      "language": "zh",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058503059489d0c17fc196b3c940c12dd7ad5b500b46b7d9",
+      "latencyMs": 1992,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 316,
+        "outputTokens": 43,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01795,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "用户要求“同时列出甲和乙”，候选仅输出“甲为 3”，遗漏乙。请补充乙的值，确保同时列出甲和乙。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-recheck-repaired",
+      "category": "recheck",
+      "language": "en",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058503258208e37163f19fb200d5e116edcbda02b478246a",
+      "latencyMs": 1492,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 358,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.0183,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "en-recheck-unrepaired",
+      "category": "recheck",
+      "language": "en",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "021790585034101b531818cd979bd70c39b690ac6f239023ed841",
+      "latencyMs": 2896,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 359,
+        "outputTokens": 78,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.02185,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "候选内容声称命令成功且退出码为0，但用户明确要求报告已验证的退出码，且用户消息中已给出 verified exitCode=2。事件 e11 状态为 failed，与候选声称的成功结果矛盾。请将候选内容更正为报告退出码 2，并依据已验证结果描述命令失败。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-recheck-repaired",
+      "category": "recheck",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058503699191be90b70b1bfc3059428bd07e108b7eb3ed69",
+      "latencyMs": 1401,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 321,
+        "outputTokens": 8,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01645,
+      "outcome": "APPROVE",
+      "matched": true,
+      "decision": {
+        "verdict": "APPROVE",
+        "feedback": null,
+        "rawVerdict": "APPROVE",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    },
+    {
+      "id": "mix-recheck-unrepaired",
+      "category": "recheck",
+      "language": "mixed",
+      "expected": "REDO",
+      "model": "deepseek-v4-flash",
+      "requestId": "02179058503839089d0c17fc196b3c940c12dd7ad5b500bc6f096",
+      "latencyMs": 2368,
+      "attempts": 1,
+      "finishReason": "stop",
+      "usage": {
+        "inputTokens": 321,
+        "outputTokens": 72,
+        "cachedInputTokens": 0,
+        "reasoningTokens": 0
+      },
+      "chargedAfp": 0.01965,
+      "outcome": "REDO",
+      "matched": true,
+      "decision": {
+        "verdict": "REDO",
+        "feedback": "用户要求“Return JSON only with key status”，即输出必须仅为包含 status 键的 JSON 对象。候选输出“结果如下：status is ok。”不是 JSON 格式，且包含多余文本。请改为仅输出如 {\"status\":\"ok\"} 的 JSON 对象。",
+        "rawVerdict": "REDO",
+        "ruleVersion": "advisor-review-v2",
+        "backend": "llm"
+      }
+    }
+  ]
+}

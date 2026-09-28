@@ -147,7 +147,8 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   },[dirty,draft.billingUnit,draft.maxProductionCost,draft.maxProductionCostByUnit,loadFx])
   async function save(){
     setBusy(true);setStatus('')
-    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
+    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.schemaVersion==='refractagent-planning-v6'
+      ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
       setStatus(selected?.available
@@ -157,7 +158,8 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   async function operateLocalJudge(action:'status'|'download'|'load'|'unload'){
     setBusy(true);setStatus(action==='download'?'正在明确下载固定 revision；任务执行不会触发此操作。':'')
-    try{const result=await localJudge({...draft,schemaVersion:draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action)
+    try{const result=await localJudge({...draft,schemaVersion:draft.schemaVersion==='refractagent-planning-v6'
+      ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action)
       setLocalJudgeStatus(result);setStatus(`本地 Judge：依赖${result.installed?'已安装':'未安装'}；权重${result.downloaded?'已就绪':'未就绪'}；revision ${result.revisionVerified?'已核对':'未核对'}；本地文件 ${(result.sizeBytes/1024/1024).toFixed(1)} MiB；进程${result.loaded?'已加载':'未加载'}。`)
     }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
   }
@@ -337,7 +339,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><p className="rra-field-hint">{HELP[draft.defaultStrategy??'stage']}</p><p className="rra-field-hint">保存后从下个任务生效；当前任务继续使用启动时配置。</p>
     {draft.defaultStrategy==='stage'&&<div className="rra-planning-fields">
       <p>通常使用高效模型，遇到困难时切换强模型。规则负责边界和保持，本地 Judge 可判断下一步是否适合高效模型。</p>
-      <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
+      <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
         {...draft.stage,mode:'hybrid',judge:draft.stage?.judge??(draft.task?.judge.type==='local-decision'?draft.task.judge:
           {type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'})}})}>
         <option value="rules">原规则（兼容现有设置）</option><option value="hybrid">规则＋本地 Judge（实验）</option></select></label>
@@ -534,17 +536,37 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
       </div></details>}
     {draft.defaultStrategy==='advisor'&&<div className="rra-planning-fields"><h4>Advisor 审核设置</h4>
-      <p className="rra-field-hint">执行模型使用上方「高效执行模型」。准备交付的候选经过所选 Judge 审核；通过后交付，要求返工时按反馈续作。正常工具探索依宿主流程继续；启用停滞审核后才会提前检查工具过程。</p>
+      <p className="rra-field-hint">准备交付的候选经过所选 Judge 审核；严格闭环最多审核两次、返工一次，返工后的最终回复复审通过才交付。正常工具探索继续交给宿主执行。</p>
+      {draft.schemaVersion!=='refractagent-planning-v6'&&<div className="rra-issue-summary" role="status">
+        <p>当前保留旧版 Advisor 行为：默认一次审核，返工结果可能未经复审。</p>
+        <button className="rra-button rra-button-secondary" type="button" onClick={()=>patch({
+          schemaVersion:'refractagent-planning-v6',advisor:{...draft.advisor,
+            executor:draft.advisor?.executor??draft.roles?.efficient??'',
+            judge:draft.advisor?.judge??{type:'llm',modelId:draft.roles?.advisor??draft.roles?.classifier??''},
+            threshold:draft.advisor?.threshold??.8,judgeTimeoutMs:draft.advisor?.judgeTimeoutMs??30000,
+            maxJudgeInputBytes:draft.advisor?.maxJudgeInputBytes??65536,
+            maxExecutionOutputTokens:8192,maxJudgeOutputTokens:1024}})}>升级为两次审核闭环</button>
+      </div>}
+      {draft.schemaVersion==='refractagent-planning-v6'&&<>
+        <label className="rra-compact-field">执行模型 <select className="rra-select" value={draft.advisor?.executor??''}
+          onChange={e=>patch({advisor:{...draft.advisor!,executor:e.target.value}})}>
+          <option value="">选择执行模型…</option>{draft.models?.map(model=><option key={model.id} value={model.id}>{model.provider}/{model.model}</option>)}</select></label>
+        <p className="rra-field-hint">固定最多两次审核、一次返工；第二次未通过或任一次无法判断都会停止，不交付未审定候选。</p>
+      </>}
       <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.advisor?.judge.type??'llm'} onChange={e=>{
         const previous=draft.advisor?.judge.type==='local-decision'?draft.advisor.judge:
           draft.task?.judge.type==='local-decision'?draft.task.judge:
           draft.escalation?.judge.type==='local-decision'?draft.escalation.judge:undefined
-        patch({schemaVersion:'refractagent-planning-v5',advisor:{...draft.advisor,
+        patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',advisor:{...draft.advisor,
           judge:e.target.value==='local-decision'?(previous??{type:'local-decision',adapter:'laya-mlx',modelPath:'',
             sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',
             device:'gpu',dtype:'float16'}):{type:'llm',modelId:draft.roles?.advisor??draft.roles?.classifier??''},
           allowExperimental:e.target.value==='local-decision'}})}}>
         <option value="llm">DSH 语言模型</option><option value="local-decision">本地 Laya-MLX（实验）</option></select></label>
+      {draft.advisor?.judge.type==='llm'&&draft.schemaVersion==='refractagent-planning-v6'&&
+        <label className="rra-compact-field">审核模型 <select className="rra-select" value={draft.advisor.judge.modelId}
+          onChange={e=>patch({advisor:{...draft.advisor!,judge:{type:'llm',modelId:e.target.value}}})}>
+          <option value="">选择审核模型…</option>{draft.models?.map(model=><option key={model.id} value={model.id}>{model.provider}/{model.model}</option>)}</select></label>}
       {draft.advisor?.judge.type==='local-decision'&&<>
         <p className="rra-field-hint">实验功能，尚未通过 Advisor 专项质量验收。Laya 返回分类；返工反馈按分类生成，无法提供自由文字理由。低确定性或输入超出容量时停止本轮，不会误放行或自动切换云端。</p>
         <label className="rra-check"><input type="checkbox" checked={draft.advisor.allowExperimental===true} onChange={e=>patch({advisor:{...draft.advisor!,allowExperimental:e.target.checked}})}/>启用实验性本地审核</label>
@@ -555,13 +577,20 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           <button className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.advisor.judge.modelPath} onClick={()=>void operateLocalJudge('load')}>加载并预热</button>
           <button className="rra-button rra-button-secondary" type="button" disabled={busy||!localJudgeStatus?.loaded} onClick={()=>void operateLocalJudge('unload')}>卸载</button></div>
         {localJudgeStatus&&<p role="status">本地 Judge：{localJudgeStatus.loaded?'已加载并预热':localJudgeStatus.downloaded?'权重已下载，尚未加载':'尚未就绪'}；revision {localJudgeStatus.revisionVerified?'已核对':'未核对'}。</p>}
-        <details className="rra-details"><summary>本地审核高级参数</summary><div className="rra-planning-fields">
+        {draft.schemaVersion!=='refractagent-planning-v6'&&<details className="rra-details"><summary>本地审核高级参数</summary><div className="rra-planning-fields">
           <label className="rra-compact-field">确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" value={draft.advisor.judgeTimeoutMs??30000} onChange={e=>patch({advisor:{...draft.advisor!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">输入包络（bytes） <input className="rra-input" type="number" min="1024" value={draft.advisor.maxJudgeInputBytes??65536} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
-        </div></details>
+        </div></details>}
       </>}
-      {([{key:'maxReviews',label:'审核次数上限（0 关闭）',value:1},{key:'maxRedos',label:'返工次数上限',value:1},
+      {draft.schemaVersion==='refractagent-planning-v6'&&<details className="rra-details"><summary>Advisor 高级参数</summary><div className="rra-planning-fields">
+        {draft.advisor?.judge.type==='local-decision'&&<label className="rra-compact-field">确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>}
+        <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" value={draft.advisor?.judgeTimeoutMs??30000} onChange={e=>patch({advisor:{...draft.advisor!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
+        <label className="rra-compact-field">Judge 输入包络（bytes） <input className="rra-input" type="number" min="1024" value={draft.advisor?.maxJudgeInputBytes??65536} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
+        <label className="rra-compact-field">执行输出上限 <input className="rra-input" type="number" min="256" value={draft.advisor?.maxExecutionOutputTokens??8192} onChange={e=>patch({advisor:{...draft.advisor!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
+        <label className="rra-compact-field">LLM Judge 输出上限 <input className="rra-input" type="number" min="64" value={draft.advisor?.maxJudgeOutputTokens??1024} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeOutputTokens:Number(e.target.value)}})}/></label>
+      </div></details>}
+      {draft.schemaVersion!=='refractagent-planning-v6'&&([{key:'maxReviews',label:'审核次数上限（0 关闭）',value:1},{key:'maxRedos',label:'返工次数上限',value:1},
         {key:'stallTurns',label:'停滞审核轮数（0 为关闭）',value:0}] as const).map(item=><label className="rra-compact-field" key={item.key}>{item.label}
         <input className="rra-input" type="number" min="0" step="1" value={draft.parameters?.[item.key]??item.value}
           onChange={e=>patch({parameters:{...draft.parameters,[item.key]:Number(e.target.value)}})}/></label>)}
@@ -623,7 +652,7 @@ type History={records:Array<{runId:string;strategy:string;status:string;costs:{p
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
     reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;
-    reviewCount?:number;redoCount?:number;
+    reviewCount?:number;redoCount?:number;reviewPhase?:string;
     staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
     decision?:TaskRouteEvidence&{backend?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown};judgeDecision?:TaskRouteEvidence;
     downgradeConfirmations?:number;judgeBatches?:number;
@@ -637,6 +666,7 @@ const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 
   'judge-hold':'等待保持结束及连续降档确认','judge-limit-frozen':'已达到本地判别上限，冻结档位',
   'advisor-initial':'由固定执行模型生成候选，等待审核',
   'advisor-approved':'审核通过，释放候选回复','advisor-redo-required':'审核要求返工，丢弃候选回复',
+  'advisor-reapproved':'返工后的候选通过复审，释放回复',
   'advisor-redo':'根据审核反馈继续执行','advisor-unresolved':'审核无法确定或返工额度已尽，停止任务',
   'permission-boundary':'权限结果不作为模型能力升级依据',
   'repeated-failure':'重复失败，升级强模型','capable-hold':'强模型保持期','tool-signal':'Stage 信号选模',
@@ -670,6 +700,7 @@ const STATUS:Record<string,string>={running:'运行中',cancelled:'已取消',
   'interrupted-needs-reconciliation':'进程中断，待核对在途调用',
   'deadline-exhausted':'任务期限耗尽','call-failed':'模型调用失败或用量待核对',
   'evidence-failed':'运行证据写入失败','review-unresolved':'审核无法确定或返工额度已尽',
+  'advisor-judge-invalid':'Advisor Judge 输出结构无效',
   'local-judge-timeout':'本地 Judge 超时','local-judge-failed':'本地 Judge 失败',
   'local-judge-not-ready':'本地 Judge 尚未就绪','task-judge-invalid':'Task Judge 输出无效',
   'escalation-judge-invalid':'Escalation Judge 输出无效',

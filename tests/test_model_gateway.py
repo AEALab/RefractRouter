@@ -14,7 +14,8 @@ from refractrouter.openai_compatible import ChatResponse, TransportResponse
 from refractrouter.host_evidence import validate_evidence
 from refractrouter.planning_policy import stage_decision
 from refractrouter.planning_runtime import PlanningRuntime
-from tests.test_planning_routing import configuration, task_pool_configuration, escalation_configuration
+from tests.test_planning_routing import (advisor_gate_configuration, configuration,
+                                         escalation_configuration, task_pool_configuration)
 
 
 def reply(text='完成', calls=(), usage=True):
@@ -96,6 +97,40 @@ def test_escalation_discards_tool_and_takeover_stays_fixed(tmp_path):
     run = next(iter(gw.runtime.runs.values()))
     assert run['budget'].records[0]['disposition'] == 'discarded'
     assert len(run['budget'].records) == 4
+    gw.close()
+
+
+def test_advisor_gateway_releases_only_reviewed_final_candidate(tmp_path):
+    caller = Caller(reply('可交付答复'), reply(json.dumps({'verdict': 'APPROVE'})))
+    gw = gateway(tmp_path, caller, advisor_gate_configuration())
+    result = gw.complete(request('advisor'))
+    assert result['choices'][0]['message']['content'] == '可交付答复'
+    assert [action['purpose'] for action in caller.actions] == ['execute', 'advisor']
+    assert gw.models()['data'][-1]['id'] == 'refract/advisor'
+    gw.close()
+
+
+def test_advisor_gateway_redo_tool_continuation_requires_second_review(tmp_path):
+    caller = Caller(
+        reply('含错误的候选'),
+        reply(json.dumps({'verdict': 'REDO', 'feedback': '先读取文件并按证据修正'})),
+        reply(calls=[call('redo-tool')]),
+        reply('根据文件修正后的答复'),
+        reply(json.dumps({'verdict': 'APPROVE'})),
+    )
+    gw = gateway(tmp_path, caller, advisor_gate_configuration())
+    req = request('advisor')
+    first = gw.complete(req)
+    assert first['choices'][0]['message']['tool_calls'][0]['id'] == 'redo-tool'
+    final = gw.complete(follow(req, first))
+    assert final['choices'][0]['message']['content'] == '根据文件修正后的答复'
+    assert [action['purpose'] for action in caller.actions] == [
+        'execute', 'advisor', 'redo', 'execute', 'advisor']
+    assert '含错误的候选' not in json.dumps(caller.actions[3]['messages'], ensure_ascii=False)
+    assert '先读取文件并按证据修正' in json.dumps(caller.actions[3]['messages'], ensure_ascii=False)
+    run = next(iter(gw.runtime.runs.values()))
+    assert run['state']['advisorPhase'] == 'approved'
+    assert run['budget'].records[0]['disposition'] == 'discarded'
     gw.close()
 
 

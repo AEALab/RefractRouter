@@ -31,6 +31,7 @@ flowchart LR
 | `src/refractrouter/planning_policy.py` | Stage 信号、宿主工具事件归一、固定与随机选择 |
 | `src/refractrouter/planning_runtime.py` | 冻结任务、六类策略状态机、预算包络及证据 |
 | `src/refractrouter/escalation_decision.py` | Escalation 独立判别合同与严格结果校验 |
+| `src/refractrouter/advisor_decision.py` | Advisor Gate v2 审核合同与严格结果校验 |
 | `src/refractrouter/local_judge_service.py` | Task／Escalation 共用的本地 Judge 常驻进程与可取消 job |
 | `src/refractrouter/planning_worker.py` | 无网络 NDJSON 工作进程 |
 | `src/refractrouter/task_budget.py` | 原子预留、派发、实际用量结算，与 DAG 共用 |
@@ -56,7 +57,7 @@ TypeScript 不计算路由分数或费用，也不执行规划路由产生的工
 
 ```json
 {
-  "schemaVersion": "refractagent-planning-v4",
+  "schemaVersion": "refractagent-planning-v6",
   "enabled": false,
   "defaultStrategy": "stage",
   "billingUnit": "CNY",
@@ -125,13 +126,13 @@ Ark Agent Plan AFP 系数相同的记录只显示单位待核对，不改写原�
 | Stage | 最近 3 条有效工具证据、阈值 0.5、强模型保持 2 轮；无信号使用默认高效模型 |
 | Task | v3 从有序模型池选择一次；单一合格候选直选，多候选使用一次 LLM 或本地 Judge；不确定时只使用指定备援 |
 | Composite | 一次 Task 形成默认档位，再逐轮 Stage；普通续接不重复分类 |
-| Advisor | efficient 执行，结束轮审核；默认最多审核 1 次、返工 1 次；停滞审核默认关闭 |
+| Advisor | v6 独立执行模型与审核器；最终回复最多审核 2 次、返工 1 次，复审通过才交付 |
 | Escalation | v4 缓冲起始模型回复；明确缺陷、最终轮停滞或无法判断立即接管，工具过程连续 2 次停滞才接管；接管后锁定强模型且不再审核 |
 
-Advisor 支持 APPROVE、REDO、无法判断。无效结果不会当作批准。
-默认一次审核后如要求返工，返工结果标为「未复审」，不得描述成已通过审核；
-调大审核次数后可继续在剩余上限内审核。审核次数耗尽或无效判别按记录停止，
-不在后台无限循环。
+Advisor v6 支持 `APPROVE`、`REDO`、`UNRESOLVED`。最终回复先缓冲审核；`REDO`
+丢弃候选并把受约束反馈交给原执行模型，返工中的正常工具请求由宿主执行，新的最终回复
+必须经过第二次审核。第二次没有批准、无法判断或无效结果都会停止，不交付未审定候选。
+v5 及更早配置继续按旧合同读取，只有显式升级设置才启用严格 Gate。
 
 Static、Stage、Task、Composite 选模后可流式输出；
 Advisor、Escalation 逐候选缓冲，单次最多 8 MiB。

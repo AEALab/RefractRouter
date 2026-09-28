@@ -249,6 +249,30 @@ test('审核丢弃的回复与工具不泄漏，全部实际调用记账',async(
   }finally{await f.cleanup()}
 })
 
+test('Advisor v6 返工后的最终回复必须复审通过才交付',async()=>{
+  const f=await fixture('advisor')
+  try{
+    const advisorV6:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v6',
+      defaultStrategy:'advisor',billingUnit:'CNY',maxProductionCostByUnit:{CNY:100},maxCalls:12,
+      models:config.models!.map(model=>({...model,billingUnit:'CNY'})),
+      advisor:{executor:'small',judge:{type:'llm',modelId:'judge'},threshold:.8,
+        judgeTimeoutMs:30000,maxJudgeInputBytes:8000,maxExecutionOutputTokens:2048,
+        maxJudgeOutputTokens:256}}
+    f.setPlanning(advisorV6)
+    f.setReplies([()=>reply('遗漏要求'),()=>reply('{"verdict":"REDO","feedback":"补证据"}'),
+      ()=>reply('已补证据'),()=>reply('{"verdict":"APPROVE"}')])
+    const chunks=await collect(f.controller.stream(f.options))
+    assert.deepEqual(chunks.filter(c=>c.type==='text-delta').map(c=>c.text),['已补证据'])
+    assert.deepEqual(f.calls.map(call=>call.model),['small','judge','small','judge'])
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.deepEqual(record.calls.map((row:any)=>row.disposition),
+      ['discarded','consult','accepted','consult'])
+    assert.equal(record.calls[2].review_status,'reapproved')
+    assert.ok(record.decisions.some((row:any)=>row.reason==='advisor-reapproved'
+      &&row.reviewCount===2&&row.reviewPhase==='approved'))
+  }finally{await f.cleanup()}
+})
+
 test('升级判别丢弃工具调用后只释放强模型回复',async()=>{
   const f=await fixture('escalation')
   try{
