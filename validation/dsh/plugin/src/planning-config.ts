@@ -23,7 +23,7 @@ export type TaskJudgeConfig =
       method?:'ordinal-v1'|'choice-v2'}
 export interface TaskRoutingConfig {
   pool:string[];fallback:string;judge:TaskJudgeConfig;threshold?:number;maxInputChars?:number
-  maxExecutionOutputTokens?:number
+  maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number
 }
 export interface EscalationRoutingConfig {
   initial:string;takeover:string;judge:TaskJudgeConfig
@@ -42,7 +42,7 @@ export interface StageRoutingConfig {
 }
 export interface CompositeRoutingConfig {
   pool:string[];takeover:string;judge:TaskJudgeConfig;threshold?:number;maxInputChars?:number
-  maxExecutionOutputTokens?:number
+  maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number
   stage:StageRoutingConfig&{threshold?:number}
 }
 export interface MediaRouteConfig {

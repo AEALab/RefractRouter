@@ -1,0 +1,14 @@
+{
+  "说明": "从本地原始运行记录提取的无凭证摘要；原始批次保留在 .refractagent/acceptance/ 下，不覆盖失败记录。",
+  "运行": [
+    {"客户端": "DSH", "策略": "Advisor", "原始批次": "advisor-composite-product-20260929/dsh-advisor", "成功": true, "调用用途": ["execute", "execute", "advisor"], "已结算调用": 3, "宿主工具结果": 1, "费用AFP": 0.23115, "自动HTTP重试": 0},
+    {"客户端": "DSH", "策略": "Composite", "原始批次": "advisor-composite-product-20260929-v5/dsh-composite", "成功": true, "调用用途": ["task", "execute", "execute"], "已结算调用": 3, "宿主工具结果": 1, "费用AFP": 0.09685, "自动HTTP重试": 0},
+    {"客户端": "Codex", "策略": "Advisor", "原始批次": "advisor-composite-product-20260929-v5/codex-advisor", "成功": true, "调用用途": ["execute", "execute", "advisor"], "已结算调用": 3, "宿主工具结果": 1, "费用AFP": 31.46460, "自动HTTP重试": 0},
+    {"客户端": "Codex", "策略": "Composite", "原始批次": "advisor-composite-product-20260929-v5/codex-composite", "成功": true, "调用用途": ["task", "execute", "execute"], "已结算调用": 3, "宿主工具结果": 1, "费用AFP": 6.67735, "自动HTTP重试": 0},
+    {"客户端": "Hermes", "策略": "Advisor", "原始批次": "advisor-composite-product-20260929-v7/hermes-advisor", "成功": true, "调用用途": ["execute", "execute", "advisor"], "已结算调用": 3, "宿主工具结果": 1, "费用AFP": 2.13295, "自动HTTP重试": 0},
+    {"客户端": "Hermes", "策略": "Composite", "原始批次": "advisor-composite-product-20260929-v7/hermes-composite", "成功": true, "调用用途": ["task", "execute", "execute"], "已结算调用": 3, "宿主工具结果": 1, "费用AFP": 0.46410, "自动HTTP重试": 0}
+  ],
+  "正常流程合计AFP": 41.06700,
+  "失败但已结算AFP": 0.15990,
+  "待核对预留AFP": 0.23485
+}

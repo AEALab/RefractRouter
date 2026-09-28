@@ -231,7 +231,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     if(!pool.length){setStatus('请先在上方登记至少一个模型。');return}
     patch({task:{pool,fallback:draft.roles?.capable&&pool.includes(draft.roles.capable)?draft.roles.capable:pool[0],
       judge:{type:'llm',modelId:draft.roles?.classifier??pool[0]},threshold:.8,maxInputChars:12000,
-      maxExecutionOutputTokens:8192}})
+      maxExecutionOutputTokens:8192,maxJudgeOutputTokens:1024}})
   }
   function migrateCompositeSettings(){
     const source=draft.task
@@ -244,6 +244,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       judge:source?.judge??{type:'llm',modelId:draft.roles?.classifier??pool[0]!},
       threshold:source?.threshold??.8,maxInputChars:source?.maxInputChars??12000,
       maxExecutionOutputTokens:source?.maxExecutionOutputTokens??8192,
+      maxJudgeOutputTokens:source?.maxJudgeOutputTokens??1024,
       stage:{mode:'rules',window:3,threshold:.5,holdTurns:2}}})
   }
   function addCompositePoolModel(provider:string,model:string){
@@ -259,6 +260,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       takeover:current?.takeover??id,judge:current?.judge??{type:'llm',modelId:draft.roles?.classifier??id},
       threshold:current?.threshold??.8,maxInputChars:current?.maxInputChars??12000,
       maxExecutionOutputTokens:current?.maxExecutionOutputTokens??8192,
+      maxJudgeOutputTokens:current?.maxJudgeOutputTokens??1024,
       stage:current?.stage??{mode:'rules',window:3,threshold:.5,holdTurns:2}}})
     void retrieveMetadata(provider,model,'AUTO')
   }
@@ -469,6 +471,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           {draft.task.judge.type==='local-decision'&&<label className="rra-compact-field">本地判别问法 <select className="rra-select" value={draft.task.judge.method??'ordinal-v1'} onChange={e=>patch({task:{...draft.task!,judge:{...draft.task!.judge as Extract<typeof draft.task.judge,{type:'local-decision'}>,method:e.target.value as 'ordinal-v1'|'choice-v2'}}})}>
             <option value="ordinal-v1">逐候选评分（支持费用排序）</option><option value="choice-v2">候选直选（实验）</option></select><span className="rra-field-hint">直选只评价被选中的候选，无法证明其他候选也达到质量门槛，因此不能进行候选间费用排序。两种问法的分数不能相互比较，实验问法尚未通过真实选模质量验收。</span></label>}
           <label className="rra-compact-field">每次执行输出上限 <input className="rra-input" type="number" min="256" step="1" value={draft.task.maxExecutionOutputTokens??8192} onChange={e=>patch({task:{...draft.task!,maxExecutionOutputTokens:Number(e.target.value)}})}/><span className="rra-field-hint">默认 8192 tokens。模型目录的输出容量是接口上限；预算按这里的实际执行上限预留。宿主设置更小时，以较小值为准。</span></label>
+          <label className="rra-compact-field">Judge 输出上限 <input className="rra-input" type="number" min="64" max="16384" step="1" value={draft.task.maxJudgeOutputTokens??1024} onChange={e=>patch({task:{...draft.task!,maxJudgeOutputTokens:Number(e.target.value)}})}/><span className="rra-field-hint">仅轻量 LLM Judge 使用；默认 1024 tokens，预算按此上限预留。</span></label>
           <label className="rra-compact-field">{draft.task.judge.type==='local-decision'&&draft.task.judge.method==='choice-v2'?'选择概率门槛':'适合度门槛'} <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.task.threshold??.8} onChange={e=>patch({task:{...draft.task!,threshold:Number(e.target.value)}})}/><span className="rra-field-hint">默认 0.8，为待校准的产品初始值，不表示任务成功率。</span></label>
           <label className="rra-compact-field">Judge 文字输入上限 <input className="rra-input" type="number" min="512" step="1" value={draft.task.maxInputChars??12000} onChange={e=>patch({task:{...draft.task!,maxInputChars:Number(e.target.value)}})}/><span className="rra-field-hint">超出时不截断后继续判别，改用已验证合格的指定备援。</span></label>
         </div></details>
@@ -528,6 +531,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           <label className="rra-compact-field">适合度门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.composite.threshold??.8} onChange={e=>patch({composite:{...draft.composite!,threshold:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 文字输入上限 <input className="rra-input" type="number" min="512" value={draft.composite.maxInputChars??12000} onChange={e=>patch({composite:{...draft.composite!,maxInputChars:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">每次执行输出上限 <input className="rra-input" type="number" min="256" value={draft.composite.maxExecutionOutputTokens??8192} onChange={e=>patch({composite:{...draft.composite!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">Task Judge 输出上限 <input className="rra-input" type="number" min="64" max="16384" value={draft.composite.maxJudgeOutputTokens??1024} onChange={e=>patch({composite:{...draft.composite!,maxJudgeOutputTokens:Number(e.target.value)}})}/><span className="rra-field-hint">仅轻量 LLM Judge 使用，默认 1024 tokens。</span></label>
         </div></details>
       </>}
     </div>}

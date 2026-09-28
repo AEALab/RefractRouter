@@ -363,7 +363,9 @@ class ModelGateway:
             raise ValueError("请选择 refract/static、stage、task、composite、escalation 或 advisor；只支持 n=1")
         if 'reasoning_effort' in request:
             effort = request['reasoning_effort']
-            if not isinstance(effort, str) or effort not in self.capabilities(strategy)['acceptedReasoningEfforts']:
+            # Hermes 等客户端用 none 表示不提出档位要求；真实模型仍按冻结角色配置执行。
+            if (not isinstance(effort, str) or
+                    (effort != 'none' and effort not in self.capabilities(strategy)['acceptedReasoningEfforts'])):
                 raise ValueError('reasoning_effort 与冻结执行角色不一致；请省略该参数或使用模型目录声明的值')
         if not isinstance(request.get('stream', False), bool):
             raise ValueError("stream 必须是布尔值")

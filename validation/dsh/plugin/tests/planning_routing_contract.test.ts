@@ -141,6 +141,41 @@ test('Composite v6 复用 Task 模型池且首次执行跳过 Stage 判别',asyn
   }finally{await f.cleanup()}
 })
 
+test('Composite 消费 DSH 原生失败事件，接管后保持并返回常用模型',async()=>{
+  const f=await fixture('composite')
+  try{
+    const configured:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v6',
+      defaultStrategy:'composite',billingUnit:'CNY',maxProductionCostByUnit:{CNY:100},
+      models:config.models?.map(model=>({...model,billingUnit:'CNY',capabilityCard:'工具任务',
+        capabilities:{mainExecutor:model.id!=='judge',toolCalling:'verified',modalities:{}}})),
+      composite:{pool:['small','large'],takeover:'large',judge:{type:'llm',modelId:'judge'},
+        maxExecutionOutputTokens:2048,maxJudgeOutputTokens:256,
+        stage:{mode:'rules',window:3,threshold:.5,holdTurns:2}}}
+    f.setPlanning(configured)
+    f.setReplies([()=>reply('{"answers":{"candidates":{"C1":{"score":0.95,"missingInformation":0},"C2":{"score":0.2,"missingInformation":0}}}}')])
+    await collect(f.controller.stream({...f.options,reasoningEffort:'rr:composite'}))
+    const messages:any[]=[...f.options.messages]
+    for(let index=0;index<2;index++){
+      const callId=`failed-${index}`
+      const call={type:'tool-call',id:callId,name:'bash',arguments:'{"cmd":"pytest"}'}
+      const result={type:'tool-result',toolCallId:callId,isError:true,
+        content:[{type:'text',text:'test failed'}]}
+      messages.push({role:'assistant',content:[call]},{role:'user',content:[result]})
+      f.events.push({type:'tool/call',data:{turn:1,step:index+1,callId,name:'bash',arguments:'{"cmd":"pytest"}'}})
+      f.events.push({type:'tool/result',data:{turn:1,step:index+1,message:{content:[result]},
+        error:{name:'CommandError',code:'EXIT_NONZERO'},meta:{exitCode:1}}})
+    }
+    for(let step=2;step<=4;step++){
+      f.events.push({type:'step/start',data:{turn:1,step}})
+      await collect(f.controller.stream({...f.options,reasoningEffort:'rr:composite',messages}))
+    }
+    assert.deepEqual(f.calls.map(call=>call.model),['judge','small','large','large','small'])
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.deepEqual(record.decisions.filter((row:any)=>row.role!=='judge').map((row:any)=>row.reason),
+      ['composite-task-selected','composite-repeated-failure','composite-takeover-hold','composite-return-base'])
+  }finally{await f.cleanup()}
+})
+
 test('Stage 协作能力未握手通过时不能开始任务或付费调用',async()=>{
   const f=await fixture('stage')
   try{
