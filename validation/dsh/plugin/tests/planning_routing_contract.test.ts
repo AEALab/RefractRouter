@@ -118,6 +118,29 @@ test('Task 与 Composite 的任务判别结果关联到随后执行模型',async
   }
 })
 
+test('Composite v6 复用 Task 模型池且首次执行跳过 Stage 判别',async()=>{
+  const f=await fixture('composite')
+  try{
+    const configured:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v6',
+      defaultStrategy:'composite',billingUnit:'CNY',maxProductionCostByUnit:{CNY:100},
+      models:config.models?.map(model=>({...model,billingUnit:'CNY',capabilityCard:model.id==='small'?'常规任务':'困难任务',
+        capabilities:{mainExecutor:model.id!=='judge',toolCalling:'verified',modalities:{}}})),
+      composite:{pool:['small','large'],takeover:'large',judge:{type:'llm',modelId:'judge'},
+        threshold:.8,maxInputChars:12000,maxExecutionOutputTokens:2048,
+        stage:{mode:'rules',window:3,threshold:.5,holdTurns:2}}}
+    f.setPlanning(configured)
+    f.setReplies([()=>reply('{"answers":{"candidates":{"small":{"score":0.95,"missingInformation":0},"large":{"score":0.2,"missingInformation":0}}}}'),()=>reply('完成')])
+    await collect(f.controller.stream({...f.options,reasoningEffort:'rr:composite'}))
+    assert.deepEqual(f.calls.map(call=>call.model),['judge','small'])
+    const record=(await f.controller.history('native-session')).records[0]
+    assert.equal(record.configuration.schemaVersion,'refractagent-planning-v6')
+    assert.equal(record.decisions.at(-1).reason,'composite-task-selected')
+    assert.equal(record.decisions.at(-1).ruleVersion,'composite-rules-v1')
+    assert.equal(record.decisions.at(-1).baseModel,'small')
+    assert.equal(record.decisions.at(-1).takeoverModel,'large')
+  }finally{await f.cleanup()}
+})
+
 test('Stage 协作能力未握手通过时不能开始任务或付费调用',async()=>{
   const f=await fixture('stage')
   try{

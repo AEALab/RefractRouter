@@ -59,13 +59,14 @@ def task_state(messages, tools, max_chars):
             "tools": [tool.get("name") for tool in tools if isinstance(tool, dict)], "complete": True}
 
 
-def filter_candidates(config, state):
+def filter_candidates(config, state, route=None):
     images = [item for item in state["media"] if item["type"] == "image"]
     videos = [item for item in state["media"] if item["type"] == "video"]
     needs_image, needs_video = bool(images), bool(videos)
     needs_tools = bool(state["tools"])
     accepted, rejected = [], []
-    for model_id in config["task"]["pool"]:
+    route = route or config["task"]
+    for model_id in route["pool"]:
         model = config["models"].get(model_id)
         if model is None:
             rejected.append({"id": model_id, "reason": "model-configuration-incomplete"})

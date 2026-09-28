@@ -294,10 +294,50 @@ def _stage_config(raw):
     return result
 
 
+def _composite_config(raw, schema, declared_ids, roles):
+    supplied = raw.get("composite")
+    if supplied is None:
+        parameters = {**DEFAULTS, **raw.get("parameters", {})}
+        return {"mode": "legacy", "task": _task_config(raw, schema, declared_ids, roles),
+            "takeover": roles.get("capable"), "stage": {"mode": "rules",
+                "window": parameters["window"], "threshold": parameters["threshold"],
+                "holdTurns": parameters["holdTurns"]}}
+    if schema != SCHEMA_V6:
+        raise ValueError(f"Composite 独立设置需要 {SCHEMA_V6}")
+    value = obj(supplied, ("pool", "takeover", "judge", "threshold", "maxInputChars",
+        "maxExecutionOutputTokens", "stage"), "composite")
+    takeover = value.get("takeover")
+    task_raw = {"task": {"pool": value.get("pool"), "fallback": takeover,
+        "judge": value.get("judge"), "threshold": value.get("threshold", .8),
+        "maxInputChars": value.get("maxInputChars", 12000),
+        "maxExecutionOutputTokens": value.get("maxExecutionOutputTokens", 8192)}}
+    task = _task_config(task_raw, schema, declared_ids, roles)
+    stage_raw = obj(value.get("stage", {}), ("mode", "judge", "allowExperimental",
+        "window", "threshold", "interval", "maxJudgements", "holdTurns",
+        "downgradeConfirmations", "upgradeThreshold", "downgradeThreshold",
+        "judgeTimeoutMs", "maxJudgeInputBytes"), "composite.stage")
+    stage_mode = stage_raw.get("mode", "rules")
+    if stage_mode == "rules":
+        stage = {"mode": "rules",
+            "window": number(stage_raw.get("window", 3), "composite.stage.window", 1, 100, True),
+            "threshold": number(stage_raw.get("threshold", .5), "composite.stage.threshold", 0, 1),
+            "holdTurns": number(stage_raw.get("holdTurns", 2), "composite.stage.holdTurns", 1, 100, True)}
+    elif stage_mode == "hybrid":
+        hybrid = dict(stage_raw)
+        hybrid.pop("threshold", None)
+        stage = _stage_config({"schemaVersion": schema, "stage": hybrid})
+        if not stage["allowExperimental"]:
+            raise ValueError("Composite 本地 Laya 判别尚待专项验收；需明确启用实验模式")
+    else:
+        raise ValueError("composite.stage.mode 必须是 rules 或 hybrid")
+    return {"mode": "configured", "task": task, "takeover": takeover, "stage": stage}
+
+
 def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
-        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage", "mediaRoutes"), "planningRouting"))
+        "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage",
+        "composite", "mediaRoutes"), "planningRouting"))
     if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
@@ -404,6 +444,7 @@ def compile_config(raw):
         if not isinstance(value, str) or value not in declared_ids:
             raise ValueError("角色引用不存在的模型")
     task = _task_config(raw, raw["schemaVersion"], declared_ids, roles)
+    composite = _composite_config(raw, raw["schemaVersion"], declared_ids, roles)
     escalation = _escalation_config(raw, raw["schemaVersion"], declared_ids, roles)
     advisor = _advisor_config(raw, raw["schemaVersion"], declared_ids, roles)
     media_routes = raw.get("mediaRoutes", [])
@@ -483,7 +524,8 @@ def compile_config(raw):
     return {"raw": raw, "enabled": raw["enabled"], "strategy": strategy, "unit": unit, "budget": budget,
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
-        "task": task, "escalation": escalation, "advisor": advisor, "stage": _stage_config(raw), "media_routes": normalized_media,
+        "task": task, "composite": composite, "escalation": escalation, "advisor": advisor,
+        "stage": _stage_config(raw), "media_routes": normalized_media,
         "model_issues": model_issues}
 
 
@@ -492,6 +534,45 @@ def preview(raw, host_issues=None):
         c = compile_config(raw)
     except (ValueError, TypeError, KeyError) as exc:
         return {"valid": False, "issues": [str(exc)], "strategies": []}
+    def task_route_issues(route, label):
+        issues = []
+        for model_id in route["pool"]:
+            if model_id in c["model_issues"]:
+                issues.append(f"{label} 候选 {model_id} 配置未完成（{c['model_issues'][model_id]}）")
+            elif model_id in (host_issues or {}):
+                issues.append(f"{label} 候选 {model_id}：{host_issues[model_id]}")
+            else:
+                model = c["models"][model_id]
+                if not model.capabilities.get("mainExecutor"):
+                    issues.append(f"{label} 候选 {model_id} 不能主持 Agent 执行")
+                if model.billing_unit not in c["budgets"]:
+                    issues.append(f"{label} 候选 {model_id} 缺少 {model.billing_unit} 生产预算")
+        fallback = route["fallback"]
+        if fallback in c["models"] and not c["models"][fallback].capabilities.get("mainExecutor"):
+            issues.append(f"{label} 指定接管模型不能主持 Agent 执行")
+        judge = route["judge"]
+        if judge["type"] == "llm":
+            judge_id = judge["modelId"]
+            if judge_id in c["model_issues"]:
+                issues.append(f"{label} Judge {judge_id} 配置未完成（{c['model_issues'][judge_id]}）")
+            elif judge_id in (host_issues or {}):
+                issues.append(f"{label} Judge {judge_id}：{host_issues[judge_id]}")
+            elif c["models"][judge_id].billing_unit not in c["budgets"]:
+                issues.append(f"{label} 缺少 {c['models'][judge_id].billing_unit} 生产预算")
+        else:
+            path = Path(judge["modelPath"]).expanduser()
+            try:
+                manifest = json.loads((path / "refractrouter-laya.json").read_text())
+            except (OSError, ValueError, TypeError):
+                manifest = {}
+            if (not path.is_dir() or not all((path / name).exists()
+                    for name in ("model.safetensors", "mlx_config.json",
+                                 "rl_agent_config.json", "encoder/config.json"))
+                    or manifest.get("sourceModel") != judge["sourceModel"]
+                    or manifest.get("revision") != judge["revision"]):
+                issues.append(f"{label} 本地 Task Judge 权重或固定 revision 尚未核对")
+        return issues
+
     rows = []
     for strategy in STRATEGIES:
         required = list(REQUIRED[strategy])
@@ -503,6 +584,8 @@ def preview(raw, host_issues=None):
             e = c["escalation"]
             required = [] if e["mode"] == "configured" else ["efficient", "capable", "classifier"]
         if strategy == "advisor" and c["advisor"]["mode"] == "configured":
+            required = []
+        if strategy == "composite" and c["composite"]["mode"] == "configured":
             required = []
         issues = [f"缺少 {r} 模型" for r in required if r not in c["roles"]]
         for role in required:
@@ -519,37 +602,24 @@ def preview(raw, host_issues=None):
                 if model_unit not in c["budgets"]:
                     issues.append(f"缺少 {model_unit} 生产预算")
         if strategy == "task" and c["task"]["mode"] == "pool":
-            for model_id in c["task"]["pool"]:
-                if model_id in c["model_issues"]:
-                    issues.append(f"候选 {model_id} 配置未完成（{c['model_issues'][model_id]}）")
-                else:
-                    model = c["models"][model_id]
-                    if not model.capabilities.get("mainExecutor"):
-                        issues.append(f"候选 {model_id} 不能主持 Agent 执行")
-                    if model.billing_unit not in c["budgets"]:
-                        issues.append(f"候选 {model_id} 缺少 {model.billing_unit} 生产预算")
-            fallback = c["task"]["fallback"]
-            if fallback in c["models"] and not c["models"][fallback].capabilities.get("mainExecutor"):
-                issues.append("强执行备援不能主持 Agent 执行")
-            judge = c["task"]["judge"]
-            if judge["type"] == "llm":
-                judge_id = judge["modelId"]
-                if judge_id in c["model_issues"]:
-                    issues.append(f"Judge {judge_id} 配置未完成（{c['model_issues'][judge_id]}）")
-                elif c["models"][judge_id].billing_unit not in c["budgets"]:
-                    issues.append(f"缺少 {c['models'][judge_id].billing_unit} 生产预算")
-            else:
-                path = Path(judge["modelPath"])
+            issues.extend(task_route_issues(c["task"], "Task"))
+        if strategy == "composite" and c["composite"]["mode"] == "configured":
+            composite = c["composite"]
+            issues.extend(task_route_issues(composite["task"], "Composite"))
+            if composite["takeover"] != composite["task"]["fallback"]:
+                issues.append("Composite Task 备援与接管模型必须相同")
+            if composite["stage"]["mode"] == "hybrid":
+                judge = composite["stage"]["judge"]
+                path = Path(judge["modelPath"]).expanduser()
                 try:
                     manifest = json.loads((path / "refractrouter-laya.json").read_text())
                 except (OSError, ValueError, TypeError):
                     manifest = {}
-                if (not path.is_dir() or not all((path / name).exists()
-                        for name in ("model.safetensors", "mlx_config.json",
-                                     "rl_agent_config.json", "encoder/config.json"))
-                        or manifest.get("sourceModel") != judge["sourceModel"]
-                        or manifest.get("revision") != judge["revision"]):
-                    issues.append("本地 Judge 权重或固定 revision 尚未核对；任务执行不会隐式下载")
+                if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
+                        "rl_agent_config.json", "encoder/config.json"))
+                        or manifest.get("revision") != judge["revision"]
+                        or manifest.get("sourceModel") != judge["sourceModel"]):
+                    issues.append("Composite 本地 Stage Judge 权重或固定 revision 尚未核对")
         if strategy == "escalation" and c["escalation"]["mode"] == "configured":
             e = c["escalation"]
             escalation_ids = [e["initial"], e["takeover"]]

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "composite-local-acceptance-v1",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "cases": [
+    {
+      "case": "normal-progress",
+      "verdict": "UNCERTAIN",
+      "selectedProbability": 0.5084,
+      "selectedModel": "large",
+      "reason": "composite-judge-uncertain",
+      "latencyMs": 111.65,
+      "coldStartMs": 1093.92,
+      "forwards": 1
+    },
+    {
+      "case": "single-failure",
+      "verdict": "UNCERTAIN",
+      "selectedProbability": 0.5678,
+      "selectedModel": "large",
+      "reason": "composite-judge-uncertain",
+      "latencyMs": 65.02,
+      "coldStartMs": null,
+      "forwards": 1
+    }
+  ],
+  "paidApiCalls": 0,
+  "qualityStatus": "experimental"
+}

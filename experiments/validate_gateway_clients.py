@@ -15,7 +15,7 @@ def main():
     parser.add_argument('--codex-baseline',type=Path);parser.add_argument('--codex-baseline-model')
     parser.add_argument('--hermes-root',type=Path)
     parser.add_argument('--hermes-python',type=Path)
-    parser.add_argument('--strategy',choices=['static','stage','advisor'],default='static')
+    parser.add_argument('--strategy',choices=['static','stage','task','composite','advisor'],default='static')
     parser.add_argument('--scenario',choices=['normal','advisor-redo'],default='normal')
     args=parser.parse_args();args.output.mkdir(parents=True,exist_ok=False)
     if args.scenario == 'advisor-redo' and args.strategy != 'advisor':
@@ -29,13 +29,18 @@ def main():
             observed.append({'model':data['model'],'tools':len(data.get('tools',[])),
                 'toolResults':sum(m['role']=='tool' for m in data['messages']),'stream':data['stream']})
             names=[t['function']['name'] for t in data.get('tools',[])]
-            if len(observed)>5: raise RuntimeError('超过 Advisor 冻结五次调用上限')
+            if len(observed)>5: raise RuntimeError('超过客户端接线冻结五次调用上限')
             if data['model']=='judge-fixture':
                 state['judgeCalls']+=1
-                verdict=('REDO' if args.scenario=='advisor-redo' and state['judgeCalls']==1
-                         else 'APPROVE')
-                payload={'verdict':verdict}
-                if verdict=='REDO': payload['feedback']='调用宿主工具取得标记后，只回答 GATEWAY_CLIENT_OK。'
+                if args.strategy in ('task','composite'):
+                    payload={'answers':{'candidates':{
+                        'fixture':{'score':.95,'missingInformation':0},
+                        'capable-fixture':{'score':.2,'missingInformation':0}}}}
+                else:
+                    verdict=('REDO' if args.scenario=='advisor-redo' and state['judgeCalls']==1
+                             else 'APPROVE')
+                    payload={'verdict':verdict}
+                    if verdict=='REDO': payload['feedback']='调用宿主工具取得标记后，只回答 GATEWAY_CLIENT_OK。'
                 delta={'content':json.dumps(payload,ensure_ascii=False)};finish='stop'
             else:
                 state['executorCalls']+=1
@@ -67,17 +72,31 @@ def main():
                 self.wfile.write(b'data: '+json.dumps(value).encode()+b'\n\n');self.wfile.flush()
             self.wfile.write(b'data: [DONE]\n\n');self.wfile.flush()
     up=ThreadingHTTPServer(('127.0.0.1',0),Upstream);threading.Thread(target=up.serve_forever,daemon=True).start()
-    schema='refractagent-planning-v6' if args.strategy=='advisor' else 'refractagent-planning-v1'
+    schema='refractagent-planning-v6' if args.strategy in ('advisor','composite') else \
+        'refractagent-planning-v3' if args.strategy=='task' else 'refractagent-planning-v1'
     config={'schemaVersion':schema,'enabled':True,'defaultStrategy':args.strategy,
         'maxProductionCost':10,'maxCalls':8,'timeoutMs':60000,
         'models':[{'id':'fixture','provider':'fixture','model':'fixture','contextWindow':1000000,
-            'maxOutputTokens':256,'inputPer1k':.001,'outputPer1k':.002,'deployment':'local'}],
+            'maxOutputTokens':256,'inputPer1k':.001,'outputPer1k':.002,'deployment':'local',
+            'capabilityCard':'适合普通工具任务','capabilities':{'mainExecutor':True,
+                'toolCalling':'verified','modalities':{}}}],
         'roles':{'efficient':'fixture'}}
-    if args.strategy=='stage':
+    if args.strategy in ('stage','task','composite'):
         config['models'][0]['reasoningEffort']='low'
         config['models'].append({**config['models'][0], 'id':'capable-fixture',
-            'model':'capable-fixture'})
+            'model':'capable-fixture','capabilityCard':'适合复杂工具任务'})
         config['roles']['capable']='capable-fixture'
+        if args.strategy in ('task','composite'):
+            config['models'].append({**config['models'][0], 'id':'judge-fixture',
+                'model':'judge-fixture','capabilityCard':'',
+                'capabilities':{'mainExecutor':False,'toolCalling':'unknown','modalities':{}}})
+            route={'pool':['fixture','capable-fixture'],'fallback':'capable-fixture',
+                'judge':{'type':'llm','modelId':'judge-fixture'},'threshold':.8,
+                'maxInputChars':12000,'maxExecutionOutputTokens':256}
+            if args.strategy=='task': config['task']=route
+            else: config['composite']={**{k:v for k,v in route.items() if k!='fallback'},
+                'takeover':'capable-fixture','stage':{'mode':'rules','window':3,
+                    'threshold':.5,'holdTurns':2}}
     elif args.strategy=='advisor':
         config['models'].append({**config['models'][0], 'id':'judge-fixture', 'model':'judge-fixture'})
         config['advisor']={'executor':'fixture','judge':{'type':'llm','modelId':'judge-fixture'},

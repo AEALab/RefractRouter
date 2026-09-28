@@ -40,6 +40,11 @@ export interface StageRoutingConfig {
   window?:number;interval?:number;maxJudgements?:number;holdTurns?:number;downgradeConfirmations?:number
   upgradeThreshold?:number;downgradeThreshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
 }
+export interface CompositeRoutingConfig {
+  pool:string[];takeover:string;judge:TaskJudgeConfig;threshold?:number;maxInputChars?:number
+  maxExecutionOutputTokens?:number
+  stage:StageRoutingConfig&{threshold?:number}
+}
 export interface MediaRouteConfig {
   id:string;provider:string;credentialProvider?:string;model:string
   operations:Array<'image-understand'|'video-understand'|'image-generate'|'image-edit'|'video-generate'|'image-to-video'>
@@ -59,6 +64,7 @@ export interface PlanningConfig {
   trustPolicies?:Array<Record<string,unknown>>
   compatiblePairs?:string[][]
   task?:TaskRoutingConfig
+  composite?:CompositeRoutingConfig
   escalation?:EscalationRoutingConfig
   advisor?:AdvisorRoutingConfig
   stage?:StageRoutingConfig
@@ -86,6 +92,8 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
     throw new Error('planningRouting.parameters 需要对象')
   if(v.task!==undefined&&(!v.task||typeof v.task!=='object'||Array.isArray(v.task)))
     throw new Error('planningRouting.task 需要 Task 设置对象')
+  if(v.composite!==undefined&&(!v.composite||typeof v.composite!=='object'||Array.isArray(v.composite)))
+    throw new Error('planningRouting.composite 需要 Composite 设置对象')
   if(v.escalation!==undefined&&(!v.escalation||typeof v.escalation!=='object'||Array.isArray(v.escalation)))
     throw new Error('planningRouting.escalation 需要 Escalation 设置对象')
   if(v.advisor!==undefined&&(!v.advisor||typeof v.advisor!=='object'||Array.isArray(v.advisor)))

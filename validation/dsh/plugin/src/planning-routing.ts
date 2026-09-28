@@ -206,11 +206,11 @@ export class PlanningController {
     },providerBaseURL:route?.baseURL})
   }
   async fx():Promise<Json>{return this.rpc.request({op:'fx'})}
-  async localJudge(config:Json,action:'status'|'download'|'load'|'unload'):Promise<Json>{
-    return this.rpc.request({op:'local-judge',config,action,confirmed:action==='download'})
+  async localJudge(config:Json,action:'status'|'download'|'load'|'unload',target?:string):Promise<Json>{
+    return this.rpc.request({op:'local-judge',config,action,target,confirmed:action==='download'})
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
-  private async ensureHandshake(hybridStage=false):Promise<void>{
+  private async ensureHandshake(hybridStage=false,compositeV6=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -221,6 +221,8 @@ export class PlanningController {
     const capabilities=await this.handshake
     if(hybridStage&&(!capabilities.includes('stage-decision-v2')||!capabilities.includes('planning-routing-v5')))
       throw new Error('当前核心不支持 Stage 本地 Judge；请升级核心')
+    if(compositeV6&&(!capabilities.includes('planning-routing-v6')||!capabilities.includes('composite-task-stage-v1')))
+      throw new Error('当前核心不支持新版 Composite；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
@@ -269,7 +271,8 @@ export class PlanningController {
     let runId=this.tasks.get(key),done=false
     try{
       signal.throwIfAborted()
-      await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid')
+      await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid',
+        strategy==='composite'&&Boolean(config.composite))
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,

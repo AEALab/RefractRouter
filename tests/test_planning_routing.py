@@ -99,6 +99,35 @@ def advisor_gate_configuration(*, judge_type="llm", model_path=None):
     return cfg
 
 
+def composite_configuration(*, stage_mode="rules", task_judge="llm", model_path=None):
+    cfg = configuration("composite")
+    cfg.update(schemaVersion="refractagent-planning-v6", billingUnit="CNY",
+               maxProductionCostByUnit={"CNY": 100}, maxCalls=16)
+    for model in cfg["models"]:
+        model["billingUnit"] = "CNY"
+        model["capabilities"] = {"mainExecutor": model["id"] != "judge",
+            "toolCalling": "verified", "modalities": {}}
+        model["capabilityCard"] = ("适合快速完成常规任务" if model["id"] == "small"
+                                   else "适合复杂推理和困难接管")
+    task_judge_config = ({"type": "llm", "modelId": "judge"} if task_judge == "llm" else
+        {"type": "local-decision", "adapter": "laya-mlx", "modelPath": str(model_path),
+         "sourceModel": "aac6fef/laya-multilingual-mlx", "revision": "test", "device": "cpu",
+         "dtype": "float32", "method": "choice-v2"})
+    stage = {"mode": "rules", "window": 3, "threshold": .5, "holdTurns": 2}
+    if stage_mode == "hybrid":
+        stage = {"mode": "hybrid", "allowExperimental": True, "judge": {
+            "type": "local-decision", "adapter": "laya-mlx", "modelPath": str(model_path),
+            "sourceModel": "aac6fef/laya-multilingual-mlx", "revision": "test",
+            "device": "cpu", "dtype": "float32"}, "window": 3, "interval": 2,
+            "maxJudgements": 4, "holdTurns": 2, "downgradeConfirmations": 2,
+            "upgradeThreshold": .8, "downgradeThreshold": .9,
+            "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536}
+    cfg["composite"] = {"pool": ["small", "large"], "takeover": "large",
+        "judge": task_judge_config, "threshold": .8, "maxInputChars": 12000,
+        "maxExecutionOutputTokens": 2048, "stage": stage}
+    return cfg
+
+
 def write_laya_fixture(path, revision="test"):
     path.mkdir()
     (path / "model.safetensors").write_bytes(b"fixture")
@@ -1590,3 +1619,91 @@ def test_selected_strategy_availability_uses_host_catalogue():
     report = preview(configuration(), {"judge": "已删除"})
     rows = {s["id"]: s for s in report["strategies"]}
     assert rows["stage"]["available"] and not rows["task"]["available"]
+
+
+def _composite_classify(runtime, run, selected="small"):
+    judge = step(runtime, run)
+    assert judge["purpose"] == "task"
+    other = "large" if selected == "small" else "small"
+    execute = receipt(runtime, run, judge, json.dumps({"answers": {"candidates": {
+        selected: {"score": .95, "missingInformation": 0},
+        other: {"score": .2, "missingInformation": 0}}}}))
+    assert execute["purpose"] == "execute"
+    return execute
+
+
+def _tool_fact(identity, status="failed", fingerprint="same-failure"):
+    return {"id": identity, "callId": identity, "tool": "bash", "kind": "unknown",
+            "status": status, "fingerprint": fingerprint}
+
+
+def test_composite_v6_configuration_and_preview_are_independent():
+    cfg = composite_configuration()
+    compiled = compile_config(cfg)
+    assert compiled["composite"]["mode"] == "configured"
+    assert compiled["composite"]["task"]["pool"] == ["small", "large"]
+    assert compiled["composite"]["takeover"] == "large"
+    assert compiled["composite"]["stage"] == {
+        "mode": "rules", "window": 3, "threshold": .5, "holdTurns": 2}
+    row = next(item for item in preview(cfg)["strategies"] if item["id"] == "composite")
+    assert row["available"]
+    cfg["composite"]["takeover"] = "judge"
+    assert not preview(cfg)["valid"]
+
+
+def test_composite_task_selects_once_then_rules_upgrade_hold_and_return(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "composite", config=composite_configuration())
+    first = _composite_classify(runtime, run)
+    assert first["model"]["id"] == "small"
+    receipt(runtime, run, first)
+    one = [_tool_fact("f1")]
+    action = step(runtime, run, toolEvidence=one)
+    assert action["model"]["id"] == "small"
+    receipt(runtime, run, action)
+    repeated = [*one, _tool_fact("f2")]
+    action = step(runtime, run, toolEvidence=repeated)
+    assert action["model"]["id"] == "large"
+    assert runtime.runs[run]["decisions"][-1]["reason"] == "composite-repeated-failure"
+    receipt(runtime, run, action)
+    held = step(runtime, run, toolEvidence=repeated)
+    assert held["model"]["id"] == "large"
+    assert runtime.runs[run]["decisions"][-1]["reason"] == "composite-takeover-hold"
+    receipt(runtime, run, held)
+    returned = step(runtime, run, toolEvidence=repeated)
+    assert returned["model"]["id"] == "small"
+    assert runtime.runs[run]["decisions"][-1]["reason"] == "composite-return-base"
+    assert [row["purpose"] for row in runtime.runs[run]["budget"].records].count("task") == 1
+
+
+def test_composite_selected_takeover_skips_pointless_stage_decisions(tmp_path):
+    cfg = composite_configuration()
+    cfg["composite"]["pool"] = ["large"]
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "composite", config=cfg)
+    action = step(runtime, run)
+    assert action["model"]["id"] == "large" and action["purpose"] == "execute"
+    assert runtime.runs[run]["decisions"][-1]["reason"] == "composite-base-is-takeover"
+    receipt(runtime, run, action)
+    next_action = step(runtime, run, toolEvidence=[_tool_fact("ok", "completed", "ok")])
+    assert next_action["model"]["id"] == "large"
+    assert runtime.runs[run]["decisions"][-1]["reason"] == "composite-base-is-takeover"
+
+
+def test_composite_hybrid_uses_local_stage_after_first_execution(tmp_path):
+    weights = tmp_path / "weights"
+    write_laya_fixture(weights)
+    cfg = composite_configuration(stage_mode="hybrid", model_path=weights)
+    runtime = PlanningRuntime(tmp_path / "runs")
+    runtime.local_service.close()
+    runtime.local_service = FakeLocalService(error={"errorCode": "capacity", "error": "too long"})
+    run = begin(runtime, "composite", config=cfg)
+    first = _composite_classify(runtime, run)
+    receipt(runtime, run, first)
+    wait = step(runtime, run, toolEvidence=[_tool_fact("ok", "completed", "ok")])
+    assert wait["action"] == "wait" and wait["kind"] == "local-judge"
+    action = runtime.handle({"op": "local-judge-poll", "runId": run, "jobId": wait["jobId"]})
+    assert action["model"]["id"] == "large"
+    row = runtime.runs[run]["decisions"][-1]
+    assert row["ruleVersion"] == "composite-stage-hybrid-v1"
+    assert row["reason"] == "composite-judge-upgrade"
