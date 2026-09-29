@@ -46,9 +46,10 @@ Ark Agent Plan 是可选 provider，也可直连 Chat Completions、OpenAI Respo
 字段与示例见 [自定义 providers 与 models](docs/provider-configuration.md)。
 
 **默认运行方式：DSH 按请求启动本机 Python 核心，无需单独启动 Router HTTP 服务。**
-需要独立部署时，可运行 `refractagent serve`，并在插件设置中填写 RefractRouter URL。
-HTTP v1 当前只开放预检和模拟；0.9.0 另提供持久任务 HTTP v2，详见
-[HTTP 服务说明](docs/router-http-service.md)与[团队服务说明](docs/team-router-service.md)。
+需要让 DSH、Codex 或 Hermes 以模型 Base URL 接入时，运行 `refractrouter-gateway`，详见
+[独立模型接口](docs/independent-model-router.md)。历史 `refractagent serve` 是 DAG／任务服务，
+不是标准模型接口；其 HTTP v1 与持久任务 v2 见
+[HTTP 服务说明](docs/router-http-service.md)和[团队服务说明](docs/team-router-service.md)。
 
 完成指南中的安装与真实模式配置、设置 Key 后，日常启动命令为：
 

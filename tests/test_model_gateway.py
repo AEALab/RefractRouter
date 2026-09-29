@@ -8,7 +8,20 @@ from urllib.error import HTTPError
 
 import pytest
 
-from refractrouter.model_gateway import ModelGateway, HttpModelCaller, chat_messages, wire_messages, create_server, bound_tool_evidence, ordinary_evidence
+from refractrouter.model_gateway import (
+    GATEWAY_CONFIG_VERSION,
+    GATEWAY_PROTOCOL_VERSION,
+    HttpModelCaller,
+    ModelGateway,
+    ROUTES,
+    bound_tool_evidence,
+    chat_messages,
+    create_server,
+    load_gateway_config,
+    main as gateway_main,
+    ordinary_evidence,
+    wire_messages,
+)
 from refractrouter.host_evidence import EVIDENCE_VERSION
 from refractrouter.openai_compatible import ChatResponse, TransportResponse
 from refractrouter.host_evidence import validate_evidence
@@ -241,6 +254,64 @@ def test_http_auth_sse_and_tools(tmp_path):
         assert '"tool_calls"' in data and '"index": 0' in data and '"total_tokens": 30' in data
     finally:
         server.shutdown();server.server_close();gw.close()
+
+
+def test_http_liveness_readiness_protocol_and_content_type(tmp_path):
+    caller = Caller(reply())
+    gw = gateway(tmp_path, caller)
+    server = create_server(gw, port=0, token='fixture-only')
+    thread = Thread(target=server.serve_forever, daemon=True);thread.start()
+    root = f'http://127.0.0.1:{server.server_port}'
+    try:
+        live = urlopen(root + '/healthz')
+        assert json.load(live)['status'] == 'ok'
+        assert live.headers['X-RefractRouter-Protocol'] == GATEWAY_PROTOCOL_VERSION
+        with pytest.raises(HTTPError) as unauthenticated:
+            urlopen(root + '/readyz')
+        assert unauthenticated.value.code == 401
+        ready = urlopen(Request(root + '/readyz', headers={'Authorization': 'Bearer fixture-only'}))
+        value = json.load(ready)
+        assert value['status'] == 'ready'
+        assert value['service'] == GATEWAY_PROTOCOL_VERSION
+        assert value['strategies'] == [f'refract/{strategy}' for strategy in ROUTES]
+        assert value['modelCalls'] == 0 and value['toolExecution'] is False
+        assert len(value['configDigest']) == 64
+        with pytest.raises(HTTPError) as unsupported:
+            urlopen(Request(root + '/v1/chat/completions', data=json.dumps(request()).encode(),
+                headers={'Authorization': 'Bearer fixture-only', 'Content-Type': 'text/plain'}))
+        assert unsupported.value.code == 415
+        assert not caller.actions
+    finally:
+        server.shutdown();server.server_close();gw.close()
+
+
+def test_versioned_gateway_configuration_rejects_unknown_fields(tmp_path):
+    path = tmp_path / 'gateway.json'
+    valid = {'schemaVersion': GATEWAY_CONFIG_VERSION, 'providers': {},
+             'planningRouting': configuration('static')}
+    path.write_text(json.dumps(valid))
+    assert load_gateway_config(path) == valid
+    path.write_text(json.dumps({**valid, 'schemaVersion': 'future'}))
+    with pytest.raises(ValueError, match='版本'):
+        load_gateway_config(path)
+    path.write_text(json.dumps({**valid, 'unexpected': True}))
+    with pytest.raises(ValueError, match='未知字段'):
+        load_gateway_config(path)
+
+
+def test_cli_preflight_reports_protocol_without_model_call(tmp_path, monkeypatch, capsys):
+    path = tmp_path / 'gateway.json'
+    path.write_text(json.dumps({'schemaVersion': GATEWAY_CONFIG_VERSION,
+        'providers': {'fake': {'baseURL': 'http://127.0.0.1:1/v1'}},
+        'planningRouting': configuration('static')}))
+    monkeypatch.setattr('sys.argv', ['refractrouter-gateway', '--config', str(path),
+        '--runs-dir', str(tmp_path / 'runs'), '--preflight'])
+    assert gateway_main() == 0
+    value = json.loads(capsys.readouterr().out)
+    assert value['service'] == GATEWAY_PROTOCOL_VERSION
+    assert value['status'] == 'ready'
+    assert value['modelCalls'] == 0 and value['toolExecution'] is False
+    assert value['models']['data'][0]['id'] == 'refract/static'
 
 
 def test_transport_preserves_client_tools_system_and_parameters(tmp_path):
