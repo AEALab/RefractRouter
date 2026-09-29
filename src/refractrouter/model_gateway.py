@@ -6,9 +6,11 @@ from copy import deepcopy
 import hashlib
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib.metadata import PackageNotFoundError, version
 import json
 import os
 import select
+import signal
 import socket
 from pathlib import Path
 from threading import RLock
@@ -25,8 +27,17 @@ from .planning_runtime import PlanningRuntime
 
 ROUTES = ("static", "stage", "task", "composite", "escalation", "advisor")
 MAX_BODY = 8 * 1024 * 1024
+GATEWAY_CONFIG_VERSION = "refractrouter-gateway-config-v1"
+GATEWAY_PROTOCOL_VERSION = "refractrouter-model-gateway-v1"
 EXECUTION_OPTIONS = {"temperature", "top_p", "stop", "tool_choice", "parallel_tool_calls",
                      "response_format", "prompt_cache_key", "seed", "frequency_penalty", "presence_penalty"}
+
+
+def package_version():
+    try:
+        return version("refractrouter")
+    except PackageNotFoundError:
+        return "development"
 
 
 def encode(value):
@@ -279,6 +290,18 @@ class ModelGateway:
         self.state = json.loads(self.path.read_text()) if self.path.exists() else {"tools": {}}
         if caller is None:
             self._check_providers(compiled)
+
+    def service_info(self):
+        models = self.models()["data"]
+        return {
+            "status": "ready",
+            "service": GATEWAY_PROTOCOL_VERSION,
+            "version": package_version(),
+            "configDigest": digest(self.config),
+            "strategies": [row["id"] for row in models],
+            "modelCalls": 0,
+            "toolExecution": False,
+        }
 
     def _check_providers(self, compiled):
         for model in compiled["models"].values():
@@ -568,6 +591,9 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
         raise ValueError("对外监听必须配置 authTokenEnv")
 
     class Handler(BaseHTTPRequestHandler):
+        server_version = "RefractRouter"
+        sys_version = ""
+
         def log_message(self, *args):
             pass  # 不记录凭证或用户请求正文。
 
@@ -579,16 +605,22 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
             self.send_response(status)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Content-Length', str(len(data)))
+            self.send_header('X-RefractRouter-Protocol', GATEWAY_PROTOCOL_VERSION)
             self.end_headers()
             self.wfile.write(data)
 
         def do_GET(self):
-            if not self.authorized():
+            path = urlsplit(self.path).path
+            if path == '/healthz':
+                self.send_json(200, {'status': 'ok', 'service': GATEWAY_PROTOCOL_VERSION})
+            elif not self.authorized():
                 self.send_json(401, {'error': {'message': '认证失败', 'type': 'authentication_error'}})
-            elif urlsplit(self.path).path == '/v1/models':
+            elif path == '/v1/models':
                 self.send_json(200, gateway.models())
-            elif self.path == '/health':
-                self.send_json(200, {'status': 'ok', 'service': 'refractrouter-model-gateway-v1'})
+            elif path == '/readyz':
+                self.send_json(200, gateway.service_info())
+            elif path == '/health':
+                self.send_json(200, {'status': 'ok', 'service': GATEWAY_PROTOCOL_VERSION})
             else:
                 self.send_json(404, {'error': {'message': '未知接口'}})
 
@@ -599,6 +631,11 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
             if self.path not in ('/v1/chat/completions', '/v1/responses', '/v1/tool-evidence'):
                 self.send_json(404, {'error': {'message': '未知接口'}})
                 return
+            media_type = self.headers.get('Content-Type', '').split(';', 1)[0].strip().lower()
+            if media_type != 'application/json':
+                self.send_json(415, {'error': {'message': '请求必须使用 application/json',
+                    'type': 'invalid_request_error'}})
+                return
             wire, sent, lost = None, False, False
             def send(data):
                 nonlocal sent, lost
@@ -608,6 +645,7 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                         self.send_response(200)
                         self.send_header('Content-Type', 'text/event-stream')
                         self.send_header('Cache-Control', 'no-cache')
+                        self.send_header('X-RefractRouter-Protocol', GATEWAY_PROTOCOL_VERSION)
                         self.end_headers()
                         sent = True
                     self.wfile.write(data)
@@ -650,6 +688,20 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
     return ThreadingHTTPServer((host, port), Handler)
 
 
+def load_gateway_config(path):
+    raw = json.loads(path.read_text())
+    allowed = {'schemaVersion', 'authTokenEnv', 'providers', 'planningRouting'}
+    if not isinstance(raw, dict) or set(raw) - allowed:
+        raise ValueError('网关配置不是对象或包含未知字段')
+    if raw.get('schemaVersion', GATEWAY_CONFIG_VERSION) != GATEWAY_CONFIG_VERSION:
+        raise ValueError('不支持的网关配置版本')
+    if 'authTokenEnv' in raw and (not isinstance(raw['authTokenEnv'], str) or not raw['authTokenEnv']):
+        raise ValueError('authTokenEnv 必须是非空环境变量名称')
+    if not isinstance(raw.get('providers'), dict) or not isinstance(raw.get('planningRouting'), dict):
+        raise ValueError('网关配置必须包含 providers 与 planningRouting')
+    return raw
+
+
 def main():
     parser = argparse.ArgumentParser(description='独立 RefractRouter 模型接口；Agent 工具由客户端执行')
     parser.add_argument('--config', required=True, type=Path)
@@ -660,14 +712,14 @@ def main():
     parser.add_argument('--load-stage-judge', action='store_true',
                         help='明确加载已下载的 Stage 本地 Judge；不下载权重')
     args = parser.parse_args()
-    config = json.loads(args.config.read_text())
+    config = load_gateway_config(args.config)
     token_env = config.get('authTokenEnv')
     token = os.environ.get(token_env) if token_env else None
     if token_env and not token:
         raise ValueError('服务认证凭证未配置')
     gateway = ModelGateway(config, args.runs_dir)
     if args.preflight:
-        print(json.dumps({'models': gateway.models(), 'modelCalls': 0, 'toolExecution': False}, ensure_ascii=False))
+        print(json.dumps({**gateway.service_info(), 'models': gateway.models()}, ensure_ascii=False))
         gateway.close()
         return 0
     if args.load_stage_judge:
@@ -679,11 +731,20 @@ def main():
             gateway.close()
             raise
     server = create_server(gateway, args.host, args.port, token)
+    def stop_service(_signum, _frame):
+        raise KeyboardInterrupt
+    previous = {}
+    for name in ('SIGINT', 'SIGTERM'):
+        member = getattr(signal, name, None)
+        if member is not None:
+            previous[member] = signal.signal(member, stop_service)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        for member, handler in previous.items():
+            signal.signal(member, handler)
         server.server_close()
         gateway.close()
     return 0

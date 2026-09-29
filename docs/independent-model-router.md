@@ -1,6 +1,7 @@
 # 独立模型路由与宿主边界
 
-决策日期：2026-09-27。适用版本：Router 0.15.2、DSH 插件 0.27.0。
+决策日期：2026-09-27，最近核对：2026-09-29。
+适用版本：Router 0.15.4、DSH 插件 0.29.0。
 
 ## 产品目标
 
@@ -46,7 +47,8 @@ refractrouter-gateway --config /absolute/path/gateway.json \
 ```
 
 客户端 Base URL：`http://127.0.0.1:8088/v1`。
-模型 ID：`refract/static`、`refract/stage`、`refract/task`、`refract/escalation`。
+模型 ID：`refract/static`、`refract/stage`、`refract/task`、`refract/composite`、
+`refract/escalation`、`refract/advisor`。
 `GET /v1/models` 只返回配置预检可用的策略。模型 ID 也可以使用不带前缀的策略名。
 
 配置结构示意如下，`planningRouting` 需填入经核对的角色、能力、价格与额度；
@@ -54,6 +56,7 @@ refractrouter-gateway --config /absolute/path/gateway.json \
 
 ```json
 {
+  "schemaVersion": "refractrouter-gateway-config-v1",
   "authTokenEnv": "REFRACTROUTER_API_KEY",
   "providers": {
     "ark": {
@@ -70,6 +73,29 @@ refractrouter-gateway --config /absolute/path/gateway.json \
 `--preflight` 不调用模型，但要求配置、价格和所引用凭证可用。
 对外监听必须配置服务认证。部署到团队网络时还需要运维层的 TLS、访问控制、容量限制和备份。
 本版策略额度仍是任务额度；不是所有团队成员的共享资金池或 P6 共享预算。
+
+网关配置采用 `refractrouter-gateway-config-v1`。为兼容已有本机配置，首版可省略
+`schemaVersion`，其余未知顶层字段会在启动前拒绝，避免拼写错误被静默忽略。
+
+## 运行检查与停止
+
+服务提供两个用途不同的运行检查：
+
+- `GET /healthz` 是不需要认证的存活检查，只返回服务是否仍在运行，不公开模型和配置。
+- `GET /readyz` 是需要服务 Bearer token 的就绪检查，返回协议版本、软件版本、配置摘要和
+  当前可用策略。配置摘要是 SHA-256，不包含配置正文、上游地址或凭证。
+- `GET /health` 保留旧客户端兼容行为；启用认证时仍要求 Bearer token。
+
+`--preflight` 输出同一份协议版本、配置摘要、可用策略和模型目录，并明确
+`modelCalls: 0`、`toolExecution: false`。它只验证本地配置与凭证是否齐全，不会向上游发请求。
+
+Chat Completions、Responses 与工具证据接口只接受 `application/json`；错误内容在模型派发前
+返回。所有 JSON 与 SSE 响应带 `X-RefractRouter-Protocol`，便于客户端在正式调用前核对合同。
+进程收到 `SIGINT` 或 `SIGTERM` 时停止监听并关闭本地 Judge 服务；已派发调用仍遵循账本的
+未知用量和不自动重发规则。
+
+本轮实现与无付费验证见
+[独立模型网关产品化验收](../reports/gateway-product-readiness-20260929/README.md)。
 
 ## 已接通的协议范围
 
@@ -121,8 +147,8 @@ DSH 插件自身流式行为保持原状。
 
 ## 证据、错误和费用
 
-Stage 下一版已改为[规则与本地 Judge 协作设计](stage-local-judge-design.md)，撤销“不得调用
-Judge”的约束。下述证据行为描述当前已发布版本；新版判别、保持与降档逻辑尚未实现。
+Stage 已采用[规则与本地 Judge 协作设计](stage-local-judge-design.md)，撤销“不得调用 Judge”
+的旧约束。规则模式仍是默认；本地 Judge 路线只有在权重已明确准备并通过预检时启用。
 
 `host_evidence.py` 定义中立工具事实合同。DSH 特定字段转换集中在 `dsh_evidence.py`，
 旧插件协议仍可读取。独立接口仅凭文本工具结果不能确认退出状态，记录为 `unclassified`；

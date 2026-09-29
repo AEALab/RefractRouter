@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "refractrouter-gateway-product-readiness-v1",
+  "date": "2026-09-29",
+  "paidModelCalls": 0,
+  "cost": {
+    "AFP": 0,
+    "CNY": 0
+  },
+  "checks": [
+    {
+      "name": "gateway-targeted",
+      "command": "uv run pytest tests/test_model_gateway.py tests/test_gateway_streaming.py tests/test_gateway_capabilities.py -q",
+      "passed": 55
+    },
+    {
+      "name": "python-full",
+      "command": "uv run pytest",
+      "passed": 1407,
+      "durationSeconds": 206.52
+    },
+    {
+      "name": "gateway-final",
+      "command": "uv run pytest tests/test_model_gateway.py -q",
+      "passed": 35
+    },
+    {
+      "name": "dsh-plugin-typecheck",
+      "command": "npm run --prefix validation/dsh/plugin typecheck",
+      "status": "passed"
+    },
+    {
+      "name": "dsh-plugin-build",
+      "command": "npm run --prefix validation/dsh/plugin build",
+      "status": "passed"
+    }
+  ],
+  "deferred": [
+    "Codex 与 Hermes 日常 profile 安装",
+    "媒体接口",
+    "P6 子 Agent 共享预算",
+    "自然任务质量、成本与时延收益验证"
+  ]
+}
