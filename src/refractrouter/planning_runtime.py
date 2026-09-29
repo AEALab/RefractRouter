@@ -813,7 +813,9 @@ class PlanningRuntime(StageHybridRuntime):
                     role = "escalation-takeover" if s["latched"] else "escalation-initial"
                     reason = "escalation-takeover-unreviewed" if s["latched"] else "escalation-initial"
                 else:
-                    role, reason = ("capable" if s["latched"] else "efficient"), "escalation-latch"
+                    role = "capable" if s["latched"] else "efficient"
+                    reason = ("escalation-takeover-unreviewed" if s["latched"]
+                              else "escalation-initial")
             else:
                 role = "efficient"
         if strategy == "advisor" and purpose == "redo":

@@ -104,6 +104,18 @@ refractagent models
 若要让以后新开的终端也能找到命令，可运行 `uv tool update-shell`，再重新打开终端。
 相关机制见 [uv 工具安装说明](https://docs.astral.sh/uv/concepts/tools/)。
 
+Task、Stage 混合模式、Advisor 或 Escalation 若使用本地 Laya-MLX Judge，必须把
+`laya-mlx` 安装到 DSH 实际调用的同一个 `uv tool` 环境；仓库 `.venv` 中存在该依赖并
+不代表已安装的 `refractagent` 命令也能使用它。在 Apple Silicon macOS 上安装或升级时使用：
+
+```bash
+uv tool install --force --with 'laya-mlx==0.2.0' \
+  "$REFRACT_REPO/dist/refractrouter-0.9.0-py3-none-any.whl"
+```
+
+从源码工作树安装时可使用 `uv tool install --force '.[local-judge]'`。完成后在规划路由设置中
+点击“加载并预热”；任务执行不会隐式下载权重或改用云端 Judge。
+
 ### 选择 DSH 配置目录并安装插件
 
 首次使用建议为 RefractAgent 单独保存 DSH profile 和会话：
