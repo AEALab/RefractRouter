@@ -1,0 +1,1113 @@
+{
+  "schemaVersion": "dsh-strategy-stability-preflight-v1",
+  "status": "zero-call-preflight",
+  "realModelCalls": 0,
+  "taskCount": 128,
+  "strategyCounts": {
+    "static": 12,
+    "stage": 24,
+    "task": 20,
+    "composite": 24,
+    "advisor": 24,
+    "escalation": 24
+  },
+  "tasks": [
+    {
+      "id": "static-01",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_01_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_01_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-02",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_02_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_02_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-03",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_03_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_03_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-04",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_04_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_04_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-05",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_05_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_05_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-06",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_06_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_06_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-07",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_07_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_07_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-08",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_08_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_08_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-09",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_09_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_09_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-10",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_10_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_10_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-11",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_11_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_11_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "static-12",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_12_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "STATIC_12_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 1
+    },
+    {
+      "id": "stage-01",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_01_OK，读取 stdout 后回复 STAGE_01_OK。不要调用其他工具。",
+      "expected": "STAGE_01_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-02",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_02_OK，读取 stdout 后回复 STAGE_02_OK。不要调用其他工具。",
+      "expected": "STAGE_02_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-03",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_03_OK，读取 stdout 后回复 STAGE_03_OK。不要调用其他工具。",
+      "expected": "STAGE_03_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-04",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_04_OK，读取 stdout 后回复 STAGE_04_OK。不要调用其他工具。",
+      "expected": "STAGE_04_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-05",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_05_OK，读取 stdout 后回复 STAGE_05_OK。不要调用其他工具。",
+      "expected": "STAGE_05_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-06",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_06_OK，读取 stdout 后回复 STAGE_06_OK。不要调用其他工具。",
+      "expected": "STAGE_06_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-07",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_07_OK，读取 stdout 后回复 STAGE_07_OK。不要调用其他工具。",
+      "expected": "STAGE_07_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-08",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_08_OK，读取 stdout 后回复 STAGE_08_OK。不要调用其他工具。",
+      "expected": "STAGE_08_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-09",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_09_OK，读取 stdout 后回复 STAGE_09_OK。不要调用其他工具。",
+      "expected": "STAGE_09_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-10",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_10_OK，读取 stdout 后回复 STAGE_10_OK。不要调用其他工具。",
+      "expected": "STAGE_10_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-11",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_11_OK，读取 stdout 后回复 STAGE_11_OK。不要调用其他工具。",
+      "expected": "STAGE_11_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-12",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_12_OK，读取 stdout 后回复 STAGE_12_OK。不要调用其他工具。",
+      "expected": "STAGE_12_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-13",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_13_OK，读取 stdout 后回复 STAGE_13_OK。不要调用其他工具。",
+      "expected": "STAGE_13_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-14",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_14_OK，读取 stdout 后回复 STAGE_14_OK。不要调用其他工具。",
+      "expected": "STAGE_14_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-15",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_15_OK，读取 stdout 后回复 STAGE_15_OK。不要调用其他工具。",
+      "expected": "STAGE_15_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-16",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_16_OK，读取 stdout 后回复 STAGE_16_OK。不要调用其他工具。",
+      "expected": "STAGE_16_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-17",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_17_OK，读取 stdout 后回复 STAGE_17_OK。不要调用其他工具。",
+      "expected": "STAGE_17_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-18",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_18_OK，读取 stdout 后回复 STAGE_18_OK。不要调用其他工具。",
+      "expected": "STAGE_18_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-19",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_19_OK，读取 stdout 后回复 STAGE_19_OK。不要调用其他工具。",
+      "expected": "STAGE_19_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-20",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_20_OK，读取 stdout 后回复 STAGE_20_OK。不要调用其他工具。",
+      "expected": "STAGE_20_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-21",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_21_OK，读取 stdout 后回复 STAGE_21_OK。不要调用其他工具。",
+      "expected": "STAGE_21_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-22",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_22_OK，读取 stdout 后回复 STAGE_22_OK。不要调用其他工具。",
+      "expected": "STAGE_22_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-23",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_23_OK，读取 stdout 后回复 STAGE_23_OK。不要调用其他工具。",
+      "expected": "STAGE_23_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "stage-24",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf %s STAGE_24_OK，读取 stdout 后回复 STAGE_24_OK。不要调用其他工具。",
+      "expected": "STAGE_24_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-01",
+      "strategy": "task",
+      "prompt": "计算 17×19，只回复阿拉伯数字，不要调用工具。",
+      "expected": "323",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-02",
+      "strategy": "task",
+      "prompt": "Calculate 48＋75. Reply with digits only and do not call tools.",
+      "expected": "123",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-03",
+      "strategy": "task",
+      "prompt": "计算 144÷12，只回复阿拉伯数字，不要调用工具。",
+      "expected": "12",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-04",
+      "strategy": "task",
+      "prompt": "Calculate 81－37. Reply with digits only and do not call tools.",
+      "expected": "44",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-05",
+      "strategy": "task",
+      "prompt": "计算 13×14，只回复阿拉伯数字，不要调用工具。",
+      "expected": "182",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-06",
+      "strategy": "task",
+      "prompt": "Calculate 225÷15. Reply with digits only and do not call tools.",
+      "expected": "15",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-07",
+      "strategy": "task",
+      "prompt": "计算 99＋101，只回复阿拉伯数字，不要调用工具。",
+      "expected": "200",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-08",
+      "strategy": "task",
+      "prompt": "Calculate 64×8. Reply with digits only and do not call tools.",
+      "expected": "512",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-09",
+      "strategy": "task",
+      "prompt": "计算 1000－347，只回复阿拉伯数字，不要调用工具。",
+      "expected": "653",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-10",
+      "strategy": "task",
+      "prompt": "Calculate 27×12. Reply with digits only and do not call tools.",
+      "expected": "324",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-11",
+      "strategy": "task",
+      "prompt": "计算 15×15，只回复阿拉伯数字，不要调用工具。",
+      "expected": "225",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-12",
+      "strategy": "task",
+      "prompt": "Calculate 7×8＋9. Reply with digits only and do not call tools.",
+      "expected": "65",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-13",
+      "strategy": "task",
+      "prompt": "计算 360÷9，只回复阿拉伯数字，不要调用工具。",
+      "expected": "40",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-14",
+      "strategy": "task",
+      "prompt": "Calculate 123＋456. Reply with digits only and do not call tools.",
+      "expected": "579",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-15",
+      "strategy": "task",
+      "prompt": "计算 19×21，只回复阿拉伯数字，不要调用工具。",
+      "expected": "399",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-16",
+      "strategy": "task",
+      "prompt": "Calculate 625÷25. Reply with digits only and do not call tools.",
+      "expected": "25",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-17",
+      "strategy": "task",
+      "prompt": "计算 72－29，只回复阿拉伯数字，不要调用工具。",
+      "expected": "43",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-18",
+      "strategy": "task",
+      "prompt": "Calculate 31×7. Reply with digits only and do not call tools.",
+      "expected": "217",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-19",
+      "strategy": "task",
+      "prompt": "计算 88＋17，只回复阿拉伯数字，不要调用工具。",
+      "expected": "105",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "task-20",
+      "strategy": "task",
+      "prompt": "Calculate 14×16. Reply with digits only and do not call tools.",
+      "expected": "224",
+      "toolCalls": 0,
+      "maximumModelCalls": 2
+    },
+    {
+      "id": "composite-01",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_01_OK，读取 stdout 后回复 COMPOSITE_01_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_01_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-02",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_02_OK，读取 stdout 后回复 COMPOSITE_02_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_02_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-03",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_03_OK，读取 stdout 后回复 COMPOSITE_03_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_03_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-04",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_04_OK，读取 stdout 后回复 COMPOSITE_04_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_04_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-05",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_05_OK，读取 stdout 后回复 COMPOSITE_05_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_05_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-06",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_06_OK，读取 stdout 后回复 COMPOSITE_06_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_06_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-07",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_07_OK，读取 stdout 后回复 COMPOSITE_07_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_07_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-08",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_08_OK，读取 stdout 后回复 COMPOSITE_08_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_08_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-09",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_09_OK，读取 stdout 后回复 COMPOSITE_09_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_09_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-10",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_10_OK，读取 stdout 后回复 COMPOSITE_10_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_10_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-11",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_11_OK，读取 stdout 后回复 COMPOSITE_11_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_11_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-12",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_12_OK，读取 stdout 后回复 COMPOSITE_12_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_12_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-13",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_13_OK，读取 stdout 后回复 COMPOSITE_13_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_13_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-14",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_14_OK，读取 stdout 后回复 COMPOSITE_14_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_14_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-15",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_15_OK，读取 stdout 后回复 COMPOSITE_15_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_15_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-16",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_16_OK，读取 stdout 后回复 COMPOSITE_16_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_16_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-17",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_17_OK，读取 stdout 后回复 COMPOSITE_17_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_17_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-18",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_18_OK，读取 stdout 后回复 COMPOSITE_18_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_18_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-19",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_19_OK，读取 stdout 后回复 COMPOSITE_19_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_19_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-20",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_20_OK，读取 stdout 后回复 COMPOSITE_20_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_20_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-21",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_21_OK，读取 stdout 后回复 COMPOSITE_21_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_21_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-22",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_22_OK，读取 stdout 后回复 COMPOSITE_22_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_22_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-23",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_23_OK，读取 stdout 后回复 COMPOSITE_23_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_23_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "composite-24",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf %s COMPOSITE_24_OK，读取 stdout 后回复 COMPOSITE_24_OK。不要调用其他工具。",
+      "expected": "COMPOSITE_24_OK",
+      "toolCalls": 1,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "advisor-01",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_01_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_01_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-02",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_02_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_02_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-03",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_03_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_03_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-04",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_04_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_04_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-05",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_05_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_05_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-06",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_06_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_06_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-07",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_07_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_07_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-08",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_08_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_08_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-09",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_09_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_09_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-10",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_10_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_10_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-11",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_11_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_11_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-12",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_12_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_12_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-13",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_13_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_13_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-14",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_14_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_14_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-15",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_15_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_15_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-16",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_16_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_16_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-17",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_17_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_17_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-18",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_18_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_18_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-19",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_19_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_19_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-20",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_20_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_20_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-21",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_21_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_21_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-22",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_22_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_22_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-23",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_23_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_23_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "advisor-24",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_24_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ADVISOR_24_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 4
+    },
+    {
+      "id": "escalation-01",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_01_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_01_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-02",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_02_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_02_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-03",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_03_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_03_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-04",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_04_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_04_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-05",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_05_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_05_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-06",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_06_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_06_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-07",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_07_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_07_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-08",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_08_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_08_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-09",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_09_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_09_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-10",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_10_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_10_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-11",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_11_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_11_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-12",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_12_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_12_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-13",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_13_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_13_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-14",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_14_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_14_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-15",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_15_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_15_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-16",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_16_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_16_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-17",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_17_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_17_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-18",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_18_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_18_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-19",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_19_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_19_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-20",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_20_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_20_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-21",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_21_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_21_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-22",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_22_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_22_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-23",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_23_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_23_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    },
+    {
+      "id": "escalation-24",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_24_OK，不要调用工具，也不要添加其他文字。",
+      "expected": "ESCALATION_24_OK",
+      "toolCalls": 0,
+      "maximumModelCalls": 3
+    }
+  ],
+  "tasksDigest": "8d4e19ae9976c0cf669e74b41337ae7ac45c4c401c28b140fb4e77d1c11b9383",
+  "configDigest": "90e707e9b663ad5e4e5abeea30d7d8a00f31e33b4c3e175e38a6b51aedab799e",
+  "patchDigests": {
+    "static": "f2e12bf276a95722b0671ca016627ea68f5b04c785250e5615c1ee0f0374883f",
+    "stage": "a8fec2619f19f0242152a6a314eab6599498bb01aa33730913cabc7f65fdc61e",
+    "task": "da49806e1cc3b1b833f0fda98fe9937b69e983bc57a743f1c26c1056dd923bce",
+    "composite": "d3aa7027c4080dc3613d218b255f9e16acae0fa240a1b821c6a82d2e4bce4d9f",
+    "advisor": "12e3232a7f4a9901b50a674703af61c645abbe0a63d8b11e6ddfbb08cc856386",
+    "escalation": "a1117660930d0c0d87762a80fa8888d4b793a26d47b6f7070846bbe3d7d25c0a"
+  },
+  "models": {
+    "efficient": {
+      "model": "deepseek-v4-flash",
+      "reasoningEffort": "low"
+    },
+    "capable": {
+      "model": "deepseek-v4.1-flash",
+      "reasoningEffort": "high"
+    },
+    "judge": {
+      "model": "glm-5.3-flash",
+      "reasoningEffort": "high"
+    }
+  },
+  "limits": {
+    "maximumProductionAfp": 4685.3888,
+    "authorizedBatchAfp": 5000,
+    "maximumModelCalls": 340,
+    "timeoutMsPerTask": 300000,
+    "httpRetries": 0,
+    "delegation": false,
+    "media": false
+  },
+  "perStrategyAfpUpper": {
+    "static": 246.912,
+    "stage": 987.648,
+    "task": 492.8,
+    "composite": 1085.184,
+    "advisor": 1182.72,
+    "escalation": 690.1248
+  },
+  "acceptance": [
+    "每个冻结任务的 DSH 进程退出码为 0，且输出包含唯一预期结果",
+    "每次产生唯一 planning 记录，全部派发调用有确认用量并完成结算",
+    "每个策略达到冻结成功数；任何任务失败则该批次不通过",
+    "Static、Stage、Task、Composite、Advisor、Escalation 的轨迹符合各自合同",
+    "所有失败尝试保留，不以补跑成功样本覆盖失败记录"
+  ],
+  "branchCoverage": {
+    "realDsh": [
+      "Static 随机选模",
+      "Stage 高效模型与原生工具续接",
+      "Task 单次判别后固定执行器",
+      "Composite 单次 Task 判别与 Stage 续接",
+      "Advisor 缓冲后审核放行或有界返工",
+      "Escalation 缓冲后放行或接管"
+    ],
+    "deterministic": [
+      "Stage 重复失败升级、保持与降回",
+      "Composite 接管、保持与降回",
+      "Advisor REDO、复审与失败关闭",
+      "Escalation DEFECT、STALL、UNCERTAIN 与强模型接管"
+    ]
+  },
+  "stopRules": [
+    "认证失败",
+    "模型用量未知",
+    "账本或轨迹写入失败",
+    "冻结配置摘要变化",
+    "任一冻结任务失败",
+    "5000 AFP 批次上限耗尽"
+  ],
+  "preflightDigest": "a5ab4422a60fb74a804b2eed76f2f107bf5e9d0749d7b0654096b5b9e00e47d1"
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "dsh-strategy-stability-summary-v1",
+  "complete": false,
+  "attempts": 6,
+  "successes": 5,
+  "productionAfp": 11.3997,
+  "modelCalls": 12,
+  "strategies": {
+    "static": {
+      "expected": 12,
+      "attempted": 1,
+      "successful": 1,
+      "productionAfp": 3.116,
+      "modelCalls": 1
+    },
+    "stage": {
+      "expected": 24,
+      "attempted": 1,
+      "successful": 1,
+      "productionAfp": 1.25385,
+      "modelCalls": 2
+    },
+    "task": {
+      "expected": 20,
+      "attempted": 1,
+      "successful": 1,
+      "productionAfp": 0.7757,
+      "modelCalls": 2
+    },
+    "composite": {
+      "expected": 24,
+      "attempted": 1,
+      "successful": 1,
+      "productionAfp": 1.4061,
+      "modelCalls": 3
+    },
+    "advisor": {
+      "expected": 24,
+      "attempted": 1,
+      "successful": 1,
+      "productionAfp": 3.67015,
+      "modelCalls": 2
+    },
+    "escalation": {
+      "expected": 24,
+      "attempted": 1,
+      "successful": 0,
+      "productionAfp": 1.1779,
+      "modelCalls": 2
+    }
+  }
+}
