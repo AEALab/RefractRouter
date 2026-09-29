@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "dsh-escalation-v4-retest-v1",
+  "date": "2026-09-29",
+  "sourceCommit": "3e9ce2fe7f6ed15cc0442406e8a823bcaad7f4fe",
+  "environment": {
+    "dshVersion": "0.1.5-rc.3",
+    "pluginVersion": "0.29.0",
+    "coreVersion": "0.15.4",
+    "planningSchema": "refractagent-planning-v6",
+    "planningConfigDigest": "4e360c5483bb20d305907dc5174670cfd837d59d8df1c687bbc1df18b1679f9b",
+    "defaultStrategy": "stage",
+    "escalationMode": "configured"
+  },
+  "authorization": {
+    "basis": "六策略验收原 60 AFP 包络剩余额度及既有累计 2000 AFP 授权",
+    "maximumBatchAfp": 15,
+    "cashCalls": false
+  },
+  "limits": {
+    "maximumRemoteModelCalls": 3,
+    "maximumMinutesPerTask": 5,
+    "httpRetries": 0,
+    "delegation": false
+  },
+  "case": {
+    "id": "escalation-v4-final",
+    "strategy": "escalation",
+    "prompt": "只回复 ESCALATION_V4_OK，不要调用工具，也不要添加其他文字。",
+    "acceptance": [
+      "使用 configured Escalation 合同",
+      "高效候选在 Judge 前缓冲",
+      "PROCEED 后只交付一次准确回复",
+      "轨迹显示 escalation-initial、判别结果、规则版本和费用"
+    ]
+  },
+  "batchStopRules": [
+    "认证失败",
+    "模型用量未知",
+    "账本或轨迹写入失败",
+    "planning 配置摘要改变",
+    "批次远程调用或 AFP 上限耗尽"
+  ],
+  "preflightDigest": "64561e76afb4477839e812d81167369838697f0045d17a0b94d9a6fb05898dad"
+}
