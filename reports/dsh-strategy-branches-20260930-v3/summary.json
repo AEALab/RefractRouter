@@ -1,0 +1,938 @@
+{
+  "schemaVersion": "dsh-strategy-branch-summary-v1",
+  "complete": true,
+  "runs": 24,
+  "realModelCalls": 90,
+  "fixtureCalls": 30,
+  "productionAfp": 6.2536,
+  "strategies": [
+    {
+      "strategy": "stage",
+      "success": true,
+      "runs": 6,
+      "realModelCalls": 30,
+      "fixtureCalls": 0,
+      "productionAfp": 2.16005,
+      "records": [
+        {
+          "runId": "f7838d8b0ec0ed20ca54805727432038fa2a71330e09b079630c9217f95658ef",
+          "strategy": "stage",
+          "models": [
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "no-signal",
+            "ambiguous",
+            "repeated-failure",
+            "capable-hold",
+            "ambiguous"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 0,
+          "productionAfp": 0.35815,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "a2c7be32cde4cefa68a388029a44b437ea05df8606dba58e4d7921c253f66c5a",
+          "strategy": "stage",
+          "models": [
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "no-signal",
+            "ambiguous",
+            "repeated-failure",
+            "capable-hold",
+            "ambiguous"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 0,
+          "productionAfp": 0.3531,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "7daae72df9906f24647da08ec94a92d02fe6fecd75fe8752f9f571e7aff0d95f",
+          "strategy": "stage",
+          "models": [
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "no-signal",
+            "ambiguous",
+            "repeated-failure",
+            "capable-hold",
+            "ambiguous"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 0,
+          "productionAfp": 0.36045,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "68b1df99825e80e5c83742e238c0fb9c9408c5a299a6e3a3573a108c03537df9",
+          "strategy": "stage",
+          "models": [
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "no-signal",
+            "ambiguous",
+            "repeated-failure",
+            "capable-hold",
+            "ambiguous"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 0,
+          "productionAfp": 0.36425,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "1c61ea73c1a519cd95e1668e53368e51a6111c87a09e4241e2f0903b93af1e06",
+          "strategy": "stage",
+          "models": [
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "no-signal",
+            "ambiguous",
+            "repeated-failure",
+            "capable-hold",
+            "ambiguous"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 0,
+          "productionAfp": 0.36355,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "0c031d5f8a71a5788e5f5ba109f6240edec5ff872337c798610cf5e105b8a0e9",
+          "strategy": "stage",
+          "models": [
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "no-signal",
+            "ambiguous",
+            "repeated-failure",
+            "capable-hold",
+            "ambiguous"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 0,
+          "productionAfp": 0.36055,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        }
+      ]
+    },
+    {
+      "strategy": "composite",
+      "success": true,
+      "runs": 6,
+      "realModelCalls": 30,
+      "fixtureCalls": 6,
+      "productionAfp": 2.17475,
+      "records": [
+        {
+          "runId": "63f8ccccf64df24709ffc1f2846ae1cd5a639258062df655a17c16e95aa94834",
+          "strategy": "composite",
+          "models": [
+            "composite-task-judge-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "task",
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "task-llm-judge",
+            "composite-task-selected",
+            "composite-ambiguous-base",
+            "composite-repeated-failure",
+            "composite-takeover-hold",
+            "composite-return-base"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 1,
+          "productionAfp": 0.3882,
+          "status": "completed",
+          "state": {
+            "selected_model": "efficient",
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "21c05b505c35bb76c001f212378da46e65bf8dc12bc4ea189bf53e885f635e24",
+          "strategy": "composite",
+          "models": [
+            "composite-task-judge-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "task",
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "task-llm-judge",
+            "composite-task-selected",
+            "composite-ambiguous-base",
+            "composite-repeated-failure",
+            "composite-takeover-hold",
+            "composite-return-base"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 1,
+          "productionAfp": 0.35815,
+          "status": "completed",
+          "state": {
+            "selected_model": "efficient",
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "3b9cc7a2a20e451d9df591b7932840f0127927927a8b1cb71e1f221977bbed3b",
+          "strategy": "composite",
+          "models": [
+            "composite-task-judge-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "task",
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "task-llm-judge",
+            "composite-task-selected",
+            "composite-ambiguous-base",
+            "composite-repeated-failure",
+            "composite-takeover-hold",
+            "composite-return-base"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 1,
+          "productionAfp": 0.3635,
+          "status": "completed",
+          "state": {
+            "selected_model": "efficient",
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "83c55c3d8962b5556d995e6fecb0f4e5cb884211a13b300242dcb690a4cf42fc",
+          "strategy": "composite",
+          "models": [
+            "composite-task-judge-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "task",
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "task-llm-judge",
+            "composite-task-selected",
+            "composite-ambiguous-base",
+            "composite-repeated-failure",
+            "composite-takeover-hold",
+            "composite-return-base"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 1,
+          "productionAfp": 0.3539,
+          "status": "completed",
+          "state": {
+            "selected_model": "efficient",
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "26dbcf96a56733ad5362b4b8b1d77f9fa3f3ffd296c5604c1b6ba9e53eae02d5",
+          "strategy": "composite",
+          "models": [
+            "composite-task-judge-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "task",
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "task-llm-judge",
+            "composite-task-selected",
+            "composite-ambiguous-base",
+            "composite-repeated-failure",
+            "composite-takeover-hold",
+            "composite-return-base"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 1,
+          "productionAfp": 0.35435,
+          "status": "completed",
+          "state": {
+            "selected_model": "efficient",
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "f4aaf2467810e812bb001d0aba235177812d89edd3bf344893c021c841d914c6",
+          "strategy": "composite",
+          "models": [
+            "composite-task-judge-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "task",
+            "execute",
+            "execute",
+            "execute",
+            "execute",
+            "execute"
+          ],
+          "decisionReasons": [
+            "task-llm-judge",
+            "composite-task-selected",
+            "composite-ambiguous-base",
+            "composite-repeated-failure",
+            "composite-takeover-hold",
+            "composite-return-base"
+          ],
+          "realModelCalls": 5,
+          "fixtureCalls": 1,
+          "productionAfp": 0.35665,
+          "status": "completed",
+          "state": {
+            "selected_model": "efficient",
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        }
+      ]
+    },
+    {
+      "strategy": "advisor",
+      "success": true,
+      "runs": 6,
+      "realModelCalls": 12,
+      "fixtureCalls": 18,
+      "productionAfp": 0.45115,
+      "records": [
+        {
+          "runId": "fe469b38a68fb81ed5cf995b9b395a6c9571055f7821c006c75158786d392b05",
+          "strategy": "advisor",
+          "models": [
+            "advisor-executor-fixture",
+            "deepseek-v4-flash",
+            "advisor-executor-fixture",
+            "advisor-executor-fixture",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "advisor",
+            "redo",
+            "execute",
+            "advisor"
+          ],
+          "decisionReasons": [
+            "advisor-initial",
+            "advisor-redo-required",
+            "advisor-redo",
+            "advisor-initial",
+            "advisor-reapproved"
+          ],
+          "realModelCalls": 2,
+          "fixtureCalls": 3,
+          "productionAfp": 0.07875,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "approved",
+            "reviews": 2,
+            "redos": 1
+          }
+        },
+        {
+          "runId": "b33bae9954f3fd75629e0b1137618b72d14d18594ad5d9929245f7f58c7537ea",
+          "strategy": "advisor",
+          "models": [
+            "advisor-executor-fixture",
+            "deepseek-v4-flash",
+            "advisor-executor-fixture",
+            "advisor-executor-fixture",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "advisor",
+            "redo",
+            "execute",
+            "advisor"
+          ],
+          "decisionReasons": [
+            "advisor-initial",
+            "advisor-redo-required",
+            "advisor-redo",
+            "advisor-initial",
+            "advisor-reapproved"
+          ],
+          "realModelCalls": 2,
+          "fixtureCalls": 3,
+          "productionAfp": 0.08405,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "approved",
+            "reviews": 2,
+            "redos": 1
+          }
+        },
+        {
+          "runId": "672552c0a220a16e39c0f14113bb17ff3cfe58f1ec614bd38e2d879528b9b269",
+          "strategy": "advisor",
+          "models": [
+            "advisor-executor-fixture",
+            "deepseek-v4-flash",
+            "advisor-executor-fixture",
+            "advisor-executor-fixture",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "advisor",
+            "redo",
+            "execute",
+            "advisor"
+          ],
+          "decisionReasons": [
+            "advisor-initial",
+            "advisor-redo-required",
+            "advisor-redo",
+            "advisor-initial",
+            "advisor-reapproved"
+          ],
+          "realModelCalls": 2,
+          "fixtureCalls": 3,
+          "productionAfp": 0.07485,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "approved",
+            "reviews": 2,
+            "redos": 1
+          }
+        },
+        {
+          "runId": "07ec95a8d4fdffa0b8726718d491376c8af589fed1ae6bdf66540d991e55e9b1",
+          "strategy": "advisor",
+          "models": [
+            "advisor-executor-fixture",
+            "deepseek-v4-flash",
+            "advisor-executor-fixture",
+            "advisor-executor-fixture",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "advisor",
+            "redo",
+            "execute",
+            "advisor"
+          ],
+          "decisionReasons": [
+            "advisor-initial",
+            "advisor-redo-required",
+            "advisor-redo",
+            "advisor-initial",
+            "advisor-reapproved"
+          ],
+          "realModelCalls": 2,
+          "fixtureCalls": 3,
+          "productionAfp": 0.0697,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "approved",
+            "reviews": 2,
+            "redos": 1
+          }
+        },
+        {
+          "runId": "04148e0e2ff7c5333b1481f030217cb45f443ef14d69a8acae7ac25db882e95c",
+          "strategy": "advisor",
+          "models": [
+            "advisor-executor-fixture",
+            "deepseek-v4-flash",
+            "advisor-executor-fixture",
+            "advisor-executor-fixture",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "advisor",
+            "redo",
+            "execute",
+            "advisor"
+          ],
+          "decisionReasons": [
+            "advisor-initial",
+            "advisor-redo-required",
+            "advisor-redo",
+            "advisor-initial",
+            "advisor-reapproved"
+          ],
+          "realModelCalls": 2,
+          "fixtureCalls": 3,
+          "productionAfp": 0.0714,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "approved",
+            "reviews": 2,
+            "redos": 1
+          }
+        },
+        {
+          "runId": "d3f3db324c5c71d4f2b6884cb00a28ed4dbfca6beb1b2d985df1f1c9ef4f356e",
+          "strategy": "advisor",
+          "models": [
+            "advisor-executor-fixture",
+            "deepseek-v4-flash",
+            "advisor-executor-fixture",
+            "advisor-executor-fixture",
+            "deepseek-v4-flash"
+          ],
+          "purposes": [
+            "execute",
+            "advisor",
+            "redo",
+            "execute",
+            "advisor"
+          ],
+          "decisionReasons": [
+            "advisor-initial",
+            "advisor-redo-required",
+            "advisor-redo",
+            "advisor-initial",
+            "advisor-reapproved"
+          ],
+          "realModelCalls": 2,
+          "fixtureCalls": 3,
+          "productionAfp": 0.0724,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": false,
+            "advisorPhase": "approved",
+            "reviews": 2,
+            "redos": 1
+          }
+        }
+      ]
+    },
+    {
+      "strategy": "escalation",
+      "success": true,
+      "runs": 6,
+      "realModelCalls": 18,
+      "fixtureCalls": 6,
+      "productionAfp": 1.46765,
+      "records": [
+        {
+          "runId": "b167e50fe18ca5a6720b4e1bc9fa4644e622c575ef929b60f5cd88ad5c8923a3",
+          "strategy": "escalation",
+          "models": [
+            "escalation-initial-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash"
+          ],
+          "purposes": [
+            "execute",
+            "escalation",
+            "takeover",
+            "execute"
+          ],
+          "decisionReasons": [
+            "escalation-initial",
+            "escalation-defect",
+            "escalation-takeover-unreviewed",
+            "escalation-takeover-unreviewed"
+          ],
+          "realModelCalls": 3,
+          "fixtureCalls": 1,
+          "productionAfp": 0.24955,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": true,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "f34b663fe89dbdd0d31a7241e070787b51a637379eefe73c844868114eed3d05",
+          "strategy": "escalation",
+          "models": [
+            "escalation-initial-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash"
+          ],
+          "purposes": [
+            "execute",
+            "escalation",
+            "takeover",
+            "execute"
+          ],
+          "decisionReasons": [
+            "escalation-initial",
+            "escalation-defect",
+            "escalation-takeover-unreviewed",
+            "escalation-takeover-unreviewed"
+          ],
+          "realModelCalls": 3,
+          "fixtureCalls": 1,
+          "productionAfp": 0.2416,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": true,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "7132b86eaeb5432fb2531d813eb446a699f0535d797089b3f55a75145c8788ee",
+          "strategy": "escalation",
+          "models": [
+            "escalation-initial-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash"
+          ],
+          "purposes": [
+            "execute",
+            "escalation",
+            "takeover",
+            "execute"
+          ],
+          "decisionReasons": [
+            "escalation-initial",
+            "escalation-defect",
+            "escalation-takeover-unreviewed",
+            "escalation-takeover-unreviewed"
+          ],
+          "realModelCalls": 3,
+          "fixtureCalls": 1,
+          "productionAfp": 0.2451,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": true,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "7dc22b9cab1045711c9a72d63cc58c672107abd065367bdb7b51ba180289d68f",
+          "strategy": "escalation",
+          "models": [
+            "escalation-initial-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash"
+          ],
+          "purposes": [
+            "execute",
+            "escalation",
+            "takeover",
+            "execute"
+          ],
+          "decisionReasons": [
+            "escalation-initial",
+            "escalation-defect",
+            "escalation-takeover-unreviewed",
+            "escalation-takeover-unreviewed"
+          ],
+          "realModelCalls": 3,
+          "fixtureCalls": 1,
+          "productionAfp": 0.24375,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": true,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "544edfe37d07f40d37dba127af5ca3bac09051c9bedef6e2ae42bfecf04c62b0",
+          "strategy": "escalation",
+          "models": [
+            "escalation-initial-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash"
+          ],
+          "purposes": [
+            "execute",
+            "escalation",
+            "takeover",
+            "execute"
+          ],
+          "decisionReasons": [
+            "escalation-initial",
+            "escalation-defect",
+            "escalation-takeover-unreviewed",
+            "escalation-takeover-unreviewed"
+          ],
+          "realModelCalls": 3,
+          "fixtureCalls": 1,
+          "productionAfp": 0.2449,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": true,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        },
+        {
+          "runId": "892446c3f0b9ea80e2f71eb82c8e237ff5c76495bd9d3cb01f9d93b849186bb8",
+          "strategy": "escalation",
+          "models": [
+            "escalation-initial-fixture",
+            "deepseek-v4-flash",
+            "deepseek-v4.1-flash",
+            "deepseek-v4.1-flash"
+          ],
+          "purposes": [
+            "execute",
+            "escalation",
+            "takeover",
+            "execute"
+          ],
+          "decisionReasons": [
+            "escalation-initial",
+            "escalation-defect",
+            "escalation-takeover-unreviewed",
+            "escalation-takeover-unreviewed"
+          ],
+          "realModelCalls": 3,
+          "fixtureCalls": 1,
+          "productionAfp": 0.24275,
+          "status": "completed",
+          "state": {
+            "selected_model": null,
+            "hold": 0,
+            "latched": true,
+            "advisorPhase": "initial",
+            "reviews": 0,
+            "redos": 0
+          }
+        }
+      ]
+    }
+  ]
+}

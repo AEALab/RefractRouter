@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "dsh-strategy-branch-preflight-v1",
+  "status": "zero-call-preflight",
+  "realModelCalls": 0,
+  "implementationDigest": "899acd7762709533e4476b51163390e84b95a0c3f132b72da4fc0c2c386b9a4c",
+  "strategyCounts": {
+    "stage": 6,
+    "composite": 6,
+    "advisor": 6,
+    "escalation": 6
+  },
+  "configDigests": {
+    "stage": "ca9b1f3cdcd0478d465a0806e750a051ea96782b1cf7ef66b49e65d7b7509cb5",
+    "composite": "095f95e4813b86b827be13ddc7d7493ea77d4353bf02bf63a14837f513f7fcc5",
+    "advisor": "5a9a44d20818d822f90e98060e7c651b108484bbfd0307d214383a09f132b4c4",
+    "escalation": "d06c8b6cfd5322f1917f9a0b512bc04174108a3d074ce7487fe9d1c651e79e44"
+  },
+  "models": {
+    "efficient": "deepseek-v4-flash",
+    "capable": "deepseek-v4.1-flash",
+    "controlledFixtures": [
+      "composite-task-judge-fixture",
+      "advisor-executor-fixture",
+      "escalation-initial-fixture"
+    ]
+  },
+  "limits": {
+    "maximumProductionAfp": 1898.2944,
+    "priorConfirmedAfp": 237.52915,
+    "priorPendingAfp": 0.23485,
+    "maximumIncludingPriorAfp": 2136.0584,
+    "authorizedCumulativeAfp": 5000,
+    "maximumRealModelCalls": 90,
+    "timeoutMsPerStrategy": 900000,
+    "httpRetries": 0,
+    "delegation": false,
+    "media": false
+  },
+  "perStrategyAfpUpper": {
+    "stage": 751.92,
+    "composite": 751.92,
+    "advisor": 62.4576,
+    "escalation": 331.9968
+  },
+  "acceptance": {
+    "stage": "高效→高效→强执行→强执行保持→高效恢复",
+    "composite": "Task 判别一次后，高效→高效→接管→接管保持→常用模型恢复",
+    "advisor": "受控错误候选→真实 Judge REDO→DSH 工具→真实 Judge 复审通过",
+    "escalation": "受控错误候选→真实 Judge 接管判定→真实强模型工具续接并锁定"
+  },
+  "evidenceBoundary": [
+    "Stage／Composite 的执行、选模和 DSH 工具均为真实路径；失败状态由受控宿主事实提供。",
+    "Composite 的 Task 初选使用受控 Judge 固定为高效模型；上一批 24 条正常路径保留真实 Task Judge 证据。",
+    "Advisor 的执行器为明确标记夹具，两个审核调用为真实模型。",
+    "Escalation 的起始候选为明确标记夹具，Judge 与接管执行为真实模型。",
+    "受控候选不用于证明自然任务收益或执行模型质量。"
+  ],
+  "stopRules": [
+    "任一流程失败",
+    "认证失败",
+    "模型用量未知",
+    "账本或证据写入失败",
+    "配置摘要改变",
+    "累计 5000 AFP 上限耗尽"
+  ],
+  "preflightDigest": "ef8b94453f755299e535fe0a40f390a5f22d255011b77627fd08fad6de8483b9"
+}
