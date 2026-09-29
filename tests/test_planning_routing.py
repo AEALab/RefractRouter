@@ -1231,6 +1231,7 @@ def test_escalation_two_confirmations_and_new_task_reset(tmp_path):
     for index in range(2):
         weak = step(r, run)
         assert weak["model"]["id"] == "small"
+        assert r.runs[run]["decisions"][-1]["reason"] == "escalation-initial"
         judge = receipt(r, run, weak)
         outcome = receipt(r, run, judge, '{"escalate":true}')
         if index == 0:

@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "dsh-six-strategy-acceptance-results-v1",
+  "date": "2026-09-29",
+  "status": "passed-with-corrective-retest",
+  "summary": {
+    "primaryRemoteModelCalls": 11,
+    "primaryAfp": 16.4543,
+    "correctiveRemoteModelCalls": 2,
+    "correctiveAfp": 1.09305,
+    "totalRemoteModelCalls": 13,
+    "totalAfp": 17.54735,
+    "maximumRemoteModelCalls": 14,
+    "maximumAfp": 60,
+    "authenticationFailures": 0,
+    "unknownUsageCalls": 0,
+    "ledgerOrTraceWriteFailures": 0
+  },
+  "cases": [
+    {
+      "id": "static-text",
+      "status": "passed",
+      "response": "STATIC_OK",
+      "remoteModelCalls": 1,
+      "afp": 0.6428,
+      "calls": [
+        {
+          "purpose": "execute",
+          "model": "ark/deepseek-v4-flash",
+          "reasoningEffort": "low",
+          "afp": 0.6428,
+          "ttftMs": 2307,
+          "latencyMs": 2329,
+          "disposition": "accepted"
+        }
+      ],
+      "decision": "static-random-selected",
+      "runId": "358be617f70cbd03f4999d33f9403f5d70901b18c57916e53a60909ab94593ac",
+      "runSha256": "3bf1836cb8b080e3ae694f34b8b7a6ddcc0fd3cc598b197036a54b9be6ef495d"
+    },
+    {
+      "id": "stage-tool",
+      "status": "passed",
+      "response": "终端输出了 STAGE_TOOL_OK。",
+      "nativeToolCalls": 1,
+      "remoteModelCalls": 2,
+      "afp": 1.29245,
+      "calls": [
+        {
+          "purpose": "execute",
+          "model": "ark/deepseek-v4-flash",
+          "reasoningEffort": "low",
+          "afp": 0.6455,
+          "latencyMs": 2533,
+          "decision": "no-signal"
+        },
+        {
+          "purpose": "execute",
+          "model": "ark/deepseek-v4-flash",
+          "reasoningEffort": "low",
+          "afp": 0.64695,
+          "ttftMs": 1613,
+          "latencyMs": 1771,
+          "decision": "ambiguous"
+        }
+      ],
+      "ruleVersion": "stage-v4",
+      "runId": "0cd5004dab56e33b2169f977f029a3ffaee27a1bf2b587fdb6eb45bc0ba9cce2",
+      "runSha256": "df756ace8f0060e247fed3309e6bbdb743b923b4520852cb8e7120fc0bbdc2c8"
+    },
+    {
+      "id": "task-text",
+      "status": "passed-after-environment-fix",
+      "response": "323",
+      "initialAttempt": {
+        "status": "local-judge-not-ready",
+        "remoteModelCalls": 0,
+        "cause": "DSH 实际使用的 uv tool 环境未安装 local-judge 可选组件",
+        "runId": "5f402a384f601844c609c69fb76d64e19e5e7951fc6d1b6b1be7b16b6e55a4e9",
+        "runSha256": "5956161aa409c604f5d2f24028daea741688368cc882162de161e0303b5c275d"
+      },
+      "localJudge": {
+        "model": "laya-rl-agent",
+        "batches": 1,
+        "coldStartMs": 3633.13,
+        "latencyMs": 445.11,
+        "score": 0.636,
+        "missingInformation": 0.9352,
+        "decision": "uncertain"
+      },
+      "remoteModelCalls": 1,
+      "afp": 3.2125,
+      "executor": "ark/deepseek-v4.1-flash",
+      "reasoningEffort": "high",
+      "decision": "local-judge-uncertain",
+      "runId": "13adc77ef111783d820faa4feda3a9635fd116b24aabd61009d3b8613722db56",
+      "runSha256": "e1544250f3bd31ddab4efcc9b5a082cf04137c787913b70426f85572e6945c09"
+    },
+    {
+      "id": "composite-tool",
+      "status": "passed",
+      "response": "命令输出为 COMPOSITE_TOOL_OK，与预期一致。",
+      "nativeToolCalls": 1,
+      "remoteModelCalls": 3,
+      "afp": 6.5288,
+      "judge": {
+        "model": "ark/glm-5.3-flash",
+        "reasoningEffort": "high",
+        "afp": 0.04005,
+        "score": 0.9,
+        "decision": "quality-then-first-call-cost"
+      },
+      "executor": "ark/deepseek-v4.1-flash",
+      "executionAfp": [3.24, 3.24875],
+      "decision": "composite-base-is-takeover",
+      "ruleVersion": "composite-rules-v1",
+      "runId": "a124909e7f8efa7f0b2019ef69e88747f42a6643fa26e21517d0fcf2b5f823f4",
+      "runSha256": "06c9713da6900ec65820eb842cd17b53954368f6a1ed802c3fc46754c5b8dbb4"
+    },
+    {
+      "id": "advisor-final",
+      "status": "passed",
+      "response": "ADVISOR_OK",
+      "remoteModelCalls": 2,
+      "afp": 3.6652,
+      "executor": {
+        "model": "ark/deepseek-v4.1-flash",
+        "reasoningEffort": "high",
+        "afp": 3.2135,
+        "disposition": "accepted-after-review"
+      },
+      "judge": {
+        "model": "ark/deepseek-v4-flash",
+        "reasoningEffort": "low",
+        "afp": 0.4517,
+        "verdict": "APPROVE"
+      },
+      "ruleVersion": "advisor-review-v2",
+      "runId": "e7ab988b49e3c8d6464c8f6e561c418a709960f1da37c77ae082bacedcf677cd",
+      "runSha256": "65bb217231a7e58f97bb44bd3f9db6b687f8705c3ff0bcb95816bb0baaed2d95"
+    },
+    {
+      "id": "escalation-final",
+      "status": "passed-after-v4-migration",
+      "legacyAttempt": {
+        "response": "ESCALATION_OK",
+        "remoteModelCalls": 2,
+        "afp": 1.11255,
+        "ruleVersion": "escalation-legacy-v1",
+        "issue": "Judge 放行时执行行仍显示升级锁定；用户 profile 尚未迁移到独立 Escalation 配置",
+        "runId": "8cab319a69c2ee620fe5274c9e3be3cffede51c90cc3c89899886f4b47e52b2a",
+        "runSha256": "d6a81ee85c51ed53bb10d97279c5f4ab7871d9b879629a96c280b4a1edc388a8"
+      },
+      "correctiveRetest": {
+        "response": "ESCALATION_V4_OK",
+        "remoteModelCalls": 2,
+        "afp": 1.09305,
+        "executor": "ark/deepseek-v4-flash",
+        "judge": "ark/glm-5.3-flash",
+        "judgeVerdict": "PROCEED",
+        "judgeConfidence": 0.99,
+        "decision": "escalation-initial",
+        "ruleVersion": "escalation-decision-v1",
+        "runId": "776a25fdb0129149a6124394293ba121e2e8f52899c7b2f633f62d5d2767737f",
+        "runSha256": "a7340df8a5ac2ef62a65591bb42f69f5238a7efd08a0c34f7206e63bbe576f67"
+      }
+    }
+  ],
+  "protocolNotes": [
+    "Stage 与 Composite 的实际提示将冻结文本中的‘只回复标记’改成‘用一句话确认输出’，但验收条件仍是一次宿主工具调用、同任务续接与完整路由解释。",
+    "Task 的本地 Judge 仍给出高不确定度；本次只证明不确定分支和指定备援可正常工作，不证明 Laya 选模质量达标。",
+    "Escalation legacy 结果保留为失败证据；纠正复验使用新的配置摘要和独立预检文件。"
+  ]
+}

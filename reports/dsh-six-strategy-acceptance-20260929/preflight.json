@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "dsh-six-strategy-acceptance-v1",
+  "date": "2026-09-29",
+  "sourceCommit": "1113b1c6d7fd90956887ec7f27e6e816d30978b8",
+  "environment": {
+    "dshVersion": "0.1.5-rc.3",
+    "pluginVersion": "0.29.0",
+    "coreVersion": "0.15.4",
+    "planningSchema": "refractagent-planning-v6",
+    "planningConfigDigest": "966632f28ada61f1fd8cba7a61d843b4f27041212cbde8067330310a4043e6e7",
+    "defaultStrategy": "stage"
+  },
+  "authorization": {
+    "basis": "用户要求开始验收；沿用此前累计 2000 AFP 授权",
+    "maximumBatchAfp": 60,
+    "cashCalls": false
+  },
+  "limits": {
+    "maximumRemoteModelCalls": 14,
+    "maximumMinutesPerTask": 5,
+    "httpRetries": 0,
+    "delegation": false,
+    "media": false
+  },
+  "cases": [
+    {
+      "id": "static-text",
+      "strategy": "static",
+      "prompt": "只回复 STATIC_OK，不要调用工具，也不要添加其他文字。",
+      "maximumRemoteModelCalls": 1,
+      "maximumAfp": 5,
+      "acceptance": ["准确回复 STATIC_OK", "轨迹显示实际执行模型、费用、时延和静态选择原因"]
+    },
+    {
+      "id": "stage-tool",
+      "strategy": "stage",
+      "prompt": "只调用一次终端工具执行 printf STAGE_TOOL_OK，读取 stdout 后只回复 STAGE_TOOL_OK。不要调用其他工具。",
+      "maximumRemoteModelCalls": 2,
+      "maximumAfp": 4,
+      "acceptance": ["宿主只执行一次终端工具", "工具续接属于同一任务", "轨迹解释保持高效或切换原因"]
+    },
+    {
+      "id": "task-text",
+      "strategy": "task",
+      "prompt": "计算 17×19，只回复阿拉伯数字，不要调用工具。",
+      "maximumRemoteModelCalls": 1,
+      "maximumLocalJudgeBatches": 1,
+      "maximumAfp": 6,
+      "acceptance": ["回复 323", "任务级 Judge 只发生一次", "轨迹显示候选排除、备援或选择依据"]
+    },
+    {
+      "id": "composite-tool",
+      "strategy": "composite",
+      "prompt": "只调用一次终端工具执行 printf COMPOSITE_TOOL_OK，读取 stdout 后只回复 COMPOSITE_TOOL_OK。不要调用其他工具。",
+      "maximumRemoteModelCalls": 3,
+      "maximumAfp": 12,
+      "acceptance": ["Task Judge 只在开始时调用一次", "宿主工具只执行一次", "续接不重新分类并显示 Stage 决策"]
+    },
+    {
+      "id": "advisor-final",
+      "strategy": "advisor",
+      "prompt": "只回复 ADVISOR_OK，不要调用工具，也不要添加其他文字。",
+      "maximumRemoteModelCalls": 4,
+      "maximumAfp": 18,
+      "acceptance": ["未审核候选不提前显示", "APPROVE 后交付；若 REDO，最多返工一次并复审", "轨迹显示审核阶段和费用"]
+    },
+    {
+      "id": "escalation-final",
+      "strategy": "escalation",
+      "prompt": "只回复 ESCALATION_OK，不要调用工具，也不要添加其他文字。",
+      "maximumRemoteModelCalls": 3,
+      "maximumAfp": 15,
+      "acceptance": ["高效候选在判别前缓冲", "PROCEED 后交付；DEFECT、STALL 或 UNCERTAIN 按冻结规则接管", "轨迹显示判别、丢弃或交付状态"]
+    }
+  ],
+  "batchStopRules": [
+    "认证失败",
+    "模型用量未知",
+    "账本或轨迹写入失败",
+    "planning 配置摘要改变",
+    "批次远程调用或 AFP 上限耗尽"
+  ],
+  "preflightDigest": "0fb65b59afed8ffda107baf70fc8488be1db448afd4c56e43c891c79392b11cc"
+}

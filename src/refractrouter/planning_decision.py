@@ -254,7 +254,10 @@ class LayaDecisionAdapter:
         try:
             import laya_mlx
         except ImportError as exc:
-            raise ValueError("未安装可选依赖 laya-mlx；本地 Judge 不可用") from exc
+            raise ValueError(
+                "规划进程未安装 local-judge 可选组件；请在 DSH 实际使用的 "
+                "RefractRouter 工具环境中安装后再加载本地 Judge"
+            ) from exc
         self.agent = laya_mlx.load(str(path), device=config.get("device", "gpu"),
                                    dtype=config.get("dtype", "float16"))
         self.model = config.get("sourceModel") or str(path)
