@@ -13,6 +13,8 @@ Escalation 的缓冲审核、一次接管、本地 Judge job、完整调用路�
 Advisor Gate 的两次审核、一次返工与复审闭环见
 [Advisor Gate v2](docs/advisor-gate-v2.md)。Composite 的 Task 初选、Stage 临时接管、
 规则模式与实验性本地 Laya 模式见 [Composite v6](docs/composite-v6.md)。
+当前各策略在 DSH、Codex CLI 与 Hermes 的实际验收边界见
+[规划路由支持矩阵](docs/planning-routing-support-matrix.md)。
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 

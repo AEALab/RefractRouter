@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "planning-routing-product-readiness-v1",
+  "recordedDate": "2026-09-29",
+  "versions": {
+    "dsh": "0.1.5-rc.3",
+    "plugin": "0.29.0",
+    "pythonCore": "0.15.4",
+    "planningConfig": "refractagent-planning-v6"
+  },
+  "dshUi": {
+    "tabs": ["对话", "轨迹", "任务 DAG", "路由轨迹"],
+    "pluginCards": ["RefractAgent 规划路由", "RefractAgent 自动路由"],
+    "strategies": ["stage", "task", "composite", "advisor", "escalation", "static"],
+    "zeroCallAvailability": {
+      "stage": true,
+      "task": true,
+      "composite": true,
+      "advisor": true,
+      "escalation": true,
+      "static": true
+    },
+    "defaultStrategy": "stage",
+    "mediaVerified": false
+  },
+  "composite": {
+    "paidModelCalls": 0,
+    "coreAndGatewayTests": {"passed": 2, "failed": 0},
+    "dshContractTests": {"passed": 3, "failed": 0},
+    "modelSequence": ["judge", "small", "large", "large", "small"],
+    "executionReasons": [
+      "composite-task-selected",
+      "composite-repeated-failure",
+      "composite-takeover-hold",
+      "composite-return-base"
+    ],
+    "taskJudgeCalls": 1
+  },
+  "deferred": {
+    "codexDailyProfileAdapterInstall": true,
+    "hermesDailyProfilePluginInstall": true
+  }
+}
