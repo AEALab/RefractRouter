@@ -8,6 +8,7 @@ from getpass import getpass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 from statistics import median
 
@@ -100,7 +101,7 @@ def _render_markdown(report):
              "escalation": "Escalation 候选审核"}
     lines = ["# 规划路由 Jev 与 Laya-MLX 固定题对照", "",
         f"官方 Jev 固定版本：`{JEV_MODEL}`；共 {report['actualRequests']} 次请求，",
-        f"依据回执输入 tokens 计费 {report['actualUsd']:.9f} USD。",
+        f"依据回执输入 tokens 和官方公开单价估算费用 {report['actualUsd']:.9f} USD；账户账单尚未核对。",
         "题集、问题描述与原先 Laya 验收相同；没有修改阈值或挑选案例。", "",
         "| 用途 | 案例数 | Jev 符合预期 | Laya 符合预期 | Jev 单题中位耗时 | Laya 单题中位耗时 |",
         "| --- | ---: | ---: | ---: | ---: | ---: |"]
@@ -117,6 +118,8 @@ def _render_markdown(report):
         "本批按原有选择概率与阈值映射，原始答案保存在 `calls.jsonl`。", "",
         "本批只覆盖规划路由的 Task、Stage、Advisor、Escalation Judge。"
         "DAG 是否拆分属于自动路由，不在这次规划路由接线范围内。", "",
+        "Laya 对照原始记录见 [PR #163](https://github.com/AEALab/RefractRouter/pull/163) 的"
+        " `reports/local-jev-multiscenario-20260930/`。", "",
         "参考：[官方 API](https://docs.typesafe.ai/api)、"
         "[模型、容量与价格](https://docs.typesafe.ai/models)、"
         "[置信度定义](https://docs.typesafe.ai/confidence)。", ""])
@@ -159,6 +162,7 @@ def run(loaded, *, output, laya_dir, max_usd):
                             "recordedAt": datetime.now(timezone.utc).isoformat()},
                             ensure_ascii=False) + "\n")
                         journal.flush()
+                        os.fsync(journal.fileno())
                         raise
                     usage = row.get("usage") or {}
                     tokens = usage.get("input_tokens")
@@ -171,6 +175,7 @@ def run(loaded, *, output, laya_dir, max_usd):
                              "recordedAt": datetime.now(timezone.utc).isoformat()}
                     journal.write(json.dumps(entry, ensure_ascii=False) + "\n")
                     journal.flush()
+                    os.fsync(journal.fileno())
                     entries.append(entry)
         comparison = _comparison(entries, laya_dir)
         report = {"schemaVersion": "planning-jev-comparison-v1",

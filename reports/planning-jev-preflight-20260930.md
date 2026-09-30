@@ -15,7 +15,7 @@
 
 共 78 条，最多 78 次 Jev 请求，HTTP 自动重试次数为零。
 Jev 固定为 `jev-1.13.0`，不使用可能漂移的 `jev-latest` 别名。
-原始 Laya 记录来自本项目 PR #163 的
+原始 Laya 记录来自本项目 [PR #163](https://github.com/AEALab/RefractRouter/pull/163) 的
 `reports/local-jev-multiscenario-20260930/`；比较按案例 ID 对齐。
 
 ## 费用与停止条件
@@ -38,4 +38,6 @@ Jev 的 `confidence` 是概率分布的确定性，不是所选项概率，也�
 ## 验证状态
 
 零调用预检确认 78 条固定案例及上述费用上界。Jev HTTP 合同、失败停止、
-版本固定和比较格式的无网络测试已通过。付费真实调用尚待本批 USD 额度授权。
+版本固定和比较格式的无网络测试已通过。用户随后授权本批最高 0.21 USD；
+78 条真实调用已完成，逐题记录和分析见
+[`planning-jev-comparison-20260930/`](planning-jev-comparison-20260930/README.md)。
