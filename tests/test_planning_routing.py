@@ -754,23 +754,22 @@ def test_laya_choice_v2_uses_one_question_and_preserves_score_kind(monkeypatch):
     assert result.usage["questions"] == result.usage["forwards"] == 1
 
 
-def test_task_choice_v2_missing_card_uses_fallback_without_judge(tmp_path, monkeypatch):
+def test_task_choice_v2_missing_card_uses_fallback_without_judge(tmp_path):
     model_path = tmp_path / "laya"
     write_laya_fixture(model_path)
     cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
     cfg["task"]["judge"]["method"] = "choice-v2"
-    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter",
-                        lambda _config: (_ for _ in ()).throw(AssertionError("不应加载 Judge")))
     runtime = PlanningRuntime(tmp_path)
     runtime.local_service = FakeLocalService()
     run = begin(runtime, "task", config=cfg)
     action = step(runtime, run)
     assert action["model"]["id"] == "large"
+    assert runtime.local_service.requests == []
     assert runtime.runs[run]["state"]["judge_decision"]["reason"] == \
         "local-judge-no-capability-evidence"
 
 
-def test_task_choice_v2_equal_evidence_uses_fallback_without_judge(tmp_path, monkeypatch):
+def test_task_choice_v2_equal_evidence_uses_fallback_without_judge(tmp_path):
     model_path = tmp_path / "laya"
     write_laya_fixture(model_path)
     cfg = task_pool_configuration(judge_type="local-decision", model_path=model_path)
@@ -778,13 +777,12 @@ def test_task_choice_v2_equal_evidence_uses_fallback_without_judge(tmp_path, mon
     for model in cfg["models"]:
         if model["id"] in cfg["task"]["pool"]:
             model["capabilityCard"] = "文字与工具已接通；任务质量待验收。"
-    monkeypatch.setattr("refractrouter.planning_runtime.LayaDecisionAdapter",
-                        lambda _config: (_ for _ in ()).throw(AssertionError("无区分证据不应加载 Judge")))
     runtime = PlanningRuntime(tmp_path)
     runtime.local_service = FakeLocalService()
     run = begin(runtime, "task", config=cfg)
     action = step(runtime, run)
     assert action["model"]["id"] == "large"
+    assert runtime.local_service.requests == []
     assert runtime.runs[run]["state"]["judge_decision"]["reason"] == \
         "local-judge-no-differentiating-evidence"
 

@@ -15,7 +15,7 @@ from .host_evidence import validate_evidence
 from .privacy_placement import classify_view, allows_sensitive
 from .task_budget import request_input_bound
 from .planning_budget import PlanningBudget
-from .planning_decision import (LayaDecisionAdapter, LocalDecisionCapacityError, candidate_assessments,
+from .planning_decision import (LocalDecisionCapacityError, candidate_assessments,
                                 decision_request, filter_candidates, parse_decision, select_task_candidate,
                                 task_state)
 from .escalation_decision import (decision_request as escalation_request,
@@ -65,7 +65,7 @@ class PlanningRuntime(StageHybridRuntime):
     @staticmethod
     def local_judge_key(config):
         return digest({name: config.get(name) for name in
-                      ("adapter", "modelPath", "revision", "device", "dtype", "method")})
+                      ("adapter", "modelPath", "sourceModel", "revision", "device", "dtype", "method")})
 
     def persist(self, run):
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -453,7 +453,7 @@ class PlanningRuntime(StageHybridRuntime):
                 decision["costBasis"] = "unavailable"
         except Exception as exc:
             raise ValueError(f"本地 Judge 无法完成判别：{exc}") from exc
-        decision.update({"backend": "local-decision", "adapter": "laya-mlx",
+        decision.update({"backend": "local-decision", "adapter": run["config"]["task"]["judge"]["adapter"],
                          "actualModel": result["model"], "coldStartMs": result["coldStartMs"],
                          "latencyMs": result["latencyMs"], "usage": result["usage"],
                          "ruleVersion": payload.get("ruleVersion", "task-local-ordinal-v1"),
@@ -1300,7 +1300,7 @@ class PlanningRuntime(StageHybridRuntime):
             return self._finish_local_task_decision(run, result)
         if job["kind"] == "advisor":
             decision = dict(result["payload"])
-            decision.update({"backend": "local-decision", "adapter": "laya-mlx",
+            decision.update({"backend": "local-decision", "adapter": run["config"]["advisor"]["judge"]["adapter"],
                              "actualModel": result["model"], "coldStartMs": result["coldStartMs"],
                              "latencyMs": result["latencyMs"], "usage": result["usage"]})
             run["budget"].records.append({"call_id": job["jobId"], "model_id": result["model"],
@@ -1310,7 +1310,7 @@ class PlanningRuntime(StageHybridRuntime):
                 "usage": result["usage"]})
             return self._apply_advisor_decision(run, decision, job["jobId"])
         decision = dict(result["payload"])
-        decision.update({"backend": "local-decision", "adapter": "laya-mlx",
+        decision.update({"backend": "local-decision", "adapter": run["config"]["escalation"]["judge"]["adapter"],
                          "actualModel": result["model"], "coldStartMs": result["coldStartMs"],
                          "latencyMs": result["latencyMs"], "usage": result["usage"]})
         run["budget"].records.append({"call_id": job["jobId"], "model_id": result["model"],
@@ -1352,6 +1352,8 @@ class PlanningRuntime(StageHybridRuntime):
         return self._manage_local_judge(judge, request)
 
     def _manage_local_judge(self, judge, request):
+        from .local_decision_backend import require_backend
+        spec = require_backend(judge.get("adapter"))
         action = request.get("action", "status")
         if action not in ("status", "download", "load", "unload"):
             raise ValueError("未知本地 Judge 操作")
@@ -1360,10 +1362,8 @@ class PlanningRuntime(StageHybridRuntime):
         if action == "download":
             if request.get("confirmed") is not True:
                 raise ValueError("下载本地 Judge 权重需要明确操作")
-            if judge["sourceModel"] not in (
-                    "aac6fef/laya-multilingual-mlx", "aac6fef/laya-mlx",
-                    "aac6fef/laya-typed-decisions-mlx"):
-                raise ValueError("首版只下载已登记的 Laya-MLX checkpoint")
+            if judge["sourceModel"] not in spec.allowed_sources:
+                raise ValueError("只下载当前后端已登记的固定权重")
             try:
                 from huggingface_hub import snapshot_download
             except ImportError as exc:
@@ -1371,36 +1371,37 @@ class PlanningRuntime(StageHybridRuntime):
             snapshot_download(repo_id=judge["sourceModel"], revision=judge["revision"],
                               local_dir=str(path))
             path.mkdir(parents=True, exist_ok=True)
-            manifest = path / "refractrouter-laya.json"
+            manifest = path / spec.manifest_name
             temporary = manifest.with_suffix(".tmp")
             temporary.write_text(json.dumps({"sourceModel": judge["sourceModel"],
-                "revision": judge["revision"], "adapter": "laya-mlx"}, ensure_ascii=False, indent=2))
+                "revision": judge["revision"], "adapter": spec.id}, ensure_ascii=False, indent=2))
             os.replace(temporary, manifest)
         elif action == "load":
             try:
-                pinned = json.loads((path / "refractrouter-laya.json").read_text())
+                pinned = json.loads((path / spec.manifest_name).read_text())
             except (OSError, ValueError, TypeError) as exc:
                 raise ValueError("本地 Judge 缺少可核对的固定 revision 清单") from exc
-            if (pinned.get("sourceModel") != judge["sourceModel"]
+            if (pinned.get("adapter") != spec.id
+                    or pinned.get("sourceModel") != judge["sourceModel"]
                     or pinned.get("revision") != judge["revision"]):
                 raise ValueError("本地 Judge 权重 revision 与当前配置不一致")
-            if not all((path / name).exists() for name in (
-                    "model.safetensors", "mlx_config.json", "rl_agent_config.json", "encoder/config.json")):
+            if not all((path / name).exists() for name in spec.artifact_files):
                 raise ValueError("本地 Judge 权重文件不完整")
             self.local_service.call("load", key, judge, timeout_ms=300000)
         elif action == "unload":
             self.local_service.call("unload", key, judge)
         try:
             import importlib.util
-            installed = importlib.util.find_spec("laya_mlx") is not None
+            installed = importlib.util.find_spec(spec.dependency_module) is not None
         except (ImportError, ValueError):
             installed = False
-        required = ("model.safetensors", "mlx_config.json", "rl_agent_config.json", "encoder/config.json")
+        required = spec.artifact_files
         try:
-            manifest = json.loads((path / "refractrouter-laya.json").read_text())
+            manifest = json.loads((path / spec.manifest_name).read_text())
         except (OSError, ValueError, TypeError):
             manifest = {}
-        revision_verified = (manifest.get("sourceModel") == judge["sourceModel"]
+        revision_verified = (manifest.get("adapter") == spec.id
+                             and manifest.get("sourceModel") == judge["sourceModel"]
                              and manifest.get("revision") == judge["revision"])
         size_bytes = sum(item.stat().st_size for item in path.rglob("*") if item.is_file()) if path.is_dir() else 0
         loaded = False
@@ -1409,7 +1410,7 @@ class PlanningRuntime(StageHybridRuntime):
                 loaded = self.local_service.call("status", key, judge)["loaded"]
             except ValueError:
                 loaded = False
-        return {"adapter": "laya-mlx", "installed": installed, "path": str(path),
+        return {"adapter": spec.id, "installed": installed, "path": str(path),
                 "downloaded": path.is_dir() and all((path / name).exists() for name in required)
                               and revision_verified,
                 "loaded": loaded, "sourceModel": judge["sourceModel"],
@@ -1547,7 +1548,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "composite-task-stage-v1",
-                "decomposition-decision-v1", "local-judge-jobs",
+                "decomposition-decision-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1"]}
         if operation == "fx":
             from .dsh_model_pool import frozen_usd_cny_rate
@@ -1561,6 +1562,9 @@ class PlanningRuntime(StageHybridRuntime):
             return simulate(request.get("config", {}))
         if operation == "local-judge":
             return self.local_judge(request)
+        if operation == "local-backends":
+            from .local_decision_backend import backend_catalog
+            return backend_catalog()
         if operation == "automatic-local-judge":
             return self.automatic_local_judge(request)
         if operation == "decomposition-decision":

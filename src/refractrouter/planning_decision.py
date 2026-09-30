@@ -247,7 +247,8 @@ class LayaDecisionAdapter:
             manifest = json.loads((path / "refractrouter-laya.json").read_text())
         except (OSError, ValueError, TypeError) as exc:
             raise ValueError("本地 Judge 缺少可核对的固定 revision 清单") from exc
-        if (manifest.get("sourceModel") != config.get("sourceModel")
+        if (manifest.get("adapter") != "laya-mlx"
+                or manifest.get("sourceModel") != config.get("sourceModel")
                 or manifest.get("revision") != config.get("revision")):
             raise ValueError("本地 Judge 权重 revision 与当前配置不一致")
         started = time.perf_counter()

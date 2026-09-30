@@ -216,6 +216,10 @@ export class PlanningController {
     await this.ensureHandshake(false,false,true)
     return this.rpc.request({op:'automatic-local-judge',judge,action,confirmed:action==='download'})
   }
+  async localBackends():Promise<Json>{
+    await this.ensureHandshake(false,false,false,true)
+    return this.rpc.request({op:'local-backends'})
+  }
   async decompositionDecision(config:NonNullable<Configuration['liveExecution']>['decompositionDecision'],
     task:string,context:string):Promise<Json>{
     await this.ensureHandshake(false,false,true)
@@ -225,7 +229,8 @@ export class PlanningController {
       maxInputBytes:config.maxInputBytes??65536})
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
-  private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false):Promise<void>{
+  private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
+    localBackends=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -240,6 +245,8 @@ export class PlanningController {
       throw new Error('当前核心不支持新版 Composite；请同时升级核心和插件')
     if(decomposition&&!capabilities.includes('decomposition-decision-v1'))
       throw new Error('当前核心不支持自动路由本地拆分判别；请同时升级核心和插件')
+    if(localBackends&&!capabilities.includes('local-decision-backends-v1'))
+      throw new Error('当前核心不支持本地 Judge 后端目录；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')

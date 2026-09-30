@@ -745,10 +745,10 @@ type History={records:Array<{runId:string;strategy:string;status:string;costs:{p
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
-    reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;
+    reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;adapter?:string;
     reviewCount?:number;redoCount?:number;reviewPhase?:string;
     staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
-    decision?:TaskRouteEvidence&{backend?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown};judgeDecision?:TaskRouteEvidence;
+    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown};judgeDecision?:TaskRouteEvidence;
     downgradeConfirmations?:number;judgeBatches?:number;
     rejectedCandidates?:Array<{id:string;reason:string}>}>}>}
 const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 固定模型',
@@ -869,7 +869,7 @@ function Trace({load}:{load:()=>Promise<History>}){
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
             {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
-            {d.backend==='local-decision'?`；本地 Laya 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，确定性 ${d.confidence.toFixed(3)}`:''}`:''}
+            {d.backend==='local-decision'?`；本地 ${d.adapter??d.decision?.adapter??'Judge'} 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，确定性 ${d.confidence.toFixed(3)}`:''}`:''}
             {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
             {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
             <br/><small>{d.evidenceSummary??(d.decision?.backend?`后端 ${d.decision.backend}`:'本次未记录独立证据摘要')}

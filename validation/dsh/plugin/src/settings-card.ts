@@ -137,7 +137,7 @@ export interface LiveExecutionView {
   maxTotalOutputTokens?:number
   decompositionDecision?:{
     mode:'rules'|'hybrid';allowExperimental?:boolean;threshold?:number;timeoutMs?:number;maxInputBytes?:number
-    judge?:{type:'local-decision';adapter:'laya-mlx';modelPath:string;sourceModel:string;revision:string;
+    judge?:{type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
       device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'choice-v2'}
   }
 }

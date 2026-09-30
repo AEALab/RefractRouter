@@ -216,6 +216,14 @@ test('混合拆分判别必须明确实验启用并使用完整本地配置',()=
   assert.doesNotThrow(()=>configure({liveExecution:{...liveExecution(),decompositionDecision:{mode:'hybrid',
     allowExperimental:true,judge:localJudge(),threshold:.65,timeoutMs:30000,maxInputBytes:65536}}}))
 })
+test('DSH 从 Python 核心读取本地判别后端目录，不在插件内编造能力',async()=>{
+  const f=fixture(),catalog={contract:'local-decision-backends-v1',backends:[
+    {id:'laya-mlx',operations:['task','stage','advisor','escalation','decomposition'],
+      questionTypes:['choice','score','noul'],deployment:'local-artifact'}]}
+  createAdapter(f.ctx,()=>configure({}),undefined,{localBackends:async()=>catalog} as any)
+  const rows=await f.discoveries['refractagent-planning']!({api:'local-backends'})
+  assert.deepEqual(JSON.parse(rows[0]!.name!),catalog)
+})
 test('enabled DSH tools reach preflight and live with the same bounded catalog',async()=>{
   const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'结果',
     simulated:false,billing_unit:'CNY',plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},

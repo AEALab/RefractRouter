@@ -58,7 +58,7 @@ export interface LiveExecutionConfiguration {
     threshold?: number
     timeoutMs?: number
     maxInputBytes?: number
-    judge?: {type:'local-decision';adapter:'laya-mlx';modelPath:string;sourceModel:string;revision:string;
+    judge?: {type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
       device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'choice-v2'}
   }
 }
@@ -175,7 +175,8 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
       if(decision.allowExperimental!==true||!isRecordValue(decision.judge))
         throw new Error('hybrid decompositionDecision requires an explicitly enabled local Judge')
       const judge=decision.judge
-      if(judge.type!=='local-decision'||judge.adapter!=='laya-mlx'||judge.method!==undefined&&judge.method!=='choice-v2'
+      if(judge.type!=='local-decision'||typeof judge.adapter!=='string'||!judge.adapter
+        ||judge.method!==undefined&&judge.method!=='choice-v2'
         ||!['modelPath','sourceModel','revision'].every(field=>typeof judge[field]==='string'&&String(judge[field]).length>0)
         ||judge.device!==undefined&&!['gpu','metal','cpu'].includes(String(judge.device))
         ||judge.dtype!==undefined&&!['float16','float32','bfloat16'].includes(String(judge.dtype)))

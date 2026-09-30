@@ -830,6 +830,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       :metadata&&metadata.length===2&&request.provider
       ?await planning.metadata(request.provider,decodeURIComponent(metadata[0]!),metadata[1]!)
       :request.api==='simulate'?await planning.simulate()
+      :request.api==='local-backends'?await planning.localBackends()
       :request.api==='fx'?await planning.fx()
       :request.provider && request.provider!=='local' ? await planning.history(request.provider) : await planning.preview()
     return [{id:'planning',name:JSON.stringify(value)}]

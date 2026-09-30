@@ -9,7 +9,8 @@ import uuid
 
 
 def _worker(requests, responses):
-    from .planning_decision import LayaDecisionAdapter, LocalDecisionCapacityError
+    from .local_decision_backend import create_backend, invoke_backend, require_backend
+    from .planning_decision import LocalDecisionCapacityError
     adapters = {}
     while True:
         message = requests.get()
@@ -18,8 +19,9 @@ def _worker(requests, responses):
             return
         try:
             key, config = message["key"], message["config"]
+            spec = require_backend(config.get("adapter"))
             if operation == "load":
-                adapters[key] = LayaDecisionAdapter(config)
+                adapters[key] = create_backend(config)
                 result = {"loaded": True}
             elif operation == "unload":
                 adapters.pop(key, None)
@@ -30,18 +32,7 @@ def _worker(requests, responses):
                 if key not in adapters:
                     raise ValueError("本地 Judge 尚未加载；请先在设置中加载并预热")
                 adapter = adapters[key]
-                if operation == "task":
-                    value = adapter.decide(message["request"])
-                elif operation == "escalation":
-                    value = adapter.decide_escalation(message["request"])
-                elif operation == "advisor":
-                    value = adapter.decide_advisor(message["request"])
-                elif operation == "stage":
-                    value = adapter.decide_stage(message["request"])
-                elif operation == "decomposition":
-                    value = adapter.decide_decomposition(message["request"])
-                else:
-                    raise ValueError("未知本地 Judge 操作")
+                value = invoke_backend(adapter, operation, message["request"], adapter=spec.id)
                 result = {"payload": value.payload, "model": value.model,
                           "coldStartMs": value.cold_start_ms, "latencyMs": value.latency_ms,
                           "usage": value.usage}

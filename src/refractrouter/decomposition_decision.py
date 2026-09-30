@@ -62,8 +62,10 @@ def validate_local_judge(value):
             "type", "adapter", "modelPath", "sourceModel", "revision",
             "device", "dtype", "method"}:
         raise ValueError("自动路由本地 Judge 配置无效")
-    if value.get("type") != "local-decision" or value.get("adapter") != "laya-mlx":
-        raise ValueError("自动路由本地 Judge 只支持 laya-mlx")
+    if value.get("type") != "local-decision":
+        raise ValueError("自动路由需要本地 Judge")
+    from .local_decision_backend import require_backend
+    require_backend(value.get("adapter"), "decomposition")
     for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
         item = value.get(field)
         if not isinstance(item, str) or not item or len(item) > maximum:
