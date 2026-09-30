@@ -38,6 +38,8 @@ def _worker(requests, responses):
                     value = adapter.decide_advisor(message["request"])
                 elif operation == "stage":
                     value = adapter.decide_stage(message["request"])
+                elif operation == "decomposition":
+                    value = adapter.decide_decomposition(message["request"])
                 else:
                     raise ValueError("未知本地 Judge 操作")
                 result = {"payload": value.payload, "model": value.model,
@@ -104,14 +106,17 @@ class LocalJudgeProcess:
             self.cancelled.add(job_id)
             self.jobs[job_id] = {"status": "cancelled"}
 
-    def call(self, operation, key, config, *, timeout_ms=30000):
-        job_id = self.submit(operation, key, config)
+    def call(self, operation, key, config, *, request=None, timeout_ms=30000):
+        job_id = self.submit(operation, key, config, request=request)
         deadline = time.monotonic() + timeout_ms / 1000
         while time.monotonic() < deadline:
             row = self.poll(job_id)
             if row["status"] == "completed":
                 return row["result"]
             if row["status"] == "failed":
+                if row.get("errorCode") == "capacity":
+                    from .planning_decision import LocalDecisionCapacityError
+                    raise LocalDecisionCapacityError(row["error"])
                 raise ValueError(row["error"])
             time.sleep(.02)
         self.cancel(job_id)

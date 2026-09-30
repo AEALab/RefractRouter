@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from refractrouter.agent import run_agent
+from refractrouter.decomposition_decision import build_request, parse_answer
 from refractrouter.live_execution import (authorization_binding, complexity_gate,
                                            create_authorization_preview,
                                            review_decision, validate_authorization)
@@ -37,6 +38,49 @@ def test_zero_call_gate_is_deterministic_and_forced_direct_cannot_bypass_tools()
     assert complexity_gate({'task': '根据材料回答', 'materials': [{'id': 'one'}]}, '', policy='auto')['decision'] == 'direct'
     assert complexity_gate({'task': '根据材料回答', 'materials': [{'id': 'one'}, {'id': 'two'}]}, '', policy='auto')['decision'] == 'dag'
     assert complexity_gate({'task': '读取仓库并运行测试'}, '', policy='direct')['decision'] == 'blocked-tools'
+
+
+def local_evidence(task, context, choice, confidence=.9):
+    request = build_request(task, context)
+    probabilities = {item: (confidence if item == choice else (1-confidence)/2)
+                     for item in ('SEPARABLE', 'COUPLED', 'UNKNOWN')}
+    return {"contract": request["contract"], "ruleVersion": request["ruleVersion"],
+            "inputSha256": request["inputSha256"],
+            **parse_answer({"choice": choice, "probabilities": probabilities}, threshold=.65),
+            "model": "laya-fixture", "revision": "test", "latencyMs": 3,
+            "queueMs": 1, "usage": {"questions": 1}, "experimental": True}
+
+
+def test_local_structure_evidence_only_overrides_weak_rules():
+    task = '这是一段很长的单一流水线任务。' * 50
+    coupled = complexity_gate({'task': task}, '', decomposition=local_evidence(task, '', 'COUPLED'))
+    assert coupled['rule_decision'] == 'dag' and coupled['decision'] == 'direct'
+    assert coupled['combination'] == 'local-coupled-overrode-weak-rules'
+    strict_task = '按严格格式完成一项连续任务'
+    strict_payload = {'task': strict_task, 'outputConstraints': {'maxCharacters': 100}}
+    strict = complexity_gate(strict_payload, '', decomposition=local_evidence(strict_task, '', 'COUPLED'))
+    assert strict['decision'] == 'dag'
+    assert strict['combination'] == 'hard-rules-preserved-over-local-coupled'
+    short = '分别核对两个互不依赖的来源'
+    separable = complexity_gate({'task': short}, '', decomposition=local_evidence(short, '', 'SEPARABLE'))
+    assert separable['decision'] == 'dag' and 'local-separable' in separable['reasons']
+
+
+def test_preflight_binds_local_decision_to_live_input(tmp_path):
+    raw = config()
+    task, context = '简短但可分离的两个检查', ''
+    evidence = local_evidence(task, context, 'SEPARABLE')
+    payload = {'task': task, 'context': context, 'strategy': 'auto',
+               'decompositionDecision': evidence}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    assert preview['complexity_gate']['decision'] == 'dag'
+    approved = authorization(preview['live_authorization_preview'])
+    with pytest.raises(ValueError, match='拆分判别输入已改变'):
+        run_agent({**payload, 'task': '输入已经变化', 'authorization': approved},
+                  provider_config=raw, runs_dir=tmp_path / 'changed', mode='live',
+                  execute_paid_run=True, client=Client(), production_budget=10,
+                  evaluation_budget=10)
 
 
 def test_adaptive_review_only_skips_unforced_low_risk_direct():

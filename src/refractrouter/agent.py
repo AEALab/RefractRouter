@@ -95,7 +95,8 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
     if not isinstance(payload, dict) or set(payload) - {'task', 'strategy', 'template', 'plan', 'acceptanceCriteria', 'context', 'temperature', 'outputConstraints', 'maxPlanRepairs',
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
-            'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls'}:
+            'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls',
+            'decompositionDecision'}:
         raise ValueError('invalid RefractAgent request fields')
     validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
@@ -208,7 +209,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         request['costMax'] = production_budget
     tools_allowed = tool_runtime is not None
     gate = (complexity_gate(payload, context, policy=payload.get('complexityPolicy', 'auto'),
-                            tools_allowed=tools_allowed)
+                            tools_allowed=tools_allowed,
+                            decomposition=payload.get('decompositionDecision'))
             if automatic_routing else None)
     review = (review_decision(payload, gate, policy=payload.get('reviewPolicy', 'adaptive'),
                               tools_allowed=tools_allowed)

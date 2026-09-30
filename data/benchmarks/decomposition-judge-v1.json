@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "decomposition-judge-cases-v1",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "cases": [
+    {"id": "zh-separable-1", "expected": "SEPARABLE", "task": "分别核对产品定价和数据合规要求，最后汇总成建议。"},
+    {"id": "zh-separable-2", "expected": "SEPARABLE", "task": "调查前端登录错误与后台导出超时这两个互不相关的问题，并分别给出修复。"},
+    {"id": "zh-separable-3", "expected": "SEPARABLE", "task": "独立分析两份数据集的异常，再比较两边的结论。"},
+    {"id": "en-separable-1", "expected": "SEPARABLE", "task": "Audit the API authentication and the documentation examples independently, then summarize both findings."},
+    {"id": "en-separable-2", "expected": "SEPARABLE", "task": "Compare vendor A and vendor B by researching each vendor separately before producing one table."},
+    {"id": "mixed-separable-1", "expected": "SEPARABLE", "task": "分别 review mobile crash logs and server latency metrics，最后给出统一建议。"},
+    {"id": "zh-coupled-1", "expected": "COUPLED", "task": "先运行失败测试，根据实际错误定位同一个缺陷，修改后再运行测试确认。"},
+    {"id": "zh-coupled-2", "expected": "COUPLED", "task": "读取当前数据库 schema，基于它编写迁移脚本，然后用迁移结果验证数据。"},
+    {"id": "zh-coupled-3", "expected": "COUPLED", "task": "实现解析器，再把解析器产生的 AST 交给后续优化步骤处理。"},
+    {"id": "en-coupled-1", "expected": "COUPLED", "task": "Run the failing test, diagnose its output, patch that same defect, and rerun the test."},
+    {"id": "en-coupled-2", "expected": "COUPLED", "task": "Generate the migration from the current schema and validate the resulting database state."},
+    {"id": "mixed-coupled-1", "expected": "COUPLED", "task": "先 build the parser，再根据实际 AST output 完成 optimizer。"},
+    {"id": "zh-unknown-1", "expected": "UNKNOWN", "task": "继续处理上面的内容。"},
+    {"id": "zh-unknown-2", "expected": "UNKNOWN", "task": "把这些都优化一下。"},
+    {"id": "zh-unknown-3", "expected": "UNKNOWN", "task": "根据附件完成任务。"},
+    {"id": "en-unknown-1", "expected": "UNKNOWN", "task": "Continue with the previous request."},
+    {"id": "en-unknown-2", "expected": "UNKNOWN", "task": "Fix it using the attached material."},
+    {"id": "mixed-unknown-1", "expected": "UNKNOWN", "task": "按照 above discussion 继续。"}
+  ]
+}

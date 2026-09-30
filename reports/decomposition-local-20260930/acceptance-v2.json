@@ -1,0 +1,398 @@
+{
+  "schemaVersion": "decomposition-local-acceptance-v1",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.65,
+  "cases": 18,
+  "correct": 10,
+  "verdictCounts": {
+    "SEPARABLE": 13,
+    "COUPLED": 0,
+    "UNKNOWN": 5
+  },
+  "warmLatencyMs": {
+    "median": 28.875709045678377,
+    "p95": 32.70633390638977
+  },
+  "paidApiCalls": 0,
+  "rows": [
+    {
+      "id": "zh-separable-1",
+      "expected": "SEPARABLE",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9218,
+      "probabilities": {
+        "COUPLED": 0.0137,
+        "SEPARABLE": 0.9218,
+        "UNKNOWN": 0.0645
+      },
+      "correct": true,
+      "latencyMs": 66.7835830245167,
+      "wallMs": 76.06612495146692,
+      "usage": {
+        "input_tokens": 193,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-separable-2",
+      "expected": "SEPARABLE",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9797,
+      "probabilities": {
+        "COUPLED": 0.0031,
+        "SEPARABLE": 0.9797,
+        "UNKNOWN": 0.0172
+      },
+      "correct": true,
+      "latencyMs": 52.28750000242144,
+      "wallMs": 52.740458981134,
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-separable-3",
+      "expected": "SEPARABLE",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9451,
+      "probabilities": {
+        "COUPLED": 0.0093,
+        "SEPARABLE": 0.9451,
+        "UNKNOWN": 0.0456
+      },
+      "correct": true,
+      "latencyMs": 32.318082987330854,
+      "wallMs": 32.70633390638977,
+      "usage": {
+        "input_tokens": 190,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "en-separable-1",
+      "expected": "SEPARABLE",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9295,
+      "probabilities": {
+        "COUPLED": 0.0105,
+        "SEPARABLE": 0.9295,
+        "UNKNOWN": 0.06
+      },
+      "correct": true,
+      "latencyMs": 29.454916948452592,
+      "wallMs": 30.06299992557615,
+      "usage": {
+        "input_tokens": 190,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "en-separable-2",
+      "expected": "SEPARABLE",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9518,
+      "probabilities": {
+        "COUPLED": 0.0102,
+        "SEPARABLE": 0.9518,
+        "UNKNOWN": 0.038
+      },
+      "correct": true,
+      "latencyMs": 28.065375052392483,
+      "wallMs": 28.49279099609703,
+      "usage": {
+        "input_tokens": 191,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "mixed-separable-1",
+      "expected": "SEPARABLE",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.7712,
+      "probabilities": {
+        "COUPLED": 0.0654,
+        "SEPARABLE": 0.7712,
+        "UNKNOWN": 0.1635
+      },
+      "correct": true,
+      "latencyMs": 22.340541006997228,
+      "wallMs": 22.80875004362315,
+      "usage": {
+        "input_tokens": 191,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-coupled-1",
+      "expected": "COUPLED",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9062,
+      "probabilities": {
+        "COUPLED": 0.013,
+        "SEPARABLE": 0.9062,
+        "UNKNOWN": 0.0808
+      },
+      "correct": false,
+      "latencyMs": 30.726708006113768,
+      "wallMs": 31.09445795416832,
+      "usage": {
+        "input_tokens": 194,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-coupled-2",
+      "expected": "COUPLED",
+      "verdict": "UNKNOWN",
+      "rawVerdict": "UNKNOWN",
+      "confidence": 0.5655,
+      "probabilities": {
+        "COUPLED": 0.0513,
+        "SEPARABLE": 0.3832,
+        "UNKNOWN": 0.5655
+      },
+      "correct": false,
+      "latencyMs": 28.48570898640901,
+      "wallMs": 28.875709045678377,
+      "usage": {
+        "input_tokens": 194,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-coupled-3",
+      "expected": "COUPLED",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.8901,
+      "probabilities": {
+        "COUPLED": 0.0292,
+        "SEPARABLE": 0.8901,
+        "UNKNOWN": 0.0807
+      },
+      "correct": false,
+      "latencyMs": 28.584917075932026,
+      "wallMs": 28.95950002130121,
+      "usage": {
+        "input_tokens": 193,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "en-coupled-1",
+      "expected": "COUPLED",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.9339,
+      "probabilities": {
+        "COUPLED": 0.0232,
+        "SEPARABLE": 0.9339,
+        "UNKNOWN": 0.0428
+      },
+      "correct": false,
+      "latencyMs": 30.948166036978364,
+      "wallMs": 31.44245909061283,
+      "usage": {
+        "input_tokens": 194,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "en-coupled-2",
+      "expected": "COUPLED",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.7966,
+      "probabilities": {
+        "COUPLED": 0.0358,
+        "SEPARABLE": 0.7966,
+        "UNKNOWN": 0.1676
+      },
+      "correct": false,
+      "latencyMs": 26.470832992345095,
+      "wallMs": 26.903374935500324,
+      "usage": {
+        "input_tokens": 189,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "mixed-coupled-1",
+      "expected": "COUPLED",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.734,
+      "probabilities": {
+        "COUPLED": 0.1012,
+        "SEPARABLE": 0.734,
+        "UNKNOWN": 0.1648
+      },
+      "correct": false,
+      "latencyMs": 24.115583044476807,
+      "wallMs": 24.521250044927,
+      "usage": {
+        "input_tokens": 189,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-unknown-1",
+      "expected": "UNKNOWN",
+      "verdict": "UNKNOWN",
+      "rawVerdict": "UNKNOWN",
+      "confidence": 0.5401,
+      "probabilities": {
+        "COUPLED": 0.1545,
+        "SEPARABLE": 0.3054,
+        "UNKNOWN": 0.5401
+      },
+      "correct": true,
+      "latencyMs": 31.594667001627386,
+      "wallMs": 32.082000048831105,
+      "usage": {
+        "input_tokens": 181,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-unknown-2",
+      "expected": "UNKNOWN",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.7276,
+      "probabilities": {
+        "COUPLED": 0.0418,
+        "SEPARABLE": 0.7276,
+        "UNKNOWN": 0.2306
+      },
+      "correct": false,
+      "latencyMs": 29.63500004261732,
+      "wallMs": 30.423208023421466,
+      "usage": {
+        "input_tokens": 182,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "zh-unknown-3",
+      "expected": "UNKNOWN",
+      "verdict": "UNKNOWN",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.5321,
+      "probabilities": {
+        "COUPLED": 0.187,
+        "SEPARABLE": 0.5321,
+        "UNKNOWN": 0.2809
+      },
+      "correct": true,
+      "latencyMs": 26.90987498499453,
+      "wallMs": 27.321749948896468,
+      "usage": {
+        "input_tokens": 181,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "en-unknown-1",
+      "expected": "UNKNOWN",
+      "verdict": "UNKNOWN",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.4805,
+      "probabilities": {
+        "COUPLED": 0.0792,
+        "SEPARABLE": 0.4805,
+        "UNKNOWN": 0.4404
+      },
+      "correct": true,
+      "latencyMs": 24.09820898901671,
+      "wallMs": 24.59887496661395,
+      "usage": {
+        "input_tokens": 181,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "en-unknown-2",
+      "expected": "UNKNOWN",
+      "verdict": "SEPARABLE",
+      "rawVerdict": "SEPARABLE",
+      "confidence": 0.867,
+      "probabilities": {
+        "COUPLED": 0.0489,
+        "SEPARABLE": 0.867,
+        "UNKNOWN": 0.0841
+      },
+      "correct": false,
+      "latencyMs": 26.53154102154076,
+      "wallMs": 27.275957982055843,
+      "usage": {
+        "input_tokens": 182,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "mixed-unknown-1",
+      "expected": "UNKNOWN",
+      "verdict": "UNKNOWN",
+      "rawVerdict": "UNKNOWN",
+      "confidence": 0.6802,
+      "probabilities": {
+        "COUPLED": 0.1563,
+        "SEPARABLE": 0.1635,
+        "UNKNOWN": 0.6802
+      },
+      "correct": true,
+      "latencyMs": 23.759417003020644,
+      "wallMs": 24.096291977912188,
+      "usage": {
+        "input_tokens": 182,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    }
+  ]
+}

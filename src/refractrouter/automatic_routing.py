@@ -11,7 +11,7 @@ from .privacy_placement import allows_sensitive
 from .task_plan import validate_plan
 from .task_scheduling import ExecutionPolicy, estimate_schedule
 
-POLICY_VERSION = 'automatic-route-v1'
+POLICY_VERSION = 'automatic-route-v2'
 SENSITIVE_GRADES = frozenset({'S1', 'S2', 'unknown'})
 
 
@@ -32,6 +32,8 @@ class RouteFeatures:
     direct_already_low_cost: bool
     dependency_density: float
     merge_risk: float
+    decomposition_verdict: str = 'UNKNOWN'
+    decomposition_source: str | None = None
 
     def __post_init__(self):
         for name in ('subtask_independence', 'parallel_work_ratio', 'dependency_density', 'merge_risk'):
@@ -43,6 +45,11 @@ class RouteFeatures:
                 or not math.isfinite(self.legal_model_price_ratio)
                 or self.legal_model_price_ratio < 1):
             raise ValueError('legal_model_price_ratio must be finite and at least 1')
+        if self.decomposition_verdict not in {'SEPARABLE', 'COUPLED', 'UNKNOWN'}:
+            raise ValueError('decomposition_verdict must be SEPARABLE, COUPLED or UNKNOWN')
+        if self.decomposition_source is not None and (
+                not isinstance(self.decomposition_source, str) or not self.decomposition_source):
+            raise ValueError('decomposition_source must be nonempty text')
 
 
 @dataclass(frozen=True)
@@ -91,11 +98,15 @@ def first_level_gate(features, *, dag_mode='auto'):
     if (features.subtask_independence >= thresholds['independence']
             and features.parallel_work_ratio >= thresholds['parallel_work_ratio']):
         signals.append('parallel-work')
+    if features.decomposition_verdict == 'SEPARABLE':
+        signals.append('local-separable')
     blockers = []
     if features.dependency_density >= thresholds['dependency_density_block']:
         blockers.append('dense-dependencies')
     if features.merge_risk >= thresholds['merge_risk_block']:
         blockers.append('high-merge-risk')
+    if features.decomposition_verdict == 'COUPLED':
+        blockers.append('local-coupled')
     if dag_mode == 'never':
         call_planner, reason = False, 'dag-mode-never'
     elif dag_mode == 'force':

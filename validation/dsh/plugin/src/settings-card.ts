@@ -135,6 +135,11 @@ export interface LiveExecutionView {
   providerMinIntervalMs?:Record<string,number>
   maxOutputTokens?:number|'unlimited'
   maxTotalOutputTokens?:number
+  decompositionDecision?:{
+    mode:'rules'|'hybrid';allowExperimental?:boolean;threshold?:number;timeoutMs?:number;maxInputBytes?:number
+    judge?:{type:'local-decision';adapter:'laya-mlx';modelPath:string;sourceModel:string;revision:string;
+      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'choice-v2'}
+  }
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
@@ -170,6 +175,7 @@ export type SettingsIssueCode =
   | 'LIVE_EXECUTION_SYNTHETIC_REQUIRED'
   | 'LIVE_EXECUTION_BUDGET_REQUIRED'
   | 'LIVE_EXECUTION_TOOL_CALLS_INVALID'
+  | 'LIVE_EXECUTION_LOCAL_JUDGE_INVALID'
 
 export interface SettingsIssue {
   code: SettingsIssueCode
@@ -204,6 +210,13 @@ export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
       || live.maxDshToolCalls < 0 || live.maxDshToolCalls > 100000)) {
     issues.push({code:'LIVE_EXECUTION_TOOL_CALLS_INVALID',severity:'error',field:'liveExecution.maxDshToolCalls',
       message:'DSH 工具调用次数必须是 0～100000 的整数，或选择「不限次数」；0 表示禁用工具。'})
+  }
+  const decision=live?.decompositionDecision
+  if(decision?.mode==='hybrid'&&(!decision.allowExperimental||!decision.judge
+    ||!decision.judge.modelPath||!decision.judge.sourceModel||!decision.judge.revision)){
+    issues.push({code:'LIVE_EXECUTION_LOCAL_JUDGE_INVALID',severity:'error',
+      field:'liveExecution.decompositionDecision',
+      message:'规则＋本地判别需要明确启用实验能力，并填写权重目录、checkpoint 与固定 revision。'})
   }
   if (!live?.enabled) return issues
   const automatic = pool !== undefined || provider?.schemaVersion === 'refractagent-providers-v4'
@@ -368,6 +381,7 @@ export interface RefractCardProjection {
   provider: ProviderConfigView | undefined
   dshModelPool: DshModelPoolView | undefined
   liveExecution:LiveExecutionView|undefined
+  planningRouting?:import('./planning-config.js').PlanningConfig
   providerCleared: boolean
   providerJson: string
   providerJsonError: string | null
@@ -947,6 +961,7 @@ export class RefractCardController {
       provider: this.currentProvider(),
       dshModelPool:this.currentDshPool(),
       liveExecution:this.currentLiveExecution(),
+      planningRouting:snap.value?.planningRouting,
       providerCleared: providerStage?.kind === 'clear',
       providerJson: this.providerJson,
       providerJsonError: this.providerJsonError,

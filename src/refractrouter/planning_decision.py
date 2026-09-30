@@ -369,6 +369,26 @@ class LayaDecisionAdapter:
                    for key, value in result.get("answers", {}).items() if isinstance(value, dict)}
         return LocalDecisionResult({"answers": answers}, result.get("model", self.model), cold, elapsed, usage)
 
+    def decide_decomposition(self, request):
+        """自动路由拆分前判别；模型只给结构证据，最终路线仍由 Python 规则决定。"""
+        from .decomposition_decision import (CONTRACT, QUESTIONS, parse_noul_answers)
+        if request.get("contract") != CONTRACT or request.get("questions") != QUESTIONS:
+            raise ValueError("拆分判别合同不兼容")
+        self._ensure_complete(request["state"], QUESTIONS)
+        started = time.perf_counter()
+        result = self.agent.predict(request["state"], QUESTIONS)
+        elapsed = (time.perf_counter() - started) * 1000
+        parsed = parse_noul_answers(result.get("answers", {}), threshold=request["threshold"])
+        cold, self.cold_start_ms = self.cold_start_ms, None
+        usage = dict(result.get("usage", {"input_tokens": 0, "output_tokens": 0}))
+        batch_size = max(1, getattr(self.agent, "batch_size", len(QUESTIONS)))
+        usage.update({"questions": len(QUESTIONS),
+                      "forwards": (len(QUESTIONS) + batch_size - 1) // batch_size})
+        payload = {"contract": CONTRACT, "ruleVersion": request["ruleVersion"],
+                   "inputSha256": request["inputSha256"], **parsed,
+                   "experimental": True}
+        return LocalDecisionResult(payload, result.get("model", self.model), cold, elapsed, usage)
+
     def decide_escalation(self, request):
         """用单个 Choice 问题审核回复；低确定性由 Python 归为 UNCERTAIN。"""
         compact = {"taskAndAcceptedHistory": request["taskAndAcceptedHistory"],

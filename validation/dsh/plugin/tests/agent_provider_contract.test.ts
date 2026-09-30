@@ -79,6 +79,9 @@ const liveProviderConfig=()=>({schemaVersion:'refractagent-providers-v4' as cons
   ]})
 const liveExecution=()=>({schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
   maxProductionCost:.1,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const})
+const localJudge=()=>({type:'local-decision' as const,adapter:'laya-mlx' as const,modelPath:'/models/laya',
+  sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',
+  device:'gpu' as const,dtype:'float16' as const,method:'choice-v2' as const})
 const previewResult={strategy:'auto',strategy_name:'自动路由',mode:'preflight',status:'preview',answer:'',
   simulated:false,billing_unit:'CNY',live_authorization_preview:{schema_version:'refractagent-live-authorization-v1',
     authorization_id:'auth-1',issued_at:'2026-09-22T00:00:00Z',expires_at:'2026-09-22T00:10:00Z',
@@ -188,6 +191,30 @@ test('settings-enabled developer live starts one local preflight and one bound l
   assert.equal(f.credentials,1)
   assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'真实答案')
   assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
+})
+test('自动路由本地拆分判别只执行一次，并绑定到预检和真实运行',async()=>{
+  const decision={contract:'decomposition-decision-v1',ruleVersion:'automatic-decomposition-hybrid-v2',
+    inputSha256:'a'.repeat(64),verdict:'SEPARABLE',rawVerdict:'SEPARABLE',confidence:.9,
+    probabilities:{SEPARABLE:.9,COUPLED:.05,UNKNOWN:.05},model:'laya-local',revision:'f2b4',
+    latencyMs:8,queueMs:1,usage:{questions:1},experimental:true}
+  const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'真实答案',
+    simulated:false,billing_unit:'CNY',plan_origin:'model',plan:{nodes:[{node_id:'answer'}]},
+    dag:{phase:'finished',status:'completed',simulated:false,reason:'拆分',nodes:[]}}
+  const f=fixture([previewResult,liveResult]);let calls=0
+  const planning={decompositionDecision:async()=>{calls++;return decision}} as any
+  const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),liveExecution:{...liveExecution(),
+    decompositionDecision:{mode:'hybrid',allowExperimental:true,judge:localJudge(),threshold:.65}}}),undefined,planning)
+  for await(const _ of adapter.stream({...options,model:'auto-live'})) { /* consume */ }
+  assert.equal(calls,1);assert.equal(f.spawns.length,2)
+  const preview=JSON.parse(f.spawns[0]!.input()),live=JSON.parse(f.spawns[1]!.input())
+  assert.deepEqual(preview.decompositionDecision,decision)
+  assert.deepEqual(live.decompositionDecision,decision)
+})
+test('混合拆分判别必须明确实验启用并使用完整本地配置',()=>{
+  assert.throws(()=>configure({liveExecution:{...liveExecution(),decompositionDecision:{mode:'hybrid',judge:localJudge()}}}),
+    /explicitly enabled local Judge/)
+  assert.doesNotThrow(()=>configure({liveExecution:{...liveExecution(),decompositionDecision:{mode:'hybrid',
+    allowExperimental:true,judge:localJudge(),threshold:.65,timeoutMs:30000,maxInputBytes:65536}}}))
 })
 test('enabled DSH tools reach preflight and live with the same bounded catalog',async()=>{
   const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'结果',

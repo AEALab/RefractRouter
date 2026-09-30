@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
-import { progressText, type ProgressEvent } from '../dist/dag-progress.js'
+import { progressText, runSummary, type ProgressEvent } from '../dist/dag-progress.js'
 
 function client() {
   let api: any
@@ -48,6 +48,17 @@ test('动态图替换旧拓扑，流式截断不生成虚构节点，拒绝环�
 test('真实自动路由的进度文本也能在 DAG 页签回放', () => {
   const api = client(), livePrefix = '正在预检并执行真实自动路由。\n'
   assert.equal(api.parse(livePrefix + progressText(event('answer'))).nodes[0].id, 'answer')
+})
+
+test('自动路由摘要解释规则、本地判别和最终路线',()=>{
+  const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'CNY',
+    costs:{evaluation:0,unconfirmed:0},cost_breakdown:{planning:0,dynamic_planning:0,execution:.1},
+    result_path:'/tmp/result.json',complexity_gate:{rule_decision:'direct',decision:'dag',
+      combination:'local-separable',reasons:['local-separable'],local_decision:{verdict:'SEPARABLE',
+        rawVerdict:'SEPARABLE',confidence:.91,model:'laya-local',latencyMs:12,queueMs:2}}})
+  assert.match(summary,/规则 direct → 最终 dag/)
+  assert.match(summary,/本地结构判别：SEPARABLE/)
+  assert.match(summary,/实验能力/)
 })
 
 test('客户端只贡献独立页签，不发起请求或改动原会话渲染器', () => {

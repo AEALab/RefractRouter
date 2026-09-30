@@ -1349,6 +1349,9 @@ class PlanningRuntime(StageHybridRuntime):
             label = "Task"
         if judge.get("type") != "local-decision":
             raise ValueError(f"当前 {label} 未配置本地 Judge")
+        return self._manage_local_judge(judge, request)
+
+    def _manage_local_judge(self, judge, request):
         action = request.get("action", "status")
         if action not in ("status", "download", "load", "unload"):
             raise ValueError("未知本地 Judge 操作")
@@ -1412,6 +1415,44 @@ class PlanningRuntime(StageHybridRuntime):
                 "loaded": loaded, "sourceModel": judge["sourceModel"],
                 "revision": judge["revision"], "revisionVerified": revision_verified,
                 "sizeBytes": size_bytes}
+
+    def automatic_local_judge(self, request):
+        from .decomposition_decision import validate_local_judge
+        judge = validate_local_judge(request.get("judge"))
+        return self._manage_local_judge(judge, request)
+
+    def decomposition_decision(self, request):
+        from .decomposition_decision import (build_request, input_digest, unknown_evidence,
+                                             validate_limits, validate_local_judge)
+        judge = validate_local_judge(request.get("judge"))
+        task, context = request.get("task"), request.get("context")
+        threshold = request.get("threshold", .65)
+        max_input_bytes = request.get("maxInputBytes", 65536)
+        timeout_ms = request.get("timeoutMs", 30000)
+        if type(timeout_ms) is not int or not 100 <= timeout_ms <= 300000:
+            raise ValueError("拆分判别期限必须是 100..300000 的整数")
+        validate_limits(threshold, max_input_bytes)
+        input_digest(task, context)
+        if len(task.encode()) > max_input_bytes:
+            return unknown_evidence(task, context, "input-too-long")
+        built = build_request(task, context, threshold=threshold,
+                              max_input_bytes=max_input_bytes)
+        if built["state"]["contextDependency"] == "referenced":
+            return unknown_evidence(task, context, "context-dependent")
+        key = self.local_judge_key(judge)
+        started = time.monotonic()
+        try:
+            result = self.local_service.call("decomposition", key, judge,
+                                             request=built, timeout_ms=timeout_ms)
+        except LocalDecisionCapacityError:
+            return unknown_evidence(task, context, "token-capacity")
+        total_ms = (time.monotonic() - started) * 1000
+        payload = {**result["payload"], "model": result["model"],
+                   "revision": judge["revision"], "coldStartMs": result["coldStartMs"],
+                   "latencyMs": result["latencyMs"],
+                   "queueMs": max(0.0, total_ms - result["latencyMs"]),
+                   "usage": result["usage"]}
+        return payload
 
     def media_reserve(self, run, request):
         route_id, operation = request.get("routeId"), request.get("operation")
@@ -1506,7 +1547,8 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "composite-task-stage-v1",
-                "local-judge-jobs", "planning-routing-v4", "media-reference-v1"]}
+                "decomposition-decision-v1", "local-judge-jobs",
+                "planning-routing-v4", "media-reference-v1"]}
         if operation == "fx":
             from .dsh_model_pool import frozen_usd_cny_rate
             rate, snapshot = frozen_usd_cny_rate()
@@ -1519,6 +1561,10 @@ class PlanningRuntime(StageHybridRuntime):
             return simulate(request.get("config", {}))
         if operation == "local-judge":
             return self.local_judge(request)
+        if operation == "automatic-local-judge":
+            return self.automatic_local_judge(request)
+        if operation == "decomposition-decision":
+            return self.decomposition_decision(request)
         if operation == "history":
             session = request.get("session")
             records = []

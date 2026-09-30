@@ -64,6 +64,17 @@ def test_first_level_gate_blocks_risky_split_except_security_placement():
     assert first_level_gate(security)['call_planner'] is True
 
 
+def test_first_level_gate_consumes_discrete_local_structure_without_faking_ratios():
+    separable = RouteFeatures(.1, .1, False, 1.1, True, .2, .2,
+                              'SEPARABLE', 'laya-local')
+    result = first_level_gate(separable)
+    assert result['call_planner'] is True and 'local-separable' in result['signals']
+    coupled = RouteFeatures(.9, .9, False, 2, False, .2, .2,
+                            'COUPLED', 'laya-local')
+    blocked = first_level_gate(coupled)
+    assert blocked['call_planner'] is False and 'local-coupled' in blocked['blockers']
+
+
 def test_sensitive_direct_route_excludes_external_worker_before_cost_ranking():
     result = choose_route(configuration(), direct=CallEnvelope(5000, 1000, 'S1'),
                           direct_judge=judge('S1'), dag_mode='never')
