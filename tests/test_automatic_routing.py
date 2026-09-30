@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 
 from refractrouter.application_config import compile_configuration
-from refractrouter.automatic_routing import CallEnvelope, RouteFeatures, choose_route, first_level_gate
+from refractrouter.automatic_routing import (CallEnvelope, RouteFeatures, choose_route,
+                                             compare_executable_routes, first_level_gate)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -194,3 +195,36 @@ def test_invalid_call_envelopes_fail_closed(mutate):
     mutate(row)
     with pytest.raises(ValueError):
         CallEnvelope(**row)
+
+
+def _executable_route(cost, latency):
+    return {'status': 'selected', 'assignments': {'answer': 'model'},
+            'prediction': {'cost': cost, 'scheduled_latency_ms': latency,
+                           'mean_node_quality_proxy': 90}}
+
+
+def test_live_route_comparison_charges_shared_probe_and_uses_cost_then_latency():
+    direct = _executable_route(.2, 1000)
+    dag = _executable_route(.1, 2000)
+    cheaper = compare_executable_routes(direct, dag, planner_cost=.03, judge_cost=.04,
+                                         planner_latency_ms=200)
+    assert cheaper['route'] == 'dag'
+    assert cheaper['dag']['total_estimated_cost'] == pytest.approx(.17)
+    assert cheaper['direct']['total_estimated_cost'] == pytest.approx(.27)
+    assert cheaper['direct']['planner_actual_cost'] == .03
+    tied = compare_executable_routes(direct, _executable_route(.2, 500),
+                                     planner_cost=.03, judge_cost=.04)
+    assert tied['route'] == 'dag' and tied['reason'] == 'cost-tie-shorter-worker-schedule'
+    reserved = compare_executable_routes(direct, dag, planner_cost=.03, judge_cost=.04,
+                                         tool_allowances={'direct': 0, 'dag': .2})
+    assert reserved['route'] == 'direct'
+
+
+def test_live_route_comparison_rejects_invalid_forecasts_and_infeasible_paths():
+    blocked = {'status': 'no-feasible-route'}
+    result = compare_executable_routes(_executable_route(.1, 100), blocked,
+                                       planner_cost=0, judge_cost=0)
+    assert result['route'] == 'direct' and result['dag'] is None
+    with pytest.raises(ValueError, match='invalid prediction'):
+        compare_executable_routes(_executable_route(float('nan'), 100), blocked,
+                                  planner_cost=0, judge_cost=0)

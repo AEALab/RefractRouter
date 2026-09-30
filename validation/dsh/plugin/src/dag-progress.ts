@@ -90,8 +90,14 @@ export function runSummary(result: Record<string, unknown>): string {
     +`依赖前一步 ${number(signals.requires_previous_output)}，可独立开始 ${number(signals.can_start_independently)}；`
     +`模型 ${String(local.model??'未调用')}；推论 ${number(local.latencyMs)} ms，排队 ${number(local.queueMs)} ms；`
     +`${local.reason?`回退原因 ${reasonNames[String(local.reason)]??String(local.reason)}；`:''}实验能力\n`:''
+  const comparison=object(result.route_comparison)?result.route_comparison:{}
+  const comparisonLine=Object.keys(comparison).length
+    ? `执行前比较：${String(comparison.status)}；选中 ${String(comparison.route)}；依据 ${String(comparison.reason)}；`
+      + `direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
+      + `DAG 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`
+    : ''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine
+    + route + localLine + comparisonLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + `费用（${String(result.billing_unit)}）：规划 ${number(breakdown.planning)}，动态规划 ${number(breakdown.dynamic_planning)}，节点执行 ${number(breakdown.execution)}，评审 ${number(costs.evaluation)}，未确认预留 ${number(costs.unconfirmed)}\n`
     + `耗时：${typeof result.wall_time_ms === 'number' ? (result.wall_time_ms / 1000).toFixed(2) + ' 秒' : '未提供'}\n`

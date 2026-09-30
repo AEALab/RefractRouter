@@ -34,8 +34,28 @@ from .privacy_placement import (PlacementGuard, PrivacyRouteViolation, judge_iso
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
+from .automatic_routing import compare_executable_routes
 
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
+
+
+def _shared_judge_forecast(judge, task, criteria, candidates):
+    """两条路线共用同一最终答复审核；按完整输出容量给出可审计上界。"""
+    max_answer = max(output_token_limit(model) for model in candidates.values())
+    input_bound = len(json.dumps({'task': task, 'criteria': criteria or []},
+                                 ensure_ascii=False).encode()) + max_answer * 8 + 2048
+    return (input_bound * judge.input_cost_per_1k
+            + output_token_limit(judge) * judge.output_cost_per_1k) / 1000
+
+
+def _bounded_tool_allowance(routing, candidates, max_calls, input_cap):
+    """把宿主工具续接的全局调用名额按本路线最贵的执行器保守计入。"""
+    if routing.get('status') != 'selected' or not max_calls:
+        return 0.0
+    return max_calls * max(
+        (min(input_cap, model.context_window - output_token_limit(model))
+         * model.input_cost_per_1k + output_token_limit(model) * model.output_cost_per_1k) / 1000
+        for mid in set(routing['assignments'].values()) for model in (candidates[mid],))
 
 
 def validate_request(raw):
@@ -144,7 +164,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
              configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072,
              tool_runtime=None, privacy=None, classifier=None, decision_evidence=None, review_evidence=None,
-             max_model_calls=None):
+             max_model_calls=None, alternative_direct_plan=None):
     request = validate_request(request)
     if request.get('contextPolicy') == 'selective-v1' and tool_runtime is not None:
         raise ValueError('selective-v1 currently requires text-only material tasks without native tools')
@@ -391,16 +411,21 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                               record=placement)
             if placement['status'] == 'no-local-candidate':
                 result['placement_state'] = 'blocked'
-                return privacy_block(placement['blocked'], append=False)
-            result['placement_state'] = 'ok'
-            persist()
-            eligible_models = restricted_eligible_models(eligible_models, placement)
-            starved = [{'node_id': nid, 'grade': placement['grades'][nid]['grade'],
-                        'reasons': placement['grades'][nid]['reasons'], 'detail': 'no-local-candidate'}
-                       for nid in placement['eligible_models'] if not eligible_models.get(nid)]
-            if starved:
-                result['placement_state'] = 'blocked'
-                return privacy_block(starved)
+                if alternative_direct_plan is None or not live:
+                    return privacy_block(placement['blocked'], append=False)
+                eligible_models = {nid: [] for nid in eligible_models}
+            else:
+                result['placement_state'] = 'ok'
+                persist()
+                eligible_models = restricted_eligible_models(eligible_models, placement)
+                starved = [{'node_id': nid, 'grade': placement['grades'][nid]['grade'],
+                            'reasons': placement['grades'][nid]['reasons'], 'detail': 'no-local-candidate'}
+                           for nid in placement['eligible_models'] if not eligible_models.get(nid)]
+                if starved:
+                    result['placement_state'] = 'blocked'
+                    if alternative_direct_plan is None or not live:
+                        return privacy_block(starved)
+                    eligible_models = {nid: [] for nid in eligible_models}
             # 评审会读到节点输出；预检按静态视图先给出结论，真实运行前以运行期分级重算。
             placement['judge_isolation'] = judge_isolation(placement, manifest.judge)
             if not live and not placement['judge_isolation']['satisfied']:
@@ -412,6 +437,112 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             weights=Weights(**request["weights"]) if request["method"] == "B" else None,
             eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
             model_providers={mid: model.provider for mid, model in candidates.items()})
+        if alternative_direct_plan is not None and live:
+            if configuration is None or configuration.objective is None:
+                raise ValueError('live route comparison requires a compiled v4 configuration')
+            if tool_runtime is not None and tool_runtime.max_calls == 'unlimited':
+                result['route_comparison'] = {'policy_version': 'automatic-live-comparison-v1',
+                    'status': 'unavailable', 'route': 'dag', 'reason': 'unbounded-tool-continuations'}
+            elif request.get('contextPolicy') == 'selective-v1':
+                result['route_comparison'] = {'policy_version': 'automatic-live-comparison-v1',
+                    'status': 'unavailable', 'route': 'dag', 'reason': 'selective-context-direct-envelope-unverified'}
+            else:
+                def prepare_direct_candidate():
+                    direct = validate_plan(alternative_direct_plan,
+                        required_criteria=request.get('acceptanceCriteria'))
+                    direct, estimates = compile_generated_capacity(direct, node_task, candidates,
+                        output_constraints=request.get('outputConstraints'), input_cap=input_cap,
+                        prefix_policy=request.get('prefixPolicy', 'legacy'),
+                        tools=tool_runtime.schemas if tool_runtime is not None else None)
+                    direct_profile = configured_profile(configuration, manifest, direct.to_dict(),
+                        input_forecasts={nid: row['forecast_input_tokens']
+                                         for nid, row in estimates.items()})
+                    direct_profiles = load_profile(direct_profile, manifest)
+                    direct_admission = admission_diagnostics(direct, node_task, candidates, direct_profiles,
+                        request['qualityMin'], output_constraints=request.get('outputConstraints'),
+                        prefix_policy=request.get('prefixPolicy', 'legacy'),
+                        tools=tool_runtime.schemas if tool_runtime is not None else None)
+                    direct_eligible = {nid: row['eligible_models'] for nid, row in direct_admission.items()}
+                    direct_placement = None
+                    if placement is not None:
+                        direct_placement = new_record(privacy, manifest.models)
+                        resolve_placement(plan=direct, models=candidates.values(), privacy=privacy,
+                            classifier=classifier, node_views=static_node_views(direct, node_task),
+                            record=direct_placement)
+                        if direct_placement['status'] == 'no-local-candidate':
+                            direct_eligible = {nid: [] for nid in direct_eligible}
+                        else:
+                            direct_eligible = restricted_eligible_models(direct_eligible, direct_placement)
+                            direct_placement['judge_isolation'] = judge_isolation(direct_placement, manifest.judge)
+                    direct_routing = route_nodes(direct, direct_profiles, method=request['method'],
+                        quality_min=request['qualityMin'], cost_max=remaining_cost,
+                        latency_max_ms=None if request.get('unlimitedTime') else remaining_latency,
+                        weights=Weights(**request['weights']) if request['method'] == 'B' else None,
+                        eligible_models=direct_eligible, execution_policy=policy,
+                        reduce_dominated=configured_application,
+                        model_providers={mid: model.provider for mid, model in candidates.items()})
+                    return (direct, estimates, direct_profile, direct_profiles, direct_admission,
+                            direct_eligible, direct_placement, direct_routing)
+                try:
+                    (direct, direct_estimates, direct_profile, direct_profiles, direct_admission,
+                     direct_eligible, direct_placement, direct_routing) = prepare_direct_candidate()
+                except ValueError as exc:
+                    if not str(exc).startswith('automatic-plan-input-capacity-exceeded:'):
+                        raise
+                    direct_routing = {'status': 'no-feasible-route'}
+                    direct_admission = {'answer': {'reason': 'input-capacity', 'detail': str(exc)}}
+                _, charged_calls = budget.snapshot()
+                planner_rows = [row for row in charged_calls if row['label'] in {'planner', 'planner-repair'}]
+                if any(row['status'] != 'billed' for row in planner_rows):
+                    raise ValueError('planner usage is unconfirmed; route comparison stopped')
+                planner_cost = sum(row['charged'] for row in planner_rows)
+                planner_latency = (sum(row['latency_ms'] for row in planner_rows)
+                    if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
+                judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
+                    request.get('acceptanceCriteria'), candidates) if result['review']['required'] else 0.0)
+                tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
+                allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
+                              for name, route in (('direct', direct_routing), ('dag', result['routing']))}
+                budget_shortfalls = {}
+                evaluation_remaining = budget.remaining('evaluation')
+                for name, route in (('direct', direct_routing), ('dag', result['routing'])):
+                    if route['status'] == 'selected':
+                        worker_and_tool = route['prediction']['cost'] + allowances[name]
+                        shortage = {}
+                        if worker_and_tool > remaining_cost + 1e-12:
+                            shortage['production'] = worker_and_tool - remaining_cost
+                        if judge_cost > evaluation_remaining + 1e-12:
+                            shortage['evaluation'] = judge_cost - evaluation_remaining
+                        if shortage:
+                            budget_shortfalls[name] = shortage
+                            route['status'] = 'no-feasible-route'
+                comparison = compare_executable_routes(direct_routing, result['routing'],
+                    planner_cost=planner_cost, judge_cost=judge_cost,
+                    planner_latency_ms=planner_latency, tool_allowances=allowances)
+                comparison['billing_unit'] = manifest.billing_unit
+                comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
+                comparison['tool_call_limit'] = tool_count
+                comparison['budget_shortfalls'] = budget_shortfalls
+                comparison['excluded'] = {'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
+                                           'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
+                result['route_comparison'] = comparison
+                if comparison['route'] == 'direct':
+                    plan, profile, profiles = direct, direct_profile, direct_profiles
+                    result['plan_origin'] = 'direct-after-probe'
+                    result['plan'] = plan.to_dict()
+                    result['plan_analysis'] = plan.diagnostics()
+                    result['plan_analysis']['execution_mode'] = 'bounded-parallel' if policy.max_concurrency > 1 else 'serial'
+                    result['routing_profile'] = profile
+                    result['compiled_input_estimates'] = direct_estimates
+                    result['plan_admission'] = direct_admission
+                    result['routing'] = direct_routing
+                    eligible_models = direct_eligible
+                    if direct_placement is not None:
+                        placement = direct_placement
+                        result['privacy_placement'] = direct_placement
+                        result['placement_state'] = 'ok'
+                        guard = PlacementGuard(placement, candidates.values(), classifier=classifier)
+                persist()
         if configured_application:
             result['routing']['actions'] = {nid: action_identity(candidates[mid])
                 for nid, mid in result['routing']['assignments'].items()}

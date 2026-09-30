@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from refractrouter.agent import run_agent
+from refractrouter.openai_compatible import ChatResponse
 from refractrouter.decomposition_decision import build_request, parse_answer
 from refractrouter.live_execution import (authorization_binding, complexity_gate,
                                            create_authorization_preview,
@@ -15,6 +16,35 @@ from tests.test_text_tasks import Client
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class CompactClient:
+    """无网络模型夹具：规划、执行和评审均返回可核验用量。"""
+    def __init__(self):
+        self.calls = []
+
+    def complete(self, model, messages, *, json_mode=False):
+        self.calls.append((model.model_id, messages))
+        system = messages[0]['content']
+        if 'DAG 规划器' in system:
+            content = json.dumps({'reason': '先独立核对两项材料，再汇总', 'nodes': [
+                {'id': 'facts', 'type': 'extraction', 'job': '核对第一项事实',
+                 'parents': [], 'difficulty': 'medium', 'risk': 'medium'},
+                {'id': 'risks', 'type': 'verification', 'job': '核对第二项风险',
+                 'parents': [], 'difficulty': 'medium', 'risk': 'medium'},
+                {'id': 'answer', 'type': 'generation', 'job': '汇总事实与风险',
+                 'parents': ['facts', 'risks'], 'difficulty': 'medium', 'risk': 'medium'}]})
+        elif model.role == 'judge':
+            criteria = json.loads(messages[-1]['content'])['criteria']
+            content = json.dumps({'score': 92, 'passed': True, 'rationale': '已覆盖',
+                'criteria': [{'criterion': item, 'passed': True, 'rationale': '已核对'}
+                             for item in criteria]}, ensure_ascii=False)
+        elif json_mode:
+            fields = json.loads(messages[-1]['content'])['contract']['output']['fields']
+            content = json.dumps({key: '已核对' for key in fields}, ensure_ascii=False)
+        else:
+            content = '完整答复'
+        return ChatResponse(content, 100, 80, 0, 0, 10, 1, 'stop', 'mock-route')
 
 
 def config():
@@ -165,6 +195,103 @@ def test_simple_v4_preflight_then_live_uses_one_worker_and_skips_judge(tmp_path)
     assert result['plan_origin'] == 'direct-gate'
     assert result['review']['status'] == 'skipped' and result['quality'] is None
     assert result['costs']['evaluation'] == 0
+
+
+def test_live_second_level_can_discard_a_costly_dag_without_repeating_planner(tmp_path):
+    raw = config()
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    client = CompactClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
+        client=client, production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed'
+    assert result['plan_origin'] == 'direct-after-probe'
+    assert result['route_comparison']['route'] == 'direct'
+    assert (result['route_comparison']['direct']['total_estimated_cost']
+            <= result['route_comparison']['dag']['total_estimated_cost'])
+    assert len(result['plan']['nodes']) == 1
+    assert len(client.calls) == 3  # 规划一次，直接执行一次，最终评审一次
+    assert result['cost_breakdown']['planning'] == 0  # 夹具中的本地规划模型不计 API 费用
+    assert any(call['label'] == 'planner' for call in json.loads(Path(result['result_path']).read_text())['calls'])
+
+
+def test_live_second_level_uses_dag_when_qualified_profiles_save_cost(tmp_path):
+    raw = config()
+    for model in raw['models']:
+        if model['id'] == 'local-router':
+            model['routing'] = {'quality': 50, 'latencyMs': 10000,
+                'profiles': [{'nodeType': kind, 'difficulty': 'medium', 'risk': 'medium',
+                              'inputMinTokens': 256, 'inputMaxTokens': 131073, 'quality': 90,
+                              'latencyMs': 1000, 'outputTokens': 1000}
+                             for kind in ('extraction', 'verification', 'generation')]}
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    client = CompactClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
+        client=client, production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed'
+    assert result['route_comparison']['route'] == 'dag'
+    assert result['plan_origin'] == 'model'
+    assert len(result['plan']['nodes']) == 3
+    assert len(client.calls) == 5  # 规划、三个节点、评审
+
+
+def test_live_second_level_keeps_valid_dag_when_direct_input_is_too_large(tmp_path, monkeypatch):
+    from refractrouter import task_runtime
+    original = task_runtime.compile_generated_capacity
+
+    def capacity(plan, *args, **kwargs):
+        if len(plan.nodes) == 1:
+            raise ValueError('automatic-plan-input-capacity-exceeded: answer (known_input=999999)')
+        return original(plan, *args, **kwargs)
+
+    monkeypatch.setattr(task_runtime, 'compile_generated_capacity', capacity)
+    raw = config()
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
+        client=CompactClient(), production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed'
+    assert result['route_comparison']['route'] == 'dag'
+    assert result['route_comparison']['direct'] is None
+    assert result['route_comparison']['excluded']['direct']['answer'] == 'input-capacity'
+
+
+def test_live_second_level_stops_before_workers_when_review_budget_is_insufficient(tmp_path, monkeypatch):
+    from refractrouter import task_runtime
+    monkeypatch.setattr(task_runtime, '_shared_judge_forecast', lambda *args: 20.0)
+    raw = config()
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    client = CompactClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
+        client=client, production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'no-feasible-route'
+    assert result['route_comparison']['route'] == 'infeasible'
+    assert set(result['route_comparison']['budget_shortfalls']) == {'direct', 'dag'}
+    assert len(client.calls) == 1  # 只发生有用量记录的规划探测
+
+
+def test_v4_objective_never_and_force_are_bound_to_preflight(tmp_path):
+    raw = config()
+    raw['objective']['dagMode'] = 'never'
+    payload = {'task': '分别核对两项材料，然后汇总。', 'strategy': 'auto'}
+    direct = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'never')
+    assert direct['complexity_gate']['decision'] == 'direct'
+    assert direct['complexity_gate']['reasons'] == ['objective-dag-never']
+    raw['objective']['dagMode'] = 'force'
+    forced = run_agent({'task': '简短回答', 'strategy': 'auto'},
+                       provider_config=raw, runs_dir=tmp_path / 'force')
+    assert forced['complexity_gate']['decision'] == 'dag'
+    assert forced['complexity_gate']['reasons'] == ['objective-dag-force']
 
 
 def test_unlimited_cost_choices_are_independent_and_bound_to_preview(tmp_path):

@@ -192,6 +192,24 @@ test('settings-enabled developer live starts one local preflight and one bound l
   assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'真实答案')
   assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
 })
+test('DSH 接受规划后改为整任务执行，并在 replay 保留路线比较',async()=>{
+  const routeComparison={status:'selected',route:'direct',reason:'direct-estimated-cost-not-worse',
+    direct:{total_estimated_cost:.12},dag:{total_estimated_cost:.18}}
+  const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'完整答复',
+    simulated:false,billing_unit:'CNY',plan_origin:'direct-after-probe',
+    plan:{nodes:[{node_id:'answer'}]},route_comparison:routeComparison,
+    dag:{phase:'finished',status:'completed',simulated:false,reason:'整任务执行',nodes:[]}}
+  const f=fixture([previewResult,liveResult])
+  const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),liveExecution:liveExecution()}))
+  const output=[]
+  for await(const chunk of adapter.stream({...options,model:'auto-live'}))output.push(chunk)
+  assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'完整答复')
+  const finish=output.find(chunk=>chunk.type==='finish') as Record<string,unknown>
+  const replay=((finish.replayState as Record<string,unknown>).response as Record<string,unknown>)
+    .refractagent as Record<string,unknown>
+  assert.equal(replay.planOrigin,'direct-after-probe')
+  assert.deepEqual(replay.routeComparison,routeComparison)
+})
 test('自动路由本地拆分判别只执行一次，并绑定到预检和真实运行',async()=>{
   const decision={contract:'decomposition-decision-v1',ruleVersion:'automatic-decomposition-hybrid-v2',
     inputSha256:'a'.repeat(64),verdict:'SEPARABLE',rawVerdict:'SEPARABLE',confidence:.9,

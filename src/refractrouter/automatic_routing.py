@@ -303,3 +303,64 @@ def choose_route(configuration, *, direct, plan=None, nodes=None, planner=None,
         else:
             audit.update(status='selected', route='direct', reason='direct-cost-not-worse')
     return audit
+
+
+def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
+                              planner_latency_ms=None, tool_allowances=None,
+                              cost_tie_tolerance=1e-9):
+    """比较已通过相同准入的真实执行候选；planner 支出对两条路线都是沉没成本。"""
+    for value, label in ((planner_cost, 'planner_cost'), (judge_cost, 'judge_cost'),
+                         (cost_tie_tolerance, 'cost_tie_tolerance')):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            raise ValueError(f'{label} must be finite and non-negative')
+    if planner_latency_ms is not None and (isinstance(planner_latency_ms, bool)
+            or not isinstance(planner_latency_ms, (int, float))
+            or not math.isfinite(planner_latency_ms) or planner_latency_ms < 0):
+        raise ValueError('planner_latency_ms must be finite and non-negative')
+    tool_allowances = tool_allowances or {'direct': 0.0, 'dag': 0.0}
+    if set(tool_allowances) != {'direct', 'dag'}:
+        raise ValueError('tool allowances require direct and dag')
+    for value in tool_allowances.values():
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            raise ValueError('tool allowance must be finite and non-negative')
+
+    def row(route, name):
+        if not isinstance(route, dict) or route.get('status') != 'selected':
+            return None
+        prediction = route.get('prediction')
+        if not isinstance(prediction, dict):
+            raise ValueError(f'{name} route lacks a prediction')
+        cost, latency = prediction.get('cost'), prediction.get('scheduled_latency_ms')
+        if any(isinstance(value, bool) or not isinstance(value, (int, float))
+               or not math.isfinite(value) or value < 0 for value in (cost, latency)):
+            raise ValueError(f'{name} route has an invalid prediction')
+        return {'worker_cost': cost, 'planner_actual_cost': planner_cost,
+                'judge_estimated_cost': judge_cost, 'tool_allowance_cost': tool_allowances[name],
+                'total_estimated_cost': cost + planner_cost + judge_cost + tool_allowances[name],
+                'worker_scheduled_latency_ms': latency,
+                'known_latency_ms': latency + planner_latency_ms if planner_latency_ms is not None else None,
+                'assignments': route['assignments'],
+                'quality_proxy': prediction['mean_node_quality_proxy']}
+
+    direct_row, dag_row = row(direct, 'direct'), row(dag, 'dag')
+    audit = {'policy_version': 'automatic-live-comparison-v1',
+             'prediction_source': 'compiled-user-declared-node-profiles',
+             'latency_scope': 'worker-schedule-plus-observed-planner; shared-judge-latency-unforecast',
+             'direct': direct_row, 'dag': dag_row,
+             'status': 'selected', 'route': None, 'reason': None}
+    if direct_row is None and dag_row is None:
+        audit.update(status='infeasible', route='infeasible', reason='no-qualified-executable-route')
+    elif direct_row is None:
+        audit.update(route='dag', reason='direct-infeasible')
+    elif dag_row is None:
+        audit.update(route='direct', reason='dag-infeasible')
+    else:
+        delta = dag_row['total_estimated_cost'] - direct_row['total_estimated_cost']
+        if delta < -cost_tie_tolerance:
+            audit.update(route='dag', reason='lower-estimated-total-cost')
+        elif abs(delta) <= cost_tie_tolerance and (
+                dag_row['worker_scheduled_latency_ms'] < direct_row['worker_scheduled_latency_ms']):
+            audit.update(route='dag', reason='cost-tie-shorter-worker-schedule')
+        else:
+            audit.update(route='direct', reason='direct-estimated-cost-not-worse')
+    return audit

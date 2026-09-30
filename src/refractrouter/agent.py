@@ -233,6 +233,14 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         manifest = configured.manifest
         request['qualityMin'] = configured.quality_min
         request['plannerThinking'] = configured.snapshot.get('plannerThinking', 'inherit')
+        if automatic_routing and payload.get('complexityPolicy', 'auto') == 'auto':
+            dag_mode = configured.objective['dagMode']
+            if dag_mode in {'never', 'force'}:
+                gate = {**gate, 'decision': 'direct' if dag_mode == 'never' else 'dag',
+                        'reasons': [f'objective-dag-{dag_mode}'],
+                        'combination': 'objective-dag-mode', 'forced': True}
+                review = review_decision(payload, gate,
+                    policy=payload.get('reviewPolicy', 'adaptive'), tools_allowed=tools_allowed)
     else:
         manifest_file = Path(manifest_path) if manifest_path else Path(str(resource('agent-plan.json')))
         manifest = load_model_manifest(manifest_file)
@@ -351,7 +359,10 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
         context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap,
         privacy=configured.privacy if configured else None,
-        decision_evidence=gate, review_evidence=review, max_model_calls=max_model_calls)
+        decision_evidence=gate, review_evidence=review, max_model_calls=max_model_calls,
+        alternative_direct_plan=(plan_template('single', payload.get('acceptanceCriteria'))
+            if automatic_routing and mode == 'live' and gate['decision'] == 'dag'
+            and configured.objective['dagMode'] == 'auto' else None))
     if result.get('routing_profile'):
         profile = result['routing_profile']
         atomic_json(directory / 'profile.json', profile)
@@ -403,6 +414,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],
         'plan_origin': result['plan_origin'], 'plan': result['plan'], 'dag': dag_snapshot(result, manifest),
         'plan_admission': result.get('plan_admission'),
+        'route_comparison': result.get('route_comparison'),
         'planner': result.get('planner_selection'), 'plan_ready_ms': result.get('plan_ready_ms'),
         'model_call_limit': result.get('model_call_limit'),
         'content_validation': result.get('content_validation'),

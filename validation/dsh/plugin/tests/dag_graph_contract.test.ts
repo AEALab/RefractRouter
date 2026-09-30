@@ -61,6 +61,16 @@ test('自动路由摘要解释规则、本地判别和最终路线',()=>{
   assert.match(summary,/实验能力/)
 })
 
+test('自动路由摘要保留规划后 direct 与 DAG 的估算和选择依据',()=>{
+  const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'CNY',
+    costs:{evaluation:0,unconfirmed:0},cost_breakdown:{planning:.01,execution:.1},
+    result_path:'/tmp/result.json',route_comparison:{status:'selected',route:'direct',
+      reason:'direct-estimated-cost-not-worse',direct:{total_estimated_cost:.12},
+      dag:{total_estimated_cost:.18}}})
+  assert.match(summary,/选中 direct/)
+  assert.match(summary,/direct 预计 0.1200，DAG 预计 0.1800 CNY/)
+})
+
 test('客户端只贡献独立页签，不发起请求或改动原会话渲染器', () => {
   const api = client(); let config: any, View: any
   api.applyGraph({ slots: { inject: (_: string, cb: () => void) => [...(cb() as any)], register: (value: any, component: any) => { config = value; View = component } } })

@@ -453,7 +453,7 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   if (result.strategy !== expectedStrategy || result.mode !== expectedMode
     || result.simulated !== (expectedMode === 'demo')) throw new Error('RefractAgent returned a different strategy or execution mode')
   if (live && (config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
-    || config.template === 'auto') && (!['model','direct-gate'].includes(String(result.plan_origin))
+    || config.template === 'auto') && (!['model','direct-gate','direct-after-probe'].includes(String(result.plan_origin))
     || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
     throw new Error('installed core did not return an automatically generated DAG')
   }
@@ -935,6 +935,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${object(result.quality) ? JSON.stringify({ passed: result.quality.passed, score: result.quality.score }) : '未评审'}；`
         + `长度检查：${formatValidationSummary(result.format_validation)}；`
         + (object(result.plan) && Array.isArray(result.plan.nodes) ? `计划：${String(result.plan_origin)}，${result.plan.nodes.length} 个节点；` : '')
+        + (object(result.route_comparison) ? `执行前路线比较：${JSON.stringify(result.route_comparison)}；` : '')
         + (typeof result.wall_time_ms === 'number' ? `总耗时：${(result.wall_time_ms / 1000).toFixed(2)} 秒；` : '')
         + (typeof result.plan_ready_ms === 'number' ? `计划就绪：${(result.plan_ready_ms / 1000).toFixed(2)} 秒；` : '')
         + (object(result.content_validation) ? `依赖复核：${JSON.stringify(result.content_validation)}；` : '')
@@ -963,6 +964,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
           ...(result.complexity_gate !== undefined ? {complexityGate: result.complexity_gate} : {}),
+          ...(result.route_comparison !== undefined ? {routeComparison: result.route_comparison} : {}),
           ...(result.review !== undefined ? {review: result.review} : {}),
           ...(result.model_call_limit !== undefined ? {modelCallLimit: result.model_call_limit} : {}),
           costs: result.costs, simulated: result.simulated, resultPath: result.result_path,
