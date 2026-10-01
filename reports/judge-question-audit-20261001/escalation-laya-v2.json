@@ -1,0 +1,377 @@
+{
+  "schemaVersion": "escalation-judge-audit-result-v1",
+  "recordedAt": "2026-09-30T17:26:57.122723+00:00",
+  "backend": "local-laya-mlx",
+  "suite": "data/benchmarks/escalation-judge-v2.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "coldStartMs": 868.6720840632915,
+  "matched": 2,
+  "total": 12,
+  "defectsReleased": 0,
+  "proceedsAccepted": 0,
+  "dailyUseAccepted": null,
+  "cases": [
+    {
+      "id": "zh-proceed-tool",
+      "language": "zh",
+      "expected": "PROCEED",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "PROCEED",
+      "confidence": 0.4896,
+      "matched": false,
+      "latencyMs": 38.384083891287446,
+      "usage": {
+        "input_tokens": 173,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1018,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "PROCEED",
+        "probabilities": {
+          "PROCEED": 0.4896,
+          "DEFECT": 0.2149,
+          "STALL": 0.1457,
+          "UNCERTAIN": 0.1498
+        }
+      }
+    },
+    {
+      "id": "en-proceed-failure",
+      "language": "en",
+      "expected": "PROCEED",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.5295,
+      "matched": false,
+      "latencyMs": 41.25779098831117,
+      "usage": {
+        "input_tokens": 271,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1378,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.1075,
+          "DEFECT": 0.5295,
+          "STALL": 0.1927,
+          "UNCERTAIN": 0.1704
+        }
+      }
+    },
+    {
+      "id": "mix-proceed-test",
+      "language": "mixed",
+      "expected": "PROCEED",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "PROCEED",
+      "confidence": 0.3428,
+      "matched": false,
+      "latencyMs": 21.363208070397377,
+      "usage": {
+        "input_tokens": 171,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0173,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "PROCEED",
+        "probabilities": {
+          "PROCEED": 0.3428,
+          "DEFECT": 0.2417,
+          "STALL": 0.195,
+          "UNCERTAIN": 0.2205
+        }
+      }
+    },
+    {
+      "id": "zh-defect-forbidden",
+      "language": "zh",
+      "expected": "DEFECT",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.3945,
+      "matched": false,
+      "latencyMs": 21.727415965870023,
+      "usage": {
+        "input_tokens": 178,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0489,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.1698,
+          "DEFECT": 0.3945,
+          "STALL": 0.164,
+          "UNCERTAIN": 0.2717
+        }
+      }
+    },
+    {
+      "id": "en-defect-network",
+      "language": "en",
+      "expected": "DEFECT",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "PROCEED",
+      "confidence": 0.7544,
+      "matched": false,
+      "latencyMs": 21.59841707907617,
+      "usage": {
+        "input_tokens": 167,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.4272,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "PROCEED",
+        "probabilities": {
+          "PROCEED": 0.7544,
+          "DEFECT": 0.1431,
+          "STALL": 0.0592,
+          "UNCERTAIN": 0.0433
+        }
+      }
+    },
+    {
+      "id": "mix-defect-evidence",
+      "language": "mixed",
+      "expected": "DEFECT",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.3308,
+      "matched": false,
+      "latencyMs": 32.7892501372844,
+      "usage": {
+        "input_tokens": 268,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0311,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.2748,
+          "DEFECT": 0.3308,
+          "STALL": 0.1379,
+          "UNCERTAIN": 0.2566
+        }
+      }
+    },
+    {
+      "id": "zh-stall-final",
+      "language": "zh",
+      "expected": "STALL",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.6404,
+      "matched": false,
+      "latencyMs": 21.31712483242154,
+      "usage": {
+        "input_tokens": 164,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2541,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.1427,
+          "DEFECT": 0.6404,
+          "STALL": 0.0742,
+          "UNCERTAIN": 0.1428
+        }
+      }
+    },
+    {
+      "id": "en-stall-final",
+      "language": "en",
+      "expected": "STALL",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.6047,
+      "matched": false,
+      "latencyMs": 21.342957857996225,
+      "usage": {
+        "input_tokens": 166,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2681,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.255,
+          "DEFECT": 0.6047,
+          "STALL": 0.0974,
+          "UNCERTAIN": 0.0429
+        }
+      }
+    },
+    {
+      "id": "mix-stall-tool",
+      "language": "mixed",
+      "expected": "STALL",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "PROCEED",
+      "confidence": 0.3714,
+      "matched": false,
+      "latencyMs": 55.295916041359305,
+      "usage": {
+        "input_tokens": 298,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.059,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "PROCEED",
+        "probabilities": {
+          "PROCEED": 0.3714,
+          "DEFECT": 0.3116,
+          "STALL": 0.1992,
+          "UNCERTAIN": 0.1178
+        }
+      }
+    },
+    {
+      "id": "zh-uncertain-image",
+      "language": "zh",
+      "expected": "UNCERTAIN",
+      "outcome": "DEFECT",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.9464,
+      "matched": false,
+      "latencyMs": 20.207207882776856,
+      "usage": {
+        "input_tokens": 147,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.8089,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.0101,
+          "DEFECT": 0.9464,
+          "STALL": 0.0219,
+          "UNCERTAIN": 0.0216
+        }
+      }
+    },
+    {
+      "id": "en-uncertain-private",
+      "language": "en",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.4971,
+      "matched": true,
+      "latencyMs": 19.57800006493926,
+      "usage": {
+        "input_tokens": 148,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1058,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.1529,
+          "DEFECT": 0.4971,
+          "STALL": 0.1454,
+          "UNCERTAIN": 0.2046
+        }
+      }
+    },
+    {
+      "id": "mix-uncertain-video",
+      "language": "mixed",
+      "expected": "UNCERTAIN",
+      "outcome": "UNCERTAIN",
+      "rawVerdict": "DEFECT",
+      "confidence": 0.3787,
+      "matched": true,
+      "latencyMs": 19.47766705416143,
+      "usage": {
+        "input_tokens": 149,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0586,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.1732,
+          "DEFECT": 0.3787,
+          "STALL": 0.1346,
+          "UNCERTAIN": 0.3134
+        }
+      }
+    }
+  ]
+}

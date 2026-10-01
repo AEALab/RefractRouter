@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "tool-judge-jev-replay-preflight-v1",
+  "model": "jev-1.13.0",
+  "source": "已完成的 DSH 工具任务 Judge 输入",
+  "questionMethod": "choice-v2",
+  "caseCount": 6,
+  "maximumRequests": 6,
+  "httpRetries": 0,
+  "maxInputTokensPerCall": 64000,
+  "maximumUsd": 0.016128,
+  "sourceSha256": {
+    "advisor-normal-v3": "dc12b6232dc5899f008a1fc083549dc80adf9281d68e8c2531c1a94a81044eae",
+    "advisor-redo-v5": "d85df14673c8dae8c07656a230745b7644d117acae47879e2b29bed15ff227fa",
+    "escalation-normal-v4": "f7b3845f1ba4197afd809dc05755191f9d3b137ed9aaf8199da268c96f809df7",
+    "escalation-defect-v4": "e722827d9c769ee75a432a48a8385354cd48e97475414d1ad6d77262f198b189"
+  },
+  "contractSha256": "81ec93bc1a6d18e91a4516dfc733ae61afc3187a38964c32527d30ec36cc5fc4",
+  "note": "事后重放只比较 Judge 判别；不会重新执行宿主工具，也不证明官方 Jev 已接入 Router 产品运行路径。"
+}

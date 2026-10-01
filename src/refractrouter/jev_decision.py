@@ -1,4 +1,4 @@
-"""官方 Jev 的结构化判别适配；与本地 Laya 共用规划路由问题及判定规则。"""
+"""官方 Jev 的结构化判别适配；复用规划路由的题目和判定规则。"""
 
 from __future__ import annotations
 
@@ -7,7 +7,9 @@ import os
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from .planning_decision import LayaDecisionAdapter, LocalDecisionCapacityError
+from .jev_choice_gate import VERSION as CHOICE_GATE_VERSION, evaluate_choice
+from .planning_decision import (LayaDecisionAdapter, LocalDecisionCapacityError,
+                                advisor_choice_feedback)
 
 
 JEV_MODEL = "jev-1.13.0"
@@ -16,7 +18,7 @@ JEV_INPUT_USD_PER_MILLION = 0.042
 
 
 class JevClient:
-    """单次 HTTP 请求；不安装会隐式重试的 SDK，不记录密钥。"""
+    """单次 HTTP 请求，不使用 SDK 的隐式重试，也不记录密钥。"""
 
     batch_size = 1000
 
@@ -31,17 +33,16 @@ class JevClient:
         if not isinstance(questions, dict) or not questions:
             raise ValueError("Jev 问题不能为空")
         payload = {"state": state, "model": JEV_MODEL, "questions": questions}
-        data = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        request = Request(JEV_ENDPOINT, data=data, headers={
-            "Authorization": "Bearer " + self._api_key,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }, method="POST")
+        request = Request(JEV_ENDPOINT,
+                          data=json.dumps(payload, ensure_ascii=False,
+                                          separators=(",", ":")).encode("utf-8"),
+                          headers={"Authorization": "Bearer " + self._api_key,
+                                   "Content-Type": "application/json",
+                                   "Accept": "application/json"}, method="POST")
         try:
             with self._transport(request, timeout=self.timeout_seconds) as response:
                 raw = response.read()
         except HTTPError as exc:
-            # 服务端正文可能包含原始输入，不写进日志或异常。
             raise ValueError(f"Jev HTTP {exc.code}；此次调用不会自动重试") from None
         except (URLError, TimeoutError, OSError):
             raise ValueError("Jev 传输结果未确认；此次调用不会自动重试") from None
@@ -61,18 +62,21 @@ class JevClient:
 
 
 class JevDecisionAdapter(LayaDecisionAdapter):
-    """只替换推论后端；冻结问题模板、阈值和规划策略映射。"""
+    """只替换推论后端，保持同一题目与策略阈值。"""
 
     def __init__(self, *, api_key: str | None = None, method: str = "choice-v2",
-                 timeout_seconds: float = 30, transport=None):
+                 timeout_seconds: float = 30, transport=None,
+                 action_gate: str | None = None):
+        if action_gate not in (None, CHOICE_GATE_VERSION):
+            raise ValueError("Jev 动作门槛版本不兼容")
         key = api_key or os.environ.get("TYPESAFE_API_KEY")
         self.agent = JevClient(key or "", timeout_seconds=timeout_seconds, transport=transport)
         self.model = JEV_MODEL
         self.method = method
+        self.action_gate = action_gate
         self.cold_start_ms = None
 
     def _ensure_complete(self, state, questions):
-        # 官方 32k state + 最长问题、64k 请求限制。按 UTF-8 字节保守阻断；不截断。
         state_bytes = len(json.dumps(state, ensure_ascii=False).encode("utf-8"))
         longest = max(len(json.dumps(item, ensure_ascii=False).encode("utf-8"))
                       for item in questions.values())
@@ -80,3 +84,29 @@ class JevDecisionAdapter(LayaDecisionAdapter):
                                ensure_ascii=False).encode("utf-8"))
         if state_bytes + longest > 32000 or total > 64000:
             raise LocalDecisionCapacityError("Jev 输入超过保守容量上限；没有截断或发起调用")
+
+    def decide_advisor(self, request):
+        result = super().decide_advisor(request)
+        if self.action_gate is None:
+            return result
+        gate = evaluate_choice(result.payload["raw"], strategy="advisor")
+        choice = gate["rawChoice"] if gate["accepted"] else "UNRESOLVED"
+        feedback = advisor_choice_feedback(choice)
+        result.payload.update({"verdict": "REDO" if feedback else choice,
+                               "feedback": feedback, "choiceGate": gate,
+                               "ruleVersion": CHOICE_GATE_VERSION,
+                               "selectedProbability": gate["selectedProbability"],
+                               "choiceConfidence": gate["choiceConfidence"]})
+        return result
+
+    def decide_escalation(self, request):
+        result = super().decide_escalation(request)
+        if self.action_gate is None:
+            return result
+        gate = evaluate_choice(result.payload["raw"], strategy="escalation",
+                               finish_reason=request.get("candidateFinishReason"))
+        result.payload.update({"verdict": gate["rawChoice"] if gate["accepted"] else "UNCERTAIN",
+                               "choiceGate": gate, "ruleVersion": CHOICE_GATE_VERSION,
+                               "selectedProbability": gate["selectedProbability"],
+                               "choiceConfidence": gate["choiceConfidence"]})
+        return result

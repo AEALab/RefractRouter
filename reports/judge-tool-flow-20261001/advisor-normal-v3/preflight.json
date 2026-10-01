@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "real-judge-tool-flow-preflight-v1",
+  "scenario": "advisor-normal",
+  "client": "DSH 0.1.5-rc.3",
+  "strategy": "advisor",
+  "executor": "local deterministic fixture",
+  "judge": "ark/deepseek-v4-flash",
+  "maxRemoteJudgeCalls": 2,
+  "maxInputTokensPerJudgeCall": 65536,
+  "maxOutputTokensPerJudgeCall": 1024,
+  "maximumAfp": 6.656,
+  "maximumFourFlowsAfp": 26.624,
+  "httpRetries": 0,
+  "hostTool": "refract_local_echo",
+  "fixtureCallsHaveApiCost": false,
+  "configSha256": "91a1a25c71707d3ef822447b401f22341ef6e379cc289cfc4ae0f71c5e5201b2",
+  "coreSha256": "e448ee3f82fb8bb066fec96197f0790d7d8d726fd8057772549730143cffd620"
+}

@@ -1,0 +1,587 @@
+{
+  "schemaVersion": "judge-backend-comparison-v2",
+  "preflight": {
+    "schemaVersion": "judge-backend-comparison-preflight-v1",
+    "caseCount": 21,
+    "httpRequestsPerBackend": 21,
+    "httpRetries": 0,
+    "excludedFromScore": {
+      "escalation": [
+        "mix-stall-tool"
+      ]
+    },
+    "jev": {
+      "model": "jev-1.13.0",
+      "priceUsdPerMillionInputTokens": 0.042,
+      "maximumUsd": 0.056448
+    },
+    "llm": {
+      "model": "deepseek-v4-flash",
+      "provider": "ark-plan",
+      "maximumAfp": 68.2752,
+      "outputTokensPerCall": 1024
+    },
+    "suites": {
+      "advisor": {
+        "sha256": "0db2a3cfa1429e7edb10e8131b304a5825b4d339bf8b0a67e738420d60270e28",
+        "cases": 9
+      },
+      "escalation": {
+        "sha256": "2a194b6066b00c4034e0bbb54af4d179f5a4d3bd45e6c45139f8f1690d0e3bbf",
+        "cases": 12
+      }
+    },
+    "contracts": {
+      "advisor": "4951c975c4866bfc96018835fcf7bc4df648b45de5629b61a8b0ae667fa917c0",
+      "escalation": "61ae4f7e882e19792929259884be0df658df8584f13306dba1eec576fb42fc75"
+    },
+    "note": "含一条事先标记的歧义题；所有后端均执行，但不纳入符合率。费用上界按每请求 64k 输入和 LLM 1024 输出 tokens 计算；普通 LLM 使用此前核对的 Agent Plan AFP 路线价格。"
+  },
+  "summary": {
+    "advisor": {
+      "scored": 9,
+      "excluded": 0,
+      "laya": {
+        "matched": 3,
+        "medianLatencyMs": 26.75429219380021,
+        "defectsReleased": 1
+      },
+      "jev": {
+        "matched": 9,
+        "medianLatencyMs": 438.8335000257939,
+        "defectsReleased": 0
+      },
+      "llm": {
+        "matched": 9,
+        "medianLatencyMs": 1352,
+        "defectsReleased": 0
+      }
+    },
+    "escalation": {
+      "scored": 11,
+      "excluded": 1,
+      "laya": {
+        "matched": 2,
+        "medianLatencyMs": 21.363208070397377,
+        "defectsReleased": 0
+      },
+      "jev": {
+        "matched": 10,
+        "medianLatencyMs": 428.43462503515184,
+        "defectsReleased": 0
+      },
+      "llm": {
+        "matched": 9,
+        "medianLatencyMs": 1839,
+        "defectsReleased": 0
+      }
+    }
+  },
+  "cases": [
+    {
+      "suite": "advisor",
+      "id": "zh-qualified-exit",
+      "expected": "APPROVE",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": false,
+        "latencyMs": 59.60245802998543
+      },
+      "jev": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 491.83216597884893
+      },
+      "llm": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 944
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "en-qualified-name",
+      "expected": "APPROVE",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": false,
+        "latencyMs": 45.05012510344386
+      },
+      "jev": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 457.5930421706289
+      },
+      "llm": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 1255
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "mix-qualified-recheck",
+      "expected": "APPROVE",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": false,
+        "latencyMs": 28.038749936968088
+      },
+      "jev": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 406.20812494307756
+      },
+      "llm": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 948
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "zh-defect-exit",
+      "expected": "REDO",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": false,
+        "latencyMs": 40.127041982486844
+      },
+      "jev": {
+        "outcome": "REDO",
+        "rawVerdict": "REDO_EVIDENCE",
+        "matched": true,
+        "latencyMs": 445.4147501382977
+      },
+      "llm": {
+        "outcome": "REDO",
+        "rawVerdict": "REDO",
+        "matched": true,
+        "latencyMs": 2197
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "en-defect-prohibition",
+      "expected": "REDO",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": false,
+        "latencyMs": 26.75429219380021
+      },
+      "jev": {
+        "outcome": "REDO",
+        "rawVerdict": "REDO_REQUIREMENT",
+        "matched": true,
+        "latencyMs": 392.74429087527096
+      },
+      "llm": {
+        "outcome": "REDO",
+        "rawVerdict": "REDO",
+        "matched": true,
+        "latencyMs": 2148
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "mix-defect-format",
+      "expected": "REDO",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "APPROVE",
+        "rawVerdict": "APPROVE",
+        "matched": false,
+        "latencyMs": 26.30020910874009
+      },
+      "jev": {
+        "outcome": "REDO",
+        "rawVerdict": "REDO_REQUIREMENT",
+        "matched": true,
+        "latencyMs": 422.0609168987721
+      },
+      "llm": {
+        "outcome": "REDO",
+        "rawVerdict": "REDO",
+        "matched": true,
+        "latencyMs": 1934
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "zh-insufficient-private",
+      "expected": "UNRESOLVED",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 26.572250062599778
+      },
+      "jev": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "REDO_EVIDENCE",
+        "matched": true,
+        "latencyMs": 407.4032078497112
+      },
+      "llm": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "UNRESOLVED",
+        "matched": true,
+        "latencyMs": 1685
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "en-insufficient-image",
+      "expected": "UNRESOLVED",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 26.47445909678936
+      },
+      "jev": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "UNRESOLVED",
+        "matched": true,
+        "latencyMs": 470.74654093012214
+      },
+      "llm": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "UNRESOLVED",
+        "matched": true,
+        "latencyMs": 1022
+      }
+    },
+    {
+      "suite": "advisor",
+      "id": "mix-insufficient-video",
+      "expected": "UNRESOLVED",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "APPROVE",
+        "matched": true,
+        "latencyMs": 26.55283291824162
+      },
+      "jev": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "UNRESOLVED",
+        "matched": true,
+        "latencyMs": 438.8335000257939
+      },
+      "llm": {
+        "outcome": "UNRESOLVED",
+        "rawVerdict": "UNRESOLVED",
+        "matched": true,
+        "latencyMs": 1352
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "zh-proceed-tool",
+      "expected": "PROCEED",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "PROCEED",
+        "matched": false,
+        "latencyMs": 38.384083891287446
+      },
+      "jev": {
+        "outcome": "PROCEED",
+        "rawVerdict": "PROCEED",
+        "matched": true,
+        "latencyMs": 380.1995839457959
+      },
+      "llm": {
+        "outcome": "PROCEED",
+        "rawVerdict": "PROCEED",
+        "matched": true,
+        "latencyMs": 1420
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "en-proceed-failure",
+      "expected": "PROCEED",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 41.25779098831117
+      },
+      "jev": {
+        "outcome": "PROCEED",
+        "rawVerdict": "PROCEED",
+        "matched": true,
+        "latencyMs": 447.19254109077156
+      },
+      "llm": {
+        "outcome": "PROCEED",
+        "rawVerdict": "PROCEED",
+        "matched": true,
+        "latencyMs": 2059
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "mix-proceed-test",
+      "expected": "PROCEED",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "PROCEED",
+        "matched": false,
+        "latencyMs": 21.363208070397377
+      },
+      "jev": {
+        "outcome": "PROCEED",
+        "rawVerdict": "PROCEED",
+        "matched": true,
+        "latencyMs": 408.4035421255976
+      },
+      "llm": {
+        "outcome": "PROCEED",
+        "rawVerdict": "PROCEED",
+        "matched": true,
+        "latencyMs": 1594
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "zh-defect-forbidden",
+      "expected": "DEFECT",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 21.727415965870023
+      },
+      "jev": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 409.7350840456784
+      },
+      "llm": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 1821
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "en-defect-network",
+      "expected": "DEFECT",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "PROCEED",
+        "matched": false,
+        "latencyMs": 21.59841707907617
+      },
+      "jev": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 510.81954198889434
+      },
+      "llm": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 1625
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "mix-defect-evidence",
+      "expected": "DEFECT",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 32.7892501372844
+      },
+      "jev": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 508.92391707748175
+      },
+      "llm": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 1986
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "zh-stall-final",
+      "expected": "STALL",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 21.31712483242154
+      },
+      "jev": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "STALL",
+        "matched": false,
+        "latencyMs": 428.43462503515184
+      },
+      "llm": {
+        "outcome": "STALL",
+        "rawVerdict": "STALL",
+        "matched": true,
+        "latencyMs": 1591
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "en-stall-final",
+      "expected": "STALL",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 21.342957857996225
+      },
+      "jev": {
+        "outcome": "STALL",
+        "rawVerdict": "STALL",
+        "matched": true,
+        "latencyMs": 491.8499169871211
+      },
+      "llm": {
+        "outcome": "STALL",
+        "rawVerdict": "STALL",
+        "matched": true,
+        "latencyMs": 2029
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "mix-stall-tool",
+      "expected": "STALL",
+      "excludedFromScore": true,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "PROCEED",
+        "matched": false,
+        "latencyMs": 55.295916041359305
+      },
+      "jev": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 411.506500095129
+      },
+      "llm": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 1430
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "zh-uncertain-image",
+      "expected": "UNCERTAIN",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 20.207207882776856
+      },
+      "jev": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 405.7119160424918
+      },
+      "llm": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "UNCERTAIN",
+        "matched": true,
+        "latencyMs": 2178
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "en-uncertain-private",
+      "expected": "UNCERTAIN",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 19.57800006493926
+      },
+      "jev": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "UNCERTAIN",
+        "matched": true,
+        "latencyMs": 435.77762483619153
+      },
+      "llm": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 1839
+      }
+    },
+    {
+      "suite": "escalation",
+      "id": "mix-uncertain-video",
+      "expected": "UNCERTAIN",
+      "excludedFromScore": false,
+      "laya": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 19.47766705416143
+      },
+      "jev": {
+        "outcome": "UNCERTAIN",
+        "rawVerdict": "DEFECT",
+        "matched": true,
+        "latencyMs": 403.6209159530699
+      },
+      "llm": {
+        "outcome": "DEFECT",
+        "rawVerdict": "DEFECT",
+        "matched": false,
+        "latencyMs": 2118
+      }
+    }
+  ],
+  "limitations": "人工小题集只比较判别结果；不代表完整 Agent 任务成功率。Jev 与 Laya 共用 Choice 题目；普通 LLM 使用各策略 JSON 合同。计费单位分列，不直接加总或换算。"
+}

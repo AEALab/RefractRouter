@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "judge-backend-comparison-preflight-v1",
+  "caseCount": 21,
+  "httpRequestsPerBackend": 21,
+  "httpRetries": 0,
+  "excludedFromScore": {
+    "escalation": [
+      "mix-stall-tool"
+    ]
+  },
+  "jev": {
+    "model": "jev-1.13.0",
+    "priceUsdPerMillionInputTokens": 0.042,
+    "maximumUsd": 0.056448
+  },
+  "llm": {
+    "model": "deepseek-v4-flash",
+    "provider": "ark-plan",
+    "maximumAfp": 68.2752,
+    "outputTokensPerCall": 1024
+  },
+  "suites": {
+    "advisor": {
+      "sha256": "0db2a3cfa1429e7edb10e8131b304a5825b4d339bf8b0a67e738420d60270e28",
+      "cases": 9
+    },
+    "escalation": {
+      "sha256": "2a194b6066b00c4034e0bbb54af4d179f5a4d3bd45e6c45139f8f1690d0e3bbf",
+      "cases": 12
+    }
+  },
+  "contracts": {
+    "advisor": "4951c975c4866bfc96018835fcf7bc4df648b45de5629b61a8b0ae667fa917c0",
+    "escalation": "61ae4f7e882e19792929259884be0df658df8584f13306dba1eec576fb42fc75"
+  },
+  "note": "含一条事先标记的歧义题；所有后端均执行，但不纳入符合率。费用上界按每请求 64k 输入和 LLM 1024 输出 tokens 计算；普通 LLM 使用此前核对的 Agent Plan AFP 路线价格。"
+}

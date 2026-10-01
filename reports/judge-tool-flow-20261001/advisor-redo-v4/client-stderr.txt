@@ -1,0 +1,20 @@
+file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js:1803
+				throw new LlmError(message, httpErrorCode(response.status, providerError), {
+				      ^
+
+LlmError: 审核未通过或返工次数耗尽
+    at DeepSeekAdapter.request (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js:1803:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    ... 2 lines matching cause stack trace ...
+    at async file:///Users/chun-hsianglee/.codex/worktrees/80c0/RefractRouter/validation/dsh/plugin/scripts/check-gateway-tools.ts:32:18 {
+  code: 'INVALID_REQUEST',
+  failure: { message: '审核未通过或返工次数耗尽', code: 'INVALID_REQUEST', status: 400 },
+  [cause]: Error: {"error": {"message": "审核未通过或返工次数耗尽", "type": "invalid_request_error"}}
+      at DeepSeekAdapter.request (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js:1804:13)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Object.next (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-timeout/lib/index.js:106:12)
+      at async DeepSeekAdapter.streamWithConnection (file:///Users/chun-hsianglee/.local/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm-deepseek/lib/index.js:1634:21)
+      at async file:///Users/chun-hsianglee/.codex/worktrees/80c0/RefractRouter/validation/dsh/plugin/scripts/check-gateway-tools.ts:32:18
+}
+
+Node.js v22.22.3

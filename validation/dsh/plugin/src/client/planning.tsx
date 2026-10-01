@@ -446,7 +446,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           {draft.task.pool.map(id=><option key={id} value={id}>{id}</option>)}</select></label>
         <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.task.judge.type} onChange={e=>patch({task:{...draft.task!,judge:e.target.value==='local-decision'
           ?{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',
-            revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'ordinal-v1'}
+            revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'ordinal-v2'}
           :{type:'llm',modelId:draft.roles?.classifier??draft.task!.pool[0]}}})}>
           <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option></select></label>
         {draft.task.judge.type==='local-decision'&&<p className="rra-field-hint">模型已就绪只表示本地推论可运行；选模质量需用有标注任务验证。不确定时使用上方指定备援。</p>}
@@ -468,8 +468,8 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
               <button className="rra-button rra-button-secondary" type="button" disabled={busy||!localJudgeStatus?.loaded} onClick={()=>void operateLocalJudge('unload')}>卸载</button></div>
           </div>}
         <details className="rra-details"><summary>Task 高级参数</summary><div className="rra-planning-fields">
-          {draft.task.judge.type==='local-decision'&&<label className="rra-compact-field">本地判别问法 <select className="rra-select" value={draft.task.judge.method??'ordinal-v1'} onChange={e=>patch({task:{...draft.task!,judge:{...draft.task!.judge as Extract<typeof draft.task.judge,{type:'local-decision'}>,method:e.target.value as 'ordinal-v1'|'choice-v2'}}})}>
-            <option value="ordinal-v1">逐候选评分（支持费用排序）</option><option value="choice-v2">候选直选（实验）</option></select><span className="rra-field-hint">直选只评价被选中的候选，无法证明其他候选也达到质量门槛，因此不能进行候选间费用排序。两种问法的分数不能相互比较，实验问法尚未通过真实选模质量验收。</span></label>}
+          {draft.task.judge.type==='local-decision'&&<label className="rra-compact-field">本地判别问法 <select className="rra-select" value={draft.task.judge.method??'ordinal-v1'} onChange={e=>patch({task:{...draft.task!,judge:{...draft.task!.judge as Extract<typeof draft.task.judge,{type:'local-decision'}>,method:e.target.value as 'ordinal-v1'|'ordinal-v2'|'choice-v2'}}})}>
+            <option value="ordinal-v2">逐候选能力覆盖评分（实验）</option><option value="choice-v2">候选直选（实验）</option><option value="ordinal-v1">旧版逐候选评分（历史兼容）</option></select><span className="rra-field-hint">有序评分只衡量已核对能力覆盖程度，另以是非题检查信息缺口；直选概率只表示相对选择确定性。两者都不表示任务成功率，尚未通过真实选模质量验收。</span></label>}
           <label className="rra-compact-field">每次执行输出上限 <input className="rra-input" type="number" min="256" step="1" value={draft.task.maxExecutionOutputTokens??8192} onChange={e=>patch({task:{...draft.task!,maxExecutionOutputTokens:Number(e.target.value)}})}/><span className="rra-field-hint">默认 8192 tokens。模型目录的输出容量是接口上限；预算按这里的实际执行上限预留。宿主设置更小时，以较小值为准。</span></label>
           <label className="rra-compact-field">Judge 输出上限 <input className="rra-input" type="number" min="64" max="16384" step="1" value={draft.task.maxJudgeOutputTokens??1024} onChange={e=>patch({task:{...draft.task!,maxJudgeOutputTokens:Number(e.target.value)}})}/><span className="rra-field-hint">仅轻量 LLM Judge 使用；默认 1024 tokens，预算按此上限预留。</span></label>
           <label className="rra-compact-field">{draft.task.judge.type==='local-decision'&&draft.task.judge.method==='choice-v2'?'选择概率门槛':'适合度门槛'} <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.task.threshold??.8} onChange={e=>patch({task:{...draft.task!,threshold:Number(e.target.value)}})}/><span className="rra-field-hint">默认 0.8，为待校准的产品初始值，不表示任务成功率。</span></label>
@@ -736,6 +736,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
 }
 type TaskRouteEvidence={candidateId?:string;reason?:string;costBasis?:string;latencyBasis?:string;
   selectedRole?:string;pSolve?:number|null;capabilityBoundary?:string|null;threshold?:number|null;
+  scoreKind?:string;selectionProbability?:number;rawChoice?:{choice?:string};uncertain?:boolean;
   candidateAssessments?:Array<{candidateId:string;score:number;missingInformation:number;qualified:boolean}>;
   firstCallUpperBounds?:Record<string,{amount:number;unit:string}>;qualifiedCandidates?:string[];
   decision?:TaskRouteEvidence}
@@ -831,8 +832,12 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
     {row.decision?.answers!==undefined&&<pre>{JSON.stringify(row.decision.answers,null,2)}</pre>}
   </details>
   const value=row.judgeDecision?.decision??row.judgeDecision??row.decision
-  if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length&&value?.pSolve===undefined)return null
+  if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length&&value?.pSolve===undefined
+      &&value?.selectionProbability===undefined)return null
   return <details><summary>查看 Task 判别依据</summary>
+    {value?.selectionProbability!==undefined&&<p>Judge 原始选择：{value.rawChoice?.choice??value.candidateId??'未记录'}；
+      获选项概率 {value.selectionProbability.toFixed(3)}（不是候选绝对适合度或任务成功率）；
+      Router 动作：{value.uncertain?'按配置使用备援或停止':'采用该候选'}。</p>}
     {value?.pSolve!==undefined&&<p>高效模型完成任务的判别分数：{value.pSolve?.toFixed(3)??'无有效分数'}；
       能力边界：{value.capabilityBoundary??'未确认'}；判别门槛：{value.threshold?.toFixed(3)??'未确认'}；
       选中：{value.candidateId??'未确认'}。</p>}
@@ -852,7 +857,7 @@ function Trace({load}:{load:()=>Promise<History>}){
     const refresh=()=>void load().then(v=>{if(active)setData(v)}).catch(e=>{if(active)setError(errorText(e))})
     refresh();const timer=setInterval(refresh,2500);return()=>{active=false;clearInterval(timer)}
   },[load])
-  return <section style={{padding:24}}><h2>路由轨迹</h2><p>只统计当前受管 Agent；普通 DSH 子模型费用尚未汇总。</p>
+  return <section style={{padding:24}}><h2>路由轨迹</h2><p>这里区分 Judge 原始答案与 Router 最终动作；任务运行状态不等于质量已通过独立验收。只统计当前受管 Agent，普通 DSH 子模型费用尚未汇总。</p>
     <p role="status">{error}</p>{!data?.records.length&&<p>尚无规划路由记录。</p>}
     {data?.records.map(r=><article key={r.runId}><h3>{PLANNING_NAMES[r.strategy as PlanningStrategy]??r.strategy} · {STATUS[r.status]??`已停止：${r.status}`}</h3>
       {r.billingWarning?<p>{traceAmount(r.costs.production)}（单位待核对）</p>:
@@ -867,9 +872,9 @@ function Trace({load}:{load:()=>Promise<History>}){
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{DISPOSITION[c.disposition]??c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}{(c as unknown as {review_status?:string}).review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
           <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
-            {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（评分 ${d.score.toFixed(3)}）`:''}
+            {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
-            {d.backend==='local-decision'?`；本地 ${d.adapter??d.decision?.adapter??'Judge'} 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，确定性 ${d.confidence.toFixed(3)}`:''}`:''}
+            {d.backend==='local-decision'?`；本地 ${d.adapter??d.decision?.adapter??'Judge'} 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，获选项概率 ${d.confidence.toFixed(3)}`:''}`:''}
             {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
             {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
             <br/><small>{d.evidenceSummary??(d.decision?.backend?`后端 ${d.decision.backend}`:'本次未记录独立证据摘要')}

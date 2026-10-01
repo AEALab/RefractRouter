@@ -182,7 +182,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
       modelPath:String(inherited?.modelPath??''),sourceModel:String(inherited?.sourceModel??'aac6fef/laya-multilingual-mlx'),
       revision:String(inherited?.revision??'f2b4faf51023039425946074e2cf1361d2db11d5'),
       device:(inherited?.device??'gpu') as 'gpu'|'metal'|'cpu',
-      dtype:(inherited?.dtype??'float16') as 'float16'|'float32'|'bfloat16',method:'choice-v2' as const}
+      dtype:(inherited?.dtype??'float16') as 'float16'|'float32'|'bfloat16',method:'noul-v1' as const}
   }
   const patchDecomposition=(patch:Partial<NonNullable<LiveExecutionView['decompositionDecision']>>)=>
     updateLive({decompositionDecision:{...decomposition,...patch}})
@@ -389,7 +389,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                         maxInputBytes:decomposition.maxInputBytes??65536}
                       :{mode:'rules',allowExperimental:undefined,judge:undefined})
                   }}><option value="rules">仅规则（默认）</option><option value="hybrid">规则＋本地 Laya（实验）</option></select>
-                  <span className="rra-field-hint">本地模型只判断工作是否可分离；Python 仍负责准入、费用和最终 direct／DAG 决策。</span></label>
+                  <span className="rra-field-hint">本地模型回答「是否依赖前步结果」与「能否独立开始」两项是非题；Python 仍负责准入、费用和最终 direct／DAG 决策。旧配置的 choice-v2 仅是历史误名，实际也执行这两项是非题。</span></label>
                 {decomposition.mode==='hybrid'&&decomposition.judge?<><div className="rra-grid rra-grid-2">
                   <label className="rra-compact-field">本地权重目录<input className="rra-input" disabled={disabled}
                     value={decomposition.judge.modelPath} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,modelPath:event.target.value}})}/></label>
