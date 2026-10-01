@@ -62,8 +62,11 @@ export class PlanningWorker implements PlanningRpc {
     const id=randomUUID(),line=JSON.stringify({protocol:PLANNING_PROTOCOL,id,...value})+'\n'
     if(Buffer.byteLength(line)>16*1024*1024)throw new Error('规划路由请求过大')
     return new Promise((resolve,reject)=>{
-      const timeout=value.op==='local-judge'&&value.action==='download'?15*60*1000:
-        value.op==='local-judge'&&value.action==='load'?5*60*1000:30000
+      const localOperation=value.op==='local-judge'||value.op==='automatic-local-judge'
+      const timeout=localOperation&&value.action==='download'?15*60*1000:
+        localOperation&&value.action==='load'?5*60*1000:
+        value.op==='decomposition-decision'&&Number.isInteger(value.timeoutMs)
+          ?Math.min(305000,Number(value.timeoutMs)+5000):30000
       const timer=setTimeout(()=>{
         this.fail(new Error('规划路由进程响应超时；不自动重新派发'));this.handle?.terminate?.()
       },timeout)
@@ -209,8 +212,25 @@ export class PlanningController {
   async localJudge(config:Json,action:'status'|'download'|'load'|'unload',target?:string):Promise<Json>{
     return this.rpc.request({op:'local-judge',config,action,target,confirmed:action==='download'})
   }
+  async automaticLocalJudge(judge:Json,action:'status'|'download'|'load'|'unload'):Promise<Json>{
+    await this.ensureHandshake(false,false,true)
+    return this.rpc.request({op:'automatic-local-judge',judge,action,confirmed:action==='download'})
+  }
+  async localBackends():Promise<Json>{
+    await this.ensureHandshake(false,false,false,true)
+    return this.rpc.request({op:'local-backends'})
+  }
+  async decompositionDecision(config:NonNullable<Configuration['liveExecution']>['decompositionDecision'],
+    task:string,context:string):Promise<Json>{
+    await this.ensureHandshake(false,false,true)
+    if(!config||config.mode!=='hybrid'||!config.judge)throw new Error('自动路由未启用本地拆分判别')
+    return this.rpc.request({op:'decomposition-decision',judge:config.judge,task,context,
+      threshold:config.threshold??.65,timeoutMs:config.timeoutMs??30000,
+      maxInputBytes:config.maxInputBytes??65536})
+  }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
-  private async ensureHandshake(hybridStage=false,compositeV6=false):Promise<void>{
+  private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
+    localBackends=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -223,6 +243,10 @@ export class PlanningController {
       throw new Error('当前核心不支持 Stage 本地 Judge；请升级核心')
     if(compositeV6&&(!capabilities.includes('planning-routing-v6')||!capabilities.includes('composite-task-stage-v1')))
       throw new Error('当前核心不支持新版 Composite；请同时升级核心和插件')
+    if(decomposition&&!capabilities.includes('decomposition-decision-v1'))
+      throw new Error('当前核心不支持自动路由本地拆分判别；请同时升级核心和插件')
+    if(localBackends&&!capabilities.includes('local-decision-backends-v1'))
+      throw new Error('当前核心不支持本地 Judge 后端目录；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')

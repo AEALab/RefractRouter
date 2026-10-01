@@ -35,6 +35,9 @@ export interface RefractCardOwnerProps {
   loadCatalog():Promise<DshModelCatalog>
   loadRouterProjects(connection:{url:string;credential?:string}):Promise<RouterProjectDirectory>
   loadRouteProfiles(connection?:{url:string;credential?:string;project?:string}):Promise<RouteLatencyDirectory>
+  automaticLocalJudge(judge:NonNullable<NonNullable<LiveExecutionView['decompositionDecision']>['judge']>,
+    action:'status'|'download'|'load'|'unload'):Promise<{installed:boolean;downloaded:boolean;loaded:boolean;
+      path:string;sourceModel:string;revision:string;revisionVerified:boolean;sizeBytes:number}>
   resetField(field: CardField): void
   save(): void
   discard(): void
@@ -138,6 +141,10 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const [routerError,setRouterError]=useState<string|undefined>()
   const [routeProfiles,setRouteProfiles]=useState<RouteLatencyDirectory|undefined>()
   const [routeProfilesError,setRouteProfilesError]=useState<string|undefined>()
+  const [automaticJudgeStatus,setAutomaticJudgeStatus]=useState<{installed:boolean;downloaded:boolean;loaded:boolean;
+    path:string;sourceModel:string;revision:string;revisionVerified:boolean;sizeBytes:number}>()
+  const [automaticJudgeError,setAutomaticJudgeError]=useState<string>()
+  const [automaticJudgeBusy,setAutomaticJudgeBusy]=useState(false)
   useEffect(()=>{let active=true;void props.loadCatalog().then(value=>{if(active){setCatalog(value);setCatalogError(undefined)}})
     .catch(error=>{if(active)setCatalogError(error instanceof Error?error.message:String(error))});return()=>{active=false}},[])
   useEffect(()=>{let active=true
@@ -165,6 +172,28 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const live=state.liveExecution??{schemaVersion:'refractagent-live-execution-v1' as const,enabled:false,
     complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const}
   const updateLive=(patch:Partial<LiveExecutionView>)=>props.editLiveExecution({...live,...patch})
+  const decomposition=live.decompositionDecision??{mode:'rules' as const}
+  const defaultAutomaticJudge=()=>{
+    const planning=state.planningRouting as any
+    const inherited=[planning?.stage?.judge,planning?.task?.judge,planning?.advisor?.judge,
+      planning?.escalation?.judge,planning?.composite?.judge,planning?.composite?.stage?.judge]
+      .find((entry:any)=>entry?.type==='local-decision'&&entry?.adapter==='laya-mlx')
+    return {type:'local-decision' as const,adapter:'laya-mlx' as const,
+      modelPath:String(inherited?.modelPath??''),sourceModel:String(inherited?.sourceModel??'aac6fef/laya-multilingual-mlx'),
+      revision:String(inherited?.revision??'f2b4faf51023039425946074e2cf1361d2db11d5'),
+      device:(inherited?.device??'gpu') as 'gpu'|'metal'|'cpu',
+      dtype:(inherited?.dtype??'float16') as 'float16'|'float32'|'bfloat16',method:'choice-v2' as const}
+  }
+  const patchDecomposition=(patch:Partial<NonNullable<LiveExecutionView['decompositionDecision']>>)=>
+    updateLive({decompositionDecision:{...decomposition,...patch}})
+  const operateAutomaticJudge=async(action:'status'|'download'|'load'|'unload')=>{
+    const judge=decomposition.judge
+    if(!judge){setAutomaticJudgeError('请先填写本地 Judge 配置');return}
+    setAutomaticJudgeBusy(true);setAutomaticJudgeError(undefined)
+    try{setAutomaticJudgeStatus(await props.automaticLocalJudge(judge,action))}
+    catch(error){setAutomaticJudgeError(error instanceof Error?error.message:String(error))}
+    finally{setAutomaticJudgeBusy(false)}
+  }
   const toolLimit=live.maxDshToolCalls??(live.allowDshTools?8:0)
   const updateToolLimit=(value:number|'unlimited')=>{
     const next={...live,maxDshToolCalls:value}
@@ -350,6 +379,40 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     onChange={event=>updateLive({reviewPolicy:event.target.value as LiveExecutionView['reviewPolicy']})}>
                     <option value="adaptive">{t('liveReviewAdaptive')}</option><option value="always">{t('liveReviewAlways')}</option></select>
                   <span className="rra-field-hint">{t('liveReviewHint')}</span></label></div>
+              <div className="rra-strategy"><h4 className="rra-strategy-name">拆分前本地判别</h4>
+                <label className="rra-compact-field">判断方式<select className="rra-select" disabled={disabled}
+                  value={decomposition.mode} onChange={event=>{
+                    setAutomaticJudgeStatus(undefined);setAutomaticJudgeError(undefined)
+                    patchDecomposition(event.target.value==='hybrid'
+                      ?{mode:'hybrid',allowExperimental:true,judge:decomposition.judge??defaultAutomaticJudge(),
+                        threshold:decomposition.threshold??.65,timeoutMs:decomposition.timeoutMs??30000,
+                        maxInputBytes:decomposition.maxInputBytes??65536}
+                      :{mode:'rules',allowExperimental:undefined,judge:undefined})
+                  }}><option value="rules">仅规则（默认）</option><option value="hybrid">规则＋本地 Laya（实验）</option></select>
+                  <span className="rra-field-hint">本地模型只判断工作是否可分离；Python 仍负责准入、费用和最终 direct／DAG 决策。</span></label>
+                {decomposition.mode==='hybrid'&&decomposition.judge?<><div className="rra-grid rra-grid-2">
+                  <label className="rra-compact-field">本地权重目录<input className="rra-input" disabled={disabled}
+                    value={decomposition.judge.modelPath} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,modelPath:event.target.value}})}/></label>
+                  <label className="rra-compact-field">固定 revision<input className="rra-input" disabled={disabled}
+                    value={decomposition.judge.revision} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,revision:event.target.value}})}/></label>
+                  <label className="rra-compact-field">Checkpoint<input className="rra-input" disabled={disabled}
+                    value={decomposition.judge.sourceModel} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,sourceModel:event.target.value}})}/></label>
+                  <label className="rra-compact-field">确定门槛<input className="rra-input" type="number" min="0.5" max="1" step="0.01" disabled={disabled}
+                    value={decomposition.threshold??.65} onChange={event=>patchDecomposition({threshold:Number(event.target.value)})}/>
+                    <span className="rra-field-hint">初始值 0.65；低于门槛归为无法确定，不解释为正确率。</span></label></div>
+                  <div className="rra-actions"><button className="rra-button rra-button-secondary" type="button"
+                    disabled={disabled||automaticJudgeBusy} onClick={()=>void operateAutomaticJudge('status')}>检查状态</button>
+                    <button className="rra-button rra-button-secondary" type="button" disabled={disabled||automaticJudgeBusy||!decomposition.judge.modelPath}
+                      onClick={()=>void operateAutomaticJudge('download')}>下载固定权重</button>
+                    <button className="rra-button rra-button-secondary" type="button" disabled={disabled||automaticJudgeBusy}
+                      onClick={()=>void operateAutomaticJudge('load')}>加载并预热</button>
+                    <button className="rra-button rra-button-secondary" type="button" disabled={disabled||automaticJudgeBusy}
+                      onClick={()=>void operateAutomaticJudge('unload')}>卸载</button></div>
+                  {automaticJudgeStatus?<p className="rra-field-hint" role="status">本地 Judge：{automaticJudgeStatus.loaded?'已加载并预热':
+                    automaticJudgeStatus.downloaded?'权重已就绪，尚未加载':'尚未就绪'}；revision {automaticJudgeStatus.revisionVerified?'已核对':'未核对'}。</p>:null}
+                  {automaticJudgeError?<p className="rra-invalid" role="alert">{automaticJudgeError}</p>:null}
+                  <p className="rra-warning">该 checkpoint 的拆分专项验收为 7／18，未达质量门槛；此模式保持实验标识，日常使用请保持默认规则。</p></>:null}
+              </div>
               <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{t('liveProductionBudget')}</label>
                 <input id="rra-production-budget" className="rra-input" type="number" min="0" step="0.001"
                   disabled={disabled||live.maxProductionCost==='unlimited'}

@@ -2,7 +2,8 @@ import { applyPlanning, planningUi, PlanningCard } from './planning.js'
 import { createElement } from 'react'
 import { graphModule } from './graph.js'
 /** RefractAgent 浏览器半边：在「设置 → 插件 → 插件配置」注册自己的设置卡片。 */
-import { RefractCardController, PLANNING_CARD_NAMESPACE, SETTINGS_NAMESPACE } from '../settings-card.js'
+import { RefractCardController, PLANNING_CARD_NAMESPACE, SETTINGS_NAMESPACE,
+  type LiveExecutionView } from '../settings-card.js'
 import { RefractCard } from './refract-card.js'
 import { en, LOCALE_NS, zh } from './locale.js'
 import type { ClientContext, RouteLatencyDirectory, RouterProjectDirectory } from './types.js'
@@ -65,6 +66,12 @@ export function apply(ctx: ClientContext): void {
         if(!result.ok||!result.value)throw new Error(result.error?.message??'Route latency observations unavailable')
         return {profiles:result.value.map(row=>{try{return JSON.parse(row.name??'') as RouteLatencyDirectory['profiles'][number]}
           catch{throw new Error('Route latency observation is invalid')}})}
+      },automaticLocalJudge:async(judge:NonNullable<NonNullable<LiveExecutionView['decompositionDecision']>['judge']>,
+        action:'status'|'download'|'load'|'unload')=>{
+        const result=await ctx.remote.llm.discoverModels('refractagent-planning',{
+          provider:JSON.stringify(judge),api:'automatic-local-judge:'+action})
+        if(!result.ok)throw new Error(result.error?.message??'自动路由本地 Judge 操作失败')
+        return JSON.parse(result.value?.[0]?.name??'{}')
       }}),
     }, RefractCard)
   })

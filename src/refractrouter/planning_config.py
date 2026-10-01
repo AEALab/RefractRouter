@@ -122,8 +122,8 @@ def _task_config(raw, schema, declared_ids, roles):
         if judge.get("modelId") not in declared_ids:
             raise ValueError("轻量 LLM Judge 必须引用已配置模型")
     else:
-        if judge.get("adapter") != "laya-mlx":
-            raise ValueError("首版本地 Judge 仅支持 laya-mlx")
+        from .local_decision_backend import require_backend
+        require_backend(judge.get("adapter"), "task")
         if judge.get("method", "ordinal-v1") not in ("ordinal-v1", "choice-v2"):
             raise ValueError("本地 Judge method 无效")
         path = judge.get("modelPath")
@@ -175,8 +175,8 @@ def _escalation_config(raw, schema, declared_ids, roles):
         if judge.get("modelId") not in declared_ids:
             raise ValueError("Escalation 轻量 LLM Judge 必须引用已配置模型")
     elif judge_type == "local-decision":
-        if judge.get("adapter") != "laya-mlx":
-            raise ValueError("Escalation 本地 Judge 仅支持 laya-mlx")
+        from .local_decision_backend import require_backend
+        require_backend(judge.get("adapter"), "escalation")
         path = judge.get("modelPath")
         if not isinstance(path, str) or not path or len(path) > 4096:
             raise ValueError("Escalation 本地 Judge 需要明确 modelPath")
@@ -228,8 +228,8 @@ def _advisor_config(raw, schema, declared_ids, roles):
         if judge.get("modelId") not in declared_ids:
             raise ValueError("Advisor LLM Judge 必须引用已配置模型")
     elif judge.get("type") == "local-decision":
-        if judge.get("adapter") != "laya-mlx":
-            raise ValueError("Advisor 本地 Judge 仅支持 laya-mlx")
+        from .local_decision_backend import require_backend
+        require_backend(judge.get("adapter"), "advisor")
         for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
             if not isinstance(judge.get(field), str) or not judge[field] or len(judge[field]) > maximum:
                 raise ValueError(f"Advisor 本地 Judge 缺少有效 {field}")
@@ -272,8 +272,10 @@ def _stage_config(raw):
         raise ValueError("stage.mode 必须是 rules 或 hybrid")
     judge = obj(stage.get("judge", {}), ("type", "adapter", "modelPath", "sourceModel",
         "revision", "device", "dtype", "method"), "stage.judge")
-    if judge.get("type") != "local-decision" or judge.get("adapter") != "laya-mlx":
-        raise ValueError("Stage 协作模式目前只接通本地 Laya-MLX Judge")
+    if judge.get("type") != "local-decision":
+        raise ValueError("Stage 协作模式需要本地 Judge")
+    from .local_decision_backend import require_backend
+    require_backend(judge.get("adapter"), "stage")
     for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
         if not isinstance(judge.get(field), str) or not judge[field] or len(judge[field]) > maximum:
             raise ValueError(f"Stage 本地 Judge 缺少有效 {field}")

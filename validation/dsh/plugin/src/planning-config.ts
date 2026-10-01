@@ -18,7 +18,7 @@ export interface PlanningModelConfig {
 }
 export type TaskJudgeConfig =
   | {type:'llm';modelId:string}
-  | {type:'local-decision';adapter:'laya-mlx';modelPath:string;sourceModel?:string;revision?:string
+  | {type:'local-decision';adapter:string;modelPath:string;sourceModel?:string;revision?:string
       device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16'
       method?:'ordinal-v1'|'choice-v2'}
 export interface TaskRoutingConfig {

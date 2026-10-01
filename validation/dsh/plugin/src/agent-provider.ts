@@ -453,7 +453,7 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   if (result.strategy !== expectedStrategy || result.mode !== expectedMode
     || result.simulated !== (expectedMode === 'demo')) throw new Error('RefractAgent returned a different strategy or execution mode')
   if (live && (config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
-    || config.template === 'auto') && (!['model','direct-gate'].includes(String(result.plan_origin))
+    || config.template === 'auto') && (!['model','direct-gate','direct-after-probe'].includes(String(result.plan_origin))
     || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
     throw new Error('installed core did not return an automatically generated DAG')
   }
@@ -612,6 +612,7 @@ interface InvocationControl {
   authorization?: Record<string, unknown>
   localOnly?: boolean
   allowHostTools?: boolean
+  decompositionDecision?: Record<string, unknown>
 }
 
 function configuredRoutes(config: Readonly<Configuration>): ModelRoute[] {
@@ -639,7 +640,7 @@ function authorizationFields(value: unknown): Record<string, unknown> {
 }
 
 async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions,
-  onProgress?: (event: ProgressEvent) => void): Promise<Record<string, unknown>> {
+  onProgress?: (event: ProgressEvent) => void,planning?:PlanningController): Promise<Record<string, unknown>> {
   const issues = liveConfigurationIssues(config)
   if (issues.length) throw new Error(`REFRACTAGENT_LIVE_DISABLED: ${issues.join('；')}`)
   const live = config.liveExecution!
@@ -662,21 +663,29 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
   const toolLimit = dshToolCallLimit(live)
   const allowTools = toolLimit !== 0
   const coreOptions = {...options,model:'auto',tools:allowTools ? options.tools : []}
+  const decisionConfig=live.decompositionDecision
+  let decompositionDecision:Record<string,unknown>|undefined
+  if(decisionConfig?.mode==='hybrid'&&live.complexityPolicy==='auto'){
+    if(!planning)throw new Error('REFRACTAGENT_LIVE_DISABLED: 本地拆分判别服务不可用')
+    const input=conversation(coreOptions,config.limits?.relaxContext?RELAXED_CONTEXT_BYTES:MAX_CONTEXT_BYTES)
+    decompositionDecision=await planning.decompositionDecision(decisionConfig,input.task,input.context)
+  }
   const common = {productionBudget:live.maxProductionCost!,evaluationBudget:live.maxEvaluationCost!,
-    localOnly:true,allowHostTools:allowTools}
-  const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'})
+    localOnly:true,allowHostTools:allowTools,...(decompositionDecision?{decompositionDecision}:{})}
+  const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning)
   if (!object(preview.live_authorization_preview) || preview.live_authorization_preview.ready !== true) {
     throw new Error('REFRACTAGENT_LIVE_DISABLED: 核心预检未满足真实执行条件')
   }
   signal.throwIfAborted()
   return invoke(ctx, config, coreOptions, onProgress, {...common,mode:'live',
-    authorization:authorizationFields(preview.live_authorization_preview)})
+    authorization:authorizationFields(preview.live_authorization_preview)},planning)
 }
 
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions,
-  onProgress?: (event: ProgressEvent) => void, control?: InvocationControl): Promise<Record<string, unknown>> {
+  onProgress?: (event: ProgressEvent) => void, control?: InvocationControl,
+  planning?:PlanningController): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
-  if (options.model === 'auto-live' && control === undefined) return invokeAutoLive(ctx,config,options,onProgress)
+  if (options.model === 'auto-live' && control === undefined) return invokeAutoLive(ctx,config,options,onProgress,planning)
   const automaticRouting = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
   const mode = control?.mode ?? (automaticRouting ? 'demo' : config.executionMode)
   const live = mode === 'live'
@@ -697,6 +706,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       ...(config.liveExecution!.maxTotalOutputTokens ? {maxTotalOutputTokens:config.liveExecution!.maxTotalOutputTokens} : {}),
       ...(config.liveExecution!.providerConcurrency ? {providerConcurrency:config.liveExecution!.providerConcurrency} : {}),
       ...(config.liveExecution!.providerMinIntervalMs ? {providerMinIntervalMs:config.liveExecution!.providerMinIntervalMs} : {}),
+      ...(control.decompositionDecision ? {decompositionDecision:control.decompositionDecision} : {}),
       ...(nativeTools ? {maxDshToolCalls:dshToolCallLimit(config.liveExecution!)} : {})} : {}),
     ...(nativeTools ? { hostTools: nativeTools.schemas } : {}),
     ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
@@ -811,11 +821,16 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
   ctx.llm.registerModelDiscovery?.('refractagent-planning',async request=>{
     const metadata=request.api?.startsWith('metadata:')?request.api.slice('metadata:'.length).split(':'):null
     const localJudge=request.api?.startsWith('local-judge:')?request.api.slice('local-judge:'.length).split(':'):null
-    const value=localJudge&&request.provider
+    const automaticLocalJudge=request.api?.startsWith('automatic-local-judge:')
+      ?request.api.slice('automatic-local-judge:'.length):null
+    const value=automaticLocalJudge&&request.provider
+      ?await planning.automaticLocalJudge(JSON.parse(request.provider),automaticLocalJudge as 'status'|'download'|'load'|'unload')
+      :localJudge&&request.provider
       ?await planning.localJudge(JSON.parse(request.provider),localJudge[0] as 'status'|'download'|'load'|'unload',localJudge[1])
       :metadata&&metadata.length===2&&request.provider
       ?await planning.metadata(request.provider,decodeURIComponent(metadata[0]!),metadata[1]!)
       :request.api==='simulate'?await planning.simulate()
+      :request.api==='local-backends'?await planning.localBackends()
       :request.api==='fx'?await planning.fx()
       :request.provider && request.provider!=='local' ? await planning.history(request.provider) : await planning.preview()
     return [{id:'planning',name:JSON.stringify(value)}]
@@ -876,7 +891,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           queue.push(text)
           wake?.()
         }
-      }).then(value => { result = value }, error => { failure = error }).finally(() => { ended = true; wake?.() })
+      },undefined,planning).then(value => { result = value }, error => { failure = error }).finally(() => { ended = true; wake?.() })
       try {
         while (!ended || queue.length) {
           if (queue.length) {
@@ -920,6 +935,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${object(result.quality) ? JSON.stringify({ passed: result.quality.passed, score: result.quality.score }) : '未评审'}；`
         + `长度检查：${formatValidationSummary(result.format_validation)}；`
         + (object(result.plan) && Array.isArray(result.plan.nodes) ? `计划：${String(result.plan_origin)}，${result.plan.nodes.length} 个节点；` : '')
+        + (object(result.route_comparison) ? `执行前路线比较：${JSON.stringify(result.route_comparison)}；` : '')
         + (typeof result.wall_time_ms === 'number' ? `总耗时：${(result.wall_time_ms / 1000).toFixed(2)} 秒；` : '')
         + (typeof result.plan_ready_ms === 'number' ? `计划就绪：${(result.plan_ready_ms / 1000).toFixed(2)} 秒；` : '')
         + (object(result.content_validation) ? `依赖复核：${JSON.stringify(result.content_validation)}；` : '')
@@ -948,6 +964,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
           ...(result.complexity_gate !== undefined ? {complexityGate: result.complexity_gate} : {}),
+          ...(result.route_comparison !== undefined ? {routeComparison: result.route_comparison} : {}),
           ...(result.review !== undefined ? {review: result.review} : {}),
           ...(result.model_call_limit !== undefined ? {modelCallLimit: result.model_call_limit} : {}),
           costs: result.costs, simulated: result.simulated, resultPath: result.result_path,

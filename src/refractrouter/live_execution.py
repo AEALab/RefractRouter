@@ -8,8 +8,10 @@ import json
 import re
 from uuid import uuid4
 
+from .decomposition_decision import validate_evidence
 
-COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v1"
+
+COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v2"
 AUTHORIZATION_SCHEMA = "refractagent-live-authorization-v1"
 AUTHORIZATION_TTL_SECONDS = 600
 DIRECT_TASK_CHARS = 600
@@ -47,8 +49,9 @@ def _timestamp(value, field):
     return parsed.astimezone(timezone.utc)
 
 
-def complexity_gate(payload, context, *, policy="auto", tools_allowed=False):
-    """只消费请求结构与文本特征，不调用模型。"""
+def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
+                    decomposition=None):
+    """合并请求结构规则与宿主已取得的本地结构证据；本函数不调用模型。"""
     if policy not in {"auto", "direct", "dag"}:
         raise ValueError("complexityPolicy must be auto, direct or dag")
     task = payload.get("task")
@@ -56,6 +59,7 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False):
         raise ValueError("task requires nonempty text")
     if not isinstance(context, str):
         raise ValueError("context must be text")
+    local = validate_evidence(decomposition, task, context) if decomposition is not None else None
     statistics = {
         "task_chars": len(task),
         "context_bytes": len(context.encode()),
@@ -66,11 +70,12 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False):
     if requires_tools and not tools_allowed:
         return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
                 "decision": "blocked-tools", "forced": policy != "auto",
-                "reasons": ["explicit-tool-requirement"], "statistics": statistics}
+                "reasons": ["explicit-tool-requirement"], "statistics": statistics,
+                "local_decision": local}
     if policy != "auto":
         return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
                 "decision": policy, "forced": True, "reasons": [f"forced-{policy}"],
-                "statistics": statistics}
+                "statistics": statistics, "local_decision": local}
     reasons = []
     if statistics["task_chars"] > DIRECT_TASK_CHARS:
         reasons.append("task-too-long")
@@ -90,9 +95,28 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False):
         reasons.append("complex-task-marker")
     if requires_tools:
         reasons.append("explicit-tool-requirement")
+    rule_decision = "dag" if reasons else "direct"
+    decision, combination = rule_decision, "rules-only"
+    if local is not None:
+        verdict = local["verdict"]
+        # 明确结构证据可以补足弱词法规则；已经命中的材料、交付合同与工具边界继续保守处理。
+        hard = {"multiple-materials", "acceptance-criteria-present",
+                "strict-output-contract", "explicit-tool-requirement"}.intersection(reasons)
+        if verdict == "SEPARABLE":
+            decision, combination = "dag", "local-separable"
+            if "local-separable" not in reasons:
+                reasons.append("local-separable")
+        elif verdict == "COUPLED" and not hard:
+            decision, combination = "direct", "local-coupled-overrode-weak-rules"
+            reasons = ["local-coupled"]
+        elif verdict == "COUPLED":
+            combination = "hard-rules-preserved-over-local-coupled"
+        else:
+            combination = "local-unknown-rules-preserved"
     return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
-            "decision": "dag" if reasons else "direct", "forced": False,
-            "reasons": reasons or ["short-single-deliverable"], "statistics": statistics}
+            "decision": decision, "rule_decision": rule_decision, "combination": combination,
+            "forced": False, "reasons": reasons or ["short-single-deliverable"],
+            "statistics": statistics, "local_decision": local}
 
 
 def review_decision(payload, gate, *, policy="adaptive", tools_allowed=False):

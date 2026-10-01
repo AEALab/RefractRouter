@@ -52,6 +52,15 @@ export interface LiveExecutionConfiguration {
   allowDshTools?: boolean
   /** 0 关闭工具；正整数限制总调用；unlimited 不施加 Router 的总次数上限。 */
   maxDshToolCalls?: number | 'unlimited'
+  decompositionDecision?: {
+    mode: 'rules' | 'hybrid'
+    allowExperimental?: boolean
+    threshold?: number
+    timeoutMs?: number
+    maxInputBytes?: number
+    judge?: {type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
+      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'choice-v2'}
+  }
 }
 
 /** 兼容旧开关；新设置仅写入一个次数字段。 */
@@ -104,7 +113,7 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     || !['adaptive','always'].includes(String(value.reviewPolicy))
     || Object.keys(value).some(key => !['schemaVersion','enabled','maxProductionCost','maxEvaluationCost',
       'complexityPolicy','reviewPolicy','maxConcurrency','providerConcurrency','providerMinIntervalMs',
-      'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls'].includes(key))) {
+      'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls','decompositionDecision'].includes(key))) {
     throw new Error('invalid liveExecution configuration')
   }
   for (const key of ['maxProductionCost','maxEvaluationCost'] as const) {
@@ -148,6 +157,31 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
   }
   if (value.enabled && (value.maxProductionCost === undefined || value.maxEvaluationCost === undefined)) {
     throw new Error('enabled liveExecution requires explicit production and evaluation budget choices')
+  }
+  const decision=value.decompositionDecision
+  if(decision!==undefined){
+    if(!isRecordValue(decision)||!['rules','hybrid'].includes(String(decision.mode))
+      ||Object.keys(decision).some(key=>!['mode','allowExperimental','threshold','timeoutMs','maxInputBytes','judge'].includes(key))){
+      throw new Error('invalid liveExecution.decompositionDecision')
+    }
+    if(decision.allowExperimental!==undefined&&typeof decision.allowExperimental!=='boolean')
+      throw new Error('invalid decompositionDecision.allowExperimental')
+    for(const [field,low,high] of [['threshold',.5,1],['timeoutMs',100,300000],['maxInputBytes',1024,1000000]] as const){
+      const entry=decision[field]
+      if(entry!==undefined&&(typeof entry!=='number'||!Number.isFinite(entry)||entry<low||entry>high
+        ||(field!=='threshold'&&!Number.isInteger(entry))))throw new Error(`invalid decompositionDecision.${field}`)
+    }
+    if(decision.mode==='hybrid'){
+      if(decision.allowExperimental!==true||!isRecordValue(decision.judge))
+        throw new Error('hybrid decompositionDecision requires an explicitly enabled local Judge')
+      const judge=decision.judge
+      if(judge.type!=='local-decision'||typeof judge.adapter!=='string'||!judge.adapter
+        ||judge.method!==undefined&&judge.method!=='choice-v2'
+        ||!['modelPath','sourceModel','revision'].every(field=>typeof judge[field]==='string'&&String(judge[field]).length>0)
+        ||judge.device!==undefined&&!['gpu','metal','cpu'].includes(String(judge.device))
+        ||judge.dtype!==undefined&&!['float16','float32','bfloat16'].includes(String(judge.dtype)))
+        throw new Error('invalid decompositionDecision.judge')
+    }
   }
 }
 
