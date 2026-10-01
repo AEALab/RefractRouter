@@ -21,6 +21,7 @@ export type TaskJudgeConfig =
   | {type:'local-decision';adapter:string;modelPath:string;sourceModel?:string;revision?:string
       device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16'
       method?:'ordinal-v1'|'ordinal-v2'|'choice-v2'}
+  | {type:'jev';modelPath?:never;revision?:never;device?:never;dtype?:never;adapter?:never}
 export interface TaskRoutingConfig {
   pool:string[];fallback:string;judge:TaskJudgeConfig;threshold?:number;maxInputChars?:number
   maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number
@@ -36,7 +37,7 @@ export interface AdvisorRoutingConfig {
   allowExperimental?:boolean
 }
 export interface StageRoutingConfig {
-  mode:'rules'|'hybrid';judge?:Extract<TaskJudgeConfig,{type:'local-decision'}>;allowExperimental?:boolean
+  mode:'rules'|'hybrid';judge?:Extract<TaskJudgeConfig,{type:'local-decision'|'jev'}>;allowExperimental?:boolean
   window?:number;interval?:number;maxJudgements?:number;holdTurns?:number;downgradeConfirmations?:number
   upgradeThreshold?:number;downgradeThreshold?:number;judgeTimeoutMs?:number;maxJudgeInputBytes?:number
 }
@@ -69,6 +70,8 @@ export interface PlanningConfig {
   advisor?:AdvisorRoutingConfig
   stage?:StageRoutingConfig
   mediaRoutes?:MediaRouteConfig[]
+  jev?:{credentialRef?:string;deployment?:'external-cloud'|'trusted-cloud';trustPolicy?:string
+    actionGate?:'jev-choice-action-gate-v1-experimental'}
 }
 export const EMPTY_PLANNING:PlanningConfig={schemaVersion:'refractagent-planning-v4',enabled:false,defaultStrategy:'stage'}
 export const PLANNING_NAMES={stage:'阶段 Stage',task:'任务 Task',composite:'组合 Composite',

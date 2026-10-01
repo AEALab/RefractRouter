@@ -1,0 +1,35 @@
+# 官方 Jev 在规划路由中的接入
+
+规划路由可在 DSH 插件设置中，为 Advisor Gate、Escalation、Task、Stage 协作模式及
+Composite 的 Task／Stage 环节分别选择「官方 Jev」。选择只影响 Judge；执行模型仍由各策略
+原有配置决定。Static 和纯规则 Stage 不产生 Judge 调用。
+
+## 设置与边界
+
+在「RefractAgent 规划路由」设置卡片中，先配置 CNY 生产预算、DSH 凭证引用及 Jev 数据域，
+再进入相应策略选择 Judge。凭证引用默认是 `TYPESAFE_API_KEY`；API 密钥须登记在 DSH 凭证
+服务，不能填写到插件配置。Jev 是云端、文本型服务；默认外部云会拦截包含本机绝对路径等
+敏感资料的判别输入。选择可信云须使用已登记的信任策略，不能继承对其他提供方的授权。
+
+当前固定调用 `jev-1.13.0` 的 Choice 接口。Advisor 和 Escalation 默认按所选项的概率与各自
+设置的门槛行动，并在轨迹记录原始 `probabilities` 和 `confidence`。分动作门槛是单独的实验
+开关。Task 对候选能力卡进行一次 Choice 选模；证据不足或低于门槛时使用指定备援。Stage
+只在规则要求的执行边界调用 Judge；Composite 可独立配置 Task 与 Stage 的后端。
+
+Jev 的官方价格为每百万输入 token 0.042 USD、输出 token 免费。核心按照冻结汇率将实际输入
+用量折算成 CNY 结算，保留 USD 原价、来源及汇率日期。派发前用保守输入上界预留额度；
+未知用量保留预留并停止后续受管调用。Jev 的调用不计入 AFP。凭证仅在 DSH 宿主内解析，
+Python 核心只接收判别请求和无密钥的回执。
+
+## 已验证与待验证
+
+无网络测试覆盖审批、升级、Task 一次选模、Stage 换模、Composite 串接、数据域、媒体拒绝、
+账本及 DSH 凭证边界。插件使用宿主 HTTP 通道执行 Jev 请求，零自动重试。图片／影片审核
+不在此次文本接线范围内；遇到媒体块不会把附件内容伪装成文本送给 Jev。
+
+本接线及设置可用性不等于真实判别质量验收。投入日常使用前仍需用冻结案例分别核对
+各策略的误放行、误升级、无法判断、费用与延迟；没有真实调用的测试不证明官方服务
+在当前网络和凭证下可用。
+
+参考：[TypeSafe API](https://docs.typesafe.ai/api)、[模型与计价](https://docs.typesafe.ai/models)、
+[置信度说明](https://docs.typesafe.ai/confidence)。

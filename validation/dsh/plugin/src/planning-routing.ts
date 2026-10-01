@@ -9,6 +9,20 @@ import { EMPTY_PLANNING, PLANNING_PROTOCOL } from './planning-config.js'
 import { ToolEvidenceCapture } from './tool-evidence.js'
 type Json=Record<string,any>
 export interface PlanningRpc {request(value:Json):Promise<Json>;dispose():void}
+function usesJev(config:Json):boolean {
+  return [config.task?.judge,config.composite?.judge,config.composite?.stage?.judge,
+    config.escalation?.judge,config.advisor?.judge,config.stage?.judge]
+    .some(judge=>judge?.type==='jev')
+}
+function strategyUsesJev(config:Json,strategy:string):boolean {
+  if(strategy==='advisor')return config.advisor?.judge?.type==='jev'
+  if(strategy==='escalation')return config.escalation?.judge?.type==='jev'
+  if(strategy==='task')return config.task?.judge?.type==='jev'
+  if(strategy==='stage')return config.stage?.mode==='hybrid'&&config.stage?.judge?.type==='jev'
+  if(strategy==='composite')return config.composite?.judge?.type==='jev'
+    ||config.composite?.stage?.mode==='hybrid'&&config.composite?.stage?.judge?.type==='jev'
+  return false
+}
 export class PlanningWorker implements PlanningRpc {
   private handle?:ProcessHandle
   private starting?:Promise<void>
@@ -190,6 +204,12 @@ export class PlanningController {
   async preview():Promise<Json>{
     const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
     const hostIssues=await this.completeMetadata(config)
+    if(usesJev(config)){
+      const reference=config.jev?.credentialRef??'TYPESAFE_API_KEY'
+      try {if(!(await this.ctx.credentials.describe(reference)).configured)
+        hostIssues.__jev__='凭证未配置；请在 DSH 凭证服务登记该引用'}
+      catch {hostIssues.__jev__='凭证状态不可核对'}
+    }
     return this.rpc.request({op:'preview',config,hostIssues})
   }
   async simulate():Promise<Json>{
@@ -230,7 +250,7 @@ export class PlanningController {
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
-    localBackends=false):Promise<void>{
+    localBackends=false,jev=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -247,6 +267,8 @@ export class PlanningController {
       throw new Error('当前核心不支持自动路由本地拆分判别；请同时升级核心和插件')
     if(localBackends&&!capabilities.includes('local-decision-backends-v1'))
       throw new Error('当前核心不支持本地 Judge 后端目录；请同时升级核心和插件')
+    if(jev&&!capabilities.includes('jev-judge-v1'))
+      throw new Error('当前核心不支持官方 Jev Judge；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
@@ -288,6 +310,7 @@ export class PlanningController {
     const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
     // 会话菜单选择优先；未选择时使用插件设置默认值。物理模型推理等级由角色配置决定。
     const strategy=options.reasoningEffort?.startsWith('rr:')?options.reasoningEffort.slice(3):config.defaultStrategy
+    const activeJev=strategyUsesJev(config,String(strategy))
     if(options.reasoningEffort&&!options.reasoningEffort.startsWith('rr:'))
       throw new Error('规划路由选择值必须使用 rr: 策略标识')
     const cancelled=new AbortController()
@@ -296,9 +319,14 @@ export class PlanningController {
     try{
       signal.throwIfAborted()
       await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid',
-        strategy==='composite'&&Boolean(config.composite))
+        strategy==='composite'&&Boolean(config.composite),false,false,activeJev)
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
+        if(activeJev){
+          const reference=config.jev?.credentialRef??'TYPESAFE_API_KEY'
+          if(!(await this.ctx.credentials.describe(reference)).configured)
+            hostIssues.__jev__='凭证未配置；请在 DSH 凭证服务登记该引用'
+        }
         const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,
           child:agent.session.header?.origin==='subagent'})
         runId=String(started.runId);this.tasks.set(key,runId)
@@ -315,10 +343,28 @@ export class PlanningController {
         events:this.evidence.enrich(session,nativeEvents)})
       const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean}>()
       const total:TokenUsage={}
-      while(action.action==='call'||action.action==='wait'){
+      while(action.action==='call'||action.action==='wait'||action.action==='jev'){
         if(action.action==='wait'){
           await waitFor(Math.max(10,Math.min(1000,Number(action.pollAfterMs) || 25)),signal)
           action=await this.rpc.request({op:'local-judge-poll',runId,jobId:action.jobId})
+          continue
+        }
+        if(action.action==='jev'){
+          signal.throwIfAborted()
+          const reference=String(action.credentialRef)
+          const credential=await this.ctx.credentials.resolve(reference)
+          if(!credential?.value)throw new Error('Jev 凭证不可用；判别请求未派发')
+          const timeout=Math.max(1,Math.min(Number(action.timeoutMs)||30000,300000))
+          const callSignal=AbortSignal.any([signal,AbortSignal.timeout(timeout)])
+          const started=performance.now()
+          const response=await fetch('https://api.typesafe.ai/v1/systemone',{
+            method:'POST',headers:{Authorization:'Bearer '+credential.value,
+              'Content-Type':'application/json',Accept:'application/json'},
+            body:JSON.stringify(action.payload),signal:callSignal})
+          if(!response.ok)throw new Error(`Jev HTTP ${response.status}；此次调用不会自动重试`)
+          const body=await response.json() as Json
+          action=await this.rpc.request({op:'jev-complete',runId,callId:action.callId,
+            result:body,latencyMs:performance.now()-started})
           continue
         }
         signal.throwIfAborted()
