@@ -1,0 +1,861 @@
+{
+  "schemaVersion": "planning-jev-comparison-v1",
+  "recordedAt": "2026-09-30T15:47:59.452826+00:00",
+  "preflight": {
+    "model": "jev-1.13.0",
+    "scope": "planning-routing-only",
+    "caseCount": 78,
+    "httpRequestsMaximum": 78,
+    "httpRetries": 0,
+    "maxInputTokensPerRequest": 64000,
+    "conservativeUsdUpperBound": 0.209664,
+    "suites": {
+      "task-audit": {
+        "path": "data/task-judge-audit-20260926.json",
+        "sha256": "e77f976c93fdad2a498fb98e010d512deccab25eaaf81e650385a80a90ba9e77",
+        "cases": 6
+      },
+      "task-holdout": {
+        "path": "data/task-judge-holdout-20260926.json",
+        "sha256": "7b5c09e0f779e3981addc08b3a88452092083350fa3044e293564de700f17d9a",
+        "cases": 8
+      },
+      "stage": {
+        "path": "data/stage-judge-holdout-v2.json",
+        "sha256": "8b7927da1726a57fb9d6c0faf75b01b195a3e37acab7d76007848bb248b94d54",
+        "cases": 16
+      },
+      "advisor": {
+        "path": "data/benchmarks/advisor-judge-v1.json",
+        "sha256": "28b34593290ac38b7852ac58559d310160aa84750dbd76bacbc48f55ccdcda9c",
+        "cases": 24
+      },
+      "escalation": {
+        "path": "data/benchmarks/escalation-judge-v1.json",
+        "sha256": "aaecb6b4c71d3e6a7a4b2345ffc4bf8fe268748109dc33ccc787f42ce209b713",
+        "cases": 24
+      }
+    },
+    "note": "只测试规划路由 Task、Stage、Advisor、Escalation 判别；不调用 DAG 拆分。按官方每次 64k 输入 tokens 极限计算上界；实际金额依回执用量。"
+  },
+  "actualRequests": 78,
+  "actualUsd": 0.0020901299999999995,
+  "comparison": {
+    "task-audit": {
+      "jevMatched": 5,
+      "layaMatched": 3,
+      "total": 6,
+      "cases": [
+        {
+          "id": "zh-terminal",
+          "expected": "terminal",
+          "jev": "terminal",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 613.144125090912,
+          "layaLatencyMs": 30.438666930422187
+        },
+        {
+          "id": "en-terminal",
+          "expected": "terminal",
+          "jev": "insufficient",
+          "laya": "terminal",
+          "jevMatched": false,
+          "layaMatched": true,
+          "jevLatencyMs": 488.47712483257055,
+          "layaLatencyMs": 14.224667102098465
+        },
+        {
+          "id": "zh-image",
+          "expected": "vision",
+          "jev": "vision",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 403.0410419218242,
+          "layaLatencyMs": 13.593791984021664
+        },
+        {
+          "id": "en-image",
+          "expected": "vision",
+          "jev": "vision",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 432.68608395010233,
+          "layaLatencyMs": 13.607542030513287
+        },
+        {
+          "id": "zh-unclear",
+          "expected": "insufficient",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 396.1654999293387,
+          "layaLatencyMs": 9.35966707766056
+        },
+        {
+          "id": "en-unclear",
+          "expected": "insufficient",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 387.40695896558464,
+          "layaLatencyMs": 9.04395803809166
+        }
+      ]
+    },
+    "task-holdout": {
+      "jevMatched": 6,
+      "layaMatched": 6,
+      "total": 8,
+      "cases": [
+        {
+          "id": "zh-json",
+          "expected": "schema",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 484.94470794685185,
+          "layaLatencyMs": 21.295541897416115
+        },
+        {
+          "id": "en-web",
+          "expected": "browser",
+          "jev": "browser",
+          "laya": "browser",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 525.8600418455899,
+          "layaLatencyMs": 17.76745915412903
+        },
+        {
+          "id": "zh-video",
+          "expected": "video",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 411.5472079720348,
+          "layaLatencyMs": 20.185875007882714
+        },
+        {
+          "id": "en-edit",
+          "expected": "editor",
+          "jev": "editor",
+          "laya": "editor",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 394.87429102882743,
+          "layaLatencyMs": 18.220874946564436
+        },
+        {
+          "id": "zh-unclear-holdout",
+          "expected": "insufficient",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 421.62420810200274,
+          "layaLatencyMs": 11.950042098760605
+        },
+        {
+          "id": "en-unclear-holdout",
+          "expected": "insufficient",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 404.0400409139693,
+          "layaLatencyMs": 12.111334130167961
+        },
+        {
+          "id": "zh-equal",
+          "expected": "insufficient",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 441.50829198770225,
+          "layaLatencyMs": 17.914916155859828
+        },
+        {
+          "id": "en-equal",
+          "expected": "insufficient",
+          "jev": "insufficient",
+          "laya": "insufficient",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 425.6043750792742,
+          "layaLatencyMs": 12.147874804213643
+        }
+      ]
+    },
+    "stage": {
+      "jevMatched": 7,
+      "layaMatched": 4,
+      "total": 16,
+      "cases": [
+        {
+          "id": "v2-explore-1",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 404.0868750307709,
+          "layaLatencyMs": 106.66666715405881
+        },
+        {
+          "id": "v2-explore-2",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 402.92016603052616,
+          "layaLatencyMs": 89.4769171718508
+        },
+        {
+          "id": "v2-explore-3",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 464.18999996967614,
+          "layaLatencyMs": 88.21841678582132
+        },
+        {
+          "id": "v2-explore-4",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 398.24054203927517,
+          "layaLatencyMs": 89.73483298905194
+        },
+        {
+          "id": "v2-strong-1",
+          "expected": "NEED_STRONG",
+          "jev": "NEED_STRONG",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 421.6336249373853,
+          "layaLatencyMs": 96.3216251693666
+        },
+        {
+          "id": "v2-strong-2",
+          "expected": "NEED_STRONG",
+          "jev": "NEED_STRONG",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 386.333541944623,
+          "layaLatencyMs": 87.66566682606936
+        },
+        {
+          "id": "v2-strong-3",
+          "expected": "NEED_STRONG",
+          "jev": "NEED_STRONG",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 428.65433311089873,
+          "layaLatencyMs": 91.22441709041595
+        },
+        {
+          "id": "v2-strong-4",
+          "expected": "NEED_STRONG",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 389.86933301202953,
+          "layaLatencyMs": 88.97662512026727
+        },
+        {
+          "id": "v2-down-1",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 441.91708392463624,
+          "layaLatencyMs": 95.86179186590016
+        },
+        {
+          "id": "v2-down-2",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 420.00008397735655,
+          "layaLatencyMs": 88.81641691550612
+        },
+        {
+          "id": "v2-down-3",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 398.0649581644684,
+          "layaLatencyMs": 88.46966712735593
+        },
+        {
+          "id": "v2-down-4",
+          "expected": "EFFICIENT_OK",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 397.75791694410145,
+          "layaLatencyMs": 90.0821250397712
+        },
+        {
+          "id": "v2-unknown-1",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 419.85983308404684,
+          "layaLatencyMs": 84.39395809546113
+        },
+        {
+          "id": "v2-unknown-2",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 395.0952091254294,
+          "layaLatencyMs": 88.56875007040799
+        },
+        {
+          "id": "v2-unknown-3",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 422.6651669014245,
+          "layaLatencyMs": 89.2202090471983
+        },
+        {
+          "id": "v2-unknown-4",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 445.6311659887433,
+          "layaLatencyMs": 82.77708408422768
+        }
+      ]
+    },
+    "advisor": {
+      "jevMatched": 20,
+      "layaMatched": 7,
+      "total": 24,
+      "cases": [
+        {
+          "id": "zh-qualified-1",
+          "expected": "APPROVE",
+          "jev": "APPROVE",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 476.7470001243055,
+          "layaLatencyMs": 42.23154205828905
+        },
+        {
+          "id": "zh-qualified-2",
+          "expected": "APPROVE",
+          "jev": "APPROVE",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 406.21525002643466,
+          "layaLatencyMs": 36.972332978621125
+        },
+        {
+          "id": "en-qualified-1",
+          "expected": "APPROVE",
+          "jev": "APPROVE",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 511.5487079601735,
+          "layaLatencyMs": 33.057082910090685
+        },
+        {
+          "id": "en-qualified-2",
+          "expected": "APPROVE",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 414.68870802782476,
+          "layaLatencyMs": 30.478624859824777
+        },
+        {
+          "id": "mix-qualified-1",
+          "expected": "APPROVE",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 402.86637493409216,
+          "layaLatencyMs": 28.510707896202803
+        },
+        {
+          "id": "mix-qualified-2",
+          "expected": "APPROVE",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 511.4939580671489,
+          "layaLatencyMs": 29.18508416041732
+        },
+        {
+          "id": "zh-defect-1",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 414.62291590869427,
+          "layaLatencyMs": 28.992166044190526
+        },
+        {
+          "id": "zh-defect-2",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "APPROVE",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 393.0640830658376,
+          "layaLatencyMs": 28.122707968577743
+        },
+        {
+          "id": "en-defect-1",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 419.7252909652889,
+          "layaLatencyMs": 28.326667146757245
+        },
+        {
+          "id": "en-defect-2",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "APPROVE",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 391.1722500342876,
+          "layaLatencyMs": 29.363958165049553
+        },
+        {
+          "id": "mix-defect-1",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 434.0375829488039,
+          "layaLatencyMs": 28.816667152568698
+        },
+        {
+          "id": "mix-defect-2",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 395.92158305458724,
+          "layaLatencyMs": 27.43195788934827
+        },
+        {
+          "id": "zh-insufficient-1",
+          "expected": "UNRESOLVED",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 404.8714579548687,
+          "layaLatencyMs": 26.82541706599295
+        },
+        {
+          "id": "zh-insufficient-2",
+          "expected": "UNRESOLVED",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 414.8108749650419,
+          "layaLatencyMs": 26.68395801447332
+        },
+        {
+          "id": "en-insufficient-1",
+          "expected": "UNRESOLVED",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 389.39612498506904,
+          "layaLatencyMs": 26.97191690094769
+        },
+        {
+          "id": "en-insufficient-2",
+          "expected": "UNRESOLVED",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 437.7287921961397,
+          "layaLatencyMs": 27.043415931984782
+        },
+        {
+          "id": "mix-insufficient-1",
+          "expected": "UNRESOLVED",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 412.85379114560783,
+          "layaLatencyMs": 26.82587504386902
+        },
+        {
+          "id": "mix-insufficient-2",
+          "expected": "UNRESOLVED",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 505.4580420255661,
+          "layaLatencyMs": 27.237082831561565
+        },
+        {
+          "id": "zh-recheck-repaired",
+          "expected": "APPROVE",
+          "jev": "APPROVE",
+          "laya": "REDO",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 384.34487488120794,
+          "layaLatencyMs": 28.931959066540003
+        },
+        {
+          "id": "zh-recheck-unrepaired",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "REDO",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 391.8358748778701,
+          "layaLatencyMs": 27.57233288139105
+        },
+        {
+          "id": "en-recheck-repaired",
+          "expected": "APPROVE",
+          "jev": "UNRESOLVED",
+          "laya": "UNRESOLVED",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 388.75183393247426,
+          "layaLatencyMs": 29.44462513551116
+        },
+        {
+          "id": "en-recheck-unrepaired",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "APPROVE",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 401.1768330819905,
+          "layaLatencyMs": 30.27429198846221
+        },
+        {
+          "id": "mix-recheck-repaired",
+          "expected": "APPROVE",
+          "jev": "APPROVE",
+          "laya": "UNRESOLVED",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 398.60320882871747,
+          "layaLatencyMs": 28.07729202322662
+        },
+        {
+          "id": "mix-recheck-unrepaired",
+          "expected": "REDO",
+          "jev": "REDO",
+          "laya": "APPROVE",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 436.750833876431,
+          "layaLatencyMs": 28.11841620132327
+        }
+      ]
+    },
+    "escalation": {
+      "jevMatched": 22,
+      "layaMatched": 5,
+      "total": 24,
+      "cases": [
+        {
+          "id": "zh-proceed-1",
+          "expected": "PROCEED",
+          "jev": "PROCEED",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 398.4253329690546,
+          "layaLatencyMs": 25.753166992217302
+        },
+        {
+          "id": "zh-proceed-2",
+          "expected": "PROCEED",
+          "jev": "PROCEED",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 385.6871670577675,
+          "layaLatencyMs": 21.526125026866794
+        },
+        {
+          "id": "en-proceed-1",
+          "expected": "PROCEED",
+          "jev": "PROCEED",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 496.7570418957621,
+          "layaLatencyMs": 23.048665840178728
+        },
+        {
+          "id": "en-proceed-2",
+          "expected": "PROCEED",
+          "jev": "PROCEED",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 419.2682499997318,
+          "layaLatencyMs": 22.88062497973442
+        },
+        {
+          "id": "mix-proceed-1",
+          "expected": "PROCEED",
+          "jev": "PROCEED",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 414.6316251717508,
+          "layaLatencyMs": 21.758958930149674
+        },
+        {
+          "id": "mix-proceed-2",
+          "expected": "PROCEED",
+          "jev": "PROCEED",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 405.1283751614392,
+          "layaLatencyMs": 22.759624989703298
+        },
+        {
+          "id": "zh-defect-1",
+          "expected": "DEFECT",
+          "jev": "DEFECT",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 397.68491592258215,
+          "layaLatencyMs": 21.096666809171438
+        },
+        {
+          "id": "zh-defect-2",
+          "expected": "DEFECT",
+          "jev": "DEFECT",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 463.1757498718798,
+          "layaLatencyMs": 21.299999905750155
+        },
+        {
+          "id": "en-defect-1",
+          "expected": "DEFECT",
+          "jev": "DEFECT",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 412.24933299236,
+          "layaLatencyMs": 21.161667071282864
+        },
+        {
+          "id": "en-defect-2",
+          "expected": "DEFECT",
+          "jev": "DEFECT",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 406.83012502267957,
+          "layaLatencyMs": 21.102832863107324
+        },
+        {
+          "id": "mix-defect-1",
+          "expected": "DEFECT",
+          "jev": "DEFECT",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 440.65058417618275,
+          "layaLatencyMs": 21.23354095965624
+        },
+        {
+          "id": "mix-defect-2",
+          "expected": "DEFECT",
+          "jev": "DEFECT",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 488.3504998870194,
+          "layaLatencyMs": 21.24329120852053
+        },
+        {
+          "id": "zh-stall-1",
+          "expected": "STALL",
+          "jev": "STALL",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 429.0693749208003,
+          "layaLatencyMs": 21.69537520967424
+        },
+        {
+          "id": "zh-stall-2",
+          "expected": "STALL",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 409.5421670936048,
+          "layaLatencyMs": 21.149666979908943
+        },
+        {
+          "id": "en-stall-1",
+          "expected": "STALL",
+          "jev": "STALL",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 398.6893331166357,
+          "layaLatencyMs": 21.2507089599967
+        },
+        {
+          "id": "en-stall-2",
+          "expected": "STALL",
+          "jev": "STALL",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 388.76275019720197,
+          "layaLatencyMs": 21.7784580308944
+        },
+        {
+          "id": "mix-stall-1",
+          "expected": "STALL",
+          "jev": "STALL",
+          "laya": "DEFECT",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 387.3352080117911,
+          "layaLatencyMs": 21.336749894544482
+        },
+        {
+          "id": "mix-stall-2",
+          "expected": "STALL",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": false,
+          "layaMatched": false,
+          "jevLatencyMs": 450.9329169522971,
+          "layaLatencyMs": 21.458667004480958
+        },
+        {
+          "id": "zh-uncertain-1",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 433.91725001856685,
+          "layaLatencyMs": 20.734291058033705
+        },
+        {
+          "id": "zh-uncertain-2",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 420.83745799027383,
+          "layaLatencyMs": 21.25841611996293
+        },
+        {
+          "id": "en-uncertain-1",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 434.1812499333173,
+          "layaLatencyMs": 21.42908307723701
+        },
+        {
+          "id": "en-uncertain-2",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 509.65287489816546,
+          "layaLatencyMs": 21.58479206264019
+        },
+        {
+          "id": "mix-uncertain-1",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "UNCERTAIN",
+          "jevMatched": true,
+          "layaMatched": true,
+          "jevLatencyMs": 419.74291717633605,
+          "layaLatencyMs": 21.254000021144748
+        },
+        {
+          "id": "mix-uncertain-2",
+          "expected": "UNCERTAIN",
+          "jev": "UNCERTAIN",
+          "laya": "DEFECT",
+          "jevMatched": true,
+          "layaMatched": false,
+          "jevLatencyMs": 391.95941598154604,
+          "layaLatencyMs": 22.65274990350008
+        }
+      ]
+    }
+  },
+  "limitations": "固定判别题只检验规划路由 Judge 输出；不证明完整任务质量、成本收益或 DAG 拆分。"
+}
