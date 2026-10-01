@@ -34,8 +34,11 @@ def main():
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     suite = json.loads(args.cases.read_text())
-    if suite.get("schemaVersion") != "escalation-judge-suite-v1":
+    if suite.get("schemaVersion") not in ("escalation-judge-suite-v1", "escalation-judge-suite-v2"):
         raise ValueError("Escalation Judge 案例版本无效")
+    if suite["schemaVersion"] == "escalation-judge-suite-v2":
+        from experiments.judge_case_audit import validate_suite
+        validate_suite(suite)
     adapter = LayaDecisionAdapter({"modelPath": str(args.model_path),
         "sourceModel": suite["checkpoint"], "revision": suite["revision"],
         "device": "gpu", "dtype": "float16", "method": "choice-v2"})
@@ -51,8 +54,9 @@ def main():
               "matched": sum(row["matched"] for row in rows), "total": len(rows),
               "defectsReleased": sum(row["outcome"] == "PROCEED" for row in defects),
               "proceedsAccepted": sum(row["outcome"] == "PROCEED" for row in proceeds),
-              "dailyUseAccepted": (not any(row["outcome"] == "PROCEED" for row in defects)
-                                   and sum(row["outcome"] == "PROCEED" for row in proceeds) >= 5),
+              "dailyUseAccepted": ((not any(row["outcome"] == "PROCEED" for row in defects)
+                                    and sum(row["outcome"] == "PROCEED" for row in proceeds) >= 5)
+                                   if suite["schemaVersion"] == "escalation-judge-suite-v1" else None),
               "cases": rows}
     content = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.output:

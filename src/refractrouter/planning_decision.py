@@ -202,6 +202,11 @@ def parse_decision(raw, candidate_ids, threshold):
             or type(value) not in (int, float) or not 0 <= value <= 1
             for key, value in probabilities.items()):
         raise ValueError("Judge 候选概率无效")
+    selection_probability = answers.get("selection_probability")
+    if selection_probability is not None and (type(selection_probability) not in (int, float)
+            or not math.isfinite(selection_probability) or not 0 <= selection_probability <= 1
+            or probabilities.get(choice) != selection_probability):
+        raise ValueError("Judge 选择概率无效")
     suitability = answers.get("suitability", {})
     if isinstance(suitability, dict):
         score = suitability.get("score")
@@ -210,7 +215,9 @@ def parse_decision(raw, candidate_ids, threshold):
         # 本地适配器已归一化；共同合同不得把非法 LLM 分数自动折半。
     else:
         score, level, suitability_confidence = suitability, None, None
-    if score is None and isinstance(probabilities.get(choice), (int, float)):
+    if selection_probability is not None:
+        score, level = selection_probability, "selection-probability"
+    elif score is None and isinstance(probabilities.get(choice), (int, float)):
         score = probabilities[choice]
     if type(score) not in (int, float) or not 0 <= score <= 1:
         raise ValueError("Judge 适合度分数无效")
@@ -224,6 +231,9 @@ def parse_decision(raw, candidate_ids, threshold):
     uncertain = choice == "insufficient" or score < threshold or missing_probability >= .5
     return {"candidateId": None if choice == "insufficient" else choice, "score": float(score),
         "level": level, "uncertain": uncertain, "missingInformation": float(missing_probability),
+        "scoreKind": "selection-probability" if selection_probability is not None else "candidate-suitability",
+        "selectionProbability": selection_probability,
+        "rawChoice": raw.get("rawChoice") if isinstance(raw.get("rawChoice"), dict) else None,
         "confidence": confidence, "suitabilityConfidence": suitability_confidence,
         "raw": raw}
 
@@ -235,6 +245,13 @@ class LocalDecisionResult:
     cold_start_ms: float | None
     latency_ms: float
     usage: dict
+
+
+def advisor_choice_feedback(choice):
+    return {
+        "REDO_REQUIREMENT": "重新逐项核对用户的明确要求，补齐遗漏或违反的部分，再给出修订答复。",
+        "REDO_EVIDENCE": "核对已完成工具结果与当前结论，补充必要证据并修正冲突后再答复。",
+    }.get(choice)
 
 
 class LayaDecisionAdapter:
@@ -304,19 +321,29 @@ class LayaDecisionAdapter:
         compact = {"task": state["text"], "media": state["media"], "tools": state["tools"]}
         if getattr(self, "method", "ordinal-v1") == "choice-v2":
             return self._decide_choice(request, compact)
+        ordered_coverage = getattr(self, "method", "ordinal-v1") == "ordinal-v2"
         questions = {}
+        coverage_levels = ["已知能力或接口明确不满足任务必需条件",
+                           "已知能力仅覆盖部分任务要求，存在明确能力缺口",
+                           "已知能力覆盖全部可核对的任务必需条件"]
         for candidate in request["candidates"]:
             candidate_id = candidate["id"]
             description = json.dumps(candidate, ensure_ascii=False, separators=(",", ":"))
             questions[f"candidate:{candidate_id}:suitability"] = {
                 "type": "score",
-                "instructions": "根据任务与已知能力，评价这个候选作为整个任务主执行模型的适合程度。候选："
+                "instructions": ("只按已核对的能力与接口，评价候选覆盖任务必需条件的程度；"
+                                 "不要把本评分当成真实任务成功率。候选：" if ordered_coverage
+                                 else "根据任务与已知能力，评价这个候选作为整个任务主执行模型的适合程度。候选：")
                                 + description,
-                "criteria": ["不适合", "证据不足", "适合"],
+                "criteria": (coverage_levels if ordered_coverage
+                             else ["不适合", "证据不足", "适合"]),
             }
             questions[f"candidate:{candidate_id}:missing"] = {
                 "type": "noul",
-                "instructions": "是否缺少会影响判断这个候选的关键信息？候选：" + description,
+                "instructions": (("任务与候选能力卡是否缺少判断该候选能否覆盖全部必需接口或工作类型的具体事实？"
+                                  "是表示缺少此类事实；否表示已足够判断。不要把一般执行风险算作缺失。候选：")
+                                 if ordered_coverage else "是否缺少会影响判断这个候选的关键信息？候选：")
+                                + description,
             }
         self._ensure_complete(compact, questions)
         started = time.perf_counter()
@@ -344,8 +371,9 @@ class LayaDecisionAdapter:
             "selection": {"choice": selected["candidateId"], "probabilities": {}},
             "suitability": {"score": selected["score"]},
             "missing_information": {"noul": selected["missingInformation"]},
-        }, "rawPerCandidate": rows, "ruleVersion": "task-local-ordinal-v2",
-            "scoreKind": "ordinal-suitability"}
+        }, "rawPerCandidate": rows,
+            "ruleVersion": "task-local-ordered-coverage-v1" if ordered_coverage else "task-local-ordinal-v2",
+            "scoreKind": "ordered-capability-coverage" if ordered_coverage else "ordinal-suitability"}
         cold = self.cold_start_ms
         self.cold_start_ms = None
         usage = dict(result.get("usage", {"input_tokens": 0, "output_tokens": 0}))
@@ -452,10 +480,7 @@ class LayaDecisionAdapter:
             raise ValueError("本地 Advisor Judge 返回无效 Choice")
         confidence = probabilities[choice]
         effective = choice if confidence >= request["threshold"] else "UNRESOLVED"
-        feedback = {
-            "REDO_REQUIREMENT": "重新逐项核对用户的明确要求，补齐遗漏或违反的部分，再给出修订答复。",
-            "REDO_EVIDENCE": "核对已完成工具结果与当前结论，补充必要证据并修正冲突后再答复。",
-        }.get(effective)
+        feedback = advisor_choice_feedback(effective)
         cold, self.cold_start_ms = self.cold_start_ms, None
         usage = dict(result.get("usage", {}))
         usage.update(questions=1, forwards=1)
@@ -488,9 +513,9 @@ class LayaDecisionAdapter:
         normalized = {"answers": {
             "selection": {"choice": choice, "probabilities": probabilities,
                           "confidence": answer.get("confidence")},
-            "suitability": {"score": probabilities[choice], "level": "choice-probability"},
+            "selection_probability": probabilities[choice],
             "missing_information": {"probability": probabilities["insufficient"]}},
-            "ruleVersion": "task-local-choice-v2", "scoreKind": "choice-probability",
+            "ruleVersion": "task-local-choice-v3", "scoreKind": "selection-probability",
             "rawChoice": answer}
         cold = self.cold_start_ms
         self.cold_start_ms = None

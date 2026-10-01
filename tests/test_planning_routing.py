@@ -750,7 +750,9 @@ def test_laya_choice_v2_uses_one_question_and_preserves_score_kind(monkeypatch):
     parsed = parse_decision(result.payload, ["small", "large"], .8)
     assert parsed["candidateId"] == "small" and not parsed["uncertain"]
     assert parsed["score"] == .9 and parsed["missingInformation"] == .04
-    assert result.payload["scoreKind"] == "choice-probability"
+    assert result.payload["scoreKind"] == "selection-probability"
+    assert parsed["scoreKind"] == "selection-probability"
+    assert parsed["selectionProbability"] == .9
     assert result.usage["questions"] == result.usage["forwards"] == 1
 
 

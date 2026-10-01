@@ -40,9 +40,10 @@ def summarize(suite, rows, *, cases, cold_start_ms):
         "qualifiedApproved": sum(row["outcome"] == "APPROVE" for row in qualified),
         "insufficientApproved": sum(row["outcome"] == "APPROVE" for row in insufficient),
         "rechecksMatched": sum(row["matched"] for row in rechecks),
-        "dailyUseAccepted": (not any(row["outcome"] == "APPROVE" for row in defects + insufficient)
-                             and sum(row["outcome"] == "APPROVE" for row in qualified) >= 5
-                             and all(row["matched"] for row in rechecks)),
+        "dailyUseAccepted": ((not any(row["outcome"] == "APPROVE" for row in defects + insufficient)
+                              and sum(row["outcome"] == "APPROVE" for row in qualified) >= 5
+                              and all(row["matched"] for row in rechecks))
+                             if suite.get("schemaVersion", "advisor-judge-suite-v1") == "advisor-judge-suite-v1" else None),
         "cases": rows}
 
 
@@ -53,8 +54,14 @@ def main():
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     suite = json.loads(args.cases.read_text())
-    if suite.get("schemaVersion") != "advisor-judge-suite-v1" or len(suite.get("cases", [])) != 24:
-        raise ValueError("Advisor Judge 必须使用冻结的 24 条 v1 案例")
+    if suite.get("schemaVersion") == "advisor-judge-suite-v1":
+        if len(suite.get("cases", [])) != 24:
+            raise ValueError("Advisor Judge v1 必须使用冻结的 24 条案例")
+    elif suite.get("schemaVersion") == "advisor-judge-suite-v2":
+        from experiments.judge_case_audit import validate_suite
+        validate_suite(suite)
+    else:
+        raise ValueError("Advisor Judge 案例版本无效")
     adapter = LayaDecisionAdapter({"modelPath": str(args.model_path),
         "sourceModel": suite["checkpoint"], "revision": suite["revision"],
         "device": "gpu", "dtype": "float16", "method": "choice-v2"})

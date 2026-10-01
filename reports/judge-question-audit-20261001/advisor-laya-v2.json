@@ -1,0 +1,298 @@
+{
+  "schemaVersion": "advisor-judge-audit-result-v1",
+  "recordedAt": "2026-09-30T17:27:17.401568+00:00",
+  "backend": "local-laya-mlx",
+  "suite": "data/benchmarks/advisor-judge-v2.json",
+  "checkpoint": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "threshold": 0.8,
+  "coldStartMs": 532.9782080370933,
+  "matched": 3,
+  "total": 9,
+  "defectsApproved": 0,
+  "qualifiedApproved": 0,
+  "insufficientApproved": 0,
+  "rechecksMatched": 0,
+  "dailyUseAccepted": null,
+  "cases": [
+    {
+      "id": "zh-qualified-exit",
+      "category": "qualified",
+      "language": "zh",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.4489,
+      "matched": false,
+      "latencyMs": 59.60245802998543,
+      "usage": {
+        "input_tokens": 326,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1228,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.4489,
+          "REDO_REQUIREMENT": 0.1316,
+          "REDO_EVIDENCE": 0.3239,
+          "UNRESOLVED": 0.0956
+        }
+      }
+    },
+    {
+      "id": "en-qualified-name",
+      "category": "qualified",
+      "language": "en",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.4798,
+      "matched": false,
+      "latencyMs": 45.05012510344386,
+      "usage": {
+        "input_tokens": 329,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.104,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.4798,
+          "REDO_REQUIREMENT": 0.2045,
+          "REDO_EVIDENCE": 0.2102,
+          "UNRESOLVED": 0.1055
+        }
+      }
+    },
+    {
+      "id": "mix-qualified-recheck",
+      "category": "recheck",
+      "language": "mixed",
+      "expected": "APPROVE",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.7414,
+      "matched": false,
+      "latencyMs": 28.038749936968088,
+      "usage": {
+        "input_tokens": 209,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.4129,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.7414,
+          "REDO_REQUIREMENT": 0.1565,
+          "REDO_EVIDENCE": 0.0608,
+          "UNRESOLVED": 0.0412
+        }
+      }
+    },
+    {
+      "id": "zh-defect-exit",
+      "category": "defect",
+      "language": "zh",
+      "expected": "REDO",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.6673,
+      "matched": false,
+      "latencyMs": 40.127041982486844,
+      "usage": {
+        "input_tokens": 328,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.281,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.6673,
+          "REDO_REQUIREMENT": 0.1361,
+          "REDO_EVIDENCE": 0.107,
+          "UNRESOLVED": 0.0896
+        }
+      }
+    },
+    {
+      "id": "en-defect-prohibition",
+      "category": "defect",
+      "language": "en",
+      "expected": "REDO",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.3673,
+      "matched": false,
+      "latencyMs": 26.75429219380021,
+      "usage": {
+        "input_tokens": 200,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0416,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.3673,
+          "REDO_REQUIREMENT": 0.153,
+          "REDO_EVIDENCE": 0.292,
+          "UNRESOLVED": 0.1878
+        }
+      }
+    },
+    {
+      "id": "mix-defect-format",
+      "category": "recheck",
+      "language": "mixed",
+      "expected": "REDO",
+      "outcome": "APPROVE",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.8332,
+      "matched": false,
+      "latencyMs": 26.30020910874009,
+      "usage": {
+        "input_tokens": 208,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.5663,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.8332,
+          "REDO_REQUIREMENT": 0.1063,
+          "REDO_EVIDENCE": 0.0347,
+          "UNRESOLVED": 0.0258
+        }
+      }
+    },
+    {
+      "id": "zh-insufficient-private",
+      "category": "insufficient",
+      "language": "zh",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.5671,
+      "matched": true,
+      "latencyMs": 26.572250062599778,
+      "usage": {
+        "input_tokens": 201,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.183,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.5671,
+          "REDO_REQUIREMENT": 0.1021,
+          "REDO_EVIDENCE": 0.2182,
+          "UNRESOLVED": 0.1126
+        }
+      }
+    },
+    {
+      "id": "en-insufficient-image",
+      "category": "insufficient",
+      "language": "en",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.3008,
+      "matched": true,
+      "latencyMs": 26.47445909678936,
+      "usage": {
+        "input_tokens": 202,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0088,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.3008,
+          "REDO_REQUIREMENT": 0.2047,
+          "REDO_EVIDENCE": 0.2744,
+          "UNRESOLVED": 0.2201
+        }
+      }
+    },
+    {
+      "id": "mix-insufficient-video",
+      "category": "insufficient",
+      "language": "mixed",
+      "expected": "UNRESOLVED",
+      "outcome": "UNRESOLVED",
+      "rawVerdict": "APPROVE",
+      "confidence": 0.3613,
+      "matched": true,
+      "latencyMs": 26.55283291824162,
+      "usage": {
+        "input_tokens": 199,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      },
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0403,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.3613,
+          "REDO_REQUIREMENT": 0.1525,
+          "REDO_EVIDENCE": 0.2963,
+          "UNRESOLVED": 0.1898
+        }
+      }
+    }
+  ]
+}

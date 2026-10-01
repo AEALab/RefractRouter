@@ -20,7 +20,7 @@ export type TaskJudgeConfig =
   | {type:'llm';modelId:string}
   | {type:'local-decision';adapter:string;modelPath:string;sourceModel?:string;revision?:string
       device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16'
-      method?:'ordinal-v1'|'choice-v2'}
+      method?:'ordinal-v1'|'ordinal-v2'|'choice-v2'}
 export interface TaskRoutingConfig {
   pool:string[];fallback:string;judge:TaskJudgeConfig;threshold?:number;maxInputChars?:number
   maxExecutionOutputTokens?:number;maxJudgeOutputTokens?:number

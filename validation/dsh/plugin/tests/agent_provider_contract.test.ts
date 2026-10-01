@@ -233,6 +233,8 @@ test('混合拆分判别必须明确实验启用并使用完整本地配置',()=
     /explicitly enabled local Judge/)
   assert.doesNotThrow(()=>configure({liveExecution:{...liveExecution(),decompositionDecision:{mode:'hybrid',
     allowExperimental:true,judge:localJudge(),threshold:.65,timeoutMs:30000,maxInputBytes:65536}}}))
+  assert.doesNotThrow(()=>configure({liveExecution:{...liveExecution(),decompositionDecision:{mode:'hybrid',
+    allowExperimental:true,judge:{...localJudge(),method:'noul-v1' as const},threshold:.65}}}))
 })
 test('DSH 从 Python 核心读取本地判别后端目录，不在插件内编造能力',async()=>{
   const f=fixture(),catalog={contract:'local-decision-backends-v1',backends:[

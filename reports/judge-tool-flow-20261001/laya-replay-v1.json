@@ -1,0 +1,212 @@
+{
+  "schemaVersion": "tool-judge-laya-replay-v1",
+  "recordedAt": "2026-10-01T04:18:52.844049+00:00",
+  "model": "aac6fef/laya-multilingual-mlx",
+  "revision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+  "method": "choice-v2",
+  "coldStartMs": 991.8634579516947,
+  "sourcePreflight": {
+    "schemaVersion": "tool-judge-jev-replay-preflight-v1",
+    "model": "jev-1.13.0",
+    "source": "已完成的 DSH 工具任务 Judge 输入",
+    "questionMethod": "choice-v2",
+    "caseCount": 6,
+    "maximumRequests": 6,
+    "httpRetries": 0,
+    "maxInputTokensPerCall": 64000,
+    "maximumUsd": 0.016128,
+    "sourceSha256": {
+      "advisor-normal-v3": "dc12b6232dc5899f008a1fc083549dc80adf9281d68e8c2531c1a94a81044eae",
+      "advisor-redo-v5": "d85df14673c8dae8c07656a230745b7644d117acae47879e2b29bed15ff227fa",
+      "escalation-normal-v4": "f7b3845f1ba4197afd809dc05755191f9d3b137ed9aaf8199da268c96f809df7",
+      "escalation-defect-v4": "e722827d9c769ee75a432a48a8385354cd48e97475414d1ad6d77262f198b189"
+    },
+    "contractSha256": "81ec93bc1a6d18e91a4516dfc733ae61afc3187a38964c32527d30ec36cc5fc4",
+    "note": "事后重放只比较 Judge 判别；不会重新执行宿主工具，也不证明官方 Jev 已接入 Router 产品运行路径。"
+  },
+  "completed": 6,
+  "matched": 0,
+  "noApiCost": true,
+  "cases": [
+    {
+      "id": "advisor-normal-v3:1",
+      "status": "completed",
+      "expected": "APPROVE",
+      "arkVerdict": "APPROVE",
+      "layaVerdict": "UNRESOLVED",
+      "layaRawVerdict": "UNRESOLVED",
+      "selectionProbability": 0.4298,
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0641,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNRESOLVED",
+        "probabilities": {
+          "APPROVE": 0.1713,
+          "REDO_REQUIREMENT": 0.2456,
+          "REDO_EVIDENCE": 0.1533,
+          "UNRESOLVED": 0.4298
+        }
+      },
+      "latencyMs": 82.61554199270904,
+      "usage": {
+        "input_tokens": 510,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "advisor-redo-v5:1",
+      "status": "completed",
+      "expected": "REDO",
+      "arkVerdict": "REDO",
+      "layaVerdict": "UNRESOLVED",
+      "layaRawVerdict": "APPROVE",
+      "selectionProbability": 0.6845,
+      "raw": {
+        "type": "choice",
+        "confidence": 0.3007,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.6845,
+          "REDO_REQUIREMENT": 0.1127,
+          "REDO_EVIDENCE": 0.1071,
+          "UNRESOLVED": 0.0957
+        }
+      },
+      "latencyMs": 33.77545811235905,
+      "usage": {
+        "input_tokens": 262,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "advisor-redo-v5:2",
+      "status": "completed",
+      "expected": "APPROVE",
+      "arkVerdict": "APPROVE",
+      "layaVerdict": "UNRESOLVED",
+      "layaRawVerdict": "APPROVE",
+      "selectionProbability": 0.6556,
+      "raw": {
+        "type": "choice",
+        "confidence": 0.2778,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "APPROVE",
+        "probabilities": {
+          "APPROVE": 0.6556,
+          "REDO_REQUIREMENT": 0.0853,
+          "REDO_EVIDENCE": 0.1734,
+          "UNRESOLVED": 0.0857
+        }
+      },
+      "latencyMs": 72.75691581889987,
+      "usage": {
+        "input_tokens": 637,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "escalation-normal-v4:1",
+      "status": "completed",
+      "expected": "PROCEED",
+      "arkVerdict": "PROCEED",
+      "layaVerdict": "UNCERTAIN",
+      "layaRawVerdict": "DEFECT",
+      "selectionProbability": 0.3073,
+      "raw": {
+        "type": "choice",
+        "confidence": 0.0157,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "DEFECT",
+        "probabilities": {
+          "PROCEED": 0.276,
+          "DEFECT": 0.3073,
+          "STALL": 0.1704,
+          "UNCERTAIN": 0.2464
+        }
+      },
+      "latencyMs": 29.013624880462885,
+      "usage": {
+        "input_tokens": 229,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "escalation-normal-v4:2",
+      "status": "completed",
+      "expected": "PROCEED",
+      "arkVerdict": "PROCEED",
+      "layaVerdict": "UNCERTAIN",
+      "layaRawVerdict": "UNCERTAIN",
+      "selectionProbability": 0.4554,
+      "raw": {
+        "type": "choice",
+        "confidence": 0.1252,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNCERTAIN",
+        "probabilities": {
+          "PROCEED": 0.1185,
+          "DEFECT": 0.3207,
+          "STALL": 0.1054,
+          "UNCERTAIN": 0.4554
+        }
+      },
+      "latencyMs": 49.396832939237356,
+      "usage": {
+        "input_tokens": 443,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    },
+    {
+      "id": "escalation-defect-v4:1",
+      "status": "completed",
+      "expected": "DEFECT",
+      "arkVerdict": "DEFECT",
+      "layaVerdict": "UNCERTAIN",
+      "layaRawVerdict": "UNCERTAIN",
+      "selectionProbability": 0.2988,
+      "raw": {
+        "type": "choice",
+        "confidence": 0.012,
+        "action": {
+          "act_probability": 1.0
+        },
+        "choice": "UNCERTAIN",
+        "probabilities": {
+          "PROCEED": 0.1956,
+          "DEFECT": 0.2908,
+          "STALL": 0.2148,
+          "UNCERTAIN": 0.2988
+        }
+      },
+      "latencyMs": 26.93000016734004,
+      "usage": {
+        "input_tokens": 204,
+        "output_tokens": 0,
+        "questions": 1,
+        "forwards": 1
+      }
+    }
+  ]
+}

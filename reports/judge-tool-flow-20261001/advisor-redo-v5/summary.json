@@ -1,0 +1,49 @@
+{
+  "scenario": "advisor-redo",
+  "clientExitCode": 0,
+  "clientCompleted": true,
+  "remoteJudgeCalls": 2,
+  "chargedJudgeAfp": 0.0667,
+  "purposes": [
+    "execute",
+    "advisor",
+    "redo",
+    "execute",
+    "advisor"
+  ],
+  "dispositions": [
+    "discarded",
+    "consult",
+    "accepted",
+    "accepted",
+    "consult"
+  ],
+  "decisionReasons": [
+    "advisor-initial",
+    "advisor-redo-required",
+    "advisor-redo",
+    "advisor-initial",
+    "advisor-reapproved"
+  ],
+  "fixture": [
+    {
+      "role": "initial",
+      "toolResultInHistory": false,
+      "emittedToolCall": false
+    },
+    {
+      "role": "initial",
+      "toolResultInHistory": false,
+      "emittedToolCall": true
+    },
+    {
+      "role": "initial",
+      "toolResultInHistory": true,
+      "emittedToolCall": false
+    }
+  ],
+  "hostToolResultReceived": true,
+  "routerTasks": 1,
+  "httpRetries": 0,
+  "clientErrorType": "none"
+}

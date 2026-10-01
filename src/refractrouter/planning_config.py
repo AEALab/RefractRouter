@@ -124,7 +124,7 @@ def _task_config(raw, schema, declared_ids, roles):
     else:
         from .local_decision_backend import require_backend
         require_backend(judge.get("adapter"), "task")
-        if judge.get("method", "ordinal-v1") not in ("ordinal-v1", "choice-v2"):
+        if judge.get("method", "ordinal-v1") not in ("ordinal-v1", "ordinal-v2", "choice-v2"):
             raise ValueError("本地 Judge method 无效")
         path = judge.get("modelPath")
         if not isinstance(path, str) or not path or len(path) > 4096:

@@ -138,7 +138,7 @@ export interface LiveExecutionView {
   decompositionDecision?:{
     mode:'rules'|'hybrid';allowExperimental?:boolean;threshold?:number;timeoutMs?:number;maxInputBytes?:number
     judge?:{type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
-      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'choice-v2'}
+      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'noul-v1'|'choice-v2'}
   }
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }

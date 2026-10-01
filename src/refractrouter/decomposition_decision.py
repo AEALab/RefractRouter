@@ -77,10 +77,12 @@ def validate_local_judge(value):
         raise ValueError("自动路由 Judge device 无效")
     if value.get("dtype", "float16") not in ("float16", "float32", "bfloat16"):
         raise ValueError("自动路由 Judge dtype 无效")
-    if value.get("method", "choice-v2") != "choice-v2":
-        raise ValueError("拆分判别只支持 choice-v2")
+    # 旧配置曾把两个 Noul 问题误标为 choice-v2；继续读取它，不改变历史任务。
+    if value.get("method", "noul-v1") not in ("noul-v1", "choice-v2"):
+        raise ValueError("拆分判别只支持 noul-v1（兼容旧 choice-v2 标识）")
     return {**value, "device": value.get("device", "gpu"),
-            "dtype": value.get("dtype", "float16"), "method": "choice-v2"}
+            "dtype": value.get("dtype", "float16"),
+            "method": value.get("method", "noul-v1")}
 
 
 def validate_limits(threshold, max_input_bytes):

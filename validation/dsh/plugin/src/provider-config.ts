@@ -59,7 +59,7 @@ export interface LiveExecutionConfiguration {
     timeoutMs?: number
     maxInputBytes?: number
     judge?: {type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
-      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'choice-v2'}
+      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'noul-v1'|'choice-v2'}
   }
 }
 
@@ -176,7 +176,7 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
         throw new Error('hybrid decompositionDecision requires an explicitly enabled local Judge')
       const judge=decision.judge
       if(judge.type!=='local-decision'||typeof judge.adapter!=='string'||!judge.adapter
-        ||judge.method!==undefined&&judge.method!=='choice-v2'
+        ||judge.method!==undefined&&!['noul-v1','choice-v2'].includes(String(judge.method))
         ||!['modelPath','sourceModel','revision'].every(field=>typeof judge[field]==='string'&&String(judge[field]).length>0)
         ||judge.device!==undefined&&!['gpu','metal','cpu'].includes(String(judge.device))
         ||judge.dtype!==undefined&&!['float16','float32','bfloat16'].includes(String(judge.dtype)))

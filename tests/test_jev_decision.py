@@ -44,8 +44,8 @@ def test_jev_post_pins_version_and_keeps_key_out_of_payload():
     assert request.full_url == JEV_ENDPOINT
     assert request.get_method() == "POST"
     assert request.get_header("Authorization") == "Bearer secret-for-test"
-    body = json.loads(request.data)
-    assert body == {"state": "一个任务", "model": JEV_MODEL, "questions": questions}
+    assert json.loads(request.data) == {"state": "一个任务", "model": JEV_MODEL,
+                                        "questions": questions}
     assert b"secret-for-test" not in request.data
     assert timeout == 30
 
