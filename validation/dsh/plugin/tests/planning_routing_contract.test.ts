@@ -181,6 +181,24 @@ test('Advisor 由 DSH 凭证边界派发 Jev Choice，并将用量交回 Router 
   }finally{globalThis.fetch=originalFetch;await f.cleanup()}
 })
 
+test('零调用检查在旧核心上明确阻断 Jev 配置',async()=>{
+  const f=await fixture('stage')
+  try{
+    f.setPlanning({...structuredClone(config),schemaVersion:'refractagent-planning-v6',
+      advisor:{executor:'small',judge:{type:'jev'},threshold:.8,maxJudgeInputBytes:8000,
+        judgeTimeoutMs:30000,maxExecutionOutputTokens:2048,maxJudgeOutputTokens:256}})
+    const operations:string[]=[]
+    f.worker.request=async value=>{
+      operations.push(String(value.op))
+      if(value.op==='handshake')return {protocol:'refractagent-planning/4',
+        capabilities:['escalation-decision-v1','local-judge-jobs']}
+      throw new Error('不应在能力检查失败后进入预检')
+    }
+    await assert.rejects(f.controller.preview(),/当前核心不支持官方 Jev Judge/)
+    assert.deepEqual(operations,['handshake'])
+  }finally{await f.cleanup()}
+})
+
 test('未选中的 Jev 配置不会阻断 Static 执行',async()=>{
   const f=await fixture('static')
   try{

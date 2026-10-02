@@ -203,6 +203,8 @@ export class PlanningController {
   }
   async preview():Promise<Json>{
     const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
+    await this.ensureHandshake(config.stage?.mode==='hybrid',Boolean(config.composite),
+      false,false,usesJev(config))
     const hostIssues=await this.completeMetadata(config)
     if(usesJev(config)){
       const reference=config.jev?.credentialRef??'TYPESAFE_API_KEY'
