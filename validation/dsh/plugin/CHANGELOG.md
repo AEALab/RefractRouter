@@ -1,3 +1,11 @@
+# 0.29.1
+
+- 在规划路由零调用检查中核对核心 Jev、Stage 和 Composite 能力；插件与已安装核心
+  不匹配时，先提示升级，再进行模型资料与策略校验。
+- 官方 Jev 可在 Advisor、Escalation、Task、Stage 和 Composite 的设置中选择；
+  原有 DSH web profile 的五条配置路径已完成零调用验收，真实 DSH 调用仍待独立验收。
+- Python 核心同步升至 0.15.5，避免同版本旧 wheel 被安装缓存复用。
+
 # 0.29.0
 
 - Composite 升级为独立 v6 设置：Task 从有序模型池一次选出常用模型，Stage 再根据后续

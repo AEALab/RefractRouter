@@ -116,12 +116,12 @@ def _task_config(raw, schema, declared_ids, roles):
     judge = obj(task.get("judge", {}), ("type", "modelId", "adapter", "modelPath", "sourceModel",
         "revision", "device", "dtype", "method"), "task.judge")
     judge_type = judge.get("type")
-    if judge_type not in ("llm", "local-decision"):
-        raise ValueError("task.judge.type 必须是 llm 或 local-decision")
+    if judge_type not in ("llm", "local-decision", "jev"):
+        raise ValueError("task.judge.type 必须是 llm、local-decision 或 jev")
     if judge_type == "llm":
         if judge.get("modelId") not in declared_ids:
             raise ValueError("轻量 LLM Judge 必须引用已配置模型")
-    else:
+    elif judge_type == "local-decision":
         from .local_decision_backend import require_backend
         require_backend(judge.get("adapter"), "task")
         if judge.get("method", "ordinal-v1") not in ("ordinal-v1", "ordinal-v2", "choice-v2"):
@@ -191,8 +191,8 @@ def _escalation_config(raw, schema, declared_ids, roles):
                 or any(char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
                        for char in revision)):
             raise ValueError("Escalation 本地 Judge 需要固定且合法的 revision")
-    else:
-        raise ValueError("escalation.judge.type 必须是 llm 或 local-decision")
+    elif judge_type != "jev":
+        raise ValueError("escalation.judge.type 必须是 llm、local-decision 或 jev")
     return {"mode": "configured", "initial": initial, "takeover": takeover, "judge": judge,
         "stallConfirmations": number(value.get("stallConfirmations", 2),
             "escalation.stallConfirmations", 1, 100, True),
@@ -240,8 +240,8 @@ def _advisor_config(raw, schema, declared_ids, roles):
             raise ValueError("Advisor Judge device/dtype 无效")
         if value.get("allowExperimental") is not True:
             raise ValueError("Advisor 本地 Judge 尚待专项验收；需明确启用实验模式")
-    else:
-        raise ValueError("advisor.judge.type 必须是 llm 或 local-decision")
+    elif judge.get("type") != "jev":
+        raise ValueError("advisor.judge.type 必须是 llm、local-decision 或 jev")
     return {"mode": "configured", "flow": "gate-v2" if schema == SCHEMA_V6 else "legacy",
         "executor": executor, "judge": judge,
         "allowExperimental": value.get("allowExperimental") is True,
@@ -272,23 +272,24 @@ def _stage_config(raw):
         raise ValueError("stage.mode 必须是 rules 或 hybrid")
     judge = obj(stage.get("judge", {}), ("type", "adapter", "modelPath", "sourceModel",
         "revision", "device", "dtype", "method"), "stage.judge")
-    if judge.get("type") != "local-decision":
-        raise ValueError("Stage 协作模式需要本地 Judge")
-    from .local_decision_backend import require_backend
-    require_backend(judge.get("adapter"), "stage")
-    for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
-        if not isinstance(judge.get(field), str) or not judge[field] or len(judge[field]) > maximum:
-            raise ValueError(f"Stage 本地 Judge 缺少有效 {field}")
-    if any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-" for c in judge["revision"]):
-        raise ValueError("Stage Judge revision 无效")
-    if judge.get("device", "gpu") not in ("gpu", "metal", "cpu") or judge.get("dtype", "float16") not in ("float16", "float32", "bfloat16"):
-        raise ValueError("Stage Judge device/dtype 无效")
+    if judge.get("type") not in ("local-decision", "jev"):
+        raise ValueError("Stage 协作模式需要本地或 Jev Judge")
+    if judge["type"] == "local-decision":
+        from .local_decision_backend import require_backend
+        require_backend(judge.get("adapter"), "stage")
+        for field, maximum in (("modelPath", 4096), ("sourceModel", 256), ("revision", 128)):
+            if not isinstance(judge.get(field), str) or not judge[field] or len(judge[field]) > maximum:
+                raise ValueError(f"Stage 本地 Judge 缺少有效 {field}")
+        if any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-" for c in judge["revision"]):
+            raise ValueError("Stage Judge revision 无效")
+        if judge.get("device", "gpu") not in ("gpu", "metal", "cpu") or judge.get("dtype", "float16") not in ("float16", "float32", "bfloat16"):
+            raise ValueError("Stage Judge device/dtype 无效")
     if type(stage.get("allowExperimental", False)) is not bool:
         raise ValueError("stage.allowExperimental 必须是布尔值")
     result = {"mode": "hybrid", "judge": judge, "allowExperimental": stage.get("allowExperimental", False)}
     for key, default, low, high in (("window", 3, 1, 100), ("interval", 2, 1, 100),
             ("maxJudgements", 4, 1, 100), ("holdTurns", 2, 1, 100),
-            ("downgradeConfirmations", 2, 2, 100), ("judgeTimeoutMs", 1000, 100, 30000),
+            ("downgradeConfirmations", 2, 2, 100), ("judgeTimeoutMs", 30000 if judge["type"] == "jev" else 1000, 100, 30000),
             ("maxJudgeInputBytes", 65536, 512, MAX_CONFIG_BYTES)):
         result[key] = number(stage.get(key, default), f"stage.{key}", low, high, True)
     for key, default in (("upgradeThreshold", .8), ("downgradeThreshold", .9)):
@@ -332,7 +333,7 @@ def _composite_config(raw, schema, declared_ids, roles):
         hybrid.pop("threshold", None)
         stage = _stage_config({"schemaVersion": schema, "stage": hybrid})
         if not stage["allowExperimental"]:
-            raise ValueError("Composite 本地 Laya 判别尚待专项验收；需明确启用实验模式")
+            raise ValueError("Composite Stage 协作判别尚待专项验收；需明确启用实验模式")
     else:
         raise ValueError("composite.stage.mode 必须是 rules 或 hybrid")
     return {"mode": "configured", "task": task, "takeover": takeover, "stage": stage}
@@ -342,7 +343,7 @@ def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
         "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage",
-        "composite", "mediaRoutes"), "planningRouting"))
+        "composite", "mediaRoutes", "jev"), "planningRouting"))
     if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
@@ -385,6 +386,22 @@ def compile_config(raw):
         if p.get("expiresOn") and date.fromisoformat(p["expiresOn"]) < date.today():
             raise ValueError("信任策略已过期")
         policies[p["id"]] = p
+    jev_raw = obj(raw.get("jev", {}), ("credentialRef", "deployment", "trustPolicy", "actionGate"), "jev")
+    jev_deployment = jev_raw.get("deployment", "external-cloud")
+    if jev_deployment not in ("external-cloud", "trusted-cloud"):
+        raise ValueError("Jev 是云端服务；部署域只能是外部云或受信任云")
+    if jev_deployment == "trusted-cloud" and jev_raw.get("trustPolicy") not in policies:
+        raise ValueError("Jev 可信云需要有效的信任策略")
+    credential_ref = jev_raw.get("credentialRef", "TYPESAFE_API_KEY")
+    if (not isinstance(credential_ref, str) or not credential_ref or len(credential_ref) > 128
+            or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/" for c in credential_ref)):
+        raise ValueError("Jev 凭证引用无效；设置中只能保存引用，不能保存密钥")
+    from .jev_choice_gate import VERSION as jev_gate_version
+    if jev_raw.get("actionGate") not in (None, jev_gate_version):
+        raise ValueError("Jev 动作门槛版本不兼容")
+    jev = {"credentialRef": credential_ref, "deployment": jev_deployment,
+           "trustPolicy": jev_raw.get("trustPolicy"), "actionGate": jev_raw.get("actionGate"),
+           "fxRate": fx_rate, "fxSource": fx_snapshot["source"], "fxAsOf": fx_snapshot["as_of"]}
     models = {}
     model_issues = {}
     declared_ids = set()
@@ -530,7 +547,7 @@ def compile_config(raw):
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
         "task": task, "composite": composite, "escalation": escalation, "advisor": advisor,
-        "stage": _stage_config(raw), "media_routes": normalized_media,
+        "stage": _stage_config(raw), "jev": jev, "media_routes": normalized_media,
         "model_issues": model_issues}
 
 
@@ -564,7 +581,7 @@ def preview(raw, host_issues=None):
                 issues.append(f"{label} Judge {judge_id}：{host_issues[judge_id]}")
             elif c["models"][judge_id].billing_unit not in c["budgets"]:
                 issues.append(f"{label} 缺少 {c['models'][judge_id].billing_unit} 生产预算")
-        else:
+        elif judge["type"] == "local-decision":
             path = Path(judge["modelPath"]).expanduser()
             try:
                 manifest = json.loads((path / "refractrouter-laya.json").read_text())
@@ -576,6 +593,10 @@ def preview(raw, host_issues=None):
                     or manifest.get("sourceModel") != judge["sourceModel"]
                     or manifest.get("revision") != judge["revision"]):
                 issues.append(f"{label} 本地 Task Judge 权重或固定 revision 尚未核对")
+        elif "CNY" not in c["budgets"]:
+            issues.append(f"{label} Jev 需要 CNY 生产预算（官方 USD 价格按冻结汇率折算）")
+        if judge["type"] == "jev" and (host_issues or {}).get("__jev__"):
+            issues.append(f"{label} Jev：{host_issues['__jev__']}")
         return issues
 
     rows = []
@@ -615,16 +636,22 @@ def preview(raw, host_issues=None):
                 issues.append("Composite Task 备援与接管模型必须相同")
             if composite["stage"]["mode"] == "hybrid":
                 judge = composite["stage"]["judge"]
-                path = Path(judge["modelPath"]).expanduser()
-                try:
-                    manifest = json.loads((path / "refractrouter-laya.json").read_text())
-                except (OSError, ValueError, TypeError):
-                    manifest = {}
-                if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
-                        "rl_agent_config.json", "encoder/config.json"))
-                        or manifest.get("revision") != judge["revision"]
-                        or manifest.get("sourceModel") != judge["sourceModel"]):
-                    issues.append("Composite 本地 Stage Judge 权重或固定 revision 尚未核对")
+                if judge["type"] == "jev":
+                    if "CNY" not in c["budgets"]:
+                        issues.append("Composite Stage Jev 需要 CNY 生产预算")
+                    if (host_issues or {}).get("__jev__"):
+                        issues.append("Composite Stage Jev：" + host_issues["__jev__"])
+                else:
+                    path = Path(judge["modelPath"]).expanduser()
+                    try:
+                        manifest = json.loads((path / "refractrouter-laya.json").read_text())
+                    except (OSError, ValueError, TypeError):
+                        manifest = {}
+                    if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
+                            "rl_agent_config.json", "encoder/config.json"))
+                            or manifest.get("revision") != judge["revision"]
+                            or manifest.get("sourceModel") != judge["sourceModel"]):
+                        issues.append("Composite 本地 Stage Judge 权重或固定 revision 尚未核对")
         if strategy == "escalation" and c["escalation"]["mode"] == "configured":
             e = c["escalation"]
             escalation_ids = [e["initial"], e["takeover"]]
@@ -637,6 +664,11 @@ def preview(raw, host_issues=None):
                     issues.append(f"Escalation 模型 {model_id}：{host_issues[model_id]}")
                 elif model_id in c["models"] and c["models"][model_id].billing_unit not in c["budgets"]:
                     issues.append(f"Escalation 模型 {model_id} 缺少 {c['models'][model_id].billing_unit} 生产预算")
+            if e["judge"]["type"] == "jev":
+                if "CNY" not in c["budgets"]:
+                    issues.append("Escalation Jev 需要 CNY 生产预算")
+                if (host_issues or {}).get("__jev__"):
+                    issues.append("Escalation Jev：" + host_issues["__jev__"])
             if e["judge"]["type"] == "local-decision":
                 judge = e["judge"]
                 path = Path(judge["modelPath"])
@@ -666,7 +698,7 @@ def preview(raw, host_issues=None):
                     issues.append(f"Advisor Judge {model_id} 配置未完成（{c['model_issues'][model_id]}）")
                 elif model_id in c["models"] and c["models"][model_id].billing_unit not in c["budgets"]:
                     issues.append(f"Advisor Judge 缺少 {c['models'][model_id].billing_unit} 生产预算")
-            else:
+            elif judge["type"] == "local-decision":
                 path = Path(judge["modelPath"]).expanduser()
                 try:
                     manifest = json.loads((path / "refractrouter-laya.json").read_text())
@@ -676,19 +708,30 @@ def preview(raw, host_issues=None):
                         "rl_agent_config.json", "encoder/config.json")) or manifest.get("revision") != judge["revision"]
                         or manifest.get("sourceModel") != judge["sourceModel"]):
                     issues.append("Advisor 本地 Judge 权重或固定 revision 尚未核对")
+            else:
+                if "CNY" not in c["budgets"]:
+                    issues.append("Advisor Jev 需要 CNY 生产预算")
+                if (host_issues or {}).get("__jev__"):
+                    issues.append("Advisor Jev：" + host_issues["__jev__"])
         if strategy == "stage" and c["stage"]["mode"] == "hybrid":
             if not c["stage"]["allowExperimental"]:
-                issues.append("Stage 本地轨迹判别尚未通过日常质量验收；需明确启用实验模式")
+                issues.append("Stage 轨迹判别尚未通过日常质量验收；需明确启用实验模式")
             judge = c["stage"]["judge"]
-            path = Path(judge["modelPath"]).expanduser()
-            try:
-                manifest = json.loads((path / "refractrouter-laya.json").read_text())
-            except (OSError, ValueError, TypeError):
-                manifest = {}
-            if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
-                    "rl_agent_config.json", "encoder/config.json")) or manifest.get("revision") != judge["revision"]
-                    or manifest.get("sourceModel") != judge["sourceModel"]):
-                issues.append("Stage 本地 Judge 权重或固定 revision 尚未核对")
+            if judge["type"] == "jev":
+                if "CNY" not in c["budgets"]:
+                    issues.append("Stage Jev 需要 CNY 生产预算")
+                if (host_issues or {}).get("__jev__"):
+                    issues.append("Stage Jev：" + host_issues["__jev__"])
+            else:
+                path = Path(judge["modelPath"]).expanduser()
+                try:
+                    manifest = json.loads((path / "refractrouter-laya.json").read_text())
+                except (OSError, ValueError, TypeError):
+                    manifest = {}
+                if (not all((path / name).is_file() for name in ("model.safetensors", "mlx_config.json",
+                        "rl_agent_config.json", "encoder/config.json")) or manifest.get("revision") != judge["revision"]
+                        or manifest.get("sourceModel") != judge["sourceModel"]):
+                    issues.append("Stage 本地 Judge 权重或固定 revision 尚未核对")
         if not c["enabled"]:
             issues.append("尚未启用规划路由")
         rows.append({"id": strategy, "name": NAMES[strategy], "available": not issues, "issues": issues})

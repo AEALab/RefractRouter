@@ -303,7 +303,9 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   const activeUnits=[...new Set([...activeModelIds.map(id=>{
     const unit=draft.models?.find(model=>model.id===id)?.billingUnit??draft.billingUnit??'CNY'
     return unit==='USD'?'CNY':unit
-  }),...(draft.mediaRoutes??[]).map(route=>route.billingUnit==='USD'?'CNY':route.billingUnit??'CNY')])]
+  }),...(draft.mediaRoutes??[]).map(route=>route.billingUnit==='USD'?'CNY':route.billingUnit??'CNY'),
+    ...([draft.task?.judge,draft.stage?.judge,draft.composite?.judge,draft.composite?.stage.judge,
+      draft.escalation?.judge,draft.advisor?.judge].some(judge=>judge?.type==='jev')?['CNY']:[])])]
   const efficientModel=draft.models?.find(model=>model.id===draft.roles?.efficient)
   const capableModel=draft.models?.find(model=>model.id===draft.roles?.capable)
   const sameStageModel=Boolean(efficientModel&&capableModel&&efficientModel.provider===capableModel.provider&&
@@ -318,6 +320,16 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         [unit]:e.target.value===''?undefined:Number(e.target.value)}})}/></label>)}</div>
     <div className="rra-grid rra-grid-2"><label className="rra-compact-field">任务期限（毫秒，0 为不限制） <input className="rra-input" type="number" min="0" value={draft.timeoutMs??300000} onChange={e=>patch({timeoutMs:Number(e.target.value)})}/></label>
       <label className="rra-compact-field">最大调用数（0 为不限制） <input className="rra-input" type="number" min="0" value={draft.maxCalls??128} onChange={e=>patch({maxCalls:Number(e.target.value)})}/></label></div></div>
+    <div className="rra-row-card"><h3>官方 Jev Judge</h3>
+      <p className="rra-field-hint">Jev 1.13 为云端结构化判别模型；在各策略的 Judge 类型中单独选择。密钥保存在 DSH 凭证服务，设置里只保存引用。输入按官方 USD 价格及冻结汇率记入 CNY 预算，输出 token 免费。</p>
+      <label className="rra-compact-field">DSH 凭证引用 <input className="rra-input" value={draft.jev?.credentialRef??'TYPESAFE_API_KEY'} onChange={e=>patch({jev:{...draft.jev,credentialRef:e.target.value}})}/></label>
+      <label className="rra-compact-field">Jev 数据域 <select className="rra-select" value={draft.jev?.deployment??'external-cloud'} onChange={e=>patch({jev:{...draft.jev,deployment:e.target.value as 'external-cloud'|'trusted-cloud',trustPolicy:undefined}})}>
+        <option value="external-cloud">外部云（拦截本机路径等敏感输入）</option><option value="trusted-cloud">已授权的可信云</option></select></label>
+      {draft.jev?.deployment==='trusted-cloud'&&<label className="rra-compact-field">信任策略 <select className="rra-select" value={draft.jev.trustPolicy??''} onChange={e=>patch({jev:{...draft.jev,trustPolicy:e.target.value||undefined}})}>
+        <option value="">选择已登记的许可…</option>{draft.trustPolicies?.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>}
+      <details className="rra-details"><summary>实验性分动作门槛</summary><label className="rra-check"><input type="checkbox" checked={Boolean(draft.jev?.actionGate)} onChange={e=>patch({jev:{...draft.jev,actionGate:e.target.checked?'jev-choice-action-gate-v1-experimental':undefined}})}/>启用 Advisor／Escalation 分动作门槛</label>
+        <p className="rra-field-hint">默认维持所选项概率 0.8。分动作门槛只通过有限留出题验证，尚未证明比默认更好。</p></details>
+    </div>
     <div className="rra-row-card"><h3>模型与角色</h3><p className="rra-field-hint">四种角色集中管理；每项策略只要求它实际使用的模型。系统查询容量和价格；历史值保留并注明尚未核对，新路线缺项时不可运行。</p>
       <p className="rra-field-hint">「Advisor 审核 LLM」引用 DSH 模型目录；Advisor 下方也可选实验性的本地 Laya-MLX Judge。两者使用不同接口，本地权重不会出现在 DSH 模型下拉菜单。兼容旧策略的判别角色供旧版 Task、Composite 和旧版 Escalation 使用。</p>
     {Object.entries(ROLES).map(([r,label])=>{
@@ -377,11 +389,11 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     <div className="rra-row-card"><h3>策略设置</h3><label className="rra-compact-field">默认路由策略 <select className="rra-select" value={draft.defaultStrategy??'stage'} onChange={e=>patch({defaultStrategy:e.target.value as PlanningStrategy})}>
       {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><p className="rra-field-hint">{HELP[draft.defaultStrategy??'stage']}</p><p className="rra-field-hint">保存后从下个任务生效；当前任务继续使用启动时配置。</p>
     {draft.defaultStrategy==='stage'&&<div className="rra-planning-fields">
-      <p>通常使用高效模型，遇到困难时切换强模型。规则负责边界和保持，本地 Judge 可判断下一步是否适合高效模型。</p>
+      <p>通常使用高效模型，遇到困难时切换强模型。规则负责边界和保持；协作判别可选择本地 Laya 或官方 Jev。</p>
       <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
         {...draft.stage,mode:'hybrid',judge:draft.stage?.judge??(draft.task?.judge.type==='local-decision'?draft.task.judge:
           {type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'})}})}>
-        <option value="rules">原规则（兼容现有设置）</option><option value="hybrid">规则＋本地 Judge（实验）</option></select></label>
+        <option value="rules">原规则（兼容现有设置）</option><option value="hybrid">规则＋Judge（实验）</option></select></label>
       <p className="rra-field-hint">高效：{efficientModel?`${efficientModel.provider}/${efficientModel.model} · ${efficientModel.reasoningEffort??'提供方默认推理等级'}`:'未配置'}<br/>
         强执行：{capableModel?`${capableModel.provider}/${capableModel.model} · ${capableModel.reasoningEffort??'提供方默认推理等级'}`:'未配置'}。模型与推理等级在上方通用角色设置中编辑。</p>
       {sameStageModel&&<p className="rra-field-hint" role="status">两个角色绑定相同模型和推理等级，可以运行，但不会发生实际模型切换。</p>}
@@ -396,12 +408,16 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           onChange={e=>patch({parameters:{...draft.parameters,threshold:Number(e.target.value)}})}/><span className="rra-field-hint">默认 0.5：有符号评分绝对值不超过阈值时视为含糊，使用高效模型。</span></label>
       </div></details></>}
       {draft.stage?.mode==='hybrid'&&<>
-        <p className="rra-field-hint">只调用本地结构化 Judge，不接入 Jev 云端。低确定性或超出完整输入容量时选择强模型；推论故障停止任务。判别质量尚未通过 Stage 日常使用验收。</p>
+        <p className="rra-field-hint">首次执行使用高效模型；工具结果返回后才按需要判别。低确定性或完整输入超容量时保守选择强模型。此模式尚未通过 Stage 日常质量验收。</p>
+        <label className="rra-compact-field">Judge 后端 <select className="rra-select" value={draft.stage.judge?.type??'local-decision'} onChange={e=>patch({stage:{...draft.stage!,judgeTimeoutMs:e.target.value==='jev'?30000:1000,judge:e.target.value==='jev'?{type:'jev'}:
+          {type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'}}})}>
+          <option value="local-decision">本地 Laya-MLX</option><option value="jev">官方 Jev（云端）</option></select></label>
         <label className="rra-check"><input type="checkbox" checked={draft.stage.allowExperimental??false} onChange={e=>patch({stage:{...draft.stage!,allowExperimental:e.target.checked}})}/>允许本任务使用实验判别规则</label>
-        <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.stage.judge?.modelPath??''} onChange={e=>patch({stage:{...draft.stage!,judge:{...draft.stage!.judge!,modelPath:e.target.value}}})}/></label>
-        <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.stage.judge?.revision??''} onChange={e=>patch({stage:{...draft.stage!,judge:{...draft.stage!.judge!,revision:e.target.value}}})}/></label>
+        {draft.stage.judge?.type==='local-decision'&&<>
+        <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.stage.judge?.modelPath??''} onChange={e=>patch({stage:{...draft.stage!,judge:{...draft.stage!.judge! as Extract<TaskJudgeConfig,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
+        <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.stage.judge?.revision??''} onChange={e=>patch({stage:{...draft.stage!,judge:{...draft.stage!.judge! as Extract<TaskJudgeConfig,{type:'local-decision'}>,revision:e.target.value}}})}/></label>
         <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} type="button" className="rra-button rra-button-secondary" disabled={busy||!draft.stage?.judge?.modelPath} onClick={()=>void operateLocalJudge(action)}>{['检查本地状态','下载固定权重','加载并预热','卸载'][index]}</button>)}</div>
-        <p className="rra-field-hint">{localJudgeStatus?localJudgeStatus.loaded?'已加载；就绪不代表判别质量通过':'尚未加载':'尚未检查本地状态'}。不在任务运行时下载权重。第一次执行使用高效模型，第一次工具结果返回后才判别。</p>
+        <p className="rra-field-hint">{localJudgeStatus?localJudgeStatus.loaded?'已加载；就绪不代表判别质量通过':'尚未加载':'尚未检查本地状态'}。不在任务运行时下载权重。</p></>}
         <label className="rra-compact-field">强模型保持轮数 <input className="rra-input" type="number" min="1" step="1" value={draft.stage.holdTurns??2} onChange={e=>patch({stage:{...draft.stage!,holdTurns:Number(e.target.value)}})}/><span className="rra-field-hint">2 轮＝升级本轮＋下一轮。保持结束后还需新的、连续适合高效模型的判定才能降回。</span></label>
         <details className="rra-details"><summary>Stage 本地 Judge 高级参数</summary><div className="rra-planning-fields">
           {([{key:'window',label:'证据窗口',value:3,min:1},{key:'interval',label:'普通判别间隔（执行次数）',value:2,min:1},
@@ -444,19 +460,20 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           </div>})}</div>
         <label className="rra-compact-field">不确定时的强执行备援 <select className="rra-select" value={draft.task.fallback} onChange={e=>patch({task:{...draft.task!,fallback:e.target.value}})}>
           {draft.task.pool.map(id=><option key={id} value={id}>{id}</option>)}</select></label>
-        <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.task.judge.type} onChange={e=>patch({task:{...draft.task!,judge:e.target.value==='local-decision'
+        <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.task.judge.type} onChange={e=>patch({task:{...draft.task!,judge:e.target.value==='jev'?{type:'jev'}:e.target.value==='local-decision'
           ?{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',
             revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'ordinal-v2'}
           :{type:'llm',modelId:draft.roles?.classifier??draft.task!.pool[0]}}})}>
-          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option></select></label>
+          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option><option value="jev">官方 Jev（云端）</option></select></label>
         {draft.task.judge.type==='local-decision'&&<p className="rra-field-hint">模型已就绪只表示本地推论可运行；选模质量需用有标注任务验证。不确定时使用上方指定备援。</p>}
+        {draft.task.judge.type==='jev'&&<p className="rra-field-hint">Jev 根据已登记的候选能力说明做一次 Choice 选模；证据不足或概率低于门槛时使用指定备援。文字任务可用，图片／影片判别仍走既有能力检查。</p>}
         {draft.task.judge.type==='llm'?<div className="rra-planning-fields"><label className="rra-compact-field">从 DSH 目录选择 Judge <select className="rra-select" value="" onChange={e=>{
           if(!e.target.value)return;const [provider,model]=JSON.parse(e.target.value) as string[];selectTaskJudgeCatalog(provider,model)}}>
           <option value="">选择并登记…</option>{catalog?.groups.filter(group=>group.id!=='refractagent').map(group=><optgroup key={group.id} label={group.name}>
             {group.models.map(model=><option key={model.id} value={JSON.stringify([group.id,model.id])}>{model.name}</option>)}</optgroup>)}</select></label>
           <label className="rra-compact-field">Judge 模型 <select className="rra-select" value={draft.task.judge.modelId} onChange={e=>patch({task:{...draft.task!,judge:{type:'llm',modelId:e.target.value}}})}>
             {(draft.models??[]).map(model=><option key={model.id} value={model.id}>{model.id} · {model.provider}/{model.model}</option>)}</select><span className="rra-field-hint">Judge 不必属于执行模型池；每个任务最多调用一次，工具关闭，结构化输出无自动修复。</span></label></div>:
-          <div className="rra-planning-fields">
+          draft.task.judge.type==='local-decision'&&<div className="rra-planning-fields">
             <p className="rra-field-hint">推荐 checkpoint：aac6fef/laya-multilingual-mlx。任务执行不会隐式下载；路径必须指向已核对 revision 的本地目录。</p>
             <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.task.judge.modelPath} onChange={e=>patch({task:{...draft.task!,judge:{...draft.task!.judge as Extract<typeof draft.task.judge,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
             <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.task.judge.revision??''} onChange={e=>patch({task:{...draft.task!,judge:{...draft.task!.judge as Extract<typeof draft.task.judge,{type:'local-decision'}>,revision:e.target.value}}})}/><span className="rra-field-hint">推荐多语言 checkpoint 当前验收 revision：f2b4faf51023039425946074e2cf1361d2db11d5。</span></label>
@@ -501,29 +518,34 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           </div>})}
         <label className="rra-compact-field">指定接管模型 <select className="rra-select" value={draft.composite.takeover} onChange={e=>patch({composite:{...draft.composite!,takeover:e.target.value}})}>
           {draft.composite.pool.map(id=><option key={id} value={id}>{id}</option>)}</select><span className="rra-field-hint">同时作为 Task 无法确定时的备援。名称和价格不会被当作能力更强的证据。</span></label>
-        <label className="rra-compact-field">Task Judge 类型 <select className="rra-select" value={draft.composite.judge.type} onChange={e=>patch({composite:{...draft.composite!,judge:e.target.value==='local-decision'
+        <label className="rra-compact-field">Task Judge 类型 <select className="rra-select" value={draft.composite.judge.type} onChange={e=>patch({composite:{...draft.composite!,judge:e.target.value==='jev'?{type:'jev'}:e.target.value==='local-decision'
           ?{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'ordinal-v1'}
           :{type:'llm',modelId:draft.roles?.classifier??draft.composite!.pool[0]!}}})}>
-          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地 Laya Task Judge（实验）</option></select></label>
+          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地 Laya Task Judge（实验）</option><option value="jev">官方 Jev（云端）</option></select></label>
+        {draft.composite.judge.type==='jev'&&<p className="rra-field-hint">Jev 在任务开始时做一次 Choice 选模；工具续接不重复调用。</p>}
         {draft.composite.judge.type==='llm'?<label className="rra-compact-field">Task Judge 模型 <select className="rra-select" value={draft.composite.judge.modelId} onChange={e=>patch({composite:{...draft.composite!,judge:{type:'llm',modelId:e.target.value}}})}>
           {(draft.models??[]).map(model=><option key={model.id} value={model.id}>{model.id} · {model.provider}/{model.model}</option>)}</select><span className="rra-field-hint">每任务最多判别一次；单一合格候选会跳过 Judge。</span></label>:
-          <div className="rra-planning-fields"><label className="rra-compact-field">Task Judge 权重目录 <input className="rra-input" value={draft.composite.judge.modelPath} onChange={e=>patch({composite:{...draft.composite!,judge:{...draft.composite!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
+          draft.composite.judge.type==='local-decision'&&<div className="rra-planning-fields"><label className="rra-compact-field">Task Judge 权重目录 <input className="rra-input" value={draft.composite.judge.modelPath} onChange={e=>patch({composite:{...draft.composite!,judge:{...draft.composite!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
             <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.composite.judge.revision??''} onChange={e=>patch({composite:{...draft.composite!,judge:{...draft.composite!.judge as Extract<TaskJudgeConfig,{type:'local-decision'}>,revision:e.target.value}}})}/></label>
             <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.composite?.judge||draft.composite.judge.type!=='local-decision'||!draft.composite.judge.modelPath} onClick={()=>void operateLocalJudge(action,'composite-task')}>{['检查状态','下载权重','加载并预热','卸载'][index]}</button>)}</div></div>}
         <label className="rra-compact-field">后续轨迹判断 <select className="rra-select" value={draft.composite.stage.mode} onChange={e=>patch({composite:{...draft.composite!,stage:e.target.value==='rules'
           ?{mode:'rules',window:3,threshold:.5,holdTurns:2}
           :{mode:'hybrid',allowExperimental:false,judge:{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'},window:3,interval:2,maxJudgements:4,holdTurns:2,downgradeConfirmations:2,upgradeThreshold:.8,downgradeThreshold:.9,judgeTimeoutMs:1000,maxJudgeInputBytes:65536}}})}>
-          <option value="rules">规则（默认）</option><option value="hybrid">规则＋本地 Laya（实验）</option></select></label>
+          <option value="rules">规则（默认）</option><option value="hybrid">规则＋Judge（实验）</option></select></label>
         {draft.composite.stage.mode==='rules'?<details className="rra-details"><summary>Composite 规则参数</summary><div className="rra-planning-fields">
           <label className="rra-compact-field">证据窗口 <input className="rra-input" type="number" min="1" value={draft.composite.stage.window??3} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,window:Number(e.target.value)}}})}/></label>
           <label className="rra-compact-field">判断阈值 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.composite.stage.threshold??.5} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,threshold:Number(e.target.value)}}})}/></label>
           <label className="rra-compact-field">接管保持次数 <input className="rra-input" type="number" min="1" value={draft.composite.stage.holdTurns??2} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,holdTurns:Number(e.target.value)}}})}/><span className="rra-field-hint">2 次包含触发切换的本次执行和下一次执行。</span></label>
         </div></details>:<div className="rra-planning-fields">
-          <p className="rra-field-hint">本地 Laya 只参与后续轨迹选档；当前质量未达日常使用门槛，因此必须明确启用实验模式。推论故障会停止任务，不会转云端。</p>
-          <label className="rra-check"><input type="checkbox" checked={draft.composite.stage.allowExperimental===true} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,allowExperimental:e.target.checked}}})}/>启用实验性本地轨迹判别</label>
-          <label className="rra-compact-field">Stage Judge 权重目录 <input className="rra-input" value={draft.composite.stage.judge?.modelPath??''} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judge:{...draft.composite!.stage.judge!,modelPath:e.target.value}}}})}/></label>
-          <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.composite.stage.judge?.revision??''} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judge:{...draft.composite!.stage.judge!,revision:e.target.value}}}})}/></label>
-          <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} type="button" className="rra-button rra-button-secondary" disabled={busy||!draft.composite?.stage.judge?.modelPath} onClick={()=>void operateLocalJudge(action,'composite-stage')}>{['检查状态','下载权重','加载并预热','卸载'][index]}</button>)}</div>
+          <p className="rra-field-hint">Judge 只参与后续轨迹选档；当前质量未达日常使用门槛，因此必须明确启用实验模式。故障会停止任务。</p>
+          <label className="rra-compact-field">Stage Judge 后端 <select className="rra-select" value={draft.composite.stage.judge?.type??'local-decision'} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judgeTimeoutMs:e.target.value==='jev'?30000:1000,
+            judge:e.target.value==='jev'?{type:'jev'}:{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'}}}})}>
+            <option value="local-decision">本地 Laya-MLX</option><option value="jev">官方 Jev（云端）</option></select></label>
+          <label className="rra-check"><input type="checkbox" checked={draft.composite.stage.allowExperimental===true} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,allowExperimental:e.target.checked}}})}/>启用实验性轨迹判别</label>
+          {draft.composite.stage.judge?.type==='local-decision'&&<>
+          <label className="rra-compact-field">Stage Judge 权重目录 <input className="rra-input" value={draft.composite.stage.judge?.modelPath??''} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judge:{...draft.composite!.stage.judge! as Extract<TaskJudgeConfig,{type:'local-decision'}>,modelPath:e.target.value}}}})}/></label>
+          <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.composite.stage.judge?.revision??''} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,judge:{...draft.composite!.stage.judge! as Extract<TaskJudgeConfig,{type:'local-decision'}>,revision:e.target.value}}}})}/></label>
+          <div className="rra-actions">{(['status','download','load','unload'] as const).map((action,index)=><button key={action} type="button" className="rra-button rra-button-secondary" disabled={busy||!draft.composite?.stage.judge?.modelPath} onClick={()=>void operateLocalJudge(action,'composite-stage')}>{['检查状态','下载权重','加载并预热','卸载'][index]}</button>)}</div></>}
           <details className="rra-details"><summary>Composite 本地 Judge 高级参数</summary><div className="rra-planning-fields">
             {([{key:'window',label:'证据窗口',value:3,min:1},{key:'interval',label:'判别间隔',value:2,min:1},{key:'maxJudgements',label:'最多判别批次',value:4,min:1},{key:'holdTurns',label:'接管保持次数',value:2,min:1},{key:'downgradeConfirmations',label:'降回连续确认',value:2,min:2},{key:'upgradeThreshold',label:'接管分数门槛',value:.8,min:.5},{key:'downgradeThreshold',label:'降回分数门槛',value:.9,min:.5},{key:'judgeTimeoutMs',label:'Judge 期限（毫秒）',value:1000,min:100},{key:'maxJudgeInputBytes',label:'完整输入字节上限',value:65536,min:512}] as const).map(item=><label className="rra-compact-field" key={item.key}>{item.label}<input className="rra-input" type="number" min={item.min} max={item.min===.5?1:undefined} step={item.min===.5?.05:1} value={draft.composite?.stage[item.key]??item.value} onChange={e=>patch({composite:{...draft.composite!,stage:{...draft.composite!.stage,[item.key]:Number(e.target.value)}}})}/></label>)}
           </div></details></div>}
@@ -566,11 +588,12 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           </div>})}
         {draft.escalation.initial===draft.escalation.takeover&&<p role="status">起始与接管模型不能相同，否则无法形成有效接管。</p>}
         <label className="rra-compact-field">Judge 类型 <select className="rra-select" value={draft.escalation.judge.type}
-          onChange={e=>patch({escalation:{...draft.escalation!,judge:e.target.value==='local-decision'
+          onChange={e=>patch({escalation:{...draft.escalation!,judge:e.target.value==='jev'?{type:'jev'}:e.target.value==='local-decision'
             ?{type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',
               revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'choice-v2'}
             :{type:'llm',modelId:draft.roles?.classifier??draft.escalation!.initial}}})}>
-          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option></select></label>
+          <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option><option value="jev">官方 Jev（云端）</option></select></label>
+        {draft.escalation.judge.type==='jev'&&<p className="rra-field-hint">Jev 以 Choice 审核尚未交付的候选；原始 probability、confidence 与接管决定会写入路由轨迹。默认所选项概率门槛 0.8。</p>}
         {draft.escalation.judge.type==='llm'?<>
           <label className="rra-compact-field">从 DSH 目录选择 Judge <select className="rra-select" value="" onChange={e=>{
             if(!e.target.value)return;const [provider,selected]=JSON.parse(e.target.value) as string[]
@@ -595,7 +618,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
                   {draft.trustPolicies?.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>}</div>
               {model.provider==='ark'&&model.model==='glm-5.3-flash'&&<p role="status">当前 Agent Plan 路线不支持关闭思考；真实验收中默认思考占满 1024 token 判别输出。增加输出上限并重新验收前，请将它视为实验 Judge。</p>}
             </div>})()}
-        </>:<div className="rra-planning-fields">
+        </>:draft.escalation.judge.type==='local-decision'&&<div className="rra-planning-fields">
           <label className="rra-compact-field">本地权重目录 <input className="rra-input" value={draft.escalation.judge.modelPath}
             onChange={e=>patch({escalation:{...draft.escalation!,judge:{...draft.escalation!.judge as Extract<typeof draft.escalation.judge,{type:'local-decision'}>,modelPath:e.target.value}}})}/></label>
           <label className="rra-compact-field">固定 revision <input className="rra-input" value={draft.escalation.judge.revision??''}
@@ -610,7 +633,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         <p className="rra-field-hint">接管后本任务固定使用强模型，不再调用 Judge；轨迹会注明“接管后未追加审核”。</p>
         <details className="rra-details"><summary>Escalation 高级参数</summary><div className="rra-planning-fields">
           <label className="rra-compact-field">工具过程连续停滞次数 <input className="rra-input" type="number" min="1" step="1" value={draft.escalation.stallConfirmations??2} onChange={e=>patch({escalation:{...draft.escalation!,stallConfirmations:Number(e.target.value)}})}/></label>
-          <label className="rra-compact-field">本地判别确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.escalation.threshold??.8} onChange={e=>patch({escalation:{...draft.escalation!,threshold:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">结构化判别所选项概率门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.escalation.threshold??.8} onChange={e=>patch({escalation:{...draft.escalation!,threshold:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" step="100" value={draft.escalation.judgeTimeoutMs??30000} onChange={e=>patch({escalation:{...draft.escalation!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 输入包络（bytes） <input className="rra-input" type="number" min="1024" step="1024" value={draft.escalation.maxJudgeInputBytes??65536} onChange={e=>patch({escalation:{...draft.escalation!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">执行输出上限 <input className="rra-input" type="number" min="256" step="1" value={draft.escalation.maxExecutionOutputTokens??8192} onChange={e=>patch({escalation:{...draft.escalation!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
@@ -656,11 +679,12 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           draft.task?.judge.type==='local-decision'?draft.task.judge:
           draft.escalation?.judge.type==='local-decision'?draft.escalation.judge:undefined
         patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',advisor:{...draft.advisor,
-          judge:e.target.value==='local-decision'?(previous??{type:'local-decision',adapter:'laya-mlx',modelPath:'',
+          judge:e.target.value==='jev'?{type:'jev'}:e.target.value==='local-decision'?(previous??{type:'local-decision',adapter:'laya-mlx',modelPath:'',
             sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',
             device:'gpu',dtype:'float16'}):{type:'llm',modelId:draft.roles?.advisor??draft.roles?.classifier??''},
           allowExperimental:e.target.value==='local-decision'}})}}>
-        <option value="llm">DSH 语言模型</option><option value="local-decision">本地 Laya-MLX（实验）</option></select></label>
+        <option value="llm">DSH 语言模型</option><option value="local-decision">本地 Laya-MLX（实验）</option><option value="jev">官方 Jev（云端）</option></select></label>
+      {draft.advisor?.judge.type==='jev'&&<p className="rra-field-hint">官方 Jev 使用 Choice 审核最终回复。未达到所选项概率门槛时停止交付；原始 probability 和 confidence 写入路由轨迹。</p>}
       {draft.advisor?.judge.type==='llm'&&draft.schemaVersion==='refractagent-planning-v6'&&
         <label className="rra-compact-field">审核模型 <select className="rra-select" value={draft.advisor.judge.modelId}
           onChange={e=>patch({advisor:{...draft.advisor!,judge:{type:'llm',modelId:e.target.value}}})}>
@@ -736,7 +760,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
 }
 type TaskRouteEvidence={candidateId?:string;reason?:string;costBasis?:string;latencyBasis?:string;
   selectedRole?:string;pSolve?:number|null;capabilityBoundary?:string|null;threshold?:number|null;
-  scoreKind?:string;selectionProbability?:number;rawChoice?:{choice?:string};uncertain?:boolean;
+  scoreKind?:string;selectionProbability?:number;confidence?:number;rawChoice?:{choice?:string};uncertain?:boolean;
   candidateAssessments?:Array<{candidateId:string;score:number;missingInformation:number;qualified:boolean}>;
   firstCallUpperBounds?:Record<string,{amount:number;unit:string}>;qualifiedCandidates?:string[];
   decision?:TaskRouteEvidence}
@@ -747,9 +771,10 @@ type History={records:Array<{runId:string;strategy:string;status:string;costs:{p
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
     reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;adapter?:string;
+    selectedProbability?:number;choiceConfidence?:number;choiceGate?:{accepted:boolean;minimumConfidence?:number|null;minimumProbability?:number|null;reason:string};rawAnswer?:unknown;
     reviewCount?:number;redoCount?:number;reviewPhase?:string;
     staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
-    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown};judgeDecision?:TaskRouteEvidence;
+    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown;rawAnswers?:unknown;raw?:unknown;selectedProbability?:number;choiceConfidence?:number;choiceGate?:unknown};judgeDecision?:TaskRouteEvidence;
     downgradeConfirmations?:number;judgeBatches?:number;
     rejectedCandidates?:Array<{id:string;reason:string}>}>}>}
 const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 固定模型',
@@ -767,11 +792,14 @@ const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 
   'repeated-failure':'重复失败，升级强模型','capable-hold':'强模型保持期','tool-signal':'Stage 信号选模',
   'task-classifier':'任务判别选模','task-classifier-invalid':'任务判别输出无效，使用强模型',
   'task-llm-judge':'轻量 LLM Judge 判别','task-local-judge':'本地 Judge 判别',
+  'task-jev-judge':'官方 Jev 判别',
+  'stage-jev-judge':'官方 Jev 轨迹判别',
   'single-eligible-candidate':'只有一个合格候选，跳过 Judge',
   'local-judge-uncertain':'本地 Judge 不确定，使用指定备援',
   'local-judge-no-capability-evidence':'缺少能力卡，使用指定备援',
   'local-judge-no-differentiating-evidence':'候选缺少区分证据，使用指定备援',
   'local-judge-capacity':'本地 Judge 输入超出容量，使用指定备援',
+  'jev-judge-capacity':'Jev 输入超出容量，使用指定备援',
   'quality-then-first-call-cost':'质量达标后按首次调用费用上界选择',
   'no-quality-qualified-candidate':'无质量达标候选，使用指定备援',
   'incomparable-billing-units':'候选计费单位不可比较，使用指定备援',
@@ -811,7 +839,9 @@ const STATUS:Record<string,string>={running:'运行中',cancelled:'已取消',
   'local-judge-timeout':'本地 Judge 超时','local-judge-failed':'本地 Judge 失败',
   'local-judge-not-ready':'本地 Judge 尚未就绪','task-judge-invalid':'Task Judge 输出无效',
   'escalation-judge-invalid':'Escalation Judge 输出无效',
-  'stage-invalid-judge-output':'Stage Judge 输出无效'}
+  'stage-invalid-judge-output':'Stage Judge 输出无效',
+  'jev-usage-unconfirmed':'Jev 用量待核对，已停止后续调用',
+  'jev-invalid-answer':'Jev 判别答案无效，已结算调用并停止'}
 const TRACE_AMOUNT=new Intl.NumberFormat('zh-CN',{maximumFractionDigits:8})
 function traceAmount(value:number|null|undefined){
   if(typeof value!=='number'||!Number.isFinite(value))return '待核对'
@@ -826,10 +856,11 @@ function EvidenceIds({ids}:{ids:string[]}){
 function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]}){
   if(row.ruleVersion==='stage-decision-v1'||row.ruleVersion==='stage-decision-v2'||row.ruleVersion==='composite-stage-hybrid-v1')return <details><summary>查看 Stage 判别依据</summary>
     <p>结果：{row.decision?.verdict?VERDICT[row.decision.verdict]??row.decision.verdict:'本轮未调用 Judge'}；连续降档确认：{row.downgradeConfirmations??0}；本任务判别批次：{row.judgeBatches??0}。</p>
-    <p>证据 ID：{row.evidenceIds?.join('、')||'无'}。本地无 API 费用。
+    <p>证据 ID：{row.evidenceIds?.join('、')||'无'}。{row.decision?.backend==='jev'?'Jev 调用按 CNY 帐本结算。':'本地判别无 API 费用。'}
       {row.decision?.confidence!==undefined?`${row.ruleVersion==='stage-decision-v2'?'获选项分数':'判别分数'} ${row.decision.confidence.toFixed(3)}（不是任务成功率）。`:''}
       {row.decision?.elapsedMs!==undefined?`含排队等待 ${row.decision.elapsedMs.toFixed(0)} ms。`:''}</p>
-    {row.decision?.answers!==undefined&&<pre>{JSON.stringify(row.decision.answers,null,2)}</pre>}
+    {row.decision?.rawAnswers!==undefined&&<pre>{JSON.stringify(row.decision.rawAnswers,null,2)}</pre>}
+    {row.decision?.answers!==undefined&&row.decision?.rawAnswers===undefined&&<pre>{JSON.stringify(row.decision.answers,null,2)}</pre>}
   </details>
   const value=row.judgeDecision?.decision??row.judgeDecision??row.decision
   if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length&&value?.pSolve===undefined
@@ -837,6 +868,7 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
   return <details><summary>查看 Task 判别依据</summary>
     {value?.selectionProbability!==undefined&&<p>Judge 原始选择：{value.rawChoice?.choice??value.candidateId??'未记录'}；
       获选项概率 {value.selectionProbability.toFixed(3)}（不是候选绝对适合度或任务成功率）；
+      {typeof value.confidence==='number'?`Choice confidence ${value.confidence.toFixed(3)}；`:''}
       Router 动作：{value.uncertain?'按配置使用备援或停止':'采用该候选'}。</p>}
     {value?.pSolve!==undefined&&<p>高效模型完成任务的判别分数：{value.pSolve?.toFixed(3)??'无有效分数'}；
       能力边界：{value.capabilityBoundary??'未确认'}；判别门槛：{value.threshold?.toFixed(3)??'未确认'}；
@@ -875,6 +907,8 @@ function Trace({load}:{load:()=>Promise<History>}){
             {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
             {d.backend==='local-decision'?`；本地 ${d.adapter??d.decision?.adapter??'Judge'} 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，获选项概率 ${d.confidence.toFixed(3)}`:''}`:''}
+            {d.backend==='jev'?`；Jev 原始分类 ${d.rawVerdict??'见判别依据'}${typeof d.selectedProbability==='number'?`，获选项概率 ${d.selectedProbability.toFixed(3)}`:''}${typeof d.choiceConfidence==='number'?`，confidence ${d.choiceConfidence.toFixed(3)}`:''}${d.choiceGate?`，分动作门槛${d.choiceGate.accepted?'通过':'未通过'}`:''}`:''}
+            {d.decision?.backend==='jev'&&d.backend!=='jev'?`；Jev 判别已记录原始答案与费用`:''}
             {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
             {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
             <br/><small>{d.evidenceSummary??(d.decision?.backend?`后端 ${d.decision.backend}`:'本次未记录独立证据摘要')}

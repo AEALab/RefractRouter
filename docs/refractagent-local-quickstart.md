@@ -357,6 +357,9 @@ npm pack ./validation/dsh/plugin --pack-destination ./dist
 
 核心更新使用 `uv tool install --force --reinstall /absolute/path/to/new-refractrouter.whl`；
 插件更新使用 `dsh plugin --profile web add /absolute/path/to/new-plugin.tgz`。
+只使用 `--force` 可能复用同版本的旧 wheel；更新源码安装副本时也必须加 `--reinstall`。
+规划路由启用新版 Judge 前，先在设置中执行零调用检查；若提示核心缺少相应能力，
+核对 DSH 实际调用的 `refractagent` 路径，再重建并安装匹配的 Python 核心。
 这两个路径是说明用占位符，需替换成构建出来的完整文件名；同时使用 headless 时也要更新它。
 安装后生成一份新配置，核对 Python 路径并带上原有真实模式、用量上限设置，再重启 DSH。
 从 0.10.0 升级时，原来的 Ark 真实模式必须明确增加 `"preset": "ark-agent-plan"`，
