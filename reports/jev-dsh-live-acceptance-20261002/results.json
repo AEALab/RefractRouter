@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-03",
+  "scope": "DSH 临时服务官方 Jev 有限真实验收",
+  "authorization": {
+    "maxJevCalls": 12,
+    "maxCny": 0.25
+  },
+  "total": {
+    "runs": 13,
+    "completed": 10,
+    "jevCalls": 10,
+    "jevCny": 0.017126882181,
+    "arkAfp": 62.73045
+  },
+  "runs": [
+    {
+      "runId": "c46920c9cc102264f9d641670b7aad71ba9595c4149b80545dc4581a0e5afe3f",
+      "strategy": "advisor",
+      "scenario": "旧核心输入限制",
+      "status": "failed",
+      "jevCalls": 0,
+      "jevInputTokens": 0,
+      "jevCny": 0,
+      "arkCalls": 1,
+      "arkAfp": 3.2175
+    },
+    {
+      "runId": "df18da9adf5c5ed60369e2dffcf24b5aaadbc4f0fed30993ea2a379852371649",
+      "strategy": "advisor",
+      "scenario": "旧核心输入限制",
+      "status": "failed",
+      "jevCalls": 0,
+      "jevInputTokens": 0,
+      "jevCny": 0,
+      "arkCalls": 1,
+      "arkAfp": 3.2145
+    },
+    {
+      "runId": "db16bcb4ddfe587e63004ee0500e914a62cd4d781ba41310aab31a81a040fc46",
+      "strategy": "advisor",
+      "scenario": "旧核心输入限制",
+      "status": "failed",
+      "jevCalls": 0,
+      "jevInputTokens": 0,
+      "jevCny": 0,
+      "arkCalls": 1,
+      "arkAfp": 3.21875
+    },
+    {
+      "runId": "4673e5d0274ee456a8bc24d115a338dc920ac2dfa8806b52fc35dcceeebfe329",
+      "strategy": "advisor",
+      "scenario": "Advisor 最终审核",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.001910762683,
+      "arkCalls": 1,
+      "arkAfp": 3.2145
+    },
+    {
+      "runId": "73d8e68465d94ba921205108ce07f15179aa31ae60b38f978e7ccf9b167bdae0",
+      "strategy": "escalation",
+      "scenario": "Escalation 正常放行",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.001903679488,
+      "arkCalls": 1,
+      "arkAfp": 0.64315
+    },
+    {
+      "runId": "2181e90fac9bdb37c97a986de0cd409caa9fb5cb13dcfab458103bdbfcd2ab8e",
+      "strategy": "task",
+      "scenario": "Task 不确定备援",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.000147613784,
+      "arkCalls": 1,
+      "arkAfp": 3.21275
+    },
+    {
+      "runId": "925afd5cc95c090fc483f947edfe9bc441070a8c53b10387c46925bb659bc82f",
+      "strategy": "stage",
+      "scenario": "Stage 原生工具续接",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.003422033168,
+      "arkCalls": 2,
+      "arkAfp": 1.2957
+    },
+    {
+      "runId": "d11a0e60f3dcd5af7ac29ae6026d0f010c818ad94759678dc828301bfda06233",
+      "strategy": "composite",
+      "scenario": "Composite 同模型跳过逐轮判别",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.000152713684,
+      "arkCalls": 2,
+      "arkAfp": 6.46975
+    },
+    {
+      "runId": "b8571d034a9811fe5e89f6ce7ce98f6f6ec966762fd0a61ca9878088a344820c",
+      "strategy": "composite",
+      "scenario": "Composite 能力卡缺项受控排查",
+      "status": "completed",
+      "jevCalls": 0,
+      "jevInputTokens": 0,
+      "jevCny": 0,
+      "arkCalls": 2,
+      "arkAfp": 14.28845
+    },
+    {
+      "runId": "2440eb9fd6e8f77a37d2876a43f3d0e46da4a261086e07e4d6bf57c945578df7",
+      "strategy": "composite",
+      "scenario": "Composite 两段判别",
+      "status": "completed",
+      "jevCalls": 2,
+      "jevInputTokens": 0,
+      "jevCny": 0.003586363292,
+      "arkCalls": 2,
+      "arkAfp": 10.36895
+    },
+    {
+      "runId": "7b487511e227e831fe7d3eb12f99a424e5f2bfbddf849a92714ed26a3bb8d267",
+      "strategy": "escalation",
+      "scenario": "Escalation 受控接管",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.001903962816,
+      "arkCalls": 2,
+      "arkAfp": 3.8582
+    },
+    {
+      "runId": "cc364314ad207a21994796aaac392dc85b00afff8b29ac1528b433a5e1fca304",
+      "strategy": "advisor",
+      "scenario": "Advisor 原生工具续接",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.002076509446,
+      "arkCalls": 2,
+      "arkAfp": 6.48025
+    },
+    {
+      "runId": "f1903548c7f6a185188dd3707e79b45a5336d28ba8cc41785d75cbacb8593fdc",
+      "strategy": "advisor",
+      "scenario": "修正账本后 Advisor 补验",
+      "status": "completed",
+      "jevCalls": 1,
+      "jevInputTokens": 0,
+      "jevCny": 0.00202324382,
+      "arkCalls": 1,
+      "arkAfp": 3.248
+    }
+  ]
+}

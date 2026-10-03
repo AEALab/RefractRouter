@@ -857,8 +857,8 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
   if(row.ruleVersion==='stage-decision-v1'||row.ruleVersion==='stage-decision-v2'||row.ruleVersion==='composite-stage-hybrid-v1')return <details><summary>查看 Stage 判别依据</summary>
     <p>结果：{row.decision?.verdict?VERDICT[row.decision.verdict]??row.decision.verdict:'本轮未调用 Judge'}；连续降档确认：{row.downgradeConfirmations??0}；本任务判别批次：{row.judgeBatches??0}。</p>
     <p>证据 ID：{row.evidenceIds?.join('、')||'无'}。{row.decision?.backend==='jev'?'Jev 调用按 CNY 帐本结算。':'本地判别无 API 费用。'}
-      {row.decision?.confidence!==undefined?`${row.ruleVersion==='stage-decision-v2'?'获选项分数':'判别分数'} ${row.decision.confidence.toFixed(3)}（不是任务成功率）。`:''}
-      {row.decision?.elapsedMs!==undefined?`含排队等待 ${row.decision.elapsedMs.toFixed(0)} ms。`:''}</p>
+      {typeof row.decision?.confidence==='number'?`${row.ruleVersion==='stage-decision-v2'?'获选项分数':'判别分数'} ${row.decision.confidence.toFixed(3)}（不是任务成功率）。`:''}
+      {typeof row.decision?.elapsedMs==='number'?`含排队等待 ${row.decision.elapsedMs.toFixed(0)} ms。`:''}</p>
     {row.decision?.rawAnswers!==undefined&&<pre>{JSON.stringify(row.decision.rawAnswers,null,2)}</pre>}
     {row.decision?.answers!==undefined&&row.decision?.rawAnswers===undefined&&<pre>{JSON.stringify(row.decision.answers,null,2)}</pre>}
   </details>
@@ -866,7 +866,7 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
   if(!value?.candidateAssessments?.length&&!row.rejectedCandidates?.length&&value?.pSolve===undefined
       &&value?.selectionProbability===undefined)return null
   return <details><summary>查看 Task 判别依据</summary>
-    {value?.selectionProbability!==undefined&&<p>Judge 原始选择：{value.rawChoice?.choice??value.candidateId??'未记录'}；
+    {typeof value?.selectionProbability==='number'&&<p>Judge 原始选择：{value.rawChoice?.choice??value.candidateId??'未记录'}；
       获选项概率 {value.selectionProbability.toFixed(3)}（不是候选绝对适合度或任务成功率）；
       {typeof value.confidence==='number'?`Choice confidence ${value.confidence.toFixed(3)}；`:''}
       Router 动作：{value.uncertain?'按配置使用备援或停止':'采用该候选'}。</p>}
@@ -874,9 +874,9 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
       能力边界：{value.capabilityBoundary??'未确认'}；判别门槛：{value.threshold?.toFixed(3)??'未确认'}；
       选中：{value.candidateId??'未确认'}。</p>}
     {value?.candidateAssessments?.map(item=><p key={item.candidateId}>{item.candidateId}：
-      {item.qualified?'达到初始门槛':'未达到初始门槛'}；适合度信号 {item.score.toFixed(3)}；
-      关键信息不足信号 {item.missingInformation.toFixed(3)}；
-      首次执行费用上界 {value.firstCallUpperBounds?.[item.candidateId]
+      {item.qualified?'达到初始门槛':'未达到初始门槛'}；适合度信号 {typeof item.score==='number'?item.score.toFixed(3):'未核对'}；
+      关键信息不足信号 {typeof item.missingInformation==='number'?item.missingInformation.toFixed(3):'未核对'}；
+      首次执行费用上界 {typeof value.firstCallUpperBounds?.[item.candidateId]?.amount==='number'
         ?`${value.firstCallUpperBounds[item.candidateId].amount.toFixed(4)} ${value.firstCallUpperBounds[item.candidateId].unit}`:'未核对'}</p>)}
     {row.rejectedCandidates?.map(item=><p key={item.id}>排除 {item.id}：{item.reason}</p>)}
     {value?.costBasis&&<p>费用依据：{value.costBasis==='first-execution-upper-bound'?'首次执行调用保守上界；不代表完整任务预计费用':'不可比较'}。
@@ -915,7 +915,7 @@ function Trace({load}:{load:()=>Promise<History>}){
               {d.evidenceIds?.length?`；证据 ${d.evidenceIds.length} 条`:''}
               {d.holdBefore!==undefined?`；保持 ${d.holdBefore} → ${d.holdAfter}`:''}
               {d.streakBefore!==undefined?`；连续停滞 ${d.streakBefore} → ${d.streakAfter}`:''}
-              {d.decision?.coldStartMs!==undefined?`；冷启动 ${d.decision.coldStartMs.toFixed(0)} ms`:''}
+              {typeof d.decision?.coldStartMs==='number'?`；冷启动 ${d.decision.coldStartMs.toFixed(0)} ms`:''}
               {d.ruleVersion?`；规则 ${d.ruleVersion}`:''}</small>{d.evidenceIds?.length?<EvidenceIds ids={d.evidenceIds}/>:null}<TaskEvidence row={d}/>
           </div>):<span>{c.status==='reserved'||c.disposition==='pending'?'调用已预留或派发，等待结果':
             `${PURPOSE[c.purpose]??c.purpose}已记录；历史未保存本次判定依据`}</span>}</td></tr>})})()}</tbody></table>
@@ -923,7 +923,7 @@ function Trace({load}:{load:()=>Promise<History>}){
         <h4>未关联独立模型调用的判定</h4><ol>{r.decisions.filter(d=>!r.calls.some(c=>c.call_id===d.callId||c.call_id===d.candidateCallId)).map((d,index)=><li key={`${d.step??'unknown'}-${index}`}>
           第 {d.step===undefined?'未知':d.step+1} 轮：{REASON[d.reason]??d.reason}；
           {d.model?`判别模型 ${d.model}；`:''}{d.evidenceIds?.length?`证据 ${d.evidenceIds.length} 条；`:''}
-          {d.decision?.elapsedMs!==undefined?`等待 ${d.decision.elapsedMs.toFixed(0)} ms；`:''}
+          {typeof d.decision?.elapsedMs==='number'?`等待 ${d.decision.elapsedMs.toFixed(0)} ms；`:''}
           {d.ruleVersion?`规则 ${d.ruleVersion}`:'旧记录未保存规则版本'}。{d.evidenceIds?.length?<EvidenceIds ids={d.evidenceIds}/>:null}<TaskEvidence row={d}/>
         </li>)}</ol>
       </section>}

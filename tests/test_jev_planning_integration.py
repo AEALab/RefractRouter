@@ -91,6 +91,9 @@ def test_advisor_jev_approval_and_cny_ledger(tmp_path):
     assert len(billed) == 1 and billed[0]["status"] == "billed"
     assert billed[0]["billing_unit"] == "CNY"
     assert 0 < billed[0]["charged"] < billed[0]["reserved"]
+    record = runtime.handle({"op": "query", "runId": run})
+    assert record["costsByUnit"]["CNY"]["production"] == pytest.approx(sum(
+        row["charged"] for row in record["calls"] if row["status"] == "billed"))
     assert runtime.runs[run]["decisions"][-1]["selectedProbability"] == .95
 
 
@@ -178,6 +181,40 @@ def test_jev_sensitive_input_requires_explicit_trust(tmp_path):
     with pytest.raises(ValueError, match="Jev 判别输入不允许"):
         receipt(runtime, run, execution, "候选")
     assert not any(row.get("provider") == "typesafe" for row in runtime.runs[run]["budget"].records)
+
+
+def test_advisor_jev_accepts_complete_dsh_sized_input(tmp_path):
+    cfg = configuration("advisor")
+    cfg["advisor"]["maxJudgeInputBytes"] = 64000
+    for model in cfg["models"]:
+        model["contextWindow"] = 100000
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "advisor", cfg)
+    execution = step(runtime, run, messages=[{"role": "system", "content": "x" * 33000},
+        {"role": "user", "content": "计算 17×19"}])
+    judge = receipt(runtime, run, execution, "323")
+    assert judge["action"] == "jev"
+    assert len(__import__("json").dumps(judge["payload"], ensure_ascii=False).encode()) < 64000
+
+
+def test_jev_projection_keeps_task_and_tools_without_provider_replay():
+    from refractrouter.jev_bridge import build_request
+    request = {"contract": "advisor-local-review-v2", "messages": [
+        {"role": "user", "content": "必须先读取报告", "source": {"replayState": "x" * 50000}},
+        {"role": "assistant", "content": [{"type": "reasoning", "text": "内部推理"},
+            {"type": "tool-call", "id": "call-1", "name": "read", "arguments": "{}"}],
+         "source": {"replayState": "y" * 50000}}],
+        "candidate": {"content": "已读取报告", "toolCalls": [
+            {"id": "call-2", "name": "read", "arguments": "{}"}],
+            "finishReason": "tool_calls", "replayState": "z" * 50000},
+        "events": [], "reviewCount": 1}
+    payload = build_request("advisor", request)
+    state = payload["state"]
+    assert state["taskAndAcceptedHistory"][0] == {"role": "user", "content": "必须先读取报告"}
+    assert state["taskAndAcceptedHistory"][1]["content"] == [
+        {"type": "tool-call", "id": "call-1", "name": "read", "arguments": "{}"}]
+    assert state["candidate"]["toolCalls"][0]["id"] == "call-2"
+    assert "replayState" not in state["candidate"]
 
 
 def test_jev_text_only_rejects_media_before_reservation(tmp_path):

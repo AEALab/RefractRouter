@@ -77,12 +77,9 @@ class JevDecisionAdapter(LayaDecisionAdapter):
         self.cold_start_ms = None
 
     def _ensure_complete(self, state, questions):
-        state_bytes = len(json.dumps(state, ensure_ascii=False).encode("utf-8"))
-        longest = max(len(json.dumps(item, ensure_ascii=False).encode("utf-8"))
-                      for item in questions.values())
         total = len(json.dumps({"state": state, "model": JEV_MODEL, "questions": questions},
                                ensure_ascii=False).encode("utf-8"))
-        if state_bytes + longest > 32000 or total > 64000:
+        if total > 98304:
             raise LocalDecisionCapacityError("Jev 输入超过保守容量上限；没有截断或发起调用")
 
     def decide_advisor(self, request):
