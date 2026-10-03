@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "jev-openrouter-dsh-preflight-v1",
+  "createdAt": "2026-10-03T08:00:20.087008+00:00",
+  "authorization": "用户同意完成 Advisor、Escalation 各一条真实接线验收后提交 PR 并合并；沿用 AFP 授权与 Jev 现金范围",
+  "profile": "现有 web profile，端口 3080",
+  "strategies": [
+    "advisor",
+    "escalation"
+  ],
+  "judge": {
+    "route": "openrouter",
+    "model": "typesafe/jev-1.13",
+    "expectedActualModel": "typesafe/jev-1.13-20260917",
+    "maxInputTokens": 32000,
+    "usdPerMillionInputTokens": 0.042,
+    "fxRate": 6.7459
+  },
+  "executors": [
+    {
+      "model": "ark/deepseek-v4.1-flash",
+      "reasoning": "provider-default",
+      "afpPer1k": 0.25
+    },
+    {
+      "model": "ark/deepseek-v4-flash",
+      "reasoning": "low",
+      "afpPer1k": 0.05
+    }
+  ],
+  "maxJevCalls": 6,
+  "maxExecutionCalls": 6,
+  "maxCny": 0.0543989376,
+  "maxAfp": 60,
+  "limitEnforcement": "保留用户单任务配置；人工监督批次调用数、已用及预留费用，超限或未知用量即停止，不承诺改变运行时硬额度",
+  "expectedExecutionCalls": 4,
+  "expectedJevCalls": 3,
+  "maxMinutesPerTask": 5,
+  "httpRetries": 0,
+  "delegation": false,
+  "tasks": {
+    "advisor": "一次终端 printf OPENROUTER_ADVISOR_OK，按实际输出回复标记",
+    "escalation": "一次终端 printf OPENROUTER_ESCALATION_OK，按实际输出回复标记"
+  },
+  "scope": "接通与账本核对，不要求人为触发返工或接管，不作为质量实验"
+}

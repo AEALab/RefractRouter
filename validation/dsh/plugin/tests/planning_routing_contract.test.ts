@@ -141,7 +141,8 @@ test('Composite v6 复用 Task 模型池且首次执行跳过 Stage 判别',asyn
   }finally{await f.cleanup()}
 })
 
-test('Advisor 由 DSH 凭证边界派发 Jev Choice，并将用量交回 Router 结算',async()=>{
+for(const route of ['typesafe','openrouter'] as const)
+test(`Advisor 通过 ${route} 派发 Jev Choice，并按对应渠道结算`,async()=>{
   const f=await fixture('advisor')
   const originalFetch=globalThis.fetch
   const sent:any[]=[]
@@ -152,20 +153,23 @@ test('Advisor 由 DSH 凭证边界派发 Jev Choice，并将用量交回 Router 
         capabilities:{mainExecutor:model.id!=='judge',toolCalling:'verified',modalities:{}}})),
       advisor:{executor:'small',judge:{type:'jev'},threshold:.8,maxJudgeInputBytes:8000,
         judgeTimeoutMs:30000,maxExecutionOutputTokens:2048,maxJudgeOutputTokens:256},
-      jev:{credentialRef:'typesafe-test',deployment:'external-cloud'}}
+      jev:{route,credentialRef:route+'-test',deployment:'external-cloud'}}
     f.setPlanning(configured)
     f.ctx.credentials.resolve=async reference=>{
-      assert.equal(reference,'typesafe-test');return {value:'fixture-secret'}
+      assert.equal(reference,route+'-test');return {value:'fixture-secret'}
     }
     globalThis.fetch=async (input,init)=>{
-      assert.equal(String(input),'https://api.typesafe.ai/v1/systemone')
+      assert.equal(String(input),route==='openrouter'?'https://openrouter.ai/api/alpha/decisions':'https://api.typesafe.ai/v1/systemone')
+      assert.equal(init?.redirect,'error')
       assert.equal((init?.headers as Record<string,string>).Authorization,'Bearer fixture-secret')
       const payload=JSON.parse(String(init?.body));sent.push(payload)
-      assert.equal(payload.model,'jev-1.13.0')
-      return new Response(JSON.stringify({model:'jev-1.13.0',answers:{review:{type:'choice',
+      assert.equal(payload.model,route==='openrouter'?'typesafe/jev-1.13':'jev-1.13.0')
+      if(route==='openrouter')assert.deepEqual(payload.provider,{only:['TypeSafe'],allow_fallbacks:false})
+      return new Response(JSON.stringify({model:route==='openrouter'?'typesafe/jev-1.13-20260917':'jev-1.13.0',
+        ...(route==='openrouter'?{id:'gen-openrouter-fixture',provider:'TypeSafe'}:{}),answers:{review:{type:'choice',
         choice:'APPROVE',probabilities:{APPROVE:.95,REDO_REQUIREMENT:.02,
           REDO_EVIDENCE:.02,UNRESOLVED:.01},confidence:.9}},
-        usage:{input_tokens:300,output_tokens:20}}),{status:200})
+        usage:{input_tokens:300,output_tokens:20,...(route==='openrouter'?{cost:.00002}:{})}}),{status:200})
     }
     f.setReplies([()=>reply('完成')])
     const output=await collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor'}))
@@ -173,9 +177,14 @@ test('Advisor 由 DSH 凭证边界派发 Jev Choice，并将用量交回 Router 
     assert.ok(output.some(chunk=>chunk.type==='text-delta'&&chunk.text==='完成'))
     assert.deepEqual(f.calls.map(call=>call.model),['small'])
     const record=(await f.controller.history('native-session')).records[0]
-    const jev=record.calls.find((call:any)=>call.provider==='typesafe')
+    const jev=record.calls.find((call:any)=>call.provider===route)
     assert.equal(jev.status,'billed')
     assert.equal(jev.billing_unit,'CNY')
+    if(route==='openrouter'){
+      assert.equal(jev.usage.costUSD,.00002)
+      assert.equal(jev.charged,.00002*jev.conversion_rate)
+      assert.equal(jev.actual_model,'typesafe/jev-1.13-20260917')
+    }
     assert.equal(record.decisions.find((row:any)=>row.backend==='jev').selectedProbability,.95)
     assert.ok(!JSON.stringify(record).includes('fixture-secret'))
   }finally{globalThis.fetch=originalFetch;await f.cleanup()}
@@ -211,6 +220,23 @@ test('未选中的 Jev 配置不会阻断 Static 执行',async()=>{
     const output=await collect(f.controller.stream(f.options))
     assert.ok(output.some(chunk=>chunk.type==='text-delta'&&chunk.text==='正常执行'))
     assert.deepEqual(f.calls.map(call=>call.model),['small'])
+  }finally{await f.cleanup()}
+})
+
+test('OpenRouter 配置在仅支持直连的旧核心上先阻断',async()=>{
+  const f=await fixture('advisor')
+  try{
+    f.setPlanning({...structuredClone(config),schemaVersion:'refractagent-planning-v6',
+      jev:{route:'openrouter'},advisor:{executor:'small',judge:{type:'jev'}}})
+    const operations:string[]=[]
+    f.worker.request=async value=>{
+      operations.push(String(value.op))
+      if(value.op==='handshake')return {protocol:'refractagent-planning/4',
+        capabilities:['escalation-decision-v1','local-judge-jobs','jev-judge-v1']}
+      throw new Error('不应在能力检查失败后继续')
+    }
+    await assert.rejects(f.controller.preview(),/当前核心不支持 OpenRouter Jev/)
+    assert.deepEqual(operations,['handshake'])
   }finally{await f.cleanup()}
 })
 

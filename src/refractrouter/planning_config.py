@@ -386,20 +386,22 @@ def compile_config(raw):
         if p.get("expiresOn") and date.fromisoformat(p["expiresOn"]) < date.today():
             raise ValueError("信任策略已过期")
         policies[p["id"]] = p
-    jev_raw = obj(raw.get("jev", {}), ("credentialRef", "deployment", "trustPolicy", "actionGate"), "jev")
+    jev_raw = obj(raw.get("jev", {}), ("route", "credentialRef", "deployment", "trustPolicy", "actionGate"), "jev")
+    from .jev_transport import route_spec
+    jev_spec = route_spec(jev_raw.get("route", "typesafe"))
     jev_deployment = jev_raw.get("deployment", "external-cloud")
     if jev_deployment not in ("external-cloud", "trusted-cloud"):
         raise ValueError("Jev 是云端服务；部署域只能是外部云或受信任云")
     if jev_deployment == "trusted-cloud" and jev_raw.get("trustPolicy") not in policies:
         raise ValueError("Jev 可信云需要有效的信任策略")
-    credential_ref = jev_raw.get("credentialRef", "TYPESAFE_API_KEY")
+    credential_ref = jev_raw.get("credentialRef", jev_spec["credentialRef"])
     if (not isinstance(credential_ref, str) or not credential_ref or len(credential_ref) > 128
             or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/" for c in credential_ref)):
         raise ValueError("Jev 凭证引用无效；设置中只能保存引用，不能保存密钥")
     from .jev_choice_gate import VERSION as jev_gate_version
     if jev_raw.get("actionGate") not in (None, jev_gate_version):
         raise ValueError("Jev 动作门槛版本不兼容")
-    jev = {"credentialRef": credential_ref, "deployment": jev_deployment,
+    jev = {**jev_spec, "credentialRef": credential_ref, "deployment": jev_deployment,
            "trustPolicy": jev_raw.get("trustPolicy"), "actionGate": jev_raw.get("actionGate"),
            "fxRate": fx_rate, "fxSource": fx_snapshot["source"], "fxAsOf": fx_snapshot["as_of"]}
     models = {}

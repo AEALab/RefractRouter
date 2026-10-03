@@ -28,9 +28,9 @@ from .local_judge_service import LocalJudgeProcess
 from .stage_runtime import StageHybridRuntime
 from .deepseek_official_pricing import pricing as deepseek_cny_pricing
 from .openai_compatible import ChatResponse
-from .jev_bridge import (MAX_INPUT_TOKENS as JEV_MAX_INPUT_TOKENS,
-                         build_request as build_jev_request, interpret as interpret_jev,
-                         validate_usage as validate_jev_usage, cost_cny as jev_cost_cny)
+from .jev_bridge import (build_request as build_jev_request, interpret as interpret_jev,
+                         validate_usage as validate_jev_usage, cost_cny as jev_cost_cny,
+                         settled_cost_cny)
 
 MAX_WIRE_BYTES = 16 * 1024 * 1024
 
@@ -399,7 +399,7 @@ class PlanningRuntime(StageHybridRuntime):
                     return self._task_fallback(run, "jev-no-differentiating-evidence", rejected)
                 request = decision_request(state, candidates, task_route["threshold"])
                 try:
-                    build_jev_request("task", request)
+                    build_jev_request("task", request, c["jev"]["route"])
                 except ValueError as exc:
                     if "容量" not in str(exc):
                         raise
@@ -475,7 +475,8 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError(f"本地 Judge 无法完成判别：{exc}") from exc
         judge = task_route["judge"]
         decision.update({"backend": "jev" if judge["type"] == "jev" else "local-decision",
-                         "adapter": "typesafe" if judge["type"] == "jev" else judge["adapter"],
+                         "adapter": run["config"]["jev"]["route"] if judge["type"] == "jev" else judge["adapter"],
+                         "provider": payload.get("provider"),
                          "actualModel": result["model"], "coldStartMs": result["coldStartMs"],
                          "latencyMs": result["latencyMs"], "usage": result["usage"],
                          "ruleVersion": payload.get("ruleVersion", "task-local-ordinal-v1"),
@@ -544,7 +545,7 @@ class PlanningRuntime(StageHybridRuntime):
                 calls += 1
             elif judge["type"] == "jev":
                 required["CNY"] = required.get("CNY", 0) + jev_cost_cny(
-                    JEV_MAX_INPUT_TOKENS, c["jev"]["fxRate"])
+                    c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
                 calls += 1
         for unit, amount in required.items():
             try:
@@ -586,7 +587,7 @@ class PlanningRuntime(StageHybridRuntime):
             calls += remaining_reviews
         elif judge["type"] == "jev":
             required["CNY"] = required.get("CNY", 0) + remaining_reviews * jev_cost_cny(
-                JEV_MAX_INPUT_TOKENS, c["jev"]["fxRate"])
+                c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
             calls += remaining_reviews
         elif judge["type"] == "local-decision":
             calls += remaining_reviews
@@ -610,7 +611,7 @@ class PlanningRuntime(StageHybridRuntime):
         judge_unit, judge_bound = None, 0
         if include_judge and self._task_route(run)["judge"]["type"] == "jev":
             judge_unit = "CNY"
-            judge_bound = jev_cost_cny(JEV_MAX_INPUT_TOKENS, c["jev"]["fxRate"])
+            judge_bound = jev_cost_cny(c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
         elif include_judge:
             judge = self._resolve_model(run, model_id=self._task_route(run)["judge"]["modelId"])
             judge_unit = judge.billing_unit
@@ -662,7 +663,7 @@ class PlanningRuntime(StageHybridRuntime):
         calls = 1
         if include_judge and self._task_route(run)["judge"]["type"] == "jev":
             required["CNY"] = required.get("CNY", 0) + jev_cost_cny(
-                JEV_MAX_INPUT_TOKENS, c["jev"]["fxRate"])
+                c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
             calls += 1
         elif include_judge:
             judge = self._resolve_model(run, model_id=self._task_route(run)["judge"]["modelId"])
@@ -740,27 +741,28 @@ class PlanningRuntime(StageHybridRuntime):
     def issue_jev(self, run, kind, request, *, timeout_ms):
         """预留并签发单次 Jev 请求；凭证与 HTTP 留在接入层。"""
         flow, config = run["flow"], run["config"]
-        payload = build_jev_request(kind, request)
+        payload = build_jev_request(kind, request, config["jev"]["route"])
         grade = classify_view(json.dumps(payload, ensure_ascii=False), privacy=config["security"])
         if grade["grade"] != "S3" and not allows_sensitive(config["jev"]["deployment"], config["security"]):
             reasons = [str(reason).split(":", 1)[0] for reason in grade["reasons"]]
             raise ValueError("Jev 判别输入不允许发送到当前数据域：" + "、".join(reasons))
-        bound = jev_cost_cny(JEV_MAX_INPUT_TOKENS, config["jev"]["fxRate"])
+        bound = jev_cost_cny(config["jev"]["maxInputTokens"], config["jev"]["fxRate"])
         token = uuid.uuid4().hex
         row = run["budget"].reserve_non_token("CNY", bound,
             label=f'{run["id"]}:jev:{token}', purpose=kind,
-            usage={"basis": "input-token", "maximumUnits": JEV_MAX_INPUT_TOKENS,
-                   "model": payload["model"], "provider": "typesafe"})
+            usage={"basis": "input-token", "maximumUnits": config["jev"]["maxInputTokens"],
+                   "model": payload["model"], "provider": config["jev"]["route"]})
         run["budget"].dispatch_non_token(row, operation_id=token)
         row.update(source_billing_unit="USD", conversion_rate=config["jev"]["fxRate"],
                    conversion_source=config["jev"]["fxSource"],
                    conversion_as_of=config["jev"]["fxAsOf"],
-                   pricing_source="https://docs.typesafe.ai/models")
+                   pricing_source=config["jev"]["pricingSource"], requested_model=payload["model"])
         flow["jevJudge"] = {"callId": token, "kind": kind, "request": request,
                             "payload": payload, "rowLabel": row["label"]}
         self.persist(run)
         remaining = self.describe(run)["remainingMs"]
         return {"action": "jev", "callId": token, "purpose": kind, "payload": payload,
+                "endpoint": config["jev"]["endpoint"], "route": config["jev"]["route"],
                 "credentialRef": config["jev"]["credentialRef"],
                 "timeoutMs": min(timeout_ms, remaining) if remaining is not None else timeout_ms,
                 **self.describe(run)}
@@ -778,10 +780,17 @@ class PlanningRuntime(StageHybridRuntime):
             raise
         row = next(item for item in run["budget"].records if item.get("label") == job["rowLabel"])
         config = run["config"]
-        run["budget"].settle_non_token(row,
-            jev_cost_cny(usage["input_tokens"], config["jev"]["fxRate"]),
-            {"basis": "input-token", "actualUnits": usage["input_tokens"],
-             "outputTokens": usage["output_tokens"], "model": result["model"]})
+        row.update(actual_model=result["model"], provider_request_id=result.get("id"),
+                   upstream_provider=result.get("provider"))
+        try:
+            run["budget"].settle_non_token(row,
+                settled_cost_cny(job["payload"], result, config["jev"]["fxRate"]),
+                {"basis": "input-token", "actualUnits": usage["input_tokens"],
+                 "outputTokens": usage["output_tokens"], "model": result["model"],
+                 **({"costUSD": usage["cost"]} if "cost" in usage else {})})
+        except ValueError:
+            self.stop(run, "jev-budget-overage")
+            raise
         row["latency_ms"] = request.get("latencyMs")
         flow.pop("jevJudge")
         self.persist(run)
@@ -795,7 +804,8 @@ class PlanningRuntime(StageHybridRuntime):
             self.stop(run, "jev-invalid-answer")
             raise ValueError(f"Jev 判别答案无效；已结算实际调用，不会自动重试：{exc}") from exc
         decision.update({"backend": "jev", "actualModel": result["model"],
-                         "provider": "typesafe", "latencyMs": request.get("latencyMs"),
+                         "provider": config["jev"]["route"], "providerRequestId": result.get("id"),
+                         "latencyMs": request.get("latencyMs"),
                          "usage": usage, "callId": job["callId"]})
         kind = job["kind"]
         if kind == "advisor":
@@ -1292,6 +1302,7 @@ class PlanningRuntime(StageHybridRuntime):
             "candidateDisposition": "accepted" if choice == "APPROVE" else "discarded",
             "reviewVerdict": choice, "rawVerdict": verdict.get("rawVerdict", choice),
             "confidence": verdict.get("confidence"), "backend": verdict.get("backend", "llm"),
+            "provider": verdict.get("provider"), "providerRequestId": verdict.get("providerRequestId"),
             "selectedProbability": verdict.get("selectedProbability"),
             "choiceConfidence": verdict.get("choiceConfidence"),
             "choiceGate": verdict.get("choiceGate"), "rawAnswer": verdict.get("raw"),
@@ -1679,7 +1690,7 @@ class PlanningRuntime(StageHybridRuntime):
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "composite-task-stage-v1",
                 "decomposition-decision-v1", "local-judge-jobs", "local-decision-backends-v1",
-                "planning-routing-v4", "media-reference-v1", "jev-judge-v1"]}
+                "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "jev-complete":
             return self.complete_jev(self.runs[request["runId"]], request)
         if operation == "fx":

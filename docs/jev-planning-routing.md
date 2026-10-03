@@ -7,19 +7,34 @@ Composite 的 Task／Stage 环节分别选择「官方 Jev」。选择只影响 
 ## 设置与边界
 
 在「RefractAgent 规划路由」设置卡片中，先配置 CNY 生产预算、DSH 凭证引用及 Jev 数据域，
-再进入相应策略选择 Judge。凭证引用默认是 `TYPESAFE_API_KEY`；API 密钥须登记在 DSH 凭证
+再进入相应策略选择 Judge。新建规划配置默认使用 OpenRouter，接入方式仍可选择 Typesafe 直连。
+旧配置省略 `jev.route` 时继续使用直连，避免静默变更既有数据传输路线。
+对应凭证引用默认是 `TYPESAFE_API_KEY` 或 `OPENROUTER_API_KEY`；API 密钥须登记在 DSH 凭证
 服务，不能填写到插件配置。Jev 是云端、文本型服务；默认外部云会拦截包含本机绝对路径等
 敏感资料的判别输入。选择可信云须使用已登记的信任策略，不能继承对其他提供方的授权。
 
-当前固定调用 `jev-1.13.0` 的 Choice 接口。Advisor 和 Escalation 默认按所选项的概率与各自
+直连固定调用 `jev-1.13.0`；OpenRouter 使用 `POST /api/alpha/decisions`、
+`typesafe/jev-1.13`，校验实际版本 `typesafe/jev-1.13-20260917`，只允许 TypeSafe 提供方，
+关闭提供方回退与客户端自动重试。设置切换渠道时清除旧的数据域许可，需重新选择可信云策略；
+OpenRouter 和 TypeSafe 都会接收判别内容。两种渠道共用已有题目及策略，不增加前置 LLM。
+
+Advisor 和 Escalation 默认按所选项的概率与各自
 设置的门槛行动，并在轨迹记录原始 `probabilities` 和 `confidence`。分动作门槛是单独的实验
 开关。Task 对候选能力卡进行一次 Choice 选模；证据不足或低于门槛时使用指定备援。Stage
 只在规则要求的执行边界调用 Judge；Composite 可独立配置 Task 与 Stage 的后端。
 
 Jev 的官方价格为每百万输入 token 0.042 USD、输出 token 免费。核心按照冻结汇率将实际输入
-用量折算成 CNY 结算，保留 USD 原价、来源及汇率日期。派发前用保守输入上界预留额度；
+用量折算成 CNY 结算；OpenRouter 则采用回执 `usage.cost` 的 USD 金额折算，允许有效零费用，
+不以直连的估算价格覆盖实付金额。保留渠道、提供方、具体版本、请求 ID、USD 费用、来源及汇率日期。
+派发前使用渠道的输入上界预留额度（直连 64k、OpenRouter 32k tokens）；
 未知用量保留预留并停止后续受管调用。Jev 的调用不计入 AFP。凭证仅在 DSH 宿主内解析，
 Python 核心只接收判别请求和无密钥的回执。
+
+两种渠道的完整请求另有 96 KiB 传输技术上限；它不是 token 容量证明，不会截断输入。
+提供方拒绝超容量请求时停止，不转另一渠道重试。OpenRouter 缺少费用、用量、实际版本、
+提供方或请求 ID 时保留预留并停止。独立 Python `JevClient`／`JevDecisionAdapter` 也接受
+`route="openrouter"`；后者默认读取 `OPENROUTER_API_KEY`。本次不扩展标准 Gateway 的
+Judge 执行循环，DSH 安装接线与独立客户端接通分别验收。
 
 ## 已验证与待验证
 
@@ -45,4 +60,6 @@ Python 核心只接收判别请求和无密钥的回执。
 在当前网络和凭证下可用。
 
 参考：[TypeSafe API](https://docs.typesafe.ai/api)、[模型与计价](https://docs.typesafe.ai/models)、
-[置信度说明](https://docs.typesafe.ai/confidence)。
+[置信度说明](https://docs.typesafe.ai/confidence)、
+[OpenRouter Jev 接口](https://openrouter.ai/docs/guides/community/jev)、
+[OpenRouter Decisions 合同](https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-questions-and-answers-request)。

@@ -321,8 +321,16 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     <div className="rra-grid rra-grid-2"><label className="rra-compact-field">任务期限（毫秒，0 为不限制） <input className="rra-input" type="number" min="0" value={draft.timeoutMs??300000} onChange={e=>patch({timeoutMs:Number(e.target.value)})}/></label>
       <label className="rra-compact-field">最大调用数（0 为不限制） <input className="rra-input" type="number" min="0" value={draft.maxCalls??128} onChange={e=>patch({maxCalls:Number(e.target.value)})}/></label></div></div>
     <div className="rra-row-card"><h3>官方 Jev Judge</h3>
-      <p className="rra-field-hint">Jev 1.13 为云端结构化判别模型；在各策略的 Judge 类型中单独选择。密钥保存在 DSH 凭证服务，设置里只保存引用。输入按官方 USD 价格及冻结汇率记入 CNY 预算，输出 token 免费。</p>
-      <label className="rra-compact-field">DSH 凭证引用 <input className="rra-input" value={draft.jev?.credentialRef??'TYPESAFE_API_KEY'} onChange={e=>patch({jev:{...draft.jev,credentialRef:e.target.value}})}/></label>
+      <p className="rra-field-hint">Jev 1.13 为云端结构化判别模型；在各策略的 Judge 类型中单独选择。密钥保存在 DSH 凭证服务或环境变量，设置里只保存引用。费用折算为 CNY，输出 token 免费。</p>
+      <label className="rra-compact-field">Jev 接入方式 <select className="rra-select" value={draft.jev?.route??'typesafe'} onChange={e=>{
+        const route=e.target.value as 'typesafe'|'openrouter'
+        patch({jev:{...draft.jev,route,credentialRef:route==='openrouter'?'OPENROUTER_API_KEY':'TYPESAFE_API_KEY',
+          deployment:'external-cloud',trustPolicy:undefined}})
+      }}><option value="typesafe">Typesafe 直连</option><option value="openrouter">OpenRouter</option></select></label>
+      <p className="rra-field-hint">{draft.jev?.route==='openrouter'
+        ?'通过 OpenRouter Decisions API 调用 typesafe/jev-1.13；OpenRouter 与 TypeSafe 均会接收判别内容。费用采用回执中的 USD 实付金额，保留实际版本及请求 ID。提供方上下文为 32k tokens；96 KiB 是独立传输上限，不截断或自动转直连。'
+        :'直接调用 TypeSafe 的 jev-1.13.0；按确认输入用量结算。'}切换接入方式后，请重新确认数据域与信任策略。</p>
+      <label className="rra-compact-field">DSH 凭证引用 <input className="rra-input" value={draft.jev?.credentialRef??(draft.jev?.route==='openrouter'?'OPENROUTER_API_KEY':'TYPESAFE_API_KEY')} onChange={e=>patch({jev:{...draft.jev,credentialRef:e.target.value}})}/></label>
       <label className="rra-compact-field">Jev 数据域 <select className="rra-select" value={draft.jev?.deployment??'external-cloud'} onChange={e=>patch({jev:{...draft.jev,deployment:e.target.value as 'external-cloud'|'trusted-cloud',trustPolicy:undefined}})}>
         <option value="external-cloud">外部云（拦截本机路径等敏感输入）</option><option value="trusted-cloud">已授权的可信云</option></select></label>
       {draft.jev?.deployment==='trusted-cloud'&&<label className="rra-compact-field">信任策略 <select className="rra-select" value={draft.jev.trustPolicy??''} onChange={e=>patch({jev:{...draft.jev,trustPolicy:e.target.value||undefined}})}>
@@ -770,11 +778,11 @@ type History={records:Array<{runId:string;strategy:string;status:string;costs:{p
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
-    reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;adapter?:string;
+    reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;adapter?:string;provider?:string;
     selectedProbability?:number;choiceConfidence?:number;choiceGate?:{accepted:boolean;minimumConfidence?:number|null;minimumProbability?:number|null;reason:string};rawAnswer?:unknown;
     reviewCount?:number;redoCount?:number;reviewPhase?:string;
     staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
-    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown;rawAnswers?:unknown;raw?:unknown;selectedProbability?:number;choiceConfidence?:number;choiceGate?:unknown};judgeDecision?:TaskRouteEvidence;
+    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;provider?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown;rawAnswers?:unknown;raw?:unknown;selectedProbability?:number;choiceConfidence?:number;choiceGate?:unknown};judgeDecision?:TaskRouteEvidence;
     downgradeConfirmations?:number;judgeBatches?:number;
     rejectedCandidates?:Array<{id:string;reason:string}>}>}>}
 const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 固定模型',
@@ -909,6 +917,7 @@ function Trace({load}:{load:()=>Promise<History>}){
             {d.backend==='local-decision'?`；本地 ${d.adapter??d.decision?.adapter??'Judge'} 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，获选项概率 ${d.confidence.toFixed(3)}`:''}`:''}
             {d.backend==='jev'?`；Jev 原始分类 ${d.rawVerdict??'见判别依据'}${typeof d.selectedProbability==='number'?`，获选项概率 ${d.selectedProbability.toFixed(3)}`:''}${typeof d.choiceConfidence==='number'?`，confidence ${d.choiceConfidence.toFixed(3)}`:''}${d.choiceGate?`，分动作门槛${d.choiceGate.accepted?'通过':'未通过'}`:''}`:''}
             {d.decision?.backend==='jev'&&d.backend!=='jev'?`；Jev 判别已记录原始答案与费用`:''}
+            {(d.provider??d.decision?.provider)?`；判别接入 ${d.provider??d.decision?.provider}`:''}
             {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
             {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
             <br/><small>{d.evidenceSummary??(d.decision?.backend?`后端 ${d.decision.backend}`:'本次未记录独立证据摘要')}

@@ -1,0 +1,62 @@
+{
+  "route": {
+    "route": "openrouter",
+    "model": "typesafe/jev-1.13",
+    "actualModel": "typesafe/jev-1.13-20260917",
+    "endpoint": "https://openrouter.ai/api/alpha/decisions",
+    "credentialRef": "OPENROUTER_API_KEY",
+    "maxInputTokens": 32000,
+    "maxRequestBytes": 98304,
+    "pricingSource": "https://openrouter.ai/typesafe/jev-1.13"
+  },
+  "httpCallsMaximum": 1,
+  "httpRetries": 0,
+  "maxCNY": 0.0090664896,
+  "fx": {
+    "schema_version": "refractrouter-currency-rates-v1",
+    "base": "USD",
+    "quote": "CNY",
+    "rate": 6.7459,
+    "as_of": "2026-09-23",
+    "source": "https://www.boc.cn/sourcedb/whpj/",
+    "source_detail": "中国银行外汇牌价，美元中间价每 100 美元兑 674.59 元人民币；仅用于冻结预算换算，不代表实际结算汇率。"
+  },
+  "request": {
+    "state": {
+      "requirement": "请只回复「完成」。",
+      "candidate": "完成"
+    },
+    "model": "typesafe/jev-1.13",
+    "questions": {
+      "review": {
+        "type": "choice",
+        "instructions": "候选是否满足明确要求？只根据材料判别。",
+        "criteria": {
+          "APPROVE": "候选完整满足要求",
+          "REDO": "候选明确违反要求",
+          "UNRESOLVED": "信息不足"
+        }
+      },
+      "matches": {
+        "type": "noul",
+        "instructions": "候选是否完全满足用户只回复「完成」的要求？"
+      },
+      "coverage": {
+        "type": "score",
+        "instructions": "候选满足要求的程度。",
+        "criteria": [
+          "不满足要求",
+          "部分满足要求",
+          "完全满足要求"
+        ]
+      }
+    },
+    "provider": {
+      "only": [
+        "TypeSafe"
+      ],
+      "allow_fallbacks": false
+    }
+  },
+  "scope": "公开合成文本，仅核对协议接通，不评价任务品质"
+}

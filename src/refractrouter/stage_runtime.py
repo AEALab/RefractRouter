@@ -4,8 +4,7 @@ import time
 
 from .stage_hybrid import VERSION, initial_state, observe, decision_request, parse_answers, transition
 from .task_budget import request_input_bound
-from .jev_bridge import (MAX_INPUT_TOKENS as JEV_MAX_INPUT_TOKENS,
-                         build_request as build_jev_request, cost_cny as jev_cost_cny)
+from .jev_bridge import (build_request as build_jev_request, cost_cny as jev_cost_cny)
 
 
 class StageHybridRuntime:
@@ -43,7 +42,7 @@ class StageHybridRuntime:
         if stage_config["judge"]["type"] == "jev":
             if len(affordable) != 2:
                 raise ValueError("Stage Jev 判别前必须确保两条执行路线均可用")
-            jev_bound = jev_cost_cny(JEV_MAX_INPUT_TOKENS, c["jev"]["fxRate"])
+            jev_bound = jev_cost_cny(c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
             # 判别可能选择任一执行路线；先保护 Judge 加最贵的互斥路线。
             required = {}
             for unit, cost in execution_bounds.values():
@@ -63,7 +62,7 @@ class StageHybridRuntime:
         judge = stage_config["judge"]
         if judge["type"] == "jev":
             try:
-                build_jev_request("stage", judge_request)
+                build_jev_request("stage", judge_request, c["jev"]["route"])
             except ValueError:
                 return self._finish_hybrid_stage(run, None, issue="jev-input-capacity")
             action = self.issue_jev(run, "stage", judge_request,
@@ -122,8 +121,12 @@ class StageHybridRuntime:
             state["localRecords"][-1].update(status="local-inference", latencyMs=result["latencyMs"],
                 elapsedMs=elapsed_ms, coldStartMs=result["coldStartMs"], usage=deepcopy(result["usage"]))
             if c["judge"]["type"] == "jev":
-                state["localRecords"][-1].update(status="billed", apiCost=jev_cost_cny(
-                    result["usage"]["input_tokens"], run["config"]["jev"]["fxRate"]),
+                usage = result["usage"]
+                cost = (usage["cost"] * run["config"]["jev"]["fxRate"]
+                        if run["config"]["jev"]["route"] == "openrouter" else jev_cost_cny(
+                            usage["input_tokens"], run["config"]["jev"]["fxRate"]))
+                state["localRecords"][-1].update(status="billed", apiCost=cost,
+                    provider=run["config"]["jev"]["route"],
                     billingUnit="CNY")
         elif state["localRecords"] and state["localRecords"][-1]["status"] == "pending":
             state["localRecords"][-1].update(status="capacity", elapsedMs=elapsed_ms, reason=issue)
