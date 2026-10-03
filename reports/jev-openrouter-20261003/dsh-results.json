@@ -1,0 +1,364 @@
+{
+  "schemaVersion": "jev-openrouter-dsh-results-v1",
+  "runs": [
+    {
+      "runId": "233683d6333e283491eb68c869c989e9ac8531dee4c7c4bc658edc4a232faf2a",
+      "sourceSha256": "c5c7b0bd55d37018734c10a39cb881322082db117cec1f2a014fc76bfcd157a2",
+      "strategy": "advisor",
+      "status": "completed",
+      "costsByUnit": {
+        "CNY": {
+          "production": 0.002089542525,
+          "evaluation": 0
+        },
+        "AFP": {
+          "production": 6.49575,
+          "evaluation": 0
+        }
+      },
+      "calls": [
+        {
+          "call_id": "aa35d235974449698f9a90aacbe4c1ba",
+          "model_id": "efficient-ark-deepseek-v4-1-flash",
+          "provider": "ark",
+          "actual_model": "deepseek-v4.1-flash",
+          "purpose": "execute",
+          "disposition": "accepted",
+          "status": "billed",
+          "billing_unit": "AFP",
+          "reserved": 17.9265,
+          "charged": 3.24425,
+          "input_tokens": 12888,
+          "output_tokens": 89,
+          "cached_input_tokens": 0,
+          "reserved_output_tokens": 2048,
+          "reasoning_effort": "high",
+          "latency_ms": 1957.7503749998286,
+          "ttft_ms": null,
+          "finish_reason": "tool_calls",
+          "input_sha256": "1add38ee68994d4177f42325e345c181c7ae315b35dad6138ead69631e2e7f58",
+          "output_sha256": "ff7a348c0eb4afcd51df1afdb7a45b804a6350745ef700689aa115a6382d4dfc"
+        },
+        {
+          "call_id": "39f389e0d2124942b448da2f7e450a7f",
+          "model_id": "efficient-ark-deepseek-v4-1-flash",
+          "provider": "ark",
+          "actual_model": "deepseek-v4.1-flash",
+          "purpose": "execute",
+          "disposition": "accepted",
+          "status": "billed",
+          "billing_unit": "AFP",
+          "reserved": 18.33025,
+          "charged": 3.2515,
+          "input_tokens": 12997,
+          "output_tokens": 9,
+          "cached_input_tokens": 12800,
+          "reserved_output_tokens": 2048,
+          "reasoning_effort": "high",
+          "latency_ms": 1526.6725410004146,
+          "ttft_ms": 1493.0478330003098,
+          "finish_reason": "stop",
+          "review_status": "approved",
+          "input_sha256": "bec7c2ca70c2f22776173dd9bc8016ec62f229a6f684e5021ffad0405fcf6495",
+          "output_sha256": "396924fda26e3b34582ba11eefc453c65041aec9d727355de9070d3b34a2ffe5"
+        },
+        {
+          "call_id": "85dc56310a3344e3bdcb0ee79375de22",
+          "model_id": "typesafe/jev-1.13",
+          "provider": "openrouter",
+          "actual_model": "typesafe/jev-1.13-20260917",
+          "requested_model": "typesafe/jev-1.13",
+          "purpose": "advisor",
+          "disposition": "accepted",
+          "status": "billed",
+          "billing_unit": "CNY",
+          "reserved": 0.0090664896,
+          "charged": 0.002089542525,
+          "usage": {
+            "basis": "input-token",
+            "actualUnits": 7375,
+            "outputTokens": 61,
+            "model": "typesafe/jev-1.13-20260917",
+            "costUSD": 0.00030975
+          },
+          "source_billing_unit": "USD",
+          "conversion_rate": 6.7459,
+          "conversion_as_of": "2026-09-23",
+          "conversion_source": "https://www.boc.cn/sourcedb/whpj/",
+          "provider_request_id": "gen-dec-1791014424-fn5WHX6ptL6VYbE31Zj7",
+          "upstream_provider": "TypeSafe",
+          "latency_ms": 809.2662500003353
+        }
+      ],
+      "decisions": [
+        {
+          "step": 0,
+          "role": "advisor-executor",
+          "model": "efficient-ark-deepseek-v4-1-flash",
+          "reason": "advisor-initial",
+          "score": null,
+          "callId": "aa35d235974449698f9a90aacbe4c1ba",
+          "ruleVersion": "advisor-gate-v2",
+          "reviewCount": 0,
+          "redoCount": 0,
+          "reviewPhase": "initial"
+        },
+        {
+          "step": 1,
+          "role": "advisor-executor",
+          "model": "efficient-ark-deepseek-v4-1-flash",
+          "reason": "advisor-initial",
+          "score": null,
+          "callId": "39f389e0d2124942b448da2f7e450a7f",
+          "ruleVersion": "advisor-gate-v2",
+          "reviewCount": 0,
+          "redoCount": 0,
+          "reviewPhase": "initial"
+        },
+        {
+          "step": 1,
+          "role": "judge",
+          "model": "typesafe/jev-1.13-20260917",
+          "reason": "advisor-approved",
+          "callId": "85dc56310a3344e3bdcb0ee79375de22",
+          "candidateCallId": "39f389e0d2124942b448da2f7e450a7f",
+          "candidateDisposition": "accepted",
+          "reviewVerdict": "APPROVE",
+          "rawVerdict": "APPROVE",
+          "confidence": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "providerRequestId": "gen-dec-1791014424-fn5WHX6ptL6VYbE31Zj7",
+          "selectedProbability": 0.99,
+          "choiceConfidence": 0.98,
+          "choiceGate": null,
+          "rawAnswer": {
+            "type": "choice",
+            "choice": "APPROVE",
+            "probabilities": {
+              "REDO_REQUIREMENT": 0.01,
+              "UNRESOLVED": 0,
+              "APPROVE": 0.99,
+              "REDO_EVIDENCE": 0
+            },
+            "confidence": 0.98
+          },
+          "reviewCount": 1,
+          "redoCount": 0,
+          "reviewPhase": "approved",
+          "ruleVersion": "advisor-local-review-v2"
+        }
+      ],
+      "hostToolCallsObserved": 1,
+      "finalText": "OPENROUTER_ADVISOR_OK"
+    },
+    {
+      "runId": "4072a92164cf7633220cd1150b79dcc0541f65e9bfff11b7286fa51361e384c1",
+      "sourceSha256": "d0c0dd22c5abbcc1a006aab7d3795ce591e7adbc7bb54bf5924159abd44d85ce",
+      "strategy": "escalation",
+      "status": "completed",
+      "costsByUnit": {
+        "CNY": {
+          "production": 0.00195496182,
+          "evaluation": 0
+        },
+        "AFP": {
+          "production": 7.1342,
+          "evaluation": 0
+        }
+      },
+      "calls": [
+        {
+          "call_id": "30ca1ace8472412ab8b054b1c2e91af3",
+          "model_id": "efficient",
+          "provider": "ark",
+          "actual_model": "deepseek-v4-flash",
+          "purpose": "execute",
+          "disposition": "discarded",
+          "status": "billed",
+          "billing_unit": "AFP",
+          "reserved": 3.8928000000000003,
+          "charged": 0.64895,
+          "input_tokens": 12875,
+          "output_tokens": 104,
+          "cached_input_tokens": 0,
+          "reserved_output_tokens": 8192,
+          "reasoning_effort": "low",
+          "latency_ms": 3336.5991659997962,
+          "ttft_ms": null,
+          "finish_reason": "tool_calls",
+          "input_sha256": "4f0663cd41dfae234acfaa308c3eaa6ec700a5d22d4c9f7ae92ed3138cfe124d",
+          "output_sha256": "7d5735528f7776255d00dbb0f6ffaf7d2df0fbec70fa133bc94e9c1eb9f04499"
+        },
+        {
+          "call_id": "f854b35cd0444fdea4a73d580b806ab4",
+          "model_id": "typesafe/jev-1.13",
+          "provider": "openrouter",
+          "actual_model": "typesafe/jev-1.13-20260917",
+          "requested_model": "typesafe/jev-1.13",
+          "purpose": "escalation",
+          "disposition": "accepted",
+          "status": "billed",
+          "billing_unit": "CNY",
+          "reserved": 0.0090664896,
+          "charged": 0.00195496182,
+          "usage": {
+            "basis": "input-token",
+            "actualUnits": 6900,
+            "outputTokens": 53,
+            "model": "typesafe/jev-1.13-20260917",
+            "costUSD": 0.0002898
+          },
+          "source_billing_unit": "USD",
+          "conversion_rate": 6.7459,
+          "conversion_as_of": "2026-09-23",
+          "conversion_source": "https://www.boc.cn/sourcedb/whpj/",
+          "provider_request_id": "gen-dec-1791014528-BDTcgoUGFXuaaBiS2d1o",
+          "upstream_provider": "TypeSafe",
+          "latency_ms": 725.3284169998951
+        },
+        {
+          "call_id": "96bfbf4119bb457c96713b2c8e877acf",
+          "model_id": "efficient-ark-deepseek-v4-1-flash",
+          "provider": "ark",
+          "actual_model": "deepseek-v4.1-flash",
+          "purpose": "takeover",
+          "disposition": "accepted",
+          "status": "billed",
+          "billing_unit": "AFP",
+          "reserved": 19.464,
+          "charged": 3.23875,
+          "input_tokens": 12891,
+          "output_tokens": 64,
+          "cached_input_tokens": 9344,
+          "reserved_output_tokens": 8192,
+          "reasoning_effort": "high",
+          "latency_ms": 1374.936333999969,
+          "ttft_ms": null,
+          "finish_reason": "tool_calls",
+          "review_status": "takeover-unreviewed",
+          "input_sha256": "4f0663cd41dfae234acfaa308c3eaa6ec700a5d22d4c9f7ae92ed3138cfe124d",
+          "output_sha256": "64404f2b4e123bf71548284d07911e8c8c1428fb53b1dcc059b842e51bd31d39"
+        },
+        {
+          "call_id": "5fa3fbc832cf4d5e937ea233024d471f",
+          "model_id": "efficient-ark-deepseek-v4-1-flash",
+          "provider": "ark",
+          "actual_model": "deepseek-v4.1-flash",
+          "purpose": "execute",
+          "disposition": "accepted",
+          "status": "billed",
+          "billing_unit": "AFP",
+          "reserved": 19.741750000000003,
+          "charged": 3.2465,
+          "input_tokens": 12976,
+          "output_tokens": 10,
+          "cached_input_tokens": 12800,
+          "reserved_output_tokens": 8192,
+          "reasoning_effort": "high",
+          "latency_ms": 1343.2812079996802,
+          "ttft_ms": 1321.9584579998627,
+          "finish_reason": "stop",
+          "input_sha256": "e2c7c389cb1a7a4b34c8fefe92f6303945ce11e29ad38c41f3072b8279a06e4a",
+          "output_sha256": "dedb8b721f43b6a71265e75906dcde41200ab312f307f98982ed037539dd8313"
+        }
+      ],
+      "decisions": [
+        {
+          "step": 0,
+          "role": "escalation-initial",
+          "model": "efficient",
+          "reason": "escalation-initial",
+          "score": null,
+          "callId": "30ca1ace8472412ab8b054b1c2e91af3",
+          "ruleVersion": "escalation-decision-v1",
+          "takeoverUnreviewed": false,
+          "rejectedCandidates": []
+        },
+        {
+          "step": 0,
+          "role": "judge",
+          "model": "typesafe/jev-1.13-20260917",
+          "reason": "escalation-uncertain",
+          "score": 0.7,
+          "callId": "f854b35cd0444fdea4a73d580b806ab4",
+          "candidateCallId": "30ca1ace8472412ab8b054b1c2e91af3",
+          "candidateDisposition": "discarded",
+          "evidenceIds": [],
+          "evidenceSummary": "jev-choice",
+          "streakBefore": 0,
+          "streakAfter": 0,
+          "decision": {
+            "raw": {
+              "type": "choice",
+              "choice": "PROCEED",
+              "probabilities": {
+                "DEFECT": 0.23,
+                "UNCERTAIN": 0.04,
+                "STALL": 0.03,
+                "PROCEED": 0.7
+              },
+              "confidence": 0.58
+            },
+            "selectedProbability": 0.7,
+            "choiceConfidence": 0.58,
+            "choiceGate": null,
+            "threshold": 0.8,
+            "verdict": "UNCERTAIN",
+            "rawVerdict": "PROCEED",
+            "confidence": 0.7,
+            "evidenceIds": [],
+            "reason": "jev-choice",
+            "ruleVersion": "escalation-decision-v1",
+            "backend": "jev",
+            "actualModel": "typesafe/jev-1.13-20260917",
+            "provider": "openrouter",
+            "providerRequestId": "gen-dec-1791014528-BDTcgoUGFXuaaBiS2d1o",
+            "latencyMs": 725.3284169998951,
+            "usage": {
+              "input_tokens": 6900,
+              "output_tokens": 53,
+              "cost": 0.0002898
+            },
+            "callId": "f854b35cd0444fdea4a73d580b806ab4"
+          },
+          "ruleVersion": "escalation-decision-v1"
+        },
+        {
+          "step": 0,
+          "role": "escalation-takeover",
+          "model": "efficient-ark-deepseek-v4-1-flash",
+          "reason": "escalation-takeover-unreviewed",
+          "callId": "96bfbf4119bb457c96713b2c8e877acf",
+          "ruleVersion": "escalation-decision-v1"
+        },
+        {
+          "step": 1,
+          "role": "escalation-takeover",
+          "model": "efficient-ark-deepseek-v4-1-flash",
+          "reason": "escalation-takeover-unreviewed",
+          "score": null,
+          "callId": "5fa3fbc832cf4d5e937ea233024d471f",
+          "ruleVersion": "escalation-decision-v1",
+          "takeoverUnreviewed": true,
+          "rejectedCandidates": []
+        }
+      ],
+      "hostToolCallsObserved": 1,
+      "finalText": "OPENROUTER_ESCALATION_OK"
+    }
+  ],
+  "totals": {
+    "executionCalls": 5,
+    "jevCalls": 2,
+    "AFP": 13.62995,
+    "CNY": 0.004044504345,
+    "unknownUsageCalls": 0
+  },
+  "limitations": [
+    "仅有限 DSH 工具续接验收，不是模型判断质量基准",
+    "未更改原有 0.8 门槛或启用实验分动作门槛",
+    "接管后不追加审核，轨迹已注明"
+  ],
+  "sourceRetention": "完整请求及会话在本地账本保留；仓库仅保存不含敏感上下文的调用与判定摘要"
+}

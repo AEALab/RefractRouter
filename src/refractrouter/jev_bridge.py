@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import math
 
 from .jev_choice_gate import VERSION as ACTION_GATE, evaluate_choice
-from .jev_decision import JEV_MODEL, JEV_INPUT_USD_PER_MILLION
+from .jev_transport import JEV_INPUT_USD_PER_MILLION, payload_route, wire_payload
 from .planning_decision import advisor_choice_feedback
 
 MAX_INPUT_TOKENS = 64000
@@ -49,7 +48,7 @@ def _judge_candidate(candidate):
             if key in candidate}
 
 
-def build_request(kind, request):
+def build_request(kind, request, route="typesafe"):
     """统一题目；实际 HTTP 派发由宿主完成，密钥不进入核心进程。"""
     if _has_media(request):
         raise ValueError("Jev 只支持文本判别；含媒体的审核或选模不会派发")
@@ -90,22 +89,25 @@ def build_request(kind, request):
         state, questions = request["state"], request["questions"]
     else:
         raise ValueError("未知 Jev 判别用途")
-    payload = {"state": state, "model": JEV_MODEL, "questions": questions}
-    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    if len(encoded) > MAX_REQUEST_BYTES:
-        raise ValueError(f"Jev 完整判别输入超出本地容量（{len(encoded)} 字节）；不会截断或派发")
-    return payload
+    return wire_payload(state, questions, route)
 
 
 def validate_usage(payload, result):
-    if not isinstance(result, dict) or result.get("model") != payload["model"]:
+    spec = payload_route(payload)
+    if not isinstance(result, dict) or result.get("model") != spec["actualModel"]:
         raise ValueError("Jev 实际模型版本与冻结版本不符；用量待核对")
     usage = result.get("usage")
     if not isinstance(usage, dict) or any(type(usage.get(key)) is not int or usage[key] < 0
                                             for key in ("input_tokens", "output_tokens")):
         raise ValueError("Jev 用量缺失；预留待核对")
-    if usage["input_tokens"] > MAX_INPUT_TOKENS:
+    if usage["input_tokens"] > spec["maxInputTokens"]:
         raise ValueError("Jev 输入用量超过预留容量；预留待核对")
+    if spec["route"] == "openrouter":
+        cost = usage.get("cost")
+        if type(cost) not in (int, float) or not math.isfinite(cost) or cost < 0:
+            raise ValueError("OpenRouter 实付费用缺失或无效；预留待核对")
+        if result.get("provider") != "TypeSafe" or not isinstance(result.get("id"), str) or not result["id"]:
+            raise ValueError("OpenRouter 提供方或请求 ID 未确认；预留待核对")
     return usage
 
 
@@ -175,3 +177,10 @@ def interpret(kind, request, payload, result, *, action_gate=None):
 
 def cost_cny(input_tokens, fx_rate):
     return input_tokens * JEV_INPUT_USD_PER_MILLION / 1_000_000 * fx_rate
+
+
+def settled_cost_cny(payload, result, fx_rate):
+    usage = validate_usage(payload, result)
+    if payload_route(payload)["route"] == "openrouter":
+        return usage["cost"] * fx_rate
+    return cost_cny(usage["input_tokens"], fx_rate)

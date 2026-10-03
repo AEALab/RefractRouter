@@ -204,10 +204,10 @@ export class PlanningController {
   async preview():Promise<Json>{
     const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
     await this.ensureHandshake(config.stage?.mode==='hybrid',Boolean(config.composite),
-      false,false,usesJev(config))
+      false,false,usesJev(config),usesJev(config)&&config.jev?.route==='openrouter')
     const hostIssues=await this.completeMetadata(config)
     if(usesJev(config)){
-      const reference=config.jev?.credentialRef??'TYPESAFE_API_KEY'
+      const reference=config.jev?.credentialRef??(config.jev?.route==='openrouter'?'OPENROUTER_API_KEY':'TYPESAFE_API_KEY')
       try {if(!(await this.ctx.credentials.describe(reference)).configured)
         hostIssues.__jev__='凭证未配置；请在 DSH 凭证服务登记该引用'}
       catch {hostIssues.__jev__='凭证状态不可核对'}
@@ -252,7 +252,7 @@ export class PlanningController {
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
-    localBackends=false,jev=false):Promise<void>{
+    localBackends=false,jev=false,openrouter=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -271,6 +271,8 @@ export class PlanningController {
       throw new Error('当前核心不支持本地 Judge 后端目录；请同时升级核心和插件')
     if(jev&&!capabilities.includes('jev-judge-v1'))
       throw new Error('当前核心不支持官方 Jev Judge；请同时升级核心和插件')
+    if(openrouter&&!capabilities.includes('jev-openrouter-v1'))
+      throw new Error('当前核心不支持 OpenRouter Jev；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
@@ -321,11 +323,12 @@ export class PlanningController {
     try{
       signal.throwIfAborted()
       await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid',
-        strategy==='composite'&&Boolean(config.composite),false,false,activeJev)
+        strategy==='composite'&&Boolean(config.composite),false,false,activeJev,
+        activeJev&&config.jev?.route==='openrouter')
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         if(activeJev){
-          const reference=config.jev?.credentialRef??'TYPESAFE_API_KEY'
+          const reference=config.jev?.credentialRef??(config.jev?.route==='openrouter'?'OPENROUTER_API_KEY':'TYPESAFE_API_KEY')
           if(!(await this.ctx.credentials.describe(reference)).configured)
             hostIssues.__jev__='凭证未配置；请在 DSH 凭证服务登记该引用'
         }
@@ -353,16 +356,21 @@ export class PlanningController {
         }
         if(action.action==='jev'){
           signal.throwIfAborted()
+          const endpoint=String(action.endpoint??'https://api.typesafe.ai/v1/systemone')
+          const allowed:Record<string,string>={typesafe:'https://api.typesafe.ai/v1/systemone',
+            openrouter:'https://openrouter.ai/api/alpha/decisions'}
+          if(endpoint!==allowed[String(action.route??'typesafe')])
+            throw new Error('Jev 调用地址不属于已支持渠道；凭证未发送')
           const reference=String(action.credentialRef)
           const credential=await this.ctx.credentials.resolve(reference)
           if(!credential?.value)throw new Error('Jev 凭证不可用；判别请求未派发')
           const timeout=Math.max(1,Math.min(Number(action.timeoutMs)||30000,300000))
           const callSignal=AbortSignal.any([signal,AbortSignal.timeout(timeout)])
           const started=performance.now()
-          const response=await fetch('https://api.typesafe.ai/v1/systemone',{
+          const response=await fetch(endpoint,{
             method:'POST',headers:{Authorization:'Bearer '+credential.value,
               'Content-Type':'application/json',Accept:'application/json'},
-            body:JSON.stringify(action.payload),signal:callSignal})
+            body:JSON.stringify(action.payload),signal:callSignal,redirect:'error'})
           if(!response.ok)throw new Error(`Jev HTTP ${response.status}；此次调用不会自动重试`)
           const body=await response.json() as Json
           action=await this.rpc.request({op:'jev-complete',runId,callId:action.callId,

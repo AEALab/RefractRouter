@@ -70,10 +70,11 @@ export interface PlanningConfig {
   advisor?:AdvisorRoutingConfig
   stage?:StageRoutingConfig
   mediaRoutes?:MediaRouteConfig[]
-  jev?:{credentialRef?:string;deployment?:'external-cloud'|'trusted-cloud';trustPolicy?:string
+  jev?:{route?:'typesafe'|'openrouter';credentialRef?:string;deployment?:'external-cloud'|'trusted-cloud';trustPolicy?:string
     actionGate?:'jev-choice-action-gate-v1-experimental'}
 }
-export const EMPTY_PLANNING:PlanningConfig={schemaVersion:'refractagent-planning-v4',enabled:false,defaultStrategy:'stage'}
+export const EMPTY_PLANNING:PlanningConfig={schemaVersion:'refractagent-planning-v4',enabled:false,defaultStrategy:'stage',
+  jev:{route:'openrouter',credentialRef:'OPENROUTER_API_KEY',deployment:'external-cloud'}}
 export const PLANNING_NAMES={stage:'阶段 Stage',task:'任务 Task',composite:'组合 Composite',
   advisor:'审核 Advisor',escalation:'升级 Escalation',static:'静态 Static'} as const
 export const PLANNING_PROTOCOL='refractagent-planning/4'
