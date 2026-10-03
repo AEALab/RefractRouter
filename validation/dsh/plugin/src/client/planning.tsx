@@ -335,8 +335,15 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         <option value="external-cloud">外部云（拦截本机路径等敏感输入）</option><option value="trusted-cloud">已授权的可信云</option></select></label>
       {draft.jev?.deployment==='trusted-cloud'&&<label className="rra-compact-field">信任策略 <select className="rra-select" value={draft.jev.trustPolicy??''} onChange={e=>patch({jev:{...draft.jev,trustPolicy:e.target.value||undefined}})}>
         <option value="">选择已登记的许可…</option>{draft.trustPolicies?.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>}
-      <details className="rra-details"><summary>实验性分动作门槛</summary><label className="rra-check"><input type="checkbox" checked={Boolean(draft.jev?.actionGate)} onChange={e=>patch({jev:{...draft.jev,actionGate:e.target.checked?'jev-choice-action-gate-v1-experimental':undefined}})}/>启用 Advisor／Escalation 分动作门槛</label>
-        <p className="rra-field-hint">默认维持所选项概率 0.8。分动作门槛只通过有限留出题验证，尚未证明比默认更好。</p></details>
+      <label className="rra-compact-field">Advisor／Escalation Jev 判定规则 <select className="rra-select" value={draft.jev?.actionGate??'legacy'} onChange={e=>patch({jev:{...draft.jev,actionGate:e.target.value==='legacy'?undefined:'jev-choice-action-gate-v1-experimental'}})}>
+        <option value="legacy">所选项概率门槛（当前默认）</option>
+        <option value="jev-choice-action-gate-v1-experimental">按动作分别判断 probability＋confidence（实验）</option>
+      </select></label>
+      <p className="rra-field-hint">当前{draft.jev?.actionGate?'实验分动作规则':'单一概率规则'}：{draft.jev?.actionGate
+        ?'Choice confidence 至少 0.55；最终批准／最终放行概率至少 0.80，返工／缺陷／停滞接管和正常工具续接至少 0.70。此时 Advisor／Escalation 各自设置的单一概率门槛不生效。'
+        :`仅比较获选项概率；Advisor 至少 ${(draft.advisor?.threshold??.8).toFixed(2)}，Escalation 至少 ${(draft.escalation?.threshold??.8).toFixed(2)}。Choice confidence 会记录，但不参与准入。`}
+        此设置只作用于 Advisor 与 Escalation 的 Jev Choice；Task、Stage、Composite、LLM 与 Laya 的判断方式保持各自配置。任务启动后冻结规则。</p>
+      {draft.jev?.actionGate&&<p className="rra-field-hint">实验规则在 24 条有限留出题上与旧规则同为 22 条符合标签，没有证明更好；其阈值目前固定，不作为任意可调参数。</p>}
     </div>
     <div className="rra-row-card"><h3>模型与角色</h3><p className="rra-field-hint">四种角色集中管理；每项策略只要求它实际使用的模型。系统查询容量和价格；历史值保留并注明尚未核对，新路线缺项时不可运行。</p>
       <p className="rra-field-hint">「Advisor 审核 LLM」引用 DSH 模型目录；Advisor 下方也可选实验性的本地 Laya-MLX Judge。两者使用不同接口，本地权重不会出现在 DSH 模型下拉菜单。兼容旧策略的判别角色供旧版 Task、Composite 和旧版 Escalation 使用。</p>
@@ -601,7 +608,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
               revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16',method:'choice-v2'}
             :{type:'llm',modelId:draft.roles?.classifier??draft.escalation!.initial}}})}>
           <option value="llm">轻量 LLM Judge</option><option value="local-decision">本地结构化 Judge（Laya-MLX）</option><option value="jev">官方 Jev（云端）</option></select></label>
-        {draft.escalation.judge.type==='jev'&&<p className="rra-field-hint">Jev 以 Choice 审核尚未交付的候选；原始 probability、confidence 与接管决定会写入路由轨迹。默认所选项概率门槛 0.8。</p>}
+        {draft.escalation.judge.type==='jev'&&<p className="rra-field-hint">Jev 以 Choice 审核尚未交付的候选；当前使用{draft.jev?.actionGate?'实验分动作规则，下面的单一概率门槛暂不生效':`所选项概率门槛 ${(draft.escalation.threshold??.8).toFixed(2)}`}。低于准入门槛视为无法判断并接管；轨迹会同时显示原始判断和实际动作。</p>}
         {draft.escalation.judge.type==='llm'?<>
           <label className="rra-compact-field">从 DSH 目录选择 Judge <select className="rra-select" value="" onChange={e=>{
             if(!e.target.value)return;const [provider,selected]=JSON.parse(e.target.value) as string[]
@@ -641,7 +648,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         <p className="rra-field-hint">接管后本任务固定使用强模型，不再调用 Judge；轨迹会注明“接管后未追加审核”。</p>
         <details className="rra-details"><summary>Escalation 高级参数</summary><div className="rra-planning-fields">
           <label className="rra-compact-field">工具过程连续停滞次数 <input className="rra-input" type="number" min="1" step="1" value={draft.escalation.stallConfirmations??2} onChange={e=>patch({escalation:{...draft.escalation!,stallConfirmations:Number(e.target.value)}})}/></label>
-          <label className="rra-compact-field">结构化判别所选项概率门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.escalation.threshold??.8} onChange={e=>patch({escalation:{...draft.escalation!,threshold:Number(e.target.value)}})}/></label>
+          <label className="rra-compact-field">结构化判别所选项概率门槛{draft.escalation.judge.type==='jev'&&draft.jev?.actionGate?'（实验规则下暂不生效）':''} <input className="rra-input" type="number" min="0" max="1" step="0.05" disabled={draft.escalation.judge.type==='jev'&&Boolean(draft.jev?.actionGate)} value={draft.escalation.threshold??.8} onChange={e=>patch({escalation:{...draft.escalation!,threshold:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" step="100" value={draft.escalation.judgeTimeoutMs??30000} onChange={e=>patch({escalation:{...draft.escalation!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 输入包络（bytes） <input className="rra-input" type="number" min="1024" step="1024" value={draft.escalation.maxJudgeInputBytes??65536} onChange={e=>patch({escalation:{...draft.escalation!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">执行输出上限 <input className="rra-input" type="number" min="256" step="1" value={draft.escalation.maxExecutionOutputTokens??8192} onChange={e=>patch({escalation:{...draft.escalation!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
@@ -692,7 +699,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
             device:'gpu',dtype:'float16'}):{type:'llm',modelId:draft.roles?.advisor??draft.roles?.classifier??''},
           allowExperimental:e.target.value==='local-decision'}})}}>
         <option value="llm">DSH 语言模型</option><option value="local-decision">本地 Laya-MLX（实验）</option><option value="jev">官方 Jev（云端）</option></select></label>
-      {draft.advisor?.judge.type==='jev'&&<p className="rra-field-hint">官方 Jev 使用 Choice 审核最终回复。未达到所选项概率门槛时停止交付；原始 probability 和 confidence 写入路由轨迹。</p>}
+      {draft.advisor?.judge.type==='jev'&&<p className="rra-field-hint">官方 Jev 使用 Choice 审核最终回复；当前使用{draft.jev?.actionGate?'实验分动作规则':`所选项概率门槛 ${(draft.advisor.threshold??.8).toFixed(2)}`}。未达到准入门槛时停止交付；原始 probability、confidence 与实际门槛写入路由轨迹。</p>}
       {draft.advisor?.judge.type==='llm'&&draft.schemaVersion==='refractagent-planning-v6'&&
         <label className="rra-compact-field">审核模型 <select className="rra-select" value={draft.advisor.judge.modelId}
           onChange={e=>patch({advisor:{...draft.advisor!,judge:{type:'llm',modelId:e.target.value}}})}>
@@ -714,7 +721,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>}
       </>}
       {draft.schemaVersion==='refractagent-planning-v6'&&<details className="rra-details"><summary>Advisor 高级参数</summary><div className="rra-planning-fields">
-        {draft.advisor?.judge.type==='local-decision'&&<label className="rra-compact-field">确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>}
+        {(draft.advisor?.judge.type==='local-decision'||draft.advisor?.judge.type==='jev')&&<label className="rra-compact-field">{draft.advisor.judge.type==='jev'?'所选项概率门槛':'确定性门槛'}{draft.advisor.judge.type==='jev'&&draft.jev?.actionGate?'（实验规则下暂不生效）':''} <input className="rra-input" type="number" min="0" max="1" step="0.05" disabled={draft.advisor.judge.type==='jev'&&Boolean(draft.jev?.actionGate)} value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>}
         <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" value={draft.advisor?.judgeTimeoutMs??30000} onChange={e=>patch({advisor:{...draft.advisor!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
         <label className="rra-compact-field">Judge 输入包络（bytes） <input className="rra-input" type="number" min="1024" value={draft.advisor?.maxJudgeInputBytes??65536} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
         <label className="rra-compact-field">执行输出上限 <input className="rra-input" type="number" min="256" value={draft.advisor?.maxExecutionOutputTokens??8192} onChange={e=>patch({advisor:{...draft.advisor!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
@@ -772,17 +779,19 @@ type TaskRouteEvidence={candidateId?:string;reason?:string;costBasis?:string;lat
   candidateAssessments?:Array<{candidateId:string;score:number;missingInformation:number;qualified:boolean}>;
   firstCallUpperBounds?:Record<string,{amount:number;unit:string}>;qualifiedCandidates?:string[];
   decision?:TaskRouteEvidence}
+type JevGateEvidence={accepted:boolean;minimumConfidence?:number|null;minimumProbability?:number|null;reason:string}
 type History={records:Array<{runId:string;strategy:string;status:string;costs:{production:number|null};billingUnit:string|null;billingWarning?:string;
+  configuration?:{advisor?:{threshold?:number};escalation?:{threshold?:number};jev?:{actionGate?:string}};
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
   calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number}}>;
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
     reviewVerdict?:string;rawVerdict?:string;confidence?:number;backend?:string;adapter?:string;provider?:string;
-    selectedProbability?:number;choiceConfidence?:number;choiceGate?:{accepted:boolean;minimumConfidence?:number|null;minimumProbability?:number|null;reason:string};rawAnswer?:unknown;
+    selectedProbability?:number;choiceConfidence?:number;choiceGate?:JevGateEvidence;rawAnswer?:unknown;
     reviewCount?:number;redoCount?:number;reviewPhase?:string;
     staticChoice?:{mode:string;selectedRole:string;efficientWeight?:number;capableWeight?:number};
-    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;provider?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown;rawAnswers?:unknown;raw?:unknown;selectedProbability?:number;choiceConfidence?:number;choiceGate?:unknown};judgeDecision?:TaskRouteEvidence;
+    decision?:TaskRouteEvidence&{backend?:string;adapter?:string;provider?:string;coldStartMs?:number;latencyMs?:number;verdict?:string;rawVerdict?:string;confidence?:number;elapsedMs?:number;answers?:unknown;rawAnswers?:unknown;raw?:unknown;selectedProbability?:number;choiceConfidence?:number;choiceGate?:JevGateEvidence};judgeDecision?:TaskRouteEvidence;
     downgradeConfirmations?:number;judgeBatches?:number;
     rejectedCandidates?:Array<{id:string;reason:string}>}>}>}
 const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 固定模型',
@@ -856,6 +865,24 @@ function traceAmount(value:number|null|undefined){
   if(value>0&&value<.00000001)return '小于 0.00000001'
   return TRACE_AMOUNT.format(value)
 }
+function jevDecisionExplanation(record:History['records'][number],row:History['records'][number]['decisions'][number]){
+  if(row.backend!=='jev'&&row.decision?.backend!=='jev')return ''
+  const decision=row.backend==='jev'?row:row.decision!
+  const selected=decision.selectedProbability
+  const confidence=decision.choiceConfidence
+  const gate=decision.choiceGate
+  const raw=decision.rawVerdict??row.rawVerdict
+  const effective=row.reviewVerdict??row.decision?.verdict
+  const values=`原始分类 ${raw??'未记录'}${typeof selected==='number'?`，获选项概率 ${selected.toFixed(3)}`:''}${typeof confidence==='number'?`，Choice confidence ${confidence.toFixed(3)}`:''}`
+  if(gate){
+    const limits=gate.minimumProbability==null?'明确弃权':
+      `本动作概率至少 ${gate.minimumProbability.toFixed(2)}、confidence 至少 ${gate.minimumConfidence?.toFixed(2)??'未记录'}`
+    return `；Jev ${values}；实验分动作规则：${limits}，${gate.accepted?'通过':'未通过'}${effective?`，实际判定 ${VERDICT[effective]??effective}`:''}`
+  }
+  const threshold=record.strategy==='advisor'?record.configuration?.advisor?.threshold:
+    row.decision?.threshold??record.configuration?.escalation?.threshold
+  return `；Jev ${values}；单一概率规则：${typeof threshold==='number'?`门槛 ${threshold.toFixed(2)}`:'历史未记录门槛'}，confidence 仅记录${effective?`，实际判定 ${VERDICT[effective]??effective}`:''}`
+}
 function EvidenceIds({ids}:{ids:string[]}){
   return <details><summary>查看 {ids.length} 条证据 ID</summary><ul>
     {ids.map((id,index)=><li key={`${index}-${id}`}><code>{id}</code></li>)}
@@ -912,11 +939,10 @@ function Trace({load}:{load:()=>Promise<History>}){
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{DISPOSITION[c.disposition]??c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}{(c as unknown as {review_status?:string}).review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
           <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
-            {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
+            {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.backend==='jev'||d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
             {d.backend==='local-decision'?`；本地 ${d.adapter??d.decision?.adapter??'Judge'} 原始分类 ${d.rawVerdict??'未记录'}${typeof d.confidence==='number'?`，获选项概率 ${d.confidence.toFixed(3)}`:''}`:''}
-            {d.backend==='jev'?`；Jev 原始分类 ${d.rawVerdict??'见判别依据'}${typeof d.selectedProbability==='number'?`，获选项概率 ${d.selectedProbability.toFixed(3)}`:''}${typeof d.choiceConfidence==='number'?`，confidence ${d.choiceConfidence.toFixed(3)}`:''}${d.choiceGate?`，分动作门槛${d.choiceGate.accepted?'通过':'未通过'}`:''}`:''}
-            {d.decision?.backend==='jev'&&d.backend!=='jev'?`；Jev 判别已记录原始答案与费用`:''}
+            {jevDecisionExplanation(r,d)}
             {(d.provider??d.decision?.provider)?`；判别接入 ${d.provider??d.decision?.provider}`:''}
             {d.staticChoice?.mode==='random'?`；权重 高效 ${d.staticChoice.efficientWeight}／强模型 ${d.staticChoice.capableWeight}`:''}
             {d.candidateDisposition?`；候选${DISPOSITION[d.candidateDisposition]??d.candidateDisposition}`:''}
