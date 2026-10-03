@@ -18,9 +18,14 @@ Composite 的 Task／Stage 环节分别选择「官方 Jev」。选择只影响 
 关闭提供方回退与客户端自动重试。设置切换渠道时清除旧的数据域许可，需重新选择可信云策略；
 OpenRouter 和 TypeSafe 都会接收判别内容。两种渠道共用已有题目及策略，不增加前置 LLM。
 
-Advisor 和 Escalation 默认按所选项的概率与各自
-设置的门槛行动，并在轨迹记录原始 `probabilities` 和 `confidence`。分动作门槛是单独的实验
-开关。Task 对候选能力卡进行一次 Choice 选模；证据不足或低于门槛时使用指定备援。Stage
+Advisor 和 Escalation 默认只比较获选项概率与各自设置的门槛，Choice `confidence`
+只记录、不参与准入。在「官方 Jev Judge」中可显式切换为实验分动作规则：
+`confidence >= 0.55`，最终批准／放行的概率至少 0.80，返工、缺陷或停滞接管、
+正常工具续接的概率至少 0.70。实验规则启用时，各策略的单一概率门槛不参与 Jev 判定。
+切换从下个任务生效；轨迹按冻结任务显示实际规则、原始分类、两项数值、门槛和最终动作。
+该规则只适用于 Advisor、Escalation 的 Jev Choice。此前 24 条 TypeSafe 直连留出题中，
+旧规则与分动作规则均为 22 条符合内部标签，尚不足以将实验规则设为默认。
+Task 对候选能力卡进行一次 Choice 选模；证据不足或低于门槛时使用指定备援。Stage
 只在规则要求的执行边界调用 Judge；Composite 可独立配置 Task 与 Stage 的后端。
 
 Jev 的官方价格为每百万输入 token 0.042 USD、输出 token 免费。核心按照冻结汇率将实际输入
