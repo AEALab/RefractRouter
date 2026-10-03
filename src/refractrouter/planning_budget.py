@@ -49,6 +49,9 @@ class PlanningBudget:
                    "billing_unit": unit, "reserved": amount, "charged": amount,
                    "status": "reserved", "purpose": purpose, "usage_type": "non-token",
                    "usage": dict(usage)}
+            # TaskCallBudget.stop() 会从自己的 records 重算已占用金额；非 token
+            # 调用也必须登记在该单位账本，否则结束任务后总费用会被清零。
+            ledger.records.append(row)
             self.records.append(row)
         return row
 

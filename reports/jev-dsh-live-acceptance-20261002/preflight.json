@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "jev-dsh-live-preflight-v1",
+  "profile": "web",
+  "dshVersion": "0.1.5-rc.3",
+  "model": "jev-1.13.0",
+  "strategies": [
+    "advisor",
+    "escalation",
+    "task",
+    "stage",
+    "composite"
+  ],
+  "maxJevCalls": 12,
+  "maxInputTokensPerCall": 64000,
+  "maxJevCny": 0.21759575,
+  "fxRate": 6.7459,
+  "fxAsOf": "2026-09-23",
+  "configuredCnyCap": 0.25,
+  "httpRetries": 0,
+  "configSha256": "6027e31613ee97a54e163cb67915ccbd7f3a46527c35071faa90d2ad265e837f",
+  "previewAvailable": {
+    "stage": true,
+    "task": true,
+    "composite": true,
+    "advisor": true,
+    "escalation": true,
+    "static": true
+  },
+  "credentialConfigured": false,
+  "liveDispatches": 0,
+  "dataDomain": "external-cloud; local absolute paths blocked"
+}

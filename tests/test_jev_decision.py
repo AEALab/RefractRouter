@@ -80,6 +80,13 @@ def test_jev_capacity_fails_before_network_call():
     adapter = JevDecisionAdapter(api_key="secret-for-test",
         transport=lambda *_args, **_kwargs: called.append(True))
     with pytest.raises(LocalDecisionCapacityError):
-        adapter._ensure_complete("x" * 33000,
+        adapter._ensure_complete("x" * 99000,
             {"q": {"type": "noul", "instructions": "ok?"}})
     assert not called
+
+
+def test_jev_accepts_complete_request_between_old_and_current_byte_limits():
+    adapter = JevDecisionAdapter(api_key="secret-for-test",
+        transport=lambda *_args, **_kwargs: None)
+    adapter._ensure_complete("x" * 33000,
+        {"q": {"type": "noul", "instructions": "ok?"}})
