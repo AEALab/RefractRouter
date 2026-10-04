@@ -1520,6 +1520,14 @@ def test_preview_explains_unpriced_agent_plan_role_without_disabling_static():
     assert "inputPer1k 数值不合法" not in task["issues"][0]
 
 
+def test_preview_advisor_llm_respects_host_model_failure():
+    cfg = advisor_gate_configuration()
+    report = preview(cfg, {"judge": "宿主已移除该模型"})
+    advisor = next(row for row in report["strategies"] if row["id"] == "advisor")
+    assert not advisor["available"]
+    assert "宿主已移除该模型" in advisor["issues"][0]
+
+
 def test_replay_admission_child_isolation_compaction(tmp_path):
     r = PlanningRuntime(tmp_path)
     run = begin(r, "static")

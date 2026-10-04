@@ -5,7 +5,7 @@
 Stage 已完成结构化工具证据、精确保持语义与单模型预算修正；首轮三路线效果协议见
 [Stage 阶段路由实验](docs/stage-routing-study.md)。
 Task 多模型池、轻量 LLM Judge、本地 Laya-MLX Judge 与图片接线见
-[Task 多模型路由、本地 Judge 与媒体接入](docs/task-local-judge-media.md)。当前 DSH 0.1.5 缺少
+[Task 多模型路由、本地 Judge 与媒体接入](docs/task-local-judge-media.md)。当前 DSH 0.1.5-rc.3 缺少
 原生影片合同，影片输入、播放与持久化尚未完成。
 
 Escalation 的缓冲审核、一次接管、本地 Judge job、完整调用路径预算与有限真实验收见
@@ -14,7 +14,8 @@ Advisor Gate 的两次审核、一次返工与复审闭环见
 [Advisor Gate v2](docs/advisor-gate-v2.md)。Composite 的 Task 初选、Stage 临时接管、
 规则模式与实验性本地 Laya 模式见 [Composite v6](docs/composite-v6.md)。
 当前各策略在 DSH、Codex CLI 与 Hermes 的实际验收边界见
-[规划路由支持矩阵](docs/planning-routing-support-matrix.md)。
+[规划路由支持矩阵](docs/planning-routing-support-matrix.md)；设置与日常选择见
+[规划路由使用指南](docs/planning-routing-daily-use.md)。
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 

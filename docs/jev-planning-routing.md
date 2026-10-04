@@ -60,9 +60,14 @@ Judge 执行循环，DSH 安装接线与独立客户端接通分别验收。
 核心升至 0.15.6、插件升至 0.29.2。原 profile 设置已恢复，实际服务升级仍需独立安装验收。
 详见[真实接线验收报告](../reports/jev-dsh-live-acceptance-20261002/README.md)。
 
-本接线及设置可用性不等于真实判别质量验收。投入日常使用前仍需用冻结案例分别核对
-各策略的误放行、误升级、无法判断、费用与延迟；没有真实调用的测试不证明官方服务
-在当前网络和凭证下可用。
+后续已经用冻结题集分别核对各用途的判别；TypeSafe 直连 Jev 在 Task 开发题 5／6、
+Task 留出题 6／8、Stage 7／16、Advisor 20／24、Escalation 22／24 条符合内部标签。
+这些数字不能合并为总体准确率，也不能直接转移到 OpenRouter 渠道的自然任务质量。
+OpenRouter 已完成两条 DSH 真实工具任务：Advisor 审核批准，Escalation 因默认 0.8
+门槛把原始 `PROCEED` 概率 0.70 映射为无法判断并接管。该任务证明接管路径可用，
+也提示需要观察不必要接管。详见[固定题对照](../reports/planning-jev-comparison-20260930/README.md)、
+[OpenRouter 验收](../reports/jev-openrouter-20261003/README.md)及
+[Jev 门槛核对](../reports/jev-gate-review-20261003/README.md)。
 
 参考：[TypeSafe API](https://docs.typesafe.ai/api)、[模型与计价](https://docs.typesafe.ai/models)、
 [置信度说明](https://docs.typesafe.ai/confidence)、
