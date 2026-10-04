@@ -146,7 +146,7 @@ test('live 职责覆盖必须为每个职责保留可处理敏感数据的路线
     trustPolicies: [{id:'trusted',residency:'CN',auditLogging:true,allowsSensitiveData:true,
       acknowledgeExternalTransmission:true}],
     routes: [
-      {...pool.routes[0],deployment:'simulated-local' as const,trustPolicy:'trusted'},
+      {...pool.routes[0],deployment:'trusted-cloud' as const,trustPolicy:'trusted'},
       {...pool.routes[1],deployment:'external-cloud' as const},
     ],
     allowSharedJudge:true,
@@ -161,6 +161,9 @@ test('live 职责覆盖必须为每个职责保留可处理敏感数据的路线
   const fixed = {...live,roleOverrides:{...live.roleOverrides,workers:['team/planner','team/worker']}}
   assert.equal(buildDshModelPoolIssues(fixed, []).some(
     issue => issue.code === 'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE'), false)
+  const simulated={...fixed,routes:[{...fixed.routes[0],deployment:'simulated-local' as const},fixed.routes[1]]}
+  assert.equal(buildDshModelPoolIssues(simulated, []).some(
+    issue => issue.code === 'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE'), true)
 })
 
 test('DSH 模型池覆盖保留旧 providerConfig 供迁移回退，但运行时选择模型池', () => {
@@ -525,7 +528,7 @@ test('设置页直接复用核心冻结档案并保留条件价格来源', async
   assert.notEqual(v41.quality_profile.raw_score, v4.quality_profile.raw_score)
 })
 
-test('真实执行设置必须显式使用 synthetic、CNY 和双硬预算，并可往返保存', async () => {
+test('真实执行设置必须选择数据模式、计费单位和双硬预算，并可往返保存', async () => {
   const live={schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
     maxProductionCost:.2,maxEvaluationCost:.1,complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const,
     maxDshToolCalls:8}
@@ -567,7 +570,7 @@ test('真实执行的静态缺项在保存前逐项说明', async () => {
     complexityPolicy:'dag',reviewPolicy:'always'})
   const codes=controller.getSnapshot().issues.map(issue=>issue.code)
   assert.ok(codes.includes('LIVE_EXECUTION_CNY_REQUIRED'))
-  assert.ok(codes.includes('LIVE_EXECUTION_SYNTHETIC_REQUIRED'))
+  assert.equal(codes.includes('LIVE_EXECUTION_DATA_MODE_REQUIRED'),false)
   assert.ok(codes.includes('LIVE_EXECUTION_BUDGET_REQUIRED'))
   await controller.save()
   assert.equal(scope.writes.length,0)

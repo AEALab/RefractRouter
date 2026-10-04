@@ -410,7 +410,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                         maxInputBytes:decomposition.maxInputBytes??65536}
                       :{mode:'rules',allowExperimental:undefined,judge:undefined})
                   }}><option value="rules">仅规则（默认）</option><option value="hybrid">规则＋Judge（实验）</option></select>
-                  <span className="rra-field-hint">Judge 回答「是否依赖前步结果」与「能否独立开始」两项是非题；Python 仍负责准入、费用和最终 direct／DAG 决策。旧配置的 choice-v2 仅是历史误名，实际也执行这两项是非题。</span></label>
+                  <span className="rra-field-hint">Judge 判断分支间是否必须串行，以及是否存在值得分别处理的独立工作。最终汇总不算分支间依赖；微型任务跳过 Judge。Python 仍负责准入、费用和最终 direct／DAG 决策。旧配置的 choice-v2 仅是历史误名，实际也执行这两项是非题。</span></label>
                 {decomposition.mode==='hybrid'?<><label className="rra-compact-field">拆分 Judge
                   <select className="rra-select" disabled={disabled} value={decomposition.judge?.type??'jev'}
                     onChange={event=>patchDecomposition({judge:event.target.value==='jev'?{type:'jev'}:defaultAutomaticJudge()})}>

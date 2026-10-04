@@ -109,3 +109,13 @@ test('设置卡片、DAG 与路由轨迹共同注册，输入区不增加策略�
   })
   assert.deepEqual(registered.sort(), ['conversation.view', 'conversation.view', 'settings.plugin.item', 'settings.plugin.item'])
 })
+
+
+test('拆分摘要说明顺序执行、时延拒绝和匹配样本',()=>{
+  const summary=runSummary({complexity_gate:{rule_decision:'dag',decision:'direct',combination:'coupled-sequential-work',reasons:['local-coupled']},route_comparison:{route:'direct',candidate_diagnostics:{dag:{rejected_combinations:{latency:2},minimum_scheduled_latency_ms:300000,remaining_latency_ms:292000,minimum_cost:.03,remaining_cost:1,empty_candidate_nodes:[]}},latency_evidence:{dag:{work:{model:{source:'sparse-or-unmatched-bootstrap',samples:2,input_bucket_max:4096,output_bucket_max:4096}}}}}})
+  assert.match(summary,/顺序依赖工作保持单路线执行/)
+  assert.match(summary,/预计时延不满足 2 种分配/)
+  assert.match(summary,/预计最短 300000.0000 ms，剩余期限 292000.0000 ms/)
+  assert.match(summary,/匹配样本 2/)
+  assert.match(summary,/非 SLA 保证/)
+})

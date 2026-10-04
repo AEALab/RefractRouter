@@ -8,10 +8,10 @@ import json
 import re
 from uuid import uuid4
 
-from .decomposition_decision import validate_evidence
+from .decomposition_decision import RULE_VERSION, validate_evidence, trivial_workload
 
 
-COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v2"
+COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v3"
 AUTHORIZATION_SCHEMA = "refractagent-live-authorization-v1"
 AUTHORIZATION_TTL_SECONDS = 600
 DIRECT_TASK_CHARS = 600
@@ -29,8 +29,21 @@ _TOOL_MARKERS = re.compile(
     r"\brun (?:the )?(?:command|tests?|script)\b|\bcall (?:a )?(?:tool|api)\b)",
     re.IGNORECASE,
 )
+_NEGATED_TOOL_PREFIX = re.compile(
+    r"(?:不要|不需要|无需|无须|不必|不得|请勿|禁止|避免|别)\s*(?:再|去|实际|直接|先)?\s*$"
+    r"|\b(?:do not|don't|without|never)\s+(?:actually\s+)?$",
+    re.IGNORECASE,
+)
 _ENUMERATED = re.compile(r"(?m)^\s*(?:[-*+]\s+|\d+[.)、]\s*)")
 _SENTENCE_END = re.compile(r"[。！？!?](?:\s|$)")
+
+
+def _requires_tools(task):
+    for match in _TOOL_MARKERS.finditer(task):
+        prefix = re.split(r"[，,。！？!?；;\n]", task[max(0, match.start()-24):match.start()])[-1]
+        if not _NEGATED_TOOL_PREFIX.search(prefix):
+            return True
+    return False
 
 
 def _canonical(value):
@@ -66,7 +79,7 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
         "enumerated_items": len(_ENUMERATED.findall(task)),
         "sentence_count": len(_SENTENCE_END.findall(task)),
     }
-    requires_tools = bool(_TOOL_MARKERS.search(task))
+    requires_tools = _requires_tools(task)
     if requires_tools and not tools_allowed:
         return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
                 "decision": "blocked-tools", "forced": policy != "auto",
@@ -79,8 +92,7 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
     reasons = []
     if statistics["task_chars"] > DIRECT_TASK_CHARS:
         reasons.append("task-too-long")
-    if statistics["context_bytes"] > DIRECT_CONTEXT_BYTES:
-        reasons.append("context-too-long")
+    # 宿主系统提示与历史长度不能证明工作可拆；容量检查仍由模型准入执行。
     if statistics["enumerated_items"] >= 2:
         reasons.append("multiple-enumerated-requirements")
     if "```" in task:
@@ -95,17 +107,26 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
         reasons.append("complex-task-marker")
     if requires_tools:
         reasons.append("explicit-tool-requirement")
-    rule_decision = "dag" if reasons else "direct"
+    trivial = trivial_workload(task) and not any(payload.get(k) for k in ("materials", "acceptanceCriteria", "outputConstraints"))
+    if trivial:
+        reasons = ["trivial-workload"]
+    rule_decision = "dag" if reasons and not trivial else "direct"
     decision, combination = rule_decision, "rules-only"
     if local is not None:
         verdict = local["verdict"]
-        # 明确结构证据可以补足弱词法规则；已经命中的材料、交付合同与工具边界继续保守处理。
+        # v3 区分分支依赖与最终汇总；工具和交付要求不是拆分证明。
+        # 权限检查在此前完成，独立评审和模型准入继续保留。v2 保持历史语义。
         hard = {"multiple-materials", "acceptance-criteria-present",
                 "strict-output-contract", "explicit-tool-requirement"}.intersection(reasons)
-        if verdict == "SEPARABLE":
+        if trivial:
+            combination = "trivial-workload-no-planner"
+        elif verdict == "SEPARABLE":
             decision, combination = "dag", "local-separable"
             if "local-separable" not in reasons:
                 reasons.append("local-separable")
+        elif verdict == "COUPLED" and local['ruleVersion'] == RULE_VERSION:
+            decision, combination = "direct", "coupled-sequential-work"
+            reasons.append("local-coupled")
         elif verdict == "COUPLED" and not hard:
             decision, combination = "direct", "local-coupled-overrode-weak-rules"
             reasons = ["local-coupled"]
@@ -210,7 +231,7 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
                             else binding["production_budget"]),
             }} if gate["decision"] == "dag" or binding["canary"]["tools_allowed"] else {}),
         },
-        "ready": (ready and binding["canary"]["data_mode"] == "synthetic"
+        "ready": (ready and binding["canary"]["data_mode"] in {"synthetic", "desensitized", "live"}
                   and binding["canary"]["billing_unit"] in {"USD", "CNY", "AFP"}),
         "data_mode": binding["canary"]["data_mode"],
         "tools_allowed": binding["canary"]["tools_allowed"],

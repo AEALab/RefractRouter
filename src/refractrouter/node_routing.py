@@ -182,12 +182,19 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         records.append((combination, sum(p.cost for p in combination), latency,
                         sum(p.quality for p in combination) / len(combination)))
     latency_bounds = (min(r[2] for r in records), max(r[2] for r in records)) if records else None
+    rejected = {k: 0 for k in ("assignment-mode", "quality", "cost", "latency")}
     best, best_key, feasible = None, None, 0
     for combination, cost, latency, quality in records:
         # 对称单模型基线只限制分配空间；目标、归一化标尺、约束和调度均保持一致。
         if assignment_mode == 'single-model' and len({p.model_id for p in combination}) != 1:
+            rejected['assignment-mode'] += 1
             continue
-        if any(p.quality < quality_min for p in combination) or cost > cost_max or (latency_max_ms is not None and latency > latency_max_ms):
+        failed = {"quality": any(p.quality < quality_min for p in combination),
+                  "cost": cost > cost_max,
+                  "latency": latency_max_ms is not None and latency > latency_max_ms}
+        for reason, matched in failed.items():
+            rejected[reason] += int(matched)
+        if any(failed.values()):
             continue
         feasible += 1
         score = sum(utilities[(n.node_id, p.model_id)] for n, p in zip(plan.nodes, combination)) / len(combination)
@@ -207,7 +214,13 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
               "scheduled_latency_bounds_ms": latency_bounds, "execution_policy": policy.to_dict(),
               "combinations": count, "feasible_combinations": feasible,
               "original_combinations": original_count, "dominated_reduction": reduce_dominated,
-              "prediction": None, "nodes": {}}
+              "prediction": None, "nodes": {},
+              "diagnostics": {"rule_version": "route-rejection-v1",
+                  "rejected_combinations": rejected, "counts_may_overlap": True,
+                  "empty_candidate_nodes": [node.node_id for node, pool in zip(plan.nodes, options) if not pool],
+                  "minimum_scheduled_latency_ms": latency_bounds[0] if latency_bounds else None,
+                  "remaining_latency_ms": latency_max_ms,
+                  "minimum_cost": min((r[1] for r in records), default=None), "remaining_cost": cost_max}}
     if best:
         combination, cost, latency, quality, score = best
         result["assignments"] = {n.node_id: p.model_id for n, p in zip(plan.nodes, combination)}

@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 
 from .decomposition_decision import (build_request, input_digest, parse_noul_answers,
-                                    unknown_evidence, validate_limits)
+                                    unknown_evidence, validate_limits, trivial_workload)
 from .jev_bridge import cost_cny, settled_cost_cny, validate_result, validate_usage
 from .jev_transport import wire_payload
 from .planning_budget import PlanningBudget
@@ -39,6 +39,8 @@ class DecompositionJevRuntime:
         cap = request.get("maxCostCny")
         if type(cap) not in (int, float) or not math.isfinite(cap) or cap <= 0:
             raise ValueError("自动拆分 Jev 需要明确的正数 CNY 单任务上限")
+        if trivial_workload(task):
+            return {"action": "complete", "evidence": unknown_evidence(task, context, "trivial-workload")}
         if len(task.encode()) > maximum:
             return {"action": "complete", "evidence": unknown_evidence(task, context, "input-too-long")}
         built = build_request(task, context, threshold=threshold, max_input_bytes=maximum)

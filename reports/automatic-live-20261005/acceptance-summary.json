@@ -1,0 +1,26 @@
+{
+  "schema_version": "refractagent-auto-live-acceptance-v1",
+  "date": "2026-10-05",
+  "data_mode": "live",
+  "trusted_execution_route": "deepseek-official/deepseek-flash",
+  "initial_cases": 3,
+  "initial_completed": 2,
+  "initial_failed_output_truncation": 1,
+  "targeted_recheck_completed": 1,
+  "model_calls": 9,
+  "jev_calls": 2,
+  "model_cny": 0.09160208,
+  "jev_cny": 0.000344243277,
+  "confirmed_unknown_usage": 0,
+  "independent_task_selected": "direct-after-probe",
+  "actual_multi_node_dag_executed": false,
+  "browser_smoke": {
+    "same_task_initial": {"gate": "dag", "model_calls": 3, "model_cny": 0.03387628, "jev_cny": 0.0001702800078},
+    "same_task_recheck": {"gate": "direct", "model_calls": 2, "model_cny": 0.01825772, "jev_cny": 0.0001702800078}
+  },
+  "all_confirmed_model_calls": 14,
+  "all_confirmed_jev_calls": 4,
+  "all_confirmed_model_cny": 0.14373608,
+  "all_confirmed_jev_cny": 0.0006848032926,
+  "all_confirmed_total_cny": 0.1444208832926
+}

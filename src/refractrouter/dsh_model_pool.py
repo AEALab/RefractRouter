@@ -284,7 +284,9 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
             'pricePolicy': base.get('price_policy'),
-            'effectiveModel': effective_model, 'quality': quality, 'latencyMs': latency})
+            'effectiveModel': effective_model, 'quality': quality, 'latencyMs': latency,
+            'latencyEvidence': ({'observations': deepcopy((observed or {}).get('observations', [])),
+                'snapshot_id': (observed or {}).get('snapshot_id')} if actual_routes else None)})
         route_evidence = {
             'profile': 'frozen-public-profile',
             'quality_source': 'independent-third-party',
@@ -372,7 +374,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'pricing': {'unit': accounting_unit,
                         **{key: value * exchange_rate for key, value in row['pricing'].items()
                            if key != 'unit'}},
-            'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs']} if 'worker' in roles else None})
+            'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs'],
+                **({'latencyEvidence': row['latencyEvidence']} if row.get('latencyEvidence') is not None else {})} if 'worker' in roles else None})
         if models[-1]['routing'] is None: models[-1].pop('routing')
         evidence[_route_key(row['provider'], row['model'])].update(
             compiled_model_id=models[-1]['id'], effective_model=row['effectiveModel'],

@@ -82,11 +82,12 @@ export function runSummary(result: Record<string, unknown>): string {
   const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value.toFixed(4) : '未提供'
   const gate=object(result.complexity_gate)?result.complexity_gate:{}
   const local=object(gate.local_decision)?gate.local_decision:{}
-  const route=Object.keys(gate).length?`选路：规则 ${String(gate.rule_decision??gate.decision)} → 最终 ${String(gate.decision)}；合并方式 ${String(gate.combination??'旧规则')}；理由 ${Array.isArray(gate.reasons)?gate.reasons.join('、'):'未提供'}\n`:''
+  const combinations:Record<string,string>={'coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
+  const route=Object.keys(gate).length?`选路：规则 ${String(gate.rule_decision??gate.decision)} → 最终 ${String(gate.decision)}；合并方式 ${combinations[String(gate.combination)]??String(gate.combination??'旧规则')}；理由 ${Array.isArray(gate.reasons)?gate.reasons.join('、'):'未提供'}\n`:''
   const signals=object(local.signals)?local.signals:{}
   const reasonNames:Record<string,string>={'context-dependent':'任务依赖未传入的历史内容',
-    'input-too-long':'任务超出本地输入上限','token-capacity':'本地 tokenizer 容量不足'}
-  const localLine=Object.keys(local).length?`${local.backend==='jev'?'云端 Jev':'本地'}结构判别：${String(local.verdict)}（原始 ${String(local.rawVerdict)}，判别分数 ${number(local.confidence)}）；`
+    'trivial-workload':'微型任务无需额外判别或规划','input-too-long':'任务超出本地输入上限','token-capacity':'本地 tokenizer 容量不足'}
+  const localLine=Object.keys(local).length?`${local.model==null?'结构规则（未调用 Judge）':local.backend==='jev'?'云端 Jev 结构判别':'本地结构判别'}：${String(local.verdict)}（原始 ${String(local.rawVerdict)}，判别分数 ${number(local.confidence)}）；`
     +`依赖前一步 ${number(signals.requires_previous_output)}，可独立开始 ${number(signals.can_start_independently)}；`
     +`模型 ${String(local.model??'未调用')}；推论 ${number(local.latencyMs)} ms，排队 ${number(local.queueMs)} ms；`
     +`${local.backend==='jev'?`渠道 ${String(local.provider)}；本次判别 ${number(local.costCny)} CNY（独立于执行费用）；`:''}`
@@ -104,8 +105,22 @@ export function runSummary(result: Record<string, unknown>): string {
       + `direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
       + `${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`
     : ''
+  const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:{}
+  const diagnosticLines=Object.entries(diagnostics).filter(([,v])=>object(v)).map(([name,value])=>{
+    const d=value as Record<string,unknown>
+    const rejected=object(d.rejected_combinations)?d.rejected_combinations:{}
+    const labels:Record<string,string>={quality:'质量',cost:'费用',latency:'预计时延','assignment-mode':'分配模式'}
+    const reasons=Object.entries(rejected).filter(([,v])=>typeof v==='number'&&v>0)
+      .map(([k,v])=>`${labels[k]??k}不满足 ${String(v)} 种分配`).join('、')
+    return `${name} 准入：${reasons||'没有记录约束拒绝'}；预计最短 ${number(d.minimum_scheduled_latency_ms)} ms，剩余期限 ${number(d.remaining_latency_ms)} ms；最低预计费用 ${number(d.minimum_cost)}，剩余额度 ${number(d.remaining_cost)}；无候选节点 ${Array.isArray(d.empty_candidate_nodes)?d.empty_candidate_nodes.map(escape).join('、')||'无':'未提供'}\n`
+  }).join('')
+  const latencyEvidence=object(comparison.latency_evidence)?comparison.latency_evidence:{}
+  const latencyLines=Object.entries(latencyEvidence).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,raw])=>{
+    const e=object(raw)?raw:{}
+    return `${route}/${escape(node)} ${escape(id)}：时延依据 ${String(e.source)}，匹配样本 ${String(e.samples??0)}，输入分组上界 ${String(e.input_bucket_max??'未提供')}，输出分组上界 ${String(e.output_bucket_max??'未提供')}（非 SLA 保证）\n`
+  }):[]):[]).join('')
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine
+    + route + localLine + comparisonLine + diagnosticLines + latencyLines
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + `费用（${String(result.billing_unit)}）：规划 ${number(breakdown.planning)}，动态规划 ${number(breakdown.dynamic_planning)}，节点执行 ${number(breakdown.execution)}，评审 ${number(costs.evaluation)}，未确认预留 ${number(costs.unconfirmed)}\n`
     + `耗时：${typeof result.wall_time_ms === 'number' ? (result.wall_time_ms / 1000).toFixed(2) + ' 秒' : '未提供'}\n`

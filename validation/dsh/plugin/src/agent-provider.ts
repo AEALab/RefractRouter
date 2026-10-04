@@ -42,7 +42,7 @@ function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
   const dataMode = object(security) ? security.dataMode : undefined
   const issues: string[] = []
   if (billingUnit !== 'CNY' && !(billingUnit === 'AFP' && (!config.dshModelPool || config.dshModelPool.schemaVersion === 'refractagent-dsh-model-pool-v3'))) issues.push('模型池计费单位必须为 CNY 或 AFP，且同一次执行只能使用同单位路线')
-  if (dataMode !== 'synthetic') issues.push('首版真实执行只允许 synthetic 数据模式')
+  if (!['synthetic','desensitized','live'].includes(String(dataMode))) issues.push('真实执行需要有效的数据模式')
   if (live.maxProductionCost !== 'unlimited' && !(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)) issues.push('缺少生产费用上限选择')
   if (live.maxEvaluationCost !== 'unlimited' && !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) issues.push('缺少评审费用上限选择')
   return issues
@@ -867,7 +867,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     }
     return { ...entry, id: model, provider, name: entry.name,
       description: entry.id === 'auto-live'
-        ? '本机核心开发真实执行；每个任务先零调用预检，首版仅支持 synthetic 纯文本。'
+        ? '本机核心自动路由；每个任务先零调用预检，真实数据仅使用本地或可信云模型。'
         : '零调用模拟自动路由；不会调用真实模型。',
       inputModalities: ['text'], context: { contextWindow: 24000 }, defaultMaxTokens: config.maxOutputTokens }
   }

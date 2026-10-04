@@ -1,7 +1,8 @@
-"""User-declared, action-specific forecasts resolved against each DAG node."""
+"""按节点编译质量先验、实际路线费用与可选规模匹配时延观测。"""
 from .node_routing import NodeProfile, number, validate_profiles
 from .routing_actions import action_binding
 from .task_plan import validate_plan
+from .latency_forecast import validate_latency_evidence, forecast_latency
 
 
 def prediction(raw, output_cap):
@@ -16,9 +17,9 @@ def prediction(raw, output_cap):
 
 
 def compile_routing(raw, output_cap):
-    if not isinstance(raw, dict) or set(raw) - {'quality', 'latencyMs', 'outputTokens', 'profiles'}:
+    if not isinstance(raw, dict) or set(raw) - {'quality', 'latencyMs', 'outputTokens', 'profiles', 'latencyEvidence'}:
         raise ValueError('invalid routing prediction fields')
-    default = prediction({k: v for k, v in raw.items() if k != 'profiles'}, output_cap)
+    default = prediction({k: v for k, v in raw.items() if k not in {'profiles', 'latencyEvidence'}}, output_cap)
     overrides = raw.get('profiles', [])
     if not isinstance(overrides, list) or len(overrides) > 128:
         raise ValueError('routing profiles must be an array of at most 128 strata')
@@ -33,7 +34,8 @@ def compile_routing(raw, output_cap):
             input_min_tokens=item.get('inputMinTokens', 256), input_max_tokens=item.get('inputMaxTokens', 131073))
         profiles.append((selector, values))
     validate_profiles(tuple(p for p, _ in profiles))
-    return {**default, 'profiles': profiles}
+    return {**default, 'profiles': profiles, 'latency_evidence':
+            validate_latency_evidence(raw['latencyEvidence']) if 'latencyEvidence' in raw else None}
 
 
 def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
@@ -59,23 +61,30 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
             output = forecast['output_tokens'] if forecast['output_tokens'] is not None else model.max_output_tokens
             selector = ({'difficulty': capability['difficulty'], 'risk': capability['risk'],
                 'input_min_tokens': input_cap, 'input_max_tokens': input_cap + 1} if stratified else {})
+            latency = (forecast_latency(default['latency_evidence'], input_forecast, output, forecast['latency_ms'])
+                       if default.get('latency_evidence') is not None else None)
             row = {'model_id': model.model_id, 'node_type': node.node_type, 'samples': 0,
-                'quality': forecast['quality'], 'latency_ms': forecast['latency_ms'],
+                'quality': forecast['quality'], 'latency_ms': latency['prediction_ms'] if latency else forecast['latency_ms'],
                 'cost': input_forecast / 1000 * model.input_cost_per_1k + output / 1000 * model.output_cost_per_1k,
                 **selector}
             key = (model.model_id, node.node_type, *selector.values())
             # 相同画像区间可能覆盖不同父输出预测；共享行取较大费用，避免遍历顺序低估。
-            if key not in rows or row['cost'] > rows[key]['cost']:
+            if key not in rows:
                 rows[key] = row
+            else:
+                rows[key]['cost'] = max(rows[key]['cost'], row['cost'])
+                rows[key]['latency_ms'] = max(rows[key]['latency_ms'], row['latency_ms'])
             basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': input_forecast,
                 'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]'}
+            if latency is not None:
+                basis[node.node_id][model.model_id]['latency'] = latency
             if input_forecasts is not None:
                 basis[node.node_id][model.model_id].update(input_capacity=input_cap,
                     input_forecast_source='serialized-input-and-planned-parent-output')
     return {'schema_version': 'node-routing-profile-v2' if stratified else 'node-routing-profile-v1',
         'kind': 'configured', 'billing_unit': manifest.billing_unit,
-        'scope': '用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。',
-        'provenance': '本次 provider-config.json；无模型探测、无观测样本。',
+        'scope': '质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。',
+        'provenance': '本次 provider-config.json；时延观测与匹配数量见 forecast_basis，未新增探测调用。',
         'candidates': list(rows.values()), 'forecast_basis': basis,
         'model_bindings': {m.model_id: m.api_model for m in manifest.candidates},
         'action_bindings': {m.model_id: action_binding(m) for m in manifest.candidates}}

@@ -1567,7 +1567,7 @@ class PlanningRuntime(StageHybridRuntime):
 
     def decomposition_decision(self, request):
         from .decomposition_decision import (build_request, input_digest, unknown_evidence,
-                                             validate_limits, validate_local_judge)
+                                             validate_limits, validate_local_judge, trivial_workload)
         judge = validate_local_judge(request.get("judge"))
         task, context = request.get("task"), request.get("context")
         threshold = request.get("threshold", .65)
@@ -1577,6 +1577,8 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("拆分判别期限必须是 100..300000 的整数")
         validate_limits(threshold, max_input_bytes)
         input_digest(task, context)
+        if trivial_workload(task):
+            return unknown_evidence(task, context, "trivial-workload")
         if len(task.encode()) > max_input_bytes:
             return unknown_evidence(task, context, "input-too-long")
         built = build_request(task, context, threshold=threshold,

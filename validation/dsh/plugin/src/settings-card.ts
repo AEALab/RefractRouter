@@ -172,7 +172,7 @@ export type SettingsIssueCode =
   | 'SETTINGS_READBACK_UNCONFIRMED'
   | 'LIVE_EXECUTION_MODEL_POOL_REQUIRED'
   | 'LIVE_EXECUTION_CNY_REQUIRED'
-  | 'LIVE_EXECUTION_SYNTHETIC_REQUIRED'
+  | 'LIVE_EXECUTION_DATA_MODE_REQUIRED'
   | 'LIVE_EXECUTION_BUDGET_REQUIRED'
   | 'LIVE_EXECUTION_TOOL_CALLS_INVALID'
   | 'LIVE_EXECUTION_LOCAL_JUDGE_INVALID'
@@ -227,8 +227,9 @@ export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
   if (unit !== 'CNY' && !(unit === 'AFP' && (!pool || pool.schemaVersion === 'refractagent-dsh-model-pool-v3'))) issues.push({code:'LIVE_EXECUTION_CNY_REQUIRED',severity:'error',field:'liveExecution',
     message:'真实执行需要同单位的 CNY 或 AFP 模型池；不同单位不能混合比较。'})
   const security = pool?.security ?? provider?.security
-  if (security?.dataMode !== 'synthetic') issues.push({code:'LIVE_EXECUTION_SYNTHETIC_REQUIRED',severity:'error',
-    field:'liveExecution',message:'真实执行首版只允许合成测试数据（synthetic）；真实数据和脱敏材料暂未开放。'})
+  if (!['synthetic','desensitized','live'].includes(String(security?.dataMode))) issues.push({
+    code:'LIVE_EXECUTION_DATA_MODE_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行需要明确选择数据模式；真实数据仅使用本地或可信云模型。'})
   if (!([live.maxProductionCost,live.maxEvaluationCost].every(value=>value==='unlimited'
     || typeof value==='number'&&Number.isFinite(value)&&value>0))) {
     issues.push({code:'LIVE_EXECUTION_BUDGET_REQUIRED',severity:'error',field:'liveExecution',
@@ -320,11 +321,6 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
           const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
           return policy?.auditLogging === true && policy.allowsSensitiveData === true
         }
-        if (route.deployment === 'simulated-local') {
-          const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
-          return policy?.auditLogging === true && policy.allowsSensitiveData === true
-            && policy.acknowledgeExternalTransmission === true
-        }
         return false
       }
       for (const role of ['planner','judge','classifier'] as const) {
@@ -332,13 +328,13 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
         if (route && routeKeys.has(route) && !sensitiveCapable(route)) {
           issues.push({code:'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE',severity:'error',
             field:`roleOverrides.${role}`,route,
-            message:`${role} 当前固定为 ${route}，但该路线不能处理 live 数据中的敏感内容。请选择真实本地、可信外部云，或已确认外传的云模型模拟本地路线。`})
+            message:`${role} 当前固定为 ${route}，但该路线不能处理 live 数据。请选择真实本地或已授权的可信云路线。`})
         }
       }
       if (roles.workers?.length && roles.workers.every(route => routeKeys.has(route) && !sensitiveCapable(route))) {
         issues.push({code:'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE',severity:'error',
           field:'roleOverrides.workers',
-          message:'执行模型池没有可处理 live 敏感数据的路线。请至少加入一条真实本地、可信外部云，或已确认外传的云模型模拟本地路线。'})
+          message:'执行模型池没有可处理 live 数据的路线。请至少加入一条真实本地或已授权的可信云路线。'})
       }
     }
   }
