@@ -17,6 +17,55 @@ def documents():
     return protocol, bindings
 
 
+def v3_documents():
+    protocol = json.loads((ROOT / 'data/research/security-benchmark-v1.json').read_text())
+    bindings = json.loads((ROOT / 'data/research/security-benchmark-bindings-v3.json').read_text())
+    return protocol, bindings
+
+
+def mock_complete_v3_bindings(bindings):
+    """测试用虚构证明，不能写入真实绑定清单。"""
+    attestation = {'id': 'mock-attestation', 'kind': 'operator-attestation',
+                   'uri': 'test-only', 'retrievedAt': '2026-10-04', 'sha256': 'a' * 64}
+    bindings['sources'].append(attestation)
+    bindings['endpointPolicies'] += [
+        {'id': 'mock-trusted', 'provider': 'ark-plan', 'type': 'openai-compatible',
+         'baseUrl': 'https://example.invalid/v1', 'credentialEnv': 'MOCK_KEY',
+         'region': 'test', 'trustPolicyId': 'mock-policy'},
+        {'id': 'mock-local', 'provider': 'test-local', 'type': 'local',
+         'baseUrl': 'http://127.0.0.1:9000/v1', 'credentialEnv': '',
+         'region': 'test-machine', 'trustPolicyId': None},
+    ]
+    template = bindings['bindings'][0]['binding']
+    for row in bindings['bindings']:
+        if row['roleId'] not in {'trusted-strong', 'local-worker', 'local-judge'}:
+            continue
+        binding = deepcopy(template)
+        binding['model'] = f'mock-{row["roleId"]}'
+        binding['version'] = {'kind': 'immutable-version', 'value': 'mock-digest',
+                              'observedAt': '2026-10-04'}
+        binding['evidenceSources'] = ['mock-attestation']
+        binding['qualityProxy'] = 100
+        if row['roleId'] == 'trusted-strong':
+            binding['deployment'] = 'trusted-cloud'
+            binding['endpointPolicyId'] = 'mock-trusted'
+            binding['executionPricing'] = {'unit': 'CNY', 'inputPer1k': 1,
+                                           'cachedInputPer1k': 1, 'outputPer1k': 2,
+                                           'sourceId': 'mock-attestation'}
+        else:
+            binding['provider'] = 'test-local'
+            binding['deployment'] = 'local'
+            binding['endpointPolicyId'] = 'mock-local'
+            binding['executionPricing'] = None
+            binding['localResource'] = {
+                'engine': 'mock-engine', 'artifactSha256': 'b' * 64,
+                'evidenceSources': ['mock-attestation'], 'resourceCostPerCall': .02,
+                'resourceCostUnit': 'CNY', 'resourceCostBlockers': [],
+            }
+        row.update(status='bound', blockers=[], binding=binding)
+    return bindings
+
+
 def test_budget_freezes_48_calls_but_refuses_an_incomplete_total_cost():
     result = freeze_budget(*documents())
     assert result['real_model_calls'] == 0
@@ -28,6 +77,53 @@ def test_budget_freezes_48_calls_but_refuses_an_incomplete_total_cost():
     assert result['authorization_request_ready'] is False
     assert result['paid_execution_authorized'] is False
     assert result['live_execution_ready'] is False
+
+
+def test_v3_keeps_afp_and_local_resource_accounts_separate():
+    protocol, bindings = v3_documents()
+    result = freeze_budget(protocol, mock_complete_v3_bindings(bindings))
+    assert result['schema_version'] == 'security-benchmark-budget-freeze-v3'
+    assert result['known_execution_usage_by_unit']['AFP'] == pytest.approx(7.452)
+    assert result['known_execution_usage_by_unit']['CNY'] > 0
+    assert result['maximum_execution_usage_by_unit'] == result['known_execution_usage_by_unit']
+    assert result['known_local_resource_cost_by_unit'] == {'CNY': pytest.approx(.6)}
+    assert result['maximum_local_resource_cost_by_unit'] == result['known_local_resource_cost_by_unit']
+    assert result['known_bound_execution_usage'] is None
+    assert result['authorization_request_ready'] is True
+    assert result['paid_execution_authorized'] is False
+    assert result['live_execution_ready'] is False
+
+
+def test_v3_unknown_local_resource_cost_blocks_full_authorization():
+    protocol, bindings = v3_documents()
+    mock_complete_v3_bindings(bindings)
+    row = next(row for row in bindings['bindings'] if row['roleId'] == 'local-judge')
+    row['binding']['localResource'].update(resourceCostPerCall=None,
+                                           resourceCostUnit=None,
+                                           resourceCostBlockers=['MOCK_RESOURCE_COST_UNKNOWN'])
+    result = freeze_budget(protocol, bindings)
+    assert result['maximum_execution_usage_by_unit'] is not None
+    assert result['maximum_local_resource_cost_by_unit'] is None
+    assert result['authorization_request_ready'] is False
+    assert 'MOCK_RESOURCE_COST_UNKNOWN' in result['blocking_requirements']
+
+
+def test_v3_rejects_token_pricing_for_a_local_model():
+    protocol, bindings = v3_documents()
+    mock_complete_v3_bindings(bindings)
+    row = next(row for row in bindings['bindings'] if row['roleId'] == 'local-worker')
+    row['binding']['executionPricing'] = deepcopy(bindings['bindings'][0]['binding']['executionPricing'])
+    with pytest.raises(ValueError, match='cannot declare token API pricing'):
+        freeze_budget(protocol, bindings)
+
+
+def test_v3_local_binding_requires_a_loopback_endpoint():
+    protocol, bindings = v3_documents()
+    mock_complete_v3_bindings(bindings)
+    local = next(row for row in bindings['endpointPolicies'] if row['id'] == 'mock-local')
+    local['baseUrl'] = 'https://example.invalid/v1'
+    with pytest.raises(ValueError, match='loopback local endpoint'):
+        freeze_budget(protocol, bindings)
 
 
 def test_role_token_envelopes_match_the_preregistered_matrix():
