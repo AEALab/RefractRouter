@@ -86,9 +86,10 @@ export function runSummary(result: Record<string, unknown>): string {
   const signals=object(local.signals)?local.signals:{}
   const reasonNames:Record<string,string>={'context-dependent':'任务依赖未传入的历史内容',
     'input-too-long':'任务超出本地输入上限','token-capacity':'本地 tokenizer 容量不足'}
-  const localLine=Object.keys(local).length?`本地结构判别：${String(local.verdict)}（原始 ${String(local.rawVerdict)}，判别分数 ${number(local.confidence)}）；`
+  const localLine=Object.keys(local).length?`${local.backend==='jev'?'云端 Jev':'本地'}结构判别：${String(local.verdict)}（原始 ${String(local.rawVerdict)}，判别分数 ${number(local.confidence)}）；`
     +`依赖前一步 ${number(signals.requires_previous_output)}，可独立开始 ${number(signals.can_start_independently)}；`
     +`模型 ${String(local.model??'未调用')}；推论 ${number(local.latencyMs)} ms，排队 ${number(local.queueMs)} ms；`
+    +`${local.backend==='jev'?`渠道 ${String(local.provider)}；本次判别 ${number(local.costCny)} CNY（独立于执行费用）；`:''}`
     +`${local.reason?`回退原因 ${reasonNames[String(local.reason)]??String(local.reason)}；`:''}实验能力\n`:''
   const comparison=object(result.route_comparison)?result.route_comparison:{}
   const generatedLabel=comparison.generated_node_count===1?'规划器单节点候选':'DAG'

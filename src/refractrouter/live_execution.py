@@ -211,7 +211,7 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
             }} if gate["decision"] == "dag" or binding["canary"]["tools_allowed"] else {}),
         },
         "ready": (ready and binding["canary"]["data_mode"] == "synthetic"
-                  and binding["canary"]["billing_unit"] in {"USD", "CNY"}),
+                  and binding["canary"]["billing_unit"] in {"USD", "CNY", "AFP"}),
         "data_mode": binding["canary"]["data_mode"],
         "tools_allowed": binding["canary"]["tools_allowed"],
         "tools": {"maximum_calls": binding["canary"]["max_tool_calls"],

@@ -1,0 +1,21 @@
+{
+  "schema": "automatic-jev-observation-amendment-v1",
+  "date": "2026-10-04",
+  "reason": "实际宿主完整上下文评审预留0.126536 CNY；修正预检/执行输出上限不一致和规划调用的显式输出限制。",
+  "authorizedAggregateCny": 1,
+  "remainingTaskAttempts": 2,
+  "priorCostsCny": 0.008817821576,
+  "perTask": {
+    "productionCny": 0.11,
+    "evaluationCny": 0.13,
+    "judgeCny": 0.01,
+    "outputTokens": 2048,
+    "timeoutMs": 300000,
+    "hostTools": 0
+  },
+  "models": {
+    "executorPlannerReviewer": "deepseek-official/deepseek-flash",
+    "structuralJudge": "openrouter/typesafe/jev-1.13"
+  },
+  "evaluationIndependent": false
+}

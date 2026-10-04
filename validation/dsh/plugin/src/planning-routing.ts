@@ -1,4 +1,5 @@
 import { sessionEvents, type NativeAgent } from './native-tools.js'
+import { modelTemperature } from './model-wire-options.js'
 /** DSH 只执行核心签发的单次模型调用；原生工具始终由宿主循环执行。 */
 import { randomUUID } from 'node:crypto'
 import { resolve } from 'node:path'
@@ -112,7 +113,7 @@ function nativeOptions(action:Json,signal:AbortSignal,original:ModelOptions):Llm
   const messages=action.messages.map((m:Json)=>({...m,id:m.id??randomUUID(),
     source:m.source??{kind:'user'},content:typeof m.content==='string'?[{type:'text',text:m.content}]:m.content}))
   return {provider:action.model.provider,model:action.model.model,messages,
-    tools:action.tools,temperature:original.temperature??0,maxTokens:action.model.maxTokens,signal,
+    tools:action.tools,temperature:modelTemperature(action.model.provider,action.model.model,original.temperature??0),maxTokens:action.model.maxTokens,signal,
     ...(action.model.reasoning_effort?{reasoningEffort:action.model.reasoning_effort}:{}),
     ...(original.stop?{stop:original.stop}:{}),...(original.purpose?{purpose:original.purpose}:{})}
 }
@@ -243,12 +244,59 @@ export class PlanningController {
     return this.rpc.request({op:'local-backends'})
   }
   async decompositionDecision(config:NonNullable<Configuration['liveExecution']>['decompositionDecision'],
-    task:string,context:string):Promise<Json>{
+    task:string,context:string,signal:AbortSignal=new AbortController().signal):Promise<Json>{
     await this.ensureHandshake(false,false,true)
-    if(!config||config.mode!=='hybrid'||!config.judge)throw new Error('自动路由未启用本地拆分判别')
-    return this.rpc.request({op:'decomposition-decision',judge:config.judge,task,context,
-      threshold:config.threshold??.65,timeoutMs:config.timeoutMs??30000,
-      maxInputBytes:config.maxInputBytes??65536})
+    if(!config||config.mode!=='hybrid'||!config.judge)throw new Error('自动路由未启用拆分判别')
+    const request={task,context,threshold:config.threshold??.65,timeoutMs:config.timeoutMs??30000,
+      maxInputBytes:config.maxInputBytes??65536}
+    if(config.judge.type==='local-decision')return this.rpc.request({op:'decomposition-decision',
+      judge:config.judge,...request})
+    const capabilities=await this.handshake!
+    if(!capabilities.includes('decomposition-jev-v1'))throw new Error('当前核心不支持自动路由 Jev；请升级核心与插件')
+    const shared=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
+    const input={...request,config:shared,maxCostCny:config.maxJudgeCostCny}
+    const preview=await this.rpc.request({op:'decomposition-jev-preflight',...input})
+    if(preview.action==='complete')return preview.evidence
+    if(!(await this.ctx.credentials.describe(String(preview.spec.credentialRef))).configured)
+      throw new Error('自动路由 Jev 凭证未配置；尚未派发')
+    const agent=this.ctx.agents?.requireInitiator()
+    const event=agent?[...sessionEvents(agent)].reverse().find(e=>e.type==='step/start'||e.type==='turn/end'):undefined
+    if(!agent?.session.header?.id||!agent.id||event?.type!=='step/start'||typeof event.data.turn!=='number')
+      throw new Error('自动路由 Jev 缺少可信任务身份；尚未派发')
+    const identity=JSON.stringify({session:agent.session.header.id,agent:agent.id,turn:event.data.turn})
+    signal.throwIfAborted()
+    const action=await this.rpc.request({op:'decomposition-jev-begin',...input,identity})
+    if(action.action==='complete')return action.evidence
+    try{
+      const receipt=await this.callJev(action,signal)
+      if(signal.aborted)await this.rpc.request({op:'decomposition-jev-stop',callId:action.callId})
+      const result=await this.rpc.request({op:'decomposition-jev-complete',callId:action.callId,...receipt})
+      if(result.action!=='complete')throw new Error('自动拆分判别已停止；不会继续执行模型')
+      signal.throwIfAborted()
+      return result.evidence
+    }catch(error){
+      await this.rpc.request({op:'decomposition-jev-stop',callId:action.callId}).catch(()=>{})
+      throw error
+    }
+  }
+  private async callJev(action:Json,signal:AbortSignal):Promise<Json>{
+    signal.throwIfAborted()
+    const endpoint=String(action.endpoint??'https://api.typesafe.ai/v1/systemone')
+    const allowed:Record<string,string>={typesafe:'https://api.typesafe.ai/v1/systemone',
+      openrouter:'https://openrouter.ai/api/alpha/decisions'}
+    if(endpoint!==allowed[String(action.route??'typesafe')])
+      throw new Error('Jev 调用地址不属于已支持渠道；凭证未发送')
+    const credential=await this.ctx.credentials.resolve(String(action.credentialRef))
+    if(!credential?.value)throw new Error('Jev 凭证不可用；判别请求未派发')
+    const timeout=Math.max(1,Math.min(Number(action.timeoutMs)||30000,300000))
+    const callSignal=AbortSignal.any([signal,AbortSignal.timeout(timeout)])
+    const started=performance.now()
+    const response=await fetch(endpoint,{
+      method:'POST',headers:{Authorization:'Bearer '+credential.value,
+        'Content-Type':'application/json',Accept:'application/json'},
+      body:JSON.stringify(action.payload),signal:callSignal,redirect:'error'})
+    if(!response.ok)throw new Error(`Jev HTTP ${response.status}；此次调用不会自动重试`)
+    return {result:await response.json() as Json,latencyMs:performance.now()-started}
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
@@ -355,26 +403,8 @@ export class PlanningController {
           continue
         }
         if(action.action==='jev'){
-          signal.throwIfAborted()
-          const endpoint=String(action.endpoint??'https://api.typesafe.ai/v1/systemone')
-          const allowed:Record<string,string>={typesafe:'https://api.typesafe.ai/v1/systemone',
-            openrouter:'https://openrouter.ai/api/alpha/decisions'}
-          if(endpoint!==allowed[String(action.route??'typesafe')])
-            throw new Error('Jev 调用地址不属于已支持渠道；凭证未发送')
-          const reference=String(action.credentialRef)
-          const credential=await this.ctx.credentials.resolve(reference)
-          if(!credential?.value)throw new Error('Jev 凭证不可用；判别请求未派发')
-          const timeout=Math.max(1,Math.min(Number(action.timeoutMs)||30000,300000))
-          const callSignal=AbortSignal.any([signal,AbortSignal.timeout(timeout)])
-          const started=performance.now()
-          const response=await fetch(endpoint,{
-            method:'POST',headers:{Authorization:'Bearer '+credential.value,
-              'Content-Type':'application/json',Accept:'application/json'},
-            body:JSON.stringify(action.payload),signal:callSignal,redirect:'error'})
-          if(!response.ok)throw new Error(`Jev HTTP ${response.status}；此次调用不会自动重试`)
-          const body=await response.json() as Json
-          action=await this.rpc.request({op:'jev-complete',runId,callId:action.callId,
-            result:body,latencyMs:performance.now()-started})
+          const receipt=await this.callJev(action,signal)
+          action=await this.rpc.request({op:'jev-complete',runId,callId:action.callId,...receipt})
           continue
         }
         signal.throwIfAborted()

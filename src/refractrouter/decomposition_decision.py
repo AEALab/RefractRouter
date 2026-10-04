@@ -186,4 +186,5 @@ def validate_evidence(value, task, context):
     return {key: value.get(key) for key in (
         "contract", "ruleVersion", "inputSha256", "verdict", "rawVerdict",
         "confidence", "probabilities", "signals", "model", "revision", "coldStartMs",
-        "queueMs", "latencyMs", "usage", "experimental", "reason")}
+        "queueMs", "latencyMs", "usage", "experimental", "reason", "backend", "provider",
+        "rawAnswers", "costCny", "callId", "recordPath")}

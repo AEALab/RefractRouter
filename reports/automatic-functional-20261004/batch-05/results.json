@@ -1,0 +1,273 @@
+[
+  {
+    "case": "deepseek-dag",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20261004T152422Z-f18a26118391",
+    "mode": "live",
+    "strategy": "auto",
+    "strategy_name": "自动路由",
+    "policy_version": "refractagent-auto-runtime-v1",
+    "limits": {
+      "relaxBudget": false,
+      "relaxContext": false
+    },
+    "status": "completed",
+    "answer": "甲数据核对：12 × 8 = 96。  \n乙数据核对：15 × 6 = 90。  \n\n汇总：  \n两者总值 = 96 + 90 = 186。  \n两者差额 = 96 - 90 = 6，即甲数据结果比乙数据结果多 6。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-flash"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "dsh-model-b1aeb12a74ea9990",
+        "provider": "deepseek-official",
+        "model": "deepseek-flash",
+        "reasoning_effort": "low"
+      }
+    },
+    "evaluation_model": {
+      "id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "low"
+    },
+    "configuration_source": "user",
+    "quality": {
+      "score": 100,
+      "passed": true,
+      "rationale": "回答分别独立核对了甲数据 12×8=96 和乙数据 15×6=90，计算均正确；随后正确汇总两者总值 96+90=186，并给出差额 96-90=6，且说明甲比乙多 6。内容完整、结果正确，未引入外部工具或材料外信息，符合任务要求。",
+      "criteria": [
+        {
+          "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。",
+          "passed": true,
+          "rationale": "回答完整覆盖甲数据核对、乙数据核对、总值汇总和差额汇总，所有计算正确，未使用外部工具，符合用户要求。"
+        }
+      ]
+    },
+    "costs": {
+      "production": 0.00929,
+      "evaluation": 0.002308,
+      "unconfirmed": 0
+    },
+    "billing_unit": "CNY",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 12654,
+    "plan_origin": "direct-after-probe",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 1688,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+            ],
+            "covers": [
+              0
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "dag": {
+      "phase": "finished",
+      "status": "completed",
+      "simulated": false,
+      "plan_origin": "direct-after-probe",
+      "reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。",
+      "nodes": [
+        {
+          "id": "__role_placement__",
+          "parents": [],
+          "node_type": "role-placement",
+          "objective": "检查规划节点的敏感级别与部署路线",
+          "state": "ok",
+          "attempt": 1,
+          "model": null,
+          "recovery": null
+        },
+        {
+          "id": "answer",
+          "parents": [
+            "__role_placement__"
+          ],
+          "node_type": "generation",
+          "difficulty": "medium",
+          "risk": "high",
+          "objective": "完整回答当前用户任务，保留要求的输出格式。",
+          "state": "ok",
+          "attempt": 1,
+          "model": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": "low"
+          },
+          "recovery": null
+        }
+      ]
+    },
+    "plan_admission": {
+      "answer": {
+        "eligible_models": [
+          "dsh-model-b1aeb12a74ea9990"
+        ],
+        "reason": null,
+        "input_estimate": {
+          "base_input_bound": 1654,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 1686,
+          "forecast_input_tokens": 1686
+        }
+      }
+    },
+    "route_comparison": {
+      "policy_version": "automatic-live-comparison-v1",
+      "prediction_source": "compiled-user-declared-node-profiles",
+      "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+      "direct": {
+        "worker_cost": 0.01976,
+        "planner_actual_cost": 0.007094,
+        "judge_estimated_cost": 0.053598,
+        "tool_allowance_cost": 0.0,
+        "total_estimated_cost": 0.080452,
+        "worker_scheduled_latency_ms": 60000.0,
+        "known_latency_ms": 67931.0,
+        "assignments": {
+          "answer": "dsh-model-b1aeb12a74ea9990"
+        },
+        "quality_proxy": 94.69
+      },
+      "dag": null,
+      "status": "selected",
+      "route": "direct",
+      "reason": "dag-infeasible",
+      "billing_unit": "CNY",
+      "judge_forecast": "same-final-answer-envelope-for-both-routes",
+      "tool_call_limit": 0,
+      "budget_shortfalls": {},
+      "excluded": {
+        "direct": {
+          "answer": null
+        },
+        "dag": {
+          "jia_calc": null,
+          "yi_calc": null,
+          "aggregate": null,
+          "verify": null,
+          "answer": null
+        }
+      },
+      "generated_node_count": 5,
+      "selected_candidate": "direct-template",
+      "selected_node_count": 1,
+      "multi_node_selected": false
+    },
+    "planner": {
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "basis": "configured-latency-then-price",
+      "output_cap": 2048,
+      "timeout_ms": 12000,
+      "thinking": "inherit",
+      "output_policy": "explicit-cap"
+    },
+    "plan_ready_ms": 7936,
+    "model_call_limit": 8,
+    "content_validation": {
+      "source_status": "not-applicable",
+      "passed": null,
+      "invalid_edges": [],
+      "missing_paths": []
+    },
+    "dynamic_decomposition": null,
+    "cost_breakdown": {
+      "planning": 0.007094,
+      "dynamic_planning": 0,
+      "execution": 0.002196,
+      "evaluation": 0.002308
+    },
+    "result_path": "reports/automatic-functional-20261004/batch-05/deepseek-dag/live/20261004T152422Z-f18a26118391/result.json",
+    "run_dir": "reports/automatic-functional-20261004/batch-05/deepseek-dag/live/20261004T152422Z-f18a26118391",
+    "usage": {
+      "input_tokens": 986,
+      "output_tokens": 2653,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 2151
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "model_profile_provenance": null,
+    "artifact_hashes": {
+      "answer.md": "26ca98733fba739d4623ab0584c75f7c4e4c3ddb8b0b942d494ae1b499691480",
+      "manifest.json": "5c50e72a69f5fec9845996f699834820e5e588ce6dd16da0956444faadfb20b6",
+      "plan.json": "909f050d661caeb0600135eac595513c28b8aa4c340cadc194d43c687e96082d",
+      "profile.json": "fb2584b4529ae7d9b6e2f14c5040c04b25f78b7cbe72e45887a09a4f782738b8",
+      "progress.ndjson": "509fe8887bd8cb906f93f15b4b91f40b7bfe6689d52611133ce785db3c1d348e",
+      "provider-config.json": "b51446a53261620ad7ad30a168069b65e3c15c4512f89fda995d4ba147979df3",
+      "request.json": "6903482d0ac86b432d5a138b6799d41dd6c2bbae4d89fde358b00579040e00fc",
+      "result.json": "10d6f82dd6b7bd81ac83ab2d66cb7ada4b242e89f601cd1843d0f12e3c398c09"
+    },
+    "complexity_gate": {
+      "policy_version": "refractagent-complexity-gate-v2",
+      "policy": "dag",
+      "decision": "dag",
+      "forced": true,
+      "reasons": [
+        "forced-dag"
+      ],
+      "statistics": {
+        "task_chars": 53,
+        "context_bytes": 0,
+        "enumerated_items": 0,
+        "sentence_count": 1
+      },
+      "local_decision": null
+    },
+    "review": {
+      "policy": "adaptive",
+      "required": true,
+      "reason": "dag-or-blocked,forced-routing-policy",
+      "status": "completed",
+      "score": 100,
+      "passed": true
+    },
+    "prefix_policy": "legacy"
+  }
+]

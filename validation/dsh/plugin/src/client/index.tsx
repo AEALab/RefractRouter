@@ -48,7 +48,7 @@ export function apply(ctx: ClientContext): void {
       name: 'settings.plugin.item',
       key: SETTINGS_NAMESPACE,
       locale: LOCALE_NS,
-      inject: () => ({...controller.inject(),loadCatalog:async()=>{
+      inject: () => ({...controller.inject(),loadMetadata:planning.loadMetadata,loadCatalog:async()=>{
         const result=await ctx.remote.session.modelCatalog()
         if(!result.ok||!result.value)throw new Error(result.error?.message??'DSH model catalog unavailable')
         return result.value

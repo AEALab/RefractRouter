@@ -1,0 +1,406 @@
+[
+  {
+    "case": "kimi-tools",
+    "status": "completed",
+    "output": "已实际调用 `refract_local_echo` 一次。\n\n- 乘法结果：`12 * 8 = 96`\n- 工具返回标记：`REFRACT_HOST_TOOL_OK`\n- 工具状态：`isError: false`",
+    "costs": {
+      "production": 0.03423999999999999,
+      "evaluation": 0.0
+    },
+    "tools": [
+      {
+        "node": "connectivity-tool",
+        "call": {
+          "id": "refract_local_echo_0_d5589e3b",
+          "type": "function",
+          "function": {
+            "name": "refract_local_echo",
+            "arguments": "{}"
+          }
+        },
+        "status": "completed",
+        "result": {
+          "isError": false,
+          "content": [
+            {
+              "type": "text",
+              "text": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+            }
+          ],
+          "value": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+        }
+      }
+    ]
+  },
+  {
+    "case": "ark-tools",
+    "status": "completed",
+    "output": "已完成实际调用，结果如下：\n\n- **乘法结果**：12 × 8 = **96**\n- **工具返回标记**：`REFRACT_HOST_TOOL_OK`\n\n工具调用成功（isError: false），返回内容为 \"REFRACT_HOST_TOOL_OK: 12 * 8 = 96\"。",
+    "costs": {
+      "production": 0.22904999999999998,
+      "evaluation": 0.0
+    },
+    "tools": [
+      {
+        "node": "connectivity-tool",
+        "call": {
+          "id": "call_d55a3e9057d045e7ba479624|fc_02179112737676800000000000000000000ffffac15ee419143b4",
+          "type": "function",
+          "function": {
+            "name": "refract_local_echo",
+            "arguments": "{}"
+          }
+        },
+        "status": "completed",
+        "result": {
+          "isError": false,
+          "content": [
+            {
+              "type": "text",
+              "text": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+            }
+          ],
+          "value": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+        }
+      }
+    ]
+  },
+  {
+    "case": "deepseek-direct",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20261004T152300Z-8e0ad0b6c49d",
+    "mode": "live",
+    "strategy": "auto",
+    "strategy_name": "自动路由",
+    "policy_version": "refractagent-auto-runtime-v1",
+    "limits": {
+      "relaxBudget": false,
+      "relaxContext": false
+    },
+    "status": "completed",
+    "answer": "缓存命中率是指缓存系统在处理请求时，成功从缓存中直接返回结果（命中）的次数占总请求次数的比例。",
+    "issues": [],
+    "models": {
+      "answer": "deepseek-flash"
+    },
+    "model_routes": {
+      "answer": {
+        "id": "dsh-model-b1aeb12a74ea9990",
+        "provider": "deepseek-official",
+        "model": "deepseek-flash",
+        "reasoning_effort": "high"
+      }
+    },
+    "evaluation_model": {
+      "id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "high"
+    },
+    "configuration_source": "user",
+    "quality": null,
+    "costs": {
+      "production": 0.000861,
+      "evaluation": 0,
+      "unconfirmed": 0
+    },
+    "billing_unit": "CNY",
+    "generation_status": "completed",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 1315,
+    "plan_origin": "direct-gate",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 2545,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+            ],
+            "covers": [
+              0
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    },
+    "dag": {
+      "phase": "finished",
+      "status": "completed",
+      "simulated": false,
+      "plan_origin": "direct-gate",
+      "reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。",
+      "nodes": [
+        {
+          "id": "__role_placement__",
+          "parents": [],
+          "node_type": "role-placement",
+          "objective": "检查规划节点的敏感级别与部署路线",
+          "state": "ok",
+          "attempt": 1,
+          "model": null,
+          "recovery": null
+        },
+        {
+          "id": "answer",
+          "parents": [
+            "__role_placement__"
+          ],
+          "node_type": "generation",
+          "difficulty": "medium",
+          "risk": "high",
+          "objective": "完整回答当前用户任务，保留要求的输出格式。",
+          "state": "ok",
+          "attempt": 1,
+          "model": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": "high"
+          },
+          "recovery": null
+        }
+      ]
+    },
+    "plan_admission": null,
+    "route_comparison": null,
+    "planner": {
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "basis": "configured-latency-then-price",
+      "output_cap": 2048,
+      "timeout_ms": 12000,
+      "thinking": "inherit",
+      "output_policy": "explicit-cap"
+    },
+    "plan_ready_ms": 0,
+    "model_call_limit": 1,
+    "content_validation": {
+      "source_status": "not-applicable",
+      "passed": null,
+      "invalid_edges": [],
+      "missing_paths": []
+    },
+    "dynamic_decomposition": null,
+    "cost_breakdown": {
+      "planning": 0,
+      "dynamic_planning": 0,
+      "execution": 0.000861,
+      "evaluation": 0
+    },
+    "result_path": "reports/automatic-functional-20261004/batch-04/deepseek-direct/live/20261004T152300Z-8e0ad0b6c49d/result.json",
+    "run_dir": "reports/automatic-functional-20261004/batch-04/deepseek-direct/live/20261004T152300Z-8e0ad0b6c49d",
+    "usage": {
+      "input_tokens": 301,
+      "output_tokens": 140,
+      "cache_read_tokens": 0,
+      "reasoning_tokens": 112
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "model_profile_provenance": null,
+    "artifact_hashes": {
+      "answer.md": "6bb07ad31eecd1d9482dd074d2ded8f05a5acbd85956c9be83bb7cd8e6cd4eda",
+      "manifest.json": "a04ced13579006a085bfd9bdce5cf832f89423c477b5c996a75a1819dee2edee",
+      "plan.json": "6db292891508ff13c08d52552492f96717eb22357273e0e716648c430aecb12c",
+      "profile.json": "f972da69191b33a065b3e611386e2db3442290cf51e3d91397094d65f8c9f817",
+      "progress.ndjson": "5b08284bcdc891728891c09c390c1735fb2f2c7864d46ede5d4e99ad714b233e",
+      "provider-config.json": "d072a1ba76abfc3a874ecce997615a15b326d208ff2e0695c5236e3e01545e3a",
+      "request.json": "bc3e2bdeb7682406a3a99d545d3b7b1beddaeef6cba137c2e5f4b64ea89d8285",
+      "result.json": "c29eabcb74f16ca0d45e36d1783d8f9bf0e6f21c126450743d4e614d5d34ed3b"
+    },
+    "complexity_gate": {
+      "policy_version": "refractagent-complexity-gate-v2",
+      "policy": "auto",
+      "decision": "direct",
+      "rule_decision": "direct",
+      "combination": "rules-only",
+      "forced": false,
+      "reasons": [
+        "short-single-deliverable"
+      ],
+      "statistics": {
+        "task_chars": 12,
+        "context_bytes": 0,
+        "enumerated_items": 0,
+        "sentence_count": 1
+      },
+      "local_decision": null
+    },
+    "review": {
+      "policy": "adaptive",
+      "required": false,
+      "reason": "adaptive-low-risk-direct",
+      "status": "skipped"
+    },
+    "prefix_policy": "legacy"
+  },
+  {
+    "case": "deepseek-dag",
+    "schema_version": "refractagent-result-v1",
+    "run_id": "20261004T152302Z-879dc6363d35",
+    "mode": "live",
+    "strategy": "auto",
+    "strategy_name": "自动路由",
+    "policy_version": "refractagent-auto-runtime-v1",
+    "limits": {
+      "relaxBudget": false,
+      "relaxContext": false
+    },
+    "status": "failed",
+    "answer": "",
+    "issues": [
+      "invalid or truncated output for planner (finish_reason=length, output_tokens=2048, reasoning_tokens=2048, output_cap=2048)"
+    ],
+    "models": {},
+    "model_routes": {},
+    "evaluation_model": {
+      "id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "high"
+    },
+    "configuration_source": "user",
+    "quality": null,
+    "costs": {
+      "production": 0.00841656,
+      "evaluation": 0,
+      "unconfirmed": 0
+    },
+    "billing_unit": "CNY",
+    "generation_status": "not-started",
+    "format_validation": {
+      "schema_version": "output-length-check-v1",
+      "status": "not-requested",
+      "constraints": null,
+      "passed": null,
+      "actual_length": null,
+      "output_sha256": null
+    },
+    "simulated": false,
+    "wall_time_ms": 11133,
+    "plan_origin": "model",
+    "plan": null,
+    "dag": {
+      "phase": "finished",
+      "status": "failed",
+      "simulated": false,
+      "plan_origin": "model",
+      "reason": "",
+      "nodes": [
+        {
+          "id": "__role_placement__",
+          "parents": [],
+          "node_type": "role-placement",
+          "objective": "检查规划节点的敏感级别与部署路线",
+          "state": "pending",
+          "attempt": 0,
+          "model": null,
+          "recovery": null
+        }
+      ]
+    },
+    "plan_admission": null,
+    "route_comparison": null,
+    "planner": {
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "basis": "configured-latency-then-price",
+      "output_cap": 2048,
+      "timeout_ms": 12000,
+      "thinking": "inherit",
+      "output_policy": "explicit-cap"
+    },
+    "plan_ready_ms": null,
+    "model_call_limit": 8,
+    "content_validation": null,
+    "dynamic_decomposition": null,
+    "cost_breakdown": {
+      "planning": 0.00841656,
+      "dynamic_planning": 0,
+      "execution": 0,
+      "evaluation": 0
+    },
+    "result_path": "reports/automatic-functional-20261004/batch-04/deepseek-dag/live/20261004T152302Z-879dc6363d35/result.json",
+    "run_dir": "reports/automatic-functional-20261004/batch-04/deepseek-dag/live/20261004T152302Z-879dc6363d35",
+    "usage": {
+      "input_tokens": 222,
+      "output_tokens": 2048,
+      "cache_read_tokens": 128,
+      "reasoning_tokens": 2048
+    },
+    "profile_scope": "用户配置的模型与推理档位路由预测；不是实测质量、时延或 SLA。",
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "model_profile_provenance": null,
+    "artifact_hashes": {
+      "manifest.json": "a04ced13579006a085bfd9bdce5cf832f89423c477b5c996a75a1819dee2edee",
+      "profile.json": "1389487913acba7f8f45c1a404ab12b35e690067dc07e12f307417c36d9c0c95",
+      "progress.ndjson": "a9356c80433e50eb30c8e3009639fecd809bd95cacb85521cf66141961e406f6",
+      "provider-config.json": "d072a1ba76abfc3a874ecce997615a15b326d208ff2e0695c5236e3e01545e3a",
+      "request.json": "26b252d57730813515a72ef62f3742e26203f7f1ed669d15e2aac51f8b63a564",
+      "result.json": "3e676408054fc2e217072959c149f46aab744b7943d4c34ae6a4b87c379e0199"
+    },
+    "complexity_gate": {
+      "policy_version": "refractagent-complexity-gate-v2",
+      "policy": "dag",
+      "decision": "dag",
+      "forced": true,
+      "reasons": [
+        "forced-dag"
+      ],
+      "statistics": {
+        "task_chars": 53,
+        "context_bytes": 0,
+        "enumerated_items": 0,
+        "sentence_count": 1
+      },
+      "local_decision": null
+    },
+    "review": {
+      "policy": "adaptive",
+      "required": true,
+      "reason": "dag-or-blocked,forced-routing-policy",
+      "status": "pending"
+    },
+    "prefix_policy": "legacy"
+  }
+]

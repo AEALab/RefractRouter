@@ -6,7 +6,8 @@ import type { ClientContext, DshModelCatalog } from './types.js'
 type Report={valid?:boolean;issues?:string[];defaultStrategy?:string;coverage?:string;
   strategies?:Array<{id:string;name:string;available:boolean;issues:string[]}>;
   mediaRoutes?:Array<{id:string;provider:string;model:string;available:boolean;verification:string;issues:string[]}>}
-type ModelMetadata={provider:string;model:string;billingUnit:'USD'|'AFP'|'CNY';
+export type ModelMetadata={provider:string;model:string;billingUnit:'USD'|'AFP'|'CNY';
+  automaticRouting?:{qualityProfile?:{score:number;source:{url:string;metric_version:string}}|null;issues:string[]};
   capacity?:{contextWindow:number;maxOutputTokens:number}|null;
   pricing?:{inputPer1k:number;outputPer1k:number;cachedInputPer1k?:number}|null;
   capabilities?:NonNullable<NonNullable<PlanningConfig['models']>[number]['capabilities']>|null;

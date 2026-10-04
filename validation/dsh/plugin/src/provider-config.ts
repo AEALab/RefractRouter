@@ -58,8 +58,9 @@ export interface LiveExecutionConfiguration {
     threshold?: number
     timeoutMs?: number
     maxInputBytes?: number
+    maxJudgeCostCny?: number
     judge?: {type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
-      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'noul-v1'|'choice-v2'}
+      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'noul-v1'|'choice-v2'} | {type:'jev';modelPath?:never;sourceModel?:never;revision?:never}
   }
 }
 
@@ -80,7 +81,7 @@ export interface DshModelPoolRoute {
     note?: string; quality?: number; latencyMs?: number }
 }
 export interface DshModelPool {
-  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3'
   billingUnit?: string
   allowSharedJudge?: boolean
   routes: DshModelPoolRoute[]
@@ -161,7 +162,7 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
   const decision=value.decompositionDecision
   if(decision!==undefined){
     if(!isRecordValue(decision)||!['rules','hybrid'].includes(String(decision.mode))
-      ||Object.keys(decision).some(key=>!['mode','allowExperimental','threshold','timeoutMs','maxInputBytes','judge'].includes(key))){
+      ||Object.keys(decision).some(key=>!['mode','allowExperimental','threshold','timeoutMs','maxInputBytes','maxJudgeCostCny','judge'].includes(key))){
       throw new Error('invalid liveExecution.decompositionDecision')
     }
     if(decision.allowExperimental!==undefined&&typeof decision.allowExperimental!=='boolean')
@@ -175,7 +176,11 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
       if(decision.allowExperimental!==true||!isRecordValue(decision.judge))
         throw new Error('hybrid decompositionDecision requires an explicitly enabled local Judge')
       const judge=decision.judge
-      if(judge.type!=='local-decision'||typeof judge.adapter!=='string'||!judge.adapter
+      if(judge.type==='jev'){
+        if(Object.keys(judge).some(key=>key!=='type')||typeof decision.maxJudgeCostCny!=='number'
+          ||!Number.isFinite(decision.maxJudgeCostCny)||decision.maxJudgeCostCny<=0)
+          throw new Error('Jev 拆分判别需要明确的正数 CNY 上限')
+      }else if(judge.type!=='local-decision'||typeof judge.adapter!=='string'||!judge.adapter
         ||judge.method!==undefined&&!['noul-v1','choice-v2'].includes(String(judge.method))
         ||!['modelPath','sourceModel','revision'].every(field=>typeof judge[field]==='string'&&String(judge[field]).length>0)
         ||judge.device!==undefined&&!['gpu','metal','cpu'].includes(String(judge.device))
@@ -203,7 +208,7 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 }
 
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
-  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2'].includes(String(value.schemaVersion))
+  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3'].includes(String(value.schemaVersion))
     || !Array.isArray(value.routes) || value.routes.length > 128
     || Object.keys(value).some(key => !['schemaVersion','billingUnit','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
@@ -223,7 +228,7 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
     const identity = `${route.provider}\u0000${route.model}`
     if (identities.has(identity)) throw new Error('dshModelPool route identities must be unique')
     identities.add(identity)
-    const allowedOverrides = value.schemaVersion === 'refractagent-dsh-model-pool-v2'
+    const allowedOverrides = value.schemaVersion === 'refractagent-dsh-model-pool-v3' ? ['note'] : value.schemaVersion === 'refractagent-dsh-model-pool-v2'
       ? ['inputPer1k','cachedInputPer1k','outputPer1k','note']
       : ['inputPer1k','cachedInputPer1k','outputPer1k','quality','latencyMs','note']
     if (route.overrides !== undefined && (!isRecordValue(route.overrides)
@@ -291,7 +296,7 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
 
 /** 显式迁移旧模型池；旧的质量和时延声明不会成为 v2 的运行证据。 */
 export function migrateDshModelPool(value: DshModelPool): DshModelPool {
-  if (value.schemaVersion === 'refractagent-dsh-model-pool-v2') return structuredClone(value)
+  if (value.schemaVersion !== 'refractagent-dsh-model-pool-v1') return structuredClone(value)
   return {
     ...structuredClone(value),
     schemaVersion: 'refractagent-dsh-model-pool-v2',

@@ -41,7 +41,7 @@ function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
   const security = config.dshModelPool?.security ?? config.providerConfig?.security
   const dataMode = object(security) ? security.dataMode : undefined
   const issues: string[] = []
-  if (billingUnit !== 'CNY') issues.push('模型池计费单位必须为 CNY（人民币）')
+  if (billingUnit !== 'CNY' && !(billingUnit === 'AFP' && (!config.dshModelPool || config.dshModelPool.schemaVersion === 'refractagent-dsh-model-pool-v3'))) issues.push('模型池计费单位必须为 CNY 或 AFP，且同一次执行只能使用同单位路线')
   if (dataMode !== 'synthetic') issues.push('首版真实执行只允许 synthetic 数据模式')
   if (live.maxProductionCost !== 'unlimited' && !(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)) issues.push('缺少生产费用上限选择')
   if (live.maxEvaluationCost !== 'unlimited' && !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) issues.push('缺少评审费用上限选择')
@@ -403,7 +403,9 @@ async function dshCatalogSnapshot(ctx: AgentContext, pool: DshModelPool): Promis
           const context=object(raw.context)?raw.context:{}
           const reasoning=object(raw.reasoning)&&Array.isArray(raw.reasoning.efforts)
             ? raw.reasoning.efforts.filter(object).map(row=>String(row.id)) : []
+          const settings=ctx.settings?.get?.('llm-pi-ai') as {providers?:Record<string,{baseURL?:string}>}|undefined
           groups.push({provider:provider.id,model:model.id,name:model.name??model.id,
+            providerBaseURL:settings?.providers?.[provider.id]?.baseURL, inputModalities:raw.inputModalities,
             contextWindow:context.contextWindow,maxOutputTokens:raw.defaultMaxTokens,
             reasoningEfforts:reasoning})
         } catch(error) {
@@ -666,9 +668,17 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
   const decisionConfig=live.decompositionDecision
   let decompositionDecision:Record<string,unknown>|undefined
   if(decisionConfig?.mode==='hybrid'&&live.complexityPolicy==='auto'){
-    if(!planning)throw new Error('REFRACTAGENT_LIVE_DISABLED: 本地拆分判别服务不可用')
+    if(!planning)throw new Error('REFRACTAGENT_LIVE_DISABLED: 拆分判别服务不可用')
     const input=conversation(coreOptions,config.limits?.relaxContext?RELAXED_CONTEXT_BYTES:MAX_CONTEXT_BYTES)
-    decompositionDecision=await planning.decompositionDecision(decisionConfig,input.task,input.context)
+    if(decisionConfig.judge?.type==='jev'){
+      // 配置和执行模型不合格时，先零调用停止，不能先花判别费用。
+      const ready=await invoke(ctx,config,coreOptions,undefined,{mode:'preflight',
+        productionBudget:live.maxProductionCost!,evaluationBudget:live.maxEvaluationCost!,
+        localOnly:true,allowHostTools:allowTools},planning)
+      if(!object(ready.live_authorization_preview)||ready.live_authorization_preview.ready!==true)
+        throw new Error('REFRACTAGENT_LIVE_DISABLED: 执行模型预检未通过；Jev 尚未派发')
+    }
+    decompositionDecision=await planning.decompositionDecision(decisionConfig,input.task,input.context,signal)
   }
   const common = {productionBudget:live.maxProductionCost!,evaluationBudget:live.maxEvaluationCost!,
     localOnly:true,allowHostTools:allowTools,...(decompositionDecision?{decompositionDecision}:{})}
@@ -702,7 +712,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     ...(control?.localOnly ? {complexityPolicy:config.liveExecution!.complexityPolicy,
       reviewPolicy:config.liveExecution!.reviewPolicy,maxDynamicSplits:0,
       maxConcurrency:config.liveExecution!.maxConcurrency ?? 1,
-      ...(config.liveExecution!.maxOutputTokens === 'unlimited' ? {unlimitedNodeOutput:true} : {}),
+      ...(config.liveExecution!.maxOutputTokens === 'unlimited' ? {unlimitedNodeOutput:true} :
+        typeof config.liveExecution!.maxOutputTokens === 'number'?{boundedCallOutput:true}:{}),
       ...(config.liveExecution!.maxTotalOutputTokens ? {maxTotalOutputTokens:config.liveExecution!.maxTotalOutputTokens} : {}),
       ...(config.liveExecution!.providerConcurrency ? {providerConcurrency:config.liveExecution!.providerConcurrency} : {}),
       ...(config.liveExecution!.providerMinIntervalMs ? {providerMinIntervalMs:config.liveExecution!.providerMinIntervalMs} : {}),
@@ -762,8 +773,9 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   let executable: string
   try { executable = await ctx.subprocess.resolveExecutable(config.pythonExecutable, env, signal) }
   catch { throw new Error('RefractAgent 可执行程序未找到；请安装核心并检查插件的运行配置') }
-  const unlimitedNodeOutput = live && config.liveExecution?.maxOutputTokens === 'unlimited'
-  const configuredOutputCap = live && typeof config.liveExecution?.maxOutputTokens === 'number'
+  const useLiveOutputLimits = live || control?.localOnly === true
+  const unlimitedNodeOutput = useLiveOutputLimits && config.liveExecution?.maxOutputTokens === 'unlimited'
+  const configuredOutputCap = useLiveOutputLimits && typeof config.liveExecution?.maxOutputTokens === 'number'
     ? config.liveExecution.maxOutputTokens : config.maxOutputTokens
   const outputCap = unlimitedNodeOutput ? 128000 : Math.min(configuredOutputCap, options.maxTokens ?? configuredOutputCap)
   if (!Number.isInteger(outputCap) || outputCap < 1000) throw new Error('RefractAgent requires maxTokens >= 1000')

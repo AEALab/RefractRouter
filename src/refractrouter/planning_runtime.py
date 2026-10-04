@@ -64,6 +64,8 @@ class PlanningRuntime(StageHybridRuntime):
         self.lock = RLock()
         self.local_judges = {}
         self.local_service = LocalJudgeProcess()
+        from .decomposition_jev import DecompositionJevRuntime
+        self.decomposition_jev = DecompositionJevRuntime(Path(runs_dir) / "decomposition")
 
     @staticmethod
     def local_judge_key(config):
@@ -1689,7 +1691,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "composite-task-stage-v1",
-                "decomposition-decision-v1", "local-judge-jobs", "local-decision-backends-v1",
+                "decomposition-decision-v1", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "jev-complete":
             return self.complete_jev(self.runs[request["runId"]], request)
@@ -1712,6 +1714,14 @@ class PlanningRuntime(StageHybridRuntime):
             return self.automatic_local_judge(request)
         if operation == "decomposition-decision":
             return self.decomposition_decision(request)
+        if operation == "decomposition-jev-preflight":
+            return self.decomposition_jev.prepare(request)
+        if operation == "decomposition-jev-begin":
+            return self.decomposition_jev.begin(request)
+        if operation == "decomposition-jev-complete":
+            return self.decomposition_jev.complete(request)
+        if operation == "decomposition-jev-stop":
+            return self.decomposition_jev.stop(request["callId"])
         if operation == "history":
             session = request.get("session")
             records = []

@@ -96,8 +96,10 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
             'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls',
-            'decompositionDecision'}:
+            'decompositionDecision', 'boundedCallOutput'}:
         raise ValueError('invalid RefractAgent request fields')
+    if 'boundedCallOutput' in payload and type(payload['boundedCallOutput']) is not bool:
+        raise ValueError('boundedCallOutput must be boolean')
     validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
     if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext', 'unlimitedTime'}
@@ -200,6 +202,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     strategy, request, context, limits = build_request(
         payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
         automatic_routing=automatic_routing)
+    if payload.get('boundedCallOutput'):
+        request['unrestrictedPlanning'] = False
+        request['plannerMaxOutputTokens'] = min(max_output_tokens, 2048)
     if automatic_routing and mode in {'preflight', 'live'}:
         if (tool_runtime is None) != ('maxDshToolCalls' not in payload):
             raise ValueError('REFRACTAGENT_TOOLS_DISABLED: DSH 工具目录与调用上限必须同时提供')
@@ -250,8 +255,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if automatic_routing and mode == 'live':
         if configured.snapshot.get('security', {}).get('dataMode') != 'synthetic':
             raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 首版真实执行仅允许 synthetic 数据模式')
-        if manifest.billing_unit not in {'USD', 'CNY'}:
-            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD 或 CNY 模型池')
+        if manifest.billing_unit not in {'USD', 'CNY', 'AFP'}:
+            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD、CNY 或 AFP 同单位模型池')
         if (request.get('maxPlanRepairs', 0) != 0 or request.get('maxDynamicSplits', 0) != 0
                 or request.get('maxNodeFallbacks', 0) != 0):
             raise ValueError('live canary requires zero repair/split/fallback')

@@ -1,0 +1,113 @@
+{
+  "schema": "automatic-functional-preflight-v1",
+  "status": "awaiting-cash-authorization",
+  "date": "2026-10-04",
+  "modelCallsExecuted": 0,
+  "routes": [
+    {
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "unit": "CNY",
+      "endpoint": "https://api.moonshot.cn/v1",
+      "maxCalls": 4,
+      "inputUpperBound": 65536,
+      "outputLimit": 2048,
+      "pricing": {
+        "inputPer1k": 0.02,
+        "cachedInputPer1k": 0.002,
+        "outputPer1k": 0.1
+      },
+      "maximumCost": 6.06208,
+      "sources": {
+        "capacity": "DSH 模型适配器",
+        "pricing": "https://platform.moonshot.cn/docs/pricing/chat",
+        "pricingCheckedAt": "2026-10-04",
+        "pricingNote": "Kimi 官方 CNY；默认 5m 缓存写入与未缓存输入同价，互斥计量，不重复加收。当前适配未开启 1h TTL；费用按返回用量估算，以官方账单为准。",
+        "cacheAccounting": "https://platform.moonshot.cn/docs/guide/context-caching"
+      }
+    },
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "unit": "CNY",
+      "endpoint": "https://api.deepseek.com",
+      "maxCalls": 10,
+      "inputUpperBound": 65536,
+      "outputLimit": 2048,
+      "pricing": {
+        "inputPer1k": 0.002,
+        "outputPer1k": 0.008,
+        "cachedInputPer1k": 4e-05
+      },
+      "maximumCost": 1.47456,
+      "sources": {
+        "capacity": "DSH 模型适配器",
+        "pricing": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+        "pricingCheckedAt": "2026-09-24",
+        "pricingNote": "DeepSeek 官方人民币价，按北京时间工作日峰谷时段估算；预算预留采用高峰上界，实际扣费以 DeepSeek 账单为准"
+      },
+      "pricingBasis": "高峰预留上界，与自动路由编译器一致"
+    },
+    {
+      "provider": "ark",
+      "model": "glm-5.3",
+      "unit": "AFP",
+      "endpoint": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "maxCalls": 4,
+      "inputUpperBound": 65536,
+      "outputLimit": 2048,
+      "pricing": {
+        "inputPer1k": 0.45,
+        "outputPer1k": 0.45,
+        "cachedInputPer1k": 0.45
+      },
+      "maximumCost": 121.6512,
+      "sources": {
+        "capacity": "DSH 模型适配器",
+        "pricing": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+        "pricingCheckedAt": "2026-09-12"
+      }
+    }
+  ],
+  "maximumCosts": {
+    "CNY": 7.53664,
+    "AFP": 121.6512
+  },
+  "limits": {
+    "CNY": 8,
+    "AFP": 122,
+    "timeoutPerFlowMs": 300000,
+    "httpRetries": 0,
+    "maxNodeFallbacks": 1
+  },
+  "cases": [
+    {
+      "id": "kimi-tools",
+      "description": "Kimi 官方合成算术任务及一次宿主工具续接，含必要评审，最多四次调用。"
+    },
+    {
+      "id": "ark-tools",
+      "description": "Ark GLM 合成算术任务及一次宿主工具续接，含必要评审，最多四次调用。"
+    },
+    {
+      "id": "deepseek-direct",
+      "description": "DeepSeek 简单定义任务，最多两次调用。"
+    },
+    {
+      "id": "deepseek-dag",
+      "description": "独立核对两份合成数据并汇总，验证真实规划与节点执行，最多六次调用。"
+    },
+    {
+      "id": "bounded-fallback",
+      "description": "同次验收的受控节点失败只做无网络跨模型测试；剩余两次 DeepSeek 调用用于前述流程必要续接，不以 HTTP 重试消耗。"
+    }
+  ],
+  "rules": [
+    "输入上界沿用核心序列化字节加256的保守规则，完整系统消息、工具和历史均计入；超限停止，不截断。",
+    "不调用 Jev，不扩展现金模型列表；普通外部云只接收合成资料，不发送本机路径或私有内容。",
+    "按路线分别运行，不修改日常计费组、预算、角色或信任配置。",
+    "用量未知、认证、账本或证据写入错误停止整批；不自动重试，不覆盖失败记录。",
+    "真实模型不一定产生工具调用或多节点；未触发如实报告，不靠更换样本声称通过。",
+    "源码版本、实际请求和安装包摘要需在派发前再次冻结；本文件是费用与范围预检，不是已完成真实验收。"
+  ]
+}

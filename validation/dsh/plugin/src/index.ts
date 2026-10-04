@@ -1,4 +1,5 @@
 import { TOOL_PROTOCOL, type NativeToolsBridge } from './native-tools.js'
+import { modelTemperature } from './model-wire-options.js'
 import { decodeTaskSummary, registerTaskTool, TASK_SUMMARY_SCHEMA, type TaskArguments } from './task-tool.js'
 import type { Writable } from 'node:stream'
 import type {
@@ -505,7 +506,7 @@ export async function callDshLlm(
       model: request.model,
       messages,
       system: system.length === 0 ? undefined : system.join('\n\n'),
-      temperature: Number(request.temperature ?? 0),
+      temperature: modelTemperature(request.provider, request.model, Number(request.temperature ?? 0)),
       maxTokens: Number(request.max_tokens),
       signal: callSignal,
     }

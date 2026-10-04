@@ -1,0 +1,239 @@
+{
+  "budget": [
+    {
+      "production": 0.22904999999999998,
+      "evaluation": 0.0
+    },
+    [
+      {
+        "label": "connectivity-tool",
+        "model_id": "dsh-model-7077bbf6a06daaa6",
+        "category": "production",
+        "reserved": 1.2514500000000002,
+        "charged": 0.0909,
+        "status": "billed",
+        "reserved_output_tokens": 2048,
+        "input_sha256": "63a0b0aef476128b0cb184babb64986826b70b0124fe5e4dc56a9b36a67c219d",
+        "request_messages": [
+          {
+            "role": "system",
+            "content": "只执行给定合成验收任务。必须使用真实工具结果，不得伪造。"
+          },
+          {
+            "role": "user",
+            "content": "请实际调用 refract_local_echo 一次读取合成验收数据，然后回答乘法结果和工具返回标记。"
+          }
+        ],
+        "request_tools": [
+          {
+            "name": "refract_local_echo",
+            "description": "返回合成功能验收数据：12乘8等于96。",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        ],
+        "dispatch_monotonic": 1319976.735338625,
+        "dispatch_at": "2026-10-04T15:22:51.657741+00:00",
+        "response_output": "",
+        "response": {
+          "content": "",
+          "input_tokens": 194,
+          "output_tokens": 8,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0,
+          "latency_ms": 4978,
+          "attempts": 1,
+          "finish_reason": "tool_calls",
+          "request_id": "resp_0217911273719038f4f8ecdaf0d8a16803f1d267b7ea40d2a6e3d",
+          "usage_available": true,
+          "raw_usage": null,
+          "tool_calls": [
+            {
+              "id": "call_d55a3e9057d045e7ba479624|fc_02179112737676800000000000000000000ffffac15ee419143b4",
+              "type": "function",
+              "function": {
+                "name": "refract_local_echo",
+                "arguments": "{}"
+              }
+            }
+          ],
+          "replay_messages": [],
+          "replay_state": {
+            "response": {
+              "kind": "pi-ai",
+              "version": 2,
+              "api": "openai-responses",
+              "provider": "ark",
+              "model": "glm-5.3",
+              "responseId": "resp_0217911273719038f4f8ecdaf0d8a16803f1d267b7ea40d2a6e3d",
+              "stopReason": "toolUse"
+            },
+            "blocks": [
+              {
+                "type": "tool-call"
+              }
+            ]
+          },
+          "cache_usage_source": null,
+          "ttft_ms": null
+        },
+        "input_tokens": 194,
+        "output_tokens": 8,
+        "cached_input_tokens": 0,
+        "cache_usage_source": null,
+        "cache_usage_available": false,
+        "ttft_ms": null,
+        "reasoning_tokens": 0,
+        "latency_ms": 4978,
+        "request_id": "resp_0217911273719038f4f8ecdaf0d8a16803f1d267b7ea40d2a6e3d",
+        "finish_reason": "tool_calls",
+        "output_sha256": "9216cbd29d17cf8ccef9e3645bd0add0500f3a668c39ef7994f0cb2615a84859"
+      },
+      {
+        "label": "connectivity-tool:tool-round-1",
+        "model_id": "dsh-model-7077bbf6a06daaa6",
+        "category": "production",
+        "reserved": 1.61505,
+        "charged": 0.13815,
+        "status": "billed",
+        "reserved_output_tokens": 2048,
+        "input_sha256": "e7a6de6bbc06af1e70c2d99cbd2f088d5ce00d82e616731a5ca5afc0115c6772",
+        "request_messages": [
+          {
+            "role": "system",
+            "content": "只执行给定合成验收任务。必须使用真实工具结果，不得伪造。"
+          },
+          {
+            "role": "user",
+            "content": "请实际调用 refract_local_echo 一次读取合成验收数据，然后回答乘法结果和工具返回标记。"
+          },
+          {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "call_d55a3e9057d045e7ba479624|fc_02179112737676800000000000000000000ffffac15ee419143b4",
+                "type": "function",
+                "function": {
+                  "name": "refract_local_echo",
+                  "arguments": "{}"
+                }
+              }
+            ],
+            "_dsh_source": {
+              "provider": "ark",
+              "model": "glm-5.3"
+            },
+            "_dsh_replay_state": {
+              "response": {
+                "kind": "pi-ai",
+                "version": 2,
+                "api": "openai-responses",
+                "provider": "ark",
+                "model": "glm-5.3",
+                "responseId": "resp_0217911273719038f4f8ecdaf0d8a16803f1d267b7ea40d2a6e3d",
+                "stopReason": "toolUse"
+              },
+              "blocks": [
+                {
+                  "type": "tool-call"
+                }
+              ]
+            }
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "call_d55a3e9057d045e7ba479624|fc_02179112737676800000000000000000000ffffac15ee419143b4",
+            "content": "{\"isError\": false, \"content\": [{\"type\": \"text\", \"text\": \"REFRACT_HOST_TOOL_OK: 12 * 8 = 96\"}]}"
+          }
+        ],
+        "request_tools": [
+          {
+            "name": "refract_local_echo",
+            "description": "返回合成功能验收数据：12乘8等于96。",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        ],
+        "dispatch_monotonic": 1319981.720228458,
+        "dispatch_at": "2026-10-04T15:22:56.642583+00:00",
+        "response_output": "已完成实际调用，结果如下：\n\n- **乘法结果**：12 × 8 = **96**\n- **工具返回标记**：`REFRACT_HOST_TOOL_OK`\n\n工具调用成功（isError: false），返回内容为 \"REFRACT_HOST_TOOL_OK: 12 * 8 = 96\"。",
+        "response": {
+          "content": "已完成实际调用，结果如下：\n\n- **乘法结果**：12 × 8 = **96**\n- **工具返回标记**：`REFRACT_HOST_TOOL_OK`\n\n工具调用成功（isError: false），返回内容为 \"REFRACT_HOST_TOOL_OK: 12 * 8 = 96\"。",
+          "input_tokens": 241,
+          "output_tokens": 66,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0,
+          "latency_ms": 4325,
+          "attempts": 1,
+          "finish_reason": "stop",
+          "request_id": "resp_0217911273768278f4f8ecdaf0d8a16803f1d267b7ea40d53fe49",
+          "usage_available": true,
+          "raw_usage": null,
+          "tool_calls": [],
+          "replay_messages": [],
+          "replay_state": {
+            "response": {
+              "kind": "pi-ai",
+              "version": 2,
+              "api": "openai-responses",
+              "provider": "ark",
+              "model": "glm-5.3",
+              "responseId": "resp_0217911273768278f4f8ecdaf0d8a16803f1d267b7ea40d53fe49",
+              "stopReason": "stop"
+            },
+            "blocks": [
+              {
+                "type": "text",
+                "textSignature": "{\"v\":1,\"id\":\"msg_02179112738046600000000000000000000ffffac15a4c2328b79\"}"
+              }
+            ]
+          },
+          "cache_usage_source": null,
+          "ttft_ms": null
+        },
+        "input_tokens": 241,
+        "output_tokens": 66,
+        "cached_input_tokens": 0,
+        "cache_usage_source": null,
+        "cache_usage_available": false,
+        "ttft_ms": null,
+        "reasoning_tokens": 0,
+        "latency_ms": 4325,
+        "request_id": "resp_0217911273768278f4f8ecdaf0d8a16803f1d267b7ea40d53fe49",
+        "finish_reason": "stop",
+        "output_sha256": "b576d7bb6bffb7123691f5a04235590dcb7a8779660c51ba214bcb9f3966fa51"
+      }
+    ]
+  ],
+  "tools": [
+    {
+      "node": "connectivity-tool",
+      "call": {
+        "id": "call_d55a3e9057d045e7ba479624|fc_02179112737676800000000000000000000ffffac15ee419143b4",
+        "type": "function",
+        "function": {
+          "name": "refract_local_echo",
+          "arguments": "{}"
+        }
+      },
+      "status": "completed",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+          }
+        ],
+        "value": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+      }
+    }
+  ]
+}

@@ -834,3 +834,16 @@ test('settings drafts reject embedded secrets and expose incomplete credential r
   assert.match(String(controller.getSnapshot().providerJsonError), /environment-variable reference/)
   controller.dispose()
 })
+
+test('实际路线模型池保留 v3、AFP 单位并禁止手填价格', () => {
+  const pool={...dshModelPool(),schemaVersion:'refractagent-dsh-model-pool-v3' as const,billingUnit:'AFP',
+    routes:dshModelPool().routes.map(({overrides:_old,...route})=>route)}
+  assert.equal(migrateDshModelPool(pool).schemaVersion,'refractagent-dsh-model-pool-v3')
+  const config=configure({dshModelPool:pool})
+  assert.equal(config.dshModelPool?.billingUnit,'AFP')
+  assert.throws(()=>configure({dshModelPool:{...pool,routes:pool.routes.map(route=>({...route,
+    overrides:{inputPer1k:0,outputPer1k:0}}))}}),/overrides/)
+  const issues=buildDshModelPoolIssues(pool)
+  assert.equal(issues.some(issue=>issue.code==='DSH_POOL_MANUAL_PROFILE_INCOMPLETE'),false)
+  assert.equal(issues.some(issue=>issue.code==='DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'),true)
+})

@@ -614,6 +614,101 @@
           "metric_version": "Ark minimax-m3 supported model name"
         }
       ]
+    },
+    {
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "effective_model": "Kimi-K3",
+      "pricing": {
+        "unit": "USD",
+        "inputPer1k": 0.003,
+        "cachedInputPer1k": 0.0003,
+        "outputPer1k": 0.015
+      },
+      "pricing_basis": {
+        "kind": "manufacturer-reference",
+        "equivalence": "unverified",
+        "manufacturer": "Moonshot AI",
+        "actualProviderBilling": false,
+        "note": "官方 USD 仅作历史参考；中国站实际 CNY 价格由共享模型资料查询提供，不用汇率代替。"
+      },
+      "pricing_schedule": {
+        "unit": "USD",
+        "perTokens": 1000,
+        "dimensions": [
+          "cacheWriteTtl"
+        ],
+        "tiers": [
+          {
+            "id": "default-5m-cache-write",
+            "conditions": {
+              "cacheWriteTtl": "5m-default"
+            },
+            "prices": {
+              "inputPer1k": 0.003,
+              "cachedInputPer1k": 0.0003,
+              "cacheWritePer1k": 0.003,
+              "outputPer1k": 0.015
+            },
+            "budgetPricing": {
+              "inputPer1k": 0.003,
+              "cachedInputPer1k": 0.0003,
+              "outputPer1k": 0.015
+            }
+          },
+          {
+            "id": "extended-1h-cache-write",
+            "conditions": {
+              "cacheWriteTtl": "1h"
+            },
+            "prices": {
+              "inputPer1k": 0.003,
+              "cachedInputPer1k": 0.0003,
+              "cacheWritePer1k": 0.006,
+              "outputPer1k": 0.015
+            },
+            "budgetPricing": {
+              "inputPer1k": 0.006,
+              "cachedInputPer1k": 0.0003,
+              "outputPer1k": 0.015
+            }
+          }
+        ]
+      },
+      "pricing_materialization": {
+        "strategy": "conservative-upper-bound",
+        "selectedTier": "default-5m-cache-write",
+        "note": "按默认 5m 缓存：写入、未缓存输入和读取互斥，写入与普通输入同价；1h 未启用。"
+      },
+      "quality_profile": {
+        "score": 98.23,
+        "raw_score": 44,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 3 of 114",
+        "normalization": "(114-3)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/kimi-k3/",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; Kimi K3 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
+      "sources": [
+        {
+          "kind": "official-pricing",
+          "url": "https://platform.kimi.ai/docs/pricing/chat",
+          "retrieved_at": "2026-09-22T08:00:00Z",
+          "metric_version": "Kimi K3 input, cache write, cached input and output pricing"
+        },
+        {
+          "kind": "provider-model-equivalence",
+          "url": "https://platform.moonshot.cn/docs/guide/kimi-k3-quickstart",
+          "retrieved_at": "2026-10-04",
+          "metric_version": "Kimi K3 官方路线；沿用已冻结的同模型 max 质量先验，不代表本机验收或各推理档效果"
+        }
+      ]
     }
   ]
 }

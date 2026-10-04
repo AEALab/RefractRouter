@@ -47,6 +47,15 @@ def lookup(request):
             result["sources"]["pricing"] = row.get("pricing_source_url", ark["pricing_url"])
             result["sources"]["pricingCheckedAt"] = row.get("pricing_checked_at", "2026-09-12")
     else:
+        if (provider == "moonshot" and model == "kimi-k3" and unit == "CNY"
+                and request.get("providerBaseURL") == "https://api.moonshot.cn/v1"):
+            # 官方缓存合同：读、写、未缓存输入互斥；默认 5m 写入与普通输入同价。
+            result["pricing"] = {"inputPer1k": .02, "cachedInputPer1k": .002, "outputPer1k": .1}
+            result["sources"].update(pricing="https://platform.moonshot.cn/docs/pricing/chat",
+                pricingCheckedAt="2026-10-04",
+                pricingNote="Kimi 官方 CNY；默认 5m 缓存写入与未缓存输入同价，互斥计量，不重复加收。"
+                "当前适配未开启 1h TTL；费用按返回用量估算，以官方账单为准。",
+                cacheAccounting="https://platform.moonshot.cn/docs/guide/context-caching")
         official_cny = deepseek_cny_pricing(model) if provider == "deepseek-official" and unit == "CNY" else None
         if official_cny:
             result["pricing"] = {key: official_cny[key] for key in
@@ -82,4 +91,9 @@ def lookup(request):
                 f"Ark Agent Plan 按 AFP 计量；当前预算单位 {unit}，不能把订阅点数当作现金价格")
         else:
             result["issues"].append(f"没有 {unit} 单位下可核对的实际路线价格")
+    profiles = load_frozen_profiles()
+    profile = next((row for row in profiles["profiles"]
+        if row["provider"] == provider and row["model"] == model), {})
+    result["automaticRouting"] = {"qualityProfile": profile.get("quality_profile"),
+        "issues": [*result["issues"], *([] if profile.get("quality_profile") else ["缺少自动路由所需的独立质量资料；不影响规划路由指定使用"]) ]}
     return result

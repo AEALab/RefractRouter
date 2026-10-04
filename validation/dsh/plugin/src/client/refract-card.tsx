@@ -1,3 +1,4 @@
+import type { ModelMetadata } from './planning.js'
 /** RefractAgent 设置卡片：遵循宿主卡片外观与表单交互。 */
 import { useEffect, useState } from 'react'
 import examples from '../provider-examples.json' with { type: 'json' }
@@ -32,6 +33,7 @@ export interface RefractCardOwnerProps {
   editDshModelPool(value:DshModelPoolView):void
   editRouter(value:RouterConnectionView|undefined):void
   editLiveExecution(value:LiveExecutionView|undefined):void
+  loadMetadata(provider:string,model:string,billingUnit:string):Promise<ModelMetadata>
   loadCatalog():Promise<DshModelCatalog>
   loadRouterProjects(connection:{url:string;credential?:string}):Promise<RouterProjectDirectory>
   loadRouteProfiles(connection?:{url:string;credential?:string;project?:string}):Promise<RouteLatencyDirectory>
@@ -139,6 +141,14 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const [catalogError,setCatalogError]=useState<string|undefined>()
   const [routerProjects,setRouterProjects]=useState<RouterProjectDirectory|undefined>()
   const [routerError,setRouterError]=useState<string|undefined>()
+  const [actualMetadata,setActualMetadata]=useState<Record<string,ModelMetadata>>({})
+  useEffect(()=>{let active=true
+    for(const group of catalog?.groups??[]){if(group.id==='refractagent')continue
+      for(const model of group.models)void props.loadMetadata(group.id,model.id,'AUTO').then(info=>{
+        if(active)setActualMetadata(previous=>({...previous,[group.id+'/'+model.id]:info}))
+      }).catch(error=>{if(active)setCatalogError(String(error))})}
+    return()=>{active=false}
+  },[catalog])
   const [routeProfiles,setRouteProfiles]=useState<RouteLatencyDirectory|undefined>()
   const [routeProfilesError,setRouteProfilesError]=useState<string|undefined>()
   const [automaticJudgeStatus,setAutomaticJudgeStatus]=useState<{installed:boolean;downloaded:boolean;loaded:boolean;
@@ -205,7 +215,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
     ...(state.provider?.security?{security:state.provider.security}:{}),
     ...(state.provider?.trustPolicies?{trustPolicies:state.provider.trustPolicies.filter((row):row is Record<string,unknown>=>row!==null&&typeof row==='object'&&!Array.isArray(row))}:{})})
   const migratePool=(next:DshModelPoolView):DshModelPoolView=>({...next,
-    schemaVersion:'refractagent-dsh-model-pool-v2',routes:next.routes.map(route=>{const overrides={...route.overrides}
+    schemaVersion:next.schemaVersion==='refractagent-dsh-model-pool-v3'?'refractagent-dsh-model-pool-v3':'refractagent-dsh-model-pool-v2',routes:next.routes.map(route=>{const overrides={...route.overrides}
       delete overrides.quality;delete overrides.latencyMs
       return {...route,...(Object.keys(overrides).length?{overrides}:{overrides:undefined})}})})
   const updatePool=(next:DshModelPoolView)=>props.editDshModelPool(migratePool(next))
@@ -216,13 +226,24 @@ export function RefractCard(props: RefractCardOwnerProps) {
       maxProductionCost:typeof live.maxProductionCost==='number'?live.maxProductionCost*currencyRate.rate:live.maxProductionCost,
       maxEvaluationCost:typeof live.maxEvaluationCost==='number'?live.maxEvaluationCost*currencyRate.rate:live.maxEvaluationCost})
   }
+  const actualPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v3'
+  const migrateActualPool=()=>{if(!pool)return
+    updatePool({...pool,schemaVersion:'refractagent-dsh-model-pool-v3',routes:pool.routes.map(row=>{
+      const {overrides:_old,...route}=row;return {...route,enabled:false}}),roleOverrides:{}})
+    updateLive({enabled:false})
+  }
+  const switchBillingGroup=(unit:string)=>{if(!pool||unit===pool.billingUnit)return
+    updatePool({...pool,billingUnit:unit,routes:pool.routes.map(row=>({...row,enabled:false})),roleOverrides:{}})
+    props.editLiveExecution({...live,enabled:false,maxProductionCost:undefined,maxEvaluationCost:undefined})
+  }
   const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
     .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
   const identity=(provider:string,model:string)=>provider+'/'+model
   const updateRoute=(provider:string,model:string,enabled:boolean)=>{
     if(!pool)return
     const routes=pool.routes.filter(row=>!(row.provider===provider&&row.model===model))
-    if(enabled)routes.push({provider,model,enabled:true,deployment:''})
+    if(enabled){const prior=pool.routes.find(row=>row.provider===provider&&row.model===model)
+      routes.push(prior?{...prior,enabled:true}:{provider,model,enabled:true,deployment:''})}
     updatePool({...pool,routes})
   }
   const patchRoute=(provider:string,model:string,patch:Record<string,unknown>)=>{
@@ -379,24 +400,40 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     onChange={event=>updateLive({reviewPolicy:event.target.value as LiveExecutionView['reviewPolicy']})}>
                     <option value="adaptive">{t('liveReviewAdaptive')}</option><option value="always">{t('liveReviewAlways')}</option></select>
                   <span className="rra-field-hint">{t('liveReviewHint')}</span></label></div>
-              <div className="rra-strategy"><h4 className="rra-strategy-name">拆分前本地判别</h4>
+              <div className="rra-strategy"><h4 className="rra-strategy-name">拆分前判别</h4>
                 <label className="rra-compact-field">判断方式<select className="rra-select" disabled={disabled}
                   value={decomposition.mode} onChange={event=>{
                     setAutomaticJudgeStatus(undefined);setAutomaticJudgeError(undefined)
                     patchDecomposition(event.target.value==='hybrid'
-                      ?{mode:'hybrid',allowExperimental:true,judge:decomposition.judge??defaultAutomaticJudge(),
+                      ?{mode:'hybrid',allowExperimental:true,judge:decomposition.judge??{type:'jev'},
                         threshold:decomposition.threshold??.65,timeoutMs:decomposition.timeoutMs??30000,
                         maxInputBytes:decomposition.maxInputBytes??65536}
                       :{mode:'rules',allowExperimental:undefined,judge:undefined})
-                  }}><option value="rules">仅规则（默认）</option><option value="hybrid">规则＋本地 Laya（实验）</option></select>
-                  <span className="rra-field-hint">本地模型回答「是否依赖前步结果」与「能否独立开始」两项是非题；Python 仍负责准入、费用和最终 direct／DAG 决策。旧配置的 choice-v2 仅是历史误名，实际也执行这两项是非题。</span></label>
-                {decomposition.mode==='hybrid'&&decomposition.judge?<><div className="rra-grid rra-grid-2">
+                  }}><option value="rules">仅规则（默认）</option><option value="hybrid">规则＋Judge（实验）</option></select>
+                  <span className="rra-field-hint">Judge 回答「是否依赖前步结果」与「能否独立开始」两项是非题；Python 仍负责准入、费用和最终 direct／DAG 决策。旧配置的 choice-v2 仅是历史误名，实际也执行这两项是非题。</span></label>
+                {decomposition.mode==='hybrid'?<><label className="rra-compact-field">拆分 Judge
+                  <select className="rra-select" disabled={disabled} value={decomposition.judge?.type??'jev'}
+                    onChange={event=>patchDecomposition({judge:event.target.value==='jev'?{type:'jev'}:defaultAutomaticJudge()})}>
+                    <option value="jev">Jev（共用已配置渠道，推荐 OpenRouter）</option>
+                    <option value="local-decision">本地 Laya（实验）</option></select></label>
+                  {decomposition.judge?.type==='jev'?<>
+                    <p className="rra-field-hint">复用规划路由的 Jev 渠道、凭证引用和信任设置。每任务最多一次结构判别；不替代规划器或结果评审。</p>
+                    <label className="rra-compact-field">拆分 Judge 单任务上限（CNY）
+                      <input className="rra-input" type="number" min="0.001" step="0.01" disabled={disabled}
+                        value={decomposition.maxJudgeCostCny??''}
+                        onChange={event=>patchDecomposition({maxJudgeCostCny:event.target.value===''?undefined:Number(event.target.value)})}/>
+                    </label><p className="rra-field-hint">费用独立记录，不计入 AFP，也不修改执行模型预算。未配置或不足以预留时不会调用。</p>
+                    <label className="rra-compact-field">是非判别门槛<input className="rra-input" type="number" min="0.5" max="1" step="0.01" disabled={disabled}
+                      value={decomposition.threshold??.65} onChange={event=>patchDecomposition({threshold:Number(event.target.value)})}/></label>
+                    <p className="rra-warning">Jev 的拆分专项效果尚在观察；保留实验标识。门槛作用于 Noul 的是／否概率，不是 Choice confidence。</p>
+                  </>:null}</>:null}
+                {decomposition.mode==='hybrid'&&decomposition.judge?.type==='local-decision'?<><div className="rra-grid rra-grid-2">
                   <label className="rra-compact-field">本地权重目录<input className="rra-input" disabled={disabled}
-                    value={decomposition.judge.modelPath} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,modelPath:event.target.value}})}/></label>
+                    value={decomposition.judge.modelPath} onChange={event=>patchDecomposition({judge:{...defaultAutomaticJudge(),...decomposition.judge,type:'local-decision',modelPath:event.target.value}})}/></label>
                   <label className="rra-compact-field">固定 revision<input className="rra-input" disabled={disabled}
-                    value={decomposition.judge.revision} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,revision:event.target.value}})}/></label>
+                    value={decomposition.judge.revision} onChange={event=>patchDecomposition({judge:{...defaultAutomaticJudge(),...decomposition.judge,type:'local-decision',revision:event.target.value}})}/></label>
                   <label className="rra-compact-field">Checkpoint<input className="rra-input" disabled={disabled}
-                    value={decomposition.judge.sourceModel} onChange={event=>patchDecomposition({judge:{...decomposition.judge!,sourceModel:event.target.value}})}/></label>
+                    value={decomposition.judge.sourceModel} onChange={event=>patchDecomposition({judge:{...defaultAutomaticJudge(),...decomposition.judge,type:'local-decision',sourceModel:event.target.value}})}/></label>
                   <label className="rra-compact-field">确定门槛<input className="rra-input" type="number" min="0.5" max="1" step="0.01" disabled={disabled}
                     value={decomposition.threshold??.65} onChange={event=>patchDecomposition({threshold:Number(event.target.value)})}/>
                     <span className="rra-field-hint">初始值 0.65；低于门槛归为无法确定，不解释为正确率。</span></label></div>
@@ -413,7 +450,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   {automaticJudgeError?<p className="rra-invalid" role="alert">{automaticJudgeError}</p>:null}
                   <p className="rra-warning">该 checkpoint 的拆分专项验收为 7／18，未达质量门槛；此模式保持实验标识，日常使用请保持默认规则。</p></>:null}
               </div>
-              <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{t('liveProductionBudget')}</label>
+              <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{actualPool?`单任务生产硬上限（${pool.billingUnit}）`:t('liveProductionBudget')}</label>
                 <input id="rra-production-budget" className="rra-input" type="number" min="0" step="0.001"
                   disabled={disabled||live.maxProductionCost==='unlimited'}
                   value={live.maxProductionCost==='unlimited'?'':live.maxProductionCost??''}
@@ -421,7 +458,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <label className="rra-check"><input type="checkbox" disabled={disabled} aria-label={t('liveProductionUnlimited')}
                   checked={live.maxProductionCost==='unlimited'}
                   onChange={event=>updateLive({maxProductionCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div>
-                <div className="rra-compact-field"><label htmlFor="rra-evaluation-budget">{t('liveEvaluationBudget')}</label>
+                <div className="rra-compact-field"><label htmlFor="rra-evaluation-budget">{actualPool?`单任务评审硬上限（${pool.billingUnit}）`:t('liveEvaluationBudget')}</label>
                   <input id="rra-evaluation-budget" className="rra-input" type="number" min="0" step="0.001"
                     disabled={disabled||live.maxEvaluationCost==='unlimited'}
                     value={live.maxEvaluationCost==='unlimited'?'':live.maxEvaluationCost??''}
@@ -478,10 +515,14 @@ export function RefractCard(props: RefractCardOwnerProps) {
             </div>:null}
             {pool.schemaVersion==='refractagent-dsh-model-pool-v1'?<button type="button" className="rra-button rra-button-secondary"
               disabled={disabled} onClick={()=>updatePool(pool)}>{t('poolMigrateV2')}</button>:null}
-            {pool.billingUnit!=='CNY'?<div className="rra-issue-summary" role="status"><strong>旧配置使用 USD 记账</strong>
+            {!actualPool&&pool.billingUnit!=='CNY'?<div className="rra-issue-summary" role="status"><strong>旧配置使用 USD 记账</strong>
               <span>点击迁移后，原厂 USD 单价按中国银行 {currencyRate.as_of} 冻结中间价 1 USD = {currencyRate.rate} CNY 换算；现有生产和评审预算同时按同一汇率转换，保存后人民币金额生效。</span>
               <button type="button" className="rra-button rra-button-secondary" disabled={disabled} onClick={migrateCurrency}>迁移为人民币（CNY）记账</button></div>:null}
-            {pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与费用记账：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
+            {!actualPool&&pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与费用记账：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
+            {!actualPool?<button type="button" className="rra-button" disabled={disabled} onClick={migrateActualPool}>升级为实际路线价格（重新选择模型后启用）</button>:<label className="rra-compact-field">自动路由计费组
+              <select className="rra-select" value={pool.billingUnit} disabled={disabled} onChange={event=>switchBillingGroup(event.target.value)}>
+                <option value="CNY">现金 CNY（DeepSeek 官方等）</option><option value="AFP">订阅 AFP（Ark，含 Kimi）</option></select>
+              <span className="rra-field-hint">价格与容量共用规划路由资料。一次自动路由只比较同单位模型；切换计费组会清除旧预算并暂停真实执行，重新设置后启用。Jev 的 CNY 费用单独记录。</span></label>}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
             {routeProfilesError?<p className="rra-warning">{t('poolLatencyReadError')}: {routeProfilesError}</p>:null}
@@ -497,14 +538,27 @@ export function RefractCard(props: RefractCardOwnerProps) {
             {catalog?.failures.map(row=><p className="rra-invalid" key={row.id}>{row.name}: {row.message}</p>)}
             {catalogRows.map(row=>{const selected=pool.routes.find(route=>route.provider===row.provider&&route.model===row.model)
               const routeKey=identity(row.provider,row.model);const profile=frozenModelProfile(row.provider,row.model)
+              const metadata=actualMetadata[routeKey]
+              const metadataIssues=metadata?.automaticRouting?.issues??metadata?.issues??[]
+              const unavailable=actualPool&&(!metadata||metadata.billingUnit!==pool.billingUnit||metadataIssues.length>0)
               const selectedIssues=routeIssues(routeKey);const latencyProfile=observedProfile(routeKey)
               return <div className="rra-row-card" key={routeKey}><label className="rra-check">
-                <input type="checkbox" checked={!!selected} disabled={disabled} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
-                <strong>{row.providerName} / {row.name}</strong></label>{selected?<><label className="rra-compact-field">{t('poolDeployment')}
+                <input type="checkbox" checked={!!selected&&selected.enabled!==false} disabled={disabled||(!(selected&&selected.enabled!==false)&&unavailable)} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
+                <strong>{row.providerName} / {row.name}</strong></label>
+                {actualPool?<div className="rra-profile">{!metadata?<span>正在读取模型资料…</span>:<>
+                  <span>{metadata.billingUnit} · {metadata.capacity?`上下文 ${metadata.capacity.contextWindow} / 输出 ${metadata.capacity.maxOutputTokens}`:'容量待核对'}</span>
+                  {metadata.pricing?<span>每千 tokens：输入 {metadata.pricing.inputPer1k} · 缓存 {metadata.pricing.cachedInputPer1k} · 输出 {metadata.pricing.outputPer1k} {metadata.billingUnit}</span>:null}
+                  {metadata.sources?.pricing?<a href={metadata.sources.pricing} target="_blank" rel="noreferrer">实际路线价格来源 · {metadata.sources.pricingCheckedAt}</a>:null}
+                  {metadata.sources?.pricingNote?<span>{metadata.sources.pricingNote}</span>:null}
+                  {metadata.billingUnit!==pool.billingUnit?<span>请切换到 {metadata.billingUnit} 计费组使用</span>:null}
+                  {metadataIssues.map(issue=><span className="rra-warning" key={issue}>{issue}</span>)}
+                  {metadata.automaticRouting?.qualityProfile?<span>独立质量先验 {metadata.automaticRouting.qualityProfile.score}/100（非任务成功率）</span>:null}
+                </>}</div>:null}
+                {selected&&selected.enabled!==false?<><label className="rra-compact-field">{t('poolDeployment')}
                 <select className="rra-select" disabled={disabled} value={selected.deployment} onChange={event=>{const deployment=event.target.value;patchRoute(row.provider,row.model,{deployment,...(['trusted-cloud','simulated-local'].includes(deployment)?{}:{trustPolicy:undefined})})}}>
                   <option value="">{t('poolSelectDeployment')}</option>{DEPLOYMENT_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 {selected.deployment==='trusted-cloud'||selected.deployment==='simulated-local'?<label className="rra-compact-field">{t('poolTrustPolicy')}<select className="rra-select" disabled={disabled} value={selected.trustPolicy??''} onChange={event=>patchRoute(row.provider,row.model,{trustPolicy:event.target.value||undefined})}><option value="">{t('poolSelectTrustPolicy')}</option>{trustPolicyOptions.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>:null}
-                {profile?<div className="rra-profile"><strong>{t('poolPublicProfile')} · {profile.effective_model??routeKey}</strong>
+                {!actualPool&& (profile?<div className="rra-profile"><strong>{t('poolPublicProfile')} · {profile.effective_model??routeKey}</strong>
                   <span>{t('poolFrozenAt')}: {FROZEN_MODEL_PROFILES.frozen_at}</span><div className="rra-profile-prices">
                     <span>{t('poolInputPrice')}: {formatUsdPricePer1k(profile.pricing.inputPer1k)}</span>
                     <span>{t('poolCachedPrice')}: {formatUsdPricePer1k(profile.pricing.cachedInputPer1k)}</span>
@@ -518,9 +572,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   <details className="rra-details"><summary>{t('poolPriceDetails')}</summary>
                     <p>{profile.pricing_materialization?.note}</p>{profile.pricing_schedule?.tiers.map(tier=><p key={tier.id}><strong>{tier.id}</strong> · {formatPriceConditions(tier.conditions)} · {Object.entries(tier.prices).map(([key,value])=>`${key} ${formatUsdPricePer1k(value)}`).join(' · ')}</p>)}
                     {profile.sources.map(source=><p key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.metric_version}</a> · {source.retrieved_at}</p>)}</details>
-                </div>:<div className="rra-profile"><strong>{t('poolNoPublicProfile')}</strong><span>{t('poolManualProfileHint')}</span><span className="rra-invalid">{t('poolMissingQualityEvidence')}</span></div>}
+                </div>:<div className="rra-profile"><strong>{t('poolNoPublicProfile')}</strong><span>{t('poolManualProfileHint')}</span><span className="rra-invalid">{t('poolMissingQualityEvidence')}</span></div>)}
                 {selectedIssues.map(issue=><p className={issue.severity==='error'?'rra-invalid':'rra-warning'} key={issue.code}>{issue.message}</p>)}
-                {v4Advanced?<><div className="rra-grid rra-grid-3">{[['inputPer1k',t('poolInputPer1k')],['cachedInputPer1k',t('poolCachedPer1k')],['outputPer1k',t('poolOutputPer1k')]].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" min="0" disabled={disabled} placeholder={profile?String(profile.pricing[key as keyof typeof profile.pricing]??''):''} value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
+                {v4Advanced&&!actualPool?<><div className="rra-grid rra-grid-3">{[['inputPer1k',t('poolInputPer1k')],['cachedInputPer1k',t('poolCachedPer1k')],['outputPer1k',t('poolOutputPer1k')]].map(([key,label])=><label className="rra-compact-field" key={key}>{label}<input className="rra-input" type="number" min="0" disabled={disabled} placeholder={profile?String(profile.pricing[key as keyof typeof profile.pricing]??''):''} value={String(selected.overrides?.[key]??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,[key]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>)}</div>
                 <label className="rra-compact-field">{t('poolNote')}<input className="rra-input" disabled={disabled} value={String(selected.overrides?.note??'')} onChange={event=>patchRoute(row.provider,row.model,{overrides:{...selected.overrides,note:event.target.value||undefined}})}/></label>
                 <button type="button" className="rra-reset" disabled={disabled} onClick={()=>clearRouteOverrides(row.provider,row.model)}>{t('poolRestoreProfile')}</button></>:null}</>:null}</div>})}
             {!catalog?<p className="rra-field-hint">{t('poolLoadingCatalog')}</p>:null}

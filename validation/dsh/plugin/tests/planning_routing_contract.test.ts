@@ -71,6 +71,20 @@ async function fixture(strategy:PlanningStrategy='static'){
 }
 async function collect(iterable:AsyncIterable<Record<string,unknown>>){const out:Record<string,unknown>[]=[];for await(const v of iterable)out.push(v);return out}
 
+test('规划路由 Kimi 官方传输省略固定温度且保留所选推理等级',async()=>{
+  const f=await fixture('static')
+  try{
+    const saved=structuredClone(config)
+    saved.models![0]={...saved.models![0],provider:'moonshot',model:'kimi-k3',reasoningEffort:'high'}
+    f.setPlanning(saved)
+    await collect(f.controller.stream({...f.options,temperature:0}))
+    assert.equal(f.calls[0].provider,'moonshot')
+    assert.equal(f.calls[0].model,'kimi-k3')
+    assert.equal(f.calls[0].temperature,undefined)
+    assert.equal(f.calls[0].reasoningEffort,'high')
+  }finally{await f.cleanup()}
+})
+
 test('Stage 新配置保持旧规则及原生工具边界',async()=>{
   const f=await fixture('stage')
   try{
@@ -706,4 +720,43 @@ test('未完成的规划模型容量不会破坏旧入口的目录元数据',asy
     assert.ok(models.some(m=>m.id==='balanced'))
     assert.ok(Number.isFinite(models.find(m=>m.id==='planning')?.context?.contextWindow))
   }finally{await f.cleanup()}
+})
+
+test('自动拆分经 OpenRouter 单次判别、独立现金结算且不执行工具',async()=>{
+  const f=await fixture(),originalFetch=globalThis.fetch
+  let calls=0
+  try{
+    f.setPlanning({...config,jev:{route:'openrouter',credentialRef:'test-openrouter'}})
+    f.ctx.credentials.resolve=async()=>({value:'fixture-key'}) as any
+    globalThis.fetch=async(url,init)=>{
+      calls++
+      assert.equal(url,'https://openrouter.ai/api/alpha/decisions')
+      assert.equal(init?.redirect,'error')
+      const payload=JSON.parse(String(init?.body))
+      assert.equal(Object.keys(payload.questions).length,2)
+      assert.deepEqual(payload.provider,{only:['TypeSafe'],allow_fallbacks:false})
+      return new Response(JSON.stringify({model:'typesafe/jev-1.13-20260917',provider:'TypeSafe',id:'gen-test',
+        usage:{input_tokens:50,output_tokens:8,cost:.0000021},answers:{
+          requires_previous_output:{type:'noul',noul:.04},can_start_independently:{type:'noul',noul:.95}}}))
+    }
+    const decision={mode:'hybrid' as const,allowExperimental:true,judge:{type:'jev' as const},maxJudgeCostCny:.02}
+    const result=await f.controller.decompositionDecision(decision,'分别整理苹果和梨的特征','')
+    assert.equal(result.verdict,'SEPARABLE');assert.equal(result.backend,'jev')
+    assert.equal(result.provider,'openrouter');assert.ok(result.costCny>0)
+    assert.equal(calls,1);assert.equal(f.toolExecutions,0)
+    await assert.rejects(f.controller.decompositionDecision(decision,'分别整理苹果和梨的特征',''),/不会重复调用/)
+    assert.equal(calls,1)
+  }finally{globalThis.fetch=originalFetch;await f.cleanup()}
+})
+
+test('自动拆分预算不足与历史依赖均不会发送 Jev 请求',async()=>{
+  const f=await fixture(),originalFetch=globalThis.fetch
+  try{
+    f.setPlanning({...config,jev:{route:'openrouter'}})
+    globalThis.fetch=async()=>{throw new Error('不应联网')}
+    const decision={mode:'hybrid' as const,allowExperimental:true,judge:{type:'jev' as const},maxJudgeCostCny:.000001}
+    await assert.rejects(f.controller.decompositionDecision(decision,'分别整理苹果和梨的特征',''),/预算不足/)
+    const result=await f.controller.decompositionDecision({...decision,maxJudgeCostCny:.02},'继续处理上述方案','之前的历史')
+    assert.equal(result.verdict,'UNKNOWN');assert.equal(result.reason,'context-dependent')
+  }finally{globalThis.fetch=originalFetch;await f.cleanup()}
 })

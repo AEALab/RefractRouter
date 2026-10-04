@@ -1,0 +1,250 @@
+{
+  "budget": [
+    {
+      "production": 0.03423999999999999,
+      "evaluation": 0.0
+    },
+    [
+      {
+        "label": "connectivity-tool",
+        "model_id": "dsh-model-06fd0d4ad75fef1d",
+        "category": "production",
+        "reserved": 0.21946000000000002,
+        "charged": 0.01246,
+        "status": "billed",
+        "reserved_output_tokens": 2048,
+        "input_sha256": "63a0b0aef476128b0cb184babb64986826b70b0124fe5e4dc56a9b36a67c219d",
+        "request_messages": [
+          {
+            "role": "system",
+            "content": "只执行给定合成验收任务。必须使用真实工具结果，不得伪造。"
+          },
+          {
+            "role": "user",
+            "content": "请实际调用 refract_local_echo 一次读取合成验收数据，然后回答乘法结果和工具返回标记。"
+          }
+        ],
+        "request_tools": [
+          {
+            "name": "refract_local_echo",
+            "description": "返回合成功能验收数据：12乘8等于96。",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        ],
+        "dispatch_monotonic": 1319965.961734375,
+        "dispatch_at": "2026-10-04T15:22:40.884276+00:00",
+        "response_output": "",
+        "response": {
+          "content": "",
+          "input_tokens": 218,
+          "output_tokens": 81,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0,
+          "latency_ms": 5519,
+          "attempts": 1,
+          "finish_reason": "tool_calls",
+          "request_id": "chatcmpl-6ac26f419fb6e1b766086efc",
+          "usage_available": true,
+          "raw_usage": null,
+          "tool_calls": [
+            {
+              "id": "refract_local_echo_0_d5589e3b",
+              "type": "function",
+              "function": {
+                "name": "refract_local_echo",
+                "arguments": "{}"
+              }
+            }
+          ],
+          "replay_messages": [],
+          "replay_state": {
+            "response": {
+              "kind": "pi-ai",
+              "version": 2,
+              "api": "openai-completions",
+              "provider": "moonshot",
+              "model": "kimi-k3",
+              "responseId": "chatcmpl-6ac26f419fb6e1b766086efc",
+              "stopReason": "toolUse"
+            },
+            "blocks": [
+              {
+                "type": "reasoning",
+                "thinkingSignature": "reasoning_content"
+              },
+              {
+                "type": "tool-call"
+              }
+            ]
+          },
+          "cache_usage_source": null,
+          "ttft_ms": null
+        },
+        "input_tokens": 218,
+        "output_tokens": 81,
+        "cached_input_tokens": 0,
+        "cache_usage_source": null,
+        "cache_usage_available": false,
+        "ttft_ms": null,
+        "reasoning_tokens": 0,
+        "latency_ms": 5519,
+        "request_id": "chatcmpl-6ac26f419fb6e1b766086efc",
+        "finish_reason": "tool_calls",
+        "output_sha256": "42d5df27bd7bf9a7818c42a92aa02ce346819e29efb6d45cd4901bf8d212ed1c"
+      },
+      {
+        "label": "connectivity-tool:tool-round-1",
+        "model_id": "dsh-model-06fd0d4ad75fef1d",
+        "category": "production",
+        "reserved": 0.23438,
+        "charged": 0.02178,
+        "status": "billed",
+        "reserved_output_tokens": 2048,
+        "input_sha256": "4471e16c91a0ca30cc1547107b168cb23d930b42ad45030b44e63644980ac1a9",
+        "request_messages": [
+          {
+            "role": "system",
+            "content": "只执行给定合成验收任务。必须使用真实工具结果，不得伪造。"
+          },
+          {
+            "role": "user",
+            "content": "请实际调用 refract_local_echo 一次读取合成验收数据，然后回答乘法结果和工具返回标记。"
+          },
+          {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "refract_local_echo_0_d5589e3b",
+                "type": "function",
+                "function": {
+                  "name": "refract_local_echo",
+                  "arguments": "{}"
+                }
+              }
+            ],
+            "_dsh_source": {
+              "provider": "moonshot",
+              "model": "kimi-k3"
+            },
+            "_dsh_replay_state": {
+              "response": {
+                "kind": "pi-ai",
+                "version": 2,
+                "api": "openai-completions",
+                "provider": "moonshot",
+                "model": "kimi-k3",
+                "responseId": "chatcmpl-6ac26f419fb6e1b766086efc",
+                "stopReason": "toolUse"
+              },
+              "blocks": [
+                {
+                  "type": "reasoning",
+                  "thinkingSignature": "reasoning_content"
+                },
+                {
+                  "type": "tool-call"
+                }
+              ]
+            }
+          },
+          {
+            "role": "tool",
+            "tool_call_id": "refract_local_echo_0_d5589e3b",
+            "content": "{\"isError\": false, \"content\": [{\"type\": \"text\", \"text\": \"REFRACT_HOST_TOOL_OK: 12 * 8 = 96\"}]}"
+          }
+        ],
+        "request_tools": [
+          {
+            "name": "refract_local_echo",
+            "description": "返回合成功能验收数据：12乘8等于96。",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          }
+        ],
+        "dispatch_monotonic": 1319971.487558166,
+        "dispatch_at": "2026-10-04T15:22:46.410030+00:00",
+        "response_output": "已实际调用 `refract_local_echo` 一次。\n\n- 乘法结果：`12 * 8 = 96`\n- 工具返回标记：`REFRACT_HOST_TOOL_OK`\n- 工具状态：`isError: false`",
+        "response": {
+          "content": "已实际调用 `refract_local_echo` 一次。\n\n- 乘法结果：`12 * 8 = 96`\n- 工具返回标记：`REFRACT_HOST_TOOL_OK`\n- 工具状态：`isError: false`",
+          "input_tokens": 324,
+          "output_tokens": 153,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0,
+          "latency_ms": 5240,
+          "attempts": 1,
+          "finish_reason": "stop",
+          "request_id": "chatcmpl-6ac26f47c1f02e36df57efbb",
+          "usage_available": true,
+          "raw_usage": null,
+          "tool_calls": [],
+          "replay_messages": [],
+          "replay_state": {
+            "response": {
+              "kind": "pi-ai",
+              "version": 2,
+              "api": "openai-completions",
+              "provider": "moonshot",
+              "model": "kimi-k3",
+              "responseId": "chatcmpl-6ac26f47c1f02e36df57efbb",
+              "stopReason": "stop"
+            },
+            "blocks": [
+              {
+                "type": "reasoning",
+                "thinkingSignature": "reasoning_content"
+              },
+              {
+                "type": "text"
+              }
+            ]
+          },
+          "cache_usage_source": null,
+          "ttft_ms": null
+        },
+        "input_tokens": 324,
+        "output_tokens": 153,
+        "cached_input_tokens": 0,
+        "cache_usage_source": null,
+        "cache_usage_available": false,
+        "ttft_ms": null,
+        "reasoning_tokens": 0,
+        "latency_ms": 5240,
+        "request_id": "chatcmpl-6ac26f47c1f02e36df57efbb",
+        "finish_reason": "stop",
+        "output_sha256": "2b7fc8cd6f0cc3b285aeb52038f0e5a5bae59250256d17bd160b9cd11fcff1f6"
+      }
+    ]
+  ],
+  "tools": [
+    {
+      "node": "connectivity-tool",
+      "call": {
+        "id": "refract_local_echo_0_d5589e3b",
+        "type": "function",
+        "function": {
+          "name": "refract_local_echo",
+          "arguments": "{}"
+        }
+      },
+      "status": "completed",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+          }
+        ],
+        "value": "REFRACT_HOST_TOOL_OK: 12 * 8 = 96"
+      }
+    }
+  ]
+}
