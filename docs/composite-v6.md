@@ -18,8 +18,8 @@ Composite 使用 `refractagent-planning-v6` 的独立配置，不再依赖通用
 
 - `pool`：Task 候选模型池及稳定优先顺序；
 - `takeover`：Task 无法确定时的备援，也是 Stage 临时接管模型；
-- `judge`：Task 的轻量 LLM 或本地 Laya Judge；
-- `stage`：后续采用规则模式或规则＋本地 Laya 模式。
+- `judge`：Task 的轻量 LLM、本地 Laya 或官方 Jev Judge；
+- `stage`：后续采用规则模式，或实验性的规则＋本地 Laya／官方 Jev 模式。
 
 Task 只在任务开始时执行一次。单一合格候选会跳过 Judge。首次执行直接使用 Task 选出的
 常用模型，不紧接着再做一次 Stage 判别。工具续接和追加指导沿用同一 Task 结果。

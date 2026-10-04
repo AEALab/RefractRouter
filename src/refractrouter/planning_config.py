@@ -698,6 +698,8 @@ def preview(raw, host_issues=None):
                 model_id = judge["modelId"]
                 if model_id in c["model_issues"]:
                     issues.append(f"Advisor Judge {model_id} 配置未完成（{c['model_issues'][model_id]}）")
+                elif model_id in (host_issues or {}):
+                    issues.append(f"Advisor Judge {model_id}：{host_issues[model_id]}")
                 elif model_id in c["models"] and c["models"][model_id].billing_unit not in c["budgets"]:
                     issues.append(f"Advisor Judge 缺少 {c['models'][model_id].billing_unit} 生产预算")
             elif judge["type"] == "local-decision":

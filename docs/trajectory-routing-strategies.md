@@ -160,7 +160,8 @@ Task+Stage 组合、结束轮审核及连续升级锁定机制。没有复制上
   当前简化分数为 `tanh(0.5 × (severity / 0.7 + spinning - production / 0.7))`。
   不把持续检索自动判为空转。默认数值未经收益实验校准。
 - Task v3 判别输出不合法时停止，不自动修复或重复调用；正常不确定才检查指定备援。
-  Composite 仍维持既有两档判别合同，后续升级另行验收。
+  Composite v6 复用 Task 模型池初选，再以规则或实验性 Judge 模式进行后续 Stage 判断；
+  旧版 Composite 仍按原两档合同读取。
 - Escalation v4 使用独立 `escalation-decision-v1`，不会把 Task 适合度分数当作回复审核。
   `PROCEED` 放行，`DEFECT` 立即接管，工具过程 `STALL` 连续达到门槛后接管，最终回复
   `STALL` 与 `UNCERTAIN` 立即接管。无效结构、认证、传输和用量未知都会停止，不会转成升级。

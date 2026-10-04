@@ -9,9 +9,30 @@
 | 实验 | 接线存在，但 Judge 质量或宿主能力尚未达到日常使用门槛 |
 | 未验收 | 尚无足够证据支持该组合 |
 
-本表记录截至 2026-09-30 的证据。Router 只负责选模、审核候选和模型费用；工具执行、
+本表记录截至 2026-10-04 的证据。Router 只负责选模、审核候选和模型费用；工具执行、
 权限、上下文、委派和任务推进仍由客户端负责。表中的“真实”表示真实客户端及上游路线，
 不表示策略已证明优于固定模型。
+
+## 六策略产品状态
+
+2026-09-29 的 DSH 正常路径批次完成 128／128 个受控文本与原生工具任务；
+2026-09-30 的关键分支批次另完成 24／24 个受控流程。两批使用当时冻结的
+DSH 0.1.5-rc.3、插件 0.29.0 和核心 0.15.4。后续 OpenRouter Jev 接线及
+门槛界面分别使用核心 0.15.7、插件 0.29.3／0.29.4 验收，不能把旧批次直接解释为
+新 Judge 组合的质量结果。
+
+| 策略 | 已通过的功能 | 当前质量与使用边界 |
+| --- | --- | --- |
+| Static | 固定／随机选模、原生工具及账本；正常路径 12／12 | 可作为固定模型基线；随机抽样不保证质量或节省费用 |
+| Stage | 规则模式的正常续接 24／24；可信重复失败升级、保持和恢复 6／6 | DSH 有结构化工具证据时可用；规则＋Jev／Laya 的逐轮判别仍属实验 |
+| Task | 任务开始一次选模并固定执行；正常路径 20／20 | LLM／Jev 与本地 Laya 的判别质量须分别看题集；当前 Laya checkpoint 未达日常门槛 |
+| Composite | Task 初选后由 Stage 规则切换；正常 24／24、受控关键分支 6／6 | 关键分支的 Task 初选用了夹具；规则＋Judge 轨迹判别仍属实验 |
+| Advisor Gate | 最终回复缓冲、审核、返工、复审；正常 24／24、受控关键分支 6／6 | OpenRouter Jev 已完成真实工具任务，但自然任务误放行率尚无充分证据；Laya 未达门槛 |
+| Escalation | 候选缓冲、判别、接管及任务内锁定；正常 24／24、受控关键分支 6／6 | OpenRouter Jev 已完成真实工具任务，但该任务的正常工具请求因 0.8 门槛触发接管；需继续观察误升级；Laya 未达门槛 |
+
+“配置可执行”只表示零调用准入检查通过，不代表 Judge 判断正确或策略已经证明降低成本。
+任务收益须同时报告质量、全部实际调用费用和等待时间。当前没有证据支持六种策略在开放任务上
+普遍优于 Static。
 
 ## 策略与客户端
 
@@ -30,6 +51,7 @@
 | --- | --- | --- |
 | 轻量 LLM Judge | Task、Advisor、Escalation 与 Composite 已接通；各自验收范围不同 | 只使用策略自己的判别合同，不跨策略解释分数 |
 | 本地 Laya-MLX | Task、Stage、Composite、Advisor 和 Escalation 可配置 | 当前固定 revision 的质量未达到日常门槛，统一显示实验状态 |
+| 官方 Jev | Task、Stage 协作、Composite 的 Task／Stage、Advisor、Escalation 已接通；默认 OpenRouter 新配置，旧配置保持原渠道 | 五种策略有限真实接线通过；Advisor／Escalation 的 0.8 单一概率门槛为默认，分动作门槛为实验；各用途判别质量分别核对 |
 | 图片输入 | DSH 有原生内容块，部分模型目录已声明能力 | 尚未完成规划路由的完整真实矩阵 |
 | 图片生成／编辑 | Seedream 路线已保存接线与官方价格 | 尚未完成真实付费接口验收，不派发受管生成请求 |
 | 影片输入／输出 | 未接通 | DSH 0.1.5 尚无完整影片内容块、上传、播放器和持久化合同 |
@@ -56,8 +78,11 @@ composite-return-base`。DSH 关键分支已使用受控 Task 初选和真实执
   默认路线，不从正文里的“失败”猜测执行结果。
 - Codex CLI 与 Hermes 的可选工具证据适配已经通过隔离无付费验收；本轮按用户要求没有写入
   两者的日常配置。
-- DSH 当前 profile 的六种策略零调用诊断全部可用，默认策略为 Stage。媒体诊断仍明确显示
-  尚未通过真实接口验收。
+- DSH 当前 profile 的六种策略零调用诊断全部显示配置可执行，默认策略为规则 Stage。
+  Task 使用本地 Laya 实验后端，Composite 使用 LLM Task Judge 与规则 Stage，
+  Advisor／Escalation 使用 OpenRouter Jev。媒体诊断仍明确显示尚未通过真实接口验收。
+
+日常选择与费用说明见[规划路由使用指南](planning-routing-daily-use.md)。
 
 证据索引：
 
@@ -68,3 +93,6 @@ composite-return-base`。DSH 关键分支已使用受控 Task 初选和真实执
 - [Advisor 与 Composite 验收](../reports/advisor-composite-product-acceptance-20260929/README.md)
 - [Escalation 验收](../reports/escalation-acceptance-20260927/README.md)
 - [客户端工具证据适配](client-tool-evidence.md)
+- [OpenRouter Jev 与原 profile 验收](../reports/jev-openrouter-20261003/README.md)
+- [Jev 门槛核对](../reports/jev-gate-review-20261003/README.md)
+- [规划路由产品收尾核对](../reports/planning-route-closeout-20261004/README.md)

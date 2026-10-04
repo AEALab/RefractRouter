@@ -92,13 +92,16 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   const snapshot=useSyncExternalStore(cb=>scope.subscribe(cb),()=>scope.getSnapshot())
   const saved=snapshot.value?.planningRouting??EMPTY_PLANNING
   const [draft,setDraft]=useState<PlanningConfig>(()=>structuredClone(saved))
+  const [editingStrategy,setEditingStrategy]=useState<PlanningStrategy>(()=>saved.defaultStrategy??'stage')
+  const [editingTouched,setEditingTouched]=useState(false)
   const [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[status,setStatus]=useState('')
   const [report,setReport]=useState<Report>(),[catalog,setCatalog]=useState<DshModelCatalog>()
   const [advanced,setAdvanced]=useState('')
   const [metadata,setMetadata]=useState<Record<string,ModelMetadata>>({})
   const [metadataErrors,setMetadataErrors]=useState<Record<string,string>>({})
   const [localJudgeStatus,setLocalJudgeStatus]=useState<{installed:boolean;downloaded:boolean;loaded:boolean;path:string;revisionVerified:boolean;sizeBytes:number}>()
-  useEffect(()=>{if(!dirty)setDraft(structuredClone(saved))},[saved,dirty])
+  useEffect(()=>{if(!dirty){setDraft(structuredClone(saved));if(!editingTouched)setEditingStrategy(saved.defaultStrategy??'stage')}},
+    [saved,dirty,editingTouched])
   useEffect(()=>{void loadCatalog().then(setCatalog).catch(e=>setStatus(errorText(e)))},[loadCatalog])
   function patch(value:Partial<PlanningConfig>){setDraft(v=>({...v,...value}));setDirty(true);setReport(undefined)}
   const modelKey=(provider:string,model:string,unit:string)=>JSON.stringify([provider,model,unit])
@@ -152,8 +155,8 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
       setStatus(selected?.available
-        ?'已保存；当前策略可运行。其他策略的限制见零调用诊断。现有任务继续使用启动时配置。'
-        :'已保存；当前策略暂不可运行，请查看零调用诊断。')}
+        ?'已保存；默认策略配置可执行。其他策略的限制见零调用诊断。现有任务继续使用启动时配置。'
+        :'已保存；默认策略配置暂不可执行，请查看零调用诊断。')}
     catch(e){setStatus(errorText(e))}finally{setBusy(false)}
   }
   async function operateLocalJudge(action:'status'|'download'|'load'|'unload',target?:string){
@@ -298,7 +301,9 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     ...(draft.composite?.pool??[]),
     ...(draft.composite?.judge.type==='llm'?[draft.composite.judge.modelId]:[]),
     ...(draft.escalation?[draft.escalation.initial,draft.escalation.takeover]:[]),
-    ...(draft.escalation?.judge.type==='llm'?[draft.escalation.judge.modelId]:[])]
+    ...(draft.escalation?.judge.type==='llm'?[draft.escalation.judge.modelId]:[]),
+    ...(draft.advisor?.executor?[draft.advisor.executor]:[]),
+    ...(draft.advisor?.judge.type==='llm'?[draft.advisor.judge.modelId]:[])]
     .filter((id):id is string=>Boolean(id)))]
   const activeUnits=[...new Set([...activeModelIds.map(id=>{
     const unit=draft.models?.find(model=>model.id===id)?.billingUnit??draft.billingUnit??'CNY'
@@ -313,7 +318,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   return <section className="rra-v4-section rra-planning" aria-label="规划路由设置">
     <div className="rra-section-head"><div><h3>规划路由</h3><p className="rra-field-hint">根据任务与执行轨迹选择模型，使用 DSH 原生工具、审批与委派。</p></div>{dirty&&<span className="rra-badge">未保存</span>}</div>
     <label className="rra-check"><input type="checkbox" checked={draft.enabled} onChange={e=>patch({enabled:e.target.checked})}/>启用独立规划路由</label>
-    <div className="rra-row-card"><h3>通用运行设置</h3><p className="rra-field-hint">现金预算统一使用 CNY；USD 模型价格优先采用可核对的官方人民币价格，否则按冻结汇率折算。AFP 点数单独结算。留空表示该单位尚未配置；0 表示不限制。当前角色使用：{activeUnits.join('、')}。</p>
+    <div className="rra-row-card"><h3>通用运行设置</h3><p className="rra-field-hint">现金预算统一使用 CNY；USD 模型价格优先采用可核对的官方人民币价格，否则按冻结汇率折算。AFP 点数单独结算。留空表示该单位尚未配置；0 表示不限制。已配置模型与路线涉及：{activeUnits.join('、')}。</p>
     <div className="rra-grid rra-grid-2">{(['AFP','CNY'] as const).map(unit=><label className="rra-compact-field" key={unit}>{unit==='AFP'?'AFP 点数预算':'CNY 现金预算'}（0 为不限制） <input className="rra-input" type="number" min="0" step="any"
       value={draft.maxProductionCostByUnit?.[unit]??(unit===(draft.billingUnit??'USD')?draft.maxProductionCost:'')??''}
       onChange={e=>patch({maxProductionCostByUnit:{...draft.maxProductionCostByUnit,
@@ -321,7 +326,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     <div className="rra-grid rra-grid-2"><label className="rra-compact-field">任务期限（毫秒，0 为不限制） <input className="rra-input" type="number" min="0" value={draft.timeoutMs??300000} onChange={e=>patch({timeoutMs:Number(e.target.value)})}/></label>
       <label className="rra-compact-field">最大调用数（0 为不限制） <input className="rra-input" type="number" min="0" value={draft.maxCalls??128} onChange={e=>patch({maxCalls:Number(e.target.value)})}/></label></div></div>
     <div className="rra-row-card"><h3>官方 Jev Judge</h3>
-      <p className="rra-field-hint">Jev 1.13 为云端结构化判别模型；在各策略的 Judge 类型中单独选择。密钥保存在 DSH 凭证服务或环境变量，设置里只保存引用。费用折算为 CNY，输出 token 免费。</p>
+      <p className="rra-field-hint">Jev 1.13 为云端结构化判别模型；在各策略的 Judge 类型中单独选择。密钥保存在 DSH 凭证服务或环境变量，设置里只保存引用。费用折算为 CNY；OpenRouter 按回执实付金额结算。</p>
       <label className="rra-compact-field">Jev 接入方式 <select className="rra-select" value={draft.jev?.route??'typesafe'} onChange={e=>{
         const route=e.target.value as 'typesafe'|'openrouter'
         patch({jev:{...draft.jev,route,credentialRef:route==='openrouter'?'OPENROUTER_API_KEY':'TYPESAFE_API_KEY',
@@ -402,8 +407,11 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       </div></details>
     })}</div>
     <div className="rra-row-card"><h3>策略设置</h3><label className="rra-compact-field">默认路由策略 <select className="rra-select" value={draft.defaultStrategy??'stage'} onChange={e=>patch({defaultStrategy:e.target.value as PlanningStrategy})}>
-      {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><p className="rra-field-hint">{HELP[draft.defaultStrategy??'stage']}</p><p className="rra-field-hint">保存后从下个任务生效；当前任务继续使用启动时配置。</p>
-    {draft.defaultStrategy==='stage'&&<div className="rra-planning-fields">
+      {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+      <label className="rra-compact-field">正在编辑的策略 <select className="rra-select" value={editingStrategy} onChange={e=>{setEditingStrategy(e.target.value as PlanningStrategy);setEditingTouched(true)}}>
+        {Object.entries(PLANNING_NAMES).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+      <p className="rra-field-hint">{HELP[editingStrategy]}</p><p className="rra-field-hint">切换编辑对象不会改变默认策略；配置保存后从下个任务生效。</p>
+    {editingStrategy==='stage'&&<div className="rra-planning-fields">
       <p>通常使用高效模型，遇到困难时切换强模型。规则负责边界和保持；协作判别可选择本地 Laya 或官方 Jev。</p>
       <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
         {...draft.stage,mode:'hybrid',judge:draft.stage?.judge??(draft.task?.judge.type==='local-decision'?draft.task.judge:
@@ -443,7 +451,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>
       </>}
     </div>}
-    {draft.defaultStrategy==='task'&&<div className="rra-planning-fields">
+    {editingStrategy==='task'&&<div className="rra-planning-fields">
       <p>Task 在新任务开始时从模型池选择一次主执行模型；工具续接、上下文压缩和进行中的追加指导沿用该模型。</p>
       <p className="rra-field-hint">先检查任务能力、数据域和本轮预算，再逐一判断候选是否适合。达到适合度门槛后，按同一计费单位下的首次执行费用上界选择；这不是完整任务预计费用。AFP 与现金不直接比较，缺少可比证据时使用指定备援。可靠时延资料不足时沿用模型池顺序。</p>
       {!draft.task&&<div className="rra-simple-status"><strong>尚未升级 Task 设置</strong><span>旧配置仍按高效／强执行两角色运行。升级只预填草稿，不下载权重或切换默认策略。</span>
@@ -509,7 +517,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>
       </>}
     </div>}
-    {draft.defaultStrategy==='composite'&&<div className="rra-planning-fields">
+    {editingStrategy==='composite'&&<div className="rra-planning-fields">
       <p>Composite 先用 Task 从模型池选择本任务常用模型；首次执行直接使用该模型。后续只有新增执行证据显示持续困难时，Stage 才临时切换到指定接管模型。</p>
       {!draft.composite&&<div className="rra-simple-status"><strong>尚未升级 Composite 设置</strong>
         <span>旧配置继续使用通用高效／强执行／判别角色。升级只预填草稿，不切换默认策略或下载权重。</span>
@@ -572,7 +580,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>
       </>}
     </div>}
-    {draft.defaultStrategy==='escalation'&&<div className="rra-planning-fields">
+    {editingStrategy==='escalation'&&<div className="rra-planning-fields">
       <p>先缓冲起始模型回复，由 Judge 判定后放行；明确缺陷、最终回复停滞或无法判断时，由接管模型继续当前任务。</p>
       {!draft.escalation&&<div className="rra-simple-status"><strong>尚未升级 Escalation 设置</strong>
         <span>旧配置仍使用通用高效、强执行和判别角色。升级只预填草稿，不切换默认策略。</span>
@@ -656,7 +664,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         </div></details>
       </>}
     </div>}
-    {draft.defaultStrategy==='static'&&<details className="rra-details"><summary>Static 设置</summary><div className="rra-planning-fields">
+    {editingStrategy==='static'&&<details className="rra-details"><summary>Static 设置</summary><div className="rra-planning-fields">
       <p>参数尚未校准。修改只影响新任务。</p>
       <>
         <p className="rra-field-hint">选模方式默认「固定高效角色」，这是当前程序默认值，不表示你曾主动设置。</p>
@@ -664,14 +672,14 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           <option value="fixed">固定高效执行模型</option><option value="random">按权重每任务随机选择一次</option></select></label>
         {(draft.parameters?.staticMode??'fixed')==='fixed'&&<p className="rra-field-hint">当前固定使用上方「高效执行模型」：{draft.models?.find(m=>m.id===draft.roles?.efficient)?.provider??'未配置'}/{draft.models?.find(m=>m.id===draft.roles?.efficient)?.model??'未配置'}；其推理等级读取该模型的「推理等级」字段。</p>}
       </>
-      {Object.entries({window:3,threshold:.5,holdTurns:2,baseThreshold:.5,thresholdStep:.1,maxReviews:1,maxRedos:1,stallTurns:0,confirmations:2,seed:0,efficientWeight:1,capableWeight:1}).filter(([key])=>({stage:['window','threshold','holdTurns'],task:['baseThreshold','thresholdStep'],composite:['window','threshold','holdTurns','baseThreshold','thresholdStep'],advisor:['maxReviews','maxRedos','stallTurns'],escalation:['confirmations'],static:(draft.parameters?.staticMode??'fixed')==='random'?['seed','efficientWeight','capableWeight']:[]}[draft.defaultStrategy??'stage']).includes(key)).map(([key,value])=>
+      {Object.entries({window:3,threshold:.5,holdTurns:2,baseThreshold:.5,thresholdStep:.1,maxReviews:1,maxRedos:1,stallTurns:0,confirmations:2,seed:0,efficientWeight:1,capableWeight:1}).filter(([key])=>({stage:['window','threshold','holdTurns'],task:['baseThreshold','thresholdStep'],composite:['window','threshold','holdTurns','baseThreshold','thresholdStep'],advisor:['maxReviews','maxRedos','stallTurns'],escalation:['confirmations'],static:(draft.parameters?.staticMode??'fixed')==='random'?['seed','efficientWeight','capableWeight']:[]}[editingStrategy]).includes(key)).map(([key,value])=>
         <label className="rra-compact-field" key={key}>{({window:'证据窗口',threshold:'阶段判断阈值',holdTurns:'强模型保持轮数',baseThreshold:'任务基础阈值',
             thresholdStep:'能力边界修正步长',maxReviews:'审核次数上限',maxRedos:'返工次数上限',
             stallTurns:'停滞审核轮数（0 为关闭）',confirmations:'连续升级判断次数',seed:'随机种子',
             efficientWeight:'高效模型权重',capableWeight:'强模型权重'} as Record<string,string>)[key]} <input className="rra-input" type="number"  step="any" value={draft.parameters?.[key]??value}
           onChange={e=>patch({parameters:{...draft.parameters,[key]:Number(e.target.value)}})}/></label>)}
       </div></details>}
-    {draft.defaultStrategy==='advisor'&&<div className="rra-planning-fields"><h4>Advisor 审核设置</h4>
+    {editingStrategy==='advisor'&&<div className="rra-planning-fields"><h4>Advisor 审核设置</h4>
       <p className="rra-field-hint">准备交付的候选经过所选 Judge 审核；严格闭环最多审核两次、返工一次，返工后的最终回复复审通过才交付。正常工具探索继续交给宿主执行。</p>
       {draft.schemaVersion!=='refractagent-planning-v6'&&<div className="rra-issue-summary" role="status">
         <p>当前保留旧版 Advisor 行为：默认一次审核，返工结果可能未经复审。</p>
@@ -769,8 +777,8 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       r.message+' 模拟调用 '+r.simulatedCalls+' 次：'+r.models.join(' → '))).catch(e=>setStatus(errorText(e)))}>离线模拟</button>
     </div>
     {status&&<p className="rra-simple-status" role="status">{status}</p>}
-    {report&&<div className="rra-issue-summary" role="status">{report.issues?.map((s,i)=><p key={i}>{s}</p>)}{report.strategies?.map(s=><p key={s.id}>{s.name}：{s.available?'可用':s.issues.join('；')}</p>)}
-      {report.mediaRoutes?.map(route=><p key={route.id}>媒体 {route.provider}/{route.model}：{route.available?'已验收可用':route.issues.join('；')}</p>)}<p>{report.coverage}</p></div>}
+    {report&&<div className="rra-issue-summary" role="status">{report.issues?.map((s,i)=><p key={i}>{s}</p>)}{report.strategies?.map(s=><p key={s.id}>{s.name}：{s.available?'配置可执行':s.issues.join('；')}</p>)}
+      {report.mediaRoutes?.map(route=><p key={route.id}>媒体 {route.provider}/{route.model}：{route.available?'已验收可用':route.issues.join('；')}</p>)}<p>配置可执行表示派发准入通过；Judge 判别质量与任务收益需查看策略验收记录。</p><p>{report.coverage}</p></div>}
   </section>
 }
 type TaskRouteEvidence={candidateId?:string;reason?:string;costBasis?:string;latencyBasis?:string;
