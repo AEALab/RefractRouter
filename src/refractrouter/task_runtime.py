@@ -442,10 +442,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 raise ValueError('live route comparison requires a compiled v4 configuration')
             if tool_runtime is not None and tool_runtime.max_calls == 'unlimited':
                 result['route_comparison'] = {'policy_version': 'automatic-live-comparison-v1',
-                    'status': 'unavailable', 'route': 'dag', 'reason': 'unbounded-tool-continuations'}
+                    'status': 'unavailable', 'route': 'dag' if len(plan.nodes) > 1 else 'direct',
+                    'reason': 'unbounded-tool-continuations',
+                    'selected_candidate': 'generated-plan', 'generated_node_count': len(plan.nodes),
+                    'selected_node_count': len(plan.nodes), 'multi_node_selected': len(plan.nodes) > 1}
             elif request.get('contextPolicy') == 'selective-v1':
                 result['route_comparison'] = {'policy_version': 'automatic-live-comparison-v1',
-                    'status': 'unavailable', 'route': 'dag', 'reason': 'selective-context-direct-envelope-unverified'}
+                    'status': 'unavailable', 'route': 'dag' if len(plan.nodes) > 1 else 'direct',
+                    'reason': 'selective-context-direct-envelope-unverified',
+                    'selected_candidate': 'generated-plan', 'generated_node_count': len(plan.nodes),
+                    'selected_node_count': len(plan.nodes), 'multi_node_selected': len(plan.nodes) > 1}
             else:
                 def prepare_direct_candidate():
                     direct = validate_plan(alternative_direct_plan,
@@ -525,8 +531,23 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 comparison['budget_shortfalls'] = budget_shortfalls
                 comparison['excluded'] = {'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
                                            'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
+                comparison['generated_node_count'] = len(plan.nodes)
+                if comparison['route'] == 'dag' and len(plan.nodes) == 1:
+                    # A planner call is not itself a split. Keep the generated plan and its
+                    # actual forecast, but classify the selected execution as direct.
+                    comparison['comparison_reason'] = comparison['reason']
+                    comparison.update(route='direct', reason='generated-single-node',
+                                      selected_candidate='generated-plan')
+                elif comparison['route'] == 'direct':
+                    comparison['selected_candidate'] = 'direct-template'
+                elif comparison['route'] == 'dag':
+                    comparison['selected_candidate'] = 'generated-plan'
+                comparison['selected_node_count'] = (len(direct.nodes) if comparison.get('selected_candidate') == 'direct-template'
+                    else len(plan.nodes) if comparison.get('selected_candidate') == 'generated-plan' else None)
+                comparison['multi_node_selected'] = (comparison['selected_node_count'] > 1
+                    if comparison['selected_node_count'] is not None else None)
                 result['route_comparison'] = comparison
-                if comparison['route'] == 'direct':
+                if comparison.get('selected_candidate') == 'direct-template':
                     plan, profile, profiles = direct, direct_profile, direct_profiles
                     result['plan_origin'] = 'direct-after-probe'
                     result['plan'] = plan.to_dict()
