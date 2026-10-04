@@ -91,10 +91,17 @@ export function runSummary(result: Record<string, unknown>): string {
     +`模型 ${String(local.model??'未调用')}；推论 ${number(local.latencyMs)} ms，排队 ${number(local.queueMs)} ms；`
     +`${local.reason?`回退原因 ${reasonNames[String(local.reason)]??String(local.reason)}；`:''}实验能力\n`:''
   const comparison=object(result.route_comparison)?result.route_comparison:{}
+  const generatedLabel=comparison.generated_node_count===1?'规划器单节点候选':'DAG'
+  const selectedLabel=comparison.selected_candidate==='generated-plan' && comparison.generated_node_count===1
+    ?'direct（规划器单节点）':String(comparison.route)
+  const selectedShape=Number.isSafeInteger(comparison.selected_node_count)
+    ?`选中计划 ${String(comparison.selected_node_count)} 个节点；${comparison.multi_node_selected===true?'多节点拆分':'未形成多节点拆分'}；`
+    :''
   const comparisonLine=Object.keys(comparison).length
-    ? `执行前比较：${String(comparison.status)}；选中 ${String(comparison.route)}；依据 ${String(comparison.reason)}；`
+    ? `执行前比较：${String(comparison.status)}；选中 ${selectedLabel}；依据 ${String(comparison.reason)}；`
+      + selectedShape
       + `direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
-      + `DAG 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`
+      + `${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`
     : ''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
     + route + localLine + comparisonLine

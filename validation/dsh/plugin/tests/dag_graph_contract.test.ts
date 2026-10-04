@@ -71,6 +71,18 @@ test('自动路由摘要保留规划后 direct 与 DAG 的估算和选择依据'
   assert.match(summary,/direct 预计 0.1200，DAG 预计 0.1800 CNY/)
 })
 
+test('自动路由摘要把规划器单节点结果标为未拆分',()=>{
+  const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'CNY',
+    costs:{evaluation:0,unconfirmed:0},cost_breakdown:{planning:.01,execution:.1},
+    result_path:'/tmp/result.json',route_comparison:{status:'selected',route:'direct',
+      reason:'generated-single-node',selected_candidate:'generated-plan',
+      generated_node_count:1,selected_node_count:1,multi_node_selected:false,
+      direct:null,dag:{total_estimated_cost:.11}}})
+  assert.match(summary,/选中计划 1 个节点；未形成多节点拆分/)
+  assert.match(summary,/选中 direct（规划器单节点）/)
+  assert.match(summary,/规划器单节点候选 预计 0.1100 CNY/)
+})
+
 test('客户端只贡献独立页签，不发起请求或改动原会话渲染器', () => {
   const api = client(); let config: any, View: any
   api.applyGraph({ slots: { inject: (_: string, cb: () => void) => [...(cb() as any)], register: (value: any, component: any) => { config = value; View = component } } })

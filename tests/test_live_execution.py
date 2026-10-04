@@ -1,4 +1,5 @@
 """单任务真实执行门禁；全部使用确定性模拟客户端。"""
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
@@ -45,6 +46,18 @@ class CompactClient:
         else:
             content = '完整答复'
         return ChatResponse(content, 100, 80, 0, 0, 10, 1, 'stop', 'mock-route')
+
+
+class SingleNodeClient(CompactClient):
+    """规划器明确认为无需拆分，仍保留实际规划调用与用量。"""
+    def complete(self, model, messages, *, json_mode=False):
+        response = super().complete(model, messages, json_mode=json_mode)
+        if 'DAG 规划器' not in messages[0]['content']:
+            return response
+        plan = {'reason': '单轮可完成', 'nodes': [
+            {'id': 'answer', 'type': 'generation', 'job': '完整回答原任务',
+             'parents': [], 'difficulty': 'medium', 'risk': 'medium'}]}
+        return replace(response, content=json.dumps(plan, ensure_ascii=False))
 
 
 def config():
@@ -209,6 +222,9 @@ def test_live_second_level_can_discard_a_costly_dag_without_repeating_planner(tm
     assert result['status'] == 'completed'
     assert result['plan_origin'] == 'direct-after-probe'
     assert result['route_comparison']['route'] == 'direct'
+    assert result['route_comparison']['selected_candidate'] == 'direct-template'
+    assert result['route_comparison']['selected_node_count'] == 1
+    assert result['route_comparison']['multi_node_selected'] is False
     assert (result['route_comparison']['direct']['total_estimated_cost']
             <= result['route_comparison']['dag']['total_estimated_cost'])
     assert len(result['plan']['nodes']) == 1
@@ -235,9 +251,36 @@ def test_live_second_level_uses_dag_when_qualified_profiles_save_cost(tmp_path):
         client=client, production_budget=10, evaluation_budget=10)
     assert result['status'] == 'completed'
     assert result['route_comparison']['route'] == 'dag'
+    assert result['route_comparison']['multi_node_selected'] is True
+    assert result['route_comparison']['selected_node_count'] == 3
     assert result['plan_origin'] == 'model'
     assert len(result['plan']['nodes']) == 3
     assert len(client.calls) == 5  # 规划、三个节点、评审
+
+
+def test_single_node_planner_result_is_direct_even_when_generated_plan_wins(tmp_path):
+    raw = config()
+    for model in raw['models']:
+        if model['id'] == 'local-router':
+            model['routing'] = {'quality': 50, 'latencyMs': 10000,
+                'profiles': [{'nodeType': 'generation', 'difficulty': 'medium', 'risk': 'medium',
+                              'inputMinTokens': 256, 'inputMaxTokens': 131073,
+                              'quality': 90, 'latencyMs': 1000, 'outputTokens': 1000}]}
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    client = SingleNodeClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
+        client=client, production_budget=10, evaluation_budget=10)
+    comparison = result['route_comparison']
+    assert result['status'] == 'completed' and result['plan_origin'] == 'model'
+    assert comparison['route'] == 'direct' and comparison['reason'] == 'generated-single-node'
+    assert comparison['comparison_reason'] == 'direct-infeasible'
+    assert comparison['selected_candidate'] == 'generated-plan'
+    assert comparison['generated_node_count'] == comparison['selected_node_count'] == 1
+    assert comparison['multi_node_selected'] is False
+    assert len(result['plan']['nodes']) == 1 and len(client.calls) == 3
 
 
 def test_live_second_level_keeps_valid_dag_when_direct_input_is_too_large(tmp_path, monkeypatch):
