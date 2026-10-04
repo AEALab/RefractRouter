@@ -17,6 +17,12 @@ def documents():
     return protocol, bindings
 
 
+def v3_documents():
+    protocol = json.loads((ROOT / 'data/research/security-benchmark-v1.json').read_text())
+    bindings = json.loads((ROOT / 'data/research/security-benchmark-bindings-v3.json').read_text())
+    return protocol, bindings
+
+
 def test_inventory_binds_external_roles_and_fails_closed_on_missing_private_routes():
     result = audit_bindings(*documents())
     assert result['real_model_calls'] == 0
@@ -25,6 +31,23 @@ def test_inventory_binds_external_roles_and_fails_closed_on_missing_private_rout
         'local-judge', 'local-worker', 'simulated-local-worker', 'trusted-strong'}
     assert result['live_execution_ready'] is False
     assert result['execution_billing_unit'] == 'AFP'
+
+
+def test_v3_keeps_missing_private_routes_blocked_without_a_universal_billing_unit():
+    result = audit_bindings(*v3_documents())
+    assert result['schema_version'] == 'security-benchmark-binding-audit-v3'
+    assert result['execution_billing_unit'] is None
+    assert result['bound_roles'] == ['external-cheap', 'external-strong']
+    assert {row['role_id'] for row in result['required_blocked_roles']} == {
+        'local-judge', 'local-worker', 'trusted-strong'}
+
+
+def test_v3_blocked_role_cannot_carry_a_phantom_deployable_binding():
+    protocol, bindings = v3_documents()
+    bindings['bindings'][0]['status'] = 'blocked'
+    bindings['bindings'][0]['blockers'] = ['TEST_BLOCKER']
+    with pytest.raises(ValueError, match='blocked role cannot contain'):
+        audit_bindings(protocol, bindings)
 
 
 def test_inventory_is_bound_to_the_exact_protocol_digest():
@@ -75,6 +98,13 @@ def test_bound_role_rejects_unknown_pricing_evidence():
     protocol, bindings = documents()
     bindings['bindings'][0]['binding']['executionPricing']['sourceId'] = 'missing'
     with pytest.raises(ValueError, match='execution pricing unit or source'):
+        audit_bindings(protocol, bindings)
+
+
+def test_nonfinite_price_cannot_enter_an_authorization_envelope():
+    protocol, bindings = v3_documents()
+    bindings['bindings'][0]['binding']['executionPricing']['inputPer1k'] = float('nan')
+    with pytest.raises(ValueError, match='invalid inputPer1k'):
         audit_bindings(protocol, bindings)
 
 

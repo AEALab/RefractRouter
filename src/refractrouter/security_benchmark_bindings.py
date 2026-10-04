@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import math
 import re
 
 from .security_benchmark import digest, validate_protocol
 
 
-SCHEMA = 'security-benchmark-bindings-v2'
+SCHEMAS = {'security-benchmark-bindings-v2', 'security-benchmark-bindings-v3'}
 STATUSES = {'bound', 'blocked'}
 DEPLOYMENTS = {'local', 'trusted-cloud', 'external-cloud', 'simulated-local'}
 SOURCE_KINDS = {'official-documentation', 'frozen-catalog', 'frozen-manifest',
@@ -29,7 +30,8 @@ def _keys(value, expected, label):
 
 
 def _number(value, label, *, maximum=None):
-    if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
+    if (not isinstance(value, (int, float)) or isinstance(value, bool)
+            or not math.isfinite(value) or value < 0):
         raise ValueError(f'invalid {label}')
     if maximum is not None and value > maximum:
         raise ValueError(f'invalid {label}')
@@ -125,12 +127,15 @@ def _validate_endpoints(raw):
     return endpoints
 
 
-def _validate_binding(value, role, endpoints, sources, execution_billing_unit):
+def _validate_binding(value, role, endpoints, sources, execution_billing_unit, *, schema_version):
     value = _record(value, 'model binding')
-    _keys(value, {'provider', 'model', 'version', 'endpointPolicyId', 'deployment',
-                  'contextWindow', 'maxOutputTokens', 'qualityProxy', 'latencyMs',
-                  'executionPricing', 'referencePricing', 'referencePricingBlockers',
-                  'profileProvenance', 'evidenceSources'}, 'model binding')
+    fields = {'provider', 'model', 'version', 'endpointPolicyId', 'deployment',
+              'contextWindow', 'maxOutputTokens', 'qualityProxy', 'latencyMs',
+              'executionPricing', 'referencePricing', 'referencePricingBlockers',
+              'profileProvenance', 'evidenceSources'}
+    if schema_version == 3:
+        fields.add('localResource')
+    _keys(value, fields, 'model binding')
     if not isinstance(value['provider'], str) or not value['provider']:
         raise ValueError('binding requires provider')
     if not isinstance(value['model'], str) or not value['model']:
@@ -148,8 +153,10 @@ def _validate_binding(value, role, endpoints, sources, execution_billing_unit):
         raise ValueError('binding deployment does not match the frozen role')
     if value['deployment'] == 'trusted-cloud' and not endpoint['trustPolicyId']:
         raise ValueError('trusted-cloud binding requires a trust policy')
-    if value['deployment'] == 'local' and endpoint['type'] != 'local':
-        raise ValueError('local binding requires a local endpoint')
+    if value['deployment'] == 'local' and (endpoint['type'] != 'local'
+            or not endpoint['baseUrl'].startswith(('http://127.0.0.1:',
+                                                    'http://localhost:'))):
+        raise ValueError('local binding requires a loopback local endpoint')
     if value['deployment'] == 'simulated-local':
         raise ValueError('simulated-local cannot become a real benchmark binding')
     for field in ('contextWindow', 'maxOutputTokens'):
@@ -159,8 +166,47 @@ def _validate_binding(value, role, endpoints, sources, execution_billing_unit):
     _number(value['latencyMs'], 'latencyMs')
     if value['qualityProxy'] < role['qualityProxy']:
         raise ValueError('binding quality proxy is below the frozen role')
-    _validate_price(value['executionPricing'], 'execution pricing', sources,
-                    expected_unit=execution_billing_unit)
+    if schema_version == 3 and value['deployment'] == 'local':
+        if value['executionPricing'] is not None:
+            raise ValueError('local binding cannot declare token API pricing')
+        local = _record(value['localResource'], 'local resource')
+        _keys(local, {'engine', 'artifactSha256', 'evidenceSources',
+                      'resourceCostPerCall', 'resourceCostUnit',
+                      'resourceCostBlockers'}, 'local resource')
+        if (not isinstance(local['engine'], str) or not local['engine']
+                or not re.fullmatch(r'[0-9a-f]{64}', local['artifactSha256'])
+                or not isinstance(local['evidenceSources'], list)
+                or not local['evidenceSources']
+                or any(source not in sources for source in local['evidenceSources'])
+                or not isinstance(local['resourceCostBlockers'], list)
+                or any(not isinstance(item, str) or not item
+                       for item in local['resourceCostBlockers'])
+                or version['kind'] != 'immutable-version'):
+            raise ValueError('local resource requires immutable artifact and cost evidence')
+        cost = local['resourceCostPerCall']
+        if cost is None:
+            if local['resourceCostUnit'] is not None or not local['resourceCostBlockers']:
+                raise ValueError('unknown local resource cost requires blockers')
+        elif (not isinstance(local['resourceCostUnit'], str)
+              or local['resourceCostUnit'] not in {'CNY', 'USD'}
+              or local['resourceCostBlockers']
+              or not any(sources[source]['kind'] == 'operator-attestation'
+                         for source in local['evidenceSources'])):
+            raise ValueError('local resource cost requires operator attestation')
+        if cost is not None:
+            _number(cost, 'local resource cost')
+    else:
+        if schema_version == 3 and value['localResource'] is not None:
+            raise ValueError('cloud binding cannot declare a local resource')
+        _validate_price(value['executionPricing'], 'execution pricing', sources,
+                        expected_unit=execution_billing_unit)
+        if schema_version == 3 and value['executionPricing']['unit'] not in {'AFP', 'CNY', 'USD'}:
+            raise ValueError('unsupported execution billing unit')
+    if schema_version == 3 and value['deployment'] == 'trusted-cloud':
+        if (value['version']['kind'] != 'immutable-version'
+                or not any(sources[source]['kind'] == 'operator-attestation'
+                           for source in value['evidenceSources'])):
+            raise ValueError('trusted-cloud requires immutable version and attestation')
     _validate_reference_pricing(value['referencePricing'],
                                 value['referencePricingBlockers'], sources)
     if value['profileProvenance'] not in PROFILE_PROVENANCE:
@@ -175,18 +221,21 @@ def audit_bindings(protocol, raw):
     """审计真实绑定覆盖率；允许显式 blocked 条目，但永远不把它们视为可运行。"""
     validate_protocol(protocol)
     raw = _record(raw, 'binding inventory')
-    _keys(raw, {'schema_version', 'issue', 'protocol_sha256', 'frozen_at',
-                'pricing_snapshot_date', 'execution_billing_unit', 'sources', 'endpointPolicies',
-                'bindings'}, 'binding inventory')
-    if raw['schema_version'] != SCHEMA or raw['issue'] != 112:
+    if raw.get('schema_version') not in SCHEMAS or raw.get('issue') != 112:
         raise ValueError('invalid binding inventory schema')
+    version = 3 if raw['schema_version'].endswith('v3') else 2
+    fields = {'schema_version', 'issue', 'protocol_sha256', 'frozen_at',
+              'pricing_snapshot_date', 'sources', 'endpointPolicies', 'bindings'}
+    if version == 2:
+        fields.add('execution_billing_unit')
+    _keys(raw, fields, 'binding inventory')
     if raw['protocol_sha256'] != digest(protocol):
         raise ValueError('binding inventory protocol digest mismatch')
     if (not isinstance(raw['frozen_at'], str) or not raw['frozen_at']
             or not isinstance(raw['pricing_snapshot_date'], str)
             or not raw['pricing_snapshot_date']
-            or not isinstance(raw['execution_billing_unit'], str)
-            or not raw['execution_billing_unit']):
+            or (version == 2 and (not isinstance(raw['execution_billing_unit'], str)
+                                  or not raw['execution_billing_unit']))):
         raise ValueError('binding inventory requires snapshot metadata')
     sources = _validate_sources(raw['sources'])
     endpoints = _validate_endpoints(raw['endpointPolicies'])
@@ -204,11 +253,13 @@ def audit_bindings(protocol, raw):
         binding = None
         if row['binding'] is not None:
             binding = _validate_binding(row['binding'], roles[role_id], endpoints, sources,
-                                        raw['execution_billing_unit'])
+                                        raw.get('execution_billing_unit'), schema_version=version)
         if row['status'] == 'bound' and (binding is None or row['blockers']):
             raise ValueError('bound role cannot contain blockers or omit its binding')
         if row['status'] == 'blocked' and not row['blockers']:
             raise ValueError('blocked role requires at least one blocker')
+        if version == 3 and row['status'] == 'blocked' and binding is not None:
+            raise ValueError('blocked role cannot contain a deployable binding')
         bindings[role_id] = {'status': row['status'], 'binding': binding,
                              'blockers': list(row['blockers'])}
         if row['status'] == 'blocked':
@@ -231,11 +282,11 @@ def audit_bindings(protocol, raw):
                          if row['status'] == 'bound')
     required_blocked = [row for row in blocked if not roles[row['role_id']]['researchOnly']]
     return {
-        'schema_version': 'security-benchmark-binding-audit-v2',
+        'schema_version': f'security-benchmark-binding-audit-v{version}',
         'real_model_calls': 0,
         'protocol_sha256': raw['protocol_sha256'],
         'binding_sha256': digest(raw),
-        'execution_billing_unit': raw['execution_billing_unit'],
+        'execution_billing_unit': raw.get('execution_billing_unit'),
         'roles_total': len(roles),
         'bound_roles': bound_roles,
         'blocked_roles': blocked,

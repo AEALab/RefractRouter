@@ -49,6 +49,7 @@ def freeze_budget(protocol, inventory):
     """冻结调用与双账本；执行资源和公开参考价格绝不互相替代或跨单位求和。"""
     validate_protocol(protocol)
     binding_audit = audit_bindings(protocol, inventory)
+    version = 3 if inventory['schema_version'].endswith('v3') else 2
     calls = _calls(protocol)
     hard_cap = protocol['constraints']['maxCalls']
     if len(calls) > hard_cap:
@@ -63,6 +64,9 @@ def freeze_budget(protocol, inventory):
         row['output_tokens'] += call['output_tokens']
         row['purposes'][call['purpose']] += 1
     role_rows, unresolved, known_usage = [], [], 0.0
+    execution_totals = defaultdict(float)
+    local_resource_totals = defaultdict(float)
+    unresolved_local_resources = []
     reference_totals = defaultdict(float)
     unresolved_reference = []
     for role_id in sorted(totals):
@@ -71,10 +75,29 @@ def freeze_budget(protocol, inventory):
         execution_usage = None
         reference_cost = None
         reference_unit = None
+        execution_unit = inventory.get('execution_billing_unit')
+        local_resource_cost = None
+        local_resource_unit = None
         if binding_row['status'] == 'bound':
             binding = binding_row['binding']
-            execution_usage = _project(total, binding['executionPricing'])
-            known_usage += execution_usage
+            if binding['executionPricing'] is not None:
+                execution_usage = _project(total, binding['executionPricing'])
+                execution_unit = binding['executionPricing']['unit']
+                execution_totals[execution_unit] += execution_usage
+                if version == 2:
+                    known_usage += execution_usage
+            else:
+                execution_unit = None
+                resource = binding['localResource']
+                local_resource_unit = resource['resourceCostUnit']
+                if resource['resourceCostPerCall'] is None:
+                    unresolved_local_resources.append({
+                        'role_id': role_id,
+                        'requirements': list(resource['resourceCostBlockers']),
+                    })
+                else:
+                    local_resource_cost = round(total['calls'] * resource['resourceCostPerCall'], 12)
+                    local_resource_totals[local_resource_unit] += local_resource_cost
             if binding['referencePricing'] is None:
                 unresolved_reference.append({
                     'role_id': role_id,
@@ -88,22 +111,26 @@ def freeze_budget(protocol, inventory):
         else:
             unresolved.append({'role_id': role_id,
                                'requirements': list(binding_row['blockers'])})
-        role_rows.append({'role_id': role_id, 'calls': total['calls'],
+        role_row = {'role_id': role_id, 'calls': total['calls'],
                           'purposes': dict(sorted(total['purposes'].items())),
                           'input_tokens': total['input_tokens'],
                           'output_tokens': total['output_tokens'],
                           'projected_execution_usage': execution_usage,
-                          'execution_billing_unit': inventory['execution_billing_unit'],
+                          'execution_billing_unit': execution_unit,
                           'projected_reference_cost': reference_cost,
-                          'reference_billing_unit': reference_unit})
+                          'reference_billing_unit': reference_unit}
+        if version == 3:
+            role_row['projected_local_resource_cost'] = local_resource_cost
+            role_row['local_resource_billing_unit'] = local_resource_unit
+        role_rows.append(role_row)
     production_calls = sum(call['purpose'] == 'production' for call in calls)
     evaluation_calls = sum(call['purpose'] == 'evaluation' for call in calls)
-    return {
-        'schema_version': 'security-benchmark-budget-freeze-v2',
+    result = {
+        'schema_version': f'security-benchmark-budget-freeze-v{version}',
         'real_model_calls': 0,
         'protocol_sha256': digest(protocol),
         'binding_sha256': binding_audit['binding_sha256'],
-        'execution_billing_unit': inventory['execution_billing_unit'],
+        'execution_billing_unit': inventory.get('execution_billing_unit'),
         'calls': calls,
         'role_totals': role_rows,
         'planned_calls': {'production': production_calls, 'evaluation': evaluation_calls,
@@ -114,8 +141,9 @@ def freeze_budget(protocol, inventory):
         'node_fallbacks': 0,
         'recovery_calls_authorized': 0,
         'cache_discount_assumed': False,
-        'known_bound_execution_usage': round(known_usage, 12),
-        'maximum_total_execution_usage': None if unresolved else round(known_usage, 12),
+        'known_bound_execution_usage': round(known_usage, 12) if version == 2 else None,
+        'maximum_total_execution_usage': (
+            None if unresolved or version == 3 else round(known_usage, 12)),
         'unresolved_execution_usage_roles': unresolved,
         'reference_cost_totals_by_unit': {
             unit: round(value, 12) for unit, value in sorted(reference_totals.items())
@@ -136,7 +164,10 @@ def freeze_budget(protocol, inventory):
         'execution_cash_cost_blockers': [
             'SUBSCRIPTION_ALLOCATION_UNFROZEN：尚未冻结订阅费用、包含 AFP、有效期与利用率，'
             '不得把 AFP 用量解释为现金成本。'
-        ] if inventory['execution_billing_unit'] == 'AFP' else [],
+        ] if any(row['binding'] is not None
+                 and row['binding']['executionPricing'] is not None
+                 and row['binding']['executionPricing']['unit'] == 'AFP'
+                 for row in inventory['bindings']) else [],
         'binding_audit': binding_audit,
         'authorization_request_ready': not unresolved,
         'paid_execution_authorized': False,
@@ -145,6 +176,10 @@ def freeze_budget(protocol, inventory):
             requirement
             for row in unresolved
             for requirement in row['requirements']
+        ] + [
+            requirement
+            for row in unresolved_local_resources
+            for requirement in row['requirements']
         ] + ['PAID_EXECUTION_UNAUTHORIZED：开发批次尚未取得明确调用与预算授权。'],
         'stop_policy': {
             'task_route_failure': '停止该任务该路线的下游，结算在途调用，保留失败分母。',
@@ -152,6 +187,23 @@ def freeze_budget(protocol, inventory):
             'no_expansion': '不补样、不临时换模型、不自动消耗协议硬上限与计划调用之间的余量。',
         },
     }
+    if version == 3:
+        result.update({
+            'known_execution_usage_by_unit': {
+                unit: round(amount, 12) for unit, amount in sorted(execution_totals.items())},
+            'maximum_execution_usage_by_unit': (
+                None if unresolved else {unit: round(amount, 12)
+                                         for unit, amount in sorted(execution_totals.items())}),
+            'known_local_resource_cost_by_unit': {
+                unit: round(amount, 12) for unit, amount in sorted(local_resource_totals.items())},
+            'maximum_local_resource_cost_by_unit': (
+                None if unresolved or unresolved_local_resources else {
+                    unit: round(amount, 12)
+                    for unit, amount in sorted(local_resource_totals.items())}),
+            'unresolved_local_resource_cost_roles': unresolved_local_resources,
+            'authorization_request_ready': not unresolved and not unresolved_local_resources,
+        })
+    return result
 
 
 def pricing_snapshot(inventory):
@@ -161,7 +213,7 @@ def pricing_snapshot(inventory):
         if row['binding'] is None:
             continue
         binding = row['binding']
-        rows.append({'role_id': row['roleId'], 'provider': binding['provider'],
+        route = {'role_id': row['roleId'], 'provider': binding['provider'],
                      'model': binding['model'], 'deployment': binding['deployment'],
                      'version': deepcopy(binding['version']),
                      'execution_pricing': deepcopy(binding['executionPricing']),
@@ -169,8 +221,12 @@ def pricing_snapshot(inventory):
                      'reference_pricing_blockers':
                          list(binding['referencePricingBlockers']),
                      'profile_provenance': binding['profileProvenance'],
-                     'evidence_sources': list(binding['evidenceSources'])})
-    return {'schema_version': 'security-benchmark-pricing-snapshot-v2',
+                     'evidence_sources': list(binding['evidenceSources'])}
+        if inventory['schema_version'].endswith('v3'):
+            route['local_resource'] = deepcopy(binding['localResource'])
+        rows.append(route)
+    return {'schema_version': 'security-benchmark-pricing-snapshot-v3'
+            if inventory['schema_version'].endswith('v3') else 'security-benchmark-pricing-snapshot-v2',
             'pricing_snapshot_date': inventory['pricing_snapshot_date'],
-            'execution_billing_unit': inventory['execution_billing_unit'], 'routes': rows,
+            'execution_billing_unit': inventory.get('execution_billing_unit'), 'routes': rows,
             'sources': deepcopy(inventory['sources'])}

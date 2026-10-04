@@ -22,9 +22,9 @@ def main():
     parser.add_argument('--protocol', type=Path,
                         default=ROOT / 'data/research/security-benchmark-v1.json')
     parser.add_argument('--bindings', type=Path,
-                        default=ROOT / 'data/research/security-benchmark-bindings-v2.json')
+                        default=ROOT / 'data/research/security-benchmark-bindings-v3.json')
     parser.add_argument('--output', type=Path,
-                        default=ROOT / 'reports/security-benchmark-v1/binding-preflight-02')
+                        default=ROOT / 'reports/security-benchmark-v1/binding-preflight-03')
     args = parser.parse_args()
     protocol = json.loads(args.protocol.read_text())
     inventory = json.loads(args.bindings.read_text())
@@ -36,23 +36,36 @@ def main():
             'execution_billing_unit',
             'calls', 'role_totals', 'planned_calls', 'authorization_call_cap',
             'protocol_hard_call_cap', 'automatic_http_retries', 'node_fallbacks',
-            'recovery_calls_authorized', 'cache_discount_assumed')})
+            'recovery_calls_authorized', 'cache_discount_assumed')
+    } | ({key: result[key] for key in (
+        'known_execution_usage_by_unit', 'maximum_execution_usage_by_unit',
+        'known_local_resource_cost_by_unit', 'maximum_local_resource_cost_by_unit')}
+         if 'known_execution_usage_by_unit' in result else {}))
     write_json(args.output / 'pricing-snapshot.json', pricing_snapshot(inventory))
     write_json(args.output / 'preflight.json', result)
     unknown = ', '.join(row['role_id']
                         for row in result['unresolved_execution_usage_roles'])
     reference_unknown = ', '.join(row['role_id']
                                   for row in result['unresolved_reference_cost_roles'])
+    v3 = 'known_execution_usage_by_unit' in result
+    known_cost = (str(result['known_execution_usage_by_unit']) if v3 else
+                  f'{result["known_bound_execution_usage"]:.6f} {result["execution_billing_unit"]}')
+    full_cost = (str(result['maximum_execution_usage_by_unit'])
+                 if v3 and result['maximum_execution_usage_by_unit'] is not None else
+                 '尚不可计算' if result['maximum_total_execution_usage'] is None else
+                 f'{result["maximum_total_execution_usage"]} {result["execution_billing_unit"]}')
+    local_cap = result.get('maximum_local_resource_cost_by_unit')
     lines = [
         '# #112 真实绑定与零调用预算冻结', '',
         f'- 协议摘要：`{result["protocol_sha256"]}`',
         f'- 绑定摘要：`{result["binding_sha256"]}`',
         f'- 生产调用：{result["planned_calls"]["production"]}；评审调用：{result["planned_calls"]["evaluation"]}；合计：{result["planned_calls"]["total"]}',
         f'- 本次授权调用上限：{result["authorization_call_cap"]}；协议硬上限：{result["protocol_hard_call_cap"]}',
-        f'- 已知绑定执行用量：{result["known_bound_execution_usage"]:.6f} {result["execution_billing_unit"]}',
+        f'- 已知绑定执行用量（按单位）：{known_cost}',
         f'- 未知执行用量角色：{unknown or "无"}',
+        f'- 已绑定本地角色的资源费用缺口：{", ".join(row["role_id"] for row in result.get("unresolved_local_resource_cost_roles", [])) or "无"}',
         f'- 原厂公开参考价未解析角色：{reference_unknown or "无"}',
-        '- AFP 是实际执行路线的订阅资源单位；现金成本与原厂公开价格等价量均保持 `null`。',
+        '- AFP 是订阅资源单位；本地调用零 API 费用与硬件、电力、排队等资源费用分别记录。',
         '- 自动 HTTP 重试、节点回退与恢复调用均为 0。',
         '- 真实模型调用：0；付费执行授权：否；实时执行就绪：否。', '',
         '## 阻断条件', '',
@@ -66,8 +79,9 @@ def main():
         f'- 计划调用：{result["planned_calls"]["total"]} 次，其中生产 {result["planned_calls"]["production"]} 次、评审 {result["planned_calls"]["evaluation"]} 次。',
         f'- 请求调用上限：{result["authorization_call_cap"]} 次；不授权使用协议剩余余量。',
         '- 自动重试、节点回退、恢复补跑：全部为 0。',
-        f'- 完整执行用量上限：{"尚不可计算" if result["maximum_total_execution_usage"] is None else str(result["maximum_total_execution_usage"]) + " " + result["execution_billing_unit"]}。',
-        '- 现金成本：尚不可计算；未冻结 Ark 订阅费用、包含 AFP、有效期与利用率。',
+        f'- 完整执行用量上限（按单位）：{full_cost or "尚不可计算"}。',
+        f'- 本地资源费用上限（按单位）：{local_cap if local_cap is not None else "尚不可计算"}。',
+        '- AFP 现金摊销：尚不可计算；未冻结 Ark 订阅费用、包含 AFP、有效期与利用率。',
         '- 原厂公开价格等价量：尚不可计算；Ark 型号与原厂公开计价型号的版本等价性未验证。', '',
         '## 尚未满足', '',
         *[f'- {item}' for item in result['blocking_requirements']], '',
