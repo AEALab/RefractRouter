@@ -508,6 +508,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         raise
                     direct_routing = {'status': 'no-feasible-route'}
                     direct_admission = {'answer': {'reason': 'input-capacity', 'detail': str(exc)}}
+                    direct_eligible = {'answer': []}
                 _, charged_calls = budget.snapshot()
                 planner_rows = [row for row in charged_calls if row['label'] in {'planner', 'planner-repair'}]
                 if any(row['status'] != 'billed' for row in planner_rows):
@@ -536,6 +537,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 comparison = compare_executable_routes(direct_routing, result['routing'],
                     planner_cost=planner_cost, judge_cost=judge_cost,
                     planner_latency_ms=planner_latency, tool_allowances=allowances)
+                qualified_workers = {mid for routes in (direct_eligible, eligible_models)
+                    for models in routes.values() for mid in models}
+                direct_row, dag_row = comparison['direct'], comparison['dag']
+                comparison['decision_factors'] = {
+                    'qualified_execution_model_count': len(qualified_workers),
+                    'quality_basis': 'declared-model-profile-prior',
+                    'task_specific_dag_quality_gain_verified': False,
+                    'dag_extra_worker_cost': (dag_row['worker_cost'] - direct_row['worker_cost']
+                        if direct_row is not None and dag_row is not None else None),
+                }
                 comparison['candidate_diagnostics'] = {
                     'direct': deepcopy(direct_routing.get('diagnostics', {})),
                     'dag': deepcopy(result['routing'].get('diagnostics', {}))}

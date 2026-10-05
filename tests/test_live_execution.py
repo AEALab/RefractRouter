@@ -244,6 +244,9 @@ def test_live_second_level_can_discard_a_costly_dag_without_repeating_planner(tm
     assert result['route_comparison']['selected_candidate'] == 'direct-template'
     assert result['route_comparison']['selected_node_count'] == 1
     assert result['route_comparison']['multi_node_selected'] is False
+    assert result['route_comparison']['decision_factors']['qualified_execution_model_count'] == 1
+    assert result['route_comparison']['decision_factors']['task_specific_dag_quality_gain_verified'] is False
+    assert result['route_comparison']['decision_factors']['dag_extra_worker_cost'] >= 0
     assert (result['route_comparison']['direct']['total_estimated_cost']
             <= result['route_comparison']['dag']['total_estimated_cost'])
     assert len(result['plan']['nodes']) == 1

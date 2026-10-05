@@ -66,9 +66,14 @@ test('自动路由摘要保留规划后 direct 与 DAG 的估算和选择依据'
     costs:{evaluation:0,unconfirmed:0},cost_breakdown:{planning:.01,execution:.1},
     result_path:'/tmp/result.json',route_comparison:{status:'selected',route:'direct',
       reason:'direct-estimated-cost-not-worse',direct:{total_estimated_cost:.12},
-      dag:{total_estimated_cost:.18}}})
+      dag:{total_estimated_cost:.18},decision_factors:{qualified_execution_model_count:1,
+        quality_basis:'declared-model-profile-prior',task_specific_dag_quality_gain_verified:false,
+        dag_extra_worker_cost:.06}}})
   assert.match(summary,/选中 direct/)
   assert.match(summary,/direct 预计 0.1200，DAG 预计 0.1800 CNY/)
+  assert.match(summary,/尚无本任务拆分质量增益的验证/)
+  assert.match(summary,/两路线合格执行模型共 1 款/)
+  assert.match(summary,/DAG 预计执行费用相差 0.0600 CNY/)
 })
 
 test('自动路由摘要把规划器单节点结果标为未拆分',()=>{
