@@ -31,25 +31,35 @@ const LEGACY_MODELS = [
 ] as const
 const AUTO_MODELS = [{ id: 'auto', name: 'RefractAgent · 自动路由（模拟）' }] as const
 const AUTO_LIVE_MODEL = { id: 'auto-live', name: 'RefractAgent · 自动路由（真实执行）' } as const
+const autoProvider=(schema:string|undefined)=>schema==='refractagent-providers-v4'||schema==='refractagent-providers-v5'
 
 function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
   const live = config.liveExecution
   if (!live?.enabled) return ['尚未启用真实执行']
-  const automatic = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
+  const automatic = config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion)
   if (!automatic) return ['真实执行需要自动路由模型池']
   const billingUnit = config.dshModelPool?.billingUnit ?? config.providerConfig?.billingUnit
   const security = config.dshModelPool?.security ?? config.providerConfig?.security
   const dataMode = object(security) ? security.dataMode : undefined
   const issues: string[] = []
-  if (billingUnit !== 'CNY' && !(billingUnit === 'AFP' && (!config.dshModelPool || config.dshModelPool.schemaVersion === 'refractagent-dsh-model-pool-v3'))) issues.push('模型池计费单位必须为 CNY 或 AFP，且同一次执行只能使用同单位路线')
+  if (billingUnit !== 'CNY' && !(billingUnit === 'AFP' && (!config.dshModelPool || config.dshModelPool.schemaVersion === 'refractagent-dsh-model-pool-v3'))
+    && !(billingUnit==='MIXED'&&(!config.dshModelPool||config.dshModelPool.schemaVersion==='refractagent-dsh-model-pool-v4'))) issues.push('模型池计费单位必须为 CNY、AFP 或明确的双单位模式')
   if (!['synthetic','desensitized','live'].includes(String(dataMode))) issues.push('真实执行需要有效的数据模式')
-  if (live.maxProductionCost !== 'unlimited' && !(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)) issues.push('缺少生产费用上限选择')
-  if (live.maxEvaluationCost !== 'unlimited' && !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) issues.push('缺少评审费用上限选择')
+  if(billingUnit==='MIXED'){
+    for(const key of ['maxProductionCostByUnit','maxEvaluationCostByUnit'] as const){
+      const row=live[key]
+      if(!row||!['AFP','CNY'].every(unit=>typeof row[unit as 'AFP'|'CNY']==='number'
+        &&Number.isFinite(row[unit as 'AFP'|'CNY'])&&row[unit as 'AFP'|'CNY']>=0))issues.push(`缺少 ${key} 双单位预算`)
+    }
+  }else{
+    if (live.maxProductionCost !== 'unlimited' && !(typeof live.maxProductionCost === 'number' && live.maxProductionCost > 0)) issues.push('缺少生产费用上限选择')
+    if (live.maxEvaluationCost !== 'unlimited' && !(typeof live.maxEvaluationCost === 'number' && live.maxEvaluationCost > 0)) issues.push('缺少评审费用上限选择')
+  }
   return issues
 }
 
 function configuredModels(config: Readonly<Configuration>): readonly { id: string; name: string }[] {
-  if (config.dshModelPool === undefined && config.providerConfig?.schemaVersion !== 'refractagent-providers-v4') return [...LEGACY_MODELS,{id:'planning',name:'RefractAgent · 规划路由'}]
+  if (config.dshModelPool === undefined && !autoProvider(config.providerConfig?.schemaVersion)) return [...LEGACY_MODELS,{id:'planning',name:'RefractAgent · 规划路由'}]
   // DSH caches provider model discovery while plugin fibers are starting, before the user settings
   // layer is necessarily available. Always advertise the entry; invokeAutoLive performs the current
   // settings, catalog and budget checks immediately before any credential resolution or dispatch.
@@ -58,7 +68,7 @@ function configuredModels(config: Readonly<Configuration>): readonly { id: strin
 
 /** DSH 会保留新会话上次选择的模型 ID；升级到 v4 后把旧三模式选择收敛到唯一自动入口。 */
 function normalizeConfiguredModel(config: Readonly<Configuration>, model: string): string {
-  return (config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4')
+  return (config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion))
     && LEGACY_MODELS.some(entry => entry.id === model) ? 'auto' : model
 }
 
@@ -444,7 +454,14 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   if (typeof result.billing_unit !== 'string' || (billingUnit && result.billing_unit !== billingUnit)) {
     throw new Error('RefractAgent returned a different billing unit')
   }
-  for (const key of ['production', 'evaluation', 'unconfirmed']) {
+  const costs=result.costs as Record<string,unknown>
+  if(billingUnit==='MIXED'){
+    if(!object(costs.by_unit)||!['AFP','CNY'].every(unit=>object((costs.by_unit as Record<string,unknown>)[unit])
+      &&['production','evaluation','unconfirmed'].every(key=>{
+        const value=((costs.by_unit as Record<string,Record<string,unknown>>)[unit]!)[key]
+        return typeof value==='number'&&Number.isFinite(value)&&value>=0
+      })))throw new Error('invalid mixed-unit RefractAgent costs')
+  }else for (const key of ['production', 'evaluation', 'unconfirmed']) {
     const value = result.costs[key]
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error('invalid RefractAgent costs')
   }
@@ -454,7 +471,7 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   }
   if (result.strategy !== expectedStrategy || result.mode !== expectedMode
     || result.simulated !== (expectedMode === 'demo')) throw new Error('RefractAgent returned a different strategy or execution mode')
-  if (live && (config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
+  if (live && (config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion)
     || config.template === 'auto') && (!['model','direct-gate','direct-after-probe'].includes(String(result.plan_origin))
     || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
     throw new Error('installed core did not return an automatically generated DAG')
@@ -469,6 +486,17 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   }
   else if (config.outputConstraints) throw new Error('installed core did not return output constraint validation')
   return result
+}
+
+function costSummary(result:Record<string,unknown>):string {
+  if(result.billing_unit!=='MIXED')return `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}`
+  const costs=object(result.costs)&&object(result.costs.by_unit)?result.costs.by_unit:undefined
+  if(!costs)return '费用：双单位账本不可用'
+  return ['AFP','CNY'].map(unit=>{
+    const row=costs[unit]
+    return object(row)?`${unit} 已结算生产 ${String(row.production)}、评审 ${String(row.evaluation)}、待核对 ${String(row.unconfirmed)}`
+      :`${unit} 账本不可用`
+  }).join('；')
 }
 
 function remoteExecution(config:Readonly<Configuration>,options:ModelOptions){return {
@@ -609,8 +637,8 @@ async function invokeRemote(ctx: AgentContext, config: Readonly<Configuration>, 
 
 interface InvocationControl {
   mode: 'preflight' | 'demo' | 'live'
-  productionBudget: number | 'unlimited'
-  evaluationBudget: number | 'unlimited'
+  productionBudget: number | 'unlimited' | {AFP:number;CNY:number}
+  evaluationBudget: number | 'unlimited' | {AFP:number;CNY:number}
   authorization?: Record<string, unknown>
   localOnly?: boolean
   allowHostTools?: boolean
@@ -664,6 +692,7 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
   }
   const toolLimit = dshToolCallLimit(live)
   const allowTools = toolLimit !== 0
+  const mixedBilling=(config.dshModelPool?.billingUnit??config.providerConfig?.billingUnit)==='MIXED'
   const coreOptions = {...options,model:'auto',tools:allowTools ? options.tools : []}
   const decisionConfig=live.decompositionDecision
   let decompositionDecision:Record<string,unknown>|undefined
@@ -673,14 +702,16 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
     if(decisionConfig.judge?.type==='jev'){
       // 配置和执行模型不合格时，先零调用停止，不能先花判别费用。
       const ready=await invoke(ctx,config,coreOptions,undefined,{mode:'preflight',
-        productionBudget:live.maxProductionCost!,evaluationBudget:live.maxEvaluationCost!,
+        productionBudget:mixedBilling?live.maxProductionCostByUnit!:live.maxProductionCost!,
+        evaluationBudget:mixedBilling?live.maxEvaluationCostByUnit!:live.maxEvaluationCost!,
         localOnly:true,allowHostTools:allowTools},planning)
       if(!object(ready.live_authorization_preview)||ready.live_authorization_preview.ready!==true)
         throw new Error('REFRACTAGENT_LIVE_DISABLED: 执行模型预检未通过；Jev 尚未派发')
     }
     decompositionDecision=await planning.decompositionDecision(decisionConfig,input.task,input.context,signal)
   }
-  const common = {productionBudget:live.maxProductionCost!,evaluationBudget:live.maxEvaluationCost!,
+  const common = {productionBudget:mixedBilling?live.maxProductionCostByUnit!:live.maxProductionCost!,
+    evaluationBudget:mixedBilling?live.maxEvaluationCostByUnit!:live.maxEvaluationCost!,
     localOnly:true,allowHostTools:allowTools,...(decompositionDecision?{decompositionDecision}:{})}
   const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning)
   if (!object(preview.live_authorization_preview) || preview.live_authorization_preview.ready !== true) {
@@ -696,7 +727,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   planning?:PlanningController): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
   if (options.model === 'auto-live' && control === undefined) return invokeAutoLive(ctx,config,options,onProgress,planning)
-  const automaticRouting = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4'
+  const automaticRouting = config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion)
   const mode = control?.mode ?? (automaticRouting ? 'demo' : config.executionMode)
   const live = mode === 'live'
   if (config.routerUrl && live && !control?.localOnly) throw new Error('Router HTTP only permits preview or demo execution')
@@ -782,8 +813,8 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   const pythonModule = /(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
   const argv = [executable, ...(pythonModule ? ['-m', 'refractrouter.agent_cli'] : []), 'run',
     useBridge ? '--host-stdio' : '--request-stdin', '--mode', mode,
-    '--runs-dir', runsDir, '--production-budget', String(control?.productionBudget ?? config.maxProductionCost),
-    '--evaluation-budget', String(control?.evaluationBudget ?? config.maxEvaluationCost), '--timeout-ms', String(config.timeoutMs),
+    '--runs-dir', runsDir, '--production-budget', typeof control?.productionBudget==='object'?JSON.stringify(control.productionBudget):String(control?.productionBudget ?? config.maxProductionCost),
+    '--evaluation-budget', typeof control?.evaluationBudget==='object'?JSON.stringify(control.evaluationBudget):String(control?.evaluationBudget ?? config.maxEvaluationCost), '--timeout-ms', String(config.timeoutMs),
     '--max-output-tokens', String(outputCap), ...(live ? ['--execute-paid-run'] : []), ...(progressEnabled ? ['--progress-stdio'] : []),
     ...(config.preset ? ['--preset', config.preset] : [])]
   const confined = ctx.sandbox.confine(argv, policy)
@@ -882,7 +913,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       if(options.model==='planning'){yield* planning.stream(options);return}
       const config = source()
       const model = normalizeConfiguredModel(config, options.model)
-      const automatic = config.dshModelPool !== undefined || config.providerConfig?.schemaVersion === 'refractagent-providers-v4' || config.template === 'auto'
+      const automatic = config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion) || config.template === 'auto'
       const pending = automatic ? (model === 'auto-live'
         ? '正在预检并执行真实自动路由。\n' : '正在预览自动拆分流程。\n') : ''
       const queue: string[] = []
@@ -951,8 +982,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         + (typeof result.wall_time_ms === 'number' ? `总耗时：${(result.wall_time_ms / 1000).toFixed(2)} 秒；` : '')
         + (typeof result.plan_ready_ms === 'number' ? `计划就绪：${(result.plan_ready_ms / 1000).toFixed(2)} 秒；` : '')
         + (object(result.content_validation) ? `依赖复核：${JSON.stringify(result.content_validation)}；` : '')
-        + (object(result.cost_breakdown) ? `规划／执行／评审：${JSON.stringify(result.cost_breakdown)} ${String(result.billing_unit)}；` : '')
-        + `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}；记录：${String(result.result_path)}`
+        + (object(result.cost_breakdown) ? `规划／执行／评审：${JSON.stringify(result.cost_breakdown)}${result.billing_unit==='MIXED'?'（各项按 AFP／CNY 分列）':` ${String(result.billing_unit)}`}；` : '')
+        + `${costSummary(result)}；记录：${String(result.result_path)}`
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
       if (!reasoningStarted) {
         reasoningStarted = true

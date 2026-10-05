@@ -215,7 +215,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
     ...(state.provider?.security?{security:state.provider.security}:{}),
     ...(state.provider?.trustPolicies?{trustPolicies:state.provider.trustPolicies.filter((row):row is Record<string,unknown>=>row!==null&&typeof row==='object'&&!Array.isArray(row))}:{})})
   const migratePool=(next:DshModelPoolView):DshModelPoolView=>({...next,
-    schemaVersion:next.schemaVersion==='refractagent-dsh-model-pool-v3'?'refractagent-dsh-model-pool-v3':'refractagent-dsh-model-pool-v2',routes:next.routes.map(route=>{const overrides={...route.overrides}
+    schemaVersion:next.schemaVersion==='refractagent-dsh-model-pool-v4'?'refractagent-dsh-model-pool-v4':
+      next.schemaVersion==='refractagent-dsh-model-pool-v3'?'refractagent-dsh-model-pool-v3':'refractagent-dsh-model-pool-v2',routes:next.routes.map(route=>{const overrides={...route.overrides}
       delete overrides.quality;delete overrides.latencyMs
       return {...route,...(Object.keys(overrides).length?{overrides}:{overrides:undefined})}})})
   const updatePool=(next:DshModelPoolView)=>props.editDshModelPool(migratePool(next))
@@ -226,15 +227,22 @@ export function RefractCard(props: RefractCardOwnerProps) {
       maxProductionCost:typeof live.maxProductionCost==='number'?live.maxProductionCost*currencyRate.rate:live.maxProductionCost,
       maxEvaluationCost:typeof live.maxEvaluationCost==='number'?live.maxEvaluationCost*currencyRate.rate:live.maxEvaluationCost})
   }
-  const actualPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v3'
+  const actualPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v3'||pool?.schemaVersion==='refractagent-dsh-model-pool-v4'
+  const mixedPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v4'
   const migrateActualPool=()=>{if(!pool)return
     updatePool({...pool,schemaVersion:'refractagent-dsh-model-pool-v3',routes:pool.routes.map(row=>{
       const {overrides:_old,...route}=row;return {...route,enabled:false}}),roleOverrides:{}})
     updateLive({enabled:false})
   }
   const switchBillingGroup=(unit:string)=>{if(!pool||unit===pool.billingUnit)return
-    updatePool({...pool,billingUnit:unit,routes:pool.routes.map(row=>({...row,enabled:false})),roleOverrides:{}})
-    props.editLiveExecution({...live,enabled:false,maxProductionCost:undefined,maxEvaluationCost:undefined})
+    if(unit==='MIXED'){
+      updatePool({...pool,schemaVersion:'refractagent-dsh-model-pool-v4',billingUnit:'MIXED'})
+      updateLive({enabled:false,maxProductionCostByUnit:undefined,maxEvaluationCostByUnit:undefined})
+    }else{
+      updatePool({...pool,schemaVersion:'refractagent-dsh-model-pool-v3',billingUnit:unit,
+        routes:pool.routes.map(row=>({...row,enabled:false})),roleOverrides:{}})
+      props.editLiveExecution({...live,enabled:false,maxProductionCost:undefined,maxEvaluationCost:undefined})
+    }
   }
   const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
     .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
@@ -450,6 +458,13 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   {automaticJudgeError?<p className="rra-invalid" role="alert">{automaticJudgeError}</p>:null}
                   <p className="rra-warning">该 checkpoint 的拆分专项验收为 7／18，未达质量门槛；此模式保持实验标识，日常使用请保持默认规则。</p></>:null}
               </div>
+              {mixedPool?<div className="rra-grid rra-grid-2">{(['AFP','CNY'] as const).flatMap(unit=>
+                (['maxProductionCostByUnit','maxEvaluationCostByUnit'] as const).map(field=><label className="rra-compact-field" key={`${field}-${unit}`}>
+                  {field==='maxProductionCostByUnit'?'生产':'评审'}预算（{unit}；0 为不限制）
+                  <input className="rra-input" type="number" min="0" step="0.001" disabled={disabled}
+                    value={live[field]?.[unit]??''} onChange={event=>updateLive({[field]:{
+                      AFP:live[field]?.AFP??0,CNY:live[field]?.CNY??0,
+                      [unit]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>))}</div>:
               <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{actualPool?`单任务生产硬上限（${pool.billingUnit}）`:t('liveProductionBudget')}</label>
                 <input id="rra-production-budget" className="rra-input" type="number" min="0" step="0.001"
                   disabled={disabled||live.maxProductionCost==='unlimited'}
@@ -465,7 +480,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     onChange={event=>updateLive({maxEvaluationCost:event.target.value===''?undefined:Number(event.target.value)})}/>
                   <label className="rra-check"><input type="checkbox" disabled={disabled} aria-label={t('liveEvaluationUnlimited')}
                     checked={live.maxEvaluationCost==='unlimited'}
-                    onChange={event=>updateLive({maxEvaluationCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div></div>
+                  onChange={event=>updateLive({maxEvaluationCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div></div>}
               <p className="rra-field-hint">{t('liveUnlimitedBudgetHint')}</p>
               <details className="rra-details"><summary>并发、Provider 节流与输出上限</summary>
                 <p>{t('liveOutputCapacityHint')}</p>
@@ -521,8 +536,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
             {!actualPool&&pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与费用记账：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
             {!actualPool?<button type="button" className="rra-button" disabled={disabled} onClick={migrateActualPool}>升级为实际路线价格（重新选择模型后启用）</button>:<label className="rra-compact-field">自动路由计费组
               <select className="rra-select" value={pool.billingUnit} disabled={disabled} onChange={event=>switchBillingGroup(event.target.value)}>
-                <option value="CNY">现金 CNY（DeepSeek 官方等）</option><option value="AFP">订阅 AFP（Ark，含 Kimi）</option></select>
-              <span className="rra-field-hint">价格与容量共用规划路由资料。一次自动路由只比较同单位模型；切换计费组会清除旧预算并暂停真实执行，重新设置后启用。Jev 的 CNY 费用单独记录。</span></label>}
+                <option value="CNY">现金 CNY（DeepSeek 官方等）</option><option value="AFP">订阅 AFP（Ark，含 Kimi）</option>
+                <option value="MIXED">AFP＋CNY（质量达标后优先订阅）</option></select>
+              <span className="rra-field-hint">价格与容量共用规划路由资料。混合模式分别检查 AFP 与 CNY 额度；AFP 不换算为现金。切换后请核对模型与两套预算再启用真实执行。</span></label>}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
             {routeProfilesError?<p className="rra-warning">{t('poolLatencyReadError')}: {routeProfilesError}</p>:null}
@@ -540,7 +556,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
               const routeKey=identity(row.provider,row.model);const profile=frozenModelProfile(row.provider,row.model)
               const metadata=actualMetadata[routeKey]
               const metadataIssues=metadata?.automaticRouting?.issues??metadata?.issues??[]
-              const unavailable=actualPool&&(!metadata||metadata.billingUnit!==pool.billingUnit||metadataIssues.length>0)
+              const unavailable=actualPool&&(!metadata||(!mixedPool&&metadata.billingUnit!==pool.billingUnit)||metadataIssues.length>0)
               const selectedIssues=routeIssues(routeKey);const latencyProfile=observedProfile(routeKey)
               return <div className="rra-row-card" key={routeKey}><label className="rra-check">
                 <input type="checkbox" checked={!!selected&&selected.enabled!==false} disabled={disabled||(!(selected&&selected.enabled!==false)&&unavailable)} onChange={event=>updateRoute(row.provider,row.model,event.target.checked)}/>
@@ -550,7 +566,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   {metadata.pricing?<span>每千 tokens：输入 {metadata.pricing.inputPer1k} · 缓存 {metadata.pricing.cachedInputPer1k} · 输出 {metadata.pricing.outputPer1k} {metadata.billingUnit}</span>:null}
                   {metadata.sources?.pricing?<a href={metadata.sources.pricing} target="_blank" rel="noreferrer">实际路线价格来源 · {metadata.sources.pricingCheckedAt}</a>:null}
                   {metadata.sources?.pricingNote?<span>{metadata.sources.pricingNote}</span>:null}
-                  {metadata.billingUnit!==pool.billingUnit?<span>请切换到 {metadata.billingUnit} 计费组使用</span>:null}
+                  {!mixedPool&&metadata.billingUnit!==pool.billingUnit?<span>请切换到 {metadata.billingUnit} 计费组使用</span>:null}
                   {metadataIssues.map(issue=><span className="rra-warning" key={issue}>{issue}</span>)}
                   {metadata.automaticRouting?.qualityProfile?<span>独立质量先验 {metadata.automaticRouting.qualityProfile.score}/100（非任务成功率）</span>:null}
                 </>}</div>:null}

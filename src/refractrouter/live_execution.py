@@ -201,6 +201,37 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
     digest_input = {"authorization_id": authorization_id, "issued_at": issued_at,
                     "expires_at": expires_at, "binding": binding}
     preview_sha256 = hashlib.sha256(_canonical(digest_input).encode()).hexdigest()
+    mixed = billing_unit == 'MIXED'
+    if mixed:
+        if (not isinstance(production_estimate, dict) or set(production_estimate) != {'AFP', 'CNY'}
+                or not isinstance(evaluation_estimate, dict) or set(evaluation_estimate) != {'AFP', 'CNY'}):
+            raise ValueError('mixed authorization requires AFP and CNY estimates')
+        costs = {'billing_unit': 'MIXED',
+            'estimate_kind': 'native-unit-route-reserve',
+            'production_estimate_by_unit': dict(production_estimate),
+            'evaluation_estimate_by_unit': dict(evaluation_estimate),
+            'production_hard_limit_by_unit': dict(binding['production_budget']),
+            'evaluation_hard_limit_by_unit': dict(binding['evaluation_budget'])}
+    else:
+        costs = {
+            'billing_unit': billing_unit,
+            'estimate_kind': ('base-route-only-tool-continuations-unestimated'
+                              if binding['canary']['tools_allowed'] else
+                              'conservative-route-reserve' if gate['decision'] == 'direct' else 'bounded-range'),
+            'production_estimate': production_estimate,
+            'evaluation_estimate': evaluation_estimate,
+            'production_hard_limit': (None if binding['production_budget'] == 'unlimited'
+                                      else binding['production_budget']),
+            'evaluation_hard_limit': (None if binding['evaluation_budget'] == 'unlimited'
+                                      else binding['evaluation_budget']),
+            'production_unlimited': binding['production_budget'] == 'unlimited',
+            'evaluation_unlimited': binding['evaluation_budget'] == 'unlimited',
+            **({'production_estimate_range': {
+                'minimum': production_estimate,
+                'maximum': (None if binding['production_budget'] == 'unlimited'
+                            else binding['production_budget']),
+            }} if gate['decision'] == 'dag' or binding['canary']['tools_allowed'] else {}),
+        }
     return {
         "schema_version": AUTHORIZATION_SCHEMA,
         "authorization_id": authorization_id,
@@ -212,27 +243,9 @@ def create_authorization_preview(binding, *, billing_unit, production_estimate,
         "calls": {"maximum": maximum_calls,
                   "estimate": maximum_calls if gate["decision"] == "direct"
                   and not binding["canary"]["tools_allowed"] else None},
-        "costs": {
-            "billing_unit": billing_unit,
-            "estimate_kind": ("base-route-only-tool-continuations-unestimated"
-                              if binding["canary"]["tools_allowed"] else
-                              "conservative-route-reserve" if gate["decision"] == "direct" else "bounded-range"),
-            "production_estimate": production_estimate,
-            "evaluation_estimate": evaluation_estimate,
-            "production_hard_limit": (None if binding["production_budget"] == "unlimited"
-                                      else binding["production_budget"]),
-            "evaluation_hard_limit": (None if binding["evaluation_budget"] == "unlimited"
-                                      else binding["evaluation_budget"]),
-            "production_unlimited": binding["production_budget"] == "unlimited",
-            "evaluation_unlimited": binding["evaluation_budget"] == "unlimited",
-            **({"production_estimate_range": {
-                "minimum": production_estimate,
-                "maximum": (None if binding["production_budget"] == "unlimited"
-                            else binding["production_budget"]),
-            }} if gate["decision"] == "dag" or binding["canary"]["tools_allowed"] else {}),
-        },
+        "costs": costs,
         "ready": (ready and binding["canary"]["data_mode"] in {"synthetic", "desensitized", "live"}
-                  and binding["canary"]["billing_unit"] in {"USD", "CNY", "AFP"}),
+                  and binding["canary"]["billing_unit"] in {"USD", "CNY", "AFP", "MIXED"}),
         "data_mode": binding["canary"]["data_mode"],
         "tools_allowed": binding["canary"]["tools_allowed"],
         "tools": {"maximum_calls": binding["canary"]["max_tool_calls"],

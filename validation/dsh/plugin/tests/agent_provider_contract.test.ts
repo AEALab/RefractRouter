@@ -193,6 +193,38 @@ test('settings-enabled developer live starts one local preflight and one bound l
   assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'真实答案')
   assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
 })
+test('自动路由混合计费从设置到预检及执行保持 AFP／CNY 分账',async()=>{
+  const config={...liveProviderConfig(),schemaVersion:'refractagent-providers-v5' as const,
+    billingUnit:'MIXED' as const,models:liveProviderConfig().models.map(model=>model.id==='worker'
+      ? {...model,pricing:{...model.pricing,unit:'AFP' as const}}:model)}
+  const costs={production:null,evaluation:null,unconfirmed:null,by_unit:{
+    AFP:{production:.03,evaluation:0,unconfirmed:0},CNY:{production:0,evaluation:.01,unconfirmed:0}}}
+  const preview={...previewResult,billing_unit:'MIXED',costs,
+    live_authorization_preview:{...previewResult.live_authorization_preview,costs:{
+      production_estimate:{AFP:.03,CNY:0},evaluation_estimate:{AFP:0,CNY:.01},
+      production_hard_limit:{AFP:1,CNY:1},evaluation_hard_limit:{AFP:1,CNY:1}}}}
+  const executed={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'混合计费完成',
+    simulated:false,billing_unit:'MIXED',costs,plan_origin:'direct-gate',plan:{nodes:[{node_id:'answer'}]},
+    dag:{phase:'finished',status:'completed',simulated:false,reason:'直接回答',nodes:[]}}
+  const f=fixture([preview,executed])
+  const adapter=createAdapter(f.ctx,()=>configure({providerConfig:config,liveExecution:{...liveExecution(),
+    maxProductionCostByUnit:{AFP:1,CNY:1},maxEvaluationCostByUnit:{AFP:1,CNY:1}}}))
+  const output=[]
+  for await(const chunk of adapter.stream({...options,model:'auto-live'}))output.push(chunk)
+  assert.equal(f.spawns.length,2)
+  for(const spawn of f.spawns){
+    const production=spawn.argv.indexOf('--production-budget')
+    const evaluation=spawn.argv.indexOf('--evaluation-budget')
+    assert.deepEqual(JSON.parse(spawn.argv[production+1]!),{AFP:1,CNY:1})
+    assert.deepEqual(JSON.parse(spawn.argv[evaluation+1]!),{AFP:1,CNY:1})
+    assert.deepEqual(JSON.parse(spawn.input()).providerConfig,config)
+  }
+  assert.equal(JSON.parse(f.spawns[1]!.input()).authorization.authorization_id,'auth-1')
+  assert.equal(output.find(chunk=>chunk.type==='text-delta')?.text,'混合计费完成')
+  assert.match(output.filter(chunk=>chunk.type==='reasoning-delta').map(chunk=>String(chunk.text)).join(''),
+    /费用分账：AFP：生产 0\.0300、评审 0\.0000、待核对 0\.0000；CNY：生产 0\.0000、评审 0\.0100、待核对 0\.0000/)
+  assert.deepEqual(output.at(-1)?.reason,{kind:'stop'})
+})
 test('DSH 接受规划后改为整任务执行，并在 replay 保留路线比较',async()=>{
   const routeComparison={status:'selected',route:'direct',reason:'direct-estimated-cost-not-worse',
     direct:{total_estimated_cost:.12},dag:{total_estimated_cost:.18}}
