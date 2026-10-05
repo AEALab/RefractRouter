@@ -213,9 +213,14 @@ def test_live_route_comparison_charges_shared_probe_and_uses_cost_then_latency()
     assert cheaper['dag']['total_estimated_cost'] == pytest.approx(.17)
     assert cheaper['direct']['total_estimated_cost'] == pytest.approx(.27)
     assert cheaper['direct']['planner_actual_cost'] == .03
+    assert cheaper['direct_without_probe_estimated_cost'] == pytest.approx(.24)
+    assert cheaper['dag_net_estimated_savings_vs_unprobed_direct'] == pytest.approx(.07)
+    assert cheaper['dag_net_savings_forecast_positive'] is True
     tied = compare_executable_routes(direct, _executable_route(.2, 500),
                                      planner_cost=.03, judge_cost=.04)
     assert tied['route'] == 'dag' and tied['reason'] == 'cost-tie-shorter-worker-schedule'
+    assert tied['dag_net_savings_forecast_positive'] is False
+    assert tied['dag_net_estimated_savings_vs_unprobed_direct'] == pytest.approx(-.03)
     reserved = compare_executable_routes(direct, dag, planner_cost=.03, judge_cost=.04,
                                          tool_allowances={'direct': 0, 'dag': .2})
     assert reserved['route'] == 'direct'

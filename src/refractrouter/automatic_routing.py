@@ -356,6 +356,15 @@ def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
         audit.update(route='direct', reason='dag-infeasible')
     else:
         delta = dag_row['total_estimated_cost'] - direct_row['total_estimated_cost']
+        # The planner is already paid when this decision is made, but it was not
+        # part of the direct route available before probing. Keep both views:
+        # the cheapest remaining execution and the full-task value of probing.
+        direct_without_probe = direct_row['total_estimated_cost'] - planner_cost
+        audit['direct_without_probe_estimated_cost'] = direct_without_probe
+        audit['dag_net_estimated_savings_vs_unprobed_direct'] = (
+            direct_without_probe - dag_row['total_estimated_cost'])
+        audit['dag_net_savings_forecast_positive'] = (
+            audit['dag_net_estimated_savings_vs_unprobed_direct'] > cost_tie_tolerance)
         if delta < -cost_tie_tolerance:
             audit.update(route='dag', reason='lower-estimated-total-cost')
         elif abs(delta) <= cost_tie_tolerance and (

@@ -7,7 +7,9 @@ from pathlib import Path
 import pytest
 
 from refractrouter.agent import run_agent
+from refractrouter.application_config import compile_configuration
 from refractrouter.openai_compatible import ChatResponse
+from refractrouter.route_observations import RouteObservationStore
 from refractrouter.decomposition_decision import build_request, parse_answer
 from refractrouter.live_execution import (authorization_binding, complexity_gate,
                                            create_authorization_preview,
@@ -266,6 +268,28 @@ def test_live_second_level_can_discard_a_costly_dag_without_repeating_planner(tm
     assert len(client.calls) == 3  # 规划一次，直接执行一次，最终评审一次
     assert result['cost_breakdown']['planning'] == 0  # 夹具中的本地规划模型不计 API 费用
     assert any(call['label'] == 'planner' for call in json.loads(Path(result['result_path']).read_text())['calls'])
+
+
+def test_automatic_live_run_records_selected_route_value_without_extra_calls(tmp_path):
+    raw = config()
+    compiled = compile_configuration(raw)
+    provenance = {f'{model.provider}/{model.api_model}': {
+        'compiled_model_id': model.model_id, 'effective_model': model.api_model,
+        'reasoning_effort': 'default'} for model in compiled.manifest.models}
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    client = CompactClient()
+    path = tmp_path / 'observations.sqlite3'
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=raw, runs_dir=tmp_path / 'live', mode='live', execute_paid_run=True,
+        client=client, production_budget=10, evaluation_budget=10,
+        route_observation_path=path, model_profile_provenance=provenance)
+    assert result['status'] == 'completed'
+    assert result['route_observations']['value_recorded'] == 1
+    assert result['route_observations']['value']['route'] == result['route_comparison']['route']
+    assert RouteObservationStore(path).value_summary()['runs'] == 1
+    assert len(client.calls) == 3
 
 
 def test_live_second_level_uses_dag_when_qualified_profiles_save_cost(tmp_path):

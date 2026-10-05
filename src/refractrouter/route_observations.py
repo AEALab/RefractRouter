@@ -56,6 +56,23 @@ def _initialize(connection):
         );
         CREATE INDEX IF NOT EXISTS route_latency_identity
             ON route_latency_observations(project_scope, provider, model, effective_model, reasoning_effort, id);
+        CREATE TABLE IF NOT EXISTS route_value_observations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_scope TEXT NOT NULL,
+            run_id TEXT NOT NULL,
+            route TEXT NOT NULL,
+            task_status TEXT NOT NULL,
+            predicted_costs_by_unit TEXT,
+            actual_costs_by_unit TEXT NOT NULL,
+            unconfirmed_costs_by_unit TEXT NOT NULL,
+            judge_passed INTEGER,
+            tool_receipt_passed INTEGER,
+            quality_source TEXT NOT NULL,
+            observed_at TEXT NOT NULL,
+            UNIQUE(project_scope, run_id)
+        );
+        CREATE INDEX IF NOT EXISTS route_value_scope
+            ON route_value_observations(project_scope, route, id);
     ''')
 
 
@@ -65,6 +82,43 @@ def _identity(binding):
                                             or not binding[key] for key in required):
         raise ValueError('invalid route observation binding')
     return tuple(binding[key] for key in required)
+
+
+def route_value_observation(comparison, plan_origin, calls, billing_unit, status, evaluation,
+                            tool_validation=None):
+    """从真实账本取被选路线的预测与结算；未执行的反事实不算观测。"""
+    if billing_unit not in {'AFP', 'CNY', 'USD', 'MIXED'} or not isinstance(calls, list):
+        raise ValueError('invalid route value ledger')
+    route = comparison.get('route') if isinstance(comparison, dict) else None
+    if route not in {'direct', 'dag'}:
+        route = 'direct' if plan_origin in {'direct-gate', 'direct-after-probe'} else 'dag' if plan_origin == 'model' else 'unknown'
+    selected = comparison.get(route) if isinstance(comparison, dict) else None
+    predicted = None
+    if isinstance(selected, dict):
+        if isinstance(selected.get('total_estimated_by_unit'), dict):
+            predicted = dict(selected['total_estimated_by_unit'])
+        elif billing_unit != 'MIXED' and isinstance(selected.get('total_estimated_cost'), (int, float)):
+            predicted = {billing_unit: selected['total_estimated_cost']}
+    actual = {unit: 0.0 for unit in ('AFP', 'CNY', 'USD')}
+    unconfirmed = dict(actual)
+    for call in calls:
+        if not isinstance(call, dict) or call.get('billing_unit') not in actual:
+            continue
+        amount = call.get('charged')
+        if type(amount) not in (int, float) or not math.isfinite(amount) or amount < 0:
+            continue
+        if call.get('status') == 'billed':
+            actual[call['billing_unit']] += amount
+        elif call.get('status') in {'reserved', 'unknown-usage'}:
+            unconfirmed[call['billing_unit']] += amount
+    judge_passed = evaluation.get('passed') if isinstance(evaluation, dict) else None
+    tool_passed = tool_validation.get('passed') if isinstance(tool_validation, dict) else None
+    return {'route': route, 'task_status': status, 'predicted_costs_by_unit': predicted,
+            'actual_costs_by_unit': actual, 'unconfirmed_costs_by_unit': unconfirmed,
+            'judge_passed': judge_passed if type(judge_passed) is bool else None,
+            'tool_receipt_passed': tool_passed if type(tool_passed) is bool else None,
+            'quality_source': 'model-review-unverified' if type(judge_passed) is bool else 'none',
+            'counterfactual_observed': False}
 
 
 class RouteObservationStore:
@@ -121,6 +175,62 @@ class RouteObservationStore:
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ''', rows)
             return connection.total_changes - before
+
+    def record_route_value(self, run_id, observation):
+        if not isinstance(run_id, str) or not run_id or not isinstance(observation, dict):
+            raise ValueError('invalid route value observation')
+        if observation.get('route') not in {'direct', 'dag', 'unknown'} or not isinstance(observation.get('task_status'), str):
+            raise ValueError('invalid route value identity')
+        with self._writable() as connection:
+            before = connection.total_changes
+            connection.execute('''
+                INSERT OR IGNORE INTO route_value_observations
+                (project_scope,run_id,route,task_status,predicted_costs_by_unit,actual_costs_by_unit,
+                 unconfirmed_costs_by_unit,judge_passed,tool_receipt_passed,quality_source,observed_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+            ''', (self.scope, run_id, observation['route'], observation['task_status'],
+                  json.dumps(observation['predicted_costs_by_unit'], sort_keys=True),
+                  json.dumps(observation['actual_costs_by_unit'], sort_keys=True),
+                  json.dumps(observation['unconfirmed_costs_by_unit'], sort_keys=True),
+                  observation['judge_passed'], observation['tool_receipt_passed'],
+                  observation['quality_source'], _now()))
+            return connection.total_changes - before
+
+    def value_summary(self):
+        """被动观测的预测偏差；不能把自身审核或未执行路线解释为收益证明。"""
+        if not self.path.is_file():
+            return {'runs': 0, 'byRoute': {}, 'costRatioP90ByRouteAndUnit': {},
+                    'counterfactualObserved': False, 'qualityVerified': False}
+        self._ensure_schema()
+        with _connect(self.path) as connection:
+            rows = connection.execute('''
+                SELECT route,task_status,predicted_costs_by_unit,actual_costs_by_unit,
+                       unconfirmed_costs_by_unit,judge_passed,tool_receipt_passed
+                FROM route_value_observations WHERE project_scope=? ORDER BY id DESC
+            ''', (self.scope,)).fetchall()
+        counts, ratios = {}, {}
+        for row in rows:
+            route = row['route']
+            counts.setdefault(route, {'runs': 0, 'completed': 0, 'modelReviewPassed': 0,
+                                      'toolReceiptPassed': 0, 'toolReceiptFailed': 0})
+            counts[route]['runs'] += 1
+            counts[route]['completed'] += row['task_status'] == 'completed'
+            counts[route]['modelReviewPassed'] += row['task_status'] == 'completed' and row['judge_passed'] == 1
+            counts[route]['toolReceiptPassed'] += row['tool_receipt_passed'] == 1
+            counts[route]['toolReceiptFailed'] += row['tool_receipt_passed'] == 0
+            predicted = json.loads(row['predicted_costs_by_unit'])
+            actual = json.loads(row['actual_costs_by_unit'])
+            unknown = json.loads(row['unconfirmed_costs_by_unit'])
+            if row['task_status'] != 'completed' or not isinstance(predicted, dict) or any(unknown.values()):
+                continue
+            for unit, estimate in predicted.items():
+                if type(estimate) in (int, float) and estimate > 0 and unit in actual:
+                    ratios.setdefault(route, {}).setdefault(unit, []).append(actual[unit] / estimate)
+        p90 = {route: {unit: {'ratio': sorted(values)[math.ceil(.9 * len(values)) - 1],
+                               'samples': len(values)} for unit, values in units.items()}
+               for route, units in ratios.items()}
+        return {'runs': len(rows), 'byRoute': counts, 'costRatioP90ByRouteAndUnit': p90,
+                'counterfactualObserved': False, 'qualityVerified': False}
 
     def latency_profiles(self):
         if not self.path.is_file():
@@ -187,4 +297,4 @@ class RouteObservationStore:
                 'reasoningEffort': reasoning_effort, **profile,
                 'statusCounts': counts.get(route, {})})
         return {'schemaVersion': 'refractrouter-route-profiles-v1',
-                'profiles': profiles, 'modelCalls': 0}
+                'profiles': profiles, 'valueObservations': self.value_summary(), 'modelCalls': 0}
