@@ -481,7 +481,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   <label className="rra-check"><input type="checkbox" disabled={disabled} aria-label={t('liveEvaluationUnlimited')}
                     checked={live.maxEvaluationCost==='unlimited'}
                   onChange={event=>updateLive({maxEvaluationCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div></div>}
-              <p className="rra-field-hint">{t('liveUnlimitedBudgetHint')}</p>
+              <p className="rra-field-hint">{mixedPool
+                ? 'AFP 和 CNY 各有独立的生产与评审上限；填 0 表示该项不限制。AFP 是订阅额度，不折算成人民币。工具续调仍可能增加模型调用和两种单位的用量。'
+                : t('liveUnlimitedBudgetHint')}</p>
               <details className="rra-details"><summary>并发、Provider 节流与输出上限</summary>
                 <p>{t('liveOutputCapacityHint')}</p>
                 <p>实际节点上限还会受此处单节点上限、节点目标和剩余费用可承担量影响。</p>
