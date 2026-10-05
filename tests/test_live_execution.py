@@ -330,7 +330,7 @@ def test_live_second_level_keeps_valid_dag_when_direct_input_is_too_large(tmp_pa
 
 def test_live_second_level_stops_before_workers_when_review_budget_is_insufficient(tmp_path, monkeypatch):
     from refractrouter import task_runtime
-    monkeypatch.setattr(task_runtime, '_shared_judge_forecast', lambda *args: 20.0)
+    monkeypatch.setattr(task_runtime, '_shared_judge_forecast', lambda *args, **kwargs: 20.0)
     raw = config()
     payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}
     preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'preview',

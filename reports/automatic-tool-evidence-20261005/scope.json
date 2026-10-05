@@ -1,0 +1,20 @@
+{
+  "schema_version": "tool-evidence-recheck-v1",
+  "task": "有限验收：请先使用 Bash 工具执行 printf 7，再只根据工具标准输出回答数字。不要编辑文件或调用其他工具。",
+  "maximum_tasks": 1,
+  "scope": "原 DSH web profile，自动路由工具回执修复",
+  "production_budget": {
+    "AFP": 200,
+    "CNY": 2
+  },
+  "evaluation_budget": {
+    "AFP": 60,
+    "CNY": 1
+  },
+  "decomposition_cny_limit": 0.01,
+  "output_limit": 8192,
+  "http_retries": 0,
+  "zero_call_preflight": "DSH 入口在 Jev 与执行调用前分别进行零调用准入；失败则停止",
+  "expected_tool_calls": 1,
+  "stop_rule": "本任务结束即停止；认证、未知用量或证据错误立即停止，不自动补跑。"
+}

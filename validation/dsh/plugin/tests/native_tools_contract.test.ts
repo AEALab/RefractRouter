@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { PassThrough } from 'node:stream'
 import test from 'node:test'
 import { bindNativeTools, TOOL_PROTOCOL, type NativeToolContext } from '../dist/native-tools.js'
+import { ToolEvidenceCapture } from '../dist/tool-evidence.js'
 import { callDshLlm, pumpDshBridge } from '../dist/index.js'
 import type { LlmOptions, StreamChunk } from '../dist/contracts.js'
 
@@ -35,6 +36,21 @@ test('native execution retains actual initiator, cancellation and native call/re
   assert.deepEqual(f.events.map(e=>e.type),['step/start'])
   await assert.rejects(tools.execute(request,signal),/duplicate/)
   assert.equal(f.calls.length,1)
+})
+
+test('automatic tool bridge forwards structured host exit facts with the actual call identity',async()=>{
+  const f=fixture(), evidence=new ToolEvidenceCapture()
+  Object.assign(f.agent.session,{header:{id:'current-session'}})
+  f.ctx.tools!.execute=async input=>{
+    evidence.observe({...input,agent:input.agent}, {isError:false,value:{kind:'foreground',exitCode:1,
+      signal:null,timedOut:false,aborted:false}})
+    return {isError:false,content:[{type:'text',text:'正文声称成功，但退出码为 1'}]}
+  }
+  const tools=bindNativeTools(f.ctx,[{...schemas[0]!,name:'bash'}],evidence)!
+  const result=await tools.execute({...request,call:{...request.call,
+    function:{name:'bash',arguments:'{"command":"false"}'}}},new AbortController().signal)
+  assert.equal(((result.result as Record<string,unknown>).hostResult as Record<string,unknown>).exitCode,1)
+  assert.equal(evidence.lookup('other-session','c1'),undefined)
 })
 
 test('unavailable tool, missing agent, inactive step and pre-cancel never execute',async()=>{

@@ -61,6 +61,17 @@ async function chunks(adapter: AgentAdapter) {
   for await (const chunk of adapter.stream(options)) output.push(chunk)
   return output
 }
+
+test('工具要求未通过时交付明确失败说明，候选正文仅留审计且回放保留验收状态',async()=>{
+  const f=fixture({status:'tool-requirement-failed',answer:'伪造已执行：7',
+    tool_validation:{passed:false,reason:'required-host-tool-not-observed',message:'缺少宿主执行回执',records:[]}})
+  const output=await chunks(createAdapter(f.ctx,()=>configure()))
+  const text=output.filter(c=>c.type==='text-delta').map(c=>c.text).join('')
+  assert.match(text,/缺少宿主执行回执/)
+  assert.ok(!text.includes('伪造已执行'))
+  const finish=output.find(c=>c.type==='finish') as any
+  assert.equal(finish.replayState.response.refractagent.toolValidation.passed,false)
+})
 const modelPool = () => ({schemaVersion:'refractagent-dsh-model-pool-v1' as const,billingUnit:'USD',
   security:{dataMode:'synthetic'},routes:[
     {provider:'team',model:'planner',deployment:'local' as const,overrides:{inputPer1k:0,outputPer1k:0,quality:90,latencyMs:100}},

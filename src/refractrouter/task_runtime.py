@@ -21,6 +21,8 @@ from .automatic_mixed_assignment import route_nodes_mixed
 from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
 from .task_evaluation import evaluate_text, evaluation_messages
+from .task_tool_evidence import (MAX_EVIDENCE_BYTES, collect_tool_evidence,
+                                 tool_requirements, validation_message)
 from .output_constraints import check_output_constraints, validate_output_constraints
 from concurrent.futures import CancelledError
 from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
@@ -42,10 +44,12 @@ from .automatic_routing import compare_executable_routes, choose_mixed_billing_r
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 
 
-def _shared_judge_forecast(judge, task, criteria, candidates):
+def _shared_judge_forecast(judge, task, criteria, candidates, *, tool_evidence=False):
     """两条路线共用同一最终答复审核；按完整输出容量给出可审计上界。"""
     max_answer = max(output_token_limit(model) for model in candidates.values())
     input_bound = request_input_bound(evaluation_messages(task, '', criteria or [])) + max_answer * 8
+    if tool_evidence:
+        input_bound += MAX_EVIDENCE_BYTES
     return (input_bound * judge.input_cost_per_1k
             + output_token_limit(judge) * judge.output_cost_per_1k) / 1000
 
@@ -307,6 +311,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             max_total_output_tokens=request.get('maxTotalOutputTokens'),
             adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
     started = time.monotonic()
+    required_tools = tool_requirements('\n'.join([request['task'], *request.get('acceptanceCriteria', [])]),
+                                       tool_runtime.schemas if tool_runtime else ())
+    tool_record_start = len(tool_runtime.snapshot()) if tool_runtime else 0
     deadline_ms = float("inf") if request.get("unlimitedTime") else request["latencyMaxMs"]
     result = {"schema_version": "task-run-v1", "mode": mode, "status": "started", "task": request["task"],
               "plan_origin": ("direct-gate" if decision_evidence and decision_evidence.get('decision') == 'direct'
@@ -637,7 +644,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 if mixed:
                     _, charged_calls = budget.snapshot()
                     judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
-                        request.get('acceptanceCriteria'), candidates) if result['review']['required'] else 0.0)
+                        request.get('acceptanceCriteria'), candidates,
+                        tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
                     tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
                     comparison = _compare_mixed_execution(
                         {'direct': direct_routing, 'dag': result['routing']},
@@ -672,7 +680,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     planner_latency = (sum(row['latency_ms'] for row in planner_rows)
                         if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
                     judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
-                        request.get('acceptanceCriteria'), candidates) if result['review']['required'] else 0.0)
+                        request.get('acceptanceCriteria'), candidates,
+                        tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
                     tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
                     allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
                                   for name, route in (('direct', direct_routing), ('dag', result['routing']))}
@@ -767,7 +776,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             selected_models = {mid: candidates[mid] for mid in result['routing']['assignments'].values()}
             judge_upper = _shared_judge_forecast(
                 manifest.judge, execution_task, plan.acceptance_criteria,
-                selected_models)
+                selected_models, tool_evidence=tool_runtime is not None)
             judge_unit = manifest.judge.billing_unit
             result['review']['cost_upper_bound'] = {'unit': judge_unit, 'amount': judge_upper}
             if judge_upper > budget.remaining(judge_unit, 'evaluation') + 1e-12:
@@ -820,6 +829,19 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if result['format_validation']['passed'] is False:
                 result['issues'].append('output-length-exceeded')
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
+            tool_evidence = None
+            if tool_runtime is not None or required_tools['required']:
+                tool_evidence, validation = collect_tool_evidence(required_tools,
+                    tool_runtime.snapshot()[tool_record_start:] if tool_runtime else [], available=tool_runtime is not None)
+                validation['message'] = validation_message(validation)
+                result['tool_validation'] = validation
+                if not validation['passed']:
+                    result['status'] = 'tool-requirement-failed'
+                    result['review'].update(status='blocked-tool-evidence', passed=False,
+                                            reason=validation['reason'])
+                    result['issues'].append(validation['message'])
+                    persist()
+                    return result  # 无法验收时不再花费最终 Judge，也不替宿主补跑工具。
             if result['review']['required'] and placement is not None:
                 isolation = judge_isolation(placement, manifest.judge)
                 placement['judge_isolation'] = isolation
@@ -831,12 +853,23 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     result['status'] = 'privacy-route-blocked'
                     persist()
                     return result
+                if tool_evidence is not None:
+                    evidence_isolation = role_isolation(view=json.dumps(tool_evidence, ensure_ascii=False),
+                        privacy=privacy, model=manifest.judge, role='judge', classifier=classifier,
+                        source='tool-evidence')
+                    placement['tool_evidence_isolation'] = evidence_isolation
+                    if not evidence_isolation['satisfied']:
+                        result['status'] = 'privacy-route-blocked'
+                        result['issues'].append('final-judge: privacy-tool-evidence-blocked')
+                        persist()
+                        return result
             if result['review']['required']:
                 before_call()
                 result['review']['status'] = 'running'
                 persist()
                 judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
-                    criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000))
+                    criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000),
+                    tool_evidence=tool_evidence)
                 result["evaluation"] = judged
                 result["review"].update(status="completed", score=judged['score'], passed=judged['passed'])
                 persist()

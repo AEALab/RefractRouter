@@ -9,6 +9,7 @@ import re
 from uuid import uuid4
 
 from .decomposition_decision import RULE_VERSION, validate_evidence, trivial_workload
+from .task_tool_evidence import tool_requirements
 
 
 COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v3"
@@ -39,6 +40,8 @@ _SENTENCE_END = re.compile(r"[。！？!?](?:\s|$)")
 
 
 def _requires_tools(task):
+    if tool_requirements(task)['required']:
+        return True
     for match in _TOOL_MARKERS.finditer(task):
         prefix = re.split(r"[，,。！？!?；;\n]", task[max(0, match.start()-24):match.start()])[-1]
         if not _NEGATED_TOOL_PREFIX.search(prefix):

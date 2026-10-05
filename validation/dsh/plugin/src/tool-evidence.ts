@@ -37,6 +37,11 @@ function shellFact(value: unknown): Json | undefined {
 export class ToolEvidenceCapture {
   private sessions = new Map<string, Map<string, Json>>()
 
+  lookup(session: string, callId: string): Json | undefined {
+    const fact = this.sessions.get(session)?.get(callId)
+    return fact ? structuredClone(fact) : undefined
+  }
+
   observe(exec: ToolExecutionFact, result: ToolResultFact): void {
     if (result.isError || !['bash', 'pwsh'].includes(exec.name)) return
     const session = exec.agent?.session.header?.id

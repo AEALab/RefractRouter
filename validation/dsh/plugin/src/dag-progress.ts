@@ -150,8 +150,12 @@ export function runSummary(result: Record<string, unknown>): string {
     +`${String(protection.output_tokens)} 输出 tokens，状态 ${escape(String(protection.status))}；此额度不是已结算费用\n`:''
   const costTraceLine=Object.keys(trace).length?`费用依据：预计值用于选路；预留上界用于准入；实际结算以调用账本为准。\n`
     +expectedLines+protectionLine+actualLines:''
+  const toolValidation=object(result.tool_validation)?result.tool_validation:null
+  const toolLine=toolValidation?`工具验收：${toolValidation.passed===true?'回执检查通过':'未通过'}；${escape(String(toolValidation.message??toolValidation.reason))}\n`
+    +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
+      `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + diagnosticLines + latencyLines + costTraceLine
+    + route + localLine + comparisonLine + diagnosticLines + latencyLines + costTraceLine + toolLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')
