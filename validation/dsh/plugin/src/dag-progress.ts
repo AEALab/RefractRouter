@@ -90,13 +90,13 @@ export function runSummary(result: Record<string, unknown>): string {
     return `${unit}：生产 ${number(row.production)}、评审 ${number(row.evaluation)}、待核对 ${number(row.unconfirmed)}`}).join('；')
   const gate=object(result.complexity_gate)?result.complexity_gate:{}
   const local=object(gate.local_decision)?gate.local_decision:{}
-  const combinations:Record<string,string>={'coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
+  const combinations:Record<string,string>={'single-work-no-planner':'单项实质工作直接执行；工具与审核要求仍保留','coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
   const route=Object.keys(gate).length?`选路：规则 ${String(gate.rule_decision??gate.decision)} → 最终 ${String(gate.decision)}；合并方式 ${combinations[String(gate.combination)]??String(gate.combination??'旧规则')}；理由 ${Array.isArray(gate.reasons)?gate.reasons.join('、'):'未提供'}\n`:''
   const signals=object(local.signals)?local.signals:{}
   const reasonNames:Record<string,string>={'context-dependent':'任务依赖未传入的历史内容',
     'trivial-workload':'微型任务无需额外判别或规划','input-too-long':'任务超出本地输入上限','token-capacity':'本地 tokenizer 容量不足'}
-  const localLine=Object.keys(local).length?`${local.model==null?'结构规则（未调用 Judge）':local.backend==='jev'?'云端 Jev 结构判别':'本地结构判别'}：${String(local.verdict)}（原始 ${String(local.rawVerdict)}，判别分数 ${number(local.confidence)}）；`
-    +`依赖前一步 ${number(signals.requires_previous_output)}，可独立开始 ${number(signals.can_start_independently)}；`
+  const localLine=Object.keys(local).length?`${local.model==null?'结构规则（未调用 Judge）':local.backend==='jev'?'云端 Jev 结构判别':'本地结构判别'}：${String(local.verdict)}（原始 ${String(local.rawVerdict)}，规则合成强度 ${number(local.confidence)}）；`
+    +`依赖前一步 ${number(signals.requires_previous_output)}，可独立开始 ${number(signals.can_start_independently)}，单项工作 ${number(signals.single_work_unit)}；`
     +`模型 ${String(local.model??'未调用')}；推论 ${number(local.latencyMs)} ms，排队 ${number(local.queueMs)} ms；`
     +`${local.backend==='jev'?`渠道 ${String(local.provider)}；本次判别 ${number(local.costCny)} CNY（独立于执行费用）；`:''}`
     +`${local.reason?`回退原因 ${reasonNames[String(local.reason)]??String(local.reason)}；`:''}实验能力\n`:''
@@ -150,8 +150,12 @@ export function runSummary(result: Record<string, unknown>): string {
     +`${String(protection.output_tokens)} 输出 tokens，状态 ${escape(String(protection.status))}；此额度不是已结算费用\n`:''
   const costTraceLine=Object.keys(trace).length?`费用依据：预计值用于选路；预留上界用于准入；实际结算以调用账本为准。\n`
     +expectedLines+protectionLine+actualLines:''
+  const toolValidation=object(result.tool_validation)?result.tool_validation:null
+  const toolLine=toolValidation?`工具验收：${toolValidation.passed===true?'回执检查通过':'未通过'}；${escape(String(toolValidation.message??toolValidation.reason))}\n`
+    +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
+      `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + diagnosticLines + latencyLines + costTraceLine
+    + route + localLine + comparisonLine + diagnosticLines + latencyLines + costTraceLine + toolLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')

@@ -9,6 +9,7 @@ import re
 from uuid import uuid4
 
 from .decomposition_decision import RULE_VERSION, validate_evidence, trivial_workload
+from .task_tool_evidence import tool_requirements
 
 
 COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v3"
@@ -39,6 +40,8 @@ _SENTENCE_END = re.compile(r"[。！？!?](?:\s|$)")
 
 
 def _requires_tools(task):
+    if tool_requirements(task)['required']:
+        return True
     for match in _TOOL_MARKERS.finditer(task):
         prefix = re.split(r"[，,。！？!?；;\n]", task[max(0, match.start()-24):match.start()])[-1]
         if not _NEGATED_TOOL_PREFIX.search(prefix):
@@ -120,11 +123,14 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
                 "strict-output-contract", "explicit-tool-requirement"}.intersection(reasons)
         if trivial:
             combination = "trivial-workload-no-planner"
+        elif verdict == "SINGLE":
+            decision, combination = "direct", "single-work-no-planner"
+            reasons.append("local-single-work")
         elif verdict == "SEPARABLE":
             decision, combination = "dag", "local-separable"
             if "local-separable" not in reasons:
                 reasons.append("local-separable")
-        elif verdict == "COUPLED" and local['ruleVersion'] == RULE_VERSION:
+        elif verdict == "COUPLED" and local['ruleVersion'] in {RULE_VERSION, 'automatic-decomposition-hybrid-v3'}:
             decision, combination = "direct", "coupled-sequential-work"
             reasons.append("local-coupled")
         elif verdict == "COUPLED" and not hard:

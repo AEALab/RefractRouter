@@ -4,7 +4,8 @@ from copy import deepcopy
 import pytest
 
 from refractrouter.decomposition_decision import (build_request, parse_answer,
-                                                   validate_evidence)
+                                                   unknown_evidence, validate_evidence)
+from refractrouter.live_execution import complexity_gate
 from refractrouter.planning_decision import LayaDecisionAdapter, LocalDecisionCapacityError
 from refractrouter.planning_runtime import PlanningRuntime
 
@@ -23,7 +24,7 @@ def test_request_binds_full_input_but_only_exposes_bounded_structure_state():
     assert "很长" not in str(request["state"])
     changed = deepcopy(request)
     changed.update(parse_answer({"choice": "SEPARABLE", "probabilities": {
-        "SEPARABLE": .9, "COUPLED": .05, "UNKNOWN": .05}}, threshold=.65))
+        "SEPARABLE": .9, "COUPLED": .04, "SINGLE": .02, "UNKNOWN": .04}}, threshold=.65))
     changed.update(model="fixture", revision="test")
     assert validate_evidence(changed, "继续把上述两个方案分别核对", "很长的完整宿主上下文")["verdict"] == "SEPARABLE"
     with pytest.raises(ValueError, match="输入已改变"):
@@ -35,20 +36,21 @@ def test_request_binds_full_input_but_only_exposes_bounded_structure_state():
 
 def test_low_confidence_becomes_unknown_without_rewriting_raw_answer():
     result = parse_answer({"choice": "COUPLED", "probabilities": {
-        "SEPARABLE": .25, "COUPLED": .55, "UNKNOWN": .2}}, threshold=.65)
+        "SEPARABLE": .25, "COUPLED": .55, "SINGLE": 0, "UNKNOWN": .2}}, threshold=.65)
     assert result["verdict"] == "UNKNOWN"
     assert result["rawVerdict"] == "COUPLED" and result["confidence"] == .55
 
 
-def test_laya_adapter_batches_two_noul_questions_and_preserves_provenance(monkeypatch):
+def test_laya_adapter_batches_three_noul_questions_and_preserves_provenance(monkeypatch):
     class Agent:
         batch_size = 16
         def predict(self, state, questions):
             assert state["task"] == "分别核对两个独立来源"
-            assert list(questions) == ["requires_previous_output", "can_start_independently"]
+            assert list(questions) == ["requires_previous_output", "can_start_independently", "single_work_unit"]
             return {"model": "laya-fixture", "usage": {"input_tokens": 20},
                     "answers": {"requires_previous_output": {"noul": .05},
-                                "can_start_independently": {"noul": .91}}}
+                                "can_start_independently": {"noul": .91},
+                                "single_work_unit": {"noul": .02}}}
 
     adapter = object.__new__(LayaDecisionAdapter)
     adapter.agent, adapter.model, adapter.cold_start_ms = Agent(), "laya-fixture", 12
@@ -57,18 +59,18 @@ def test_laya_adapter_batches_two_noul_questions_and_preserves_provenance(monkey
     result = adapter.decide_decomposition(request)
     assert result.payload["verdict"] == "SEPARABLE"
     assert result.payload["inputSha256"] == request["inputSha256"]
-    assert result.usage["questions"] == 2 and result.usage["forwards"] == 1
+    assert result.usage["questions"] == 3 and result.usage["forwards"] == 1
 
 
 def test_runtime_uses_loaded_service_and_reports_queue_separately(tmp_path):
     class Service:
         def call(self, operation, key, config, *, request=None, timeout_ms=30000):
-            assert operation == "decomposition" and request["contract"] == "decomposition-decision-v1"
+            assert operation == "decomposition" and request["contract"] == "decomposition-decision-v2"
             assert timeout_ms == 1200 and key
             return {"payload": {"contract": request["contract"],
                     "ruleVersion": request["ruleVersion"], "inputSha256": request["inputSha256"],
                     "verdict": "COUPLED", "rawVerdict": "COUPLED", "confidence": .82,
-                    "probabilities": {"SEPARABLE": .08, "COUPLED": .82, "UNKNOWN": .1},
+                    "probabilities": {"SEPARABLE": .08, "COUPLED": .82, "SINGLE": 0, "UNKNOWN": .1},
                     "experimental": True}, "model": "fixture", "coldStartMs": None,
                     "latencyMs": 2, "usage": {"questions": 1, "forwards": 1}}
 
@@ -119,3 +121,12 @@ def test_tokenizer_capacity_preserves_rules_after_dispatch(tmp_path):
     assert result["verdict"] == "UNKNOWN"
     assert result["reason"] == "token-capacity"
     assert result["usage"]["forwards"] is None
+
+
+def test_v2_skipped_judge_evidence_is_valid_and_retains_rules():
+    task = '继续处理刚才的问题'
+    evidence = unknown_evidence(task, '', 'context-dependent')
+    assert set(evidence['probabilities']) == {'SINGLE', 'COUPLED', 'SEPARABLE', 'UNKNOWN'}
+    gate = complexity_gate({'task': task}, '', decomposition=evidence)
+    assert gate['local_decision']['reason'] == 'context-dependent'
+    assert gate['combination'] == 'local-unknown-rules-preserved'

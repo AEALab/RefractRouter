@@ -1,5 +1,6 @@
 /** DSH 原生执行边界；不选模型、不执行路由，也不解析正文中的伪工具标记。 */
 import { randomUUID } from 'node:crypto'
+import type { ToolEvidenceCapture } from './tool-evidence.js'
 
 export const TOOL_PROTOCOL = 'refractrouter-tools/v1'
 export interface ToolSchema { name: string; description: string; parameters: Record<string, unknown> }
@@ -27,7 +28,7 @@ export interface NativeToolContext {
 function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
-export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
+export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[], evidence?: ToolEvidenceCapture) {
   if (!schemas.length) return undefined
   if (!ctx.tools || !ctx.agents) throw new Error('RefractAgent requires DSH native tools and agents services')
   const agent = ctx.agents.requireInitiator()
@@ -64,10 +65,12 @@ export function bindNativeTools(ctx: NativeToolContext, schemas: ToolSchema[]) {
       // 也不能把内部工具结果加入外层模型历史，因此不向宿主会话伪造工具事件。
       try {
         const result = await ctx.tools!.execute({ callId, name, arguments: args, agent, signal })
+        const hostResult = evidence?.lookup(agent.session.header?.id ?? '', callId)
         if (result.concludesTurn) closed = true
         signal.throwIfAborted()
         return { ...base, ok: true, result: { isError: result.isError, content: result.content,
           additionalContexts: result.additionalContexts ?? [],
+          ...(hostResult ? {hostResult} : {}),
           ...(result.error?.info ? { error: result.error.info } : {}), concludesTurn: result.concludesTurn === true } }
       } catch (error) {
         closed = true

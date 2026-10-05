@@ -313,7 +313,7 @@ export class PlanningController {
       throw new Error('当前核心不支持 Stage 本地 Judge；请升级核心')
     if(compositeV6&&(!capabilities.includes('planning-routing-v6')||!capabilities.includes('composite-task-stage-v1')))
       throw new Error('当前核心不支持新版 Composite；请同时升级核心和插件')
-    if(decomposition&&!capabilities.includes('decomposition-decision-v1'))
+    if(decomposition&&!capabilities.includes('decomposition-decision-v2'))
       throw new Error('当前核心不支持自动路由本地拆分判别；请同时升级核心和插件')
     if(localBackends&&!capabilities.includes('local-decision-backends-v1'))
       throw new Error('当前核心不支持本地 Judge 后端目录；请同时升级核心和插件')

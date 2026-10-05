@@ -672,7 +672,7 @@ function authorizationFields(value: unknown): Record<string, unknown> {
 }
 
 async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions,
-  onProgress?: (event: ProgressEvent) => void,planning?:PlanningController): Promise<Record<string, unknown>> {
+  onProgress?: (event: ProgressEvent) => void,planning?:PlanningController, evidence?:ToolEvidenceCapture): Promise<Record<string, unknown>> {
   const issues = liveConfigurationIssues(config)
   if (issues.length) throw new Error(`REFRACTAGENT_LIVE_DISABLED: ${issues.join('；')}`)
   const live = config.liveExecution!
@@ -706,7 +706,7 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
       const ready=await invoke(ctx,config,coreOptions,undefined,{mode:'preflight',
         productionBudget:mixedBilling?live.maxProductionCostByUnit!:live.maxProductionCost!,
         evaluationBudget:mixedBilling?live.maxEvaluationCostByUnit!:live.maxEvaluationCost!,
-        localOnly:true,allowHostTools:allowTools},planning)
+        localOnly:true,allowHostTools:allowTools},planning,evidence)
       if(!object(ready.live_authorization_preview)||ready.live_authorization_preview.ready!==true)
         throw new Error('REFRACTAGENT_LIVE_DISABLED: 执行模型预检未通过；Jev 尚未派发')
     }
@@ -715,21 +715,21 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
   const common = {productionBudget:mixedBilling?live.maxProductionCostByUnit!:live.maxProductionCost!,
     evaluationBudget:mixedBilling?live.maxEvaluationCostByUnit!:live.maxEvaluationCost!,
     localOnly:true,allowHostTools:allowTools,...(decompositionDecision?{decompositionDecision}:{})}
-  const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning)
+  const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning,evidence)
   if (!object(preview.live_authorization_preview) || preview.live_authorization_preview.ready !== true) {
     const issues=Array.isArray(preview.issues)?preview.issues.filter((issue):issue is string=>typeof issue==='string'):[]
     throw new Error('REFRACTAGENT_LIVE_DISABLED: '+(issues.length?issues.join('；'):'核心预检未满足真实执行条件'))
   }
   signal.throwIfAborted()
   return invoke(ctx, config, coreOptions, onProgress, {...common,mode:'live',
-    authorization:authorizationFields(preview.live_authorization_preview)},planning)
+    authorization:authorizationFields(preview.live_authorization_preview)},planning,evidence)
 }
 
 async function invoke(ctx: AgentContext, config: Readonly<Configuration>, options: ModelOptions,
   onProgress?: (event: ProgressEvent) => void, control?: InvocationControl,
-  planning?:PlanningController): Promise<Record<string, unknown>> {
+  planning?:PlanningController, evidence?:ToolEvidenceCapture): Promise<Record<string, unknown>> {
   if (options.signal?.aborted) throw new Error('RefractAgent task cancelled before dispatch')
-  if (options.model === 'auto-live' && control === undefined) return invokeAutoLive(ctx,config,options,onProgress,planning)
+  if (options.model === 'auto-live' && control === undefined) return invokeAutoLive(ctx,config,options,onProgress,planning,evidence)
   const automaticRouting = config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion)
   const mode = control?.mode ?? (automaticRouting ? 'demo' : config.executionMode)
   const live = mode === 'live'
@@ -738,7 +738,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   if (options.stop?.length) throw new Error('RefractAgent task models do not support stop sequences')
   if (live && !config.providerConfig && !config.dshModelPool && !config.preset) throw new Error('configure providerConfig, dshModelPool or explicitly choose preset: ark-agent-plan')
   const nativeTools = (live || control?.mode === 'preflight') && control?.allowHostTools !== false
-    && !options.purpose ? bindNativeTools(ctx, options.tools ?? []) : undefined
+    && !options.purpose ? bindNativeTools(ctx, options.tools ?? [], evidence) : undefined
   const catalogSnapshot=config.dshModelPool?await dshCatalogSnapshot(ctx,config.dshModelPool):undefined
   const payload = { ...conversation(options, config.limits?.relaxContext ? RELAXED_CONTEXT_BYTES : MAX_CONTEXT_BYTES),
     strategy: options.model, template: automaticRouting ? 'auto' : config.template,
@@ -937,7 +937,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           queue.push(text)
           wake?.()
         }
-      },undefined,planning).then(value => { result = value }, error => { failure = error }).finally(() => { ended = true; wake?.() })
+      },undefined,planning,evidence).then(value => { result = value }, error => { failure = error }).finally(() => { ended = true; wake?.() })
       try {
         while (!ended || queue.length) {
           if (queue.length) {
@@ -994,9 +994,12 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       }
       yield { type: 'reasoning-delta', index: 0, text: info }
       yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + info } }
+      const deliveredAnswer = result.status === 'tool-requirement-failed'
+        ? `本次任务未完成：${object(result.tool_validation)?String(result.tool_validation.message):'工具执行证据未通过验收'} 候选答案已保留在运行记录中。`
+        : result.answer
       yield { type: 'block-start', index: 1, blockType: 'text' }
-      yield { type: 'text-delta', index: 1, text: result.answer }
-      yield { type: 'block-end', index: 1, block: { type: 'text', text: result.answer } }
+      yield { type: 'text-delta', index: 1, text: deliveredAnswer }
+      yield { type: 'block-end', index: 1, block: { type: 'text', text: deliveredAnswer } }
       const usage = result.usage as Record<string, number>
       yield { type: 'usage', usage: { inputTokens: usage.input_tokens, outputTokens: usage.output_tokens,
         cacheReadTokens: usage.cache_read_tokens ?? 0, reasoningTokens: usage.reasoning_tokens ?? 0 } }
@@ -1004,7 +1007,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
         refractagent: { runId: result.run_id, strategy: result.strategy, models: result.models,
           modelRoutes: result.model_routes, evaluationModel: result.evaluation_model,
           status: result.status, generationStatus: result.generation_status, quality: result.quality,
-          formatValidation: result.format_validation,
+          formatValidation: result.format_validation, toolValidation: result.tool_validation,
           dag: result.dag, plan: result.plan, planOrigin: result.plan_origin, wallTimeMs: result.wall_time_ms,
           planner: result.planner, planReadyMs: result.plan_ready_ms,
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,

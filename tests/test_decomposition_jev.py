@@ -14,11 +14,12 @@ def request(**changes):
             "config": {"jev": {"route": "openrouter"}}, "maxCostCny": .02, **changes}
 
 
-def response(dependency=.05, independent=.95, **changes):
+def response(dependency=.05, independent=.95, single=.05, **changes):
     return {"model": "typesafe/jev-1.13-20260917", "provider": "TypeSafe", "id": "gen-test",
             "usage": {"input_tokens": 100, "output_tokens": 10, "cost": .0000042},
             "answers": {"requires_previous_output": {"type": "noul", "noul": dependency},
-                        "can_start_independently": {"type": "noul", "noul": independent}}, **changes}
+                        "can_start_independently": {"type": "noul", "noul": independent},
+                        "single_work_unit": {"type": "noul", "noul": single}}, **changes}
 
 
 def start(runtime, **changes):
@@ -30,14 +31,14 @@ def finish(runtime, action, result=None):
                            "result": result or response(), "latencyMs": 123})
 
 
-def test_preflight_no_dispatch_and_one_call_two_noul_then_bound_gate(tmp_path):
+def test_preflight_no_dispatch_and_one_call_three_noul_then_bound_gate(tmp_path):
     runtime = PlanningRuntime(tmp_path)
     preview = runtime.handle({"op": "decomposition-jev-preflight", **request()})
     assert preview["maximumCalls"] == 1 and 0 < preview["maximumCostCny"] < .02
     assert not list(tmp_path.rglob("*.json"))
     action = start(runtime)
     assert action["route"] == "openrouter" and action["payload"]["provider"]["allow_fallbacks"] is False
-    assert len(action["payload"]["questions"]) == 2
+    assert len(action["payload"]["questions"]) == 3
     assert set(q["type"] for q in action["payload"]["questions"].values()) == {"noul"}
     evidence = finish(runtime, action)["evidence"]
     assert evidence["verdict"] == "SEPARABLE" and evidence["rawAnswers"] == response()["answers"]
@@ -57,10 +58,12 @@ def test_preflight_no_dispatch_and_one_call_two_noul_then_bound_gate(tmp_path):
         start(PlanningRuntime(tmp_path))
 
 
-@pytest.mark.parametrize("dependency,independent,verdict", [(.95, .05, "COUPLED"), (.5, .5, "UNKNOWN")])
-def test_answer_semantics(tmp_path, dependency, independent, verdict):
+@pytest.mark.parametrize("dependency,independent,single,verdict", [
+    (.95, .05, .05, "COUPLED"), (.5, .5, .05, "UNKNOWN"), (.19, .07, .91, "SINGLE"),
+    (.95, .05, .95, "UNKNOWN")])
+def test_answer_semantics(tmp_path, dependency, independent, single, verdict):
     runtime = PlanningRuntime(tmp_path)
-    evidence = finish(runtime, start(runtime), response(dependency, independent))["evidence"]
+    evidence = finish(runtime, start(runtime), response(dependency, independent, single))["evidence"]
     assert evidence["verdict"] == verdict
 
 
