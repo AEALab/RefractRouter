@@ -733,11 +733,12 @@ test('自动拆分经 OpenRouter 单次判别、独立现金结算且不执行�
       assert.equal(url,'https://openrouter.ai/api/alpha/decisions')
       assert.equal(init?.redirect,'error')
       const payload=JSON.parse(String(init?.body))
-      assert.equal(Object.keys(payload.questions).length,2)
+      assert.equal(Object.keys(payload.questions).length,3)
       assert.deepEqual(payload.provider,{only:['TypeSafe'],allow_fallbacks:false})
       return new Response(JSON.stringify({model:'typesafe/jev-1.13-20260917',provider:'TypeSafe',id:'gen-test',
         usage:{input_tokens:50,output_tokens:8,cost:.0000021},answers:{
-          requires_previous_output:{type:'noul',noul:.04},can_start_independently:{type:'noul',noul:.95}}}))
+          requires_previous_output:{type:'noul',noul:.04},can_start_independently:{type:'noul',noul:.95},
+          single_work_unit:{type:'noul',noul:.02}}}))
     }
     const decision={mode:'hybrid' as const,allowExperimental:true,judge:{type:'jev' as const},maxJudgeCostCny:.02}
     const result=await f.controller.decompositionDecision(decision,'分别整理苹果和梨的特征','')

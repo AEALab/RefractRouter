@@ -94,8 +94,8 @@ def test_negated_tool_request_does_not_claim_tools_are_required():
 
 def local_evidence(task, context, choice, confidence=.9):
     request = build_request(task, context)
-    probabilities = {item: (confidence if item == choice else (1-confidence)/2)
-                     for item in ('SEPARABLE', 'COUPLED', 'UNKNOWN')}
+    probabilities = {item: (confidence if item == choice else (1-confidence)/3)
+                     for item in ('SEPARABLE', 'COUPLED', 'SINGLE', 'UNKNOWN')}
     return {"contract": request["contract"], "ruleVersion": request["ruleVersion"],
             "inputSha256": request["inputSha256"],
             **parse_answer({"choice": choice, "probabilities": probabilities}, threshold=.65),
@@ -119,13 +119,26 @@ def test_v3_coupled_evidence_selects_direct_without_skipping_review_or_permissio
     allowed = complexity_gate({'task': tool_task}, '', decomposition=evidence, tools_allowed=True)
     assert allowed['decision'] == 'direct'
     assert review_decision({'task': tool_task}, allowed, tools_allowed=True)['required']
-    old = {**local_evidence(strict_task, '', 'COUPLED'), 'ruleVersion': 'automatic-decomposition-hybrid-v2'}
+    old = {**local_evidence(strict_task, '', 'COUPLED'),
+           'contract': 'decomposition-decision-v1',
+           'ruleVersion': 'automatic-decomposition-hybrid-v2',
+           'probabilities': {'COUPLED': .9, 'SEPARABLE': .05, 'UNKNOWN': .05}}
     legacy = complexity_gate(strict_payload, '', decomposition=old)
     assert legacy['decision'] == 'dag'
     assert legacy['combination'] == 'hard-rules-preserved-over-local-coupled'
     short = '分别核对两个互不依赖的来源'
     separable = complexity_gate({'task': short}, '', decomposition=local_evidence(short, '', 'SEPARABLE'))
     assert separable['decision'] == 'dag' and 'local-separable' in separable['reasons']
+
+
+def test_single_work_skips_planner_but_preserves_tool_permission_and_review():
+    task = '请先使用 Bash 执行 printf 7，再根据输出回答。'
+    evidence = local_evidence(task, '', 'SINGLE')
+    assert complexity_gate({'task': task}, '', decomposition=evidence)['decision'] == 'blocked-tools'
+    gate = complexity_gate({'task': task}, '', decomposition=evidence, tools_allowed=True)
+    assert gate['rule_decision'] == 'dag' and gate['decision'] == 'direct'
+    assert gate['combination'] == 'single-work-no-planner'
+    assert review_decision({'task': task}, gate, tools_allowed=True)['required']
 
 
 def test_preflight_binds_local_decision_to_live_input(tmp_path):

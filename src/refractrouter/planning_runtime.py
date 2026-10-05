@@ -1693,7 +1693,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "composite-task-stage-v1",
-                "decomposition-decision-v1", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
+                "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "jev-complete":
             return self.complete_jev(self.runs[request["runId"]], request)

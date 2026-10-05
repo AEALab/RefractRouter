@@ -183,6 +183,12 @@ OpenRouter 请求 ID、TypeSafe 提供方和实付金额均可核对时才结算
 和渠道。DSH 任务摘要显示 Judge 建议与最终路线。最终还需通过规划与成本选择，
 所以 `SEPARABLE` 不能被报告为实际已执行多节点 DAG。
 
+后续 `decomposition-decision-v2` 增加第三项 Noul「是否只有一项实质工作」，
+规则升为 `automatic-decomposition-hybrid-v4`。只有单项分数达到门槛且前两项均明确偏低，
+才给出 `SINGLE`，直接进入原生工具和最终审核路径，省去 planner。旧版记录仍按
+`decomposition-decision-v1` 验证和回放，不追改历史结论或费用。DSH 核心能力握手
+要求 v2，以免新插件连接旧核心时悄悄使用两问合同。
+
 当前模式保留实验标识。产品使用观测需分别记录任务是否完成、真实节点数、判别开销、
 执行费用及等待时间；少量成功任务不证明拆分普遍省钱。现有自动入口的 synthetic
 数据限制、工具许可及执行模型预算不会因开启云端 Judge 而自动放宽。

@@ -123,11 +123,14 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
                 "strict-output-contract", "explicit-tool-requirement"}.intersection(reasons)
         if trivial:
             combination = "trivial-workload-no-planner"
+        elif verdict == "SINGLE":
+            decision, combination = "direct", "single-work-no-planner"
+            reasons.append("local-single-work")
         elif verdict == "SEPARABLE":
             decision, combination = "dag", "local-separable"
             if "local-separable" not in reasons:
                 reasons.append("local-separable")
-        elif verdict == "COUPLED" and local['ruleVersion'] == RULE_VERSION:
+        elif verdict == "COUPLED" and local['ruleVersion'] in {RULE_VERSION, 'automatic-decomposition-hybrid-v3'}:
             decision, combination = "direct", "coupled-sequential-work"
             reasons.append("local-coupled")
         elif verdict == "COUPLED" and not hard:

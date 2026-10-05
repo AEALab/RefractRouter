@@ -35,11 +35,15 @@ def test_full_context_still_bound_and_permissions_not_skipped():
 
 def test_branch_dependency_conflict_is_uncertain_and_question_excludes_final_join():
     q=build_request('分别分析两份资料，再汇总','')
-    assert q['ruleVersion']=='automatic-decomposition-hybrid-v3'
+    assert q['ruleVersion']=='automatic-decomposition-hybrid-v4'
     assert '最终汇总' in q['questions']['requires_previous_output']['instructions']
     assert '简单算术' in q['questions']['can_start_independently']['instructions']
-    d=parse_noul_answers({'requires_previous_output':{'noul':.95},'can_start_independently':{'noul':.95}},threshold=.65)
+    d=parse_noul_answers({'requires_previous_output':{'noul':.95},'can_start_independently':{'noul':.95},
+                          'single_work_unit':{'noul':.05}},threshold=.65)
     assert d['verdict']=='UNKNOWN'
+    single=parse_noul_answers({'requires_previous_output':{'noul':.19},'can_start_independently':{'noul':.07},
+                               'single_work_unit':{'noul':.91}},threshold=.65)
+    assert single['verdict']=='SINGLE' and single['confidence']>=.65
 
 
 def evidence(n=5, *, inp=2000, out=1500, ms=3000):
