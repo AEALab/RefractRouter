@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from refractrouter.application_config import compile_configuration
-from refractrouter.agent import run_agent
+from refractrouter.agent import automatic_cost_trace, run_agent
 from refractrouter.configured_routing import configured_profile
 from refractrouter.automatic_mixed_assignment import route_nodes_mixed
 from refractrouter.node_routing import load_profile
@@ -103,6 +103,10 @@ def test_mixed_runtime_selects_afp_worker_and_records_cny_judge_separately():
     assert result['charged']['AFP']['production'] > 0
     assert result['charged']['CNY']['evaluation'] >= 0
     assert result['review']['protection']['status'] == 'converted-to-call'
+    trace = automatic_cost_trace({**result, 'routing_profile': profile}, compiled.manifest)
+    assert trace['review_protection']['status'] == 'converted-to-call'
+    assert trace['selected_nodes'][0]['unit'] == 'AFP'
+    assert trace['calls'][-1]['unit'] == 'CNY'
 
 
 def test_mixed_runtime_stops_before_execution_when_review_call_slot_is_missing():

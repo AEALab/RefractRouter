@@ -4,7 +4,7 @@ from dataclasses import replace
 import json
 from pathlib import Path
 
-from refractrouter.agent import run_agent as application_run_agent
+from refractrouter.agent import automatic_cost_trace, run_agent as application_run_agent
 from refractrouter.agent_cli import main
 from refractrouter.task_runtime import run_task
 from tests.test_provider_configuration import configuration
@@ -57,6 +57,13 @@ def test_automatic_application_plans_executes_and_saves_compiled_profile(tmp_pat
     assert basis['input_forecast_source'] == 'serialized-input-and-planned-parent-output'
     assert result['cost_breakdown']['planning'] > 0
     assert abs(sum(result['cost_breakdown'].values()) - sum(result['costs'].values())) < 1e-8
+    from refractrouter.application_config import compile_configuration
+    trace = automatic_cost_trace(raw, compile_configuration(config()).manifest)
+    assert trace['schema_version'] == 'automatic-cost-trace-v1'
+    assert {row['node_id'] for row in trace['selected_nodes']} == set(result['models'])
+    assert all(row['expected_cost'] >= 0 for row in trace['selected_nodes'])
+    assert len(trace['calls']) == len(client.calls)
+    assert all({'reserved', 'charged', 'status', 'unit'} <= row.keys() for row in trace['calls'])
     assert result['wall_time_ms'] >= 0 and result['answer']
 
 

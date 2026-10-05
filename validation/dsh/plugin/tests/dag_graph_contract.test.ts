@@ -137,3 +137,17 @@ test('混合计费摘要区分主账与外部 Jev，并展示已知合计',()=>{
   assert.match(summary,/已知合计（含外部拆分 Judge）：AFP 11\.5434、CNY 0\.0002/)
   assert.match(summary,/外部判别调用 jev-1/)
 })
+
+test('自动路由摘要分清选路预计、调用预留、结算与最终评审保护',()=>{
+  const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'MIXED',
+    cost_trace:{schema_version:'automatic-cost-trace-v1',selected_nodes:[{node_id:'answer',
+      model_id:'ark-flash',unit:'AFP',expected_cost:.12,expected_input_tokens:300,
+      conservative_input_bound:1200,expected_output_tokens:100,input_source:'observed-byte-ratio-v1',
+      output_source:'planned-node-output'}],review_protection:{amount:.7,unit:'CNY',
+      output_tokens:1024,status:'converted-to-call'},calls:[{label:'answer',model_id:'ark-flash',
+      unit:'AFP',reserved:1.2,charged:.14,status:'billed'}]}})
+  assert.match(summary,/预计值用于选路；预留上界用于准入；实际结算以调用账本为准/)
+  assert.match(summary,/输入预计 300 tokens（保守上界 1200）/)
+  assert.match(summary,/最终评审保护额度：0\.7000 CNY/)
+  assert.match(summary,/预留上界 1\.2000 AFP，实际结算 0\.1400 AFP/)
+})

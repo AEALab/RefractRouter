@@ -135,8 +135,23 @@ export function runSummary(result: Record<string, unknown>): string {
     const e=object(raw)?raw:{}
     return `${route}/${escape(node)} ${escape(id)}：时延依据 ${String(e.source)}，匹配样本 ${String(e.samples??0)}，输入分组上界 ${String(e.input_bucket_max??'未提供')}，输出分组上界 ${String(e.output_bucket_max??'未提供')}（非 SLA 保证）\n`
   }):[]):[]).join('')
+  const trace=object(result.cost_trace)?result.cost_trace:{}
+  const selected=Array.isArray(trace.selected_nodes)?trace.selected_nodes:[]
+  const callRows=Array.isArray(trace.calls)?trace.calls:[]
+  const expectedLines=selected.filter(object).map(row=>
+    `${escape(String(row.node_id))} → ${escape(String(row.model_id))}：预计 ${number(row.expected_cost)} ${escape(String(row.unit))}；`
+    +`输入预计 ${String(row.expected_input_tokens)} tokens（保守上界 ${String(row.conservative_input_bound??'未提供')}），`
+    +`输出预计 ${String(row.expected_output_tokens)} tokens；依据 ${escape(String(row.input_source??'未提供'))} / ${escape(String(row.output_source??'未提供'))}\n`).join('')
+  const actualLines=callRows.filter(object).map(row=>
+    `${escape(String(row.label))} · ${escape(String(row.model_id))}：预留上界 ${number(row.reserved)} ${escape(String(row.unit))}，`
+    +`${row.status==='billed'?'实际结算':row.status==='unknown-usage'?'待核对预留':row.status==='cancelled-before-dispatch'?'已释放':'当前占用'} ${number(row.charged)} ${escape(String(row.unit))}，状态 ${escape(String(row.status))}\n`).join('')
+  const protection=object(trace.review_protection)?trace.review_protection:null
+  const protectionLine=protection?`最终评审保护额度：${number(protection.amount)} ${escape(String(protection.unit))}，`
+    +`${String(protection.output_tokens)} 输出 tokens，状态 ${escape(String(protection.status))}；此额度不是已结算费用\n`:''
+  const costTraceLine=Object.keys(trace).length?`费用依据：预计值用于选路；预留上界用于准入；实际结算以调用账本为准。\n`
+    +expectedLines+protectionLine+actualLines:''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + diagnosticLines + latencyLines
+    + route + localLine + comparisonLine + diagnosticLines + latencyLines + costTraceLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')

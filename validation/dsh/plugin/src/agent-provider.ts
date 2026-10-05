@@ -1009,6 +1009,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           planner: result.planner, planReadyMs: result.plan_ready_ms,
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
+          ...(result.cost_trace !== undefined ? {costTrace: result.cost_trace} : {}),
           ...(result.complexity_gate !== undefined ? {complexityGate: result.complexity_gate} : {}),
           ...(result.route_comparison !== undefined ? {routeComparison: result.route_comparison} : {}),
           ...(result.review !== undefined ? {review: result.review} : {}),
