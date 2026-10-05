@@ -6,7 +6,8 @@ import pytest
 
 from refractrouter.application_config import compile_configuration
 from refractrouter.automatic_routing import (CallEnvelope, RouteFeatures, choose_route,
-                                             compare_executable_routes, first_level_gate)
+                                             compare_executable_routes, first_level_gate,
+                                             choose_mixed_billing_route)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -228,3 +229,44 @@ def test_live_route_comparison_rejects_invalid_forecasts_and_infeasible_paths():
     with pytest.raises(ValueError, match='invalid prediction'):
         compare_executable_routes(_executable_route(float('nan'), 100), blocked,
                                   planner_cost=0, judge_cost=0)
+
+
+def test_mixed_billing_prefers_subscription_only_after_quality_and_budget_gates():
+    rows = [
+        {'id': 'cash-direct', 'qualityQualified': True, 'qualityNonInferior': True,
+         'qualityBasis': 'public-profile-prior',
+         'costsByUnit': {'AFP': 0, 'CNY': .03}, 'latencyMs': 500},
+        {'id': 'afp-dag', 'qualityQualified': True, 'qualityNonInferior': True,
+         'qualityBasis': 'public-profile-prior',
+         'costsByUnit': {'AFP': 12, 'CNY': .001}, 'latencyMs': 1000},
+    ]
+    selected = choose_mixed_billing_route(rows, {'AFP': 20, 'CNY': .05})
+    assert selected['selected'] == 'afp-dag'
+    assert selected['estimatedCostsByUnit'] == {'AFP': 12, 'CNY': .001}
+    assert selected['qualityBasis'] == 'public-profile-prior'
+    rows[1]['qualityQualified'] = False
+    rejected = choose_mixed_billing_route(rows, {'AFP': 20, 'CNY': .05})
+    assert rejected['selected'] == 'cash-direct'
+    assert rejected['excluded'] == {'afp-dag': 'quality-not-qualified'}
+    rows[1]['qualityQualified'] = True
+    rows[1]['qualityNonInferior'] = False
+    assert choose_mixed_billing_route(rows, {'AFP': 20, 'CNY': .05})['selected'] == 'cash-direct'
+    rows[1]['qualityNonInferior'] = True
+    exhausted = choose_mixed_billing_route(rows, {'AFP': 10, 'CNY': .05})
+    assert exhausted['selected'] == 'cash-direct'
+    assert exhausted['excluded'] == {'afp-dag': 'unit-budget-exhausted'}
+
+
+def test_mixed_billing_keeps_afp_visible_and_rejects_incomplete_unit_forecasts():
+    routes = [
+        {'id': 'a', 'qualityQualified': True, 'qualityNonInferior': True,
+         'qualityBasis': 'public-profile-prior',
+         'costsByUnit': {'AFP': 7, 'CNY': 0}, 'latencyMs': 900},
+        {'id': 'b', 'qualityQualified': True, 'qualityNonInferior': True,
+         'qualityBasis': 'public-profile-prior',
+         'costsByUnit': {'AFP': 5, 'CNY': 0}, 'latencyMs': 1200},
+    ]
+    assert choose_mixed_billing_route(routes, {'AFP': 0, 'CNY': 0})['selected'] == 'b'
+    routes[1]['costsByUnit'] = {'CNY': 0}
+    with pytest.raises(ValueError, match='requires AFP and CNY'):
+        choose_mixed_billing_route(routes, {'AFP': 0, 'CNY': 0})

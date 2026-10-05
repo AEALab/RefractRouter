@@ -364,3 +364,59 @@ def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
         else:
             audit.update(route='direct', reason='direct-estimated-cost-not-worse')
     return audit
+
+
+def choose_mixed_billing_route(candidates, budgets):
+    """在已核验质量的完整路线之间按现金、AFP、时延顺序选路。
+
+    此决策合同不执行模型调用；调用方须先提供包含规划、执行及评审的费用向量。
+    当前单单位任务运行时尚未接入此合同。
+    """
+    if not isinstance(candidates, list) or not candidates:
+        raise ValueError('mixed billing requires nonempty route candidates')
+    if not isinstance(budgets, dict) or set(budgets) != {'AFP', 'CNY'}:
+        raise ValueError('mixed billing requires separate AFP and CNY budgets')
+    for unit, value in budgets.items():
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            raise ValueError(f'invalid {unit} budget')
+    accepted, excluded, seen = [], {}, set()
+    for position, row in enumerate(candidates):
+        if not isinstance(row, dict) or not isinstance(row.get('id'), str) or not row['id']:
+            raise ValueError('mixed billing candidate requires an id')
+        route_id = row['id']
+        if route_id in seen:
+            raise ValueError('duplicate mixed billing candidate id')
+        seen.add(route_id)
+        costs = row.get('costsByUnit')
+        if not isinstance(costs, dict) or set(costs) != {'AFP', 'CNY'}:
+            raise ValueError('mixed billing candidate requires AFP and CNY forecasts')
+        for unit, value in costs.items():
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+                raise ValueError(f'invalid {unit} route forecast')
+        quality = row.get('qualityQualified')
+        noninferior = row.get('qualityNonInferior')
+        basis = row.get('qualityBasis')
+        if type(quality) is not bool or type(noninferior) is not bool \
+                or not isinstance(basis, str) or not basis:
+            raise ValueError('mixed billing candidate requires quality gate, comparison and basis')
+        latency = row.get('latencyMs')
+        if latency is not None and (isinstance(latency, bool) or not isinstance(latency, (int, float))
+                or not math.isfinite(latency) or latency < 0):
+            raise ValueError('invalid mixed billing latency forecast')
+        if not quality or not noninferior:
+            excluded[route_id] = 'quality-not-qualified'
+        elif any(budgets[unit] != 0 and costs[unit] > budgets[unit] + 1e-12 for unit in ('AFP', 'CNY')):
+            excluded[route_id] = 'unit-budget-exhausted'
+        else:
+            accepted.append((position, row))
+    if not accepted:
+        return {'policyVersion': 'automatic-mixed-billing-v1', 'selected': None,
+                'reason': 'no-qualified-affordable-route', 'excluded': excluded}
+    _, chosen = min(accepted, key=lambda item: (item[1]['costsByUnit']['CNY'],
+        item[1]['costsByUnit']['AFP'],
+        item[1].get('latencyMs') if item[1].get('latencyMs') is not None else math.inf,
+        item[0]))
+    return {'policyVersion': 'automatic-mixed-billing-v1', 'selected': chosen['id'],
+            'reason': 'quality-then-cny-then-afp-then-latency',
+            'estimatedCostsByUnit': dict(chosen['costsByUnit']), 'excluded': excluded,
+            'qualityBasis': chosen['qualityBasis']}
