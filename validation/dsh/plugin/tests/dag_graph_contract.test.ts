@@ -124,3 +124,16 @@ test('拆分摘要说明顺序执行、时延拒绝和匹配样本',()=>{
   assert.match(summary,/匹配样本 2/)
   assert.match(summary,/非 SLA 保证/)
 })
+
+test('混合计费摘要区分主账与外部 Jev，并展示已知合计',()=>{
+  const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'MIXED',
+    costs:{by_unit:{AFP:{production:7.49295,evaluation:4.05045,unconfirmed:0},
+      CNY:{production:0,evaluation:0,unconfirmed:0}},
+      out_of_band_judge:{unit:'CNY',cost:.0001580969124,call_id:'jev-1'},
+      all_in_known_by_unit:{AFP:11.5434,CNY:.0001580969124}},
+    complexity_gate:{local_decision:{backend:'jev',model:'typesafe/jev',verdict:'UNKNOWN',
+      rawVerdict:'UNKNOWN',costCny:.0001580969124,provider:'openrouter'}}})
+  assert.match(summary,/费用分账：AFP：生产 7\.4930、评审 4\.0504/)
+  assert.match(summary,/已知合计（含外部拆分 Judge）：AFP 11\.5434、CNY 0\.0002/)
+  assert.match(summary,/外部判别调用 jev-1/)
+})

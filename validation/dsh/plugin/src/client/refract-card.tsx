@@ -294,6 +294,10 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const warningIssues=poolIssues.filter(issue=>issue.severity==='warning')
   const readinessIssues=poolIssues.filter(blocksDshModelPoolRun)
   const enabledRouteKeys=(pool?.routes??[]).filter(route=>route.enabled!==false).map(route=>identity(route.provider,route.model))
+  const enabledAfpRoutes=enabledRouteKeys.filter(route=>actualMetadata[route]?.billingUnit==='AFP')
+  const explicitWorkers=pool?.roleOverrides?.workers??[]
+  const mixedAfpWorkersExcluded=!!mixedPool&&enabledAfpRoutes.length>0&&explicitWorkers.length>0
+    &&!explicitWorkers.some(route=>enabledAfpRoutes.includes(route))
   const observedProfile=(route:string)=>{const [provider,...modelParts]=route.split('/');const model=modelParts.join('/')
     const effective=frozenModelProfile(provider,model)?.effective_model??model
     return routeProfiles?.profiles.find(row=>row.route===route&&row.effectiveModel===effective&&row.reasoningEffort==='default')}
@@ -541,6 +545,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <option value="CNY">现金 CNY（DeepSeek 官方等）</option><option value="AFP">订阅 AFP（Ark，含 Kimi）</option>
                 <option value="MIXED">AFP＋CNY（质量达标后优先订阅）</option></select>
               <span className="rra-field-hint">价格与容量共用规划路由资料。混合模式分别检查 AFP 与 CNY 额度；AFP 不换算为现金。切换后请核对模型与两套预算再启用真实执行。</span></label>}
+            {mixedAfpWorkersExcluded?<p className="rra-warning" role="status">已启用 AFP 模型，但旧执行模型池只包含现金路线；执行节点无法选择 AFP。请在「高级部署设置 → 执行模型池」勾选 AFP 模型，或清空该池交由核心自动分配。</p>:null}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
             {routeProfilesError?<p className="rra-warning">{t('poolLatencyReadError')}: {routeProfilesError}</p>:null}

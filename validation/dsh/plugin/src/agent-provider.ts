@@ -492,11 +492,13 @@ function costSummary(result:Record<string,unknown>):string {
   if(result.billing_unit!=='MIXED')return `费用：${JSON.stringify(result.costs)} ${String(result.billing_unit)}`
   const costs=object(result.costs)&&object(result.costs.by_unit)?result.costs.by_unit:undefined
   if(!costs)return '费用：双单位账本不可用'
-  return ['AFP','CNY'].map(unit=>{
+  const managed=['AFP','CNY'].map(unit=>{
     const row=costs[unit]
     return object(row)?`${unit} 已结算生产 ${String(row.production)}、评审 ${String(row.evaluation)}、待核对 ${String(row.unconfirmed)}`
       :`${unit} 账本不可用`
   }).join('；')
+  const allIn=object(result.costs)&&object(result.costs.all_in_known_by_unit)?result.costs.all_in_known_by_unit:undefined
+  return managed+(allIn?`；含外部拆分 Judge 的已知合计 AFP ${String(allIn.AFP)}、CNY ${String(allIn.CNY)}`:'')
 }
 
 function remoteExecution(config:Readonly<Configuration>,options:ModelOptions){return {
@@ -715,7 +717,8 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
     localOnly:true,allowHostTools:allowTools,...(decompositionDecision?{decompositionDecision}:{})}
   const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning)
   if (!object(preview.live_authorization_preview) || preview.live_authorization_preview.ready !== true) {
-    throw new Error('REFRACTAGENT_LIVE_DISABLED: 核心预检未满足真实执行条件')
+    const issues=Array.isArray(preview.issues)?preview.issues.filter((issue):issue is string=>typeof issue==='string'):[]
+    throw new Error('REFRACTAGENT_LIVE_DISABLED: '+(issues.length?issues.join('；'):'核心预检未满足真实执行条件'))
   }
   signal.throwIfAborted()
   return invoke(ctx, config, coreOptions, onProgress, {...common,mode:'live',

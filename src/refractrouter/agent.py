@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import hashlib
 from importlib.resources import files
 import json
+import math
 import os
 from dataclasses import asdict
 
@@ -432,6 +433,20 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                 'unconfirmed': sum(c['charged'] for c in calls if c['billing_unit'] == unit
                     and c['status'] in {'reserved', 'unknown-usage'}),
             } for unit in ('AFP', 'CNY')}}
+        local_decision = gate.get('local_decision') if isinstance(gate, dict) else None
+        if isinstance(local_decision, dict) and local_decision.get('backend') == 'jev':
+            judge_cost = local_decision.get('costCny')
+            confirmed = (type(judge_cost) in (int, float) and math.isfinite(judge_cost)
+                         and judge_cost >= 0)
+            totals['out_of_band_judge'] = {'unit': 'CNY',
+                'cost': judge_cost if confirmed else None,
+                'call_id': local_decision.get('callId'),
+                'scope': 'decomposition-decision'}
+            rows = totals['by_unit']
+            totals['all_in_known_by_unit'] = {
+                'AFP': rows['AFP']['production'] + rows['AFP']['evaluation'],
+                'CNY': (rows['CNY']['production'] + rows['CNY']['evaluation'] + judge_cost
+                        if confirmed else None)}
     else:
         totals = {kind: sum(c['charged'] for c in calls if c['category'] == kind and c['status'] == 'billed')
                   for kind in ('production', 'evaluation')}

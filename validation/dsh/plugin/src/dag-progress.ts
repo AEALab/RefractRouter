@@ -84,6 +84,8 @@ export function runSummary(result: Record<string, unknown>): string {
   const vector=(value:unknown)=>{const row=object(value)?value:{}
     return `AFP ${number(row.AFP)}、CNY ${number(row.CNY)}`}
   const byUnit=object(costs.by_unit)?costs.by_unit:{}
+  const allIn=object(costs.all_in_known_by_unit)?costs.all_in_known_by_unit:null
+  const externalJudge=object(costs.out_of_band_judge)?costs.out_of_band_judge:null
   const mixedCosts=['AFP','CNY'].map(unit=>{const row=object(byUnit[unit])?byUnit[unit]:{}
     return `${unit}：生产 ${number(row.production)}、评审 ${number(row.evaluation)}、待核对 ${number(row.unconfirmed)}`}).join('；')
   const gate=object(result.complexity_gate)?result.complexity_gate:{}
@@ -136,7 +138,9 @@ export function runSummary(result: Record<string, unknown>): string {
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
     + route + localLine + comparisonLine + diagnosticLines + latencyLines
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
-    + (mixed?`费用分账：${mixedCosts}\n规划 ${vector(breakdown.planning)}，动态规划 ${vector(breakdown.dynamic_planning)}，节点执行 ${vector(breakdown.execution)}，评审 ${vector(breakdown.evaluation)}\n`
+    + (mixed?`费用分账：${mixedCosts}\n`
+      +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')
+      +`规划 ${vector(breakdown.planning)}，动态规划 ${vector(breakdown.dynamic_planning)}，节点执行 ${vector(breakdown.execution)}，评审 ${vector(breakdown.evaluation)}\n`
       :`费用（${String(result.billing_unit)}）：规划 ${number(breakdown.planning)}，动态规划 ${number(breakdown.dynamic_planning)}，节点执行 ${number(breakdown.execution)}，评审 ${number(costs.evaluation)}，未确认预留 ${number(costs.unconfirmed)}\n`)
     + `耗时：${typeof result.wall_time_ms === 'number' ? (result.wall_time_ms / 1000).toFixed(2) + ' 秒' : '未提供'}\n`
     + `记录：${String(result.result_path)}\n`

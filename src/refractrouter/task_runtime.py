@@ -294,9 +294,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             raise ValueError('mixed automatic routing requires costMaxByUnit')
         if not isinstance(production_limit, dict) or not isinstance(evaluation_limit, dict):
             raise ValueError('mixed automatic routing requires separate production and evaluation limits')
+        enforce_limits = live or mode == 'preflight'
         budget = AutomaticMixedBudget(client if live else DemoTaskClient(),
-            {unit: {'production': production_limit[unit] if live else 1e12,
-                    'evaluation': evaluation_limit[unit] if live else 1e12}
+            {unit: {'production': production_limit[unit] if enforce_limits else 1e12,
+                    'evaluation': evaluation_limit[unit] if enforce_limits else 1e12}
              for unit in ('AFP', 'CNY')}, max_calls=runtime_call_limit,
             max_total_output_tokens=request.get('maxTotalOutputTokens'),
             adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
@@ -755,6 +756,20 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if not result['issues']:
                 result['issues'].append('no assignment satisfies quality, total cost and remaining time constraints')
             return result
+        if mixed and result['review']['required']:
+            selected_models = {mid: candidates[mid] for mid in result['routing']['assignments'].values()}
+            judge_upper = _shared_judge_forecast(
+                manifest.judge, execution_task, plan.acceptance_criteria,
+                selected_models)
+            judge_unit = manifest.judge.billing_unit
+            result['review']['cost_upper_bound'] = {'unit': judge_unit, 'amount': judge_upper}
+            if judge_upper > budget.remaining(judge_unit, 'evaluation') + 1e-12:
+                result['status'] = 'no-feasible-route'
+                result['issues'].append(
+                    f'final-judge: {judge_unit} evaluation budget below required upper bound '
+                    f'({judge_upper:.6f})')
+                persist()
+                return result
         fallback_limit = request.get('maxNodeFallbacks', 0)
         result['recovery_policy'] = {'policy_version': 'node-fallback-v1', 'max_node_fallbacks': fallback_limit}
         recovery = NodeRecovery(plan, profiles, candidates, result['routing'], policy,

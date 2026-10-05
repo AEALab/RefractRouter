@@ -10,6 +10,7 @@ from refractrouter.configured_routing import configured_profile
 from refractrouter.task_plan import preview_plan
 from refractrouter.task_runtime import run_task
 from tests.test_text_tasks import Client
+from tests.test_live_execution import local_evidence
 
 
 def config():
@@ -107,3 +108,41 @@ def test_mixed_application_preflight_binds_both_unit_limits(tmp_path):
     assert preview['costs']['evaluation_hard_limit_by_unit'] == {'AFP': 10, 'CNY': 10}
     assert result['costs']['production'] is None
     assert set(result['costs']['by_unit']) == {'AFP', 'CNY'}
+
+
+def test_mixed_direct_preflight_rejects_unaffordable_final_judge_before_execution(tmp_path):
+    raw = config()
+    raw['models'][2]['provider'] = 'external'
+    raw['models'][2]['pricing'].update(inputPer1k=.45, outputPer1k=.45)
+    raw['providers'][0].update(deployment='trusted-cloud', trustPolicy='team-cn')
+    raw['trustPolicies'] = [{'id': 'team-cn', 'residency': 'CN',
+        'auditLogging': True, 'allowsSensitiveData': True,
+        'acknowledgeExternalTransmission': True}]
+    result = run_agent({'task': '只回答数字：8+4 等于多少？', 'template': 'auto',
+        'strategy': 'auto', 'complexityPolicy': 'direct', 'reviewPolicy': 'always'},
+        mode='preflight', runs_dir=tmp_path, provider_config=raw,
+        production_budget={'AFP': 100, 'CNY': 10},
+        evaluation_budget={'AFP': 10, 'CNY': 1})
+    assert result['status'] == 'no-feasible-route'
+    assert result['live_authorization_preview']['ready'] is False
+    assert result['review']['cost_upper_bound']['unit'] == 'CNY'
+    assert result['review']['cost_upper_bound']['amount'] > 1
+    assert any('CNY evaluation budget below required upper bound' in issue
+               for issue in result['issues'])
+    assert result['usage']['input_tokens'] == 0
+
+
+def test_mixed_summary_keeps_external_jev_cost_separate_and_reports_known_total(tmp_path):
+    task = '简短回答'
+    evidence = {**local_evidence(task, '', 'UNKNOWN'), 'backend': 'jev',
+        'provider': 'openrouter', 'costCny': .0123, 'callId': 'jev-call-1'}
+    result = run_agent({'task': task, 'template': 'auto', 'strategy': 'auto',
+        'complexityPolicy': 'direct', 'decompositionDecision': evidence},
+        mode='preflight', runs_dir=tmp_path, provider_config=config(),
+        production_budget={'AFP': 100, 'CNY': 10},
+        evaluation_budget={'AFP': 10, 'CNY': 10})
+    assert result['costs']['by_unit']['CNY']['production'] == 0
+    assert result['costs']['out_of_band_judge'] == {
+        'unit': 'CNY', 'cost': .0123, 'call_id': 'jev-call-1',
+        'scope': 'decomposition-decision'}
+    assert result['costs']['all_in_known_by_unit'] == {'AFP': 0, 'CNY': .0123}
