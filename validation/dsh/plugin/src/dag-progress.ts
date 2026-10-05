@@ -99,11 +99,17 @@ export function runSummary(result: Record<string, unknown>): string {
   const selectedShape=Number.isSafeInteger(comparison.selected_node_count)
     ?`选中计划 ${String(comparison.selected_node_count)} 个节点；${comparison.multi_node_selected===true?'多节点拆分':'未形成多节点拆分'}；`
     :''
+  const factors=object(comparison.decision_factors)?comparison.decision_factors:{}
+  const qualityLine=Object.keys(factors).length
+    ?`质量依据：模型画像先验，尚无本任务拆分质量增益的验证；两路线合格执行模型共 ${String(factors.qualified_execution_model_count??'未提供')} 款；`
+      +`${typeof factors.dag_extra_worker_cost==='number'?`DAG 预计执行费用相差 ${number(factors.dag_extra_worker_cost)} ${String(result.billing_unit)}；`:''}\n`
+    :''
   const comparisonLine=Object.keys(comparison).length
     ? `执行前比较：${String(comparison.status)}；选中 ${selectedLabel}；依据 ${String(comparison.reason)}；`
       + selectedShape
       + `direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
       + `${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`
+      + qualityLine
     : ''
   const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:{}
   const diagnosticLines=Object.entries(diagnostics).filter(([,v])=>object(v)).map(([name,value])=>{
