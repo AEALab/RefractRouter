@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "automatic-dag-acceptance-summary-v1",
+  "date": "2026-10-05",
+  "scope": {
+    "kind": "真实 DSH 模型适配器多节点功能验收",
+    "dataMode": "live",
+    "taskMaterial": "合成合同材料",
+    "dagMode": "临时副本强制 DAG",
+    "changesToUserProfile": false,
+    "model": "deepseek-official/deepseek-flash",
+    "modelCallLimit": 8,
+    "cashLimitCny": 2.0,
+    "outputTokenLimitPerCall": 8192,
+    "httpRetries": 0,
+    "jevCalls": 0
+  },
+  "result": {
+    "status": "completed",
+    "planOrigin": "model",
+    "planNodeCount": 3,
+    "nodes": [
+      {
+        "id": "contract_a",
+        "parents": [],
+        "status": "ok"
+      },
+      {
+        "id": "contract_b",
+        "parents": [],
+        "status": "ok"
+      },
+      {
+        "id": "deliver",
+        "parents": [
+          "contract_a",
+          "contract_b"
+        ],
+        "status": "ok"
+      }
+    ],
+    "evaluationPassed": true,
+    "evaluationScore": 93,
+    "issueCount": 0,
+    "wallTimeMs": 95956
+  },
+  "ledger": {
+    "callCount": 5,
+    "settledCount": 5,
+    "modelCny": 0.16666824,
+    "calls": [
+      {
+        "purpose": "planner",
+        "category": "production",
+        "chargedCny": 0.01100824,
+        "status": "billed"
+      },
+      {
+        "purpose": "contract_a",
+        "category": "production",
+        "chargedCny": 0.030132,
+        "status": "billed"
+      },
+      {
+        "purpose": "contract_b",
+        "category": "production",
+        "chargedCny": 0.038616,
+        "status": "billed"
+      },
+      {
+        "purpose": "deliver",
+        "category": "production",
+        "chargedCny": 0.05082,
+        "status": "billed"
+      },
+      {
+        "purpose": "final-judge",
+        "category": "evaluation",
+        "chargedCny": 0.036092,
+        "status": "billed"
+      }
+    ],
+    "unknownUsageCny": 0
+  },
+  "historicalReservation": {
+    "amountCny": 0.01947,
+    "status": "待核对，未并入已确认消费",
+    "evidence": "旧批次 transport-error，模型账本保留 unknown-usage；缺少提供方请求 ID 或该次计费记录，不能单凭当前余额确认单次扣费"
+  },
+  "rawEvidence": {
+    "location": "本机 /tmp/refract-auto-dag-20261005-batch2，未提交原始上下文",
+    "resultSha256": "0b83e9d3b78ace38e84e14c60a670276fc677abfca07cea9f401f82556d14e32",
+    "modelLedgerSha256": "256d227f9fa1153ec312ed6131ff354d0a248cf2508772e8591bf89564678939"
+  },
+  "limitations": [
+    "强制 DAG 仅验证多节点执行接线，不证明自动策略会选择 DAG。",
+    "最终质量分数来自同一批次模型评审，不是独立人工验收。",
+    "本次无宿主工具调用，原生工具续接由上一批独立验收覆盖。"
+  ]
+}
