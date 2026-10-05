@@ -125,6 +125,8 @@ export interface LiveExecutionView {
   schemaVersion:'refractagent-live-execution-v1'
   enabled:boolean
   maxProductionCost?:number|'unlimited'
+  maxProductionCostByUnit?:{AFP:number;CNY:number}
+  maxEvaluationCostByUnit?:{AFP:number;CNY:number}
   maxEvaluationCost?:number|'unlimited'
   complexityPolicy:'auto'|'direct'|'dag'
   reviewPolicy:'adaptive'|'always'
@@ -143,7 +145,7 @@ export interface LiveExecutionView {
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
-  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3' | 'refractagent-dsh-model-pool-v4'
   billingUnit?: string
   allowSharedJudge?: boolean
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
@@ -220,20 +222,24 @@ export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
       message:'拆分判别需明确启用实验能力；本地需完整权重配置，Jev 需单任务 CNY 上限及共用渠道配置。'})
   }
   if (!live?.enabled) return issues
-  const automatic = pool !== undefined || provider?.schemaVersion === 'refractagent-providers-v4'
+  const automatic = pool !== undefined || ['refractagent-providers-v4','refractagent-providers-v5'].includes(String(provider?.schemaVersion))
   if (!automatic) issues.push({code:'LIVE_EXECUTION_MODEL_POOL_REQUIRED',severity:'error',field:'liveExecution',
     message:'真实执行需要可用的自动路由模型池；旧三策略配置只能继续使用原有入口。'})
   const unit = pool?.billingUnit ?? provider?.billingUnit
-  if (unit !== 'CNY' && !(unit === 'AFP' && (!pool || pool.schemaVersion === 'refractagent-dsh-model-pool-v3'))) issues.push({code:'LIVE_EXECUTION_CNY_REQUIRED',severity:'error',field:'liveExecution',
-    message:'真实执行需要同单位的 CNY 或 AFP 模型池；不同单位不能混合比较。'})
+  if (unit !== 'CNY' && !(unit === 'AFP' && (!pool || pool.schemaVersion === 'refractagent-dsh-model-pool-v3'))
+    && !(unit==='MIXED'&&(!pool||pool.schemaVersion==='refractagent-dsh-model-pool-v4'))) issues.push({code:'LIVE_EXECUTION_CNY_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行需要 CNY、AFP 或明确双单位模型池。'})
   const security = pool?.security ?? provider?.security
   if (!['synthetic','desensitized','live'].includes(String(security?.dataMode))) issues.push({
     code:'LIVE_EXECUTION_DATA_MODE_REQUIRED',severity:'error',field:'liveExecution',
     message:'真实执行需要明确选择数据模式；真实数据仅使用本地或可信云模型。'})
-  if (!([live.maxProductionCost,live.maxEvaluationCost].every(value=>value==='unlimited'
+  const mixedBudgets=unit==='MIXED'&&[live.maxProductionCostByUnit,live.maxEvaluationCostByUnit]
+    .every(row=>row&&['AFP','CNY'].every(key=>typeof row[key as 'AFP'|'CNY']==='number'
+      &&Number.isFinite(row[key as 'AFP'|'CNY'])&&row[key as 'AFP'|'CNY']>=0))
+  if (!mixedBudgets&&!(unit!=='MIXED'&&[live.maxProductionCost,live.maxEvaluationCost].every(value=>value==='unlimited'
     || typeof value==='number'&&Number.isFinite(value)&&value>0))) {
     issues.push({code:'LIVE_EXECUTION_BUDGET_REQUIRED',severity:'error',field:'liveExecution',
-      message:'请分别设置单任务生产与评审上限（当前模型池单位），或明确选择无限制；真实执行没有隐式付费默认值。'})
+      message:'请分别设置生产与评审上限；混合模型池需填写 AFP、CNY 两套额度，0 为不限制。'})
   }
   return issues
 }
@@ -281,7 +287,7 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
     }
     const profile = publicProfiles.find(row => row.provider === route.provider && row.model === route.model)
     const overrides = route.overrides ?? {}
-    if (!profile && pool.schemaVersion !== 'refractagent-dsh-model-pool-v3') {
+    if (!profile && !['refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4'].includes(pool.schemaVersion)) {
       const missing = ['inputPer1k','outputPer1k']
         .filter(key => typeof overrides[key] !== 'number')
       if (missing.length) {

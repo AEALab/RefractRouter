@@ -66,8 +66,10 @@ def main(argv=None):
     run.add_argument('--template', choices=['single', 'compare', 'auto'], default='single')
     run.add_argument('--mode', choices=['preflight', 'demo', 'live'], default='preflight')
     run.add_argument('--runs-dir', type=Path, default=Path.home()/'.local/share/refractagent/runs')
-    run.add_argument('--production-budget', type=lambda raw: raw if raw == 'unlimited' else float(raw), default=40)
-    run.add_argument('--evaluation-budget', type=lambda raw: raw if raw == 'unlimited' else float(raw), default=80)
+    def budget_arg(raw):
+        return json.loads(raw) if raw.startswith('{') else raw if raw == 'unlimited' else float(raw)
+    run.add_argument('--production-budget', type=budget_arg, default=40)
+    run.add_argument('--evaluation-budget', type=budget_arg, default=80)
     run.add_argument('--timeout-ms', type=int, default=300000)
     run.add_argument('--max-output-tokens', type=int, default=2048)
     run.add_argument('--manifest', type=Path)
@@ -141,7 +143,7 @@ def main(argv=None):
             if args.provider_config:
                 raw = json.loads(args.provider_config.read_text())
                 compiled = compile_configuration(raw)
-                if raw.get('schemaVersion') == SCHEMA_V4:
+                if raw.get('schemaVersion') in {SCHEMA_V4, 'refractagent-providers-v5'}:
                     exposed = {'auto': {'name': '自动路由'}}
             result = {'provider': 'refractagent', 'policy_version': POLICY_VERSION,
                 'models': [{'id': key, 'name': 'RefractAgent · '+p['name'],

@@ -42,6 +42,8 @@ export interface LiveExecutionConfiguration {
   enabled: boolean
   maxProductionCost?: number | 'unlimited'
   maxEvaluationCost?: number | 'unlimited'
+  maxProductionCostByUnit?: {AFP:number;CNY:number}
+  maxEvaluationCostByUnit?: {AFP:number;CNY:number}
   complexityPolicy: 'auto' | 'direct' | 'dag'
   reviewPolicy: 'adaptive' | 'always'
   maxConcurrency?: number
@@ -81,7 +83,7 @@ export interface DshModelPoolRoute {
     note?: string; quality?: number; latencyMs?: number }
 }
 export interface DshModelPool {
-  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3' | 'refractagent-dsh-model-pool-v4'
   billingUnit?: string
   allowSharedJudge?: boolean
   routes: DshModelPoolRoute[]
@@ -113,6 +115,7 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     || !['auto','direct','dag'].includes(String(value.complexityPolicy))
     || !['adaptive','always'].includes(String(value.reviewPolicy))
     || Object.keys(value).some(key => !['schemaVersion','enabled','maxProductionCost','maxEvaluationCost',
+      'maxProductionCostByUnit','maxEvaluationCostByUnit',
       'complexityPolicy','reviewPolicy','maxConcurrency','providerConcurrency','providerMinIntervalMs',
       'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls','decompositionDecision'].includes(key))) {
     throw new Error('invalid liveExecution configuration')
@@ -122,6 +125,13 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     if (entry !== undefined && entry !== 'unlimited'
       && (typeof entry !== 'number' || !Number.isFinite(entry) || entry <= 0)) {
       throw new Error(`liveExecution.${key} must be a positive CNY limit or unlimited`)
+    }
+  }
+  for(const key of ['maxProductionCostByUnit','maxEvaluationCostByUnit'] as const){
+    const entry=value[key]
+    if(entry!==undefined&&(!isRecordValue(entry)||Object.keys(entry).sort().join(',')!=='AFP,CNY'
+      ||Object.values(entry).some(amount=>typeof amount!=='number'||!Number.isFinite(amount)||amount<0))){
+      throw new Error(`liveExecution.${key} requires non-negative AFP and CNY limits`)
     }
   }
   const maxConcurrency = value.maxConcurrency
@@ -156,7 +166,8 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
       throw new Error(`invalid liveExecution.${field}`)
     }
   }
-  if (value.enabled && (value.maxProductionCost === undefined || value.maxEvaluationCost === undefined)) {
+  if (value.enabled && (value.maxProductionCost === undefined || value.maxEvaluationCost === undefined)
+    && (value.maxProductionCostByUnit === undefined || value.maxEvaluationCostByUnit === undefined)) {
     throw new Error('enabled liveExecution requires explicit production and evaluation budget choices')
   }
   const decision=value.decompositionDecision
@@ -208,7 +219,7 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 }
 
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
-  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3'].includes(String(value.schemaVersion))
+  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4'].includes(String(value.schemaVersion))
     || !Array.isArray(value.routes) || value.routes.length > 128
     || Object.keys(value).some(key => !['schemaVersion','billingUnit','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
@@ -228,7 +239,7 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
     const identity = `${route.provider}\u0000${route.model}`
     if (identities.has(identity)) throw new Error('dshModelPool route identities must be unique')
     identities.add(identity)
-    const allowedOverrides = value.schemaVersion === 'refractagent-dsh-model-pool-v3' ? ['note'] : value.schemaVersion === 'refractagent-dsh-model-pool-v2'
+    const allowedOverrides = ['refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4'].includes(String(value.schemaVersion)) ? ['note'] : value.schemaVersion === 'refractagent-dsh-model-pool-v2'
       ? ['inputPer1k','cachedInputPer1k','outputPer1k','note']
       : ['inputPer1k','cachedInputPer1k','outputPer1k','quality','latencyMs','note']
     if (route.overrides !== undefined && (!isRecordValue(route.overrides)
@@ -253,6 +264,9 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
   }
   if (value.billingUnit !== undefined && (typeof value.billingUnit !== 'string' || !value.billingUnit.trim())) {
     throw new Error('invalid dshModelPool billingUnit')
+  }
+  if(value.schemaVersion==='refractagent-dsh-model-pool-v4'&&value.billingUnit!=='MIXED'){
+    throw new Error('dshModelPool v4 requires MIXED billingUnit')
   }
   const routeKeys = new Set(value.routes.filter(route => route.enabled !== false)
     .map(route => `${route.provider}/${route.model}`))
@@ -322,14 +336,17 @@ export function freezeConfiguration<T>(value: T): T {
 
 export function validateProviderConfiguration(value: unknown): asserts value is ProviderConfiguration {
   const config = value
-  const schemas = ['refractagent-providers-v1','refractagent-providers-v2','refractagent-providers-v3','refractagent-providers-v4']
+  const schemas = ['refractagent-providers-v1','refractagent-providers-v2','refractagent-providers-v3','refractagent-providers-v4','refractagent-providers-v5']
   if (!isRecordValue(config) || !schemas.includes(String(config.schemaVersion))
     || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
     || Object.keys(config).some(k => !['schemaVersion','billingUnit','allowSharedJudge','qualityMin','objective','defaultReasoningEffort','plannerThinking','strategies','providers','models','privacy','security','trustPolicies'].includes(k))) {
     throw new Error('invalid providerConfig; use refractagent config-example')
   }
   const v3 = config.schemaVersion === 'refractagent-providers-v3'
-  const v4 = config.schemaVersion === 'refractagent-providers-v4'
+  const v4 = config.schemaVersion === 'refractagent-providers-v4' || config.schemaVersion === 'refractagent-providers-v5'
+  const v5 = config.schemaVersion === 'refractagent-providers-v5'
+  if(v5&&config.billingUnit!=='MIXED')throw new Error('providerConfig v5 requires MIXED billingUnit')
+  if(!v5&&config.billingUnit==='MIXED')throw new Error('MIXED billingUnit requires providerConfig v5')
   if ((v3 || v4) && config.privacy !== undefined) throw new Error('providerConfig v3/v4 uses security instead of privacy')
   if (!v3 && !v4 && (config.security !== undefined || config.trustPolicies !== undefined)) throw new Error('security requires providerConfig v3 or v4')
   if (v4) {
@@ -392,6 +409,9 @@ export function validateProviderConfiguration(value: unknown): asserts value is 
         throw new Error('providerConfig v4 models require unique roles')
       }
     } else if (m.roles !== undefined) throw new Error('model roles require providerConfig v4')
+    if(v5&&(!isRecordValue(m.pricing)||!['AFP','CNY'].includes(String(m.pricing.unit)))){
+      throw new Error('providerConfig v5 model prices require AFP or CNY')
+    }
   }
   if (v4) for (const role of ['planner','worker','judge']) {
     if (!config.models.some(model => model.roles?.includes(role as 'planner' | 'worker' | 'judge'))) {

@@ -850,3 +850,18 @@ test('实际路线模型池保留 v3、AFP 单位并禁止手填价格', () => {
   assert.equal(issues.some(issue=>issue.code==='DSH_POOL_MANUAL_PROFILE_INCOMPLETE'),false)
   assert.equal(issues.some(issue=>issue.code==='DSH_POOL_INDEPENDENT_QUALITY_REQUIRED'),true)
 })
+
+test('混合模型池保留 v4 与独立 AFP/CNY 预算', () => {
+  const pool={...dshModelPool(),schemaVersion:'refractagent-dsh-model-pool-v4' as const,billingUnit:'MIXED',
+    routes:dshModelPool().routes.map(({overrides:_old,...route})=>route)}
+  assert.equal(migrateDshModelPool(pool).schemaVersion,'refractagent-dsh-model-pool-v4')
+  const live={schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
+    complexityPolicy:'auto' as const,reviewPolicy:'adaptive' as const,
+    maxProductionCostByUnit:{AFP:100,CNY:10},maxEvaluationCostByUnit:{AFP:10,CNY:2}}
+  validateSettingsSection({dshModelPool:pool,liveExecution:live})
+  const configured=configure({dshModelPool:pool,liveExecution:live})
+  assert.equal(configured.dshModelPool?.billingUnit,'MIXED')
+  assert.deepEqual(configured.liveExecution?.maxProductionCostByUnit,{AFP:100,CNY:10})
+  assert.throws(()=>validateSettingsSection({dshModelPool:pool,liveExecution:{...live,
+    maxEvaluationCostByUnit:{AFP:10,CNY:-1}}}),/maxEvaluationCostByUnit/)
+})

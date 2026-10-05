@@ -63,6 +63,28 @@ def test_auto_roles_keep_judge_out_of_worker_pool_and_record_sources():
         ('cloud','trusted-cloud'),('local','local')}
 
 
+def test_v4_pool_preserves_each_actual_route_unit(monkeypatch):
+    from refractrouter import planning_model_metadata
+
+    def metadata(request):
+        unit = 'AFP' if request['provider'] == 'local' else 'CNY'
+        return {'billingUnit': unit, 'issues': [],
+            'pricing': {'inputPer1k': .01, 'cachedInputPer1k': .005,
+                        'outputPer1k': .02}}
+
+    monkeypatch.setattr(planning_model_metadata, 'lookup', metadata)
+    raw = pool()
+    raw.update(schemaVersion='refractagent-dsh-model-pool-v4', billingUnit='MIXED')
+    config, provenance = compile_dsh_model_pool(raw, snapshot(
+        ('cloud', 'strong', 262144, 8192), ('local', 'fast', 131072, 4096)),
+        profiles=full_profiles())
+    assert config['schemaVersion'] == 'refractagent-providers-v5'
+    assert {row['model']: row['pricing']['unit'] for row in config['models']} == {
+        'strong': 'CNY', 'fast': 'AFP'}
+    assert provenance['local/fast']['accounting_unit'] == 'AFP'
+    assert provenance['cloud/strong']['accounting_unit'] == 'CNY'
+
+
 def test_cny_accounting_converts_public_and_manual_usd_prices_with_frozen_rate(tmp_path):
     raw=pool();raw['billingUnit']='CNY';raw['routes'][0]['overrides']={'inputPer1k':.008}
     catalog=snapshot(('cloud','strong',262144,8192),('local','fast',131072,32768))

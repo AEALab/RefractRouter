@@ -18,7 +18,8 @@ PROFILE_SCHEMAS = {'refractrouter-model-profiles-v1', 'refractrouter-model-profi
 FX_PATHS = (Path(__file__).resolve().parents[2] / 'data/currency-rates-v1.json',
             Path(sys.prefix) / 'share/refractrouter/currency-rates-v1.json')
 DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
-POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2', 'refractagent-dsh-model-pool-v3'}
+POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2',
+                'refractagent-dsh-model-pool-v3', 'refractagent-dsh-model-pool-v4'}
 CONSERVATIVE_BOOTSTRAP_LATENCY_MS = 60_000.0
 
 
@@ -160,15 +161,18 @@ def _validate_quality_profile(value):
 
 
 def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_profiles=None):
-    """返回可交给现有核心的 v4 配置与逐路线来源证据。"""
+    """返回核心配置与逐路线来源证据；v4 池保留实际路线的原生单位。"""
     pool = _record(pool, 'dshModelPool')
     snapshot = _record(catalog_snapshot, 'dshCatalogSnapshot')
     pool_schema = pool.get('schemaVersion')
     if pool_schema not in POOL_SCHEMAS:
         raise ValueError('invalid dshModelPool schemaVersion')
     accounting_unit = pool.get('billingUnit', 'USD')
-    actual_routes = pool_schema == 'refractagent-dsh-model-pool-v3'
-    if accounting_unit not in ({'AFP', 'CNY', 'USD'} if actual_routes else {'USD', 'CNY'}):
+    mixed = pool_schema == 'refractagent-dsh-model-pool-v4'
+    actual_routes = pool_schema in {'refractagent-dsh-model-pool-v3', 'refractagent-dsh-model-pool-v4'}
+    if mixed and accounting_unit != 'MIXED':
+        raise ValueError('dshModelPool v4 requires MIXED billingUnit')
+    if not mixed and accounting_unit not in ({'AFP', 'CNY', 'USD'} if actual_routes else {'USD', 'CNY'}):
         raise ValueError('dshModelPool billingUnit must be USD or CNY')
     exchange_rate, exchange_snapshot = frozen_usd_cny_rate() if accounting_unit == 'CNY' and not actual_routes else (1.0, None)
     if snapshot.get('schemaVersion') != 'refractagent-dsh-catalog-v1':
@@ -225,15 +229,19 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
                 raise ValueError('v3 actual billing cannot use simulated-local zero cost')
             metadata = lookup({'provider': provider, 'model': model, 'billingUnit': 'AUTO',
                 'host': resolved, 'providerBaseURL': resolved.get('providerBaseURL')})
-            if metadata['billingUnit'] != accounting_unit:
+            if metadata['billingUnit'] not in {'AFP', 'CNY'} and mixed:
+                raise ValueError(f'{provider}/{model} requires an AFP or CNY actual route price')
+            if not mixed and metadata['billingUnit'] != accounting_unit:
                 raise ValueError(f'{provider}/{model} uses {metadata["billingUnit"]}; choose a matching billing group ({accounting_unit})')
             if metadata['issues']:
                 raise ValueError(f'{provider}/{model}: ' + '; '.join(metadata['issues']))
-            base['pricing'] = dict(metadata['pricing'], unit=accounting_unit)
-            if provider == 'deepseek-official' and accounting_unit == 'CNY':
+            model_unit = metadata['billingUnit'] if mixed else accounting_unit
+            base['pricing'] = dict(metadata['pricing'], unit=model_unit)
+            if provider == 'deepseek-official' and model_unit == 'CNY':
                 peak = official_pricing(model, conservative=True)
-                base['pricing'] = {key: peak[key] for key in ('inputPer1k', 'outputPer1k', 'cachedInputPer1k')}
-            base['price_policy'] = 'deepseek-official-cny-v1' if provider == 'deepseek-official' and accounting_unit == 'CNY' else None
+                base['pricing'] = {'unit': model_unit,
+                    **{key: peak[key] for key in ('inputPer1k', 'outputPer1k', 'cachedInputPer1k')}}
+            base['price_policy'] = 'deepseek-official-cny-v1' if provider == 'deepseek-official' and model_unit == 'CNY' else None
         manual_prices = all(key in overrides for key in ('inputPer1k','outputPer1k'))
         if not base and not manual_prices:
             raise ValueError(f'{_route_key(provider, model)} has no public price profile; complete manual pricing is required')
@@ -301,7 +309,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
                 if key in {'quality', 'latencyMs'})} if pool_schema == 'refractagent-dsh-model-pool-v1'
                 and any(key in overrides for key in {'quality', 'latencyMs'}) else {}),
             'note': overrides.get('note'),
-            'accounting_unit': accounting_unit,
+            'accounting_unit': base['pricing'].get('unit', accounting_unit) if mixed else accounting_unit,
             'price_source_unit': 'USD',
             **({'currency_conversion': deepcopy(exchange_snapshot)} if exchange_snapshot else {}),
         }
@@ -309,7 +317,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             if key in base:
                 route_evidence[key] = deepcopy(base[key])
         if metadata is not None:
-            route_evidence.update(profile='verified-actual-route', price_source_unit=accounting_unit,
+            route_evidence.update(profile='verified-actual-route', price_source_unit=base['pricing'].get('unit', accounting_unit),
                 actual_route_metadata=metadata, pricing_policy=base.get('price_policy'),
                 pricing_basis={'actualProviderBilling': True},
                 pricing_materialization={'strategy': 'peak-budget-current-tier-settlement' if base.get('price_policy') else 'actual-route'},
@@ -371,7 +379,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
             'maxOutputTokens': row['maxOutputTokens'], 'deployment': row['deployment'],
             **({'pricePolicy': row['pricePolicy']} if row.get('pricePolicy') else {}),
-            'pricing': {'unit': accounting_unit,
+            'pricing': {'unit': row['pricing']['unit'] if mixed else accounting_unit,
                         **{key: value * exchange_rate for key, value in row['pricing'].items()
                            if key != 'unit'}},
             'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs'],
@@ -384,7 +392,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):
         security['classifier']['modelId'] = _stable_id('dsh-model', _route_key(classifier['provider'], classifier['model']))
-    config = {'schemaVersion':'refractagent-providers-v4', 'billingUnit':accounting_unit,
+    config = {'schemaVersion':'refractagent-providers-v5' if mixed else 'refractagent-providers-v4',
+        'billingUnit':accounting_unit,
         'allowSharedJudge':allow_shared_judge,
         'objective':deepcopy(pool.get('objective', {'qualityMin':80,'primary':'cost','secondary':'latency','dagMode':'auto'})),
         'security':security, 'trustPolicies':deepcopy(pool.get('trustPolicies', [])),

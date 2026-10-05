@@ -16,6 +16,8 @@ from .openai_compatible import ChatResponse, ModelInvocationError
 from threading import RLock
 from .tool_runtime import ToolTurnConcluded
 from .task_budget import TaskCallBudget
+from .automatic_budget import AutomaticMixedBudget
+from .automatic_mixed_assignment import route_nodes_mixed
 from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
 from .task_evaluation import evaluate_text
@@ -35,7 +37,7 @@ from .privacy_placement import (PlacementGuard, PrivacyRouteViolation, judge_iso
 from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
-from .automatic_routing import compare_executable_routes
+from .automatic_routing import compare_executable_routes, choose_mixed_billing_route
 
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 
@@ -59,8 +61,78 @@ def _bounded_tool_allowance(routing, candidates, max_calls, input_cap):
         for mid in set(routing['assignments'].values()) for model in (candidates[mid],))
 
 
+def _compare_mixed_execution(routes, *, candidates, charged_calls, judge, judge_cost,
+                             review_required, tool_count, input_cap, remaining_production,
+                             remaining_evaluation):
+    """比较可执行直答与 DAG；两类单位各自准入，共同已花的规划费只入总账。"""
+    planner_rows = [row for row in charged_calls if row['label'] in {'planner', 'planner-repair'}]
+    if any(row['status'] != 'billed' for row in planner_rows):
+        raise ValueError('planner usage is unconfirmed; route comparison stopped')
+    planner_costs = {unit: sum(row['charged'] for row in planner_rows
+                              if row['billing_unit'] == unit) for unit in ('AFP', 'CNY')}
+    planner_latency = (sum(row['latency_ms'] for row in planner_rows)
+        if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
+    choices, views, shortfalls = [], {}, {}
+    for name, routing in routes.items():
+        if routing.get('status') != 'selected':
+            views[name] = None
+            continue
+        worker = routing['prediction']['costs_by_unit']
+        allowance = {'AFP': 0.0, 'CNY': 0.0}
+        if tool_count:
+            for mid in set(routing['assignments'].values()):
+                model = candidates[mid]
+                amount = tool_count * (
+                    min(input_cap, model.context_window - output_token_limit(model))
+                    * model.input_cost_per_1k + output_token_limit(model)
+                    * model.output_cost_per_1k) / 1000
+                allowance[model.billing_unit] = max(allowance[model.billing_unit], amount)
+        judge_vector = {'AFP': 0.0, 'CNY': 0.0}
+        if review_required:
+            judge_vector[judge.billing_unit] = judge_cost
+        shortage = {}
+        for unit in ('AFP', 'CNY'):
+            if remaining_production[unit] and worker[unit] + allowance[unit] > remaining_production[unit] + 1e-12:
+                shortage[f'{unit}.production'] = worker[unit] + allowance[unit] - remaining_production[unit]
+            if judge_vector[unit] > remaining_evaluation[unit] + 1e-12:
+                shortage[f'{unit}.evaluation'] = judge_vector[unit] - remaining_evaluation[unit]
+        if shortage:
+            shortfalls[name] = shortage
+            views[name] = None
+            continue
+        total = {unit: worker[unit] + allowance[unit] + judge_vector[unit] + planner_costs[unit]
+                 for unit in ('AFP', 'CNY')}
+        quality = routing['prediction']['minimum_node_quality_proxy']
+        views[name] = {'worker_costs_by_unit': dict(worker), 'tool_allowance_by_unit': allowance,
+                       'judge_estimate_by_unit': judge_vector, 'planner_actual_by_unit': planner_costs,
+                       'total_estimated_by_unit': total, 'worker_scheduled_latency_ms':
+                       routing['prediction']['scheduled_latency_ms'],
+                       'known_latency_ms': routing['prediction']['scheduled_latency_ms'] + planner_latency
+                           if planner_latency is not None else None,
+                       'quality_proxy': quality, 'assignments': dict(routing['assignments'])}
+    reference = max((row['quality_proxy'] for row in views.values() if row), default=None)
+    for name, row in views.items():
+        if row:
+            choices.append({'id': name, 'qualityQualified': True,
+                'qualityNonInferior': row['quality_proxy'] >= reference,
+                'qualityBasis': 'configured-profile-prior',
+                'costsByUnit': row['total_estimated_by_unit'],
+                'latencyMs': row['worker_scheduled_latency_ms']})
+    selected = choose_mixed_billing_route(choices, {'AFP': 0, 'CNY': 0}) if choices else None
+    return {'policy_version': 'automatic-live-comparison-mixed-v1',
+            'prediction_source': 'compiled-user-declared-node-profiles',
+            'latency_scope': 'worker-schedule-plus-observed-planner; shared-judge-latency-unforecast',
+            'billing_unit': 'MIXED', 'direct': views.get('direct'), 'dag': views.get('dag'),
+            'status': 'selected' if selected and selected['selected'] else 'infeasible',
+            'route': selected['selected'] if selected else 'infeasible',
+            'reason': selected['reason'] if selected else 'no-qualified-affordable-route',
+            'quality_noninferiority_verified': False,
+            'quality_basis': 'configured-profile-prior', 'budget_shortfalls': shortfalls,
+            'planner_actual_costs_by_unit': planner_costs}
+
+
 def validate_request(raw):
-    allowed = {"task", "mode", "method", "qualityMin", "costMax", "latencyMaxMs", "weights",
+    allowed = {"task", "mode", "method", "qualityMin", "costMax", "costMaxByUnit", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
                "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget"}
@@ -116,6 +188,12 @@ def validate_request(raw):
         raise ValueError("method must be A or B")
     number(raw.get("qualityMin"), "qualityMin", maximum=100)
     number(raw.get("costMax"), "costMax")
+    if 'costMaxByUnit' in raw:
+        limits = raw['costMaxByUnit']
+        if not isinstance(limits, dict) or set(limits) != {'AFP', 'CNY'}:
+            raise ValueError('costMaxByUnit requires AFP and CNY')
+        for unit, value in limits.items():
+            number(value, f'{unit} costMax')
     number(raw.get("latencyMaxMs"), "latencyMaxMs", positive=True)
     weights = raw.get("weights")
     if raw["method"] == "B":
@@ -208,12 +286,27 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     runtime_call_limit = (max_model_calls if max_model_calls is not None else
                           10 + request.get('maxPlanRepairs',0) + 2*request.get('maxDynamicSplits',0)
                           if request.get('maxDynamicSplits',0) and tool_runtime is None else None)
-    budget = TaskCallBudget(client if live else DemoTaskClient(),
-                          production_limit if live else 1e12, evaluation_limit if live else 1e12,
-                          max_calls=runtime_call_limit,
-                          capture_payload=True,
-        max_total_output_tokens=request.get('maxTotalOutputTokens'),
-        adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
+    mixed = manifest.billing_unit == 'MIXED'
+    if mixed:
+        if request['method'] != 'A' or request.get('maxNodeFallbacks', 0) or request.get('maxDynamicSplits', 0):
+            raise ValueError('mixed automatic routing currently requires method A without node fallback or dynamic splits')
+        if 'costMaxByUnit' not in request:
+            raise ValueError('mixed automatic routing requires costMaxByUnit')
+        if not isinstance(production_limit, dict) or not isinstance(evaluation_limit, dict):
+            raise ValueError('mixed automatic routing requires separate production and evaluation limits')
+        enforce_limits = live or mode == 'preflight'
+        budget = AutomaticMixedBudget(client if live else DemoTaskClient(),
+            {unit: {'production': production_limit[unit] if enforce_limits else 1e12,
+                    'evaluation': evaluation_limit[unit] if enforce_limits else 1e12}
+             for unit in ('AFP', 'CNY')}, max_calls=runtime_call_limit,
+            max_total_output_tokens=request.get('maxTotalOutputTokens'),
+            adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
+    else:
+        budget = TaskCallBudget(client if live else DemoTaskClient(),
+            production_limit if live else 1e12, evaluation_limit if live else 1e12,
+            max_calls=runtime_call_limit, capture_payload=True,
+            max_total_output_tokens=request.get('maxTotalOutputTokens'),
+            adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
     started = time.monotonic()
     deadline_ms = float("inf") if request.get("unlimitedTime") else request["latencyMaxMs"]
     result = {"schema_version": "task-run-v1", "mode": mode, "status": "started", "task": request["task"],
@@ -344,7 +437,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     gate = lambda plan, decision: verify_cost_drivers(  # noqa: E731
                         plan, decision, candidates=candidates, limit_fn=available_output_limit)
                 plan = generate_compact(budget, planner, planning_payload, result['compact_planning'],
-                    criteria=request.get('acceptanceCriteria'), cost_limit=request['costMax'],
+                    criteria=request.get('acceptanceCriteria'), cost_limit=None if mixed else request['costMax'],
                     deadline=None if request.get('unrestrictedPlanning') else min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
                     persist=persist, repairs=request.get('maxPlanRepairs',0), policy=request.get('plannerPolicy', 'legacy'),
                     context_policy=request.get('contextPolicy', 'full'),
@@ -359,12 +452,14 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                  "acceptance_criteria": request.get("acceptanceCriteria"), "execution_policy": policy.to_dict(),
                  "execution_support": support, "output_constraints": request.get('outputConstraints'),
                  "minimum_node_quality": request['qualityMin'],
-                 "remaining_production_cost": min(request['costMax'], budget.remaining()),
+                 "remaining_production_cost": ({unit: min(request['costMaxByUnit'][unit], budget.remaining(unit))
+                     if request['costMaxByUnit'][unit] else 0
+                     for unit in ('AFP', 'CNY')} if mixed else min(request['costMax'], budget.remaining())),
                  "remaining_time_ms": before_call() * 1000}, ensure_ascii=False)},
                 ]
                 plan = generate_plan(budget, planning_model, messages, result,
                     required_criteria=request.get('acceptanceCriteria'), max_repairs=request.get('maxPlanRepairs',0),
-                    cost_limit=request['costMax'], remaining=before_call, persist=persist)
+                    cost_limit=None if mixed else request['costMax'], remaining=before_call, persist=persist)
             if request.get('contextPolicy') == 'selective-v1':
                 node_context = build_node_context(plan, request, conversation_context,
                     result['compact_planning']['context_selection'])
@@ -441,13 +536,28 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             placement['judge_isolation'] = judge_isolation(placement, manifest.judge)
             if not live and not placement['judge_isolation']['satisfied']:
                 result['issues'].append('final-judge: privacy-judge-not-local')
-        remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
+        if mixed:
+            charged_by_unit = budget.snapshot()[0]
+            remaining_cost = {unit: min(
+                max(0, request['costMaxByUnit'][unit] - charged_by_unit[unit]['production']),
+                budget.remaining(unit)) if request['costMaxByUnit'][unit] else 0
+                for unit in ('AFP', 'CNY')}
+        else:
+            remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
         remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
-        result["routing"] = route_nodes(plan, profiles, method=request["method"],
-            quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=None if request.get("unlimitedTime") else remaining_latency,
-            weights=Weights(**request["weights"]) if request["method"] == "B" else None,
-            eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
-            model_providers={mid: model.provider for mid, model in candidates.items()})
+        if mixed:
+            result['routing'] = route_nodes_mixed(plan, profiles,
+                model_units={mid: model.billing_unit for mid, model in candidates.items()},
+                quality_min=request['qualityMin'], budgets=remaining_cost,
+                latency_max_ms=None if request.get('unlimitedTime') else remaining_latency,
+                eligible_models=eligible_models, execution_policy=policy,
+                model_providers={mid: model.provider for mid, model in candidates.items()})
+        else:
+            result["routing"] = route_nodes(plan, profiles, method=request["method"],
+                quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=None if request.get("unlimitedTime") else remaining_latency,
+                weights=Weights(**request["weights"]) if request["method"] == "B" else None,
+                eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
+                model_providers={mid: model.provider for mid, model in candidates.items()})
         if alternative_direct_plan is not None and live:
             if configuration is None or configuration.objective is None:
                 raise ValueError('live route comparison requires a compiled v4 configuration')
@@ -491,13 +601,21 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         else:
                             direct_eligible = restricted_eligible_models(direct_eligible, direct_placement)
                             direct_placement['judge_isolation'] = judge_isolation(direct_placement, manifest.judge)
-                    direct_routing = route_nodes(direct, direct_profiles, method=request['method'],
-                        quality_min=request['qualityMin'], cost_max=remaining_cost,
-                        latency_max_ms=None if request.get('unlimitedTime') else remaining_latency,
-                        weights=Weights(**request['weights']) if request['method'] == 'B' else None,
-                        eligible_models=direct_eligible, execution_policy=policy,
-                        reduce_dominated=configured_application,
-                        model_providers={mid: model.provider for mid, model in candidates.items()})
+                    if mixed:
+                        direct_routing = route_nodes_mixed(direct, direct_profiles,
+                            model_units={mid: model.billing_unit for mid, model in candidates.items()},
+                            quality_min=request['qualityMin'], budgets=remaining_cost,
+                            latency_max_ms=None if request.get('unlimitedTime') else remaining_latency,
+                            eligible_models=direct_eligible, execution_policy=policy,
+                            model_providers={mid: model.provider for mid, model in candidates.items()})
+                    else:
+                        direct_routing = route_nodes(direct, direct_profiles, method=request['method'],
+                            quality_min=request['qualityMin'], cost_max=remaining_cost,
+                            latency_max_ms=None if request.get('unlimitedTime') else remaining_latency,
+                            weights=Weights(**request['weights']) if request['method'] == 'B' else None,
+                            eligible_models=direct_eligible, execution_policy=policy,
+                            reduce_dominated=configured_application,
+                            model_providers={mid: model.provider for mid, model in candidates.items()})
                     return (direct, estimates, direct_profile, direct_profiles, direct_admission,
                             direct_eligible, direct_placement, direct_routing)
                 try:
@@ -509,60 +627,90 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     direct_routing = {'status': 'no-feasible-route'}
                     direct_admission = {'answer': {'reason': 'input-capacity', 'detail': str(exc)}}
                     direct_eligible = {'answer': []}
-                _, charged_calls = budget.snapshot()
-                planner_rows = [row for row in charged_calls if row['label'] in {'planner', 'planner-repair'}]
-                if any(row['status'] != 'billed' for row in planner_rows):
-                    raise ValueError('planner usage is unconfirmed; route comparison stopped')
-                planner_cost = sum(row['charged'] for row in planner_rows)
-                planner_latency = (sum(row['latency_ms'] for row in planner_rows)
-                    if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
-                judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
-                    request.get('acceptanceCriteria'), candidates) if result['review']['required'] else 0.0)
-                tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
-                allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
-                              for name, route in (('direct', direct_routing), ('dag', result['routing']))}
-                budget_shortfalls = {}
-                evaluation_remaining = budget.remaining('evaluation')
-                for name, route in (('direct', direct_routing), ('dag', result['routing'])):
-                    if route['status'] == 'selected':
-                        worker_and_tool = route['prediction']['cost'] + allowances[name]
-                        shortage = {}
-                        if worker_and_tool > remaining_cost + 1e-12:
-                            shortage['production'] = worker_and_tool - remaining_cost
-                        if judge_cost > evaluation_remaining + 1e-12:
-                            shortage['evaluation'] = judge_cost - evaluation_remaining
-                        if shortage:
-                            budget_shortfalls[name] = shortage
-                            route['status'] = 'no-feasible-route'
-                comparison = compare_executable_routes(direct_routing, result['routing'],
-                    planner_cost=planner_cost, judge_cost=judge_cost,
-                    planner_latency_ms=planner_latency, tool_allowances=allowances)
-                qualified_workers = {mid for routes in (direct_eligible, eligible_models)
-                    for models in routes.values() for mid in models}
-                direct_row, dag_row = comparison['direct'], comparison['dag']
-                comparison['decision_factors'] = {
-                    'qualified_execution_model_count': len(qualified_workers),
-                    'quality_basis': 'declared-model-profile-prior',
-                    'task_specific_dag_quality_gain_verified': False,
-                    'dag_extra_worker_cost': (dag_row['worker_cost'] - direct_row['worker_cost']
-                        if direct_row is not None and dag_row is not None else None),
-                }
-                comparison['candidate_diagnostics'] = {
-                    'direct': deepcopy(direct_routing.get('diagnostics', {})),
-                    'dag': deepcopy(result['routing'].get('diagnostics', {}))}
-                comparison['latency_evidence'] = {
-                    'direct': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
-                                for mid, row in models.items()}
-                               for nid, models in (direct_profile.get('forecast_basis', {}) if direct_routing.get('prediction') else {}).items()},
-                    'dag': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
-                             for mid, row in models.items()}
-                            for nid, models in result.get('routing_profile', {}).get('forecast_basis', {}).items()}}
-                comparison['billing_unit'] = manifest.billing_unit
-                comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
-                comparison['tool_call_limit'] = tool_count
-                comparison['budget_shortfalls'] = budget_shortfalls
-                comparison['excluded'] = {'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
-                                           'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
+                if mixed:
+                    _, charged_calls = budget.snapshot()
+                    judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
+                        request.get('acceptanceCriteria'), candidates) if result['review']['required'] else 0.0)
+                    tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
+                    comparison = _compare_mixed_execution(
+                        {'direct': direct_routing, 'dag': result['routing']},
+                        candidates=candidates, charged_calls=charged_calls, judge=manifest.judge,
+                        judge_cost=judge_cost, review_required=result['review']['required'],
+                        tool_count=tool_count, input_cap=input_cap,
+                        remaining_production=remaining_cost,
+                        remaining_evaluation={unit: budget.remaining(unit, 'evaluation')
+                            for unit in ('AFP', 'CNY')})
+                    qualified_workers = {mid for routes in (direct_eligible, eligible_models)
+                        for models in routes.values() for mid in models}
+                    comparison['decision_factors'] = {
+                        'qualified_execution_model_count': len(qualified_workers),
+                        'quality_basis': 'configured-profile-prior',
+                        'task_specific_dag_quality_gain_verified': False}
+                    comparison['candidate_diagnostics'] = {
+                        'direct': deepcopy(direct_routing.get('rejected_combinations', {})),
+                        'dag': deepcopy(result['routing'].get('rejected_combinations', {}))}
+                    comparison['excluded'] = {
+                        'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
+                        'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
+                    comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
+                    comparison['tool_call_limit'] = tool_count
+                    if comparison['status'] != 'selected':
+                        result['routing']['status'] = 'no-feasible-route'
+                else:
+                    _, charged_calls = budget.snapshot()
+                    planner_rows = [row for row in charged_calls if row['label'] in {'planner', 'planner-repair'}]
+                    if any(row['status'] != 'billed' for row in planner_rows):
+                        raise ValueError('planner usage is unconfirmed; route comparison stopped')
+                    planner_cost = sum(row['charged'] for row in planner_rows)
+                    planner_latency = (sum(row['latency_ms'] for row in planner_rows)
+                        if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
+                    judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
+                        request.get('acceptanceCriteria'), candidates) if result['review']['required'] else 0.0)
+                    tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
+                    allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
+                                  for name, route in (('direct', direct_routing), ('dag', result['routing']))}
+                    budget_shortfalls = {}
+                    evaluation_remaining = budget.remaining('evaluation')
+                    for name, route in (('direct', direct_routing), ('dag', result['routing'])):
+                        if route['status'] == 'selected':
+                            worker_and_tool = route['prediction']['cost'] + allowances[name]
+                            shortage = {}
+                            if worker_and_tool > remaining_cost + 1e-12:
+                                shortage['production'] = worker_and_tool - remaining_cost
+                            if judge_cost > evaluation_remaining + 1e-12:
+                                shortage['evaluation'] = judge_cost - evaluation_remaining
+                            if shortage:
+                                budget_shortfalls[name] = shortage
+                                route['status'] = 'no-feasible-route'
+                    comparison = compare_executable_routes(direct_routing, result['routing'],
+                        planner_cost=planner_cost, judge_cost=judge_cost,
+                        planner_latency_ms=planner_latency, tool_allowances=allowances)
+                    qualified_workers = {mid for routes in (direct_eligible, eligible_models)
+                        for models in routes.values() for mid in models}
+                    direct_row, dag_row = comparison['direct'], comparison['dag']
+                    comparison['decision_factors'] = {
+                        'qualified_execution_model_count': len(qualified_workers),
+                        'quality_basis': 'declared-model-profile-prior',
+                        'task_specific_dag_quality_gain_verified': False,
+                        'dag_extra_worker_cost': (dag_row['worker_cost'] - direct_row['worker_cost']
+                            if direct_row is not None and dag_row is not None else None),
+                    }
+                    comparison['candidate_diagnostics'] = {
+                        'direct': deepcopy(direct_routing.get('diagnostics', {})),
+                        'dag': deepcopy(result['routing'].get('diagnostics', {}))}
+                    comparison['latency_evidence'] = {
+                        'direct': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
+                                    for mid, row in models.items()}
+                                   for nid, models in (direct_profile.get('forecast_basis', {}) if direct_routing.get('prediction') else {}).items()},
+                        'dag': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
+                                 for mid, row in models.items()}
+                                for nid, models in result.get('routing_profile', {}).get('forecast_basis', {}).items()}}
+                    comparison['billing_unit'] = manifest.billing_unit
+                    comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
+                    comparison['tool_call_limit'] = tool_count
+                    comparison['budget_shortfalls'] = budget_shortfalls
+                    comparison['excluded'] = {'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
+                                               'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
                 comparison['generated_node_count'] = len(plan.nodes)
                 if comparison['route'] == 'dag' and len(plan.nodes) == 1:
                     # A planner call is not itself a split. Keep the generated plan and its
@@ -608,6 +756,20 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if not result['issues']:
                 result['issues'].append('no assignment satisfies quality, total cost and remaining time constraints')
             return result
+        if mixed and result['review']['required']:
+            selected_models = {mid: candidates[mid] for mid in result['routing']['assignments'].values()}
+            judge_upper = _shared_judge_forecast(
+                manifest.judge, execution_task, plan.acceptance_criteria,
+                selected_models)
+            judge_unit = manifest.judge.billing_unit
+            result['review']['cost_upper_bound'] = {'unit': judge_unit, 'amount': judge_upper}
+            if judge_upper > budget.remaining(judge_unit, 'evaluation') + 1e-12:
+                result['status'] = 'no-feasible-route'
+                result['issues'].append(
+                    f'final-judge: {judge_unit} evaluation budget below required upper bound '
+                    f'({judge_upper:.6f})')
+                persist()
+                return result
         fallback_limit = request.get('maxNodeFallbacks', 0)
         result['recovery_policy'] = {'policy_version': 'node-fallback-v1', 'max_node_fallbacks': fallback_limit}
         recovery = NodeRecovery(plan, profiles, candidates, result['routing'], policy,
@@ -628,7 +790,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result["final_output"] = execute_nodes(plan, node_task, result["routing"]["assignments"],
             candidates, budget, policy, result, persist, started=started,
             deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
-            production_cap=request["costMax"],
+            production_cap=None if mixed else request["costMax"],
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
             dispatch_history=dispatch_history, tool_runtime=tool_runtime, guard=guard,
             eligible_models=eligible_models,

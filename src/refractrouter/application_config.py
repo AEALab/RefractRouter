@@ -27,8 +27,10 @@ SCHEMA_V1 = 'refractagent-providers-v1'
 SCHEMA_V2 = 'refractagent-providers-v2'
 SCHEMA_V3 = 'refractagent-providers-v3'
 SCHEMA_V4 = 'refractagent-providers-v4'
+SCHEMA_V5 = 'refractagent-providers-v5'
 SCHEMA = SCHEMA_V1
-SCHEMAS = (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4)
+SCHEMAS = (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5)
+AUTO_SCHEMAS = {SCHEMA_V4, SCHEMA_V5}
 ARK_PLAN_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
 STRATEGIES = ('economy', 'balanced', 'quality')
 V4_ROLES = ('planner', 'worker', 'judge', 'classifier')
@@ -100,7 +102,7 @@ def deployment_value(value, *, provider_deployment, schema_version, label):
     """模型行部署域：缺省继承 provider 行；本地 provider 不允许把模型改回云端。"""
     if value is None:
         return provider_deployment
-    if schema_version not in {SCHEMA_V2, SCHEMA_V3, SCHEMA_V4}:
+    if schema_version not in {SCHEMA_V2, SCHEMA_V3, *AUTO_SCHEMAS}:
         raise ValueError(f'{label} requires schemaVersion {SCHEMA_V2}, {SCHEMA_V3} or {SCHEMA_V4}')
     if value not in DEPLOYMENTS:
         raise ValueError(f'invalid {label}')
@@ -303,11 +305,11 @@ def compile_configuration(raw, strategy=None):
     schema_version = raw.get('schemaVersion')
     if schema_version not in SCHEMAS:
         raise ValueError('provider configuration requires a supported schemaVersion')
-    if schema_version in {SCHEMA_V3, SCHEMA_V4} and 'privacy' in raw:
+    if schema_version in {SCHEMA_V3, *AUTO_SCHEMAS} and 'privacy' in raw:
         raise ValueError(f'schemaVersion {schema_version} uses security instead of the optional privacy switch')
-    if schema_version not in {SCHEMA_V3, SCHEMA_V4} and ({'security', 'trustPolicies'} & set(raw)):
+    if schema_version not in {SCHEMA_V3, *AUTO_SCHEMAS} and ({'security', 'trustPolicies'} & set(raw)):
         raise ValueError(f'security and trustPolicies require schemaVersion {SCHEMA_V3} or {SCHEMA_V4}')
-    if schema_version == SCHEMA_V4:
+    if schema_version in AUTO_SCHEMAS:
         if 'objective' not in raw:
             raise ValueError('schemaVersion v4 requires objective')
         if {'qualityMin', 'strategies'} & set(raw):
@@ -318,11 +320,11 @@ def compile_configuration(raw, strategy=None):
         raise ValueError(f'objective requires schemaVersion {SCHEMA_V4}')
     elif 'allowSharedJudge' in raw:
         raise ValueError(f'allowSharedJudge requires schemaVersion {SCHEMA_V4}')
-    objective = compile_v4_objective(raw['objective']) if schema_version == SCHEMA_V4 else None
+    objective = compile_v4_objective(raw['objective']) if schema_version in AUTO_SCHEMAS else None
     policies = {}
     for policy in raw.get('trustPolicies', []):
         fields = ({'id', 'residency', 'auditLogging', 'allowsSensitiveData', 'expiresOn',
-                   'acknowledgeExternalTransmission'} if schema_version == SCHEMA_V4 else
+                   'acknowledgeExternalTransmission'} if schema_version in AUTO_SCHEMAS else
                   {'id', 'residency', 'auditLogging', 'allowsSensitiveData'})
         policy = obj(policy, fields, 'trust policy')
         policy_id = identifier(policy.get('id'), 'trust policy id')
@@ -344,17 +346,21 @@ def compile_configuration(raw, strategy=None):
     unit = raw.get('billingUnit')
     if not isinstance(unit, str) or not re.fullmatch(r'[A-Z][A-Z0-9_-]{0,15}', unit):
         raise ValueError('billingUnit must be one declared accounting unit')
+    if schema_version == SCHEMA_V5 and unit != 'MIXED':
+        raise ValueError('v5 requires MIXED billingUnit')
+    if schema_version != SCHEMA_V5 and unit == 'MIXED':
+        raise ValueError('MIXED billingUnit requires v5')
     if raw.get('plannerThinking', 'inherit') not in {'inherit', 'enabled', 'disabled'}:
         raise ValueError('invalid plannerThinking')
     default_effort = None
     if 'defaultReasoningEffort' in raw:
         default_effort = text(raw['defaultReasoningEffort'], 'defaultReasoningEffort', 100)
-    strategies = {} if schema_version == SCHEMA_V4 else strategy_rows(raw)
+    strategies = {} if schema_version in AUTO_SCHEMAS else strategy_rows(raw)
     if any('maxAfpCoefficient' in row for row in strategies.values()) and unit != 'AFP':
         raise ValueError('maxAfpCoefficient requires AFP billingUnit')
     scoped = {}
     if strategy is not None:
-        allowed = ('auto',) if schema_version == SCHEMA_V4 else STRATEGIES
+        allowed = ('auto',) if schema_version in AUTO_SCHEMAS else STRATEGIES
         if strategy not in allowed:
             raise ValueError('v4 strategy must be auto' if schema_version == SCHEMA_V4 else
                              'strategy must be economy, balanced or quality')
@@ -370,22 +376,22 @@ def compile_configuration(raw, strategy=None):
         pid = identifier(p.get('id'), 'provider id')
         if pid in providers:
             raise ValueError('provider ids must be unique')
-        if schema_version in {SCHEMA_V3, SCHEMA_V4} and 'deployment' not in p:
+        if schema_version in {SCHEMA_V3, *AUTO_SCHEMAS} and 'deployment' not in p:
             raise ValueError(f'schemaVersion {schema_version} requires an explicit provider deployment')
         provider_deployment = p.get('deployment', 'cloud')
-        if 'deployment' in p and schema_version not in {SCHEMA_V2, SCHEMA_V3, SCHEMA_V4}:
+        if 'deployment' in p and schema_version not in {SCHEMA_V2, SCHEMA_V3, *AUTO_SCHEMAS}:
             raise ValueError(f'deployment requires schemaVersion {SCHEMA_V2}, {SCHEMA_V3} or {SCHEMA_V4}')
         if provider_deployment not in DEPLOYMENTS:
             raise ValueError('invalid provider deployment')
         trust_policy = p.get('trustPolicy')
         if trust_policy is not None:
-            if schema_version not in {SCHEMA_V3, SCHEMA_V4}:
+            if schema_version not in {SCHEMA_V3, *AUTO_SCHEMAS}:
                 raise ValueError(f'trustPolicy requires schemaVersion {SCHEMA_V3} or {SCHEMA_V4}')
             trust_policy = identifier(trust_policy, 'provider trustPolicy')
         if provider_deployment == 'trusted-cloud':
             if trust_policy not in policies:
                 raise ValueError('trusted-cloud requires a configured trustPolicy')
-        elif provider_deployment == 'simulated-local' and schema_version == SCHEMA_V4:
+        elif provider_deployment == 'simulated-local' and schema_version in AUTO_SCHEMAS:
             if raw.get('security', {}).get('dataMode', 'live') == 'live' and trust_policy not in policies:
                 raise ValueError('live simulated-local requires a configured trustPolicy')
         elif trust_policy is not None:
@@ -425,7 +431,7 @@ def compile_configuration(raw, strategy=None):
         providers[pid] = {**p, 'baseUrl': url, 'maxTokensParameter': parameter,
                           'deployment': provider_deployment}
     model_rows = raw.get('models')
-    minimum_models = 1 if schema_version == SCHEMA_V4 else 2
+    minimum_models = 1 if schema_version in AUTO_SCHEMAS else 2
     if not isinstance(model_rows, list) or not minimum_models <= len(model_rows) <= 65:
         raise ValueError('configure models with the required execution roles')
     models, predictions, model_ids = [], {}, set()
@@ -441,7 +447,7 @@ def compile_configuration(raw, strategy=None):
         if pid not in providers:
             raise ValueError('model references an unknown provider')
         p = providers[pid]
-        if schema_version == SCHEMA_V4:
+        if schema_version in AUTO_SCHEMAS:
             if 'role' in m:
                 raise ValueError('schemaVersion v4 uses roles instead of role')
             roles = m.get('roles')
@@ -460,7 +466,10 @@ def compile_configuration(raw, strategy=None):
             roles = ('worker',) if role == 'candidate' else ('judge',)
         api_model = text(m.get('model'), 'API model', 200)
         pricing = obj(m.get('pricing'), {'unit', 'inputPer1k', 'outputPer1k', 'cachedInputPer1k'}, 'pricing')
-        if pricing.get('unit') != unit:
+        model_unit = pricing.get('unit')
+        if schema_version == SCHEMA_V5 and model_unit not in {'AFP', 'CNY'}:
+            raise ValueError('v5 model prices require AFP or CNY actual billing unit')
+        if schema_version != SCHEMA_V5 and model_unit != unit:
             raise ValueError('all model prices must use billingUnit; convert explicitly before combining providers')
         inp = number(pricing.get('inputPer1k'), 'input price')
         out = number(pricing.get('outputPer1k'), 'output price')
@@ -473,13 +482,13 @@ def compile_configuration(raw, strategy=None):
             from .deepseek_official_pricing import pricing as official_pricing
             peak = official_pricing(api_model, conservative=True)
             if (price_policy != 'deepseek-official-cny-v1' or p.get('dshProvider') != 'deepseek-official'
-                    or unit != 'CNY' or deployment in {'local', 'simulated-local'} or peak is None
+                    or model_unit != 'CNY' or deployment in {'local', 'simulated-local'} or peak is None
                     or (inp, cached, out) != (peak['inputPer1k'], peak['cachedInputPer1k'], peak['outputPer1k'])):
                 raise ValueError('invalid actual-route pricePolicy or budget prices')
         effective = marginal_pricing(deployment, inp, cached, out)
         # 本地与模拟本地按边际成本 0 参与求解与记账；申报价保留供敏感性分析复核。
         declared = (None if effective == (inp, cached, out) else
-                    {'unit': unit, 'inputPer1k': inp, 'outputPer1k': out, 'cachedInputPer1k': cached})
+                    {'unit': model_unit, 'inputPer1k': inp, 'outputPer1k': out, 'cachedInputPer1k': cached})
         context = integer(m.get('contextWindow'), 'contextWindow', 1024, 10_000_000)
         output = integer(m.get('maxOutputTokens', 2048), 'maxOutputTokens', 1000,
                          10_000_000)
@@ -531,7 +540,7 @@ def compile_configuration(raw, strategy=None):
             raise ValueError('only worker models use routing predictions')
         models.append(ApplicationModelSpec(model_id=mid, provider=p.get('dshProvider', pid), api_model=api_model,
             role=role, capability=predictions.get(mid, {}).get('quality', 100)/100,
-            billing_unit=unit, input_cost_per_1k=effective[0], cached_input_cost_per_1k=effective[1],
+            billing_unit=model_unit, input_cost_per_1k=effective[0], cached_input_cost_per_1k=effective[1],
             output_cost_per_1k=effective[2], deployment=deployment, declared_pricing=declared, price_policy=price_policy,
             base_url=p.get('baseUrl'), api_key_env=p.get('credentialEnv'),
             context_window=context, max_output_tokens=output, snapshot_date=date.today().isoformat(),
@@ -540,7 +549,7 @@ def compile_configuration(raw, strategy=None):
             token_limit_parameter=p.get('maxTokensParameter', 'max_completion_tokens'),
             authentication_required=p.get('credentialEnv') is not None,
             roles=roles, trust_policy=p.get('trustPolicy')))
-    if schema_version == SCHEMA_V4:
+    if schema_version in AUTO_SCHEMAS:
         for required in ('planner', 'worker', 'judge'):
             if not any(required in model.roles for model in models):
                 raise ValueError(f'v4 requires at least one {required} model')
@@ -553,7 +562,7 @@ def compile_configuration(raw, strategy=None):
         raise ValueError('configure at least one candidate and exactly one judge')
     # 隐私约束在策略收窄之前编译，分类器引用与本地候选要求按声明的完整模型池判定。
     privacy = (compile_security_v4(raw.get('security'), models=tuple(models), policies=policies)
-               if schema_version == SCHEMA_V4 else
+               if schema_version in AUTO_SCHEMAS else
                compile_security(raw.get('security'), models=tuple(models)) if schema_version == SCHEMA_V3
                else compile_privacy(raw.get('privacy'), models=tuple(models), schema_version=schema_version))
     candidate_ids = {m.model_id for m in models if 'worker' in m.roles}
@@ -575,10 +584,10 @@ def compile_configuration(raw, strategy=None):
         predictions = {mid: row for mid, row in predictions.items() if mid in pool}
     return ApplicationConfiguration(ModelManifest(schema_version, date.today().isoformat(), unit, tuple(models)),
         predictions, objective['qualityMin'] if objective else number(raw.get('qualityMin', 0), 'qualityMin', maximum=100),
-        deepcopy(raw), privacy=privacy if schema_version in {SCHEMA_V3, SCHEMA_V4} or raw.get('privacy') is not None else None,
+        deepcopy(raw), privacy=privacy if schema_version in {SCHEMA_V3, *AUTO_SCHEMAS} or raw.get('privacy') is not None else None,
         objective=objective,
         role_pools={role: tuple(model.model_id for model in models if role in model.roles)
-                    for role in V4_ROLES} if schema_version == SCHEMA_V4 else None)
+                    for role in V4_ROLES} if schema_version in AUTO_SCHEMAS else None)
 
 
 def prepare_configured_plan(request, context, *, explicit_plan, output_cap, input_cap=131072):

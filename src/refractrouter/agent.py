@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import hashlib
 from importlib.resources import files
 import json
+import math
 import os
 from dataclasses import asdict
 
@@ -187,7 +188,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     automatic_routing = (isinstance(provider_config, dict)
-                         and provider_config.get('schemaVersion') == 'refractagent-providers-v4')
+                         and provider_config.get('schemaVersion') in {'refractagent-providers-v4',
+                                                                      'refractagent-providers-v5'})
+    mixed = (automatic_routing and provider_config.get('schemaVersion') == 'refractagent-providers-v5')
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')
     if (production_budget == 'unlimited' or evaluation_budget == 'unlimited') and not (
@@ -196,11 +199,18 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     production_choice, evaluation_choice = production_budget, evaluation_budget
     production_budget = UNLIMITED_COST_INTERNAL if production_budget == 'unlimited' else production_budget
     evaluation_budget = UNLIMITED_COST_INTERNAL if evaluation_budget == 'unlimited' else evaluation_budget
-    number(evaluation_budget, 'evaluation budget', positive=True)
+    if mixed:
+        for label, limits_by_unit in (('production', production_budget), ('evaluation', evaluation_budget)):
+            if not isinstance(limits_by_unit, dict) or set(limits_by_unit) != {'AFP', 'CNY'}:
+                raise ValueError(f'mixed automatic routing requires AFP and CNY {label} budgets')
+            for unit, value in limits_by_unit.items():
+                number(value, f'{unit} {label} budget')
+    else:
+        number(evaluation_budget, 'evaluation budget', positive=True)
     if type(max_output_tokens) is not int or not 1000 <= max_output_tokens <= 128000:
         raise ValueError('output cap must be an integer in 1000..128000')
     strategy, request, context, limits = build_request(
-        payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
+        payload, mode=mode, production_budget=1 if mixed else production_budget, timeout_ms=timeout_ms,
         automatic_routing=automatic_routing)
     if payload.get('boundedCallOutput'):
         request['unrestrictedPlanning'] = False
@@ -210,7 +220,10 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             raise ValueError('REFRACTAGENT_TOOLS_DISABLED: DSH 工具目录与调用上限必须同时提供')
         if tool_runtime is not None and tool_runtime.max_calls != payload['maxDshToolCalls']:
             raise ValueError('REFRACTAGENT_PREVIEW_MISMATCH: DSH 工具调用上限不一致')
-    if automatic_routing and mode in {'preflight', 'live'}:
+    if mixed:
+        request['costMax'] = 0
+        request['costMaxByUnit'] = dict(production_budget)
+    elif automatic_routing and mode in {'preflight', 'live'}:
         request['costMax'] = production_budget
     tools_allowed = tool_runtime is not None
     gate = (complexity_gate(payload, context, policy=payload.get('complexityPolicy', 'auto'),
@@ -263,8 +276,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if automatic_routing and mode == 'live':
         if configured.snapshot.get('security', {}).get('dataMode') not in {'synthetic', 'desensitized', 'live'}:
             raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 未声明有效数据模式')
-        if manifest.billing_unit not in {'USD', 'CNY', 'AFP'}:
-            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD、CNY 或 AFP 同单位模型池')
+        if manifest.billing_unit not in {'USD', 'CNY', 'AFP', 'MIXED'}:
+            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行计费单位未获支持')
         if (request.get('maxPlanRepairs', 0) != 0 or request.get('maxDynamicSplits', 0) != 0
                 or request.get('maxNodeFallbacks', 0) != 0):
             raise ValueError('live canary requires zero repair/split/fallback')
@@ -364,9 +377,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             max_model_calls += tool_runtime.max_calls
     result = run_task(request, manifest, profile,
         client=client if mode == 'live' else None,
-        production_limit=(production_budget if automatic_routing and mode in {'preflight', 'live'}
+        production_limit=(production_budget if mixed or automatic_routing and mode in {'preflight', 'live'}
                           else RELAXED_COST_MAX if relax_budget else production_budget),
-        evaluation_limit=(evaluation_budget if automatic_routing and mode in {'preflight', 'live'}
+        evaluation_limit=(evaluation_budget if mixed or automatic_routing and mode in {'preflight', 'live'}
                           else RELAXED_COST_MAX if relax_budget else evaluation_budget),
         checkpoint=checkpoint, cancel_event=cancel_event, tool_runtime=tool_runtime,
         conversation_context=context, configured_application=configured is not None, configuration=configured,
@@ -410,9 +423,43 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             route_observation_path, scope=route_observation_scope).record_run(run_id, calls, bindings)
         observation_evidence = {'recorded': recorded, 'path': str(Path(route_observation_path).resolve()),
                                 'policy': 'latest-50-successful-p90-v1'}
-    totals = {kind: sum(c['charged'] for c in calls if c['category'] == kind and c['status'] == 'billed')
-              for kind in ('production', 'evaluation')}
-    totals['unconfirmed'] = sum(c['charged'] for c in calls if c['status'] in {'reserved', 'unknown-usage'})
+    if mixed:
+        totals = {'production': None, 'evaluation': None, 'unconfirmed': None,
+            'by_unit': {unit: {
+                'production': sum(c['charged'] for c in calls if c['billing_unit'] == unit
+                    and c['category'] == 'production' and c['status'] == 'billed'),
+                'evaluation': sum(c['charged'] for c in calls if c['billing_unit'] == unit
+                    and c['category'] == 'evaluation' and c['status'] == 'billed'),
+                'unconfirmed': sum(c['charged'] for c in calls if c['billing_unit'] == unit
+                    and c['status'] in {'reserved', 'unknown-usage'}),
+            } for unit in ('AFP', 'CNY')}}
+        local_decision = gate.get('local_decision') if isinstance(gate, dict) else None
+        if isinstance(local_decision, dict) and local_decision.get('backend') == 'jev':
+            judge_cost = local_decision.get('costCny')
+            confirmed = (type(judge_cost) in (int, float) and math.isfinite(judge_cost)
+                         and judge_cost >= 0)
+            totals['out_of_band_judge'] = {'unit': 'CNY',
+                'cost': judge_cost if confirmed else None,
+                'call_id': local_decision.get('callId'),
+                'scope': 'decomposition-decision'}
+            rows = totals['by_unit']
+            totals['all_in_known_by_unit'] = {
+                'AFP': rows['AFP']['production'] + rows['AFP']['evaluation'],
+                'CNY': (rows['CNY']['production'] + rows['CNY']['evaluation'] + judge_cost
+                        if confirmed else None)}
+    else:
+        totals = {kind: sum(c['charged'] for c in calls if c['category'] == kind and c['status'] == 'billed')
+                  for kind in ('production', 'evaluation')}
+        totals['unconfirmed'] = sum(c['charged'] for c in calls if c['status'] in {'reserved', 'unknown-usage'})
+    cost_breakdown = ({phase: {unit: sum(c['charged'] for c in calls
+        if c['billing_unit'] == unit and c['status'] == 'billed' and (
+            c['category'] == 'evaluation' if phase == 'evaluation' else
+            c['category'] == 'production' and (
+                c['label'] in {'planner', 'planner-repair'} if phase == 'planning' else
+                c['label'].startswith('dynamic-planner-') if phase == 'dynamic_planning' else
+                c['label'] not in {'planner', 'planner-repair'} and not c['label'].startswith('dynamic-planner-'))))
+        for unit in ('AFP', 'CNY')} for phase in ('planning', 'dynamic_planning', 'execution', 'evaluation')}
+        if mixed else None)
     output = {'schema_version': 'refractagent-result-v1', 'run_id': run_id, 'mode': mode,
         'strategy': strategy,
         'strategy_name': (AUTO_PRESET if automatic_routing else PRESETS[strategy])['name'],
@@ -433,7 +480,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'model_call_limit': result.get('model_call_limit'),
         'content_validation': result.get('content_validation'),
         'dynamic_decomposition': result.get('dynamic_decomposition'),
-        'cost_breakdown': {
+        'cost_breakdown': cost_breakdown if mixed else {
             'planning': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] in {'planner','planner-repair'}),
             'dynamic_planning': sum(c['charged'] for c in calls if c['category']=='production' and c['label'].startswith('dynamic-planner-')),
             'execution': sum(c['charged'] for c in calls if c['category']=='production' and c['label'] not in {'planner','planner-repair'} and not c['label'].startswith('dynamic-planner-')),
@@ -454,14 +501,16 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         output['review'] = result.get('review', review)
         if mode == 'preflight':
             prediction = (result.get('routing') or {}).get('prediction') or {}
-            production_estimate = prediction.get('cost', 0)
-            if not isinstance(production_estimate, (int, float)):
+            production_estimate = prediction.get('costs_by_unit', {'AFP': 0, 'CNY': 0}) if mixed else prediction.get('cost', 0)
+            if not mixed and not isinstance(production_estimate, (int, float)):
                 production_estimate = 0
             output['live_authorization_preview'] = create_authorization_preview(
                 binding, billing_unit=manifest.billing_unit,
                 production_estimate=production_estimate,
-                evaluation_estimate=0 if not review['required'] else (
-                    None if evaluation_choice == 'unlimited' else evaluation_budget),
+                evaluation_estimate=({unit: 0 if not review['required'] else evaluation_budget[unit]
+                                      for unit in ('AFP', 'CNY')} if mixed else
+                    0 if not review['required'] else (
+                    None if evaluation_choice == 'unlimited' else evaluation_budget)),
                 ready=result.get('status') == 'preview')
     if result.get('compact_planning', {}).get('policy_version'):
         output['planning_policy'] = result['compact_planning']['policy_version']

@@ -80,6 +80,14 @@ export function runSummary(result: Record<string, unknown>): string {
   const costs = object(result.costs) ? result.costs : {}
   const breakdown = object(result.cost_breakdown) ? result.cost_breakdown : {}
   const number = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value.toFixed(4) : '未提供'
+  const mixed=result.billing_unit==='MIXED'
+  const vector=(value:unknown)=>{const row=object(value)?value:{}
+    return `AFP ${number(row.AFP)}、CNY ${number(row.CNY)}`}
+  const byUnit=object(costs.by_unit)?costs.by_unit:{}
+  const allIn=object(costs.all_in_known_by_unit)?costs.all_in_known_by_unit:null
+  const externalJudge=object(costs.out_of_band_judge)?costs.out_of_band_judge:null
+  const mixedCosts=['AFP','CNY'].map(unit=>{const row=object(byUnit[unit])?byUnit[unit]:{}
+    return `${unit}：生产 ${number(row.production)}、评审 ${number(row.evaluation)}、待核对 ${number(row.unconfirmed)}`}).join('；')
   const gate=object(result.complexity_gate)?result.complexity_gate:{}
   const local=object(gate.local_decision)?gate.local_decision:{}
   const combinations:Record<string,string>={'coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
@@ -107,8 +115,10 @@ export function runSummary(result: Record<string, unknown>): string {
   const comparisonLine=Object.keys(comparison).length
     ? `执行前比较：${String(comparison.status)}；选中 ${selectedLabel}；依据 ${String(comparison.reason)}；`
       + selectedShape
-      + `direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
-      + `${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`
+      + (mixed?`direct 预计 ${object(comparison.direct)?vector(comparison.direct.total_estimated_by_unit):'不可行'}，`
+        +`${generatedLabel} 预计 ${object(comparison.dag)?vector(comparison.dag.total_estimated_by_unit):'不可行'}；质量依据：模型画像先验，未经本任务等质验证\n`
+        :`direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
+        +`${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`)
       + qualityLine
     : ''
   const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:{}
@@ -128,7 +138,10 @@ export function runSummary(result: Record<string, unknown>): string {
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
     + route + localLine + comparisonLine + diagnosticLines + latencyLines
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
-    + `费用（${String(result.billing_unit)}）：规划 ${number(breakdown.planning)}，动态规划 ${number(breakdown.dynamic_planning)}，节点执行 ${number(breakdown.execution)}，评审 ${number(costs.evaluation)}，未确认预留 ${number(costs.unconfirmed)}\n`
+    + (mixed?`费用分账：${mixedCosts}\n`
+      +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')
+      +`规划 ${vector(breakdown.planning)}，动态规划 ${vector(breakdown.dynamic_planning)}，节点执行 ${vector(breakdown.execution)}，评审 ${vector(breakdown.evaluation)}\n`
+      :`费用（${String(result.billing_unit)}）：规划 ${number(breakdown.planning)}，动态规划 ${number(breakdown.dynamic_planning)}，节点执行 ${number(breakdown.execution)}，评审 ${number(costs.evaluation)}，未确认预留 ${number(costs.unconfirmed)}\n`)
     + `耗时：${typeof result.wall_time_ms === 'number' ? (result.wall_time_ms / 1000).toFixed(2) + ' 秒' : '未提供'}\n`
     + `记录：${String(result.result_path)}\n`
 }
