@@ -56,6 +56,38 @@ def resource(name):
     return files('refractrouter').joinpath('resources', name)
 
 
+def automatic_cost_trace(result, manifest):
+    """只投影可公开的费用依据；路由预测、调用预留与结算各自保留原义。"""
+    assignments = (result.get('routing') or {}).get('assignments') or {}
+    basis = (result.get('routing_profile') or {}).get('forecast_basis') or {}
+    models = {model.model_id: model for model in manifest.models}
+    selected = []
+    expected = {'AFP': 0.0, 'CNY': 0.0}
+    for node_id, model_id in assignments.items():
+        row = basis.get(node_id, {}).get(model_id)
+        model = models.get(model_id)
+        if row is None or model is None:
+            continue
+        amount = (row['input_tokens'] * model.input_cost_per_1k
+                  + row['output_tokens'] * model.output_cost_per_1k) / 1000
+        unit = model.billing_unit
+        expected[unit] = expected.get(unit, 0.0) + amount
+        selected.append({'node_id': node_id, 'model_id': model_id, 'unit': unit,
+                         'expected_cost': amount, 'expected_input_tokens': row['input_tokens'],
+                         'expected_output_tokens': row['output_tokens'],
+                         'conservative_input_bound': row.get('conservative_input_bound'),
+                         'input_source': row.get('cost_forecast_source', row.get('input_forecast_source')),
+                         'output_source': row.get('output_forecast_source', row.get('source'))})
+    calls = [{'label': call['label'], 'model_id': call['model_id'],
+              'unit': call.get('billing_unit') or manifest.billing_unit,
+              'status': call['status'], 'reserved': call['reserved'],
+              'charged': call['charged']}
+             for call in result.get('calls', ())]
+    return {'schema_version': 'automatic-cost-trace-v1', 'selected_nodes': selected,
+            'selected_expected_by_unit': expected, 'calls': calls,
+            'review_protection': (result.get('review') or {}).get('protection')}
+
+
 def atomic_json(path, value):
     temporary = path.with_name(path.name + '.tmp')
     temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + '\n')
@@ -499,6 +531,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if automatic_routing:
         output['complexity_gate'] = gate
         output['review'] = result.get('review', review)
+        output['cost_trace'] = automatic_cost_trace(result, manifest)
         if mode == 'preflight':
             prediction = (result.get('routing') or {}).get('prediction') or {}
             production_estimate = prediction.get('costs_by_unit', {'AFP': 0, 'CNY': 0}) if mixed else prediction.get('cost', 0)
