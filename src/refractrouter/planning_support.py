@@ -88,11 +88,15 @@ def input_estimates(plan, task, candidates, *, output_constraints=None, tools=No
             check_input_budget=False, tools=tools, prefix_policy=prefix_policy)
         base = request_input_bound(messages, tools)
         # 与应用模板使用相同的保守预留系数。不是供应商分词器保证；实发前会再检查。
+        forecast_bytes = base + sum(plan.contracts[p]['capability']['expected_output_tokens'] * 8
+                                    for p in node.parents) + 32
         rows[node.node_id] = {'base_input_bound': base,
             'upstream_allowance': len(node.parents) * output_cap * 8,
             'estimated_input_bound': base + len(node.parents) * output_cap * 8 + 32,
-            'forecast_input_tokens': base + sum(plan.contracts[p]['capability']['expected_output_tokens'] * 8
-                                               for p in node.parents) + 32}
+            'forecast_input_tokens': forecast_bytes,
+            # 仅供混合路线的预期费用排序；真正派发仍使用上方字节上界预留。
+            # 初始 4 字节/模型 token 参考 DSH 已结算节点的输入比例，尚非跨模型保证。
+            'routing_input_forecast_tokens': max(1, (forecast_bytes + 3) // 4)}
     return rows
 
 
