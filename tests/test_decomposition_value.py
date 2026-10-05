@@ -30,7 +30,7 @@ def test_full_context_still_bound_and_permissions_not_skipped():
     assert build_request(t,'one')['inputSha256']!=build_request(t,'two')['inputSha256']
     assert complexity_gate({'task':'读取文件并运行测试'}, '', tools_allowed=False)['decision']=='blocked-tools'
     assert complexity_gate({'task':t}, '', policy='dag')['decision']=='dag'
-    assert complexity_gate({'task':t, 'materials':[{},{}]},'')['decision']=='dag'
+    assert complexity_gate({'task':t, 'materials':[{},{}]},'')['decision']=='direct'
 
 
 def test_branch_dependency_conflict_is_uncertain_and_question_excludes_final_join():

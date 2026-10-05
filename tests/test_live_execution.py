@@ -16,6 +16,7 @@ from refractrouter.live_execution import (authorization_binding, complexity_gate
                                            review_decision, validate_authorization)
 from refractrouter.tool_runtime import StdioToolRuntime
 from tests.test_text_tasks import Client
+from tests.test_native_tool_runtime import Host, call, reply
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,9 +80,9 @@ def test_zero_call_gate_is_deterministic_and_forced_direct_cannot_bypass_tools()
     simple = complexity_gate({'task': '现在应该可以了吧'}, '', policy='auto')
     assert simple['decision'] == 'direct' and simple['reasons'] == ['short-single-deliverable']
     assert complexity_gate({'task': '分别比较两个方案，然后汇总'}, '', policy='auto')['decision'] == 'dag'
-    assert complexity_gate({'task': '简短回答', 'outputConstraints': {'maxCharacters': 20}}, '', policy='auto')['decision'] == 'dag'
+    assert complexity_gate({'task': '简短回答', 'outputConstraints': {'maxCharacters': 20}}, '', policy='auto')['decision'] == 'direct'
     assert complexity_gate({'task': '根据材料回答', 'materials': [{'id': 'one'}]}, '', policy='auto')['decision'] == 'direct'
-    assert complexity_gate({'task': '根据材料回答', 'materials': [{'id': 'one'}, {'id': 'two'}]}, '', policy='auto')['decision'] == 'dag'
+    assert complexity_gate({'task': '根据材料回答', 'materials': [{'id': 'one'}, {'id': 'two'}]}, '', policy='auto')['decision'] == 'direct'
     assert complexity_gate({'task': '读取仓库并运行测试'}, '', policy='direct')['decision'] == 'blocked-tools'
 
 
@@ -108,7 +109,7 @@ def local_evidence(task, context, choice, confidence=.9):
 def test_v3_coupled_evidence_selects_direct_without_skipping_review_or_permissions():
     task = '这是一段很长的单一流水线任务。' * 50
     coupled = complexity_gate({'task': task}, '', decomposition=local_evidence(task, '', 'COUPLED'))
-    assert coupled['rule_decision'] == 'dag' and coupled['decision'] == 'direct'
+    assert coupled['rule_decision'] == 'direct' and coupled['decision'] == 'direct'
     assert coupled['combination'] == 'coupled-sequential-work'
     strict_task = '按严格格式完成一项连续任务'
     strict_payload = {'task': strict_task, 'outputConstraints': {'maxCharacters': 100}}
@@ -126,8 +127,8 @@ def test_v3_coupled_evidence_selects_direct_without_skipping_review_or_permissio
            'ruleVersion': 'automatic-decomposition-hybrid-v2',
            'probabilities': {'COUPLED': .9, 'SEPARABLE': .05, 'UNKNOWN': .05}}
     legacy = complexity_gate(strict_payload, '', decomposition=old)
-    assert legacy['decision'] == 'dag'
-    assert legacy['combination'] == 'hard-rules-preserved-over-local-coupled'
+    assert legacy['decision'] == 'direct'
+    assert legacy['combination'] == 'local-coupled-overrode-weak-rules'
     short = '分别核对两个互不依赖的来源'
     separable = complexity_gate({'task': short}, '', decomposition=local_evidence(short, '', 'SEPARABLE'))
     assert separable['decision'] == 'dag' and 'local-separable' in separable['reasons']
@@ -138,7 +139,7 @@ def test_single_work_skips_planner_but_preserves_tool_permission_and_review():
     evidence = local_evidence(task, '', 'SINGLE')
     assert complexity_gate({'task': task}, '', decomposition=evidence)['decision'] == 'blocked-tools'
     gate = complexity_gate({'task': task}, '', decomposition=evidence, tools_allowed=True)
-    assert gate['rule_decision'] == 'dag' and gate['decision'] == 'direct'
+    assert gate['rule_decision'] == 'direct' and gate['decision'] == 'direct'
     assert gate['combination'] == 'single-work-no-planner'
     assert review_decision({'task': task}, gate, tools_allowed=True)['required']
 
@@ -196,10 +197,10 @@ def test_tool_preview_binds_host_catalog_and_enforced_call_limit(tmp_path):
     preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path / 'runs',
                         tool_runtime=runtime, production_budget=10, evaluation_budget=10)
     authorization_preview = preview['live_authorization_preview']
-    assert preview['complexity_gate']['decision'] == 'dag'
+    assert preview['complexity_gate']['decision'] == 'direct'
     assert authorization_preview['tools_allowed'] is True
     assert authorization_preview['tools']['maximum_calls'] == 2
-    assert authorization_preview['calls']['maximum'] == 10
+    assert authorization_preview['calls']['maximum'] == 4
     assert authorization_preview['calls']['estimate'] is None
     assert authorization_preview['costs']['estimate_kind'] == 'base-route-only-tool-continuations-unestimated'
     assert preview['review']['required'] is True
@@ -211,6 +212,35 @@ def test_tool_preview_binds_host_catalog_and_enforced_call_limit(tmp_path):
                   runs_dir=tmp_path / 'changed', mode='live', execute_paid_run=True,
                   client=Client(), tool_runtime=changed_catalog, production_budget=10,
                   evaluation_budget=10)
+
+
+def test_single_tool_task_executes_without_a_planner_call(tmp_path):
+    class ToolClient(CompactClient):
+        def complete(self, model, messages, *, json_mode=False, **kwargs):
+            if model.role == 'judge':
+                return super().complete(model, messages, json_mode=json_mode)
+            self.calls.append((model.model_id, messages))
+            if not any(message['role'] == 'tool' for message in messages):
+                return reply(calls=[call('web_search', args='{}')])
+            return reply('完整答复')
+
+    schemas = [{'name': 'web_search', 'description': '查询网页', 'parameters': {'type': 'object'}}]
+    host = Host()
+    runtime = StdioToolRuntime(schemas, host, max_calls=2)
+    payload = {'task': '请搜索网页并回答', 'strategy': 'auto', 'maxDshToolCalls': 2}
+    preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path / 'preview',
+                        tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    client = ToolClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+                       provider_config=config(), runs_dir=tmp_path / 'live', mode='live',
+                       execute_paid_run=True, client=client, tool_runtime=runtime,
+                       production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed'
+    assert result['plan_origin'] == 'direct-gate'
+    recorded = json.loads(Path(result['result_path']).read_text())
+    assert not any(call['label'] == 'planner' for call in recorded['calls'])
+    assert len(host.calls) == 1
+    assert len(client.calls) == 3  # 工具请求、续接与最终审核
 
 
 def test_unlimited_tool_preview_has_no_fabricated_call_ceiling(tmp_path):
