@@ -6,7 +6,7 @@ from .node_routing import number
 from .task_plan import text
 
 
-def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, input_cap=None, node_input=None):
+def evaluation_messages(task, answer, criteria, *, node_input=None):
     node = node_input is not None
     prompt = ('独立评估一个文本节点，结合其输入、输出契约与语义检查要求。'
               if node else '独立评估最终文本交付，以原始任务为准，即使验收条目遗漏要求也要指出。')
@@ -21,6 +21,12 @@ def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, inp
         payload['node_input'] = node_input
     messages = [{'role': 'system', 'content': prompt},
                 {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}]
+    return messages
+
+
+def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, input_cap=None, node_input=None):
+    node = node_input is not None
+    messages = evaluation_messages(task, answer, criteria, node_input=node_input)
     if input_cap is not None and len(json.dumps(messages, ensure_ascii=False).encode()) + 256 > input_cap:
         raise ValueError('judge-input-cap-exceeded')
     remaining = deadline - time.monotonic()

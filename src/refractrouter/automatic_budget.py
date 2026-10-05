@@ -6,6 +6,7 @@ from threading import RLock
 
 from .task_budget import InvalidModelOutput, TaskCallBudget
 from .node_routing import number
+from .responses_api import output_token_limit
 
 
 class AutomaticMixedBudget:
@@ -33,6 +34,37 @@ class AutomaticMixedBudget:
         self.stopped = False
         self.on_reserve = None
         self.on_response = None
+        self.review_protection = None
+
+    def protect_review(self, model, amount, *, label='final-judge', min_execution_calls=0):
+        """保护最终评审的独立单位额度与一次调用名额，直至派发或释放。"""
+        amount = number(amount, 'review protection')
+        with self.lock:
+            if self.stopped or self.review_protection is not None:
+                raise ValueError('final review protection unavailable')
+            unit = model.billing_unit
+            if amount > self.remaining(unit, 'evaluation') + 1e-12:
+                raise ValueError(f'{unit} evaluation budget below required upper bound')
+            active = sum(row['status'] != 'cancelled-before-dispatch' for row in self.records)
+            if type(min_execution_calls) is not int or min_execution_calls < 0:
+                raise ValueError('invalid minimum execution call count')
+            if self.max_calls is not None and active + min_execution_calls + 1 > self.max_calls:
+                raise ValueError('final-review-call-slot-unavailable')
+            output_tokens = output_token_limit(model)
+            reserved_output = sum(row['reserved_output_tokens'] for row in self.records
+                                  if row['status'] != 'cancelled-before-dispatch')
+            if (self.max_total_output_tokens is not None and
+                    reserved_output + output_tokens > self.max_total_output_tokens):
+                raise ValueError('final-review-output-budget-unavailable')
+            self.review_protection = {'label': label, 'model_id': model.model_id,
+                                      'unit': unit, 'amount': amount,
+                                      'output_tokens': output_tokens, 'status': 'protected'}
+            return self.review_protection
+
+    def release_review_protection(self):
+        with self.lock:
+            if self.review_protection and self.review_protection['status'] == 'protected':
+                self.review_protection['status'] = 'released-unspent'
 
     def _on_response(self, row, response):
         if self.on_response is not None:
@@ -75,7 +107,17 @@ class AutomaticMixedBudget:
             if self.stopped:
                 raise ValueError('automatic mixed budget stopped')
             active_calls = sum(row['status'] != 'cancelled-before-dispatch' for row in self.records)
-            if self.max_calls is not None and active_calls + len(requests) > self.max_calls:
+            protection = self.review_protection
+            protected = protection is not None and protection['status'] == 'protected'
+            matching = [request for request in requests if protected
+                and request.get('label') == protection['label']]
+            if (len(matching) > 1 or (matching and
+                    (matching[0].get('category') != 'evaluation'
+                     or matching[0]['model'].model_id != protection['model_id']
+                     or matching[0]['model'].billing_unit != protection['unit']))):
+                raise ValueError('final review protection model mismatch')
+            if (self.max_calls is not None and active_calls + len(requests)
+                    + int(protected and not matching) > self.max_calls):
                 raise ValueError('study-call-limit-exhausted')
             try:
                 for request in requests:
@@ -88,14 +130,26 @@ class AutomaticMixedBudget:
                     reservation.row['billing_unit'] = unit
                     reservations.append(reservation)
                     self.records.append(reservation.row)
-                    if self.max_total_output_tokens is not None and sum(
-                            row['reserved_output_tokens'] for row in self.records
-                            if row['status'] != 'cancelled-before-dispatch') > self.max_total_output_tokens:
+                    if protected and unit == protection['unit'] and request.get('category') == 'evaluation':
+                        if matching and request.get('label') == protection['label']:
+                            if reservation.row['reserved'] > protection['amount'] + 1e-12:
+                                raise ValueError('final-review-input-exceeds-protected-envelope')
+                        elif self.remaining(unit, 'evaluation') + 1e-12 < protection['amount']:
+                            raise ValueError('evaluation budget reserved for final review')
+                    used_output = sum(row['reserved_output_tokens'] for row in self.records
+                                      if row['status'] != 'cancelled-before-dispatch')
+                    held_output = protection['output_tokens'] if protected and not matching else 0
+                    if (self.max_total_output_tokens is not None and
+                            used_output + held_output > self.max_total_output_tokens):
                         raise ValueError('task-output-budget-exhausted')
+                if matching:
+                    protection['status'] = 'converted-to-call'
                 if self.on_reserve is not None:
                     writing_evidence = True
                     self.on_reserve(tuple(reservations))
             except Exception:
+                if matching and protection['status'] == 'converted-to-call':
+                    protection['status'] = 'protected'
                 for reservation in reservations:
                     self._release(reservation)
                 if writing_evidence:
@@ -152,3 +206,9 @@ class AutomaticMixedBudget:
             self.stopped = True
             for ledger in self.ledgers.values():
                 ledger.stop()
+            protection = self.review_protection
+            if protection and protection['status'] == 'converted-to-call':
+                review = [row for row in self.records if row['label'] == protection['label']]
+                if review and review[-1]['status'] == 'cancelled-before-dispatch':
+                    protection['status'] = 'released-unspent'
+            self.release_review_protection()

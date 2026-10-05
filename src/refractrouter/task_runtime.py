@@ -15,12 +15,12 @@ from .node_recovery import NodeRecovery, validate_fallback_limit
 from .openai_compatible import ChatResponse, ModelInvocationError
 from threading import RLock
 from .tool_runtime import ToolTurnConcluded
-from .task_budget import TaskCallBudget
+from .task_budget import TaskCallBudget, request_input_bound
 from .automatic_budget import AutomaticMixedBudget
 from .automatic_mixed_assignment import route_nodes_mixed
 from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
-from .task_evaluation import evaluate_text
+from .task_evaluation import evaluate_text, evaluation_messages
 from .output_constraints import check_output_constraints, validate_output_constraints
 from concurrent.futures import CancelledError
 from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
@@ -45,8 +45,7 @@ AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 def _shared_judge_forecast(judge, task, criteria, candidates):
     """两条路线共用同一最终答复审核；按完整输出容量给出可审计上界。"""
     max_answer = max(output_token_limit(model) for model in candidates.values())
-    input_bound = len(json.dumps({'task': task, 'criteria': criteria or []},
-                                 ensure_ascii=False).encode()) + max_answer * 8 + 2048
+    input_bound = request_input_bound(evaluation_messages(task, '', criteria or [])) + max_answer * 8
     return (input_bound * judge.input_cost_per_1k
             + output_token_limit(judge) * judge.output_cost_per_1k) / 1000
 
@@ -395,7 +394,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
-                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
+                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
+                    cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
+                                          if mixed else None))
                 profiles = load_profile(profile, manifest)
                 result['routing_profile'] = profile
             if request.get('maxDynamicSplits',0) and not plan.contracts:
@@ -471,7 +472,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
-                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
+                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
+                    cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
+                                          if mixed else None))
                 profiles = load_profile(profile, manifest)
                 result['routing_profile'] = profile
         else:
@@ -485,7 +488,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
-                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
+                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
+                    cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
+                                          if mixed else None))
                 profiles = load_profile(profile, manifest)
                 result['routing_profile'] = profile
         before_call()
@@ -583,7 +588,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         tools=tool_runtime.schemas if tool_runtime is not None else None)
                     direct_profile = configured_profile(configuration, manifest, direct.to_dict(),
                         input_forecasts={nid: row['forecast_input_tokens']
-                                         for nid, row in estimates.items()})
+                                         for nid, row in estimates.items()},
+                        cost_input_forecasts=({nid: row['routing_input_forecast_tokens']
+                                               for nid, row in estimates.items()} if mixed else None))
                     direct_profiles = load_profile(direct_profile, manifest)
                     direct_admission = admission_diagnostics(direct, node_task, candidates, direct_profiles,
                         request['qualityMin'], output_constraints=request.get('outputConstraints'),
@@ -770,6 +777,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     f'({judge_upper:.6f})')
                 persist()
                 return result
+            if live:
+                try:
+                    result['review']['protection'] = budget.protect_review(
+                        manifest.judge, judge_upper, min_execution_calls=len(plan.nodes))
+                except ValueError as exc:
+                    result['status'] = 'no-feasible-route'
+                    result['issues'].append(f'final-judge: {exc}')
+                    persist()
+                    return result
+                persist()
         fallback_limit = request.get('maxNodeFallbacks', 0)
         result['recovery_policy'] = {'policy_version': 'node-fallback-v1', 'max_node_fallbacks': fallback_limit}
         recovery = NodeRecovery(plan, profiles, candidates, result['routing'], policy,
@@ -867,5 +884,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             detail += f" (任务执行期限 {deadline_ms / 1000:g} 秒；已完成 {len(completed)}/{len(planned)} 节点；预算及上下文放开不解除时间限制)"
         result["issues"].append(detail[:500])
     finally:
+        if mixed:
+            budget.release_review_protection()
         persist()
     return result

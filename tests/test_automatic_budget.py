@@ -131,3 +131,52 @@ def test_evidence_write_failure_stops_all_units():
     assert all(row['status'] == 'cancelled-before-dispatch' for row in rows)
     with pytest.raises(ValueError, match='stopped'):
         ledger.reserve(model('AFP'), MESSAGES, label='late')
+
+
+def test_final_review_keeps_one_call_slot_until_its_real_reservation():
+    ledger = budget(max_calls=2)
+    protection = ledger.protect_review(model('CNY'), 1)
+    ledger.reserve(model('AFP'), MESSAGES, label='execute')
+    with pytest.raises(ValueError, match='study-call-limit-exhausted'):
+        ledger.reserve(model('AFP'), MESSAGES, label='extra-execute')
+    review = ledger.reserve(model('CNY'), MESSAGES, category='evaluation', label='final-judge')
+    assert review.row['status'] == 'reserved'
+    assert protection['status'] == 'converted-to-call'
+    ledger.dispatch(review)
+    ledger.stop()
+    assert protection['status'] == 'converted-to-call'
+
+
+def test_cancel_before_final_review_dispatch_releases_its_protection():
+    ledger = budget(max_calls=1)
+    protection = ledger.protect_review(model('CNY'), 1)
+    ledger.reserve(model('CNY'), MESSAGES, category='evaluation', label='final-judge')
+    ledger.stop()
+    assert protection['status'] == 'released-unspent'
+    assert ledger.snapshot()[0]['CNY']['evaluation'] == 0
+
+
+def test_final_review_output_allowance_stays_available_during_execution():
+    ledger = AutomaticMixedBudget(None, {
+        'AFP': {'production': 10, 'evaluation': 10},
+        'CNY': {'production': 10, 'evaluation': 10},
+    }, max_total_output_tokens=200)
+    ledger.protect_review(model('CNY'), 1)
+    ledger.reserve(model('AFP'), MESSAGES, label='execute')
+    with pytest.raises(ValueError, match='task-output-budget-exhausted'):
+        ledger.reserve(model('AFP'), MESSAGES, label='extra-execute')
+    assert ledger.reserve(model('CNY'), MESSAGES, category='evaluation',
+                          label='final-judge').row['status'] == 'reserved'
+
+
+def test_final_review_budget_cannot_be_consumed_by_other_evaluation():
+    ledger = AutomaticMixedBudget(None, {
+        'AFP': {'production': 10, 'evaluation': 10},
+        'CNY': {'production': 10, 'evaluation': 1}}, max_calls=3)
+    protection = ledger.protect_review(model('CNY'), .9)
+    with pytest.raises(ValueError, match='reserved for final review'):
+        ledger.reserve(model('CNY'), MESSAGES, category='evaluation', label='other-evaluation')
+    assert ledger.snapshot()[0]['CNY']['evaluation'] == 0
+    assert protection['status'] == 'protected'
+    ledger.stop()
+    assert protection['status'] == 'released-unspent'

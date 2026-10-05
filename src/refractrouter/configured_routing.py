@@ -38,7 +38,8 @@ def compile_routing(raw, output_cap):
             validate_latency_evidence(raw['latencyEvidence']) if 'latencyEvidence' in raw else None}
 
 
-def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
+def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
+                       cost_input_forecasts=None):
     plan = validate_plan(plan)
     stratified = bool(plan.contracts)
     rows, basis = {}, {}
@@ -58,14 +59,24 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
             input_cap = capability.get('input_budget_tokens', 131072)
             input_forecast = input_cap if input_forecasts is None else input_forecasts[node.node_id]
             number(input_forecast, 'forecast input', maximum=input_cap, positive=True)
-            output = forecast['output_tokens'] if forecast['output_tokens'] is not None else model.max_output_tokens
+            cost_input = (input_forecast if cost_input_forecasts is None else
+                          cost_input_forecasts[node.node_id])
+            number(cost_input, 'routing cost input forecast', positive=True)
+            if cost_input > input_forecast:
+                raise ValueError('routing cost input forecast exceeds conservative input bound')
+            if forecast['output_tokens'] is not None:
+                output = forecast['output_tokens']
+            elif cost_input_forecasts is not None and capability:
+                output = min(model.max_output_tokens, capability['expected_output_tokens'])
+            else:
+                output = model.max_output_tokens
             selector = ({'difficulty': capability['difficulty'], 'risk': capability['risk'],
                 'input_min_tokens': input_cap, 'input_max_tokens': input_cap + 1} if stratified else {})
-            latency = (forecast_latency(default['latency_evidence'], input_forecast, output, forecast['latency_ms'])
+            latency = (forecast_latency(default['latency_evidence'], cost_input, output, forecast['latency_ms'])
                        if default.get('latency_evidence') is not None else None)
             row = {'model_id': model.model_id, 'node_type': node.node_type, 'samples': 0,
                 'quality': forecast['quality'], 'latency_ms': latency['prediction_ms'] if latency else forecast['latency_ms'],
-                'cost': input_forecast / 1000 * model.input_cost_per_1k + output / 1000 * model.output_cost_per_1k,
+                'cost': cost_input / 1000 * model.input_cost_per_1k + output / 1000 * model.output_cost_per_1k,
                 **selector}
             key = (model.model_id, node.node_type, *selector.values())
             # 相同画像区间可能覆盖不同父输出预测；共享行取较大费用，避免遍历顺序低估。
@@ -74,13 +85,21 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None):
             else:
                 rows[key]['cost'] = max(rows[key]['cost'], row['cost'])
                 rows[key]['latency_ms'] = max(rows[key]['latency_ms'], row['latency_ms'])
-            basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': input_forecast,
+            basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': cost_input,
                 'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]'}
             if latency is not None:
                 basis[node.node_id][model.model_id]['latency'] = latency
             if input_forecasts is not None:
                 basis[node.node_id][model.model_id].update(input_capacity=input_cap,
-                    input_forecast_source='serialized-input-and-planned-parent-output')
+                    input_forecast_source=('observed-byte-ratio-v1' if cost_input_forecasts is not None
+                                           else 'serialized-input-and-planned-parent-output'))
+            if cost_input_forecasts is not None:
+                basis[node.node_id][model.model_id].update(
+                    conservative_input_bound=input_forecast,
+                    conservative_input_source='serialized-input-and-planned-parent-output',
+                    cost_forecast_source='observed-byte-ratio-v1',
+                    output_forecast_source=('explicit-routing-profile' if forecast['output_tokens'] is not None
+                                            else 'planned-node-output'))
     return {'schema_version': 'node-routing-profile-v2' if stratified else 'node-routing-profile-v1',
         'kind': 'configured', 'billing_unit': manifest.billing_unit,
         'scope': '质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。',
