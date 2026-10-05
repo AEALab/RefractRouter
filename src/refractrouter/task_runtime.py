@@ -1,6 +1,7 @@
 """Text-task orchestration with explicit planning, assignment, execution and judging."""
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 import time
@@ -294,6 +295,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     try:
         if "plan" in request:
             plan = validate_plan(request["plan"], required_criteria=request.get("acceptanceCriteria"))
+            if configuration is not None and result['plan_origin'] == 'direct-gate':
+                plan, estimates = compile_generated_capacity(plan, node_task, candidates,
+                    output_constraints=request.get('outputConstraints'), input_cap=input_cap,
+                    prefix_policy=request.get('prefixPolicy', 'legacy'),
+                    tools=tool_runtime.schemas if tool_runtime is not None else None)
+                result['compiled_input_estimates'] = estimates
+                profile = configured_profile(configuration, manifest, plan.to_dict(),
+                    input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()})
+                profiles = load_profile(profile, manifest)
+                result['routing_profile'] = profile
             if request.get('maxDynamicSplits',0) and not plan.contracts:
                 raise ValueError('dynamic decomposition requires v2 node contracts')
         elif live:
@@ -525,6 +536,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 comparison = compare_executable_routes(direct_routing, result['routing'],
                     planner_cost=planner_cost, judge_cost=judge_cost,
                     planner_latency_ms=planner_latency, tool_allowances=allowances)
+                comparison['candidate_diagnostics'] = {
+                    'direct': deepcopy(direct_routing.get('diagnostics', {})),
+                    'dag': deepcopy(result['routing'].get('diagnostics', {}))}
+                comparison['latency_evidence'] = {
+                    'direct': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
+                                for mid, row in models.items()}
+                               for nid, models in (direct_profile.get('forecast_basis', {}) if direct_routing.get('prediction') else {}).items()},
+                    'dag': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
+                             for mid, row in models.items()}
+                            for nid, models in result.get('routing_profile', {}).get('forecast_basis', {}).items()}}
                 comparison['billing_unit'] = manifest.billing_unit
                 comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
                 comparison['tool_call_limit'] = tool_count

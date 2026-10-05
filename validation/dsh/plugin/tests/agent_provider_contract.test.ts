@@ -186,6 +186,7 @@ test('settings-enabled developer live starts one local preflight and one bound l
   assert.equal(livePayload.authorization.authorization_id,'auth-1')
   assert.equal(livePayload.hostTools,undefined)
   assert.equal(livePayload.maxDynamicSplits,0);assert.equal(livePayload.maxConcurrency,1)
+  for(const spawn of f.spawns){const index=spawn.argv.indexOf('--max-output-tokens');assert.equal(spawn.argv[index+1],'128000')}
   assert.equal(previewPayload.unlimitedNodeOutput,true)
   assert.equal(livePayload.unlimitedNodeOutput,true)
   assert.equal(f.credentials,1)

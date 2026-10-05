@@ -64,6 +64,8 @@ class PlanningRuntime(StageHybridRuntime):
         self.lock = RLock()
         self.local_judges = {}
         self.local_service = LocalJudgeProcess()
+        from .decomposition_jev import DecompositionJevRuntime
+        self.decomposition_jev = DecompositionJevRuntime(Path(runs_dir) / "decomposition")
 
     @staticmethod
     def local_judge_key(config):
@@ -1565,7 +1567,7 @@ class PlanningRuntime(StageHybridRuntime):
 
     def decomposition_decision(self, request):
         from .decomposition_decision import (build_request, input_digest, unknown_evidence,
-                                             validate_limits, validate_local_judge)
+                                             validate_limits, validate_local_judge, trivial_workload)
         judge = validate_local_judge(request.get("judge"))
         task, context = request.get("task"), request.get("context")
         threshold = request.get("threshold", .65)
@@ -1575,6 +1577,8 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("拆分判别期限必须是 100..300000 的整数")
         validate_limits(threshold, max_input_bytes)
         input_digest(task, context)
+        if trivial_workload(task):
+            return unknown_evidence(task, context, "trivial-workload")
         if len(task.encode()) > max_input_bytes:
             return unknown_evidence(task, context, "input-too-long")
         built = build_request(task, context, threshold=threshold,
@@ -1689,7 +1693,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "composite-task-stage-v1",
-                "decomposition-decision-v1", "local-judge-jobs", "local-decision-backends-v1",
+                "decomposition-decision-v1", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "jev-complete":
             return self.complete_jev(self.runs[request["runId"]], request)
@@ -1712,6 +1716,14 @@ class PlanningRuntime(StageHybridRuntime):
             return self.automatic_local_judge(request)
         if operation == "decomposition-decision":
             return self.decomposition_decision(request)
+        if operation == "decomposition-jev-preflight":
+            return self.decomposition_jev.prepare(request)
+        if operation == "decomposition-jev-begin":
+            return self.decomposition_jev.begin(request)
+        if operation == "decomposition-jev-complete":
+            return self.decomposition_jev.complete(request)
+        if operation == "decomposition-jev-stop":
+            return self.decomposition_jev.stop(request["callId"])
         if operation == "history":
             session = request.get("session")
             records = []

@@ -83,6 +83,15 @@ def test_zero_call_gate_is_deterministic_and_forced_direct_cannot_bypass_tools()
     assert complexity_gate({'task': '读取仓库并运行测试'}, '', policy='direct')['decision'] == 'blocked-tools'
 
 
+def test_negated_tool_request_does_not_claim_tools_are_required():
+    task = '请用一句话说明路径是哪一类；不要读取文件，也不要调用工具。'
+    gate = complexity_gate({'task': task}, '', tools_allowed=False)
+    assert gate['decision'] == 'direct'
+    assert 'explicit-tool-requirement' not in gate['reasons']
+    assert complexity_gate({'task':'Please do not call a tool.'}, '', tools_allowed=False)['decision'] == 'direct'
+    assert complexity_gate({'task':'请读取文件后说明路径'}, '', tools_allowed=False)['decision'] == 'blocked-tools'
+
+
 def local_evidence(task, context, choice, confidence=.9):
     request = build_request(task, context)
     probabilities = {item: (confidence if item == choice else (1-confidence)/2)
@@ -94,16 +103,26 @@ def local_evidence(task, context, choice, confidence=.9):
             "queueMs": 1, "usage": {"questions": 1}, "experimental": True}
 
 
-def test_local_structure_evidence_only_overrides_weak_rules():
+def test_v3_coupled_evidence_selects_direct_without_skipping_review_or_permissions():
     task = '这是一段很长的单一流水线任务。' * 50
     coupled = complexity_gate({'task': task}, '', decomposition=local_evidence(task, '', 'COUPLED'))
     assert coupled['rule_decision'] == 'dag' and coupled['decision'] == 'direct'
-    assert coupled['combination'] == 'local-coupled-overrode-weak-rules'
+    assert coupled['combination'] == 'coupled-sequential-work'
     strict_task = '按严格格式完成一项连续任务'
     strict_payload = {'task': strict_task, 'outputConstraints': {'maxCharacters': 100}}
     strict = complexity_gate(strict_payload, '', decomposition=local_evidence(strict_task, '', 'COUPLED'))
-    assert strict['decision'] == 'dag'
-    assert strict['combination'] == 'hard-rules-preserved-over-local-coupled'
+    assert strict['decision'] == 'direct'
+    assert review_decision(strict_payload, strict)['required']
+    tool_task = '运行测试后根据堆栈修改代码，再运行测试'
+    evidence = local_evidence(tool_task, '', 'COUPLED')
+    assert complexity_gate({'task': tool_task}, '', decomposition=evidence)['decision'] == 'blocked-tools'
+    allowed = complexity_gate({'task': tool_task}, '', decomposition=evidence, tools_allowed=True)
+    assert allowed['decision'] == 'direct'
+    assert review_decision({'task': tool_task}, allowed, tools_allowed=True)['required']
+    old = {**local_evidence(strict_task, '', 'COUPLED'), 'ruleVersion': 'automatic-decomposition-hybrid-v2'}
+    legacy = complexity_gate(strict_payload, '', decomposition=old)
+    assert legacy['decision'] == 'dag'
+    assert legacy['combination'] == 'hard-rules-preserved-over-local-coupled'
     short = '分别核对两个互不依赖的来源'
     separable = complexity_gate({'task': short}, '', decomposition=local_evidence(short, '', 'SEPARABLE'))
     assert separable['decision'] == 'dag' and 'local-separable' in separable['reasons']
@@ -382,14 +401,14 @@ def test_dag_preview_and_forced_direct_have_bounded_call_envelopes(tmp_path):
     assert direct['live_authorization_preview']['calls']['maximum'] == 2
 
 
-def test_live_rejects_missing_preview_wrong_data_mode_and_tools_before_dispatch(tmp_path):
+def test_live_rejects_missing_preview_invalid_data_mode_and_tools_before_dispatch(tmp_path):
     raw = config()
     client = Client()
     with pytest.raises(ValueError, match='PREVIEW_MISMATCH'):
         run_agent({'task': '简单回答', 'strategy': 'auto'}, provider_config=raw,
             runs_dir=tmp_path / 'missing', mode='live', execute_paid_run=True, client=client)
-    raw['security']['dataMode'] = 'live'
-    with pytest.raises(ValueError, match='DATA_MODE_UNSUPPORTED'):
+    raw['security']['dataMode'] = 'invalid'
+    with pytest.raises(ValueError, match='security.dataMode'):
         run_agent({'task': '简单回答', 'strategy': 'auto'}, provider_config=raw,
             runs_dir=tmp_path / 'live-data', mode='live', execute_paid_run=True, client=client)
     with pytest.raises(ValueError, match='TOOLS_DISABLED'):
@@ -397,6 +416,25 @@ def test_live_rejects_missing_preview_wrong_data_mode_and_tools_before_dispatch(
             provider_config=config(), runs_dir=tmp_path / 'tools', mode='live',
             execute_paid_run=True, client=client)
     assert not client.calls
+
+
+def test_live_data_only_dispatches_to_local_or_trusted_models(tmp_path):
+    raw = config()
+    raw['security']['dataMode'] = 'live'
+    # 外部模型更便宜，但真实会话无论是否匹配敏感词，都只准入可信路线。
+    raw['models'][0]['routing'] = {'quality': 100, 'latencyMs': 1000}
+    payload = {'task': '完成项目决策说明', 'strategy': 'auto',
+               'complexityPolicy': 'direct', 'reviewPolicy': 'adaptive'}
+    preview = run_agent(payload, provider_config=raw, runs_dir=tmp_path/'preview',
+                        production_budget=10, evaluation_budget=10)
+    assert preview['live_authorization_preview']['ready']
+    client = Client()
+    result = run_agent({**payload, 'authorization':authorization(preview['live_authorization_preview'])},
+                       provider_config=raw, runs_dir=tmp_path/'live', mode='live',
+                       execute_paid_run=True, client=client,
+                       production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed'
+    assert {model.model_id for model, _ in client.calls} <= {'local-router','local-judge'}
 
 
 def test_live_relax_budget_cannot_bypass_authorized_hard_limit(tmp_path):

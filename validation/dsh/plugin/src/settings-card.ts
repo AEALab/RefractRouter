@@ -136,14 +136,14 @@ export interface LiveExecutionView {
   maxOutputTokens?:number|'unlimited'
   maxTotalOutputTokens?:number
   decompositionDecision?:{
-    mode:'rules'|'hybrid';allowExperimental?:boolean;threshold?:number;timeoutMs?:number;maxInputBytes?:number
+    mode:'rules'|'hybrid';allowExperimental?:boolean;threshold?:number;timeoutMs?:number;maxInputBytes?:number;maxJudgeCostCny?:number
     judge?:{type:'local-decision';adapter:string;modelPath:string;sourceModel:string;revision:string;
-      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'noul-v1'|'choice-v2'}
+      device?:'gpu'|'metal'|'cpu';dtype?:'float16'|'float32'|'bfloat16';method?:'noul-v1'|'choice-v2'} | {type:'jev';modelPath?:never;sourceModel?:never;revision?:never}
   }
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
-  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3'
   billingUnit?: string
   allowSharedJudge?: boolean
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
@@ -172,7 +172,7 @@ export type SettingsIssueCode =
   | 'SETTINGS_READBACK_UNCONFIRMED'
   | 'LIVE_EXECUTION_MODEL_POOL_REQUIRED'
   | 'LIVE_EXECUTION_CNY_REQUIRED'
-  | 'LIVE_EXECUTION_SYNTHETIC_REQUIRED'
+  | 'LIVE_EXECUTION_DATA_MODE_REQUIRED'
   | 'LIVE_EXECUTION_BUDGET_REQUIRED'
   | 'LIVE_EXECUTION_TOOL_CALLS_INVALID'
   | 'LIVE_EXECUTION_LOCAL_JUDGE_INVALID'
@@ -213,25 +213,27 @@ export function buildLiveExecutionIssues(live: LiveExecutionView | undefined,
   }
   const decision=live?.decompositionDecision
   if(decision?.mode==='hybrid'&&(!decision.allowExperimental||!decision.judge
-    ||!decision.judge.modelPath||!decision.judge.sourceModel||!decision.judge.revision)){
+    ||(decision.judge.type==='local-decision'&&(!decision.judge.modelPath||!decision.judge.sourceModel||!decision.judge.revision))
+    ||(decision.judge.type==='jev'&&!(Number(decision.maxJudgeCostCny)>0)))){
     issues.push({code:'LIVE_EXECUTION_LOCAL_JUDGE_INVALID',severity:'error',
       field:'liveExecution.decompositionDecision',
-      message:'规则＋本地判别需要明确启用实验能力，并填写权重目录、checkpoint 与固定 revision。'})
+      message:'拆分判别需明确启用实验能力；本地需完整权重配置，Jev 需单任务 CNY 上限及共用渠道配置。'})
   }
   if (!live?.enabled) return issues
   const automatic = pool !== undefined || provider?.schemaVersion === 'refractagent-providers-v4'
   if (!automatic) issues.push({code:'LIVE_EXECUTION_MODEL_POOL_REQUIRED',severity:'error',field:'liveExecution',
     message:'真实执行需要可用的自动路由模型池；旧三策略配置只能继续使用原有入口。'})
   const unit = pool?.billingUnit ?? provider?.billingUnit
-  if (unit !== 'CNY') issues.push({code:'LIVE_EXECUTION_CNY_REQUIRED',severity:'error',field:'liveExecution',
-    message:'真实执行需要人民币（CNY）模型池；请在模型目录中将旧 USD 配置迁移为人民币记账。'})
+  if (unit !== 'CNY' && !(unit === 'AFP' && (!pool || pool.schemaVersion === 'refractagent-dsh-model-pool-v3'))) issues.push({code:'LIVE_EXECUTION_CNY_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行需要同单位的 CNY 或 AFP 模型池；不同单位不能混合比较。'})
   const security = pool?.security ?? provider?.security
-  if (security?.dataMode !== 'synthetic') issues.push({code:'LIVE_EXECUTION_SYNTHETIC_REQUIRED',severity:'error',
-    field:'liveExecution',message:'真实执行首版只允许合成测试数据（synthetic）；真实数据和脱敏材料暂未开放。'})
+  if (!['synthetic','desensitized','live'].includes(String(security?.dataMode))) issues.push({
+    code:'LIVE_EXECUTION_DATA_MODE_REQUIRED',severity:'error',field:'liveExecution',
+    message:'真实执行需要明确选择数据模式；真实数据仅使用本地或可信云模型。'})
   if (!([live.maxProductionCost,live.maxEvaluationCost].every(value=>value==='unlimited'
     || typeof value==='number'&&Number.isFinite(value)&&value>0))) {
     issues.push({code:'LIVE_EXECUTION_BUDGET_REQUIRED',severity:'error',field:'liveExecution',
-      message:'请分别设置单任务生产与评审人民币上限，或明确选择无限制；真实执行没有隐式付费默认值。'})
+      message:'请分别设置单任务生产与评审上限（当前模型池单位），或明确选择无限制；真实执行没有隐式付费默认值。'})
   }
   return issues
 }
@@ -279,7 +281,7 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
     }
     const profile = publicProfiles.find(row => row.provider === route.provider && row.model === route.model)
     const overrides = route.overrides ?? {}
-    if (!profile) {
+    if (!profile && pool.schemaVersion !== 'refractagent-dsh-model-pool-v3') {
       const missing = ['inputPer1k','outputPer1k']
         .filter(key => typeof overrides[key] !== 'number')
       if (missing.length) {
@@ -319,11 +321,6 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
           const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
           return policy?.auditLogging === true && policy.allowsSensitiveData === true
         }
-        if (route.deployment === 'simulated-local') {
-          const policy = route.trustPolicy ? policies.get(route.trustPolicy) : undefined
-          return policy?.auditLogging === true && policy.allowsSensitiveData === true
-            && policy.acknowledgeExternalTransmission === true
-        }
         return false
       }
       for (const role of ['planner','judge','classifier'] as const) {
@@ -331,13 +328,13 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
         if (route && routeKeys.has(route) && !sensitiveCapable(route)) {
           issues.push({code:'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE',severity:'error',
             field:`roleOverrides.${role}`,route,
-            message:`${role} 当前固定为 ${route}，但该路线不能处理 live 数据中的敏感内容。请选择真实本地、可信外部云，或已确认外传的云模型模拟本地路线。`})
+            message:`${role} 当前固定为 ${route}，但该路线不能处理 live 数据。请选择真实本地或已授权的可信云路线。`})
         }
       }
       if (roles.workers?.length && roles.workers.every(route => routeKeys.has(route) && !sensitiveCapable(route))) {
         issues.push({code:'DSH_POOL_SENSITIVE_ROLE_UNAVAILABLE',severity:'error',
           field:'roleOverrides.workers',
-          message:'执行模型池没有可处理 live 敏感数据的路线。请至少加入一条真实本地、可信外部云，或已确认外传的云模型模拟本地路线。'})
+          message:'执行模型池没有可处理 live 数据的路线。请至少加入一条真实本地或已授权的可信云路线。'})
       }
     }
   }

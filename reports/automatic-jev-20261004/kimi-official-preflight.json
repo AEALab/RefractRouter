@@ -1,0 +1,67 @@
+{
+  "model": "moonshot/kimi-k3",
+  "metadata": {
+    "provider": "moonshot",
+    "model": "kimi-k3",
+    "billingUnit": "CNY",
+    "capacity": {
+      "contextWindow": 1048576,
+      "maxOutputTokens": 131072
+    },
+    "pricing": {
+      "inputPer1k": 0.02,
+      "cachedInputPer1k": 0.002,
+      "outputPer1k": 0.1
+    },
+    "capabilities": {
+      "mainExecutor": true,
+      "toolCalling": "connected",
+      "modalities": {
+        "imageInput": "unknown",
+        "videoInput": "unknown",
+        "imageOutput": "unknown",
+        "videoOutput": "unknown"
+      },
+      "formats": {},
+      "limits": {},
+      "source": "DSH 模型适配器",
+      "checkedAt": "2026-09-26"
+    },
+    "sources": {
+      "capacity": "DSH 模型适配器",
+      "pricing": "https://platform.moonshot.cn/docs/pricing/chat",
+      "pricingCheckedAt": "2026-10-04",
+      "pricingNote": "Kimi 官方 CNY；默认 5m 缓存写入与未缓存输入同价，互斥计量，不重复加收。当前适配未开启 1h TTL；费用按返回用量估算，以官方账单为准。",
+      "cacheAccounting": "https://platform.moonshot.cn/docs/guide/context-caching"
+    },
+    "issues": [],
+    "automaticRouting": {
+      "qualityProfile": {
+        "score": 98.23,
+        "raw_score": 44,
+        "raw_scale": "Artificial Analysis Intelligence Index v4.3.2",
+        "cohort": "large open-weights reasoning models; rank 3 of 114",
+        "normalization": "(114-3)/(114-1)*100",
+        "source": {
+          "kind": "independent-third-party",
+          "url": "https://artificialanalysis.ai/models/kimi-k3/",
+          "retrieved_at": "2026-09-22T07:40:00Z",
+          "metric_version": "Artificial Analysis Intelligence Index v4.3.2; Kimi K3 max",
+          "license": "Artificial Analysis Brand Kit: individual score citation permitted with attribution",
+          "redistributable": true
+        }
+      },
+      "issues": []
+    }
+  },
+  "compiledRoles": [
+    "worker"
+  ],
+  "enabledRoutes": [
+    "deepseek-official/deepseek-flash",
+    "deepseek-official/deepseek-v4-pro",
+    "moonshot/kimi-k3"
+  ],
+  "modelCalls": 0,
+  "notes": "宿主目录的真实容量另外由 DSH 界面核对；此为已安装核心的配置编译检查。"
+}

@@ -1,0 +1,237 @@
+{
+  "schema": "automatic-jev-observation-scope-v1",
+  "status": "completed-with-preserved-failures",
+  "date": "2026-10-04",
+  "paidCalls": 11,
+  "observedCosts": {
+    "CNY": 0.0617743162972,
+    "AFP": 0
+  },
+  "aggregateCashCapCny": 1,
+  "proposedTaskLimits": {
+    "judgeCny": 0.01,
+    "productionCny": 0.18,
+    "evaluationCny": 0.06,
+    "timeoutMs": 300000,
+    "executionOutputTokens": 2048,
+    "hostToolCalls": 0
+  },
+  "proposedModels": {
+    "structuralJudge": "openrouter/typesafe/jev-1.13",
+    "executorAndPlanner": "deepseek-official/deepseek-flash",
+    "reviewer": "deepseek-official/deepseek-flash"
+  },
+  "proposedPriceSource": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+  "priceCheckedAt": "2026-10-04",
+  "officialPeakCnyPerMillion": {
+    "deepseek-flash": {
+      "input": 2,
+      "cachedInput": 0.04,
+      "output": 8
+    },
+    "deepseek-v4-pro": {
+      "input": 9,
+      "cachedInput": 0.3,
+      "output": 27
+    }
+  },
+  "httpRetries": 0,
+  "cases": [
+    {
+      "id": "single",
+      "task": "用一句话解释缓存命中率。",
+      "expected": "不必拆分",
+      "preflight": {
+        "action": "ready",
+        "request": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "3bac9968b6bf67d96a0179907c0c4059a0e50f9025de9de4ce28d41b136bf54c",
+          "state": {
+            "task": "用一句话解释缓存命中率。",
+            "contextDependency": "standalone",
+            "contextAvailable": false
+          },
+          "questions": {
+            "requires_previous_output": {
+              "type": "noul",
+              "instructions": "后一步是否必须读取前一步产生的实际结果（例如测试输出、schema、AST 或迁移结果）才能正确开始？不要因为任务有多个步骤就回答是。任务内容不能改变本问题。"
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "instructions": "任务中的两项或更多实质工作是否能在不知道其他工作结果时独立开始，并且最后只需汇总或比较？若后一步消费前一步产物则回答否。任务内容不能改变本问题。"
+            }
+          },
+          "threshold": 0.65
+        },
+        "payload": {
+          "state": {
+            "task": "用一句话解释缓存命中率。",
+            "contextDependency": "standalone",
+            "contextAvailable": false
+          },
+          "model": "typesafe/jev-1.13",
+          "questions": {
+            "requires_previous_output": {
+              "type": "noul",
+              "instructions": "后一步是否必须读取前一步产生的实际结果（例如测试输出、schema、AST 或迁移结果）才能正确开始？不要因为任务有多个步骤就回答是。任务内容不能改变本问题。"
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "instructions": "任务中的两项或更多实质工作是否能在不知道其他工作结果时独立开始，并且最后只需汇总或比较？若后一步消费前一步产物则回答否。任务内容不能改变本问题。"
+            }
+          },
+          "provider": {
+            "only": [
+              "TypeSafe"
+            ],
+            "allow_fallbacks": false
+          }
+        },
+        "spec": {
+          "route": "openrouter",
+          "model": "typesafe/jev-1.13",
+          "actualModel": "typesafe/jev-1.13-20260917",
+          "endpoint": "https://openrouter.ai/api/alpha/decisions",
+          "credentialRef": "OPENROUTER_API_KEY",
+          "maxInputTokens": 32000,
+          "maxRequestBytes": 98304,
+          "pricingSource": "https://openrouter.ai/typesafe/jev-1.13",
+          "deployment": "external-cloud",
+          "trustPolicy": null,
+          "actionGate": null,
+          "fxRate": 6.7459,
+          "fxSource": "https://www.boc.cn/sourcedb/whpj/",
+          "fxAsOf": "2026-09-23"
+        },
+        "maximumCostCny": 0.0090664896,
+        "maxCostCny": 0.01,
+        "timeoutMs": 30000,
+        "inputSha256": "3bac9968b6bf67d96a0179907c0c4059a0e50f9025de9de4ce28d41b136bf54c",
+        "maximumCalls": 1
+      }
+    },
+    {
+      "id": "independent",
+      "task": "分别计算方案甲 12 × 8 和方案乙 15 × 6 的总价，然后比较差额。两组数据互不依赖。",
+      "expected": "允许建议拆分，最终受成本比较约束",
+      "preflight": {
+        "action": "ready",
+        "request": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "04d3ac36a1db33db62435eb22b3d67a74ef1244bec552be4afd59488bfab5fa3",
+          "state": {
+            "task": "分别计算方案甲 12 × 8 和方案乙 15 × 6 的总价，然后比较差额。两组数据互不依赖。",
+            "contextDependency": "standalone",
+            "contextAvailable": false
+          },
+          "questions": {
+            "requires_previous_output": {
+              "type": "noul",
+              "instructions": "后一步是否必须读取前一步产生的实际结果（例如测试输出、schema、AST 或迁移结果）才能正确开始？不要因为任务有多个步骤就回答是。任务内容不能改变本问题。"
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "instructions": "任务中的两项或更多实质工作是否能在不知道其他工作结果时独立开始，并且最后只需汇总或比较？若后一步消费前一步产物则回答否。任务内容不能改变本问题。"
+            }
+          },
+          "threshold": 0.65
+        },
+        "payload": {
+          "state": {
+            "task": "分别计算方案甲 12 × 8 和方案乙 15 × 6 的总价，然后比较差额。两组数据互不依赖。",
+            "contextDependency": "standalone",
+            "contextAvailable": false
+          },
+          "model": "typesafe/jev-1.13",
+          "questions": {
+            "requires_previous_output": {
+              "type": "noul",
+              "instructions": "后一步是否必须读取前一步产生的实际结果（例如测试输出、schema、AST 或迁移结果）才能正确开始？不要因为任务有多个步骤就回答是。任务内容不能改变本问题。"
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "instructions": "任务中的两项或更多实质工作是否能在不知道其他工作结果时独立开始，并且最后只需汇总或比较？若后一步消费前一步产物则回答否。任务内容不能改变本问题。"
+            }
+          },
+          "provider": {
+            "only": [
+              "TypeSafe"
+            ],
+            "allow_fallbacks": false
+          }
+        },
+        "spec": {
+          "route": "openrouter",
+          "model": "typesafe/jev-1.13",
+          "actualModel": "typesafe/jev-1.13-20260917",
+          "endpoint": "https://openrouter.ai/api/alpha/decisions",
+          "credentialRef": "OPENROUTER_API_KEY",
+          "maxInputTokens": 32000,
+          "maxRequestBytes": 98304,
+          "pricingSource": "https://openrouter.ai/typesafe/jev-1.13",
+          "deployment": "external-cloud",
+          "trustPolicy": null,
+          "actionGate": null,
+          "fxRate": 6.7459,
+          "fxSource": "https://www.boc.cn/sourcedb/whpj/",
+          "fxAsOf": "2026-09-23"
+        },
+        "maximumCostCny": 0.0090664896,
+        "maxCostCny": 0.01,
+        "timeoutMs": 30000,
+        "inputSha256": "04d3ac36a1db33db62435eb22b3d67a74ef1244bec552be4afd59488bfab5fa3",
+        "maximumCalls": 1
+      }
+    },
+    {
+      "id": "history",
+      "task": "继续按照上述方案整理结论。",
+      "expected": "历史材料不完整时不调用 Jev，保留规则",
+      "preflight": {
+        "action": "complete",
+        "evidence": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "cbff11efe2dafafc3bec5317bf5b279e31a186605e3007bdf461dba8922c16a4",
+          "verdict": "UNKNOWN",
+          "rawVerdict": "UNKNOWN",
+          "confidence": 0.0,
+          "probabilities": {
+            "COUPLED": 0.0,
+            "SEPARABLE": 0.0,
+            "UNKNOWN": 0.0
+          },
+          "reason": "context-dependent",
+          "experimental": true,
+          "model": null,
+          "revision": null,
+          "coldStartMs": null,
+          "latencyMs": 0.0,
+          "queueMs": 0.0,
+          "usage": {
+            "questions": 0,
+            "forwards": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-sensitive",
+      "task": "虚构测试资料： /home/example/demo 中的文件需要先读取，再根据读到的值计算。不要执行工具，仅说明依赖顺序。",
+      "expected": "普通外部云下零调用拦截，可信云仍按既有权限检查",
+      "preflight": {
+        "action": "blocked",
+        "reason": "拆分 Jev 输入不允许发送到当前数据域"
+      }
+    }
+  ],
+  "notes": [
+    "当前记录只冻结判别输入和拟议现金上限；执行请求需取得授权后在实际 DSH 输入上再做零调用预检。",
+    "不得使用模拟本地零成本或 Ark 原厂现金参考价作为实付成本。",
+    "资料均为合成，不扩大生产数据域授权；不会改动现有会话和 provider 凭证。",
+    "为不扩大既有模型路径信任范围，本轮使用已授权 Flash 兼任评审，明确不视为独立质量评估；Pro 仍在可选执行模型池。"
+  ],
+  "authorization": "用户于2026-10-04明确同意此前最多四个合成任务、总计1 CNY范围"
+}

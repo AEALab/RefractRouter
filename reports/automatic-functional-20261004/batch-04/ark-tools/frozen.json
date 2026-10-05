@@ -1,0 +1,111 @@
+{
+  "configuration": {
+    "schemaVersion": "refractagent-providers-v4",
+    "billingUnit": "AFP",
+    "allowSharedJudge": true,
+    "objective": {
+      "qualityMin": 80,
+      "primary": "cost",
+      "secondary": "latency",
+      "dagMode": "auto"
+    },
+    "security": {
+      "dataMode": "synthetic",
+      "sensitiveTerms": [],
+      "classifier": {
+        "enabled": true,
+        "modelId": "dsh-model-7077bbf6a06daaa6"
+      }
+    },
+    "trustPolicies": [
+      {
+        "id": "trust-1",
+        "residency": "CN",
+        "auditLogging": true,
+        "allowsSensitiveData": true,
+        "acknowledgeExternalTransmission": true
+      }
+    ],
+    "providers": [
+      {
+        "id": "dsh-provider-7077bbf6a06daaa6",
+        "type": "dsh",
+        "dshProvider": "ark",
+        "deployment": "trusted-cloud",
+        "trustPolicy": "trust-1"
+      }
+    ],
+    "models": [
+      {
+        "id": "dsh-model-7077bbf6a06daaa6",
+        "provider": "dsh-provider-7077bbf6a06daaa6",
+        "model": "glm-5.3",
+        "roles": [
+          "planner",
+          "worker",
+          "judge",
+          "classifier"
+        ],
+        "contextWindow": 1048576,
+        "maxOutputTokens": 2048,
+        "deployment": "trusted-cloud",
+        "pricing": {
+          "unit": "AFP",
+          "inputPer1k": 0.45,
+          "outputPer1k": 0.45,
+          "cachedInputPer1k": 0.45
+        },
+        "routing": {
+          "quality": 99.12,
+          "latencyMs": 60000.0
+        },
+        "requestOptions": {
+          "reasoning_effort": "high"
+        }
+      }
+    ]
+  },
+  "input": [
+    {
+      "role": "system",
+      "content": "只执行给定合成验收任务。必须使用真实工具结果，不得伪造。"
+    },
+    {
+      "role": "user",
+      "content": "请实际调用 refract_local_echo 一次读取合成验收数据，然后回答乘法结果和工具返回标记。"
+    }
+  ],
+  "reservation": {
+    "label": "connectivity-tool",
+    "model_id": "dsh-model-7077bbf6a06daaa6",
+    "category": "production",
+    "reserved": 1.2514500000000002,
+    "charged": 1.2514500000000002,
+    "status": "reserved",
+    "reserved_output_tokens": 2048,
+    "input_sha256": "63a0b0aef476128b0cb184babb64986826b70b0124fe5e4dc56a9b36a67c219d",
+    "request_messages": [
+      {
+        "role": "system",
+        "content": "只执行给定合成验收任务。必须使用真实工具结果，不得伪造。"
+      },
+      {
+        "role": "user",
+        "content": "请实际调用 refract_local_echo 一次读取合成验收数据，然后回答乘法结果和工具返回标记。"
+      }
+    ],
+    "request_tools": [
+      {
+        "name": "refract_local_echo",
+        "description": "返回合成功能验收数据：12乘8等于96。",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      }
+    ]
+  },
+  "mode": "明确指定目标模型的接线验收，不证明自动选中此模型",
+  "host": "已安装 DSH 适配器与工具运行时"
+}

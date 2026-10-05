@@ -1,0 +1,1625 @@
+{
+  "schema": "automatic-jev-observation-results-v1",
+  "date": "2026-10-04",
+  "taskAttempts": 4,
+  "successfulExecutions": 2,
+  "failedBeforeExecution": {
+    "reason": "首次预检/执行输出上限不一致，执行模型零调用",
+    "jevCallCount": 1
+  },
+  "coreCalls": 7,
+  "jevCalls": 4,
+  "costs": {
+    "coreCny": 0.06124336,
+    "jevCny": 0.0005309562971999998,
+    "totalCny": 0.061774316297199997,
+    "AFP": 0
+  },
+  "unknownUsage": false,
+  "runs": [
+    {
+      "runId": "20261004T100855Z-15b8847a2652",
+      "sourcePath": ".refractagent/runs/20261004T100855Z-15b8847a2652/result.json",
+      "sourceSha256": "0190b60bb7e99b89fbe713fb47d275e47ebb33325c7e682654af5d7b9484e7f3",
+      "status": "preview",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "rules-only",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": null
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 8
+    },
+    {
+      "runId": "20261004T100856Z-5556df0f89b1",
+      "sourcePath": ".refractagent/runs/20261004T100856Z-5556df0f89b1/result.json",
+      "sourceSha256": "248f5307ec390da03758240215adaee9ebd02e7f629c492fbeb2f4f37b3b4711",
+      "status": "preview",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-unknown-rules-preserved",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "585d56fc7796a738fb19d74c140bf048acb11edf3f5539266a49a878d104823a",
+          "verdict": "UNKNOWN",
+          "rawVerdict": "UNKNOWN",
+          "confidence": 0.86,
+          "probabilities": {
+            "COUPLED": 0.2485875706214689,
+            "SEPARABLE": 0.5028248587570622,
+            "UNKNOWN": 0.2485875706214689
+          },
+          "signals": {
+            "requires_previous_output": 0.11,
+            "can_start_independently": 0.25
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 654.171583000003,
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.11
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.25
+            }
+          },
+          "costCny": 0.000130330788,
+          "callId": "af3abfed57105178249517a282fb12df3f2484b57d83c6366630aca60884f67c",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 6
+    },
+    {
+      "runId": "20261004T101119Z-0cb69446a563",
+      "sourcePath": ".refractagent/runs/20261004T101119Z-0cb69446a563/result.json",
+      "sourceSha256": "e12aa3b5a17bfa05426ddc469ea54f60e3e2557494abbb54977c529d3f4e0874",
+      "status": "preview",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "rules-only",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": null
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 7
+    },
+    {
+      "runId": "20261004T101120Z-580719bdba83",
+      "sourcePath": ".refractagent/runs/20261004T101120Z-580719bdba83/result.json",
+      "sourceSha256": "0c3c91431601322b2c6b4ea82df563695eeaf00f7b87aa026500505fbb06e101",
+      "status": "preview",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-unknown-rules-preserved",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "740afffc1d5374ad49a930ef872dec3d0a11bc0ca69110f1d893fb4afcd7a7b7",
+          "verdict": "UNKNOWN",
+          "rawVerdict": "UNKNOWN",
+          "confidence": 0.86,
+          "probabilities": {
+            "COUPLED": 0.24038461538461536,
+            "SEPARABLE": 0.5192307692307692,
+            "UNKNOWN": 0.24038461538461536
+          },
+          "signals": {
+            "requires_previous_output": 0.1,
+            "can_start_independently": 0.24
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 773.2128329999978,
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.1
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.24
+            }
+          },
+          "costCny": 0.000130330788,
+          "callId": "6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 7
+    },
+    {
+      "runId": "20261004T101121Z-5b2a21f9b625",
+      "sourcePath": ".refractagent/runs/20261004T101121Z-5b2a21f9b625/result.json",
+      "sourceSha256": "cf6291188fb649825159c4f51ea1dbac3a72e570c60a886a732c95daeb047323",
+      "status": "no-feasible-route",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.008557160000000008,
+        "evaluation": 0.0
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "production",
+          "reserved": 0.18,
+          "charged": 0.00855716,
+          "status": "billed",
+          "reserved_output_tokens": 12705,
+          "input_sha256": "b765cd2e9fde212960a04a8c6b02c745b145179236234ebd1e0f2befec0c5383",
+          "category_limit": 0.18,
+          "dispatch_monotonic": 1312634.272890125,
+          "dispatch_at": "2026-10-04T10:11:21.052011+00:00",
+          "response_output": "{\"reason\":\"任务极短：仅需一句定义，无需拆分检索或并行分析，由单节点直接产出并自检一句话约束。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"用一句话解释缓存命中率：说明其含义（请求在缓存中直接命中的比例）并给出简洁表述。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+          "response": {
+            "content": "{\"reason\":\"任务极短：仅需一句定义，无需拆分检索或并行分析，由单节点直接产出并自检一句话约束。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"用一句话解释缓存命中率：说明其含义（请求在缓存中直接命中的比例）并给出简洁表述。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+            "input_tokens": 9189,
+            "output_tokens": 187,
+            "cached_input_tokens": 1408,
+            "reasoning_tokens": 100,
+            "latency_ms": 2033,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9189,
+          "output_tokens": 187,
+          "cached_input_tokens": 1408,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 100,
+          "latency_ms": 2033,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "151bdd761dc94018934d3f1493757a77c57fb2dc2f172161cda59b5455c34f79",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        }
+      ],
+      "route_comparison": {
+        "policy_version": "automatic-live-comparison-v1",
+        "prediction_source": "compiled-user-declared-node-profiles",
+        "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+        "direct": null,
+        "dag": null,
+        "status": "infeasible",
+        "route": "infeasible",
+        "reason": "no-qualified-executable-route",
+        "billing_unit": "CNY",
+        "judge_forecast": "same-final-answer-envelope-for-both-routes",
+        "tool_call_limit": 0,
+        "budget_shortfalls": {
+          "direct": {
+            "evaluation": 0.06653600000000001
+          },
+          "dag": {
+            "evaluation": 0.06653600000000001
+          }
+        },
+        "excluded": {
+          "direct": {
+            "answer": null
+          },
+          "dag": {
+            "answer": null
+          }
+        },
+        "generated_node_count": 1,
+        "selected_node_count": null,
+        "multi_node_selected": null
+      },
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-unknown-rules-preserved",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "740afffc1d5374ad49a930ef872dec3d0a11bc0ca69110f1d893fb4afcd7a7b7",
+          "verdict": "UNKNOWN",
+          "rawVerdict": "UNKNOWN",
+          "confidence": 0.86,
+          "probabilities": {
+            "COUPLED": 0.24038461538461536,
+            "SEPARABLE": 0.5192307692307692,
+            "UNKNOWN": 0.24038461538461536
+          },
+          "signals": {
+            "requires_previous_output": 0.1,
+            "can_start_independently": 0.24
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 773.2128329999978,
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.1
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.24
+            }
+          },
+          "costCny": 0.000130330788,
+          "callId": "6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "pending"
+      },
+      "wall_time_ms": 2058
+    },
+    {
+      "runId": "20261004T101613Z-5c52664fd5c3",
+      "sourcePath": ".refractagent/runs/20261004T101613Z-5c52664fd5c3/result.json",
+      "sourceSha256": "143c7f283b2ebc8c97e3baf75d7566f32dd97100a9f0bbbc974bfdee06d93347",
+      "status": "preview",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "rules-only",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": null
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 5
+    },
+    {
+      "runId": "20261004T101614Z-1e6e39910b41",
+      "sourcePath": ".refractagent/runs/20261004T101614Z-1e6e39910b41/result.json",
+      "sourceSha256": "3f09ed58d2abf908868fded77b9520714ec58d877e1d68ff4444239317a76f79",
+      "status": "preview",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-unknown-rules-preserved",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "092ddc763925175a9eddeea54222d2cae30593bcb45e6d4a65e7daaa03e8d4b9",
+          "verdict": "UNKNOWN",
+          "rawVerdict": "UNKNOWN",
+          "confidence": 0.85,
+          "probabilities": {
+            "COUPLED": 0.22590361445783133,
+            "SEPARABLE": 0.5481927710843374,
+            "UNKNOWN": 0.22590361445783133
+          },
+          "signals": {
+            "requires_previous_output": 0.09,
+            "can_start_independently": 0.24
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 619.6709579999988,
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.09
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.24
+            }
+          },
+          "costCny": 0.000130330788,
+          "callId": "7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 5
+    },
+    {
+      "runId": "20261004T101614Z-b24ac571d1fa",
+      "sourcePath": ".refractagent/runs/20261004T101614Z-b24ac571d1fa/result.json",
+      "sourceSha256": "4407328ca5eff2396f9832dde830e2d2d73c8ac7d8e012243f45e5ff1158041f",
+      "status": "completed",
+      "task": "用一句话解释缓存命中率。",
+      "final_output": "缓存命中率是指在所有缓存访问请求中，所需数据已存在于缓存里并可直接返回的次数所占的百分比。",
+      "charged": {
+        "production": 0.01646488,
+        "evaluation": 0.008944599999999997
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "production",
+          "reserved": 0.094744,
+          "charged": 0.00796528,
+          "status": "billed",
+          "reserved_output_tokens": 2048,
+          "input_sha256": "ddcadf0c0f7eed1bb31ae9e53d780d776d503eace5f1f3f2992ee7248ea6645a",
+          "category_limit": 0.11,
+          "dispatch_monotonic": 1312927.661102083,
+          "dispatch_at": "2026-10-04T10:16:14.442955+00:00",
+          "response_output": "{\"reason\":\"单句解释属于单一轻量生成任务，无需拆分或并行分支，直接由一个节点完成。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"用一句话解释缓存命中率，给出准确、通俗的定义。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+          "response": {
+            "content": "{\"reason\":\"单句解释属于单一轻量生成任务，无需拆分或并行分支，直接由一个节点完成。\",\"nodes\":[{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"用一句话解释缓存命中率，给出准确、通俗的定义。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+            "input_tokens": 9196,
+            "output_tokens": 100,
+            "cached_input_tokens": 1664,
+            "reasoning_tokens": 31,
+            "latency_ms": 851,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9196,
+          "output_tokens": 100,
+          "cached_input_tokens": 1664,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 31,
+          "latency_ms": 851,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "40a9f1d6c51794eafe471946a6edb843f88155bb5950905ebe8aa7e145180d08",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "production",
+          "reserved": 0.094568,
+          "charged": 0.0084996,
+          "status": "billed",
+          "reserved_output_tokens": 2048,
+          "input_sha256": "686043d82272748c1175572905d912960f86319f35bd6a054ba254af429236da",
+          "category_limit": 0.11,
+          "security_node_id": "answer",
+          "dispatch_monotonic": 1312928.529347333,
+          "dispatch_at": "2026-10-04T10:16:15.311208+00:00",
+          "response_output": "缓存命中率是指在所有缓存访问请求中，所需数据已存在于缓存里并可直接返回的次数所占的百分比。",
+          "response": {
+            "content": "缓存命中率是指在所有缓存访问请求中，所需数据已存在于缓存里并可直接返回的次数所占的百分比。",
+            "input_tokens": 9174,
+            "output_tokens": 145,
+            "cached_input_tokens": 1280,
+            "reasoning_tokens": 120,
+            "latency_ms": 1361,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9174,
+          "output_tokens": 145,
+          "cached_input_tokens": 1280,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 120,
+          "latency_ms": 1361,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "5a687c640d9a0bc89c1ee3e7eba3cfaedb1d503781c9aa157442123e0450c0ad",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "evaluation",
+          "reserved": 0.093966,
+          "charged": 0.0089446,
+          "status": "billed",
+          "reserved_output_tokens": 2048,
+          "input_sha256": "2f4260bfb2db8636d910ba06a7dff04ebc9244f0e4e3e1fa9bda83577d3faf87",
+          "dispatch_monotonic": 1312929.894752791,
+          "dispatch_at": "2026-10-04T10:16:16.676626+00:00",
+          "response_output": "{\"score\": 96, \"passed\": true, \"rationale\": \"回答以单句形式给出了缓存命中率的准确定义：在所有缓存访问中，所需数据已在缓存中并可直接返回的比例。语义正确、简洁、无冗余，且未虚构任何工具调用或文件操作，完全满足「用一句话解释」的任务要求。\", \"criteria\": [{\"criterion\": \"完整回答用户当前任务，遵守提供的材料、约束和输出格式。\", \"passed\": true, \"rationale\": \"用户要求用一句话解释缓存命中率；回答为「缓存命中率是指在所有缓存访问请求中，所需数据已存在于缓存里并可直接返回的次数所占的百分比。」，恰为一句完整表述，定义准确（命中次数/总访问次数），未偏离任务，也未引入与上下文材料冲突或未经支持的内容，无虚构的工具执行声明。\"}]}",
+          "response": {
+            "content": "{\"score\": 96, \"passed\": true, \"rationale\": \"回答以单句形式给出了缓存命中率的准确定义：在所有缓存访问中，所需数据已在缓存中并可直接返回的比例。语义正确、简洁、无冗余，且未虚构任何工具调用或文件操作，完全满足「用一句话解释」的任务要求。\", \"criteria\": [{\"criterion\": \"完整回答用户当前任务，遵守提供的材料、约束和输出格式。\", \"passed\": true, \"rationale\": \"用户要求用一句话解释缓存命中率；回答为「缓存命中率是指在所有缓存访问请求中，所需数据已存在于缓存里并可直接返回的次数所占的百分比。」，恰为一句完整表述，定义准确（命中次数/总访问次数），未偏离任务，也未引入与上下文材料冲突或未经支持的内容，无虚构的工具执行声明。\"}]}",
+            "input_tokens": 9103,
+            "output_tokens": 274,
+            "cached_input_tokens": 1280,
+            "reasoning_tokens": 88,
+            "latency_ms": 1837,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9103,
+          "output_tokens": 274,
+          "cached_input_tokens": 1280,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 88,
+          "latency_ms": 1837,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "9b80f1495d3d99a119e1d0a57aba76a49f3d3a843458f737326f41a02f9103a6",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        }
+      ],
+      "route_comparison": {
+        "policy_version": "automatic-live-comparison-v1",
+        "prediction_source": "compiled-user-declared-node-profiles",
+        "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+        "direct": {
+          "worker_cost": 0.094634,
+          "planner_actual_cost": 0.00796528,
+          "judge_estimated_cost": 0.126536,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 0.22913528,
+          "worker_scheduled_latency_ms": 2033.0,
+          "known_latency_ms": 2884.0,
+          "assignments": {
+            "answer": "dsh-model-b1aeb12a74ea9990"
+          },
+          "quality_proxy": 94.69
+        },
+        "dag": {
+          "worker_cost": 0.094744,
+          "planner_actual_cost": 0.00796528,
+          "judge_estimated_cost": 0.126536,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 0.22924528,
+          "worker_scheduled_latency_ms": 2033.0,
+          "known_latency_ms": 2884.0,
+          "assignments": {
+            "answer": "dsh-model-b1aeb12a74ea9990"
+          },
+          "quality_proxy": 94.69
+        },
+        "status": "selected",
+        "route": "direct",
+        "reason": "direct-estimated-cost-not-worse",
+        "billing_unit": "CNY",
+        "judge_forecast": "same-final-answer-envelope-for-both-routes",
+        "tool_call_limit": 0,
+        "budget_shortfalls": {},
+        "excluded": {
+          "direct": {
+            "answer": null
+          },
+          "dag": {
+            "answer": null
+          }
+        },
+        "generated_node_count": 1,
+        "selected_candidate": "direct-template",
+        "selected_node_count": 1,
+        "multi_node_selected": false
+      },
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-unknown-rules-preserved",
+        "forced": false,
+        "reasons": [
+          "context-too-long"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 35961,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "092ddc763925175a9eddeea54222d2cae30593bcb45e6d4a65e7daaa03e8d4b9",
+          "verdict": "UNKNOWN",
+          "rawVerdict": "UNKNOWN",
+          "confidence": 0.85,
+          "probabilities": {
+            "COUPLED": 0.22590361445783133,
+            "SEPARABLE": 0.5481927710843374,
+            "UNKNOWN": 0.22590361445783133
+          },
+          "signals": {
+            "requires_previous_output": 0.09,
+            "can_start_independently": 0.24
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 619.6709579999988,
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.09
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.24
+            }
+          },
+          "costCny": 0.000130330788,
+          "callId": "7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "completed",
+        "score": 96,
+        "passed": true
+      },
+      "wall_time_ms": 4077
+    },
+    {
+      "runId": "20261004T101702Z-c2e710f9b6ac",
+      "sourcePath": ".refractagent/runs/20261004T101702Z-c2e710f9b6ac/result.json",
+      "sourceSha256": "3c51876b0e020a8e72ff8892d30363513e17180f0a197f20b673491c879e7fa8",
+      "status": "preview",
+      "task": "分别计算方案甲 12 × 8 和方案乙 15 × 6 的总价，然后比较差额。两组数据互不依赖。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "rules-only",
+        "forced": false,
+        "reasons": [
+          "context-too-long",
+          "complex-task-marker"
+        ],
+        "statistics": {
+          "task_chars": 47,
+          "context_bytes": 36036,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": null
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 7
+    },
+    {
+      "runId": "20261004T101703Z-6448a7cd385c",
+      "sourcePath": ".refractagent/runs/20261004T101703Z-6448a7cd385c/result.json",
+      "sourceSha256": "3a445d73710b9017fb7fd469e563c3ef4456b21db8753b8ea9e2eb42e8968bad",
+      "status": "preview",
+      "task": "分别计算方案甲 12 × 8 和方案乙 15 × 6 的总价，然后比较差额。两组数据互不依赖。",
+      "final_output": "",
+      "charged": {
+        "production": 0.0,
+        "evaluation": 0.0
+      },
+      "calls": [],
+      "route_comparison": null,
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-separable",
+        "forced": false,
+        "reasons": [
+          "context-too-long",
+          "complex-task-marker",
+          "local-separable"
+        ],
+        "statistics": {
+          "task_chars": 47,
+          "context_bytes": 36036,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "53904dc91059bb1717233ec2f9523f41dad6a58e1783de8f6793f4280d09b7d8",
+          "verdict": "SEPARABLE",
+          "rawVerdict": "SEPARABLE",
+          "confidence": 0.69,
+          "probabilities": {
+            "COUPLED": 0.24173424828446663,
+            "SEPARABLE": 0.5165315034310667,
+            "UNKNOWN": 0.24173424828446663
+          },
+          "signals": {
+            "requires_previous_output": 0.31,
+            "can_start_independently": 0.96
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 510.45991700000013,
+          "usage": {
+            "input_tokens": 494,
+            "output_tokens": 43,
+            "cost": 2.0748e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.31
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.96
+            }
+          },
+          "costCny": 0.0001399639332,
+          "callId": "2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "not-run"
+      },
+      "wall_time_ms": 6
+    },
+    {
+      "runId": "20261004T101703Z-c1e907f73909",
+      "sourcePath": ".refractagent/runs/20261004T101703Z-c1e907f73909/result.json",
+      "sourceSha256": "305ec14ff9f5d1cea7579ed0e2cfc0626fa9b813bb3cdad98aebc9bda86c1946",
+      "status": "completed",
+      "task": "分别计算方案甲 12 × 8 和方案乙 15 × 6 的总价，然后比较差额。两组数据互不依赖。",
+      "final_output": "**方案甲：12 × 8 = 96**\n**方案乙：15 × 6 = 90**\n\n**差额比较：** 96 − 90 = **6**，方案甲比方案乙多 6（若反向表示则为 −6，即方案乙比方案甲少 6）。\n\n两组数据互不依赖，因此分别独立相乘后再作差，结果一致。\n\n**需要说明的不确定性：** 题目只给出了两组数量（12、8 与 15、6），没有提供单价或货币单位，所以这里的 96 与 90 是按给定算式直接相乘得到的数值，无法确认为真实“总价”（金额）。如果 12、8 和 15、6 中的任意一项代表单价，请补充单位与单价信息，我可以据此换算成实际金额并重新比较差额。",
+      "charged": {
+        "production": 0.017645999999999995,
+        "evaluation": 0.009630719999999995
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "production",
+          "reserved": 0.09504399999999999,
+          "charged": 0.00854328,
+          "status": "billed",
+          "reserved_output_tokens": 2048,
+          "input_sha256": "7129b0cbfadcc7c36546c230ed02348cc7baa5e6171d745a9b9753bac02901c4",
+          "category_limit": 0.11,
+          "dispatch_monotonic": 1312976.756047166,
+          "dispatch_at": "2026-10-04T10:17:03.538357+00:00",
+          "response_output": "{\"reason\":\"任务仅含两组互不依赖的乘积计算，再汇总比较差额。拆两个并行计算分支，最后一个节点汇总两方案总价、比较差额并核对原始数字。\",\"nodes\":[{\"id\":\"jia\",\"type\":\"generation\",\"job\":\"计算方案甲 12 × 8 的总价，列出算式与结果。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"yi\",\"type\":\"generation\",\"job\":\"计算方案乙 15 × 6 的总价，列出算式与结果。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"answer\",\"type\":\"synthesis\",\"job\":\"汇总方案甲与乙的总价，比较两者差额并说明谁高谁低，核对原始数字、依赖、矛盾与遗漏，完整交付。\",\"parents\":[\"jia\",\"yi\"],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+          "response": {
+            "content": "{\"reason\":\"任务仅含两组互不依赖的乘积计算，再汇总比较差额。拆两个并行计算分支，最后一个节点汇总两方案总价、比较差额并核对原始数字。\",\"nodes\":[{\"id\":\"jia\",\"type\":\"generation\",\"job\":\"计算方案甲 12 × 8 的总价，列出算式与结果。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"yi\",\"type\":\"generation\",\"job\":\"计算方案乙 15 × 6 的总价，列出算式与结果。\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"answer\",\"type\":\"synthesis\",\"job\":\"汇总方案甲与乙的总价，比较两者差额并说明谁高谁低，核对原始数字、依赖、矛盾与遗漏，完整交付。\",\"parents\":[\"jia\",\"yi\"],\"difficulty\":\"low\",\"risk\":\"low\"}]}",
+            "input_tokens": 9250,
+            "output_tokens": 231,
+            "cached_input_tokens": 1664,
+            "reasoning_tokens": 38,
+            "latency_ms": 1754,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9250,
+          "output_tokens": 231,
+          "cached_input_tokens": 1664,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 38,
+          "latency_ms": 1754,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "2956956244829fffea9cfe522ef6175b2a9b47aec036878758d74a3e3c834578",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "production",
+          "reserved": 0.094868,
+          "charged": 0.00910272,
+          "status": "billed",
+          "reserved_output_tokens": 2048,
+          "input_sha256": "cc1c00e52579c6c598da7449d2145df145e46ee8b15fd7ecbc0281b2c56b3b28",
+          "category_limit": 0.11,
+          "security_node_id": "answer",
+          "dispatch_monotonic": 1312978.547182708,
+          "dispatch_at": "2026-10-04T10:17:05.329509+00:00",
+          "response_output": "**方案甲：12 × 8 = 96**\n**方案乙：15 × 6 = 90**\n\n**差额比较：** 96 − 90 = **6**，方案甲比方案乙多 6（若反向表示则为 −6，即方案乙比方案甲少 6）。\n\n两组数据互不依赖，因此分别独立相乘后再作差，结果一致。\n\n**需要说明的不确定性：** 题目只给出了两组数量（12、8 与 15、6），没有提供单价或货币单位，所以这里的 96 与 90 是按给定算式直接相乘得到的数值，无法确认为真实“总价”（金额）。如果 12、8 和 15、6 中的任意一项代表单价，请补充单位与单价信息，我可以据此换算成实际金额并重新比较差额。",
+          "response": {
+            "content": "**方案甲：12 × 8 = 96**\n**方案乙：15 × 6 = 90**\n\n**差额比较：** 96 − 90 = **6**，方案甲比方案乙多 6（若反向表示则为 −6，即方案乙比方案甲少 6）。\n\n两组数据互不依赖，因此分别独立相乘后再作差，结果一致。\n\n**需要说明的不确定性：** 题目只给出了两组数量（12、8 与 15、6），没有提供单价或货币单位，所以这里的 96 与 90 是按给定算式直接相乘得到的数值，无法确认为真实“总价”（金额）。如果 12、8 和 15、6 中的任意一项代表单价，请补充单位与单价信息，我可以据此换算成实际金额并重新比较差额。",
+            "input_tokens": 9228,
+            "output_tokens": 345,
+            "cached_input_tokens": 1536,
+            "reasoning_tokens": 168,
+            "latency_ms": 2108,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9228,
+          "output_tokens": 345,
+          "cached_input_tokens": 1536,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 168,
+          "latency_ms": 2108,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "d23c80f61adc1c513384ada45cfea36daa3a14a092e38ed542bb1abb937193da",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-b1aeb12a74ea9990",
+          "category": "evaluation",
+          "reserved": 0.09537799999999999,
+          "charged": 0.00963072,
+          "status": "billed",
+          "reserved_output_tokens": 2048,
+          "input_sha256": "ea602a3aa821674ab30f896879a463024d8a384ae8d913f73619050670748f2f",
+          "dispatch_monotonic": 1312980.661648166,
+          "dispatch_at": "2026-10-04T10:17:07.443994+00:00",
+          "response_output": "{\"score\": 95, \"passed\": true, \"rationale\": \"回答分别独立计算了两组数据：12 × 8 = 96、15 × 6 = 90，均正确；随后比较差额 96 − 90 = 6，并说明方案甲比方案乙多 6，同时也指出反向差值为 −6，差额结果正确且完整。回答明确呼应了「两组数据互不依赖」这一条件，按独立相乘再作差处理。额外补充的「题目未给出单价/货币单位，因此 96 与 90 是按算式得到的数值而无法确认是实际金额」属于合理的边界说明，没有改变或妨碍核心计算。未声称执行过任何工具或外部操作，无虚假执行声明；输出为简洁的中文正文，符合任务要求。\", \"criteria\": [{\"criterion\": \"完整回答用户当前任务，遵守提供的材料、约束和输出格式。\", \"passed\": true, \"rationale\": \"完整给出方案甲 12 × 8 = 96、方案乙 15 × 6 = 90，两式分别计算且数值正确；并按「两组数据互不依赖」独立处理后比较差额，得出 96 − 90 = 6（方案甲比方案乙多 6，反向为 −6）。差额方向与数值均无误，内容完整、无遗漏关键要求，也无虚构工具执行或超出材料的断言。\"}]}",
+          "response": {
+            "content": "{\"score\": 95, \"passed\": true, \"rationale\": \"回答分别独立计算了两组数据：12 × 8 = 96、15 × 6 = 90，均正确；随后比较差额 96 − 90 = 6，并说明方案甲比方案乙多 6，同时也指出反向差值为 −6，差额结果正确且完整。回答明确呼应了「两组数据互不依赖」这一条件，按独立相乘再作差处理。额外补充的「题目未给出单价/货币单位，因此 96 与 90 是按算式得到的数值而无法确认是实际金额」属于合理的边界说明，没有改变或妨碍核心计算。未声称执行过任何工具或外部操作，无虚假执行声明；输出为简洁的中文正文，符合任务要求。\", \"criteria\": [{\"criterion\": \"完整回答用户当前任务，遵守提供的材料、约束和输出格式。\", \"passed\": true, \"rationale\": \"完整给出方案甲 12 × 8 = 96、方案乙 15 × 6 = 90，两式分别计算且数值正确；并按「两组数据互不依赖」独立处理后比较差额，得出 96 − 90 = 6（方案甲比方案乙多 6，反向为 −6）。差额方向与数值均无误，内容完整、无遗漏关键要求，也无虚构工具执行或超出材料的断言。\"}]}",
+            "input_tokens": 9320,
+            "output_tokens": 454,
+            "cached_input_tokens": 1536,
+            "reasoning_tokens": 150,
+            "latency_ms": 2657,
+            "attempts": 1,
+            "finish_reason": "stop",
+            "request_id": null,
+            "usage_available": true,
+            "raw_usage": null,
+            "tool_calls": [],
+            "replay_messages": [],
+            "replay_state": null,
+            "cache_usage_source": null,
+            "ttft_ms": null
+          },
+          "price_snapshot": {
+            "inputPer1k": 0.001,
+            "outputPer1k": 0.004,
+            "cachedInputPer1k": 2e-05,
+            "tier": "offpeak",
+            "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+            "checkedAt": "2026-09-24",
+            "unit": "CNY",
+            "basis": "dispatch-time-official-estimate"
+          },
+          "input_tokens": 9320,
+          "output_tokens": 454,
+          "cached_input_tokens": 1536,
+          "cache_usage_source": null,
+          "cache_usage_available": false,
+          "ttft_ms": null,
+          "reasoning_tokens": 150,
+          "latency_ms": 2657,
+          "request_id": null,
+          "finish_reason": "stop",
+          "output_sha256": "153e8d250850eb30d47106fdb1f278a1aca33f8a6581511a4af6e023bbffe607",
+          "route": {
+            "id": "dsh-model-b1aeb12a74ea9990",
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "reasoning_effort": null
+          }
+        }
+      ],
+      "route_comparison": {
+        "policy_version": "automatic-live-comparison-v1",
+        "prediction_source": "compiled-user-declared-node-profiles",
+        "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+        "direct": {
+          "worker_cost": 0.09493399999999999,
+          "planner_actual_cost": 0.00854328,
+          "judge_estimated_cost": 0.126836,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 0.23031328,
+          "worker_scheduled_latency_ms": 2033.0,
+          "known_latency_ms": 3787.0,
+          "assignments": {
+            "answer": "dsh-model-b1aeb12a74ea9990"
+          },
+          "quality_proxy": 94.69
+        },
+        "dag": null,
+        "status": "selected",
+        "route": "direct",
+        "reason": "dag-infeasible",
+        "billing_unit": "CNY",
+        "judge_forecast": "same-final-answer-envelope-for-both-routes",
+        "tool_call_limit": 0,
+        "budget_shortfalls": {},
+        "excluded": {
+          "direct": {
+            "answer": null
+          },
+          "dag": {
+            "jia": null,
+            "yi": null,
+            "answer": null
+          }
+        },
+        "generated_node_count": 3,
+        "selected_candidate": "direct-template",
+        "selected_node_count": 1,
+        "multi_node_selected": false
+      },
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v2",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-separable",
+        "forced": false,
+        "reasons": [
+          "context-too-long",
+          "complex-task-marker",
+          "local-separable"
+        ],
+        "statistics": {
+          "task_chars": 47,
+          "context_bytes": 36036,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v1",
+          "ruleVersion": "automatic-decomposition-hybrid-v2",
+          "inputSha256": "53904dc91059bb1717233ec2f9523f41dad6a58e1783de8f6793f4280d09b7d8",
+          "verdict": "SEPARABLE",
+          "rawVerdict": "SEPARABLE",
+          "confidence": 0.69,
+          "probabilities": {
+            "COUPLED": 0.24173424828446663,
+            "SEPARABLE": 0.5165315034310667,
+            "UNKNOWN": 0.24173424828446663
+          },
+          "signals": {
+            "requires_previous_output": 0.31,
+            "can_start_independently": 0.96
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 510.45991700000013,
+          "usage": {
+            "input_tokens": 494,
+            "output_tokens": 43,
+            "cost": 2.0748e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.31
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.96
+            }
+          },
+          "costCny": 0.0001399639332,
+          "callId": "2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde",
+          "recordPath": "[本机原始记录路径已移除]"
+        }
+      },
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked",
+        "status": "completed",
+        "score": 95,
+        "passed": true
+      },
+      "wall_time_ms": 6581
+    }
+  ],
+  "judges": [
+    {
+      "sourcePath": ".refractagent/runs/decomposition/2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde.json",
+      "sourceSha256": "aa28fafaa893687f8df632f94f69d81e0c1f8557ce5013b60d0a7953264f64ca",
+      "id": "2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde",
+      "status": "completed",
+      "costsByUnit": {
+        "CNY": {
+          "production": 0.0001399639331999998,
+          "evaluation": 0.0
+        }
+      },
+      "evidence": {
+        "contract": "decomposition-decision-v1",
+        "ruleVersion": "automatic-decomposition-hybrid-v2",
+        "inputSha256": "53904dc91059bb1717233ec2f9523f41dad6a58e1783de8f6793f4280d09b7d8",
+        "verdict": "SEPARABLE",
+        "rawVerdict": "SEPARABLE",
+        "confidence": 0.69,
+        "probabilities": {
+          "COUPLED": 0.24173424828446663,
+          "SEPARABLE": 0.5165315034310667,
+          "UNKNOWN": 0.24173424828446663
+        },
+        "signals": {
+          "requires_previous_output": 0.31,
+          "can_start_independently": 0.96
+        },
+        "backend": "jev",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "revision": "typesafe/jev-1.13-20260917",
+        "latencyMs": 510.45991700000013,
+        "queueMs": 0,
+        "usage": {
+          "input_tokens": 494,
+          "output_tokens": 43,
+          "cost": 2.0748e-05
+        },
+        "rawAnswers": {
+          "requires_previous_output": {
+            "type": "noul",
+            "noul": 0.31
+          },
+          "can_start_independently": {
+            "type": "noul",
+            "noul": 0.96
+          }
+        },
+        "costCny": 0.0001399639332,
+        "callId": "2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde",
+        "experimental": true
+      },
+      "calls": [
+        {
+          "label": "2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde",
+          "model_id": "typesafe/jev-1.13",
+          "category": "production",
+          "provider": "openrouter",
+          "actual_model": "typesafe/jev-1.13-20260917",
+          "billing_unit": "CNY",
+          "reserved": 0.0090664896,
+          "charged": 0.0001399639332,
+          "status": "billed",
+          "purpose": "decomposition",
+          "usage_type": "non-token",
+          "usage": {
+            "input_tokens": 494,
+            "output_tokens": 43,
+            "cost": 2.0748e-05
+          },
+          "source_billing_unit": "USD",
+          "conversion_rate": 6.7459,
+          "conversion_source": "https://www.boc.cn/sourcedb/whpj/",
+          "conversion_as_of": "2026-09-23",
+          "pricing_source": "https://openrouter.ai/typesafe/jev-1.13",
+          "call_id": "2c01ba666fb131ea19d816eb3828f11fe4ead163e0673b84966102ad2b589dde",
+          "disposition": "accepted",
+          "provider_request_id": "gen-dec-1791109022-wqbp7uvgWq8QHOLfO6a3",
+          "latency_ms": 510.45991700000013
+        }
+      ]
+    },
+    {
+      "sourcePath": ".refractagent/runs/decomposition/6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305.json",
+      "sourceSha256": "59b043dffa9a4d62dc38fbe2e610506f4dd2d600488c3896f1a0443f19dbe7d5",
+      "id": "6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305",
+      "status": "completed",
+      "costsByUnit": {
+        "CNY": {
+          "production": 0.000130330788,
+          "evaluation": 0.0
+        }
+      },
+      "evidence": {
+        "contract": "decomposition-decision-v1",
+        "ruleVersion": "automatic-decomposition-hybrid-v2",
+        "inputSha256": "740afffc1d5374ad49a930ef872dec3d0a11bc0ca69110f1d893fb4afcd7a7b7",
+        "verdict": "UNKNOWN",
+        "rawVerdict": "UNKNOWN",
+        "confidence": 0.86,
+        "probabilities": {
+          "COUPLED": 0.24038461538461536,
+          "SEPARABLE": 0.5192307692307692,
+          "UNKNOWN": 0.24038461538461536
+        },
+        "signals": {
+          "requires_previous_output": 0.1,
+          "can_start_independently": 0.24
+        },
+        "backend": "jev",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "revision": "typesafe/jev-1.13-20260917",
+        "latencyMs": 773.2128329999978,
+        "queueMs": 0,
+        "usage": {
+          "input_tokens": 460,
+          "output_tokens": 43,
+          "cost": 1.932e-05
+        },
+        "rawAnswers": {
+          "requires_previous_output": {
+            "type": "noul",
+            "noul": 0.1
+          },
+          "can_start_independently": {
+            "type": "noul",
+            "noul": 0.24
+          }
+        },
+        "costCny": 0.000130330788,
+        "callId": "6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305",
+        "experimental": true
+      },
+      "calls": [
+        {
+          "label": "6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305",
+          "model_id": "typesafe/jev-1.13",
+          "category": "production",
+          "provider": "openrouter",
+          "actual_model": "typesafe/jev-1.13-20260917",
+          "billing_unit": "CNY",
+          "reserved": 0.0090664896,
+          "charged": 0.000130330788,
+          "status": "billed",
+          "purpose": "decomposition",
+          "usage_type": "non-token",
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "source_billing_unit": "USD",
+          "conversion_rate": 6.7459,
+          "conversion_source": "https://www.boc.cn/sourcedb/whpj/",
+          "conversion_as_of": "2026-09-23",
+          "pricing_source": "https://openrouter.ai/typesafe/jev-1.13",
+          "call_id": "6ac9a5245e3f12ca8db942249aa3d0d7bdc813b4e515fe1ec8b3c3f664303305",
+          "disposition": "accepted",
+          "provider_request_id": "gen-dec-1791108680-NbE6ioZamOU7WEZ3qAow",
+          "latency_ms": 773.2128329999978
+        }
+      ]
+    },
+    {
+      "sourcePath": ".refractagent/runs/decomposition/7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814.json",
+      "sourceSha256": "6cb87a7f408698664bfd0aeca78d9de8cbc01f1ff182a088e7c00f47c5e6c817",
+      "id": "7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814",
+      "status": "completed",
+      "costsByUnit": {
+        "CNY": {
+          "production": 0.000130330788,
+          "evaluation": 0.0
+        }
+      },
+      "evidence": {
+        "contract": "decomposition-decision-v1",
+        "ruleVersion": "automatic-decomposition-hybrid-v2",
+        "inputSha256": "092ddc763925175a9eddeea54222d2cae30593bcb45e6d4a65e7daaa03e8d4b9",
+        "verdict": "UNKNOWN",
+        "rawVerdict": "UNKNOWN",
+        "confidence": 0.85,
+        "probabilities": {
+          "COUPLED": 0.22590361445783133,
+          "SEPARABLE": 0.5481927710843374,
+          "UNKNOWN": 0.22590361445783133
+        },
+        "signals": {
+          "requires_previous_output": 0.09,
+          "can_start_independently": 0.24
+        },
+        "backend": "jev",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "revision": "typesafe/jev-1.13-20260917",
+        "latencyMs": 619.6709579999988,
+        "queueMs": 0,
+        "usage": {
+          "input_tokens": 460,
+          "output_tokens": 43,
+          "cost": 1.932e-05
+        },
+        "rawAnswers": {
+          "requires_previous_output": {
+            "type": "noul",
+            "noul": 0.09
+          },
+          "can_start_independently": {
+            "type": "noul",
+            "noul": 0.24
+          }
+        },
+        "costCny": 0.000130330788,
+        "callId": "7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814",
+        "experimental": true
+      },
+      "calls": [
+        {
+          "label": "7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814",
+          "model_id": "typesafe/jev-1.13",
+          "category": "production",
+          "provider": "openrouter",
+          "actual_model": "typesafe/jev-1.13-20260917",
+          "billing_unit": "CNY",
+          "reserved": 0.0090664896,
+          "charged": 0.000130330788,
+          "status": "billed",
+          "purpose": "decomposition",
+          "usage_type": "non-token",
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "source_billing_unit": "USD",
+          "conversion_rate": 6.7459,
+          "conversion_source": "https://www.boc.cn/sourcedb/whpj/",
+          "conversion_as_of": "2026-09-23",
+          "pricing_source": "https://openrouter.ai/typesafe/jev-1.13",
+          "call_id": "7993f45974a0c71d4cb227988eade684037c6ec7666452c8f8ae8eee8222d814",
+          "disposition": "accepted",
+          "provider_request_id": "gen-dec-1791108974-vplEgTDMYEq5jvsU7tl6",
+          "latency_ms": 619.6709579999988
+        }
+      ]
+    },
+    {
+      "sourcePath": ".refractagent/runs/decomposition/af3abfed57105178249517a282fb12df3f2484b57d83c6366630aca60884f67c.json",
+      "sourceSha256": "6585bc28b6d41b60a9c0f10966d24dec21439d5e03643b35f8f726ee67290f67",
+      "id": "af3abfed57105178249517a282fb12df3f2484b57d83c6366630aca60884f67c",
+      "status": "completed",
+      "costsByUnit": {
+        "CNY": {
+          "production": 0.000130330788,
+          "evaluation": 0.0
+        }
+      },
+      "evidence": {
+        "contract": "decomposition-decision-v1",
+        "ruleVersion": "automatic-decomposition-hybrid-v2",
+        "inputSha256": "585d56fc7796a738fb19d74c140bf048acb11edf3f5539266a49a878d104823a",
+        "verdict": "UNKNOWN",
+        "rawVerdict": "UNKNOWN",
+        "confidence": 0.86,
+        "probabilities": {
+          "COUPLED": 0.2485875706214689,
+          "SEPARABLE": 0.5028248587570622,
+          "UNKNOWN": 0.2485875706214689
+        },
+        "signals": {
+          "requires_previous_output": 0.11,
+          "can_start_independently": 0.25
+        },
+        "backend": "jev",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13-20260917",
+        "revision": "typesafe/jev-1.13-20260917",
+        "latencyMs": 654.171583000003,
+        "queueMs": 0,
+        "usage": {
+          "input_tokens": 460,
+          "output_tokens": 43,
+          "cost": 1.932e-05
+        },
+        "rawAnswers": {
+          "requires_previous_output": {
+            "type": "noul",
+            "noul": 0.11
+          },
+          "can_start_independently": {
+            "type": "noul",
+            "noul": 0.25
+          }
+        },
+        "costCny": 0.000130330788,
+        "callId": "af3abfed57105178249517a282fb12df3f2484b57d83c6366630aca60884f67c",
+        "experimental": true
+      },
+      "calls": [
+        {
+          "label": "af3abfed57105178249517a282fb12df3f2484b57d83c6366630aca60884f67c",
+          "model_id": "typesafe/jev-1.13",
+          "category": "production",
+          "provider": "openrouter",
+          "actual_model": "typesafe/jev-1.13-20260917",
+          "billing_unit": "CNY",
+          "reserved": 0.0090664896,
+          "charged": 0.000130330788,
+          "status": "billed",
+          "purpose": "decomposition",
+          "usage_type": "non-token",
+          "usage": {
+            "input_tokens": 460,
+            "output_tokens": 43,
+            "cost": 1.932e-05
+          },
+          "source_billing_unit": "USD",
+          "conversion_rate": 6.7459,
+          "conversion_source": "https://www.boc.cn/sourcedb/whpj/",
+          "conversion_as_of": "2026-09-23",
+          "pricing_source": "https://openrouter.ai/typesafe/jev-1.13",
+          "call_id": "af3abfed57105178249517a282fb12df3f2484b57d83c6366630aca60884f67c",
+          "disposition": "accepted",
+          "provider_request_id": "gen-dec-1791108536-9Eg7dPsN7bbt1IOztucN",
+          "latency_ms": 654.171583000003
+        }
+      ]
+    }
+  ]
+}

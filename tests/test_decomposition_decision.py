@@ -100,6 +100,12 @@ def test_context_reference_and_input_capacity_preserve_rules_without_dispatch(tm
     assert long_input["reason"] == "input-too-long"
 
 
+def test_in_task_pronoun_does_not_skip_decomposition_judge():
+    from refractrouter.decomposition_decision import build_request
+    task = "先调用工具取得数值，再根据实际结果计算它的两倍。"
+    assert build_request(task, "")["state"]["contextDependency"] == "standalone"
+
+
 def test_tokenizer_capacity_preserves_rules_after_dispatch(tmp_path):
     class Service:
         def call(self, operation, key, config, *, request, timeout_ms):

@@ -96,8 +96,10 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
             'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls',
-            'decompositionDecision'}:
+            'decompositionDecision', 'boundedCallOutput'}:
         raise ValueError('invalid RefractAgent request fields')
+    if 'boundedCallOutput' in payload and type(payload['boundedCallOutput']) is not bool:
+        raise ValueError('boundedCallOutput must be boolean')
     validate_materials(payload.get('materials', []))
     limits = payload.get('limits', {})
     if (not isinstance(limits, dict) or set(limits) - {'relaxBudget', 'relaxContext', 'unlimitedTime'}
@@ -200,6 +202,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     strategy, request, context, limits = build_request(
         payload, mode=mode, production_budget=production_budget, timeout_ms=timeout_ms,
         automatic_routing=automatic_routing)
+    if payload.get('boundedCallOutput'):
+        request['unrestrictedPlanning'] = False
+        request['plannerMaxOutputTokens'] = min(max_output_tokens, 2048)
     if automatic_routing and mode in {'preflight', 'live'}:
         if (tool_runtime is None) != ('maxDshToolCalls' not in payload):
             raise ValueError('REFRACTAGENT_TOOLS_DISABLED: DSH 工具目录与调用上限必须同时提供')
@@ -231,6 +236,14 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     configured = compile_configuration(provider_config, strategy=strategy) if provider_config is not None else None
     if configured:
         manifest = configured.manifest
+        if automatic_routing and mode in {'preflight', 'live'} and configured.privacy.get('dataMode') == 'live':
+            # 真实会话可能含有确定性规则识别不了的业务信息。只有已声明本地或
+            # 可信云的路线能参与这次任务的规划、执行与评审；配置目录仍保持原样。
+            manifest = replace(manifest, models=tuple(model for model in manifest.models
+                if model.deployment in {'local', 'trusted-cloud'}))
+            for role in ('planner', 'worker', 'judge'):
+                if not any(role in model.roles for model in manifest.models):
+                    raise ValueError(f'REFRACTAGENT_TRUSTED_MODEL_REQUIRED: 真实数据缺少本地或可信云 {role} 模型')
         request['qualityMin'] = configured.quality_min
         request['plannerThinking'] = configured.snapshot.get('plannerThinking', 'inherit')
         if automatic_routing and payload.get('complexityPolicy', 'auto') == 'auto':
@@ -248,10 +261,10 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     if automatic_routing and gate['decision'] == 'direct':
         request['plan'] = plan_template('single', payload.get('acceptanceCriteria'))
     if automatic_routing and mode == 'live':
-        if configured.snapshot.get('security', {}).get('dataMode') != 'synthetic':
-            raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 首版真实执行仅允许 synthetic 数据模式')
-        if manifest.billing_unit not in {'USD', 'CNY'}:
-            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD 或 CNY 模型池')
+        if configured.snapshot.get('security', {}).get('dataMode') not in {'synthetic', 'desensitized', 'live'}:
+            raise ValueError('REFRACTAGENT_DATA_MODE_UNSUPPORTED: 未声明有效数据模式')
+        if manifest.billing_unit not in {'USD', 'CNY', 'AFP'}:
+            raise ValueError('REFRACTAGENT_BILLING_UNIT_UNSUPPORTED: 真实执行仅支持 USD、CNY 或 AFP 同单位模型池')
         if (request.get('maxPlanRepairs', 0) != 0 or request.get('maxDynamicSplits', 0) != 0
                 or request.get('maxNodeFallbacks', 0) != 0):
             raise ValueError('live canary requires zero repair/split/fallback')
@@ -386,7 +399,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         bindings = {row['compiled_model_id']: {
             'provider': route.split('/', 1)[0], 'model': route.split('/', 1)[1],
             'effective_model': row['effective_model'],
-            'reasoning_effort': row.get('reasoning_effort', 'default'),
+            'reasoning_effort': next((str(m.request_options.get('reasoning_effort', row.get('reasoning_effort', 'default')))
+                for m in manifest.models if m.model_id == row['compiled_model_id']), row.get('reasoning_effort', 'default')),
         } for route, row in model_profile_provenance.items()
             if isinstance(row, dict) and isinstance(row.get('compiled_model_id'), str)
             and isinstance(row.get('effective_model'), str)

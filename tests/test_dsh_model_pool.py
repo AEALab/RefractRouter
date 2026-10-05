@@ -164,7 +164,7 @@ def test_repository_profile_freezes_public_prices_and_independent_quality_priors
         ('deepseek-official','deepseek-v4-flash-vision-exp'),
         ('deepseek-official','deepseek-v4-pro'),
         ('ark','deepseek-v4-flash'),('ark','deepseek-v4-pro'),('ark','glm-5.3'),
-        ('ark','kimi-k3'),('ark','minimax-m3')}
+        ('ark','kimi-k3'),('ark','minimax-m3'),('moonshot','kimi-k3')}
     assert raw['quality_normalization']['method']==(
         'large-open-weights-reasoning-cohort-percentile-0-100')
     scores={(row['provider'],row['model']):(
@@ -176,7 +176,8 @@ def test_repository_profile_freezes_public_prices_and_independent_quality_priors
         ('deepseek-official','deepseek-v4-flash-vision-exp'):None,
         ('deepseek-official','deepseek-v4-pro'):93.81,
         ('ark','deepseek-v4-flash'):92.86,('ark','deepseek-v4-pro'):93.81,
-        ('ark','glm-5.3'):99.12,('ark','kimi-k3'):98.23,('ark','minimax-m3'):86.73}
+        ('ark','glm-5.3'):99.12,('ark','kimi-k3'):98.23,('ark','minimax-m3'):86.73,
+        ('moonshot','kimi-k3'):98.23}
     for row in raw['profiles']:
         if row['quality_profile'] is None:
             continue

@@ -689,6 +689,22 @@ test('DSH LLM bridge preserves content, disjoint usage, finish reason, and reque
   assert.equal(response.request_id, 'resp-ark-test')
 })
 
+test('Kimi official bridge omits unsupported temperature and preserves disjoint cache usage', async () => {
+  const ctx = { llm: { async *stream(options: LlmOptions): AsyncGenerator<StreamChunk> {
+    assert.equal(options.temperature, undefined)
+    assert.equal(options.reasoningEffort, 'high')
+    yield {type:'text-delta',index:0,text:'完成'}
+    yield {type:'usage',usage:{inputTokens:200,cacheReadTokens:200,cacheWriteTokens:600,outputTokens:20}}
+    yield {type:'finish',reason:{kind:'stop'}}
+  } } }
+  const response = await callDshLlm(ctx, {protocol:'refractrouter-dsh-llm/v1',type:'request',id:'kimi-test',
+    provider:'moonshot',model:'kimi-k3',messages:[{role:'user',content:'测试'}],temperature:0,
+    max_tokens:2048,timeout_ms:1000,request_options:{reasoning_effort:'high'}})
+  assert.equal(response.ok,true)
+  assert.equal(response.usage.input_tokens,1000)
+  assert.equal(response.usage.cached_input_tokens,200)
+})
+
 test('DSH LLM bridge enforces the per-request hard timeout', async () => {
   const keepAlive = setTimeout(() => {}, 100)
   let returnCalled = false
@@ -792,6 +808,7 @@ test('published tarball loads from its compiled export without source or build d
       'dist/dag-progress.js', 'dist/dag-progress.d.ts',
       'dist/native-tools.js', 'dist/native-tools.d.ts',
       'dist/media-tools.js', 'dist/media-tools.d.ts',
+      'dist/model-wire-options.js', 'dist/model-wire-options.d.ts',
       'dist/tool-evidence.js', 'dist/tool-evidence.d.ts',
       'dist/client.js',
       'dist/provider-config.js',

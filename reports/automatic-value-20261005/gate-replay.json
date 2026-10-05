@@ -1,0 +1,151 @@
+{
+  "type": "已付费真实证据的零调用回放，原结果保留",
+  "newCalls": 0,
+  "sourceResultsSha256": "52fe9894fa37082ce1e19c375e4a1f4dad9658ddbcacb333aa3ae006501f101b",
+  "gateSourceSha256": "a1bce98960777dfcf7e0303d7616c9d541a2cf87fc12c5232d7a61dc13845c2f",
+  "cases": [
+    {
+      "id": "arithmetic",
+      "originalDecision": "direct",
+      "expectedGate": "direct",
+      "replayedGate": {
+        "policy_version": "refractagent-complexity-gate-v3",
+        "policy": "auto",
+        "decision": "direct",
+        "rule_decision": "direct",
+        "combination": "trivial-workload-no-planner",
+        "forced": false,
+        "reasons": [
+          "trivial-workload"
+        ],
+        "statistics": {
+          "task_chars": 29,
+          "context_bytes": 0,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "definition",
+      "originalDecision": "direct",
+      "expectedGate": "direct",
+      "replayedGate": {
+        "policy_version": "refractagent-complexity-gate-v3",
+        "policy": "auto",
+        "decision": "direct",
+        "rule_decision": "direct",
+        "combination": "trivial-workload-no-planner",
+        "forced": false,
+        "reasons": [
+          "trivial-workload"
+        ],
+        "statistics": {
+          "task_chars": 12,
+          "context_bytes": 0,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "contracts",
+      "originalDecision": "dag",
+      "expectedGate": "dag",
+      "replayedGate": {
+        "policy_version": "refractagent-complexity-gate-v3",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-separable",
+        "forced": false,
+        "reasons": [
+          "complex-task-marker",
+          "local-separable"
+        ],
+        "statistics": {
+          "task_chars": 88,
+          "context_bytes": 0,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "dependent-fix",
+      "originalDecision": "dag",
+      "expectedGate": "direct",
+      "replayedGate": {
+        "policy_version": "refractagent-complexity-gate-v3",
+        "policy": "auto",
+        "decision": "direct",
+        "rule_decision": "dag",
+        "combination": "coupled-sequential-work",
+        "forced": false,
+        "reasons": [
+          "complex-task-marker",
+          "explicit-tool-requirement",
+          "local-coupled"
+        ],
+        "statistics": {
+          "task_chars": 70,
+          "context_bytes": 0,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "independent-audits",
+      "originalDecision": "dag",
+      "expectedGate": "dag",
+      "replayedGate": {
+        "policy_version": "refractagent-complexity-gate-v3",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-separable",
+        "forced": false,
+        "reasons": [
+          "complex-task-marker",
+          "local-separable"
+        ],
+        "statistics": {
+          "task_chars": 74,
+          "context_bytes": 0,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        }
+      },
+      "passed": true
+    },
+    {
+      "id": "dependent-schema",
+      "originalDecision": "dag",
+      "expectedGate": "direct",
+      "replayedGate": {
+        "policy_version": "refractagent-complexity-gate-v3",
+        "policy": "auto",
+        "decision": "direct",
+        "rule_decision": "dag",
+        "combination": "coupled-sequential-work",
+        "forced": false,
+        "reasons": [
+          "explicit-tool-requirement",
+          "local-coupled"
+        ],
+        "statistics": {
+          "task_chars": 77,
+          "context_bytes": 0,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        }
+      },
+      "passed": true
+    }
+  ]
+}

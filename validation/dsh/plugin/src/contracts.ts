@@ -87,7 +87,7 @@ export interface LlmOptions extends ModelRoute {
   }>
   tools?: ToolSchema[]
   system?: string
-  temperature: number
+  temperature?: number
   maxTokens: number
   signal: AbortSignal
   reasoningEffort?: string

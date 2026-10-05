@@ -4,6 +4,7 @@ from __future__ import annotations
 from concurrent.futures import CancelledError
 from copy import deepcopy
 from dataclasses import dataclass, asdict, replace
+from datetime import datetime, timezone
 import hashlib
 import json
 import math
@@ -142,7 +143,8 @@ class TaskCallBudget:
             if timeout_seconds is not None and timeout_seconds <= 0:
                 self.stop()
                 raise ValueError('task-deadline-exhausted')
-            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic())
+            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),
+                       dispatch_at=datetime.now(timezone.utc).isoformat())
 
     def invoke(self, reservation, *, timeout_seconds=None, cancel_event=None, unlimited=False):
         row, model = reservation.row, reservation.model
@@ -180,6 +182,12 @@ class TaskCallBudget:
             raise ValueError('missing or unconfirmed model usage; reservation retained')
         if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:
             raise ValueError('invalid model usage; reservation retained')
+        if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
+            from .deepseek_official_pricing import pricing
+            rates = pricing(model.api_model, at=datetime.fromisoformat(row['dispatch_at']))
+            model = replace(model, input_cost_per_1k=rates['inputPer1k'],
+                cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])
+            row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
         actual = number(model_response_cost(model, response), 'model cost')
         with self.lock:
             self.charged[row['category']] += actual - row['charged']

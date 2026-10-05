@@ -177,7 +177,7 @@ def test_cli_compiles_user_configuration_into_dsh_overlay(tmp_path,capsys):
     assert main(['dsh-config','--mode','live','--runs-dir',str(tmp_path/'runs'),'--output',str(tmp_path/'missing.json')])==1
 
 
-def test_cli_v4_auto_entry_runs_zero_call_demo_and_requires_synthetic_live(tmp_path, capsys):
+def test_cli_v4_auto_entry_runs_zero_call_demo_and_requires_live_preflight(tmp_path, capsys):
     source = Path(__file__).resolve().parents[1] / 'data/schema/refractagent-providers-v4-example.json'
     assert main(['models', '--provider-config', str(source)]) == 0
     listed = json.loads(capsys.readouterr().out)
@@ -204,7 +204,7 @@ def test_cli_v4_auto_entry_runs_zero_call_demo_and_requires_synthetic_live(tmp_p
     with pytest.raises(ValueError, match='requires template auto'):
         run_agent({'task': '拒绝旧模板', 'strategy': 'auto', 'template': 'single'},
                   provider_config=raw, mode='demo', runs_dir=tmp_path / 'invalid-runs')
-    with pytest.raises(ValueError, match='DATA_MODE_UNSUPPORTED'):
+    with pytest.raises(ValueError, match='PREVIEW_MISMATCH'):
         run_agent({'task': '不得误入旧执行器', 'strategy': 'auto'}, provider_config=json.loads(source.read_text()),
                   mode='live', execute_paid_run=True, runs_dir=tmp_path / 'live-runs', client=Client())
     assert not (tmp_path / 'live-runs').exists()
@@ -223,7 +223,9 @@ def test_v4_demo_recompiles_long_session_capacity_without_relaxing_context(tmp_p
     result = json.loads(Path(demo['result_path']).read_text())
     capacity = result['plan']['nodes'][0]['contract']['capability']['input_budget_tokens']
     assert capacity > 65536
-    assert result['compiled_input_estimates']['deliverable']['base_input_bound'] > 65536
+    assert result['plan_origin'] == 'direct-gate'
+    node_id = result['plan']['nodes'][0]['node_id']
+    assert result['compiled_input_estimates'][node_id]['base_input_bound'] > 65536
     assert demo['limits'] == {'relaxBudget': False, 'relaxContext': False}
 
 

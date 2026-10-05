@@ -18,7 +18,7 @@ PROFILE_SCHEMAS = {'refractrouter-model-profiles-v1', 'refractrouter-model-profi
 FX_PATHS = (Path(__file__).resolve().parents[2] / 'data/currency-rates-v1.json',
             Path(sys.prefix) / 'share/refractrouter/currency-rates-v1.json')
 DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
-POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2'}
+POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2', 'refractagent-dsh-model-pool-v3'}
 CONSERVATIVE_BOOTSTRAP_LATENCY_MS = 60_000.0
 
 
@@ -167,9 +167,10 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
     if pool_schema not in POOL_SCHEMAS:
         raise ValueError('invalid dshModelPool schemaVersion')
     accounting_unit = pool.get('billingUnit', 'USD')
-    if accounting_unit not in {'USD', 'CNY'}:
+    actual_routes = pool_schema == 'refractagent-dsh-model-pool-v3'
+    if accounting_unit not in ({'AFP', 'CNY', 'USD'} if actual_routes else {'USD', 'CNY'}):
         raise ValueError('dshModelPool billingUnit must be USD or CNY')
-    exchange_rate, exchange_snapshot = frozen_usd_cny_rate() if accounting_unit == 'CNY' else (1.0, None)
+    exchange_rate, exchange_snapshot = frozen_usd_cny_rate() if accounting_unit == 'CNY' and not actual_routes else (1.0, None)
     if snapshot.get('schemaVersion') != 'refractagent-dsh-catalog-v1':
         raise ValueError('invalid dshCatalogSnapshot schemaVersion')
     allow_shared_judge = pool.get('allowSharedJudge', False)
@@ -214,6 +215,25 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         if pool_schema == 'refractagent-dsh-model-pool-v2' and set(overrides) - {
                 'inputPer1k', 'cachedInputPer1k', 'outputPer1k', 'note'}:
             raise ValueError('dshModelPool v2 only permits pricing and note overrides')
+        metadata = None
+        if actual_routes:
+            from .planning_model_metadata import lookup
+            from .deepseek_official_pricing import pricing as official_pricing
+            if set(overrides) - {'note'}:
+                raise ValueError('v3 uses verified actual-route prices; manual prices require legacy configuration')
+            if deployment == 'simulated-local':
+                raise ValueError('v3 actual billing cannot use simulated-local zero cost')
+            metadata = lookup({'provider': provider, 'model': model, 'billingUnit': 'AUTO',
+                'host': resolved, 'providerBaseURL': resolved.get('providerBaseURL')})
+            if metadata['billingUnit'] != accounting_unit:
+                raise ValueError(f'{provider}/{model} uses {metadata["billingUnit"]}; choose a matching billing group ({accounting_unit})')
+            if metadata['issues']:
+                raise ValueError(f'{provider}/{model}: ' + '; '.join(metadata['issues']))
+            base['pricing'] = dict(metadata['pricing'], unit=accounting_unit)
+            if provider == 'deepseek-official' and accounting_unit == 'CNY':
+                peak = official_pricing(model, conservative=True)
+                base['pricing'] = {key: peak[key] for key in ('inputPer1k', 'outputPer1k', 'cachedInputPer1k')}
+            base['price_policy'] = 'deepseek-official-cny-v1' if provider == 'deepseek-official' and accounting_unit == 'CNY' else None
         manual_prices = all(key in overrides for key in ('inputPer1k','outputPer1k'))
         if not base and not manual_prices:
             raise ValueError(f'{_route_key(provider, model)} has no public price profile; complete manual pricing is required')
@@ -263,7 +283,10 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         selected.append({'provider': provider, 'model': model, 'deployment': deployment,
             'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
-            'effectiveModel': effective_model, 'quality': quality, 'latencyMs': latency})
+            'pricePolicy': base.get('price_policy'),
+            'effectiveModel': effective_model, 'quality': quality, 'latencyMs': latency,
+            'latencyEvidence': ({'observations': deepcopy((observed or {}).get('observations', [])),
+                'snapshot_id': (observed or {}).get('snapshot_id')} if actual_routes else None)})
         route_evidence = {
             'profile': 'frozen-public-profile',
             'quality_source': 'independent-third-party',
@@ -285,6 +308,12 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         for key in ('pricing_basis', 'pricing_schedule', 'pricing_materialization'):
             if key in base:
                 route_evidence[key] = deepcopy(base[key])
+        if metadata is not None:
+            route_evidence.update(profile='verified-actual-route', price_source_unit=accounting_unit,
+                actual_route_metadata=metadata, pricing_policy=base.get('price_policy'),
+                pricing_basis={'actualProviderBilling': True},
+                pricing_materialization={'strategy': 'peak-budget-current-tier-settlement' if base.get('price_policy') else 'actual-route'},
+                pricing_schedule=None)
         evidence[_route_key(provider, model)] = route_evidence
     if not selected:
         raise ValueError('dshModelPool requires at least one enabled route')
@@ -341,10 +370,12 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'provider': provider_ids[_route_key(row['provider'], row['model'])],
             'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
             'maxOutputTokens': row['maxOutputTokens'], 'deployment': row['deployment'],
+            **({'pricePolicy': row['pricePolicy']} if row.get('pricePolicy') else {}),
             'pricing': {'unit': accounting_unit,
                         **{key: value * exchange_rate for key, value in row['pricing'].items()
                            if key != 'unit'}},
-            'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs']} if 'worker' in roles else None})
+            'routing': {'quality': row['quality'], 'latencyMs': row['latencyMs'],
+                **({'latencyEvidence': row['latencyEvidence']} if row.get('latencyEvidence') is not None else {})} if 'worker' in roles else None})
         if models[-1]['routing'] is None: models[-1].pop('routing')
         evidence[_route_key(row['provider'], row['model'])].update(
             compiled_model_id=models[-1]['id'], effective_model=row['effectiveModel'],

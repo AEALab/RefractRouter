@@ -134,7 +134,7 @@ class RouteObservationStore:
             profiles = {}
             for identity in identities:
                 values = connection.execute('''
-                    SELECT id,latency_ms,observed_at FROM route_latency_observations
+                    SELECT id,call_label,latency_ms,input_tokens,output_tokens,observed_at FROM route_latency_observations
                     WHERE provider=? AND model=? AND effective_model=? AND reasoning_effort=?
                       AND project_scope=?
                       AND status='success' AND latency_ms IS NOT NULL
@@ -150,6 +150,11 @@ class RouteObservationStore:
                              f"{identity['effective_model']}\0{identity['reasoning_effort']}")
                 profiles[route_key] = {
                     'prediction_ms': prediction,
+                    'observations': [{k: row[k] for k in ('input_tokens', 'output_tokens', 'latency_ms')}
+                        for row in values if row['call_label'] not in {'planner', 'planner-repair', 'final-judge'}
+                            and not row['call_label'].startswith(('dynamic-planner', 'classifier'))
+                            and all(type(row[k]) is int and row[k] >= 0
+                            for k in ('input_tokens', 'output_tokens', 'latency_ms'))],
                     'samples': len(values),
                     'window': f'latest-{WINDOW_SIZE}-successful-p90',
                     'last_observed_at': max(row['observed_at'] for row in values),

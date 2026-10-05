@@ -181,6 +181,7 @@ class ApplicationModelSpec(ModelSpec):
     token_limit_parameter: str = "max_completion_tokens"
     authentication_required: bool = True
     declared_pricing: dict | None = None
+    price_policy: str | None = None
     # deployment 只属于 providerConfig 行；不放进 ModelSpec，避免改动模型清单的冻结摘要。
     deployment: str = "cloud"
     # v4 职责是配置合同，不覆盖旧 manifest 的 candidate/judge 兼容字段。
@@ -431,7 +432,7 @@ def compile_configuration(raw, strategy=None):
     for row in model_rows:
         m = obj(row, {'id', 'provider', 'model', 'role', 'roles', 'contextWindow', 'maxOutputTokens',
                      'pricing', 'routing', 'requestOptions', 'jsonMode', 'reasoningEffort',
-                     'deployment'}, 'model')
+                     'deployment', 'pricePolicy'}, 'model')
         mid = identifier(m.get('id'), 'model id')
         if mid in model_ids:
             raise ValueError('model ids must be unique')
@@ -467,6 +468,14 @@ def compile_configuration(raw, strategy=None):
         deployment = deployment_value(m.get('deployment'),
                                       provider_deployment=p.get('deployment', 'cloud'),
                                       schema_version=schema_version, label=f'{mid} deployment')
+        price_policy = m.get('pricePolicy')
+        if price_policy is not None:
+            from .deepseek_official_pricing import pricing as official_pricing
+            peak = official_pricing(api_model, conservative=True)
+            if (price_policy != 'deepseek-official-cny-v1' or p.get('dshProvider') != 'deepseek-official'
+                    or unit != 'CNY' or deployment in {'local', 'simulated-local'} or peak is None
+                    or (inp, cached, out) != (peak['inputPer1k'], peak['cachedInputPer1k'], peak['outputPer1k'])):
+                raise ValueError('invalid actual-route pricePolicy or budget prices')
         effective = marginal_pricing(deployment, inp, cached, out)
         # 本地与模拟本地按边际成本 0 参与求解与记账；申报价保留供敏感性分析复核。
         declared = (None if effective == (inp, cached, out) else
@@ -523,7 +532,7 @@ def compile_configuration(raw, strategy=None):
         models.append(ApplicationModelSpec(model_id=mid, provider=p.get('dshProvider', pid), api_model=api_model,
             role=role, capability=predictions.get(mid, {}).get('quality', 100)/100,
             billing_unit=unit, input_cost_per_1k=effective[0], cached_input_cost_per_1k=effective[1],
-            output_cost_per_1k=effective[2], deployment=deployment, declared_pricing=declared,
+            output_cost_per_1k=effective[2], deployment=deployment, declared_pricing=declared, price_policy=price_policy,
             base_url=p.get('baseUrl'), api_key_env=p.get('credentialEnv'),
             context_window=context, max_output_tokens=output, snapshot_date=date.today().isoformat(),
             wire_api='dsh-llm' if p['type']=='dsh' else 'responses' if p['type']=='openai-responses' else 'chat-completions',
