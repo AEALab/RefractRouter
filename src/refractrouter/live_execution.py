@@ -12,7 +12,7 @@ from .decomposition_decision import RULE_VERSION, validate_evidence, trivial_wor
 from .task_tool_evidence import tool_requirements
 
 
-COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v3"
+COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v4"
 AUTHORIZATION_SCHEMA = "refractagent-live-authorization-v1"
 AUTHORIZATION_TTL_SECONDS = 600
 DIRECT_TASK_CHARS = 600
@@ -23,6 +23,7 @@ _COMPLEX_MARKERS = re.compile(
     r"\bcompare\b|\bversus\b|\bseparately\b|\bthen\b|\bsteps?\b|\bplan\b)",
     re.IGNORECASE,
 )
+_INDEPENDENT_WORK = re.compile(r"(?:分别|各自|独立|\bseparately\b|\bindependently\b)", re.IGNORECASE)
 _TOOL_MARKERS = re.compile(
     r"(?:搜索(?:网页|网络|互联网)?|查找(?:最新|实时)|读取(?:文件|仓库)|"
     r"写入文件|修改代码|运行(?:命令|测试|脚本)|执行(?:命令|终端)|调用(?:工具|API)|发送(?:消息|邮件)|"
@@ -113,7 +114,11 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
     trivial = trivial_workload(task) and not any(payload.get(k) for k in ("materials", "acceptanceCriteria", "outputConstraints"))
     if trivial:
         reasons = ["trivial-workload"]
-    rule_decision = "dag" if reasons and not trivial else "direct"
+    # 长输入、工具、验收条件与输出格式都是直接执行时也可能存在的要求。
+    # 只有明确提出分别处理的工作才值得先付规划费用；模型判别的 SEPARABLE
+    # 仍可独立打开 DAG，容量不足则由后续准入明确报告。
+    independent_work = bool(_INDEPENDENT_WORK.search(task))
+    rule_decision = "dag" if independent_work and not trivial else "direct"
     decision, combination = rule_decision, "rules-only"
     if local is not None:
         verdict = local["verdict"]
@@ -133,7 +138,7 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
         elif verdict == "COUPLED" and local['ruleVersion'] in {RULE_VERSION, 'automatic-decomposition-hybrid-v3'}:
             decision, combination = "direct", "coupled-sequential-work"
             reasons.append("local-coupled")
-        elif verdict == "COUPLED" and not hard:
+        elif verdict == "COUPLED" and (not hard or rule_decision == "direct"):
             decision, combination = "direct", "local-coupled-overrode-weak-rules"
             reasons = ["local-coupled"]
         elif verdict == "COUPLED":

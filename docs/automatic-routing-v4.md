@@ -63,6 +63,10 @@ planner。高依赖密度或高汇合风险会阻断一般成本、并行信号�
 
 v4 自动策略在预检时使用 `live_execution.complexity_gate` 决定是否支付规划调用。
 `dagMode: never` 在预检直接采用整任务执行；`force` 保持研究用强制 DAG。
+普通自动模式只有任务明确要求分别或独立处理时，结构规则才建议支付规划调用；
+Jev 判别为 `SEPARABLE` 也可建议规划。任务文字较长、存在工具调用、验收条件、
+严格输出格式或多份材料，本身都不证明工作可独立拆分。若 Jev 判断为 `SINGLE`
+或 `COUPLED`，则直接执行；工具权限与最终审核仍独立检查。
 普通 `auto` 若进入规划，真实 planner 产生图后，再用 `compare_executable_routes`
 比较两个已完成能力、容量、数据域及质量准入的执行候选。决定为 direct 时，
 运行记录标为 `direct-after-probe`，只派发整任务执行器；规划调用作为已发生费用仍入账。

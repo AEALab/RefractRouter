@@ -198,7 +198,7 @@ def test_cli_v4_auto_entry_runs_zero_call_demo_and_requires_live_preflight(tmp_p
     assert demo['strategy_name'] == '自动路由'
     assert demo['policy_version'] == 'refractagent-auto-runtime-v1'
     assert demo['planner']['model_id'] == 'local-router'
-    assert demo['plan_origin'] == 'template-preview'
+    assert demo['plan_origin'] == 'direct-gate'
     request = json.loads((Path(demo['run_dir']) / 'request.json').read_text())
     assert request['runtime_request']['maxConcurrency'] == 4
     with pytest.raises(ValueError, match='requires template auto'):
