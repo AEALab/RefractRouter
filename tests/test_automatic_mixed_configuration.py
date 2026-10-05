@@ -149,6 +149,14 @@ def test_mixed_generated_plan_compares_direct_and_dag_without_adding_units():
     for name in ('direct', 'dag'):
         if comparison[name]:
             assert set(comparison[name]['total_estimated_by_unit']) == {'AFP', 'CNY'}
+    if comparison['direct'] and comparison['dag']:
+        savings = comparison['dag_net_estimated_savings_vs_unprobed_direct_by_unit']
+        assert set(savings) == {'AFP', 'CNY'}
+        for unit in savings:
+            assert savings[unit] == pytest.approx(
+                comparison['direct']['total_estimated_by_unit'][unit]
+                - comparison['planner_actual_costs_by_unit'][unit]
+                - comparison['dag']['total_estimated_by_unit'][unit])
     assert result['billing_unit'] == 'MIXED'
     assert {'AFP', 'CNY'} == set(result['charged'])
 

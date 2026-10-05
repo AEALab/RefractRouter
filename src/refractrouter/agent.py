@@ -28,7 +28,7 @@ from .task_plan import text, validate_plan, preview_plan
 from .task_runtime import run_task
 from .task_materials import validate_materials
 from .agent_progress import ProgressRecorder, dag_snapshot
-from .route_observations import RouteObservationStore
+from .route_observations import RouteObservationStore, route_value_observation
 from .live_execution import (authorization_binding, complexity_gate,
                              create_authorization_preview, review_decision,
                              validate_authorization)
@@ -451,10 +451,16 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
             and isinstance(row.get('effective_model'), str)
             and isinstance(row.get('reasoning_effort', 'default'), str)
             and '/' in route}
-        recorded = RouteObservationStore(
-            route_observation_path, scope=route_observation_scope).record_run(run_id, calls, bindings)
+        store = RouteObservationStore(route_observation_path, scope=route_observation_scope)
+        recorded = store.record_run(run_id, calls, bindings)
         observation_evidence = {'recorded': recorded, 'path': str(Path(route_observation_path).resolve()),
                                 'policy': 'latest-50-successful-p90-v1'}
+        if automatic_routing:
+            value = route_value_observation(result.get('route_comparison'), result['plan_origin'],
+                calls, manifest.billing_unit, result['status'], result['evaluation'],
+                result.get('tool_validation'))
+            observation_evidence['value_recorded'] = store.record_route_value(run_id, value)
+            observation_evidence['value'] = value
     if mixed:
         totals = {'production': None, 'evaluation': None, 'unconfirmed': None,
             'by_unit': {unit: {

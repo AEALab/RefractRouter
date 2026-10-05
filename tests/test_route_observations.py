@@ -4,7 +4,8 @@ import json
 
 from refractrouter.agent import resource, run_agent
 from refractrouter.agent_cli import main
-from refractrouter.route_observations import RouteObservationStore, local_observation_path
+from refractrouter.route_observations import (RouteObservationStore, local_observation_path,
+                                               route_value_observation)
 from refractrouter.team_service import TaskStore
 from tests.test_text_tasks import Client
 
@@ -98,6 +99,45 @@ def test_cli_exposes_a_zero_call_read_only_catalog(tmp_path, capsys):
     assert value['schemaVersion'] == 'refractrouter-route-profiles-v1'
     assert value['modelCalls'] == 0
     assert value['profiles'][0]['prediction_ms'] == 456
+
+
+def test_passive_value_observation_uses_only_selected_route_and_confirmed_calls(tmp_path):
+    store = RouteObservationStore(tmp_path / 'observations.sqlite3')
+    comparison = {'route': 'dag', 'direct': {'total_estimated_cost': .2},
+                  'dag': {'total_estimated_cost': .1}}
+    calls = [{'billing_unit': 'AFP', 'status': 'billed', 'charged': .12},
+             {'billing_unit': 'AFP', 'status': 'reserved', 'charged': .03}]
+    value = route_value_observation(comparison, 'model', calls, 'AFP', 'completed',
+                                    {'passed': True, 'score': 90}, {'passed': False})
+    assert value['predicted_costs_by_unit'] == {'AFP': .1}
+    assert value['actual_costs_by_unit']['AFP'] == .12
+    assert value['unconfirmed_costs_by_unit']['AFP'] == .03
+    assert value['quality_source'] == 'model-review-unverified'
+    assert value['tool_receipt_passed'] is False
+    assert value['counterfactual_observed'] is False
+    assert store.record_route_value('run-1', value) == 1
+    assert store.record_route_value('run-1', value) == 0
+    summary = store.value_summary()
+    assert summary['byRoute']['dag']['runs'] == 1
+    assert summary['byRoute']['dag']['modelReviewPassed'] == 1
+    assert summary['byRoute']['dag']['toolReceiptFailed'] == 1
+    assert summary['costRatioP90ByRouteAndUnit'] == {}
+    assert summary['qualityVerified'] is False
+
+
+def test_cost_forecast_ratio_excludes_failed_runs_and_keeps_units_separate(tmp_path):
+    store = RouteObservationStore(tmp_path / 'observations.sqlite3')
+    comparison = {'route': 'direct', 'direct': {'total_estimated_by_unit': {'AFP': 2, 'CNY': .1}}}
+    for index, (status, actual) in enumerate((('completed', 1), ('completed', 3), ('failed', 100))):
+        value = route_value_observation(comparison, 'direct-after-probe', [
+            {'billing_unit': 'AFP', 'status': 'billed', 'charged': actual},
+            {'billing_unit': 'CNY', 'status': 'billed', 'charged': .05}],
+            'MIXED', status, None)
+        store.record_route_value(f'run-{index}', value)
+    ratios = store.value_summary()['costRatioP90ByRouteAndUnit']['direct']
+    assert ratios['AFP'] == {'ratio': 1.5, 'samples': 2}
+    assert ratios['CNY'] == {'ratio': .5, 'samples': 2}
+    assert store.catalog()['modelCalls'] == 0
 
 
 def test_live_run_reuses_call_ledger_to_record_observations_without_probe(tmp_path):

@@ -122,6 +122,10 @@ def _compare_mixed_execution(routes, *, candidates, charged_calls, judge, judge_
                 'costsByUnit': row['total_estimated_by_unit'],
                 'latencyMs': row['worker_scheduled_latency_ms']})
     selected = choose_mixed_billing_route(choices, {'AFP': 0, 'CNY': 0}) if choices else None
+    direct_row, dag_row = views.get('direct'), views.get('dag')
+    net_savings = ({unit: direct_row['total_estimated_by_unit'][unit]
+        - planner_costs[unit] - dag_row['total_estimated_by_unit'][unit]
+        for unit in ('AFP', 'CNY')} if direct_row and dag_row else None)
     return {'policy_version': 'automatic-live-comparison-mixed-v1',
             'prediction_source': 'compiled-user-declared-node-profiles',
             'latency_scope': 'worker-schedule-plus-observed-planner; shared-judge-latency-unforecast',
@@ -131,7 +135,11 @@ def _compare_mixed_execution(routes, *, candidates, charged_calls, judge, judge_
             'reason': selected['reason'] if selected else 'no-qualified-affordable-route',
             'quality_noninferiority_verified': False,
             'quality_basis': 'configured-profile-prior', 'budget_shortfalls': shortfalls,
-            'planner_actual_costs_by_unit': planner_costs}
+            'planner_actual_costs_by_unit': planner_costs,
+            'dag_net_estimated_savings_vs_unprobed_direct_by_unit': net_savings,
+            'dag_net_savings_forecast_no_unit_worse_and_some_better': (
+                all(amount >= -1e-9 for amount in net_savings.values())
+                and any(amount > 1e-9 for amount in net_savings.values()) if net_savings else None)}
 
 
 def validate_request(raw):

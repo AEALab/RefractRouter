@@ -151,3 +151,16 @@ test('自动路由摘要分清选路预计、调用预留、结算与最终评�
   assert.match(summary,/最终评审保护额度：0\.7000 CNY/)
   assert.match(summary,/预留上界 1\.2000 AFP，实际结算 0\.1400 AFP/)
 })
+
+test('自动路由摘要区分规划前净节省预测与本路线被动结算',()=>{
+  const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'AFP',
+    route_comparison:{status:'selected',route:'dag',reason:'lower-estimated-total-cost',
+      direct:{total_estimated_cost:.3},dag:{total_estimated_cost:.2},
+      dag_net_estimated_savings_vs_unprobed_direct:.06},
+    route_observations:{value:{route:'dag',actual_costs_by_unit:{AFP:.22},
+      unconfirmed_costs_by_unit:{AFP:0},judge_passed:true}}})
+  assert.match(summary,/规划前基线净节省预测：0\.0600 AFP（已计规划探测费）/)
+  assert.match(summary,/被动观测：dag 路线实际结算 0\.2200 AFP/)
+  assert.match(summary,/非独立质量证明/)
+  assert.match(summary,/未执行路线没有实测费用/)
+})

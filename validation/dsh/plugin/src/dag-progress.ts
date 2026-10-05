@@ -121,6 +121,21 @@ export function runSummary(result: Record<string, unknown>): string {
         +`${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`)
       + qualityLine
     : ''
+  const netSavings=object(comparison.dag_net_estimated_savings_vs_unprobed_direct_by_unit)
+    ?`规划前基线净节省预测：${vector(comparison.dag_net_estimated_savings_vs_unprobed_direct_by_unit)}；AFP 与 CNY 分账，不能直接相加；尚未经反事实实测\n`
+    :typeof comparison.dag_net_estimated_savings_vs_unprobed_direct==='number'
+      ?`规划前基线净节省预测：${number(comparison.dag_net_estimated_savings_vs_unprobed_direct)} ${String(result.billing_unit)}（已计规划探测费）；尚未经反事实实测\n`
+      :''
+  const passive=object(result.route_observations)?result.route_observations:{}
+  const value=object(passive.value)?passive.value:{}
+  const observedCost=(raw:unknown)=>mixed?vector(raw):`${number(object(raw)?raw[String(result.billing_unit)]:null)} ${String(result.billing_unit)}`
+  const valueLine=Object.keys(value).length
+    ?`被动观测：${String(value.route)} 路线实际结算 ${observedCost(value.actual_costs_by_unit)}；`
+      +`未确认预留 ${observedCost(value.unconfirmed_costs_by_unit)}；`
+      +`模型评审 ${value.judge_passed===true?'通过':value.judge_passed===false?'未通过':'未执行'}（非独立质量证明）；`
+      +`宿主工具回执 ${value.tool_receipt_passed===true?'通过':value.tool_receipt_passed===false?'未通过':'未检查'}；`
+      +`未执行路线没有实测费用\n`
+    :''
   const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:{}
   const diagnosticLines=Object.entries(diagnostics).filter(([,v])=>object(v)).map(([name,value])=>{
     const d=value as Record<string,unknown>
@@ -155,7 +170,7 @@ export function runSummary(result: Record<string, unknown>): string {
     +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
       `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + diagnosticLines + latencyLines + costTraceLine + toolLine
+    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + latencyLines + costTraceLine + toolLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')
