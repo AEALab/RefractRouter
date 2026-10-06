@@ -137,14 +137,16 @@ export function runSummary(result: Record<string, unknown>): string {
       +`宿主工具回执 ${value.tool_receipt_passed===true?'通过':value.tool_receipt_passed===false?'未通过':'未检查'}；`
       +`未执行路线没有实测费用\n`
     :''
-  const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:{}
+  const routing=object(result.routing)?result.routing:{}
+  const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:
+    object(routing.diagnostics)?{'执行路线':routing.diagnostics}:{}
   const diagnosticLines=Object.entries(diagnostics).filter(([,v])=>object(v)).map(([name,value])=>{
     const d=value as Record<string,unknown>
     const rejected=object(d.rejected_combinations)?d.rejected_combinations:{}
-    const labels:Record<string,string>={quality:'质量',cost:'费用',latency:'预计时延','assignment-mode':'分配模式'}
+    const labels:Record<string,string>={quality:'质量',cost:result.accounting_basis==='public-reference-valuation'?'参考费用':'费用',cash:'现金费用',latency:'预计时延','assignment-mode':'分配模式'}
     const reasons=Object.entries(rejected).filter(([,v])=>typeof v==='number'&&v>0)
       .map(([k,v])=>`${labels[k]??k}不满足 ${String(v)} 种分配`).join('、')
-    return `${name} 准入：${reasons||'没有记录约束拒绝'}；预计最短 ${number(d.minimum_scheduled_latency_ms)} ms，剩余期限 ${number(d.remaining_latency_ms)} ms；最低预计费用 ${number(d.minimum_cost)}，剩余额度 ${number(d.remaining_cost)}；无候选节点 ${Array.isArray(d.empty_candidate_nodes)?d.empty_candidate_nodes.map(escape).join('、')||'无':'未提供'}\n`
+    return `${name} 准入：${reasons||'没有记录约束拒绝'}；预计最短 ${number(d.minimum_scheduled_latency_ms)} ms，剩余期限 ${number(d.remaining_latency_ms)} ms；最低预计费用 ${number(d.minimum_cost)}，剩余额度 ${number(d.remaining_cost)}${'remaining_cash' in d?`；剩余现金 ${d.remaining_cash===null?'不限额':number(d.remaining_cash)}，最低预计现金 ${number(d.minimum_cash)}`:''}；无候选节点 ${Array.isArray(d.empty_candidate_nodes)?d.empty_candidate_nodes.map(escape).join('、')||'无':'未提供'}\n`
   }).join('')
   const latencyEvidence=object(comparison.latency_evidence)?comparison.latency_evidence:{}
   const latencyLines=Object.entries(latencyEvidence).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,raw])=>{

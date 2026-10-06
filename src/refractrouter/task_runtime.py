@@ -588,6 +588,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 weights=Weights(**request["weights"]) if request["method"] == "B" else None,
                 eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
                 model_billing_modes={mid: model.billing_mode for mid, model in candidates.items()} if currency_reference else None,
+                cash_max=budget.remaining_cash() if currency_reference else None,
                 model_providers={mid: model.provider for mid, model in candidates.items()})
         if alternative_direct_plan is not None and live:
             if configuration is None or configuration.objective is None:
@@ -649,6 +650,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                             eligible_models=direct_eligible, execution_policy=policy,
                             reduce_dominated=configured_application,
                             model_billing_modes={mid: model.billing_mode for mid, model in candidates.items()} if currency_reference else None,
+                            cash_max=budget.remaining_cash() if currency_reference else None,
                             model_providers={mid: model.provider for mid, model in candidates.items()})
                     return (direct, estimates, direct_profile, direct_profiles, direct_admission,
                             direct_eligible, direct_placement, direct_routing)

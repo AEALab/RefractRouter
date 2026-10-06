@@ -164,3 +164,13 @@ test('自动路由摘要区分规划前净节省预测与本路线被动结算',
   assert.match(summary,/非独立质量证明/)
   assert.match(summary,/未执行路线没有实测费用/)
 })
+
+test('未进入 DAG 比较的直接路线也展示现金准入原因',()=>{
+  const summary=runSummary({accounting_basis:'public-reference-valuation',routing:{
+    status:'no-feasible-route',diagnostics:{rejected_combinations:{cash:2},
+      remaining_cash:0,minimum_cash:.1,minimum_cost:.1,remaining_cost:10,
+      empty_candidate_nodes:[]}}})
+  assert.match(summary,/现金费用不满足 2 种分配/)
+  assert.match(summary,/剩余现金 0/)
+  assert.match(summary,/最低预计现金 0.1000/)
+})

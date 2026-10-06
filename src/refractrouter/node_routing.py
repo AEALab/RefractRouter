@@ -127,13 +127,18 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                 execution_policy: ExecutionPolicy | None = None,
                 model_providers: dict[str, str] | None = None,
                 assignment_mode: str = 'per-node', reduce_dominated: bool = False,
-                model_billing_modes: dict[str, str] | None = None):
+                model_billing_modes: dict[str, str] | None = None,
+                cash_max: float | None = None):
     if assignment_mode not in {'per-node', 'single-model'}:
         raise ValueError('unsupported assignment mode')
     if method not in {"A", "B"} or (method == "B" and weights is None) or (method == "A" and weights is not None):
         raise ValueError("A requires constraints; B also requires explicit weights")
     number(quality_min, "quality_min", maximum=100)
     number(cost_max, "cost_max")
+    if cash_max is not None:
+        number(cash_max, "cash_max")
+        if model_billing_modes is None:
+            raise ValueError('cash constraint requires explicit billing modes')
     if latency_max_ms is not None:
         number(latency_max_ms, "latency_max_ms")
     validate_profiles(profiles)
@@ -190,6 +195,8 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                         sum(p.quality for p in combination) / len(combination)))
     latency_bounds = (min(r[2] for r in records), max(r[2] for r in records)) if records else None
     rejected = {k: 0 for k in ("assignment-mode", "quality", "cost", "latency")}
+    if cash_max is not None:
+        rejected['cash'] = 0
     best, best_key, feasible = None, None, 0
     for combination, cost, latency, quality in records:
         # 对称单模型基线只限制分配空间；目标、归一化标尺、约束和调度均保持一致。
@@ -199,6 +206,8 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         failed = {"quality": any(p.quality < quality_min for p in combination),
                   "cost": cost > cost_max,
                   "latency": latency_max_ms is not None and latency > latency_max_ms}
+        if cash_max is not None:
+            failed['cash'] = sum(cash_cost(p) for p in combination) > cash_max
         for reason, matched in failed.items():
             rejected[reason] += int(matched)
         if any(failed.values()):
@@ -240,6 +249,8 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                                 "mean_node_quality_proxy": quality, "weighted_score": score if weights else None}
     if model_billing_modes is not None:
         result['cost_preference'] = 'quality-qualified-then-cash-then-reference'
+        result['diagnostics'].update(remaining_cash=cash_max,
+            minimum_cash=min((sum(cash_cost(p) for p in row[0]) for row in records), default=None))
         if best:
             result['prediction']['cash_cost'] = sum(cash_cost(p) for p in best[0])
             result['prediction']['reference_cost'] = best[1]
