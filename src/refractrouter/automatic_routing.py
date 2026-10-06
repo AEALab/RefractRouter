@@ -376,10 +376,10 @@ def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
 
 
 def choose_mixed_billing_route(candidates, budgets):
-    """在已核验质量的完整路线之间按现金、AFP、时延顺序选路。
+    """在达到质量下限的完整路线之间按现金、AFP、时延顺序选路。
 
     此决策合同不执行模型调用；调用方须先提供包含规划、执行及评审的费用向量。
-    当前单单位任务运行时尚未接入此合同。
+    跨路线质量比较可为 None；未知不等于已验证的非劣性。
     """
     if not isinstance(candidates, list) or not candidates:
         raise ValueError('mixed billing requires nonempty route candidates')
@@ -405,14 +405,14 @@ def choose_mixed_billing_route(candidates, budgets):
         quality = row.get('qualityQualified')
         noninferior = row.get('qualityNonInferior')
         basis = row.get('qualityBasis')
-        if type(quality) is not bool or type(noninferior) is not bool \
+        if type(quality) is not bool or (noninferior is not None and type(noninferior) is not bool) \
                 or not isinstance(basis, str) or not basis:
             raise ValueError('mixed billing candidate requires quality gate, comparison and basis')
         latency = row.get('latencyMs')
         if latency is not None and (isinstance(latency, bool) or not isinstance(latency, (int, float))
                 or not math.isfinite(latency) or latency < 0):
             raise ValueError('invalid mixed billing latency forecast')
-        if not quality or not noninferior:
+        if not quality or noninferior is False:
             excluded[route_id] = 'quality-not-qualified'
         elif any(budgets[unit] != 0 and costs[unit] > budgets[unit] + 1e-12 for unit in ('AFP', 'CNY')):
             excluded[route_id] = 'unit-budget-exhausted'
@@ -428,4 +428,5 @@ def choose_mixed_billing_route(candidates, budgets):
     return {'policyVersion': 'automatic-mixed-billing-v1', 'selected': chosen['id'],
             'reason': 'quality-then-cny-then-afp-then-latency',
             'estimatedCostsByUnit': dict(chosen['costsByUnit']), 'excluded': excluded,
-            'qualityBasis': chosen['qualityBasis']}
+            'qualityBasis': chosen['qualityBasis'],
+            'qualityComparison': 'unverified' if chosen['qualityNonInferior'] is None else 'provided'}

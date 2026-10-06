@@ -113,12 +113,14 @@ def _compare_mixed_execution(routes, *, candidates, charged_calls, judge, judge_
                        'known_latency_ms': routing['prediction']['scheduled_latency_ms'] + planner_latency
                            if planner_latency is not None else None,
                        'quality_proxy': quality, 'assignments': dict(routing['assignments'])}
-    reference = max((row['quality_proxy'] for row in views.values() if row), default=None)
     for name, row in views.items():
         if row:
             choices.append({'id': name, 'qualityQualified': True,
-                'qualityNonInferior': row['quality_proxy'] >= reference,
-                'qualityBasis': 'configured-profile-prior',
+                # 节点画像只用于各路线的质量下限准入；不同图的节点分数不能
+                # 当成已校准的整任务质量比较，否则更高的 DAG 先验会排除
+                # 已达到质量下限、且成本更低的 direct 路线。
+                'qualityNonInferior': None,
+                'qualityBasis': 'configured-profile-threshold-only',
                 'costsByUnit': row['total_estimated_by_unit'],
                 'latencyMs': row['worker_scheduled_latency_ms']})
     selected = choose_mixed_billing_route(choices, {'AFP': 0, 'CNY': 0}) if choices else None
@@ -134,7 +136,7 @@ def _compare_mixed_execution(routes, *, candidates, charged_calls, judge, judge_
             'route': selected['selected'] if selected else 'infeasible',
             'reason': selected['reason'] if selected else 'no-qualified-affordable-route',
             'quality_noninferiority_verified': False,
-            'quality_basis': 'configured-profile-prior', 'budget_shortfalls': shortfalls,
+            'quality_basis': 'configured-profile-threshold-only', 'budget_shortfalls': shortfalls,
             'planner_actual_costs_by_unit': planner_costs,
             'dag_net_estimated_savings_vs_unprobed_direct_by_unit': net_savings,
             'dag_net_savings_forecast_no_unit_worse_and_some_better': (

@@ -10,7 +10,7 @@ from refractrouter.configured_routing import configured_profile
 from refractrouter.automatic_mixed_assignment import route_nodes_mixed
 from refractrouter.node_routing import load_profile
 from refractrouter.task_plan import preview_plan, validate_plan
-from refractrouter.task_runtime import run_task
+from refractrouter.task_runtime import run_task, _compare_mixed_execution
 from tests.test_text_tasks import Client
 from tests.test_live_execution import local_evidence
 
@@ -159,6 +159,30 @@ def test_mixed_generated_plan_compares_direct_and_dag_without_adding_units():
                 - comparison['dag']['total_estimated_by_unit'][unit])
     assert result['billing_unit'] == 'MIXED'
     assert {'AFP', 'CNY'} == set(result['charged'])
+
+
+def test_mixed_route_cost_order_does_not_treat_node_prior_as_proven_task_quality():
+    def route(cny, quality, latency):
+        return {'status': 'selected', 'assignments': {'answer': 'worker'},
+                'prediction': {'costs_by_unit': {'AFP': 0.0, 'CNY': cny},
+                               'minimum_node_quality_proxy': quality,
+                               'scheduled_latency_ms': latency}}
+
+    common = {'candidates': {}, 'charged_calls': [{'label': 'planner',
+               'status': 'billed', 'charged': .001, 'billing_unit': 'CNY', 'latency_ms': 20}],
+              'judge': type('Judge', (), {'billing_unit': 'CNY'})(), 'judge_cost': 0,
+              'review_required': False, 'tool_count': 0, 'input_cap': 131072,
+              'remaining_production': {'AFP': 100, 'CNY': 10},
+              'remaining_evaluation': {'AFP': 10, 'CNY': 10}}
+    dearer_dag = _compare_mixed_execution(
+        {'direct': route(.02, 80, 1000), 'dag': route(.04, 95, 500)}, **common)
+    assert dearer_dag['route'] == 'direct'
+    assert dearer_dag['quality_noninferiority_verified'] is False
+    assert dearer_dag['quality_basis'] == 'configured-profile-threshold-only'
+    cheaper_dag = _compare_mixed_execution(
+        {'direct': route(.04, 95, 1000), 'dag': route(.02, 80, 500)}, **common)
+    assert cheaper_dag['route'] == 'dag'
+    assert cheaper_dag['quality_noninferiority_verified'] is False
 
 
 def test_mixed_application_preflight_binds_both_unit_limits(tmp_path):
