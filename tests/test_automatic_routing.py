@@ -275,3 +275,17 @@ def test_mixed_billing_keeps_afp_visible_and_rejects_incomplete_unit_forecasts()
     routes[1]['costsByUnit'] = {'CNY': 0}
     with pytest.raises(ValueError, match='requires AFP and CNY'):
         choose_mixed_billing_route(routes, {'AFP': 0, 'CNY': 0})
+
+
+def test_mixed_billing_keeps_unknown_cross_route_quality_explicit():
+    rows = [
+        {'id': 'direct', 'qualityQualified': True, 'qualityNonInferior': None,
+         'qualityBasis': 'configured-profile-threshold-only',
+         'costsByUnit': {'AFP': 0, 'CNY': .02}, 'latencyMs': 1000},
+        {'id': 'dag', 'qualityQualified': True, 'qualityNonInferior': None,
+         'qualityBasis': 'configured-profile-threshold-only',
+         'costsByUnit': {'AFP': 0, 'CNY': .04}, 'latencyMs': 500},
+    ]
+    result = choose_mixed_billing_route(rows, {'AFP': 10, 'CNY': 1})
+    assert result['selected'] == 'direct'
+    assert result['qualityComparison'] == 'unverified'

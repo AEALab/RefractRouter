@@ -116,7 +116,8 @@ export function runSummary(result: Record<string, unknown>): string {
     ? `执行前比较：${String(comparison.status)}；选中 ${selectedLabel}；依据 ${String(comparison.reason)}；`
       + selectedShape
       + (mixed?`direct 预计 ${object(comparison.direct)?vector(comparison.direct.total_estimated_by_unit):'不可行'}，`
-        +`${generatedLabel} 预计 ${object(comparison.dag)?vector(comparison.dag.total_estimated_by_unit):'不可行'}；质量依据：模型画像先验，未经本任务等质验证\n`
+        +`${generatedLabel} 预计 ${object(comparison.dag)?vector(comparison.dag.total_estimated_by_unit):'不可行'}；`
+        +`两路线仅分别通过配置的质量下限；节点画像不能证明整任务等质，跨路线质量比较未经验证\n`
         :`direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
         +`${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`)
       + qualityLine
