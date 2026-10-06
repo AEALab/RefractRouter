@@ -123,10 +123,10 @@ def test_tokenizer_capacity_preserves_rules_after_dispatch(tmp_path):
     assert result["usage"]["forwards"] is None
 
 
-def test_v2_skipped_judge_evidence_is_valid_and_retains_rules():
+def test_skipped_judge_evidence_is_valid_and_requires_review():
     task = '继续处理刚才的问题'
     evidence = unknown_evidence(task, '', 'context-dependent')
     assert set(evidence['probabilities']) == {'SINGLE', 'COUPLED', 'SEPARABLE', 'UNKNOWN'}
     gate = complexity_gate({'task': task}, '', decomposition=evidence)
     assert gate['local_decision']['reason'] == 'context-dependent'
-    assert gate['combination'] == 'local-unknown-rules-preserved'
+    assert gate['combination'] == 'uncertain-direct-with-review'

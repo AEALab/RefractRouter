@@ -12,7 +12,7 @@ from .decomposition_decision import RULE_VERSION, validate_evidence, trivial_wor
 from .task_tool_evidence import tool_requirements
 
 
-COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v4"
+COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v5"
 AUTHORIZATION_SCHEMA = "refractagent-live-authorization-v1"
 AUTHORIZATION_TTL_SECONDS = 600
 DIRECT_TASK_CHARS = 600
@@ -143,6 +143,11 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
             reasons = ["local-coupled"]
         elif verdict == "COUPLED":
             combination = "hard-rules-preserved-over-local-coupled"
+        elif local['ruleVersion'] == RULE_VERSION:
+            # 当前 Judge 的不确定结果不能由「分别」等弱关键词变成拆分证据。
+            # 完整请求继续交给执行模型，独立评审保留；旧合同回放不变。
+            decision, combination = "direct", "uncertain-direct-with-review"
+            reasons.append("decomposition-evidence-insufficient")
         else:
             combination = "local-unknown-rules-preserved"
     return {"policy_version": COMPLEXITY_POLICY_VERSION, "policy": policy,
@@ -162,6 +167,8 @@ def review_decision(payload, gate, *, policy="adaptive", tools_allowed=False):
             reasons.append("dag-or-blocked")
         if gate["forced"]:
             reasons.append("forced-routing-policy")
+        if gate.get('combination') == 'uncertain-direct-with-review':
+            reasons.append('uncertain-decomposition')
         if payload.get("materials"):
             reasons.append("materials-present")
         if payload.get("acceptanceCriteria"):

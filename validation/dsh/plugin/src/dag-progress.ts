@@ -90,7 +90,7 @@ export function runSummary(result: Record<string, unknown>): string {
     return `${unit}：生产 ${number(row.production)}、评审 ${number(row.evaluation)}、待核对 ${number(row.unconfirmed)}`}).join('；')
   const gate=object(result.complexity_gate)?result.complexity_gate:{}
   const local=object(gate.local_decision)?gate.local_decision:{}
-  const combinations:Record<string,string>={'single-work-no-planner':'单项实质工作直接执行；工具与审核要求仍保留','coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
+  const combinations:Record<string,string>={'uncertain-direct-with-review':'拆分证据不足，直接执行完整任务并保留最终评审','single-work-no-planner':'单项实质工作直接执行；工具与审核要求仍保留','coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
   const route=Object.keys(gate).length?`选路：规则 ${String(gate.rule_decision??gate.decision)} → 最终 ${String(gate.decision)}；合并方式 ${combinations[String(gate.combination)]??String(gate.combination??'旧规则')}；理由 ${Array.isArray(gate.reasons)?gate.reasons.join('、'):'未提供'}\n`:''
   const signals=object(local.signals)?local.signals:{}
   const reasonNames:Record<string,string>={'context-dependent':'任务依赖未传入的历史内容',
@@ -137,15 +137,24 @@ export function runSummary(result: Record<string, unknown>): string {
       +`宿主工具回执 ${value.tool_receipt_passed===true?'通过':value.tool_receipt_passed===false?'未通过':'未检查'}；`
       +`未执行路线没有实测费用\n`
     :''
-  const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:{}
+  const routing=object(result.routing)?result.routing:{}
+  const diagnostics=object(comparison.candidate_diagnostics)?comparison.candidate_diagnostics:
+    object(routing.diagnostics)?{'执行路线':routing.diagnostics}:{}
   const diagnosticLines=Object.entries(diagnostics).filter(([,v])=>object(v)).map(([name,value])=>{
     const d=value as Record<string,unknown>
     const rejected=object(d.rejected_combinations)?d.rejected_combinations:{}
-    const labels:Record<string,string>={quality:'质量',cost:'费用',latency:'预计时延','assignment-mode':'分配模式'}
+    const labels:Record<string,string>={quality:'质量',cost:result.accounting_basis==='public-reference-valuation'?'参考费用':'费用',cash:'现金费用',latency:'预计时延','assignment-mode':'分配模式'}
     const reasons=Object.entries(rejected).filter(([,v])=>typeof v==='number'&&v>0)
       .map(([k,v])=>`${labels[k]??k}不满足 ${String(v)} 种分配`).join('、')
-    return `${name} 准入：${reasons||'没有记录约束拒绝'}；预计最短 ${number(d.minimum_scheduled_latency_ms)} ms，剩余期限 ${number(d.remaining_latency_ms)} ms；最低预计费用 ${number(d.minimum_cost)}，剩余额度 ${number(d.remaining_cost)}；无候选节点 ${Array.isArray(d.empty_candidate_nodes)?d.empty_candidate_nodes.map(escape).join('、')||'无':'未提供'}\n`
+    return `${name} 准入：${reasons||'没有记录约束拒绝'}；预计最短 ${number(d.minimum_scheduled_latency_ms)} ms，剩余期限 ${number(d.remaining_latency_ms)} ms；最低预计费用 ${number(d.minimum_cost)}，剩余额度 ${number(d.remaining_cost)}${'remaining_cash' in d?`；剩余现金 ${d.remaining_cash===null?'不限额':number(d.remaining_cash)}，最低预计现金 ${number(d.minimum_cash)}`:''}；无候选节点 ${Array.isArray(d.empty_candidate_nodes)?d.empty_candidate_nodes.map(escape).join('、')||'无':'未提供'}\n`
   }).join('')
+  const admission=object(comparison.model_admission)?comparison.model_admission:
+    object(result.plan_admission)?{'执行路线':Object.fromEntries(Object.entries(result.plan_admission)
+      .filter(([,row])=>object(row)).map(([node,row])=>[node,object(row)?row.model_reasons:{}]))}:{}
+  const admissionNames:Record<string,string>={'eligible':'通过画像与容量检查，仍须通过数据域及预算准入','missing-profile':'缺少匹配画像',
+    'quality-below-minimum':'质量先验低于门槛','input-or-output-capacity':'输入或输出容量不足'}
+  const modelLines=Object.entries(admission).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,reason])=>
+    `${escape(route)}/${escape(node)} · ${escape(id)}：${admissionNames[String(reason)]??escape(String(reason))}\n`):[]):[]).join('')
   const latencyEvidence=object(comparison.latency_evidence)?comparison.latency_evidence:{}
   const latencyLines=Object.entries(latencyEvidence).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,raw])=>{
     const e=object(raw)?raw:{}
@@ -171,7 +180,7 @@ export function runSummary(result: Record<string, unknown>): string {
     +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
       `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + latencyLines + costTraceLine + toolLine
+    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + modelLines + latencyLines + costTraceLine + toolLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')

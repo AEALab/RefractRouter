@@ -72,6 +72,13 @@ class TaskCallBudget:
                 if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')
                 for category in ('production', 'evaluation')}
 
+    def remaining_cash(self, category='production'):
+        """返回包含在途预留后的现金余额；None 表示未设置或明确不限额。"""
+        with self.lock:
+            if self.cash_limits is None or math.isinf(self.cash_limits[category]):
+                return None
+            return max(0, self.cash_limits[category] - self.cash_snapshot()[category])
+
     def snapshot(self):
         with self.lock:
             return dict(self.charged), deepcopy(self.records)

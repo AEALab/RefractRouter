@@ -76,6 +76,19 @@ test('自动路由摘要保留规划后 direct 与 DAG 的估算和选择依据'
   assert.match(summary,/DAG 预计执行费用相差 0.0600 CNY/)
 })
 
+test('自动路由轨迹逐模型说明质量和容量的候选排除原因',()=>{
+  const summary=runSummary({route_comparison:{route:'direct',model_admission:{
+    direct:{deliverable:{ready:'eligible',weak:'quality-below-minimum',
+      small:'input-or-output-capacity',unknown:'missing-profile'}}}}})
+  assert.match(summary,/direct\/deliverable · ready：通过画像与容量检查，仍须通过数据域及预算准入/)
+  assert.match(summary,/direct\/deliverable · weak：质量先验低于门槛/)
+  assert.match(summary,/direct\/deliverable · small：输入或输出容量不足/)
+  assert.match(summary,/direct\/deliverable · unknown：缺少匹配画像/)
+  const withoutComparison=runSummary({plan_admission:{deliverable:{model_reasons:{
+    ready:'eligible',weak:'quality-below-minimum'}}}})
+  assert.match(withoutComparison,/执行路线\/deliverable · weak：质量先验低于门槛/)
+})
+
 test('自动路由摘要把规划器单节点结果标为未拆分',()=>{
   const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'CNY',
     costs:{evaluation:0,unconfirmed:0},cost_breakdown:{planning:.01,execution:.1},
@@ -163,4 +176,21 @@ test('自动路由摘要区分规划前净节省预测与本路线被动结算',
   assert.match(summary,/被动观测：dag 路线实际结算 0\.2200 AFP/)
   assert.match(summary,/非独立质量证明/)
   assert.match(summary,/未执行路线没有实测费用/)
+})
+
+test('未进入 DAG 比较的直接路线也展示现金准入原因',()=>{
+  const summary=runSummary({accounting_basis:'public-reference-valuation',routing:{
+    status:'no-feasible-route',diagnostics:{rejected_combinations:{cash:2},
+      remaining_cash:0,minimum_cash:.1,minimum_cost:.1,remaining_cost:10,
+      empty_candidate_nodes:[]}}})
+  assert.match(summary,/现金费用不满足 2 种分配/)
+  assert.match(summary,/剩余现金 0/)
+  assert.match(summary,/最低预计现金 0.1000/)
+})
+
+test('拆分无法确定时说明保留整任务执行和最终评审',()=>{
+  const summary=runSummary({complexity_gate:{rule_decision:'dag',decision:'direct',
+    combination:'uncertain-direct-with-review',reasons:['decomposition-evidence-insufficient']}})
+  assert.match(summary,/规则 dag → 最终 direct/)
+  assert.match(summary,/拆分证据不足，直接执行完整任务并保留最终评审/)
 })

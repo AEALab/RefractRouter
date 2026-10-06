@@ -65,6 +65,26 @@ def _bounded_tool_allowance(routing, candidates, max_calls, input_cap, *, cash_o
         for mid in set(routing['assignments'].values()) for model in (candidates[mid],))
 
 
+def _route_budget_shortfall(route, *, reference_allowance, cash_allowance,
+                            judge_reference, judge_is_metered, remaining_production,
+                            remaining_evaluation, remaining_cash, remaining_evaluation_cash):
+    """二次选路同时核对工具续接及最终评审的参考额度和新增现金。"""
+    shortage = {}
+    worker_and_tool = route['prediction']['cost'] + reference_allowance
+    if worker_and_tool > remaining_production + 1e-12:
+        shortage['production'] = worker_and_tool - remaining_production
+    if judge_reference > remaining_evaluation + 1e-12:
+        shortage['evaluation'] = judge_reference - remaining_evaluation
+    if remaining_cash is not None:
+        cash_total = route['prediction']['cash_cost'] + cash_allowance
+        if cash_total > remaining_cash + 1e-12:
+            shortage['production_cash'] = cash_total - remaining_cash
+    if judge_is_metered and remaining_evaluation_cash is not None:
+        if judge_reference > remaining_evaluation_cash + 1e-12:
+            shortage['evaluation_cash'] = judge_reference - remaining_evaluation_cash
+    return shortage
+
+
 def _compare_mixed_execution(routes, *, candidates, charged_calls, judge, judge_cost,
                              review_required, tool_count, input_cap, remaining_production,
                              remaining_evaluation):
@@ -588,6 +608,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 weights=Weights(**request["weights"]) if request["method"] == "B" else None,
                 eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
                 model_billing_modes={mid: model.billing_mode for mid, model in candidates.items()} if currency_reference else None,
+                cash_max=budget.remaining_cash() if currency_reference else None,
                 model_providers={mid: model.provider for mid, model in candidates.items()})
         if alternative_direct_plan is not None and live:
             if configuration is None or configuration.objective is None:
@@ -649,6 +670,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                             eligible_models=direct_eligible, execution_policy=policy,
                             reduce_dominated=configured_application,
                             model_billing_modes={mid: model.billing_mode for mid, model in candidates.items()} if currency_reference else None,
+                            cash_max=budget.remaining_cash() if currency_reference else None,
                             model_providers={mid: model.provider for mid, model in candidates.items()})
                     return (direct, estimates, direct_profile, direct_profiles, direct_admission,
                             direct_eligible, direct_placement, direct_routing)
@@ -687,6 +709,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     comparison['excluded'] = {
                         'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
                         'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
+                    comparison['model_admission'] = {
+                        'direct': {nid: row.get('model_reasons', {}) for nid, row in direct_admission.items()},
+                        'dag': {nid: row.get('model_reasons', {}) for nid, row in result.get('plan_admission', {}).items()}}
                     comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
                     comparison['tool_call_limit'] = tool_count
                     if comparison['status'] != 'selected':
@@ -705,24 +730,32 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
                     allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
                                   for name, route in (('direct', direct_routing), ('dag', result['routing']))}
+                    cash_allowances = ({name: _bounded_tool_allowance(route, candidates, tool_count,
+                        input_cap, cash_only=True)
+                        for name, route in (('direct', direct_routing), ('dag', result['routing']))}
+                        if currency_reference else None)
+                    production_cash_remaining = budget.remaining_cash() if currency_reference else None
+                    evaluation_cash_remaining = budget.remaining_cash('evaluation') if currency_reference else None
                     budget_shortfalls = {}
                     evaluation_remaining = budget.remaining('evaluation')
                     for name, route in (('direct', direct_routing), ('dag', result['routing'])):
                         if route['status'] == 'selected':
-                            worker_and_tool = route['prediction']['cost'] + allowances[name]
-                            shortage = {}
-                            if worker_and_tool > remaining_cost + 1e-12:
-                                shortage['production'] = worker_and_tool - remaining_cost
-                            if judge_cost > evaluation_remaining + 1e-12:
-                                shortage['evaluation'] = judge_cost - evaluation_remaining
+                            shortage = _route_budget_shortfall(route,
+                                reference_allowance=allowances[name],
+                                cash_allowance=cash_allowances[name] if currency_reference else 0,
+                                judge_reference=judge_cost,
+                                judge_is_metered=(currency_reference and manifest.judge.billing_mode != 'subscription'),
+                                remaining_production=remaining_cost,
+                                remaining_evaluation=evaluation_remaining,
+                                remaining_cash=production_cash_remaining,
+                                remaining_evaluation_cash=evaluation_cash_remaining)
                             if shortage:
                                 budget_shortfalls[name] = shortage
                                 route['status'] = 'no-feasible-route'
                     comparison = compare_executable_routes(direct_routing, result['routing'],
                         planner_cost=planner_cost, judge_cost=judge_cost,
                         planner_latency_ms=planner_latency, tool_allowances=allowances,
-                        cash_costs={name: route['prediction']['cash_cost'] + _bounded_tool_allowance(
-                            route, candidates, tool_count, input_cap, cash_only=True)
+                        cash_costs={name: route['prediction']['cash_cost'] + cash_allowances[name]
                             if route.get('prediction') else 0
                             for name, route in (('direct', direct_routing), ('dag', result['routing']))}
                         if currency_reference else None)
@@ -752,6 +785,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     comparison['budget_shortfalls'] = budget_shortfalls
                     comparison['excluded'] = {'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
                                                'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
+                    comparison['model_admission'] = {
+                        'direct': {nid: row.get('model_reasons', {}) for nid, row in direct_admission.items()},
+                        'dag': {nid: row.get('model_reasons', {}) for nid, row in result.get('plan_admission', {}).items()}}
                 comparison['generated_node_count'] = len(plan.nodes)
                 if comparison['route'] == 'dag' and len(plan.nodes) == 1:
                     # A planner call is not itself a split. Keep the generated plan and its
