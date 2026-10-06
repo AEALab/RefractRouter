@@ -289,3 +289,6 @@ def test_mixed_billing_keeps_unknown_cross_route_quality_explicit():
     result = choose_mixed_billing_route(rows, {'AFP': 10, 'CNY': 1})
     assert result['selected'] == 'direct'
     assert result['qualityComparison'] == 'unverified'
+    del rows[0]['qualityNonInferior']
+    with pytest.raises(ValueError, match='requires quality gate'):
+        choose_mixed_billing_route(rows, {'AFP': 10, 'CNY': 1})
