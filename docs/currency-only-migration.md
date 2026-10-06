@@ -95,7 +95,7 @@ USD 折算必须携带正数汇率、来源和日期。任务开始冻结价格�
 - [x] 完整 Python 测试、TypeScript 类型检查、契约测试和构建。最终 1698 passed、5 subtests passed。
 - [x] 在原 profile 完成 DSH 及 Codex 有限真实接线与费用核对。
 - [x] 核对源码、分发包、已安装包和实际界面，完成验收报告。
-- [ ] 提交 PR。
+- [x] 提交 [PR #185](https://github.com/AEALab/RefractRouter/pull/185)。
 
 只执行固定功能与对账验收；本迁移不自动启动大规模收益实验。真实调用前核对
 已有现金授权剩余、未知用量预留及具体路线；AFP 授权不扩大现金授权。
