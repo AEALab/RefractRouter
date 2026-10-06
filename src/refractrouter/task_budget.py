@@ -37,11 +37,17 @@ class Reservation:
 
 class TaskCallBudget:
     def __init__(self, client, production: float, evaluation: float, *, max_calls=None, capture_payload=False,
-                 max_total_output_tokens=None, adaptive_output_reservation=False):
+                 max_total_output_tokens=None, adaptive_output_reservation=False, cash_limits=None):
         self.client = client
         self.limits = {'production': float('inf') if production is None else number(production, 'production budget', positive=True),
                        'evaluation': number(evaluation, 'evaluation budget', positive=True)}
         self.charged = {'production': 0.0, 'evaluation': 0.0}
+        self.cash_limits = None
+        if cash_limits is not None:
+            if not isinstance(cash_limits, dict) or set(cash_limits) != {'production', 'evaluation'}:
+                raise ValueError('cash limits require production and evaluation')
+            self.cash_limits = {key: float('inf') if number(value, 'cash limit') == 0 else value
+                                for key, value in cash_limits.items()}
         self.records = []
         self.lock = RLock()
         self.stopped = False
@@ -59,6 +65,12 @@ class TaskCallBudget:
     def remaining(self, category='production'):
         with self.lock:
             return max(0, self.limits[category] - self.charged[category])
+
+    def cash_snapshot(self):
+        with self.lock:
+            return {category: sum(row['charged'] for row in self.records
+                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')
+                for category in ('production', 'evaluation')}
 
     def snapshot(self):
         with self.lock:
@@ -82,7 +94,7 @@ class TaskCallBudget:
             if self.max_calls is not None and len(self.records) >= self.max_calls:
                 raise ValueError('study-call-limit-exhausted')
             ceiling = min(self.limits[category], category_limit if category_limit is not None else float('inf'))
-            input_reserve = input_bound / 1000 * model.input_cost_per_1k
+            input_reserve = input_bound / 1000 * max(model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None) or 0)
             remaining = ceiling - self.charged[category] - input_reserve
             if remaining < 0:
                 raise ValueError(f'{category}-budget-exhausted before {label}')
@@ -100,8 +112,14 @@ class TaskCallBudget:
                 raise ValueError(f'task-output-budget-exhausted before {label}')
             if self.charged[category] + reserve > ceiling + 1e-12:
                 raise ValueError(f'{category}-budget-exhausted before {label}')
+            if self.cash_limits is not None and getattr(model, 'billing_mode', 'metered') != 'subscription':
+                if model.billing_unit != 'CNY':
+                    raise ValueError('cash limits require CNY prices')
+                if self.cash_snapshot()[category] + reserve > self.cash_limits[category] + 1e-12:
+                    raise ValueError(f'{category}-cash-budget-exhausted before {label}')
             self.charged[category] += reserve
             row = {'label': label, 'model_id': model.model_id, 'category': category,
+                   'billing_mode': getattr(model, 'billing_mode', 'metered'),
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
                    'reserved_output_tokens': output_bound,
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
@@ -190,6 +208,9 @@ class TaskCallBudget:
             row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
         actual = number(model_response_cost(model, response), 'model cost')
         with self.lock:
+            if model.billing_unit in {'CNY', 'USD'}:
+                row['cost_basis'] = 'subscription-reference-valuation' if getattr(model, 'billing_mode', 'metered') == 'subscription' else 'public-price-calculation'
+                row['provider_cost_confirmed'] = False
             self.charged[row['category']] += actual - row['charged']
             row.update(charged=actual, status='billed', input_tokens=response.input_tokens,
                        output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,
@@ -199,6 +220,13 @@ class TaskCallBudget:
                        request_id=response.request_id, finish_reason=response.finish_reason,
                        output_sha256=hashlib.sha256((json.dumps({'content': response.content, 'tool_calls': response.tool_calls},
                            ensure_ascii=False) if getattr(response, 'tool_calls', ()) else response.content).encode()).hexdigest())
+            if self.cash_limits is not None:
+                row['reference_cost_cny'] = actual
+                row['cash_cost_cny'] = None if getattr(model, 'billing_mode', 'metered') == 'subscription' else actual
+                row['cash_cost_status'] = 'not-attributed-per-call' if getattr(model, 'billing_mode', 'metered') == 'subscription' else 'calculated-not-provider-confirmed'
+                if self.cash_snapshot()[row['category']] > self.cash_limits[row['category']] + 1e-8:
+                    self.stop()
+                    raise ValueError('actual cash cost exceeded limit; execution stopped')
             if (actual > row['reserved'] + 1e-8
                     or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):
                 self.stop()

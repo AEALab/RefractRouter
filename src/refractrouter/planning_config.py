@@ -16,6 +16,7 @@ SCHEMA_V3 = "refractagent-planning-v3"
 SCHEMA_V4 = "refractagent-planning-v4"
 SCHEMA_V5 = "refractagent-planning-v5"
 SCHEMA_V6 = "refractagent-planning-v6"
+SCHEMA_V7 = "refractagent-planning-v7"
 PROTOCOL = "refractagent-planning/4"
 MAX_CONFIG_BYTES = 16 * 1024 * 1024
 STRATEGIES = ("stage", "task", "composite", "advisor", "escalation", "static")
@@ -52,6 +53,7 @@ def obj(value, allowed, name):
 
 @dataclass(frozen=True)
 class PlanningModel(ModelSpec):
+    billing_mode: str = "metered"
     deployment: str = "external-cloud"
     trust_policy: str | None = None
     cache_write_cost_per_1k: float | None = None
@@ -61,6 +63,7 @@ class PlanningModel(ModelSpec):
     conversion_as_of: str | None = None
     capabilities: dict | None = None
     capability_card: str = ""
+    reference_pricing: dict | None = None
 
 
 def _capabilities(raw):
@@ -102,7 +105,7 @@ def _task_config(raw, schema, declared_ids, roles):
         return {"mode": "legacy", "pool": list(dict.fromkeys(pool)),
             "fallback": roles.get("capable"), "judge": {"type": "llm", "modelId": roles.get("classifier")},
             "threshold": .8, "maxInputChars": 12000}
-    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6):
+    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
         raise ValueError(f"Task 模型池需要 {SCHEMA_V3} 或 {SCHEMA_V4}")
     task = obj(supplied, ("pool", "fallback", "judge", "threshold", "maxInputChars",
                           "maxExecutionOutputTokens", "maxJudgeOutputTokens"), "task")
@@ -158,7 +161,7 @@ def _escalation_config(raw, schema, declared_ids, roles):
             "stallConfirmations": parameters["confirmations"], "threshold": .8,
             "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536,
             "maxExecutionOutputTokens": 8192, "maxJudgeOutputTokens": 1024}
-    if schema not in (SCHEMA_V4, SCHEMA_V5, SCHEMA_V6):
+    if schema not in (SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
         raise ValueError(f"Escalation 独立设置需要 {SCHEMA_V4}")
     value = obj(supplied, ("initial", "takeover", "judge", "stallConfirmations", "threshold",
         "judgeTimeoutMs", "maxJudgeInputBytes", "maxExecutionOutputTokens", "maxJudgeOutputTokens"),
@@ -212,11 +215,11 @@ def _advisor_config(raw, schema, declared_ids, roles):
     if supplied is None:
         return {"mode": "legacy", "judge": {"type": "llm", "modelId": roles.get("advisor")},
                 "threshold": .8, "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536}
-    if schema not in (SCHEMA_V5, SCHEMA_V6):
+    if schema not in (SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
         raise ValueError(f"Advisor 独立 Judge 设置需要 {SCHEMA_V5} 或 {SCHEMA_V6}")
     allowed = ("judge", "threshold", "judgeTimeoutMs", "maxJudgeInputBytes",
                "allowExperimental")
-    if schema == SCHEMA_V6:
+    if schema in (SCHEMA_V6, SCHEMA_V7):
         allowed += ("executor", "maxExecutionOutputTokens", "maxJudgeOutputTokens")
     value = obj(supplied, allowed, "advisor")
     executor = value.get("executor", roles.get("efficient"))
@@ -242,7 +245,7 @@ def _advisor_config(raw, schema, declared_ids, roles):
             raise ValueError("Advisor 本地 Judge 尚待专项验收；需明确启用实验模式")
     elif judge.get("type") != "jev":
         raise ValueError("advisor.judge.type 必须是 llm、local-decision 或 jev")
-    return {"mode": "configured", "flow": "gate-v2" if schema == SCHEMA_V6 else "legacy",
+    return {"mode": "configured", "flow": "gate-v2" if schema in (SCHEMA_V6, SCHEMA_V7) else "legacy",
         "executor": executor, "judge": judge,
         "allowExperimental": value.get("allowExperimental") is True,
         "threshold": number(value.get("threshold", .8), "advisor.threshold", 0, 1),
@@ -253,15 +256,15 @@ def _advisor_config(raw, schema, declared_ids, roles):
             "advisor.maxExecutionOutputTokens", 256, 1000000, True),
         "maxJudgeOutputTokens": number(value.get("maxJudgeOutputTokens", 1024),
             "advisor.maxJudgeOutputTokens", 64, 16384, True),
-        "maxReviews": 2 if schema == SCHEMA_V6 else None,
-        "maxRedos": 1 if schema == SCHEMA_V6 else None}
+        "maxReviews": 2 if schema in (SCHEMA_V6, SCHEMA_V7) else None,
+        "maxRedos": 1 if schema in (SCHEMA_V6, SCHEMA_V7) else None}
 
 
 def _stage_config(raw):
     supplied = raw.get("stage")
     if supplied is None:
         return {"mode": "rules"}
-    if raw["schemaVersion"] not in (SCHEMA_V5, SCHEMA_V6):
+    if raw["schemaVersion"] not in (SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
         raise ValueError("Stage 独立设置需要 planning v5 或 v6")
     stage = obj(supplied, ("mode", "judge", "allowExperimental", "window", "interval",
         "maxJudgements", "holdTurns", "downgradeConfirmations", "upgradeThreshold",
@@ -307,7 +310,7 @@ def _composite_config(raw, schema, declared_ids, roles):
             "takeover": roles.get("capable"), "stage": {"mode": "rules",
                 "window": parameters["window"], "threshold": parameters["threshold"],
                 "holdTurns": parameters["holdTurns"]}}
-    if schema != SCHEMA_V6:
+    if schema not in (SCHEMA_V6, SCHEMA_V7):
         raise ValueError(f"Composite 独立设置需要 {SCHEMA_V6}")
     value = obj(supplied, ("pool", "takeover", "judge", "threshold", "maxInputChars",
         "maxExecutionOutputTokens", "maxJudgeOutputTokens", "stage"), "composite")
@@ -343,12 +346,27 @@ def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
         "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage",
-        "composite", "mediaRoutes", "jev"), "planningRouting"))
-    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6) or type(raw.get("enabled")) is not bool:
+        "composite", "mediaRoutes", "jev", "maxReferenceCost"), "planningRouting"))
+    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
             isinstance(model, dict) and "billingUnit" in model for model in raw.get("models", []))):
         raise ValueError(f"多计费单位配置需要 {SCHEMA_V2}")
+    if raw["schemaVersion"] == SCHEMA_V7:
+        if raw.get("billingUnit") != "CNY":
+            raise ValueError("金额版规划路由必须使用 CNY 预算")
+        if set(raw.get("maxProductionCostByUnit", {})) - {"CNY"}:
+            raise ValueError("金额版不接受 AFP 或 USD 预算；原币价格在模型记录中保留")
+        for route in [*raw.get("models", []), *raw.get("mediaRoutes", [])]:
+            if not isinstance(route, dict):
+                raise ValueError("金额版模型与媒体路线必须为对象")
+            if route.get("billingUnit", "CNY") not in ("CNY", "USD"):
+                raise ValueError("金额版不能执行 AFP 路线；请先配置对应公开金额价格")
+    reference_limit = raw.get("maxReferenceCost")
+    if reference_limit is not None:
+        if raw["schemaVersion"] != SCHEMA_V7:
+            raise ValueError("参考成本预算需要 v7 配置")
+        number(reference_limit, "maxReferenceCost")
     strategy = raw.get("defaultStrategy", "stage")
     if strategy not in STRATEGIES:
         raise ValueError("未知规划路由策略")
@@ -410,7 +428,8 @@ def compile_config(raw):
     for item in raw.get("models", []):
         m = obj(item, ("id", "provider", "model", "contextWindow", "maxOutputTokens",
             "inputPer1k", "outputPer1k", "cachedInputPer1k", "cacheWritePer1k", "reasoningEffort",
-            "deployment", "trustPolicy", "capabilityCard", "billingUnit", "capabilities"), "model")
+            "deployment", "trustPolicy", "capabilityCard", "billingUnit", "capabilities",
+            "billingMode", "referencePricing"), "model")
         model_id = m.get("id")
         if not isinstance(model_id, str) or not model_id.strip() or len(model_id) > 256:
             raise ValueError("model.id 无效")
@@ -431,6 +450,31 @@ def compile_config(raw):
                 raise ValueError("规划路由需要真实部署域")
             if deployment == "trusted-cloud" and m.get("trustPolicy") not in policies:
                 raise ValueError("可信云需要有效的信任策略")
+            billing_mode = m.get('billingMode', 'metered')
+            if billing_mode not in ('metered', 'subscription'):
+                raise ValueError('未知计费模式')
+            if billing_mode == 'subscription':
+                if reference_limit is None:
+                    raise ValueError('订阅金额估值需要明确参考成本上限')
+                from .currency_pricing import PriceSnapshot, subscription_valuation, reference_price
+                reference = obj(m.get('referencePricing'), ('executionEndpoint', 'price', 'mapping', 'schedule'), 'referencePricing')
+                snapshot = reference_price(reference)
+                if reference.get('schedule') and snapshot.currency != 'CNY':
+                    raise ValueError('参考阶梯目前需要 CNY 价格')
+                subscription_valuation({'provider': m['provider'], 'model': m['model'],
+                    'endpoint': reference.get('executionEndpoint'), 'billingMode': 'subscription'},
+                    snapshot, {}, mapping=reference.get('mapping'),
+                    usd_cny={'base': 'USD', 'quote': 'CNY', 'rate': fx_rate,
+                             'source': fx_snapshot['source'], 'asOf': fx_snapshot['as_of']})
+                if model_unit != snapshot.currency:
+                    raise ValueError('参考价格币种与模型计价单位不一致')
+                rates = dict(snapshot.rates)
+                if set(rates) - {'input', 'cachedInput', 'cacheWrite', 'output', 'request'} or rates.get('request', 0):
+                    raise ValueError('当前文本估值尚不支持附加请求或媒体价格')
+                m = {**m, 'inputPer1k': float(rates['input'] * 1000),
+                     'outputPer1k': float(rates['output'] * 1000),
+                     'cachedInputPer1k': float(rates.get('cachedInput', rates['input']) * 1000),
+                     'cacheWritePer1k': float(rates.get('cacheWrite', rates['input']) * 1000)}
             context = number(m.get("contextWindow"), "contextWindow", 512, 10000000, True)
             output = number(m.get("maxOutputTokens"), "maxOutputTokens", 1, context - 1, True)
             input_price = number(m.get("inputPer1k"), "inputPer1k")
@@ -449,7 +493,7 @@ def compile_config(raw):
             capabilities = _capabilities(m.get("capabilities"))
             models[model_id] = PlanningModel(model_id, m["provider"],
                 input_price * (fx_rate if converted else 1), output_price * (fx_rate if converted else 1), 0,
-                billing_unit="CNY" if converted else model_unit, api_model=m["model"],
+                billing_unit="CNY" if converted else model_unit, api_model=m["model"], billing_mode=billing_mode,
                 cached_input_cost_per_1k=cached * (fx_rate if converted else 1),
                 context_window=context, max_output_tokens=output, wire_api="chat-completions",
                 request_options=({"reasoning_effort": effort} if effort else {}),
@@ -460,7 +504,7 @@ def compile_config(raw):
                 conversion_rate=fx_rate if converted else None,
                 conversion_source=fx_snapshot["source"] if converted else None,
                 conversion_as_of=fx_snapshot["as_of"] if converted else None,
-                capabilities=capabilities, capability_card=card)
+                capabilities=capabilities, capability_card=card, reference_pricing=m.get('referencePricing'))
         except (ValueError, TypeError, KeyError) as exc:
             model_issues[model_id] = str(exc)
     roles = obj(raw.get("roles", {}), ("efficient", "capable", "classifier", "advisor"), "roles")
@@ -478,7 +522,7 @@ def compile_config(raw):
     media_ids = set()
     for route in media_routes:
         row = obj(route, ("id", "provider", "credentialProvider", "model", "operations", "billingUnit", "pricing",
-            "deployment", "trustPolicy", "verified", "verification", "endpoint"), "mediaRoute")
+            "deployment", "trustPolicy", "verified", "verification", "endpoint", "billingMode", "referencePricing"), "mediaRoute")
         if any(not isinstance(row.get(key), str) or not row[key] for key in ("id", "provider", "model")):
             raise ValueError("mediaRoute 需要 id/provider/model")
         if row["id"] in media_ids:
@@ -520,6 +564,23 @@ def compile_config(raw):
         if route_unit == "AFP" and (row.get("provider") != "ark-plan"
                 or endpoint.rstrip("/") != "https://ark.cn-beijing.volces.com/api/plan/v3"):
             raise ValueError("AFP 媒体路线必须使用 Ark Agent Plan 专属端点")
+        media_mode = row.get('billingMode', 'metered')
+        if media_mode not in ('metered', 'subscription'):
+            raise ValueError('mediaRoute.billingMode 无效')
+        if media_mode == 'subscription':
+            if raw['schemaVersion'] != SCHEMA_V7 or reference_limit is None:
+                raise ValueError('订阅媒体需要新版参考成本账本')
+            from .currency_pricing import reference_price, subscription_valuation
+            reference = row.get('referencePricing', {})
+            price = reference_price(reference)
+            if reference.get('executionEndpoint', '').rstrip('/') != endpoint.rstrip('/'):
+                raise ValueError('媒体参考价格与实际端点不匹配')
+            subscription_valuation({'provider': row['provider'], 'model': row['model'],
+                'endpoint': endpoint, 'billingMode': 'subscription'}, price, {}, mapping=reference.get('mapping'))
+            if (price.currency != route_unit or pricing['basis'] != 'image'
+                    or set(dict(price.rates)) != {'image'}
+                    or float(dict(price.rates)['image']) != unit_cost):
+                raise ValueError('媒体价格与参考快照不一致')
         normalized_media.append({**row, "deployment": deployment,
             "credentialProvider": credential_provider, "verification": verification,
             "billingUnit": "CNY" if route_unit == "USD" else route_unit,
@@ -550,7 +611,7 @@ def compile_config(raw):
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
         "task": task, "composite": composite, "escalation": escalation, "advisor": advisor,
         "stage": _stage_config(raw), "jev": jev, "media_routes": normalized_media,
-        "model_issues": model_issues}
+        "model_issues": model_issues, "reference_limit": reference_limit}
 
 
 def preview(raw, host_issues=None):

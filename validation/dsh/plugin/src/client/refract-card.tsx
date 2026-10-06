@@ -34,6 +34,7 @@ export interface RefractCardOwnerProps {
   editRouter(value:RouterConnectionView|undefined):void
   editLiveExecution(value:LiveExecutionView|undefined):void
   loadMetadata(provider:string,model:string,billingUnit:string):Promise<ModelMetadata>
+  migratePoolCurrency?(config:DshModelPoolView,productionCash:number,evaluationCash:number):Promise<{configuration:DshModelPoolView}>
   loadCatalog():Promise<DshModelCatalog>
   loadRouterProjects(connection:{url:string;credential?:string}):Promise<RouterProjectDirectory>
   loadRouteProfiles(connection?:{url:string;credential?:string;project?:string}):Promise<RouteLatencyDirectory>
@@ -141,14 +142,20 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const [catalogError,setCatalogError]=useState<string|undefined>()
   const [routerProjects,setRouterProjects]=useState<RouterProjectDirectory|undefined>()
   const [routerError,setRouterError]=useState<string|undefined>()
+  const [currencyInputs,setCurrencyInputs]=useState({productionCash:'',evaluationCash:'',productionReference:'',evaluationReference:''})
+  const [currencyStatus,setCurrencyStatus]=useState('')
+  const [currencyBusy,setCurrencyBusy]=useState(false)
   const [actualMetadata,setActualMetadata]=useState<Record<string,ModelMetadata>>({})
   useEffect(()=>{let active=true
+    setActualMetadata({})
     for(const group of catalog?.groups??[]){if(group.id==='refractagent')continue
-      for(const model of group.models)void props.loadMetadata(group.id,model.id,'AUTO').then(info=>{
+      for(const model of group.models)void props.loadMetadata(group.id,model.id,state.dshModelPool?.schemaVersion==='refractagent-dsh-model-pool-v5'?'REFERENCE':'AUTO').then(info=>{
         if(active)setActualMetadata(previous=>({...previous,[group.id+'/'+model.id]:info}))
-      }).catch(error=>{if(active)setCatalogError(String(error))})}
+      }).catch(error=>{if(active)setActualMetadata(previous=>({...previous,[group.id+'/'+model.id]:{
+        provider:group.id,model:model.id,billingUnit:'CNY',pricing:null,
+        issues:[error instanceof Error?error.message:String(error)]}}))})}
     return()=>{active=false}
-  },[catalog])
+  },[catalog,state.dshModelPool?.schemaVersion])
   const [routeProfiles,setRouteProfiles]=useState<RouteLatencyDirectory|undefined>()
   const [routeProfilesError,setRouteProfilesError]=useState<string|undefined>()
   const [automaticJudgeStatus,setAutomaticJudgeStatus]=useState<{installed:boolean;downloaded:boolean;loaded:boolean;
@@ -215,7 +222,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
     ...(state.provider?.security?{security:state.provider.security}:{}),
     ...(state.provider?.trustPolicies?{trustPolicies:state.provider.trustPolicies.filter((row):row is Record<string,unknown>=>row!==null&&typeof row==='object'&&!Array.isArray(row))}:{})})
   const migratePool=(next:DshModelPoolView):DshModelPoolView=>({...next,
-    schemaVersion:next.schemaVersion==='refractagent-dsh-model-pool-v4'?'refractagent-dsh-model-pool-v4':
+    schemaVersion:next.schemaVersion==='refractagent-dsh-model-pool-v5'?'refractagent-dsh-model-pool-v5':next.schemaVersion==='refractagent-dsh-model-pool-v4'?'refractagent-dsh-model-pool-v4':
       next.schemaVersion==='refractagent-dsh-model-pool-v3'?'refractagent-dsh-model-pool-v3':'refractagent-dsh-model-pool-v2',routes:next.routes.map(route=>{const overrides={...route.overrides}
       delete overrides.quality;delete overrides.latencyMs
       return {...route,...(Object.keys(overrides).length?{overrides}:{overrides:undefined})}})})
@@ -227,7 +234,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
       maxProductionCost:typeof live.maxProductionCost==='number'?live.maxProductionCost*currencyRate.rate:live.maxProductionCost,
       maxEvaluationCost:typeof live.maxEvaluationCost==='number'?live.maxEvaluationCost*currencyRate.rate:live.maxEvaluationCost})
   }
-  const actualPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v3'||pool?.schemaVersion==='refractagent-dsh-model-pool-v4'
+  const actualPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v5'||pool?.schemaVersion==='refractagent-dsh-model-pool-v3'||pool?.schemaVersion==='refractagent-dsh-model-pool-v4'
+  const currencyPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v5'
   const mixedPool=pool?.schemaVersion==='refractagent-dsh-model-pool-v4'
   const migrateActualPool=()=>{if(!pool)return
     updatePool({...pool,schemaVersion:'refractagent-dsh-model-pool-v3',routes:pool.routes.map(row=>{
@@ -251,7 +259,9 @@ export function RefractCard(props: RefractCardOwnerProps) {
     if(!pool)return
     const routes=pool.routes.filter(row=>!(row.provider===provider&&row.model===model))
     if(enabled){const prior=pool.routes.find(row=>row.provider===provider&&row.model===model)
-      routes.push(prior?{...prior,enabled:true}:{provider,model,enabled:true,deployment:''})}
+      const info=actualMetadata[provider+'/'+model]
+      const accounting=currencyPool?{billingMode:info?.billingMode??'metered' as const,referencePricing:info?.referencePricing}:{}
+      routes.push(prior?{...prior,...accounting,enabled:true}:{provider,model,enabled:true,deployment:'',...accounting})}
     updatePool({...pool,routes})
   }
   const patchRoute=(provider:string,model:string,patch:Record<string,unknown>)=>{
@@ -434,7 +444,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                       <input className="rra-input" type="number" min="0.001" step="0.01" disabled={disabled}
                         value={decomposition.maxJudgeCostCny??''}
                         onChange={event=>patchDecomposition({maxJudgeCostCny:event.target.value===''?undefined:Number(event.target.value)})}/>
-                    </label><p className="rra-field-hint">费用独立记录，不计入 AFP，也不修改执行模型预算。未配置或不足以预留时不会调用。</p>
+                    </label><p className="rra-field-hint">费用独立记录，也不修改执行模型预算。未配置或不足以预留时不会调用。</p>
                     <label className="rra-compact-field">是非判别门槛<input className="rra-input" type="number" min="0.5" max="1" step="0.01" disabled={disabled}
                       value={decomposition.threshold??.65} onChange={event=>patchDecomposition({threshold:Number(event.target.value)})}/></label>
                     <p className="rra-warning">Jev 的拆分专项效果尚在观察；保留实验标识。门槛作用于 Noul 的是／否概率，不是 Choice confidence。</p>
@@ -469,7 +479,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     value={live[field]?.[unit]??''} onChange={event=>updateLive({[field]:{
                       AFP:live[field]?.AFP??0,CNY:live[field]?.CNY??0,
                       [unit]:event.target.value===''?undefined:Number(event.target.value)}})}/></label>))}</div>:
-              <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{actualPool?`单任务生产硬上限（${pool.billingUnit}）`:t('liveProductionBudget')}</label>
+              <div className="rra-grid rra-grid-2"><div className="rra-compact-field"><label htmlFor="rra-production-budget">{actualPool?`单任务生产${currencyPool?'参考成本':''}硬上限（${pool.billingUnit}）`:t('liveProductionBudget')}</label>
                 <input id="rra-production-budget" className="rra-input" type="number" min="0" step="0.001"
                   disabled={disabled||live.maxProductionCost==='unlimited'}
                   value={live.maxProductionCost==='unlimited'?'':live.maxProductionCost??''}
@@ -477,7 +487,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <label className="rra-check"><input type="checkbox" disabled={disabled} aria-label={t('liveProductionUnlimited')}
                   checked={live.maxProductionCost==='unlimited'}
                   onChange={event=>updateLive({maxProductionCost:event.target.checked?'unlimited':undefined})}/>{t('liveBudgetUnlimited')}</label></div>
-                <div className="rra-compact-field"><label htmlFor="rra-evaluation-budget">{actualPool?`单任务评审硬上限（${pool.billingUnit}）`:t('liveEvaluationBudget')}</label>
+                <div className="rra-compact-field"><label htmlFor="rra-evaluation-budget">{actualPool?`单任务评审${currencyPool?'参考成本':''}硬上限（${pool.billingUnit}）`:t('liveEvaluationBudget')}</label>
                   <input id="rra-evaluation-budget" className="rra-input" type="number" min="0" step="0.001"
                     disabled={disabled||live.maxEvaluationCost==='unlimited'}
                     value={live.maxEvaluationCost==='unlimited'?'':live.maxEvaluationCost??''}
@@ -536,15 +546,30 @@ export function RefractCard(props: RefractCardOwnerProps) {
             </div>:null}
             {pool.schemaVersion==='refractagent-dsh-model-pool-v1'?<button type="button" className="rra-button rra-button-secondary"
               disabled={disabled} onClick={()=>updatePool(pool)}>{t('poolMigrateV2')}</button>:null}
+            {actualPool&&!currencyPool&&props.migratePoolCurrency?<div className="rra-row-card"><h3>升级公开金额计价，保留订阅模型</h3>
+              <p>先填写新额度并生成草稿，原 AFP 数值不会换算成现金。保存后对新任务生效。</p>
+              <div className="rra-grid rra-grid-2">{([['productionCash','生产现金上限'],['evaluationCash','评价现金上限'],['productionReference','生产参考成本上限'],['evaluationReference','评价参考成本上限']] as const).map(([key,label])=><label key={key} className="rra-compact-field">{label}（CNY，0 不限制）<input className="rra-input" type="number" min="0" value={currencyInputs[key]} onChange={event=>setCurrencyInputs({...currencyInputs,[key]:event.target.value})}/></label>)}</div>
+              <button type="button" className="rra-button" disabled={disabled||currencyBusy||Object.values(currencyInputs).some(value=>value==='')} onClick={async()=>{
+                setCurrencyBusy(true)
+                try{const result=await props.migratePoolCurrency!(pool,Number(currencyInputs.productionCash),Number(currencyInputs.evaluationCash))
+                  updatePool(result.configuration)
+                  updateLive({maxProductionCost:Number(currencyInputs.productionReference)===0?'unlimited':Number(currencyInputs.productionReference),
+                    maxEvaluationCost:Number(currencyInputs.evaluationReference)===0?'unlimited':Number(currencyInputs.evaluationReference),
+                    maxProductionCostByUnit:undefined,maxEvaluationCostByUnit:undefined})
+                  setCurrencyStatus('金额配置草稿已生成，原模型、权限与订阅路线保留。请检查后保存。')
+                }catch(error){setCurrencyStatus(error instanceof Error?error.message:String(error))}finally{setCurrencyBusy(false)}
+              }}>生成金额配置草稿</button></div>:null}
+            {currencyStatus?<p role="status">{currencyStatus}</p>:null}
+            {currencyPool?<div className="rra-grid rra-grid-2">{(['production','evaluation'] as const).map(category=><label className="rra-compact-field" key={category}>{category==='production'?'生产':'评价'}现金上限（CNY，0 不限制）<input className="rra-input" type="number" min="0" value={pool.cashLimits?.[category]??''} onChange={event=>updatePool({...pool,cashLimits:{production:pool.cashLimits?.production??0,evaluation:pool.cashLimits?.evaluation??0,[category]:Number(event.target.value)}})}/></label>)}</div>:null}
             {!actualPool&&pool.billingUnit!=='CNY'?<div className="rra-issue-summary" role="status"><strong>旧配置使用 USD 记账</strong>
               <span>点击迁移后，原厂 USD 单价按中国银行 {currencyRate.as_of} 冻结中间价 1 USD = {currencyRate.rate} CNY 换算；现有生产和评审预算同时按同一汇率转换，保存后人民币金额生效。</span>
               <button type="button" className="rra-button rra-button-secondary" disabled={disabled} onClick={migrateCurrency}>迁移为人民币（CNY）记账</button></div>:null}
             {!actualPool&&pool.billingUnit==='CNY'?<p className="rra-field-hint">审计与费用记账：人民币（CNY）；原厂公开价与手工价格仍按 USD/1k tokens 填写，核心按冻结汇率 {currencyRate.rate} 换算。<a href={currencyRate.source} target="_blank" rel="noreferrer">汇率来源</a></p>:null}
             {!actualPool?<button type="button" className="rra-button" disabled={disabled} onClick={migrateActualPool}>升级为实际路线价格（重新选择模型后启用）</button>:<label className="rra-compact-field">自动路由计费组
               <select className="rra-select" value={pool.billingUnit} disabled={disabled} onChange={event=>switchBillingGroup(event.target.value)}>
-                <option value="CNY">现金 CNY（DeepSeek 官方等）</option><option value="AFP">订阅 AFP（Ark，含 Kimi）</option>
-                <option value="MIXED">AFP＋CNY（质量达标后优先订阅）</option></select>
-              <span className="rra-field-hint">价格与容量共用规划路由资料。混合模式分别检查 AFP 与 CNY 额度；AFP 不换算为现金。切换后请核对模型与两套预算再启用真实执行。</span></label>}
+                <option value="CNY">CNY（订阅参考价／按量费用）</option>{pool?.schemaVersion!=='refractagent-dsh-model-pool-v5'&&<option value="AFP">订阅 AFP（Ark，含 Kimi）</option>}
+                {pool?.schemaVersion!=='refractagent-dsh-model-pool-v5'&&<option value="MIXED">AFP＋CNY（质量达标后优先订阅）</option>}</select>
+              <span className="rra-field-hint">{currencyPool?'订阅调用保留原接口，按公开价估值；现金额度只约束按量调用。参考成本包含按量费用，两项不相加。':'价格与容量共用规划路由资料；旧混合模式分别检查 AFP 与 CNY 额度。'}</span></label>}
             {mixedAfpWorkersExcluded?<p className="rra-warning" role="status">已启用 AFP 模型，但旧执行模型池只包含现金路线；执行节点无法选择 AFP。请在「高级部署设置 → 执行模型池」勾选 AFP 模型，或清空该池交由核心自动分配。</p>:null}
             <details className="rra-details" open={readinessIssues.length>0}><summary>{t('poolPredictionHelp')}</summary>
               <p>{t('poolQualityHelp')}</p><p>{t('poolLatencyHelp')}</p><p>{t('poolPredictionSourceHelp')}</p></details>
@@ -570,8 +595,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 <strong>{row.providerName} / {row.name}</strong></label>
                 {actualPool?<div className="rra-profile">{!metadata?<span>正在读取模型资料…</span>:<>
                   <span>{metadata.billingUnit} · {metadata.capacity?`上下文 ${metadata.capacity.contextWindow} / 输出 ${metadata.capacity.maxOutputTokens}`:'容量待核对'}</span>
-                  {metadata.pricing?<span>每千 tokens：输入 {metadata.pricing.inputPer1k} · 缓存 {metadata.pricing.cachedInputPer1k} · 输出 {metadata.pricing.outputPer1k} {metadata.billingUnit}</span>:null}
-                  {metadata.sources?.pricing?<a href={metadata.sources.pricing} target="_blank" rel="noreferrer">实际路线价格来源 · {metadata.sources.pricingCheckedAt}</a>:null}
+                  {metadata.pricing?<span>每千 tokens：输入 {Number(metadata.pricing.inputPer1k.toPrecision(8))} · 缓存 {metadata.pricing.cachedInputPer1k===undefined?'待核对':Number(metadata.pricing.cachedInputPer1k.toPrecision(8))} · 输出 {Number(metadata.pricing.outputPer1k.toPrecision(8))} {metadata.billingUnit}</span>:<span>参考价格待补齐，暂不可选用</span>}
+                  {metadata.sources?.pricing?<a href={metadata.sources.pricing} target="_blank" rel="noreferrer">{metadata.billingMode==='subscription'?'订阅参考价格来源':'实际路线价格来源'} · {metadata.sources.pricingCheckedAt}</a>:null}
                   {metadata.sources?.pricingNote?<span>{metadata.sources.pricingNote}</span>:null}
                   {!mixedPool&&metadata.billingUnit!==pool.billingUnit?<span>请切换到 {metadata.billingUnit} 计费组使用</span>:null}
                   {metadataIssues.map(issue=><span className="rra-warning" key={issue}>{issue}</span>)}

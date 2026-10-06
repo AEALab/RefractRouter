@@ -28,9 +28,10 @@ SCHEMA_V2 = 'refractagent-providers-v2'
 SCHEMA_V3 = 'refractagent-providers-v3'
 SCHEMA_V4 = 'refractagent-providers-v4'
 SCHEMA_V5 = 'refractagent-providers-v5'
+SCHEMA_V6 = 'refractagent-providers-v6'
 SCHEMA = SCHEMA_V1
-SCHEMAS = (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5)
-AUTO_SCHEMAS = {SCHEMA_V4, SCHEMA_V5}
+SCHEMAS = (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6)
+AUTO_SCHEMAS = {SCHEMA_V4, SCHEMA_V5, SCHEMA_V6}
 ARK_PLAN_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
 STRATEGIES = ('economy', 'balanced', 'quality')
 V4_ROLES = ('planner', 'worker', 'judge', 'classifier')
@@ -180,10 +181,13 @@ def compile_security(raw, *, models):
 
 @dataclass(frozen=True)
 class ApplicationModelSpec(ModelSpec):
+    billing_mode: str = "metered"
     token_limit_parameter: str = "max_completion_tokens"
     authentication_required: bool = True
     declared_pricing: dict | None = None
+    reference_pricing: dict | None = None
     price_policy: str | None = None
+    cache_write_cost_per_1k: float | None = None
     # deployment 只属于 providerConfig 行；不放进 ModelSpec，避免改动模型清单的冻结摘要。
     deployment: str = "cloud"
     # v4 职责是配置合同，不覆盖旧 manifest 的 candidate/judge 兼容字段。
@@ -300,7 +304,7 @@ def compile_security_v4(raw, *, models, policies):
 def compile_configuration(raw, strategy=None):
     raw = obj(raw, {'schemaVersion', 'billingUnit', 'providers', 'models', 'qualityMin',
                     'defaultReasoningEffort', 'plannerThinking', 'strategies', 'privacy',
-                    'security', 'trustPolicies', 'objective', 'allowSharedJudge'},
+                    'security', 'trustPolicies', 'objective', 'allowSharedJudge', 'cashLimits'},
               'provider configuration')
     schema_version = raw.get('schemaVersion')
     if schema_version not in SCHEMAS:
@@ -320,6 +324,14 @@ def compile_configuration(raw, strategy=None):
         raise ValueError(f'objective requires schemaVersion {SCHEMA_V4}')
     elif 'allowSharedJudge' in raw:
         raise ValueError(f'allowSharedJudge requires schemaVersion {SCHEMA_V4}')
+    if schema_version == SCHEMA_V6:
+        if raw.get('billingUnit') != 'CNY':
+            raise ValueError('v6 requires CNY reference accounting')
+        cash = obj(raw.get('cashLimits'), {'production', 'evaluation'}, 'cashLimits')
+        for category in ('production', 'evaluation'):
+            number(cash.get(category), f'{category} cash limit')
+    elif 'cashLimits' in raw:
+        raise ValueError('cashLimits requires v6')
     objective = compile_v4_objective(raw['objective']) if schema_version in AUTO_SCHEMAS else None
     policies = {}
     for policy in raw.get('trustPolicies', []):
@@ -438,7 +450,7 @@ def compile_configuration(raw, strategy=None):
     for row in model_rows:
         m = obj(row, {'id', 'provider', 'model', 'role', 'roles', 'contextWindow', 'maxOutputTokens',
                      'pricing', 'routing', 'requestOptions', 'jsonMode', 'reasoningEffort',
-                     'deployment', 'pricePolicy'}, 'model')
+                     'deployment', 'pricePolicy', 'billingMode', 'referencePricing', 'executionEndpoint'}, 'model')
         mid = identifier(m.get('id'), 'model id')
         if mid in model_ids:
             raise ValueError('model ids must be unique')
@@ -465,7 +477,7 @@ def compile_configuration(raw, strategy=None):
                 raise ValueError('model role must be candidate or judge')
             roles = ('worker',) if role == 'candidate' else ('judge',)
         api_model = text(m.get('model'), 'API model', 200)
-        pricing = obj(m.get('pricing'), {'unit', 'inputPer1k', 'outputPer1k', 'cachedInputPer1k'}, 'pricing')
+        pricing = obj(m.get('pricing'), {'unit', 'inputPer1k', 'outputPer1k', 'cachedInputPer1k', 'cacheWritePer1k'}, 'pricing')
         model_unit = pricing.get('unit')
         if schema_version == SCHEMA_V5 and model_unit not in {'AFP', 'CNY'}:
             raise ValueError('v5 model prices require AFP or CNY actual billing unit')
@@ -474,6 +486,7 @@ def compile_configuration(raw, strategy=None):
         inp = number(pricing.get('inputPer1k'), 'input price')
         out = number(pricing.get('outputPer1k'), 'output price')
         cached = number(pricing.get('cachedInputPer1k', inp), 'cached input price', maximum=inp)
+        cache_write = number(pricing.get('cacheWritePer1k', inp), 'cache write price')
         deployment = deployment_value(m.get('deployment'),
                                       provider_deployment=p.get('deployment', 'cloud'),
                                       schema_version=schema_version, label=f'{mid} deployment')
@@ -485,6 +498,26 @@ def compile_configuration(raw, strategy=None):
                     or model_unit != 'CNY' or deployment in {'local', 'simulated-local'} or peak is None
                     or (inp, cached, out) != (peak['inputPer1k'], peak['cachedInputPer1k'], peak['outputPer1k'])):
                 raise ValueError('invalid actual-route pricePolicy or budget prices')
+        billing_mode = m.get('billingMode', 'metered')
+        if billing_mode not in ('metered', 'subscription'):
+            raise ValueError('invalid billingMode')
+        if billing_mode == 'subscription':
+            if schema_version != SCHEMA_V6:
+                raise ValueError('subscription reference accounting requires v6')
+            from .planning_model_metadata import lookup
+            reference = m.get('referencePricing')
+            metadata = lookup({'provider': p.get('dshProvider', pid), 'model': api_model,
+                'billingUnit': 'CNY', 'billingMode': 'subscription', 'referencePricing': reference,
+                'providerBaseURL': m.get('executionEndpoint') if p['type'] == 'dsh' else p.get('baseUrl'),
+                'host': {'contextWindow': m.get('contextWindow'), 'maxOutputTokens': m.get('maxOutputTokens')}})
+            expected = metadata['pricing']
+            factor = 1
+            if metadata['billingUnit'] == 'USD':
+                from .dsh_model_pool import frozen_usd_cny_rate
+                factor = frozen_usd_cny_rate()[0]
+            if any(abs(value - expected[key] * factor) > 1e-12 for key, value in
+                   (('inputPer1k', inp), ('cachedInputPer1k', cached), ('cacheWritePer1k', cache_write), ('outputPer1k', out))):
+                raise ValueError('subscription scalar prices do not match reference snapshot')
         effective = marginal_pricing(deployment, inp, cached, out)
         # 本地与模拟本地按边际成本 0 参与求解与记账；申报价保留供敏感性分析复核。
         declared = (None if effective == (inp, cached, out) else
@@ -540,8 +573,8 @@ def compile_configuration(raw, strategy=None):
             raise ValueError('only worker models use routing predictions')
         models.append(ApplicationModelSpec(model_id=mid, provider=p.get('dshProvider', pid), api_model=api_model,
             role=role, capability=predictions.get(mid, {}).get('quality', 100)/100,
-            billing_unit=model_unit, input_cost_per_1k=effective[0], cached_input_cost_per_1k=effective[1],
-            output_cost_per_1k=effective[2], deployment=deployment, declared_pricing=declared, price_policy=price_policy,
+            billing_unit=model_unit, billing_mode=billing_mode, input_cost_per_1k=effective[0], cached_input_cost_per_1k=effective[1],
+            output_cost_per_1k=effective[2], cache_write_cost_per_1k=0 if deployment in {"local", "simulated-local"} else cache_write, deployment=deployment, declared_pricing=declared, price_policy=price_policy, reference_pricing=m.get('referencePricing'),
             base_url=p.get('baseUrl'), api_key_env=p.get('credentialEnv'),
             context_window=context, max_output_tokens=output, snapshot_date=date.today().isoformat(),
             wire_api='dsh-llm' if p['type']=='dsh' else 'responses' if p['type']=='openai-responses' else 'chat-completions',

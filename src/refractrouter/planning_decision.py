@@ -168,12 +168,15 @@ def select_task_candidate(assessments, fallback, cost_bounds, *, latency_ms=None
         return {"candidateId": fallback, "reason": "incomparable-billing-units",
                 "uncertain": True, "qualifiedCandidates": [row["candidateId"] for row in qualified],
                 "costBasis": "first-execution-upper-bound"}
+    cash_comparable = all("cashAmount" in cost_bounds[row["candidateId"]] for row in qualified)
     ordered = sorted(qualified, key=lambda row: (
+        cost_bounds[row["candidateId"]]["cashAmount"] if cash_comparable else 0,
         cost_bounds[row["candidateId"]]["amount"],
         (latency_ms or {}).get(row["candidateId"], float("inf")),
         next(i for i, item in enumerate(assessments) if item["candidateId"] == row["candidateId"])))
     chosen = ordered[0]
-    return {"candidateId": chosen["candidateId"], "reason": "quality-then-first-call-cost",
+    return {"candidateId": chosen["candidateId"], "reason": (
+            "quality-then-cash-then-reference-cost" if cash_comparable else "quality-then-first-call-cost"),
             "uncertain": False, "qualifiedCandidates": [row["candidateId"] for row in qualified],
             "costBasis": "first-execution-upper-bound",
             "latencyBasis": "verified-sample" if latency_ms and all(

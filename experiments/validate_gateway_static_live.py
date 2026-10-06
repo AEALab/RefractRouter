@@ -38,6 +38,10 @@ def main():
         'modelParameters':dict(model.request_options),'maxCalls':2,'maxInputBoundPerCall':input_limit,'maxOutputTokens':512,
         'billingUnit':model.billing_unit,'upperBound':2*(input_limit/1000*model.input_cost_per_1k+512/1000*model.output_cost_per_1k),
         'timeoutMs':60000,'httpRetries':0,'hostTools':1,'scenario':args.client+' 原生工具往返','strategy':args.strategy}
+    if model.billing_mode == 'subscription':
+        envelope.update(billingMode='subscription', cashUpperBoundCny=0,
+                        referenceUpperBoundCny=envelope['upperBound'],
+                        costBasis='public-reference-valuation; subscription fee not attributed per call')
     if args.client=='codex':
         envelope['hostCatalogSha256']=hashlib.sha256(args.codex_baseline.read_bytes()).hexdigest()
         envelope['hostBaselineModel']=args.codex_baseline_model
@@ -100,6 +104,11 @@ def main():
             'charged':sum(row['charged'] for row in calls),'statuses':[row['status'] for row in calls],
             'userFirstTextMs':[row.get('userFirstTextMs') for row in calls], 'modelTtftMs':[row.get('ttft_ms') for row in calls],
             'toolOwner':args.client,'routerTasks':len(gw.runtime.runs),'automaticRetries':0}
+        if p['reference_limit'] is not None:
+            summary.update(referenceCostCny=sum(row.get('reference_cost_cny',row['charged']) for row in calls),
+                cashCostCny=sum(row.get('cash_cost_cny') or 0 for row in calls),
+                billingMode=model.billing_mode,costBasis='public-reference-valuation',
+                cashStatus='subscription-fee-not-attributed-per-call' if model.billing_mode=='subscription' else 'calculated')
         (args.output/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n');print(json.dumps(summary,ensure_ascii=False))
         if args.probe_client and observed and caller.calls==0: return
         if not summary['success']: raise RuntimeError('真实验收未通过，保留原始证据，不自动重跑')

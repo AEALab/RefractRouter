@@ -1,0 +1,573 @@
+{
+  "schemaVersion": "refractrouter-currency-migration-preview-v1",
+  "modelCalls": 0,
+  "configurationChanged": false,
+  "source": "https://openrouter.ai/api/v1/models?output_modalities=all",
+  "checkedAt": "2026-10-06",
+  "models": [
+    {
+      "model": "typesafe/jev-router",
+      "canonicalModel": "typesafe/jev-router",
+      "dispatchReady": false,
+      "status": "价格待适配",
+      "reason": "input 必须为非负有限数值"
+    },
+    {
+      "model": "z-ai/glm-5.3-prime",
+      "canonicalModel": "z-ai/glm-5.3-prime-20260921",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3-prime",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "5.6E-7",
+          "input": "0.0000028",
+          "output": "0.0000088",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "z-ai/glm-5.3-flashx",
+      "canonicalModel": "z-ai/glm-5.3-flashx-20260918",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3-flashx",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "9E-8",
+          "input": "3.7E-7",
+          "output": "0.00000125",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "typesafe/jev-1.13",
+      "canonicalModel": "typesafe/jev-1.13-20260917",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "4.2E-8",
+          "output": "0",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "canonicalModel": "deepseek/deepseek-v4.1-flash-20260910",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4.1-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-9",
+          "input": "3E-9",
+          "output": "0.0000024",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "z-ai/glm-5.3-flash",
+      "canonicalModel": "z-ai/glm-5.3-flash-20260826",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-8",
+          "input": "1.5E-7",
+          "output": "5E-7",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "deepseek/deepseek-v4-flash-vision-exp",
+      "canonicalModel": "deepseek/deepseek-v4-flash-vision-exp-20260821",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-vision-exp",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "6.86E-9",
+          "input": "2.156E-7",
+          "output": "6.468E-7",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "z-ai/glm-5.3",
+      "canonicalModel": "z-ai/glm-5.3-20260816",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "6.5E-8",
+          "input": "7E-8",
+          "output": "0.000007",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "deepseek/deepseek-v4-pro-0813",
+      "canonicalModel": "deepseek/deepseek-v4-pro-20260813",
+      "dispatchReady": false,
+      "status": "价格待适配",
+      "reason": "存在条件价格；须按实际 provider 和调用条件物化后使用"
+    },
+    {
+      "model": "deepseek/deepseek-v4-flash-0731",
+      "canonicalModel": "deepseek/deepseek-v4-flash-20260731",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "5.3E-9",
+          "input": "5.3E-9",
+          "output": "0.00000128",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "moonshotai/kimi-k3",
+      "canonicalModel": "moonshotai/kimi-k3-20260715",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "moonshotai/kimi-k3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3.1E-7",
+          "input": "9.5E-7",
+          "output": "0.000014",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "moonshotai/kimi-k2.7-code",
+      "canonicalModel": "moonshotai/kimi-k2.7-code-20260612",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "moonshotai/kimi-k2.7-code",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "1.8E-7",
+          "input": "6.712E-7",
+          "output": "0.00000335",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "minimax/minimax-m3",
+      "canonicalModel": "minimax/minimax-m3-20260531",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "minimax/minimax-m3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "6E-8",
+          "input": "3E-7",
+          "output": "0.0000012",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "deepseek/deepseek-v4-pro",
+      "canonicalModel": "deepseek/deepseek-v4-pro-20260423",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-pro",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "1.74E-8",
+          "input": "2.088E-7",
+          "output": "4.176E-7",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    },
+    {
+      "model": "deepseek/deepseek-v4-flash",
+      "canonicalModel": "deepseek/deepseek-v4-flash-20260423",
+      "dispatchReady": false,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "1.06E-8",
+          "input": "1.06E-8",
+          "output": "0.00000128",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "providerRoute": null
+      },
+      "status": "参考价可读取；实际 provider 与能力待绑定"
+    }
+  ],
+  "endpointPrices": [
+    {
+      "model": "typesafe/jev-1.13",
+      "providerRoute": "typesafe",
+      "dispatchReady": false,
+      "at": "2026-10-06T04:00:00+00:00",
+      "promptTokens": 1000,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "4.2E-8",
+          "output": "0",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/typesafe/jev-1.13/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "typesafe"
+      },
+      "budgetPrice": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "typesafe/jev-1.13",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "4.2E-8",
+          "output": "0",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/typesafe/jev-1.13/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "typesafe"
+      },
+      "status": "路线价格可读取；宿主绑定、权限和能力验收待完成"
+    },
+    {
+      "model": "z-ai/glm-5.3",
+      "providerRoute": "z-ai/fp8",
+      "dispatchReady": false,
+      "at": "2026-10-06T04:00:00+00:00",
+      "promptTokens": 1000,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "2.6E-7",
+          "input": "0.0000014",
+          "output": "0.0000044",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "z-ai/fp8"
+      },
+      "budgetPrice": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "2.6E-7",
+          "input": "0.0000014",
+          "output": "0.0000044",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "z-ai/fp8"
+      },
+      "status": "路线价格可读取；宿主绑定、权限和能力验收待完成"
+    },
+    {
+      "model": "z-ai/glm-5.3-flash",
+      "providerRoute": "z-ai/fp8",
+      "dispatchReady": false,
+      "at": "2026-10-06T04:00:00+00:00",
+      "promptTokens": 1000,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-8",
+          "input": "1.5E-7",
+          "output": "5E-7",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3-flash/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "z-ai/fp8"
+      },
+      "budgetPrice": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-8",
+          "input": "1.5E-7",
+          "output": "5E-7",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3-flash/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "z-ai/fp8"
+      },
+      "status": "路线价格可读取；宿主绑定、权限和能力验收待完成"
+    },
+    {
+      "model": "minimax/minimax-m3",
+      "providerRoute": "minimax/fp8",
+      "dispatchReady": false,
+      "at": "2026-10-06T04:00:00+00:00",
+      "promptTokens": 1000,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "minimax/minimax-m3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "6E-8",
+          "input": "3E-7",
+          "output": "0.0000012",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/minimax/minimax-m3/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "minimax/fp8"
+      },
+      "budgetPrice": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "minimax/minimax-m3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "6E-8",
+          "input": "3E-7",
+          "output": "0.0000012",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/minimax/minimax-m3/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "minimax/fp8"
+      },
+      "status": "路线价格可读取；宿主绑定、权限和能力验收待完成"
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "providerRoute": "deepseek",
+      "dispatchReady": false,
+      "at": "2026-10-06T04:00:00+00:00",
+      "promptTokens": 1000,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4.1-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-9",
+          "input": "1.5E-7",
+          "output": "6E-7",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/deepseek/deepseek-v4.1-flash/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "deepseek"
+      },
+      "budgetPrice": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4.1-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "6E-9",
+          "input": "3E-7",
+          "output": "0.0000012",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/deepseek/deepseek-v4.1-flash/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "deepseek"
+      },
+      "status": "路线价格可读取；宿主绑定、权限和能力验收待完成"
+    },
+    {
+      "model": "moonshotai/kimi-k3",
+      "providerRoute": "moonshotai/mxfp4",
+      "dispatchReady": false,
+      "at": "2026-10-06T04:00:00+00:00",
+      "promptTokens": 1000,
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "moonshotai/kimi-k3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-7",
+          "input": "0.000003",
+          "output": "0.000015",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/moonshotai/kimi-k3/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "moonshotai/mxfp4"
+      },
+      "budgetPrice": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "moonshotai/kimi-k3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "cachedInput": "3E-7",
+          "input": "0.000003",
+          "output": "0.000015",
+          "request": "0"
+        },
+        "source": "https://openrouter.ai/api/v1/models/moonshotai/kimi-k3/endpoints",
+        "checkedAt": "2026-10-06",
+        "basis": "route-public-price",
+        "providerRoute": "moonshotai/mxfp4"
+      },
+      "status": "路线价格可读取；宿主绑定、权限和能力验收待完成"
+    }
+  ]
+}

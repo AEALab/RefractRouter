@@ -31,7 +31,7 @@ const LEGACY_MODELS = [
 ] as const
 const AUTO_MODELS = [{ id: 'auto', name: 'RefractAgent · 自动路由（模拟）' }] as const
 const AUTO_LIVE_MODEL = { id: 'auto-live', name: 'RefractAgent · 自动路由（真实执行）' } as const
-const autoProvider=(schema:string|undefined)=>schema==='refractagent-providers-v4'||schema==='refractagent-providers-v5'
+const autoProvider=(schema:string|undefined)=>schema==='refractagent-providers-v4'||schema==='refractagent-providers-v5'||schema==='refractagent-providers-v6'
 
 function liveConfigurationIssues(config: Readonly<Configuration>): string[] {
   const live = config.liveExecution
@@ -869,7 +869,16 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     const localJudge=request.api?.startsWith('local-judge:')?request.api.slice('local-judge:'.length).split(':'):null
     const automaticLocalJudge=request.api?.startsWith('automatic-local-judge:')
       ?request.api.slice('automatic-local-judge:'.length):null
-    const value=automaticLocalJudge&&request.provider
+    const subscription=request.api==='subscription-metadata'&&request.provider?JSON.parse(request.provider):null
+    const migration=request.api==='currency-migration'&&request.provider?JSON.parse(request.provider):null
+    const poolMigration=request.api==='currency-pool-migration'&&request.provider?JSON.parse(request.provider):null
+    const value=poolMigration
+      ?await planning.currencyPoolMigration(poolMigration.config,poolMigration.productionCash,poolMigration.evaluationCash)
+      :migration
+      ?await planning.currencyMigration(migration.config,migration.cnyBudget,migration.referenceBudget)
+      :subscription
+      ?await planning.metadata(subscription.provider,subscription.model,subscription.billingUnit,subscription.configured)
+      :automaticLocalJudge&&request.provider
       ?await planning.automaticLocalJudge(JSON.parse(request.provider),automaticLocalJudge as 'status'|'download'|'load'|'unload')
       :localJudge&&request.provider
       ?await planning.localJudge(JSON.parse(request.provider),localJudge[0] as 'status'|'download'|'load'|'unload',localJudge[1])

@@ -1,0 +1,259 @@
+{
+  "schemaVersion": "subscription-reference-catalog-v1",
+  "checkedAt": "2026-10-06",
+  "models": {
+    "glm-5.3": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "0.00000007",
+          "output": "0.000007",
+          "request": "0",
+          "cachedInput": "0.000000065"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://openrouter.ai/models/z-ai/glm-5.3",
+        "checkedAt": "2026-10-06",
+        "description": "按同一公开模型名称估值；不表示两个渠道的部署版本、能力或服务完全相同。",
+        "canonicalModel": "z-ai/glm-5.3-20260816"
+      }
+    },
+    "glm-5.3-flash": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "z-ai/glm-5.3-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "0.00000015",
+          "output": "0.0000005",
+          "request": "0",
+          "cachedInput": "0.00000003"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://openrouter.ai/models/z-ai/glm-5.3-flash",
+        "checkedAt": "2026-10-06",
+        "description": "按同一公开模型名称估值；不表示两个渠道的部署版本、能力或服务完全相同。",
+        "canonicalModel": "z-ai/glm-5.3-flash-20260826"
+      }
+    },
+    "deepseek-v4.1-flash": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v4.1-flash",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "0.000000003",
+          "output": "0.0000024",
+          "request": "0",
+          "cachedInput": "0.000000003"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://openrouter.ai/models/deepseek/deepseek-v4.1-flash",
+        "checkedAt": "2026-10-06",
+        "description": "按同一公开模型名称估值；不表示两个渠道的部署版本、能力或服务完全相同。",
+        "canonicalModel": "deepseek/deepseek-v4.1-flash-20260910"
+      }
+    },
+    "deepseek-v4-flash": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-flash",
+        "endpoint": "https://api.deepseek.com",
+        "currency": "CNY",
+        "rates": {
+          "input": "0.000002",
+          "output": "0.000008",
+          "cachedInput": "4E-8"
+        },
+        "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+        "checkedAt": "2026-10-06",
+        "description": "按官方同名模型公开价格估值；DeepSeek 采用已冻结高峰参考标准，非 Ark 实际扣款。"
+      }
+    },
+    "deepseek-v4-pro": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "deepseek-official",
+        "model": "deepseek-v4-pro",
+        "endpoint": "https://api.deepseek.com",
+        "currency": "CNY",
+        "rates": {
+          "input": "0.000009",
+          "output": "0.000027",
+          "cachedInput": "3E-7"
+        },
+        "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+        "checkedAt": "2026-10-06",
+        "description": "按官方同名模型公开价格估值；DeepSeek 采用已冻结高峰参考标准，非 Ark 实际扣款。"
+      }
+    },
+    "kimi-k3": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "moonshot",
+        "model": "kimi-k3",
+        "endpoint": "https://api.moonshot.cn/v1",
+        "currency": "CNY",
+        "rates": {
+          "input": "0.00002",
+          "output": "0.0001",
+          "cachedInput": "0.000002"
+        },
+        "source": "https://platform.kimi.com/docs/pricing/chat",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://platform.kimi.com/docs/pricing/chat",
+        "checkedAt": "2026-10-06",
+        "description": "按 Kimi K3 官方标准公开价格、默认 5min 缓存估值；非 Ark 实际扣款。"
+      }
+    },
+    "kimi-k2.7-code": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "openrouter",
+        "model": "moonshotai/kimi-k2.7-code",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "currency": "USD",
+        "rates": {
+          "input": "0.0000006712",
+          "output": "0.00000335",
+          "request": "0",
+          "cachedInput": "0.00000018"
+        },
+        "source": "https://openrouter.ai/api/v1/models",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://openrouter.ai/models/moonshotai/kimi-k2.7-code",
+        "checkedAt": "2026-10-06",
+        "description": "按同一公开模型名称估值；不表示两个渠道的部署版本、能力或服务完全相同。",
+        "canonicalModel": "moonshotai/kimi-k2.7-code-20260612"
+      }
+    },
+    "minimax-m3": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "minimax-official",
+        "model": "MiniMax-M3",
+        "endpoint": "https://api.minimax.io/v1",
+        "currency": "CNY",
+        "source": "https://platform.minimax.cn/docs/guides/pricing-paygo",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price",
+        "rates": {
+          "input": "0.0000042",
+          "output": "0.0000168",
+          "cachedInput": "8.4E-7"
+        }
+      },
+      "schedule": [
+        {
+          "minInputTokens": 0,
+          "price": {
+            "schemaVersion": "refractrouter-currency-price-v1",
+            "provider": "minimax-official",
+            "model": "MiniMax-M3",
+            "endpoint": "https://api.minimax.io/v1",
+            "currency": "CNY",
+            "source": "https://platform.minimax.cn/docs/guides/pricing-paygo",
+            "checkedAt": "2026-10-06",
+            "basis": "reference-price",
+            "rates": {
+              "input": "0.0000021",
+              "output": "0.0000084",
+              "cachedInput": "4.2E-7"
+            }
+          }
+        },
+        {
+          "minInputTokens": 524289,
+          "price": {
+            "schemaVersion": "refractrouter-currency-price-v1",
+            "provider": "minimax-official",
+            "model": "MiniMax-M3",
+            "endpoint": "https://api.minimax.io/v1",
+            "currency": "CNY",
+            "source": "https://platform.minimax.cn/docs/guides/pricing-paygo",
+            "checkedAt": "2026-10-06",
+            "basis": "reference-price",
+            "rates": {
+              "input": "0.0000042",
+              "output": "0.0000168",
+              "cachedInput": "8.4E-7"
+            }
+          }
+        }
+      ],
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://platform.minimax.cn/docs/guides/pricing-paygo",
+        "checkedAt": "2026-10-06",
+        "description": "MiniMax-M3 官方标准服务永久五折公开价；512k 取 524288 tokens，超出后进入第二阶梯；非 Ark 实际扣款。"
+      }
+    }
+  },
+  "mediaModels": {
+    "doubao-seedream-5.0-lite": {
+      "price": {
+        "schemaVersion": "refractrouter-currency-price-v1",
+        "provider": "ark",
+        "model": "doubao-seedream-5.0-lite",
+        "endpoint": "https://ark.cn-beijing.volces.com/api/v3",
+        "currency": "CNY",
+        "rates": {
+          "image": "0.22"
+        },
+        "source": "https://docs.volcengine.com/docs/ark/model-pricing",
+        "checkedAt": "2026-10-06",
+        "basis": "reference-price"
+      },
+      "mapping": {
+        "match": "published-model-name",
+        "source": "https://docs.volcengine.com/docs/ark/model-pricing",
+        "checkedAt": "2026-10-06",
+        "description": "采用 Ark 同名模型公开图片价格估值，不代表 Agent Plan 每张实际扣款或渠道部署版本完全一致。"
+      }
+    }
+  }
+}

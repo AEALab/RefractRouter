@@ -307,7 +307,7 @@ def choose_route(configuration, *, direct, plan=None, nodes=None, planner=None,
 
 def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
                               planner_latency_ms=None, tool_allowances=None,
-                              cost_tie_tolerance=1e-9):
+                              cost_tie_tolerance=1e-9, cash_costs=None):
     """比较已通过相同准入的真实执行候选；planner 支出对两条路线都是沉没成本。"""
     for value, label in ((planner_cost, 'planner_cost'), (judge_cost, 'judge_cost'),
                          (cost_tie_tolerance, 'cost_tie_tolerance')):
@@ -342,6 +342,11 @@ def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
                 'assignments': route['assignments'],
                 'quality_proxy': prediction['mean_node_quality_proxy']}
 
+    if cash_costs is not None:
+        if (not isinstance(cash_costs, dict) or set(cash_costs) != {'direct', 'dag'}
+                or any(type(value) not in (int, float) or not math.isfinite(value) or value < 0
+                       for value in cash_costs.values())):
+            raise ValueError('cash comparison requires nonnegative direct and dag costs')
     direct_row, dag_row = row(direct, 'direct'), row(dag, 'dag')
     audit = {'policy_version': 'automatic-live-comparison-v1',
              'prediction_source': 'compiled-user-declared-node-profiles',
@@ -365,7 +370,13 @@ def compare_executable_routes(direct, dag, *, planner_cost, judge_cost,
             direct_without_probe - dag_row['total_estimated_cost'])
         audit['dag_net_savings_forecast_positive'] = (
             audit['dag_net_estimated_savings_vs_unprobed_direct'] > cost_tie_tolerance)
-        if delta < -cost_tie_tolerance:
+        cash_delta = cash_costs['dag'] - cash_costs['direct'] if cash_costs is not None else 0
+        if cash_costs is not None:
+            audit['remaining_worker_cash_costs'] = dict(cash_costs)
+            audit['cost_preference'] = 'quality-qualified-then-cash-then-reference'
+        if abs(cash_delta) > cost_tie_tolerance:
+            audit.update(route='dag' if cash_delta < 0 else 'direct', reason='lower-additional-cash-cost')
+        elif delta < -cost_tie_tolerance:
             audit.update(route='dag', reason='lower-estimated-total-cost')
         elif abs(delta) <= cost_tie_tolerance and (
                 dag_row['worker_scheduled_latency_ms'] < direct_row['worker_scheduled_latency_ms']):

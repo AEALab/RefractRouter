@@ -204,6 +204,22 @@ test(`Advisor 通过 ${route} 派发 Jev Choice，并按对应渠道结算`,asyn
   }finally{globalThis.fetch=originalFetch;await f.cleanup()}
 })
 
+test('金额配置在旧核心上于模型调用前阻断',async()=>{
+  const f=await fixture('static')
+  try{
+    f.setPlanning({...structuredClone(config),schemaVersion:'refractagent-planning-v7',billingUnit:'CNY'})
+    const operations:string[]=[]
+    f.worker.request=async value=>{
+      operations.push(String(value.op))
+      if(value.op==='handshake')return {protocol:'refractagent-planning/4',
+        capabilities:['escalation-decision-v1','local-judge-jobs']}
+      throw new Error('不应在金额能力检查失败后继续')
+    }
+    await assert.rejects(f.controller.preview(),/新版金额计价/)
+    assert.deepEqual(operations,['handshake'])
+  }finally{await f.cleanup()}
+})
+
 test('零调用检查在旧核心上明确阻断 Jev 配置',async()=>{
   const f=await fixture('stage')
   try{
@@ -760,4 +776,73 @@ test('自动拆分预算不足与历史依赖均不会发送 Jev 请求',async()
     const result=await f.controller.decompositionDecision({...decision,maxJudgeCostCny:.02},'继续处理上述方案','之前的历史')
     assert.equal(result.verdict,'UNKNOWN');assert.equal(result.reason,'context-dependent')
   }finally{globalThis.fetch=originalFetch;await f.cleanup()}
+})
+
+test('订阅参考价在宿主资料刷新后保持 CNY，现金额度不扣订阅估值',async()=>{
+  const f=await fixture()
+  try{
+    const endpoint='https://ark.cn-beijing.volces.com/api/plan/v3'
+    f.setProviderBaseURL('fake',endpoint)
+    f.ctx.llm.resolveModelInfo=async()=>({context:{contextWindow:32000},defaultMaxTokens:1024,
+      reasoning:{efforts:[{id:'low'}],defaultEffort:'low'}}) as any
+    const draft:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v7',
+      billingUnit:'CNY',maxProductionCost:.000001,maxProductionCostByUnit:{CNY:.000001},maxReferenceCost:100}
+    draft.models=draft.models!.map(m=>({...m,billingUnit:'CNY',billingMode:'subscription',
+      referencePricing:{executionEndpoint:endpoint,
+        price:{schemaVersion:'refractrouter-currency-price-v1',provider:'official',model:m.model,
+          endpoint:'https://example.com/v1',currency:'CNY',rates:{input:'.00002',output:'.0001'},
+          source:'https://example.com/pricing',checkedAt:'2026-10-06',basis:'route-public-price'},
+        mapping:{match:'verified-version',source:'https://example.com/models',checkedAt:'2026-10-06',
+          description:'模拟版本对应'}}}))
+    f.setPlanning(draft)
+    const info=await f.controller.metadata('fake','small','AUTO',draft.models[0])
+    assert.equal(info.billingUnit,'CNY');assert.equal(info.pricingBasis,'reference-price')
+    assert.equal(info.capacity.contextWindow,32000)
+    const preview=await f.controller.preview()
+    assert.equal(preview.valid,true)
+    assert.equal(preview.strategies.find((s:any)=>s.id==='static').available,true)
+    f.setProviderBaseURL('fake','https://example.com/other')
+    await assert.rejects(f.controller.metadata('fake','small','AUTO',draft.models[0]),/实际端点不一致/)
+  }finally{await f.cleanup()}
+})
+
+test('金额迁移先补齐旧缓存价格且只返回草稿',async()=>{
+  const f=await fixture()
+  try{
+    f.setProviderBaseURL('deepseek-official','https://api.deepseek.com')
+    f.ctx.llm.resolveModelInfo=async()=>({context:{contextWindow:1048576},defaultMaxTokens:8192,
+      reasoning:{efforts:[{id:'high'}],defaultEffort:'high'}}) as any
+    const draft:any={...structuredClone(config),schemaVersion:'refractagent-planning-v6',
+      billingUnit:'CNY',maxProductionCost:2,maxProductionCostByUnit:{CNY:2}}
+    draft.models=draft.models.map((m:any)=>({...m,provider:'deepseek-official',model:'deepseek-flash',
+      reasoningEffort:'high',billingUnit:'CNY',cachedInputPer1k:null}))
+    const before=JSON.stringify(draft)
+    const result=await f.controller.currencyMigration(draft,2,10)
+    assert.equal(result.configuration.schemaVersion,'refractagent-planning-v7')
+    assert.equal(result.configurationWritten,false)
+    assert.equal(result.modelCalls,0)
+    assert.equal(typeof result.configuration.models[0].cachedInputPer1k,'number')
+    assert.equal(JSON.stringify(draft),before)
+  }finally{await f.cleanup()}
+})
+
+test('金额版新增 Ark 模型自动取得参考价且不回退 AFP',async()=>{
+  const f=await fixture()
+  try{
+    f.setProviderBaseURL('ark','https://ark.cn-beijing.volces.com/api/plan/v3')
+    f.ctx.llm.resolveModelInfo=async()=>({context:{contextWindow:1048576},defaultMaxTokens:8192,
+      reasoning:{efforts:[{id:'low'}],defaultEffort:'low'}}) as any
+    const draft:PlanningConfig={...structuredClone(config),schemaVersion:'refractagent-planning-v7',
+      billingUnit:'CNY',maxProductionCost:0,maxProductionCostByUnit:{CNY:0},maxReferenceCost:10}
+    draft.models=draft.models!.map(m=>({...m,provider:'ark',model:'deepseek-v4-flash',billingUnit:'CNY'}))
+    f.setPlanning(draft)
+    const preview=await f.controller.preview()
+    assert.equal(preview.valid,true)
+    assert.equal(preview.strategies.find((s:any)=>s.id==='static').available,true)
+    const info=await f.controller.metadata('ark','deepseek-v4-flash','REFERENCE')
+    assert.equal(info.billingMode,'subscription')
+    assert.equal(info.billingUnit,'CNY')
+    assert.equal(info.referencePricing.executionEndpoint,'https://ark.cn-beijing.volces.com/api/plan/v3')
+    assert.equal(f.calls.length,0)
+  }finally{await f.cleanup()}
 })

@@ -19,7 +19,8 @@ FX_PATHS = (Path(__file__).resolve().parents[2] / 'data/currency-rates-v1.json',
             Path(sys.prefix) / 'share/refractrouter/currency-rates-v1.json')
 DEPLOYMENTS = {'local', 'external-cloud', 'trusted-cloud', 'simulated-local'}
 POOL_SCHEMAS = {'refractagent-dsh-model-pool-v1', 'refractagent-dsh-model-pool-v2',
-                'refractagent-dsh-model-pool-v3', 'refractagent-dsh-model-pool-v4'}
+                'refractagent-dsh-model-pool-v3', 'refractagent-dsh-model-pool-v4',
+                'refractagent-dsh-model-pool-v5'}
 CONSERVATIVE_BOOTSTRAP_LATENCY_MS = 60_000.0
 
 
@@ -169,7 +170,13 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         raise ValueError('invalid dshModelPool schemaVersion')
     accounting_unit = pool.get('billingUnit', 'USD')
     mixed = pool_schema == 'refractagent-dsh-model-pool-v4'
-    actual_routes = pool_schema in {'refractagent-dsh-model-pool-v3', 'refractagent-dsh-model-pool-v4'}
+    cash_only = pool_schema == 'refractagent-dsh-model-pool-v5'
+    actual_routes = pool_schema in {'refractagent-dsh-model-pool-v3', 'refractagent-dsh-model-pool-v4',
+                                  'refractagent-dsh-model-pool-v5'}
+    if cash_only and accounting_unit != 'CNY':
+        raise ValueError('金额版自动路由必须使用 CNY 预算')
+    if cash_only and 'maxAfpCoefficient' in pool.get('objective', {}):
+        raise ValueError('金额版不支持 maxAfpCoefficient；请显式移除旧订阅约束')
     if mixed and accounting_unit != 'MIXED':
         raise ValueError('dshModelPool v4 requires MIXED billingUnit')
     if not mixed and accounting_unit not in ({'AFP', 'CNY', 'USD'} if actual_routes else {'USD', 'CNY'}):
@@ -228,7 +235,13 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             if deployment == 'simulated-local':
                 raise ValueError('v3 actual billing cannot use simulated-local zero cost')
             metadata = lookup({'provider': provider, 'model': model, 'billingUnit': 'AUTO',
-                'host': resolved, 'providerBaseURL': resolved.get('providerBaseURL')})
+                'host': resolved, 'providerBaseURL': resolved.get('providerBaseURL'),
+                **({'billingMode': row.get('billingMode'), 'referencePricing': row.get('referencePricing')} if cash_only else {})})
+            if cash_only and metadata['billingUnit'] == 'USD':
+                rate, fx = frozen_usd_cny_rate()
+                metadata = {**metadata, 'billingUnit': 'CNY',
+                    'pricing': {key: value * rate for key, value in metadata['pricing'].items()},
+                    'sourceBillingUnit': 'USD', 'exchangeRate': fx}
             if metadata['billingUnit'] not in {'AFP', 'CNY'} and mixed:
                 raise ValueError(f'{provider}/{model} requires an AFP or CNY actual route price')
             if not mixed and metadata['billingUnit'] != accounting_unit:
@@ -292,6 +305,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
             'pricePolicy': base.get('price_policy'),
+            'billingMode': row.get('billingMode', 'metered'), 'referencePricing': row.get('referencePricing'),
+            'executionEndpoint': resolved.get('providerBaseURL'),
             'effectiveModel': effective_model, 'quality': quality, 'latencyMs': latency,
             'latencyEvidence': ({'observations': deepcopy((observed or {}).get('observations', [])),
                 'snapshot_id': (observed or {}).get('snapshot_id')} if actual_routes else None)})
@@ -319,7 +334,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         if metadata is not None:
             route_evidence.update(profile='verified-actual-route', price_source_unit=base['pricing'].get('unit', accounting_unit),
                 actual_route_metadata=metadata, pricing_policy=base.get('price_policy'),
-                pricing_basis={'actualProviderBilling': True},
+                pricing_basis={'actualProviderBilling': row.get('billingMode') != 'subscription',
+                               'referenceValuation': row.get('billingMode') == 'subscription'},
                 pricing_materialization={'strategy': 'peak-budget-current-tier-settlement' if base.get('price_policy') else 'actual-route'},
                 pricing_schedule=None)
         evidence[_route_key(provider, model)] = route_evidence
@@ -378,6 +394,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'provider': provider_ids[_route_key(row['provider'], row['model'])],
             'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
             'maxOutputTokens': row['maxOutputTokens'], 'deployment': row['deployment'],
+            **({'billingMode': row['billingMode'], 'referencePricing': row['referencePricing'], 'executionEndpoint': row['executionEndpoint']} if cash_only else {}),
             **({'pricePolicy': row['pricePolicy']} if row.get('pricePolicy') else {}),
             'pricing': {'unit': row['pricing']['unit'] if mixed else accounting_unit,
                         **{key: value * exchange_rate for key, value in row['pricing'].items()
@@ -392,7 +409,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):
         security['classifier']['modelId'] = _stable_id('dsh-model', _route_key(classifier['provider'], classifier['model']))
-    config = {'schemaVersion':'refractagent-providers-v5' if mixed else 'refractagent-providers-v4',
+    config = {'schemaVersion':'refractagent-providers-v6' if cash_only else 'refractagent-providers-v5' if mixed else 'refractagent-providers-v4',
+        **({'cashLimits': deepcopy(pool.get('cashLimits'))} if cash_only else {}),
         'billingUnit':accounting_unit,
         'allowSharedJudge':allow_shared_judge,
         'objective':deepcopy(pool.get('objective', {'qualityMin':80,'primary':'cost','secondary':'latency','dagMode':'auto'})),

@@ -644,6 +644,37 @@ class OpenAICompatibleClient:
 
 
 def model_response_cost(model: ModelSpec, response: ChatResponse) -> float:
+    if model.billing_unit in {'CNY', 'USD'}:
+        from .currency_pricing import calculate_units, decimal, token_units
+        if response.raw_usage is not None and not isinstance(response.raw_usage, dict):
+            raise ValueError('原始模型用量必须为对象；现金费用待核对')
+        write_tokens = (response.raw_usage or {}).get('cacheWriteTokens', 0)
+        reference = getattr(model, 'reference_pricing', None)
+        if reference and reference.get('schedule'):
+            from .currency_pricing import reference_price
+            snapshot = reference_price(reference, input_tokens=response.input_tokens)
+            if snapshot.currency != model.billing_unit:
+                raise ValueError('参考阶梯需在配置阶段统一计价单位')
+            rates = dict(snapshot.rates)
+            rates.setdefault('request', 0)
+            rates.setdefault('cachedInput', rates['input'])
+            rates.setdefault('cacheWrite', rates['input'])
+            amount, _ = calculate_units(rates, token_units(response.input_tokens, response.output_tokens,
+                cached_input=response.cached_input_tokens, cache_write=write_tokens))
+            return float(amount)
+        input_rate = decimal(model.input_cost_per_1k, 'inputPer1k') / 1000
+        cached_rate = model.cached_input_cost_per_1k
+        write_rate = getattr(model, 'cache_write_cost_per_1k', None)
+        amount, _ = calculate_units({
+            'input': input_rate,
+            'cachedInput': input_rate if cached_rate is None else decimal(cached_rate, 'cachedInputPer1k') / 1000,
+            'cacheWrite': input_rate if write_rate is None else decimal(write_rate, 'cacheWritePer1k') / 1000,
+            'output': decimal(model.output_cost_per_1k, 'outputPer1k') / 1000,
+            'request': 0,
+        }, token_units(response.input_tokens, response.output_tokens,
+                       cached_input=response.cached_input_tokens, cache_write=write_tokens))
+        # 宿主旧合同仍以 JSON number 传递；不在预算结算前按显示精度舍入。
+        return float(amount)
     cached_tokens = min(response.cached_input_tokens, response.input_tokens)
     uncached_tokens = response.input_tokens - cached_tokens
     cached_rate = (

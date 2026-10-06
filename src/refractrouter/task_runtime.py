@@ -54,11 +54,12 @@ def _shared_judge_forecast(judge, task, criteria, candidates, *, tool_evidence=F
             + output_token_limit(judge) * judge.output_cost_per_1k) / 1000
 
 
-def _bounded_tool_allowance(routing, candidates, max_calls, input_cap):
+def _bounded_tool_allowance(routing, candidates, max_calls, input_cap, *, cash_only=False):
     """把宿主工具续接的全局调用名额按本路线最贵的执行器保守计入。"""
     if routing.get('status') != 'selected' or not max_calls:
         return 0.0
     return max_calls * max(
+        0 if cash_only and getattr(model, "billing_mode", "metered") == "subscription" else
         (min(input_cap, model.context_window - output_token_limit(model))
          * model.input_cost_per_1k + output_token_limit(model) * model.output_cost_per_1k) / 1000
         for mid in set(routing['assignments'].values()) for model in (candidates[mid],))
@@ -299,6 +300,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     runtime_call_limit = (max_model_calls if max_model_calls is not None else
                           10 + request.get('maxPlanRepairs',0) + 2*request.get('maxDynamicSplits',0)
                           if request.get('maxDynamicSplits',0) and tool_runtime is None else None)
+    currency_reference = configuration is not None and configuration.snapshot.get('schemaVersion') == 'refractagent-providers-v6'
     mixed = manifest.billing_unit == 'MIXED'
     if mixed:
         if request['method'] != 'A' or request.get('maxNodeFallbacks', 0) or request.get('maxDynamicSplits', 0):
@@ -317,6 +319,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     else:
         budget = TaskCallBudget(client if live else DemoTaskClient(),
             production_limit if live else 1e12, evaluation_limit if live else 1e12,
+            cash_limits=configuration.snapshot['cashLimits'] if currency_reference else None,
             max_calls=runtime_call_limit, capture_payload=True,
             max_total_output_tokens=request.get('maxTotalOutputTokens'),
             adaptive_output_reservation=request.get('adaptiveOutputBudget', False))
@@ -365,6 +368,11 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     def persist():
         with persist_lock:
             result["charged"], result["calls"] = budget.snapshot()
+            if currency_reference:
+                result['accounting_basis'] = 'public-reference-valuation'
+                result['reference_costs_cny'] = dict(result['charged'])
+                result['cash_costs_cny'] = budget.cash_snapshot()
+                result['cost_note'] = '参考成本包含按量调用，两项不相加；订阅费未按调用分摊。'
             if placement is not None:
                 # 安全运行只保存摘要；完整输入已由 input_sha256 关联，敏感原文不落盘。
                 for call in result['calls']:
@@ -579,6 +587,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 quality_min=request["qualityMin"], cost_max=remaining_cost, latency_max_ms=None if request.get("unlimitedTime") else remaining_latency,
                 weights=Weights(**request["weights"]) if request["method"] == "B" else None,
                 eligible_models=eligible_models, execution_policy=policy, reduce_dominated=configured_application,
+                model_billing_modes={mid: model.billing_mode for mid, model in candidates.items()} if currency_reference else None,
                 model_providers={mid: model.provider for mid, model in candidates.items()})
         if alternative_direct_plan is not None and live:
             if configuration is None or configuration.objective is None:
@@ -639,6 +648,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                             weights=Weights(**request['weights']) if request['method'] == 'B' else None,
                             eligible_models=direct_eligible, execution_policy=policy,
                             reduce_dominated=configured_application,
+                            model_billing_modes={mid: model.billing_mode for mid, model in candidates.items()} if currency_reference else None,
                             model_providers={mid: model.provider for mid, model in candidates.items()})
                     return (direct, estimates, direct_profile, direct_profiles, direct_admission,
                             direct_eligible, direct_placement, direct_routing)
@@ -710,7 +720,12 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                                 route['status'] = 'no-feasible-route'
                     comparison = compare_executable_routes(direct_routing, result['routing'],
                         planner_cost=planner_cost, judge_cost=judge_cost,
-                        planner_latency_ms=planner_latency, tool_allowances=allowances)
+                        planner_latency_ms=planner_latency, tool_allowances=allowances,
+                        cash_costs={name: route['prediction']['cash_cost'] + _bounded_tool_allowance(
+                            route, candidates, tool_count, input_cap, cash_only=True)
+                            if route.get('prediction') else 0
+                            for name, route in (('direct', direct_routing), ('dag', result['routing']))}
+                        if currency_reference else None)
                     qualified_workers = {mid for routes in (direct_eligible, eligible_models)
                         for models in routes.values() for mid in models}
                     direct_row, dag_row = comparison['direct'], comparison['dag']

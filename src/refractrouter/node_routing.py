@@ -126,7 +126,8 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
                 eligible_models: dict[str, list[str]] | None = None,
                 execution_policy: ExecutionPolicy | None = None,
                 model_providers: dict[str, str] | None = None,
-                assignment_mode: str = 'per-node', reduce_dominated: bool = False):
+                assignment_mode: str = 'per-node', reduce_dominated: bool = False,
+                model_billing_modes: dict[str, str] | None = None):
     if assignment_mode not in {'per-node', 'single-model'}:
         raise ValueError('unsupported assignment mode')
     if method not in {"A", "B"} or (method == "B" and weights is None) or (method == "A" and weights is not None):
@@ -140,6 +141,11 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
     providers = model_providers or {p.model_id: 'default' for p in profiles}
     if (policy.provider_concurrency or policy.provider_min_interval_ms) and model_providers is None:
         raise ValueError('provider policy requires model_providers')
+    if model_billing_modes is not None and any(
+            model_billing_modes.get(p.model_id) not in ('subscription', 'metered') for p in profiles):
+        raise ValueError('every profile requires an explicit billing mode')
+    def cash_cost(profile):
+        return 0 if model_billing_modes and model_billing_modes[profile.model_id] == 'subscription' else profile.cost
     normalized = weights.normalized() if weights else None
     options, utilities, bounds = [], {}, {}
     for node in plan.nodes:
@@ -167,6 +173,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
             and providers[q.model_id] == providers[p.model_id]
             and q.latency_ms == p.latency_ms
             and q.cost <= p.cost and q.quality >= p.quality
+            and (model_billing_modes is None or cash_cost(q) <= cash_cost(p))
             and (q.cost < p.cost or q.quality > p.quality or q.model_id < p.model_id)
             for q in pool)] for pool in options]
     count = math.prod(map(len, options))
@@ -203,6 +210,9 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
             score += normalized['latency'] * (1 if hi == lo else (hi-latency)/(hi-lo))
         tie = (cost, -quality, latency, tuple(p.model_id for p in combination))
         key = (-score, *tie) if method == "B" else tie
+        if model_billing_modes is not None:
+            # 先通过逐节点质量与预算约束，再减少新增现金；参考价并非订阅扣款。
+            key = (sum(cash_cost(p) for p in combination), *key)
         if best_key is None or key < best_key:
             best_key, best = key, (combination, cost, latency, quality, score)
     result = {"policy_version": "node-routing-v2", "method": method,
@@ -228,4 +238,9 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         result["prediction"] = {"cost": cost, "serial_latency_ms": sum(p.latency_ms for p in combination),
                                 "scheduled_latency_ms": latency, "schedule": schedule(combination),
                                 "mean_node_quality_proxy": quality, "weighted_score": score if weights else None}
+    if model_billing_modes is not None:
+        result['cost_preference'] = 'quality-qualified-then-cash-then-reference'
+        if best:
+            result['prediction']['cash_cost'] = sum(cash_cost(p) for p in best[0])
+            result['prediction']['reference_cost'] = best[1]
     return result
