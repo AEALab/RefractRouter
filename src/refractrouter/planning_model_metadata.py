@@ -5,6 +5,20 @@ from .deepseek_official_pricing import pricing as deepseek_cny_pricing
 
 
 def lookup(request):
+    if request.get('billingUnit') == 'REFERENCE':
+        from .subscription_reference import ARK_ENDPOINT, reference_for
+        endpoint = request.get('providerBaseURL') or ''
+        if endpoint.rstrip('/') == ARK_ENDPOINT:
+            result = _subscription_lookup({**request, 'billingMode': 'subscription',
+                'referencePricing': reference_for(request['model']), 'billingUnit': 'AUTO'})
+            if result['billingUnit'] == 'USD':
+                rate, fx = frozen_usd_cny_rate()
+                result.update(billingUnit='CNY', sourceBillingUnit='USD', exchangeRate=fx,
+                    pricing={key: value * rate for key, value in result['pricing'].items()})
+            return result
+        return lookup({**request, 'billingUnit': 'AUTO'})
+    if request.get('billingMode') == 'subscription':
+        return _subscription_lookup(request)
     provider, model, unit = (request.get(key) for key in ("provider", "model", "billingUnit"))
     if not all(isinstance(value, str) and value for value in (provider, model, unit)):
         raise ValueError("模型资料查询需要 provider、model 和计费单位")
@@ -63,7 +77,7 @@ def lookup(request):
             result["sources"]["pricing"] = official_cny["source"]
             result["sources"]["pricingCheckedAt"] = official_cny["checkedAt"]
             result["sources"]["pricingNote"] = (
-                "DeepSeek 官方人民币价，按北京时间工作日峰谷时段估算；"
+                "DeepSeek 官方人民币价，按北京时间周一至周五及已核对节假日峰谷时段估算；"
                 "预算预留采用高峰上界，实际扣费以 DeepSeek 账单为准")
         frozen = load_frozen_profiles()
         row = next((entry for entry in frozen["profiles"]
@@ -97,3 +111,40 @@ def lookup(request):
     result["automaticRouting"] = {"qualityProfile": profile.get("quality_profile"),
         "issues": [*result["issues"], *([] if profile.get("quality_profile") else ["缺少自动路由所需的独立质量资料；不影响规划路由指定使用"]) ]}
     return result
+
+
+def _subscription_lookup(request):
+    """容量仍由实际宿主提供；参考价来源不改变执行渠道及能力。"""
+    from .currency_pricing import PriceSnapshot, subscription_valuation, reference_price
+    reference = request.get('referencePricing')
+    if not isinstance(reference, dict):
+        raise ValueError('订阅模型缺少参考价格映射')
+    actual = request.get('providerBaseURL')
+    endpoint = reference.get('executionEndpoint')
+    if not isinstance(actual, str) or not isinstance(endpoint, str) or actual.rstrip('/') != endpoint.rstrip('/'):
+        raise ValueError('订阅参考价格绑定的执行端点与宿主实际端点不一致')
+    snapshot = reference_price(reference)
+    if reference.get('schedule') and snapshot.currency != 'CNY':
+        raise ValueError('参考阶梯目前需要 CNY 价格')
+    rate, fx = frozen_usd_cny_rate()
+    subscription_valuation({'provider': request.get('provider'), 'model': request.get('model'),
+        'endpoint': endpoint, 'billingMode': 'subscription'}, snapshot, {},
+        mapping=reference.get('mapping'), usd_cny={'base': 'USD', 'quote': 'CNY',
+        'rate': rate, 'source': fx['source'], 'asOf': fx['as_of']})
+    rates = dict(snapshot.rates)
+    if set(rates) - {'input', 'cachedInput', 'cacheWrite', 'output', 'request'} or rates.get('request', 0):
+        raise ValueError('文本订阅估值尚不支持附加请求或媒体价格')
+    # 先从原执行目录取容量，不能把参考提供方的较大容量复制给实际路线。
+    original = lookup({**request, 'billingMode': 'metered', 'billingUnit': 'AUTO'})
+    original.update(billingUnit=snapshot.currency, billingMode='subscription',
+        pricingBasis='reference-price', referencePricing=reference,
+        pricing={'inputPer1k': float(rates['input'] * 1000),
+                 'outputPer1k': float(rates['output'] * 1000),
+                 'cachedInputPer1k': float(rates.get('cachedInput', rates['input']) * 1000),
+                 'cacheWritePer1k': float(rates.get('cacheWrite', rates['input']) * 1000)})
+    original['sources'].update(pricing=snapshot.source, pricingCheckedAt=snapshot.checked_at,
+        pricingNote='订阅调用的公开价格参考估值，不代表现金扣款；容量来自实际执行路线。')
+    # AUTO 的计价缺项已由本次校验过的参考价格替代；其他能力缺项保留。
+    original['issues'] = [issue for issue in original['issues']
+                          if '价格' not in issue and 'AFP 计量' not in issue]
+    return original

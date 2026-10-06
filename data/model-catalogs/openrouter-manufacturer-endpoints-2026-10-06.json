@@ -1,0 +1,296 @@
+[
+  {
+    "model": "typesafe/jev-1.13",
+    "source": "https://openrouter.ai/api/v1/models/typesafe/jev-1.13/endpoints",
+    "data": {
+      "id": "typesafe/jev-1.13",
+      "endpoints": [
+        {
+          "provider_name": "TypeSafe",
+          "tag": "typesafe",
+          "model_id": "typesafe/jev-1.13",
+          "pricing": {
+            "prompt": "0.000000042",
+            "completion": "0",
+            "discount": 0
+          },
+          "context_length": 32000,
+          "max_completion_tokens": 28800,
+          "supported_parameters": [],
+          "quantization": "unknown",
+          "status": 0
+        }
+      ]
+    },
+    "checkedAt": "2026-10-06"
+  },
+  {
+    "model": "z-ai/glm-5.3",
+    "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3/endpoints",
+    "data": {
+      "id": "z-ai/glm-5.3",
+      "endpoints": [
+        {
+          "provider_name": "Z.AI",
+          "tag": "z-ai/fp8",
+          "model_id": "z-ai/glm-5.3",
+          "pricing": {
+            "prompt": "0.0000014",
+            "completion": "0.0000044",
+            "input_cache_read": "0.00000026",
+            "discount": 0
+          },
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "tools",
+            "tool_choice",
+            "top_k",
+            "response_format",
+            "reasoning_effort"
+          ],
+          "quantization": "fp8",
+          "status": 0
+        }
+      ]
+    },
+    "checkedAt": "2026-10-06"
+  },
+  {
+    "model": "z-ai/glm-5.3-flash",
+    "source": "https://openrouter.ai/api/v1/models/z-ai/glm-5.3-flash/endpoints",
+    "data": {
+      "id": "z-ai/glm-5.3-flash",
+      "endpoints": [
+        {
+          "provider_name": "Z.AI",
+          "tag": "z-ai/fp8",
+          "model_id": "z-ai/glm-5.3-flash",
+          "pricing": {
+            "prompt": "0.00000015",
+            "completion": "0.0000005",
+            "input_cache_read": "0.00000003",
+            "discount": 0
+          },
+          "context_length": 1048576,
+          "max_completion_tokens": 131072,
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "tools",
+            "tool_choice",
+            "top_k",
+            "response_format",
+            "reasoning_effort"
+          ],
+          "quantization": "fp8",
+          "status": 0
+        }
+      ]
+    },
+    "checkedAt": "2026-10-06"
+  },
+  {
+    "model": "minimax/minimax-m3",
+    "source": "https://openrouter.ai/api/v1/models/minimax/minimax-m3/endpoints",
+    "data": {
+      "id": "minimax/minimax-m3",
+      "endpoints": [
+        {
+          "provider_name": "Minimax",
+          "tag": "minimax/fp8",
+          "model_id": "minimax/minimax-m3",
+          "pricing": {
+            "prompt": "0.0000003",
+            "completion": "0.0000012",
+            "input_cache_read": "0.00000006",
+            "discount": 0
+          },
+          "context_length": 524288,
+          "max_completion_tokens": 512000,
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "response_format",
+            "tool_choice",
+            "tools"
+          ],
+          "quantization": "fp8",
+          "status": 0
+        }
+      ]
+    },
+    "checkedAt": "2026-10-06"
+  },
+  {
+    "model": "deepseek/deepseek-v4.1-flash",
+    "source": "https://openrouter.ai/api/v1/models/deepseek/deepseek-v4.1-flash/endpoints",
+    "data": {
+      "id": "deepseek/deepseek-v4.1-flash",
+      "endpoints": [
+        {
+          "provider_name": "DeepSeek",
+          "tag": "deepseek",
+          "model_id": "deepseek/deepseek-v4.1-flash",
+          "pricing": {
+            "prompt": "0.00000015",
+            "completion": "0.0000006",
+            "input_cache_read": "0.000000003",
+            "discount": 0,
+            "overrides": [
+              {
+                "utc_days": [
+                  "saturday",
+                  "sunday"
+                ],
+                "prompt": "0.00000015",
+                "completion": "0.0000006",
+                "input_cache_read": "0.000000003"
+              },
+              {
+                "utc_start": 0,
+                "utc_end": 100,
+                "utc_days": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ],
+                "prompt": "0.00000015",
+                "completion": "0.0000006",
+                "input_cache_read": "0.000000003"
+              },
+              {
+                "utc_start": 100,
+                "utc_end": 400,
+                "utc_days": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ],
+                "prompt": "0.0000003",
+                "completion": "0.0000012",
+                "input_cache_read": "0.000000006"
+              },
+              {
+                "utc_start": 400,
+                "utc_end": 600,
+                "utc_days": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ],
+                "prompt": "0.00000015",
+                "completion": "0.0000006",
+                "input_cache_read": "0.000000003"
+              },
+              {
+                "utc_start": 600,
+                "utc_end": 1000,
+                "utc_days": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ],
+                "prompt": "0.0000003",
+                "completion": "0.0000012",
+                "input_cache_read": "0.000000006"
+              },
+              {
+                "utc_start": 1000,
+                "utc_end": 0,
+                "utc_days": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ],
+                "prompt": "0.00000015",
+                "completion": "0.0000006",
+                "input_cache_read": "0.000000003"
+              }
+            ]
+          },
+          "context_length": 1048576,
+          "max_completion_tokens": 393216,
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "temperature",
+            "top_p",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "logprobs",
+            "top_logprobs",
+            "tools",
+            "tool_choice",
+            "response_format",
+            "reasoning_effort"
+          ],
+          "quantization": "unknown",
+          "status": 0
+        }
+      ]
+    },
+    "checkedAt": "2026-10-06"
+  },
+  {
+    "model": "moonshotai/kimi-k3",
+    "source": "https://openrouter.ai/api/v1/models/moonshotai/kimi-k3/endpoints",
+    "data": {
+      "id": "moonshotai/kimi-k3",
+      "endpoints": [
+        {
+          "provider_name": "Moonshot AI",
+          "tag": "moonshotai/mxfp4",
+          "model_id": "moonshotai/kimi-k3",
+          "pricing": {
+            "prompt": "0.000003",
+            "completion": "0.000015",
+            "input_cache_read": "0.0000003",
+            "discount": 0
+          },
+          "context_length": 1048576,
+          "max_completion_tokens": 943718,
+          "supported_parameters": [
+            "reasoning",
+            "include_reasoning",
+            "max_tokens",
+            "stop",
+            "frequency_penalty",
+            "presence_penalty",
+            "structured_outputs",
+            "response_format",
+            "tool_choice",
+            "tools",
+            "reasoning_effort"
+          ],
+          "quantization": "mxfp4",
+          "status": 0
+        }
+      ]
+    },
+    "checkedAt": "2026-10-06"
+  }
+]

@@ -62,7 +62,7 @@ def automatic_cost_trace(result, manifest):
     basis = (result.get('routing_profile') or {}).get('forecast_basis') or {}
     models = {model.model_id: model for model in manifest.models}
     selected = []
-    expected = {'AFP': 0.0, 'CNY': 0.0}
+    expected = {'CNY': 0.0} if result.get('accounting_basis') == 'public-reference-valuation' else {'AFP': 0.0, 'CNY': 0.0}
     for node_id, model_id in assignments.items():
         row = basis.get(node_id, {}).get(model_id)
         model = models.get(model_id)
@@ -81,10 +81,14 @@ def automatic_cost_trace(result, manifest):
     calls = [{'label': call['label'], 'model_id': call['model_id'],
               'unit': call.get('billing_unit') or manifest.billing_unit,
               'status': call['status'], 'reserved': call['reserved'],
-              'charged': call['charged']}
+              'charged': call['charged'], 'billing_mode': call.get('billing_mode', 'metered'),
+              'cost_basis': call.get('cost_basis'), 'cash_cost_cny': call.get('cash_cost_cny')}
              for call in result.get('calls', ())]
     return {'schema_version': 'automatic-cost-trace-v1', 'selected_nodes': selected,
             'selected_expected_by_unit': expected, 'calls': calls,
+            'accounting_basis': result.get('accounting_basis'),
+            'reference_costs_cny': result.get('reference_costs_cny'),
+            'cash_costs_cny': result.get('cash_costs_cny'),
             'review_protection': (result.get('review') or {}).get('protection')}
 
 
@@ -221,7 +225,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         raise ValueError('mode must be preflight, demo or live')
     automatic_routing = (isinstance(provider_config, dict)
                          and provider_config.get('schemaVersion') in {'refractagent-providers-v4',
-                                                                      'refractagent-providers-v5'})
+                                                                      'refractagent-providers-v5', 'refractagent-providers-v6'})
     mixed = (automatic_routing and provider_config.get('schemaVersion') == 'refractagent-providers-v5')
     if (mode == 'live') != execute_paid_run:
         raise ValueError('live requires explicit --execute-paid-run; preview/demo forbid paid execution')

@@ -82,7 +82,7 @@ class PlanningRuntime(StageHybridRuntime):
         public = {"protocol": PROTOCOL, "runId": run["id"], "identity": run["identity"],
             "strategy": run["strategy"], "configDigest": run["config_digest"], "status": run["status"],
             "configuration": run["config"]["raw"], "state": run["state"], "decisions": run["decisions"], "calls": calls,
-            "costs": legacy_costs, "billingUnit": single_unit, "costsByUnit": costs_by_unit,
+            "referenceCosts": run["budget"].reference_snapshot(), "costs": legacy_costs, "billingUnit": single_unit, "costsByUnit": costs_by_unit,
             "phase": run["flow"]["pending"][2] if run["flow"] and run["flow"]["pending"] else "idle",
             "coverage": "managed-agent-only", "resultPath": str(path.resolve())}
         temporary = path.with_suffix(".tmp")
@@ -131,7 +131,7 @@ class PlanningRuntime(StageHybridRuntime):
         run = {"id": key, "identity": deepcopy(identity), "config": config, "strategy": strategy,
             "config_digest": digest(request["config"]), "status": "running", "flow": None,
             "deadline": time.monotonic() + config["timeout"] / 1000 if config["timeout"] else None,
-            "budget": PlanningBudget(config["budgets"], max_calls=config["max_calls"] or None),
+            "budget": PlanningBudget(config["budgets"], max_calls=config["max_calls"] or None, reference_limit=config.get("reference_limit")),
             "state": {"hold": 0, "default": "efficient", "classified": False, "streak": 0,
                       "latched": False, "reviews": 0, "redos": 0, "step": 0, "last_model": None,
                       "last_evidence": None, "consumedEvidenceIds": [], "compactions": 0,
@@ -335,9 +335,9 @@ class PlanningRuntime(StageHybridRuntime):
                                         output_cost_per_1k=price["outputPer1k"],
                                         cached_input_cost_per_1k=price["cachedInputPer1k"])
                 input_bound = request_input_bound(messages, tools) if strategy == "static" else model.context_window
-                bounds[model.billing_unit] = bounds.get(model.billing_unit, 0) + (
+                run["budget"].add_required(bounds, model, (
                     input_bound / 1000 * max(model.input_cost_per_1k, model.cache_write_cost_per_1k or 0)
-                    + model.max_output_tokens / 1000 * model.output_cost_per_1k)
+                    + model.max_output_tokens / 1000 * model.output_cost_per_1k))
             if any(bound > run["budget"].remaining(unit) for unit, bound in bounds.items()) \
                     or (c["max_calls"] and len(run["budget"].records) + len(purposes)
                         + remaining_local_reviews > c["max_calls"]):
@@ -530,24 +530,24 @@ class PlanningRuntime(StageHybridRuntime):
         takeover = self._resolve_model(run, model_id=escalation["takeover"])
         required = {}
         if s["latched"]:
-            required[takeover.billing_unit] = self._cost_bound(
-                takeover, messages, tools, output_cap)
+            run["budget"].add_required(required, takeover, self._cost_bound(
+                takeover, messages, tools, output_cap))
             calls = 1
         else:
             for model in (initial, takeover):
                 amount = self._cost_bound(model, messages, tools, output_cap)
-                required[model.billing_unit] = required.get(model.billing_unit, 0) + amount
+                run["budget"].add_required(required, model, amount)
             calls = 2
             judge = escalation["judge"]
             if judge["type"] == "llm":
                 model = self._resolve_model(run, model_id=judge["modelId"])
                 amount = self._bounded_input_cost(model, escalation["maxJudgeInputBytes"],
                                                   escalation["maxJudgeOutputTokens"])
-                required[model.billing_unit] = required.get(model.billing_unit, 0) + amount
+                run["budget"].add_required(required, model, amount)
                 calls += 1
             elif judge["type"] == "jev":
-                required["CNY"] = required.get("CNY", 0) + jev_cost_cny(
-                    c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
+                run["budget"].add_required(required, None, jev_cost_cny(
+                    c["jev"]["maxInputTokens"], c["jev"]["fxRate"]))
                 calls += 1
         for unit, amount in required.items():
             try:
@@ -574,22 +574,22 @@ class PlanningRuntime(StageHybridRuntime):
         executor = self._resolve_model(run, model_id=advisor["executor"])
         remaining_redos = max(0, max_redos - s["redos"])
         remaining_reviews = max(0, max_reviews - s["reviews"])
-        required = {executor.billing_unit: self._cost_bound(executor, messages, tools, execution_cap)}
+        required = {}
+        run["budget"].add_required(required, executor, self._cost_bound(executor, messages, tools, execution_cap))
         calls = 1
         if remaining_redos:
-            required[executor.billing_unit] += self._cost_bound(executor, messages, tools, execution_cap)
+            run["budget"].add_required(required, executor, self._cost_bound(executor, messages, tools, execution_cap))
             calls += 1
         judge = advisor["judge"]
         if judge["type"] == "llm" and remaining_reviews:
             judge_model = self._resolve_model(run, model_id=judge["modelId"])
             amount = self._bounded_input_cost(judge_model, advisor["maxJudgeInputBytes"],
                                               advisor["maxJudgeOutputTokens"])
-            required[judge_model.billing_unit] = required.get(judge_model.billing_unit, 0) \
-                + amount * remaining_reviews
+            run["budget"].add_required(required, judge_model, amount * remaining_reviews)
             calls += remaining_reviews
         elif judge["type"] == "jev":
-            required["CNY"] = required.get("CNY", 0) + remaining_reviews * jev_cost_cny(
-                c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
+            run["budget"].add_required(required, None, remaining_reviews * jev_cost_cny(
+                c["jev"]["maxInputTokens"], c["jev"]["fxRate"]))
             calls += remaining_reviews
         elif judge["type"] == "local-decision":
             calls += remaining_reviews
@@ -610,12 +610,13 @@ class PlanningRuntime(StageHybridRuntime):
     def _task_admissible_candidates(self, run, candidates, *, include_judge=False):
         """付费判别前排除数据域、上下文和本轮预算不合格的路线。"""
         flow, c = run["flow"], run["config"]
-        judge_unit, judge_bound = None, 0
+        judge_unit, judge_bound, judge_model = None, 0, None
         if include_judge and self._task_route(run)["judge"]["type"] == "jev":
             judge_unit = "CNY"
             judge_bound = jev_cost_cny(c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
         elif include_judge:
             judge = self._resolve_model(run, model_id=self._task_route(run)["judge"]["modelId"])
+            judge_model = judge
             judge_unit = judge.billing_unit
             judge_bound = self._cost_bound(judge, self._task_judge_messages(run), [],
                                           self._task_route(run)["maxJudgeOutputTokens"])
@@ -628,12 +629,13 @@ class PlanningRuntime(StageHybridRuntime):
                 output_cap = min(model.max_output_tokens, flow.get("maxTokens") or model.max_output_tokens)
                 if input_bound + output_cap > model.context_window:
                     raise ValueError("上下文容量不足")
-                available = run["budget"].remaining(model.billing_unit)
-                required = self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"))
-                if model.billing_unit == judge_unit:
-                    required += judge_bound
-                if required > available:
-                    raise ValueError(f"{model.billing_unit} 预算不足以覆盖 Judge 与首次执行调用")
+                required = {}
+                run["budget"].add_required(required, model,
+                    self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens")))
+                if judge_unit is not None:
+                    run["budget"].add_required(required, judge_model, judge_bound)
+                if any(amount > run["budget"].remaining(unit) for unit, amount in required.items()):
+                    raise ValueError("预算不足以覆盖 Judge 与首次执行调用")
             except (ValueError, KeyError) as exc:
                 rejected.append({"id": item["id"], "reason": str(exc)})
             else:
@@ -647,6 +649,9 @@ class PlanningRuntime(StageHybridRuntime):
             model = self._resolve_model(run, model_id=item["id"])
             bounds[item["id"]] = {"unit": model.billing_unit,
                 "amount": self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"))}
+            if run["config"].get("reference_limit") is not None:
+                bounds[item["id"]]["cashAmount"] = (0 if model.billing_mode == "subscription"
+                    else bounds[item["id"]]["amount"])
         selected = select_task_candidate(assessments, self._task_route(run)["fallback"], bounds)
         selected["firstCallUpperBounds"] = bounds
         return selected
@@ -659,19 +664,19 @@ class PlanningRuntime(StageHybridRuntime):
         candidate_bounds = {}
         for item in candidates:
             model = self._resolve_model(run, model_id=item["id"])
-            candidate_bounds[model.billing_unit] = max(candidate_bounds.get(model.billing_unit, 0),
-                self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens")))
+            run["budget"].add_required(candidate_bounds, model,
+                self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens")), maximum=True)
         required = dict(candidate_bounds)
         calls = 1
         if include_judge and self._task_route(run)["judge"]["type"] == "jev":
-            required["CNY"] = required.get("CNY", 0) + jev_cost_cny(
-                c["jev"]["maxInputTokens"], c["jev"]["fxRate"])
+            run["budget"].add_required(required, None, jev_cost_cny(
+                c["jev"]["maxInputTokens"], c["jev"]["fxRate"]))
             calls += 1
         elif include_judge:
             judge = self._resolve_model(run, model_id=self._task_route(run)["judge"]["modelId"])
             judge_messages = self._task_judge_messages(run)
-            required[judge.billing_unit] = required.get(judge.billing_unit, 0) + self._cost_bound(
-                judge, judge_messages, [], self._task_route(run)["maxJudgeOutputTokens"])
+            run["budget"].add_required(required, judge, self._cost_bound(
+                judge, judge_messages, [], self._task_route(run)["maxJudgeOutputTokens"]))
             calls += 1
         for unit, amount in required.items():
             try:
@@ -866,6 +871,9 @@ class PlanningRuntime(StageHybridRuntime):
         reservation.row.update(call_id=token, purpose=purpose, disposition="pending",
                                provider=model.provider, actual_model=model.api_model,
                                reasoning_effort=model.request_options.get("reasoning_effort"))
+        if model.billing_mode == 'subscription':
+            source = next(item for item in run['config']['raw']['models'] if item['id'] == model.model_id)
+            reservation.row['reference_pricing'] = deepcopy(source['referencePricing'])
         if pricing:
             reservation.row.update(pricing_tier=pricing["tier"], pricing_source=pricing["source"],
                                    pricing_checked_at=pricing["checkedAt"])
@@ -1626,6 +1634,7 @@ class PlanningRuntime(StageHybridRuntime):
         operation_id = uuid.uuid4().hex
         row = run["budget"].reserve_non_token(route["billingUnit"], amount,
             label=f'{run["id"]}:media:{operation_id}', purpose=operation,
+            billing_mode=route.get("billingMode", "metered"),
             usage={"basis": route["pricing"]["basis"], "maximumUnits": units,
                    "model": route["model"], "provider": route["provider"]})
         state = {"id": operation_id, "routeId": route_id, "operation": operation,
@@ -1692,6 +1701,7 @@ class PlanningRuntime(StageHybridRuntime):
         if operation == "handshake":
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
+                "planning-routing-v7", "currency-pricing-v1",
                 "composite-task-stage-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
@@ -1704,6 +1714,14 @@ class PlanningRuntime(StageHybridRuntime):
         if operation == "metadata":
             from .planning_model_metadata import lookup
             return lookup(request)
+        if operation == "currency-pool-migration":
+            from .currency_migration import migrate_pool
+            return migrate_pool(request['config'], request['catalog'],
+                production_cash=request.get('productionCash'), evaluation_cash=request.get('evaluationCash'))
+        if operation == "currency-migration":
+            from .currency_migration import migrate_planning
+            return migrate_planning(request["config"], request.get("bindings", {}),
+                                    cny_budget=request.get("cnyBudget"), reference_budget=request.get("referenceBudget"))
         if operation == "simulate":
             from .planning_simulation import simulate
             return simulate(request.get("config", {}))

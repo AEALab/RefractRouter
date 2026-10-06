@@ -313,6 +313,10 @@ class ModelGateway:
                 raise ValueError("provider baseURL 无效")
             if p.get("apiKeyEnv") and not os.environ.get(p["apiKeyEnv"]):
                 raise ValueError("上游模型凭证未配置")
+            if model.billing_mode == 'subscription':
+                expected = (model.reference_pricing or {}).get('executionEndpoint', '')
+                if expected.rstrip('/') != p['baseURL'].rstrip('/'):
+                    raise ValueError("订阅参考价格与实际调用端点不一致")
             if model.billing_unit == 'AFP' and url.path.rstrip('/') != '/api/plan/v3':
                 raise ValueError("AFP 路线必须使用已冻结的 /api/plan/v3 接口")
             if p.get("tokenLimitParameter", "max_tokens") not in ('max_tokens', 'max_completion_tokens'):

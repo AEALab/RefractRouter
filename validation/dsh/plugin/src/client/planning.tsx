@@ -1,12 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { EMPTY_PLANNING, PLANNING_NAMES, validatePlanningShape, type MediaRouteConfig, type PlanningConfig, type PlanningStrategy, type TaskJudgeConfig } from '../planning-config.js'
-import type { CardScope } from '../settings-card.js'
+import type { CardScope, DshModelPoolView } from '../settings-card.js'
 import type { ClientContext, DshModelCatalog } from './types.js'
 
 type Report={valid?:boolean;issues?:string[];defaultStrategy?:string;coverage?:string;
   strategies?:Array<{id:string;name:string;available:boolean;issues:string[]}>;
   mediaRoutes?:Array<{id:string;provider:string;model:string;available:boolean;verification:string;issues:string[]}>}
-export type ModelMetadata={provider:string;model:string;billingUnit:'USD'|'AFP'|'CNY';
+export type ModelMetadata={billingMode?:'subscription'|'metered';referencePricing?:NonNullable<PlanningConfig['models']>[number]['referencePricing'];provider:string;model:string;billingUnit:'USD'|'AFP'|'CNY';
   automaticRouting?:{qualityProfile?:{score:number;source:{url:string;metric_version:string}}|null;issues:string[]};
   capacity?:{contextWindow:number;maxOutputTokens:number}|null;
   pricing?:{inputPer1k:number;outputPer1k:number;cachedInputPer1k?:number}|null;
@@ -15,10 +15,12 @@ export type ModelMetadata={provider:string;model:string;billingUnit:'USD'|'AFP'|
     conversionAsOf?:string;pricingNote?:string};issues?:string[]}
 export interface PlanningUi {
   scope:CardScope
+  migratePoolCurrency?(config:DshModelPoolView,productionCash:number,evaluationCash:number):Promise<{configuration:DshModelPoolView}>
+  migrateCurrency?(config:PlanningConfig,cnyBudget:number,referenceBudget:number):Promise<{configuration:PlanningConfig;preview:Report}>
   preview():Promise<Report>
   simulate():Promise<{message:string;simulatedCalls:number;models:string[]}>
   loadCatalog():Promise<DshModelCatalog>
-  loadMetadata(provider:string,model:string,billingUnit:string):Promise<ModelMetadata>
+  loadMetadata(provider:string,model:string,billingUnit:string,configured?:NonNullable<PlanningConfig['models']>[number]):Promise<ModelMetadata>
   loadFx():Promise<{rate:number;source:string;asOf:string}>
   localJudge(config:PlanningConfig,action:'status'|'download'|'load'|'unload',target?:string):Promise<{
     installed:boolean;downloaded:boolean;loaded:boolean;path:string;sourceModel:string;revision:string;
@@ -89,7 +91,7 @@ function labelPlanningModeMenu():()=>void {
   update()
   return ()=>observer.disconnect()
 }
-export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,localJudge,simulate}:PlanningUi){
+export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,localJudge,simulate,migrateCurrency}:PlanningUi){
   const snapshot=useSyncExternalStore(cb=>scope.subscribe(cb),()=>scope.getSnapshot())
   const saved=snapshot.value?.planningRouting??EMPTY_PLANNING
   const [draft,setDraft]=useState<PlanningConfig>(()=>structuredClone(saved))
@@ -98,18 +100,21 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   const [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[status,setStatus]=useState('')
   const [report,setReport]=useState<Report>(),[catalog,setCatalog]=useState<DshModelCatalog>()
   const [advanced,setAdvanced]=useState('')
+  const [migrationCash,setMigrationCash]=useState(String(saved.maxProductionCostByUnit?.CNY??''))
+  const [migrationReference,setMigrationReference]=useState('')
   const [metadata,setMetadata]=useState<Record<string,ModelMetadata>>({})
   const [metadataErrors,setMetadataErrors]=useState<Record<string,string>>({})
   const [localJudgeStatus,setLocalJudgeStatus]=useState<{installed:boolean;downloaded:boolean;loaded:boolean;path:string;revisionVerified:boolean;sizeBytes:number}>()
   useEffect(()=>{if(!dirty){setDraft(structuredClone(saved));if(!editingTouched)setEditingStrategy(saved.defaultStrategy??'stage')}},
     [saved,dirty,editingTouched])
   useEffect(()=>{void loadCatalog().then(setCatalog).catch(e=>setStatus(errorText(e)))},[loadCatalog])
-  function patch(value:Partial<PlanningConfig>){setDraft(v=>({...v,...value}));setDirty(true);setReport(undefined)}
+  const cashMode=draft.schemaVersion==='refractagent-planning-v7'
+  function patch(value:Partial<PlanningConfig>){setDraft(v=>({...v,...value,...(v.schemaVersion==='refractagent-planning-v7'?{schemaVersion:v.schemaVersion}:{})}));setDirty(true);setReport(undefined)}
   const modelKey=(provider:string,model:string,unit:string)=>JSON.stringify([provider,model,unit])
-  async function retrieveMetadata(provider:string,model:string,unit:string){
+  async function retrieveMetadata(provider:string,model:string,unit:string,configured?:NonNullable<PlanningConfig['models']>[number]){
     const key=modelKey(provider,model,unit)
     try{
-      const info=await loadMetadata(provider,model,unit)
+      const info=await loadMetadata(provider,model,cashMode?'REFERENCE':unit,cashMode?undefined:configured)
       setMetadata(previous=>({...previous,[key]:info,[modelKey(provider,model,info.billingUnit)]:info}))
       setMetadataErrors(previous=>{const next={...previous};delete next[key];return next})
       if(!info.capacity&&!info.pricing)return
@@ -117,8 +122,11 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         let changed=false
         const models=previous.models?.map(row=>{
           if(row.provider!==provider||row.model!==model)return row
+          if(row.billingMode==='subscription'&&row.id!==configured?.id)return row
           if(unit!=='AUTO'&&(row.billingUnit??previous.billingUnit??'USD')!==unit)return row
           const next={...row,...(unit==='AUTO'?{billingUnit:info.billingUnit}:{}),
+            ...(info.billingMode?{billingMode:info.billingMode}:{}),
+            ...(info.referencePricing?{referencePricing:info.referencePricing}:{}),
             ...(info.capacity??{}),...(info.pricing??{}),...(info.capabilities?{capabilities:info.capabilities}:{})}
           if(JSON.stringify(next)!==JSON.stringify(row)){changed=true;return next}
           return row
@@ -131,7 +139,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   useEffect(()=>{
     if(!catalog)return
-    for(const row of saved.models??[])void retrieveMetadata(row.provider,row.model,'AUTO')
+    for(const row of saved.models??[])void retrieveMetadata(row.provider,row.model,'AUTO',row)
   },[catalog,saved])
   useEffect(()=>{
     if(dirty||draft.maxProductionCostByUnit?.CNY!==undefined)return
@@ -151,7 +159,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   },[dirty,draft.billingUnit,draft.maxProductionCost,draft.maxProductionCostByUnit,loadFx])
   async function save(){
     setBusy(true);setStatus('')
-    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:draft.composite||draft.schemaVersion==='refractagent-planning-v6'
+    try{await scope.set('planningRouting',JSON.parse(JSON.stringify({...draft,schemaVersion:cashMode?'refractagent-planning-v7':draft.composite||(draft.schemaVersion==='refractagent-planning-v6'||cashMode)
       ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'})));setDirty(false)
       const result=await preview();setReport(result)
       const selected=result.strategies?.find(row=>row.id===(draft.defaultStrategy??'stage'))
@@ -162,7 +170,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   }
   async function operateLocalJudge(action:'status'|'download'|'load'|'unload',target?:string){
     setBusy(true);setStatus(action==='download'?'正在明确下载固定 revision；任务执行不会触发此操作。':'')
-    try{const result=await localJudge({...draft,schemaVersion:draft.composite||draft.schemaVersion==='refractagent-planning-v6'
+    try{const result=await localJudge({...draft,schemaVersion:cashMode?'refractagent-planning-v7':draft.composite||(draft.schemaVersion==='refractagent-planning-v6'||cashMode)
       ?'refractagent-planning-v6':draft.stage||draft.advisor||draft.schemaVersion==='refractagent-planning-v5'?'refractagent-planning-v5':'refractagent-planning-v4'},action,target)
       setLocalJudgeStatus(result);setStatus(`本地 Judge：依赖${result.installed?'已安装':'未安装'}；权重${result.downloaded?'已就绪':'未就绪'}；revision ${result.revisionVerified?'已核对':'未核对'}；本地文件 ${(result.sizeBytes/1024/1024).toFixed(1)} MiB；进程${result.loaded?'已加载':'未加载'}。`)
     }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
@@ -319,11 +327,26 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
   return <section className="rra-v4-section rra-planning" aria-label="规划路由设置">
     <div className="rra-section-head"><div><h3>规划路由</h3><p className="rra-field-hint">根据任务与执行轨迹选择模型，使用 DSH 原生工具、审批与委派。</p></div>{dirty&&<span className="rra-badge">未保存</span>}</div>
     <label className="rra-check"><input type="checkbox" checked={draft.enabled} onChange={e=>patch({enabled:e.target.checked})}/>启用独立规划路由</label>
-    <div className="rra-row-card"><h3>通用运行设置</h3><p className="rra-field-hint">现金预算统一使用 CNY；USD 模型价格优先采用可核对的官方人民币价格，否则按冻结汇率折算。AFP 点数单独结算。留空表示该单位尚未配置；0 表示不限制。已配置模型与路线涉及：{activeUnits.join('、')}。</p>
-    <div className="rra-grid rra-grid-2">{(['AFP','CNY'] as const).map(unit=><label className="rra-compact-field" key={unit}>{unit==='AFP'?'AFP 点数预算':'CNY 现金预算'}（0 为不限制） <input className="rra-input" type="number" min="0" step="any"
+    {!cashMode&&migrateCurrency&&<div className="rra-row-card"><h3>升级金额计价</h3>
+      <p className="rra-field-hint">保留 Ark 订阅模型、端点与权限。系统补齐公开参考价；历史 AFP 保留，新运行分别统计参考成本与现金费用。先生成草稿，保存后生效。</p>
+      <div className="rra-grid rra-grid-2"><label className="rra-compact-field">现金上限（CNY，0 不限制）<input className="rra-input" type="number" min="0" value={migrationCash} onChange={e=>setMigrationCash(e.target.value)}/></label>
+        <label className="rra-compact-field">参考成本上限（CNY，0 不限制）<input className="rra-input" type="number" min="0" value={migrationReference} onChange={e=>setMigrationReference(e.target.value)}/></label></div>
+      <button type="button" className="rra-btn" disabled={busy||migrationCash===''||migrationReference===''} onClick={async()=>{
+        setBusy(true)
+        try{const result=await migrateCurrency(draft,Number(migrationCash),Number(migrationReference))
+          setDraft(result.configuration);setDirty(true);setReport(result.preview)
+          setStatus('已生成金额配置草稿；原模型与订阅接口保留，请检查诊断后保存。')
+        }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
+      }}>生成金额配置草稿</button></div>}
+    <div className="rra-row-card"><h3>通用运行设置</h3>
+        <button type="button" className="rra-button rra-button-secondary" disabled={busy} onClick={async()=>{setBusy(true);try{await Promise.all((draft.models??[]).map(row=>retrieveMetadata(row.provider,row.model,'AUTO',row)))}finally{setBusy(false)}}}>刷新模型价格与容量</button>
+<p className="rra-field-hint">现金预算统一使用 CNY；USD 模型价格优先采用可核对的官方人民币价格，否则按冻结汇率折算。{cashMode?'订阅调用按公开价格记录参考成本，不计入现金费用；参考成本包含按量调用，请勿与现金费用相加。':'旧版 AFP 点数单独结算。'}留空表示该单位尚未配置；0 表示不限制。已配置模型与路线涉及：{activeUnits.join('、')}。</p>
+    <div className="rra-grid rra-grid-2">{(cashMode?(['CNY'] as const):(['AFP','CNY'] as const)).map(unit=><label className="rra-compact-field" key={unit}>{unit==='AFP'?'AFP 点数预算':'CNY 现金预算'}（0 为不限制） <input className="rra-input" type="number" min="0" step="any"
       value={draft.maxProductionCostByUnit?.[unit]??(unit===(draft.billingUnit??'USD')?draft.maxProductionCost:'')??''}
       onChange={e=>patch({maxProductionCostByUnit:{...draft.maxProductionCostByUnit,
         [unit]:e.target.value===''?undefined:Number(e.target.value)}})}/></label>)}</div>
+    {cashMode&&<label className="rra-compact-field">任务参考成本上限（CNY，0 为不限制）<input className="rra-input" type="number" min="0" step="any"
+      value={draft.maxReferenceCost??''} onChange={e=>patch({maxReferenceCost:e.target.value===''?undefined:Number(e.target.value)})}/></label>}
     <div className="rra-grid rra-grid-2"><label className="rra-compact-field">任务期限（毫秒，0 为不限制） <input className="rra-input" type="number" min="0" value={draft.timeoutMs??300000} onChange={e=>patch({timeoutMs:Number(e.target.value)})}/></label>
       <label className="rra-compact-field">最大调用数（0 为不限制） <input className="rra-input" type="number" min="0" value={draft.maxCalls??128} onChange={e=>patch({maxCalls:Number(e.target.value)})}/></label></div></div>
     <div className="rra-row-card"><h3>官方 Jev Judge</h3>
@@ -364,7 +387,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           onChange={e=>{if(e.target.value){const [provider,selected]=JSON.parse(e.target.value) as string[];selectCatalogModel(role,provider,selected)}}}>
           <option value="">选择模型…</option>{catalog?.groups.filter(g=>g.id!=='refractagent').map(g=><optgroup key={g.id} label={g.name}>
             {g.models.map(m=><option key={m.id} value={JSON.stringify([g.id,m.id])}>{m.name}</option>)}</optgroup>)}</select></label>
-        <p className="rra-field-hint">模型与推理等级来自 DSH；容量与实际路线价格由系统资料源核对。</p>
+        <p className="rra-field-hint">模型与推理等级来自 DSH；容量与实际路线价格由系统资料源核对。刷新读取当前已核价目录，保存后对新任务生效。</p>
         <label className="rra-compact-field">复用已登记配置 <select className="rra-select" value={draft.roles?.[role]??''} onChange={e=>{
           const selected=draft.models?.find(item=>item.id===e.target.value)
           patch({roles:{...draft.roles,[role]:e.target.value||undefined}})
@@ -377,7 +400,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
             rolePatch(role,{billingUnit:unit,inputPer1k:undefined,outputPer1k:undefined,
               cachedInputPer1k:undefined,cacheWritePer1k:undefined})
             void retrieveMetadata(model.provider,model.model,unit)
-          }}><option>AFP</option><option>CNY</option></select></label>
+          }}>{!cashMode&&<option>AFP</option>}<option>CNY</option></select></label>
           <label className="rra-compact-field">推理等级 <select className="rra-select" value={model.reasoningEffort??''} onChange={e=>rolePatch(role,{reasoningEffort:e.target.value||undefined})}>
             <option value="">使用提供方默认</option>{!supported&&model.reasoningEffort&&<option value={model.reasoningEffort}>旧值未在 DSH 目录中：{model.reasoningEffort}</option>}
             {efforts.map(entry=><option key={entry.id} value={entry.id}>{entry.name}</option>)}
@@ -414,7 +437,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       <p className="rra-field-hint">{HELP[editingStrategy]}</p><p className="rra-field-hint">切换编辑对象不会改变默认策略；配置保存后从下个任务生效。</p>
     {editingStrategy==='stage'&&<div className="rra-planning-fields">
       <p>通常使用高效模型，遇到困难时切换强模型。规则负责边界和保持；协作判别可选择本地 Laya 或官方 Jev。</p>
-      <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
+      <label className="rra-compact-field">Stage 判定方式 <select className="rra-select" value={draft.stage?.mode??'rules'} onChange={e=>patch({schemaVersion:(draft.schemaVersion==='refractagent-planning-v6'||cashMode)?'refractagent-planning-v6':'refractagent-planning-v5',stage:e.target.value==='rules'?{...draft.stage,mode:'rules'}:
         {...draft.stage,mode:'hybrid',judge:draft.stage?.judge??(draft.task?.judge.type==='local-decision'?draft.task.judge:
           {type:'local-decision',adapter:'laya-mlx',modelPath:'',sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',device:'gpu',dtype:'float16'})}})}>
         <option value="rules">原规则（兼容现有设置）</option><option value="hybrid">规则＋Judge（实验）</option></select></label>
@@ -454,7 +477,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     </div>}
     {editingStrategy==='task'&&<div className="rra-planning-fields">
       <p>Task 在新任务开始时从模型池选择一次主执行模型；工具续接、上下文压缩和进行中的追加指导沿用该模型。</p>
-      <p className="rra-field-hint">先检查任务能力、数据域和本轮预算，再逐一判断候选是否适合。达到适合度门槛后，按同一计费单位下的首次执行费用上界选择；这不是完整任务预计费用。AFP 与现金不直接比较，缺少可比证据时使用指定备援。可靠时延资料不足时沿用模型池顺序。</p>
+      <p className="rra-field-hint">先检查任务能力、数据域和本轮预算，再逐一判断候选是否适合。达到适合度门槛后，按同一计费单位下的首次执行费用上界选择；这不是完整任务预计费用。{cashMode?'订阅与按量路线先比较新增现金支出，再比较参考成本。':'AFP 与现金不直接比较，缺少可比证据时使用指定备援。'}可靠时延资料不足时沿用模型池顺序。</p>
       {!draft.task&&<div className="rra-simple-status"><strong>尚未升级 Task 设置</strong><span>旧配置仍按高效／强执行两角色运行。升级只预填草稿，不下载权重或切换默认策略。</span>
         <button className="rra-button rra-button-secondary" type="button" onClick={migrateTaskSettings}>从现有角色预填模型池</button></div>}
       {draft.task&&<>
@@ -682,7 +705,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       </div></details>}
     {editingStrategy==='advisor'&&<div className="rra-planning-fields"><h4>Advisor 审核设置</h4>
       <p className="rra-field-hint">准备交付的候选经过所选 Judge 审核；严格闭环最多审核两次、返工一次，返工后的最终回复复审通过才交付。正常工具探索继续交给宿主执行。</p>
-      {draft.schemaVersion!=='refractagent-planning-v6'&&<div className="rra-issue-summary" role="status">
+      {!(draft.schemaVersion==='refractagent-planning-v6'||cashMode)&&<div className="rra-issue-summary" role="status">
         <p>当前保留旧版 Advisor 行为：默认一次审核，返工结果可能未经复审。</p>
         <button className="rra-button rra-button-secondary" type="button" onClick={()=>patch({
           schemaVersion:'refractagent-planning-v6',advisor:{...draft.advisor,
@@ -692,7 +715,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
             maxJudgeInputBytes:draft.advisor?.maxJudgeInputBytes??65536,
             maxExecutionOutputTokens:8192,maxJudgeOutputTokens:1024}})}>升级为两次审核闭环</button>
       </div>}
-      {draft.schemaVersion==='refractagent-planning-v6'&&<>
+      {(draft.schemaVersion==='refractagent-planning-v6'||cashMode)&&<>
         <label className="rra-compact-field">执行模型 <select className="rra-select" value={draft.advisor?.executor??''}
           onChange={e=>patch({advisor:{...draft.advisor!,executor:e.target.value}})}>
           <option value="">选择执行模型…</option>{draft.models?.map(model=><option key={model.id} value={model.id}>{model.provider}/{model.model}</option>)}</select></label>
@@ -702,14 +725,14 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
         const previous=draft.advisor?.judge.type==='local-decision'?draft.advisor.judge:
           draft.task?.judge.type==='local-decision'?draft.task.judge:
           draft.escalation?.judge.type==='local-decision'?draft.escalation.judge:undefined
-        patch({schemaVersion:draft.schemaVersion==='refractagent-planning-v6'?'refractagent-planning-v6':'refractagent-planning-v5',advisor:{...draft.advisor,
+        patch({schemaVersion:(draft.schemaVersion==='refractagent-planning-v6'||cashMode)?'refractagent-planning-v6':'refractagent-planning-v5',advisor:{...draft.advisor,
           judge:e.target.value==='jev'?{type:'jev'}:e.target.value==='local-decision'?(previous??{type:'local-decision',adapter:'laya-mlx',modelPath:'',
             sourceModel:'aac6fef/laya-multilingual-mlx',revision:'f2b4faf51023039425946074e2cf1361d2db11d5',
             device:'gpu',dtype:'float16'}):{type:'llm',modelId:draft.roles?.advisor??draft.roles?.classifier??''},
           allowExperimental:e.target.value==='local-decision'}})}}>
         <option value="llm">DSH 语言模型</option><option value="local-decision">本地 Laya-MLX（实验）</option><option value="jev">官方 Jev（云端）</option></select></label>
       {draft.advisor?.judge.type==='jev'&&<p className="rra-field-hint">官方 Jev 使用 Choice 审核最终回复；当前使用{draft.jev?.actionGate?'实验分动作规则':`所选项概率门槛 ${(draft.advisor.threshold??.8).toFixed(2)}`}。未达到准入门槛时停止交付；原始 probability、confidence 与实际门槛写入路由轨迹。</p>}
-      {draft.advisor?.judge.type==='llm'&&draft.schemaVersion==='refractagent-planning-v6'&&
+      {draft.advisor?.judge.type==='llm'&&(draft.schemaVersion==='refractagent-planning-v6'||cashMode)&&
         <label className="rra-compact-field">审核模型 <select className="rra-select" value={draft.advisor.judge.modelId}
           onChange={e=>patch({advisor:{...draft.advisor!,judge:{type:'llm',modelId:e.target.value}}})}>
           <option value="">选择审核模型…</option>{draft.models?.map(model=><option key={model.id} value={model.id}>{model.provider}/{model.model}</option>)}</select></label>}
@@ -723,20 +746,20 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
           <button className="rra-button rra-button-secondary" type="button" disabled={busy||!draft.advisor.judge.modelPath} onClick={()=>void operateLocalJudge('load')}>加载并预热</button>
           <button className="rra-button rra-button-secondary" type="button" disabled={busy||!localJudgeStatus?.loaded} onClick={()=>void operateLocalJudge('unload')}>卸载</button></div>
         {localJudgeStatus&&<p role="status">本地 Judge：{localJudgeStatus.loaded?'已加载并预热':localJudgeStatus.downloaded?'权重已下载，尚未加载':'尚未就绪'}；revision {localJudgeStatus.revisionVerified?'已核对':'未核对'}。</p>}
-        {draft.schemaVersion!=='refractagent-planning-v6'&&<details className="rra-details"><summary>本地审核高级参数</summary><div className="rra-planning-fields">
+        {!(draft.schemaVersion==='refractagent-planning-v6'||cashMode)&&<details className="rra-details"><summary>本地审核高级参数</summary><div className="rra-planning-fields">
           <label className="rra-compact-field">确定性门槛 <input className="rra-input" type="number" min="0" max="1" step="0.05" value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" value={draft.advisor.judgeTimeoutMs??30000} onChange={e=>patch({advisor:{...draft.advisor!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
           <label className="rra-compact-field">输入包络（bytes） <input className="rra-input" type="number" min="1024" value={draft.advisor.maxJudgeInputBytes??65536} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
         </div></details>}
       </>}
-      {draft.schemaVersion==='refractagent-planning-v6'&&<details className="rra-details"><summary>Advisor 高级参数</summary><div className="rra-planning-fields">
+      {(draft.schemaVersion==='refractagent-planning-v6'||cashMode)&&<details className="rra-details"><summary>Advisor 高级参数</summary><div className="rra-planning-fields">
         {(draft.advisor?.judge.type==='local-decision'||draft.advisor?.judge.type==='jev')&&<label className="rra-compact-field">{draft.advisor.judge.type==='jev'?'所选项概率门槛':'确定性门槛'}{draft.advisor.judge.type==='jev'&&draft.jev?.actionGate?'（实验规则下暂不生效）':''} <input className="rra-input" type="number" min="0" max="1" step="0.05" disabled={draft.advisor.judge.type==='jev'&&Boolean(draft.jev?.actionGate)} value={draft.advisor.threshold??.8} onChange={e=>patch({advisor:{...draft.advisor!,threshold:Number(e.target.value)}})}/></label>}
         <label className="rra-compact-field">Judge 期限（毫秒） <input className="rra-input" type="number" min="100" value={draft.advisor?.judgeTimeoutMs??30000} onChange={e=>patch({advisor:{...draft.advisor!,judgeTimeoutMs:Number(e.target.value)}})}/></label>
         <label className="rra-compact-field">Judge 输入包络（bytes） <input className="rra-input" type="number" min="1024" value={draft.advisor?.maxJudgeInputBytes??65536} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeInputBytes:Number(e.target.value)}})}/></label>
         <label className="rra-compact-field">执行输出上限 <input className="rra-input" type="number" min="256" value={draft.advisor?.maxExecutionOutputTokens??8192} onChange={e=>patch({advisor:{...draft.advisor!,maxExecutionOutputTokens:Number(e.target.value)}})}/></label>
         <label className="rra-compact-field">LLM Judge 输出上限 <input className="rra-input" type="number" min="64" value={draft.advisor?.maxJudgeOutputTokens??1024} onChange={e=>patch({advisor:{...draft.advisor!,maxJudgeOutputTokens:Number(e.target.value)}})}/></label>
       </div></details>}
-      {draft.schemaVersion!=='refractagent-planning-v6'&&([{key:'maxReviews',label:'审核次数上限（0 关闭）',value:1},{key:'maxRedos',label:'返工次数上限',value:1},
+      {!(draft.schemaVersion==='refractagent-planning-v6'||cashMode)&&([{key:'maxReviews',label:'审核次数上限（0 关闭）',value:1},{key:'maxRedos',label:'返工次数上限',value:1},
         {key:'stallTurns',label:'停滞审核轮数（0 为关闭）',value:0}] as const).map(item=><label className="rra-compact-field" key={item.key}>{item.label}
         <input className="rra-input" type="number" min="0" step="1" value={draft.parameters?.[item.key]??item.value}
           onChange={e=>patch({parameters:{...draft.parameters,[item.key]:Number(e.target.value)}})}/></label>)}
@@ -744,7 +767,15 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
     </div>
     <div className="rra-row-card"><h3>图片与影片路线</h3>
       <p className="rra-field-hint">系统资料会区分“提供方声明、适配已接通、真实验收”。只有 verified 路线能由受管工具派发。价格与接口由系统预设，不能手填。</p>
-      {!(draft.mediaRoutes??[]).some(route=>route.id===SEEDREAM_CONNECTED.id)&&<button type="button" className="rra-button rra-button-secondary" onClick={()=>patch({mediaRoutes:[...(draft.mediaRoutes??[]),structuredClone(SEEDREAM_CONNECTED)]})}>加入 Ark Agent Plan Seedream 已接通路线</button>}
+      {!(draft.mediaRoutes??[]).some(route=>route.id===SEEDREAM_CONNECTED.id)&&<button type="button" className="rra-button rra-button-secondary" onClick={async()=>{
+        const next={...draft,mediaRoutes:[...(draft.mediaRoutes??[]),structuredClone(SEEDREAM_CONNECTED)]}
+        if(!cashMode){patch(next);return}
+        setBusy(true)
+        try{if(!migrateCurrency)throw new Error('当前核心不支持订阅媒体金额迁移')
+          const result=await migrateCurrency(next,draft.maxProductionCostByUnit?.CNY??draft.maxProductionCost??0,draft.maxReferenceCost??0)
+          patch(result.configuration)
+        }catch(error){setStatus(errorText(error))}finally{setBusy(false)}
+      }}>加入 Ark Agent Plan Seedream 已接通路线</button>}
       {(draft.mediaRoutes??[]).map(route=><div className="rra-row-card" key={route.id}>
         <div className="rra-section-head"><div><strong>{route.provider}/{route.model}</strong><p className="rra-field-hint">{route.operations.join('、')}；{route.pricing?.unitCost??'待核对'} {route.billingUnit??'未知'}/{route.pricing?.basis??'单位'}；状态 {route.verification??(route.verified?'verified':'declared')}</p></div>
           <button type="button" className="rra-button rra-button-secondary" onClick={()=>patch({mediaRoutes:(draft.mediaRoutes??[]).filter(item=>item.id!==route.id)})}>移除</button></div>
@@ -792,7 +823,8 @@ type JevGateEvidence={accepted:boolean;minimumConfidence?:number|null;minimumPro
 type History={records:Array<{runId:string;strategy:string;status:string;costs:{production:number|null};billingUnit:string|null;billingWarning?:string;
   configuration?:{advisor?:{threshold?:number};escalation?:{threshold?:number};jev?:{actionGate?:string}};
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
-  calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number}}>;
+  referenceCosts?:{currency:string;occupied:number;limit:number}|null;
+  calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;billing_mode?:'subscription'|'metered';latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number}}>;
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
@@ -827,6 +859,7 @@ const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 
   'local-judge-capacity':'本地 Judge 输入超出容量，使用指定备援',
   'jev-judge-capacity':'Jev 输入超出容量，使用指定备援',
   'quality-then-first-call-cost':'质量达标后按首次调用费用上界选择',
+  'quality-then-cash-then-reference-cost':'质量达标后优先较少现金支出，再比较参考成本',
   'no-quality-qualified-candidate':'无质量达标候选，使用指定备援',
   'incomparable-billing-units':'候选计费单位不可比较，使用指定备援',
   'single-choice-no-comparative-evidence':'直选仅有单一候选证据，未比较费用',
@@ -936,7 +969,7 @@ function Trace({load}:{load:()=>Promise<History>}){
   return <section style={{padding:24}}><h2>路由轨迹</h2><p>这里区分 Judge 原始答案与 Router 最终动作；任务运行状态不等于质量已通过独立验收。只统计当前受管 Agent，普通 DSH 子模型费用尚未汇总。</p>
     <p role="status">{error}</p>{!data?.records.length&&<p>尚无规划路由记录。</p>}
     {data?.records.map(r=><article key={r.runId}><h3>{PLANNING_NAMES[r.strategy as PlanningStrategy]??r.strategy} · {STATUS[r.status]??`已停止：${r.status}`}</h3>
-      {r.billingWarning?<p>{traceAmount(r.costs.production)}（单位待核对）</p>:
+      {r.referenceCosts?<p>参考成本占用 {traceAmount(r.referenceCosts.occupied)} CNY；按量费用占用 {traceAmount(r.costsByUnit?.CNY?.production??0)} CNY。参考成本已包含按量调用，两项不相加；订阅费未按调用分摊。</p>:r.billingWarning?<p>{traceAmount(r.costs.production)}（单位待核对）</p>:
         r.costsByUnit?<p>{Object.entries(r.costsByUnit).filter(([unit,amount])=>amount.production!==0||r.calls.some(c=>c.billing_unit===unit))
           .map(([unit,amount])=>`${traceAmount(amount.production)} ${unit}`).join('；')||'尚无调用'}</p>:
         <p>{traceAmount(r.costs.production)} {r.billingUnit}</p>}
@@ -946,7 +979,7 @@ function Trace({load}:{load:()=>Promise<History>}){
         <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
           const related=c.call_id?r.decisions.filter(row=>row.callId===c.call_id||row.candidateCallId===c.call_id):[]
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{DISPOSITION[c.disposition]??c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}{(c as unknown as {review_status?:string}).review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
-          <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>累计占用 {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
+          <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.billing_mode==='subscription'?'订阅参考成本：':''}{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>{r.referenceCosts?'累计参考占用':'累计占用'} {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
             {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.backend==='jev'||d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
             {d.reviewVerdict?`；审核结果 ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}
@@ -975,12 +1008,23 @@ function Trace({load}:{load:()=>Promise<History>}){
   </section>
 }
 export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {
-  return {scope,simulate:async()=>{const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider:'local',api:'simulate'});
+  return {scope,migratePoolCurrency:async(config,productionCash,evaluationCash)=>{
+    const r=await ctx.remote.llm.discoverModels('refractagent-planning',{api:'currency-pool-migration',
+      provider:JSON.stringify({config,productionCash,evaluationCash})})
+    if(!r.ok)throw new Error(r.error?.message??'自动路由金额迁移失败')
+    return JSON.parse(r.value?.[0]?.name??'{}')
+  },migrateCurrency:async(config,cnyBudget,referenceBudget)=>{
+    const r=await ctx.remote.llm.discoverModels('refractagent-planning',{api:'currency-migration',
+      provider:JSON.stringify({config,cnyBudget,referenceBudget})})
+    if(!r.ok)throw new Error(r.error?.message??'金额迁移失败')
+    return JSON.parse(r.value?.[0]?.name??'{}')
+  },simulate:async()=>{const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider:'local',api:'simulate'});
     if(!r.ok)throw new Error(r.error?.message);return JSON.parse(r.value?.[0]?.name??'{}')},
     loadCatalog:async()=>{const r=await ctx.remote.session.modelCatalog();if(!r.ok||!r.value)throw new Error(r.error?.message);return r.value},
-    loadMetadata:async(provider,model,billingUnit)=>{
+    loadMetadata:async(provider,model,billingUnit,configured)=>{
       const api='metadata:'+encodeURIComponent(model)+':'+billingUnit
-      const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider,api})
+      const r=await ctx.remote.llm.discoverModels('refractagent-planning',configured?.billingMode==='subscription'
+        ?{provider:JSON.stringify({provider,model,billingUnit,configured}),api:'subscription-metadata'}:{provider,api})
       if(!r.ok)throw new Error(r.error?.message??'模型资料查询失败')
       return JSON.parse(r.value?.[0]?.name??'{}') as ModelMetadata
     },

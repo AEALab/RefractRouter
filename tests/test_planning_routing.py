@@ -1456,7 +1456,7 @@ def test_model_metadata_only_fills_verified_matching_billing_unit(tmp_path):
 def test_deepseek_official_cny_peak_and_offpeak_price_snapshot():
     cn = ZoneInfo("Asia/Shanghai")
     offpeak = deepseek_cny_pricing("deepseek-flash", at=datetime(2026, 9, 26, 10, tzinfo=cn))
-    peak = deepseek_cny_pricing("deepseek-v4-flash", at=datetime(2026, 9, 25, 10, tzinfo=cn))
+    peak = deepseek_cny_pricing("deepseek-v4-flash", at=datetime(2026, 9, 24, 10, tzinfo=cn))
     assert (offpeak["inputPer1k"], offpeak["outputPer1k"], offpeak["cachedInputPer1k"]) == (.001, .004, .00002)
     assert (peak["inputPer1k"], peak["outputPer1k"], peak["cachedInputPer1k"]) == (.002, .008, .00004)
     assert peak["tier"] == "peak"

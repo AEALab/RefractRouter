@@ -1,0 +1,210 @@
+{
+  "batches": [
+    {
+      "batch": "dsh-static-live",
+      "summary": {
+        "success": true,
+        "exitCode": 0,
+        "calls": 2,
+        "billingUnit": "CNY",
+        "charged": 0.0018739999999999998,
+        "statuses": [
+          "billed",
+          "billed"
+        ],
+        "userFirstTextMs": [
+          null,
+          1620
+        ],
+        "modelTtftMs": [
+          null,
+          1617
+        ],
+        "toolOwner": "dsh",
+        "routerTasks": 1,
+        "automaticRetries": 0,
+        "referenceCostCny": 0.0018739999999999998,
+        "cashCostCny": 0,
+        "billingMode": "subscription",
+        "costBasis": "public-reference-valuation",
+        "cashStatus": "subscription-fee-not-attributed-per-call"
+      },
+      "preflight": {
+        "configSha256": "05a8798785c102a303f87e753f7f80f1535cc9b65346b26f31e9ba2d3ba9f9bf",
+        "provider": "ark",
+        "model": "deepseek-v4-flash",
+        "modelParameters": {
+          "reasoning_effort": "low"
+        },
+        "maxCalls": 2,
+        "maxInputBoundPerCall": 65536,
+        "maxOutputTokens": 512,
+        "billingUnit": "CNY",
+        "upperBound": 0.27033599999999997,
+        "timeoutMs": 60000,
+        "httpRetries": 0,
+        "hostTools": 1,
+        "scenario": "dsh 原生工具往返",
+        "strategy": "static",
+        "billingMode": "subscription",
+        "cashUpperBoundCny": 0,
+        "referenceUpperBoundCny": 0.27033599999999997,
+        "costBasis": "public-reference-valuation; subscription fee not attributed per call"
+      }
+    },
+    {
+      "batch": "codex-static-live",
+      "summary": {
+        "success": false,
+        "exitCode": 1,
+        "calls": 0,
+        "billingUnit": "CNY",
+        "charged": 0,
+        "statuses": [],
+        "userFirstTextMs": [],
+        "modelTtftMs": [],
+        "toolOwner": "codex",
+        "routerTasks": 0,
+        "automaticRetries": 0,
+        "referenceCostCny": 0,
+        "cashCostCny": 0,
+        "billingMode": "subscription",
+        "costBasis": "public-reference-valuation",
+        "cashStatus": "subscription-fee-not-attributed-per-call"
+      },
+      "preflight": {
+        "configSha256": "05a8798785c102a303f87e753f7f80f1535cc9b65346b26f31e9ba2d3ba9f9bf",
+        "provider": "ark",
+        "model": "deepseek-v4-flash",
+        "modelParameters": {
+          "reasoning_effort": "low"
+        },
+        "maxCalls": 2,
+        "maxInputBoundPerCall": 65536,
+        "maxOutputTokens": 512,
+        "billingUnit": "CNY",
+        "upperBound": 0.27033599999999997,
+        "timeoutMs": 60000,
+        "httpRetries": 0,
+        "hostTools": 1,
+        "scenario": "codex 原生工具往返",
+        "strategy": "static",
+        "billingMode": "subscription",
+        "cashUpperBoundCny": 0,
+        "referenceUpperBoundCny": 0.27033599999999997,
+        "costBasis": "public-reference-valuation; subscription fee not attributed per call",
+        "hostCatalogSha256": "641403d4946e7d20be3ef0549e81392d17795c71117fb598bc5b83631a2af9c0",
+        "hostBaselineModel": "gpt-5.5"
+      }
+    },
+    {
+      "batch": "codex-static-live-v2",
+      "summary": {
+        "success": false,
+        "exitCode": 1,
+        "calls": 1,
+        "billingUnit": "CNY",
+        "charged": 0.123856,
+        "statuses": [
+          "billed"
+        ],
+        "userFirstTextMs": [
+          null
+        ],
+        "modelTtftMs": [
+          null
+        ],
+        "toolOwner": "codex",
+        "routerTasks": 1,
+        "automaticRetries": 0,
+        "referenceCostCny": 0.123856,
+        "cashCostCny": 0,
+        "billingMode": "subscription",
+        "costBasis": "public-reference-valuation",
+        "cashStatus": "subscription-fee-not-attributed-per-call"
+      },
+      "preflight": {
+        "configSha256": "bd49992ad410d395755014955ec6be37e701b6c2263d7a8179083c4155f3935e",
+        "provider": "ark",
+        "model": "deepseek-v4-flash",
+        "modelParameters": {
+          "reasoning_effort": "low"
+        },
+        "maxCalls": 2,
+        "maxInputBoundPerCall": 300000,
+        "maxOutputTokens": 512,
+        "billingUnit": "CNY",
+        "upperBound": 1.208192,
+        "timeoutMs": 60000,
+        "httpRetries": 0,
+        "hostTools": 1,
+        "scenario": "codex 原生工具往返",
+        "strategy": "static",
+        "billingMode": "subscription",
+        "cashUpperBoundCny": 0,
+        "referenceUpperBoundCny": 1.208192,
+        "costBasis": "public-reference-valuation; subscription fee not attributed per call",
+        "hostCatalogSha256": "641403d4946e7d20be3ef0549e81392d17795c71117fb598bc5b83631a2af9c0",
+        "hostBaselineModel": "gpt-5.5"
+      }
+    },
+    {
+      "batch": "codex-static-live-v3",
+      "summary": {
+        "success": true,
+        "exitCode": 0,
+        "calls": 2,
+        "billingUnit": "CNY",
+        "charged": 0.31865752,
+        "statuses": [
+          "billed",
+          "billed"
+        ],
+        "userFirstTextMs": [
+          null,
+          8153
+        ],
+        "modelTtftMs": [
+          null,
+          8057
+        ],
+        "toolOwner": "codex",
+        "routerTasks": 1,
+        "automaticRetries": 0,
+        "referenceCostCny": 0.31865752,
+        "cashCostCny": 0,
+        "billingMode": "subscription",
+        "costBasis": "public-reference-valuation",
+        "cashStatus": "subscription-fee-not-attributed-per-call"
+      },
+      "preflight": {
+        "configSha256": "c052462825100e0c766af2baa650d1b0d4aaef9808466cb2f18578e57679e422",
+        "provider": "ark",
+        "model": "deepseek-v4-flash",
+        "modelParameters": {
+          "reasoning_effort": "low"
+        },
+        "maxCalls": 2,
+        "maxInputBoundPerCall": 1048064,
+        "maxOutputTokens": 512,
+        "billingUnit": "CNY",
+        "upperBound": 4.200448000000001,
+        "timeoutMs": 60000,
+        "httpRetries": 0,
+        "hostTools": 1,
+        "scenario": "codex 原生工具往返",
+        "strategy": "static",
+        "billingMode": "subscription",
+        "cashUpperBoundCny": 0,
+        "referenceUpperBoundCny": 4.200448000000001,
+        "costBasis": "public-reference-valuation; subscription fee not attributed per call",
+        "hostCatalogSha256": "641403d4946e7d20be3ef0549e81392d17795c71117fb598bc5b83631a2af9c0",
+        "hostBaselineModel": "gpt-5.5"
+      }
+    }
+  ],
+  "totalCalls": 5,
+  "referenceCostCny": 0.44438752000000004,
+  "cashCostCny": 0,
+  "unknownUsageReservations": 0
+}

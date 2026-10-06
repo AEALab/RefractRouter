@@ -152,7 +152,8 @@ export class PlanningController {
     if(!this.ctx.llm.resolveModelInfo)return hostIssues
     await Promise.all((config.models??[]).map(async (model:Json)=>{
       try{
-        const info=await this.metadata(model.provider,model.model,'AUTO')
+        const info=await this.metadata(model.provider,model.model,
+          config.schemaVersion==='refractagent-planning-v7'&&!model.referencePricing?'REFERENCE':'AUTO',model)
         const hostModel=await this.ctx.llm.resolveModelInfo!(model.provider,model.model) as Json
         const reasoning=hostModel.reasoning as Json|undefined
         const efforts=Array.isArray(reasoning?.efforts)
@@ -179,16 +180,18 @@ export class PlanningController {
         const unitIssue=Array.isArray(info.issues)?info.issues.find((issue:unknown)=>
           typeof issue==='string'&&issue.includes('Ark Agent Plan 按 AFP 计量')):undefined
         if(unitIssue){hostIssues[model.id]=unitIssue;return}
-        if(info.billingUnit==='AFP'||info.billingUnit==='CNY'){
+        if(info.billingUnit==='AFP'||info.billingUnit==='CNY'||info.billingUnit==='USD'){
           model.billingUnit=info.billingUnit
           if(config.schemaVersion==='refractagent-planning-v1')config.schemaVersion='refractagent-planning-v2'
         }
+        if(info.billingMode)model.billingMode=info.billingMode
+        if(info.referencePricing)model.referencePricing=info.referencePricing
         if(info.capacity)for(const key of ['contextWindow','maxOutputTokens']){
           const value=info.capacity[key]
           if(Number.isInteger(value)&&value>0)model[key]=value
         }
         if(info.capabilities&&typeof info.capabilities==='object')model.capabilities=info.capabilities
-        if(info.pricing)for(const key of ['inputPer1k','outputPer1k','cachedInputPer1k']){
+        if(info.pricing)for(const key of ['inputPer1k','outputPer1k','cachedInputPer1k','cacheWritePer1k']){
           const value=info.pricing[key]
           if(typeof value==='number'&&Number.isFinite(value)&&value>=0)model[key]=value
         }
@@ -205,7 +208,8 @@ export class PlanningController {
   async preview():Promise<Json>{
     const config=structuredClone(this.source().planningRouting??EMPTY_PLANNING)
     await this.ensureHandshake(config.stage?.mode==='hybrid',Boolean(config.composite),
-      false,false,usesJev(config),usesJev(config)&&config.jev?.route==='openrouter')
+      false,false,usesJev(config),usesJev(config)&&config.jev?.route==='openrouter',
+      config.schemaVersion==='refractagent-planning-v7')
     const hostIssues=await this.completeMetadata(config)
     if(usesJev(config)){
       const reference=config.jev?.credentialRef??(config.jev?.route==='openrouter'?'OPENROUTER_API_KEY':'TYPESAFE_API_KEY')
@@ -220,16 +224,40 @@ export class PlanningController {
     await this.completeMetadata(config)
     return this.rpc.request({op:'simulate',config})
   }
-  async metadata(provider:string,model:string,billingUnit:string):Promise<Json>{
+  async metadata(provider:string,model:string,billingUnit:string,configured?:Json):Promise<Json>{
     if(!this.ctx.llm.resolveModelInfo)throw new Error('DSH 不提供模型资料查询')
     const raw=await this.ctx.llm.resolveModelInfo(provider,model) as Json
     const context=raw.context as Json|undefined
     const llmSettings=this.settings?.get?.('llm-pi-ai') as Json|undefined
     const route=llmSettings?.providers?.[provider] as Json|undefined
-    return this.rpc.request({op:'metadata',provider,model,billingUnit,host:{
+    return this.rpc.request({op:'metadata',provider,model,billingUnit,
+      billingMode:configured?.billingMode,referencePricing:configured?.referencePricing,host:{
       contextWindow:context?.contextWindow,maxOutputTokens:raw.defaultMaxTokens,
       inputModalities:Array.isArray(raw.inputModalities)?raw.inputModalities:undefined,
     },providerBaseURL:route?.baseURL})
+  }
+  async currencyMigration(config:Json,cnyBudget:number,referenceBudget:number):Promise<Json>{
+    await this.ensureHandshake(false,false,false,false,false,false,true)
+    const source=JSON.parse(JSON.stringify(config)) as Json
+    // 旧配置可能缺少缓存价格；先从实际宿主目录补齐，再校验迁移草稿。
+    await this.completeMetadata(source)
+    const result=await this.rpc.request({op:'currency-migration',config:source,cnyBudget,referenceBudget})
+    const hostIssues=await this.completeMetadata(result.configuration)
+    result.preview=await this.rpc.request({op:'preview',config:result.configuration,hostIssues})
+    return result
+  }
+  async currencyPoolMigration(config:Json,productionCash:number,evaluationCash:number):Promise<Json>{
+    await this.ensureHandshake(false,false,false,false,false,false,true)
+    if(!this.ctx.llm.resolveModelInfo)throw new Error('DSH 不提供模型目录查询')
+    const settings=this.settings?.get?.('llm-pi-ai') as Json|undefined
+    const routes=await Promise.all((config.routes??[]).map(async(row:Json)=>{
+      try{const info=await this.ctx.llm.resolveModelInfo!(row.provider,row.model) as Json
+        return {provider:row.provider,model:row.model,contextWindow:info.context?.contextWindow,
+          maxOutputTokens:info.defaultMaxTokens,providerBaseURL:settings?.providers?.[row.provider]?.baseURL}
+      }catch(error){if(row.enabled!==false)throw error;return null}
+    }))
+    return this.rpc.request({op:'currency-pool-migration',config,productionCash,evaluationCash,
+      catalog:{schemaVersion:'refractagent-dsh-catalog-v1',routes:routes.filter(Boolean)}})
   }
   async fx():Promise<Json>{return this.rpc.request({op:'fx'})}
   async localJudge(config:Json,action:'status'|'download'|'load'|'unload',target?:string):Promise<Json>{
@@ -300,7 +328,7 @@ export class PlanningController {
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
-    localBackends=false,jev=false,openrouter=false):Promise<void>{
+    localBackends=false,jev=false,openrouter=false,currency=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -309,6 +337,8 @@ export class PlanningController {
       return result.capabilities as string[]
     })
     const capabilities=await this.handshake
+    if(currency&&(!capabilities.includes('planning-routing-v7')||!capabilities.includes('currency-pricing-v1')))
+      throw new Error('当前核心不支持新版金额计价；请同时升级核心和插件')
     if(hybridStage&&(!capabilities.includes('stage-decision-v2')||!capabilities.includes('planning-routing-v5')))
       throw new Error('当前核心不支持 Stage 本地 Judge；请升级核心')
     if(compositeV6&&(!capabilities.includes('planning-routing-v6')||!capabilities.includes('composite-task-stage-v1')))
@@ -372,7 +402,7 @@ export class PlanningController {
       signal.throwIfAborted()
       await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid',
         strategy==='composite'&&Boolean(config.composite),false,false,activeJev,
-        activeJev&&config.jev?.route==='openrouter')
+        activeJev&&config.jev?.route==='openrouter',config.schemaVersion==='refractagent-planning-v7')
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         if(activeJev){

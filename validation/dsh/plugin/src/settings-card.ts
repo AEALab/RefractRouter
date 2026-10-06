@@ -145,10 +145,12 @@ export interface LiveExecutionView {
 }
 export interface RouterConnectionView { url:string; credential?:string; project?:string }
 export interface DshModelPoolView {
-  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3' | 'refractagent-dsh-model-pool-v4'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3' | 'refractagent-dsh-model-pool-v4' | 'refractagent-dsh-model-pool-v5'
   billingUnit?: string
+  cashLimits?:{production:number;evaluation:number}
   allowSharedJudge?: boolean
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
+    billingMode?:'subscription'|'metered';referencePricing?:Record<string,unknown>;
     overrides?:Record<string,unknown>}>
   roleOverrides?: {planner?:string;judge?:string;classifier?:string;workers?:string[]}
   objective?:Record<string,unknown>
@@ -287,7 +289,7 @@ export function buildDshModelPoolIssues(pool: DshModelPoolView | undefined,
     }
     const profile = publicProfiles.find(row => row.provider === route.provider && row.model === route.model)
     const overrides = route.overrides ?? {}
-    if (!profile && !['refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4'].includes(pool.schemaVersion)) {
+    if (!profile && !['refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4','refractagent-dsh-model-pool-v5'].includes(pool.schemaVersion)) {
       const missing = ['inputPer1k','outputPer1k']
         .filter(key => typeof overrides[key] !== 'number')
       if (missing.length) {

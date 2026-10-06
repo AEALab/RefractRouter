@@ -9,8 +9,9 @@ export interface StrategyConfiguration {
 }
 
 export interface ProviderConfiguration {
-  schemaVersion: 'refractagent-providers-v1' | 'refractagent-providers-v2' | 'refractagent-providers-v3' | 'refractagent-providers-v4'
+  schemaVersion: 'refractagent-providers-v1' | 'refractagent-providers-v2' | 'refractagent-providers-v3' | 'refractagent-providers-v4' | 'refractagent-providers-v5' | 'refractagent-providers-v6'
   billingUnit: string
+  cashLimits?:{production:number;evaluation:number}
   allowSharedJudge?: boolean
   qualityMin?: number
   objective?: { qualityMin: number; primary: 'cost'; secondary: 'latency'; dagMode: 'auto' | 'never' | 'force' }
@@ -74,6 +75,8 @@ export function dshToolCallLimit(value: Pick<LiveExecutionConfiguration,'allowDs
 
 export type DshDeployment = 'local' | 'external-cloud' | 'trusted-cloud' | 'simulated-local'
 export interface DshModelPoolRoute {
+  billingMode?: 'metered'|'subscription'
+  referencePricing?:Record<string,unknown>
   provider: string
   model: string
   enabled?: boolean
@@ -83,8 +86,9 @@ export interface DshModelPoolRoute {
     note?: string; quality?: number; latencyMs?: number }
 }
 export interface DshModelPool {
-  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3' | 'refractagent-dsh-model-pool-v4'
+  schemaVersion: 'refractagent-dsh-model-pool-v1' | 'refractagent-dsh-model-pool-v2' | 'refractagent-dsh-model-pool-v3' | 'refractagent-dsh-model-pool-v4' | 'refractagent-dsh-model-pool-v5'
   billingUnit?: string
+  cashLimits?: {production:number;evaluation:number}
   allowSharedJudge?: boolean
   routes: DshModelPoolRoute[]
   roleOverrides?: { planner?: string; judge?: string; classifier?: string; workers?: string[] }
@@ -219,9 +223,9 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 }
 
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
-  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4'].includes(String(value.schemaVersion))
+  if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4','refractagent-dsh-model-pool-v5'].includes(String(value.schemaVersion))
     || !Array.isArray(value.routes) || value.routes.length > 128
-    || Object.keys(value).some(key => !['schemaVersion','billingUnit','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
+    || Object.keys(value).some(key => !['schemaVersion','billingUnit','cashLimits','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
   }
   if (value.allowSharedJudge !== undefined && typeof value.allowSharedJudge !== 'boolean') {
@@ -233,13 +237,13 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
       || typeof route.model !== 'string' || !route.model || route.provider === 'refractagent'
       || !['local','external-cloud','trusted-cloud','simulated-local'].includes(String(route.deployment))
       || (route.enabled !== undefined && typeof route.enabled !== 'boolean')
-      || Object.keys(route).some(key => !['provider','model','enabled','deployment','trustPolicy','overrides'].includes(key))) {
+      || Object.keys(route).some(key => !['provider','model','enabled','deployment','trustPolicy','overrides','billingMode','referencePricing'].includes(key))) {
       throw new Error('invalid dshModelPool route')
     }
     const identity = `${route.provider}\u0000${route.model}`
     if (identities.has(identity)) throw new Error('dshModelPool route identities must be unique')
     identities.add(identity)
-    const allowedOverrides = ['refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4'].includes(String(value.schemaVersion)) ? ['note'] : value.schemaVersion === 'refractagent-dsh-model-pool-v2'
+    const allowedOverrides = ['refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4','refractagent-dsh-model-pool-v5'].includes(String(value.schemaVersion)) ? ['note'] : value.schemaVersion === 'refractagent-dsh-model-pool-v2'
       ? ['inputPer1k','cachedInputPer1k','outputPer1k','note']
       : ['inputPer1k','cachedInputPer1k','outputPer1k','quality','latencyMs','note']
     if (route.overrides !== undefined && (!isRecordValue(route.overrides)
@@ -336,14 +340,14 @@ export function freezeConfiguration<T>(value: T): T {
 
 export function validateProviderConfiguration(value: unknown): asserts value is ProviderConfiguration {
   const config = value
-  const schemas = ['refractagent-providers-v1','refractagent-providers-v2','refractagent-providers-v3','refractagent-providers-v4','refractagent-providers-v5']
+  const schemas = ['refractagent-providers-v1','refractagent-providers-v2','refractagent-providers-v3','refractagent-providers-v4','refractagent-providers-v5','refractagent-providers-v6']
   if (!isRecordValue(config) || !schemas.includes(String(config.schemaVersion))
     || typeof config.billingUnit !== 'string' || !Array.isArray(config.providers) || !Array.isArray(config.models)
-    || Object.keys(config).some(k => !['schemaVersion','billingUnit','allowSharedJudge','qualityMin','objective','defaultReasoningEffort','plannerThinking','strategies','providers','models','privacy','security','trustPolicies'].includes(k))) {
+    || Object.keys(config).some(k => !['schemaVersion','billingUnit','cashLimits','allowSharedJudge','qualityMin','objective','defaultReasoningEffort','plannerThinking','strategies','providers','models','privacy','security','trustPolicies'].includes(k))) {
     throw new Error('invalid providerConfig; use refractagent config-example')
   }
   const v3 = config.schemaVersion === 'refractagent-providers-v3'
-  const v4 = config.schemaVersion === 'refractagent-providers-v4' || config.schemaVersion === 'refractagent-providers-v5'
+  const v4 = config.schemaVersion === 'refractagent-providers-v4' || config.schemaVersion === 'refractagent-providers-v5' || config.schemaVersion === 'refractagent-providers-v6'
   const v5 = config.schemaVersion === 'refractagent-providers-v5'
   if(v5&&config.billingUnit!=='MIXED')throw new Error('providerConfig v5 requires MIXED billingUnit')
   if(!v5&&config.billingUnit==='MIXED')throw new Error('MIXED billingUnit requires providerConfig v5')
