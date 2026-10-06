@@ -1,9 +1,12 @@
 """自动节点搜索与实际账本使用独立现金上限，不以参考价替代现金。"""
+from dataclasses import replace
 import pytest
 
 from refractrouter.node_routing import NodeProfile, route_nodes
+from refractrouter.planning_support import admission_diagnostics
 from refractrouter.task_budget import TaskCallBudget
-from refractrouter.task_plan import validate_plan
+from refractrouter.task_plan import preview_plan, validate_plan
+from refractrouter.task_runtime import _route_budget_shortfall
 from tests.test_text_tasks import branched_plan
 from tests.test_subscription_budget import model
 
@@ -86,3 +89,71 @@ def test_runtime_blocks_unaffordable_route_before_any_model_dispatch():
     assert result['routing']['status'] == 'no-feasible-route'
     assert result['routing']['diagnostics']['rejected_combinations']['cash'] > 0
     assert result['calls'] == []
+
+
+def test_second_level_rejects_cash_tool_continuation_even_when_reference_fits():
+    route = {'prediction': {'cost': 1.0, 'cash_cost': .04}}
+    shortage = _route_budget_shortfall(route, reference_allowance=2.0,
+        cash_allowance=.07, judge_reference=.01, judge_is_metered=True,
+        remaining_production=10, remaining_evaluation=1,
+        remaining_cash=.10, remaining_evaluation_cash=.02)
+    assert shortage == {'production_cash': pytest.approx(.01)}
+
+
+def test_second_level_keeps_subscription_tool_and_judge_when_cash_is_exhausted():
+    route = {'prediction': {'cost': 1.0, 'cash_cost': 0.0}}
+    shortage = _route_budget_shortfall(route, reference_allowance=2.0,
+        cash_allowance=0.0, judge_reference=.01, judge_is_metered=False,
+        remaining_production=10, remaining_evaluation=1,
+        remaining_cash=0.0, remaining_evaluation_cash=0.0)
+    assert shortage == {}
+
+
+def test_second_level_rejects_metered_evaluation_cash_shortfall():
+    route = {'prediction': {'cost': 1.0, 'cash_cost': 0.0}}
+    shortage = _route_budget_shortfall(route, reference_allowance=2.0,
+        cash_allowance=0.0, judge_reference=.03, judge_is_metered=True,
+        remaining_production=10, remaining_evaluation=1,
+        remaining_cash=0.0, remaining_evaluation_cash=.02)
+    assert shortage == {'evaluation_cash': pytest.approx(.01)}
+
+
+def test_each_configured_model_reports_why_it_cannot_execute_a_node():
+    plan = preview_plan('概述结果')
+    base = replace(model(), context_window=200000, max_output_tokens=2048)
+    candidates = {name: replace(base, model_id=name) for name in ('ready', 'weak', 'unknown', 'small')}
+    candidates['small'] = replace(candidates['small'], context_window=65536)
+    profiles = tuple(NodeProfile(name, 'generation', score, 1, 100, 0)
+        for name, score in (('ready', 90), ('weak', 60), ('small', 90)))
+    row = admission_diagnostics(plan, '概述结果', candidates, profiles, 80)['deliverable']
+    assert row['eligible_models'] == ['ready']
+    assert row['model_reasons'] == {'ready': 'eligible', 'weak': 'quality-below-minimum',
+                                   'unknown': 'missing-profile', 'small': 'input-or-output-capacity'}
+
+
+def test_live_comparison_stops_after_planner_when_tool_cash_is_insufficient(tmp_path):
+    from tests.test_automatic_actual_catalog import fixture
+    from tests.test_live_execution import CompactClient, authorization
+    from refractrouter.agent import run_agent
+    from refractrouter.dsh_model_pool import compile_dsh_model_pool
+    from refractrouter.tool_runtime import StdioToolRuntime
+
+    pool, catalog = fixture('deepseek-official', 'deepseek-flash', 'CNY')
+    pool.update(schemaVersion='refractagent-dsh-model-pool-v5',
+                cashLimits={'production': .1, 'evaluation': 1})
+    config, _ = compile_dsh_model_pool(pool, catalog)
+    schemas = [{'name': 'web_search', 'description': '查询网页', 'parameters': {'type': 'object'}}]
+    runtime = StdioToolRuntime(schemas, object(), max_calls=2)
+    payload = {'task': '分别比较甲与乙，再汇总。', 'strategy': 'auto', 'maxDshToolCalls': 2}
+    preview = run_agent(payload, provider_config=config, runs_dir=tmp_path/'preview',
+                        tool_runtime=runtime, production_budget=100, evaluation_budget=100)
+    client = CompactClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+                       provider_config=config, runs_dir=tmp_path/'live', mode='live',
+                       execute_paid_run=True, client=client, tool_runtime=runtime,
+                       production_budget=100, evaluation_budget=100)
+    assert result['status'] == 'no-feasible-route'
+    assert set(result['route_comparison']['budget_shortfalls']) == {'direct', 'dag'}
+    assert all('production_cash' in shortage
+               for shortage in result['route_comparison']['budget_shortfalls'].values())
+    assert len(client.calls) == 1  # 已结算的规划探测；不派发执行和工具调用

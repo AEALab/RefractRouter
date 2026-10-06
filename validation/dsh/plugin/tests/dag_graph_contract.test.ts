@@ -76,6 +76,19 @@ test('自动路由摘要保留规划后 direct 与 DAG 的估算和选择依据'
   assert.match(summary,/DAG 预计执行费用相差 0.0600 CNY/)
 })
 
+test('自动路由轨迹逐模型说明质量和容量的候选排除原因',()=>{
+  const summary=runSummary({route_comparison:{route:'direct',model_admission:{
+    direct:{deliverable:{ready:'eligible',weak:'quality-below-minimum',
+      small:'input-or-output-capacity',unknown:'missing-profile'}}}}})
+  assert.match(summary,/direct\/deliverable · ready：通过画像与容量检查，仍须通过数据域及预算准入/)
+  assert.match(summary,/direct\/deliverable · weak：质量先验低于门槛/)
+  assert.match(summary,/direct\/deliverable · small：输入或输出容量不足/)
+  assert.match(summary,/direct\/deliverable · unknown：缺少匹配画像/)
+  const withoutComparison=runSummary({plan_admission:{deliverable:{model_reasons:{
+    ready:'eligible',weak:'quality-below-minimum'}}}})
+  assert.match(withoutComparison,/执行路线\/deliverable · weak：质量先验低于门槛/)
+})
+
 test('自动路由摘要把规划器单节点结果标为未拆分',()=>{
   const summary=runSummary({strategy_name:'自动路由',status:'completed',billing_unit:'CNY',
     costs:{evaluation:0,unconfirmed:0},cost_breakdown:{planning:.01,execution:.1},

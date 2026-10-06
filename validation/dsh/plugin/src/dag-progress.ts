@@ -148,6 +148,13 @@ export function runSummary(result: Record<string, unknown>): string {
       .map(([k,v])=>`${labels[k]??k}不满足 ${String(v)} 种分配`).join('、')
     return `${name} 准入：${reasons||'没有记录约束拒绝'}；预计最短 ${number(d.minimum_scheduled_latency_ms)} ms，剩余期限 ${number(d.remaining_latency_ms)} ms；最低预计费用 ${number(d.minimum_cost)}，剩余额度 ${number(d.remaining_cost)}${'remaining_cash' in d?`；剩余现金 ${d.remaining_cash===null?'不限额':number(d.remaining_cash)}，最低预计现金 ${number(d.minimum_cash)}`:''}；无候选节点 ${Array.isArray(d.empty_candidate_nodes)?d.empty_candidate_nodes.map(escape).join('、')||'无':'未提供'}\n`
   }).join('')
+  const admission=object(comparison.model_admission)?comparison.model_admission:
+    object(result.plan_admission)?{'执行路线':Object.fromEntries(Object.entries(result.plan_admission)
+      .filter(([,row])=>object(row)).map(([node,row])=>[node,object(row)?row.model_reasons:{}]))}:{}
+  const admissionNames:Record<string,string>={'eligible':'通过画像与容量检查，仍须通过数据域及预算准入','missing-profile':'缺少匹配画像',
+    'quality-below-minimum':'质量先验低于门槛','input-or-output-capacity':'输入或输出容量不足'}
+  const modelLines=Object.entries(admission).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,reason])=>
+    `${escape(route)}/${escape(node)} · ${escape(id)}：${admissionNames[String(reason)]??escape(String(reason))}\n`):[]):[]).join('')
   const latencyEvidence=object(comparison.latency_evidence)?comparison.latency_evidence:{}
   const latencyLines=Object.entries(latencyEvidence).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,raw])=>{
     const e=object(raw)?raw:{}
@@ -173,7 +180,7 @@ export function runSummary(result: Record<string, unknown>): string {
     +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
       `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + latencyLines + costTraceLine + toolLine
+    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + modelLines + latencyLines + costTraceLine + toolLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')
