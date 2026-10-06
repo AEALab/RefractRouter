@@ -174,3 +174,10 @@ test('未进入 DAG 比较的直接路线也展示现金准入原因',()=>{
   assert.match(summary,/剩余现金 0/)
   assert.match(summary,/最低预计现金 0.1000/)
 })
+
+test('拆分无法确定时说明保留整任务执行和最终评审',()=>{
+  const summary=runSummary({complexity_gate:{rule_decision:'dag',decision:'direct',
+    combination:'uncertain-direct-with-review',reasons:['decomposition-evidence-insufficient']}})
+  assert.match(summary,/规则 dag → 最终 direct/)
+  assert.match(summary,/拆分证据不足，直接执行完整任务并保留最终评审/)
+})

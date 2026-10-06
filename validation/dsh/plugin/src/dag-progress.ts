@@ -90,7 +90,7 @@ export function runSummary(result: Record<string, unknown>): string {
     return `${unit}：生产 ${number(row.production)}、评审 ${number(row.evaluation)}、待核对 ${number(row.unconfirmed)}`}).join('；')
   const gate=object(result.complexity_gate)?result.complexity_gate:{}
   const local=object(gate.local_decision)?gate.local_decision:{}
-  const combinations:Record<string,string>={'single-work-no-planner':'单项实质工作直接执行；工具与审核要求仍保留','coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
+  const combinations:Record<string,string>={'uncertain-direct-with-review':'拆分证据不足，直接执行完整任务并保留最终评审','single-work-no-planner':'单项实质工作直接执行；工具与审核要求仍保留','coupled-sequential-work':'顺序依赖工作保持单路线执行；工具与审核要求仍保留','trivial-workload-no-planner':'微型任务直接执行，跳过判别与规划','local-separable':'独立实质工作进入规划，之后仍须比较准入与费用','rules-only':'仅依据结构规则','local-unknown-rules-preserved':'判别无法确定，保留规则结论'}
   const route=Object.keys(gate).length?`选路：规则 ${String(gate.rule_decision??gate.decision)} → 最终 ${String(gate.decision)}；合并方式 ${combinations[String(gate.combination)]??String(gate.combination??'旧规则')}；理由 ${Array.isArray(gate.reasons)?gate.reasons.join('、'):'未提供'}\n`:''
   const signals=object(local.signals)?local.signals:{}
   const reasonNames:Record<string,string>={'context-dependent':'任务依赖未传入的历史内容',

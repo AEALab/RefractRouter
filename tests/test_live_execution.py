@@ -214,7 +214,8 @@ def test_tool_preview_binds_host_catalog_and_enforced_call_limit(tmp_path):
                   evaluation_budget=10)
 
 
-def test_single_tool_task_executes_without_a_planner_call(tmp_path):
+@pytest.mark.parametrize('verdict', [None, 'SINGLE', 'COUPLED', 'UNKNOWN'])
+def test_single_tool_task_executes_without_a_planner_call(tmp_path, verdict):
     class ToolClient(CompactClient):
         def complete(self, model, messages, *, json_mode=False, **kwargs):
             if model.role == 'judge':
@@ -228,6 +229,8 @@ def test_single_tool_task_executes_without_a_planner_call(tmp_path):
     host = Host()
     runtime = StdioToolRuntime(schemas, host, max_calls=2)
     payload = {'task': '请搜索网页并回答', 'strategy': 'auto', 'maxDshToolCalls': 2}
+    if verdict is not None:
+        payload['decompositionDecision'] = local_evidence(payload['task'], '', verdict)
     preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path / 'preview',
                         tool_runtime=runtime, production_budget=10, evaluation_budget=10)
     client = ToolClient()
@@ -524,3 +527,53 @@ def test_live_relax_budget_cannot_bypass_authorized_hard_limit(tmp_path):
     assert preview['status'] == 'no-feasible-route'
     assert preview['live_authorization_preview']['costs']['production_hard_limit'] == 0.000001
     assert preview['live_authorization_preview']['ready'] is False
+
+
+@pytest.mark.parametrize('task', [
+    '分别整理两组互不依赖的资料',
+    'Independently inspect two modules and compare their contracts.',
+    '分别检查 parser 和 serializer，再给出结论。',
+])
+def test_current_uncertain_judge_does_not_turn_keywords_into_paid_planning(task):
+    evidence = local_evidence(task, '', 'UNKNOWN')
+    gate = complexity_gate({'task': task}, '', decomposition=evidence)
+    assert gate['rule_decision'] == 'dag'
+    assert gate['decision'] == 'direct'
+    assert gate['combination'] == 'uncertain-direct-with-review'
+    assert review_decision({'task': task}, gate)['required']
+    assert 'uncertain-decomposition' in review_decision({'task': task}, gate)['reason']
+    assert complexity_gate({'task': task}, '', policy='dag', decomposition=evidence)['decision'] == 'dag'
+    assert complexity_gate({'task': task}, '', decomposition=local_evidence(task, '', 'SEPARABLE'))['decision'] == 'dag'
+
+
+def test_uncertain_legacy_contract_and_rule_only_keep_old_behavior():
+    task = '分别核对两组资料'
+    assert complexity_gate({'task': task}, '')['decision'] == 'dag'
+    old = {**local_evidence(task, '', 'UNKNOWN'),
+        'contract': 'decomposition-decision-v1', 'ruleVersion': 'automatic-decomposition-hybrid-v3',
+        'probabilities': {'COUPLED': .05, 'SEPARABLE': .05, 'UNKNOWN': .9}}
+    gate = complexity_gate({'task': task}, '', decomposition=old)
+    assert gate['decision'] == 'dag'
+    assert gate['combination'] == 'local-unknown-rules-preserved'
+
+
+@pytest.mark.parametrize('verdict', ['SINGLE', 'COUPLED', 'UNKNOWN'])
+def test_structural_decisions_execute_full_request_without_planner_and_keep_review(tmp_path, verdict):
+    task = '分别检查 parser 和 serializer 的接口约束，再给出完整说明。'
+    payload = {'task': task, 'strategy': 'auto', 'acceptanceCriteria': ['保留两项检查要求'],
+               'decompositionDecision': local_evidence(task, '', verdict)}
+    preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path / 'preview',
+                        production_budget=10, evaluation_budget=10)
+    assert preview['complexity_gate']['decision'] == 'direct'
+    assert preview['review']['required']
+    client = CompactClient()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+                       provider_config=config(), runs_dir=tmp_path / 'live', mode='live',
+                       execute_paid_run=True, client=client, production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed'
+    recorded = json.loads(Path(result['result_path']).read_text())
+    labels = [row['label'] for row in recorded['calls']]
+    assert 'planner' not in labels
+    assert 'final-judge' in labels
+    assert len(client.calls) == 2
+    assert task in json.dumps(client.calls[0][1], ensure_ascii=False)
