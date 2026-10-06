@@ -405,7 +405,8 @@ def choose_mixed_billing_route(candidates, budgets):
         quality = row.get('qualityQualified')
         noninferior = row.get('qualityNonInferior')
         basis = row.get('qualityBasis')
-        if type(quality) is not bool or (noninferior is not None and type(noninferior) is not bool) \
+        if (type(quality) is not bool or 'qualityNonInferior' not in row
+                or (noninferior is not None and type(noninferior) is not bool)) \
                 or not isinstance(basis, str) or not basis:
             raise ValueError('mixed billing candidate requires quality gate, comparison and basis')
         latency = row.get('latencyMs')
