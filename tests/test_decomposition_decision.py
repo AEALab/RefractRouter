@@ -108,6 +108,35 @@ def test_in_task_pronoun_does_not_skip_decomposition_judge():
     assert build_request(task, "")["state"]["contextDependency"] == "standalone"
 
 
+@pytest.mark.parametrize('task', [
+    '先读取索引文件，再读取索引指定的数据。后续步骤依赖前面的真实结果。',
+    '先运行测试，再根据前一步的输出修复当前缺陷。',
+    'Read index.json, then use the previous step output to locate the CSV.',
+    'Run the command, then calculate a total using the previous command results.',
+])
+def test_explicit_in_task_producer_allows_structure_judgment(task):
+    assert build_request(task, '')['state']['contextDependency'] == 'standalone'
+
+
+@pytest.mark.parametrize('task', [
+    '根据前面的真实结果继续处理。',
+    '先根据前面的结果，再运行测试。',
+    '运行测试，再按照刚才讨论的方案处理。',
+    '继续处理刚才的问题。',
+    'Use the previous step output to read a CSV.',
+    'Run tests using the previous conversation and its conclusions.',
+])
+def test_missing_or_conversation_antecedent_still_requires_history(task):
+    assert build_request(task, '')['state']['contextDependency'] == 'referenced'
+
+
+def test_v4_evidence_remains_readable_without_rewriting_history():
+    task = '继续处理刚才的问题'
+    evidence = {**unknown_evidence(task, '', 'context-dependent'),
+                'ruleVersion': 'automatic-decomposition-hybrid-v4'}
+    assert validate_evidence(evidence, task, '')['ruleVersion'] == evidence['ruleVersion']
+
+
 def test_tokenizer_capacity_preserves_rules_after_dispatch(tmp_path):
     class Service:
         def call(self, operation, key, config, *, request, timeout_ms):

@@ -9,7 +9,8 @@ import re
 
 CONTRACT = "decomposition-decision-v2"
 LEGACY_CONTRACT = "decomposition-decision-v1"
-RULE_VERSION = "automatic-decomposition-hybrid-v4"
+RULE_VERSION = "automatic-decomposition-hybrid-v5"
+CURRENT_CONTRACT_RULE_VERSIONS = {RULE_VERSION, "automatic-decomposition-hybrid-v4"}
 LEGACY_RULE_VERSIONS = {"automatic-decomposition-hybrid-v3", "automatic-decomposition-hybrid-v2"}
 CHOICES = {
     "SINGLE": "只有一项实质工作；工具调用和随后依据结果回答属于同一项工作的步骤",
@@ -37,14 +38,36 @@ _CONTEXT_REFERENCE = re.compile(
     r"(?:上述|前面|刚才|继续|照此|这些|如前|根据前文|"
     r"\babove\b|\bprevious\b|\bcontinue\b|\bas discussed\b)", re.IGNORECASE,
 )
+_LOCAL_RESULT_REFERENCE = re.compile(
+    r"(?:前面|前一步|上述)的?(?:真实|实际|工具|执行)?(?:结果|输出)"
+    r"|\bprevious\s+(?:step|command|tool call|operation)(?:'s)?\s+"
+    r"(?:(?:actual|real)\s+)?(?:results?|outputs?)\b", re.IGNORECASE,
+)
+_RESULT_PRODUCER = re.compile(
+    r"(?:读取|调用|执行|运行|计算|检索|测试)"
+    r"|\b(?:read|call|execute|run|calculate|compute|search|test)\b", re.IGNORECASE,
+)
+
+
+def references_unprovided_history(task):
+    """已在同一任务中描述的结果引用交给 Judge；悬空指代仍按历史依赖回退。"""
+    def local_reference(match):
+        prefix = task[:match.start()]
+        # 只有引用之前已描述结果生产操作，才去除这一条内部结果指代。
+        # 「先根据前面的结果再运行」没有本条任务中的生产操作，仍须回退。
+        return "" if _RESULT_PRODUCER.search(prefix) else match.group()
+    return bool(_CONTEXT_REFERENCE.search(_LOCAL_RESULT_REFERENCE.sub(local_reference, task)))
 
 
 def trivial_workload(task):
     """只识别封闭、短小的算术与单句定义；未知语义交回原流程。"""
-    if not isinstance(task, str) or len(task) > 160 or _CONTEXT_REFERENCE.search(task):
+    if not isinstance(task, str) or len(task) > 160 or references_unprovided_history(task):
         return False
     if re.fullmatch(r"(?:请)?用一句话解释[^。！？?!\n]{1,24}[。？?]?", task.strip()):
         return True
+    # 仅剥离完整的否定工具指令和单一数字输出格式，未知操作仍保留在残差中。
+    task = re.sub(r"(?:^|(?<=[。；;\n]))\s*(?:不|不要|无需|不需要)(?:调用|使用)工具\s*[。；;\n]?$", "", task)
+    task = re.sub(r"只(?:回答|输出)(?:结果)?(?:数字|数值)", "", task)
     expressions = re.findall(r"\d+(?:\.\d+)?\s*[×*乘+÷/]\s*\d+(?:\.\d+)?", task)
     if not 1 <= len(expressions) <= 4:
         return False
@@ -125,7 +148,7 @@ def build_request(task, context, *, threshold=.65, max_input_bytes=65536):
         raise ValueError("拆分判别任务超过输入上限")
     state = {
         "task": task,
-        "contextDependency": "referenced" if _CONTEXT_REFERENCE.search(task) else "standalone",
+        "contextDependency": "referenced" if references_unprovided_history(task) else "standalone",
         "contextAvailable": bool(context),
     }
     return {
@@ -198,7 +221,7 @@ def validate_evidence(value, task, context):
     if not isinstance(value, dict) or value.get("contract") not in {CONTRACT, LEGACY_CONTRACT}:
         raise ValueError("拆分判别合同不兼容")
     current = value["contract"] == CONTRACT
-    if value.get("ruleVersion") not in ({RULE_VERSION} if current else LEGACY_RULE_VERSIONS):
+    if value.get("ruleVersion") not in (CURRENT_CONTRACT_RULE_VERSIONS if current else LEGACY_RULE_VERSIONS):
         raise ValueError("拆分判别规则版本不兼容")
     choices = CHOICES if current else LEGACY_CHOICES
     questions = QUESTIONS if current else LEGACY_QUESTIONS

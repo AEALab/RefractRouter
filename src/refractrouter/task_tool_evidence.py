@@ -14,7 +14,8 @@ _GENERIC = re.compile(
     r'\bread (?:the )?(?:file|repository)\b|\brun (?:the )?(?:command|tests?|script)\b|'
     r'\bcall (?:a )?(?:tool|api)\b', re.I)
 _NON_REQUIRED = re.compile(
-    r'不要|不需要|无需|无须|不必|不得|请勿|禁止|避免|(?<![分特])别|可以|可选|例如|比如|示例|解释|说明如何|'
+    r'不要|不需要|无需|无须|不必|不得|请勿|禁止|避免|不(?:再|实际|直接)?(?:调用|使用|执行|运行|读取|搜索|发送)|'
+    r'(?<![分特])别|可以|可选|例如|比如|示例|解释|说明如何|'
     r'如果|若|视情况|酌情|必要时|\b(?:do not|don\x27t|without|never|optional|may|could|'
     r'example|explain|how to|if|unless)\b', re.I)
 

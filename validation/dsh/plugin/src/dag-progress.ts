@@ -121,6 +121,7 @@ export function runSummary(result: Record<string, unknown>): string {
         :`direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
         +`${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`)
       + qualityLine
+      + (comparison.complete_task_cost_bound===false?'费用范围：仅比较已知规划、执行与最终评审；无限工具续接费用未估计，每次后续调用仍检查预算，不保证整任务费用上界。\n':'')
     : ''
   const netSavings=object(comparison.dag_net_estimated_savings_vs_unprobed_direct_by_unit)
     ?`规划前基线净节省预测：${vector(comparison.dag_net_estimated_savings_vs_unprobed_direct_by_unit)}；AFP 与 CNY 分账，不能直接相加；尚未经反事实实测\n`
@@ -151,10 +152,16 @@ export function runSummary(result: Record<string, unknown>): string {
   const admission=object(comparison.model_admission)?comparison.model_admission:
     object(result.plan_admission)?{'执行路线':Object.fromEntries(Object.entries(result.plan_admission)
       .filter(([,row])=>object(row)).map(([node,row])=>[node,object(row)?row.model_reasons:{}]))}:{}
-  const admissionNames:Record<string,string>={'eligible':'通过画像与容量检查，仍须通过数据域及预算准入','missing-profile':'缺少匹配画像',
+  const candidateModels=object(result.candidate_models)?result.candidate_models:{}
+  const modelLabel=(id:string)=>{const m=object(candidateModels[id])?candidateModels[id]:{}
+    return typeof m.provider==='string'&&typeof m.model==='string'?`${m.provider}/${m.model}（${id}）`:id}
+  const selectionLine=result.model_selection_rule==='quality-qualified-then-cash-then-reference'
+    ?'选模顺序：先通过质量、容量与数据域检查，再最小化新增现金，再比较公开参考费用，最后比较预计时延；画像先验不是本任务成功保证。\n':''
+  const admissionNames:Record<string,string>={'eligible':'通过画像、容量及数据域检查；预算按实际调用继续检查','missing-profile':'缺少匹配画像',
+    'data-domain-not-authorized':'当前输入的数据域未授权发送到此路线',
     'quality-below-minimum':'质量先验低于门槛','input-or-output-capacity':'输入或输出容量不足'}
   const modelLines=Object.entries(admission).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,reason])=>
-    `${escape(route)}/${escape(node)} · ${escape(id)}：${admissionNames[String(reason)]??escape(String(reason))}\n`):[]):[]).join('')
+    `${escape(route)}/${escape(node)} · ${escape(modelLabel(id))}：${admissionNames[String(reason)]??escape(String(reason))}\n`):[]):[]).join('')
   const latencyEvidence=object(comparison.latency_evidence)?comparison.latency_evidence:{}
   const latencyLines=Object.entries(latencyEvidence).flatMap(([route,nodes])=>object(nodes)?Object.entries(nodes).flatMap(([node,models])=>object(models)?Object.entries(models).map(([id,raw])=>{
     const e=object(raw)?raw:{}
@@ -173,14 +180,20 @@ export function runSummary(result: Record<string, unknown>): string {
   const protection=object(trace.review_protection)?trace.review_protection:null
   const protectionLine=protection?`最终评审保护额度：${number(protection.amount)} ${escape(String(protection.unit))}，`
     +`${String(protection.output_tokens)} 输出 tokens，状态 ${escape(String(protection.status))}；此额度不是已结算费用\n`:''
+  const reference=object(trace.reference_costs_cny)?trace.reference_costs_cny:{}
+  const cash=object(trace.cash_costs_cny)?trace.cash_costs_cny:{}
+  const currencyLine=trace.accounting_basis==='public-reference-valuation'
+    ?`金额区分：Router 模型公开价格参考估值（非订阅账单）生产 ${number(reference.production)}、评审 ${number(reference.evaluation)} CNY；新增现金生产 ${number(cash.production)}、评审 ${number(cash.evaluation)} CNY（外部结构判别另列）。\n`
+      +(object(trace.external_structure_judge)?`外部结构判别现金 ${number(trace.external_structure_judge.cost_cny)} CNY；含该判别的已知参考合计 ${number(trace.all_in_known_reference_cost_cny)} CNY、新增现金合计 ${number(trace.all_in_known_cash_cost_cny)} CNY；待核对预留仍另列。\n`:''):''
   const costTraceLine=Object.keys(trace).length?`费用依据：预计值用于选路；预留上界用于准入；实际结算以调用账本为准。\n`
+    +currencyLine
     +expectedLines+protectionLine+actualLines:''
   const toolValidation=object(result.tool_validation)?result.tool_validation:null
   const toolLine=toolValidation?`工具验收：${toolValidation.passed===true?'回执检查通过':'未通过'}；${escape(String(toolValidation.message??toolValidation.reason))}\n`
     +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
       `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + modelLines + latencyLines + costTraceLine + toolLine
+    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + selectionLine + modelLines + latencyLines + costTraceLine + toolLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')

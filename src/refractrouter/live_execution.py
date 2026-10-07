@@ -12,7 +12,7 @@ from .decomposition_decision import RULE_VERSION, validate_evidence, trivial_wor
 from .task_tool_evidence import tool_requirements
 
 
-COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v5"
+COMPLEXITY_POLICY_VERSION = "refractagent-complexity-gate-v6"
 AUTHORIZATION_SCHEMA = "refractagent-live-authorization-v1"
 AUTHORIZATION_TTL_SECONDS = 600
 DIRECT_TASK_CHARS = 600
@@ -32,7 +32,7 @@ _TOOL_MARKERS = re.compile(
     re.IGNORECASE,
 )
 _NEGATED_TOOL_PREFIX = re.compile(
-    r"(?:不要|不需要|无需|无须|不必|不得|请勿|禁止|避免|别)\s*(?:再|去|实际|直接|先)?\s*$"
+    r"(?:不要|不需要|无需|无须|不必|不得|请勿|禁止|避免|别|不)\s*(?:再|去|实际|直接|先)?\s*$"
     r"|\b(?:do not|don't|without|never)\s+(?:actually\s+)?$",
     re.IGNORECASE,
 )
@@ -175,7 +175,8 @@ def review_decision(payload, gate, *, policy="adaptive", tools_allowed=False):
             reasons.append("acceptance-criteria-present")
         if payload.get("outputConstraints"):
             reasons.append("strict-output-contract")
-        if tools_allowed:
+        # 工具可用不等于任务要求工具；封闭算术不因宿主注册工具而付费评审。
+        if tools_allowed and gate.get('reasons') != ['trivial-workload']:
             reasons.append("host-tools-available")
     return {"policy": policy, "required": bool(reasons),
             "reason": ",".join(reasons) if reasons else "adaptive-low-risk-direct"}

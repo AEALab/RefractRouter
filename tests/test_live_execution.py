@@ -277,6 +277,57 @@ def test_simple_v4_preflight_then_live_uses_one_worker_and_skips_judge(tmp_path)
     assert result['costs']['evaluation'] == 0
 
 
+def test_closed_arithmetic_with_registered_tools_does_not_require_tool_receipts_or_review(tmp_path):
+    from refractrouter.tool_runtime import StdioToolRuntime
+    payload = {'task': '计算 18 + 24，只回答结果数字。不调用工具。', 'strategy': 'auto',
+               'maxDshToolCalls': 'unlimited'}
+    runtime = StdioToolRuntime([{'name': 'bash', 'description': '宿主命令工具',
+        'parameters': {'type': 'object'}}], object(), max_calls='unlimited')
+    preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path/'preview',
+        tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    assert preview['complexity_gate']['reasons'] == ['trivial-workload']
+    from tests.test_task_tool_evidence import CandidateClient
+    client = CandidateClient(answer='42')
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=config(), runs_dir=tmp_path/'live', mode='live', execute_paid_run=True,
+        client=client, tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed', result['issues']
+    assert len(client.calls) == 1
+    assert result['tool_validation']['required'] is False
+    assert result['review']['status'] == 'skipped'
+
+
+@pytest.mark.parametrize('task', ['计算 18 + 24，然后发送邮件。',
+    '计算 18 + 24，只回答数字并修改代码。', '读取文件，计算 18 + 24。'])
+def test_arithmetic_shortcut_does_not_erase_other_operations(task):
+    from refractrouter.decomposition_decision import trivial_workload
+    assert not trivial_workload(task)
+
+
+def test_unlimited_tools_compare_known_routes_and_keep_per_call_budget_checks(tmp_path):
+    class ClientWithTools(CompactClient):
+        def complete(self, model, messages, **kwargs):
+            return super().complete(model, messages, json_mode=kwargs.get('json_mode', False))
+    payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。',
+               'strategy': 'auto', 'maxDshToolCalls': 'unlimited'}
+    runtime = StdioToolRuntime([{'name': 'bash', 'description': '宿主工具',
+        'parameters': {'type': 'object'}}], object(), max_calls='unlimited')
+    preview = run_agent(payload, provider_config=config(), runs_dir=tmp_path/'preview',
+        tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    client = ClientWithTools()
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=config(), runs_dir=tmp_path/'live', mode='live', execute_paid_run=True,
+        client=client, tool_runtime=runtime, production_budget=10, evaluation_budget=10)
+    assert result['status'] == 'completed', result['issues']
+    comparison = result['route_comparison']
+    assert comparison['status'] == 'selected' and comparison['route'] == 'direct'
+    assert comparison['tool_call_limit'] == 'unlimited'
+    assert comparison['complete_task_cost_bound'] is False
+    assert comparison['estimate_scope'] == 'known-calls-only-unbounded-tool-continuations'
+    assert comparison['direct']['tool_allowance_cost'] == 0
+    assert len(client.calls) == 3
+
+
 def test_live_second_level_can_discard_a_costly_dag_without_repeating_planner(tmp_path):
     raw = config()
     payload = {'task': '分别核对第一项事实和第二项风险，然后汇总建议。', 'strategy': 'auto'}

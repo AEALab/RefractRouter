@@ -1,0 +1,81 @@
+{
+  "schema_version": "automatic-product-release-verification-v1",
+  "date": "2026-10-07",
+  "core_version": "0.16.4",
+  "plugin_version": "0.31.1",
+  "dsh_version": "0.1.5-rc.3",
+  "profile": "original-web",
+  "packages": [
+    {
+      "name": "refractrouter-0.16.4-py3-none-any.whl",
+      "sha256": "0be64c322c0588837e98c9171575922d3f9ce821894b325ed325e8f8c4d07e54"
+    },
+    {
+      "name": "dsh-refractrouter-validation-0.31.1.tgz",
+      "sha256": "f3045c05315ede0c3abee27cd52285635a2d3dd4a2b51c8da528e5bc6861cefb"
+    }
+  ],
+  "tests": {
+    "python": "1734 passed in 225.31s",
+    "command": "UV_CACHE_DIR=/private/tmp/refractrouter-uv-cache uv run --offline pytest",
+    "typescript_typecheck": "passed",
+    "plugin_contracts": "197 passed",
+    "wheel_build": "passed",
+    "plugin_build_and_pack": "passed"
+  },
+  "installed_source_match": {
+    "python_agent": true,
+    "plugin_client": true
+  },
+  "unchanged_hashes": {
+    "settings.yaml": "f431ed80aedce9e8d45b01243670820d2bcec6044df63cc2b13dda6141db7e0e",
+    ".credentials.yaml": "66c5c984ed76432fd6b2392a8d8706791e6943604f2586f883659547cc7ad7ec"
+  },
+  "browser_checks": {
+    "original_conversation_result": "CNY 15.70 RRA-74291",
+    "dag_nodes_and_dependency_arrow_visible": true,
+    "planning_and_automatic_settings_cards": true,
+    "model_menu_retains_ark_kimi_deepseek_and_router_entries": true,
+    "candidate_reasons_visible": 5,
+    "historical_records_rewritten": false
+  },
+  "screenshots": [
+    {
+      "file": "dag.jpg",
+      "sha256": "b29e36df9bbd18783b71ebc1fb7de2bf8b6c768002bf40091e22dd3ad2fd57bc"
+    },
+    {
+      "file": "settings.jpg",
+      "sha256": "63f82c33355f18ded6c7678ceaba70b187564fe2578944ad5faea81ec29c4fb6"
+    },
+    {
+      "file": "result.jpg",
+      "sha256": "bb3779a0d5ce31558ce1cddd7cd89c77ebf0815546f20f1cd5a2f3eebcdf6495"
+    }
+  ],
+  "craft_wiki_assessment": "验收文件应在宿主工作目录准备的候选已评估；本次属于单一环境配置事故，证据留在项目报告，未升级知识主题。",
+  "codex_final_installed_core_mock": {
+    "client": "codex",
+    "strategy": "static",
+    "scenario": "normal",
+    "success": true,
+    "exitCode": 0,
+    "upstreamCalls": [
+      {
+        "model": "fixture",
+        "tools": 191,
+        "toolResults": 0,
+        "stream": true
+      },
+      {
+        "model": "fixture",
+        "tools": 191,
+        "toolResults": 1,
+        "stream": true
+      }
+    ],
+    "paidCalls": 0,
+    "routerTasks": 1,
+    "hostToolResultReceived": true
+  }
+}

@@ -84,12 +84,23 @@ def automatic_cost_trace(result, manifest):
               'charged': call['charged'], 'billing_mode': call.get('billing_mode', 'metered'),
               'cost_basis': call.get('cost_basis'), 'cash_cost_cny': call.get('cash_cost_cny')}
              for call in result.get('calls', ())]
-    return {'schema_version': 'automatic-cost-trace-v1', 'selected_nodes': selected,
+    trace = {'schema_version': 'automatic-cost-trace-v1', 'selected_nodes': selected,
             'selected_expected_by_unit': expected, 'calls': calls,
             'accounting_basis': result.get('accounting_basis'),
             'reference_costs_cny': result.get('reference_costs_cny'),
             'cash_costs_cny': result.get('cash_costs_cny'),
             'review_protection': (result.get('review') or {}).get('protection')}
+    if trace['accounting_basis'] == 'public-reference-valuation':
+        decision = (result.get('complexity_gate') or {}).get('local_decision') or {}
+        external = decision.get('costCny', 0) if decision.get('backend') == 'jev' else 0
+        confirmed = type(external) in (int, float) and math.isfinite(external) and external >= 0
+        trace['external_structure_judge'] = {'call_id': decision.get('callId'),
+            'cost_cny': external if confirmed else None, 'confirmed': confirmed}
+        for field, ledger in (('all_in_known_cash_cost_cny', 'cash_costs_cny'),
+                              ('all_in_known_reference_cost_cny', 'reference_costs_cny')):
+            amounts = trace[ledger] or {}
+            trace[field] = sum(amounts.get(k, 0) for k in ('production', 'evaluation')) + external if confirmed else None
+    return trace
 
 
 def atomic_json(path, value):
@@ -543,6 +554,25 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         output['complexity_gate'] = gate
         output['review'] = result.get('review', review)
         output['cost_trace'] = automatic_cost_trace(result, manifest)
+        configured_candidates = configured.manifest.candidates if configured else manifest.candidates
+        output['candidate_models'] = {m.model_id: {
+            **action_identity(m), 'deployment': m.deployment,
+            'billing_mode': m.billing_mode, 'billing_unit': m.billing_unit,
+        } for m in configured_candidates}
+        # live 在进入节点准入前就排除未获信任的云端；解释层也必须列出它们。
+        removed = {m.model_id for m in configured_candidates} - {m.model_id for m in manifest.candidates}
+        if removed and isinstance(output['plan_admission'], dict):
+            output['plan_admission'] = deepcopy(output['plan_admission'])
+            for row in output['plan_admission'].values():
+                row.setdefault('model_reasons', {}).update({mid: 'data-domain-not-authorized'
+                    for mid in sorted(removed)})
+            if isinstance(output['route_comparison'], dict):
+                output['route_comparison'] = deepcopy(output['route_comparison'])
+                for nodes in output['route_comparison'].get('model_admission', {}).values():
+                    for reasons in nodes.values():
+                        reasons.update({mid: 'data-domain-not-authorized' for mid in sorted(removed)})
+        output['model_selection_rule'] = (result.get('routing') or {}).get('cost_preference',
+            'configured-routing-objective')
         if mode == 'preflight':
             prediction = (result.get('routing') or {}).get('prediction') or {}
             production_estimate = prediction.get('costs_by_unit', {'AFP': 0, 'CNY': 0}) if mixed else prediction.get('cost', 0)

@@ -1,6 +1,7 @@
 """自动拆分 Jev：真实网络由夹具替代，验证预算和证据闭环。"""
 import json
 import threading
+from pathlib import Path
 
 import pytest
 
@@ -82,6 +83,19 @@ def test_context_and_capacity_use_rules_without_cloud(tmp_path):
         result = start(runtime, task=task, maxInputBytes=1024)
         assert result["action"] == "complete" and result["evidence"]["reason"] == reason
     assert not list(tmp_path.rglob("*.json"))
+
+
+def test_frozen_sequential_tool_task_reaches_judge_and_keeps_direct_route(tmp_path):
+    protocol = json.loads((Path(__file__).resolve().parents[1] /
+        'data/acceptance/automatic-product-finalization-v1.json').read_text())
+    task = next(row['task'] for row in protocol['cases'] if row['id'] == 'dependent-tools')
+    runtime = PlanningRuntime(tmp_path)
+    action = start(runtime, task=task)
+    assert action['action'] == 'jev'
+    evidence = finish(runtime, action, response(.95, .05, .05))['evidence']
+    assert evidence['verdict'] == 'COUPLED'
+    assert complexity_gate({'task': task}, '', decomposition=evidence)['decision'] == 'direct'
+    assert len(runtime.decomposition_jev.jobs[action['callId']]['budget'].records) == 1
 
 
 def test_unknown_usage_stops_and_retains_reservation(tmp_path):

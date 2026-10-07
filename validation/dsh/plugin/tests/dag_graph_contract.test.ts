@@ -80,7 +80,7 @@ test('自动路由轨迹逐模型说明质量和容量的候选排除原因',()=
   const summary=runSummary({route_comparison:{route:'direct',model_admission:{
     direct:{deliverable:{ready:'eligible',weak:'quality-below-minimum',
       small:'input-or-output-capacity',unknown:'missing-profile'}}}}})
-  assert.match(summary,/direct\/deliverable · ready：通过画像与容量检查，仍须通过数据域及预算准入/)
+  assert.match(summary,/direct\/deliverable · ready：通过画像、容量及数据域检查/)
   assert.match(summary,/direct\/deliverable · weak：质量先验低于门槛/)
   assert.match(summary,/direct\/deliverable · small：输入或输出容量不足/)
   assert.match(summary,/direct\/deliverable · unknown：缺少匹配画像/)
@@ -193,4 +193,22 @@ test('拆分无法确定时说明保留整任务执行和最终评审',()=>{
     combination:'uncertain-direct-with-review',reasons:['decomposition-evidence-insufficient']}})
   assert.match(summary,/规则 dag → 最终 direct/)
   assert.match(summary,/拆分证据不足，直接执行完整任务并保留最终评审/)
+})
+
+test('轨迹解释真实模型、数据域排除和不限定工具的预测范围',()=>{
+  const summary=runSummary({candidate_models:{external:{provider:'moonshot',model:'kimi-k3'}},
+    model_selection_rule:'quality-qualified-then-cash-then-reference',
+    plan_admission:{answer:{model_reasons:{external:'data-domain-not-authorized'}}},
+    route_comparison:{status:'selected',route:'direct',complete_task_cost_bound:false},
+    cost_trace:{accounting_basis:'public-reference-valuation',
+      reference_costs_cny:{production:.12,evaluation:.02},cash_costs_cny:{production:0,evaluation:0},
+      external_structure_judge:{cost_cny:.001},all_in_known_cash_cost_cny:.001,
+      all_in_known_reference_cost_cny:.141}})
+  assert.match(summary,/moonshot\/kimi-k3（external）/)
+  assert.match(summary,/当前输入的数据域未授权/)
+  assert.match(summary,/无限工具续接费用未估计/)
+  assert.match(summary,/先通过质量、容量与数据域检查，再最小化新增现金/)
+  assert.match(summary,/非订阅账单/)
+  assert.match(summary,/新增现金生产 0.0000、评审 0.0000 CNY/)
+  assert.match(summary,/新增现金合计 0.0010 CNY/)
 })

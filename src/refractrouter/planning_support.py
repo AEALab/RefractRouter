@@ -147,3 +147,19 @@ def admission_diagnostics(plan, task, candidates, profiles, quality_min, *, outp
             'reason': None if available else 'missing-quality-profile' if not matches else 'input-or-output-capacity',
             'input_estimate': estimates.get(node.node_id)}
     return result
+
+
+def placement_admission_diagnostics(admission, eligible, placement):
+    """在画像与容量诊断上补齐数据域收窄；保留各层依据供回放。"""
+    for node_id, row in admission.items():
+        row['profile_eligible_models'] = list(row['eligible_models'])
+        row['eligible_models'] = list(eligible.get(node_id, ()))
+        allowed = set(row['eligible_models'])
+        for model_id in row['profile_eligible_models']:
+            if model_id not in allowed:
+                row['model_reasons'][model_id] = 'data-domain-not-authorized'
+        grade = placement.get('grades', {}).get(node_id, {})
+        row['data_domain'] = {'grade': grade.get('grade'), 'reasons': list(grade.get('reasons', ())) }
+        if not row['eligible_models'] and row['reason'] is None:
+            row['reason'] = 'data-domain-not-authorized'
+    return admission

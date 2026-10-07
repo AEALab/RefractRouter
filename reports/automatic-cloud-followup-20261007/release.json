@@ -1,0 +1,33 @@
+{
+  "schema_version": "automatic-cloud-followup-release-v1",
+  "date": "2026-10-07",
+  "core_version": "0.16.5",
+  "plugin_version": "0.31.1",
+  "dsh_version": "0.1.5-rc.3",
+  "profile": "original-web",
+  "tests": {
+    "python": "1746 passed in 230.03s",
+    "typescript_typecheck": "passed",
+    "plugin_contracts": "197 passed",
+    "plugin_build": "passed",
+    "wheel_build": "passed"
+  },
+  "installed_source_match": true,
+  "wheel_sha256": "788f931e7b6979934d0bde615ffc7bc4fc818e28852c2392f8dc02967ea7a8a4",
+  "retained_plugin_tarball_sha256": "f3045c05315ede0c3abee27cd52285635a2d3dd4a2b51c8da528e5bc6861cefb",
+  "settings_sha256": "44e5d15c114ab685782bfb07fb4e6aae483a173820cb781ebda5bd6e1962550d",
+  "credentials_sha256": "66c5c984ed76432fd6b2392a8d8706791e6943604f2586f883659547cc7ad7ec",
+  "user_authorized_trust_change": "先把所有云端模型，都改成可信云；部署配置已改，预算、启用状态、默认模型与凭据保留。",
+  "browser_checks": {
+    "two_real_results_visible": true,
+    "dag_view_visible": true,
+    "planning_route_tab_remains_planning_only": true,
+    "new_profile_created": false
+  },
+  "screenshots": {
+    "tools.jpg": "9578bbe2e1fa033f428e00f2d628e8f11b52255140cfbf02037f5405512c4093",
+    "dag.jpg": "4ff1c7985c79841b4f306a19324ff86eb8420c0a5766f1369311da6233d64123",
+    "independent.jpg": "9f91681bcb2124f722a763d87559e75ba8f4596f0beb2add5765e49b588791ba"
+  },
+  "craft_wiki_assessment": "已按 craft-wiki 评估一项候选：任务内结果引用与旧会话依赖需区分。本次只验证窄词法修复，不能推广为通用指代解析，未达到跨项目结论门槛；证据保留在本报告。"
+}
