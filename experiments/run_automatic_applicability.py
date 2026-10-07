@@ -34,6 +34,13 @@ def bounded_complete(client, model, messages, *, json_mode, timeout_seconds):
     return bound.complete(model, messages, json_mode=json_mode)
 
 
+def historical_roots(root, deployed_root):
+    """私有证据与旧公开产物共同核对，复制的派发记录由账本身份去重。"""
+    return [*root.joinpath('reports').glob('automatic*'), root/'.refractagent/runs',
+            root/'.refractagent/private-audit', deployed_root/'.refractagent/runs',
+            deployed_root/'.refractagent/private-audit']
+
+
 def historical_protection(roots):
     """按真实派发身份去重；旧订阅单位不冒充现金，未知现金预留继续占额度。"""
     calls = {}
@@ -256,9 +263,8 @@ def main():
     args = parser.parse_args()
     if not 0 <= args.extra_history_protection_cny < args.authorized_cash_cny:
         parser.error('必须给出独立历史现金的非负保护额度')
-    history_roots = [*ROOT.joinpath('reports').glob('automatic*'), ROOT/'.refractagent/runs',
-        Path.home()/'Documents/Codes/RefractRouter/.refractagent/runs']
-    history = historical_protection(history_roots)
+    history = historical_protection(historical_roots(
+        ROOT, Path.home()/'Documents/Codes/RefractRouter'))
     catalog = json.loads(args.catalog.read_text())
     frozen = freeze(catalog, history, args.extra_history_protection_cny, args.authorized_cash_cny)
     if not args.execute:

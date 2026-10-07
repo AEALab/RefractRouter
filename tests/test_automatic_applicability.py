@@ -2,7 +2,26 @@
 import json
 import pytest
 
-from experiments.run_automatic_applicability import historical_protection, task_check, bounded_complete
+from experiments.run_automatic_applicability import (
+    historical_protection, historical_roots, task_check, bounded_complete,
+)
+
+
+def test_private_evidence_cash_remains_protected_across_worktree_and_installation(tmp_path):
+    root, deployed = tmp_path/'worktree', tmp_path/'installed'
+    call = {'model_id': 'cash', 'dispatch_at': '2026-10-08T00:00:00Z',
+            'input_sha256': 'one', 'status': 'billed', 'charged': .2}
+    unknown = {**call, 'input_sha256': 'two', 'status': 'unknown-usage', 'charged': .3}
+    for base, rows in ((root, [call]), (deployed, [call, unknown])):
+        folder = base/'.refractagent/private-audit/batch/task/direct'
+        folder.mkdir(parents=True)
+        (folder/'manifest.json').write_text(json.dumps({'models': [
+            {'model_id': 'cash', 'deployment': 'trusted-cloud', 'billing_mode': 'metered'}]}))
+        (folder/'result.json').write_text(json.dumps({'billing_unit': 'CNY', 'calls': rows}))
+    protected = historical_protection(historical_roots(root, deployed))
+    assert protected['cashProtectedCny'] == .5
+    assert protected['unknownCount'] == 1
+    assert len(protected['calls']) == 2
 
 
 def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, monkeypatch):
