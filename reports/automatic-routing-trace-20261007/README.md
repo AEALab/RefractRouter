@@ -65,6 +65,7 @@ Jev 沿用既有独立记账合同，没有偷偷加入主任务现金余额。
 - [路线概览](dsh-route-summary.jpg)
 - [Jev 原始答案与预测范围](dsh-automatic-trace.jpg)
 - [模型调用与工具回执](dsh-tool-receipts.jpg)
+- [参考估值与现金账本](dsh-fee-ledger.jpg)
 - [任务 DAG](dsh-dag.jpg)
 - [两个独立设置卡片](dsh-settings-cards.jpg)
 - [当前现金预算](dsh-cash-budget.jpg)
