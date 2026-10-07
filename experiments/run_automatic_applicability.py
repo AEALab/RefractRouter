@@ -7,6 +7,7 @@ from dataclasses import replace
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import random
 import subprocess
@@ -22,6 +23,7 @@ from refractrouter.task_budget import TaskCallBudget, request_input_bound, Inval
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT/'data/research/automatic-applicability-v3.json'
 HOST = ROOT/'validation/dsh/applicability_host.ts'
+HOST_AUDIT = ROOT/'validation/dsh/applicability_audit.ts'
 
 
 def digest(value):
@@ -125,7 +127,7 @@ def freeze(catalog, history, extra_history_cny, authorization_cny):
     order = [{'task': t['id'], 'route': route} for t in protocol['tasks'] for route in protocol['routes']]
     random.Random(protocol['orderSeed']).shuffle(order)
     sources = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-        for p in [*sorted((ROOT/'src/refractrouter').rglob('*.py')), Path(__file__), HOST, PROTOCOL]}
+        for p in [*sorted((ROOT/'src/refractrouter').rglob('*.py')), Path(__file__), HOST, HOST_AUDIT, PROTOCOL]}
     for task in protocol['tasks']:
         for material in task['materials']:
             if hashlib.sha256((ROOT/material['path']).read_bytes()).hexdigest() != material['sha256']:
@@ -146,7 +148,9 @@ def run(frozen, output, host_command, catalog):
     protocol = frozen['protocol']
     log = (output/'host-stderr.txt').open('w')
     process = subprocess.Popen(host_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                               stderr=log, text=True, cwd=ROOT)
+                               stderr=log, text=True, cwd=ROOT,
+                               env={**os.environ, 'REFRACT_APPLICABILITY_AUDIT':
+                                    str((output/'host-diagnostics.ndjson').resolve())})
     results = []
     budget = None
     try:

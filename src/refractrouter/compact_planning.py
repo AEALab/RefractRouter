@@ -14,7 +14,9 @@ COMPACT_PLANNER_SYSTEM = '''你是快速文本任务 DAG 规划器，只拆工�
 只返回紧凑 JSON：{"reason":"简短拆分理由","nodes":[{"id":"answer","type":"generation","job":"完整回答任务","parents":[],"difficulty":"medium","risk":"medium"}]}。
 1..6 个节点，最后一个节点汇总完整交付，每个节点必须汇入它。id 为小写英文标识。
 type 只取 extraction、synthesis、generation、verification、planning；difficulty/risk 只取 low/medium/high，按真实职责标注。
-job 每项不超过 180 字，reason 不超过 180 字；不生成答案、契约、预算、模型清单或验收表。
+job 每项不超过 180 个 Unicode 字符，reason 同样不超过 180 个字符；每个英文字母、数字和标点也各计一个字符，不按英文单词计数。
+job 只写简短职责和产物，建议不超过 60 个字符；不要复制原始案例、代码、字段清单或验收条款，执行节点已经收到完整原始任务。
+不生成答案、契约、预算、模型清单或验收表。
 优先把独立的分析工作分支并行，汇总节点等待分支。共同读取原始材料不构成依赖；只有消费前一节点结果才填写 parents。
 不要添加「先读题」「制定计划」等空转节点；短小或强耦合工作合并。不得删除真实推理依赖来制造并行。
 拆分有额外模型调用、重复输入和交接成本。简单算术、短定义、单对象连续修改应返回一个 answer 节点。

@@ -1,8 +1,9 @@
 // 有限实验的宿主适配器：只读取现有配置并转发模型调用，不实现选模或账本。
-import {readFileSync} from 'node:fs'
+import {readFileSync, appendFileSync} from 'node:fs'
 import {homedir} from 'node:os'
 import {createInterface} from 'node:readline'
 import {pathToFileURL} from 'node:url'
+import {hostDiagnostic} from './applicability_audit.ts'
 
 const moduleRoot = process.env.REFRACT_DSH_MODULE_ROOT
 if (!moduleRoot) throw new Error('必须明确提供已安装 DSH 的依赖目录')
@@ -49,8 +50,13 @@ for await (const line of createInterface({input: process.stdin})) {
     }
     result = {pool: settings.refractagent.dshModelPool, routes}
   } else {
+    const started = performance.now()
     result = await callDshLlm({llm: {stream: (options: any) =>
       (options.provider === 'deepseek-official' ? deepseek : adapter).stream(options)}}, request)
+    const auditPath = process.env.REFRACT_APPLICABILITY_AUDIT
+    if (auditPath) appendFileSync(auditPath,
+      JSON.stringify(hostDiagnostic(request, result, secrets.refs, performance.now() - started)) + '\n',
+      {mode: 0o600})
   }
   process.stdout.write(JSON.stringify(result) + '\n')
 }
