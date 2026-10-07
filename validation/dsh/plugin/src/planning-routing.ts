@@ -327,6 +327,12 @@ export class PlanningController {
     return {result:await response.json() as Json,latencyMs:performance.now()-started}
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
+  async automaticTrace(runIds:string[]):Promise<Json>{
+    await this.ensureHandshake()
+    if(!(await this.handshake!).includes('automatic-routing-trace-v1'))
+      throw new Error('当前核心尚不支持自动路由轨迹，请升级核心与插件')
+    return this.rpc.request({op:'automatic-trace',runIds})
+  }
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
     localBackends=false,jev=false,openrouter=false,currency=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{

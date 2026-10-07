@@ -393,6 +393,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 result['accounting_basis'] = 'public-reference-valuation'
                 result['reference_costs_cny'] = dict(result['charged'])
                 result['cash_costs_cny'] = budget.cash_snapshot()
+                result['cash_limit_snapshot'] = dict(configuration.snapshot['cashLimits'])
                 result['cost_note'] = '参考成本包含按量调用，两项不相加；订阅费未按调用分摊。'
             if placement is not None:
                 # 安全运行只保存摘要；完整输入已由 input_sha256 关联，敏感原文不落盘。
@@ -404,6 +405,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                                         if placement is not None else records)
             if configured_application:
                 actions = {m.model_id: action_identity(m) for m in manifest.models}
+                directory = configuration.manifest.candidates if configuration else manifest.candidates
+                result['candidate_models'] = {m.model_id: {**action_identity(m),
+                    'deployment': m.deployment, 'billing_mode': m.billing_mode,
+                    'billing_unit': m.billing_unit} for m in directory}
                 for call in result['calls']:
                     call['route'] = actions[call['model_id']]
             result["wall_time_ms"] = round((time.monotonic() - started) * 1000)

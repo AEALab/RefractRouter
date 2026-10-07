@@ -1,0 +1,1208 @@
+{
+  "schema_version": "automatic-routing-trace-v1",
+  "records": [
+    {
+      "schema_version": "automatic-routing-trace-v1",
+      "run_id": "20261007T064045Z-118980e3a74b",
+      "status": "completed",
+      "simulated": false,
+      "mode": "live",
+      "wall_time_ms": 19902,
+      "issues": [],
+      "limitations": [
+        "执行节点通过宿主权限管线调用工具；规划与评审不执行工具。",
+        "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+        "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+      ],
+      "structure": {
+        "policy_version": "refractagent-complexity-gate-v6",
+        "rule_decision": "dag",
+        "decision": "direct",
+        "combination": "coupled-sequential-work",
+        "reasons": [
+          "complex-task-marker",
+          "local-coupled"
+        ],
+        "judge": {
+          "contract": "decomposition-decision-v2",
+          "ruleVersion": "automatic-decomposition-hybrid-v5",
+          "verdict": "COUPLED",
+          "rawVerdict": "COUPLED",
+          "confidence": 0.8,
+          "probabilities": {
+            "SINGLE": 0.027093094316561418,
+            "COUPLED": 0.6657160317783664,
+            "SEPARABLE": 0.05255652882460786,
+            "UNKNOWN": 0.2546343450804644
+          },
+          "probabilityBasis": "derived-not-model",
+          "signals": {
+            "requires_previous_output": 0.8,
+            "can_start_independently": 0.24,
+            "single_work_unit": 0.14
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "queueMs": 0,
+          "latencyMs": 736.0144579999978,
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.8
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.24
+            },
+            "single_work_unit": {
+              "type": "noul",
+              "noul": 0.14
+            }
+          },
+          "costCny": 0.00025017844739999996,
+          "backend": "jev",
+          "provider": "openrouter",
+          "experimental": true,
+          "reason": null
+        }
+      },
+      "plan_origin": "direct-gate",
+      "comparison": {},
+      "selection_rule": "quality-qualified-then-cash-then-reference",
+      "quality_min": 80,
+      "profile_scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+      "candidates": [
+        {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "execution",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "execution",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "execution",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "execution",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "execution",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": [
+            "answer"
+          ]
+        }
+      ],
+      "routing_diagnostics": {
+        "rule_version": "route-rejection-v1",
+        "remaining_cash": 2,
+        "remaining_cost": 1e+300,
+        "remaining_latency_ms": null,
+        "rejected_combinations": {
+          "assignment-mode": 0,
+          "quality": 0,
+          "cost": 0,
+          "latency": 0,
+          "cash": 1
+        },
+        "counts_may_overlap": true
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "reserved": 0.21352,
+          "charged": 0.02076568,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 17607,
+          "output_tokens": 201,
+          "cached_input_tokens": 8192,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 4434,
+          "request_id": "resp_0217913552460940e23c04e8b740c94d8512f0597aa5fa659a32c",
+          "finish_reason": "tool_calls",
+          "dispatch_at": "2026-10-07T06:40:45.854904+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "answer:tool-round-1",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "reserved": 0.217422,
+          "charged": 0.00472136,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 17785,
+          "output_tokens": 158,
+          "cached_input_tokens": 16384,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 2728,
+          "request_id": "resp_0217913552504580e23c04e8b740c94d8512f0597aa5fa6bb1c49",
+          "finish_reason": "tool_calls",
+          "dispatch_at": "2026-10-07T06:40:50.338914+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "answer:tool-round-2",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "reserved": 0.22037400000000001,
+          "charged": 0.00503336,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 17921,
+          "output_tokens": 163,
+          "cached_input_tokens": 16384,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 3117,
+          "request_id": "resp_0217913552532270e23c04e8b740c94d8512f0597aa5fa6cbc263",
+          "finish_reason": "stop",
+          "dispatch_at": "2026-10-07T06:40:53.108908+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "reserved": 0.406742556402,
+          "charged": 0.020735817256,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 9712,
+          "output_tokens": 342,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 9472,
+          "request_id": "resp_0217913552563660e23c04e8b740c94d8512f0597aa5fa68e9c95",
+          "finish_reason": "stop",
+          "dispatch_at": "2026-10-07T06:40:56.251042+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "glm-5.3",
+            "reasoning_effort": null
+          }
+        }
+      ],
+      "ledger": [
+        {
+          "category": "production",
+          "reference_occupied_cny": 0.030520400000000003,
+          "cash_occupied_cny": 0,
+          "cash_limit_cny": 2,
+          "remaining_cash_cny": 2,
+          "unlimited_cash": false,
+          "pending_count": 0,
+          "pending_cash_cny": 0,
+          "billed_cash_cny": 0
+        },
+        {
+          "category": "evaluation",
+          "reference_occupied_cny": 0.02073581725599999,
+          "cash_occupied_cny": 0,
+          "cash_limit_cny": 1,
+          "remaining_cash_cny": 1,
+          "unlimited_cash": false,
+          "pending_count": 0,
+          "pending_cash_cny": 0,
+          "billed_cash_cny": 0
+        }
+      ],
+      "call_order_basis": "reservation-order",
+      "accounting_basis": "public-reference-valuation",
+      "external_judge_cost_cny": 0.00025017844739999996,
+      "external_judge_called": true,
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "host-tools-available",
+        "status": "completed",
+        "score": 100,
+        "passed": true
+      },
+      "quality": {
+        "score": 100,
+        "passed": true,
+        "rationale": "工具回执显示两次独立 Bash 调用按顺序执行：第一次读取 index.json，回执给出数据文件 ledger-f91e.csv、数量列 n、单价列 unitCents（分）、币种 CNY、回执编号 RRA-74291；第二次读取该数据文件，回执数据为 2×150+3×240+5×110=1570 分=15.70 元。最终输出「CNY 15.70 RRA-74291」与索引定义和计算结果完全一致，格式为「币种 金额 回执编号」，金额保留两位小数，且未使用其他工具或编辑文件。"
+      },
+      "quality_gate": "passed",
+      "tools": {
+        "required": false,
+        "required_tools": [],
+        "passed": true,
+        "reason": "no-explicit-tool-requirement",
+        "message": "未识别到明确工具要求；已提供实际回执供语义评审检查。",
+        "missing_tools": [],
+        "records": [
+          {
+            "node": "answer",
+            "call_id": "call_glo52g4kzf409n9p139x4up9|fc_02179135524966800000000000000000000ffffac1517fe9323e1",
+            "tool": "bash",
+            "outcome": "completed"
+          },
+          {
+            "node": "answer",
+            "call_id": "call_kwcurwdrjvw93nzugsoa591a|fc_02179135525239600000000000000000000ffffac183204180a03",
+            "tool": "bash",
+            "outcome": "completed"
+          }
+        ]
+      },
+      "missing_evidence": [
+        "per-candidate-budget-check"
+      ]
+    },
+    {
+      "schema_version": "automatic-routing-trace-v1",
+      "run_id": "20261007T064138Z-0d3b7fd87479",
+      "status": "completed",
+      "simulated": false,
+      "mode": "live",
+      "wall_time_ms": 37132,
+      "issues": [],
+      "limitations": [
+        "执行节点通过宿主权限管线调用工具；规划与评审不执行工具。",
+        "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+        "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+      ],
+      "structure": {
+        "policy_version": "refractagent-complexity-gate-v6",
+        "rule_decision": "dag",
+        "decision": "dag",
+        "combination": "local-separable",
+        "reasons": [
+          "complex-task-marker",
+          "explicit-tool-requirement",
+          "local-separable"
+        ],
+        "judge": {
+          "contract": "decomposition-decision-v2",
+          "ruleVersion": "automatic-decomposition-hybrid-v5",
+          "verdict": "SEPARABLE",
+          "rawVerdict": "SEPARABLE",
+          "confidence": 0.92,
+          "probabilities": {
+            "SINGLE": 0.003143221574344026,
+            "COUPLED": 0.004282069970845485,
+            "SEPARABLE": 0.9356322886297376,
+            "UNKNOWN": 0.05694241982507294
+          },
+          "probabilityBasis": "derived-not-model",
+          "signals": {
+            "requires_previous_output": 0.08,
+            "can_start_independently": 0.95,
+            "single_work_unit": 0.06
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "queueMs": 0,
+          "latencyMs": 494.2779589999991,
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.08
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.95
+            },
+            "single_work_unit": {
+              "type": "noul",
+              "noul": 0.06
+            }
+          },
+          "costCny": 0.0002796445386,
+          "backend": "jev",
+          "provider": "openrouter",
+          "experimental": true,
+          "reason": null
+        }
+      },
+      "plan_origin": "direct-after-probe",
+      "comparison": {
+        "status": "selected",
+        "route": "direct",
+        "reason": "direct-estimated-cost-not-worse",
+        "selected_candidate": "direct-template",
+        "generated_node_count": 4,
+        "selected_node_count": 1,
+        "multi_node_selected": false,
+        "direct": {
+          "worker_cost": 0.215366,
+          "planner_actual_cost": 0.026702228511,
+          "judge_estimated_cost": 0.44500078144899996,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 0.68706900996,
+          "worker_scheduled_latency_ms": 60000.0,
+          "known_latency_ms": 67653.0,
+          "assignments": {
+            "answer": "dsh-model-72afd0d705290d78"
+          },
+          "quality_proxy": 92.86
+        },
+        "dag": {
+          "worker_cost": 0.9137360000000001,
+          "planner_actual_cost": 0.026702228511,
+          "judge_estimated_cost": 0.44500078144899996,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 1.38543900996,
+          "worker_scheduled_latency_ms": 240000.0,
+          "known_latency_ms": 247653.0,
+          "assignments": {
+            "review_a": "dsh-model-72afd0d705290d78",
+            "review_b": "dsh-model-72afd0d705290d78",
+            "review_c": "dsh-model-72afd0d705290d78",
+            "answer": "dsh-model-72afd0d705290d78"
+          },
+          "quality_proxy": 92.86
+        },
+        "decision_factors": {
+          "qualified_execution_model_count": 5,
+          "quality_basis": "declared-model-profile-prior",
+          "task_specific_dag_quality_gain_verified": false,
+          "dag_extra_worker_cost": 0.6983700000000002
+        },
+        "estimate_scope": "known-calls-only-unbounded-tool-continuations",
+        "complete_task_cost_bound": false,
+        "tool_call_limit": "unlimited",
+        "billing_unit": "CNY",
+        "prediction_source": "compiled-user-declared-node-profiles",
+        "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+        "latency_evidence": {
+          "direct": {
+            "answer": {
+              "dsh-model-b1aeb12a74ea9990": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 10,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "f88cb49857a323aec7b24a7526ea80f3f5a6c2bece42eea632af7e60c3034304",
+                "calibrated_sla": false
+              },
+              "dsh-model-2554a193bcd888ad": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-06fd0d4ad75fef1d": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-7077bbf6a06daaa6": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 14,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "ca756fe8506b245023562b2540a1b617e87d230717e458aa1910f195a080ff73",
+                "calibrated_sla": false
+              },
+              "dsh-model-72afd0d705290d78": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 6,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "a7374fa55a71d8cb19cce34f790b1a8d5f3c39213dc61e30f47988f9d5343e77",
+                "calibrated_sla": false
+              }
+            }
+          },
+          "dag": {
+            "review_a": {
+              "dsh-model-b1aeb12a74ea9990": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 10,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "f88cb49857a323aec7b24a7526ea80f3f5a6c2bece42eea632af7e60c3034304",
+                "calibrated_sla": false
+              },
+              "dsh-model-2554a193bcd888ad": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-06fd0d4ad75fef1d": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-7077bbf6a06daaa6": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 14,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "ca756fe8506b245023562b2540a1b617e87d230717e458aa1910f195a080ff73",
+                "calibrated_sla": false
+              },
+              "dsh-model-72afd0d705290d78": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 6,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "a7374fa55a71d8cb19cce34f790b1a8d5f3c39213dc61e30f47988f9d5343e77",
+                "calibrated_sla": false
+              }
+            },
+            "review_b": {
+              "dsh-model-b1aeb12a74ea9990": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 10,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "f88cb49857a323aec7b24a7526ea80f3f5a6c2bece42eea632af7e60c3034304",
+                "calibrated_sla": false
+              },
+              "dsh-model-2554a193bcd888ad": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-06fd0d4ad75fef1d": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-7077bbf6a06daaa6": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 14,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "ca756fe8506b245023562b2540a1b617e87d230717e458aa1910f195a080ff73",
+                "calibrated_sla": false
+              },
+              "dsh-model-72afd0d705290d78": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 6,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "a7374fa55a71d8cb19cce34f790b1a8d5f3c39213dc61e30f47988f9d5343e77",
+                "calibrated_sla": false
+              }
+            },
+            "review_c": {
+              "dsh-model-b1aeb12a74ea9990": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 10,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "f88cb49857a323aec7b24a7526ea80f3f5a6c2bece42eea632af7e60c3034304",
+                "calibrated_sla": false
+              },
+              "dsh-model-2554a193bcd888ad": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-06fd0d4ad75fef1d": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-7077bbf6a06daaa6": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 14,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "ca756fe8506b245023562b2540a1b617e87d230717e458aa1910f195a080ff73",
+                "calibrated_sla": false
+              },
+              "dsh-model-72afd0d705290d78": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 6,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "a7374fa55a71d8cb19cce34f790b1a8d5f3c39213dc61e30f47988f9d5343e77",
+                "calibrated_sla": false
+              }
+            },
+            "answer": {
+              "dsh-model-b1aeb12a74ea9990": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 10,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "f88cb49857a323aec7b24a7526ea80f3f5a6c2bece42eea632af7e60c3034304",
+                "calibrated_sla": false
+              },
+              "dsh-model-2554a193bcd888ad": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-06fd0d4ad75fef1d": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 0,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": null,
+                "calibrated_sla": false
+              },
+              "dsh-model-7077bbf6a06daaa6": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 14,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "ca756fe8506b245023562b2540a1b617e87d230717e458aa1910f195a080ff73",
+                "calibrated_sla": false
+              },
+              "dsh-model-72afd0d705290d78": {
+                "rule_version": "request-size-p90-v1",
+                "prediction_ms": 60000.0,
+                "source": "sparse-or-unmatched-bootstrap",
+                "samples": 0,
+                "available_samples": 6,
+                "minimum_samples": 5,
+                "input_bucket_max": 262144,
+                "output_bucket_max": 16384,
+                "observed_p90_ms": null,
+                "snapshot_id": "a7374fa55a71d8cb19cce34f790b1a8d5f3c39213dc61e30f47988f9d5343e77",
+                "calibrated_sla": false
+              }
+            }
+          }
+        },
+        "candidate_diagnostics": {
+          "direct": {
+            "rule_version": "route-rejection-v1",
+            "rejected_combinations": {
+              "assignment-mode": 0,
+              "quality": 0,
+              "cost": 0,
+              "latency": 0,
+              "cash": 1
+            },
+            "counts_may_overlap": true,
+            "empty_candidate_nodes": [],
+            "minimum_scheduled_latency_ms": 60000.0,
+            "remaining_latency_ms": null,
+            "minimum_cost": 0.215366,
+            "remaining_cost": 1e+300,
+            "remaining_cash": 2,
+            "minimum_cash": 0
+          },
+          "dag": {
+            "rule_version": "route-rejection-v1",
+            "rejected_combinations": {
+              "assignment-mode": 0,
+              "quality": 0,
+              "cost": 0,
+              "latency": 0,
+              "cash": 175
+            },
+            "counts_may_overlap": true,
+            "empty_candidate_nodes": [],
+            "minimum_scheduled_latency_ms": 240000.0,
+            "remaining_latency_ms": null,
+            "minimum_cost": 0.9137360000000001,
+            "remaining_cost": 1e+300,
+            "remaining_cash": 2,
+            "minimum_cash": 0
+          }
+        },
+        "budget_shortfalls": {}
+      },
+      "selection_rule": "quality-qualified-then-cash-then-reference",
+      "quality_min": 80,
+      "profile_scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+      "candidates": [
+        {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "direct",
+              "node": "answer",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_a",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_b",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_c",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "direct",
+              "node": "answer",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_a",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_b",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_c",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "direct",
+              "node": "answer",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_a",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_b",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_c",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "direct",
+              "node": "answer",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_a",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_b",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_c",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": []
+        },
+        {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY",
+          "admission": [
+            {
+              "path": "direct",
+              "node": "answer",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_a",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_b",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "review_c",
+              "reason": "eligible"
+            },
+            {
+              "path": "dag",
+              "node": "answer",
+              "reason": "eligible"
+            }
+          ],
+          "assignment_checks": {},
+          "selected_nodes": [
+            "answer"
+          ]
+        }
+      ],
+      "routing_diagnostics": {
+        "rule_version": "route-rejection-v1",
+        "remaining_cash": 2,
+        "remaining_cost": 1e+300,
+        "remaining_latency_ms": null,
+        "rejected_combinations": {
+          "assignment-mode": 0,
+          "quality": 0,
+          "cost": 0,
+          "latency": 0,
+          "cash": 1
+        },
+        "counts_may_overlap": true
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "production",
+          "status": "billed",
+          "reserved": 6.209291178272,
+          "charged": 0.026702228511,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 9647,
+          "output_tokens": 469,
+          "cached_input_tokens": 0,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 7653,
+          "request_id": "resp_02179135529841720244bbcebb250bf80b1bc04ef464017e20aad",
+          "finish_reason": "stop",
+          "dispatch_at": "2026-10-07T06:41:38.246701+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "glm-5.3",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "reserved": 0.2153,
+          "charged": 0.05618992,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 17862,
+          "output_tokens": 3060,
+          "cached_input_tokens": 2048,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 22309,
+          "request_id": "resp_02179135530608120244bbcebb250bf80b1bc04ef464017185d8b",
+          "finish_reason": "stop",
+          "dispatch_at": "2026-10-07T06:41:45.965029+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": null
+          }
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "reserved": 0.408022725845,
+          "charged": 0.02911193145,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "cash_cost_cny": null,
+          "cash_cost_status": "not-attributed-per-call",
+          "provider_cost_confirmed": false,
+          "input_tokens": 10378,
+          "output_tokens": 514,
+          "cached_input_tokens": 1792,
+          "reasoning_tokens": 0,
+          "ttft_ms": null,
+          "latency_ms": 7065,
+          "request_id": "resp_02179135532842020244bbcebb250bf80b1bc04ef464017de4ba2",
+          "finish_reason": "stop",
+          "dispatch_at": "2026-10-07T06:42:08.300502+00:00",
+          "route": {
+            "provider": "ark",
+            "model": "glm-5.3",
+            "reasoning_effort": null
+          }
+        }
+      ],
+      "ledger": [
+        {
+          "category": "production",
+          "reference_occupied_cny": 0.08289214851099969,
+          "cash_occupied_cny": 0,
+          "cash_limit_cny": 2,
+          "remaining_cash_cny": 2,
+          "unlimited_cash": false,
+          "pending_count": 0,
+          "pending_cash_cny": 0,
+          "billed_cash_cny": 0
+        },
+        {
+          "category": "evaluation",
+          "reference_occupied_cny": 0.029111931450000017,
+          "cash_occupied_cny": 0,
+          "cash_limit_cny": 1,
+          "remaining_cash_cny": 1,
+          "unlimited_cash": false,
+          "pending_count": 0,
+          "pending_cash_cny": 0,
+          "billed_cash_cny": 0
+        }
+      ],
+      "call_order_basis": "reservation-order",
+      "accounting_basis": "public-reference-valuation",
+      "external_judge_cost_cny": 0.0002796445386,
+      "external_judge_called": true,
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked,host-tools-available",
+        "status": "completed",
+        "score": 98,
+        "passed": true
+      },
+      "quality": {
+        "score": 98,
+        "passed": true,
+        "rationale": "回答完整且正确地完成了全部验收要求：模块 A 准确解释了不可信 name 通过引号逃逸改变 SQL 语义（给出 \"' OR '1'='1\" 具体示例及恒真条件后果），并给出参数化查询修正；模块 B 正确解释了可变默认参数在函数定义时仅创建一次、被所有未显式传参的调用共享的机制，并给出 None 哨兵修正；模块 C 正确解释了含 .. 的路径段导致文件系统回溯到上传目录之外（示例 /srv/uploads/../../etc/passwd 解析为 /etc/passwd），并给出 resolve() 加边界校验的修正。三行汇总表覆盖全部三个模块且各项对应。回答明确声明为静态审查、未运行测试、未调用工具，与任务约束一致，无虚假工具执行声明。技术细节均准确（is_relative_to 需 Python 3.9+ 属次要细节，不影响验收）。"
+      },
+      "quality_gate": "passed",
+      "tools": {
+        "required": false,
+        "required_tools": [],
+        "passed": true,
+        "reason": "no-explicit-tool-requirement",
+        "message": "未识别到明确工具要求；已提供实际回执供语义评审检查。",
+        "missing_tools": [],
+        "records": []
+      },
+      "missing_evidence": [
+        "per-candidate-budget-check"
+      ]
+    }
+  ],
+  "errors": []
+}

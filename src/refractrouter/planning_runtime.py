@@ -1701,7 +1701,7 @@ class PlanningRuntime(StageHybridRuntime):
         if operation == "handshake":
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
-                "planning-routing-v7", "currency-pricing-v1",
+                "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
                 "composite-task-stage-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
@@ -1711,6 +1711,9 @@ class PlanningRuntime(StageHybridRuntime):
             from .dsh_model_pool import frozen_usd_cny_rate
             rate, snapshot = frozen_usd_cny_rate()
             return {"rate": rate, "source": snapshot["source"], "asOf": snapshot["as_of"]}
+        if operation == "automatic-trace":
+            from .automatic_trace import history
+            return history(self.root.parent, request.get('runIds'))
         if operation == "metadata":
             from .planning_model_metadata import lookup
             return lookup(request)

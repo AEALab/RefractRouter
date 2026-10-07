@@ -170,6 +170,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
             utilities[(node.node_id, p.model_id)] = score
         options.append(pool)
     original_count = math.prod(map(len, options))
+    original_options = [list(pool) for pool in options]
     if reduce_dominated and assignment_mode == 'per-node':
         # 相同供应商和时延保证替换不改变整个 DAG 的调度；保留原始归一化标尺。
         # 成本更低或质量更高的替代项不会恶化 A/B 目标与硬约束。
@@ -198,6 +199,12 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
     if cash_max is not None:
         rejected['cash'] = 0
     best, best_key, feasible = None, None, 0
+    candidate_checks = {node.node_id: {p.model_id: {
+        'quality_prior': p.quality, 'reference_forecast': p.cost,
+        'cash_forecast': cash_cost(p), 'latency_forecast_ms': p.latency_ms,
+        'feasible_assignments': 0, 'rejected_assignments': {},
+        'status': 'dominated' if p not in pool else 'not-selected',
+    } for p in original} for node, original, pool in zip(plan.nodes, original_options, options)}
     for combination, cost, latency, quality in records:
         # 对称单模型基线只限制分配空间；目标、归一化标尺、约束和调度均保持一致。
         if assignment_mode == 'single-model' and len({p.model_id for p in combination}) != 1:
@@ -210,6 +217,13 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
             failed['cash'] = sum(cash_cost(p) for p in combination) > cash_max
         for reason, matched in failed.items():
             rejected[reason] += int(matched)
+        for node, p in zip(plan.nodes, combination):
+            check = candidate_checks[node.node_id][p.model_id]
+            for reason, matched in failed.items():
+                if matched:
+                    check['rejected_assignments'][reason] = check['rejected_assignments'].get(reason, 0) + 1
+            if not any(failed.values()):
+                check['feasible_assignments'] += 1
         if any(failed.values()):
             continue
         feasible += 1
@@ -235,6 +249,7 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
               "original_combinations": original_count, "dominated_reduction": reduce_dominated,
               "prediction": None, "nodes": {},
               "diagnostics": {"rule_version": "route-rejection-v1",
+                  "candidate_checks": candidate_checks,
                   "rejected_combinations": rejected, "counts_may_overlap": True,
                   "empty_candidate_nodes": [node.node_id for node, pool in zip(plan.nodes, options) if not pool],
                   "minimum_scheduled_latency_ms": latency_bounds[0] if latency_bounds else None,
@@ -244,6 +259,8 @@ def route_nodes(plan: TaskPlan, profiles: tuple[NodeProfile, ...], *, method: st
         combination, cost, latency, quality, score = best
         result["assignments"] = {n.node_id: p.model_id for n, p in zip(plan.nodes, combination)}
         result["nodes"] = {n.node_id: asdict(p) for n, p in zip(plan.nodes, combination)}
+        for n, p in zip(plan.nodes, combination):
+            candidate_checks[n.node_id][p.model_id]['status'] = 'selected'
         result["prediction"] = {"cost": cost, "serial_latency_ms": sum(p.latency_ms for p in combination),
                                 "scheduled_latency_ms": latency, "schedule": schedule(combination),
                                 "mean_node_quality_proxy": quality, "weighted_score": score if weights else None}

@@ -1,3 +1,4 @@
+import {AutomaticTrace,automaticRefs,parseAutomaticHistory,type AutomaticHistory,type ChatTraceProps} from './automatic-trace.js'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { EMPTY_PLANNING, PLANNING_NAMES, validatePlanningShape, type MediaRouteConfig, type PlanningConfig, type PlanningStrategy, type TaskJudgeConfig } from '../planning-config.js'
 import type { CardScope, DshModelPoolView } from '../settings-card.js'
@@ -960,14 +961,17 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
       时延依据：{value.latencyBasis==='unavailable'?'暂无可靠可比数据，平价时按模型池顺序':'已核对样本'}。</p>}
   </details>
 }
-function Trace({load}:{load:()=>Promise<History>}){
+function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutomatic:(ids:string[])=>Promise<AutomaticHistory>}&ChatTraceProps){
+  const snapshot=useChat?.(s=>s.legacy)
+  const references=snapshot?automaticRefs({legacy:snapshot}):[]
   const [data,setData]=useState<History>(),[error,setError]=useState('')
   useEffect(()=>{let active=true
     const refresh=()=>void load().then(v=>{if(active)setData(v)}).catch(e=>{if(active)setError(errorText(e))})
     refresh();const timer=setInterval(refresh,2500);return()=>{active=false;clearInterval(timer)}
   },[load])
   return <section style={{padding:24}}><h2>路由轨迹</h2><p>这里区分 Judge 原始答案与 Router 最终动作；任务运行状态不等于质量已通过独立验收。只统计当前受管 Agent，普通 DSH 子模型费用尚未汇总。</p>
-    <p role="status">{error}</p>{!data?.records.length&&<p>尚无规划路由记录。</p>}
+    <AutomaticTrace references={references} load={loadAutomatic}/>
+    <p role="status">{error}</p>{data?.records.length?<h2>规划路由</h2>:!references.length&&<p>当前已加载会话没有自动路由引用或规划路由记录。</p>}
     {data?.records.map(r=><article key={r.runId}><h3>{PLANNING_NAMES[r.strategy as PlanningStrategy]??r.strategy} · {STATUS[r.status]??`已停止：${r.status}`}</h3>
       {r.referenceCosts?<p>参考成本占用 {traceAmount(r.referenceCosts.occupied)} CNY；按量费用占用 {traceAmount(r.costsByUnit?.CNY?.production??0)} CNY。参考成本已包含按量调用，两项不相加；订阅费未按调用分摊。</p>:r.billingWarning?<p>{traceAmount(r.costs.production)}（单位待核对）</p>:
         r.costsByUnit?<p>{Object.entries(r.costsByUnit).filter(([unit,amount])=>amount.production!==0||r.calls.some(c=>c.billing_unit===unit))
@@ -1041,7 +1045,11 @@ export function applyPlanning(ctx:ClientContext){
   ctx.effect(labelPlanningModeMenu,'refractagent-planning: mode menu label')
   ctx.slots.inject('conversation.view',function*(){
     yield ctx.slots.register({name:'conversation.view',id:'refractagent-routing',order:16,label:()=> '路由轨迹',
-      inject:(sessionId:string)=>({load:async()=>{
+      inject:(sessionId:string)=>({loadAutomatic:async(runIds:string[])=>{
+        const r=await ctx.remote.llm.discoverModels('refractagent-planning',{api:'automatic-trace',provider:JSON.stringify(runIds)})
+        if(!r.ok)throw new Error(r.error?.message??'自动路由轨迹读取失败')
+        return parseAutomaticHistory(JSON.parse(r.value?.[0]?.name??'{}'))
+      },load:async()=>{
         const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider:sessionId})
         if(!r.ok)throw new Error(r.error?.message)
         return JSON.parse(r.value?.[0]?.name??'{"records":[]}') as History
