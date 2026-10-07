@@ -90,6 +90,11 @@ def create_proxy(router_base, events, hook_secret, router_token=''):
             try:
                 request = json.loads(raw)
                 if self.path == '/v1/responses':
+                    metadata = request.setdefault('metadata', {})
+                    if not isinstance(metadata, dict):
+                        raise ValueError('metadata 必须为对象')
+                    metadata['refract_tool_evidence_policy'] = 'confirmed'
+                    raw = json.dumps(request, ensure_ascii=False).encode()
                     facts = events.facts_for(_call_ids(request))
                     # 事实通过同一 Router 的专用入口保存，由核心负责历史配对。
                     for fact in facts:

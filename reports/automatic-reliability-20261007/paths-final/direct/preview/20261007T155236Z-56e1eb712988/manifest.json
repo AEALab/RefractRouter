@@ -1,0 +1,110 @@
+{
+  "schema_version": "refractagent-providers-v4",
+  "billing_unit": "USD",
+  "models": [
+    {
+      "model_id": "external-worker",
+      "provider": "external",
+      "input_cost_per_1k": 0.001,
+      "output_cost_per_1k": 0.002,
+      "capability": 0.9,
+      "billing_unit": "USD",
+      "tags": [],
+      "api_model": "EXTERNAL_MODEL_ID",
+      "base_url": "https://provider.example/v1",
+      "api_key_env": "EXTERNAL_MODEL_KEY",
+      "cached_input_cost_per_1k": 0.001,
+      "context_window": 131072,
+      "max_output_tokens": 2048,
+      "snapshot_date": "2026-10-07",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "temperature": 0
+      },
+      "json_mode_strategy": "json-object-hint",
+      "billing_mode": "metered",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": true,
+      "declared_pricing": null,
+      "reference_pricing": null,
+      "price_policy": null,
+      "cache_write_cost_per_1k": 0.001,
+      "deployment": "external-cloud",
+      "roles": [
+        "worker"
+      ],
+      "trust_policy": null,
+      "unrestricted_execution_output": true
+    },
+    {
+      "model_id": "local-router",
+      "provider": "local",
+      "input_cost_per_1k": 0.0,
+      "output_cost_per_1k": 0.0,
+      "capability": 0.85,
+      "billing_unit": "USD",
+      "tags": [],
+      "api_model": "LOCAL_ROUTER_MODEL_ID",
+      "base_url": "https://local.example/v1",
+      "api_key_env": null,
+      "cached_input_cost_per_1k": 0.0,
+      "context_window": 131072,
+      "max_output_tokens": 2048,
+      "snapshot_date": "2026-10-07",
+      "role": "candidate",
+      "wire_api": "chat-completions",
+      "request_options": {
+        "temperature": 0
+      },
+      "json_mode_strategy": "json-object-hint",
+      "billing_mode": "metered",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": false,
+      "declared_pricing": null,
+      "reference_pricing": null,
+      "price_policy": null,
+      "cache_write_cost_per_1k": 0,
+      "deployment": "local",
+      "roles": [
+        "planner",
+        "worker",
+        "classifier"
+      ],
+      "trust_policy": null,
+      "unrestricted_execution_output": true
+    },
+    {
+      "model_id": "local-judge",
+      "provider": "local",
+      "input_cost_per_1k": 0.0,
+      "output_cost_per_1k": 0.0,
+      "capability": 1.0,
+      "billing_unit": "USD",
+      "tags": [],
+      "api_model": "LOCAL_JUDGE_MODEL_ID",
+      "base_url": "https://local.example/v1",
+      "api_key_env": null,
+      "cached_input_cost_per_1k": 0.0,
+      "context_window": 131072,
+      "max_output_tokens": 2048,
+      "snapshot_date": "2026-10-07",
+      "role": "judge",
+      "wire_api": "chat-completions",
+      "request_options": {},
+      "json_mode_strategy": "json-object-hint",
+      "billing_mode": "metered",
+      "token_limit_parameter": "max_completion_tokens",
+      "authentication_required": false,
+      "declared_pricing": null,
+      "reference_pricing": null,
+      "price_policy": null,
+      "cache_write_cost_per_1k": 0,
+      "deployment": "local",
+      "roles": [
+        "judge"
+      ],
+      "trust_policy": null
+    }
+  ]
+}

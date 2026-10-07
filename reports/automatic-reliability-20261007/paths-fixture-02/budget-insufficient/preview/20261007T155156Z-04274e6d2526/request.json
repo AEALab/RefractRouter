@@ -1,0 +1,96 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "请用一句话解释缓存命中率。",
+    "strategy": "auto"
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "请用一句话解释缓存命中率。",
+    "mode": "preflight",
+    "costMax": 1e-06,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 4,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 0,
+    "planningMode": "compact",
+    "unrestrictedPlanning": true,
+    "maxDynamicSplits": 0,
+    "verifyDependencies": true,
+    "plannerThinking": "inherit",
+    "plan": {
+      "nodes": [
+        {
+          "node_id": "answer",
+          "node_type": "generation",
+          "prompt_template": "根据完整对话材料回答用户当前任务；不虚构来源或声称完成工具操作。",
+          "parents": [],
+          "contract": {
+            "objective": "完整回答当前用户任务，保留要求的输出格式。",
+            "inputs": {},
+            "output": {
+              "format": "text",
+              "fields": {
+                "text": "最终答案"
+              }
+            },
+            "capability": {
+              "difficulty": "medium",
+              "risk": "high",
+              "input_budget_tokens": 2551,
+              "expected_output_tokens": 1000
+            },
+            "checks": [
+              "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+            ],
+            "covers": [
+              0
+            ],
+            "execution": "text-model",
+            "failure_policy": "stop"
+          }
+        }
+      ],
+      "final_node_id": "answer",
+      "acceptance_criteria": [
+        "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+      ],
+      "schema_version": "text-task-plan-v2",
+      "decomposition_reason": "整任务模式直接交付，避免不必要的拆分、规划调用与上下文交接。"
+    }
+  },
+  "policy_version": "refractagent-auto-runtime-v1",
+  "mode": "preflight",
+  "production_budget": 1e-06,
+  "evaluation_budget": 10,
+  "max_output_tokens": 2048,
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  },
+  "complexity_gate": {
+    "policy_version": "refractagent-complexity-gate-v6",
+    "policy": "auto",
+    "decision": "direct",
+    "rule_decision": "direct",
+    "combination": "rules-only",
+    "forced": false,
+    "reasons": [
+      "trivial-workload"
+    ],
+    "statistics": {
+      "task_chars": 13,
+      "context_bytes": 0,
+      "enumerated_items": 0,
+      "sentence_count": 1
+    },
+    "local_decision": null
+  },
+  "review": {
+    "policy": "adaptive",
+    "required": false,
+    "reason": "adaptive-low-risk-direct"
+  },
+  "authorization": null
+}

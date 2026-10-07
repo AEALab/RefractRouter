@@ -1,0 +1,70 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+    "strategy": "auto",
+    "authorization": {
+      "schema_version": "refractagent-live-authorization-v1",
+      "authorization_id": "2c92fe6ca51f4910809ae3d6aecc2f19",
+      "issued_at": "2026-10-07T15:51:06.668954Z",
+      "expires_at": "2026-10-07T16:01:06.668954Z",
+      "preview_sha256": "749b83c56d8160a60bba8edfe2308f19acc3860c6775ee32ad8bee10e6d209d7"
+    }
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+    "mode": "run",
+    "costMax": 10,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 1,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 0,
+    "planningMode": "compact",
+    "unrestrictedPlanning": true,
+    "maxDynamicSplits": 0,
+    "verifyDependencies": true,
+    "plannerThinking": "inherit",
+    "adaptiveOutputBudget": true
+  },
+  "policy_version": "refractagent-auto-runtime-v1",
+  "mode": "live",
+  "production_budget": 10,
+  "evaluation_budget": 10,
+  "max_output_tokens": 2048,
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  },
+  "complexity_gate": {
+    "policy_version": "refractagent-complexity-gate-v6",
+    "policy": "auto",
+    "decision": "dag",
+    "rule_decision": "dag",
+    "combination": "rules-only",
+    "forced": false,
+    "reasons": [
+      "complex-task-marker"
+    ],
+    "statistics": {
+      "task_chars": 23,
+      "context_bytes": 0,
+      "enumerated_items": 0,
+      "sentence_count": 1
+    },
+    "local_decision": null
+  },
+  "review": {
+    "policy": "adaptive",
+    "required": true,
+    "reason": "dag-or-blocked"
+  },
+  "authorization": {
+    "issued_at": "2026-10-07T15:51:06.668954Z",
+    "authorization_id": "2c92fe6ca51f4910809ae3d6aecc2f19",
+    "schema_version": "refractagent-live-authorization-v1",
+    "preview_sha256": "749b83c56d8160a60bba8edfe2308f19acc3860c6775ee32ad8bee10e6d209d7",
+    "expires_at": "2026-10-07T16:01:06.668954Z"
+  }
+}

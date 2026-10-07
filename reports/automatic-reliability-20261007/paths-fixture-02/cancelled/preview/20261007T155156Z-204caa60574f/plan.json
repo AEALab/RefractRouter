@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {
+      "node_id": "deliverable",
+      "node_type": "generation",
+      "prompt_template": "根据提供的原始任务生成交付内容，明确证据、假设和能力限制。",
+      "parents": [],
+      "contract": {
+        "objective": "完成原始文本任务",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "最终答案与依据"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 1553,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "覆盖原始任务要求，不虚构证据或工具执行"
+        ],
+        "covers": [
+          0
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "deliverable",
+  "acceptance_criteria": [
+    "覆盖原始任务要求，不虚构证据或工具执行"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "零调用模式无法评估语义依赖及拆分收益，因此保留单节点预览。"
+}

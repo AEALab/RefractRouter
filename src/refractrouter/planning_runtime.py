@@ -355,6 +355,22 @@ class PlanningRuntime(StageHybridRuntime):
         run["flow"] = {"messages": messages, "tools": tools, "events": events, "pending": None,
                        "responses": {}, "feedback": None, "requestId": request.get("requestId"), "evidence": evidence,
                        "fresh": fresh, "maxTokens": output_cap, "purpose": request.get("purpose")}
+        if 'toolRequirements' in request and request.get('purpose') != 'compaction':
+            from .model_tool_validation import validate_requirements, verify
+            incoming = validate_requirements(request['toolRequirements'])
+            previous = s.get('toolRequirements', {'required': False, 'tools': []})
+            requirements = {'required': previous['required'] or incoming['required'],
+                            'tools': sorted(set(previous['tools'] + incoming['tools']))}
+            s['toolRequirements'] = requirements
+            # 接入层已按真实任务身份筛选；不能用旧任务的工具回执满足新任务。
+            task_events = validate_evidence(request.get('taskToolEvidence', []))
+            confirmed = request.get('requireConfirmedToolEvidence', False)
+            if type(confirmed) is not bool:
+                raise ValueError('工具验收确认模式必须为布尔值')
+            if 'requireConfirmedToolEvidence' in s and s['requireConfirmedToolEvidence'] != confirmed:
+                raise ValueError('当前任务的工具验收模式已冻结')
+            s['requireConfirmedToolEvidence'] = confirmed
+            s['toolValidation'] = verify(requirements, task_events, require_confirmed=confirmed)
         if request.get("purpose") == "compaction":
             action = self.issue(run, "efficient", "compaction", messages, [], buffered=False)
             run["decisions"].append({"step": s["step"], "role": "efficient",
@@ -886,6 +902,8 @@ class PlanningRuntime(StageHybridRuntime):
         if update:
             run["state"].update(update)
         self.persist(run)  # 先写未知用量状态，再允许宿主派发。
+        tool_check = run['state'].get('toolValidation', {})
+        buffered = buffered or tool_check.get('required', False) and not tool_check.get('passed', False)
         return {"action": "call", "callId": token, "purpose": purpose, "buffered": buffered,
             "model": {"id": model.model_id, "provider": model.provider, "model": model.api_model,
                       "maxTokens": model.max_output_tokens, **model.request_options},
@@ -1155,6 +1173,17 @@ class PlanningRuntime(StageHybridRuntime):
             self.stop(run, run["status"] if run["status"] != "running" else "deadline-exhausted")
             return {"action": "stop", **self.describe(run)}
         s, p, strategy = run["state"], run["config"]["parameters"], run["strategy"]
+        tool_check = s.get('toolValidation', {})
+        if (purpose in {'execute', 'redo', 'takeover'} and not response.tool_calls
+                and tool_check.get('required') and not tool_check.get('passed')):
+            self.discard(run, token)
+            run['decisions'].append({'step': s['step'], 'role': 'tool-validation',
+                'model': reservation.model.model_id, 'callId': token,
+                'reason': tool_check['reason'], 'candidateDisposition': 'discarded',
+                'evidenceIds': [e['callId'] for e in tool_check['records']],
+                'ruleVersion': tool_check['schemaVersion']})
+            self.stop(run, 'tool-requirement-failed')
+            raise ValueError('明确工具要求未验收：' + tool_check['reason'] + '；不会重跑工具或追加审核')
         if purpose == "compaction":
             s["compactions"] += 1
             return self.release(run, token, advance=False)

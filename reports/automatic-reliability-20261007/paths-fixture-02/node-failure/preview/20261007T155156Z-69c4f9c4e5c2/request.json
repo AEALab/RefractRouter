@@ -1,0 +1,56 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+    "strategy": "auto"
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+    "mode": "preflight",
+    "costMax": 10,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 4,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 0,
+    "planningMode": "compact",
+    "unrestrictedPlanning": true,
+    "maxDynamicSplits": 0,
+    "verifyDependencies": true,
+    "plannerThinking": "inherit"
+  },
+  "policy_version": "refractagent-auto-runtime-v1",
+  "mode": "preflight",
+  "production_budget": 10,
+  "evaluation_budget": 10,
+  "max_output_tokens": 2048,
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  },
+  "complexity_gate": {
+    "policy_version": "refractagent-complexity-gate-v6",
+    "policy": "auto",
+    "decision": "dag",
+    "rule_decision": "dag",
+    "combination": "rules-only",
+    "forced": false,
+    "reasons": [
+      "complex-task-marker"
+    ],
+    "statistics": {
+      "task_chars": 23,
+      "context_bytes": 0,
+      "enumerated_items": 0,
+      "sentence_count": 1
+    },
+    "local_decision": null
+  },
+  "review": {
+    "policy": "adaptive",
+    "required": true,
+    "reason": "dag-or-blocked"
+  },
+  "authorization": null
+}

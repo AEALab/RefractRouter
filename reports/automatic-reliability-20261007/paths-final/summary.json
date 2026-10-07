@@ -1,0 +1,113 @@
+{
+  "contract": "automatic-reliability-acceptance-v1",
+  "paidCalls": 0,
+  "evidenceKind": "deterministic-core-with-model-fixtures",
+  "qualityProfiles": "fixed-test-fixtures-not-model-quality-evidence",
+  "cases": [
+    {
+      "scenario": "direct",
+      "passed": true,
+      "status": "completed",
+      "route": null,
+      "planOrigin": "direct-gate",
+      "nodeCount": 1,
+      "modelCalls": 1,
+      "paidCalls": 0,
+      "callLabels": [
+        "answer"
+      ],
+      "costs": {
+        "production": 0.0,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "result": "direct/execute/20261007T155236Z-550b6835d83e/result.json",
+      "forcedDag": false
+    },
+    {
+      "scenario": "dag",
+      "passed": true,
+      "status": "completed",
+      "route": "dag",
+      "planOrigin": "model",
+      "nodeCount": 3,
+      "modelCalls": 5,
+      "paidCalls": 0,
+      "callLabels": [
+        "local-router",
+        "facts",
+        "risks",
+        "answer",
+        "local-judge"
+      ],
+      "costs": {
+        "production": 0.0,
+        "evaluation": 0.0,
+        "unconfirmed": 0
+      },
+      "result": "dag/execute/20261007T155236Z-5bed5e088b6c/result.json",
+      "forcedDag": false
+    },
+    {
+      "scenario": "node-failure",
+      "passed": true,
+      "status": "failed",
+      "route": "dag",
+      "planOrigin": "model",
+      "nodeCount": 3,
+      "modelCalls": 2,
+      "paidCalls": 0,
+      "callLabels": [
+        "local-router",
+        "facts"
+      ],
+      "costs": {
+        "production": 0.0,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "result": "node-failure/execute/20261007T155236Z-147875c1f365/result.json",
+      "forcedDag": false
+    },
+    {
+      "scenario": "budget-insufficient",
+      "passed": true,
+      "status": "no-feasible-route",
+      "route": null,
+      "planOrigin": "direct-gate",
+      "nodeCount": 1,
+      "modelCalls": 0,
+      "paidCalls": 0,
+      "callLabels": [],
+      "costs": {
+        "production": 0,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "result": "budget-insufficient/preview/20261007T155236Z-6aeae4ddec4b/result.json",
+      "forcedDag": false
+    },
+    {
+      "scenario": "cancelled",
+      "passed": true,
+      "status": "cancelled",
+      "route": "dag",
+      "planOrigin": "model",
+      "nodeCount": 3,
+      "modelCalls": 2,
+      "paidCalls": 0,
+      "callLabels": [
+        "local-router",
+        "facts"
+      ],
+      "costs": {
+        "production": 0.0,
+        "evaluation": 0,
+        "unconfirmed": 0
+      },
+      "result": "cancelled/execute/20261007T155236Z-6ae7803cd328/result.json",
+      "forcedDag": false
+    }
+  ],
+  "passed": true
+}

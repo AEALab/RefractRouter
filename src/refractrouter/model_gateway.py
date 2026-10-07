@@ -24,6 +24,7 @@ from .gateway_streaming import stream_chat, WireStream
 from .openai_compatible import OpenAICompatibleClient, UrllibTransport
 from .planning_config import compile_config, preview
 from .planning_runtime import PlanningRuntime
+from .model_tool_validation import request_requirements
 
 ROUTES = ("static", "stage", "task", "composite", "escalation", "advisor")
 MAX_BODY = 8 * 1024 * 1024
@@ -483,6 +484,9 @@ class ModelGateway:
             submitted = merge_host_evidence(messages,
                 (request.get('metadata') or {}).get('refract_tool_evidence'), inbox)
             evidence = bound_tool_evidence(messages, submitted, scope_facts)
+            tool_policy = (request.get('metadata') or {}).get('refract_tool_evidence_policy', 'receipt')
+            if tool_policy not in {'receipt', 'confirmed'}:
+                raise ValueError('工具验收策略只支持 receipt 或 confirmed')
             new_facts = dict(scope_facts)
             for fact in evidence:
                 if fact['status'] != 'unclassified' and fact['callId'] not in scope_facts:
@@ -500,6 +504,10 @@ class ModelGateway:
                     raise
             action = self.runtime.handle({'op': 'step', 'runId': run_id, 'messages': messages,
                 'tools': schemas, 'toolEvidence': evidence,
+                'toolRequirements': request_requirements(messages, schemas),
+                'requireConfirmedToolEvidence': tool_policy == 'confirmed',
+                'taskToolEvidence': [e for e in evidence if
+                    (self.state['tools'].get(scope + ':' + e['callId']) or {}).get('identity') == identity],
                 **({'maxTokens': cap} if cap is not None else {})})
         responses, targets, total_in, total_out = {}, {}, 0, 0
         meta = {'id':'chatcmpl-' + uuid4().hex, 'created':int(time.time()), 'model':request['model']}
@@ -568,7 +576,8 @@ class ModelGateway:
                     self.runtime.handle({'op': 'end', 'runId': run_id})
             return result
         except Exception:
-            self.runtime.handle({'op': 'cancel', 'runId': run_id})
+            if self.runtime.runs[run_id]['status'] == 'running':
+                self.runtime.handle({'op': 'cancel', 'runId': run_id})
             raise
 
     def close(self):

@@ -473,11 +473,24 @@ def test_v4_objective_never_and_force_are_bound_to_preflight(tmp_path):
     direct = run_agent(payload, provider_config=raw, runs_dir=tmp_path / 'never')
     assert direct['complexity_gate']['decision'] == 'direct'
     assert direct['complexity_gate']['reasons'] == ['objective-dag-never']
+    assert direct['decomposition_judge']['required'] is False
+    assert direct['decomposition_judge']['reason'] == 'explicit-routing-policy'
     raw['objective']['dagMode'] = 'force'
     forced = run_agent({'task': '简短回答', 'strategy': 'auto'},
                        provider_config=raw, runs_dir=tmp_path / 'force')
     assert forced['complexity_gate']['decision'] == 'dag'
     assert forced['complexity_gate']['reasons'] == ['objective-dag-force']
+    assert forced['decomposition_judge']['required'] is False
+
+
+def test_decomposition_precheck_distinguishes_trivial_and_independent_work(tmp_path):
+    simple = run_agent({'task': '2+2等于多少？', 'strategy': 'auto'},
+                       provider_config=config(), runs_dir=tmp_path/'simple')
+    assert simple['decomposition_judge']['required'] is False
+    assert simple['decomposition_judge']['reason'] == 'trivial-workload'
+    independent = run_agent({'task': '分别核对两项材料，然后汇总。', 'strategy': 'auto'},
+                            provider_config=config(), runs_dir=tmp_path/'independent')
+    assert independent['decomposition_judge']['required'] is True
 
 
 def test_unlimited_cost_choices_are_independent_and_bound_to_preview(tmp_path):
