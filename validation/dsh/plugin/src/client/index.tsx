@@ -14,6 +14,7 @@ const PLANNING_LOCALE_NS = 'refractagent-planning-card'
 export const parse = graph.parse
 export const layout = graph.layout
 export const applyGraph = graph.apply
+export {automaticRefs,AutomaticRecord,traceNumber,parseAutomaticHistory} from './automatic-trace.js'
 
 export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope']
 

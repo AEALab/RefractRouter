@@ -92,7 +92,7 @@ def automatic_cost_trace(result, manifest):
             'review_protection': (result.get('review') or {}).get('protection')}
     if trace['accounting_basis'] == 'public-reference-valuation':
         decision = (result.get('complexity_gate') or {}).get('local_decision') or {}
-        external = decision.get('costCny', 0) if decision.get('backend') == 'jev' else 0
+        external = decision.get('costCny') if decision.get('backend') == 'jev' else 0
         confirmed = type(external) in (int, float) and math.isfinite(external) and external >= 0
         trace['external_structure_judge'] = {'call_id': decision.get('callId'),
             'cost_cny': external if confirmed else None, 'confirmed': confirmed}
@@ -592,5 +592,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     output['prefix_policy'] = result.get('prefix_policy', 'legacy')
     if 'context_selection' in result:
         output['context_selection'] = result['context_selection']
+    if automatic_routing:
+        from .automatic_trace import project
+        output['automatic_trace'] = project(output, result)
     atomic_json(directory / 'summary.json', output)
     return output

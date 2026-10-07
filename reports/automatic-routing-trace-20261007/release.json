@@ -1,0 +1,41 @@
+{
+  "核心版本": "0.16.6",
+  "插件版本": "0.32.0",
+  "DSH版本": "0.1.5-rc.3",
+  "原有profile": "web",
+  "安装一致性": {
+    "core": {
+      "files": 132,
+      "matches": true,
+      "mismatches": []
+    },
+    "plugin": {
+      "files": 35,
+      "matches": true,
+      "mismatches": []
+    }
+  },
+  "配置保留": {
+    "settings.yaml": true,
+    ".credentials.yaml": true
+  },
+  "分发包SHA256": {
+    "dsh-refractrouter-validation-0.32.0.tgz": "c2a15c31e5aa42bad7041d3057599d0d3a2803bd7762bbd36ced2dd686e2c326",
+    "refractrouter-0.16.6-py3-none-any.whl": "44a373c3a7942857ffe0839221b017b5ef52dbfe139b9d96b86b7d155c07f434"
+  },
+  "测试": {
+    "Python": {
+      "passed": 1761,
+      "subtests_passed": 5,
+      "seconds": 338.52
+    },
+    "TypeScript": {
+      "passed": 203,
+      "failed": 0,
+      "typecheck": "通过"
+    }
+  },
+  "新增远程调用数": 0,
+  "生产现金上限CNY": 5,
+  "评价现金上限CNY": 1
+}

@@ -872,7 +872,9 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     const subscription=request.api==='subscription-metadata'&&request.provider?JSON.parse(request.provider):null
     const migration=request.api==='currency-migration'&&request.provider?JSON.parse(request.provider):null
     const poolMigration=request.api==='currency-pool-migration'&&request.provider?JSON.parse(request.provider):null
-    const value=poolMigration
+    const value=request.api==='automatic-trace'&&request.provider
+      ?await planning.automaticTrace(JSON.parse(request.provider))
+      :poolMigration
       ?await planning.currencyPoolMigration(poolMigration.config,poolMigration.productionCash,poolMigration.evaluationCash)
       :migration
       ?await planning.currencyMigration(migration.config,migration.cnyBudget,migration.referenceBudget)
@@ -939,7 +941,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       const work = invoke(ctx, config, { ...options, model,
         signal: AbortSignal.any([cancelled.signal, ...(options.signal ? [options.signal] : [])]) }, event => {
         if (previous && (event.run_id !== previous.run_id || event.sequence <= previous.sequence)) throw new Error('DAG progress sequence mismatch')
-        const text = progressText(event, previous)
+        const text = (!previous?`\n【自动路由记录】${event.run_id}\n`:'')+progressText(event, previous)
         previous = event
         if (text) {
           if (queue.length >= 128) throw new Error('DAG progress queue exceeded')
@@ -1021,6 +1023,7 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
           planner: result.planner, planReadyMs: result.plan_ready_ms,
           contentValidation: result.content_validation, dynamicDecomposition: result.dynamic_decomposition,
           costBreakdown: result.cost_breakdown,
+          ...(result.automatic_trace!==undefined?{automaticTrace:result.automatic_trace}:{}),
           ...(result.cost_trace !== undefined ? {costTrace: result.cost_trace} : {}),
           ...(result.complexity_gate !== undefined ? {complexityGate: result.complexity_gate} : {}),
           ...(result.route_comparison !== undefined ? {routeComparison: result.route_comparison} : {}),

@@ -511,3 +511,10 @@
   budget enforcement.
 - Use DSH subprocess, sandbox, policy, and credential services while keeping benchmark logic in the
   Python runner.
+## 0.32.0
+
+- 在「路由轨迹」页同时展示自动路由与规划路由，保留任务 DAG 及两张设置卡片。
+- 展示 Judge 原始答案、最终路线、全部冻结候选、逐模型预算检查及实际调用证据。
+- 区分订阅参考估值、按量费用计算、待核对预留、历史预算和独立 Jev 费用。
+- 明确模型评审结论与质量门槛、工具回执与任务成功、中断与缺失证据的区别。
+- 对应 Python 核心 0.16.6；不改变用户预算、模型、凭据、信任或默认策略。
