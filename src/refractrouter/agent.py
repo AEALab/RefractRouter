@@ -261,7 +261,14 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         automatic_routing=automatic_routing)
     if payload.get('boundedCallOutput'):
         request['unrestrictedPlanning'] = False
-        request['plannerMaxOutputTokens'] = min(max_output_tokens, 2048)
+        # 只在应用入口显式有界时开放较大的规划包络；旧 task API 上限保持原合同。
+        request['boundedPlannerLimits'] = True
+        planner_cap = payload.get('plannerMaxOutputTokens', 2048)
+        if type(planner_cap) is not int or not 256 <= planner_cap <= 128000:
+            raise ValueError('explicit planner output cap must be an integer in 256..128000')
+        request['plannerMaxOutputTokens'] = min(max_output_tokens, planner_cap)
+        if 'plannerTimeoutMs' in payload:
+            request['plannerTimeoutMs'] = payload['plannerTimeoutMs']
     if automatic_routing and mode in {'preflight', 'live'}:
         if (tool_runtime is None) != ('maxDshToolCalls' not in payload):
             raise ValueError('REFRACTAGENT_TOOLS_DISABLED: DSH 工具目录与调用上限必须同时提供')

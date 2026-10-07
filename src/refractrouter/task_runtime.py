@@ -170,7 +170,7 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "costMaxByUnit", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget"}
+               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     if raw.get('prefixPolicy', 'legacy') not in ('legacy', 'stable-v1'):
@@ -189,6 +189,10 @@ def validate_request(raw):
         raise ValueError('unlimitedTime must be boolean')
     if type(raw.get('unrestrictedPlanning', False)) is not bool:
         raise ValueError('unrestrictedPlanning must be boolean')
+    if type(raw.get('boundedPlannerLimits', False)) is not bool:
+        raise ValueError('boundedPlannerLimits must be boolean')
+    if raw.get('boundedPlannerLimits') and raw.get('unrestrictedPlanning'):
+        raise ValueError('bounded planner limits cannot enable unrestricted planning')
     if type(raw.get('adaptiveOutputBudget', False)) is not bool:
         raise ValueError('adaptiveOutputBudget must be boolean')
     if 'maxTotalOutputTokens' in raw and (type(raw['maxTotalOutputTokens']) is not int
@@ -205,8 +209,10 @@ def validate_request(raw):
             raise ValueError('minimal planning requires automatic compact planning')
         if raw.get('maxPlanRepairs', 0):
             raise ValueError('minimal planning requires one call without repairs')
-    for key, default, low, high in (('plannerMaxOutputTokens',1200,256,2048),
-            ('plannerTimeoutMs',12000,1000,30000), ('maxDynamicSplits',0,0,2)):
+    for key, default, low, high in (
+            ('plannerMaxOutputTokens',1200,256,128000 if raw.get('boundedPlannerLimits') else 2048),
+            ('plannerTimeoutMs',12000,1000,300000 if raw.get('boundedPlannerLimits') else 30000),
+            ('maxDynamicSplits',0,0,2)):
         if type(raw.get(key, default)) is not int or not low <= raw.get(key, default) <= high:
             raise ValueError(f'{key} must be an integer in {low}..{high}')
     if type(raw.get('verifyDependencies', False)) is not bool:
