@@ -45,6 +45,9 @@ def trivial_workload(task):
         return False
     if re.fullmatch(r"(?:请)?用一句话解释[^。！？?!\n]{1,24}[。？?]?", task.strip()):
         return True
+    # 仅剥离完整的否定工具指令和单一数字输出格式，未知操作仍保留在残差中。
+    task = re.sub(r"(?:^|(?<=[。；;\n]))\s*(?:不|不要|无需|不需要)(?:调用|使用)工具\s*[。；;\n]?$", "", task)
+    task = re.sub(r"只(?:回答|输出)(?:结果)?(?:数字|数值)", "", task)
     expressions = re.findall(r"\d+(?:\.\d+)?\s*[×*乘+÷/]\s*\d+(?:\.\d+)?", task)
     if not 1 <= len(expressions) <= 4:
         return False

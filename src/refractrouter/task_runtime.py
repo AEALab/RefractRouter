@@ -27,7 +27,8 @@ from .output_constraints import check_output_constraints, validate_output_constr
 from concurrent.futures import CancelledError
 from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
 from .task_contracts import decode_output, string_list
-from .planning_support import execution_support, compile_generated_capacity, admission_diagnostics, generate_plan
+from .planning_support import (execution_support, compile_generated_capacity, admission_diagnostics,
+                               placement_admission_diagnostics, generate_plan)
 from .configured_routing import configured_profile
 from .compact_planning import planner_model, generate_compact, planner_system
 from .cost_first import verify_cost_drivers
@@ -554,7 +555,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             eligible_models[node.node_id] = [mid for mid, model in candidates.items() if not capability or (
                 capability["input_budget_tokens"] + available_output_limit(model, capability["input_budget_tokens"]) <= model.context_window
                 and capability["expected_output_tokens"] <= available_output_limit(model, capability["input_budget_tokens"]))]
-        if live and 'plan' not in request:
+        if live and ('plan' not in request or configured_application):
             result['plan_admission'] = admission_diagnostics(plan, node_task, candidates, profiles,
                 request['qualityMin'], output_constraints=request.get('outputConstraints'),
                 prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
@@ -584,6 +585,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     eligible_models = {nid: [] for nid in eligible_models}
             # 评审会读到节点输出；预检按静态视图先给出结论，真实运行前以运行期分级重算。
             placement['judge_isolation'] = judge_isolation(placement, manifest.judge)
+            placement_admission_diagnostics(result.get('plan_admission', {}), eligible_models, placement)
             if not live and not placement['judge_isolation']['satisfied']:
                 result['issues'].append('final-judge: privacy-judge-not-local')
         if mixed:
@@ -613,13 +615,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if alternative_direct_plan is not None and live:
             if configuration is None or configuration.objective is None:
                 raise ValueError('live route comparison requires a compiled v4 configuration')
-            if tool_runtime is not None and tool_runtime.max_calls == 'unlimited':
-                result['route_comparison'] = {'policy_version': 'automatic-live-comparison-v1',
-                    'status': 'unavailable', 'route': 'dag' if len(plan.nodes) > 1 else 'direct',
-                    'reason': 'unbounded-tool-continuations',
-                    'selected_candidate': 'generated-plan', 'generated_node_count': len(plan.nodes),
-                    'selected_node_count': len(plan.nodes), 'multi_node_selected': len(plan.nodes) > 1}
-            elif request.get('contextPolicy') == 'selective-v1':
+            if request.get('contextPolicy') == 'selective-v1':
                 result['route_comparison'] = {'policy_version': 'automatic-live-comparison-v1',
                     'status': 'unavailable', 'route': 'dag' if len(plan.nodes) > 1 else 'direct',
                     'reason': 'selective-context-direct-envelope-unverified',
@@ -655,6 +651,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         else:
                             direct_eligible = restricted_eligible_models(direct_eligible, direct_placement)
                             direct_placement['judge_isolation'] = judge_isolation(direct_placement, manifest.judge)
+                        placement_admission_diagnostics(direct_admission, direct_eligible, direct_placement)
                     if mixed:
                         direct_routing = route_nodes_mixed(direct, direct_profiles,
                             model_units={mid: model.billing_unit for mid, model in candidates.items()},
@@ -688,7 +685,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
                         request.get('acceptanceCriteria'), candidates,
                         tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
-                    tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
+                    tool_limit = tool_runtime.max_calls if tool_runtime is not None else 0
+                    tool_count = 0 if tool_limit == 'unlimited' else tool_limit
                     comparison = _compare_mixed_execution(
                         {'direct': direct_routing, 'dag': result['routing']},
                         candidates=candidates, charged_calls=charged_calls, judge=manifest.judge,
@@ -713,7 +711,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         'direct': {nid: row.get('model_reasons', {}) for nid, row in direct_admission.items()},
                         'dag': {nid: row.get('model_reasons', {}) for nid, row in result.get('plan_admission', {}).items()}}
                     comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
-                    comparison['tool_call_limit'] = tool_count
+                    comparison['tool_call_limit'] = tool_limit
                     if comparison['status'] != 'selected':
                         result['routing']['status'] = 'no-feasible-route'
                 else:
@@ -727,7 +725,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
                         request.get('acceptanceCriteria'), candidates,
                         tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
-                    tool_count = tool_runtime.max_calls if tool_runtime is not None else 0
+                    tool_limit = tool_runtime.max_calls if tool_runtime is not None else 0
+                    tool_count = 0 if tool_limit == 'unlimited' else tool_limit
                     allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
                                   for name, route in (('direct', direct_routing), ('dag', result['routing']))}
                     cash_allowances = ({name: _bounded_tool_allowance(route, candidates, tool_count,
@@ -781,13 +780,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                                 for nid, models in result.get('routing_profile', {}).get('forecast_basis', {}).items()}}
                     comparison['billing_unit'] = manifest.billing_unit
                     comparison['judge_forecast'] = 'same-final-answer-envelope-for-both-routes'
-                    comparison['tool_call_limit'] = tool_count
+                    comparison['tool_call_limit'] = tool_limit
                     comparison['budget_shortfalls'] = budget_shortfalls
                     comparison['excluded'] = {'direct': {nid: row['reason'] for nid, row in direct_admission.items()},
                                                'dag': {nid: row['reason'] for nid, row in result.get('plan_admission', {}).items()}}
                     comparison['model_admission'] = {
                         'direct': {nid: row.get('model_reasons', {}) for nid, row in direct_admission.items()},
                         'dag': {nid: row.get('model_reasons', {}) for nid, row in result.get('plan_admission', {}).items()}}
+                comparison['estimate_scope'] = ('known-calls-only-unbounded-tool-continuations'
+                    if tool_limit == 'unlimited' else 'known-calls-and-bounded-tool-continuations')
+                comparison['complete_task_cost_bound'] = tool_limit != 'unlimited'
                 comparison['generated_node_count'] = len(plan.nodes)
                 if comparison['route'] == 'dag' and len(plan.nodes) == 1:
                     # A planner call is not itself a split. Keep the generated plan and its

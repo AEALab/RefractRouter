@@ -3,7 +3,7 @@ from dataclasses import replace
 import pytest
 
 from refractrouter.node_routing import NodeProfile, route_nodes
-from refractrouter.planning_support import admission_diagnostics
+from refractrouter.planning_support import admission_diagnostics, placement_admission_diagnostics
 from refractrouter.task_budget import TaskCallBudget
 from refractrouter.task_plan import preview_plan, validate_plan
 from refractrouter.task_runtime import _route_budget_shortfall
@@ -157,3 +157,62 @@ def test_live_comparison_stops_after_planner_when_tool_cash_is_insufficient(tmp_
     assert all('production_cash' in shortage
                for shortage in result['route_comparison']['budget_shortfalls'].values())
     assert len(client.calls) == 1  # 已结算的规划探测；不派发执行和工具调用
+
+
+def test_candidate_diagnostics_follow_actual_data_domain_filter():
+    admission = {'answer': {'eligible_models': ['trusted', 'external'],
+        'model_reasons': {'trusted': 'eligible', 'external': 'eligible', 'weak': 'quality-below-minimum'},
+        'reason': None}}
+    placement_admission_diagnostics(admission, {'answer': ['trusted']},
+        {'grades': {'answer': {'grade': 'S1', 'reasons': ['local-absolute-path']}}})
+    row = admission['answer']
+    assert row['eligible_models'] == ['trusted']
+    assert row['profile_eligible_models'] == ['trusted', 'external']
+    assert row['model_reasons']['external'] == 'data-domain-not-authorized'
+    assert row['model_reasons']['weak'] == 'quality-below-minimum'
+    assert row['data_domain']['reasons'] == ['local-absolute-path']
+
+
+def test_live_diagnostics_include_models_filtered_before_node_admission(tmp_path):
+    from tests.test_automatic_actual_catalog import fixture
+    from tests.test_live_execution import authorization
+    from tests.test_native_tool_runtime import reply
+    from refractrouter.agent import run_agent
+    from refractrouter.dsh_model_pool import compile_dsh_model_pool
+    pool, catalog = fixture('deepseek-official', 'deepseek-flash', 'CNY')
+    pool['security']['dataMode'] = 'live'
+    pool['routes'].append({'provider': 'deepseek-official', 'model': 'deepseek-v4-pro',
+        'deployment': 'external-cloud'})
+    catalog['routes'].append({**catalog['routes'][0], 'model': 'deepseek-v4-pro'})
+    pool['roleOverrides'] = {role: 'deepseek-official/deepseek-flash'
+        for role in ('planner', 'judge', 'classifier')}
+    pool['roleOverrides']['workers'] = ['deepseek-official/deepseek-flash', 'deepseek-official/deepseek-v4-pro']
+    config, _ = compile_dsh_model_pool(pool, catalog)
+    class Worker:
+        def complete(self, model, messages, **kwargs):
+            return reply('42')
+    payload = {'task': '计算 18 + 24，只回答结果数字。不调用工具。', 'strategy': 'auto'}
+    preview = run_agent(payload, provider_config=config, runs_dir=tmp_path/'preview',
+        production_budget=100, evaluation_budget=100)
+    result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
+        provider_config=config, runs_dir=tmp_path/'live', mode='live', execute_paid_run=True,
+        client=Worker(), production_budget=100, evaluation_budget=100)
+    assert result['status'] == 'completed', result['issues']
+    models = result['candidate_models']
+    external_id = next(mid for mid,m in models.items() if m['model'] == 'deepseek-v4-pro')
+    assert result['plan_admission']['answer']['model_reasons'][external_id] == 'data-domain-not-authorized'
+    assert external_id not in result['plan_admission']['answer']['eligible_models']
+
+
+@pytest.mark.parametrize('external, expected', [(.001, .031), (None, None)])
+def test_currency_trace_includes_external_structure_judge_cash_without_changing_ledgers(external, expected):
+    from refractrouter.agent import automatic_cost_trace
+    from tests.test_text_tasks import MANIFEST
+    result = {'accounting_basis': 'public-reference-valuation',
+        'cash_costs_cny': {'production': .02, 'evaluation': .01},
+        'reference_costs_cny': {'production': .2, 'evaluation': .1},
+        'complexity_gate': {'local_decision': {'backend': 'jev', 'costCny': external, 'callId': 'one'}}}
+    trace = automatic_cost_trace(result, MANIFEST)
+    assert trace['all_in_known_cash_cost_cny'] == pytest.approx(expected) if expected is not None else trace['all_in_known_cash_cost_cny'] is None
+    assert trace['external_structure_judge']['confirmed'] is (external is not None)
+    assert result['cash_costs_cny'] == {'production': .02, 'evaluation': .01}

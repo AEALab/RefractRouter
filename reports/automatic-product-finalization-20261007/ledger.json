@@ -1,0 +1,640 @@
+{
+  "schema_version": "automatic-product-acceptance-public-v1",
+  "说明": "只导出调用用途、费用、结果与来源哈希；原请求、凭证及完整工具定义留在本地。包含失败尝试，不混充全部成功。",
+  "runs": [
+    {
+      "run_id": "20261006T155059Z-9e74647b764c",
+      "status": "tool-requirement-failed",
+      "wall_time_ms": 3255,
+      "plan_origin": "direct-gate",
+      "structure_verdict": "SINGLE",
+      "structure_reason": null,
+      "judge_backend": "jev",
+      "judge_provider": "openrouter",
+      "judge_model": "typesafe/jev-1.13-20260917",
+      "judge_latency_ms": 670.078749999986,
+      "judge_cash_cny": 0.0001974794766,
+      "judge_call_id": "6529950d90bb382a21cad6a6572130095a122beffb040079046e654f9baed375",
+      "reference_costs_cny": {
+        "production": 0.035114000000000006,
+        "evaluation": 0.0
+      },
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.035114,
+          "reserved": 0.21123999999999998,
+          "latency_ms": 3222,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17381,
+          "output_tokens": 44
+        }
+      ],
+      "host_tool_outcomes": [],
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "required-host-tool-not-observed",
+        "status": "blocked-tool-evidence",
+        "passed": false
+      },
+      "route_comparison": {},
+      "candidate_models": null,
+      "source_sha256": {
+        "summary.json": "12793dde4a5e8db432f5d935098bfd34b26618280b6a7d6dc18d336c19038bd0",
+        "result.json": "9fe335e9dc99c41905320719ed199b8322434cc988d1bc4821000598e6b6f2b6",
+        "answer.md": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+      }
+    },
+    {
+      "run_id": "20261006T160547Z-acff08cc0473",
+      "status": "completed",
+      "wall_time_ms": 2419,
+      "plan_origin": "direct-gate",
+      "structure_verdict": "UNKNOWN",
+      "structure_reason": "trivial-workload",
+      "judge_backend": null,
+      "judge_provider": null,
+      "judge_model": null,
+      "judge_latency_ms": 0,
+      "judge_cash_cny": 0,
+      "judge_call_id": null,
+      "reference_costs_cny": {
+        "production": 0.01897968,
+        "evaluation": 0.0
+      },
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.01897968,
+          "reserved": 0.21123999999999998,
+          "latency_ms": 2388,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17374,
+          "output_tokens": 36
+        }
+      ],
+      "host_tool_outcomes": [],
+      "review": {
+        "policy": "adaptive",
+        "required": false,
+        "reason": "adaptive-low-risk-direct",
+        "status": "skipped"
+      },
+      "route_comparison": {},
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "source_sha256": {
+        "summary.json": "6cb68cfd2ef5e59b17d9e12d998da17fc0c851363ae411b07e0efecd0a81ac43",
+        "result.json": "5e10faf3d354545b54c75e4041b8d7c784404f5604840b0d27b5c822f3a41273",
+        "answer.md": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+      }
+    },
+    {
+      "run_id": "20261006T160927Z-6fa74e8b408b",
+      "status": "completed",
+      "wall_time_ms": 36216,
+      "plan_origin": "direct-after-probe",
+      "structure_verdict": "SEPARABLE",
+      "structure_reason": null,
+      "judge_backend": "jev",
+      "judge_provider": "openrouter",
+      "judge_model": "typesafe/jev-1.13-20260917",
+      "judge_latency_ms": 610.2789170000469,
+      "judge_cash_cny": 0.0002796445386,
+      "judge_call_id": "0cde165bfd6ab96e394c1b7b9b5e30a59f835bdf16b5be05bf1c090b32d604f8",
+      "reference_costs_cny": {
+        "production": 0.09074860655900033,
+        "evaluation": 0.03333021017900001
+      },
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.041480606559,
+          "reserved": 6.209291178272,
+          "latency_ms": 12851,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 9643,
+          "output_tokens": 782
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.049268,
+          "reserved": 0.2153,
+          "latency_ms": 14794,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17854,
+          "output_tokens": 1695
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.033330210179,
+          "reserved": 0.408274415374,
+          "latency_ms": 8504,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 10483,
+          "output_tokens": 601
+        }
+      ],
+      "host_tool_outcomes": [],
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "dag-or-blocked,host-tools-available",
+        "status": "completed",
+        "score": 96,
+        "passed": true
+      },
+      "route_comparison": {
+        "route": "direct",
+        "reason": "direct-estimated-cost-not-worse",
+        "estimate_scope": "known-calls-only-unbounded-tool-continuations",
+        "complete_task_cost_bound": false,
+        "cost_preference": "quality-qualified-then-cash-then-reference"
+      },
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "external-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "external-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "source_sha256": {
+        "summary.json": "3dd214fc09517991e324fd710fa0e91e87e53bca3cc5fc5dd691ccd2d0d4b79d",
+        "result.json": "13b2b84f421ed3c50ce13939738648a026e14057cfcb6a637fd38792c2110d9c",
+        "answer.md": "046221b25a1f87c01f0233b74003e7d90dfde726e9f73285451a3fe02b90a826"
+      }
+    },
+    {
+      "run_id": "20261006T161101Z-cdab1cf5b23b",
+      "status": "quality-failed",
+      "wall_time_ms": 116494,
+      "plan_origin": "direct-gate",
+      "structure_verdict": "UNKNOWN",
+      "structure_reason": "context-dependent",
+      "judge_backend": null,
+      "judge_provider": null,
+      "judge_model": null,
+      "judge_latency_ms": 0,
+      "judge_cash_cny": 0,
+      "judge_call_id": null,
+      "reference_costs_cny": {
+        "production": 0.06111487999999993,
+        "evaluation": 0.04970986250999998
+      },
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.02139168,
+          "reserved": 0.21352,
+          "latency_ms": 5770,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17612,
+          "output_tokens": 278
+        },
+        {
+          "label": "answer:tool-round-1",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.01782912,
+          "reserved": 0.21789000000000003,
+          "latency_ms": 4050,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17756,
+          "output_tokens": 173
+        },
+        {
+          "label": "answer:tool-round-2",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.00584736,
+          "reserved": 0.221536,
+          "latency_ms": 3714,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 18020,
+          "output_tokens": 240
+        },
+        {
+          "label": "answer:tool-round-3",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.00584736,
+          "reserved": 0.22560200000000002,
+          "latency_ms": 3039,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 18328,
+          "output_tokens": 163
+        },
+        {
+          "label": "answer:tool-round-4",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.01019936,
+          "reserved": 0.229914,
+          "latency_ms": 10740,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 18820,
+          "output_tokens": 584
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.04970986251,
+          "reserved": 0.408353274945,
+          "latency_ms": 14183,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 10898,
+          "output_tokens": 945
+        }
+      ],
+      "host_tool_outcomes": [
+        {
+          "node": "answer",
+          "call_id": "call_nw1znjrguubqhnyxs2mwcxcs|fc_02179130306631800000000000000000000ffffac191d9135a290",
+          "tool": "bash",
+          "outcome": "task-failed"
+        },
+        {
+          "node": "answer",
+          "call_id": "call_n06s1xhbtgclshnz9zdjjb6v|fc_02179130307079500000000000000000000ffffac15eb006d1322",
+          "tool": "bash",
+          "outcome": "completed"
+        },
+        {
+          "node": "answer",
+          "call_id": "call_48gfdlvn2fm1f4d75g2f1y72|fc_02179130307325500000000000000000000ffffac15ee4428dd8b",
+          "tool": "bash",
+          "outcome": "completed"
+        },
+        {
+          "node": "answer",
+          "call_id": "call_95tsfb3rzk8puch1imrqh4cy|fc_02179130309135800000000000000000000ffffac183c198c8c9a",
+          "tool": "bash",
+          "outcome": "infrastructure-error"
+        }
+      ],
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "uncertain-decomposition,host-tools-available",
+        "status": "completed",
+        "score": 50,
+        "passed": false
+      },
+      "route_comparison": {},
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "external-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "external-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "source_sha256": {
+        "summary.json": "a3144611e252a68e3dd67a0e1fb6851c85611c8313db4bdc628d7b06cbd912c9",
+        "result.json": "cfc7ab99ca313bd6dcd8f5fb1193825253b53cc26e796c446d9556f58d7343a8",
+        "answer.md": "9ea86e20697911a41a493488a9be97e591fb31773dfcb5bda635a09b9a01d28d"
+      }
+    },
+    {
+      "run_id": "20261006T161437Z-b3fbac6fb6f0",
+      "status": "completed",
+      "wall_time_ms": 14757,
+      "plan_origin": "direct-gate",
+      "structure_verdict": "UNKNOWN",
+      "structure_reason": "context-dependent",
+      "judge_backend": null,
+      "judge_provider": null,
+      "judge_model": null,
+      "judge_latency_ms": 0,
+      "judge_cash_cny": 0,
+      "judge_call_id": null,
+      "reference_costs_cny": {
+        "production": 0.042930159999999995,
+        "evaluation": 0.020298075804999982
+      },
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.01770312,
+          "reserved": 0.21352,
+          "latency_ms": 4295,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17613,
+          "output_tokens": 193
+        },
+        {
+          "label": "answer:tool-round-1",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.02079968,
+          "reserved": 0.217368,
+          "latency_ms": 3633,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17792,
+          "output_tokens": 159
+        },
+        {
+          "label": "answer:tool-round-2",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.00442736,
+          "reserved": 0.220312,
+          "latency_ms": 2076,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 17926,
+          "output_tokens": 86
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.020298075805,
+          "reserved": 0.40673594542,
+          "latency_ms": 4656,
+          "billing_mode": "subscription",
+          "cost_basis": "subscription-reference-valuation",
+          "input_tokens": 9713,
+          "output_tokens": 334
+        }
+      ],
+      "host_tool_outcomes": [
+        {
+          "node": "answer",
+          "call_id": "call_loqhyb8ielj589h2us4i6e1b|fc_02179130328200900000000000000000000ffffac18394b21f9c1",
+          "tool": "bash",
+          "outcome": "completed"
+        },
+        {
+          "node": "answer",
+          "call_id": "call_pnatqdb0zejn2769210e4xrc|fc_02179130328523300000000000000000000ffffac15a553ab61c7",
+          "tool": "bash",
+          "outcome": "completed"
+        }
+      ],
+      "review": {
+        "policy": "adaptive",
+        "required": true,
+        "reason": "uncertain-decomposition,host-tools-available",
+        "status": "completed",
+        "score": 100,
+        "passed": true
+      },
+      "route_comparison": {},
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "external-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "external-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "source_sha256": {
+        "summary.json": "b3fd20555ebdf30ea50de002f4f912a66d02b1d87263ff8f2bdad705dcc8d376",
+        "result.json": "36f9805cd0e54055d5fbdbf707994456f5ca5a8b62606b9d009c558e3e0cba39",
+        "answer.md": "ebcaa7c56bbe366ebee5a6550aac930e7e1d29c4c5fd4cd5cb568ac61faa59e4"
+      }
+    }
+  ],
+  "totals": {
+    "execution_and_review_calls": 15,
+    "jev_calls": 2,
+    "router_reference_cny": 0.3522254750530002,
+    "external_jev_cash_cny": 0.0004771240152,
+    "known_reference_including_jev_cny": 0.35270259906820023,
+    "unknown_usage_reservations": 0
+  },
+  "codex_installed_client_mock": {
+    "client": "codex",
+    "strategy": "static",
+    "scenario": "normal",
+    "success": true,
+    "exitCode": 0,
+    "upstreamCalls": [
+      {
+        "model": "fixture",
+        "tools": 191,
+        "toolResults": 0,
+        "stream": true
+      },
+      {
+        "model": "fixture",
+        "tools": 191,
+        "toolResults": 1,
+        "stream": true
+      }
+    ],
+    "paidCalls": 0,
+    "routerTasks": 1,
+    "hostToolResultReceived": true
+  }
+}
