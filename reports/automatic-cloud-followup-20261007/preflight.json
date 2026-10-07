@@ -1,0 +1,388 @@
+{
+  "cases": [
+    {
+      "case": "independent",
+      "status": "preview",
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "plan_admission": null,
+      "call_count": 0,
+      "issues": [],
+      "context_dependency": "standalone",
+      "domain_eligible": {
+        "deliverable": [
+          "dsh-model-06fd0d4ad75fef1d",
+          "dsh-model-2554a193bcd888ad",
+          "dsh-model-7077bbf6a06daaa6",
+          "dsh-model-72afd0d705290d78",
+          "dsh-model-b1aeb12a74ea9990"
+        ]
+      },
+      "input_bounds": {
+        "deliverable": {
+          "base_input_bound": 74356,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 74388,
+          "forecast_input_tokens": 74388,
+          "routing_input_forecast_tokens": 18597,
+          "admitted_input_budget": 74388,
+          "upstream_capacity_check": "reserved"
+        }
+      },
+      "selected": {
+        "deliverable": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null
+        }
+      },
+      "budget_diagnostics": {
+        "rule_version": "route-rejection-v1",
+        "rejected_combinations": {
+          "assignment-mode": 0,
+          "quality": 0,
+          "cost": 0,
+          "latency": 0,
+          "cash": 1
+        },
+        "counts_may_overlap": true,
+        "empty_candidate_nodes": [],
+        "minimum_scheduled_latency_ms": 60000.0,
+        "remaining_latency_ms": null,
+        "minimum_cost": 0.214312,
+        "remaining_cost": 1000000000000.0,
+        "remaining_cash": 2,
+        "minimum_cash": 0
+      },
+      "prediction_is_simulated_structure": true,
+      "model_capacity_and_budget": [
+        {
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.214312,
+          "cash_limit_cny": 2,
+          "billingMode": "metered",
+          "cash_admissible": true
+        },
+        {
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.890676,
+          "cash_limit_cny": 2,
+          "billingMode": "metered",
+          "cash_admissible": true
+        },
+        {
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "capacity_ok": true,
+          "single_call_upper_cny": 2.30696,
+          "cash_limit_cny": 2,
+          "billingMode": "metered",
+          "cash_admissible": false
+        },
+        {
+          "provider": "ark",
+          "model": "glm-5.3",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.421963870244,
+          "cash_limit_cny": 2,
+          "billingMode": "subscription",
+          "cash_admissible": true
+        },
+        {
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.214312,
+          "cash_limit_cny": 2,
+          "billingMode": "subscription",
+          "cash_admissible": true
+        }
+      ]
+    },
+    {
+      "case": "dependent-tools",
+      "status": "preview",
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "plan_admission": null,
+      "call_count": 0,
+      "issues": [],
+      "context_dependency": "standalone",
+      "domain_eligible": {
+        "answer": [
+          "dsh-model-06fd0d4ad75fef1d",
+          "dsh-model-2554a193bcd888ad",
+          "dsh-model-7077bbf6a06daaa6",
+          "dsh-model-72afd0d705290d78",
+          "dsh-model-b1aeb12a74ea9990"
+        ]
+      },
+      "input_bounds": {
+        "answer": {
+          "base_input_bound": 73992,
+          "upstream_allowance": 0,
+          "estimated_input_bound": 74024,
+          "forecast_input_tokens": 74024,
+          "routing_input_forecast_tokens": 18506,
+          "admitted_input_budget": 74024,
+          "upstream_capacity_check": "reserved"
+        }
+      },
+      "selected": {
+        "answer": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null
+        }
+      },
+      "budget_diagnostics": {
+        "rule_version": "route-rejection-v1",
+        "rejected_combinations": {
+          "assignment-mode": 0,
+          "quality": 0,
+          "cost": 0,
+          "latency": 0,
+          "cash": 1
+        },
+        "counts_may_overlap": true,
+        "empty_candidate_nodes": [],
+        "minimum_scheduled_latency_ms": 60000.0,
+        "remaining_latency_ms": null,
+        "minimum_cost": 0.213584,
+        "remaining_cost": 1000000000000.0,
+        "remaining_cash": 2,
+        "minimum_cash": 0
+      },
+      "prediction_is_simulated_structure": true,
+      "model_capacity_and_budget": [
+        {
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.213584,
+          "cash_limit_cny": 2,
+          "billingMode": "metered",
+          "cash_admissible": true
+        },
+        {
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.8874,
+          "cash_limit_cny": 2,
+          "billingMode": "metered",
+          "cash_admissible": true
+        },
+        {
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "capacity_ok": true,
+          "single_call_upper_cny": 2.29968,
+          "cash_limit_cny": 2,
+          "billingMode": "metered",
+          "cash_admissible": false
+        },
+        {
+          "provider": "ark",
+          "model": "glm-5.3",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.421791984712,
+          "cash_limit_cny": 2,
+          "billingMode": "subscription",
+          "cash_admissible": true
+        },
+        {
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "capacity_ok": true,
+          "single_call_upper_cny": 0.213584,
+          "cash_limit_cny": 2,
+          "billingMode": "subscription",
+          "cash_admissible": true
+        }
+      ]
+    }
+  ],
+  "pricing_snapshot": "复用 2026-10-06 已核对实际路线资料；当前 DSH 设置页面的五款资料与快照一致，真实派发仍由宿主重新编译。",
+  "routes": [
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "deployment": "trusted-cloud",
+      "context": 1000000,
+      "output": 256000,
+      "billingMode": "metered",
+      "price": {
+        "unit": "CNY",
+        "inputPer1k": 0.002,
+        "outputPer1k": 0.008,
+        "cachedInputPer1k": 4e-05
+      }
+    },
+    {
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "deployment": "trusted-cloud",
+      "context": 1000000,
+      "output": 256000,
+      "billingMode": "metered",
+      "price": {
+        "unit": "CNY",
+        "inputPer1k": 0.009,
+        "outputPer1k": 0.027,
+        "cachedInputPer1k": 0.0003
+      }
+    },
+    {
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "deployment": "trusted-cloud",
+      "context": 1048576,
+      "output": 131072,
+      "billingMode": "metered",
+      "price": {
+        "unit": "CNY",
+        "inputPer1k": 0.02,
+        "cachedInputPer1k": 0.002,
+        "outputPer1k": 0.1
+      }
+    },
+    {
+      "provider": "ark",
+      "model": "glm-5.3",
+      "deployment": "trusted-cloud",
+      "context": 1048576,
+      "output": 131072,
+      "billingMode": "subscription",
+      "price": {
+        "unit": "CNY",
+        "inputPer1k": 0.0004722129999999999,
+        "outputPer1k": 0.0472213,
+        "cachedInputPer1k": 0.00043848349999999994,
+        "cacheWritePer1k": 0.0004722129999999999
+      }
+    },
+    {
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "deployment": "trusted-cloud",
+      "context": 1048576,
+      "output": 393216,
+      "billingMode": "subscription",
+      "price": {
+        "unit": "CNY",
+        "inputPer1k": 0.002,
+        "outputPer1k": 0.008,
+        "cachedInputPer1k": 4e-05,
+        "cacheWritePer1k": 0.002
+      }
+    }
+  ],
+  "remote_calls": 0,
+  "maximum_new_cash_cny": 6.02,
+  "history_conservative_cash_protection_cny": 1,
+  "authorized_cash_cny": 100,
+  "max_remote_calls_per_case": 10,
+  "cash_limits": {
+    "production": 2,
+    "evaluation": 1
+  },
+  "settings_sha256": "44e5d15c114ab685782bfb07fb4e6aae483a173820cb781ebda5bd6e1962550d",
+  "source_rule_sha256": "5d12afc9b58d7eb65d2b4b917c10e8492d682216e279bbaef5f3506cbebe0553"
+}

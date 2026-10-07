@@ -1,0 +1,783 @@
+{
+  "schema_version": "automatic-cloud-followup-ledger-v1",
+  "records": [
+    {
+      "case": "dependent-tools",
+      "run_id": "20261007T064045Z-118980e3a74b",
+      "status": "completed",
+      "issues": [],
+      "wall_time_ms": 19902,
+      "usage": {
+        "input_tokens": 22065,
+        "output_tokens": 864,
+        "cache_read_tokens": 40960,
+        "reasoning_tokens": 0
+      },
+      "quality": {
+        "score": 100,
+        "passed": true,
+        "rationale": "工具回执显示两次独立 Bash 调用按顺序执行：第一次读取 index.json，回执给出数据文件 ledger-f91e.csv、数量列 n、单价列 unitCents（分）、币种 CNY、回执编号 RRA-74291；第二次读取该数据文件，回执数据为 2×150+3×240+5×110=1570 分=15.70 元。最终输出「CNY 15.70 RRA-74291」与索引定义和计算结果完全一致，格式为「币种 金额 回执编号」，金额保留两位小数，且未使用其他工具或编辑文件。",
+        "criteria": [
+          {
+            "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。",
+            "passed": true,
+            "rationale": "两次读取均为真实 Bash 工具调用且相互独立、顺序正确（先索引后数据文件），文件名、列含义、币种、回执编号均以索引回执为准；合计 1570 分换算为 15.70 元，最终仅输出「CNY 15.70 RRA-74291」，符合全部约束与输出格式。"
+          }
+        ]
+      },
+      "costs": {
+        "production": 0.030520400000000003,
+        "evaluation": 0.020735817256,
+        "unconfirmed": 0
+      },
+      "plan_origin": "direct-gate",
+      "model_routes": {
+        "answer": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null
+        }
+      },
+      "evaluation_model": {
+        "id": "dsh-model-7077bbf6a06daaa6",
+        "provider": "ark",
+        "model": "glm-5.3",
+        "reasoning_effort": null
+      },
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "model_selection_rule": "quality-qualified-then-cash-then-reference",
+      "cost_trace": {
+        "schema_version": "automatic-cost-trace-v1",
+        "selected_nodes": [
+          {
+            "node_id": "answer",
+            "model_id": "dsh-model-72afd0d705290d78",
+            "unit": "CNY",
+            "expected_cost": 0.213584,
+            "expected_input_tokens": 74024,
+            "expected_output_tokens": 8192,
+            "conservative_input_bound": null,
+            "input_source": "serialized-input-and-planned-parent-output",
+            "output_source": "default"
+          }
+        ],
+        "selected_expected_by_unit": {
+          "CNY": 0.213584
+        },
+        "calls": [
+          {
+            "label": "answer",
+            "model_id": "dsh-model-72afd0d705290d78",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 0.21352,
+            "charged": 0.02076568,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          },
+          {
+            "label": "answer:tool-round-1",
+            "model_id": "dsh-model-72afd0d705290d78",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 0.217422,
+            "charged": 0.00472136,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          },
+          {
+            "label": "answer:tool-round-2",
+            "model_id": "dsh-model-72afd0d705290d78",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 0.22037400000000001,
+            "charged": 0.00503336,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          },
+          {
+            "label": "final-judge",
+            "model_id": "dsh-model-7077bbf6a06daaa6",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 0.406742556402,
+            "charged": 0.020735817256,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          }
+        ],
+        "accounting_basis": "public-reference-valuation",
+        "reference_costs_cny": {
+          "production": 0.030520400000000003,
+          "evaluation": 0.02073581725599999
+        },
+        "cash_costs_cny": {
+          "production": 0,
+          "evaluation": 0
+        },
+        "review_protection": null,
+        "external_structure_judge": {
+          "call_id": "8f28fd906e21b4629e26879b3776a25c675a80c62d213fa9b616474da0a9df47",
+          "cost_cny": 0.00025017844739999996,
+          "confirmed": true
+        },
+        "all_in_known_cash_cost_cny": 0.00025017844739999996,
+        "all_in_known_reference_cost_cny": 0.051506395703399994
+      },
+      "tool_validation": {
+        "schema_version": "task-tool-evidence-v1",
+        "required": false,
+        "required_tools": [],
+        "passed": true,
+        "reason": "no-explicit-tool-requirement",
+        "missing_tools": [],
+        "records": [
+          {
+            "node": "answer",
+            "call_id": "call_glo52g4kzf409n9p139x4up9|fc_02179135524966800000000000000000000ffffac1517fe9323e1",
+            "tool": "bash",
+            "outcome": "completed"
+          },
+          {
+            "node": "answer",
+            "call_id": "call_kwcurwdrjvw93nzugsoa591a|fc_02179135525239600000000000000000000ffffac183204180a03",
+            "tool": "bash",
+            "outcome": "completed"
+          }
+        ],
+        "evidence_bytes": 1689,
+        "evidence_limit_bytes": 16384,
+        "evidence_sha256": "a858d8ae7119530722c0f239b6d36777ee44c250e2ae112e11d619fb8efcdd42",
+        "message": "未识别到明确工具要求；已提供实际回执供语义评审检查。"
+      },
+      "plan_admission": {
+        "answer": {
+          "eligible_models": [
+            "dsh-model-06fd0d4ad75fef1d",
+            "dsh-model-2554a193bcd888ad",
+            "dsh-model-7077bbf6a06daaa6",
+            "dsh-model-72afd0d705290d78",
+            "dsh-model-b1aeb12a74ea9990"
+          ],
+          "model_reasons": {
+            "dsh-model-b1aeb12a74ea9990": "eligible",
+            "dsh-model-2554a193bcd888ad": "eligible",
+            "dsh-model-06fd0d4ad75fef1d": "eligible",
+            "dsh-model-7077bbf6a06daaa6": "eligible",
+            "dsh-model-72afd0d705290d78": "eligible"
+          },
+          "reason": null,
+          "input_estimate": {
+            "base_input_bound": 73992,
+            "upstream_allowance": 0,
+            "estimated_input_bound": 74024,
+            "forecast_input_tokens": 74024,
+            "routing_input_forecast_tokens": 18506
+          },
+          "profile_eligible_models": [
+            "dsh-model-b1aeb12a74ea9990",
+            "dsh-model-2554a193bcd888ad",
+            "dsh-model-06fd0d4ad75fef1d",
+            "dsh-model-7077bbf6a06daaa6",
+            "dsh-model-72afd0d705290d78"
+          ],
+          "data_domain": {
+            "grade": "S1",
+            "reasons": [
+              "local-absolute-path"
+            ]
+          }
+        }
+      },
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v6",
+        "policy": "auto",
+        "decision": "direct",
+        "rule_decision": "dag",
+        "combination": "coupled-sequential-work",
+        "forced": false,
+        "reasons": [
+          "complex-task-marker",
+          "local-coupled"
+        ],
+        "statistics": {
+          "task_chars": 267,
+          "context_bytes": 36554,
+          "enumerated_items": 0,
+          "sentence_count": 1
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v2",
+          "ruleVersion": "automatic-decomposition-hybrid-v5",
+          "inputSha256": "94eb0ab566d82badbf114f98628fa6635cd56378fb93567be6e11c9a46f4105b",
+          "verdict": "COUPLED",
+          "rawVerdict": "COUPLED",
+          "confidence": 0.8,
+          "probabilities": {
+            "SINGLE": 0.027093094316561418,
+            "COUPLED": 0.6657160317783664,
+            "SEPARABLE": 0.05255652882460786,
+            "UNKNOWN": 0.2546343450804644
+          },
+          "signals": {
+            "requires_previous_output": 0.8,
+            "can_start_independently": 0.24,
+            "single_work_unit": 0.14
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 736.0144579999978,
+          "usage": {
+            "input_tokens": 883,
+            "output_tokens": 61,
+            "cost": 3.7086e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.8
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.24
+            },
+            "single_work_unit": {
+              "type": "noul",
+              "noul": 0.14
+            }
+          },
+          "costCny": 0.00025017844739999996,
+          "callId": "8f28fd906e21b4629e26879b3776a25c675a80c62d213fa9b616474da0a9df47",
+          "probabilityBasis": "derived-not-model"
+        }
+      },
+      "route_comparison": null,
+      "answer_sha256": "ebcaa7c56bbe366ebee5a6550aac930e7e1d29c4c5fd4cd5cb568ac61faa59e4",
+      "evidence_sha256": {
+        "summary.json": "5bf09b77a3adc91af50a410a8cad21b1134bb7f10a8a0cc5717c221513721b8d",
+        "result.json": "73de8c81039d03d9375571d692da3cfee4e44789571d57e3f4dd2400b2e0a3fa",
+        "request.json": "3e0f0deac51c6b5c5e8282d11a488679ae23015edf296c3b8cd4c198ce80195c",
+        "provider-config.json": "77e5f5d5c0a7be65a45730df89f312d8a492ed8166bc0f1cb1c71f803d35e9d0",
+        "progress.ndjson": "e27ce20ac2378e7bedfc1a6c9c0f01e1241e1297432fc395ceecd4112acfc58f"
+      },
+      "core_call_count": 4,
+      "structure_judge_call_count": 1,
+      "manual_acceptance": "索引及 CSV 复算得到 1570 分，两次顺序 Bash 回执及最终答案一致。"
+    },
+    {
+      "case": "independent",
+      "run_id": "20261007T064138Z-0d3b7fd87479",
+      "status": "completed",
+      "issues": [],
+      "wall_time_ms": 37132,
+      "usage": {
+        "input_tokens": 34047,
+        "output_tokens": 4043,
+        "cache_read_tokens": 3840,
+        "reasoning_tokens": 0
+      },
+      "quality": {
+        "score": 98,
+        "passed": true,
+        "rationale": "回答完整且正确地完成了全部验收要求：模块 A 准确解释了不可信 name 通过引号逃逸改变 SQL 语义（给出 \"' OR '1'='1\" 具体示例及恒真条件后果），并给出参数化查询修正；模块 B 正确解释了可变默认参数在函数定义时仅创建一次、被所有未显式传参的调用共享的机制，并给出 None 哨兵修正；模块 C 正确解释了含 .. 的路径段导致文件系统回溯到上传目录之外（示例 /srv/uploads/../../etc/passwd 解析为 /etc/passwd），并给出 resolve() 加边界校验的修正。三行汇总表覆盖全部三个模块且各项对应。回答明确声明为静态审查、未运行测试、未调用工具，与任务约束一致，无虚假工具执行声明。技术细节均准确（is_relative_to 需 Python 3.9+ 属次要细节，不影响验收）。",
+        "criteria": [
+          {
+            "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。",
+            "passed": true,
+            "rationale": "三个模块各自指出最关键缺陷、具体后果和对应修正方案；A 解释了不可信 name 如何改变 SQL 含义，B 解释了默认列表跨调用保留状态的原因（定义时仅创建一次并被共享），C 解释了目录外文件为何可能被读取（.. 路径回溯）；末尾给出覆盖全部三个模块的三行汇总表；明确声明未运行测试、未调用工具、未编辑文件，符合任务全部约束。"
+          }
+        ]
+      },
+      "costs": {
+        "production": 0.08289214851099999,
+        "evaluation": 0.02911193145,
+        "unconfirmed": 0
+      },
+      "plan_origin": "direct-after-probe",
+      "model_routes": {
+        "answer": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null
+        }
+      },
+      "evaluation_model": {
+        "id": "dsh-model-7077bbf6a06daaa6",
+        "provider": "ark",
+        "model": "glm-5.3",
+        "reasoning_effort": null
+      },
+      "candidate_models": {
+        "dsh-model-b1aeb12a74ea9990": {
+          "id": "dsh-model-b1aeb12a74ea9990",
+          "provider": "deepseek-official",
+          "model": "deepseek-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-2554a193bcd888ad": {
+          "id": "dsh-model-2554a193bcd888ad",
+          "provider": "deepseek-official",
+          "model": "deepseek-v4-pro",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-06fd0d4ad75fef1d": {
+          "id": "dsh-model-06fd0d4ad75fef1d",
+          "provider": "moonshot",
+          "model": "kimi-k3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "metered",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": null,
+          "deployment": "trusted-cloud",
+          "billing_mode": "subscription",
+          "billing_unit": "CNY"
+        }
+      },
+      "model_selection_rule": "quality-qualified-then-cash-then-reference",
+      "cost_trace": {
+        "schema_version": "automatic-cost-trace-v1",
+        "selected_nodes": [
+          {
+            "node_id": "answer",
+            "model_id": "dsh-model-72afd0d705290d78",
+            "unit": "CNY",
+            "expected_cost": 0.215366,
+            "expected_input_tokens": 74915,
+            "expected_output_tokens": 8192,
+            "conservative_input_bound": null,
+            "input_source": "serialized-input-and-planned-parent-output",
+            "output_source": "default"
+          }
+        ],
+        "selected_expected_by_unit": {
+          "CNY": 0.215366
+        },
+        "calls": [
+          {
+            "label": "planner",
+            "model_id": "dsh-model-7077bbf6a06daaa6",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 6.209291178272,
+            "charged": 0.026702228511,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          },
+          {
+            "label": "answer",
+            "model_id": "dsh-model-72afd0d705290d78",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 0.2153,
+            "charged": 0.05618992,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          },
+          {
+            "label": "final-judge",
+            "model_id": "dsh-model-7077bbf6a06daaa6",
+            "unit": "CNY",
+            "status": "billed",
+            "reserved": 0.408022725845,
+            "charged": 0.02911193145,
+            "billing_mode": "subscription",
+            "cost_basis": "subscription-reference-valuation",
+            "cash_cost_cny": null
+          }
+        ],
+        "accounting_basis": "public-reference-valuation",
+        "reference_costs_cny": {
+          "production": 0.08289214851099969,
+          "evaluation": 0.029111931450000017
+        },
+        "cash_costs_cny": {
+          "production": 0,
+          "evaluation": 0
+        },
+        "review_protection": null,
+        "external_structure_judge": {
+          "call_id": "e549a862eb77a1ca4214a4bff643ba2ad949869dfb72c7f4da57329eb4a1c76e",
+          "cost_cny": 0.0002796445386,
+          "confirmed": true
+        },
+        "all_in_known_cash_cost_cny": 0.0002796445386,
+        "all_in_known_reference_cost_cny": 0.1122837244995997
+      },
+      "tool_validation": {
+        "schema_version": "task-tool-evidence-v1",
+        "required": false,
+        "required_tools": [],
+        "passed": true,
+        "reason": "no-explicit-tool-requirement",
+        "missing_tools": [],
+        "records": [],
+        "evidence_bytes": 164,
+        "evidence_limit_bytes": 16384,
+        "evidence_sha256": "85f21d708c2e84d8f71df66482eadd34596ed2a0b997eb19fb98ba36a7255823",
+        "message": "未识别到明确工具要求；已提供实际回执供语义评审检查。"
+      },
+      "plan_admission": {
+        "answer": {
+          "eligible_models": [
+            "dsh-model-06fd0d4ad75fef1d",
+            "dsh-model-2554a193bcd888ad",
+            "dsh-model-7077bbf6a06daaa6",
+            "dsh-model-72afd0d705290d78",
+            "dsh-model-b1aeb12a74ea9990"
+          ],
+          "model_reasons": {
+            "dsh-model-b1aeb12a74ea9990": "eligible",
+            "dsh-model-2554a193bcd888ad": "eligible",
+            "dsh-model-06fd0d4ad75fef1d": "eligible",
+            "dsh-model-7077bbf6a06daaa6": "eligible",
+            "dsh-model-72afd0d705290d78": "eligible"
+          },
+          "reason": null,
+          "input_estimate": {
+            "base_input_bound": 74882,
+            "upstream_allowance": 0,
+            "estimated_input_bound": 74914,
+            "forecast_input_tokens": 74914,
+            "routing_input_forecast_tokens": 18729
+          },
+          "profile_eligible_models": [
+            "dsh-model-b1aeb12a74ea9990",
+            "dsh-model-2554a193bcd888ad",
+            "dsh-model-06fd0d4ad75fef1d",
+            "dsh-model-7077bbf6a06daaa6",
+            "dsh-model-72afd0d705290d78"
+          ],
+          "data_domain": {
+            "grade": "S1",
+            "reasons": [
+              "local-absolute-path"
+            ]
+          }
+        }
+      },
+      "complexity_gate": {
+        "policy_version": "refractagent-complexity-gate-v6",
+        "policy": "auto",
+        "decision": "dag",
+        "rule_decision": "dag",
+        "combination": "local-separable",
+        "forced": false,
+        "reasons": [
+          "complex-task-marker",
+          "explicit-tool-requirement",
+          "local-separable"
+        ],
+        "statistics": {
+          "task_chars": 563,
+          "context_bytes": 36949,
+          "enumerated_items": 0,
+          "sentence_count": 2
+        },
+        "local_decision": {
+          "contract": "decomposition-decision-v2",
+          "ruleVersion": "automatic-decomposition-hybrid-v5",
+          "inputSha256": "9546f9b3e2299ec8fc9ce1ab08d67fb933257991f05ff9146ed1690113154731",
+          "verdict": "SEPARABLE",
+          "rawVerdict": "SEPARABLE",
+          "confidence": 0.92,
+          "probabilities": {
+            "SINGLE": 0.003143221574344026,
+            "COUPLED": 0.004282069970845485,
+            "SEPARABLE": 0.9356322886297376,
+            "UNKNOWN": 0.05694241982507294
+          },
+          "signals": {
+            "requires_previous_output": 0.08,
+            "can_start_independently": 0.95,
+            "single_work_unit": 0.06
+          },
+          "model": "typesafe/jev-1.13-20260917",
+          "revision": "typesafe/jev-1.13-20260917",
+          "coldStartMs": null,
+          "queueMs": 0,
+          "latencyMs": 494.2779589999991,
+          "usage": {
+            "input_tokens": 987,
+            "output_tokens": 61,
+            "cost": 4.1454e-05
+          },
+          "experimental": true,
+          "reason": null,
+          "backend": "jev",
+          "provider": "openrouter",
+          "rawAnswers": {
+            "requires_previous_output": {
+              "type": "noul",
+              "noul": 0.08
+            },
+            "can_start_independently": {
+              "type": "noul",
+              "noul": 0.95
+            },
+            "single_work_unit": {
+              "type": "noul",
+              "noul": 0.06
+            }
+          },
+          "costCny": 0.0002796445386,
+          "callId": "e549a862eb77a1ca4214a4bff643ba2ad949869dfb72c7f4da57329eb4a1c76e",
+          "probabilityBasis": "derived-not-model"
+        }
+      },
+      "route_comparison": {
+        "policy_version": "automatic-live-comparison-v1",
+        "prediction_source": "compiled-user-declared-node-profiles",
+        "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+        "direct": {
+          "worker_cost": 0.215366,
+          "planner_actual_cost": 0.026702228511,
+          "judge_estimated_cost": 0.44500078144899996,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 0.68706900996,
+          "worker_scheduled_latency_ms": 60000.0,
+          "known_latency_ms": 67653.0,
+          "assignments": {
+            "answer": "dsh-model-72afd0d705290d78"
+          },
+          "quality_proxy": 92.86
+        },
+        "dag": {
+          "worker_cost": 0.9137360000000001,
+          "planner_actual_cost": 0.026702228511,
+          "judge_estimated_cost": 0.44500078144899996,
+          "tool_allowance_cost": 0.0,
+          "total_estimated_cost": 1.38543900996,
+          "worker_scheduled_latency_ms": 240000.0,
+          "known_latency_ms": 247653.0,
+          "assignments": {
+            "review_a": "dsh-model-72afd0d705290d78",
+            "review_b": "dsh-model-72afd0d705290d78",
+            "review_c": "dsh-model-72afd0d705290d78",
+            "answer": "dsh-model-72afd0d705290d78"
+          },
+          "quality_proxy": 92.86
+        },
+        "status": "selected",
+        "route": "direct",
+        "reason": "direct-estimated-cost-not-worse",
+        "direct_without_probe_estimated_cost": 0.660366781449,
+        "dag_net_estimated_savings_vs_unprobed_direct": -0.7250722285110001,
+        "dag_net_savings_forecast_positive": false,
+        "remaining_worker_cash_costs": {
+          "direct": 0.0,
+          "dag": 0.0
+        },
+        "cost_preference": "quality-qualified-then-cash-then-reference",
+        "decision_factors": {
+          "qualified_execution_model_count": 5,
+          "quality_basis": "declared-model-profile-prior",
+          "task_specific_dag_quality_gain_verified": false,
+          "dag_extra_worker_cost": 0.6983700000000002
+        },
+        "candidate_diagnostics": {
+          "direct": {
+            "rule_version": "route-rejection-v1",
+            "rejected_combinations": {
+              "assignment-mode": 0,
+              "quality": 0,
+              "cost": 0,
+              "latency": 0,
+              "cash": 1
+            },
+            "counts_may_overlap": true,
+            "empty_candidate_nodes": [],
+            "minimum_scheduled_latency_ms": 60000.0,
+            "remaining_latency_ms": null,
+            "minimum_cost": 0.215366,
+            "remaining_cost": 1e+300,
+            "remaining_cash": 2,
+            "minimum_cash": 0
+          },
+          "dag": {
+            "rule_version": "route-rejection-v1",
+            "rejected_combinations": {
+              "assignment-mode": 0,
+              "quality": 0,
+              "cost": 0,
+              "latency": 0,
+              "cash": 175
+            },
+            "counts_may_overlap": true,
+            "empty_candidate_nodes": [],
+            "minimum_scheduled_latency_ms": 240000.0,
+            "remaining_latency_ms": null,
+            "minimum_cost": 0.9137360000000001,
+            "remaining_cost": 1e+300,
+            "remaining_cash": 2,
+            "minimum_cash": 0
+          }
+        },
+        "billing_unit": "CNY",
+        "judge_forecast": "same-final-answer-envelope-for-both-routes",
+        "tool_call_limit": "unlimited",
+        "budget_shortfalls": {},
+        "excluded": {
+          "direct": {
+            "answer": null
+          },
+          "dag": {
+            "review_a": null,
+            "review_b": null,
+            "review_c": null,
+            "answer": null
+          }
+        },
+        "model_admission": {
+          "direct": {
+            "answer": {
+              "dsh-model-b1aeb12a74ea9990": "eligible",
+              "dsh-model-2554a193bcd888ad": "eligible",
+              "dsh-model-06fd0d4ad75fef1d": "eligible",
+              "dsh-model-7077bbf6a06daaa6": "eligible",
+              "dsh-model-72afd0d705290d78": "eligible"
+            }
+          },
+          "dag": {
+            "review_a": {
+              "dsh-model-b1aeb12a74ea9990": "eligible",
+              "dsh-model-2554a193bcd888ad": "eligible",
+              "dsh-model-06fd0d4ad75fef1d": "eligible",
+              "dsh-model-7077bbf6a06daaa6": "eligible",
+              "dsh-model-72afd0d705290d78": "eligible"
+            },
+            "review_b": {
+              "dsh-model-b1aeb12a74ea9990": "eligible",
+              "dsh-model-2554a193bcd888ad": "eligible",
+              "dsh-model-06fd0d4ad75fef1d": "eligible",
+              "dsh-model-7077bbf6a06daaa6": "eligible",
+              "dsh-model-72afd0d705290d78": "eligible"
+            },
+            "review_c": {
+              "dsh-model-b1aeb12a74ea9990": "eligible",
+              "dsh-model-2554a193bcd888ad": "eligible",
+              "dsh-model-06fd0d4ad75fef1d": "eligible",
+              "dsh-model-7077bbf6a06daaa6": "eligible",
+              "dsh-model-72afd0d705290d78": "eligible"
+            },
+            "answer": {
+              "dsh-model-b1aeb12a74ea9990": "eligible",
+              "dsh-model-2554a193bcd888ad": "eligible",
+              "dsh-model-06fd0d4ad75fef1d": "eligible",
+              "dsh-model-7077bbf6a06daaa6": "eligible",
+              "dsh-model-72afd0d705290d78": "eligible"
+            }
+          }
+        },
+        "estimate_scope": "known-calls-only-unbounded-tool-continuations",
+        "complete_task_cost_bound": false,
+        "generated_node_count": 4,
+        "selected_candidate": "direct-template",
+        "selected_node_count": 1,
+        "multi_node_selected": false
+      },
+      "answer_sha256": "8ffc95d0f473f3f6a07c160bb45cdb8101b98746d93ec3f4047c35f09c4f6001",
+      "evidence_sha256": {
+        "summary.json": "912efd7ca4b7a88a954746b348ad054e87c87472e75e544afacd30f0565ac9c7",
+        "result.json": "6d7e72318788809bfd570712ffbd4a3dfafc2350ec020f6defaa94abccb6720a",
+        "request.json": "4bc09425fc15032d395cec796c66f2d4f6a01b16114a34a276550ff5978733a2",
+        "provider-config.json": "6c894d7702cad055125dff600aba95f12270af6ba2eb72304712f5d9c546b36e",
+        "progress.ndjson": "e0ee6d569dac7437de21723dbb47258d265336fcc9f40da0bbebebb9d4d6c98c"
+      },
+      "core_call_count": 3,
+      "structure_judge_call_count": 1,
+      "manual_acceptance": "三项缺陷、后果、对应修正和三行汇总齐全，未调用工具。堆叠 SQL 语句能否执行仍取决于驱动，模型评审分数不是独立准确率证明。"
+    }
+  ],
+  "totals": {
+    "core_calls": 7,
+    "structure_judge_calls": 2,
+    "host_bash_calls": 2,
+    "subscription_reference_cny": 0.1632602972169997,
+    "core_new_cash_cny": 0,
+    "jev_cash_cny": 0.000529822986,
+    "all_in_known_reference_cny": 0.16379012020299968,
+    "unknown_usage_reservations": 0,
+    "http_automatic_retries": 0
+  }
+}
