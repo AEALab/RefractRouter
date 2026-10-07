@@ -1,0 +1,1517 @@
+{
+  "schema_version": "task-run-v1",
+  "mode": "run",
+  "status": "completed",
+  "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+  "plan_origin": "model",
+  "planner_output": "{\"reason\": \"\\u5148\\u72ec\\u7acb\\u6838\\u5bf9\\u4e24\\u9879\\u6750\\u6599\\uff0c\\u518d\\u6c47\\u603b\", \"nodes\": [{\"id\": \"facts\", \"type\": \"extraction\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e00\\u9879\\u4e8b\\u5b9e\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"risks\", \"type\": \"verification\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e8c\\u9879\\u98ce\\u9669\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"answer\", \"type\": \"generation\", \"job\": \"\\u6c47\\u603b\\u4e8b\\u5b9e\\u4e0e\\u98ce\\u9669\", \"parents\": [\"facts\", \"risks\"], \"difficulty\": \"medium\", \"risk\": \"medium\"}]}",
+  "planner_prompt_sha256": "b3c3f474d8a0da42e626ec0dd9c0ebded9dca0eb341380ea109b52bff216d633",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "facts",
+        "node_type": "extraction",
+        "prompt_template": "核对第一项事实",
+        "parents": [],
+        "contract": {
+          "objective": "核对第一项事实",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "核对第一项事实"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 1498,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risks",
+        "node_type": "verification",
+        "prompt_template": "核对第二项风险",
+        "parents": [],
+        "contract": {
+          "objective": "核对第二项风险",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "核对第二项风险"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 1498,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "汇总事实与风险",
+        "parents": [
+          "facts",
+          "risks"
+        ],
+        "contract": {
+          "objective": "汇总事实与风险",
+          "inputs": {
+            "facts": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            },
+            "risks": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 34597,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "完整回答原始任务，保留全部要求、事实、约束与不确定性。"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "完整回答原始任务，保留全部要求、事实、约束与不确定性。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "先独立核对两项材料，再汇总"
+  },
+  "plan_analysis": {
+    "schema_version": "plan-analysis-v1",
+    "ready_waves": [
+      [
+        "facts",
+        "risks"
+      ],
+      [
+        "answer"
+      ]
+    ],
+    "dependency_depth": 2,
+    "max_wave_size": 2,
+    "parallel_opportunities": [
+      [
+        "facts",
+        "risks"
+      ]
+    ],
+    "join_nodes": [
+      "answer"
+    ],
+    "downstream_counts": {
+      "facts": 1,
+      "risks": 1,
+      "answer": 0
+    },
+    "criterion_owners": {
+      "0": [
+        "answer"
+      ]
+    },
+    "warnings": [
+      "review-join-context-and-conflict-handling"
+    ],
+    "semantic_dependencies_verified": false,
+    "execution_mode": "serial",
+    "note": "就绪波次表示结构上的并行机会，不是实际并发或时延保证。"
+  },
+  "routing": {
+    "policy_version": "node-routing-v2",
+    "method": "A",
+    "assignment_mode": "per-node",
+    "status": "selected",
+    "assignments": {
+      "facts": "local-router",
+      "risks": "local-router",
+      "answer": "local-router"
+    },
+    "quality_min_per_node": 80,
+    "cost_max": 10.0,
+    "latency_max_ms": 299995.1407921035,
+    "weights": null,
+    "normalized_weights": null,
+    "normalization_bounds": {
+      "facts": {
+        "quality": [
+          90,
+          90
+        ],
+        "cost": [
+          0.0,
+          0.0
+        ],
+        "latency_ms": [
+          1000,
+          1000
+        ]
+      },
+      "risks": {
+        "quality": [
+          90,
+          90
+        ],
+        "cost": [
+          0.0,
+          0.0
+        ],
+        "latency_ms": [
+          1000,
+          1000
+        ]
+      },
+      "answer": {
+        "quality": [
+          90,
+          90
+        ],
+        "cost": [
+          0.0,
+          0.0
+        ],
+        "latency_ms": [
+          1000,
+          1000
+        ]
+      }
+    },
+    "eligible_models": {
+      "facts": [
+        "local-router"
+      ],
+      "risks": [
+        "local-router"
+      ],
+      "answer": [
+        "local-router"
+      ]
+    },
+    "scheduled_latency_bounds_ms": [
+      3000.0,
+      3000.0
+    ],
+    "execution_policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {},
+      "provider_min_interval_ms": {}
+    },
+    "combinations": 1,
+    "feasible_combinations": 1,
+    "original_combinations": 1,
+    "dominated_reduction": true,
+    "prediction": {
+      "cost": 0.0,
+      "serial_latency_ms": 3000,
+      "scheduled_latency_ms": 3000.0,
+      "schedule": {
+        "makespan_ms": 3000.0,
+        "nodes": {
+          "facts": {
+            "start_ms": 0.0,
+            "end_ms": 1000.0,
+            "queue_ms": 0.0
+          },
+          "risks": {
+            "start_ms": 1000.0,
+            "end_ms": 2000.0,
+            "queue_ms": 1000.0
+          },
+          "answer": {
+            "start_ms": 2000.0,
+            "end_ms": 3000.0,
+            "queue_ms": 0.0
+          }
+        }
+      },
+      "mean_node_quality_proxy": 90.0,
+      "weighted_score": null
+    },
+    "nodes": {
+      "facts": {
+        "model_id": "local-router",
+        "node_type": "extraction",
+        "quality": 90,
+        "cost": 0.0,
+        "latency_ms": 1000,
+        "samples": 0,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 1498,
+        "input_max_tokens": 1499
+      },
+      "risks": {
+        "model_id": "local-router",
+        "node_type": "verification",
+        "quality": 90,
+        "cost": 0.0,
+        "latency_ms": 1000,
+        "samples": 0,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 1498,
+        "input_max_tokens": 1499
+      },
+      "answer": {
+        "model_id": "local-router",
+        "node_type": "generation",
+        "quality": 90,
+        "cost": 0.0,
+        "latency_ms": 1000,
+        "samples": 0,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 34597,
+        "input_max_tokens": 34598
+      }
+    },
+    "diagnostics": {
+      "rule_version": "route-rejection-v1",
+      "candidate_checks": {
+        "facts": {
+          "local-router": {
+            "quality_prior": 90,
+            "reference_forecast": 0.0,
+            "cash_forecast": 0.0,
+            "latency_forecast_ms": 1000,
+            "feasible_assignments": 1,
+            "rejected_assignments": {},
+            "status": "selected"
+          }
+        },
+        "risks": {
+          "local-router": {
+            "quality_prior": 90,
+            "reference_forecast": 0.0,
+            "cash_forecast": 0.0,
+            "latency_forecast_ms": 1000,
+            "feasible_assignments": 1,
+            "rejected_assignments": {},
+            "status": "selected"
+          }
+        },
+        "answer": {
+          "local-router": {
+            "quality_prior": 90,
+            "reference_forecast": 0.0,
+            "cash_forecast": 0.0,
+            "latency_forecast_ms": 1000,
+            "feasible_assignments": 1,
+            "rejected_assignments": {},
+            "status": "selected"
+          }
+        }
+      },
+      "rejected_combinations": {
+        "assignment-mode": 0,
+        "quality": 0,
+        "cost": 0,
+        "latency": 0
+      },
+      "counts_may_overlap": true,
+      "empty_candidate_nodes": [],
+      "minimum_scheduled_latency_ms": 3000.0,
+      "remaining_latency_ms": 299995.1407921035,
+      "minimum_cost": 0.0,
+      "remaining_cost": 10.0
+    },
+    "actions": {
+      "facts": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      },
+      "risks": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      },
+      "answer": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      }
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "facts",
+      "model_id": "local-router",
+      "provider": "local",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 6.974291056394577,
+      "deployment": "local",
+      "start_ms": 8.748790947720408,
+      "end_ms": 8.831207873299718,
+      "queue_ms": 1.7744998913258314,
+      "output": "完整答复",
+      "latency_ms": 10,
+      "content_validation": {
+        "source_status": "not-applicable",
+        "passed": null,
+        "invalid_edges": [],
+        "missing_paths": []
+      },
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "risks",
+      "model_id": "local-router",
+      "provider": "local",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 8.850499987602234,
+      "deployment": "local",
+      "start_ms": 12.518750037997961,
+      "end_ms": 12.580040842294693,
+      "queue_ms": 3.668250050395727,
+      "output": "完整答复",
+      "latency_ms": 10,
+      "content_validation": {
+        "source_status": "not-applicable",
+        "passed": null,
+        "invalid_edges": [],
+        "missing_paths": []
+      },
+      "contract_status": "structure-valid"
+    },
+    {
+      "node_id": "answer",
+      "model_id": "local-router",
+      "provider": "local",
+      "status": "ok",
+      "semantic_status": "not-evaluated",
+      "ready_ms": 13.522249879315495,
+      "deployment": "local",
+      "start_ms": 15.36966604180634,
+      "end_ms": 15.417207963764668,
+      "queue_ms": 1.8474161624908447,
+      "output": "完整答复",
+      "latency_ms": 10,
+      "content_validation": {
+        "source_status": "not-applicable",
+        "passed": null,
+        "invalid_edges": [],
+        "missing_paths": []
+      },
+      "contract_status": "structure-valid"
+    }
+  ],
+  "final_output": "完整答复",
+  "evaluation": {
+    "score": 92,
+    "passed": true,
+    "rationale": "已覆盖",
+    "criteria": [
+      {
+        "criterion": "完整回答原始任务，保留全部要求、事实、约束与不确定性。",
+        "passed": true,
+        "rationale": "已核对"
+      }
+    ]
+  },
+  "conversation_context_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "billing_unit": "USD",
+  "charged": {
+    "production": 0.0,
+    "evaluation": 0.0
+  },
+  "calls": [
+    {
+      "label": "planner",
+      "model_id": "local-router",
+      "category": "production",
+      "billing_mode": "metered",
+      "reserved": 0.0,
+      "charged": 0.0,
+      "status": "billed",
+      "reserved_output_tokens": 4096,
+      "input_sha256": "20abc680f5bc1d55568d1a961f8507fd7e4d28e015ef52a822b949d989793d85",
+      "category_limit": 10,
+      "dispatch_monotonic": 1458306.527607375,
+      "dispatch_at": "2026-10-07T15:51:06.672254+00:00",
+      "response_output": "{\"reason\": \"\\u5148\\u72ec\\u7acb\\u6838\\u5bf9\\u4e24\\u9879\\u6750\\u6599\\uff0c\\u518d\\u6c47\\u603b\", \"nodes\": [{\"id\": \"facts\", \"type\": \"extraction\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e00\\u9879\\u4e8b\\u5b9e\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"risks\", \"type\": \"verification\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e8c\\u9879\\u98ce\\u9669\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"answer\", \"type\": \"generation\", \"job\": \"\\u6c47\\u603b\\u4e8b\\u5b9e\\u4e0e\\u98ce\\u9669\", \"parents\": [\"facts\", \"risks\"], \"difficulty\": \"medium\", \"risk\": \"medium\"}]}",
+      "response": {
+        "content": "{\"reason\": \"\\u5148\\u72ec\\u7acb\\u6838\\u5bf9\\u4e24\\u9879\\u6750\\u6599\\uff0c\\u518d\\u6c47\\u603b\", \"nodes\": [{\"id\": \"facts\", \"type\": \"extraction\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e00\\u9879\\u4e8b\\u5b9e\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"risks\", \"type\": \"verification\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e8c\\u9879\\u98ce\\u9669\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"answer\", \"type\": \"generation\", \"job\": \"\\u6c47\\u603b\\u4e8b\\u5b9e\\u4e0e\\u98ce\\u9669\", \"parents\": [\"facts\", \"risks\"], \"difficulty\": \"medium\", \"risk\": \"medium\"}]}",
+        "input_tokens": 100,
+        "output_tokens": 80,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "latency_ms": 10,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "mock-route",
+        "usage_available": true,
+        "raw_usage": null,
+        "tool_calls": [],
+        "replay_messages": [],
+        "replay_state": null,
+        "cache_usage_source": null,
+        "ttft_ms": null
+      },
+      "cost_basis": "public-price-calculation",
+      "provider_cost_confirmed": false,
+      "input_tokens": 100,
+      "output_tokens": 80,
+      "cached_input_tokens": 0,
+      "cache_usage_source": null,
+      "cache_usage_available": false,
+      "ttft_ms": null,
+      "reasoning_tokens": 0,
+      "latency_ms": 10,
+      "request_id": "mock-route",
+      "finish_reason": "stop",
+      "output_sha256": "7ea34bc655cb7c4a5a49d5c32e762be37ae3ee62fb96fc19d368ba758316864d",
+      "route": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      }
+    },
+    {
+      "label": "facts",
+      "model_id": "local-router",
+      "category": "production",
+      "billing_mode": "metered",
+      "reserved": 0.0,
+      "charged": 0.0,
+      "status": "billed",
+      "reserved_output_tokens": 2048,
+      "input_sha256": "3197b55af0f8031b24182534f8a3abee2424c0ba822c1da6834049f452bcf066",
+      "category_limit": 10,
+      "security_node_id": "facts",
+      "dispatch_monotonic": 1458306.5352785,
+      "dispatch_at": "2026-10-07T15:51:06.679926+00:00",
+      "response_output": "完整答复",
+      "response": {
+        "content": "完整答复",
+        "input_tokens": 100,
+        "output_tokens": 80,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "latency_ms": 10,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "mock-route",
+        "usage_available": true,
+        "raw_usage": null,
+        "tool_calls": [],
+        "replay_messages": [],
+        "replay_state": null,
+        "cache_usage_source": null,
+        "ttft_ms": null
+      },
+      "cost_basis": "public-price-calculation",
+      "provider_cost_confirmed": false,
+      "input_tokens": 100,
+      "output_tokens": 80,
+      "cached_input_tokens": 0,
+      "cache_usage_source": null,
+      "cache_usage_available": false,
+      "ttft_ms": null,
+      "reasoning_tokens": 0,
+      "latency_ms": 10,
+      "request_id": "mock-route",
+      "finish_reason": "stop",
+      "output_sha256": "38fdc99169d961d75637a324b21d01057c638e1c89b36f5400e83cdf1ac8287e",
+      "route": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      }
+    },
+    {
+      "label": "risks",
+      "model_id": "local-router",
+      "category": "production",
+      "billing_mode": "metered",
+      "reserved": 0.0,
+      "charged": 0.0,
+      "status": "billed",
+      "reserved_output_tokens": 2048,
+      "input_sha256": "d7bfc8b4e51d5883f47b4d40f668cf8d878f35f7750bcaa45b0a20c0672c0b5f",
+      "category_limit": 10,
+      "security_node_id": "risks",
+      "dispatch_monotonic": 1458306.539047916,
+      "dispatch_at": "2026-10-07T15:51:06.683695+00:00",
+      "response_output": "完整答复",
+      "response": {
+        "content": "完整答复",
+        "input_tokens": 100,
+        "output_tokens": 80,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "latency_ms": 10,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "mock-route",
+        "usage_available": true,
+        "raw_usage": null,
+        "tool_calls": [],
+        "replay_messages": [],
+        "replay_state": null,
+        "cache_usage_source": null,
+        "ttft_ms": null
+      },
+      "cost_basis": "public-price-calculation",
+      "provider_cost_confirmed": false,
+      "input_tokens": 100,
+      "output_tokens": 80,
+      "cached_input_tokens": 0,
+      "cache_usage_source": null,
+      "cache_usage_available": false,
+      "ttft_ms": null,
+      "reasoning_tokens": 0,
+      "latency_ms": 10,
+      "request_id": "mock-route",
+      "finish_reason": "stop",
+      "output_sha256": "38fdc99169d961d75637a324b21d01057c638e1c89b36f5400e83cdf1ac8287e",
+      "route": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      }
+    },
+    {
+      "label": "answer",
+      "model_id": "local-router",
+      "category": "production",
+      "billing_mode": "metered",
+      "reserved": 0.0,
+      "charged": 0.0,
+      "status": "billed",
+      "reserved_output_tokens": 2048,
+      "input_sha256": "e883c49349788eaac30b9dd75f53a3cf8afb1f3e56d3657db16f129a160f8191",
+      "category_limit": 10,
+      "security_node_id": "answer",
+      "dispatch_monotonic": 1458306.541898375,
+      "dispatch_at": "2026-10-07T15:51:06.686545+00:00",
+      "response_output": "完整答复",
+      "response": {
+        "content": "完整答复",
+        "input_tokens": 100,
+        "output_tokens": 80,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "latency_ms": 10,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "mock-route",
+        "usage_available": true,
+        "raw_usage": null,
+        "tool_calls": [],
+        "replay_messages": [],
+        "replay_state": null,
+        "cache_usage_source": null,
+        "ttft_ms": null
+      },
+      "cost_basis": "public-price-calculation",
+      "provider_cost_confirmed": false,
+      "input_tokens": 100,
+      "output_tokens": 80,
+      "cached_input_tokens": 0,
+      "cache_usage_source": null,
+      "cache_usage_available": false,
+      "ttft_ms": null,
+      "reasoning_tokens": 0,
+      "latency_ms": 10,
+      "request_id": "mock-route",
+      "finish_reason": "stop",
+      "output_sha256": "38fdc99169d961d75637a324b21d01057c638e1c89b36f5400e83cdf1ac8287e",
+      "route": {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null
+      }
+    },
+    {
+      "label": "final-judge",
+      "model_id": "local-judge",
+      "category": "evaluation",
+      "billing_mode": "metered",
+      "reserved": 0.0,
+      "charged": 0.0,
+      "status": "billed",
+      "reserved_output_tokens": 2048,
+      "input_sha256": "dd7b88933bd93245eb3ba0eb9b9011afa62e839cb3c4bdffa75883fb594b010e",
+      "dispatch_monotonic": 1458306.546763791,
+      "dispatch_at": "2026-10-07T15:51:06.691410+00:00",
+      "response_output": "{\"score\": 92, \"passed\": true, \"rationale\": \"已覆盖\", \"criteria\": [{\"criterion\": \"完整回答原始任务，保留全部要求、事实、约束与不确定性。\", \"passed\": true, \"rationale\": \"已核对\"}]}",
+      "response": {
+        "content": "{\"score\": 92, \"passed\": true, \"rationale\": \"已覆盖\", \"criteria\": [{\"criterion\": \"完整回答原始任务，保留全部要求、事实、约束与不确定性。\", \"passed\": true, \"rationale\": \"已核对\"}]}",
+        "input_tokens": 100,
+        "output_tokens": 80,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "latency_ms": 10,
+        "attempts": 1,
+        "finish_reason": "stop",
+        "request_id": "mock-route",
+        "usage_available": true,
+        "raw_usage": null,
+        "tool_calls": [],
+        "replay_messages": [],
+        "replay_state": null,
+        "cache_usage_source": null,
+        "ttft_ms": null
+      },
+      "cost_basis": "public-price-calculation",
+      "provider_cost_confirmed": false,
+      "input_tokens": 100,
+      "output_tokens": 80,
+      "cached_input_tokens": 0,
+      "cache_usage_source": null,
+      "cache_usage_available": false,
+      "ttft_ms": null,
+      "reasoning_tokens": 0,
+      "latency_ms": 10,
+      "request_id": "mock-route",
+      "finish_reason": "stop",
+      "output_sha256": "0bb3f5debbbbb4d6f4506ed2a1f98b18238dbf495b454862ffa8c6f8a034280a",
+      "route": {
+        "id": "local-judge",
+        "provider": "local",
+        "model": "LOCAL_JUDGE_MODEL_ID",
+        "reasoning_effort": null
+      }
+    }
+  ],
+  "issues": [],
+  "profile_scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+  "generation_status": "completed",
+  "model_call_limit": 8,
+  "max_total_output_tokens": null,
+  "complexity_gate": {
+    "policy_version": "refractagent-complexity-gate-v6",
+    "policy": "auto",
+    "decision": "dag",
+    "rule_decision": "dag",
+    "combination": "rules-only",
+    "forced": false,
+    "reasons": [
+      "complex-task-marker"
+    ],
+    "statistics": {
+      "task_chars": 23,
+      "context_bytes": 0,
+      "enumerated_items": 0,
+      "sentence_count": 1
+    },
+    "local_decision": null
+  },
+  "review": {
+    "policy": "adaptive",
+    "required": true,
+    "reason": "dag-or-blocked",
+    "status": "completed",
+    "score": 92,
+    "passed": true
+  },
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "profile_provenance": "本次 provider-config.json；时延观测与匹配数量见 forecast_basis，未新增探测调用。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "planner_selection": {
+    "model_id": "local-router",
+    "basis": "configured-latency-then-price+model-capacity",
+    "output_cap": 4096,
+    "timeout_ms": null,
+    "thinking": "inherit",
+    "output_policy": "model-capacity"
+  },
+  "dependency_evidence": {
+    "kind": "explicit-schedule-dependencies-v1",
+    "source_status": "not-applicable",
+    "nodes": {},
+    "scenarios": {},
+    "scope": "只核对受支持材料的显式箭头依赖和关键链覆盖，不等于完整正文事实验收。"
+  },
+  "privacy_placement": {
+    "policy_version": "security-placement-v2",
+    "enabled": true,
+    "privacy": {
+      "enabled": true,
+      "sensitiveTerms": [],
+      "classifier": {
+        "enabled": true,
+        "modelId": "local-router"
+      },
+      "maxPromptBytes": 1048576,
+      "dataMode": "synthetic",
+      "allowSimulatedLocalSensitive": false,
+      "simulatedLocalExternalTransmissionAcknowledged": false
+    },
+    "status": "selected",
+    "local_model_ids": [
+      "local-judge",
+      "local-router"
+    ],
+    "local_execution_model_ids": [
+      "local-router"
+    ],
+    "cloud_model_ids": [
+      "external-worker"
+    ],
+    "grades": {
+      "facts": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "static-view",
+        "bytes": 562
+      },
+      "risks": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "static-view",
+        "bytes": 562
+      },
+      "answer": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "static-view",
+        "bytes": 818
+      }
+    },
+    "eligible_models": {
+      "facts": [
+        "local-router"
+      ],
+      "risks": [
+        "local-router"
+      ],
+      "answer": [
+        "local-router"
+      ]
+    },
+    "blocked": [],
+    "events": [],
+    "violations": [],
+    "runtime_grades": {
+      "facts": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "runtime-view",
+        "bytes": 578
+      },
+      "risks": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "runtime-view",
+        "bytes": 578
+      },
+      "answer": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "runtime-view",
+        "bytes": 902
+      }
+    },
+    "role_checks": [
+      {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ],
+        "source": "planner-view",
+        "bytes": 69,
+        "role": "planner",
+        "model_id": "local-router",
+        "deployment": "local",
+        "satisfied": true
+      }
+    ],
+    "judge_isolation": {
+      "required": true,
+      "nodes": [
+        "answer",
+        "facts",
+        "risks"
+      ],
+      "judge_model_id": "local-judge",
+      "judge_deployment": "local",
+      "satisfied": true
+    }
+  },
+  "input_classification_state": "ok",
+  "placement_state": "ok",
+  "candidate_models": {
+    "external-worker": {
+      "id": "external-worker",
+      "provider": "external",
+      "model": "EXTERNAL_MODEL_ID",
+      "reasoning_effort": null,
+      "deployment": "external-cloud",
+      "billing_mode": "metered",
+      "billing_unit": "USD"
+    },
+    "local-router": {
+      "id": "local-router",
+      "provider": "local",
+      "model": "LOCAL_ROUTER_MODEL_ID",
+      "reasoning_effort": null,
+      "deployment": "local",
+      "billing_mode": "metered",
+      "billing_unit": "USD"
+    }
+  },
+  "wall_time_ms": 21,
+  "planning_state": "ok",
+  "compact_planning": {
+    "attempts": [
+      {
+        "output": "{\"reason\": \"\\u5148\\u72ec\\u7acb\\u6838\\u5bf9\\u4e24\\u9879\\u6750\\u6599\\uff0c\\u518d\\u6c47\\u603b\", \"nodes\": [{\"id\": \"facts\", \"type\": \"extraction\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e00\\u9879\\u4e8b\\u5b9e\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"risks\", \"type\": \"verification\", \"job\": \"\\u6838\\u5bf9\\u7b2c\\u4e8c\\u9879\\u98ce\\u9669\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"answer\", \"type\": \"generation\", \"job\": \"\\u6c47\\u603b\\u4e8b\\u5b9e\\u4e0e\\u98ce\\u9669\", \"parents\": [\"facts\", \"risks\"], \"difficulty\": \"medium\", \"risk\": \"medium\"}]}",
+        "error": null
+      }
+    ],
+    "started_monotonic": 1458306.527339625,
+    "output_cap": 4096,
+    "wall_time_ms": 1.3644159771502018
+  },
+  "generated_plan": {
+    "nodes": [
+      {
+        "node_id": "facts",
+        "node_type": "extraction",
+        "prompt_template": "核对第一项事实",
+        "parents": [],
+        "contract": {
+          "objective": "核对第一项事实",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "核对第一项事实"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 65536,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "risks",
+        "node_type": "verification",
+        "prompt_template": "核对第二项风险",
+        "parents": [],
+        "contract": {
+          "objective": "核对第二项风险",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "核对第二项风险"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 65536,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+          ],
+          "covers": [],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      },
+      {
+        "node_id": "answer",
+        "node_type": "generation",
+        "prompt_template": "汇总事实与风险",
+        "parents": [
+          "facts",
+          "risks"
+        ],
+        "contract": {
+          "objective": "汇总事实与风险",
+          "inputs": {
+            "facts": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            },
+            "risks": {
+              "fields": [
+                "text"
+              ],
+              "reason": "当前职责消费该上游节点的结果。"
+            }
+          },
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 65536,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "完整回答原始任务，保留全部要求、事实、约束与不确定性。"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "answer",
+    "acceptance_criteria": [
+      "完整回答原始任务，保留全部要求、事实、约束与不确定性。"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "先独立核对两项材料，再汇总"
+  },
+  "compiled_input_estimates": {
+    "facts": {
+      "base_input_bound": 1466,
+      "upstream_allowance": 0,
+      "estimated_input_bound": 1498,
+      "forecast_input_tokens": 1498,
+      "routing_input_forecast_tokens": 375,
+      "admitted_input_budget": 1498,
+      "upstream_capacity_check": "reserved"
+    },
+    "risks": {
+      "base_input_bound": 1466,
+      "upstream_allowance": 0,
+      "estimated_input_bound": 1498,
+      "forecast_input_tokens": 1498,
+      "routing_input_forecast_tokens": 375,
+      "admitted_input_budget": 1498,
+      "upstream_capacity_check": "reserved"
+    },
+    "answer": {
+      "base_input_bound": 1797,
+      "upstream_allowance": 32768,
+      "estimated_input_bound": 34597,
+      "forecast_input_tokens": 17829,
+      "routing_input_forecast_tokens": 4458,
+      "admitted_input_budget": 34597,
+      "upstream_capacity_check": "reserved"
+    }
+  },
+  "routing_profile": {
+    "schema_version": "node-routing-profile-v2",
+    "kind": "configured",
+    "billing_unit": "USD",
+    "scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+    "provenance": "本次 provider-config.json；时延观测与匹配数量见 forecast_basis，未新增探测调用。",
+    "candidates": [
+      {
+        "model_id": "external-worker",
+        "node_type": "extraction",
+        "samples": 0,
+        "quality": 90,
+        "latency_ms": 3000,
+        "cost": 0.005594,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 1498,
+        "input_max_tokens": 1499
+      },
+      {
+        "model_id": "external-worker",
+        "node_type": "verification",
+        "samples": 0,
+        "quality": 90,
+        "latency_ms": 3000,
+        "cost": 0.005594,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 1498,
+        "input_max_tokens": 1499
+      },
+      {
+        "model_id": "external-worker",
+        "node_type": "generation",
+        "samples": 0,
+        "quality": 90,
+        "latency_ms": 3000,
+        "cost": 0.021925,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 34597,
+        "input_max_tokens": 34598
+      },
+      {
+        "model_id": "local-router",
+        "node_type": "extraction",
+        "samples": 0,
+        "quality": 90,
+        "latency_ms": 1000,
+        "cost": 0.0,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 1498,
+        "input_max_tokens": 1499
+      },
+      {
+        "model_id": "local-router",
+        "node_type": "verification",
+        "samples": 0,
+        "quality": 90,
+        "latency_ms": 1000,
+        "cost": 0.0,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 1498,
+        "input_max_tokens": 1499
+      },
+      {
+        "model_id": "local-router",
+        "node_type": "generation",
+        "samples": 0,
+        "quality": 90,
+        "latency_ms": 1000,
+        "cost": 0.0,
+        "difficulty": "medium",
+        "risk": "medium",
+        "input_min_tokens": 34597,
+        "input_max_tokens": 34598
+      }
+    ],
+    "forecast_basis": {
+      "facts": {
+        "external-worker": {
+          "input_tokens": 1498,
+          "output_tokens": 2048,
+          "source": "default",
+          "input_capacity": 1498,
+          "input_forecast_source": "serialized-input-and-planned-parent-output"
+        },
+        "local-router": {
+          "input_tokens": 1498,
+          "output_tokens": 1000,
+          "source": "profiles[0]",
+          "input_capacity": 1498,
+          "input_forecast_source": "serialized-input-and-planned-parent-output"
+        }
+      },
+      "risks": {
+        "external-worker": {
+          "input_tokens": 1498,
+          "output_tokens": 2048,
+          "source": "default",
+          "input_capacity": 1498,
+          "input_forecast_source": "serialized-input-and-planned-parent-output"
+        },
+        "local-router": {
+          "input_tokens": 1498,
+          "output_tokens": 1000,
+          "source": "profiles[1]",
+          "input_capacity": 1498,
+          "input_forecast_source": "serialized-input-and-planned-parent-output"
+        }
+      },
+      "answer": {
+        "external-worker": {
+          "input_tokens": 17829,
+          "output_tokens": 2048,
+          "source": "default",
+          "input_capacity": 34597,
+          "input_forecast_source": "serialized-input-and-planned-parent-output"
+        },
+        "local-router": {
+          "input_tokens": 17829,
+          "output_tokens": 1000,
+          "source": "profiles[2]",
+          "input_capacity": 34597,
+          "input_forecast_source": "serialized-input-and-planned-parent-output"
+        }
+      }
+    },
+    "model_bindings": {
+      "external-worker": "EXTERNAL_MODEL_ID",
+      "local-router": "LOCAL_ROUTER_MODEL_ID"
+    },
+    "action_bindings": {
+      "external-worker": "9b7f061c221ea48b69273637fcb114a14eac612d0d3649b5f4fa44e2e958fa13",
+      "local-router": "3e695a1ab1565136524a96d6875905a7ae93c976b59eade209615646fdb8ef5b"
+    }
+  },
+  "prefix_policy": "legacy",
+  "plan_ready_ms": 3,
+  "execution_policy": {
+    "policy_version": "topological-list-v1",
+    "max_concurrency": 1,
+    "provider_concurrency": {},
+    "provider_min_interval_ms": {}
+  },
+  "plan_admission": {
+    "facts": {
+      "eligible_models": [
+        "local-router"
+      ],
+      "model_reasons": {
+        "external-worker": "data-domain-not-authorized",
+        "local-router": "eligible"
+      },
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 1465,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 1497,
+        "forecast_input_tokens": 1497,
+        "routing_input_forecast_tokens": 375
+      },
+      "profile_eligible_models": [
+        "external-worker",
+        "local-router"
+      ],
+      "data_domain": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ]
+      }
+    },
+    "risks": {
+      "eligible_models": [
+        "local-router"
+      ],
+      "model_reasons": {
+        "external-worker": "data-domain-not-authorized",
+        "local-router": "eligible"
+      },
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 1465,
+        "upstream_allowance": 0,
+        "estimated_input_bound": 1497,
+        "forecast_input_tokens": 1497,
+        "routing_input_forecast_tokens": 375
+      },
+      "profile_eligible_models": [
+        "external-worker",
+        "local-router"
+      ],
+      "data_domain": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ]
+      }
+    },
+    "answer": {
+      "eligible_models": [
+        "local-router"
+      ],
+      "model_reasons": {
+        "external-worker": "data-domain-not-authorized",
+        "local-router": "eligible"
+      },
+      "reason": null,
+      "input_estimate": {
+        "base_input_bound": 1797,
+        "upstream_allowance": 32768,
+        "estimated_input_bound": 34597,
+        "forecast_input_tokens": 17829,
+        "routing_input_forecast_tokens": 4458
+      },
+      "profile_eligible_models": [
+        "external-worker",
+        "local-router"
+      ],
+      "data_domain": {
+        "grade": "unknown",
+        "reasons": [
+          "classifier-unavailable"
+        ]
+      }
+    }
+  },
+  "route_comparison": {
+    "policy_version": "automatic-live-comparison-v1",
+    "prediction_source": "compiled-user-declared-node-profiles",
+    "latency_scope": "worker-schedule-plus-observed-planner; shared-judge-latency-unforecast",
+    "direct": null,
+    "dag": {
+      "worker_cost": 0.0,
+      "planner_actual_cost": 0.0,
+      "judge_estimated_cost": 0.0,
+      "tool_allowance_cost": 0.0,
+      "total_estimated_cost": 0.0,
+      "worker_scheduled_latency_ms": 3000.0,
+      "known_latency_ms": 3010.0,
+      "assignments": {
+        "facts": "local-router",
+        "risks": "local-router",
+        "answer": "local-router"
+      },
+      "quality_proxy": 90.0
+    },
+    "status": "selected",
+    "route": "dag",
+    "reason": "direct-infeasible",
+    "decision_factors": {
+      "qualified_execution_model_count": 1,
+      "quality_basis": "declared-model-profile-prior",
+      "task_specific_dag_quality_gain_verified": false,
+      "dag_extra_worker_cost": null
+    },
+    "candidate_diagnostics": {
+      "direct": {
+        "rule_version": "route-rejection-v1",
+        "candidate_checks": {
+          "answer": {}
+        },
+        "rejected_combinations": {
+          "assignment-mode": 0,
+          "quality": 0,
+          "cost": 0,
+          "latency": 0
+        },
+        "counts_may_overlap": true,
+        "empty_candidate_nodes": [
+          "answer"
+        ],
+        "minimum_scheduled_latency_ms": null,
+        "remaining_latency_ms": 299995.1407921035,
+        "minimum_cost": null,
+        "remaining_cost": 10.0
+      },
+      "dag": {
+        "rule_version": "route-rejection-v1",
+        "candidate_checks": {
+          "facts": {
+            "local-router": {
+              "quality_prior": 90,
+              "reference_forecast": 0.0,
+              "cash_forecast": 0.0,
+              "latency_forecast_ms": 1000,
+              "feasible_assignments": 1,
+              "rejected_assignments": {},
+              "status": "selected"
+            }
+          },
+          "risks": {
+            "local-router": {
+              "quality_prior": 90,
+              "reference_forecast": 0.0,
+              "cash_forecast": 0.0,
+              "latency_forecast_ms": 1000,
+              "feasible_assignments": 1,
+              "rejected_assignments": {},
+              "status": "selected"
+            }
+          },
+          "answer": {
+            "local-router": {
+              "quality_prior": 90,
+              "reference_forecast": 0.0,
+              "cash_forecast": 0.0,
+              "latency_forecast_ms": 1000,
+              "feasible_assignments": 1,
+              "rejected_assignments": {},
+              "status": "selected"
+            }
+          }
+        },
+        "rejected_combinations": {
+          "assignment-mode": 0,
+          "quality": 0,
+          "cost": 0,
+          "latency": 0
+        },
+        "counts_may_overlap": true,
+        "empty_candidate_nodes": [],
+        "minimum_scheduled_latency_ms": 3000.0,
+        "remaining_latency_ms": 299995.1407921035,
+        "minimum_cost": 0.0,
+        "remaining_cost": 10.0
+      }
+    },
+    "latency_evidence": {
+      "direct": {},
+      "dag": {
+        "facts": {
+          "external-worker": {
+            "source": "configured-fixed",
+            "calibrated_sla": false
+          },
+          "local-router": {
+            "source": "configured-fixed",
+            "calibrated_sla": false
+          }
+        },
+        "risks": {
+          "external-worker": {
+            "source": "configured-fixed",
+            "calibrated_sla": false
+          },
+          "local-router": {
+            "source": "configured-fixed",
+            "calibrated_sla": false
+          }
+        },
+        "answer": {
+          "external-worker": {
+            "source": "configured-fixed",
+            "calibrated_sla": false
+          },
+          "local-router": {
+            "source": "configured-fixed",
+            "calibrated_sla": false
+          }
+        }
+      }
+    },
+    "billing_unit": "USD",
+    "judge_forecast": "same-final-answer-envelope-for-both-routes",
+    "tool_call_limit": 0,
+    "budget_shortfalls": {},
+    "excluded": {
+      "direct": {
+        "answer": "data-domain-not-authorized"
+      },
+      "dag": {
+        "facts": null,
+        "risks": null,
+        "answer": null
+      }
+    },
+    "model_admission": {
+      "direct": {
+        "answer": {
+          "external-worker": "data-domain-not-authorized",
+          "local-router": "quality-below-minimum"
+        }
+      },
+      "dag": {
+        "facts": {
+          "external-worker": "data-domain-not-authorized",
+          "local-router": "eligible"
+        },
+        "risks": {
+          "external-worker": "data-domain-not-authorized",
+          "local-router": "eligible"
+        },
+        "answer": {
+          "external-worker": "data-domain-not-authorized",
+          "local-router": "eligible"
+        }
+      }
+    },
+    "estimate_scope": "known-calls-and-bounded-tool-continuations",
+    "complete_task_cost_bound": true,
+    "generated_node_count": 3,
+    "selected_candidate": "generated-plan",
+    "selected_node_count": 3,
+    "multi_node_selected": true
+  },
+  "recovery_policy": {
+    "policy_version": "node-fallback-v1",
+    "max_node_fallbacks": 0
+  },
+  "execution": {
+    "policy": {
+      "policy_version": "topological-list-v1",
+      "max_concurrency": 1,
+      "provider_concurrency": {},
+      "provider_min_interval_ms": {}
+    },
+    "peak_active_nodes": 1,
+    "not_started": [],
+    "failure_policy": "stop-dispatch-and-drain",
+    "started_ms": 6.959083024412394,
+    "peak_running_nodes": 1,
+    "ended_ms": 16.367000062018633,
+    "wall_time_ms": 9.408083045855165
+  },
+  "critical_path_latency_ms": 20,
+  "content_validation": {
+    "source_status": "not-applicable",
+    "passed": null,
+    "invalid_edges": [],
+    "missing_paths": []
+  }
+}

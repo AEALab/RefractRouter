@@ -1,5 +1,7 @@
 # Codex 与 Hermes 的工具证据接入
 
+当前产品验收只覆盖 DSH、Codex。下述 Hermes 适配与结果是保留的历史内容，本批不扩展其支持范围。
+
 ## 为什么需要客户端适配
 
 标准 Chat Completions／Responses 的工具结果通常只有模型可读的内容，没有可信的进程退出状态。
@@ -68,12 +70,21 @@ uv run python -m validation.codex.run_with_evidence \
 
 若 Router 配置了认证，把 `REFRACTROUTER_TOKEN` 提供给适配器。适配器强制使用
 `codex exec --json`；原有的 `request_max_retries=0`、`stream_max_retries=0` 和模型目录设置
-仍需保留。没有启用钩子时会提示证据不可用；普通工具任务仍可执行。
+仍需保留。增强适配器为 Responses 请求设置
+`metadata.refract_tool_evidence_policy="confirmed"`。没有启用钩子时会提示证据不可用；
+显式要求执行工具的最终候选因状态无法确认而停止，不会猜测退出成功。
+该模式在任务开始冻结，任务内不能切换验收强度。
+
+普通 Base URL 不经过增强适配器时默认使用 `receipt` 模式：要求当前任务中实际存在
+Router 发出的工具调用及宿主返回结果，但没有结构化退出事实仍显示 `unclassified`。
+工具回执已收到与退出状态已确认分别记录，不能据此声称任务语义正确。
+两种模式都拒绝模型没调用工具就猜出答案；缺少回执的候选缓冲且不交付，费用照常结算。
 
 无付费模拟验收：
 
 ```sh
 uv run python validation/codex/probe_tool_hook.py
+uv run python validation/codex/probe_tool_requirements.py
 ```
 
 此脚本只在隔离的临时 Codex 配置中绕过钩子信任，以测试项目自身的固定脚本；日常接入不使用
@@ -88,3 +99,9 @@ Codex 钩子字段与信任流程依据
 `small → small → large`。这验证工具事实传递和 Stage 重复失败切换；不证明真实模型的
 任务质量或费用收益。DSH 的原生事件接入保持原合同。标准 Base URL 单独接入时仍没有
 宿主执行状态；其它客户端需要提供等价、可核验的工具事实。
+
+2026-10-07 使用实际 `codex-cli 0.154.0` 完成四条接线：正常退出、非零退出、
+没执行却猜答案、缺少增强证据。前两条保留真实状态，后两条不交付候选。
+另以真实命令连续两次非零退出验证 Stage 的 `small → small → large`；
+全部模型为本机模拟上游，付费调用为零。详见
+[有限验收记录](../reports/automatic-reliability-20261007/README.md)。

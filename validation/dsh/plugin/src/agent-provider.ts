@@ -698,24 +698,27 @@ async function invokeAutoLive(ctx: AgentContext, config: Readonly<Configuration>
   const coreOptions = {...options,model:'auto',tools:allowTools ? options.tools : []}
   const decisionConfig=live.decompositionDecision
   let decompositionDecision:Record<string,unknown>|undefined
+  let ready:Record<string,unknown>|undefined
   if(decisionConfig?.mode==='hybrid'&&live.complexityPolicy==='auto'){
     if(!planning)throw new Error('REFRACTAGENT_LIVE_DISABLED: 拆分判别服务不可用')
     const input=conversation(coreOptions,config.limits?.relaxContext?RELAXED_CONTEXT_BYTES:MAX_CONTEXT_BYTES)
-    if(decisionConfig.judge?.type==='jev'){
-      // 配置和执行模型不合格时，先零调用停止，不能先花判别费用。
-      const ready=await invoke(ctx,config,coreOptions,undefined,{mode:'preflight',
+    // 是否需要 Judge 由核心决定；插件不复制 objective 或拆分规则。
+    ready=await invoke(ctx,config,coreOptions,undefined,{mode:'preflight',
         productionBudget:mixedBilling?live.maxProductionCostByUnit!:live.maxProductionCost!,
         evaluationBudget:mixedBilling?live.maxEvaluationCostByUnit!:live.maxEvaluationCost!,
         localOnly:true,allowHostTools:allowTools},planning,evidence)
-      if(!object(ready.live_authorization_preview)||ready.live_authorization_preview.ready!==true)
-        throw new Error('REFRACTAGENT_LIVE_DISABLED: 执行模型预检未通过；Jev 尚未派发')
-    }
-    decompositionDecision=await planning.decompositionDecision(decisionConfig,input.task,input.context,signal)
+    if(!object(ready.live_authorization_preview)||ready.live_authorization_preview.ready!==true)
+      throw new Error('REFRACTAGENT_LIVE_DISABLED: 执行模型预检未通过；拆分 Judge 尚未派发')
+    if(!object(ready.decomposition_judge)||typeof ready.decomposition_judge.required!=='boolean')
+      throw new Error('REFRACTAGENT_LIVE_DISABLED: 核心缺少拆分判别预检；请升级核心与插件')
+    if(ready.decomposition_judge.required)
+      decompositionDecision=await planning.decompositionDecision(decisionConfig,input.task,input.context,signal)
   }
   const common = {productionBudget:mixedBilling?live.maxProductionCostByUnit!:live.maxProductionCost!,
     evaluationBudget:mixedBilling?live.maxEvaluationCostByUnit!:live.maxEvaluationCost!,
     localOnly:true,allowHostTools:allowTools,...(decompositionDecision?{decompositionDecision}:{})}
-  const preview = await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning,evidence)
+  const preview = ready&&!decompositionDecision?ready:
+    await invoke(ctx, config, coreOptions, undefined, {...common,mode:'preflight'},planning,evidence)
   if (!object(preview.live_authorization_preview) || preview.live_authorization_preview.ready !== true) {
     const issues=Array.isArray(preview.issues)?preview.issues.filter((issue):issue is string=>typeof issue==='string'):[]
     throw new Error('REFRACTAGENT_LIVE_DISABLED: '+(issues.length?issues.join('；'):'核心预检未满足真实执行条件'))

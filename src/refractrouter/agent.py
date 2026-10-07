@@ -552,6 +552,15 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
                            for p in sorted(directory.iterdir()) if p.is_file()}}
     if automatic_routing:
         output['complexity_gate'] = gate
+        # 宿主先读取核心已编译的策略，再决定是否派发拆分 Judge。
+        # 强制策略与简单任务均已有零调用结论，不能付费后再覆盖它。
+        skip_judge = gate.get('forced') or 'trivial-workload' in gate.get('reasons', [])
+        output['decomposition_judge'] = {
+            'required': not bool(skip_judge),
+            'reason': ('explicit-routing-policy' if gate.get('forced') else
+                       'trivial-workload' if skip_judge else 'structure-decision-needed'),
+            'policy_version': gate['policy_version'],
+        }
         output['review'] = result.get('review', review)
         output['cost_trace'] = automatic_cost_trace(result, manifest)
         configured_candidates = configured.manifest.candidates if configured else manifest.candidates

@@ -1,0 +1,429 @@
+{
+  "schema_version": "refractagent-result-v1",
+  "run_id": "20261007T155236Z-7fba7ad8f6a5",
+  "mode": "preflight",
+  "strategy": "auto",
+  "strategy_name": "自动路由",
+  "policy_version": "refractagent-auto-runtime-v1",
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  },
+  "status": "preview",
+  "answer": "",
+  "issues": [],
+  "models": {
+    "deliverable": "LOCAL_ROUTER_MODEL_ID"
+  },
+  "model_routes": {
+    "deliverable": {
+      "id": "local-router",
+      "provider": "local",
+      "model": "LOCAL_ROUTER_MODEL_ID",
+      "reasoning_effort": null
+    }
+  },
+  "evaluation_model": {
+    "id": "local-judge",
+    "provider": "local",
+    "model": "LOCAL_JUDGE_MODEL_ID",
+    "reasoning_effort": null
+  },
+  "configuration_source": "user",
+  "quality": null,
+  "costs": {
+    "production": 0,
+    "evaluation": 0,
+    "unconfirmed": 0
+  },
+  "billing_unit": "USD",
+  "generation_status": "not-started",
+  "format_validation": {
+    "schema_version": "output-length-check-v1",
+    "status": "not-requested",
+    "constraints": null,
+    "passed": null,
+    "actual_length": null,
+    "output_sha256": null
+  },
+  "tool_validation": null,
+  "simulated": false,
+  "wall_time_ms": 2,
+  "plan_origin": "template-preview",
+  "plan": {
+    "nodes": [
+      {
+        "node_id": "deliverable",
+        "node_type": "generation",
+        "prompt_template": "根据提供的原始任务生成交付内容，明确证据、假设和能力限制。",
+        "parents": [],
+        "contract": {
+          "objective": "完成原始文本任务",
+          "inputs": {},
+          "output": {
+            "format": "text",
+            "fields": {
+              "text": "最终答案与依据"
+            }
+          },
+          "capability": {
+            "difficulty": "medium",
+            "risk": "medium",
+            "input_budget_tokens": 1553,
+            "expected_output_tokens": 1000
+          },
+          "checks": [
+            "覆盖原始任务要求，不虚构证据或工具执行"
+          ],
+          "covers": [
+            0
+          ],
+          "execution": "text-model",
+          "failure_policy": "stop"
+        }
+      }
+    ],
+    "final_node_id": "deliverable",
+    "acceptance_criteria": [
+      "覆盖原始任务要求，不虚构证据或工具执行"
+    ],
+    "schema_version": "text-task-plan-v2",
+    "decomposition_reason": "零调用模式无法评估语义依赖及拆分收益，因此保留单节点预览。"
+  },
+  "dag": {
+    "phase": "finished",
+    "status": "preview",
+    "simulated": false,
+    "plan_origin": "template-preview",
+    "reason": "零调用模式无法评估语义依赖及拆分收益，因此保留单节点预览。",
+    "nodes": [
+      {
+        "id": "__role_placement__",
+        "parents": [],
+        "node_type": "role-placement",
+        "objective": "检查规划节点的敏感级别与部署路线",
+        "state": "ok",
+        "attempt": 1,
+        "model": null,
+        "recovery": null
+      },
+      {
+        "id": "deliverable",
+        "parents": [
+          "__role_placement__"
+        ],
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "medium",
+        "objective": "完成原始文本任务",
+        "state": "not-run",
+        "attempt": 0,
+        "model": {
+          "id": "local-router",
+          "provider": "local",
+          "model": "LOCAL_ROUTER_MODEL_ID",
+          "reasoning_effort": null
+        },
+        "recovery": null
+      }
+    ]
+  },
+  "plan_admission": null,
+  "route_comparison": null,
+  "planner": {
+    "model_id": "local-router",
+    "basis": "configured-latency-then-price+model-capacity",
+    "output_cap": 4096,
+    "timeout_ms": null,
+    "thinking": "inherit",
+    "output_policy": "model-capacity"
+  },
+  "plan_ready_ms": 0,
+  "model_call_limit": 8,
+  "content_validation": null,
+  "dynamic_decomposition": null,
+  "cost_breakdown": {
+    "planning": 0,
+    "dynamic_planning": 0,
+    "execution": 0,
+    "evaluation": 0
+  },
+  "result_path": "/private/tmp/refractrouter-automatic-reliability-paths-final/node-failure/preview/20261007T155236Z-7fba7ad8f6a5/result.json",
+  "run_dir": "/private/tmp/refractrouter-automatic-reliability-paths-final/node-failure/preview/20261007T155236Z-7fba7ad8f6a5",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "reasoning_tokens": 0
+  },
+  "profile_scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+  "limitations": [
+    "Text generation only; no shell, retrieval or filesystem actions.",
+    "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+    "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+  ],
+  "model_profile_provenance": null,
+  "artifact_hashes": {
+    "manifest.json": "d213f41b3a0c72454f36720334e87f8ae642820703e4314c8efa55c500641e98",
+    "plan.json": "39352ff5cd6f703e9ba77425d962b3455df1d68cd4851cf6cdccc2791a938bb7",
+    "profile.json": "8bc974a0efd7a40491131892273617652476f8be250fa598e989968a744a17e7",
+    "progress.ndjson": "82e42d54f7afd7f0cbeeab2723c9e1aeb890ac214d50f49e39f3b656d826d7bf",
+    "provider-config.json": "e02353301e5e35206891b3b242eccf5489918c2922c2ea8abd7931b6997be25c",
+    "request.json": "8742312fa77c51849ad73229e0993959b61bb259afcff455ade8b96dce5e74f2",
+    "result.json": "759c1e3e67bb8414e7f7626dd3fe5aff4b3973aba73e1333488b690750775642"
+  },
+  "complexity_gate": {
+    "policy_version": "refractagent-complexity-gate-v6",
+    "policy": "auto",
+    "decision": "dag",
+    "rule_decision": "dag",
+    "combination": "rules-only",
+    "forced": false,
+    "reasons": [
+      "complex-task-marker"
+    ],
+    "statistics": {
+      "task_chars": 23,
+      "context_bytes": 0,
+      "enumerated_items": 0,
+      "sentence_count": 1
+    },
+    "local_decision": null
+  },
+  "decomposition_judge": {
+    "required": true,
+    "reason": "structure-decision-needed",
+    "policy_version": "refractagent-complexity-gate-v6"
+  },
+  "review": {
+    "policy": "adaptive",
+    "required": true,
+    "reason": "dag-or-blocked",
+    "status": "not-run"
+  },
+  "cost_trace": {
+    "schema_version": "automatic-cost-trace-v1",
+    "selected_nodes": [
+      {
+        "node_id": "deliverable",
+        "model_id": "local-router",
+        "unit": "USD",
+        "expected_cost": 0.0,
+        "expected_input_tokens": 1553,
+        "expected_output_tokens": 1000,
+        "conservative_input_bound": null,
+        "input_source": "serialized-input-and-planned-parent-output",
+        "output_source": "profiles[2]"
+      }
+    ],
+    "selected_expected_by_unit": {
+      "AFP": 0.0,
+      "CNY": 0.0,
+      "USD": 0.0
+    },
+    "calls": [],
+    "accounting_basis": null,
+    "reference_costs_cny": null,
+    "cash_costs_cny": null,
+    "review_protection": null
+  },
+  "candidate_models": {
+    "external-worker": {
+      "id": "external-worker",
+      "provider": "external",
+      "model": "EXTERNAL_MODEL_ID",
+      "reasoning_effort": null,
+      "deployment": "external-cloud",
+      "billing_mode": "metered",
+      "billing_unit": "USD"
+    },
+    "local-router": {
+      "id": "local-router",
+      "provider": "local",
+      "model": "LOCAL_ROUTER_MODEL_ID",
+      "reasoning_effort": null,
+      "deployment": "local",
+      "billing_mode": "metered",
+      "billing_unit": "USD"
+    }
+  },
+  "model_selection_rule": "configured-routing-objective",
+  "live_authorization_preview": {
+    "schema_version": "refractagent-live-authorization-v1",
+    "authorization_id": "8f55b4e95d7a463da7f3d496ba3639b4",
+    "issued_at": "2026-10-07T15:52:36.148237Z",
+    "expires_at": "2026-10-07T16:02:36.148237Z",
+    "preview_sha256": "4bf59918df99107ee9447d1a287c14ae981b83c5b7fb110b3e761a6abb8fb33b",
+    "complexity": {
+      "policy_version": "refractagent-complexity-gate-v6",
+      "policy": "auto",
+      "decision": "dag",
+      "rule_decision": "dag",
+      "combination": "rules-only",
+      "forced": false,
+      "reasons": [
+        "complex-task-marker"
+      ],
+      "statistics": {
+        "task_chars": 23,
+        "context_bytes": 0,
+        "enumerated_items": 0,
+        "sentence_count": 1
+      },
+      "local_decision": null
+    },
+    "review": {
+      "policy": "adaptive",
+      "required": true,
+      "reason": "dag-or-blocked"
+    },
+    "calls": {
+      "maximum": 8,
+      "estimate": null
+    },
+    "costs": {
+      "billing_unit": "USD",
+      "estimate_kind": "bounded-range",
+      "production_estimate": 0.0,
+      "evaluation_estimate": 10,
+      "production_hard_limit": 10,
+      "evaluation_hard_limit": 10,
+      "production_unlimited": false,
+      "evaluation_unlimited": false,
+      "production_estimate_range": {
+        "minimum": 0.0,
+        "maximum": 10
+      }
+    },
+    "ready": true,
+    "data_mode": "synthetic",
+    "tools_allowed": false,
+    "tools": {
+      "maximum_calls": 0,
+      "schema_sha256": null
+    }
+  },
+  "prefix_policy": "legacy",
+  "automatic_trace": {
+    "schema_version": "automatic-routing-trace-v1",
+    "run_id": "20261007T155236Z-7fba7ad8f6a5",
+    "status": "preview",
+    "simulated": false,
+    "mode": "preflight",
+    "wall_time_ms": 2,
+    "issues": [],
+    "limitations": [
+      "Text generation only; no shell, retrieval or filesystem actions.",
+      "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
+      "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"
+    ],
+    "structure": {
+      "policy_version": "refractagent-complexity-gate-v6",
+      "rule_decision": "dag",
+      "decision": "dag",
+      "combination": "rules-only",
+      "reasons": [
+        "complex-task-marker"
+      ],
+      "judge": {}
+    },
+    "plan_origin": "template-preview",
+    "comparison": {},
+    "selection_rule": "configured-routing-objective",
+    "quality_min": 80,
+    "profile_scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+    "candidates": [
+      {
+        "id": "external-worker",
+        "provider": "external",
+        "model": "EXTERNAL_MODEL_ID",
+        "reasoning_effort": null,
+        "deployment": "external-cloud",
+        "billing_mode": "metered",
+        "billing_unit": "USD",
+        "admission": [],
+        "assignment_checks": {},
+        "selected_nodes": []
+      },
+      {
+        "id": "local-router",
+        "provider": "local",
+        "model": "LOCAL_ROUTER_MODEL_ID",
+        "reasoning_effort": null,
+        "deployment": "local",
+        "billing_mode": "metered",
+        "billing_unit": "USD",
+        "admission": [],
+        "assignment_checks": {
+          "deliverable": {
+            "quality_prior": 90,
+            "reference_forecast": 0.0,
+            "cash_forecast": 0.0,
+            "latency_forecast_ms": 1000,
+            "feasible_assignments": 1,
+            "rejected_assignments": {},
+            "status": "selected"
+          }
+        },
+        "selected_nodes": [
+          "deliverable"
+        ]
+      }
+    ],
+    "routing_diagnostics": {
+      "rule_version": "route-rejection-v1",
+      "remaining_cost": 10.0,
+      "remaining_latency_ms": 300000,
+      "rejected_combinations": {
+        "assignment-mode": 0,
+        "quality": 0,
+        "cost": 0,
+        "latency": 0
+      },
+      "counts_may_overlap": true
+    },
+    "calls": [],
+    "ledger": [
+      {
+        "category": "production",
+        "reference_occupied_cny": null,
+        "cash_occupied_cny": null,
+        "cash_limit_cny": null,
+        "remaining_cash_cny": null,
+        "unlimited_cash": false,
+        "pending_count": 0,
+        "pending_cash_cny": 0,
+        "billed_cash_cny": 0
+      },
+      {
+        "category": "evaluation",
+        "reference_occupied_cny": null,
+        "cash_occupied_cny": null,
+        "cash_limit_cny": null,
+        "remaining_cash_cny": null,
+        "unlimited_cash": false,
+        "pending_count": 0,
+        "pending_cash_cny": 0,
+        "billed_cash_cny": 0
+      }
+    ],
+    "call_order_basis": "reservation-order",
+    "accounting_basis": null,
+    "external_judge_cost_cny": null,
+    "external_judge_called": false,
+    "review": {
+      "policy": "adaptive",
+      "required": true,
+      "reason": "dag-or-blocked",
+      "status": "not-run"
+    },
+    "quality": {},
+    "quality_gate": "not-recorded",
+    "tools": {
+      "records": []
+    },
+    "missing_evidence": [
+      "frozen-cash-limits"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "node-routing-profile-v2",
+  "kind": "configured",
+  "billing_unit": "USD",
+  "scope": "质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。",
+  "provenance": "本次 provider-config.json；时延观测与匹配数量见 forecast_basis，未新增探测调用。",
+  "candidates": [
+    {
+      "model_id": "external-worker",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 90,
+      "latency_ms": 3000,
+      "cost": 0.005674,
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 1578,
+      "input_max_tokens": 1579
+    },
+    {
+      "model_id": "local-router",
+      "node_type": "generation",
+      "samples": 0,
+      "quality": 50,
+      "latency_ms": 10000,
+      "cost": 0.0,
+      "difficulty": "medium",
+      "risk": "high",
+      "input_min_tokens": 1578,
+      "input_max_tokens": 1579
+    }
+  ],
+  "forecast_basis": {
+    "answer": {
+      "external-worker": {
+        "input_tokens": 1578,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 1578,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      },
+      "local-router": {
+        "input_tokens": 1578,
+        "output_tokens": 2048,
+        "source": "default",
+        "input_capacity": 1578,
+        "input_forecast_source": "serialized-input-and-planned-parent-output"
+      }
+    }
+  },
+  "model_bindings": {
+    "external-worker": "EXTERNAL_MODEL_ID",
+    "local-router": "LOCAL_ROUTER_MODEL_ID"
+  },
+  "action_bindings": {
+    "external-worker": "9b7f061c221ea48b69273637fcb114a14eac612d0d3649b5f4fa44e2e958fa13",
+    "local-router": "3e695a1ab1565136524a96d6875905a7ae93c976b59eade209615646fdb8ef5b"
+  }
+}

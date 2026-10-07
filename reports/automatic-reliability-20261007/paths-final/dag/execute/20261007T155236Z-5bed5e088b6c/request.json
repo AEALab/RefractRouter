@@ -1,0 +1,70 @@
+{
+  "schema_version": "refractagent-request-v1",
+  "payload": {
+    "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+    "strategy": "auto",
+    "authorization": {
+      "schema_version": "refractagent-live-authorization-v1",
+      "authorization_id": "fd093356b1ac4806accaa8c34ecaf27c",
+      "issued_at": "2026-10-07T15:52:36.113430Z",
+      "expires_at": "2026-10-07T16:02:36.113430Z",
+      "preview_sha256": "bb79aeb27587694e00e1bcaaccd88ea681e0359c500bcd047a1bfbc4f4e4b0c3"
+    }
+  },
+  "runtime_request": {
+    "method": "A",
+    "qualityMin": 80,
+    "task": "分别核对第一项事实和第二项风险，然后汇总建议。",
+    "mode": "run",
+    "costMax": 10,
+    "latencyMaxMs": 300000,
+    "maxConcurrency": 1,
+    "maxNodeFallbacks": 0,
+    "maxPlanRepairs": 0,
+    "planningMode": "compact",
+    "unrestrictedPlanning": true,
+    "maxDynamicSplits": 0,
+    "verifyDependencies": true,
+    "plannerThinking": "inherit",
+    "adaptiveOutputBudget": true
+  },
+  "policy_version": "refractagent-auto-runtime-v1",
+  "mode": "live",
+  "production_budget": 10,
+  "evaluation_budget": 10,
+  "max_output_tokens": 2048,
+  "limits": {
+    "relaxBudget": false,
+    "relaxContext": false
+  },
+  "complexity_gate": {
+    "policy_version": "refractagent-complexity-gate-v6",
+    "policy": "auto",
+    "decision": "dag",
+    "rule_decision": "dag",
+    "combination": "rules-only",
+    "forced": false,
+    "reasons": [
+      "complex-task-marker"
+    ],
+    "statistics": {
+      "task_chars": 23,
+      "context_bytes": 0,
+      "enumerated_items": 0,
+      "sentence_count": 1
+    },
+    "local_decision": null
+  },
+  "review": {
+    "policy": "adaptive",
+    "required": true,
+    "reason": "dag-or-blocked"
+  },
+  "authorization": {
+    "issued_at": "2026-10-07T15:52:36.113430Z",
+    "schema_version": "refractagent-live-authorization-v1",
+    "expires_at": "2026-10-07T16:02:36.113430Z",
+    "authorization_id": "fd093356b1ac4806accaa8c34ecaf27c",
+    "preview_sha256": "bb79aeb27587694e00e1bcaaccd88ea681e0359c500bcd047a1bfbc4f4e4b0c3"
+  }
+}

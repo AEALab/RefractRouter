@@ -262,15 +262,41 @@ test('自动路由本地拆分判别只执行一次，并绑定到预检和真�
   const liveResult={strategy:'auto',strategy_name:'自动路由',mode:'live',status:'completed',answer:'真实答案',
     simulated:false,billing_unit:'CNY',plan_origin:'model',plan:{nodes:[{node_id:'answer'}]},
     dag:{phase:'finished',status:'completed',simulated:false,reason:'拆分',nodes:[]}}
-  const f=fixture([previewResult,liveResult]);let calls=0
+  const f=fixture([{...previewResult,decomposition_judge:{required:true}},previewResult,liveResult]);let calls=0
   const planning={decompositionDecision:async()=>{calls++;return decision}} as any
   const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),liveExecution:{...liveExecution(),
     decompositionDecision:{mode:'hybrid',allowExperimental:true,judge:localJudge(),threshold:.65}}}),undefined,planning)
   for await(const _ of adapter.stream({...options,model:'auto-live'})) { /* consume */ }
-  assert.equal(calls,1);assert.equal(f.spawns.length,2)
-  const preview=JSON.parse(f.spawns[0]!.input()),live=JSON.parse(f.spawns[1]!.input())
+  assert.equal(calls,1);assert.equal(f.spawns.length,3)
+  assert.equal(JSON.parse(f.spawns[0]!.input()).decompositionDecision,undefined)
+  const preview=JSON.parse(f.spawns[1]!.input()),live=JSON.parse(f.spawns[2]!.input())
   assert.deepEqual(preview.decompositionDecision,decision)
   assert.deepEqual(live.decompositionDecision,decision)
+})
+test('核心已有明确拆分策略时跳过 Judge，并复用零调用预检',async()=>{
+  for(const required of [false,true]){
+    const liveResult={status:'completed',mode:'live',simulated:false,answer:'完成',
+      dag:{phase:'finished',status:'completed',nodes:[]}}
+    const preflight={...previewResult,decomposition_judge:{required,reason:'core-rule'}}
+    const f=fixture(required?[preflight,previewResult,liveResult]:[preflight,liveResult]);let calls=0
+    const planning={decompositionDecision:async()=>{calls++;return {verdict:'SINGLE'}}} as any
+    const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),liveExecution:{...liveExecution(),
+      decompositionDecision:{mode:'hybrid',allowExperimental:true,judge:localJudge(),threshold:.65}}}),undefined,planning)
+    for await(const _ of adapter.stream({...options,model:'auto-live'})){}
+    assert.equal(calls,required?1:0)
+    assert.equal(f.spawns.length,required?3:2)
+  }
+})
+test('拆分预检失败或旧核心缺少合同均不派发 Judge',async()=>{
+  for(const preview of [previewResult,{...previewResult,live_authorization_preview:{ready:false}}]){
+    const f=fixture(preview);let calls=0
+    const planning={decompositionDecision:async()=>{calls++;return {}}} as any
+    const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),liveExecution:{...liveExecution(),
+      decompositionDecision:{mode:'hybrid',allowExperimental:true,judge:localJudge(),threshold:.65}}}),undefined,planning)
+    const output=[];for await(const chunk of adapter.stream({...options,model:'auto-live'}))output.push(chunk)
+    assert.equal(calls,0);assert.equal(f.spawns.length,1)
+    assert.equal((output.at(-1)?.reason as {kind:string}).kind,'error')
+  }
 })
 test('混合拆分判别必须明确实验启用并使用完整本地配置',()=>{
   assert.throws(()=>configure({liveExecution:{...liveExecution(),decompositionDecision:{mode:'hybrid',judge:localJudge()}}}),

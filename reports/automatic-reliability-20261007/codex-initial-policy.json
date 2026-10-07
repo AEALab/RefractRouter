@@ -1,0 +1,141 @@
+{
+  "codexCases": [
+    {
+      "scenario": "executed",
+      "passed": true,
+      "codexExit": 0,
+      "released": true,
+      "paidCalls": 0,
+      "modelCalls": 2,
+      "status": "completed",
+      "validation": {
+        "schemaVersion": "model-tool-validation-v1",
+        "required": true,
+        "requiredTools": [
+          "bash"
+        ],
+        "passed": true,
+        "reason": "host-tool-receipt-observed",
+        "missingTools": [],
+        "records": [
+          {
+            "callId": "call_requirement_executed",
+            "tool": "exec_command",
+            "status": "completed"
+          }
+        ],
+        "semanticQualityVerified": false
+      },
+      "resolvedIds": [
+        "call_requirement_executed"
+      ],
+      "hostCommands": [
+        {
+          "command": "printf REFRACT_RECEIPT_OK",
+          "code": 0,
+          "output": "REFRACT_RECEIPT_OK"
+        }
+      ]
+    },
+    {
+      "scenario": "failed",
+      "passed": true,
+      "codexExit": 0,
+      "released": true,
+      "paidCalls": 0,
+      "modelCalls": 2,
+      "status": "completed",
+      "validation": {
+        "schemaVersion": "model-tool-validation-v1",
+        "required": true,
+        "requiredTools": [
+          "bash"
+        ],
+        "passed": true,
+        "reason": "host-tool-receipt-observed",
+        "missingTools": [],
+        "records": [
+          {
+            "callId": "call_requirement_failed",
+            "tool": "exec_command",
+            "status": "failed"
+          }
+        ],
+        "semanticQualityVerified": false
+      },
+      "resolvedIds": [
+        "call_requirement_failed"
+      ],
+      "hostCommands": [
+        {
+          "command": "false",
+          "code": 1,
+          "output": ""
+        }
+      ]
+    },
+    {
+      "scenario": "missing",
+      "passed": true,
+      "codexExit": 1,
+      "released": false,
+      "paidCalls": 0,
+      "modelCalls": 1,
+      "status": "tool-requirement-failed",
+      "validation": {
+        "schemaVersion": "model-tool-validation-v1",
+        "required": true,
+        "requiredTools": [
+          "bash"
+        ],
+        "passed": false,
+        "reason": "required-host-tool-not-observed",
+        "missingTools": [
+          "bash"
+        ],
+        "records": [],
+        "semanticQualityVerified": false
+      },
+      "resolvedIds": [],
+      "hostCommands": []
+    },
+    {
+      "scenario": "plain-unconfirmed",
+      "passed": true,
+      "codexExit": 1,
+      "released": false,
+      "paidCalls": 0,
+      "modelCalls": 2,
+      "status": "tool-requirement-failed",
+      "validation": {
+        "schemaVersion": "model-tool-validation-v1",
+        "required": true,
+        "requiredTools": [
+          "bash"
+        ],
+        "passed": false,
+        "reason": "host-tool-status-unconfirmed",
+        "missingTools": [
+          "bash"
+        ],
+        "records": [
+          {
+            "callId": "call_requirement_plain-unconfirmed",
+            "tool": "exec_command",
+            "status": "unclassified"
+          }
+        ],
+        "semanticQualityVerified": false
+      },
+      "resolvedIds": [],
+      "hostCommands": [
+        {
+          "command": "printf REFRACT_RECEIPT_OK",
+          "code": 0,
+          "output": "REFRACT_RECEIPT_OK"
+        }
+      ]
+    }
+  ],
+  "paidCalls": 0
+}
