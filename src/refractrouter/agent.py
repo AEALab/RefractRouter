@@ -144,7 +144,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
             'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls',
-            'decompositionDecision', 'boundedCallOutput'}:
+            'decompositionDecision', 'boundedCallOutput', 'reviewReserveMs', 'reviewMaxOutputTokens'}:
         raise ValueError('invalid RefractAgent request fields')
     if 'boundedCallOutput' in payload and type(payload['boundedCallOutput']) is not bool:
         raise ValueError('boundedCallOutput must be boolean')
@@ -181,6 +181,11 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
                'costMax': RELAXED_COST_MAX if relax_budget else budget,
                'latencyMaxMs': number(timeout_ms, 'timeout', positive=True),
                'maxConcurrency': 1, 'maxNodeFallbacks': 0}
+    if automatic_routing:
+        request['reviewReserveMs'] = payload.get('reviewReserveMs', 60000)
+        request['reviewMaxOutputTokens'] = payload.get('reviewMaxOutputTokens', 8192)
+    elif 'reviewReserveMs' in payload or 'reviewMaxOutputTokens' in payload:
+        raise ValueError('review limits require automatic routing')
     if limits.get('unlimitedTime', False):
         request['unlimitedTime'] = True
     if plan is not None:
@@ -231,7 +236,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
               manifest_path=None, profile_path=None, execute_paid_run=False,
               client=None, cancel_event=None, provider_config=None, preset=None, progress=None, tool_runtime=None,
               model_profile_provenance=None, route_observation_path=None,
-              route_observation_scope='local', dsh_catalog_snapshot=None):
+              route_observation_scope='local', dsh_catalog_snapshot=None, final_validator=None):
     if mode not in {'preflight', 'demo', 'live'}:
         raise ValueError('mode must be preflight, demo or live')
     automatic_routing = (isinstance(provider_config, dict)
@@ -440,6 +445,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         context_limit_bytes=RELAXED_CONTEXT_BYTES if relax_context else MAX_CONTEXT_BYTES, input_cap=input_cap,
         privacy=configured.privacy if configured else None,
         decision_evidence=gate, review_evidence=review, max_model_calls=max_model_calls,
+        final_validator=final_validator,
         alternative_direct_plan=(plan_template('single', payload.get('acceptanceCriteria'))
             if automatic_routing and mode == 'live' and gate['decision'] == 'dag'
             and configured.objective['dagMode'] == 'auto' else None))

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 from dataclasses import replace
+from decimal import Decimal
 import hashlib
 import json
 import math
@@ -23,6 +24,7 @@ from refractrouter.task_budget import TaskCallBudget, request_input_bound, Inval
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT/'data/research/automatic-applicability-v3.json'
+CLARIFIED_PROTOCOL = ROOT/'data/research/automatic-applicability-v4.json'
 HOST = ROOT/'validation/dsh/applicability_host.ts'
 HOST_AUDIT = ROOT/'validation/dsh/applicability_audit.ts'
 
@@ -52,7 +54,7 @@ def source_hashes():
     """同时冻结实际加载的桥接构建与源码，防止预检后更换调用边界。"""
     plugin = ROOT/'validation/dsh/plugin'
     files = [*sorted((ROOT/'src/refractrouter').rglob('*.py')), Path(__file__), HOST, HOST_AUDIT,
-        PROTOCOL, *sorted((plugin/'src').rglob('*.ts')), *sorted((plugin/'src').rglob('*.tsx')),
+        PROTOCOL, CLARIFIED_PROTOCOL, *sorted((plugin/'src').rglob('*.ts')), *sorted((plugin/'src').rglob('*.tsx')),
         plugin/'package-lock.json', *sorted((plugin/'dist').rglob('*.js'))]
     if not (plugin/'dist/index.js').exists():
         raise ValueError('请先构建实际宿主桥接，再冻结预检')
@@ -149,18 +151,80 @@ def task_check(answer, task):
             'explanationPresent': explained, 'explanationQualityVerified': False}
 
 
-def freeze(catalog, history, extra_history_cny, authorization_cny):
-    protocol = json.loads(PROTOCOL.read_text())
+def ledger_answers(contract):
+    """由题目输入推导费用标准答案；仅供实验校验，不修改模型回复。"""
+    if contract.get('version') != 'reference-cash-ledger-v1':
+        raise ValueError('未知答案合同')
+    reference = cash = unknown = Decimal(0)
+    for row in contract['rows']:
+        if row['mode'] not in ('subscription', 'metered') or row['status'] not in ('billed', 'unknown-usage'):
+            raise ValueError('非法账本案例')
+        amount = (Decimal(row['amount']) if 'amount' in row else
+            (Decimal(row['inputTokens'])*Decimal(row['inputPer1k'])
+             + Decimal(row['outputTokens'])*Decimal(row['outputPer1k']))/1000)
+        if not amount.is_finite() or amount < 0:
+            raise ValueError('非法案例金额')
+        if row['status'] == 'billed':
+            reference += amount
+            if row['mode'] == 'metered':
+                cash += amount
+        elif row['mode'] == 'metered':
+            unknown += amount
+    return dict(knownReferenceCny=float(reference), knownCashCny=float(cash),
+                unknownReserveCny=float(unknown), cashProtectedCny=float(cash+unknown), subscriptionCashCny=None)
+
+
+def validate_answer_contracts(protocol):
+    for task in protocol['tasks']:
+        if 'answerContract' not in task:
+            continue
+        answers = ledger_answers(task['answerContract'])
+        for key, expected in task['expectedAnswers'].items():
+            if key in answers and answers[key] != expected:
+                raise ValueError(f'标准答案与账本案例不一致：{task["id"]}/{key}')
+        if json.dumps(task['answerContract']['rows'], ensure_ascii=False) not in task['task']:
+            raise ValueError('执行器未收到完整账本案例，禁止验收')
+
+
+def freeze(catalog, history, extra_history_cny, authorization_cny, *,
+           model_capacity_output=False, batch_ceiling_cny=None, task_ids=None, protocol_version='v3'):
+    if protocol_version not in ('v3', 'v4'):
+        raise ValueError('未知实验协议')
+    protocol = json.loads((CLARIFIED_PROTOCOL if protocol_version == 'v4' else PROTOCOL).read_text())
+    validate_answer_contracts(protocol)
+    source_protocol_version = protocol['schemaVersion']
+    if model_capacity_output:
+        selection = catalog.get('catalogRequest', {})
+        if (set(selection) != {'op', 'outputMode', 'flashReasoning'} or selection['op'] != 'catalog'
+                or selection['outputMode'] != 'model-capacity' or selection['flashReasoning'] not in {'high', 'low'}):
+            raise ValueError('新实验必须冻结真实目录容量及推理档位，不得混用旧 8192 目录')
+        if (type(batch_ceiling_cny) not in (int, float) or not math.isfinite(batch_ceiling_cny)
+                or batch_ceiling_cny <= 0):
+            raise ValueError('取消单次输出限制仍须明确整批费用上限')
+        protocol.update(schemaVersion='automatic-applicability-model-capacity-v1',
+            taskProtocolVersion=source_protocol_version,
+            executionOutputMode='model-capacity', reasoningEffort='ark-flash-'+selection['flashReasoning'],
+            outputRevisionReason='题目版本单独记录；执行使用目录容量，整批保留硬预算，耗尽即停止。')
+    if task_ids is not None:
+        known = {t['id'] for t in protocol['tasks']}
+        if not task_ids or len(task_ids) != len(set(task_ids)) or set(task_ids) - known:
+            raise ValueError('定向复验必须使用不重复的已冻结任务 ID')
+        protocol['tasks'] = [t for t in protocol['tasks'] if t['id'] in task_ids]
+        protocol['targetedRepairRecheck'] = list(task_ids)
     compiled, provenance = compile_dsh_model_pool(catalog['pool'], {
         'schemaVersion': 'refractagent-dsh-catalog-v1', 'routes': catalog['routes']})
     models = compile_configuration(compiled).manifest.models
     maximum_calls = len(protocol['tasks']) * (protocol['maxCallsPerDirect'] + protocol['maxCallsPerDag'])
     # 互斥目标用单次最贵合法价格作保守包络，不把五个模型价格相加。
+    capacities = {m.model_id: m.max_output_tokens if model_capacity_output
+                  else min(m.max_output_tokens, protocol['outputLimitPerCall']) for m in models}
     amounts = [(protocol['inputBoundPerCall']*m.input_cost_per_1k
-                + protocol['outputLimitPerCall']*m.output_cost_per_1k)/1000 for m in models]
-    maximum_reference = maximum_calls * max(amounts)
-    maximum_cash = maximum_calls * max(amount for amount, model in zip(amounts, models)
-        if model.billing_mode != 'subscription')
+                + capacities[m.model_id]*m.output_cost_per_1k)/1000 for m in models]
+    worst_reference = maximum_calls * max(amounts)
+    worst_cash = maximum_calls * max((amount for amount, model in zip(amounts, models)
+        if model.billing_mode != 'subscription'), default=0)
+    maximum_reference = min(worst_reference, batch_ceiling_cny) if model_capacity_output else worst_reference
+    maximum_cash = min(worst_cash, batch_ceiling_cny) if model_capacity_output else worst_cash
     protected = history['cashProtectedCny'] + extra_history_cny
     if not math.isfinite(authorization_cny) or authorization_cny <= 0:
         raise ValueError('必须给出实际获授权的正数现金上限')
@@ -177,6 +241,10 @@ def freeze(catalog, history, extra_history_cny, authorization_cny):
         'cashAuthorizationCny': authorization_cny,
         'remainingCashAuthorizationCny': authorization_cny-protected,
         'newJevCalls': 0, 'note': '只比较显式 Direct／DAG 对照；不宣称自动入口已选择 DAG。'}
+    if model_capacity_output:
+        frozen.update(outputCapsByModel=capacities, worstCaseReferenceCny=worst_reference,
+            worstCaseCashCny=worst_cash, budgetMayStopBeforeAllRoutes=True,
+            catalogRequest=catalog['catalogRequest'])
     return {**frozen, 'sha256': digest(frozen)}
 
 
@@ -194,7 +262,7 @@ def run(frozen, output, host_command, catalog):
     results = []
     budget = None
     try:
-        process.stdin.write('{"op":"catalog"}\n'); process.stdin.flush()
+        process.stdin.write(json.dumps(frozen.get('catalogRequest', {'op': 'catalog'}))+'\n'); process.stdin.flush()
         current = json.loads(process.stdout.readline())
         if digest(current) != digest(catalog):
             raise ValueError('原 DSH 目录在预检后变化')
@@ -220,7 +288,8 @@ def run(frozen, output, host_command, catalog):
                 with lock:
                     cap = protocol['maxCallsPerDirect'] if state['route']=='direct' else protocol['maxCallsPerDag']
                     if ((model.provider, model.api_model) not in identities or tools
-                            or state['calls'] >= cap or model.max_output_tokens > protocol['outputLimitPerCall']
+                            or state['calls'] >= cap or model.max_output_tokens > frozen.get(
+                                'outputCapsByModel', {}).get(model.model_id, protocol['outputLimitPerCall'])
                             or request_input_bound(messages, tools) > protocol['inputBoundPerCall']):
                         budget.stop(); persist()
                         raise ValueError('实际调用超出冻结模型、容量、工具或次数合同')
@@ -260,6 +329,8 @@ def run(frozen, output, host_command, catalog):
                 'reviewPolicy': 'always', 'maxConcurrency': 1, 'boundedCallOutput': True,
                 'plannerMaxOutputTokens': protocol['outputLimitPerCall'],
                 'plannerTimeoutMs': protocol['plannerTimeoutMs'], 'maxPlanRepairs': 0}
+            if protocol.get('executionOutputMode') == 'model-capacity':
+                payload['unlimitedNodeOutput'] = True
             folder = output/task['id']/route
             common = dict(provider_config=config, production_budget='unlimited', evaluation_budget='unlimited',
                 timeout_ms=protocol['timeoutMs'], max_output_tokens=protocol['outputLimitPerCall'],
@@ -272,7 +343,8 @@ def run(frozen, output, host_command, catalog):
                 auth = {k: permit[k] for k in ('schema_version', 'authorization_id', 'issued_at', 'expires_at', 'preview_sha256')}
                 start = time.monotonic()
                 result = run_agent({**payload, 'authorization': auth}, mode='live', execute_paid_run=True,
-                    client=Guard(), runs_dir=folder/'live', **common)
+                    client=Guard(), runs_dir=folder/'live',
+                    final_validator=lambda answer: task_check(answer, task), **common)
                 raw = json.loads(Path(result['result_path']).read_text())
                 row = {**item, 'status': result['status'], 'modelCalls': state['calls'],
                     'nodeCount': len((raw.get('plan') or {}).get('nodes', [])),
@@ -310,13 +382,19 @@ def main():
     parser.add_argument('--authorized-cash-cny', type=float, required=True)
     parser.add_argument('--execute', action='store_true')
     parser.add_argument('--freeze-sha256')
+    parser.add_argument('--model-capacity-output', action='store_true')
+    parser.add_argument('--batch-ceiling-cny', type=float)
+    parser.add_argument('--task', action='append', dest='task_ids')
+    parser.add_argument('--protocol-version', choices=('v3', 'v4'), default='v3')
     args = parser.parse_args()
     if not 0 <= args.extra_history_protection_cny < args.authorized_cash_cny:
         parser.error('必须给出独立历史现金的非负保护额度')
     history = historical_protection(historical_roots(
         ROOT, Path.home()/'Documents/Codes/RefractRouter'))
     catalog = json.loads(args.catalog.read_text())
-    frozen = freeze(catalog, history, args.extra_history_protection_cny, args.authorized_cash_cny)
+    frozen = freeze(catalog, history, args.extra_history_protection_cny, args.authorized_cash_cny,
+        model_capacity_output=args.model_capacity_output, batch_ceiling_cny=args.batch_ceiling_cny,
+        task_ids=args.task_ids, protocol_version=args.protocol_version)
     if not args.execute:
         args.output_dir.mkdir(parents=True, exist_ok=False)
         atomic_json(args.output_dir/'preflight.json', frozen)

@@ -32,6 +32,13 @@ export function automaticRefs(snapshot:TraceSnapshot):AutomaticRef[]{
 const NAMES:Record<string,string>={
   direct:'整任务直接执行',dag:'DAG 拆分执行',completed:'已完成',preview:'零调用预览',running:'运行中',
   started:'已开始（尚未结束）',pending:'等待执行',skipped:'按策略跳过',
+  'blocked-deterministic-check':'固定事实检查未通过，未派发评审',
+  'not-dispatched-insufficient-time':'剩余时间不足，未派发',
+  'known-answer-contract-failed':'已知事实不符合验收合同',
+  'review-time-exhausted':'剩余时间不足，最终答复未审定',
+  'final-judge-insufficient-time':'未满足评审时间预留，未派发评审',
+  'planning-would-consume-review-reserve':'任务时间不足以保留评审，未派发规划',
+  'execution-would-consume-review-reserve':'剩余时间不足以保留评审，未派发执行',
   'quality-failed':'质量未通过','no-feasible-route':'没有可执行路线','tool-requirement-failed':'工具证据未通过',
   'data-domain-not-authorized':'数据域未获授权','quality-below-minimum':'质量先验低于门槛',
   'input-or-output-capacity':'输入或输出容量不足','missing-profile':'缺少匹配画像',eligible:'通过画像、容量及数据域检查',
@@ -115,6 +122,11 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       </Table><p>首字时间为底层模型数据；自动路由交付还包含工具、规划及评审等待，不能等同于用户首字等待。</p>
     </details>
     <h4>工具证据、评审与停止原因</h4>
+    {r.planning_budget?.version&&<p>规划开始时告知的执行时间包络：{r.planning_budget.execution_after_planner_ms===null?'任务不限时间':timing(r.planning_budget.execution_after_planner_ms)}（已扣评审预留与规划额度）。{r.planning_budget.max_nodes!==undefined&&<>本次最多 {r.planning_budget.max_nodes} 个节点（含最终交付）。</>}时延先验不是速度保证；计划仍须通过准入。</p>}
+    {r.review?.limits_version&&<p>评审预留时间 {timing(r.review.time_reserve_ms)}；评审输出上限 {traceNumber(r.review.output_cap)} tokens。此限制独立于执行模型输出容量。</p>}
+    {['proposal-constraints-v1','proposal-constraints-v2'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
+    {typeof r.deterministic_validation?.passed==='boolean'&&<p>固定事实检查：{r.deterministic_validation.passed?'通过':'未通过'}；已知事实不符时，模型高分不能覆盖该结果。</p>}
+    {r.planner_normalizations?.length>0&&<details><summary>规划格式兼容记录</summary><pre>{JSON.stringify(r.planner_normalizations,null,2)}</pre></details>}
     <p>工具证据：{r.tools?.message??'未记录'}；评审：{r.review?.required===false?'按策略未要求':label(r.review?.status)}，分数 {traceNumber(r.review?.score??r.quality?.score)}，原始结论{r.review?.passed===true?'通过':r.review?.passed===false?'未通过':'未记录'}。
       门槛验收：{r.quality_gate==='passed'?'达到':r.quality_gate==='failed'?'未达到':r.quality_gate==='not-required'?'本次未要求':'未记录'}。最终运行状态与质量验收并非同一概念。</p>
     {r.tools?.records?.length?<details><summary>宿主工具回执（{r.tools.records.length} 条）</summary><ol>{r.tools.records.map((t:Row,i:number)=><li key={`${t.call_id}-${i}`}>{t.node} / {t.tool}：{t.outcome}；回执 {t.call_id}</li>)}</ol><p>completed 表示回执已返回，不自动证明测试成功或命令退出为零。</p></details>:null}

@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "automatic-repair-recheck-v1",
+  "date": "2026-10-08",
+  "coreVersion": "0.16.9",
+  "pluginVersion": "0.32.3",
+  "complete": {
+    "planned": 4,
+    "finished": 4,
+    "complete": true,
+    "modelCalls": 8
+  },
+  "cashCostsCny": {
+    "production": 0,
+    "evaluation": 0
+  },
+  "unknownUsageCalls": 0,
+  "originalUnknownReferenceRetainedCny": 6.195671138713,
+  "results": [
+    {
+      "task": "independent-cost-evidence",
+      "route": "dag",
+      "status": "quality-failed",
+      "modelCalls": 4,
+      "nodeCount": 3,
+      "wallMs": 106453,
+      "factCheck": {
+        "passed": false,
+        "mismatches": [
+          {
+            "key": "knownReferenceCny",
+            "expected": 0.11,
+            "actual": 0.08
+          }
+        ],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "review": {
+        "required": true,
+        "status": "blocked-deterministic-check",
+        "passed": false,
+        "score": null,
+        "time_reserve_ms": 60000,
+        "output_cap": 8192
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "status": "billed",
+          "charged": 0.015507947133,
+          "billing_unit": null,
+          "input_tokens": 1641,
+          "output_tokens": 312,
+          "latency_ms": 10625
+        },
+        {
+          "label": "fee_check",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "status": "billed",
+          "charged": 0.033904,
+          "billing_unit": null,
+          "input_tokens": 1672,
+          "output_tokens": 3820,
+          "latency_ms": 33491
+        },
+        {
+          "label": "tool_check",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "status": "billed",
+          "charged": 0.031014,
+          "billing_unit": null,
+          "input_tokens": 1651,
+          "output_tokens": 3464,
+          "latency_ms": 34703
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "status": "billed",
+          "charged": 0.035458,
+          "billing_unit": null,
+          "input_tokens": 4733,
+          "output_tokens": 3249,
+          "latency_ms": 27546
+        }
+      ]
+    },
+    {
+      "task": "cancel-reservations",
+      "route": "dag",
+      "status": "no-feasible-route",
+      "modelCalls": 1,
+      "nodeCount": 4,
+      "wallMs": 9877,
+      "factCheck": {
+        "passed": false,
+        "reason": "最终回复不是完整 JSON"
+      },
+      "review": {
+        "required": true,
+        "status": "pending",
+        "passed": null,
+        "score": null,
+        "time_reserve_ms": 60000,
+        "output_cap": 8192
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "status": "billed",
+          "charged": 0.019785252487,
+          "billing_unit": null,
+          "input_tokens": 1199,
+          "output_tokens": 407,
+          "latency_ms": 9841
+        }
+      ],
+      "routeTimeDiagnostic": {
+        "minimum_scheduled_latency_ms": 240000.0,
+        "remaining_latency_ms": 230138.0502921529
+      }
+    },
+    {
+      "task": "cancel-reservations",
+      "route": "direct",
+      "status": "completed",
+      "modelCalls": 2,
+      "nodeCount": 1,
+      "wallMs": 70734,
+      "factCheck": {
+        "passed": true,
+        "mismatches": [],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "review": {
+        "required": true,
+        "status": "completed",
+        "passed": true,
+        "score": 95,
+        "time_reserve_ms": 60000,
+        "output_cap": 8192
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "status": "billed",
+          "charged": 0.035436,
+          "billing_unit": null,
+          "input_tokens": 1210,
+          "output_tokens": 4127,
+          "latency_ms": 39560
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "status": "billed",
+          "charged": 0.061964734286,
+          "billing_unit": null,
+          "input_tokens": 1822,
+          "output_tokens": 1294,
+          "latency_ms": 31126
+        }
+      ]
+    },
+    {
+      "task": "independent-cost-evidence",
+      "route": "direct",
+      "status": "quality-failed",
+      "modelCalls": 1,
+      "nodeCount": 1,
+      "wallMs": 40522,
+      "factCheck": {
+        "passed": false,
+        "mismatches": [
+          {
+            "key": "knownReferenceCny",
+            "expected": 0.11,
+            "actual": 0.08
+          }
+        ],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "review": {
+        "required": true,
+        "status": "blocked-deterministic-check",
+        "passed": false,
+        "score": null,
+        "time_reserve_ms": 60000,
+        "output_cap": 8192
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "status": "billed",
+          "charged": 0.038062,
+          "billing_unit": null,
+          "input_tokens": 1675,
+          "output_tokens": 4339,
+          "latency_ms": 40488
+        }
+      ]
+    }
+  ],
+  "qualityPassed": 1,
+  "batchGuardReferenceCostsCny": {
+    "production": 0.2711319339060001,
+    "evaluation": 0.0
+  },
+  "referenceCostsByPurposeCny": {
+    "production": 0.20916719962000002,
+    "evaluation": 0.06196473428600002
+  },
+  "totalReferenceCny": 0.27113193390600004
+}

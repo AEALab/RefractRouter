@@ -19,9 +19,11 @@ class RecoveryEligibleFailure(ValueError):
     """实验专用：全部在途请求已结算，且停止原因仅为模型输出不合法。"""
 
 
-def node_messages(task, node, contract, context, *, output_constraints=None, check_input_budget=True, tools=None, prefix_policy="legacy"):
+def node_messages(task, node, contract, context, *, output_constraints=None, check_input_budget=True, tools=None, prefix_policy="legacy", prompt_contract="numeric-v3"):
     if prefix_policy not in ("legacy", "stable-v1"):
         raise ValueError("invalid prefixPolicy")
+    if prompt_contract not in ("legacy", "numeric-v1", "numeric-v2", "numeric-v3"):
+        raise ValueError("invalid node prompt contract")
     upstream = {p: ({key: context[p][key] for key in contract['inputs'][p]['fields']}
                     if contract else context[p]) for p in node.parents}
     payload = {'node_id': node.node_id, 'task': task, 'instruction': node.prompt_template, 'upstream': upstream}
@@ -64,6 +66,25 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
     if tools:
         from .tool_runtime import tool_instruction
         messages[0]['content'] = messages[0]['content'].replace('不声称执行工具或检索新事实。', '') + tool_instruction()
+    if prompt_contract == 'numeric-v1':
+        messages[0]['content'] += (
+            '涉及数值时按原任务定义列出组成项、单位和计算式，再逐项复算；不得只复述上游结论。'
+            '合计与单项必须区分，已结算与未知预留必须区分，不漏项也不重复计入。'
+            '若任务讨论模型账本，参考成本包含订阅参考估值和按量费用；'
+            '现金占用包含已结算按量费用与未确认的现金预留；订阅参考估值不是单次现金扣款。'
+            '这些账本术语仅适用于相应问题，任务给出其他明确定义时以原任务为准。')
+    if prompt_contract == 'numeric-v2':
+        messages[0]['content'] += (
+            '数值按原任务列出组成项、单位与公式，独立复算，不盲信上游。模型账本：'
+            '已结算总参考成本＝已结算订阅参考估值＋已结算按量费用；不得把订阅分项冒充总参考成本。'
+            '已结算按量费用同时属于参考合计与现金账本，但不能再将两个账本相加。'
+            '现金占用＝已结算现金＋未知现金预留；未知预留不得冒充已结算成本。'
+            '原任务明确给出其他定义时以原任务为准。')
+    if prompt_contract == 'numeric-v3':
+        messages[0]['content'] += (
+            '数值按原任务定义列出组成项、单位与公式，独立复算，不盲信上游。'
+            '区分合计与分项、已确认结果与未知预留；不要自行发明领域术语的定义。'
+            '定义不足或材料矛盾时明确说明依据、假设与不确定性。')
     if check_input_budget and contract and request_input_bound(messages, tools) > contract['capability']['input_budget_tokens']:
         raise ValueError(f'node-input-budget-exceeded before {node.node_id}')
     return messages

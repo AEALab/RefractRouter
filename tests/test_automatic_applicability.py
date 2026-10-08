@@ -7,6 +7,14 @@ from experiments.run_automatic_applicability import (
 )
 
 
+def accepted_fixture(response, model, messages, json_mode):
+    from dataclasses import replace
+    if not json_mode and model.role != 'judge':
+        return replace(response, content=json.dumps({'answers': {'foo': False},
+            'explanation': '模拟正确交付，未调用远程模型。'}, ensure_ascii=False))
+    return response
+
+
 def test_private_evidence_cash_remains_protected_across_worktree_and_installation(tmp_path):
     root, deployed = tmp_path/'worktree', tmp_path/'installed'
     call = {'model_id': 'cash', 'dispatch_at': '2026-10-08T00:00:00Z',
@@ -24,7 +32,8 @@ def test_private_evidence_cash_remains_protected_across_worktree_and_installatio
     assert len(protected['calls']) == 2
 
 
-def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, monkeypatch):
+@pytest.mark.parametrize('native_capacity', [False, True])
+def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, monkeypatch, native_capacity):
     """完整调用胶水无网络验证，防止期限／空计划／路径汇总故障进入付费批次。"""
     import io
     import experiments.run_automatic_applicability as runner
@@ -34,6 +43,9 @@ def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, mo
     raw['billingUnit'] = 'CNY'
     for model in raw['models']:
         model['pricing']['unit'] = 'CNY'  # 模拟价格单位，不是美元到人民币换算。
+        if native_capacity:
+            model['maxOutputTokens'] = 32768
+            model['contextWindow'] = 1000000
     models = compile_configuration(raw).manifest.models
     catalog = {'routes': [{'provider': m.provider, 'model': m.api_model} for m in models]}
     class Process:
@@ -47,6 +59,11 @@ def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, mo
             super().__init__()
         def for_task_call(self, _seconds):
             return self
+        def complete(self, model, messages, *, json_mode=False):
+            seen_caps.append(model.max_output_tokens)
+            return accepted_fixture(super().complete(model, messages, json_mode=json_mode),
+                                    model, messages, json_mode)
+    seen_caps = []
     monkeypatch.setattr(runner.subprocess, 'Popen', Process)
     monkeypatch.setattr(runner, 'OpenAICompatibleClient', Client)
     task = {'id': 'one', 'task': '分别核对第一项事实和第二项风险，汇总建议。',
@@ -57,6 +74,9 @@ def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, mo
     frozen = {'protocol': protocol, 'order': [{'task': 'one', 'route': r} for r in ('direct', 'dag')],
         'configuration': raw, 'provenance': {}, 'maximumReferenceCny': 1000, 'maximumCashCny': 1000,
         'maximumModelCalls': 10}
+    if native_capacity:
+        protocol['executionOutputMode'] = 'model-capacity'
+        frozen['outputCapsByModel'] = {m.model_id: m.max_output_tokens for m in models}
     output = tmp_path/'fresh'
     rows = runner.run(frozen, output, ['fixture'], catalog)
     assert len(rows) == 2
@@ -65,6 +85,47 @@ def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, mo
     ledger = json.loads((output/'batch-ledger.json').read_text())
     assert all(r['status']=='billed' for r in ledger['records'])
     assert all(not r['resultPath'].startswith('/') for r in rows)
+    if native_capacity:
+        assert max(seen_caps) > 8192
+
+
+def test_native_capacity_freeze_preserves_hard_budget_and_original_protocol(monkeypatch):
+    import experiments.run_automatic_applicability as runner
+    from refractrouter.application_config import compile_configuration
+    from tests.test_live_execution import config
+    raw = config()
+    models = compile_configuration(raw).manifest.models
+    monkeypatch.setattr(runner, 'compile_dsh_model_pool', lambda *a: (raw, {}))
+    monkeypatch.setattr(runner, 'source_hashes', lambda: {})
+    monkeypatch.setattr(runner, 'validate_materials', lambda p: None)
+    before = runner.PROTOCOL.read_bytes()
+    catalog = {'pool': {}, 'routes': [], 'catalogRequest': {'op': 'catalog',
+        'outputMode': 'model-capacity', 'flashReasoning': 'high'}}
+    frozen = runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 100,
+        model_capacity_output=True, batch_ceiling_cny=1)
+    assert frozen['maximumCashCny'] == frozen['maximumReferenceCny'] == 1
+    assert frozen['worstCaseCashCny'] > 1
+    assert frozen['budgetMayStopBeforeAllRoutes']
+    assert frozen['maximumModelCalls'] == 60
+    assert frozen['outputCapsByModel'] == {m.model_id: m.max_output_tokens for m in models}
+    assert runner.PROTOCOL.read_bytes() == before
+    assert frozen['protocol']['plannerTimeoutMs'] == 90000
+    assert frozen['protocol']['outputLimitPerCall'] == 8192  # 规划独立保持原上限。
+    targeted = runner.freeze({**catalog, 'catalogRequest': {**catalog['catalogRequest'], 'flashReasoning': 'low'}},
+        {'cashProtectedCny': .5}, 1, 100, model_capacity_output=True, batch_ceiling_cny=1,
+        task_ids=['cancel-reservations', 'independent-cost-evidence'])
+    assert targeted['maximumModelCalls'] == 20 and len(targeted['order']) == 4
+    assert targeted['protocol']['reasoningEffort'] == 'ark-flash-low'
+    assert {t['id'] for t in targeted['protocol']['tasks']} == {'cancel-reservations', 'independent-cost-evidence'}
+    assert runner.PROTOCOL.read_bytes() == before
+    with pytest.raises(ValueError, match='任务 ID'):
+        runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 100, task_ids=['not-a-task'])
+    with pytest.raises(ValueError, match='超出历史授权余额'):
+        runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 2,
+            model_capacity_output=True, batch_ceiling_cny=1)
+    with pytest.raises(ValueError, match='真实目录容量'):
+        runner.freeze({**catalog, 'catalogRequest': {}}, {'cashProtectedCny': .5}, 1, 100,
+            model_capacity_output=True, batch_ceiling_cny=5)
 
 
 def test_null_plan_and_unknown_usage_stop_the_whole_batch(tmp_path, monkeypatch):
@@ -191,7 +252,8 @@ def test_complete_batch_pipeline_preserves_failure_receipts_and_stop_policy(tmp_
             if len(calls)==1:
                 receipt=ChatResponse('partial',100,20,0,0,1,1,'error','failed') if confirmed else None
                 raise ModelInvocationError(failure_type,'fixture',1,1,confirmed_response=receipt)
-            return super().complete(model,messages,json_mode=json_mode)
+            return accepted_fixture(super().complete(model,messages,json_mode=json_mode),
+                                    model, messages, json_mode)
     monkeypatch.setattr(runner.subprocess,'Popen',Process)
     monkeypatch.setattr(runner,'OpenAICompatibleClient',Client)
     task={'id':'one','task':'分别核对两项材料并汇总建议。','criteria':['完整回答。'],'expectedAnswers':{}}
@@ -220,7 +282,7 @@ def test_freeze_includes_compiled_bridge_and_changes_when_bridge_changes(tmp_pat
     monkeypatch.setattr(runner,'ROOT',tmp_path)
     # 测试哈希合同，不依赖真实安装或访问网络。
     monkeypatch.setattr(runner,'__file__',str(tmp_path/'runner.py'))
-    for name in ('HOST','HOST_AUDIT','PROTOCOL'):
+    for name in ('HOST','HOST_AUDIT','PROTOCOL','CLARIFIED_PROTOCOL'):
         path=tmp_path/name; path.write_text(name); monkeypatch.setattr(runner,name,path)
     plugin=tmp_path/'validation/dsh/plugin'
     (plugin/'dist').mkdir(parents=True); (plugin/'src').mkdir()
@@ -253,3 +315,47 @@ def test_materials_remain_bound_to_original_commit_after_runtime_repairs(monkeyp
             {'path':'src/example.py','sha256':'wrong'}]}]})
     with pytest.raises(ValueError,match='完整来源提交'):
         runner.validate_materials({'sourceCommit':'main','tasks':[task]})
+
+
+def test_clarified_protocol_answers_match_decimal_oracle_and_runtime_ledger():
+    from experiments.run_automatic_applicability import CLARIFIED_PROTOCOL, ledger_answers, validate_answer_contracts
+    from refractrouter.task_budget import TaskCallBudget
+    from decimal import Decimal
+    protocol = json.loads(CLARIFIED_PROTOCOL.read_text())
+    validate_answer_contracts(protocol)
+    for task in protocol['tasks']:
+        if 'answerContract' not in task:
+            continue
+        expected = ledger_answers(task['answerContract'])
+        ledger = TaskCallBudget(None, 10, 1, cash_limits={'production':5,'evaluation':1})
+        for row in task['answerContract']['rows']:
+            amount = (Decimal(row['amount']) if 'amount' in row else
+                (Decimal(row['inputTokens'])*Decimal(row['inputPer1k'])+
+                 Decimal(row['outputTokens'])*Decimal(row['outputPer1k']))/1000)
+            ledger.records.append({'category':'production', 'billing_mode':row['mode'],
+                                   'status':row['status'], 'charged':float(amount)})
+        ledger.stop()  # 已派发未知费用仍受保护。
+        _, records = ledger.snapshot()
+        assert sum(r['charged'] for r in records if r['status']=='billed') == pytest.approx(expected['knownReferenceCny'])
+        assert ledger.cash_snapshot()['production'] == pytest.approx(expected['cashProtectedCny'])
+        assert sum(r['charged'] for r in records if r['status']=='unknown-usage') == pytest.approx(expected['unknownReserveCny'])
+    bad = json.loads(CLARIFIED_PROTOCOL.read_text())
+    bad['tasks'][0]['expectedAnswers']['knownReferenceCny'] = .0036
+    with pytest.raises(ValueError, match='标准答案与账本案例不一致'):
+        validate_answer_contracts(bad)
+    bad = json.loads(CLARIFIED_PROTOCOL.read_text())
+    bad['tasks'][0]['task'] = '不完整题目'
+    with pytest.raises(ValueError, match='未收到完整账本案例'):
+        validate_answer_contracts(bad)
+
+
+def test_v4_is_separate_from_frozen_v3_and_preserves_numeric_thresholds():
+    from experiments.run_automatic_applicability import PROTOCOL, CLARIFIED_PROTOCOL
+    import hashlib
+    old = json.loads(PROTOCOL.read_text())
+    new = json.loads(CLARIFIED_PROTOCOL.read_text())
+    assert new['parentProtocol']['sha256'] == hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
+    assert new['schemaVersion'] != old['schemaVersion']
+    for a,b in zip(old['tasks'],new['tasks']):
+        assert a['id'] == b['id'] and a['expectedAnswers'] == b['expectedAnswers']
+        assert a['materials'] == b['materials']

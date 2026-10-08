@@ -83,7 +83,9 @@ def project(summary, runtime=None, *, cash_limits=None):
     quality = summary.get('quality') or runtime.get('evaluation') or {}
     score, floor = amount(quality.get('score')), amount(routing.get('quality_min_per_node'))
     quality_gate = 'not-recorded'
-    if review.get('required') is False:
+    if (runtime.get('deterministic_validation') or {}).get('passed') is False:
+        quality_gate = 'failed'
+    elif review.get('required') is False:
         quality_gate = 'not-required'
     elif summary.get('status', runtime.get('status')) == 'quality-failed':
         quality_gate = 'failed'
@@ -112,7 +114,15 @@ def project(summary, runtime=None, *, cash_limits=None):
         'accounting_basis': runtime.get('accounting_basis', costs.get('accounting_basis')),
         'external_judge_cost_cny': amount(local.get('costCny')) if local.get('backend') == 'jev' else None,
         'external_judge_called': local.get('backend') == 'jev' and local.get('model') is not None,
-        'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed')),
+        'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed',
+            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version')),
+        'deterministic_validation': pick(runtime.get('deterministic_validation'), ('passed', 'reason')),
+        'planning_budget': pick(runtime.get('planning_budget'), ('version', 'task_remaining_ms',
+            'review_reserve_ms', 'planner_allowance_ms', 'execution_after_planner_ms',
+            'estimates_are_guarantees', 'max_nodes', 'node_limit_basis')),
+        'planner_normalizations': [pick(attempt, ('identifier_normalization', 'type_normalization'))
+            for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
+            if attempt.get('identifier_normalization') or attempt.get('type_normalization')],
         'quality': pick(quality, ('score', 'passed', 'rationale')), 'quality_gate': quality_gate,
         'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),
             'records': [pick(r, ('node', 'call_id', 'tool', 'outcome')) for r in tool.get('records', [])]},

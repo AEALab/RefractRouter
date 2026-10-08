@@ -4,6 +4,7 @@ from dataclasses import replace, dataclass, fields
 from .application_config import ApplicationModelSpec
 from .ark_plan import catalog
 import json
+import math
 import re
 import time
 
@@ -13,7 +14,7 @@ from .responses_api import output_token_limit
 
 COMPACT_PLANNER_SYSTEM = '''你是快速文本任务 DAG 规划器，只拆工作，不解答、不计算答案。
 只返回紧凑 JSON：{"reason":"简短拆分理由","nodes":[{"id":"answer","type":"generation","job":"完整回答任务","parents":[],"difficulty":"medium","risk":"medium"}]}。
-1..6 个节点，最后一个节点汇总完整交付，每个节点必须汇入它。id 为小写英文标识。
+1..max_nodes 个节点，最后一个节点汇总完整交付，每个节点必须汇入它。id 为小写英文标识。
 type 只取 extraction、synthesis、generation、verification、planning；difficulty/risk 只取 low/medium/high，按真实职责标注。
 综合分析使用 synthesis，核对事实使用 verification；analysis 不是合法类型。
 id 必须匹配 [a-z][a-z0-9_]*：以小写英文字母开头，只含小写英文字母、数字和下划线；不得使用连字符或中文。parents 引用已有节点的原样 id。
@@ -21,6 +22,8 @@ job 每项不超过 180 个 Unicode 字符，reason 同样不超过 180 个字�
 job 只写简短职责和产物，建议不超过 60 个字符；不要复制原始案例、代码、字段清单或验收条款，执行节点已经收到完整原始任务。
 不生成答案、契约、预算、模型清单或验收表。
 优先把独立的分析工作分支并行，汇总节点等待分支。共同读取原始材料不构成依赖；只有消费前一节点结果才填写 parents。
+planning_budget 给出剩余时间、评审预留和时延先验；parallel_capacity=1 时独立分支也只能串行执行。max_nodes 包含最终交付节点。
+在不删除任务要求或真实依赖的前提下合并过细职责，让计划尽量适合可用时间。时延先验不是速度保证；不能伪造更短时延或删去要求来凑预算。
 不要添加「先读题」「制定计划」等空转节点；短小或强耦合工作合并。不得删除真实推理依赖来制造并行。
 拆分有额外模型调用、重复输入和交接成本。简单算术、短定义、单对象连续修改应返回一个 answer 节点。
 不要把计算、复核同一计算、汇总、再次校验分别建节点；除非用户要求独立验证，否则校验合并到交付节点。
@@ -50,6 +53,19 @@ def normalize_compact_ids(raw):
             row['parents'] = [changes.get(parent, parent) if isinstance(parent, str) else parent
                               for parent in row['parents']]
     return result, changes
+
+
+def normalize_compact_types(raw):
+    """兼容已观察到的综合分析别名；未知类型仍交给严格合同拒绝。"""
+    if not isinstance(raw, dict) or not isinstance(raw.get('nodes'), list):
+        return raw, []
+    result = deepcopy(raw)
+    changes = []
+    for row in result['nodes']:
+        if isinstance(row, dict) and row.get('type') == 'analysis':
+            row['type'] = 'synthesis'
+            changes.append({'node_id': row.get('id'), 'from': 'analysis', 'to': 'synthesis'})
+    return (result, changes) if changes else (raw, [])
 
 
 def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048, delivery='full'):
@@ -131,12 +147,28 @@ def planner_system(policy, context_policy='full'):
     from .minimal_planning import MINIMAL_COST_SYSTEM, MINIMAL_PLANNER_SYSTEM
     from .selective_context import SELECTIVE_COST_PLANNER_SYSTEM, SELECTIVE_PLANNER_SYSTEM
     if context_policy == 'selective-v1':
-        return SELECTIVE_COST_PLANNER_SYSTEM if policy == 'minimal-v2' else SELECTIVE_PLANNER_SYSTEM
-    if policy == 'minimal-v2':
-        return MINIMAL_COST_SYSTEM
-    if policy == 'minimal-v1':
-        return MINIMAL_PLANNER_SYSTEM
-    return COMPACT_PLANNER_SYSTEM
+        system = SELECTIVE_COST_PLANNER_SYSTEM if policy == 'minimal-v2' else SELECTIVE_PLANNER_SYSTEM
+    elif policy == 'minimal-v2':
+        system = MINIMAL_COST_SYSTEM
+    elif policy == 'minimal-v1':
+        system = MINIMAL_PLANNER_SYSTEM
+    else:
+        system = COMPACT_PLANNER_SYSTEM
+    return system
+
+
+def planning_node_limit(envelope, parallel_capacity, maximum=6):
+    """只在完整串行先验下约束拆分规模；不猜测并行图的关键路径。"""
+    if parallel_capacity != 1 or not envelope:
+        return maximum
+    remaining = envelope.get('execution_after_planner_ms')
+    priors = list(envelope.get('latency_prior_ms', {}).values())
+    if (type(remaining) not in (int, float) or not math.isfinite(remaining)
+            or not priors or any(type(p) not in (int, float) or not math.isfinite(p) or p <= 0
+                                 for p in priors)):
+        return maximum
+    # 最快先验仅提供规模上界；质量、模型资格和真实余时仍由后续准入检查。
+    return min(maximum, max(0, math.floor(remaining / min(priors))))
 
 
 def generate_compact(budget, model, payload, record, *, criteria, cost_limit, deadline,
@@ -177,6 +209,9 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
                     raw_reply, changes = normalize_compact_ids(raw_reply)
                     if changes:
                         row['identifier_normalization'] = {'version':'compact-id-normalization-v1', 'mapping':changes}
+                    raw_reply, type_changes = normalize_compact_types(raw_reply)
+                    if type_changes:
+                        row['type_normalization'] = {'version': 'compact-type-alias-v1', 'changes': type_changes}
                 options = {'criteria': criteria, 'max_nodes': max_nodes, 'output_cap': output_cap,
                            'parallel_capacity': payload.get('parallel_capacity', 1),
                            'tools_available': bool(payload.get('tools_available', False))}

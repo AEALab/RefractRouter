@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 import hashlib
 import json
 import time
@@ -30,7 +31,7 @@ from .task_contracts import decode_output, string_list
 from .planning_support import (execution_support, compile_generated_capacity, admission_diagnostics,
                                placement_admission_diagnostics, generate_plan)
 from .configured_routing import configured_profile
-from .compact_planning import planner_model, generate_compact, planner_system
+from .compact_planning import planner_model, generate_compact, planner_system, planning_node_limit
 from .cost_first import verify_cost_drivers
 from .selective_context import build_node_context
 from .task_materials import validate_materials
@@ -170,7 +171,7 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "costMaxByUnit", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget"}
+               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget", "reviewReserveMs", "reviewMaxOutputTokens"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     if raw.get('prefixPolicy', 'legacy') not in ('legacy', 'stable-v1'):
@@ -210,6 +211,8 @@ def validate_request(raw):
         if raw.get('maxPlanRepairs', 0):
             raise ValueError('minimal planning requires one call without repairs')
     for key, default, low, high in (
+            ('reviewReserveMs',0,0,300000),
+            ('reviewMaxOutputTokens',8192,256,128000),
             ('plannerMaxOutputTokens',1200,256,128000 if raw.get('boundedPlannerLimits') else 2048),
             ('plannerTimeoutMs',12000,1000,300000 if raw.get('boundedPlannerLimits') else 30000),
             ('maxDynamicSplits',0,0,2)):
@@ -284,8 +287,13 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
              checkpoint: Callable[[dict], None] = lambda result: None, cancel_event=None, conversation_context='',
              configured_application=False, configuration=None, context_limit_bytes=120_000, input_cap=131_072,
              tool_runtime=None, privacy=None, classifier=None, decision_evidence=None, review_evidence=None,
-             max_model_calls=None, alternative_direct_plan=None):
+             max_model_calls=None, alternative_direct_plan=None, final_validator=None):
     request = validate_request(request)
+    if final_validator is not None and not callable(final_validator):
+        raise ValueError('final_validator must be callable')
+    review_judge = (replace(manifest.judge, max_output_tokens=min(
+        output_token_limit(manifest.judge), request['reviewMaxOutputTokens']))
+        if 'reviewMaxOutputTokens' in request else manifest.judge)
     if request.get('contextPolicy') == 'selective-v1' and tool_runtime is not None:
         raise ValueError('selective-v1 currently requires text-only material tasks without native tools')
     if not isinstance(conversation_context, str) or len(conversation_context.encode()) > context_limit_bytes:
@@ -375,6 +383,11 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                               "Node profile estimates may not transfer to this task; quality is a proxy, not a guarantee.",
                               "调度受并发上限和派发间隔约束；预测不是任务 p95。取消不保证已派发请求停止计费。"]}
     planning_model = planner if request.get('planningMode') == 'compact' else planner_candidates[planner_id]
+    review_reserve = (request.get('reviewReserveMs', 0) / 1000
+        if result['review']['required'] and not request.get('unlimitedTime') else 0)
+    execution_deadline = started + deadline_ms / 1000 - review_reserve
+    result['review'].update(time_reserve_ms=round(review_reserve * 1000),
+        output_cap=output_token_limit(review_judge), limits_version='automatic-review-envelope-v1')
     result['planner_selection'] = {'model_id': planner_id, 'basis': planner_basis,
         'output_cap': output_token_limit(planning_model),
         'timeout_ms': None if request.get('unlimitedTime') or request.get('unrestrictedPlanning') else request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms,
@@ -442,6 +455,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         return remaining
     node_context = None
     try:
+        if live and before_call() <= review_reserve:
+            result['review'].update(status='not-dispatched-insufficient-time', passed=False,
+                reason='planning-would-consume-review-reserve')
+            raise ValueError('task-deadline-exhausted')
         if "plan" in request:
             plan = validate_plan(request["plan"], required_criteria=request.get("acceptanceCriteria"))
             if configuration is not None and result['plan_origin'] == 'direct-gate':
@@ -481,6 +498,22 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 system = planner_system(request.get('plannerPolicy', 'legacy'), request.get('contextPolicy', 'full'))
                 result['planner_prompt_sha256'] = hashlib.sha256(system.encode()).hexdigest()
                 planning_payload = {'task': planning_task, 'parallel_capacity': policy.max_concurrency}
+                if 'reviewReserveMs' in request:
+                    remaining_ms = before_call() * 1000
+                    planner_ms = (0 if request.get('unrestrictedPlanning') else
+                        request.get('plannerTimeoutMs', 12000))
+                    estimates = ({mid: configuration.predictions.get(mid, {}).get('latency_ms')
+                        for mid in candidates} if configuration is not None else {})
+                    planning_payload['planning_budget'] = {
+                        'version': 'automatic-planning-time-envelope-v1',
+                        'task_remaining_ms': None if request.get('unlimitedTime') else remaining_ms,
+                        'review_reserve_ms': round(review_reserve * 1000),
+                        'planner_allowance_ms': None if request.get('unrestrictedPlanning') else planner_ms,
+                        'execution_after_planner_ms': (None if request.get('unlimitedTime') else
+                            max(0, remaining_ms - review_reserve * 1000 - planner_ms)),
+                        'latency_prior_ms': estimates,
+                        'estimates_are_guarantees': False}
+                    result['planning_budget'] = deepcopy(planning_payload['planning_budget'])
                 if minimal:
                     providers = {m.provider for m in candidates.values()}
                     planning_payload.update(
@@ -490,6 +523,15 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 if selective:
                     planning_payload['material_catalog'] = [{k: v for k, v in item.items() if k != 'text'}
                         for item in request.get('materials', [])]
+                node_limit = planning_node_limit(planning_payload.get('planning_budget'),
+                                                planning_payload['parallel_capacity'])
+                if 'planning_budget' in planning_payload:
+                    planning_payload['planning_budget'].update(max_nodes=node_limit,
+                        node_limit_basis='serial-latency-prior-v1')
+                    result['planning_budget'] = deepcopy(planning_payload['planning_budget'])
+                if node_limit == 0:
+                    result['planning_state'] = 'not-dispatched-insufficient-time'
+                    raise ValueError('task-deadline-exhausted')
                 gate = None
                 if request.get('plannerPolicy') == 'minimal-v2':
                     gate = lambda plan, decision: verify_cost_drivers(  # noqa: E731
@@ -497,7 +539,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 plan = generate_compact(budget, planner, planning_payload, result['compact_planning'],
                     criteria=request.get('acceptanceCriteria'), cost_limit=None if mixed else request['costMax'],
                     deadline=None if request.get('unrestrictedPlanning') else min(started+deadline_ms/1000, time.monotonic()+request.get('plannerTimeoutMs',12000)/1000),
-                    persist=persist, repairs=request.get('maxPlanRepairs',0), policy=request.get('plannerPolicy', 'legacy'),
+                    persist=persist, max_nodes=node_limit, repairs=request.get('maxPlanRepairs',0), policy=request.get('plannerPolicy', 'legacy'),
                     context_policy=request.get('contextPolicy', 'full'),
                     output_cap=max(output_token_limit(m) for m in candidates.values()), gate=gate)
                 result['planner_output'] = result['compact_planning']['attempts'][0]['output']
@@ -595,7 +637,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         return privacy_block(starved)
                     eligible_models = {nid: [] for nid in eligible_models}
             # 评审会读到节点输出；预检按静态视图先给出结论，真实运行前以运行期分级重算。
-            placement['judge_isolation'] = judge_isolation(placement, manifest.judge)
+            placement['judge_isolation'] = judge_isolation(placement, review_judge)
             placement_admission_diagnostics(result.get('plan_admission', {}), eligible_models, placement)
             if not live and not placement['judge_isolation']['satisfied']:
                 result['issues'].append('final-judge: privacy-judge-not-local')
@@ -607,7 +649,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 for unit in ('AFP', 'CNY')}
         else:
             remaining_cost = min(max(0, request["costMax"] - budget.snapshot()[0]['production']), budget.remaining())
-        remaining_latency = max(0, deadline_ms - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
+        remaining_latency = max(0, deadline_ms - review_reserve * 1000
+            - (time.monotonic() - started - budget.planning_elapsed) * 1000) if live else deadline_ms
         if mixed:
             result['routing'] = route_nodes_mixed(plan, profiles,
                 model_units={mid: model.billing_unit for mid, model in candidates.items()},
@@ -661,7 +704,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                             direct_eligible = {nid: [] for nid in direct_eligible}
                         else:
                             direct_eligible = restricted_eligible_models(direct_eligible, direct_placement)
-                            direct_placement['judge_isolation'] = judge_isolation(direct_placement, manifest.judge)
+                            direct_placement['judge_isolation'] = judge_isolation(direct_placement, review_judge)
                         placement_admission_diagnostics(direct_admission, direct_eligible, direct_placement)
                     if mixed:
                         direct_routing = route_nodes_mixed(direct, direct_profiles,
@@ -693,14 +736,14 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     direct_eligible = {'answer': []}
                 if mixed:
                     _, charged_calls = budget.snapshot()
-                    judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
+                    judge_cost = (_shared_judge_forecast(review_judge, execution_task,
                         request.get('acceptanceCriteria'), candidates,
                         tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
                     tool_limit = tool_runtime.max_calls if tool_runtime is not None else 0
                     tool_count = 0 if tool_limit == 'unlimited' else tool_limit
                     comparison = _compare_mixed_execution(
                         {'direct': direct_routing, 'dag': result['routing']},
-                        candidates=candidates, charged_calls=charged_calls, judge=manifest.judge,
+                        candidates=candidates, charged_calls=charged_calls, judge=review_judge,
                         judge_cost=judge_cost, review_required=result['review']['required'],
                         tool_count=tool_count, input_cap=input_cap,
                         remaining_production=remaining_cost,
@@ -733,7 +776,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     planner_cost = sum(row['charged'] for row in planner_rows)
                     planner_latency = (sum(row['latency_ms'] for row in planner_rows)
                         if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
-                    judge_cost = (_shared_judge_forecast(manifest.judge, execution_task,
+                    judge_cost = (_shared_judge_forecast(review_judge, execution_task,
                         request.get('acceptanceCriteria'), candidates,
                         tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
                     tool_limit = tool_runtime.max_calls if tool_runtime is not None else 0
@@ -754,7 +797,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                                 reference_allowance=allowances[name],
                                 cash_allowance=cash_allowances[name] if currency_reference else 0,
                                 judge_reference=judge_cost,
-                                judge_is_metered=(currency_reference and manifest.judge.billing_mode != 'subscription'),
+                                judge_is_metered=(currency_reference and review_judge.billing_mode != 'subscription'),
                                 remaining_production=remaining_cost,
                                 remaining_evaluation=evaluation_remaining,
                                 remaining_cash=production_cash_remaining,
@@ -849,9 +892,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if mixed and result['review']['required']:
             selected_models = {mid: candidates[mid] for mid in result['routing']['assignments'].values()}
             judge_upper = _shared_judge_forecast(
-                manifest.judge, execution_task, plan.acceptance_criteria,
+                review_judge, execution_task, plan.acceptance_criteria,
                 selected_models, tool_evidence=tool_runtime is not None)
-            judge_unit = manifest.judge.billing_unit
+            judge_unit = review_judge.billing_unit
             result['review']['cost_upper_bound'] = {'unit': judge_unit, 'amount': judge_upper}
             if judge_upper > budget.remaining(judge_unit, 'evaluation') + 1e-12:
                 result['status'] = 'no-feasible-route'
@@ -863,7 +906,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if live:
                 try:
                     result['review']['protection'] = budget.protect_review(
-                        manifest.judge, judge_upper, min_execution_calls=len(plan.nodes))
+                        review_judge, judge_upper, min_execution_calls=len(plan.nodes))
                 except ValueError as exc:
                     result['status'] = 'no-feasible-route'
                     result['issues'].append(f'final-judge: {exc}')
@@ -879,9 +922,13 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             result["review"]["status"] = "not-run"
             return result
         result['generation_status'] = 'running'
+        if live and before_call() <= review_reserve:
+            result['review'].update(status='not-dispatched-insufficient-time', passed=False,
+                reason='execution-would-consume-review-reserve')
+            raise ValueError('task-deadline-exhausted')
         dynamic = DynamicDecomposition(request=request, manifest=manifest, configuration=configuration,
             profiles=profiles, planner=planner, budget=budget, policy=policy, task=node_task,
-            result=result, persist=persist, deadline=started+deadline_ms/1000,
+            result=result, persist=persist, deadline=execution_deadline,
             cancel_event=cancel_event, input_cap=input_cap,
             tools=tool_runtime.schemas if tool_runtime is not None else None,
             placement=placement, privacy=privacy, classifier=classifier) if live and request.get('maxDynamicSplits',0) else None
@@ -889,7 +936,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if 'dispatch_monotonic' in c and c['model_id'] in candidates}
         result["final_output"] = execute_nodes(plan, node_task, result["routing"]["assignments"],
             candidates, budget, policy, result, persist, started=started,
-            deadline=started + deadline_ms / 1000, cancel_event=cancel_event, recovery=recovery,
+            deadline=execution_deadline, cancel_event=cancel_event, recovery=recovery,
             production_cap=None if mixed else request["costMax"],
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
             dispatch_history=dispatch_history, tool_runtime=tool_runtime, guard=guard,
@@ -903,6 +950,18 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if result['format_validation']['passed'] is False:
                 result['issues'].append('output-length-exceeded')
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
+            if final_validator is not None:
+                validation = final_validator(result['final_output'])
+                if not isinstance(validation, dict) or type(validation.get('passed')) is not bool:
+                    raise ValueError('invalid deterministic final validation')
+                result['deterministic_validation'] = deepcopy(validation)
+                if not validation['passed']:
+                    result['status'] = 'quality-failed'
+                    result['review'].update(status='blocked-deterministic-check', passed=False,
+                        reason='known-answer-contract-failed')
+                    result['issues'].append('deterministic-final-check-failed')
+                    persist()
+                    return result
             tool_evidence = None
             if tool_runtime is not None or required_tools['required']:
                 tool_evidence, validation = collect_tool_evidence(required_tools,
@@ -917,7 +976,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     persist()
                     return result  # 无法验收时不再花费最终 Judge，也不替宿主补跑工具。
             if result['review']['required'] and placement is not None:
-                isolation = judge_isolation(placement, manifest.judge)
+                isolation = judge_isolation(placement, review_judge)
                 placement['judge_isolation'] = isolation
                 if not isolation['satisfied']:
                     # 评审会读到节点输出；不满足隔离时不发起调用，明确失败并记录。
@@ -929,7 +988,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     return result
                 if tool_evidence is not None:
                     evidence_isolation = role_isolation(view=json.dumps(tool_evidence, ensure_ascii=False),
-                        privacy=privacy, model=manifest.judge, role='judge', classifier=classifier,
+                        privacy=privacy, model=review_judge, role='judge', classifier=classifier,
                         source='tool-evidence')
                     placement['tool_evidence_isolation'] = evidence_isolation
                     if not evidence_isolation['satisfied']:
@@ -938,14 +997,21 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         persist()
                         return result
             if result['review']['required']:
-                before_call()
+                if before_call() < review_reserve:
+                    result['status'] = 'review-time-exhausted'
+                    result['review'].update(status='not-dispatched-insufficient-time', passed=False,
+                        reason='final-judge-insufficient-time')
+                    result['issues'].append('final-judge-insufficient-time')
+                    persist()
+                    return result
                 result['review']['status'] = 'running'
                 persist()
-                judged = evaluate_text(budget, manifest.judge, execution_task, result["final_output"],
+                judged = evaluate_text(budget, review_judge, execution_task, result["final_output"],
                     criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000),
                     tool_evidence=tool_evidence)
                 result["evaluation"] = judged
-                result["review"].update(status="completed", score=judged['score'], passed=judged['passed'])
+                result["review"].update(status="completed", score=judged['score'], passed=judged['passed'],
+                                        contract_version=judged.get('review_contract'))
                 persist()
                 result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
             else:
