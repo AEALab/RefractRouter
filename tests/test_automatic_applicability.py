@@ -158,3 +158,98 @@ def test_history_counts_unknown_and_deduplicates_copies(tmp_path):
     save('conflict', {**settled, 'charged':.03})
     with pytest.raises(ValueError, match='费用记录冲突'):
         historical_protection([tmp_path])
+
+
+@pytest.mark.parametrize('failure_type,confirmed,finishes', [
+    ('provider-error', True, 2), ('authentication', True, 1), ('provider-error', False, 1),
+])
+def test_complete_batch_pipeline_preserves_failure_receipts_and_stop_policy(tmp_path, monkeypatch, failure_type, confirmed, finishes):
+    import io
+    import experiments.run_automatic_applicability as runner
+    from refractrouter.application_config import compile_configuration
+    from refractrouter.openai_compatible import ChatResponse, ModelInvocationError
+    from tests.test_live_execution import CompactClient, config
+    raw = config()
+    raw['billingUnit'] = 'CNY'
+    for model in raw['models']:
+        model['pricing']['unit'] = 'CNY'
+    models = compile_configuration(raw).manifest.models
+    catalog = {'routes': [{'provider':m.provider,'model':m.api_model} for m in models]}
+    class Process:
+        def __init__(self, *_args, **_kwargs):
+            self.stdin=io.StringIO(); self.stdout=io.StringIO(json.dumps(catalog)+'\n')
+        def wait(self, **_kwargs):
+            return 0
+    calls=[]
+    class Client(CompactClient):
+        def __init__(self, **_kwargs):
+            super().__init__()
+        def for_task_call(self, _seconds):
+            return self
+        def complete(self, model, messages, *, json_mode=False):
+            calls.append(model.model_id)
+            if len(calls)==1:
+                receipt=ChatResponse('partial',100,20,0,0,1,1,'error','failed') if confirmed else None
+                raise ModelInvocationError(failure_type,'fixture',1,1,confirmed_response=receipt)
+            return super().complete(model,messages,json_mode=json_mode)
+    monkeypatch.setattr(runner.subprocess,'Popen',Process)
+    monkeypatch.setattr(runner,'OpenAICompatibleClient',Client)
+    task={'id':'one','task':'分别核对两项材料并汇总建议。','criteria':['完整回答。'],'expectedAnswers':{}}
+    frozen={'protocol':{'tasks':[task],'maxCallsPerDirect':2,'maxCallsPerDag':8,'outputLimitPerCall':8192,
+        'inputBoundPerCall':32768,'timeoutMs':300000,'plannerTimeoutMs':90000},
+        'order':[{'task':'one','route':r} for r in ('dag','direct')], 'configuration':raw,
+        'provenance':{},'maximumReferenceCny':1000,'maximumCashCny':1000,'maximumModelCalls':10}
+    output=tmp_path/'fresh'
+    if finishes==2:
+        rows=runner.run(frozen,output,['fixture'],catalog)
+        assert len(rows)==2 and rows[0]['status']!='completed'
+        assert rows[1]['modelCalls']==2
+    else:
+        with pytest.raises(ValueError,match='停止后续调用'):
+            runner.run(frozen,output,['fixture'],catalog)
+        assert len(calls)==1
+    completion=json.loads((output/'completion.json').read_text())
+    assert completion['finished']==finishes
+    first=json.loads((output/'batch-ledger.json').read_text())['records'][0]
+    assert first['status']==('billed' if confirmed else 'unknown-usage')
+    assert first['failure']['failure_type']==failure_type
+
+
+def test_freeze_includes_compiled_bridge_and_changes_when_bridge_changes(tmp_path, monkeypatch):
+    import experiments.run_automatic_applicability as runner
+    monkeypatch.setattr(runner,'ROOT',tmp_path)
+    # 测试哈希合同，不依赖真实安装或访问网络。
+    monkeypatch.setattr(runner,'__file__',str(tmp_path/'runner.py'))
+    for name in ('HOST','HOST_AUDIT','PROTOCOL'):
+        path=tmp_path/name; path.write_text(name); monkeypatch.setattr(runner,name,path)
+    plugin=tmp_path/'validation/dsh/plugin'
+    (plugin/'dist').mkdir(parents=True); (plugin/'src').mkdir()
+    (plugin/'package-lock.json').write_text('{}')
+    (tmp_path/'runner.py').write_text('fixture')
+    with pytest.raises(ValueError,match='先构建'):
+        runner.source_hashes()
+    bridge=plugin/'dist/index.js'; bridge.write_text('generated fixture one')
+    first=runner.source_hashes()
+    assert 'validation/dsh/plugin/dist/index.js' in first
+    bridge.write_text('generated fixture two')
+    assert runner.source_hashes()!=first
+
+
+def test_materials_remain_bound_to_original_commit_after_runtime_repairs(monkeypatch):
+    from types import SimpleNamespace
+    import hashlib
+    import experiments.run_automatic_applicability as runner
+    calls=[]
+    def read(args, **kwargs):
+        calls.append(args)
+        return SimpleNamespace(stdout=b'original material')
+    monkeypatch.setattr(runner.subprocess,'run',read)
+    commit='a'*40
+    task={'materials':[{'path':'src/example.py','sha256':hashlib.sha256(b'original material').hexdigest()}]}
+    runner.validate_materials({'sourceCommit':commit,'tasks':[task,task]})
+    assert calls==[['git','show',f'{commit}:src/example.py']]
+    with pytest.raises(ValueError,match='摘要不匹配'):
+        runner.validate_materials({'sourceCommit':commit,'tasks':[{'materials':[
+            {'path':'src/example.py','sha256':'wrong'}]}]})
+    with pytest.raises(ValueError,match='完整来源提交'):
+        runner.validate_materials({'sourceCommit':'main','tasks':[task]})

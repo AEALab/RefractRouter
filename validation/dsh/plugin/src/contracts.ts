@@ -130,7 +130,11 @@ export type BridgeResponse = BridgeResponseBase & (
       input_tokens: number; output_tokens: number
       cached_input_tokens: number; reasoning_tokens: number
     }; finish_reason?: string; request_id?: string }
-  | { ok: false; failure_type: string; message: string; request_id?: string }
+  | { ok: false; failure_type: string; message: string; request_id?: string
+      usage_confirmed?: true; content?: string; usage?: {
+        input_tokens: number; output_tokens: number; cached_input_tokens: number
+        cache_write_tokens: number; reasoning_tokens: number
+      } }
 )
 
 export interface TaskSummary {

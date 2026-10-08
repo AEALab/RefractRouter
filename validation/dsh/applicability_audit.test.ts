@@ -18,3 +18,8 @@ assert.ok(!('arbitrary' in row) && !('messages' in row) && !('authorization' in 
 const success = hostDiagnostic({id: 'request-2'}, {ok: true, message: credential}, {}, 1)
 assert.ok(!('message' in success) && !('failureType' in success))
 assert.equal(String(hostDiagnostic({}, {ok: false, message: 'x'.repeat(1000)}, {}, 0).message).length, 300)
+const billedFailure = hostDiagnostic({}, {ok:false, usage_confirmed:true,
+  usage:{input_tokens:100,output_tokens:10,arbitrary:credential}}, {}, 1)
+assert.equal(billedFailure.usageConfirmed,true)
+assert.deepEqual(billedFailure.usage,{input_tokens:100,output_tokens:10})
+assert.ok(!('usageConfirmed' in hostDiagnostic({}, {ok:false,usage_confirmed:false,usage:{input_tokens:100}}, {}, 1)))

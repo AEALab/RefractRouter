@@ -523,6 +523,8 @@ export async function callDshLlm(
     let content = ''
     const toolCalls = new Map<number, { id: string; type: 'function'; function: { name: string; arguments: string } }>()
     let usage: TokenUsage = {}
+    let previousWasUsage = false
+    let terminalUsage: TokenUsage | undefined
     let finish: FinishChunk | undefined
     const stream = ctx.llm.stream(options)
     const iterator = stream[Symbol.asyncIterator]()
@@ -545,7 +547,11 @@ export async function callDshLlm(
         }
         if (chunk.type === 'text-delta') content += chunk.text
         if (chunk.type === 'usage') usage = chunk.usage ?? {}
-        if (chunk.type === 'finish') finish = chunk
+        if (chunk.type === 'finish') {
+          finish = chunk
+          terminalUsage = previousWasUsage ? {...usage} : undefined
+        }
+        previousWasUsage = chunk.type === 'usage'
       }
     } finally {
       if (callSignal.aborted && typeof iterator.return === 'function') {
@@ -556,12 +562,25 @@ export async function callDshLlm(
     if (finish.reason?.kind === 'error' || finish.reason?.kind === 'aborted') {
       const failure = finish.reason.failure ?? {}
       const timedOut = timeoutSignal?.aborted === true && signal?.aborted !== true
+      // 只保存终止回执的有效用量；默认零值、途中用量和失败工具均不能放行。
+      const counts = [terminalUsage?.inputTokens, terminalUsage?.outputTokens, terminalUsage?.cacheReadTokens ?? 0,
+        terminalUsage?.cacheWriteTokens ?? 0, terminalUsage?.reasoningTokens ?? 0]
+      const inputTotal = Number(counts[0]) + Number(counts[2]) + Number(counts[3])
+      const confirmed = terminalUsage !== undefined && counts.every(n => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0)
+        && Number.isSafeInteger(inputTotal) && inputTotal > 0
+        && (!(content.trim() || toolCalls.size) || Number(counts[1]) > 0)
+        && Number(counts[4]) <= Number(counts[1])
       return {
         ...base,
         ok: false,
         failure_type: timedOut ? 'timeout' : bridgeFailureType(failure.code),
         message: String(failure.message ?? 'DSH LLM request failed').slice(0, 300),
         request_id: failure.requestId,
+        ...(confirmed ? {usage_confirmed: true as const, content, usage: {
+          input_tokens: inputTotal,
+          output_tokens: Number(counts[1]), cached_input_tokens: Number(counts[2]),
+          cache_write_tokens: Number(counts[3]), reasoning_tokens: Number(counts[4]),
+        }} : {}),
       }
     }
     const cachedInput = Number(usage.cacheReadTokens ?? 0)

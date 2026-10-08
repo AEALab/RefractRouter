@@ -10,6 +10,7 @@ import math
 import os
 from pathlib import Path
 import random
+import re
 import subprocess
 import threading
 import time
@@ -17,7 +18,7 @@ import time
 from refractrouter.agent import atomic_json, run_agent
 from refractrouter.application_config import compile_configuration
 from refractrouter.dsh_model_pool import compile_dsh_model_pool
-from refractrouter.openai_compatible import DshStdioBridge, OpenAICompatibleClient
+from refractrouter.openai_compatible import DshStdioBridge, OpenAICompatibleClient, ModelInvocationError
 from refractrouter.task_budget import TaskCallBudget, request_input_bound, InvalidModelOutput
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +35,47 @@ def bounded_complete(client, model, messages, *, json_mode, timeout_seconds):
     """期限经客户端快照传递；complete 不接收 timeout_seconds 参数。"""
     bound = client.for_task_call(timeout_seconds) if timeout_seconds is not None else client
     return bound.complete(model, messages, json_mode=json_mode)
+
+
+def record_invocation_failure(budget, reservation, error):
+    """普通已计费失败只结束当前样本；基础设施和未知用量仍停止整批。"""
+    try:
+        budget.settle_failure(reservation, error)
+    except BaseException:
+        budget.stop()
+        raise
+    if reservation.row['status'] != 'billed' or error.failure_type != 'provider-error':
+        budget.stop()
+
+
+def source_hashes():
+    """同时冻结实际加载的桥接构建与源码，防止预检后更换调用边界。"""
+    plugin = ROOT/'validation/dsh/plugin'
+    files = [*sorted((ROOT/'src/refractrouter').rglob('*.py')), Path(__file__), HOST, HOST_AUDIT,
+        PROTOCOL, *sorted((plugin/'src').rglob('*.ts')), *sorted((plugin/'src').rglob('*.tsx')),
+        plugin/'package-lock.json', *sorted((plugin/'dist').rglob('*.js'))]
+    if not (plugin/'dist/index.js').exists():
+        raise ValueError('请先构建实际宿主桥接，再冻结预检')
+    return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
+
+
+def validate_materials(protocol):
+    """审查材料固定在来源提交；运行实现的修复不能替换历史题目。"""
+    commit = protocol.get('sourceCommit', '')
+    if not re.fullmatch(r'[0-9a-f]{40}', commit):
+        raise ValueError('材料必须绑定完整来源提交')
+    hashes = {}
+    for task in protocol['tasks']:
+        for material in task['materials']:
+            path = material['path']
+            if Path(path).is_absolute() or '..' in Path(path).parts:
+                raise ValueError('材料路径必须在仓库内')
+            if path not in hashes:
+                source = subprocess.run(['git', 'show', f'{commit}:{path}'], cwd=ROOT,
+                    check=True, capture_output=True).stdout
+                hashes[path] = hashlib.sha256(source).hexdigest()
+            if hashes[path] != material['sha256']:
+                raise ValueError('冻结材料源提交摘要不匹配；不能无记录更换任务')
 
 
 def historical_roots(root, deployed_root):
@@ -126,12 +168,8 @@ def freeze(catalog, history, extra_history_cny, authorization_cny):
         raise ValueError('冻结最坏现金包络超出历史授权余额；禁止实跑')
     order = [{'task': t['id'], 'route': route} for t in protocol['tasks'] for route in protocol['routes']]
     random.Random(protocol['orderSeed']).shuffle(order)
-    sources = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-        for p in [*sorted((ROOT/'src/refractrouter').rglob('*.py')), Path(__file__), HOST, HOST_AUDIT, PROTOCOL]}
-    for task in protocol['tasks']:
-        for material in task['materials']:
-            if hashlib.sha256((ROOT/material['path']).read_bytes()).hexdigest() != material['sha256']:
-                raise ValueError('冻结材料源文件已变化；不能无记录更换任务')
+    sources = source_hashes()
+    validate_materials(protocol)
     frozen = {'protocol': protocol, 'catalog': catalog, 'configuration': compiled,
         'provenance': provenance, 'order': order, 'sourceHashes': sources,
         'maximumModelCalls': maximum_calls, 'maximumReferenceCny': maximum_reference,
@@ -143,6 +181,8 @@ def freeze(catalog, history, extra_history_cny, authorization_cny):
 
 
 def run(frozen, output, host_command, catalog):
+    if 'sourceHashes' in frozen and source_hashes() != frozen['sourceHashes']:
+        raise ValueError('桥接或源码在预检后变化；禁止执行')
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'preflight.json', frozen)
     protocol = frozen['protocol']
@@ -198,6 +238,12 @@ def run(frozen, output, host_command, catalog):
                         budget.settle(reservation, response)
                     except InvalidModelOutput:
                         persist(); raise  # 截断等普通已结算任务失败不丢弃计费记录。
+                    except ModelInvocationError as exc:
+                        try:
+                            record_invocation_failure(budget, reservation, exc)
+                        finally:
+                            persist()
+                        raise
                     except BaseException:
                         budget.stop(); persist(); raise
                     persist()

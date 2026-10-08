@@ -1044,3 +1044,46 @@ test('planner bridge accepts no timeout and still follows manual cancellation', 
   assert.equal(result.ok, false)
   assert.notEqual(result.failure_type, 'timeout')
 })
+
+
+test('失败终止用量可核对时保留结算回执，但不释放工具', async () => {
+  const ctx = {llm:{async *stream(): AsyncGenerator<StreamChunk> {
+    yield {type:'text-delta', index:0, text:'未完成正文'}
+    yield {type:'tool-call-delta', index:1, id:'discarded', name:'bash', argumentsDelta:'{}'}
+    yield {type:'usage', usage:{inputTokens:80, cacheReadTokens:20, cacheWriteTokens:5, outputTokens:12, reasoningTokens:3}}
+    yield {type:'finish', reason:{kind:'error', failure:{code:'PI_AI_ERROR', message:'Response incomplete: length'}}}
+  }}}
+  const result = await callDshLlm(ctx, {protocol:'refractrouter-dsh-llm/v1', type:'request', id:'failed',
+    provider:'fixture',model:'fixture',messages:[{role:'user',content:'test'}],max_tokens:128,timeout_ms:1000})
+  assert.equal(result.ok,false)
+  if (result.ok) throw new Error('错误回复不能放行')
+  assert.equal(result.usage_confirmed,true)
+  assert.deepEqual(result.usage,{input_tokens:105,output_tokens:12,cached_input_tokens:20,cache_write_tokens:5,reasoning_tokens:3})
+  assert.equal(result.content,'未完成正文')
+  assert.ok(!('tool_calls' in result) && !('replay_state' in result))
+})
+
+test('缺失、默认零、非法或非终止用量不能用于失败结算', async () => {
+  for (const usage of [undefined, {}, {inputTokens:0,outputTokens:0},
+    {inputTokens:10,outputTokens:0}, {inputTokens:10,outputTokens:-1},
+    {inputTokens:10,outputTokens:2,reasoningTokens:3}, {inputTokens:NaN,outputTokens:2},
+    {inputTokens:'10',outputTokens:2}]) {
+    const ctx = {llm:{async *stream(): AsyncGenerator<StreamChunk> {
+      yield {type:'text-delta',index:0,text:'partial'}
+      if (usage !== undefined) yield {type:'usage',usage:usage as any}
+      yield {type:'finish',reason:{kind:'error',failure:{code:'PI_AI_ERROR'}}}
+    }}}
+    const result=await callDshLlm(ctx,{protocol:'refractrouter-dsh-llm/v1',type:'request',id:'bad',
+      provider:'fixture',model:'fixture',messages:[],max_tokens:128,timeout_ms:1000})
+    assert.equal(result.ok,false)
+    assert.ok(!('usage_confirmed' in result) && !('usage' in result))
+  }
+  const ctx = {llm:{async *stream(): AsyncGenerator<StreamChunk> {
+    yield {type:'usage',usage:{inputTokens:10,outputTokens:2}}
+    yield {type:'text-delta',index:0,text:'partial'}
+    yield {type:'finish',reason:{kind:'error'}}
+  }}}
+  const result=await callDshLlm(ctx,{protocol:'refractrouter-dsh-llm/v1',type:'request',id:'interim',
+    provider:'fixture',model:'fixture',messages:[],max_tokens:128,timeout_ms:1000})
+  assert.ok(!('usage_confirmed' in result))
+})

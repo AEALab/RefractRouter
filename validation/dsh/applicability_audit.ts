@@ -15,6 +15,13 @@ export function hostDiagnostic(request: Record<string, any>, response: Record<st
     schemaVersion: 'automatic-host-diagnostic-v1', id: redact(request.id),
     provider: redact(request.provider), model: redact(request.model), ok: response.ok === true,
     elapsedMs: Math.max(0, Math.round(elapsedMs)),
+    ...(response.ok === false && response.usage_confirmed === true ? {
+      usageConfirmed: true,
+      usage: Object.fromEntries(['input_tokens', 'output_tokens', 'cached_input_tokens',
+        'cache_write_tokens', 'reasoning_tokens'].filter(key =>
+        Number.isSafeInteger(response.usage?.[key]) && response.usage[key] >= 0)
+        .map(key => [key, response.usage[key]])),
+    } : {}),
     ...(response.ok === true ? {} : {failureType: redact(response.failure_type),
       message: redact(response.message), requestId: redact(response.request_id)}),
   }

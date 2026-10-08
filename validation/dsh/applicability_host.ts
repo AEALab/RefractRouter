@@ -4,10 +4,16 @@ import {homedir} from 'node:os'
 import {createInterface} from 'node:readline'
 import {pathToFileURL} from 'node:url'
 import {hostDiagnostic} from './applicability_audit.ts'
+import {createHash} from 'node:crypto'
 
 const moduleRoot = process.env.REFRACT_DSH_MODULE_ROOT
 if (!moduleRoot) throw new Error('必须明确提供已安装 DSH 的依赖目录')
 const load = (name: string) => import(pathToFileURL(`${moduleRoot}/@deepseek-ai/${name}/lib/index.js`).href)
+const runtimeFiles = ['@deepseek-ai/dsh-llm-pi-ai/package.json', '@deepseek-ai/dsh-llm-pi-ai/lib/index.js',
+  '@deepseek-ai/dsh-llm-deepseek/package.json', '@deepseek-ai/dsh-llm-deepseek/lib/index.js',
+  '@earendil-works/pi-ai/package.json', '@earendil-works/pi-ai/dist/api/openai-responses-shared.js']
+const runtimeHashes = Object.fromEntries(runtimeFiles.map(path => [path,
+  createHash('sha256').update(readFileSync(`${moduleRoot}/${path}`)).digest('hex')]))
 const {parse} = await import(pathToFileURL(`${moduleRoot}/yaml/dist/index.js`).href)
 const settings = parse(readFileSync(`${homedir()}/.dsh/settings.yaml`, 'utf8'))
 const secrets = parse(readFileSync(`${homedir()}/.dsh/.credentials.yaml`, 'utf8'))
@@ -48,7 +54,7 @@ for await (const line of createInterface({input: process.stdin})) {
         providerBaseURL: row.provider === 'deepseek-official' ? 'https://api.deepseek.com'
           : piSettings.providers[row.provider].baseURL, reasoning: model.reasoning})
     }
-    result = {pool: settings.refractagent.dshModelPool, routes}
+    result = {pool: settings.refractagent.dshModelPool, routes, runtimeHashes}
   } else {
     const started = performance.now()
     result = await callDshLlm({llm: {stream: (options: any) =>
