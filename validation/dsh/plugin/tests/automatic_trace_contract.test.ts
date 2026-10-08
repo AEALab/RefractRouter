@@ -116,3 +116,11 @@ test('同一次审核逐项展示事实来源与时间因果，不用高分替�
   for(const text of ['来源与因果核对（同一次审核）','事实状态来源','时间与因果','未通过','无法判断',
     '未经实测','材料未说明验证情况','引用是否存在由 Python 核对'])assert.ok(tree.includes(text),text)
 })
+test('逐句核对显示独立事实句及语义类别，不替审核器判断真假',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v5'
+  data.quality={score:95,passed:false,grounding_checks:[{check_id:'source-claim-c1',status:'FAIL',
+    answer_quote:'回滚未经验证',source_quote:null,claim_kind:'FACT',rationale:'没有验证状态来源'}]}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['事实句 ','c1','系统状态断言','回滚未经验证','没有验证状态来源'])assert.ok(tree.includes(text),text)
+})

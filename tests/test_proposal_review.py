@@ -18,6 +18,17 @@ def test_proposal_check_is_explicit_and_not_duplicated():
     assert p['review_contract']==REVIEW_CONTRACT
 
 
+def test_each_grounding_item_has_an_explicit_output_shape():
+    from refractrouter.task_evaluation import GROUNDING_FIELDS, CLAIM_KINDS
+    p=json.loads(evaluation_messages('材料未提供测试状态','系统未经测试。仅说明我未执行测试。',[])[1]['content'])
+    assert [row['check_id'] for row in p['grounding_check_shapes']]==p['grounding_check_ids']
+    for i,row in enumerate(p['grounding_check_shapes']):
+        assert row['required_fields']==[*GROUNDING_FIELDS,*(['claim_kind'] if i>=2 else [])]
+        if i>=2:assert row['claim_kind_values']==list(CLAIM_KINDS)
+    node=json.loads(evaluation_messages('任务','节点答案',[],node_input='节点输入')[1]['content'])
+    assert 'grounding_check_shapes' not in node
+
+
 @pytest.mark.parametrize('overall,proposal,missing,raises',[(True,False,False,True),
     (False,False,False,False),(True,True,True,True),(True,True,False,False)])
 def test_high_score_cannot_hide_failed_or_omitted_constraint(overall,proposal,missing,raises):
@@ -144,7 +155,10 @@ def grounding_response(task, answer, *, passed=False, status='FAIL'):
             {'check_id':'source-state','status':status,'answer_quote':'未经实测','source_quote':None,
              'rationale':'材料未说明历史验证情况，不能断言未验证'},
             {'check_id':'time-causality','status':'NOT_APPLICABLE','answer_quote':None,'source_quote':None,
-             'rationale':'此候选没有时间关系'}]}
+             'rationale':'此候选没有时间关系'},
+            *[{'check_id':r['check_id'],'status':status,'answer_quote':r['quote'],
+               'claim_kind':'FACT','source_quote':None,'rationale':'逐句覆盖合成回执'}
+              for r in p['source_state_claims']]]}
 
 
 def review_with_response(response, *, task='回滚需保留证据', answer='回滚未经实测', tool_evidence=None):
@@ -187,6 +201,7 @@ def test_grounding_contract_rejects_missing_checks_or_fabricated_citations(chang
 def test_grounding_source_can_quote_actual_structured_tool_evidence():
     response=grounding_response('回滚需保留证据','回滚未经实测',passed=True,status='PASS')
     response['grounding_checks'][0]['source_quote']='检查结果：回滚未经实测'
+    for row in response['grounding_checks'][2:]:row['source_quote']='检查结果：回滚未经实测'
     evidence={'records':[{'result':'检查结果：回滚未经实测'}]}
     assert review_with_response(response,tool_evidence=evidence)['passed'] is True
     with pytest.raises(ValueError,match='task evidence'):
@@ -198,4 +213,46 @@ def test_corrected_claims_are_not_rejected_by_a_keyword_filter():
     response=grounding_response('回滚需保留证据',answer,passed=True,status='PASS')
     response['grounding_checks'][0].update(answer_quote=answer,source_quote='回滚需保留证据',
         rationale='明确条件与材料信息缺口，不断言实际验证不存在')
+    for row in response['grounding_checks'][2:]:row['claim_kind']='CONDITIONAL'
     assert review_with_response(response,answer=answer)['passed'] is True
+
+
+def test_state_attention_covers_disclaimer_and_table_claim_separately_without_labels():
+    from refractrouter.review_claims import state_claims
+    answer='我未执行测试。\n| 回滚 | 未经验证（未执行测试） | 若未经验证，应核对 |'
+    rows=state_claims(answer)
+    assert [r['quote'] for r in rows]==['我未执行测试','未经验证（未执行测试）','若未经验证，应核对']
+    assert all(set(r)=={'check_id','quote'} for r in rows)
+    assert all(r['quote'] in answer for r in rows)
+    payload=json.loads(evaluation_messages('任务',answer,['完整性'])[1]['content'])
+    assert payload['grounding_check_ids']==['source-state','time-causality',*(r['check_id'] for r in rows)]
+
+
+@pytest.mark.parametrize('change', ['missing-claim','rewritten-quote','factual-pass-no-source','unknown-kind','not-applicable','summary-hides-failure'])
+def test_every_selected_claim_requires_an_independent_consistent_result(change):
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    rows=response['grounding_checks']
+    if change=='missing-claim':rows.pop()
+    elif change=='rewritten-quote':rows[2]['answer_quote']='未经实测'
+    elif change=='factual-pass-no-source':rows[2]['status']='PASS'
+    elif change=='unknown-kind':rows[2]['claim_kind']='probably-good'
+    elif change=='not-applicable':rows[2]['status']='NOT_APPLICABLE'
+    else:rows[0]['status']='PASS'
+    with pytest.raises(ValueError,match='grounding|claim|coverage'):
+        review_with_response(response)
+
+
+def test_english_conditional_warning_and_negative_claims_remain_separate():
+    from refractrouter.review_claims import state_claims
+    answer='If unverified, verify it first.\nRollback has not been tested.\nThis report says it is untested.'
+    rows=state_claims(answer)
+    assert len(rows)==3  # 覆盖提示不枚举所有表达；无命中不等于没有状态断言。
+    assert rows[0]['quote'].startswith('If unverified')
+    assert rows[1]['quote'].endswith('not been tested.')
+    assert rows[2]['quote'].endswith('untested.')
+
+
+@pytest.mark.parametrize('answer', ['未经验证'+('x'*1001),'\n'.join(['未经验证']*129)])
+def test_attention_capacity_stops_without_truncating_or_calling_judge(answer):
+    with pytest.raises(ValueError,match='review-source-claim-'):
+        evaluation_messages('任务',answer,['完整性'])

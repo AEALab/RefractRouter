@@ -124,7 +124,7 @@ def project(summary, runtime=None, *, cash_limits=None):
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
             if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
         'quality': {**pick(quality, ('score', 'passed', 'rationale')),
-            **({'grounding_checks': [pick(row, ('check_id','status','answer_quote','source_quote','rationale'))
+            **({'grounding_checks': [pick(row, ('check_id','status','answer_quote','source_quote','rationale','claim_kind'))
                 for row in quality['grounding_checks']]} if isinstance(quality.get('grounding_checks'), list) else {})},
         'quality_gate': quality_gate,
         'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),

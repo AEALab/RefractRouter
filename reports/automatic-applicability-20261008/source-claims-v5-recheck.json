@@ -1,0 +1,146 @@
+{
+  "schema": "automatic-source-claim-coverage-recheck-v1",
+  "说明": "同一完整原DSH上下文的有限复验；严禁将语义拒绝与合法合同完成混为一项通过。",
+  "versions": {
+    "core": "0.16.16",
+    "plugin": "0.33.0",
+    "dsh": "0.1.5-rc.3",
+    "reviewContract": "proposal-constraints-v5"
+  },
+  "baseline": {
+    "sourceRun": "20261008T122339Z-5b622adc8e5c",
+    "reconstructedOldInputSha256": "cd4273d3d495fdbbd6e64e1cf8ef4a5be754b38efdb4a44b334aa324c5d4e979",
+    "oldInputMatchesRecordedDispatch": true,
+    "caseAnswerSha256": {
+      "recorded-table-unsupported-status": "c2b8e374827c26f0a6eaeeca277baf0318e8c7bfe4239b354bd151067e6c114c",
+      "corrected-qualified-risks": "fd327c36c20fbcc69908c65866eddd5662d277b5fbd56818ec658ff4c61a727a"
+    },
+    "expectedLabelsSentToJudge": false,
+    "hostContextPublished": false
+  },
+  "scope": {
+    "provider": "ark",
+    "model": "glm-5.3",
+    "reasoningEffort": "low",
+    "route": "Agent Plan /api/plan/v3",
+    "casesPerBatch": 2,
+    "reviewTimeoutMs": 180000,
+    "outputCap": 8192,
+    "httpRetries": 0,
+    "newJevCalls": 0,
+    "newExecutorCalls": 0,
+    "extraJudgeCallsPerReview": 0,
+    "freezeSha256": "1585a3496d25f0ee27940e5bbd087dae73fb6e93a9a75ae38fce417f6381d310",
+    "maximumReferencePerBatchCny": 0.818492931669,
+    "maximumCashPerBatchCny": 0
+  },
+  "batches": [
+    {
+      "id": "source-claims-v5-01",
+      "status": "429服务过载，停止原批次",
+      "dispatched": 1,
+      "completedValidCases": 0,
+      "unknownUsageReferenceReservationCny": 0.409608889312,
+      "calls": [
+        {
+          "label": "recorded-table-unsupported-status",
+          "status": "unknown-usage",
+          "charged": 0.409608889312,
+          "failure": {
+            "failure_type": "rate-limit",
+            "attempts": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "source-claims-v5-02",
+      "status": "模型语义拒绝但返回字段不完整，停止新批次；不继续追加真实调用",
+      "dispatched": 1,
+      "completedValidCases": 0,
+      "correctedCandidateDispatched": false,
+      "rawSemanticObservation": {
+        "score": 55,
+        "passed": false,
+        "failedClaimIds": [
+          "source-claim-c2",
+          "source-claim-c3",
+          "source-claim-c4"
+        ],
+        "missingClaimKindCount": 5,
+        "unexpectedFields": [
+          "rationalale"
+        ],
+        "conclusion": "发现原错误事实断言，但非法合同没有正常完成；不能计为2/2或日常质量验收通过。"
+      },
+      "calls": [
+        {
+          "label": "recorded-table-unsupported-status",
+          "status": "billed",
+          "input_tokens": 11049,
+          "output_tokens": 1403,
+          "cached_input_tokens": 0,
+          "latency_ms": 19273,
+          "finish_reason": "stop",
+          "reference_cost_cny": 0.07146896533699999,
+          "cash_cost_cny": null,
+          "output_sha256": "a14f647fcf295b053ec32125eaef834a4d7a11a8118d89756959eea57b1e950b"
+        }
+      ],
+      "wallMs": 19275
+    }
+  ],
+  "costs": {
+    "knownReferenceCny": 0.07146896533699999,
+    "pendingReferenceReservationCny": 0.409608889312,
+    "newMeteredCashCny": 0,
+    "historyCashProtectedCny": 1.4018203599999999,
+    "cumulativeCashAuthorizationCny": 100,
+    "说明": "待核对参考预留不当作已消费；订阅参考估值不当作现金账单，原失败不删除。"
+  },
+  "changesAfterLiveFailure": {
+    "groundingCheckShapes": "逐项列出必填字段；明确前两项五字段、状态句项六字段，类别须独立字段而非只写在理由中。",
+    "strictValidatorPreserved": true,
+    "adapterFailureMessage": "消费核心failed审核终态，明确最终审核失败，不误报规划失败。",
+    "additionalRealCalls": 0,
+    "qualityStatus": "格式提示细化仅经无网络回归；修正版尚未派发，完整语义及格式验收待完成。"
+  },
+  "limitations": [
+    "状态措辞定位只提示核对覆盖；不凭关键词判真假，未命中不代表没有问题。",
+    "单份拒绝方向的原始判定不能证明修正版可批准，也不能推导普遍准确率。",
+    "本批前后的提示摘要不同；不将格式细化宣称已通过真实复验。",
+    "原时间因果标注分歧继续保留，不追改历史判断。"
+  ],
+  "verification": {
+    "targetedTests": 82,
+    "pythonTests": 1909,
+    "pluginContracts": "通过；完整pytest已执行插件Node契约",
+    "typecheck": "通过",
+    "build": "通过（prepack构建分发包）",
+    "installation": {
+      "core": "0.16.16",
+      "plugin": "0.33.0",
+      "corePythonFiles": 134,
+      "pluginBuiltFiles": 35,
+      "sourcePackageInstalledBytesMatch": true,
+      "settingsBytesPreserved": true,
+      "credentialsBytesPreserved": true,
+      "coreWheelSha256": "e1861ccd8fc4be25321fed7049b8d20ca00a9ac8bdc3c75dc5e17a3f2d3b0b23",
+      "pluginArchiveSha256": "f4617751cd01f940761e495090cf090b586a52aede1c72744219f6549ab581c5",
+      "realCallsAfterFormatClarification": 0
+    },
+    "browser": {
+      "reviewModel": "ark/glm-5.3",
+      "reviewReasoningEffort": "low",
+      "reviewTimeoutSeconds": 180,
+      "reviewReserveSeconds": 60,
+      "reviewOutputTokens": 8192,
+      "planningSettingsCard": true,
+      "automaticSettingsCard": true,
+      "dagTab": true,
+      "routingTraceTab": true,
+      "unsavedChanges": false,
+      "scope": "原DSH0.1.5-rc.3设置与已有页签；未新增真实用户任务，不宣称新候选质量通过。"
+    }
+  }
+}

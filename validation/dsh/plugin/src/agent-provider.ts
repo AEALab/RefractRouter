@@ -255,7 +255,10 @@ function resultFailure(result: Record<string, unknown>): PublicFailure | undefin
     'content-verification-failed': '节点内容未通过验证',
     cancelled: '任务已取消',
   }
-  const reason = messages[String(result.status)]
+  const review = result.review
+  const reviewFailed = result.status === 'failed' && review !== null && typeof review === 'object'
+    && (review as Record<string, unknown>).status === 'failed'
+  const reason = reviewFailed ? '最终审核失败，候选尚未审定' : messages[String(result.status)]
   if (!reason) return undefined
   return { kind: result.status === 'cancelled' ? 'aborted' : 'error',
     code: 'REFRACTAGENT_EXECUTION_FAILED',

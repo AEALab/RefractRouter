@@ -106,12 +106,16 @@ def test_reported_grounding_failure_blocks_real_candidate_with_95_score_and_sett
             response=super().complete(model,messages,**kwargs)
             if model.role=='judge':
                 verdict=json.loads(response.content)
+                claims=verdict['grounding_checks'][2:]
+                for row in claims:
+                    if '回滚路径未经实测' in row['answer_quote']:
+                        row.update(status='FAIL',claim_kind='FACT',source_quote=None,rationale='未提供测试状态')
                 verdict.update(score=95,passed=False,rationale='记录来源信息缺失，拒绝事实否定断言',
                     grounding_checks=[{'check_id':'source-state','status':'FAIL',
                         'answer_quote':'回滚路径未经实测','source_quote':None,'rationale':'材料没有说明测试状态'},
                     {'check_id':'time-causality','status':'FAIL',
                         'answer_quote':'若审核实际耗时超过60秒则挤压执行时间','source_quote':None,
-                        'rationale':'审核不挤压已经完成的执行'}])
+                        'rationale':'审核不挤压已经完成的执行'},*claims])
                 return replace(response,content=json.dumps(verdict))
             return replace(response,content=fixture['answer'])
     monkeypatch.setattr(this,'CompactClient',SourceChecked)
@@ -119,7 +123,7 @@ def test_reported_grounding_failure_blocks_real_candidate_with_95_score_and_sett
     assert raw['status']=='quality-failed' and raw['evaluation']['score']==95
     assert raw['review']['passed'] is False and raw['final_output']==fixture['answer']
     assert len(client.calls)==2 and all(c['status']=='billed' for c in raw['calls'])
-    assert len(raw['evaluation']['grounding_checks'])==2
+    assert len(raw['evaluation']['grounding_checks'])>2
 
 
 def test_recorded_invalid_source_citation_stops_review_and_settles_usage(tmp_path, monkeypatch):
@@ -130,7 +134,10 @@ def test_recorded_invalid_source_citation_stops_review_and_settles_usage(tmp_pat
         def complete(self, model, messages, **kwargs):
             response = super().complete(model, messages, **kwargs)
             if model.role == 'judge':
-                return replace(response, content=json.dumps(fixture['rawVerdict']))
+                # 保留原非法引用，其余新增覆盖项只模拟接口，不作为语义质量证据。
+                verdict={**fixture['rawVerdict'],'grounding_checks':[
+                    *fixture['rawVerdict']['grounding_checks'],*json.loads(response.content)['grounding_checks'][2:]]}
+                return replace(response, content=json.dumps(verdict))
             return replace(response, content=fixture['answer'])
     monkeypatch.setattr(this, 'CompactClient', RecordedCitation)
     raw, client = launch(tmp_path, task=fixture['task'])
@@ -138,6 +145,23 @@ def test_recorded_invalid_source_citation_stops_review_and_settles_usage(tmp_pat
     assert raw['review']['status'] == 'failed' and raw['review']['passed'] is False
     assert raw['review']['reason'] == 'grounding quote not in task evidence'
     assert len(client.calls) == 2 and all(c['status'] == 'billed' for c in raw['calls'])
+
+
+def test_recorded_v5_missing_fields_stop_without_repair_or_delivery(tmp_path, monkeypatch):
+    from dataclasses import replace
+    import tests.test_automatic_failure_repairs as this
+    fixture=json.loads(Path('data/research/automatic-grounding-v5-invalid-fields-v1.json').read_text())
+    class RecordedFields(CompactClient):
+        def complete(self, model, messages, **kwargs):
+            response=super().complete(model, messages, **kwargs)
+            content=json.dumps(fixture['rawVerdict']) if model.role=='judge' else fixture['answer']
+            return replace(response, content=content)
+    monkeypatch.setattr(this, 'CompactClient', RecordedFields)
+    raw, client=launch(tmp_path, task=fixture['task'])
+    assert raw['status']=='failed' and raw['evaluation'] is None
+    assert raw['review']['status']=='failed' and raw['review']['passed'] is False
+    assert raw['review']['reason']=='invalid final judge grounding fields'
+    assert len(client.calls)==2 and all(c['status']=='billed' for c in raw['calls'])
 
 
 def test_review_uses_separate_output_cap_and_keeps_worker_unlimited(tmp_path, monkeypatch):

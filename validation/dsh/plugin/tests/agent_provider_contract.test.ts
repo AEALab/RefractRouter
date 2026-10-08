@@ -87,6 +87,17 @@ test('核心规划失败仍返回终止说明、已结算用量与回放，不�
   assert.equal(f.spawns.length,1)
 })
 
+test('核心审核格式失败明确显示审核阶段，不误报规划失败或交付候选',async()=>{
+  const f=fixture({mode:'live',simulated:false,status:'failed',answer:'未审定候选正文',
+    review:{required:true,status:'failed',passed:false,reason:'invalid final judge grounding fields'}})
+  const output=await chunks(createAdapter(f.ctx,()=>configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})))
+  const text=output.filter(c=>c.type==='text-delta').map(c=>c.text).join('')
+  assert.match(text,/最终审核失败/)
+  assert.ok(!text.includes('规划或执行失败')&&!text.includes('未审定候选正文'))
+  assert.equal((output.at(-1)?.reason as any).kind,'error')
+  assert.equal(f.spawns.length,1)
+})
+
 test('质量未通过及必要审核未完成的候选不交给宿主，已通过正文仍原样交付',async()=>{
   for(const status of ['quality-failed','review-time-exhausted','privacy-route-blocked','content-verification-failed','cancelled']){
     const f=fixture({mode:'live',simulated:false,status,answer:'未审定候选正文'})
