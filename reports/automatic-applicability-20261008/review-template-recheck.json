@@ -1,0 +1,254 @@
+{
+  "schema": "automatic-review-template-recheck-v1",
+  "date": "2026-10-09",
+  "baseline": {
+    "sourceRun": "20261008T122339Z-5b622adc8e5c",
+    "oldDispatchInputSha256": "cd4273d3d495fdbbd6e64e1cf8ef4a5be754b38efdb4a44b334aa324c5d4e979",
+    "originalFixtureBytesPreserved": true,
+    "expectedLabelsSentToJudge": false,
+    "hostContextPublished": false
+  },
+  "scope": {
+    "provider": "ark",
+    "model": "glm-5.3",
+    "reasoningEffort": "low",
+    "endpoint": "Agent Plan /api/plan/v3",
+    "outputCap": 8192,
+    "timeoutMs": 180000,
+    "newJevCalls": 0,
+    "newExecutorCalls": 0,
+    "httpRetries": 0,
+    "newCases": 0,
+    "normalizationAddsModelCalls": 0
+  },
+  "batches": [
+    {
+      "batch": "source-claims-v5-03",
+      "reviewContract": "proposal-constraints-v5",
+      "plannedCalls": 2,
+      "actualCalls": 1,
+      "freezeSha256": "34421e9b743e9734bb4705453fb4162c0b9634dcdb188bfd18941d4de5208993",
+      "maximumReferenceCny": 0.819822211264,
+      "maximumCashCny": 0,
+      "cases": [
+        {
+          "id": "recorded-table-unsupported-status",
+          "status": "failed",
+          "expectedPassed": null,
+          "actualPassed": null,
+          "matched": false,
+          "wallMs": 18847
+        }
+      ],
+      "rawSemanticScore": 55,
+      "rawSemanticPassed": false,
+      "knownReferenceCny": 0.070682730692,
+      "cashCny": 0,
+      "usageConfirmed": true,
+      "calls": [
+        {
+          "label": "recorded-table-unsupported-status",
+          "status": "billed",
+          "input_tokens": 11484,
+          "output_tokens": 1382,
+          "cached_input_tokens": 0,
+          "latency_ms": 18845,
+          "ttft_ms": null,
+          "reference_cost_cny": 0.070682730692,
+          "output_sha256": "e4c2746b752fe1c85fd007c46f5d152a70de039fe143cfd3d608ab4a9ddd9e61"
+        }
+      ],
+      "inputSha256": "47ba2bc245be2948872346ff097e2321994957c720af07c645f371f7ecfcf8e3",
+      "originalResultSha256": "2484ab183064a2b9b55b9f69fb5d5e3939ed2145afdbf13627973a5ceeb0f903",
+      "failure": "最新逐项字段说明已经发送，仍遗漏全部五项claim_kind；原批次停止，修正版未派发。"
+    },
+    {
+      "batch": "source-claims-template-01",
+      "reviewContract": "proposal-constraints-v5",
+      "plannedCalls": 2,
+      "actualCalls": 1,
+      "freezeSha256": "b5fe250a48521012073b8bf8aa73d1ef84e836a0c176d67919c799c322b082f7",
+      "maximumReferenceCny": 0.8215665660860001,
+      "maximumCashCny": 0,
+      "cases": [
+        {
+          "id": "recorded-table-unsupported-status",
+          "status": "failed",
+          "expectedPassed": null,
+          "actualPassed": null,
+          "matched": false,
+          "wallMs": 20004
+        }
+      ],
+      "rawSemanticScore": 55,
+      "rawSemanticPassed": false,
+      "knownReferenceCny": 0.081628560573,
+      "cashCny": 0,
+      "usageConfirmed": true,
+      "calls": [
+        {
+          "label": "recorded-table-unsupported-status",
+          "status": "billed",
+          "input_tokens": 12037,
+          "output_tokens": 1609,
+          "cached_input_tokens": 1024,
+          "latency_ms": 20002,
+          "ttft_ms": null,
+          "reference_cost_cny": 0.081628560573,
+          "output_sha256": "5a99e14ece752cb1c367e6963eed5b5130e2bc009da2908c350fd08e614c20da"
+        }
+      ],
+      "inputSha256": "527c8ce74ef6871f1807fe7b4bd429daefc6f462b2cc95fb0ac367e64718585a",
+      "originalResultSha256": "99cb988515895feae5ddb004b6e2451078e8d87cd1a1f908adae74fa27205963",
+      "failure": "空白模板补齐类别，但一项补充说明键误拼且值为空；v5严格合同停止，原失败记录保留。",
+      "offlineReparse": {
+        "contract": "proposal-constraints-v6",
+        "score": 55,
+        "passed": false,
+        "normalization": {
+          "version": "review-field-spelling-v1",
+          "changes": [
+            {
+              "check_id": "source-claim-c3",
+              "from": "rationalale",
+              "to": "rationale"
+            }
+          ],
+          "model_calls_added": 0
+        },
+        "newRemoteCalls": 0,
+        "historyRewritten": false,
+        "说明": "这是新解析合同对原已结算回执的离线重放，不是v6提示下重新生成的拒绝结果。"
+      }
+    },
+    {
+      "batch": "source-claims-template-positive-01",
+      "reviewContract": "proposal-constraints-v6",
+      "plannedCalls": 1,
+      "actualCalls": 1,
+      "freezeSha256": "4ca80023fa8e068a7966680717083ebd3814205b9b791873d0c9c339c3bebf41",
+      "maximumReferenceCny": 0.410156656392,
+      "maximumCashCny": 0,
+      "cases": [
+        {
+          "id": "corrected-qualified-risks",
+          "status": "completed",
+          "expectedPassed": true,
+          "actualPassed": true,
+          "matched": true,
+          "wallMs": 11987
+        }
+      ],
+      "rawSemanticScore": 95,
+      "rawSemanticPassed": true,
+      "knownReferenceCny": 0.043856782375,
+      "cashCny": 0,
+      "usageConfirmed": true,
+      "calls": [
+        {
+          "label": "corrected-qualified-risks",
+          "status": "billed",
+          "input_tokens": 11275,
+          "output_tokens": 816,
+          "cached_input_tokens": 0,
+          "latency_ms": 11986,
+          "ttft_ms": null,
+          "reference_cost_cny": 0.043856782375,
+          "output_sha256": "3ae4b8233c69b6f19137e7e9b2a60871fa3aee214de73dc6545baebbc0152ff0"
+        }
+      ],
+      "inputSha256": "d6edab726990688b1c82d96ea613bcb586e7c9f535bfc692bd98e4c790dea925",
+      "originalResultSha256": "e615e39c65afbdf448a6615bfa6ef8455c3d6ce2808349f68546a12ffb12d32d",
+      "normalization": {
+        "version": "review-field-spelling-v1",
+        "changes": [],
+        "model_calls_added": 0
+      },
+      "checks": [
+        {
+          "check_id": "source-state",
+          "status": "PASS",
+          "claim_kind": null
+        },
+        {
+          "check_id": "time-causality",
+          "status": "PASS",
+          "claim_kind": null
+        },
+        {
+          "check_id": "source-claim-c1",
+          "status": "PASS",
+          "claim_kind": "QUOTED_OR_WARNING"
+        },
+        {
+          "check_id": "source-claim-c2",
+          "status": "PASS",
+          "claim_kind": "SELF_REPORT"
+        }
+      ],
+      "qualityStatus": "原冻结修正版在同一完整宿主输入下真实通过审核；仅此一例，不外推普遍准确率。"
+    }
+  ],
+  "contractRepair": {
+    "version": "proposal-constraints-v6",
+    "templatePrelabelsVerdicts": false,
+    "required": "总体分数、通过结论、总体依据、全部criteria、全部核对ID/判定/原文与来源引用、逐句类别；FAIL或UNCERTAIN仍不得批准。",
+    "optional": "逐项补充rationale可省略或为null；界面明确标记缺省，不补造解释。",
+    "spellingRule": "review-field-spelling-v1，仅rationalale；关键判定完整时规范化，原回执保留。冲突的非空说明、其他未知键、缺少结论或类别仍拒绝。"
+  },
+  "costs": {
+    "actualRemoteCalls": 3,
+    "knownReferenceCny": 0.19616807364,
+    "newMeteredCashCny": 0,
+    "newUnknownUsageCalls": 0,
+    "previousOverloadReferenceReservationRetainedCny": 0.409608889312,
+    "historyCashProtectedCny": 1.40182036,
+    "cumulativeCashAuthorizationCny": 100,
+    "说明": "订阅公开价格参考估值，不代表现金账单；既有未知用量预留没有释放。"
+  },
+  "verification": {
+    "targetedTests": 118,
+    "pythonTests": 1928,
+    "pluginContracts": "完整pytest内通过",
+    "typecheck": "通过",
+    "build": "通过",
+    "installation": {
+      "core": "0.16.17",
+      "plugin": "0.33.1",
+      "corePythonFiles": 134,
+      "pluginBuiltFiles": 35,
+      "sourcePackageInstalledBytesMatch": true,
+      "settingsBytesPreserved": true,
+      "credentialsBytesPreserved": true,
+      "artifacts": {
+        "refractrouter-0.16.17-py3-none-any.whl": "54a1c34187420855ceb9530dee7445722dc2638ee250a02d00cb98ddb45cd05f",
+        "dsh-refractrouter-validation-0.33.1.tgz": "2cb9adc27ab1f9971e8455a8d55380f06187fea98c790929a9fd5ed578a65f3e"
+      }
+    },
+    "browser": {
+      "origin": "http://127.0.0.1:3080/",
+      "originalProfile": true,
+      "serverReloaded": true,
+      "planningSettingsCard": true,
+      "automaticSettingsCard": true,
+      "dagTab": true,
+      "routingTraceTab": true,
+      "reviewModel": "ark/glm-5.3",
+      "reviewReasoningEffort": "low",
+      "reviewTimeoutSeconds": 180,
+      "savedReviewReserveSeconds": 60,
+      "reviewOutputTokens": 8192,
+      "productionCashBudgetCny": 5,
+      "evaluationCashBudgetCny": 1,
+      "unsavedChanges": false,
+      "newNormalizationRecordVisibleInRealHistory": false,
+      "说明": "新格式展示通过插件契约；未新增完整会话运行，也没有改写旧历史来伪造新的规范化记录。"
+    }
+  },
+  "limitations": [
+    "错误正文沿用原真实回执的离线重放；未宣称新v6提示的正反两例都已重新真实派发。",
+    "一例真实批准及一例离线拒绝只能支持此故障修复，不能证明普遍内容质量或所有模型准确率。",
+    "原时间因果措辞的人工与模型分歧保留，未追改历史标签。",
+    "未新增DSH完整任务派发；此次验证完整原上下文下的最终审核环节。"
+  ]
+}

@@ -124,3 +124,17 @@ test('逐句核对显示独立事实句及语义类别，不替审核器判断�
   const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
   for(const text of ['事实句 ','c1','系统状态断言','回滚未经验证','没有验证状态来源'])assert.ok(tree.includes(text),text)
 })
+
+test('格式规范化与缺省补充说明如实展示，旧记录没有该项时继续显示',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v6'
+  data.quality={score:55,passed:false,response_normalization:{version:'review-field-spelling-v1',model_calls_added:0,
+    changes:[{check_id:'source-claim-c3',from:'rationalale',to:'rationale'}]},
+    grounding_checks:[{check_id:'source-claim-c3',status:'FAIL',answer_quote:'未校验',source_quote:null,
+      claim_kind:'FACT',rationale:null}]}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['审核返回格式规范化','review-field-spelling-v1','rationalale',
+    '判定、分数和引用不变','没有增加审核调用','审核器未提供本项补充说明'])assert.ok(tree.includes(text),text)
+  delete data.quality.response_normalization
+  assert.ok(!JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}})).includes('审核返回格式规范化'))
+})

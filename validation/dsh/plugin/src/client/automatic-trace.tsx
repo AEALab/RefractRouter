@@ -125,8 +125,13 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
     {r.planning_budget?.version&&<p>规划开始时告知的执行时间包络：{r.planning_budget.execution_after_planner_ms===null?'任务不限时间':timing(r.planning_budget.execution_after_planner_ms)}（已扣评审预留与规划额度）。{r.planning_budget.max_nodes!==undefined&&<>本次最多 {r.planning_budget.max_nodes} 个节点（含最终交付）。</>}时延先验不是速度保证；计划仍须通过准入。</p>}
     {r.review?.limits_version&&<p>评审预留时间 {timing(r.review.time_reserve_ms)}；评审输出上限 {traceNumber(r.review.output_cap)} tokens。此限制独立于执行模型输出容量。</p>}
     {r.review?.limits_version==='automatic-review-envelope-v2'&&<p>审核模型：{r.review.model?.provider} / {r.review.model?.model}；推理等级：{r.review.reasoning_effort}；审核等待上限：{r.review.timeout_ms===null?'不额外限制':traceNumber(r.review.timeout_ms)+' ms'}；任务总期限：{r.review.task_timeout_ms===null?'不限时':traceNumber(r.review.task_timeout_ms)+' ms'}；实际可用审核等待：{r.review.effective_wait_ms===null?'不限时':traceNumber(r.review.effective_wait_ms)+' ms'}。</p>}
-    {['proposal-constraints-v1','proposal-constraints-v2','proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
-    {['proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5'].includes(r.review?.contract_version)&&<p>材料未提供的实现细节保持未知；风险推测须标明前提，不以不同用途的数值不同直接认定冲突。</p>}
+    {['proposal-constraints-v1','proposal-constraints-v2','proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5','proposal-constraints-v6'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
+    {['proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5','proposal-constraints-v6'].includes(r.review?.contract_version)&&<p>材料未提供的实现细节保持未知；风险推测须标明前提，不以不同用途的数值不同直接认定冲突。</p>}
+    {r.quality?.response_normalization?.changes?.length>0&&<details><summary>审核返回格式规范化（{r.quality.response_normalization.changes.length} 处）</summary>
+      <p>原始回执保留；仅按已知规则修正字段拼写，判定、分数和引用不变，没有增加审核调用。</p>
+      <p>规则：{r.quality.response_normalization.version}</p>
+      <ul>{r.quality.response_normalization.changes.map((change:Row)=><li key={change.check_id}>{change.check_id}：{change.from} → {change.to==='removed-empty-alias'?'删除多余空字段':change.to}</li>)}</ul>
+    </details>}
     {r.quality?.grounding_checks?.length>0&&<details><summary>来源与因果核对（同一次审核）</summary>
       <Table heads={['核对项','判定','候选原句','材料引用','理由']}>
         {r.quality.grounding_checks.map((check:Row)=><tr key={check.check_id}>
@@ -134,7 +139,7 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
           <td style={cellStyle}>{({PASS:'通过',FAIL:'未通过',UNCERTAIN:'无法判断',NOT_APPLICABLE:'不适用'} as Record<string,string>)[check.status]??check.status}</td>
           <td style={cellStyle}>{check.answer_quote??'无适用原句'}</td>
           <td style={cellStyle}>{check.source_quote??'未提供来源引用'}</td>
-          <td style={cellStyle}>{check.rationale}</td></tr>)}
+          <td style={cellStyle}>{check.rationale??'审核器未提供本项补充说明；请查看总体评审理由。'}</td></tr>)}
       </Table><p>引用是否存在由 Python 核对；语义由审核模型判断，不代表已独立证明结论正确。</p>
     </details>}
     {typeof r.deterministic_validation?.passed==='boolean'&&<p>固定事实检查：{r.deterministic_validation.passed?'通过':'未通过'}；已知事实不符时，模型高分不能覆盖该结果。</p>}

@@ -29,6 +29,35 @@ def test_each_grounding_item_has_an_explicit_output_shape():
     assert 'grounding_check_shapes' not in node
 
 
+def test_review_template_has_all_fields_without_prejudging_claims():
+    p=json.loads(evaluation_messages('材料未提供测试状态','我未执行测试。系统未经测试。',[])[1]['content'])
+    template=p['final_review_template']
+    assert template['score'] is None and template['passed'] is None
+    assert [r['criterion_id'] for r in template['criteria']]==p['criterion_ids']
+    assert all(r['passed'] is None and r['rationale'] is None for r in template['criteria'])
+    for row,shape in zip(template['grounding_checks'],p['grounding_check_shapes']):
+        assert row['check_id']==shape['check_id'] and set(row)==set(shape['required_fields'])|set(shape['optional_fields'])
+        assert row['status'] is None and row['rationale'] is None
+    for row,claim in zip(template['grounding_checks'][2:],p['source_state_claims']):
+        assert row['answer_quote']==claim['quote'] and row['claim_kind'] is None
+    assert 'expectedPassed' not in p and 'expectedPassed' not in template
+    node=json.loads(evaluation_messages('任务','节点答案',[],node_input='节点输入')[1]['content'])
+    assert 'final_review_template' not in node
+
+
+def test_unfilled_review_template_is_not_accepted_or_repaired():
+    class Budget:
+        calls=0
+        def complete(self,model,messages,**kwargs):
+            self.calls+=1
+            p=json.loads(messages[-1]['content'])
+            return ChatResponse(json.dumps(p['final_review_template']),100,80,0,0,1,1,'stop','mock')
+    budget=Budget()
+    with pytest.raises(ValueError,match='judge score|invalid judge response'):
+        evaluate_text(budget,None,'任务','答案',criteria=[],label='review',deadline=time.monotonic()+5)
+    assert budget.calls==1
+
+
 @pytest.mark.parametrize('overall,proposal,missing,raises',[(True,False,False,True),
     (False,False,False,False),(True,True,True,True),(True,True,False,False)])
 def test_high_score_cannot_hide_failed_or_omitted_constraint(overall,proposal,missing,raises):
@@ -61,7 +90,8 @@ def test_fixed_cases_preserve_numeric_answers_and_separate_labels():
 
 @pytest.mark.parametrize('unknown', [False, True])
 @pytest.mark.parametrize('case_set', ['proposal','grounding','native'])
-def test_finite_review_runner_uses_frozen_count_or_stops_unknown(tmp_path, monkeypatch, unknown, case_set):
+@pytest.mark.parametrize('selected', [False, True])
+def test_finite_review_runner_uses_frozen_count_or_stops_unknown(tmp_path, monkeypatch, unknown, case_set, selected):
     import io
     import experiments.run_proposal_review_recheck as runner
     from tests.test_live_execution import config
@@ -103,14 +133,20 @@ def test_finite_review_runner_uses_frozen_count_or_stops_unknown(tmp_path, monke
             toolEvidence={'records':[],'available':True})
         native_file=tmp_path/'cases.json';native_file.write_text(json.dumps(fixture))
         monkeypatch.setattr(runner,'ROOT',tmp_path)
-    frozen=runner.freeze(catalog,grounding_cases=case_set=='grounding',native_case_file=native_file)
-    count=4 if case_set=='proposal' else 2
+    fixture_path=native_file or (runner.GROUNDING_CASES if case_set=='grounding' else runner.CASES)
+    selected_id=json.loads(fixture_path.read_text())['cases'][-1]['id'] if selected else None
+    frozen=runner.freeze(catalog,grounding_cases=case_set=='grounding',native_case_file=native_file,case_id=selected_id)
+    count=1 if selected else (4 if case_set=='proposal' else 2)
     assert frozen['maximumCalls']==count
+    if selected:
+        assert [c['id'] for c in frozen['fixture']['cases']]==[selected_id]
+        with pytest.raises(ValueError,match='指定案例不属于原冻结题集'):
+            runner.freeze(catalog,grounding_cases=case_set=='grounding',native_case_file=native_file,case_id='not-in-frozen-cases')
     if unknown:
         with pytest.raises(TimeoutError):runner.run(frozen,tmp_path/'run')
     else:
         rows=runner.run(frozen,tmp_path/'run');assert len(rows)==count
-        assert sum(r['matched'] for r in rows)==count//2  # 错误模型不能被预期标签伪造成通过。
+        assert sum(r['matched'] for r in rows)==(1 if selected else count//2)  # 错误模型不能被预期标签伪造成通过。
     ledger=json.loads((tmp_path/'run/result.json').read_text())
     assert len(ledger['calls'])==(1 if unknown else count)
     assert ledger['calls'][0]['status']==('unknown-usage' if unknown else 'billed')
@@ -240,6 +276,48 @@ def test_every_selected_claim_requires_an_independent_consistent_result(change):
     else:rows[0]['status']='PASS'
     with pytest.raises(ValueError,match='grounding|claim|coverage'):
         review_with_response(response)
+
+
+def test_missing_claim_category_reports_the_exact_check_without_model_repair():
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    response['grounding_checks'][2].pop('claim_kind')
+    response['grounding_checks'][2]['rationalale']='未知字段不代替类别'
+    with pytest.raises(ValueError,match=r'source-claim-c1; missing: claim_kind; unexpected: 1'):
+        review_with_response(response)
+
+
+@pytest.mark.parametrize('change,valid', [
+    ('null-reason',True),('omitted-reason',True),('valid-alias',True),('empty-alias',True),
+    ('missing-kind',False),('missing-status',False),('conflicting-alias',False),
+    ('unknown-field',False),('invalid-alias-value',False),
+])
+def test_optional_explanation_and_known_spelling_never_fill_missing_verdicts(change,valid):
+    from copy import deepcopy
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    row=response['grounding_checks'][2]
+    if change=='null-reason':row['rationale']=None
+    elif change=='omitted-reason':row.pop('rationale')
+    elif change=='valid-alias':row['rationalale']=row.pop('rationale')
+    elif change=='empty-alias':row['rationalale']=None
+    elif change=='missing-kind':row.pop('claim_kind')
+    elif change=='missing-status':row.pop('status')
+    elif change=='conflicting-alias':row['rationalale']='不同说明'
+    elif change=='unknown-field':row['rational']='未知拼写不猜测'
+    else:row['rationalale']=123;row.pop('rationale')
+    response['response_normalization']={'version':'模型伪造','changes':[{'from':'passed','to':True}]}
+    before=deepcopy(response)
+    if valid:
+        result=review_with_response(response)
+        assert result['passed'] is False and result['score']==99
+        assert result['response_normalization']['version']=='review-field-spelling-v1'
+        assert result['response_normalization']['model_calls_added']==0
+        assert all(r['status']==original['status'] for r,original in zip(result['grounding_checks'],before['grounding_checks']))
+        result['passed']=True
+        with pytest.raises(ValueError,match='inconsistent final judge grounding'):
+            review_with_response(result)
+    else:
+        with pytest.raises(ValueError):review_with_response(response)
+    assert response==before
 
 
 def test_english_conditional_warning_and_negative_claims_remain_separate():

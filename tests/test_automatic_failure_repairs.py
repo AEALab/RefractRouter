@@ -160,7 +160,7 @@ def test_recorded_v5_missing_fields_stop_without_repair_or_delivery(tmp_path, mo
     raw, client=launch(tmp_path, task=fixture['task'])
     assert raw['status']=='failed' and raw['evaluation'] is None
     assert raw['review']['status']=='failed' and raw['review']['passed'] is False
-    assert raw['review']['reason']=='invalid final judge grounding fields'
+    assert raw['review']['reason']=='invalid final judge grounding fields (source-claim-c1; missing: claim_kind; unexpected: 0)'
     assert len(client.calls)==2 and all(c['status']=='billed' for c in raw['calls'])
 
 

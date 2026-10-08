@@ -68,6 +68,17 @@ def test_grounding_trace_preserves_verdicts_and_verified_short_quotes_only():
     assert 'request_messages' not in json.dumps(rows)
 
 
+def test_review_format_trace_keeps_only_core_normalization_metadata():
+    s,r=evidence()
+    s['quality']['response_normalization']={'version':'review-field-spelling-v1','model_calls_added':0,
+        'request_messages':['私有请求不展示'],'changes':[{'check_id':'source-claim-c3',
+            'from':'rationalale','to':'rationale','private_payload':'私有上下文不展示'}]}
+    value=project(s,r)['quality']['response_normalization']
+    assert value=={'version':'review-field-spelling-v1','model_calls_added':0,
+        'changes':[{'check_id':'source-claim-c3','from':'rationalale','to':'rationale'}]}
+    assert '私有' not in json.dumps(value,ensure_ascii=False)
+
+
 def test_cash_reference_pending_and_external_judge_are_separate():
     s, r = evidence()
     r['calls'].append({'label': 'inflight', 'model_id': 'cheap', 'category': 'production',

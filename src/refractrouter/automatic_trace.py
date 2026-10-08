@@ -124,6 +124,11 @@ def project(summary, runtime=None, *, cash_limits=None):
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
             if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
         'quality': {**pick(quality, ('score', 'passed', 'rationale')),
+            **({'response_normalization': {
+                **pick(quality['response_normalization'], ('version','model_calls_added')),
+                'changes': [pick(row, ('check_id','from','to'))
+                    for row in quality['response_normalization'].get('changes', [])],
+            }} if isinstance(quality.get('response_normalization'), dict) else {}),
             **({'grounding_checks': [pick(row, ('check_id','status','answer_quote','source_quote','rationale','claim_kind'))
                 for row in quality['grounding_checks']]} if isinstance(quality.get('grounding_checks'), list) else {})},
         'quality_gate': quality_gate,

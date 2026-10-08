@@ -33,7 +33,7 @@ def hashes(extra=None):
     return result
 
 
-def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_file=None):
+def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_file=None, case_id=None):
     if grounding_cases and native_case_file is not None:
         raise ValueError('只能选择一套冻结案例')
     fixture_path = Path(native_case_file).resolve() if native_case_file is not None else (GROUNDING_CASES if grounding_cases else CASES)
@@ -57,6 +57,13 @@ def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_
     count = 2 if grounding_cases or native_case_file is not None else 4
     if len(cases) != count or len({c['id'] for c in cases}) != count:
         raise ValueError('本次仅验收所选择的固定案例')
+    if case_id is not None:
+        selected = [c for c in cases if c['id'] == case_id]
+        if len(selected) != 1:
+            raise ValueError('指定案例不属于原冻结题集')
+        cases = selected
+        fixture = {**fixture, 'cases': cases}
+        count = 1
     bounds = []
     for c in cases:
         if hashlib.sha256(c['answer'].encode()).hexdigest() != c['answerSha256']:
@@ -78,6 +85,7 @@ def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_
     result = {'schemaVersion':'proposal-review-preflight-v1','reviewContract':REVIEW_CONTRACT,
         'fixture':fixture,'catalog':catalog,'configuration':configuration,'provenance':provenance,
         'model':asdict(model),'inputBounds':bounds,'maximumCalls':count,'maximumReferenceCny':maximum,
+        'selectedCaseId':case_id,
         'maximumCashCny':cash_maximum,'cumulativeCashCeilingCny':100,
         'historyCashProtectedCny':protected,'sourceHashes':hashes(fixture_path) if native_case_file is not None else hashes(),
         **({'fixtureSource':str(fixture_path.relative_to(ROOT))} if native_case_file is not None else {}),
@@ -160,10 +168,11 @@ def main():
     parser.add_argument('--judge-reasoning', choices=['low','high','max'])
     parser.add_argument('--grounding-cases', action='store_true')
     parser.add_argument('--native-case-file', type=Path)
+    parser.add_argument('--case-id', help='仅补验原冻结题集中指定的一例，不重发其他案例')
     parser.add_argument('--freeze-sha256')
     args=parser.parse_args()
     frozen=freeze(json.loads(args.catalog.read_text()), judge_reasoning=args.judge_reasoning,
-                  grounding_cases=args.grounding_cases, native_case_file=args.native_case_file)
+                  grounding_cases=args.grounding_cases, native_case_file=args.native_case_file, case_id=args.case_id)
     if not args.execute:
         args.output_dir.mkdir(parents=True,exist_ok=False)
         atomic_json(args.output_dir/'preflight.json',frozen)

@@ -6,9 +6,10 @@ from .node_routing import number
 from .task_plan import text
 from .review_claims import state_claims, VERSION as CLAIM_VERSION
 
-REVIEW_CONTRACT = 'proposal-constraints-v5'
+REVIEW_CONTRACT = 'proposal-constraints-v6'
 GROUNDING_CHECKS = ('source-state', 'time-causality')
-GROUNDING_FIELDS = ('check_id', 'status', 'answer_quote', 'source_quote', 'rationale')
+GROUNDING_FIELDS = ('check_id', 'status', 'answer_quote', 'source_quote')
+GROUNDING_OPTIONAL_FIELDS = ('rationale',)
 CLAIM_KINDS = ('FACT', 'CONDITIONAL', 'SELF_REPORT', 'QUOTED_OR_WARNING')
 PROPOSAL_CRITERION = ('答案中的建议、修复提案和恢复步骤也必须遵守原任务及材料明确保留的关键约束；'
     '不得将未知当成已确认，不得仅凭超时释放需核对的占用或重发可能已执行的操作。'
@@ -47,7 +48,8 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
     if not node:
         prompt += '另返回 criteria 数组，逐项按原顺序给出 criterion_id、passed、rationale；criterion_id 原样取自 criterion_ids，不需抄写长条目；全部通过才可 passed=true。'
         prompt += ('另返回 grounding_checks，按 grounding_check_ids 顺序逐项回答。'
-                   '前两项 source-state 与 time-causality 只包含 check_id、status（PASS/FAIL/UNCERTAIN/NOT_APPLICABLE）、answer_quote、source_quote、rationale。'
+                   '前两项 source-state 与 time-causality 必须包含 check_id、status（PASS/FAIL/UNCERTAIN/NOT_APPLICABLE）、answer_quote、source_quote。'
+                   '每项 rationale 是可选的补充说明，可为 null；总体 rationale 必须说明审核依据。'
                    '先完成这两项，再给总分；FAIL 或 UNCERTAIN 时总体 passed 必须为 false。'
                    'source-state：检查正文是否断言当前或历史实施、配置、验证状态。'
                    '检查整份正文的具体断言，不能只引用开头的免责句；“我未执行测试”不能为回滚机制未经验证等系统断言自证。'
@@ -72,8 +74,12 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
                    '未验证、未执行测试等系统事实没有证据时 FAIL；引用或警告与自身未调用工具可按语义 PASS，'
                    '条件句也必须有实际前提，风险标签不是前提。UNCERTAIN 不放行。'
                    '全部逐句项 PASS 才可 source-state PASS；任何逐句项 FAIL 或 UNCERTAIN，总体 passed=false。'
-                   '每项严格按 grounding_check_shapes 的 required_fields 返回，不得遗漏或增加键，不得拼写变体。'
-                   '逐句项的 claim_kind 是独立必填字段，不能仅在 rationale 中说明类别；前两项不返回 claim_kind。')
+                   '每项严格按 grounding_check_shapes 返回全部 required_fields；只有 optional_fields 可省略，不得增加其他键。'
+                   '逐句项的 claim_kind 是独立必填字段，不能仅在 rationale 中说明类别；前两项不返回 claim_kind。'
+                   'final_review_template 是本次完整返回对象的空白模板；保留所有键、数组顺序和固定 ID，逐项填写值。'
+                   '模板中的 null 不是判定或默认通过：score、passed、总体 rationale、status 和逐句 claim_kind 都须实际填写。'
+                   '逐句 answer_quote 已填入连续原文，保持不变；前两项的引用须按适用性填写，来源缺失可保留 null。'
+                   '返回填写完成的模板，不返回模板外的字段、grounding_check_shapes 或其他请求元数据。')
         prompt += ('tool_evidence 若存在，是当前任务由宿主记录的真实调用及结果；'
                    '只有这些回执能证明工具实际执行，答案猜对或声称已执行均不能替代回执。'
                    '核对工具名称、参数、结果与原始任务的每项操作要求；无关调用不能满足要求。'
@@ -88,13 +94,32 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
         payload['source_state_claims'] = claims
         payload['source_state_attention_version'] = CLAIM_VERSION
         payload['grounding_check_shapes'] = [
-            {'check_id': check_id, 'required_fields': list(GROUNDING_FIELDS)}
+            {'check_id': check_id, 'required_fields': list(GROUNDING_FIELDS),
+             'optional_fields': list(GROUNDING_OPTIONAL_FIELDS)}
             for check_id in GROUNDING_CHECKS
         ] + [
             {'check_id': row['check_id'], 'required_fields': [*GROUNDING_FIELDS, 'claim_kind'],
+             'optional_fields': list(GROUNDING_OPTIONAL_FIELDS),
              'claim_kind_values': list(CLAIM_KINDS)}
             for row in claims
         ]
+        # 只固定返回结构及原文引用，不预填结论；宿主 JSON 提示不保证输出字段完整。
+        payload['final_review_template'] = {
+            'score': None, 'passed': None, 'rationale': None,
+            'criteria': [
+                {'criterion_id': key, 'passed': None, 'rationale': None}
+                for key in payload['criterion_ids']
+            ],
+            'grounding_checks': [
+                {'check_id': key, 'status': None, 'answer_quote': None,
+                 'source_quote': None, 'rationale': None}
+                for key in GROUNDING_CHECKS
+            ] + [
+                {'check_id': row['check_id'], 'status': None, 'answer_quote': row['quote'],
+                 'source_quote': None, 'rationale': None, 'claim_kind': None}
+                for row in claims
+            ],
+        }
     if node:
         payload['node_input'] = node_input
     if tool_evidence is not None:
@@ -128,11 +153,15 @@ def validate_grounding_checks(result, task, answer, tool_evidence):
         required = set(GROUNDING_FIELDS)
         if expected in by_id:
             required.add('claim_kind')
-        if not isinstance(row, dict) or set(row) != required:
-            raise ValueError('invalid final judge grounding fields')
+        allowed = required | set(GROUNDING_OPTIONAL_FIELDS)
+        if not isinstance(row, dict) or not required <= set(row) or set(row) - allowed:
+            missing = ','.join(sorted(required - set(row))) if isinstance(row, dict) else ','.join(sorted(required))
+            unexpected = len(set(row) - allowed) if isinstance(row, dict) else 0
+            raise ValueError(f'invalid final judge grounding fields ({expected}; missing: {missing or "none"}; unexpected: {unexpected})')
         if row['check_id'] != expected or row['status'] not in {'PASS','FAIL','UNCERTAIN','NOT_APPLICABLE'}:
             raise ValueError('invalid final judge grounding verdict')
-        text(row['rationale'], 'grounding rationale', 2000)
+        if row.get('rationale') is not None:
+            text(row['rationale'], 'grounding rationale', 2000)
         if expected in by_id:
             if row['claim_kind'] not in CLAIM_KINDS:
                 raise ValueError('invalid final judge source claim kind')
@@ -155,6 +184,40 @@ def validate_grounding_checks(result, task, answer, tool_evidence):
         raise ValueError('inconsistent final judge grounding verdict')
     if rows[0]['status'] == 'PASS' and any(row['status'] in {'FAIL','UNCERTAIN'} for row in rows[2:]):
         raise ValueError('inconsistent final judge source-state coverage')
+
+
+def normalize_grounding_field_spelling(result, answer):
+    """只规范化已观察到的单个键拼写；不猜测遗漏判定，不改变原回执。"""
+    claims = {row['check_id'] for row in state_claims(answer)}
+    known = {*GROUNDING_CHECKS, *claims}
+    changes = []
+    normalized = dict(result)
+    rows = result.get('grounding_checks')
+    if isinstance(rows, list):
+        copied = []
+        for row in rows:
+            updated = dict(row) if isinstance(row, dict) else row
+            if isinstance(row, dict) and isinstance(row.get('check_id'), str) and row['check_id'] in known:
+                required = set(GROUNDING_FIELDS) | ({'claim_kind'} if row['check_id'] in claims else set())
+                allowed = required | set(GROUNDING_OPTIONAL_FIELDS) | {'rationalale'}
+                # 缺少关键判定、存在其他未知键或两个非空说明冲突时，不猜测规范化。
+                if required <= set(row) <= allowed and 'rationalale' in row:
+                    alias = row['rationalale']
+                    if 'rationale' not in row:
+                        if alias is not None:
+                            text(alias, 'grounding rationale', 2000)
+                        updated['rationale'] = updated.pop('rationalale')
+                        changes.append({'check_id': row['check_id'], 'from': 'rationalale', 'to': 'rationale'})
+                    elif alias is None:
+                        updated.pop('rationalale')
+                        changes.append({'check_id': row['check_id'], 'from': 'rationalale', 'to': 'removed-empty-alias'})
+            copied.append(updated)
+        normalized['grounding_checks'] = copied
+    # 这项元数据只由核心产生，不信任模型自行报告的规范化记录。
+    normalized['response_normalization'] = {
+        'version': 'review-field-spelling-v1', 'changes': changes, 'model_calls_added': 0,
+    }
+    return normalized
 
 
 def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, input_cap=None, node_input=None,
@@ -195,6 +258,7 @@ def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, inp
         # Listed criteria are necessary, but may omit an original task requirement.
         if result['passed'] and not all(row['passed'] for row in rows):
             raise ValueError('inconsistent final judge verdict')
+        result = normalize_grounding_field_spelling(result, answer)
         validate_grounding_checks(result, task, answer, tool_evidence)
     result['review_contract'] = REVIEW_CONTRACT
     return result
