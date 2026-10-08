@@ -95,6 +95,21 @@ def test_missing_records_do_not_invent_zero_cost_or_verified_budget():
     assert project({'run_id': RID}, {'calls': []})['ledger'][0]['billed_cash_cny'] == 0
 
 
+def test_review_envelope_and_alias_evidence_are_exposed_without_raw_candidate():
+    s, r = evidence()
+    r['review'] = {'required': True, 'status': 'blocked-deterministic-check',
+        'time_reserve_ms': 30000, 'output_cap': 8192, 'limits_version': 'automatic-review-envelope-v1'}
+    s.pop('review', None)
+    r['deterministic_validation'] = {'passed': False, 'reason': '固定事实不符', 'rawAnswer': '机密'}
+    r['compact_planning'] = {'attempts': [{'output': '机密', 'type_normalization': {
+        'version': 'compact-type-alias-v1', 'changes': [{'node_id': 'one', 'from': 'analysis', 'to': 'synthesis'}]}}]}
+    trace = project(s, r)
+    assert trace['review']['output_cap'] == 8192 and trace['review']['time_reserve_ms'] == 30000
+    assert trace['deterministic_validation'] == {'passed': False, 'reason': '固定事实不符'}
+    assert trace['planner_normalizations'][0]['type_normalization']['changes'][0]['to'] == 'synthesis'
+    assert '机密' not in json.dumps(trace, ensure_ascii=False)
+
+
 def test_judge_approve_below_quality_floor_does_not_become_verified_pass():
     s, r = evidence()
     s['status'] = 'quality-failed'

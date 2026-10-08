@@ -281,12 +281,15 @@ class ChatResponse:
 
 class ModelInvocationError(RuntimeError):
     def __init__(self, failure_type: str, message: str, attempts: int, latency_ms: int,
-                 *, diagnostics: Mapping[str, object] | None = None):
+                 *, diagnostics: Mapping[str, object] | None = None,
+                 confirmed_response: ChatResponse | None = None):
         super().__init__(message)
         self.failure_type = failure_type
         self.attempts = attempts
         self.latency_ms = latency_ms
         self.diagnostics = dict(diagnostics or {})
+        # 仅用于失败调用结算，不作为可交付回复，也不进入公开诊断。
+        self.confirmed_response = confirmed_response
 
     def public_details(self) -> dict[str, object]:
         """只公开有限枚举和数值；不透传供应商正文、异常文本或任意诊断字段。"""
@@ -572,6 +575,26 @@ class OpenAICompatibleClient:
                     )
                 last_failure = str(response.get("failure_type", "provider-error"))
                 last_message = str(response.get("message", "DSH LLM request failed"))[:300]
+                usage = response.get('usage')
+                if response.get('usage_confirmed') is True and isinstance(usage, dict):
+                    counts = [usage.get(k) for k in ('input_tokens', 'output_tokens',
+                        'cached_input_tokens', 'reasoning_tokens')]
+                    write = usage.get('cache_write_tokens', 0)
+                    content = response.get('content', '')
+                    if (all(type(n) is int and 0 <= n <= 2**53-1 for n in [*counts, write])
+                            and counts[0] > 0 and counts[2]+write <= counts[0]
+                            and counts[3] <= counts[1] and isinstance(content, str)
+                            and (not content.strip() or counts[1] > 0)):
+                        latency = round((time.perf_counter()-started)*1000)
+                        receipt = ChatResponse(content=content, input_tokens=counts[0],
+                            output_tokens=counts[1], cached_input_tokens=counts[2], reasoning_tokens=counts[3],
+                            raw_usage={'cacheWriteTokens': write}, cache_usage_source='dsh-terminal-usage',
+                            latency_ms=latency, attempts=attempts, finish_reason='error',
+                            request_id=str(response['request_id']) if response.get('request_id') else None)
+                        raise ModelInvocationError(last_failure, last_message, attempts, latency,
+                            confirmed_response=receipt)
+            except ModelInvocationError:
+                raise  # 已确认计费的失败绝不进入 HTTP 重试。
             except (RuntimeError, ValueError, TypeError, json.JSONDecodeError) as exc:
                 last_failure = "transport-error"
                 last_message = f"DSH LLM bridge failure: {type(exc).__name__}"

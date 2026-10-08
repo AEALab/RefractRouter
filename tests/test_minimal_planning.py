@@ -50,7 +50,8 @@ def test_direct_keeps_planning_and_delivery_judge_costs(tmp_path):
     assert sum(summary['cost_breakdown'].values()) == pytest.approx(sum(summary['costs'].values()))
     assert not raw.get('dynamic_decomposition', {}).get('events')
     judge_payload = next(p for m, p, _ in client.calls if m.role == 'judge')
-    assert judge_payload['criteria'] == ['核对所有条件', '保留例外']
+    from refractrouter.task_evaluation import PROPOSAL_CRITERION
+    assert judge_payload['criteria'] == ['核对所有条件', '保留例外', PROPOSAL_CRITERION]
 
 
 def test_explicit_single_has_no_planning_call_or_new_policy(tmp_path):

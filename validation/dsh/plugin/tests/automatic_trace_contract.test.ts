@@ -74,3 +74,27 @@ test('缺失金额不显示零费用，小额 Jev 费用保留有效精度',()=>
   const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'interrupted',error:'宿主取消'}}))
   assert.ok(tree.includes('宿主已中断'));assert.ok(tree.includes('不自动重发待核对调用'));assert.ok(tree.includes(data.issues[0]))
 })
+
+test('轨迹显示独立评审包络、固定事实阻断和已记录的格式兼容转换',()=>{
+  const api=client(),data:any=record()
+  data.status='quality-failed'
+  data.review={required:true,status:'blocked-deterministic-check',passed:false,
+    time_reserve_ms:30000,output_cap:8192,limits_version:'automatic-review-envelope-v1'}
+  data.deterministic_validation={passed:false}
+  data.planning_budget={version:'automatic-planning-time-envelope-v1',execution_after_planner_ms:150000,max_nodes:2}
+  data.planner_normalizations=[{type_normalization:{version:'compact-type-alias-v1',
+    changes:[{node_id:'facts',from:'analysis',to:'synthesis'}]}}]
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const expected of ['固定事实检查未通过，未派发评审','评审预留时间',api.traceNumber(8192),
+    '独立于执行模型输出容量','模型高分不能覆盖','compact-type-alias-v1','synthesis',
+    '已扣评审预留与规划额度','时延先验不是速度保证','本次最多','个节点（含最终交付）'])assert.ok(tree.includes(expected),expected)
+})
+
+
+test('新版审核轨迹明确包含修正建议和关键约束，旧记录仍可读取',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v2'
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  assert.ok(tree.includes('审核同时检查答案、修正建议与恢复步骤'))
+  assert.ok(tree.includes('数字正确或高分也不能放行'))
+})

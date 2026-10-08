@@ -1,0 +1,90 @@
+[
+  {
+    "caseId": "independent-release-review",
+    "plan": {
+      "reason": "三个模块审查相互独立，可并行分支；最终节点汇总字段答案、风险边界与发布建议。",
+      "nodes": [
+        {
+          "id": "stop_billing_review",
+          "type": "analysis",
+          "job": "审查 stop() 对 billed/unknown-usage/reserved 三类记录的释放与结算逻辑，推导 chargedAfterStop 与 unknownReleased，标注风险与修正回归点",
+          "parents": [],
+          "difficulty": "medium",
+          "risk": "medium"
+        },
+        {
+          "id": "tool_validation_review",
+          "type": "analysis",
+          "job": "核对 verify() 对 failed 事件与 require_confirmed 的判定，推导 confirmedPassed 与 semanticQualityVerified 边界，给出修正与回归点",
+          "parents": [],
+          "difficulty": "medium",
+          "risk": "medium"
+        },
+        {
+          "id": "input_bound_review",
+          "type": "analysis",
+          "job": "计算 messages 无 tools 时的 request_input_bound 上界，说明保守序列化与精确 tokenizer 差异，给出修正与回归点",
+          "parents": [],
+          "difficulty": "low",
+          "risk": "low"
+        },
+        {
+          "id": "answer",
+          "type": "generation",
+          "job": "汇总三模块结论，输出含 answers 与中文 explanation 的完整 JSON，含阻断条件、灰度观察与回滚保留项，不虚构执行结果",
+          "parents": [
+            "stop_billing_review",
+            "tool_validation_review",
+            "input_bound_review"
+          ],
+          "difficulty": "medium",
+          "risk": "high"
+        }
+      ]
+    }
+  },
+  {
+    "caseId": "cancel-reservations",
+    "plan": {
+      "reason": "需先推导账本语义得出四个字段，再并行分析三个取消时点与恢复测试方案，最后汇总为完整 JSON 交付。",
+      "nodes": [
+        {
+          "id": "ledger_trace",
+          "type": "synthesis",
+          "job": "依据 stop/dispatch 源码按序推导 chargedAfterStop、unknownRetained、cancelledCharged、dispatchAllowed 四字段",
+          "parents": [],
+          "difficulty": "high",
+          "risk": "high"
+        },
+        {
+          "id": "timing_analysis",
+          "type": "analysis",
+          "job": "审查预留后、派发前、派发后三个取消时点的并发与账本处理及风险边界",
+          "parents": [],
+          "difficulty": "high",
+          "risk": "medium"
+        },
+        {
+          "id": "recovery_tests",
+          "type": "synthesis",
+          "job": "制定 crash 后故障恢复方案与三条回归测试，标出不可重发边界",
+          "parents": [],
+          "difficulty": "medium",
+          "risk": "medium"
+        },
+        {
+          "id": "answer",
+          "type": "generation",
+          "job": "汇总四字段答案、修复建议、时点分析、恢复方案与测试，输出完整 JSON 并核对矛盾遗漏",
+          "parents": [
+            "ledger_trace",
+            "timing_analysis",
+            "recovery_tests"
+          ],
+          "difficulty": "high",
+          "risk": "high"
+        }
+      ]
+    }
+  }
+]

@@ -182,13 +182,25 @@ class TaskCallBudget:
             response = call_client.complete(model, reservation.messages, json_mode=reservation.json_mode,
                 **({"tools": reservation.tools} if reservation.tools else {}))
         except ModelInvocationError as exc:
-            with self.lock:
-                row['failure'] = exc.public_details()
+            self.settle_failure(reservation, exc)
             raise
         finally:
             if unlimited:
                 self.planning_elapsed += time.monotonic() - planning_started
         return self.settle(reservation, response)
+
+    def settle_failure(self, reservation, error):
+        """有效终止用量照常记账；失败候选始终拒绝，缺失用量继续占预留。"""
+        with self.lock:
+            reservation.row['failure'] = error.public_details()
+        receipt = error.confirmed_response
+        if receipt is not None:
+            # 固定为错误结束，避免异常携带的回复被当作工具调用或正常正文。
+            receipt = replace(receipt, finish_reason='error', tool_calls=())
+            try:
+                self.settle(reservation, receipt)
+            except InvalidModelOutput:
+                pass
 
     def settle(self, reservation, response):
         """结算宿主实际执行的调用；与内置 complete 共用费用和输出验收。"""
@@ -238,7 +250,7 @@ class TaskCallBudget:
                     or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):
                 self.stop()
                 raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')
-        if not getattr(response, 'tool_calls', ()) and response.content.strip().startswith('<|FunctionCallBegin|>'):
+        if response.finish_reason == 'stop' and not getattr(response, 'tool_calls', ()) and response.content.strip().startswith('<|FunctionCallBegin|>'):
             raise ValueError('模型返回工具协议文本而非原生 tool_calls；未执行文本指令')
         if reservation.tools and getattr(response, 'tool_calls', ()) and response.finish_reason in {'tool_calls', 'stop'}:
             return response

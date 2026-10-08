@@ -42,7 +42,8 @@ def load_replay(path):
         raise ValueError('frozen request changed')
     request = json.loads(request_path.read_text())
     task = json.loads(request['messages'][-1]['content'])['task']
-    messages = node_messages(task, node, contract, {})
+    # 冻结的 v1 实验继续使用其原提示；不借新版提示改变历史授权指纹。
+    messages = node_messages(task, node, contract, {}, prompt_contract='legacy')
     messages_hash = hashlib.sha256(json.dumps(messages, ensure_ascii=False).encode()).hexdigest()
     if messages_hash != raw['messages_sha256']:
         raise ValueError('replay prompt changed; refreeze before paid execution')

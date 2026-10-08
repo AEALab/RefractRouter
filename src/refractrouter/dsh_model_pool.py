@@ -218,6 +218,13 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         resolved = catalog.get(identity)
         if resolved is None:
             raise ValueError(f'DSH route is unavailable: {_route_key(provider, model)}')
+        effort = row.get('reasoningEffort', 'default')
+        supported = resolved.get('reasoningEfforts')
+        if supported is None:
+            supported = [entry.get('id') for entry in resolved.get('reasoning', {}).get('efforts', [])
+                         if isinstance(entry, dict)]
+        if not isinstance(effort, str) or (effort != 'default' and effort not in supported):
+            raise ValueError(f'{_route_key(provider, model)} has unsupported reasoningEffort: {effort}')
         deployment = row.get('deployment')
         if deployment not in DEPLOYMENTS:
             raise ValueError('every DSH route requires an explicit deployment')
@@ -268,7 +275,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         quality = quality_profile['score']
         route_key = _route_key(provider, model)
         effective_model = base.get('effective_model', model)
-        observation_key = f'{route_key}\0{effective_model}\0default'
+        observation_key = f'{route_key}\0{effective_model}\0{effort}'
         observed = (latency_profiles or {}).get(observation_key)
         if observed is None:
             latency = CONSERVATIVE_BOOTSTRAP_LATENCY_MS
@@ -302,6 +309,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
                 or isinstance(max_output_tokens, bool) or max_output_tokens <= 0):
             raise ValueError(f'{_route_key(provider, model)} has no valid output limit')
         selected.append({'provider': provider, 'model': model, 'deployment': deployment,
+            'reasoningEffort': effort,
             'trustPolicy': row.get('trustPolicy'), 'contextWindow': resolved.get('contextWindow'),
             'maxOutputTokens': resolved.get('maxOutputTokens'), 'pricing': pricing,
             'pricePolicy': base.get('price_policy'),
@@ -394,6 +402,8 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             'provider': provider_ids[_route_key(row['provider'], row['model'])],
             'model': row['model'], 'roles': roles, 'contextWindow': row['contextWindow'],
             'maxOutputTokens': row['maxOutputTokens'], 'deployment': row['deployment'],
+            **({'requestOptions': {'reasoning_effort': row['reasoningEffort']}}
+               if row['reasoningEffort'] != 'default' else {}),
             **({'billingMode': row['billingMode'], 'referencePricing': row['referencePricing'], 'executionEndpoint': row['executionEndpoint']} if cash_only else {}),
             **({'pricePolicy': row['pricePolicy']} if row.get('pricePolicy') else {}),
             'pricing': {'unit': row['pricing']['unit'] if mixed else accounting_unit,
@@ -404,7 +414,7 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         if models[-1]['routing'] is None: models[-1].pop('routing')
         evidence[_route_key(row['provider'], row['model'])].update(
             compiled_model_id=models[-1]['id'], effective_model=row['effectiveModel'],
-            reasoning_effort='default')
+            reasoning_effort=row['reasoningEffort'])
     security = deepcopy(pool.get('security', {'dataMode':'live','sensitiveTerms':[],
         'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):

@@ -1,0 +1,543 @@
+{
+  "schemaVersion": "automatic-clarified-recheck-v1",
+  "date": "2026-10-08",
+  "coreVersion": "0.16.11",
+  "pluginVersion": "0.32.5",
+  "protocolVersion": "automatic-applicability-batch-v4",
+  "preflightSha256": "0891e0d0b88a5669226eff9fe2a1ced7ed1c7eec012a0ae9e1b792b1a7276c70",
+  "completion": {
+    "planned": 4,
+    "finished": 4,
+    "complete": true,
+    "modelCalls": 12
+  },
+  "referenceCostsByPurposeCny": {
+    "production": 0.17255903589300026,
+    "evaluation": 0.21724584056699997
+  },
+  "cashCostsByPurposeCny": {
+    "production": 0.0,
+    "evaluation": 0.0
+  },
+  "totalReferenceCny": 0.3898048764600002,
+  "unknownUsageCalls": 0,
+  "originalUnknownReferenceRetainedCny": 6.195671138713,
+  "results": [
+    {
+      "task": "independent-cost-evidence",
+      "route": "dag",
+      "status": "completed",
+      "modelCalls": 4,
+      "nodeCount": 2,
+      "wallMs": 85730,
+      "factCheck": {
+        "passed": true,
+        "mismatches": [],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "evaluation": {
+        "score": 98,
+        "passed": true,
+        "rationale": "独立复算全部字段均正确。模块A：已结算记录为 subscription/billed/0.08 与 metered/billed/0.03，knownReferenceCny=0.08+0.03=0.11；knownCashCny 仅含已结算按量即 0.03；unknownReserveCny 为 metered/unknown-usage 的 0.20；cashProtectedCny=0.03+0.20=0.23，未知预留未计入已结算参考合计，重叠未重复相加，完全符合题目口径。模块B：按 verify 源码，require_confirmed=False 时 observed 含 unclassified 事件，missing 为空，uncertain 虽为 True 但不阻断，passed=True，receiptPassed=true；require_confirmed=True 时 observed 为空、missing=['Bash']，passed=False，confirmedPassed=false；semanticQualityVerified 在源码中硬编码为 False，判定正确。解释为中文，明确声明离线静态审查、未运行代码，两个模块均给出风险、具体提案、至少两条验证条件，并汇总上线检查表，费用与任务质量证据分开，保留了未知费用与未确认工具状态的差异，引用了材料中的 stop()、cash_snapshot()、verify 等具体函数。未发现虚构执行或不实工具声明。仅极小瑕疵：个别提案（如时间戳过期回收）略超出材料范围，但已明确标注为改进提案而非事实陈述，不影响判定。",
+        "criteria": [
+          {
+            "criterion": "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+            "passed": true,
+            "rationale": "六个字段全部正确：knownReferenceCny=0.11、knownCashCny=0.03、cashProtectedCny=0.23、receiptPassed=true、confirmedPassed=false、semanticQualityVerified=false，均与源码逻辑和账本数据一致；报告明确声明不访问文件、不运行代码。"
+          },
+          {
+            "criterion": "中文解释核对过程与风险边界，交付完整 JSON。",
+            "passed": true,
+            "rationale": "解释为中文，含 answers 与 explanation 两个字段，JSON 结构完整，逐项说明计算依据与 verify 判定路径，并声明风险边界为离线静态审查。"
+          },
+          {
+            "criterion": "两个独立模块均给出风险、具体提案、验证条件，再汇总检查表。",
+            "passed": true,
+            "rationale": "模块A给出 unknown-usage 挂账与 cash_snapshot 混入未确认金额两项风险、三条提案、两条验证条件；模块B给出 unclassified 误判通过与 semanticQualityVerified 硬编码两项风险、两条提案、两条验证条件；最后汇总五条上线检查表。"
+          },
+          {
+            "criterion": "费用和任务质量证据分开；保留未知费用与未确认工具状态的差异。",
+            "passed": true,
+            "rationale": "费用模块与工具验收模块完全独立分析，未用回执替代计费或用费用替代质量；明确区分 unknown-usage 预留（0.20）与 unclassified 工具状态，并指出 semanticQualityVerified 不因工具回执而改变。"
+          },
+          {
+            "criterion": "按题目明确的合计与分项定义计算，已结算按量费用同时包含在参考合计和现金账本，未知预留不得当成已结算费用。",
+            "passed": true,
+            "rationale": "knownReferenceCny=0.11 含订阅与按量两类已结算；0.03 同时计入参考合计与现金账本且未重复相加；0.20 仅进入 cashProtectedCny 的预留部分，未计入已结算参考合计，完全符合口径定义。"
+          }
+        ]
+      },
+      "planningBudget": {
+        "version": "automatic-planning-time-envelope-v1",
+        "task_remaining_ms": 299997.09979095496,
+        "review_reserve_ms": 60000,
+        "planner_allowance_ms": 90000,
+        "execution_after_planner_ms": 149997.09979095496,
+        "latency_prior_ms": {
+          "dsh-model-b1aeb12a74ea9990": 60000.0,
+          "dsh-model-2554a193bcd888ad": 60000.0,
+          "dsh-model-06fd0d4ad75fef1d": 60000.0,
+          "dsh-model-7077bbf6a06daaa6": 60000.0,
+          "dsh-model-72afd0d705290d78": 60000.0
+        },
+        "estimates_are_guarantees": false,
+        "max_nodes": 2,
+        "node_limit_basis": "serial-latency-prior-v1"
+      },
+      "issues": [],
+      "review": {
+        "policy": "always",
+        "required": true,
+        "reason": "always-review",
+        "status": "completed",
+        "time_reserve_ms": 60000,
+        "output_cap": 8192,
+        "limits_version": "automatic-review-envelope-v1",
+        "score": 98,
+        "passed": true
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.014338275532,
+          "reserved": 0.391365884483,
+          "input_tokens": 2164,
+          "output_tokens": 282,
+          "reasoning_tokens": 0,
+          "latency_ms": 10960,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "dual_check",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.022782,
+          "reserved": 3.162448,
+          "input_tokens": 1879,
+          "output_tokens": 2378,
+          "reasoning_tokens": 0,
+          "latency_ms": 21461,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.033086,
+          "reserved": 3.171414,
+          "input_tokens": 3111,
+          "output_tokens": 3358,
+          "reasoning_tokens": 0,
+          "latency_ms": 28208,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.05092344992,
+          "reserved": 0.3932589864,
+          "input_tokens": 3240,
+          "output_tokens": 1046,
+          "reasoning_tokens": 0,
+          "latency_ms": 25014,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        }
+      ]
+    },
+    {
+      "task": "cancel-reservations",
+      "route": "dag",
+      "status": "completed",
+      "modelCalls": 4,
+      "nodeCount": 2,
+      "wallMs": 111962,
+      "factCheck": {
+        "passed": true,
+        "mismatches": [],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "evaluation": {
+        "score": 95,
+        "passed": true,
+        "rationale": "答案的四个字段均与材料代码语义独立复算一致：stop() 仅处理 status=='reserved' 的记录，将 charged 置 0 并改为 cancelled-before-dispatch，随后按类别重新求和，production 合计为 0.02+0.1+0=0.12；unknown-usage 记录未被修改保留 0.1；被取消记录 charged 为 0；再调用 dispatch() 时因 self.stopped 为 True 且 row['status'] 已非 'reserved'，会调用 stop() 并抛出 CancelledError，故不允许派发。解释部分覆盖了三个取消时点（预留后派发前、派发中并发、派发后）的并发处理，说明了锁互斥下的两种顺序结果；明确指出 unknown-usage 表示已派发、不能当作未派发释放，应用取消不等于提供方未计费；给出了故障恢复方案（prepared 状态、持久化、恢复时逐条核对）和三条回归测试，并指出 crash 后已为 unknown-usage 的记录不能自动重发的边界。未发现虚构执行或工具调用声明。轻微扣分点：修复提案中『在 dispatch 中增加对 cancel_event 的检查』与材料不符——dispatch() 已有该检查，属于表述瑕疵，不影响结论正确性。",
+        "criteria": [
+          {
+            "criterion": "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+            "passed": true,
+            "rationale": "chargedAfterStop=0.12、unknownRetained=0.1、cancelledCharged=0、dispatchAllowed=false 均经独立复算与 stop()/dispatch() 代码语义一致；文中声明基于材料推断、未虚构执行。"
+          },
+          {
+            "criterion": "中文解释核对过程与风险边界，交付完整 JSON。",
+            "passed": true,
+            "rationale": "解释为中文，逐步引用 stop() 的扣减、置零、重求和语句及 dispatch() 的 stopped/status 检查，指出幂等性、锁粒度等风险边界；JSON 结构完整含 answers 与 explanation。"
+          },
+          {
+            "criterion": "覆盖三个取消时点及保留未知用量，不把应用取消等同于提供方未计费。",
+            "passed": true,
+            "rationale": "分别分析了预留后派发前、派发中并发（锁互斥两种顺序）、派发后三个时点；明确 unknown-usage 属已派发须保留结算，应用取消不等于提供方未计费。"
+          },
+          {
+            "criterion": "提出恢复核对与回归测试，不自动重发可能已派发调用。",
+            "passed": true,
+            "rationale": "给出持久化、prepared 状态、恢复时逐条核对的方案，明确 unknown-usage 只允许补充结算、不允许重新提交；三条回归测试分别覆盖账本清零修复、取消后禁止派发、派发后取消不影响结算，另附崩溃边界测试。"
+          }
+        ]
+      },
+      "planningBudget": {
+        "version": "automatic-planning-time-envelope-v1",
+        "task_remaining_ms": 299998.1585419737,
+        "review_reserve_ms": 60000,
+        "planner_allowance_ms": 90000,
+        "execution_after_planner_ms": 149998.15854197368,
+        "latency_prior_ms": {
+          "dsh-model-b1aeb12a74ea9990": 60000.0,
+          "dsh-model-2554a193bcd888ad": 60000.0,
+          "dsh-model-06fd0d4ad75fef1d": 60000.0,
+          "dsh-model-7077bbf6a06daaa6": 60000.0,
+          "dsh-model-72afd0d705290d78": 60000.0
+        },
+        "estimates_are_guarantees": false,
+        "max_nodes": 2,
+        "node_limit_basis": "serial-latency-prior-v1"
+      },
+      "issues": [],
+      "review": {
+        "policy": "always",
+        "required": true,
+        "reason": "always-review",
+        "status": "completed",
+        "time_reserve_ms": 60000,
+        "output_cap": 8192,
+        "limits_version": "automatic-review-envelope-v1",
+        "score": 95,
+        "passed": true
+      },
+      "calls": [
+        {
+          "label": "planner",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.013692760360999999,
+          "reserved": 0.390002133339,
+          "input_tokens": 1497,
+          "output_tokens": 275,
+          "reasoning_tokens": 0,
+          "latency_ms": 11624,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "ledger_analysis",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.024502,
+          "reserved": 3.156514,
+          "input_tokens": 1159,
+          "output_tokens": 2773,
+          "reasoning_tokens": 0,
+          "latency_ms": 50941,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.01786,
+          "reserved": 3.165474,
+          "input_tokens": 2278,
+          "output_tokens": 1663,
+          "reasoning_tokens": 0,
+          "latency_ms": 29409,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.043185767702,
+          "reserved": 0.391895235256,
+          "input_tokens": 2454,
+          "output_tokens": 890,
+          "reasoning_tokens": 0,
+          "latency_ms": 19907,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        }
+      ]
+    },
+    {
+      "task": "cancel-reservations",
+      "route": "direct",
+      "status": "completed",
+      "modelCalls": 2,
+      "nodeCount": 1,
+      "wallMs": 97073,
+      "factCheck": {
+        "passed": true,
+        "mismatches": [],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "evaluation": {
+        "score": 95,
+        "passed": true,
+        "rationale": "独立复算：三条 production 记录 charged 分别为 0.02（billed）、0.1（unknown-usage）、0.03（reserved）。stop() 对 reserved 行执行 charged['production'] -= 0.03 并置 charged=0、status='cancelled-before-dispatch'，随后重算 charged['production'] = 0.02 + 0.1 + 0 = 0.12，故 chargedAfterStop=0.12 正确；unknown-usage 行未被 stop 修改，unknownRetained=0.1 正确；被取消记录 charged 清零，cancelledCharged=0 正确；再次 dispatch 时 self.stopped 为 True 且行状态已非 reserved，dispatch 会再次调用 stop() 并 raise CancelledError，dispatchAllowed=false 正确。解释引用了材料中的具体语句（stop 的遍历与重算、dispatch 的 stopped 检查），未虚构执行。三个取消时点均有覆盖：stop 先于 dispatch（reserved 被取消）、dispatch 已将状态改为 unknown-usage（stop 不再处理该行）、cancel_event 在取锁前设置（dispatch 先调 stop 再抛错），并明确说明不能把 unknown-usage 当作未派发释放，因提供方仍可能计费。恢复方案要求保留 unknown-usage、依赖 dispatch_monotonic/dispatch_at 与外部对账、不自动重发，并给出三条回归测试及 crash 边界。扣分点：①时点表述用「派发中」而非任务原文的「派发后」，实质内容已覆盖但措辞不完全对应；②JSON 包裹在 Markdown 代码围栏中，任务要求输出 JSON 对象，属轻微格式瑕疵，内容完整可解析。",
+        "criteria": [
+          {
+            "criterion": "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+            "passed": true,
+            "rationale": "四个字段 chargedAfterStop=0.12、unknownRetained=0.1、cancelledCharged=0、dispatchAllowed=false 均与按材料语句逐步推导的结果一致，未声称代码已运行。"
+          },
+          {
+            "criterion": "中文解释核对过程与风险边界，交付完整 JSON。",
+            "rationale": "解释为中文，逐步引用 stop() 的 charged 扣减、重算语句与 dispatch() 的 stopped/status 检查，说明风险（原始金额丢失、无法审计）与修复提案（cancelled_charged 字段、cancelled_at 时间戳），JSON 结构完整含 answers 与 explanation；仅代码围栏包裹为轻微格式瑕疵。",
+            "passed": true
+          },
+          {
+            "criterion": "覆盖三个取消时点及保留未知用量，不把应用取消等同于提供方未计费。",
+            "rationale": "覆盖 stop 先执行、dispatch 已改为 unknown-usage、cancel_event 先设置三种并发情形，并明确 unknown-usage 代表调用已发出、提供方仍可能计费，不能视为未派发释放；时点措辞「派发中」与任务原文「派发后」略有出入但实质覆盖。",
+            "passed": true
+          },
+          {
+            "criterion": "提出恢复核对与回归测试，不自动重发可能已派发调用。",
+            "rationale": "给出崩溃后保留 unknown-usage、依赖 dispatch_monotonic/dispatch_at 与外部账单对账、确认未执行前不重发的恢复方案，以及三条具体回归测试（reserved 取消清零、unknown-usage 保留、stop 后 dispatch 抛 CancelledError），并指出 crash 后不能凭 stopped 标志重发的边界。",
+            "passed": true
+          }
+        ]
+      },
+      "planningBudget": null,
+      "issues": [],
+      "review": {
+        "policy": "always",
+        "required": true,
+        "reason": "always-review",
+        "status": "completed",
+        "time_reserve_ms": 60000,
+        "output_cap": 8192,
+        "limits_version": "automatic-review-envelope-v1",
+        "score": 95,
+        "passed": true
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.022708,
+          "reserved": 3.15641,
+          "input_tokens": 1154,
+          "output_tokens": 2550,
+          "reasoning_tokens": 0,
+          "latency_ms": 50756,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.06651255023,
+          "reserved": 0.390736896767,
+          "input_tokens": 1826,
+          "output_tokens": 1391,
+          "reasoning_tokens": 0,
+          "latency_ms": 46271,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        }
+      ]
+    },
+    {
+      "task": "independent-cost-evidence",
+      "route": "direct",
+      "status": "completed",
+      "modelCalls": 2,
+      "nodeCount": 1,
+      "wallMs": 48018,
+      "factCheck": {
+        "passed": true,
+        "mismatches": [],
+        "explanationPresent": true,
+        "explanationQualityVerified": false
+      },
+      "evaluation": {
+        "score": 96,
+        "passed": true,
+        "rationale": "独立复算全部字段均正确：knownReferenceCny=0.08+0.03=0.11（含订阅与按量已结算参考，未知预留0.20未计入）；knownCashCny=0.03（仅已结算按量现金）；cashProtectedCny=0.03+0.20=0.23。工具验收按 verify() 逻辑推演：require_confirmed=False 时 unclassified 计入 observed，Bash 匹配 _matches（'bash' 在 COMMAND_TOOLS），missing 为空，passed=True，故 receiptPassed=true；require_confirmed=True 时 observed 为空，missingTools=['Bash']，passed=False，故 confirmedPassed=false；semanticQualityVerified 由代码硬编码为 False，正确。解释为中文，两个模块均给出风险、具体提案、至少两条验证条件，并汇总上线检查表，引用了 cash_snapshot()、stop()、verify()、_matches 等材料函数，未虚构执行，费用与任务质量证据分离，明确保留未知预留与未确认状态的差异。唯一小瑕疵是 JSON 外包了 ```json 代码围栏，但内容为完整有效的 JSON 对象，不影响字段与结论正确性。",
+        "criteria": [
+          {
+            "criterion": "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+            "passed": true,
+            "rationale": "六个字段全部正确：0.11、0.03、0.23、true、false、false，均与账本输入和 verify() 源码推演一致，未声称代码已运行。"
+          },
+          {
+            "criterion": "中文解释核对过程与风险边界，交付完整 JSON。",
+            "passed": true,
+            "rationale": "解释为中文，含计算过程、风险边界（如 unclassified 仅证明收到回执、semanticQualityVerified 硬编码 False），JSON 结构完整含 answers 与 explanation；仅外层有代码围栏，属轻微格式瑕疵。"
+          },
+          {
+            "criterion": "两个独立模块均给出风险、具体提案、验证条件，再汇总检查表。",
+            "passed": true,
+            "rationale": "A、B 两模块各有风险、改进提案和两条验证条件，末尾有综合上线检查表，覆盖费用、工具验收、证据分离与回归测试。"
+          },
+          {
+            "criterion": "费用和任务质量证据分开；保留未知费用与未确认工具状态的差异。",
+            "passed": true,
+            "rationale": "明确指出 0.03 重叠不得再相加、0.20 未知预留不计入已结算；receiptPassed=true 不等于语义质量，confirmedPassed=false 保留未确认状态差异，检查表再次强调证据分离。"
+          },
+          {
+            "criterion": "按题目明确的合计与分项定义计算，已结算按量费用同时包含在参考合计和现金账本，未知预留不得当成已结算费用。",
+            "passed": true,
+            "rationale": "knownReferenceCny 含订阅0.08与按量0.03，knownCashCny 含同一笔0.03（重叠未重复相加），cashProtectedCny=0.23 将未知预留0.20 单列为预留而非已结算，完全符合口径定义。"
+          }
+        ]
+      },
+      "planningBudget": null,
+      "issues": [],
+      "review": {
+        "policy": "always",
+        "required": true,
+        "reason": "always-review",
+        "status": "completed",
+        "time_reserve_ms": 60000,
+        "output_cap": 8192,
+        "limits_version": "automatic-review-envelope-v1",
+        "score": 96,
+        "passed": true
+      },
+      "calls": [
+        {
+          "label": "answer",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "category": "production",
+          "status": "billed",
+          "charged": 0.02359,
+          "reserved": 3.162526,
+          "input_tokens": 1887,
+          "output_tokens": 2477,
+          "reasoning_tokens": 0,
+          "latency_ms": 22274,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        },
+        {
+          "label": "final-judge",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "category": "evaluation",
+          "status": "billed",
+          "charged": 0.056624072715,
+          "reserved": 0.392336754411,
+          "input_tokens": 2631,
+          "output_tokens": 1174,
+          "reasoning_tokens": 0,
+          "latency_ms": 25694,
+          "finish_reason": "stop",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "billingMode": "subscription",
+          "billingUnit": "CNY"
+        }
+      ]
+    }
+  ],
+  "comparisonNote": "新版题目明确总参考合计定义，数字标准未降低；不与旧 v3 题目混算通过率或收益。",
+  "automatedGatePassed": 4,
+  "overallSemanticAcceptance": "not-established",
+  "manualReview": {
+    "scope": "逐条阅读四份最终回复和评审；只记录可定位问题，不据此推断普遍正确率。",
+    "findings": [
+      {
+        "task": "independent-cost-evidence",
+        "route": "dag",
+        "verdict": "needs-revision",
+        "severity": "high",
+        "issue": "回复对 unknown-usage 提出超时／强制结算及过期回收预留，未要求先取得可核对用量；最终 Judge 给出 98 分，未将其视为必须修正项。",
+        "evidence": [
+          "为 unknown-usage 记录增加超时/强制结算机制",
+          "对预留金额记录时间戳，支持过期回收。"
+        ],
+        "requiredBehavior": "用量未知不能因超时释放或伪造结算；须先对账，无法核对时继续保留待核对预留。"
+      },
+      {
+        "task": "cancel-reservations",
+        "route": "dag",
+        "verdict": "minor-inaccuracy",
+        "issue": "提案建议增加 cancel_event 检查，但提供的 dispatch 材料已经有此检查；Judge 已指出并扣分。"
+      },
+      {
+        "task": "cancel-reservations",
+        "route": "direct",
+        "verdict": "format-deviation",
+        "issue": "回复使用 JSON 代码围栏；冻结事实检查原本允许剥离该围栏，不改变本批验收规则。"
+      },
+      {
+        "task": "independent-cost-evidence",
+        "route": "direct",
+        "verdict": "format-deviation",
+        "issue": "回复使用 JSON 代码围栏；冻结事实检查原本允许剥离该围栏，不改变本批验收规则。"
+      }
+    ],
+    "conclusion": "本批证明费用定义修正后字段正确、受限规模 DAG 可执行；不能据此宣称自由文字提案或最终 Judge 已完整通过质量验收。"
+  },
+  "authorization": {
+    "cumulativeCashCeilingCny": 100,
+    "batchCashCeilingCny": 30,
+    "batchReferenceCeilingCny": 30,
+    "maximumModelCalls": 20,
+    "standingScope": "当前自动路由修复及有限复验，累计100 CNY内不再逐批询问；未知用量仍停止当前批次并保留预留。"
+  }
+}

@@ -253,7 +253,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
     }
   }
   const catalogRows=(catalog?.groups??[]).filter(group=>group.id!=='refractagent')
-    .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name})))
+    .flatMap(group=>group.models.map(model=>({provider:group.id,providerName:group.name,model:model.id,name:model.name,reasoning:model.reasoning})))
   const identity=(provider:string,model:string)=>provider+'/'+model
   const updateRoute=(provider:string,model:string,enabled:boolean)=>{
     if(!pool)return
@@ -310,7 +310,8 @@ export function RefractCard(props: RefractCardOwnerProps) {
     &&!explicitWorkers.some(route=>enabledAfpRoutes.includes(route))
   const observedProfile=(route:string)=>{const [provider,...modelParts]=route.split('/');const model=modelParts.join('/')
     const effective=frozenModelProfile(provider,model)?.effective_model??model
-    return routeProfiles?.profiles.find(row=>row.route===route&&row.effectiveModel===effective&&row.reasoningEffort==='default')}
+    const effort=pool?.routes.find(row=>identity(row.provider,row.model)===route)?.reasoningEffort??'default'
+    return routeProfiles?.profiles.find(row=>row.route===route&&row.effectiveModel===effective&&row.reasoningEffort===effort)}
   const poolStatus=blockingIssues.length?'poolStatusCannotSave':readinessIssues.length?'poolStatusCannotRun':
     enabledRouteKeys.length?(enabledRouteKeys.every(route=>!!observedProfile(route))?'poolStatusReady':'poolStatusLatencyBootstrap'):undefined
   const routeIssues=(route:string)=>state.issues.filter(issue=>issue.route===route)
@@ -602,7 +603,15 @@ export function RefractCard(props: RefractCardOwnerProps) {
                   {metadataIssues.map(issue=><span className="rra-warning" key={issue}>{issue}</span>)}
                   {metadata.automaticRouting?.qualityProfile?<span>独立质量先验 {metadata.automaticRouting.qualityProfile.score}/100（非任务成功率）</span>:null}
                 </>}</div>:null}
-                {selected&&selected.enabled!==false?<><label className="rra-compact-field">{t('poolDeployment')}
+                {selected&&selected.enabled!==false?<><label className="rra-compact-field">推理等级
+                  <select className="rra-select" disabled={disabled} value={selected.reasoningEffort??'default'}
+                    onChange={event=>patchRoute(row.provider,row.model,{reasoningEffort:event.target.value==='default'?undefined:event.target.value})}>
+                    <option value="default">提供方默认{row.reasoning?.defaultEffort?`（${row.reasoning.defaultEffort}）`:''}</option>
+                    {(row.reasoning?.efforts??[]).map(effort=><option key={effort.id} value={effort.id}>{effort.name}</option>)}
+                    {selected.reasoningEffort&&!row.reasoning?.efforts.some(effort=>effort.id===selected.reasoningEffort)?
+                      <option value={selected.reasoningEffort}>{selected.reasoningEffort}（待目录验证）</option>:null}
+                  </select><span className="rra-field-hint">推理与正文共用输出额度；高推理可能在正文生成前耗尽额度。更改后仅新任务生效。</span>
+                </label><label className="rra-compact-field">{t('poolDeployment')}
                 <select className="rra-select" disabled={disabled} value={selected.deployment} onChange={event=>{const deployment=event.target.value;patchRoute(row.provider,row.model,{deployment,...(['trusted-cloud','simulated-local'].includes(deployment)?{}:{trustPolicy:undefined})})}}>
                   <option value="">{t('poolSelectDeployment')}</option>{DEPLOYMENT_OPTIONS.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 {selected.deployment==='trusted-cloud'||selected.deployment==='simulated-local'?<label className="rra-compact-field">{t('poolTrustPolicy')}<select className="rra-select" disabled={disabled} value={selected.trustPolicy??''} onChange={event=>patchRoute(row.provider,row.model,{trustPolicy:event.target.value||undefined})}><option value="">{t('poolSelectTrustPolicy')}</option>{trustPolicyOptions.map(policy=><option key={String(policy.id)} value={String(policy.id)}>{String(policy.id)}</option>)}</select></label>:null}

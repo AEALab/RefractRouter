@@ -15,7 +15,7 @@ REPORT = ROOT / 'reports/dag-decomposition/issue-32-dsh-live-20260907'
 
 @pytest.mark.parametrize('version,status,count', [
     ('v4', 'no-feasible-route', 1),
-    ('v5', 'quality-failed', 5),
+    ('v5', 'failed', 5),
 ])
 def test_recorded_dsh_failure_is_not_promoted_to_success(version, status, count):
     directory = REPORT / f'dsh-live-{version}' / 'runner/output'
@@ -46,8 +46,11 @@ def test_recorded_dsh_failure_is_not_promoted_to_success(version, status, count)
         assert result['plan_admission']['cost_analysis']['reason'] == 'input-or-output-capacity'
         assert result['nodes'] == [] and result['evaluation'] is None
     else:
-        assert result['evaluation']['score'] == 82
-        assert result['evaluation']['passed'] is False
+        # 原审核未回答新版建议约束，不能伪造补项或将旧响应当作新审核。
+        assert result['evaluation'] is None
+        assert 'invalid final judge criteria' in str(result['issues'])
+        assert recorded['evaluation']['score'] == 82
+        assert recorded['evaluation']['passed'] is False
         assert all(row['status'] == 'ok' for row in result['nodes'])
         assert len(result['nodes']) == 3
         assert result['charged']['production'] > 0 and result['charged']['evaluation'] > 0

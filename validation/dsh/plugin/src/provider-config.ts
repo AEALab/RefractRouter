@@ -75,6 +75,7 @@ export function dshToolCallLimit(value: Pick<LiveExecutionConfiguration,'allowDs
 
 export type DshDeployment = 'local' | 'external-cloud' | 'trusted-cloud' | 'simulated-local'
 export interface DshModelPoolRoute {
+  reasoningEffort?: string
   billingMode?: 'metered'|'subscription'
   referencePricing?:Record<string,unknown>
   provider: string
@@ -237,7 +238,8 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
       || typeof route.model !== 'string' || !route.model || route.provider === 'refractagent'
       || !['local','external-cloud','trusted-cloud','simulated-local'].includes(String(route.deployment))
       || (route.enabled !== undefined && typeof route.enabled !== 'boolean')
-      || Object.keys(route).some(key => !['provider','model','enabled','deployment','trustPolicy','overrides','billingMode','referencePricing'].includes(key))) {
+      || (route.reasoningEffort !== undefined && (typeof route.reasoningEffort !== 'string' || !route.reasoningEffort))
+      || Object.keys(route).some(key => !['provider','model','enabled','deployment','trustPolicy','overrides','billingMode','referencePricing','reasoningEffort'].includes(key))) {
       throw new Error('invalid dshModelPool route')
     }
     const identity = `${route.provider}\u0000${route.model}`
