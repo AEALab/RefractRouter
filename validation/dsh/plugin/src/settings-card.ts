@@ -150,6 +150,7 @@ export interface DshModelPoolView {
   cashLimits?:{production:number;evaluation:number}
   allowSharedJudge?: boolean
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
+    reasoningEffort?:string;
     billingMode?:'subscription'|'metered';referencePricing?:Record<string,unknown>;
     overrides?:Record<string,unknown>}>
   roleOverrides?: {planner?:string;judge?:string;classifier?:string;workers?:string[]}

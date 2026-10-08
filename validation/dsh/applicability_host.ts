@@ -5,6 +5,11 @@ import {createInterface} from 'node:readline'
 import {pathToFileURL} from 'node:url'
 import {hostDiagnostic} from './applicability_audit.ts'
 import {createHash} from 'node:crypto'
+import {installResponsesWireAudit} from './responses_wire_audit.ts'
+
+if (process.env.REFRACT_APPLICABILITY_WIRE_AUDIT) {
+  installResponsesWireAudit(process.env.REFRACT_APPLICABILITY_WIRE_AUDIT)
+}
 
 const moduleRoot = process.env.REFRACT_DSH_MODULE_ROOT
 if (!moduleRoot) throw new Error('必须明确提供已安装 DSH 的依赖目录')
@@ -57,11 +62,21 @@ for await (const line of createInterface({input: process.stdin})) {
     result = {pool: settings.refractagent.dshModelPool, routes, runtimeHashes}
   } else {
     const started = performance.now()
-    result = await callDshLlm({llm: {stream: (options: any) =>
-      (options.provider === 'deepseek-official' ? deepseek : adapter).stream(options)}}, request)
+    const chunks: Record<string, number> = {}
+    const lengths = {delta:0, completedText:0, reasoning:0}
+    result = await callDshLlm({llm: {async *stream(options: any) {
+      for await (const chunk of (options.provider === 'deepseek-official' ? deepseek : adapter).stream(options)) {
+        chunks[chunk.type] = (chunks[chunk.type] ?? 0) + 1
+        if (chunk.type === 'text-delta') lengths.delta += chunk.text.length
+        if (chunk.type === 'reasoning-delta') lengths.reasoning += (chunk.text ?? '').length
+        if (chunk.type === 'block-end' && chunk.block?.type === 'text') lengths.completedText += (chunk.block.text ?? '').length
+        yield chunk
+      }
+    }}}, request)
     const auditPath = process.env.REFRACT_APPLICABILITY_AUDIT
     if (auditPath) appendFileSync(auditPath,
-      JSON.stringify(hostDiagnostic(request, result, secrets.refs, performance.now() - started)) + '\n',
+      JSON.stringify({...hostDiagnostic(request, result, secrets.refs, performance.now() - started),
+        chunks, lengths, bridgeContentChars:result.content?.length ?? 0}) + '\n',
       {mode: 0o600})
   }
   process.stdout.write(JSON.stringify(result) + '\n')

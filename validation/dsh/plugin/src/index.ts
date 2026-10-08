@@ -520,7 +520,7 @@ export async function callDshLlm(
     if (typeof reasoningEffort === 'string' && reasoningEffort.length > 0) {
       options.reasoningEffort = reasoningEffort
     }
-    let content = ''
+    const textBlocks = new Map<number, string>()
     const toolCalls = new Map<number, { id: string; type: 'function'; function: { name: string; arguments: string } }>()
     let usage: TokenUsage = {}
     let previousWasUsage = false
@@ -545,7 +545,16 @@ export async function callDshLlm(
           if (!block.id || !block.name || typeof block.arguments !== 'string') throw new Error('invalid native tool block')
           toolCalls.set(chunk.index, { id: block.id, type: 'function', function: { name: block.name, arguments: block.arguments } })
         }
-        if (chunk.type === 'text-delta') content += chunk.text
+        if (chunk.type === 'text-delta') {
+          const index = chunk.index ?? 0
+          textBlocks.set(index, (textBlocks.get(index) ?? '') + chunk.text)
+        }
+        // 结束块是宿主提供的完整正文，可能没有增量或修正了途中文本。
+        // 按块替换，避免把同一正文追加两遍；推理块不混入用户正文。
+        if (chunk.type === 'block-end' && chunk.block?.type === 'text'
+            && typeof chunk.block.text === 'string') {
+          textBlocks.set(chunk.index ?? 0, chunk.block.text)
+        }
         if (chunk.type === 'usage') usage = chunk.usage ?? {}
         if (chunk.type === 'finish') {
           finish = chunk
@@ -558,6 +567,7 @@ export async function callDshLlm(
         void Promise.resolve(iterator.return()).catch(() => {})
       }
     }
+    const content = [...textBlocks.entries()].sort((a, b) => a[0] - b[0]).map(([, text]) => text).join('')
     if (finish === undefined) throw new Error('DSH LLM stream ended without finish')
     if (finish.reason?.kind === 'error' || finish.reason?.kind === 'aborted') {
       const failure = finish.reason.failure ?? {}

@@ -111,7 +111,7 @@ export type StreamChunk =
   | { type: 'text-delta'; text: string; index?: number }
   | { type: 'usage'; usage?: TokenUsage }
   | FinishChunk
-  | { type: 'block-start' | 'block-end' | 'reasoning-delta' | 'tool-call-delta'; index?: number; id?: string; name?: string; argumentsDelta?: string; block?: { type: string; id?: string; name?: string; arguments?: string } }
+  | { type: 'block-start' | 'block-end' | 'reasoning-delta' | 'tool-call-delta'; index?: number; text?: string; id?: string; name?: string; argumentsDelta?: string; block?: { type: string; text?: string; id?: string; name?: string; arguments?: string } }
 export interface LlmService {
   stream(options: LlmOptions): AsyncIterable<StreamChunk>
   listProviders(): Array<{ id: string; name?: string }>

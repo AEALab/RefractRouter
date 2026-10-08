@@ -296,3 +296,24 @@ def test_cli_reports_missing_independent_quality_from_packaged_profile(tmp_path,
     assert main(['run','--request-stdin','--mode','preflight','--runs-dir',str(tmp_path)])==1
     result=json.loads(capsys.readouterr().out)
     assert 'independent third-party quality prior' in result['error']
+
+
+def test_explicit_effort_reaches_call_options_and_does_not_reuse_default_latency():
+    raw = pool()
+    raw['routes'][1]['reasoningEffort'] = 'low'
+    catalog = snapshot(('cloud','strong',262144,8192),('local','fast',131072,4096))
+    profile = {'prediction_ms':123,'samples':2}
+    config, evidence = compile_dsh_model_pool(raw,catalog,profiles=full_profiles(),
+        latency_profiles={'local/fast\0fast\0default':profile})
+    model = next(m for m in config['models'] if m['model']=='fast')
+    assert model['requestOptions'] == {'reasoning_effort':'low'}
+    assert evidence['local/fast']['reasoning_effort'] == 'low'
+    assert evidence['local/fast']['latency']['source'] == 'conservative-bootstrap'
+    compiled = __import__('refractrouter.application_config',fromlist=['compile_configuration']).compile_configuration(config)
+    assert next(m for m in compiled.manifest.models if m.api_model=='fast').request_options['reasoning_effort'] == 'low'
+    _, evidence = compile_dsh_model_pool(raw,catalog,profiles=full_profiles(),
+        latency_profiles={'local/fast\0fast\0low':profile})
+    assert evidence['local/fast']['latency']['prediction_ms'] == 123
+    raw['routes'][1]['reasoningEffort'] = 'max'
+    with pytest.raises(ValueError,match='unsupported reasoningEffort'):
+        compile_dsh_model_pool(raw,catalog,profiles=full_profiles())

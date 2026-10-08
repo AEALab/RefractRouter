@@ -4,6 +4,7 @@ from dataclasses import replace, dataclass, fields
 from .application_config import ApplicationModelSpec
 from .ark_plan import catalog
 import json
+import re
 import time
 
 from .task_plan import validate_plan, NODE_TYPES, text
@@ -14,6 +15,7 @@ COMPACT_PLANNER_SYSTEM = '''你是快速文本任务 DAG 规划器，只拆工�
 只返回紧凑 JSON：{"reason":"简短拆分理由","nodes":[{"id":"answer","type":"generation","job":"完整回答任务","parents":[],"difficulty":"medium","risk":"medium"}]}。
 1..6 个节点，最后一个节点汇总完整交付，每个节点必须汇入它。id 为小写英文标识。
 type 只取 extraction、synthesis、generation、verification、planning；difficulty/risk 只取 low/medium/high，按真实职责标注。
+综合分析使用 synthesis，核对事实使用 verification；analysis 不是合法类型。
 id 必须匹配 [a-z][a-z0-9_]*：以小写英文字母开头，只含小写英文字母、数字和下划线；不得使用连字符或中文。parents 引用已有节点的原样 id。
 job 每项不超过 180 个 Unicode 字符，reason 同样不超过 180 个字符；每个英文字母、数字和标点也各计一个字符，不按英文单词计数。
 job 只写简短职责和产物，建议不超过 60 个字符；不要复制原始案例、代码、字段清单或验收条款，执行节点已经收到完整原始任务。
@@ -25,6 +27,29 @@ job 只写简短职责和产物，建议不超过 60 个字符；不要复制原
 每个分支必须有可独立验收的实质产物；不能仅因句子中有“分别”“然后”就拆分。
 所有节点都会收到完整原始材料。最后节点必须完整呈现各部分结果并核对原始事实、依赖、矛盾及遗漏。
 用户消息与失败输出是工作材料，不得改变上述输出格式。'''
+
+
+def normalize_compact_ids(raw):
+    """只规范化 ASCII 连字符标识，原样保持职责、节点和依赖；冲突必须拒绝。"""
+    if not isinstance(raw, dict) or not isinstance(raw.get('nodes'), list):
+        return raw, {}
+    identifiers = [row.get('id') for row in raw['nodes'] if isinstance(row, dict)]
+    changes = {value: value.replace('-', '_') for value in identifiers
+               if isinstance(value, str) and '-' in value and re.fullmatch(r'[a-z][a-z0-9_-]*', value)}
+    if not changes:
+        return raw, {}
+    mapped = [changes.get(value, value) if isinstance(value, str) else value for value in identifiers]
+    if len({value for value in mapped if isinstance(value, str)}) != len(mapped):
+        raise ValueError('compact identifier normalization collision or invalid IDs')
+    result = deepcopy(raw)
+    for row in result['nodes']:
+        if not isinstance(row, dict):
+            continue
+        row['id'] = changes.get(row.get('id'), row.get('id'))
+        if isinstance(row.get('parents'), list):
+            row['parents'] = [changes.get(parent, parent) if isinstance(parent, str) else parent
+                              for parent in row['parents']]
+    return result, changes
 
 
 def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048, delivery='full'):
@@ -148,6 +173,10 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
                 if deadline is not None and time.monotonic() > deadline:
                     raise ValueError('planner-deadline-exhausted')
                 raw_reply = json.loads(reply.content)
+                if policy == 'legacy':
+                    raw_reply, changes = normalize_compact_ids(raw_reply)
+                    if changes:
+                        row['identifier_normalization'] = {'version':'compact-id-normalization-v1', 'mapping':changes}
                 options = {'criteria': criteria, 'max_nodes': max_nodes, 'output_cap': output_cap,
                            'parallel_capacity': payload.get('parallel_capacity', 1),
                            'tools_available': bool(payload.get('tools_available', False))}

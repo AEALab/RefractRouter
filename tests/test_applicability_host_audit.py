@@ -8,3 +8,10 @@ def test_host_diagnostics_are_bounded_and_redact_credentials():
     subprocess.run(['node', '--experimental-strip-types',
                     str(root/'validation/dsh/applicability_audit.test.ts')],
                    cwd=root, check=True, capture_output=True, text=True)
+
+
+def test_wire_diagnostics_preserve_stream_without_recording_payload():
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run(['node', '--experimental-strip-types',
+                    str(root/'validation/dsh/responses_wire_audit.test.ts')],
+                   cwd=root, check=True, capture_output=True, text=True)

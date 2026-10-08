@@ -1087,3 +1087,28 @@ test('缺失、默认零、非法或非终止用量不能用于失败结算', as
     provider:'fixture',model:'fixture',messages:[],max_tokens:128,timeout_ms:1000})
   assert.ok(!('usage_confirmed' in result))
 })
+
+
+test('正文结束块恢复无增量、修正和多块顺序，不重复正文或混入推理', async () => {
+  for (const [chunks, expected] of [
+    [[{type:'block-end',index:0,block:{type:'text',text:'完整正文'}}], '完整正文'],
+    [[{type:'text-delta',index:0,text:'部分'}, {type:'block-end',index:0,block:{type:'text',text:'修正正文'}}], '修正正文'],
+    [[{type:'text-delta',index:0,text:'相同正文'}, {type:'block-end',index:0,block:{type:'text',text:'相同正文'}}], '相同正文'],
+    [[{type:'block-end',index:2,block:{type:'text',text:'后'}},
+      {type:'reasoning-delta',index:1,text:'隐藏推理'}, {type:'block-end',index:1,block:{type:'reasoning',text:'隐藏推理'}},
+      {type:'block-end',index:0,block:{type:'text',text:'前'}}], '前后'],
+  ] as const) {
+    for (const kind of ['stop', 'error']) {
+      const ctx = {llm:{async *stream(): AsyncGenerator<StreamChunk> {
+        for (const chunk of chunks) yield chunk as StreamChunk
+        yield {type:'usage',usage:{inputTokens:10,outputTokens:8}}
+        yield {type:'finish',reason:{kind}}
+      }}}
+      const result = await callDshLlm(ctx,{protocol:'refractrouter-dsh-llm/v1',type:'request',id:'text-end',
+        provider:'fixture',model:'fixture',messages:[],max_tokens:128,timeout_ms:1000})
+      assert.equal(result.content, expected)
+      assert.equal(result.ok, kind === 'stop')
+      if (!result.ok) assert.equal(result.usage_confirmed, true)
+    }
+  }
+})
