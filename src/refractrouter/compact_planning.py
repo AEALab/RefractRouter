@@ -68,6 +68,50 @@ def normalize_compact_types(raw):
     return (result, changes) if changes else (raw, [])
 
 
+def load_compact_reply(content, *, normalize=False):
+    """只兼容对象刚结束、数组尚未结束处的一个冗余 }；不补写任何内容。"""
+    try:
+        return json.loads(content), []
+    except json.JSONDecodeError as original:
+        if not normalize:
+            raise
+        stack, output, changes = [], [], []
+        quoted = escaped = False
+        previous = None
+        for position, char in enumerate(content):
+            if quoted:
+                output.append(char)
+                if escaped:
+                    escaped = False
+                elif char == '\\':
+                    escaped = True
+                elif char == '"':
+                    quoted = False
+                    previous = '"'
+                continue
+            if char == '"':
+                quoted = True
+            elif char in '{[':
+                stack.append(char)
+            elif char in '}]':
+                expected = '{' if char == '}' else '['
+                if not stack or stack[-1] != expected:
+                    if char == '}' and stack and stack[-1] == '[' and previous == '}' and not changes:
+                        changes.append({'position': position, 'removed': '}'})
+                        continue
+                    raise original
+                stack.pop()
+            output.append(char)
+            if not char.isspace():
+                previous = char
+        if quoted or stack or not changes:
+            raise original
+        try:
+            return json.loads(''.join(output)), changes
+        except json.JSONDecodeError:
+            raise original
+
+
 def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048, delivery='full'):
     exact(raw, {'reason', 'nodes'}, 'compact plan')
     from .minimal_planning import delivery_text
@@ -204,7 +248,10 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
             try:
                 if deadline is not None and time.monotonic() > deadline:
                     raise ValueError('planner-deadline-exhausted')
-                raw_reply = json.loads(reply.content)
+                raw_reply, json_changes = load_compact_reply(reply.content, normalize=policy == 'legacy')
+                if json_changes:
+                    row['json_normalization'] = {'version': 'compact-json-duplicate-closer-v1',
+                                                 'changes': json_changes}
                 if policy == 'legacy':
                     raw_reply, changes = normalize_compact_ids(raw_reply)
                     if changes:

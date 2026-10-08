@@ -144,7 +144,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
             'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls',
-            'decompositionDecision', 'boundedCallOutput', 'reviewReserveMs', 'reviewMaxOutputTokens'}:
+            'decompositionDecision', 'boundedCallOutput', 'reviewReserveMs', 'reviewMaxOutputTokens', 'reviewTimeoutMs'}:
         raise ValueError('invalid RefractAgent request fields')
     if 'boundedCallOutput' in payload and type(payload['boundedCallOutput']) is not bool:
         raise ValueError('boundedCallOutput must be boolean')
@@ -184,7 +184,9 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
     if automatic_routing:
         request['reviewReserveMs'] = payload.get('reviewReserveMs', 60000)
         request['reviewMaxOutputTokens'] = payload.get('reviewMaxOutputTokens', 8192)
-    elif 'reviewReserveMs' in payload or 'reviewMaxOutputTokens' in payload:
+        if 'reviewTimeoutMs' in payload:
+            request['reviewTimeoutMs'] = payload['reviewTimeoutMs']
+    elif any(key in payload for key in ('reviewReserveMs','reviewMaxOutputTokens','reviewTimeoutMs')):
         raise ValueError('review limits require automatic routing')
     if limits.get('unlimitedTime', False):
         request['unlimitedTime'] = True

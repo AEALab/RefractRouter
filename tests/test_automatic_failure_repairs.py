@@ -29,6 +29,46 @@ def test_recorded_illegal_plans_preserve_graph_and_compile_without_another_model
         assert plan.final_node_id == raw['nodes'][-1]['id']
 
 
+def test_recorded_extra_closer_preserves_plan_and_uses_no_repair_call(tmp_path, monkeypatch):
+    from dataclasses import replace
+    from refractrouter.compact_planning import load_compact_reply
+    import tests.test_automatic_failure_repairs as this
+    content = json.loads(Path('tests/fixtures/automatic-planner-extra-closer.json').read_text())['response']
+    fixed, changes = load_compact_reply(content, normalize=True)
+    assert len(changes) == 1 and len(fixed['nodes']) == 1
+    assert fixed['nodes'][0]['id'] == 'answer' and fixed['nodes'][0]['parents'] == []
+    assert content[:changes[0]['position']] + content[changes[0]['position']+1:] == json.dumps(
+        fixed, ensure_ascii=False, separators=(',', ':'))
+    class RecordedPlan(CompactClient):
+        def complete(self, model, messages, **kwargs):
+            response = super().complete(model, messages, **kwargs)
+            return replace(response, content=content) if 'DAG 规划器' in messages[0]['content'] else response
+    monkeypatch.setattr(this, 'CompactClient', RecordedPlan)
+    result, client = launch(tmp_path, complexityPolicy='dag')
+    assert result['status'] == 'completed' and len(client.calls) == 3
+    attempt = result['compact_planning']['attempts'][0]
+    assert attempt['output'] == content
+    assert attempt['json_normalization']['changes'] == changes
+    assert all(c['status'] == 'billed' for c in result['calls'])
+
+
+@pytest.mark.parametrize('content', ['{"nodes":[{"job":"文字 } 应保留"}]}',
+    '{"nodes":[{"job":"转义 \\\" } 应保留"}]}'])
+def test_valid_closers_in_strings_are_never_changed(content):
+    from refractrouter.compact_planning import load_compact_reply
+    result, changes = load_compact_reply(content, normalize=True)
+    assert result == json.loads(content) and changes == []
+
+
+@pytest.mark.parametrize('content', ['{"nodes":[{"id":"a"}',
+    '{"nodes":[{"id":"a"}]]}', '{"nodes":[{"id":"a"}}}]}',
+    '{"nodes":[{"id":"a"} {"id":"b"}]}'])
+def test_other_json_syntax_errors_remain_rejected(content):
+    from refractrouter.compact_planning import load_compact_reply
+    with pytest.raises(json.JSONDecodeError):
+        load_compact_reply(content, normalize=True)
+
+
 def launch(tmp_path, *, final_validator=None, timeout_ms=300000, **parameters):
     payload = {'task': '仅依据给定材料核对费用，完整说明各组成项。',
         'strategy': 'auto', 'complexityPolicy': 'direct', 'reviewPolicy': 'always',
@@ -79,6 +119,36 @@ def test_review_uses_separate_output_cap_and_keeps_worker_unlimited(tmp_path, mo
     assert raw['review']['time_reserve_ms'] == 60000
 
 
+@pytest.mark.parametrize('timeout,unlimited,expected', [(180000, False, 180000),
+    (0, False, 300000), (180000, True, 180000), (0, True, None)])
+def test_review_wait_is_independent_but_cannot_exceed_task_deadline(tmp_path, monkeypatch,
+                                                                  timeout, unlimited, expected):
+    from refractrouter import task_runtime
+    from refractrouter.task_evaluation import evaluate_text as real_evaluate
+    seen = []
+    def evaluate(*args, **kwargs):
+        now = task_runtime.time.monotonic()
+        seen.append(None if kwargs['deadline'] == float('inf') else
+                    (kwargs['deadline'] - now) * 1000)
+        return real_evaluate(*args, **kwargs)
+    monkeypatch.setattr(task_runtime, 'evaluate_text', evaluate)
+    raw, _ = launch(tmp_path, reviewTimeoutMs=timeout,
+                    limits={'unlimitedTime': unlimited})
+    assert raw['status'] == 'completed'
+    assert raw['review']['timeout_ms'] == (timeout or None)
+    if expected is None:
+        assert seen == [None] and raw['review']['effective_wait_ms'] is None
+    else:
+        assert expected - 2000 < seen[0] <= expected
+    assert raw['review']['task_timeout_ms'] == (None if unlimited else 300000)
+
+
+def test_shorter_task_caps_longer_review_wait(tmp_path):
+    raw, _ = launch(tmp_path, timeout_ms=100000, reviewTimeoutMs=180000, reviewReserveMs=0)
+    assert raw['status'] == 'completed'
+    assert 98000 < raw['review']['effective_wait_ms'] <= 100000
+
+
 def test_insufficient_total_time_does_not_dispatch_worker_or_judge(tmp_path):
     raw, client = launch(tmp_path, timeout_ms=20000)
     assert raw['status'] != 'completed'
@@ -124,7 +194,8 @@ def test_late_known_worker_result_does_not_launch_judge_with_tiny_deadline(tmp_p
 
 
 @pytest.mark.parametrize('values', [{'reviewReserveMs': True}, {'reviewReserveMs': -1},
-    {'reviewMaxOutputTokens': 0}, {'reviewMaxOutputTokens': 128001}])
+    {'reviewMaxOutputTokens': 0}, {'reviewMaxOutputTokens': 128001},
+    {'reviewTimeoutMs': True}, {'reviewTimeoutMs': -1}, {'reviewTimeoutMs': 3600001}])
 def test_bad_review_envelopes_are_rejected_before_calls(tmp_path, values):
     with pytest.raises(ValueError):
         launch(tmp_path, **values)

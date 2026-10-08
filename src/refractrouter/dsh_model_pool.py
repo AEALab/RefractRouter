@@ -360,6 +360,15 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
             raise ValueError(f'roleOverrides.{name} references an unavailable route')
         return by_key[value]
     judge = exact('judge') or ranked[0]
+    judge_effort = pool.get('judgeReasoningEffort')
+    if judge_effort is not None:
+        resolved = catalog[(judge['provider'], judge['model'])]
+        supported = resolved.get('reasoningEfforts')
+        if supported is None:
+            supported = [item.get('id') for item in resolved.get('reasoning', {}).get('efforts', [])
+                         if isinstance(item, dict)]
+        if not isinstance(judge_effort, str) or (judge_effort != 'default' and judge_effort not in supported):
+            raise ValueError('审核模型不支持指定的 judgeReasoningEffort')
     workers = overrides.get('workers')
     if workers is None:
         worker_rows = [row for row in ranked if row is not judge]
@@ -415,6 +424,21 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         evidence[_route_key(row['provider'], row['model'])].update(
             compiled_model_id=models[-1]['id'], effective_model=row['effectiveModel'],
             reasoning_effort=row['reasoningEffort'])
+    if judge_effort is not None:
+        # 审核用途独立绑定参数；同一实际路线的规划／执行配置保持原样。
+        model = next(item for item in models if 'judge' in item['roles'])
+        model['roles'].remove('judge')
+        review_model = deepcopy(model)
+        review_model.update(id=_stable_id('dsh-review', _route_key(judge['provider'], judge['model'])), roles=['judge'])
+        review_model.pop('routing', None)
+        review_model.pop('requestOptions', None)
+        if judge_effort != 'default':
+            review_model['requestOptions'] = {'reasoning_effort': judge_effort}
+        if not model['roles']:
+            models.remove(model)
+        models.append(review_model)
+        evidence[_route_key(judge['provider'], judge['model'])]['review_role'] = {
+            'compiled_model_id': review_model['id'], 'reasoning_effort': judge_effort}
     security = deepcopy(pool.get('security', {'dataMode':'live','sensitiveTerms':[],
         'classifier':{'enabled':True,'modelId':_route_key(classifier['provider'], classifier['model'])}}))
     if isinstance(security.get('classifier'), dict) and security['classifier'].get('enabled', True):

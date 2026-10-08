@@ -3,7 +3,7 @@ import { PassThrough } from 'node:stream'
 import test from 'node:test'
 import { apply, configure, createAdapter, type AgentAdapter, type AgentContext } from '../dist/agent-provider.js'
 
-function fixture(result: Record<string, unknown> | Array<Record<string, unknown>> = {}) {
+function fixture(result: Record<string, unknown> | Array<Record<string, unknown>> = {}, exitCode = 0) {
   let adapter: AgentAdapter | undefined
   let discovery: ((request:{provider?:string;baseURL?:string;api?:string;apiKey?:string},signal?:AbortSignal)=>Promise<readonly {id:string;name?:string}[]>)|undefined
   const discoveries:Record<string,typeof discovery>={}
@@ -47,7 +47,7 @@ function fixture(result: Record<string, unknown> | Array<Record<string, unknown>
           if(String(chunk).includes('\n')) stdout.end(JSON.stringify(output)+'\n')
         })
         else stdin.on('finish', () => stdout.end(JSON.stringify(output)+'\n'))
-        return {stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),async waitForExit(){},
+        return {stdin,stdout,done:Promise.resolve({exitCode,signal:null}),async waitForExit(){},
           collected:{stdout:{readFrom:()=>({text:JSON.stringify(output),lossy:false})}} }
       },
     },
@@ -71,6 +71,36 @@ test('工具要求未通过时交付明确失败说明，候选正文仅留审�
   assert.ok(!text.includes('伪造已执行'))
   const finish=output.find(c=>c.type==='finish') as any
   assert.equal(finish.replayState.response.refractagent.toolValidation.passed,false)
+  assert.equal(finish.reason.kind,'error')
+})
+
+test('核心规划失败仍返回终止说明、已结算用量与回放，不伪装空正文成功',async()=>{
+  const f=fixture({mode:'live',simulated:false,status:'failed',answer:'',plan:null,
+    generation_status:'not-started',issues:["Expecting ',' delimiter"],costs:{production:.015,evaluation:0,unconfirmed:0}},1)
+  const output=await chunks(createAdapter(f.ctx,()=>configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})))
+  assert.match(String(output.find(c=>c.type==='text-delta')?.text),/规划或执行失败/)
+  assert.deepEqual(output.find(c=>c.type==='usage')?.usage,{inputTokens:20,outputTokens:30,cacheReadTokens:0,reasoningTokens:0})
+  const finish=output.at(-1) as any
+  assert.equal(finish.reason.kind,'error')
+  assert.equal(finish.replayState.response.refractagent.status,'failed')
+  assert.equal(finish.replayState.response.refractagent.costs.production,.015)
+  assert.equal(f.spawns.length,1)
+})
+
+test('质量未通过及必要审核未完成的候选不交给宿主，已通过正文仍原样交付',async()=>{
+  for(const status of ['quality-failed','review-time-exhausted','privacy-route-blocked','content-verification-failed','cancelled']){
+    const f=fixture({mode:'live',simulated:false,status,answer:'未审定候选正文'})
+    const output=await chunks(createAdapter(f.ctx,()=>configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})))
+    const text=output.filter(c=>c.type==='text-delta').map(c=>c.text).join('')
+    assert.match(text,/本次任务未完成/)
+    assert.ok(!text.includes('未审定候选正文'))
+    assert.equal((output.at(-1)?.reason as any).kind,status==='cancelled'?'aborted':'error')
+    assert.equal((output.at(-1)?.replayState as any).response.refractagent.status,status)
+  }
+  const f=fixture({mode:'live',simulated:false,status:'completed',answer:'已通过正文'})
+  const output=await chunks(createAdapter(f.ctx,()=>configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})))
+  assert.equal(output.find(c=>c.type==='text-delta')?.text,'已通过正文')
+  assert.equal((output.at(-1)?.reason as any).kind,'stop')
 })
 const modelPool = () => ({schemaVersion:'refractagent-dsh-model-pool-v1' as const,billingUnit:'USD',
   security:{dataMode:'synthetic'},routes:[
@@ -350,6 +380,25 @@ test('production and review unlimited choices reach both preview and live unchan
     assert.equal(spawn.argv[evaluation+1],'unlimited')
   }
 })
+test('独立审核包络与任务期限传入预检及真实执行，0 只解除对应时间限制',async()=>{
+  for(const taskTimeoutMs of [0,600000]){
+    const f=fixture([previewResult,{strategy:'auto',mode:'live',status:'completed',answer:'已审核答案',
+      simulated:false,billing_unit:'CNY',dag:{phase:'finished',status:'completed',nodes:[]}}])
+    const adapter=createAdapter(f.ctx,()=>configure({providerConfig:liveProviderConfig(),
+      liveExecution:{...liveExecution(),reviewTimeoutMs:180000,reviewReserveMs:60000,
+        reviewMaxOutputTokens:8192,taskTimeoutMs}}))
+    for await(const _ of adapter.stream({...options,model:'auto-live'})) { /* consume */ }
+    assert.equal(f.spawns.length,2)
+    for(const spawn of f.spawns){
+      const payload=JSON.parse(spawn.input())
+      assert.equal(payload.reviewTimeoutMs,180000)
+      assert.equal(payload.reviewReserveMs,60000)
+      assert.equal(payload.reviewMaxOutputTokens,8192)
+      assert.equal(payload.limits.unlimitedTime,taskTimeoutMs===0)
+      if(taskTimeoutMs)assert.equal(spawn.argv[spawn.argv.indexOf('--timeout-ms')+1],'600000')
+    }
+  }
+})
 test('DSH 模型池在执行前解析宿主目录、隔离枚举失败并排除自身',async()=>{
   const f=fixture({strategy:'auto',strategy_name:'自动路由',billing_unit:'USD'})
   Object.assign(f.ctx.llm,{
@@ -531,7 +580,7 @@ test('automatic decomposition is passed to Python without a fabricated plan',asy
   assert.equal(payload.plan,undefined)
 })
 
-test('explicit length constraints reach Python and failed checks preserve answer and replay verdicts', async()=>{
+test('explicit length constraints reach Python and failed checks withhold candidate while preserving replay verdicts', async()=>{
   const constraint = {maxLength:250, unit:'unicode-code-points', countWhitespace:false}
   const validation = {schema_version:'output-length-check-v1',status:'failed',constraints:{...constraint},
     passed:false,actual_length:263,output_sha256:'a'.repeat(64)}
@@ -544,7 +593,9 @@ test('explicit length constraints reach Python and failed checks preserve answer
   const result = await chunks(createAdapter(f.ctx,() => config))
   assert.equal((JSON.parse(f.spawns[0]!.input()).outputConstraints).maxLength,250)
   assert.equal(f.spawns.length,1)
-  assert.equal(result.find(c=>c.type==='text-delta')?.text,answer)
+  assert.match(String(result.find(c=>c.type==='text-delta')?.text),/最终回复未满足输出限制/)
+  assert.ok(!String(result.find(c=>c.type==='text-delta')?.text).includes(answer))
+  assert.equal((result.at(-1)?.reason as any).kind,'error')
   const info = String(result.find(c=>c.type==='reasoning-delta')?.text)
   assert.match(info,/生成：completed/)
   assert.match(info,/语义评审：.*"passed":true/)

@@ -115,14 +115,14 @@ def project(summary, runtime=None, *, cash_limits=None):
         'external_judge_cost_cny': amount(local.get('costCny')) if local.get('backend') == 'jev' else None,
         'external_judge_called': local.get('backend') == 'jev' and local.get('model') is not None,
         'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed',
-            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version')),
+            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort')),
         'deterministic_validation': pick(runtime.get('deterministic_validation'), ('passed', 'reason')),
         'planning_budget': pick(runtime.get('planning_budget'), ('version', 'task_remaining_ms',
             'review_reserve_ms', 'planner_allowance_ms', 'execution_after_planner_ms',
             'estimates_are_guarantees', 'max_nodes', 'node_limit_basis')),
-        'planner_normalizations': [pick(attempt, ('identifier_normalization', 'type_normalization'))
+        'planner_normalizations': [pick(attempt, ('identifier_normalization', 'type_normalization','json_normalization'))
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
-            if attempt.get('identifier_normalization') or attempt.get('type_normalization')],
+            if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
         'quality': pick(quality, ('score', 'passed', 'rationale')), 'quality_gate': quality_gate,
         'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),
             'records': [pick(r, ('node', 'call_id', 'tool', 'outcome')) for r in tool.get('records', [])]},

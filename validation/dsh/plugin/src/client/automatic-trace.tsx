@@ -124,7 +124,9 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
     <h4>工具证据、评审与停止原因</h4>
     {r.planning_budget?.version&&<p>规划开始时告知的执行时间包络：{r.planning_budget.execution_after_planner_ms===null?'任务不限时间':timing(r.planning_budget.execution_after_planner_ms)}（已扣评审预留与规划额度）。{r.planning_budget.max_nodes!==undefined&&<>本次最多 {r.planning_budget.max_nodes} 个节点（含最终交付）。</>}时延先验不是速度保证；计划仍须通过准入。</p>}
     {r.review?.limits_version&&<p>评审预留时间 {timing(r.review.time_reserve_ms)}；评审输出上限 {traceNumber(r.review.output_cap)} tokens。此限制独立于执行模型输出容量。</p>}
-    {['proposal-constraints-v1','proposal-constraints-v2'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
+    {r.review?.limits_version==='automatic-review-envelope-v2'&&<p>审核模型：{r.review.model?.provider} / {r.review.model?.model}；推理等级：{r.review.reasoning_effort}；审核等待上限：{r.review.timeout_ms===null?'不额外限制':traceNumber(r.review.timeout_ms)+' ms'}；任务总期限：{r.review.task_timeout_ms===null?'不限时':traceNumber(r.review.task_timeout_ms)+' ms'}；实际可用审核等待：{r.review.effective_wait_ms===null?'不限时':traceNumber(r.review.effective_wait_ms)+' ms'}。</p>}
+    {['proposal-constraints-v1','proposal-constraints-v2','proposal-constraints-v3'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
+    {r.review?.contract_version==='proposal-constraints-v3'&&<p>材料未提供的实现细节保持未知；风险推测须标明前提，不以不同用途的数值不同直接认定冲突。</p>}
     {typeof r.deterministic_validation?.passed==='boolean'&&<p>固定事实检查：{r.deterministic_validation.passed?'通过':'未通过'}；已知事实不符时，模型高分不能覆盖该结果。</p>}
     {r.planner_normalizations?.length>0&&<details><summary>规划格式兼容记录</summary><pre>{JSON.stringify(r.planner_normalizations,null,2)}</pre></details>}
     <p>工具证据：{r.tools?.message??'未记录'}；评审：{r.review?.required===false?'按策略未要求':label(r.review?.status)}，分数 {traceNumber(r.review?.score??r.quality?.score)}，原始结论{r.review?.passed===true?'通过':r.review?.passed===false?'未通过':'未记录'}。

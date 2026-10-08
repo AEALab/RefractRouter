@@ -317,7 +317,18 @@ export function RefractCard(props: RefractCardOwnerProps) {
   const routeIssues=(route:string)=>state.issues.filter(issue=>issue.route===route)
   const patchRole=(role:'planner'|'judge'|'classifier',value:string)=>{
     if(!pool)return
-    updatePool({...pool,roleOverrides:{...pool.roleOverrides,[role]:value||undefined}})
+    const next={...pool,roleOverrides:{...pool.roleOverrides,[role]:value||undefined}}
+    if(role==='judge'&&value!==pool.roleOverrides?.judge)delete next.judgeReasoningEffort
+    updatePool(next)
+  }
+  const reviewRoute=pool?.roleOverrides?.judge
+  const reviewEfforts=reviewRoute?(catalog?.groups??[]).flatMap(group=>group.models
+    .filter(model=>identity(group.id,model.id)===reviewRoute).flatMap(model=>model.reasoning?.efforts??[])):[]
+  const patchReviewNumber=(field:'reviewTimeoutMs'|'reviewReserveMs'|'taskTimeoutMs'|'reviewMaxOutputTokens',value:string)=>{
+    const next={...live}
+    if(value==='')delete next[field]
+    else next[field]=Number(value)*(field==='reviewMaxOutputTokens'?1:1000)
+    props.editLiveExecution(next)
   }
   const patchWorkers=(route:string,checked:boolean)=>{
     if(!pool)return
@@ -423,6 +434,37 @@ export function RefractCard(props: RefractCardOwnerProps) {
                     onChange={event=>updateLive({reviewPolicy:event.target.value as LiveExecutionView['reviewPolicy']})}>
                     <option value="adaptive">{t('liveReviewAdaptive')}</option><option value="always">{t('liveReviewAlways')}</option></select>
                   <span className="rra-field-hint">{t('liveReviewHint')}</span></label></div>
+              <section className="rra-v4-section"><h3>最终回复审核</h3>
+                <p className="rra-field-hint">检查答案、建议与恢复步骤。审核模型和参数独立于规划／执行；审核调用使用评审预算。</p>
+                {pool?<div className="rra-grid rra-grid-2">
+                  <label className="rra-compact-field">审核模型<select aria-label="最终审核模型" className="rra-select" disabled={disabled}
+                    value={reviewRoute??''} onChange={event=>{
+                      const next={...pool,roleOverrides:{...pool.roleOverrides,judge:event.target.value||undefined}}
+                      delete next.judgeReasoningEffort
+                      updatePool(next)
+                    }}><option value="">按模型池角色规则选择</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>
+                  <label className="rra-compact-field">审核推理等级<select aria-label="最终审核推理等级" className="rra-select" disabled={disabled||!reviewRoute}
+                    value={pool.judgeReasoningEffort??'inherit'} onChange={event=>{
+                      const next={...pool};if(event.target.value==='inherit')delete next.judgeReasoningEffort
+                      else next.judgeReasoningEffort=event.target.value
+                      updatePool(next)
+                    }}><option value="inherit">沿用该路线的模型参数</option><option value="default">提供方默认</option>
+                    {reviewEfforts.map(effort=><option key={effort.id} value={effort.id}>{effort.name}</option>)}</select>
+                    <span className="rra-field-hint">选择具体审核模型后显示宿主支持的等级；不会修改同模型的规划／执行参数。</span></label>
+                </div>:<p className="rra-field-hint">审核模型由当前 providerConfig 的 judge 角色指定。</p>}
+                <div className="rra-grid rra-grid-2">
+                  {([['reviewTimeoutMs','审核等待上限（秒）','未设置：沿用任务剩余时间'],
+                    ['reviewReserveMs','为审核预留时间（秒）','默认 60 秒'],
+                    ['taskTimeoutMs','任务总期限（秒）','沿用部署设置'],
+                    ['reviewMaxOutputTokens','审核输出上限（tokens）','默认 8192']] as const).map(([field,label,hint])=><label className="rra-compact-field" key={field}>{label}
+                      <input aria-label={label} className="rra-input" type="number" min={field==='reviewMaxOutputTokens'?256:0} step="1" disabled={disabled}
+                        placeholder={hint} value={live[field]===undefined?'':live[field]!/(field==='reviewMaxOutputTokens'?1:1000)}
+                        onChange={event=>patchReviewNumber(field,event.target.value)}/></label>)}
+                </div>
+                <p className="rra-field-hint">审核等待 180 秒表示本次审核最多等待三分钟，仍受任务剩余期限约束。预留时间是留给审核的执行余量；0 不预留。任务期限 0 表示不限时，审核等待 0 表示不额外限制；取消与费用约束继续生效。</p>
+                <button className="rra-button rra-button-secondary" type="button" disabled={disabled}
+                  onClick={()=>updateLive({reviewTimeoutMs:180000,reviewReserveMs:60000,reviewMaxOutputTokens:8192})}>填写已验证的审核限制（180 秒）</button>
+              </section>
               <div className="rra-strategy"><h4 className="rra-strategy-name">拆分前判别</h4>
                 <label className="rra-compact-field">判断方式<select className="rra-select" disabled={disabled}
                   value={decomposition.mode} onChange={event=>{

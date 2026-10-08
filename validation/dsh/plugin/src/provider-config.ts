@@ -47,6 +47,10 @@ export interface LiveExecutionConfiguration {
   maxEvaluationCostByUnit?: {AFP:number;CNY:number}
   complexityPolicy: 'auto' | 'direct' | 'dag'
   reviewPolicy: 'adaptive' | 'always'
+  reviewTimeoutMs?:number
+  reviewReserveMs?:number
+  reviewMaxOutputTokens?:number
+  taskTimeoutMs?:number
   maxConcurrency?: number
   providerConcurrency?: Record<string, number>
   providerMinIntervalMs?: Record<string, number>
@@ -91,6 +95,7 @@ export interface DshModelPool {
   billingUnit?: string
   cashLimits?: {production:number;evaluation:number}
   allowSharedJudge?: boolean
+  judgeReasoningEffort?: string
   routes: DshModelPoolRoute[]
   roleOverrides?: { planner?: string; judge?: string; classifier?: string; workers?: string[] }
   objective?: Record<string, unknown>
@@ -122,8 +127,15 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
     || Object.keys(value).some(key => !['schemaVersion','enabled','maxProductionCost','maxEvaluationCost',
       'maxProductionCostByUnit','maxEvaluationCostByUnit',
       'complexityPolicy','reviewPolicy','maxConcurrency','providerConcurrency','providerMinIntervalMs',
-      'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls','decompositionDecision'].includes(key))) {
+      'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls','decompositionDecision',
+      'reviewTimeoutMs','reviewReserveMs','reviewMaxOutputTokens','taskTimeoutMs'].includes(key))) {
     throw new Error('invalid liveExecution configuration')
+  }
+  for (const [field, low, high] of [['reviewTimeoutMs',0,3600000],['reviewReserveMs',0,300000],
+    ['reviewMaxOutputTokens',256,128000],['taskTimeoutMs',0,86400000]] as const) {
+    const number=value[field]
+    if(number!==undefined&&(typeof number!=='number'||!Number.isInteger(number)||number<low||number>high))
+      throw new Error(`invalid liveExecution.${field}`)
   }
   for (const key of ['maxProductionCost','maxEvaluationCost'] as const) {
     const entry = value[key]
@@ -226,12 +238,14 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
   if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4','refractagent-dsh-model-pool-v5'].includes(String(value.schemaVersion))
     || !Array.isArray(value.routes) || value.routes.length > 128
-    || Object.keys(value).some(key => !['schemaVersion','billingUnit','cashLimits','allowSharedJudge','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
+    || Object.keys(value).some(key => !['schemaVersion','billingUnit','cashLimits','allowSharedJudge','judgeReasoningEffort','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
   }
   if (value.allowSharedJudge !== undefined && typeof value.allowSharedJudge !== 'boolean') {
     throw new Error('invalid dshModelPool allowSharedJudge')
   }
+  if(value.judgeReasoningEffort!==undefined&&(typeof value.judgeReasoningEffort!=='string'||!value.judgeReasoningEffort.trim()))
+    throw new Error('invalid dshModelPool judgeReasoningEffort')
   const identities = new Set<string>()
   for (const route of value.routes) {
     if (!isRecordValue(route) || typeof route.provider !== 'string' || !route.provider

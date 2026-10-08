@@ -47,7 +47,8 @@ def test_fixed_cases_preserve_numeric_answers_and_separate_labels():
 
 
 @pytest.mark.parametrize('unknown', [False, True])
-def test_finite_review_runner_uses_four_calls_or_stops_unknown(tmp_path, monkeypatch, unknown):
+@pytest.mark.parametrize('grounding', [False, True])
+def test_finite_review_runner_uses_frozen_count_or_stops_unknown(tmp_path, monkeypatch, unknown, grounding):
     import io
     import experiments.run_proposal_review_recheck as runner
     from tests.test_live_execution import config
@@ -80,14 +81,16 @@ def test_finite_review_runner_uses_four_calls_or_stops_unknown(tmp_path, monkeyp
             return ChatResponse(json.dumps(result),100,80,0,0,1,1,'stop','mock')
     monkeypatch.setattr(runner.subprocess,'Popen',Process)
     monkeypatch.setattr(runner,'OpenAICompatibleClient',Client)
-    frozen=runner.freeze(catalog)
+    frozen=runner.freeze(catalog,grounding_cases=grounding)
+    count=2 if grounding else 4
+    assert frozen['maximumCalls']==count
     if unknown:
         with pytest.raises(TimeoutError):runner.run(frozen,tmp_path/'run')
     else:
-        rows=runner.run(frozen,tmp_path/'run');assert len(rows)==4
-        assert sum(r['matched'] for r in rows)==2  # 错误模型不能被预期标签伪造成通过。
+        rows=runner.run(frozen,tmp_path/'run');assert len(rows)==count
+        assert sum(r['matched'] for r in rows)==count//2  # 错误模型不能被预期标签伪造成通过。
     ledger=json.loads((tmp_path/'run/result.json').read_text())
-    assert len(ledger['calls'])==(1 if unknown else 4)
+    assert len(ledger['calls'])==(1 if unknown else count)
     assert ledger['calls'][0]['status']==('unknown-usage' if unknown else 'billed')
 
 

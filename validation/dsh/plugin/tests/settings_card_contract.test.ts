@@ -137,6 +137,20 @@ test('DSH 模型池只接受目录身份、明确部署和有效职责覆盖', (
     ...pool, routes: [{...pool.routes[0], deployment:'trusted-cloud'}, pool.routes[1]],
   } as never }), /trustPolicy/)
 })
+test('独立审核设置保存及读取保留显式 0 与路线参数',()=>{
+  const pool={...dshModelPool(),judgeReasoningEffort:'low'}
+  const live={schemaVersion:'refractagent-live-execution-v1' as const,enabled:true,
+    complexityPolicy:'auto' as const,reviewPolicy:'always' as const,
+    maxProductionCost:5,maxEvaluationCost:5,
+    reviewTimeoutMs:180000,reviewReserveMs:0,reviewMaxOutputTokens:8192,taskTimeoutMs:0}
+  validateSettingsSection({dshModelPool:pool,liveExecution:live})
+  const config=overlaySettings(configure({}),{dshModelPool:pool,liveExecution:live})
+  assert.deepEqual(buildSettingsBase(config).liveExecution,live)
+  assert.equal(buildSettingsBase(config).dshModelPool?.judgeReasoningEffort,'low')
+  for(const invalid of [true,-1,1.5,3600001])assert.throws(()=>validateSettingsSection({
+    liveExecution:{...live,reviewTimeoutMs:invalid} as never}),/reviewTimeoutMs/)
+  assert.throws(()=>validateSettingsSection({dshModelPool:{...pool,judgeReasoningEffort:''}}),/judgeReasoningEffort/)
+})
 
 test('live 职责覆盖必须为每个职责保留可处理敏感数据的路线', () => {
   const pool = dshModelPool()

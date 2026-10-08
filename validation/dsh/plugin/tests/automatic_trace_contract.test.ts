@@ -98,3 +98,11 @@ test('新版审核轨迹明确包含修正建议和关键约束，旧记录仍�
   assert.ok(tree.includes('审核同时检查答案、修正建议与恢复步骤'))
   assert.ok(tree.includes('数字正确或高分也不能放行'))
 })
+test('轨迹解释独立审核参数和最终实际可等待时间',()=>{
+  const api=client(),data:any=record()
+  data.review={...data.review,model:{provider:'ark',model:'flash'},reasoning_effort:'high',
+    limits_version:'automatic-review-envelope-v2',timeout_ms:180000,task_timeout_ms:300000,
+    effective_wait_ms:90000}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['ark / flash','high','180,000','300,000','90,000'])assert.ok(tree.includes(text),text)
+})

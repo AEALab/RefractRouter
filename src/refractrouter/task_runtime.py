@@ -171,7 +171,7 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "costMaxByUnit", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget", "reviewReserveMs", "reviewMaxOutputTokens"}
+               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget", "reviewReserveMs", "reviewMaxOutputTokens", "reviewTimeoutMs"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     if raw.get('prefixPolicy', 'legacy') not in ('legacy', 'stable-v1'):
@@ -212,6 +212,7 @@ def validate_request(raw):
             raise ValueError('minimal planning requires one call without repairs')
     for key, default, low, high in (
             ('reviewReserveMs',0,0,300000),
+            ('reviewTimeoutMs',0,0,3600000),
             ('reviewMaxOutputTokens',8192,256,128000),
             ('plannerMaxOutputTokens',1200,256,128000 if raw.get('boundedPlannerLimits') else 2048),
             ('plannerTimeoutMs',12000,1000,300000 if raw.get('boundedPlannerLimits') else 30000),
@@ -387,7 +388,11 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if result['review']['required'] and not request.get('unlimitedTime') else 0)
     execution_deadline = started + deadline_ms / 1000 - review_reserve
     result['review'].update(time_reserve_ms=round(review_reserve * 1000),
-        output_cap=output_token_limit(review_judge), limits_version='automatic-review-envelope-v1')
+        output_cap=output_token_limit(review_judge), limits_version='automatic-review-envelope-v2',
+        timeout_ms=request.get('reviewTimeoutMs') or None,
+        model={'provider':review_judge.provider,'model':review_judge.api_model,'id':review_judge.model_id},
+        reasoning_effort=(review_judge.request_options or {}).get('reasoning_effort','default'),
+        task_timeout_ms=None if request.get('unlimitedTime') else deadline_ms)
     result['planner_selection'] = {'model_id': planner_id, 'basis': planner_basis,
         'output_cap': output_token_limit(planning_model),
         'timeout_ms': None if request.get('unlimitedTime') or request.get('unrestrictedPlanning') else request.get('plannerTimeoutMs',12000) if request.get('planningMode')=='compact' else deadline_ms,
@@ -1006,8 +1011,14 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     return result
                 result['review']['status'] = 'running'
                 persist()
+                review_deadline = budget.deadline(started + deadline_ms / 1000)
+                if request.get('reviewTimeoutMs'):
+                    review_deadline = min(review_deadline, time.monotonic() + request['reviewTimeoutMs'] / 1000)
+                result['review']['effective_wait_ms'] = (None if review_deadline == float('inf') else
+                    max(0, round((review_deadline-time.monotonic())*1000)))
+                persist()
                 judged = evaluate_text(budget, review_judge, execution_task, result["final_output"],
-                    criteria=plan.acceptance_criteria, label="final-judge", deadline=budget.deadline(started + deadline_ms / 1000),
+                    criteria=plan.acceptance_criteria, label="final-judge", deadline=review_deadline,
                     tool_evidence=tool_evidence)
                 result["evaluation"] = judged
                 result["review"].update(status="completed", score=judged['score'], passed=judged['passed'],

@@ -20,17 +20,18 @@ from refractrouter.task_budget import TaskCallBudget, request_input_bound
 from refractrouter.task_evaluation import evaluate_text, evaluation_messages, REVIEW_CONTRACT
 
 CASES = ROOT/'data/research/proposal-constraint-recheck-v2.json'
+GROUNDING_CASES = ROOT/'data/research/automatic-grounding-recheck-v1.json'
 
 
 def hashes():
     result = source_hashes()
-    for p in (CASES, Path(__file__)):
+    for p in (CASES, GROUNDING_CASES, Path(__file__)):
         result[str(p.relative_to(ROOT))] = hashlib.sha256(p.read_bytes()).hexdigest()
     return result
 
 
-def freeze(catalog, *, judge_reasoning=None):
-    fixture = json.loads(CASES.read_text())
+def freeze(catalog, *, judge_reasoning=None, grounding_cases=False):
+    fixture = json.loads((GROUNDING_CASES if grounding_cases else CASES).read_text())
     configuration, provenance = compile_dsh_model_pool(catalog['pool'], {
         'schemaVersion':'refractagent-dsh-catalog-v1','routes':catalog['routes']})
     model = compile_configuration(configuration).manifest.judge
@@ -44,8 +45,9 @@ def freeze(catalog, *, judge_reasoning=None):
     if model.billing_unit != 'CNY':
         raise ValueError('本次审核仅允许冻结的 CNY 参考价格')
     cases = fixture['cases']
-    if len(cases) != 4 or len({c['id'] for c in cases}) != 4:
-        raise ValueError('本次仅验收固定四例')
+    count = 2 if grounding_cases else 4
+    if len(cases) != count or len({c['id'] for c in cases}) != count:
+        raise ValueError('本次仅验收所选择的固定案例')
     bounds = []
     for c in cases:
         if hashlib.sha256(c['answer'].encode()).hexdigest() != c['answerSha256']:
@@ -63,7 +65,7 @@ def freeze(catalog, *, judge_reasoning=None):
         raise ValueError('超过本次参考上限2 CNY或累计现金授权100 CNY')
     result = {'schemaVersion':'proposal-review-preflight-v1','reviewContract':REVIEW_CONTRACT,
         'fixture':fixture,'catalog':catalog,'configuration':configuration,'provenance':provenance,
-        'model':asdict(model),'inputBounds':bounds,'maximumCalls':4,'maximumReferenceCny':maximum,
+        'model':asdict(model),'inputBounds':bounds,'maximumCalls':count,'maximumReferenceCny':maximum,
         'maximumCashCny':cash_maximum,'cumulativeCashCeilingCny':100,
         'historyCashProtectedCny':protected,'sourceHashes':hashes(),
         'httpRetries':0,'newJevCalls':0,'newExecutorCalls':0}
@@ -103,7 +105,7 @@ def run(frozen, output):
                 def complete(self, model, messages, **kwargs):
                     persist()  # dispatch 已标为 unknown-usage，先落证据再通信。
                     return self.client.complete(model,messages,**kwargs)
-            budget=TaskCallBudget(Audited(actual),1,frozen['maximumReferenceCny'],max_calls=4,capture_payload=True,
+            budget=TaskCallBudget(Audited(actual),1,frozen['maximumReferenceCny'],max_calls=frozen['maximumCalls'],capture_payload=True,
                 cash_limits={'production':1,'evaluation':max(frozen['maximumCashCny'],.001)})
             budget.on_reserve=lambda _:persist()
             for case in fixture['cases']:
@@ -127,8 +129,8 @@ def run(frozen, output):
             if process.stdin:process.stdin.close()
             try:process.wait(timeout=10)
             except subprocess.TimeoutExpired:process.terminate();process.wait(timeout=10)
-            atomic_json(output/'completion.json',{'planned':4,'finished':len(rows),
-                'complete':len(rows)==4 and all(r['status']=='completed' for r in rows),
+            atomic_json(output/'completion.json',{'planned':frozen['maximumCalls'],'finished':len(rows),
+                'complete':len(rows)==frozen['maximumCalls'] and all(r['status']=='completed' for r in rows),
                 'matched':sum(r['matched'] for r in rows)})
     return rows
 
@@ -139,9 +141,11 @@ def main():
     parser.add_argument('--output-dir',type=Path,required=True)
     parser.add_argument('--execute',action='store_true')
     parser.add_argument('--judge-reasoning', choices=['low','high','max'])
+    parser.add_argument('--grounding-cases', action='store_true')
     parser.add_argument('--freeze-sha256')
     args=parser.parse_args()
-    frozen=freeze(json.loads(args.catalog.read_text()), judge_reasoning=args.judge_reasoning)
+    frozen=freeze(json.loads(args.catalog.read_text()), judge_reasoning=args.judge_reasoning,
+                  grounding_cases=args.grounding_cases)
     if not args.execute:
         args.output_dir.mkdir(parents=True,exist_ok=False)
         atomic_json(args.output_dir/'preflight.json',frozen)
