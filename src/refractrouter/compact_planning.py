@@ -14,6 +14,7 @@ COMPACT_PLANNER_SYSTEM = '''你是快速文本任务 DAG 规划器，只拆工�
 只返回紧凑 JSON：{"reason":"简短拆分理由","nodes":[{"id":"answer","type":"generation","job":"完整回答任务","parents":[],"difficulty":"medium","risk":"medium"}]}。
 1..6 个节点，最后一个节点汇总完整交付，每个节点必须汇入它。id 为小写英文标识。
 type 只取 extraction、synthesis、generation、verification、planning；difficulty/risk 只取 low/medium/high，按真实职责标注。
+id 必须匹配 [a-z][a-z0-9_]*：以小写英文字母开头，只含小写英文字母、数字和下划线；不得使用连字符或中文。parents 引用已有节点的原样 id。
 job 每项不超过 180 个 Unicode 字符，reason 同样不超过 180 个字符；每个英文字母、数字和标点也各计一个字符，不按英文单词计数。
 job 只写简短职责和产物，建议不超过 60 个字符；不要复制原始案例、代码、字段清单或验收条款，执行节点已经收到完整原始任务。
 不生成答案、契约、预算、模型清单或验收表。
