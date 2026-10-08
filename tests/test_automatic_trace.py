@@ -57,6 +57,17 @@ def test_trace_keeps_all_candidates_raw_judge_and_real_call_identity():
     assert (s, r) == before
 
 
+def test_grounding_trace_preserves_verdicts_and_verified_short_quotes_only():
+    s,r=evidence()
+    s['quality']['grounding_checks']=[{'check_id':'source-state','status':'FAIL',
+        'answer_quote':'未经实测','source_quote':None,'rationale':'未提供验证信息',
+        'request_messages':['不应展示的完整上下文']}]
+    rows=project(s,r)['quality']['grounding_checks']
+    assert rows==[{'check_id':'source-state','status':'FAIL','answer_quote':'未经实测',
+        'source_quote':None,'rationale':'未提供验证信息'}]
+    assert 'request_messages' not in json.dumps(rows)
+
+
 def test_cash_reference_pending_and_external_judge_are_separate():
     s, r = evidence()
     r['calls'].append({'label': 'inflight', 'model_id': 'cheap', 'category': 'production',

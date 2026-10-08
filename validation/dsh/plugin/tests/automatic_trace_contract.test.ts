@@ -106,3 +106,13 @@ test('轨迹解释独立审核参数和最终实际可等待时间',()=>{
   const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
   for(const text of ['ark / flash','high','180,000','300,000','90,000'])assert.ok(tree.includes(text),text)
 })
+test('同一次审核逐项展示事实来源与时间因果，不用高分替代核对',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v4'
+  data.quality={score:95,passed:false,grounding_checks:[{check_id:'source-state',status:'FAIL',
+    answer_quote:'未经实测',source_quote:null,rationale:'材料未说明验证情况'},
+    {check_id:'time-causality',status:'UNCERTAIN',answer_quote:'挤压执行时间',source_quote:null,rationale:'时间关系无法确认'}]}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['来源与因果核对（同一次审核）','事实状态来源','时间与因果','未通过','无法判断',
+    '未经实测','材料未说明验证情况','引用是否存在由 Python 核对'])assert.ok(tree.includes(text),text)
+})

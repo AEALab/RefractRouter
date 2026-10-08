@@ -1,4 +1,5 @@
 """前缀字节、可观测缓存及实发一致性；全部使用模拟响应。"""
+from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
 from dataclasses import replace
 import json
@@ -115,7 +116,7 @@ def test_full_frozen_diagnostic_envelope_with_mock_provider(tmp_path):
             payload = json.loads(messages[-1]['content'])
             if 'answer' in payload and 'criteria' in payload:
                 content = json.dumps({'passed': True, 'score': 90, 'rationale': '模拟',
-                    'criteria': [{'criterion': c, 'passed': True, 'rationale': '模拟'} for c in payload['criteria']]})
+                    'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria': [{'criterion': c, 'passed': True, 'rationale': '模拟'} for c in payload['criteria']]})
             elif payload['contract']['output']['format'] == 'json':
                 content = json.dumps({k: '模拟证据与限制' for k in payload['contract']['output']['fields']})
             else:

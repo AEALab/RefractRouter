@@ -1,4 +1,5 @@
 """配置升级不能借金额转换改变策略或取得新提供方权限。"""
+from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
 from dataclasses import replace
 
@@ -246,7 +247,7 @@ def test_automatic_subscription_run_reports_reference_and_cash_separately():
             payload = json.loads(messages[-1]['content'])
             if 'criteria' in payload:
                 answer = {'score': 92, 'passed': True, 'rationale': '模拟验收',
-                          'criteria': [{'criterion': c, 'passed': True, 'rationale': '覆盖'} for c in payload['criteria']]}
+                          'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria': [{'criterion': c, 'passed': True, 'rationale': '覆盖'} for c in payload['criteria']]}
             else:
                 answer = {key: '模拟答案' for key in payload['contract']['output']['fields']}
             return ChatResponse(json.dumps(answer), 100, 80, 0, 0, 10, 1, 'stop', 'mock')

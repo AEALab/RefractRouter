@@ -85,7 +85,7 @@ def dag_snapshot(result, manifest):
         elif review_state == 'not-run' or result.get('status') in {'preview', 'planned', 'simulated'}:
             review_state = 'not-run'
         elif review_state == 'running':
-            review_state = 'running'
+            review_state = 'blocked' if terminal else 'running'
         elif terminal:
             review_state = 'blocked'
         else:

@@ -1,0 +1,258 @@
+{
+  "schema": "automatic-grounding-native-recheck-v1",
+  "说明": "完整原 DSH 上下文的有限来源核对复验；不发布宿主系统上下文及请求全文。",
+  "versions": {
+    "core": "0.16.14",
+    "plugin": "0.32.8",
+    "dsh": "0.1.5-rc.3",
+    "reviewContract": "proposal-constraints-v4"
+  },
+  "baseline": {
+    "runId": "20261008T113316Z-0fac309ad973",
+    "旧合同输入重建一致": true,
+    "inputSha256": "4ee1c881943c1ebdca827986f626086aee98fe9651f10a5dc4d35c5c5fd37b10",
+    "expectedLabelsSentToJudge": false
+  },
+  "scope": {
+    "provider": "ark",
+    "model": "glm-5.3",
+    "route": "Agent Plan /api/plan/v3",
+    "cases": 2,
+    "reviewTimeoutMs": 180000,
+    "maxOutputTokens": 8192,
+    "httpRetries": 0,
+    "extraJudgeCallsPerReview": 0
+  },
+  "defaultHigh": {
+    "preflightSha256": "4fd52bcb13f3a274cddfa2a7ca0b2fe09ac5bc96b816d769684a6db11ff3f4e8",
+    "status": "输出容量耗尽，第一例停止批次",
+    "completed": 0,
+    "planned": 2,
+    "calls": [
+      {
+        "label": "recorded-native-negative-state",
+        "status": "billed",
+        "input_tokens": 10457,
+        "output_tokens": 8192,
+        "cached_input_tokens": 0,
+        "latency_ms": 142594,
+        "finish_reason": "error",
+        "reference_cost_cny": 0.391774820941
+      }
+    ],
+    "knownUsage": true,
+    "hostEvidence": {
+      "reasoningDeltaEvents": 8189,
+      "reasoningChars": 33176,
+      "textChars": 0
+    },
+    "备注": "宿主模型目录默认等级 high；142596 毫秒未达到180秒，失败是 length。提供方 reasoning_tokens=0 不代表没有推理输出。"
+  },
+  "explicitLow": {
+    "preflightSha256": "057b99bdf604b4bc8442b648bf7682edce43f091e461801c04a393bb6d257b11",
+    "completed": 2,
+    "matched": 2,
+    "calls": [
+      {
+        "label": "recorded-native-negative-state",
+        "status": "billed",
+        "input_tokens": 10457,
+        "output_tokens": 1338,
+        "cached_input_tokens": 0,
+        "latency_ms": 24755,
+        "finish_reason": "stop",
+        "reference_cost_cny": 0.068120030741
+      },
+      {
+        "label": "corrected-native-qualified-risks",
+        "status": "billed",
+        "input_tokens": 10270,
+        "output_tokens": 638,
+        "cached_input_tokens": 9792,
+        "latency_ms": 13394,
+        "finish_reason": "stop",
+        "reference_cost_cny": 0.034646537646
+      }
+    ],
+    "cases": [
+      {
+        "id": "recorded-native-negative-state",
+        "expectedPassed": false,
+        "actualPassed": false,
+        "matched": true,
+        "wallMs": 24757,
+        "verdict": {
+          "score": 70,
+          "passed": false,
+          "rationale": "回答整体结构符合任务：分项审查A/B/C、给出简表、列风险和一项改进建议，且未调用工具、未修改文件、未声称已核对账单或完成测试。时间项的条件性分析（180秒与剩余期限双重约束、60秒预留不足时的影响）与材料一致且以条件推测表述。但回滚项中「回滚路径未经实测」「运行证据保留完整性未校验」是对实施/验证状态的否定性事实断言，材料并未说明是否实测或校验过，正确表述应为「材料未提供验证信息，尚待确认」或条件式风险，故 grounding 检查不通过，总体不通过。",
+          "criteria": [
+            {
+              "criterion_id": "c1",
+              "passed": true,
+              "rationale": "完整覆盖三个检查项，输出简短表格含风险与一项改进建议，仅依据材料，未调用工具或修改文件，也未声称已核对账单或完成未执行的测试。",
+              "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+            },
+            {
+              "criterion_id": "c2",
+              "passed": false,
+              "rationale": "回滚项将「未经实测」「未校验」写成事实断言，而材料未提供任何验证状态信息；按规则应表述为待确认或条件式风险，属于把未提供的实现细节当成已确认（未发生）的事实。其余建议（实测演练、回填账单）为改进建议而非声称已完成，时间项分析亦为条件推测，无参数冲突误判。",
+              "criterion": "答案中的建议、修复提案和恢复步骤也必须遵守原任务及材料明确保留的关键约束；不得将未知当成已确认，不得仅凭超时释放需核对的占用或重发可能已执行的操作。若任务明确授权改变合同，须说明改变的前提、风险与核对条件；没有提案时核对正文中的操作建议。只依据材料的任务不得把未提供的实现细节当成已确认事实；风险推测须明确其假设或待确认条件。认定参数冲突须证明用途、定义与适用条件确实矛盾，不能仅因不同用途的数值不同就认定冲突。"
+            }
+          ],
+          "grounding_checks": [
+            {
+              "check_id": "source-state",
+              "status": "FAIL",
+              "answer_quote": "关闭入口后原有会话、provider、凭证是否仍正常工作的回滚路径未经实测；运行证据保留完整性未校验",
+              "source_quote": null,
+              "rationale": "材料仅定义回滚要求为「关闭新入口；保留原有会话、模型provider、凭证和运行证据」，未说明是否实测或校验过。正文以否定措辞断言「未经实测」「未校验」，这是对当前验证状态的事实断言，无来源支持；应写为「材料未提供验证信息，尚待确认」或「如果尚未验证，则有风险」。"
+            },
+            {
+              "check_id": "time-causality",
+              "status": "PASS",
+              "answer_quote": "执行阶段仅预留60秒，若审核实际耗时超过60秒则挤压执行时间，预算可能不足",
+              "source_quote": "审核最多等待180秒，同时受任务剩余期限约束；执行阶段给审核预留60秒。",
+              "rationale": "正文以条件式（「若…则…」）推测审核耗时超过执行阶段预留的60秒时会挤压执行时间，与材料「执行阶段给审核预留60秒」的口径一致，未将不同阶段的余量互相冒充，也未断言已发生的时间事实。"
+            }
+          ],
+          "review_contract": "proposal-constraints-v4"
+        }
+      },
+      {
+        "id": "corrected-native-qualified-risks",
+        "expectedPassed": true,
+        "actualPassed": true,
+        "matched": true,
+        "wallMs": 13401,
+        "verdict": {
+          "score": 95,
+          "passed": true,
+          "rationale": "答案按要求分别审查A、B、C三项，整理成简短表格列出风险，并给出恰好一项改进建议。费用项正确区分订阅参考估值与按量现金费用，未知用量保留预留；时间项正确识别180秒审核等待上限与60秒执行阶段预留余量是不同用途、不构成冲突，并指出受任务剩余期限约束；回滚项保留所有要求项且未断言未提供的实现细节。结尾明确声明未核对账单、未执行测试、未调用工具或修改文件，符合任务禁令。未发现虚构事实或违反约束的建议。",
+          "criteria": [
+            {
+              "criterion_id": "c1",
+              "passed": true,
+              "rationale": "完整覆盖三个检查项，输出为简短表格列出风险，并附一项改进建议，符合任务要求的格式与范围；未调用工具、未修改文件。",
+              "criterion": "完整回答用户当前任务，遵守提供的材料、约束和输出格式。"
+            },
+            {
+              "criterion_id": "c2",
+              "passed": true,
+              "rationale": "建议仅为增加发布前核对清单，不破坏任何保留约束；对回滚验证机制使用「材料未说明……不能认定不存在」的待确认表述，未把未知当已确认；对180秒与60秒正确说明用途不同、不认定参数冲突；明确声明未核对账单、未执行测试。",
+              "criterion": "答案中的建议、修复提案和恢复步骤也必须遵守原任务及材料明确保留的关键约束；不得将未知当成已确认，不得仅凭超时释放需核对的占用或重发可能已执行的操作。若任务明确授权改变合同，须说明改变的前提、风险与核对条件；没有提案时核对正文中的操作建议。只依据材料的任务不得把未提供的实现细节当成已确认事实；风险推测须明确其假设或待确认条件。认定参数冲突须证明用途、定义与适用条件确实矛盾，不能仅因不同用途的数值不同就认定冲突。"
+            }
+          ],
+          "grounding_checks": [
+            {
+              "check_id": "source-state",
+              "status": "PASS",
+              "answer_quote": "材料未说明自动化验证或手动操作覆盖，不能认定这些机制不存在。",
+              "source_quote": "C. 回滚：关闭新入口；保留原有会话、模型provider、凭证和运行证据。",
+              "rationale": "正文对回滚验证状态仅作待确认表述，未断言任何未提供的实施或验证状态；结尾「未核对账单、未执行测试」是对本回答自身行为的如实声明，与任务禁令一致，无来源支持的虚构状态断言。"
+            },
+            {
+              "check_id": "time-causality",
+              "status": "PASS",
+              "answer_quote": "180 秒是审核等待上限，60 秒是执行阶段给审核留出的余量，二者用途不同，不构成数值矛盾。任务剩余期限不足时实际可等待更短",
+              "source_quote": "B. 时间：审核最多等待180秒，同时受任务剩余期限约束；执行阶段给审核预留60秒。",
+              "rationale": "正文准确复述材料中两个时限的用途与生效条件，正确指出二者不构成冲突，且未混淆不同阶段的余量与上限，未引入材料之外的时间因果断言。"
+            }
+          ],
+          "review_contract": "proposal-constraints-v4"
+        }
+      }
+    ],
+    "referenceCostCny": 0.10276656838699999
+  },
+  "costs": {
+    "billing": "订阅参考估值，与新增按量现金分别记录；不是实际账单金额",
+    "referenceCostCny": 0.494541389328,
+    "newMeteredCashCny": 0,
+    "unknownReservationsCny": 0,
+    "historyCashProtectedCny": 1.40182036,
+    "cumulativeCashAuthorizationCny": 100
+  },
+  "limitations": [
+    "来源状态断言这一对反例符合预期；两例不代表普遍准确率。",
+    "原正文 time-causality 被判 PASS，与原人工判断不同；条件语句可能存在未来时间分配与已完成阶段的解释分歧，不追改旧标注。",
+    "引用校验只证明文本存在及合同一致，不证明语义正确或覆盖所有问题。",
+    "未重新生成执行候选；完整宿主最终接线验收另记安装记录。",
+    "第一次缺宿主模块路径的尝试未发生调用；保留原目录，不混入质量样本。",
+    "同题新生成候选仍触发语义漏判，因非法引用阻断；固定候选的2/2不能外推到自然生成任务。"
+  ],
+  "dailySettingAuthorization": {
+    "judgeReasoningEffort": "low",
+    "scope": "仅自动路由最终审核；规划、执行、预算和180秒等待不变"
+  },
+  "verification": {
+    "pythonTests": 1897,
+    "pluginContracts": 216,
+    "typecheck": "通过",
+    "build": "通过",
+    "finalTargetedTests": 76
+  },
+  "installation": {
+    "status": "已核对源码、构建包、原 profile 已安装包与审核设置",
+    "core": "0.16.14",
+    "plugin": "0.32.8",
+    "verifiedInstalledFiles": 6,
+    "credentialsUnchanged": true,
+    "settingChangesThisUpdate": [
+      {
+        "path": "refractagent.dshModelPool.judgeReasoningEffort",
+        "before": null,
+        "after": "low"
+      }
+    ],
+    "settingsSha256": "7a1b4e7dbb4b59b879c466b8dc57f1e666a53fe9aaa5f09ba974988db3844155",
+    "reviewWaitMs": 180000,
+    "nativeRunId": "20261008T122339Z-5b622adc8e5c",
+    "nativeStatus": "已停止；非法来源引用被合同拒绝，未交付候选正文",
+    "finalCore": "0.16.15",
+    "finalPlugin": "0.32.9",
+    "finalVerifiedInstalledFiles": 7
+  },
+  "nativeUse": {
+    "runId": "20261008T122339Z-5b622adc8e5c",
+    "core": "0.16.14",
+    "plugin": "0.32.8",
+    "status": "failed",
+    "issues": [
+      "grounding quote not in task evidence"
+    ],
+    "wallTimeMs": 48716,
+    "selectedRoute": "direct",
+    "modelCalls": 3,
+    "toolCalls": 0,
+    "referenceCostsCny": {
+      "production": 0.04567181251199992,
+      "evaluation": 0.03926869340799999
+    },
+    "cashCostsCny": {
+      "production": 0,
+      "evaluation": 0
+    },
+    "jevCostCny": 0.0002498951196,
+    "unknownUsageCalls": 0,
+    "manualPassed": false,
+    "manualReason": "正文把未知验证信息写成未经验证；Judge给95分通过但省略拼接引用被合同阻断。不是语义质量验收通过。",
+    "fixture": "data/research/automatic-grounding-invalid-citation-v1.json",
+    "newDispatchesAfterThisRun": 0
+  },
+  "finalPatch": {
+    "core": "0.16.15",
+    "plugin": "0.32.9",
+    "changes": [
+      "异常审核保存失败终态",
+      "终止任务的旧 DAG 审核节点不再投影为运行中",
+      "提示明确要求连续来源引用及核对整份正文"
+    ],
+    "paidValidation": "未追加派发；仅使用原回执进行无网络回归",
+    "status": "完整回归、构建包与已安装包逐文件核对通过；没有新增真实派发"
+  },
+  "wikiAssessment": {
+    "status": "跳过",
+    "candidate": "自动审核高分不能替代反例校准和内容复核",
+    "reason": "与现有校准经验重叠；本轮未证明普遍质量修复，不重复摄入或提升。"
+  }
+}

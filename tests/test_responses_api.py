@@ -1,4 +1,5 @@
 """Responses 协议、推理用量和任务结算；只使用离线响应。"""
+from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -40,7 +41,7 @@ class Transport:
             payload=json.loads(request['input'][-1]['content'])
             if request['model']=='reasoning-judge':
                 content={'score':92,'passed':True,'rationale':'覆盖要求',
-                    'criteria':[{'criterion':c,'passed':True,'rationale':'已覆盖'} for c in payload['criteria']]}
+                    'grounding_checks': mock_grounding_checks(payload), 'criteria':[{'criterion':c,'passed':True,'rationale':'已覆盖'} for c in payload['criteria']]}
             else:
                 content={key:'fixture answer' for key in payload['contract']['output']['fields']}
             reply=envelope(json.dumps(content))

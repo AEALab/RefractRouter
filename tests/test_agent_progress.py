@@ -64,3 +64,12 @@ def test_dynamic_nodes_and_failed_downstream_are_not_hidden(tmp_path, failure):
 def test_preview_is_not_reported_as_failed_execution():
     result = {'status':'preview','plan':{'nodes':[{'node_id':'answer','parents':[]}]},'nodes':[]}
     assert dag_snapshot(result, MANIFEST)['nodes'][0]['state'] == 'not-run'
+
+
+@pytest.mark.parametrize('status', ['failed', 'cancelled'])
+def test_legacy_terminal_review_is_never_projected_as_running(status):
+    result = {'mode':'live', 'status':status, 'plan':{'nodes':[]}, 'nodes':[],
+              'review':{'status':'running'}, 'calls':[{'label':'final-judge'}]}
+    review = next(n for n in dag_snapshot(result, MANIFEST)['nodes']
+                  if n['node_type'] == 'role-reviewer')
+    assert review['state'] == 'blocked' and review['attempt'] == 1

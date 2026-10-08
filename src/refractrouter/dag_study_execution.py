@@ -34,6 +34,10 @@ class StudyDemoClient:
         payload = json.loads(messages[-1]['content'])
         if model.role == 'judge':
             content = json.dumps({'score': 90, 'passed': True, 'rationale': '[SIMULATED] 模拟评审',
+                'grounding_checks': [{'check_id': key, 'status': 'NOT_APPLICABLE',
+                    'answer_quote': None, 'source_quote': None,
+                    'rationale': '[SIMULATED] 只验证流程，不判断真实内容。'}
+                    for key in payload.get('grounding_check_ids', [])],
                 'criteria': [{'criterion': c, 'passed': True, 'rationale': '[SIMULATED] 模拟通过'} for c in payload['criteria']]})
         elif json_mode:
             content = json.dumps({key: '[SIMULATED] ' + key for key in payload['contract']['output']['fields']})

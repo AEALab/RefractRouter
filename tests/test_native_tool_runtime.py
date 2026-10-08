@@ -1,4 +1,5 @@
 """模拟原生工具与模型；不联网、不查询真实天气、不产生付费调用。"""
+from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
 from dataclasses import replace
 import io
@@ -189,7 +190,7 @@ def test_full_dag_tool_node_unlocks_downstream_and_judge_has_no_tools():
             if model.role == 'judge':
                 criteria = json.loads(messages[-1]['content'])['criteria']
                 return reply(json.dumps({'score':92,'passed':True,'rationale':'模拟通过',
-                    'criteria':[{'criterion':c,'passed':True,'rationale':'模拟证据'} for c in criteria]}))
+                    'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria':[{'criterion':c,'passed':True,'rationale':'模拟证据'} for c in criteria]}))
             payload = json.loads(messages[1]['content'])
             if payload['node_id'] == 'cost' and len(messages) == 2: return reply(calls=[call()])
             return reply('模拟节点结果')

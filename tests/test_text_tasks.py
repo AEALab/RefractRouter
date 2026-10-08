@@ -1,3 +1,4 @@
+from tests.review_fixtures import mock_grounding_checks
 from dataclasses import replace
 import json
 from pathlib import Path
@@ -47,7 +48,7 @@ class Client:
         elif model.role == 'judge':
             criteria = json.loads(payload)['criteria']
             content = json.dumps({'score': 92, 'passed': True, 'rationale': 'meets task',
-                'criteria': [] if self.bad_judge else [{'criterion': c, 'passed': True, 'rationale': 'covered'} for c in criteria]})
+                'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria': [] if self.bad_judge else [{'criterion': c, 'passed': True, 'rationale': 'covered'} for c in criteria]})
         elif json_mode:
             content = json.dumps({key: '模拟的 ' + key for key in json.loads(payload)['contract']['output']['fields']})
         else:

@@ -1,4 +1,5 @@
 """自动容量预估不把尚未生成的父输出当作实际超限；全程无网络。"""
+from tests.review_fixtures import mock_grounding_checks
 from dataclasses import replace
 import pytest
 
@@ -82,7 +83,7 @@ def test_automatic_agent_compiles_generated_capacity_after_output_cap(tmp_path):
             if model.role=='judge':
                 criteria=json.loads(messages[-1]['content'])['criteria']
                 return reply(json.dumps({'score':95,'passed':True,'rationale':'模拟验证',
-                    'criteria':[{'criterion':c,'passed':True,'rationale':'模拟'} for c in criteria]}))
+                    'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria':[{'criterion':c,'passed':True,'rationale':'模拟'} for c in criteria]}))
             assert kwargs['tools']==SCHEMAS
             return reply('模拟的简短资料')
     result=run_agent({'task':'根据已有材料提取并整理','context':'x'*71000,'template':'auto'},

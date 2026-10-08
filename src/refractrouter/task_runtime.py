@@ -1066,6 +1066,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 'completed_nodes': completed, 'unfinished_nodes': pending,
             }
             detail += f" (任务执行期限 {deadline_ms / 1000:g} 秒；已完成 {len(completed)}/{len(planned)} 节点；预算及上下文放开不解除时间限制)"
+        if result.get('review', {}).get('status') == 'running':
+            result['review'].update(status='failed', passed=False, reason=detail[:500])
         result["issues"].append(detail[:500])
     finally:
         if mixed:

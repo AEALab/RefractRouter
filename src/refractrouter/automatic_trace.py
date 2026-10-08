@@ -123,7 +123,10 @@ def project(summary, runtime=None, *, cash_limits=None):
         'planner_normalizations': [pick(attempt, ('identifier_normalization', 'type_normalization','json_normalization'))
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
             if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
-        'quality': pick(quality, ('score', 'passed', 'rationale')), 'quality_gate': quality_gate,
+        'quality': {**pick(quality, ('score', 'passed', 'rationale')),
+            **({'grounding_checks': [pick(row, ('check_id','status','answer_quote','source_quote','rationale'))
+                for row in quality['grounding_checks']]} if isinstance(quality.get('grounding_checks'), list) else {})},
+        'quality_gate': quality_gate,
         'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),
             'records': [pick(r, ('node', 'call_id', 'tool', 'outcome')) for r in tool.get('records', [])]},
         'missing_evidence': [name for name, present in (

@@ -1,4 +1,5 @@
 """复现 #178：工具约束不能由猜对答案、模型自述或宽松 Judge 代替。"""
+from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
 import json
 
@@ -72,7 +73,7 @@ class CandidateClient:
         if model.role == 'judge':
             criteria = json.loads(messages[-1]['content'])['criteria']
             return reply(json.dumps({'score': 100, 'passed': True, 'rationale': '故意宽松的模拟评审',
-                'criteria': [{'criterion': c, 'passed': True, 'rationale': '通过'} for c in criteria]}))
+                'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria': [{'criterion': c, 'passed': True, 'rationale': '通过'} for c in criteria]}))
         if self.tool and not any(m['role'] == 'tool' for m in messages):
             return reply(calls=[call(self.tool, args='{"command":"printf 7"}')])
         return reply(self.answer)
