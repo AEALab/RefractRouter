@@ -771,7 +771,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     ...(control?.authorization ? {authorization:control.authorization} : {}),
     ...(control?.localOnly ? {complexityPolicy:config.liveExecution!.complexityPolicy,
       reviewPolicy:config.liveExecution!.reviewPolicy,maxDynamicSplits:0,
-      ...Object.fromEntries((['reviewTimeoutMs','reviewReserveMs','reviewMaxOutputTokens'] as const)
+      ...Object.fromEntries((['reviewTimeoutMs','reviewReserveMs','reviewMaxOutputTokens','maxFinalRevisions'] as const)
         .filter(key=>config.liveExecution![key]!==undefined)
         .map(key=>[key,config.liveExecution![key]])),
       maxConcurrency:config.liveExecution!.maxConcurrency ?? 1,
@@ -987,7 +987,6 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
             const text = queue.shift()!
             if (!reasoningStarted) {
               reasoningStarted = true
-              yield { type: 'block-start', index: 0, blockType: 'reasoning' }
               if (pending) {
                 transcript += pending
                 yield { type: 'reasoning-delta', index: 0, text: pending }
@@ -1033,7 +1032,6 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
       if (!reasoningStarted) {
         reasoningStarted = true
-        yield { type: 'block-start', index: 0, blockType: 'reasoning' }
       }
       yield { type: 'reasoning-delta', index: 0, text: info }
       yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + info } }
@@ -1041,7 +1039,8 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       const deliveredAnswer = result.status === 'tool-requirement-failed'
         ? `本次任务未完成：${object(result.tool_validation)?String(result.tool_validation.message):'工具执行证据未通过验收'} 候选答案已保留在运行记录中。`
         : terminalFailure?.message ?? result.answer
-      yield { type: 'block-start', index: 1, blockType: 'text' }
+      // DSH 支持 delta-only。避免空 block-start 在持久化 attempt 重放时
+      // 暂时撤回已显示的 Chat 节点，导致 rc.3 的事件订阅中断。
       yield { type: 'text-delta', index: 1, text: deliveredAnswer }
       yield { type: 'block-end', index: 1, block: { type: 'text', text: deliveredAnswer } }
       const usage = result.usage as Record<string, number>

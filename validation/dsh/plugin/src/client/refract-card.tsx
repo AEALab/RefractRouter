@@ -462,6 +462,10 @@ export function RefractCard(props: RefractCardOwnerProps) {
                         onChange={event=>patchReviewNumber(field,event.target.value)}/></label>)}
                 </div>
                 <p className="rra-field-hint">审核等待 180 秒表示本次审核最多等待三分钟，仍受任务剩余期限约束。预留时间是留给审核的执行余量；0 不预留。任务期限 0 表示不限时，审核等待 0 表示不额外限制；取消与费用约束继续生效。</p>
+                <label className="rra-toggle"><input type="checkbox" aria-label="审核拒绝后纠正一次并复审" disabled={disabled}
+                  checked={live.maxFinalRevisions===1} onChange={event=>updateLive({maxFinalRevisions:event.target.checked?1:0})}/>
+                  审核拒绝后纠正一次并复审</label>
+                <p className="rra-field-hint">仅修改尚未交付的正文，不重复工具、规划或已完成节点。最多增加一次执行和一次审核；先保护两次调用的额度，复审未通过仍停止。旧设置默认关闭。</p>
                 <button className="rra-button rra-button-secondary" type="button" disabled={disabled}
                   onClick={()=>updateLive({reviewTimeoutMs:180000,reviewReserveMs:60000,reviewMaxOutputTokens:8192})}>填写已验证的审核限制（180 秒）</button>
               </section>
@@ -573,7 +577,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
                       onChange={event=>updateLive({providerMinIntervalMs:{...live.providerMinIntervalMs,[provider]:Number(event.target.value)}})}/></label></div>)}
               </details>
               <div className="rra-simple-status"><strong>{t('liveCallEnvelope')}</strong>
-                <span>{t('liveCallEnvelopeBody')}{toolLimit!==0
+                <span>{t('liveCallEnvelopeBody')}{live.maxFinalRevisions===1?' 审核拒绝后纠正已启用：最多另增加一次执行和一次复审，共两次调用。':''}{toolLimit!==0
                   ? toolLimit==='unlimited'?' 工具续调不设 Router 总次数上限；每轮仍由 DSH 审批并产生模型费用。'
                     :` 启用工具后，最多再增加 ${toolLimit} 次工具结果后的模型续调。`:''}</span></div></>:null}
           </div>

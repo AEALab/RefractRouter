@@ -42,6 +42,8 @@ from .dependency_guard import NodeSemanticFailure
 from .task_inputs import prepare_inputs
 from .dynamic_decomposition import DynamicDecomposition
 from .automatic_routing import compare_executable_routes, choose_mixed_billing_route
+from .final_correction import correct_final, VERSION as CORRECTION_VERSION
+from .review_evidence import receipt as deterministic_receipt
 
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 
@@ -171,7 +173,7 @@ def validate_request(raw):
     allowed = {"task", "mode", "method", "qualityMin", "costMax", "costMaxByUnit", "latencyMaxMs", "weights",
                "plan", "plannerModelId", "maxProductionCost", "maxEvaluationCost", "acceptanceCriteria",
                "maxConcurrency", "providerConcurrency", "providerMinIntervalMs", "maxNodeFallbacks", "outputConstraints", "maxPlanRepairs",
-               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget", "reviewReserveMs", "reviewMaxOutputTokens", "reviewTimeoutMs"}
+               "planningMode", "plannerPolicy", "contextPolicy", "prefixPolicy", "materials", "unlimitedTime", "unrestrictedPlanning", "boundedPlannerLimits", "plannerThinking", "plannerMaxOutputTokens", "plannerTimeoutMs", "maxDynamicSplits", "verifyDependencies", "maxTotalOutputTokens", "adaptiveOutputBudget", "reviewReserveMs", "reviewMaxOutputTokens", "reviewTimeoutMs", "maxFinalRevisions"}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError("unknown task request fields")
     if raw.get('prefixPolicy', 'legacy') not in ('legacy', 'stable-v1'):
@@ -183,6 +185,8 @@ def validate_request(raw):
         if raw.get('plannerPolicy') not in ('minimal-v1', 'minimal-v2') or raw.get('maxDynamicSplits', 0):
             raise ValueError('selective-v1 requires minimal planning and no dynamic splitting')
     ExecutionPolicy.from_request(raw)
+    if type(raw.get('maxFinalRevisions', 0)) is not int or raw.get('maxFinalRevisions', 0) not in (0, 1):
+        raise ValueError('maxFinalRevisions must be an integer in 0..1')
     validate_fallback_limit(raw.get('maxNodeFallbacks', 0))
     if type(raw.get('maxPlanRepairs', 0)) is not int or not 0 <= raw.get('maxPlanRepairs', 0) <= 1:
         raise ValueError('maxPlanRepairs must be an integer in 0..1')
@@ -338,6 +342,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                           if request.get('maxDynamicSplits',0) and tool_runtime is None else None)
     currency_reference = configuration is not None and configuration.snapshot.get('schemaVersion') == 'refractagent-providers-v6'
     mixed = manifest.billing_unit == 'MIXED'
+    if mixed and request.get('maxFinalRevisions', 0):
+        raise ValueError('final correction requires the currency reference contract; legacy mixed units remain unchanged')
     if mixed:
         if request['method'] != 'A' or request.get('maxNodeFallbacks', 0) or request.get('maxDynamicSplits', 0):
             raise ValueError('mixed automatic routing currently requires method A without node fallback or dynamic splits')
@@ -438,6 +444,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             result["wall_time_ms"] = round((time.monotonic() - started) * 1000)
             checkpoint(result)
     budget.on_reserve = lambda reservation: persist()
+    budget.on_dispatch = lambda reservation: persist()
 
     def privacy_block(rows, append=True):
         """启用约束后无法在本地候选内完成时明确失败，不静默放行云端。"""
@@ -469,7 +476,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if configuration is not None and result['plan_origin'] == 'direct-gate':
                 plan, estimates = compile_generated_capacity(plan, node_task, candidates,
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
-                    prefix_policy=request.get('prefixPolicy', 'legacy'),
+                    prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                     tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
@@ -573,7 +580,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             if configuration is not None:
                 plan, estimates = compile_generated_capacity(plan, node_task, candidates,
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
-                    prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
+                    prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
@@ -588,7 +595,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 # 只是通用模板预算，不能成为长会话在模拟模式下的隐含上限。
                 plan, estimates = compile_generated_capacity(plan, node_task, candidates,
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
-                    prefix_policy=request.get('prefixPolicy', 'legacy'),
+                    prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                     tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
@@ -616,7 +623,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         if live and ('plan' not in request or configured_application):
             result['plan_admission'] = admission_diagnostics(plan, node_task, candidates, profiles,
                 request['qualityMin'], output_constraints=request.get('outputConstraints'),
-                prefix_policy=request.get('prefixPolicy', 'legacy'), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
+                prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
             eligible_models = {nid: row['eligible_models'] for nid, row in result['plan_admission'].items()}
         if placement is not None:
             result['placement_state'] = 'running'
@@ -686,7 +693,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         required_criteria=request.get('acceptanceCriteria'))
                     direct, estimates = compile_generated_capacity(direct, node_task, candidates,
                         output_constraints=request.get('outputConstraints'), input_cap=input_cap,
-                        prefix_policy=request.get('prefixPolicy', 'legacy'),
+                        prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                         tools=tool_runtime.schemas if tool_runtime is not None else None)
                     direct_profile = configured_profile(configuration, manifest, direct.to_dict(),
                         input_forecasts={nid: row['forecast_input_tokens']
@@ -696,7 +703,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     direct_profiles = load_profile(direct_profile, manifest)
                     direct_admission = admission_diagnostics(direct, node_task, candidates, direct_profiles,
                         request['qualityMin'], output_constraints=request.get('outputConstraints'),
-                        prefix_policy=request.get('prefixPolicy', 'legacy'),
+                        prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                         tools=tool_runtime.schemas if tool_runtime is not None else None)
                     direct_eligible = {nid: row['eligible_models'] for nid, row in direct_admission.items()}
                     direct_placement = None
@@ -946,14 +953,18 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             output_constraints=request.get('outputConstraints'), dynamic=dynamic, content_guard=content_guard,
             dispatch_history=dispatch_history, tool_runtime=tool_runtime, guard=guard,
             eligible_models=eligible_models,
-            context_policy=node_context, prefix_policy=request.get("prefixPolicy", "legacy"))
+            context_policy=node_context, prefix_policy=request.get("prefixPolicy", "legacy"), source_faithfulness=bool(request.get('maxFinalRevisions', 0)))
         result['generation_status'] = 'completed' if live else 'simulated'
         if live:
+            known_failure = None
             if content_guard is not None:
                 result['content_validation'] = content_guard.validate(result['final_output'], final=True)
             result['format_validation'] = check_output_constraints(request.get('outputConstraints'), result['final_output'])
             if result['format_validation']['passed'] is False:
                 result['issues'].append('output-length-exceeded')
+                if request.get('maxFinalRevisions', 0) and result['review']['required']:
+                    known_failure = {'passed': False, 'score': 0,
+                        'rationale': '输出格式或长度不符合原任务限制，请按原任务重新整理完整答复。'}
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
             if final_validator is not None:
                 validation = final_validator(result['final_output'])
@@ -966,7 +977,12 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         reason='known-answer-contract-failed')
                     result['issues'].append('deterministic-final-check-failed')
                     persist()
-                    return result
+                    if not (request.get('maxFinalRevisions', 0) and result['review']['required']):
+                        return result
+                    # 校验器可能包含隐藏标准答案；不给纠正模型泄露 expected／actual。
+                    known_failure = {'passed': False, 'score': 0,
+                        'rationale': '确定性输出校验未通过，请依据原任务和材料独立复核计算及格式。'}
+                    result['status'] = 'started'
             tool_evidence = None
             if tool_runtime is not None or required_tools['required']:
                 tool_evidence, validation = collect_tool_evidence(required_tools,
@@ -1017,14 +1033,65 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 result['review']['effective_wait_ms'] = (None if review_deadline == float('inf') else
                     max(0, round((review_deadline-time.monotonic())*1000)))
                 persist()
-                judged = evaluate_text(budget, review_judge, execution_task, result["final_output"],
+                judged = known_failure or evaluate_text(budget, review_judge, execution_task, result["final_output"],
                     criteria=plan.acceptance_criteria, label="final-judge", deadline=review_deadline,
-                    tool_evidence=tool_evidence)
+                    tool_evidence=tool_evidence, evidence_refs=bool(request.get('maxFinalRevisions', 0)),
+                    deterministic_receipt=deterministic_receipt(result.get('deterministic_validation'), result['final_output']))
                 result["evaluation"] = judged
                 result["review"].update(status="completed", score=judged['score'], passed=judged['passed'],
                                         contract_version=judged.get('review_contract'))
                 persist()
                 result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
+                if result['status'] == 'quality-failed' and request.get('maxFinalRevisions', 0):
+                    record = {'version': CORRECTION_VERSION, 'maximum': 1, 'attempt': 0,
+                              'status': 'pending', 'initial_evaluation': deepcopy(judged)}
+                    if result.get('deterministic_validation') is not None:
+                        record['initial_deterministic_validation'] = deepcopy(result['deterministic_validation'])
+                    record['initial_format_validation'] = deepcopy(result['format_validation'])
+                    result['final_correction'] = record
+                    result['status'] = 'started'
+                    result['review']['status'] = 'correcting'
+                    persist()
+                    def check_corrected(answer):
+                        rows = [check_output_constraints(request.get('outputConstraints'), answer)]
+                        if content_guard is not None:
+                            rows.append(content_guard.validate(answer, final=True))
+                        if final_validator is not None:
+                            rows.append(final_validator(answer))
+                        return {'passed': all(row.get('passed') is not False for row in rows), 'checks': rows}
+                    corrected, revised = correct_final(budget,
+                        candidates[result['routing']['assignments'][plan.final_node_id]], review_judge,
+                        execution_task, result['final_output'], judged, plan.acceptance_criteria,
+                        record=record, persist=persist,
+                        execution_deadline=budget.deadline(execution_deadline),
+                        task_deadline=budget.deadline(started+deadline_ms/1000),
+                        review_timeout_ms=request.get('reviewTimeoutMs'), cancel_event=cancel_event,
+                        tool_evidence=tool_evidence, output_constraints=request.get('outputConstraints'),
+                        validate=check_corrected,
+                        admit=(None if guard is None else lambda messages: guard.require(plan.final_node_id,
+                            result['routing']['assignments'][plan.final_node_id], messages, stage='final-correction')),
+                        production_cap=request['costMax'])
+                    result['final_output'] = corrected
+                    result['format_validation'] = check_output_constraints(request.get('outputConstraints'), corrected)
+                    if final_validator is not None:
+                        result['deterministic_validation'] = deepcopy(record['validation']['checks'][-1])
+                    if revised is not None:
+                        result['evaluation'] = revised
+                        result['review'].update(status='completed', score=revised['score'], passed=revised['passed'],
+                            contract_version=revised.get('review_contract'), correction_count=1)
+                        result['review'].pop('reason', None)
+                        result['status'] = ('completed' if revised['passed'] and revised['score'] >= request['qualityMin']
+                                            else 'quality-failed')
+                    else:
+                        result['status'] = 'quality-failed'
+                        result['review'].update(status='blocked-deterministic-check', passed=False)
+                    record['accepted'] = result['status'] == 'completed'
+                    if record['accepted']:
+                        result['issues'] = [issue for issue in result['issues']
+                            if issue not in {'deterministic-final-check-failed','output-length-exceeded'}]
+                    if record['status'] == 'reviewed':
+                        record['status'] = 'accepted' if record['accepted'] else 'rejected'
+                    persist()
             else:
                 result["evaluation"] = None
                 result["review"]["status"] = "skipped"
@@ -1066,8 +1133,11 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 'completed_nodes': completed, 'unfinished_nodes': pending,
             }
             detail += f" (任务执行期限 {deadline_ms / 1000:g} 秒；已完成 {len(completed)}/{len(planned)} 节点；预算及上下文放开不解除时间限制)"
-        if result.get('review', {}).get('status') == 'running':
+        if result.get('review', {}).get('status') in {'running', 'correcting'}:
             result['review'].update(status='failed', passed=False, reason=detail[:500])
+        correction = result.get('final_correction')
+        if correction and correction['status'] == 'pending':
+            correction.update(status='not-dispatched', reason=detail[:500], accepted=False)
         result["issues"].append(detail[:500])
     finally:
         if mixed:

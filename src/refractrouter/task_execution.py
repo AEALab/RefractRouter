@@ -13,13 +13,14 @@ from .task_budget import InvalidModelOutput, request_input_bound
 from .task_scheduling import available
 from .dependency_guard import NeedsDecomposition, NodeSemanticFailure, decomposition_request
 from .privacy_placement import deployment_of
+from .source_faithfulness import INSTRUCTION as SOURCE_FAITHFULNESS
 
 
 class RecoveryEligibleFailure(ValueError):
     """实验专用：全部在途请求已结算，且停止原因仅为模型输出不合法。"""
 
 
-def node_messages(task, node, contract, context, *, output_constraints=None, check_input_budget=True, tools=None, prefix_policy="legacy", prompt_contract="numeric-v3"):
+def node_messages(task, node, contract, context, *, output_constraints=None, check_input_budget=True, tools=None, prefix_policy="legacy", prompt_contract="numeric-v3", source_faithfulness=False):
     if prefix_policy not in ("legacy", "stable-v1"):
         raise ValueError("invalid prefixPolicy")
     if prompt_contract not in ("legacy", "numeric-v1", "numeric-v2", "numeric-v3"):
@@ -66,6 +67,8 @@ def node_messages(task, node, contract, context, *, output_constraints=None, che
     if tools:
         from .tool_runtime import tool_instruction
         messages[0]['content'] = messages[0]['content'].replace('不声称执行工具或检索新事实。', '') + tool_instruction()
+    if source_faithfulness:
+        messages[0]['content'] += SOURCE_FAITHFULNESS
     if prompt_contract == 'numeric-v1':
         messages[0]['content'] += (
             '涉及数值时按原任务定义列出组成项、单位和计算式，再逐项复算；不得只复述上游结论。'
@@ -94,7 +97,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                   *, started, deadline, cancel_event=None, label_prefix="", recovery=None, production_cap=None,
                   output_constraints=None, classify_failure=False, dispatch_history=None,
                   dynamic=None, content_guard=None, tool_runtime=None, context_policy=None, prefix_policy="legacy",
-                  guard=None, eligible_models=None):
+                  guard=None, eligible_models=None, source_faithfulness=False):
     if recovery is not None and production_cap is None:
         production_cap = budget.limits['production']
     assignments = dict(assignments)
@@ -187,7 +190,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
             return False
         messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], plan.contracts.get(nid), context,
             output_constraints=output_constraints if nid == plan.final_node_id else None,
-            tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy)
+            tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy, source_faithfulness=source_faithfulness)
         input_bound = request_input_bound(messages, tool_runtime.schemas if tool_runtime is not None else None)
         now_ms = elapsed()
         previous_starts = {provider: max(scheduled, (actual_starts.get(provider, started) - started) * 1000) - now_ms
@@ -238,7 +241,7 @@ def execute_nodes(plan, task, assignments, candidates, budget, policy, result, p
                         contract = plan.contracts.get(nid)
                         messages = node_messages(context_policy.tasks[nid] if context_policy else task, nodes[nid], contract, context,
                             output_constraints=output_constraints if nid == plan.final_node_id else None,
-                            tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy)
+                            tools=tool_runtime.schemas if tool_runtime is not None else None, prefix_policy=prefix_policy, source_faithfulness=source_faithfulness)
                         if guard is not None:
                             # 运行期以真实输入视图重新分级；敏感节点在规划期可达候选内改派本地，无候选则显式失败。
                             model = candidates[guard.admit(nid, messages, assignments, candidates,

@@ -133,6 +133,7 @@ export interface LiveExecutionView {
   reviewTimeoutMs?:number
   reviewReserveMs?:number
   reviewMaxOutputTokens?:number
+  maxFinalRevisions?:0|1
   taskTimeoutMs?:number
   allowDshTools?:boolean
   maxDshToolCalls?:number|'unlimited'

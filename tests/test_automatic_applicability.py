@@ -118,6 +118,19 @@ def test_native_capacity_freeze_preserves_hard_budget_and_original_protocol(monk
     assert targeted['protocol']['reasoningEffort'] == 'ark-flash-low'
     assert {t['id'] for t in targeted['protocol']['tasks']} == {'cancel-reservations', 'independent-cost-evidence'}
     assert runner.PROTOCOL.read_bytes() == before
+    exact = runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 100,
+        sample_ids=['cancel-reservations:dag', 'independent-cost-evidence:dag', 'tool-receipts:direct'],
+        protocol_version='v6', model_capacity_output=True, batch_ceiling_cny=1)
+    assert exact['maximumModelCalls'] == 24 and len(exact['order']) == 3
+    assert {f"{row['task']}:{row['route']}" for row in exact['order']} == {
+        'cancel-reservations:dag', 'independent-cost-evidence:dag', 'tool-receipts:direct'}
+    assert exact['protocol']['targetedRepairSamples']
+    for invalid in ([], ['cancel-reservations:dag']*2, ['cancel-reservations:other'], ['not-a-task:direct']):
+        with pytest.raises(ValueError, match='task:route'):
+            runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 100, sample_ids=invalid)
+    with pytest.raises(ValueError, match='task:route'):
+        runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 100,
+            sample_ids=['cancel-reservations:dag'], task_ids=['cancel-reservations'])
     with pytest.raises(ValueError, match='任务 ID'):
         runner.freeze(catalog, {'cashProtectedCny': .5}, 1, 100, task_ids=['not-a-task'])
     with pytest.raises(ValueError, match='超出历史授权余额'):
@@ -284,6 +297,10 @@ def test_freeze_includes_compiled_bridge_and_changes_when_bridge_changes(tmp_pat
     monkeypatch.setattr(runner,'__file__',str(tmp_path/'runner.py'))
     for name in ('HOST','HOST_AUDIT','PROTOCOL','CLARIFIED_PROTOCOL'):
         path=tmp_path/name; path.write_text(name); monkeypatch.setattr(runner,name,path)
+    revised=tmp_path/'data/research/automatic-applicability-v5.json'
+    revised.parent.mkdir(parents=True)
+    revised.write_text('{}')
+    (revised.parent/'automatic-applicability-v6.json').write_text('{}')
     plugin=tmp_path/'validation/dsh/plugin'
     (plugin/'dist').mkdir(parents=True); (plugin/'src').mkdir()
     (plugin/'package-lock.json').write_text('{}')

@@ -50,6 +50,7 @@ export interface LiveExecutionConfiguration {
   reviewTimeoutMs?:number
   reviewReserveMs?:number
   reviewMaxOutputTokens?:number
+  maxFinalRevisions?:0|1
   taskTimeoutMs?:number
   maxConcurrency?: number
   providerConcurrency?: Record<string, number>
@@ -128,9 +129,11 @@ export function validateLiveExecution(value: unknown): asserts value is LiveExec
       'maxProductionCostByUnit','maxEvaluationCostByUnit',
       'complexityPolicy','reviewPolicy','maxConcurrency','providerConcurrency','providerMinIntervalMs',
       'maxOutputTokens','maxTotalOutputTokens','allowDshTools','maxDshToolCalls','decompositionDecision',
-      'reviewTimeoutMs','reviewReserveMs','reviewMaxOutputTokens','taskTimeoutMs'].includes(key))) {
+      'reviewTimeoutMs','reviewReserveMs','reviewMaxOutputTokens','taskTimeoutMs','maxFinalRevisions'].includes(key))) {
     throw new Error('invalid liveExecution configuration')
   }
+  if(value.maxFinalRevisions!==undefined&&value.maxFinalRevisions!==0&&value.maxFinalRevisions!==1)
+    throw new Error('invalid liveExecution.maxFinalRevisions')
   for (const [field, low, high] of [['reviewTimeoutMs',0,3600000],['reviewReserveMs',0,300000],
     ['reviewMaxOutputTokens',256,128000],['taskTimeoutMs',0,86400000]] as const) {
     const number=value[field]

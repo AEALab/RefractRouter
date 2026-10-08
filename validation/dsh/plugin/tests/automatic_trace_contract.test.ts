@@ -59,6 +59,17 @@ test('浏览器与旧宿主进程组合时明确提示合同不匹配，不因�
   assert.equal(api.parseAutomaticHistory({schema_version:'automatic-routing-trace-v1',records:[],errors:[]}).records.length,0)
 })
 
+test('最终纠正轨迹同时显示初次拒绝和复审结果，旧记录仍可显示',()=>{
+  const api=client(),data:any=record()
+  data.final_correction={version:'bounded-final-correction-v1',maximum:1,attempt:1,status:'accepted',
+    accepted:true,initial_evaluation:{passed:false,score:55,rationale:'初次发现材料外断言'},
+    evaluation:{passed:true,score:95,rationale:'修正版复审通过'}}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['最终答复纠正','初次发现材料外断言','修正版复审通过','复审通过'])assert.ok(tree.includes(text),text)
+  delete data.final_correction
+  assert.ok(!JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}})).includes('最终答复纠正记录'))
+})
+
 test('轨迹展示五款模型、原始答案和历史预算，明确预测与现金的边界',()=>{
   const api=client(),tree=JSON.stringify(api.AutomaticRecord({record:record(),reference:{id:rid,state:'settled',turn:1}}))
   assert.ok(tree.includes('宿主轮次 '));assert.ok(!tree.includes('第 2 轮'))

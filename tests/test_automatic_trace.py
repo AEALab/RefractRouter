@@ -57,6 +57,24 @@ def test_trace_keeps_all_candidates_raw_judge_and_real_call_identity():
     assert (s, r) == before
 
 
+def test_final_correction_trace_keeps_decisions_and_protection_without_private_payloads():
+    s,r=evidence()
+    r['final_correction']={'version':'bounded-final-correction-v1','maximum':1,'attempt':1,
+        'status':'accepted','accepted':True,'model_id':'subscription',
+        'previous_output':'不应展示的被拒正文','corrected_output':'不应展示的整段正文',
+        'initial_feedback':{'hidden_expected':'隐藏标准答案'},
+        'initial_deterministic_validation':{'expected':'隐藏标准答案'},
+        'initial_evaluation':{'passed':False,'score':55,'rationale':'材料外断言'},
+        'evaluation':{'passed':True,'score':95,'rationale':'复审通过'},
+        'review_protection':{'reserved':.7,'billing_unit':'CNY','input_upper_bound':50000,
+                             'label':'final-judge-correction','messages':'私有输入'}}
+    row=project(s,r)['final_correction']
+    assert row['initial_evaluation']['passed'] is False and row['evaluation']['passed'] is True
+    assert row['review_protection']['reserved']==.7
+    assert '不应展示' not in json.dumps(row,ensure_ascii=False)
+    assert '隐藏' not in json.dumps(row,ensure_ascii=False) and '私有' not in json.dumps(row,ensure_ascii=False)
+
+
 def test_grounding_trace_preserves_verdicts_and_verified_short_quotes_only():
     s,r=evidence()
     s['quality']['grounding_checks']=[{'check_id':'source-state','status':'FAIL',

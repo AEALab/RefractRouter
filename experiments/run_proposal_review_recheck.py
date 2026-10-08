@@ -17,7 +17,7 @@ from refractrouter.dsh_model_pool import compile_dsh_model_pool
 from refractrouter.application_config import compile_configuration
 from refractrouter.openai_compatible import DshStdioBridge, OpenAICompatibleClient, ModelInvocationError
 from refractrouter.task_budget import TaskCallBudget, request_input_bound
-from refractrouter.task_evaluation import evaluate_text, evaluation_messages, REVIEW_CONTRACT
+from refractrouter.task_evaluation import evaluate_text, evaluation_messages, REVIEW_CONTRACT, REFERENCE_REVIEW_CONTRACT
 
 CASES = ROOT/'data/research/proposal-constraint-recheck-v2.json'
 GROUNDING_CASES = ROOT/'data/research/automatic-grounding-recheck-v1.json'
@@ -33,7 +33,8 @@ def hashes(extra=None):
     return result
 
 
-def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_file=None, case_id=None):
+def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_file=None, case_id=None,
+           evidence_references=False):
     if grounding_cases and native_case_file is not None:
         raise ValueError('只能选择一套冻结案例')
     fixture_path = Path(native_case_file).resolve() if native_case_file is not None else (GROUNDING_CASES if grounding_cases else CASES)
@@ -71,7 +72,7 @@ def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_
         if type(c.get('expectedPassed')) is not bool:
             raise ValueError('案例预期必须明确冻结')
         bound = request_input_bound(evaluation_messages(fixture['task'], c['answer'], fixture['criteria'],
-            tool_evidence=fixture.get('toolEvidence')))
+            tool_evidence=fixture.get('toolEvidence'), evidence_refs=evidence_references))
         if bound + model.max_output_tokens > model.context_window:
             raise ValueError('审核输入超过模型容量')
         bounds.append(bound)
@@ -82,7 +83,9 @@ def freeze(catalog, *, judge_reasoning=None, grounding_cases=False, native_case_
     protected = history['cashProtectedCny'] + 1  # 独立历史 Jev 保护，不释放。
     if maximum > 2 or protected + cash_maximum > 100:
         raise ValueError('超过本次参考上限2 CNY或累计现金授权100 CNY')
-    result = {'schemaVersion':'proposal-review-preflight-v1','reviewContract':REVIEW_CONTRACT,
+    result = {'schemaVersion':'proposal-review-preflight-v1',
+        'reviewContract':REFERENCE_REVIEW_CONTRACT if evidence_references else REVIEW_CONTRACT,
+        'evidenceReferences':evidence_references,
         'fixture':fixture,'catalog':catalog,'configuration':configuration,'provenance':provenance,
         'model':asdict(model),'inputBounds':bounds,'maximumCalls':count,'maximumReferenceCny':maximum,
         'selectedCaseId':case_id,
@@ -137,7 +140,7 @@ def run(frozen, output):
                 try:
                     verdict=evaluate_text(budget,model,fixture['task'],case['answer'],criteria=fixture['criteria'],
                         label=case['id'],deadline=started+fixture['timeoutMs']/1000,
-                        tool_evidence=fixture.get('toolEvidence'))
+                        tool_evidence=fixture.get('toolEvidence'), evidence_refs=frozen.get('evidenceReferences', False))
                     actual_passed=verdict['passed'] and verdict['score']>=80
                     row={'id':case['id'],'expectedPassed':case['expectedPassed'],'actualPassed':actual_passed,
                          'matched':actual_passed==case['expectedPassed'],'verdict':verdict,'status':'completed'}
@@ -168,11 +171,13 @@ def main():
     parser.add_argument('--judge-reasoning', choices=['low','high','max'])
     parser.add_argument('--grounding-cases', action='store_true')
     parser.add_argument('--native-case-file', type=Path)
+    parser.add_argument('--evidence-references', action='store_true', help='冻结新版证据编号合同；不改动案例或预期')
     parser.add_argument('--case-id', help='仅补验原冻结题集中指定的一例，不重发其他案例')
     parser.add_argument('--freeze-sha256')
     args=parser.parse_args()
     frozen=freeze(json.loads(args.catalog.read_text()), judge_reasoning=args.judge_reasoning,
-                  grounding_cases=args.grounding_cases, native_case_file=args.native_case_file, case_id=args.case_id)
+                  grounding_cases=args.grounding_cases, native_case_file=args.native_case_file, case_id=args.case_id,
+                  evidence_references=args.evidence_references)
     if not args.execute:
         args.output_dir.mkdir(parents=True,exist_ok=False)
         atomic_json(args.output_dir/'preflight.json',frozen)

@@ -856,7 +856,8 @@ test('automatic mode starts reasoning lazily and forwards bounded planning contr
   const adapter=createAdapter(f.ctx, () => configure({template:'auto',plannerModelId:'small',
     plannerTimeoutMs:8000,plannerMaxOutputTokens:900,maxDynamicSplits:1,maxConcurrency:3,verifyDependencies:true}))
   const output=await chunks(adapter)
-  assert.equal(output[0]?.type,'block-start')
+  assert.equal(output[0]?.type,'reasoning-delta')
+  assert.equal(output.some(chunk=>chunk.type==='block-start'),false)
   assert.equal(f.spawns.length,1)
   const spawn=f.spawns[0]!
   const payload=JSON.parse(spawn.input())
