@@ -129,8 +129,8 @@ export type BridgeResponse = BridgeResponseBase & (
   | { ok: true; content: string; tool_calls?: unknown[]; replay_state?: unknown; usage: {
       input_tokens: number; output_tokens: number
       cached_input_tokens: number; reasoning_tokens: number
-    }; finish_reason?: string; request_id?: string }
-  | { ok: false; failure_type: string; message: string; request_id?: string
+    }; finish_reason?: string; request_id?: string; ttft_ms?: number; first_tool_ms?: number }
+  | { ok: false; failure_type: string; message: string; request_id?: string; ttft_ms?: number; first_tool_ms?: number
       usage_confirmed?: true; content?: string; usage?: {
         input_tokens: number; output_tokens: number; cached_input_tokens: number
         cache_write_tokens: number; reasoning_tokens: number

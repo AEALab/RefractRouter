@@ -710,7 +710,15 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     'selected_node_count': len(plan.nodes), 'multi_node_selected': len(plan.nodes) > 1}
             else:
                 def prepare_direct_candidate():
-                    direct = validate_plan(alternative_direct_plan,
+                    direct_raw = deepcopy(alternative_direct_plan)
+                    # 两条路线交付同一任务；不能用固定 1000 的 Direct 与更长的 DAG
+                    # 最终交付比较，也不能把 DAG 中间产物相加当成 Direct 的输出。
+                    final_forecast = plan.contracts[plan.final_node_id]['capability']['expected_output_tokens']
+                    for row in direct_raw['nodes']:
+                        if row['node_id'] == direct_raw['final_node_id']:
+                            capability = row['contract']['capability']
+                            capability['expected_output_tokens'] = final_forecast
+                    direct = validate_plan(direct_raw,
                         required_criteria=request.get('acceptanceCriteria'))
                     direct, estimates = compile_generated_capacity(direct, node_task, candidates,
                         output_constraints=request.get('outputConstraints'), input_cap=input_cap,
@@ -911,6 +919,18 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     else len(plan.nodes) if comparison.get('selected_candidate') == 'generated-plan' else None)
                 comparison['multi_node_selected'] = (comparison['selected_node_count'] > 1
                     if comparison['selected_node_count'] is not None else None)
+                selected_direct = comparison.get('selected_candidate') == 'direct-template'
+                comparison['decision_factors']['quality_basis'] = selected_quality_basis(
+                    direct_profile if selected_direct else profile,
+                    direct_routing.get('assignments') if selected_direct else result['routing'].get('assignments'))
+                comparison['output_forecast'] = {
+                    'version': 'shared-final-delivery-v1',
+                    'generated_final_tokens': plan.contracts[plan.final_node_id]['capability']['expected_output_tokens'],
+                    'direct_final_tokens': (direct.contracts[direct.final_node_id]['capability']['expected_output_tokens']
+                        if direct_routing.get('assignments') else None),
+                    'intermediate_outputs_added_to_direct': False,
+                    'calibrated': False,
+                }
                 result['route_comparison'] = comparison
                 if comparison.get('selected_candidate') == 'direct-template':
                     plan, profile, profiles = direct, direct_profile, direct_profiles

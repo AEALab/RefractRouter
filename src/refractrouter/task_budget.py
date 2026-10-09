@@ -297,6 +297,7 @@ class TaskCallBudget:
                        output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,
                        cache_usage_source=response.cache_usage_source,
                        cache_usage_available=response.cache_usage_source is not None, ttft_ms=response.ttft_ms,
+                       first_tool_ms=response.first_tool_ms,
                        reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,
                        request_id=response.request_id, finish_reason=response.finish_reason,
                        output_sha256=hashlib.sha256((json.dumps({'content': response.content, 'tool_calls': response.tool_calls},

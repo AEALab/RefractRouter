@@ -138,6 +138,22 @@ def test_cash_reference_pending_and_external_judge_are_separate():
     assert project(s, r)['ledger'][0]['remaining_cash_cny'] is None
 
 
+@pytest.mark.parametrize('unit', ['CNY', 'AFP'])
+def test_missing_call_unit_uses_only_frozen_evidence_and_preserves_explicit_units(unit):
+    s, r = evidence()
+    r['billing_unit'] = unit
+    s['candidate_models']['subscription']['billing_unit'] = unit
+    del r['calls'][0]['billing_unit']
+    before = deepcopy((s, r))
+    assert project(s, r)['calls'][0]['billing_unit'] == unit
+    assert project(s, r)['calls'][1]['billing_unit'] == 'CNY'
+    assert (s, r) == before
+    del s['candidate_models']['subscription']['billing_unit']
+    assert project(s, r)['calls'][0]['billing_unit'] == unit
+    del r['billing_unit']
+    assert 'billing_unit' not in project(s, r)['calls'][0]
+
+
 def test_released_reservation_and_zero_unlimited_are_not_billed():
     s, r = evidence()
     r['calls'][1].update(status='cancelled-before-dispatch', charged=0)

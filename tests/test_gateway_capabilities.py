@@ -40,7 +40,8 @@ def test_codex_catalog_preserves_host_owned_instructions(tmp_path):
     mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
     gw=gateway(tmp_path,Caller())
     baseline={'models':[{'slug':'host','base_instructions':'宿主自己的规则',
-        'model_messages':{'x':'宿主提示'},'auto_compact_token_limit':50000,'shell_type':'unified_exec'}]}
+        'model_messages':{'x':'宿主提示'},'auto_compact_token_limit':50000,'shell_type':'unified_exec',
+        'tool_mode':'code_mode_only','experimental_supported_tools':['clock'], 'node_repl_disabled':False}]}
     saved=deepcopy(baseline)
     result=mod.catalog(baseline,'host',gw.models())
     entry=next(m for m in result['models'] if m['slug']=='refract/static')
@@ -51,5 +52,7 @@ def test_codex_catalog_preserves_host_owned_instructions(tmp_path):
     assert entry['supported_reasoning_levels'][0]['effort']=='low'
     assert entry['input_modalities']==['text']
     assert not entry['supports_search_tool']
+    assert entry['tool_mode'] is None and entry['experimental_supported_tools'] == []
+    assert entry['node_repl_disabled'] is True
     assert all('base_instructions' not in x for x in gw.models()['data'])
     gw.close()

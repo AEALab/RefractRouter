@@ -20,6 +20,7 @@ type 只取 extraction、synthesis、generation、verification、planning；diff
 id 必须匹配 [a-z][a-z0-9_]*：以小写英文字母开头，只含小写英文字母、数字和下划线；不得使用连字符或中文。parents 引用已有节点的原样 id。
 job 每项不超过 180 个 Unicode 字符，reason 同样不超过 180 个字符；每个英文字母、数字和标点也各计一个字符，不按英文单词计数。
 job 只写简短职责和产物，建议不超过 60 个字符；不要复制原始案例、代码、字段清单或验收条款，执行节点已经收到完整原始任务。
+可为每个节点添加 expected_output_tokens：按该节点真实产物估计的正整数 token 数，不超过 output_forecast_cap。它只是费用预测，不是输出截断限制；未知时省略，不要为了让拆分显得便宜而缩小最终交付。
 不生成答案、契约、预算、模型清单或验收表。
 优先把独立的分析工作分支并行，汇总节点等待分支。共同读取原始材料不构成依赖；只有消费前一节点结果才填写 parents。
 planning_budget 给出剩余时间、评审预留和时延先验；parallel_capacity=1 时独立分支也只能串行执行。max_nodes 包含最终交付节点。
@@ -122,7 +123,12 @@ def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048, deliver
     criteria = list(criteria or ['完整回答原始任务，保留全部要求、事实、约束与不确定性。'])
     rows = []
     for item in raw['nodes']:
-        exact(item, {'id', 'type', 'job', 'parents', 'difficulty', 'risk'}, 'compact node')
+        node_keys = {'id', 'type', 'job', 'parents', 'difficulty', 'risk'}
+        exact(item, node_keys | ({'expected_output_tokens'} if isinstance(item, dict)
+            and 'expected_output_tokens' in item else set()), 'compact node')
+        expected_output = item.get('expected_output_tokens', min(1000, output_cap))
+        if type(expected_output) is not int or not 1 <= expected_output <= output_cap:
+            raise ValueError('compact expected_output_tokens must be a positive integer within output_forecast_cap')
         job = text(item['job'], 'job', 180)
         if not isinstance(item['parents'], list) or any(not isinstance(p, str) for p in item['parents']):
             raise ValueError('compact parents must be node IDs')
@@ -132,7 +138,7 @@ def compile_compact(raw, *, criteria=None, max_nodes=6, output_cap=2048, deliver
                                           for p in item['parents']},
                 'output': {'format': 'text', 'fields': {'text': job}},
                 'capability': {'difficulty': item['difficulty'], 'risk': item['risk'],
-                    'input_budget_tokens': 65536, 'expected_output_tokens': min(1000, output_cap)},
+                    'input_budget_tokens': 65536, 'expected_output_tokens': expected_output},
                 'checks': [check], 'covers': [],
                 'execution': 'text-model', 'failure_policy': 'stop'}})
     rows[-1]['contract']['covers'] = list(range(len(criteria)))
@@ -232,7 +238,8 @@ def generate_compact(budget, model, payload, record, *, criteria, cost_limit, de
     system = planner_system(policy, context_policy)
     start = time.monotonic()
     messages = [{'role': 'system', 'content': system},
-                {'role': 'user', 'content': json.dumps({**payload, 'max_nodes': max_nodes}, ensure_ascii=False)}]
+                {'role': 'user', 'content': json.dumps({**payload, 'max_nodes': max_nodes,
+                    'output_forecast_cap': output_cap}, ensure_ascii=False)}]
     record.update(attempts=[], started_monotonic=start, output_cap=output_token_limit(model))
     if policy != 'legacy':
         record['policy_version'] = policy

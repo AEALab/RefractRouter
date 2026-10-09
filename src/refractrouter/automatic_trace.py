@@ -31,6 +31,7 @@ def project(summary, runtime=None, *, cash_limits=None):
     routing = runtime.get('routing') or {}
     comparison = summary.get('route_comparison') or runtime.get('route_comparison') or {}
     admission = summary.get('plan_admission') or runtime.get('plan_admission') or {}
+    directory = summary.get('candidate_models') or runtime.get('candidate_models') or {}
     calls = []
     source_calls = runtime.get('calls')
     if source_calls is None:
@@ -39,14 +40,19 @@ def project(summary, runtime=None, *, cash_limits=None):
         row = pick(call, ('label', 'model_id', 'category', 'billing_unit', 'unit', 'status',
             'reserved', 'charged', 'billing_mode', 'cost_basis', 'cash_cost_cny', 'cash_cost_status',
             'provider_cost_confirmed', 'input_tokens', 'output_tokens', 'cached_input_tokens',
-            'reasoning_tokens', 'ttft_ms', 'latency_ms', 'request_id', 'finish_reason', 'dispatch_at'))
+            'reasoning_tokens', 'ttft_ms', 'first_tool_ms', 'latency_ms', 'request_id', 'finish_reason', 'dispatch_at'))
         row.update(pick(call, ('reservation_basis','protected_input_bound','actual_input_bound','input_bound_confirmed')))
+        if not row.get('billing_unit') and not row.get('unit'):
+            # 旧调用行未重复存单位时，只沿用该次冻结模型／账本的单位，不读当前设置。
+            model_unit = (directory.get(call.get('model_id')) or {}).get('billing_unit')
+            unit = model_unit or runtime.get('billing_unit') or summary.get('billing_unit')
+            if isinstance(unit, str) and unit:
+                row['billing_unit'] = unit
         row['route'] = pick(call.get('route'), ('provider', 'model', 'reasoning_effort'))
         calls.append(row)
     candidates = []
     checks = (routing.get('diagnostics') or {}).get('candidate_checks') or {}
     # 模型目录必须来自该次运行的冻结记录；不能借当前目录补全旧任务。
-    directory = summary.get('candidate_models') or runtime.get('candidate_models') or {}
     for mid, model in directory.items():
         evidence = []
         sources = comparison.get('model_admission') or {'execution': {
@@ -108,7 +114,7 @@ def project(summary, runtime=None, *, cash_limits=None):
         'comparison': pick(comparison, ('status', 'route', 'reason', 'selected_candidate',
             'generated_node_count', 'selected_node_count', 'multi_node_selected', 'direct', 'dag',
             'decision_factors', 'estimate_scope', 'complete_task_cost_bound', 'tool_call_limit',
-            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast','quality_evidence_basis')),
+            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast','quality_evidence_basis', 'output_forecast')),
         'node_forecasts': [pick(row, ('node_id','model_id','unit','expected_cost','expected_input_tokens',
             'expected_output_tokens','conservative_input_bound','input_source','output_source',
             'quality_source','quality_prior','node_features','provider','model','reasoning_effort','evidence_scope')) | {

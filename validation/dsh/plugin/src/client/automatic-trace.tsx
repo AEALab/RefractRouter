@@ -105,6 +105,7 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       <p>预测范围：{label(comparison.estimate_scope)}；完整任务费用上界：{comparison.complete_task_cost_bound===false||comparison.complete_task_cost_bound===null?'没有完整上界':comparison.complete_task_cost_bound===true?'已记录':traceNumber(comparison.complete_task_cost_bound)}；工具调用上限：{comparison.tool_call_limit==='unlimited'?'不限制':comparison.tool_call_limit??'未记录'}。</p>
       <p>未选择的候选路线没有被执行；预测差额不能当作实测收益。质量依据：{label(comparison.decision_factors?.quality_basis)}；本任务拆分质量增益{comparison.decision_factors?.task_specific_dag_quality_gain_verified===true?'已有验证证据':'尚未验证'}。</p>
       {comparison.quality_evidence_basis&&<p>分路线质量依据：Direct {label(comparison.quality_evidence_basis.direct)}；DAG {label(comparison.quality_evidence_basis.dag)}。</p>}
+      {comparison.output_forecast&&<p>最终交付预测：Direct {traceNumber(comparison.output_forecast.direct_final_tokens)} tokens；DAG {traceNumber(comparison.output_forecast.generated_final_tokens)} tokens。中间产物未加到 Direct；这是未校准预测，不限制实际输出。</p>}
       <p>时延依据：{label(comparison.latency_scope)}；模型配置的时延先验不等于实测等待时间。</p>
     </details>:null}
     <h4>候选模型与选择依据</h4><p>{label(r.selection_rule)}。该次质量门槛 {traceNumber(r.quality_min)}；质量画像与本次最终评审分别展示。</p>
@@ -128,12 +129,13 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       </Table></>:<p>历史记录采用原计费合同，以下调用按原单位列示，不自动换算或重算。</p>}
     {r.external_judge_called&&<p>独立 Jev 判别：{r.external_judge_cost_cny===null?'费用待核对':money(r.external_judge_cost_cny)}；单独记账，未计入上述主任务现金余额。</p>}
     <details><summary>实际调用顺序与用量（{r.calls?.length??0} 次）</summary>
+      <p>首字表示模型返回首段正文的时间；仅工具调用的轮次没有正文首字。最终答复还需等待审核，用户等待以端到端时间为准。</p>
       <p>按账本预留顺序列示；并发派发时不等同于完成顺序。未派发的记录不是实际模型调用。</p>
       <Table heads={['顺序／用途／模型','状态与金额','输入／缓存／输出 tokens','首字／调用总耗时']}>
         {r.calls.map((c:Row,i:number)=><tr key={`${c.label}-${i}`}><td style={cellStyle}>{i+1}. {c.label} · {label(c.category)}<br/>{route(c.route)}<br/><small>推理等级：{c.route?.reasoning_effort??'提供方默认'}</small></td>
           <td style={cellStyle}>{label(c.status)}<br/>{c.billing_mode==='subscription'?'订阅参考估值':'按量计算／原合同'} {traceNumber(c.charged)} {c.billing_unit??c.unit??'单位未记录'}<br/><small>派发前预留 {traceNumber(c.reserved)}；状态待核对的金额不是已确认消费。</small></td>
           <td style={cellStyle}>{traceNumber(c.input_tokens)} / {traceNumber(c.cached_input_tokens)} / {traceNumber(c.output_tokens)}</td>
-          <td style={cellStyle}>{timing(c.ttft_ms)} / {timing(c.latency_ms)}</td></tr>)}
+          <td style={cellStyle}>{timing(c.ttft_ms)} / {timing(c.latency_ms)}{c.first_tool_ms!==undefined&&c.first_tool_ms!==null?<><br/><small>首个工具请求 {timing(c.first_tool_ms)}</small></>:null}</td></tr>)}
       </Table><p>首字时间为底层模型数据；自动路由交付还包含工具、规划及评审等待，不能等同于用户首字等待。</p>
     </details>
     {r.node_forecasts?.length>0&&<details><summary>节点选模依据与预计用量</summary>

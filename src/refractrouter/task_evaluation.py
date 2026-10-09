@@ -147,6 +147,9 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
     payload['review_contract'] = REFERENCE_REVIEW_CONTRACT
     evidence = catalog(task, answer, payload['criteria'], payload['source_state_claims'], tool_evidence)
     payload['evidence_catalog'] = evidence
+    from .review_evidence import MAX_SOURCE_REFS
+    payload['grounding_reference_limits'] = {'source_refs_per_check': MAX_SOURCE_REFS,
+        'allow_duplicate_refs': False}
     payload['grounding_check_shapes'] = [
         {'check_id': key, 'required_fields': ['check_id', 'status', 'answer_ref', 'source_refs',
             *(['claim_kind'] if key in evidence['claim_refs'] else [])],
@@ -183,6 +186,7 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
         '前两项审核范围是整份候选：answer_ref=null 表示整体审核，不表示无法判断；'
         '只有需要定位具体段落时才选择 candidate 中的 id。判定必须明确填写 status。'
         'source_refs 选择 sources 中支持该结论的 id 数组，可为空，不得用候选给候选事实自证。'
+        '每项 source_refs 最多8个互不重复的编号；只选最能支持本项结论的来源，不罗列全部工具历史。'
         '原文与解码的 JSON 字符串均由核心绑定原始输入；不需要重新转义这些文字。'
         '逐句 answer_ref 已固定，保持不变。FACT 判 PASS 必须选择实际支持该事实的来源，不能选择无关材料。'
         '前两项不适用时 status=NOT_APPLICABLE、answer_ref=null、source_refs=[]；逐句项不能不适用。'

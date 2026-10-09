@@ -5,6 +5,7 @@ import json
 
 VERSION = 'review-evidence-references-v2'
 RECEIPT_VERSION = 'deterministic-answer-fields-v1'
+MAX_SOURCE_REFS = 8
 
 
 def _strings(value):
@@ -126,7 +127,9 @@ def resolve(result, evidence, check_ids, claim_kinds):
         if row.get('rationale') is not None and (not isinstance(row['rationale'], str) or not row['rationale'].strip()):
             raise ValueError('invalid reference grounding rationale')
         refs = row['source_refs']
-        if (not isinstance(refs, list) or len(refs) > 8 or any(not isinstance(r, str) or r not in source for r in refs)
+        if isinstance(refs, list) and len(refs) > MAX_SOURCE_REFS:
+            raise ValueError(f'invalid grounding source reference: {key} has {len(refs)} refs, maximum {MAX_SOURCE_REFS}')
+        if (not isinstance(refs, list) or any(not isinstance(r, str) or r not in source for r in refs)
                 or len(refs) != len(set(refs))):
             raise ValueError('invalid grounding source reference')
         answer_ref = row['answer_ref']
