@@ -1,0 +1,122 @@
+{
+  "schema_version": "automatic-original-entry-independent-audit-v1",
+  "run_id": "20261009T050609Z-b237b206aee5",
+  "sourceVersion": "0.16.24",
+  "pluginVersion": "0.33.8",
+  "runtimeReportedStatus": "quality-failed",
+  "independentQualityPassed": null,
+  "reviewNotDispatched": true,
+  "qualityNotAccepted": true,
+  "guardFalsePositiveConfirmed": true,
+  "reason": "本次自述经分号延续，v1 分句丢失了明确主体；原批次停止且不派发复审。",
+  "originalValidation": {
+    "passed": false,
+    "checks": [
+      {
+        "schema_version": "output-length-check-v1",
+        "status": "not-requested",
+        "constraints": null,
+        "passed": null,
+        "actual_length": null,
+        "output_sha256": null
+      },
+      {
+        "source_status": "not-applicable",
+        "passed": null,
+        "invalid_edges": [],
+        "missing_paths": []
+      },
+      {
+        "version": "review-time-reservation-guard-v1",
+        "applicable": true,
+        "passed": true,
+        "scope": "explicit-review-wait-and-execution-reserve",
+        "findings": [],
+        "review_wait_ms": 180000.0,
+        "execution_reserve_ms": 60000.0,
+        "reason": "未发现本检查覆盖的预留／等待混淆；其他语义仍须审核。"
+      },
+      {
+        "version": "source-state-attribution-guard-v1",
+        "applicable": true,
+        "passed": false,
+        "scope": "strict-material-negative-verification-attribution",
+        "findings": [
+          {
+            "check_id": "negative-verification-attribution",
+            "answer_quote": "未核对提供方账单",
+            "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+          }
+        ],
+        "reason": "材料没有交代系统的历史验证状态，不能把信息缺失改写为未经验证或未核对的事实。若只说明本次行为，明确写本次未执行／核对；若说明材料缺项，写材料未说明、尚待确认。保留明确条件风险，复核风险表和建议，不声称历史上从未验证。"
+      }
+    ]
+  },
+  "derivedAttributionCheck": {
+    "version": "source-state-attribution-guard-v2",
+    "applicable": true,
+    "passed": true,
+    "scope": "strict-material-negative-verification-attribution",
+    "findings": [],
+    "reason": "已覆盖措辞的归属检查未发现问题；不证明其他事实正确。"
+  },
+  "derivedCheckIsNotOriginalDecision": true,
+  "derivedCheckDoesNotProveSemanticQuality": true,
+  "answer": "仅依据题面材料审查，本次未调用任何工具、未修改文件；未核对提供方账单，也未执行任何测试。\n\n| 检查项 | 审查要点 | 风险 |\n|---|---|---|\n| A. 费用 | 订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留 | ①订阅“参考估值”基于公开价格，不含折扣/实际成交价，或偏离真实支出；②按量“现金费用”是否与提供方账单一致，材料未说明，尚待确认；③未知用量预留依赖对用量的估计，预留不足或过高都可能失真 |\n| B. 时间 | 审核最多等待180秒且受任务剩余期限约束；执行阶段为审核预留60秒 | ①当任务剩余期限短于180秒时，实际等待上限被压缩到剩余期限，180秒仅是上限而非保证；②执行阶段预留的60秒若与剩余期限冲突，可能挤占后续审核或执行；③两个数字用途不同（180秒为等待上限、60秒为预留时长），混用易导致超时判断错误 |\n| C. 回滚 | 关闭新入口；保留原有会话、模型provider、凭证和运行证据 | ①“关闭新入口”若未确认其依赖方，可能影响仍在使用该入口的用户；②保留会话/provider/凭证/证据是回滚前提，但材料未说明回滚路径的实际可行性与演练情况，provider可用性与数据一致性尚待确认 |\n\n**一项改进建议**：为发布检查表补充两个显式待办项并绑定发布闸门——将A的费用口径与提供方账单核对、C执行一次回滚演练（验证provider可用性、数据一致性及入口关闭的依赖影响）。材料未说明本次发布是否已完成上述核对与演练，尚待确认；在二者完成并记录结果前，检查表相应项按“待确认”标注，不视为已验证。",
+  "answerSha256": "bf0bf9c0010dda620d24948e0232453dfa10762ea409af86e42963d41fd2cb1f",
+  "calls": [
+    {
+      "label": "planner",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "status": "billed",
+      "charged": 0.018078067574,
+      "input_tokens": 9830,
+      "output_tokens": 286,
+      "latency_ms": 6011,
+      "billing_mode": "subscription"
+    },
+    {
+      "label": "answer",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "status": "billed",
+      "charged": 0.02889168,
+      "input_tokens": 17842,
+      "output_tokens": 1158,
+      "latency_ms": 24223,
+      "billing_mode": "subscription"
+    },
+    {
+      "label": "final-correction",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "status": "billed",
+      "charged": 0.030114,
+      "input_tokens": 10093,
+      "output_tokens": 1241,
+      "latency_ms": 21926,
+      "billing_mode": "subscription"
+    },
+    {
+      "label": "final-judge-correction",
+      "model_id": "dsh-review-7077bbf6a06daaa6",
+      "status": "cancelled-before-dispatch",
+      "charged": 0,
+      "input_tokens": null,
+      "output_tokens": null,
+      "latency_ms": null,
+      "billing_mode": "subscription"
+    }
+  ],
+  "actual": {
+    "wallTimeMs": 52292,
+    "referenceCny": 0.07733364269360005,
+    "cashCny": 0.00024989511959999997,
+    "jevCny": 0.00024989511959999997
+  },
+  "sourceFilesSha256": {
+    "result.json": "36477b040abb6b0deb257b8093a1386f0085680ab9ff60cb6aabf54ed3d6881e",
+    "summary.json": "742360f86f817c663776d309e6a5976300d5e58377769d9fec395d66f859f52e",
+    "request.json": "2d485384e0481252b4f03b1f8509a855ceb2eb34257a14ba143d191d428f3917"
+  },
+  "privateContextPublished": false,
+  "priorOutputReplaced": false
+}

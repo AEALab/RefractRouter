@@ -214,8 +214,8 @@ async function routeProfileCatalog(ctx: AgentContext, config: Readonly<Configura
   try{executable=await ctx.subprocess.resolveExecutable(config.pythonExecutable,env,signal??new AbortController().signal)}
   catch{throw new Error('RefractAgent 可执行程序未找到；无法读取本地时延观测')}
   const pythonModule=/(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
-  const argv=[executable,...(pythonModule?['-m','refractrouter.agent_cli']:[]),'route-profiles','--runs-dir',resolve(config.runsDir)]
   const policy=ctx.sandboxPolicy.resolve({})
+  const argv=[executable,...(pythonModule?['-m','refractrouter.agent_cli']:[]),'route-profiles','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
   const confined=ctx.sandbox.confine(argv,policy)
   const handle=ctx.subprocess.spawn({argv:confined.argv,cwd:policy.workspaceRoot,env,
     stdio:{stdin:'ignore',stdout:{maxBytes:1048576},stderr:{maxBytes:16384}},

@@ -30,7 +30,7 @@ from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
 from .task_contracts import decode_output, string_list
 from .planning_support import (execution_support, compile_generated_capacity, admission_diagnostics,
                                placement_admission_diagnostics, generate_plan)
-from .configured_routing import configured_profile
+from .configured_routing import configured_profile, selected_quality_basis
 from .compact_planning import planner_model, generate_compact, planner_system, planning_node_limit
 from .cost_first import verify_cost_drivers
 from .selective_context import build_node_context
@@ -44,6 +44,8 @@ from .dynamic_decomposition import DynamicDecomposition
 from .automatic_routing import compare_executable_routes, choose_mixed_billing_route
 from .final_correction import correct_final, VERSION as CORRECTION_VERSION
 from .review_evidence import receipt as deterministic_receipt
+from .review_time_guard import check_review_time
+from .source_state_guard import check_source_state
 
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 
@@ -498,7 +500,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                     tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
-                profile = configured_profile(configuration, manifest, plan.to_dict(),
+                profile = configured_profile(configuration, manifest, plan.to_dict(), task=request['task'],
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
                     cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
                                           if mixed or currency_reference else None))
@@ -601,7 +603,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
                     prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)), node_tasks=node_context.tasks if node_context else None, tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
-                profile = configured_profile(configuration, manifest, plan.to_dict(),
+                profile = configured_profile(configuration, manifest, plan.to_dict(), task=request['task'],
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
                     cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
                                           if mixed or currency_reference else None))
@@ -617,7 +619,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                     tools=tool_runtime.schemas if tool_runtime is not None else None)
                 result['compiled_input_estimates'] = estimates
-                profile = configured_profile(configuration, manifest, plan.to_dict(),
+                profile = configured_profile(configuration, manifest, plan.to_dict(), task=request['task'],
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
                     cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
                                           if mixed or currency_reference else None))
@@ -714,7 +716,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         output_constraints=request.get('outputConstraints'), input_cap=input_cap,
                         prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
                         tools=tool_runtime.schemas if tool_runtime is not None else None)
-                    direct_profile = configured_profile(configuration, manifest, direct.to_dict(),
+                    direct_profile = configured_profile(configuration, manifest, direct.to_dict(), task=request['task'],
                         input_forecasts={nid: row['forecast_input_tokens']
                                          for nid, row in estimates.items()},
                         cost_input_forecasts=({nid: row['routing_input_forecast_tokens']
@@ -786,7 +788,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         for models in routes.values() for mid in models}
                     comparison['decision_factors'] = {
                         'qualified_execution_model_count': len(qualified_workers),
-                        'quality_basis': 'configured-profile-prior',
+                        'quality_basis': selected_quality_basis(profile, result['routing'].get('assignments')),
                         'task_specific_dag_quality_gain_verified': False}
                     comparison['candidate_diagnostics'] = {
                         'direct': deepcopy(direct_routing.get('rejected_combinations', {})),
@@ -852,7 +854,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     direct_row, dag_row = comparison['direct'], comparison['dag']
                     comparison['decision_factors'] = {
                         'qualified_execution_model_count': len(qualified_workers),
-                        'quality_basis': 'declared-model-profile-prior',
+                        'quality_basis': selected_quality_basis(profile, result['routing'].get('assignments')),
                         'task_specific_dag_quality_gain_verified': False,
                         'dag_extra_worker_cost': (dag_row['worker_cost'] - direct_row['worker_cost']
                             if direct_row is not None and dag_row is not None else None),
@@ -860,6 +862,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     comparison['candidate_diagnostics'] = {
                         'direct': deepcopy(direct_routing.get('diagnostics', {})),
                         'dag': deepcopy(result['routing'].get('diagnostics', {}))}
+                    comparison['quality_evidence_basis'] = {
+                        'direct': selected_quality_basis(direct_profile if direct_routing.get('assignments') else None,
+                            direct_routing.get('assignments')),
+                        'dag': selected_quality_basis(profile, result['routing'].get('assignments'))}
                     comparison['latency_evidence'] = {
                         'direct': {nid: {mid: row.get('latency', {'source': 'configured-fixed', 'calibrated_sla': False})
                                     for mid, row in models.items()}
@@ -991,6 +997,17 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result['generation_status'] = 'completed' if live else 'simulated'
         if live:
             known_failure = None
+            if request.get('maxFinalRevisions', 0):
+                result['time_contract_validation'] = check_review_time(request['task'], result['final_output'])
+                if not result['time_contract_validation']['passed']:
+                    result['issues'].append('review-time-contract-failed')
+                    known_failure = {'passed': False, 'score': 0,
+                        'review_contract': result['time_contract_validation']['version'],
+                        'rationale': result['time_contract_validation']['reason']}
+                    if not result['review']['required']:
+                        result['status'] = 'quality-failed'
+                        persist()
+                        return result
             if content_guard is not None:
                 result['content_validation'] = content_guard.validate(result['final_output'], final=True)
             result['format_validation'] = check_output_constraints(request.get('outputConstraints'), result['final_output'])
@@ -998,7 +1015,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 result['issues'].append('output-length-exceeded')
                 if request.get('maxFinalRevisions', 0) and result['review']['required']:
                     known_failure = {'passed': False, 'score': 0,
-                        'rationale': '输出格式或长度不符合原任务限制，请按原任务重新整理完整答复。'}
+                        'rationale': (known_failure['rationale'] + ' ' if known_failure else '')
+                            + '输出格式或长度不符合原任务限制，请按原任务重新整理完整答复。'}
             persist()  # 评审异常或进程中断不能丢失已生成的正文与确定性检查。
             if final_validator is not None:
                 validation = final_validator(result['final_output'])
@@ -1030,6 +1048,19 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     result['issues'].append(validation['message'])
                     persist()
                     return result  # 无法验收时不再花费最终 Judge，也不替宿主补跑工具。
+            if request.get('maxFinalRevisions', 0):
+                result['source_state_validation'] = check_source_state(request['task'], result['final_output'],
+                    tool_evidence=tool_evidence)
+                if not result['source_state_validation']['passed']:
+                    result['issues'].append('source-state-attribution-failed')
+                    known_failure = {'passed': False, 'score': 0,
+                        'review_contract': result['source_state_validation']['version'],
+                        'rationale': (known_failure['rationale'] + ' ' if known_failure else '')
+                            + result['source_state_validation']['reason']}
+                    if not result['review']['required']:
+                        result['status'] = 'quality-failed'
+                        persist()
+                        return result
             if result['review']['required'] and placement is not None:
                 isolation = judge_isolation(placement, review_judge)
                 placement['judge_isolation'] = isolation
@@ -1082,6 +1113,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     if result.get('deterministic_validation') is not None:
                         record['initial_deterministic_validation'] = deepcopy(result['deterministic_validation'])
                     record['initial_format_validation'] = deepcopy(result['format_validation'])
+                    if result.get('time_contract_validation') is not None:
+                        record['initial_time_contract_validation'] = deepcopy(result['time_contract_validation'])
+                    if result.get('source_state_validation') is not None:
+                        record['initial_source_state_validation'] = deepcopy(result['source_state_validation'])
                     result['final_correction'] = record
                     result['status'] = 'started'
                     result['review']['status'] = 'correcting'
@@ -1090,6 +1125,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         rows = [check_output_constraints(request.get('outputConstraints'), answer)]
                         if content_guard is not None:
                             rows.append(content_guard.validate(answer, final=True))
+                        rows.append(check_review_time(request['task'], answer))
+                        rows.append(check_source_state(request['task'], answer, tool_evidence=tool_evidence))
                         if final_validator is not None:
                             rows.append(final_validator(answer))
                         return {'passed': all(row.get('passed') is not False for row in rows), 'checks': rows}
@@ -1107,6 +1144,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         production_cap=request['costMax'])
                     result['final_output'] = corrected
                     result['format_validation'] = check_output_constraints(request.get('outputConstraints'), corrected)
+                    result['time_contract_validation'] = check_review_time(request['task'], corrected)
+                    result['source_state_validation'] = check_source_state(request['task'], corrected,
+                        tool_evidence=tool_evidence)
                     if final_validator is not None:
                         result['deterministic_validation'] = deepcopy(record['validation']['checks'][-1])
                     if revised is not None:
@@ -1122,7 +1162,8 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     record['accepted'] = result['status'] == 'completed'
                     if record['accepted']:
                         result['issues'] = [issue for issue in result['issues']
-                            if issue not in {'deterministic-final-check-failed','output-length-exceeded'}]
+                            if issue not in {'deterministic-final-check-failed','output-length-exceeded',
+                                             'review-time-contract-failed','source-state-attribution-failed'}]
                     if record['status'] == 'reviewed':
                         record['status'] = 'accepted' if record['accepted'] else 'rejected'
                     persist()

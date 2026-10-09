@@ -75,6 +75,29 @@ def test_final_correction_trace_keeps_decisions_and_protection_without_private_p
     assert '隐藏' not in json.dumps(row,ensure_ascii=False) and '私有' not in json.dumps(row,ensure_ascii=False)
 
 
+def test_time_contract_block_is_visible_but_never_exports_full_candidate_or_source():
+    s, r = evidence()
+    r['time_contract_validation'] = {'version': 'review-time-reservation-guard-v1',
+        'applicable': True, 'passed': False, 'reason': '预留不是到期计时器',
+        'review_wait_ms': 180000, 'execution_reserve_ms': 60000,
+        'findings': [{'answer_quote': '私有候选正文'}], 'task': '私有完整上下文'}
+    trace = project(s, r)
+    assert trace['quality_gate'] == 'failed'
+    assert trace['time_contract_validation']['reason'] == '预留不是到期计时器'
+    assert '私有' not in json.dumps(trace, ensure_ascii=False)
+
+
+def test_source_attribution_check_preserves_conservative_reason_without_private_text():
+    s, r = evidence()
+    r['source_state_validation'] = {'version': 'source-state-attribution-guard-v1',
+        'applicable': True, 'passed': False, 'reason': '需澄清归属，不证明实际未验证',
+        'findings': [{'answer_quote': '私有候选全文'}]}
+    trace = project(s, r)
+    assert trace['quality_gate'] == 'failed'
+    assert trace['source_state_validation']['passed'] is False
+    assert '私有' not in json.dumps(trace, ensure_ascii=False)
+
+
 def test_grounding_trace_preserves_verdicts_and_verified_short_quotes_only():
     s,r=evidence()
     s['quality']['grounding_checks']=[{'check_id':'source-state','status':'FAIL',

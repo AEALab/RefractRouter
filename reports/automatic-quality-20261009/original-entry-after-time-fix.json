@@ -1,0 +1,101 @@
+{
+  "schema_version": "automatic-original-entry-independent-audit-v1",
+  "run_id": "20261009T045445Z-174854d8557e",
+  "sourceVersion": "0.16.23",
+  "pluginVersion": "0.33.7",
+  "task": "请分别审查三个互不依赖的发布检查项，最后整理成一张简短表格，列出风险和一项改进建议。仅依据下面材料，不要调用工具，不要修改文件。\nA. 费用：订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留。\nB. 时间：审核最多等待180秒，同时受任务剩余期限约束；执行阶段给审核预留60秒。\nC. 回滚：关闭新入口；保留原有会话、模型provider、凭证和运行证据。\n不要声称已核对提供方账单或已完成未执行的测试。",
+  "runtimeReportedStatus": "completed",
+  "runtimeReview": {
+    "score": 90,
+    "passed": true,
+    "contract_version": "proposal-constraints-v10"
+  },
+  "independentQualityPassed": false,
+  "independentFindings": [
+    {
+      "id": "ambiguous-verification-actor",
+      "quote": "未验证回滚预案的可执行性",
+      "reason": "没有明确是本次未验证还是系统历史未验证；不足以据材料认定历史验证状态。"
+    },
+    {
+      "id": "unconfirmed-billing-attribution",
+      "quote": "未核对提供方账单（材料未提供）",
+      "reason": "未提供账单应写为材料缺项，而不是省略主体的核对状态。"
+    }
+  ],
+  "timeContractValidation": {
+    "version": "review-time-reservation-guard-v1",
+    "applicable": true,
+    "passed": true,
+    "scope": "explicit-review-wait-and-execution-reserve",
+    "findings": [],
+    "review_wait_ms": 180000.0,
+    "execution_reserve_ms": 60000.0,
+    "reason": "未发现本检查覆盖的预留／等待混淆；其他语义仍须审核。"
+  },
+  "newAttributionGuardReplay": {
+    "version": "source-state-attribution-guard-v1",
+    "applicable": true,
+    "passed": false,
+    "scope": "strict-material-negative-verification-attribution",
+    "findings": [
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "未核对提供方账单（材料未提供）",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      },
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "未验证回滚预案的可执行性",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      }
+    ],
+    "reason": "材料没有交代系统的历史验证状态，不能把信息缺失改写为未经验证或未核对的事实。若只说明本次行为，明确写本次未执行／核对；若说明材料缺项，写材料未说明、尚待确认。保留明确条件风险，复核风险表和建议，不声称历史上从未验证。"
+  },
+  "guardReplayIsDerivedNotOriginalDecision": true,
+  "route": "direct",
+  "routeReason": "direct-estimated-cost-not-worse",
+  "forecasts": {
+    "direct": {
+      "worker_cost": 0.04573,
+      "planner_actual_cost": 0.018593251956999998,
+      "judge_estimated_cost": 0.056802029557,
+      "total_estimated_cost": 0.12112528151400001,
+      "assignments": {
+        "answer": "dsh-model-72afd0d705290d78"
+      },
+      "quality_proxy": 100.0
+    },
+    "dag": {
+      "worker_cost": 0.195406,
+      "planner_actual_cost": 0.018593251956999998,
+      "judge_estimated_cost": 0.056802029557,
+      "total_estimated_cost": 0.27080128151399996,
+      "assignments": {
+        "review_cost": "dsh-model-72afd0d705290d78",
+        "review_time": "dsh-model-72afd0d705290d78",
+        "review_rollback": "dsh-model-72afd0d705290d78",
+        "answer": "dsh-model-72afd0d705290d78"
+      },
+      "quality_proxy": 92.86
+    }
+  },
+  "actual": {
+    "peakActiveNodes": 1,
+    "wallTimeMs": 40837,
+    "referenceCny": 0.1170597536216001,
+    "cashCny": 0.00024989511959999997,
+    "modelCalls": 3,
+    "jevCny": 0.00024989511959999997
+  },
+  "answer": "依据材料，对三个发布检查项逐项审查如下。材料仅含 A/B/C 三项描述，未提供具体数值、账单或测试结果，因此不声称核对过任何账单或完成过任何测试。\n\n| 检查项 | 材料内容 | 风险 |\n|---|---|---|\n| A. 费用 | 订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留 | 参考估值与实际账单可能不符；未知用量的预留金额未给出，存在预留不足导致低估风险；未核对提供方账单（材料未提供） |\n| B. 时间 | 审核最多等待 180 秒，且受任务剩余期限约束；执行阶段给审核预留 60 秒 | 若进入审核时任务剩余期限不足 60 秒，则预留无法兑现，180 秒等待上限与实际可等待时间存在张力，可能造成审核被截断或超时 |\n| C. 回滚 | 关闭新入口；保留原有会话、模型 provider、凭证和运行证据 | 材料未说明\"新入口\"是否已枚举齐全、回滚资产是否在变更前已实际捕获并校验，未验证回滚预案的可执行性 |\n\n**一项改进建议**：在切流前增加一条显式门禁检查——先校验并固化回滚资产（原有会话、provider、凭证、运行证据）已捕获，同时把\"进入审核时任务剩余期限 ≥ 60 秒\"设为硬性前置条件，并为未知用量设定一个有依据的预留额度，以缓解 B、C 两项的时序与完整性风险。",
+  "answerSha256": "cf42e7e9c4b4272e56a1731d9b3d259adab835e058574c8b02de1ab4ff475ac4",
+  "sourceFilesSha256": {
+    "result.json": "0d131d526f5baf89e8c1ec7ab5d1ec367e6ec4a7f84458aad2e50a6ff1b0f051",
+    "summary.json": "0e29fdf355339b226e7aa3afc43ad0283581ccd0c76331149c716f3663f97622",
+    "request.json": "5368170734990337683c9a0579a25425548e5129da2aabb92f160f7bbb8e46fc"
+  },
+  "privateContextPublished": false,
+  "unselectedDagExecuted": false,
+  "priorOutputReplaced": false
+}

@@ -85,7 +85,9 @@ def project(summary, runtime=None, *, cash_limits=None):
     quality = summary.get('quality') or runtime.get('evaluation') or {}
     score, floor = amount(quality.get('score')), amount(routing.get('quality_min_per_node'))
     quality_gate = 'not-recorded'
-    if (runtime.get('deterministic_validation') or {}).get('passed') is False:
+    if ((runtime.get('deterministic_validation') or {}).get('passed') is False
+            or (runtime.get('time_contract_validation') or {}).get('passed') is False
+            or (runtime.get('source_state_validation') or {}).get('passed') is False):
         quality_gate = 'failed'
     elif review.get('required') is False:
         quality_gate = 'not-required'
@@ -106,17 +108,17 @@ def project(summary, runtime=None, *, cash_limits=None):
         'comparison': pick(comparison, ('status', 'route', 'reason', 'selected_candidate',
             'generated_node_count', 'selected_node_count', 'multi_node_selected', 'direct', 'dag',
             'decision_factors', 'estimate_scope', 'complete_task_cost_bound', 'tool_call_limit',
-            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast')),
+            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast','quality_evidence_basis')),
         'node_forecasts': [pick(row, ('node_id','model_id','unit','expected_cost','expected_input_tokens',
             'expected_output_tokens','conservative_input_bound','input_source','output_source',
-            'quality_source','quality_prior','node_features','provider','model','reasoning_effort')) | {
+            'quality_source','quality_prior','node_features','provider','model','reasoning_effort','evidence_scope')) | {
                 'quality_evidence': pick(row.get('quality_evidence'), ('kind','samples','bundleSha256',
                     'observationSha256','excludedReason','outputUsageMeanTokens','latencySource',
                     'heldOutSamples','heldOutStatus'))}
             for row in forecasts if isinstance(row, dict)],
         'node_model_candidates': [pick(row, ('node_id','model_id','provider','model','reasoning_effort',
             'selected','eligible','quality_source','quality_prior','node_features','unit','billing_mode',
-            'expected_input_tokens','expected_output_tokens','expected_cost')) | {
+            'expected_input_tokens','expected_output_tokens','expected_cost','evidence_scope')) | {
                 'quality_evidence': pick(row.get('quality_evidence'), ('kind','samples','bundleSha256',
                     'observationSha256','excludedReason','heldOutSamples','heldOutStatus'))}
             for row in (runtime.get('cost_trace') or summary.get('cost_trace') or {}).get('node_candidates', [])
@@ -137,6 +139,10 @@ def project(summary, runtime=None, *, cash_limits=None):
         'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed',
             'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort')),
         'deterministic_validation': pick(runtime.get('deterministic_validation'), ('passed', 'reason')),
+        'time_contract_validation': pick(runtime.get('time_contract_validation'),
+            ('version','applicable','passed','reason','scope','review_wait_ms','execution_reserve_ms')),
+        'source_state_validation': pick(runtime.get('source_state_validation'),
+            ('version','applicable','passed','reason','scope')),
         'planning_budget': pick(runtime.get('planning_budget'), ('version', 'task_remaining_ms',
             'review_reserve_ms', 'planner_allowance_ms', 'execution_after_planner_ms',
             'estimates_are_guarantees', 'max_nodes', 'node_limit_basis')),

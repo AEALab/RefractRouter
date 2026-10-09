@@ -625,7 +625,7 @@ test('client bundle registers in the host module format and exports the plugin f
     throw new Error('unexpected require: ' + spec)
   }) as { apply: (ctx: unknown) => void; inject: string[] }
   assert.equal(typeof exports.apply, 'function')
-  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope'])
+  assert.deepEqual(exports.inject, ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'uiConversation'])
 
   const effects: Array<() => unknown> = []
   const discoveryCalls: Array<{namespace:string;request:Record<string,unknown>}> = []

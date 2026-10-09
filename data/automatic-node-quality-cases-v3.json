@@ -1,0 +1,248 @@
+{
+  "schema_version": "automatic-node-quality-cases-v3",
+  "scope": "五条现有路线在相同公开技术发布材料上进行独立节点校准。各分层三条校准、一条保留；不外推为任意任务质量。",
+  "models": [
+    "deepseek-official/deepseek-flash",
+    "deepseek-official/deepseek-v4-pro",
+    "moonshot/kimi-k3",
+    "ark/glm-5.3",
+    "ark/deepseek-v4-flash"
+  ],
+  "evaluationPolicy": "text-json-semantic-v1",
+  "taskScope": {
+    "version": "exact-task-v1",
+    "description": "冻结技术发布检查及其费用、审核时限、回滚和证据核对节点。仅登记任务使用节点实测，其他任务保留未实测先验。",
+    "taskSha256": [
+      "455e9549e27cf17594bfb4db665d6db84d7a581992e1f4afc6f1d8024506d6fa",
+      "a5180deccddd79f4b00bef86c5c2409df75e33edd6fb6ebf17283b97c8765bff",
+      "547bd111e1f704f80a33a5f186e6592650779ffcc00929f679d3cb4037745fd7",
+      "5363348c4afdbf782c2f9228d6a511246ed5c52d297ad3052cd7f1f488d8c152",
+      "8963460e37b1f177c1da88a964c17bc012572345c1449fa0bef0a83a091346f3",
+      "1ba27f1b85052e2623aed44f23fcfcad7c8f3a4a077d0c8868b05912acb0cc2a",
+      "3d30100c9eb8b6d05f37a3d7c7ad473c3d5cb4f438fcbceea5d9852a9ba6c4c0",
+      "f552d979841dfb63a5855506fa3c8f04d571d89899d05bdbd87c9a0dee4668d2",
+      "4c02e33fc9c8c1014f40b1e8355b93fd372ef8c6fb2f14758642dda2ef55b1f1",
+      "12dd8d2f05a7c2e8cc83d37747819dfe469cf9e37477c7c9ed7f3732b1f2467e",
+      "abcb946cfdbdefd0014e16b2fb00595ef6353e8656abd88cb577b6bf021c3e6c",
+      "81cd22fe3ac1e30e88c8e68d65a03f00cca132a4b0fc7a586f02b77682c9dc47",
+      "d64bdc6bb170bd3271bb3c41e2c732e70acde32f1b6dc76a8ca85453fac95260",
+      "c313b1e0a874d0f02b0e68811240f002b784df13c7cf83f8506e8e83d9427bb8",
+      "0c7ae85120f0190d967db6fc6cf34cf71cf7a735b1992db6d226fdba6b32a811",
+      "d19853d3af15d171b93bc57e0a417fb246eb762616f04be58bf7e85e15456283",
+      "8a5c24d1362c0945e88302a85481d1655e81f030b014cc54f8f68250c626adf1"
+    ]
+  },
+  "cases": [
+    {
+      "id": "extract-time",
+      "type": "extraction",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "calibration",
+      "task": "材料：审核最多等待180秒，同时受任务剩余期限约束；执行阶段给审核预留60秒。提取两个限制，不计算当前实际可用时间。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：review_upper_seconds、reserve_seconds。不添加额外说明。",
+      "expected": {
+        "review_upper_seconds": "180",
+        "reserve_seconds": "60"
+      }
+    },
+    {
+      "id": "extract-billing",
+      "type": "extraction",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "calibration",
+      "task": "材料：订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留。材料没有提供账单或退款。提取订阅记录类别和是否已确认账单、是否已确认退款。类别用reference；后两项用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：subscription_record、bill_confirmed、refund_confirmed。不添加额外说明。",
+      "expected": {
+        "subscription_record": "reference",
+        "bill_confirmed": "no",
+        "refund_confirmed": "no"
+      }
+    },
+    {
+      "id": "extract-rollback",
+      "type": "extraction",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "calibration",
+      "task": "材料：关闭新入口；保留原有会话、模型provider、凭证和运行证据。提取会话、provider、凭证、证据是否保留，用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：sessions_retained、providers_retained、credentials_retained、evidence_retained。不添加额外说明。",
+      "expected": {
+        "sessions_retained": "yes",
+        "providers_retained": "yes",
+        "credentials_retained": "yes",
+        "evidence_retained": "yes"
+      }
+    },
+    {
+      "id": "extract-heldout",
+      "type": "extraction",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "held-out",
+      "task": "材料：当前并发为3；审核等待上限180秒；执行给审核预留60秒；未提供测试回执。提取并发、审核等待上限、预留及是否已证实测试通过，最后一项用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：concurrency、review_upper_seconds、reserve_seconds、tests_confirmed。不添加额外说明。",
+      "expected": {
+        "concurrency": "3",
+        "review_upper_seconds": "180",
+        "reserve_seconds": "60",
+        "tests_confirmed": "no"
+      }
+    },
+    {
+      "id": "synth-cash",
+      "type": "synthesis",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "calibration",
+      "task": "定义：总参考＝已结算订阅参考＋已结算现金；现金占用＝已结算现金＋未知现金预留。订阅参考0.12 CNY，现金0.03，未知预留0.07。计算总参考和现金占用。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：settled_reference、cash_occupied。不添加额外说明。",
+      "expected": {
+        "settled_reference": "0.15",
+        "cash_occupied": "0.10"
+      }
+    },
+    {
+      "id": "synth-review",
+      "type": "synthesis",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "calibration",
+      "task": "审核单独等待上限180秒，同时受任务剩余期限约束。进入审核时剩70秒，先前执行阶段预留60秒已包含在这70秒内，不能再次扣除。计算当前最多审核秒数，及单独等待上限。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：effective_review_seconds、review_upper_seconds。不添加额外说明。",
+      "expected": {
+        "effective_review_seconds": "70",
+        "review_upper_seconds": "180"
+      }
+    },
+    {
+      "id": "synth-parallel",
+      "type": "synthesis",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "calibration",
+      "task": "三条无依赖分支分别8、12、5秒，汇总3秒并等待所有分支。并发3，无其他延时。计算串行、并行总耗时。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：serial_seconds、parallel_seconds。不添加额外说明。",
+      "expected": {
+        "serial_seconds": "28",
+        "parallel_seconds": "15"
+      }
+    },
+    {
+      "id": "synth-heldout",
+      "type": "synthesis",
+      "difficulty": "low",
+      "risk": "low",
+      "split": "held-out",
+      "task": "定义：总参考＝已结算订阅参考＋已结算现金；现金占用＝已结算现金＋未知现金预留。订阅参考0.31，已结算现金0.07，未知预留0.11，尚未派发预留0.03。取消释放尚未派发部分。计算已结算总参考、取消后现金占用和释放金额。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：settled_reference、cash_occupied、released。不添加额外说明。",
+      "expected": {
+        "settled_reference": "0.38",
+        "cash_occupied": "0.18",
+        "released": "0.03"
+      }
+    },
+    {
+      "id": "verify-evidence",
+      "type": "verification",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "calibration",
+      "task": "材料仅声明订阅按公开价估值、未知用量保留预留；没有账单或测试回执。候选声称“提供方账单已核对、全部测试已通过”。分别判断这两个声称是否有证据支持，用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：billing_claim_supported、tests_claim_supported。不添加额外说明。",
+      "expected": {
+        "billing_claim_supported": "no",
+        "tests_claim_supported": "no"
+      }
+    },
+    {
+      "id": "verify-time",
+      "type": "verification",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "calibration",
+      "task": "审核上限180秒，受剩余期限约束。当前剩70秒，执行预留60秒是之前分配的一部分，不能再次扣除。候选说“审核此刻仍能等待180秒；180秒与60秒应取更小值作为固定审核上限”。判断两句是否正确，用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：wait_180_valid、min_180_60_rule_valid。不添加额外说明。",
+      "expected": {
+        "wait_180_valid": "no",
+        "min_180_60_rule_valid": "no"
+      }
+    },
+    {
+      "id": "verify-cancel",
+      "type": "verification",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "calibration",
+      "task": "原请求已派发但用量未知，现金预留0.20；已结算现金0.08。用户取消等待，提供方未确认取消或退款。候选说“已花费0.28；可释放0.20并自动重发”。判断已花费合计声称、释放未知预留和自动重发是否有依据，用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：spent_028_supported、release_unknown_supported、auto_resend_supported。不添加额外说明。",
+      "expected": {
+        "spent_028_supported": "no",
+        "release_unknown_supported": "no",
+        "auto_resend_supported": "no"
+      }
+    },
+    {
+      "id": "verify-heldout",
+      "type": "verification",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "held-out",
+      "task": "材料：实际三个独立节点请求重叠，汇总在它们完成后启动；本次无Direct对照；订阅参考成本0.12 CNY，单次现金0。候选声称“本次确有并行；已证明DAG总成本普遍低于Direct；实际现金花了0.12 CNY”。逐项判断是否有材料支持，用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：parallel_supported、universal_savings_supported、cash_012_supported。不添加额外说明。",
+      "expected": {
+        "parallel_supported": "yes",
+        "universal_savings_supported": "no",
+        "cash_012_supported": "no"
+      }
+    },
+    {
+      "id": "generate-release",
+      "type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "calibration",
+      "task": "整理技术发布核对结果：订阅只按公开价参考估值；按量现金单独记账；审核上限180秒且受剩余时间限制，执行预留60秒；回滚保留凭证和证据；没有账单或测试回执。输出账单已核对、测试已执行、凭证保留、证据保留四项yes或no，以及两个秒数。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：bill_checked、tests_executed、credentials_retained、evidence_retained、review_upper_seconds、reserve_seconds。不添加额外说明。",
+      "expected": {
+        "bill_checked": "no",
+        "tests_executed": "no",
+        "credentials_retained": "yes",
+        "evidence_retained": "yes",
+        "review_upper_seconds": "180",
+        "reserve_seconds": "60"
+      }
+    },
+    {
+      "id": "generate-cost",
+      "type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "calibration",
+      "task": "定义总参考包括订阅参考和现金。Direct订阅执行0.10、审核0.04、Jev现金0.002；DAG订阅规划0.03、节点合计0.08、审核0.04、Jev现金0.002。输出两条总参考及现金，不能把参考估值当现金。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：direct_reference、dag_reference、direct_cash、dag_cash。不添加额外说明。",
+      "expected": {
+        "direct_reference": "0.142",
+        "dag_reference": "0.152",
+        "direct_cash": "0.002",
+        "dag_cash": "0.002"
+      }
+    },
+    {
+      "id": "generate-source",
+      "type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "calibration",
+      "task": "材料仅说明回滚关闭入口并保留会话、provider、凭证、证据；没有实施或测试结果。输出是否已实施回滚、是否已有测试通过证据、是否计划保留会话、是否计划保留provider，用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：rollback_executed、tests_confirmed、sessions_planned_retained、providers_planned_retained。不添加额外说明。",
+      "expected": {
+        "rollback_executed": "no",
+        "tests_confirmed": "no",
+        "sessions_planned_retained": "yes",
+        "providers_planned_retained": "yes"
+      }
+    },
+    {
+      "id": "generate-heldout",
+      "type": "generation",
+      "difficulty": "medium",
+      "risk": "high",
+      "split": "held-out",
+      "task": "定义总参考＝订阅参考＋现金；占用现金＝现金＋未知预留。订阅已结算参考0.50、现金0.10、已派发未知预留0.25、未派发预留0.04。取消释放未派发预留，退款未确认。输出已结算总参考、已结算现金、取消后现金占用、释放额及自动重发是否允许，最后用yes或no。 只输出一个JSON对象，字段恰好等于以下字段名，所有值均为字符串：settled_reference、settled_cash、cash_occupied、released、auto_resend。不添加额外说明。",
+      "expected": {
+        "settled_reference": "0.60",
+        "settled_cash": "0.10",
+        "cash_occupied": "0.35",
+        "released": "0.04",
+        "auto_resend": "no"
+      }
+    }
+  ]
+}

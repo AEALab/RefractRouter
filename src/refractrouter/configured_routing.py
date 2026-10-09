@@ -3,6 +3,7 @@ from .node_routing import NodeProfile, number, validate_profiles
 from .routing_actions import action_binding
 from .task_plan import validate_plan
 from .latency_forecast import validate_latency_evidence, forecast_latency
+from .node_quality_scope import validate_scope, matches_scope, scope_receipt
 
 
 def prediction(raw, output_cap):
@@ -40,6 +41,8 @@ def compile_routing(raw, output_cap):
                            for k in ('bundleSha256', 'observationSha256'))):
                 raise ValueError('invalid node quality evidence')
             values['evidence'] = dict(evidence)
+            if 'taskScope' in evidence:
+                values['evidence']['taskScope'] = validate_scope(evidence['taskScope'])
         profiles.append((selector, values))
     validate_profiles(tuple(p for p, _ in profiles))
     return {**default, 'profiles': profiles, 'latency_evidence':
@@ -47,7 +50,7 @@ def compile_routing(raw, output_cap):
 
 
 def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
-                       cost_input_forecasts=None):
+                       cost_input_forecasts=None, task=None):
     plan = validate_plan(plan)
     stratified = bool(plan.contracts)
     rows, basis = {}, {}
@@ -61,9 +64,17 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
             if forecast['output_tokens'] is not None and forecast['output_tokens'] > model.max_output_tokens:
                 raise ValueError(f'{model.model_id}: routing outputTokens exceeds effective maxOutputTokens; raise the application output cap or update predictions')
         for node in plan.nodes:
-            matches = [(index, value) for index, (selector, value) in enumerate(default['profiles']) if selector.matches(node, plan)]
+            matches = [(index, value) for index, (selector, value) in enumerate(default['profiles'])
+                if selector.matches(node, plan)
+                and matches_scope((value.get('evidence') or {}).get('taskScope'), task)]
             index, forecast = matches[0] if matches else (None, default)
             capability = plan.contracts.get(node.node_id, {}).get('capability', {})
+            scoped = [(value.get('evidence') or {}).get('taskScope') for selector, value in default['profiles']
+                if selector.node_type == node.node_type
+                and selector.difficulty == capability.get('difficulty') and selector.risk == capability.get('risk')
+                and (value.get('evidence') or {}).get('taskScope')]
+            scope = (forecast.get('evidence') or {}).get('taskScope') or (scoped[0] if scoped else None)
+            outside_scope = bool(scoped and not any(matches_scope(s, task) for s in scoped))
             failure_guard = False
             if not matches and capability:
                 # 容量边界变化不能抹去同类节点的已知失败。新分层有独立正面证据时，
@@ -71,6 +82,7 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
                 for selector, values in default['profiles']:
                     evidence = values.get('evidence') or {}
                     if (evidence.get('kind') == 'independent-node-evaluation'
+                            and matches_scope(evidence.get('taskScope'), task)
                             and evidence.get('excludedReason') in {
                                 'semantic-criterion-failure', 'known-contract-rejection',
                                 'held-out-semantic-criterion-failure', 'held-out-known-contract-rejection'}
@@ -114,9 +126,11 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
             basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': cost_input,
                 'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]',
                 'quality_source': ('known-node-failure-outside-observed-input-range' if failure_guard else
+                    'global-prior-outside-node-evidence-task-scope' if index is None and outside_scope else
                     'global-prior-no-matching-node-evidence' if index is None else
                     'independent-node-evaluation' if forecast.get('evidence') else 'configured-node-prior'),
                 'quality_evidence': forecast.get('evidence'),
+                'evidence_scope': scope_receipt(scope, task),
                 'quality_prior': forecast['quality'],
                 'node_features': {'type': node.node_type, 'difficulty': capability.get('difficulty'),
                     'risk': capability.get('risk'), 'input_capacity': input_cap}}
@@ -134,10 +148,25 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
                     output_forecast_source=('independent-node-usage-and-planned-output' if forecast.get('evidence')
                         and forecast['output_tokens'] is not None else 'explicit-routing-profile'
                         if forecast['output_tokens'] is not None else 'planned-node-output'))
+    empirical = any(row.get('quality_evidence') for node in basis.values() for row in node.values())
     return {'schema_version': 'node-routing-profile-v2' if stratified else 'node-routing-profile-v1',
         'kind': 'configured', 'billing_unit': manifest.billing_unit,
-        'scope': '质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。',
+        'scope': ('质量含范围内独立节点实测与未覆盖的配置先验；逐候选依据见 forecast_basis。'
+                  if empirical else '质量为配置先验；没有匹配本任务的独立节点实测。')
+                 + '时延可使用同规模调用观测，不代表任务成功率或 SLA。',
         'provenance': '本次 provider-config.json；时延观测与匹配数量见 forecast_basis，未新增探测调用。',
         'candidates': list(rows.values()), 'forecast_basis': basis,
         'model_bindings': {m.model_id: m.api_model for m in manifest.candidates},
         'action_bindings': {m.model_id: action_binding(m) for m in manifest.candidates}}
+
+
+def selected_quality_basis(profile, assignments):
+    """概括实际选中的分层来源；不将未匹配的实测外推为任务质量证明。"""
+    basis = (profile or {}).get('forecast_basis', {})
+    rows = [basis.get(nid, {}).get(mid, {}) for nid, mid in (assignments or {}).items()]
+    empirical = [row.get('quality_source') == 'independent-node-evaluation' for row in rows]
+    if empirical and all(empirical):
+        return 'independent-node-evaluation'
+    if any(empirical):
+        return 'independent-node-evaluation-and-configured-prior'
+    return 'configured-profile-prior'

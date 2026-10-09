@@ -40,8 +40,8 @@ export class PlanningWorker implements PlanningRpc {
     }
     const executable=await this.ctx.subprocess.resolveExecutable(config.pythonExecutable,env,this.lifecycle.signal)
     const module=/(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
-    const argv=[executable,...(module?['-m','refractrouter.agent_cli']:[]),'planning-worker','--runs-dir',resolve(config.runsDir)]
     const policy=this.ctx.sandboxPolicy.resolve({})
+    const argv=[executable,...(module?['-m','refractrouter.agent_cli']:[]),'planning-worker','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
     this.handle=this.ctx.subprocess.spawn({argv:this.ctx.sandbox.confine(argv,policy).argv,
       cwd:policy.workspaceRoot,env,stdio:{stdin:'pipe',stdout:'pipe',stderr:{maxBytes:16384}},
       signal:this.lifecycle.signal,graceMs:2000})

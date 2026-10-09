@@ -79,6 +79,7 @@ def automatic_cost_trace(result, manifest):
                          'conservative_input_bound': row.get('conservative_input_bound'),
                          'quality_source': row.get('quality_source'),
                          'quality_evidence': row.get('quality_evidence'),
+                         'evidence_scope': row.get('evidence_scope'),
                          'quality_prior': row.get('quality_prior'),
                          'node_features': row.get('node_features'),
                          'provider': model.provider, 'model': model.api_model,
@@ -98,6 +99,7 @@ def automatic_cost_trace(result, manifest):
                 'eligible': model_id in eligible if eligible is not None else None,
                 'quality_source': row.get('quality_source'), 'quality_prior': row.get('quality_prior'),
                 'quality_evidence': row.get('quality_evidence'), 'node_features': row.get('node_features'),
+                'evidence_scope': row.get('evidence_scope'),
                 'unit': model.billing_unit, 'billing_mode': model.billing_mode,
                 'expected_input_tokens': row['input_tokens'], 'expected_output_tokens': row['output_tokens'],
                 'expected_cost': (row['input_tokens'] * model.input_cost_per_1k
@@ -408,7 +410,7 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         manifest_data = {'schema_version': manifest.schema_version, 'billing_unit': manifest.billing_unit,
                          'models': [asdict(m) for m in manifest.models]}
     profile = (configured_profile(configured, manifest, request.get('plan') or preview_plan(request['task'],
-                   required_criteria=request.get('acceptanceCriteria')).to_dict()) if configured else
+                   required_criteria=request.get('acceptanceCriteria')).to_dict(), task=request['task']) if configured else
                json.loads(Path(profile_path).read_text() if profile_path else resource('report-profile.json').read_text()))
     binding = (authorization_binding(payload, provider_config=provider_config,
         catalog_snapshot=dsh_catalog_snapshot, production_budget=production_choice,
