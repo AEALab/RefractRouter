@@ -20,6 +20,8 @@ Advisor Gate 的两次审核、一次返工与复审闭环见
 自动路由研究入口的最终审核与一次纠正见
 [最终审核与纠正说明](docs/automatic-final-correction.md)，自然任务、费用和原 DSH 界面验收见
 [2026-10-09 验收记录](reports/automatic-quality-20261009/README.md)。
+DSH 日常入口、轨迹解读、常见停止状态与回滚步骤见
+[自动路由使用与故障处理](docs/automatic-routing-operations.md)。
 
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
