@@ -962,8 +962,8 @@ function TaskEvidence({row}:{row:History['records'][number]['decisions'][number]
   </details>
 }
 function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutomatic:(ids:string[])=>Promise<AutomaticHistory>}&ChatTraceProps){
-  const snapshot=useChat?.(s=>s.legacy)
-  const references=snapshot?automaticRefs({legacy:snapshot}):[]
+  const snapshot=useChat?.(s=>s)
+  const references=snapshot?automaticRefs(snapshot):[]
   const [data,setData]=useState<History>(),[error,setError]=useState('')
   useEffect(()=>{let active=true
     const refresh=()=>void load().then(v=>{if(active)setData(v)}).catch(e=>{if(active)setError(errorText(e))})

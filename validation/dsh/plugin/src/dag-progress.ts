@@ -177,7 +177,9 @@ export function runSummary(result: Record<string, unknown>): string {
     +`节点质量 ${number(row.quality_prior)}，${row.quality_source==='independent-node-evaluation'
       ?`独立节点证据 ${object(row.quality_evidence)?String(row.quality_evidence.samples):'未提供'} 条`
       :row.quality_source==='known-node-failure-outside-observed-input-range'?'同类节点已有失败；新输入范围未经复验，不采用乐观全局先验'
-      :row.quality_source==='global-prior-no-matching-node-evidence'?'未覆盖该节点分层，使用全局先验（非节点实测）':'配置先验'}\n`).join('')
+      :row.quality_source==='global-prior-outside-node-evidence-task-scope'?'本任务不在节点实测适用范围，使用未验证先验'
+      :row.quality_source==='global-prior-no-matching-node-evidence'?'未覆盖该节点分层，使用全局先验（非节点实测）':'配置先验'}；`
+    +(object(row.evidence_scope)?`实测范围 ${escape(String(row.evidence_scope.description))}，${row.evidence_scope.matched?'本任务已登记':'本任务未匹配'}\n`:'\n')).join('')
   const actualLines=callRows.filter(object).map(row=>
     `${escape(String(row.label))} · ${escape(String(row.model_id))}：预留上界 ${number(row.reserved)} ${escape(String(row.unit))}，`
     +`${row.status==='billed'?'实际结算':row.status==='unknown-usage'?'待核对预留':row.status==='cancelled-before-dispatch'?'已释放':'当前占用'} ${number(row.charged)} ${escape(String(row.unit))}，状态 ${escape(String(row.status))}\n`).join('')

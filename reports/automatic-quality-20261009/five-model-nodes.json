@@ -1,0 +1,4658 @@
+{
+  "schema_version": "automatic-five-model-node-acceptance-v1",
+  "scope": "五条现有路线在相同公开技术发布材料上进行独立节点校准。各分层三条校准、一条保留；不外推为任意任务质量。",
+  "preflightSha256": "585bf8021c240c9728fdd3a9f6340535c8ca280065298ba6036dd45927cac4f2",
+  "casesSha256": "5deeecb9d1405a19a719ba87f3a1048b7553901439f8ecd833b7ca4fcf0fc998",
+  "contextSha256": "de8c626c11bcdb6343c4568622dd50a78a1177fdcad10421c07494ce08b5bf3b",
+  "limits": {
+    "maximumModelCalls": 80,
+    "maximumCashCny": 40.0,
+    "maximumReferenceCny": 50.0,
+    "protectedCny": 1.4018203599999999,
+    "maxConcurrency": 3,
+    "effectiveTemperature": 0,
+    "timeoutSecondsPerCall": 180,
+    "httpRetries": 0,
+    "extraJudgeCalls": 0
+  },
+  "referenceCny": 4.681093667508989,
+  "cashCny": 4.1668766,
+  "unknownUsage": 0,
+  "models": [
+    {
+      "id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": null,
+      "cases": 16,
+      "passed": 14,
+      "calibrationPassed": 11,
+      "heldOutPassed": 3,
+      "latencyMedianMs": 1377.5,
+      "referenceCny": 0.164944,
+      "cashCny": 0.164944,
+      "availableStrata": 2
+    },
+    {
+      "id": "dsh-model-2554a193bcd888ad",
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": null,
+      "cases": 16,
+      "passed": 15,
+      "calibrationPassed": 12,
+      "heldOutPassed": 3,
+      "latencyMedianMs": 5399.5,
+      "referenceCny": 0.7986126,
+      "cashCny": 0.7986126,
+      "availableStrata": 3
+    },
+    {
+      "id": "dsh-model-06fd0d4ad75fef1d",
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "reasoning_effort": null,
+      "cases": 16,
+      "passed": 16,
+      "calibrationPassed": 12,
+      "heldOutPassed": 4,
+      "latencyMedianMs": 9667.0,
+      "referenceCny": 3.20332,
+      "cashCny": 3.20332,
+      "availableStrata": 4
+    },
+    {
+      "id": "dsh-model-7077bbf6a06daaa6",
+      "provider": "ark",
+      "model": "glm-5.3",
+      "reasoning_effort": null,
+      "cases": 16,
+      "passed": 15,
+      "calibrationPassed": 12,
+      "heldOutPassed": 3,
+      "latencyMedianMs": 2639.5,
+      "referenceCny": 0.151577067509,
+      "cashCny": 0,
+      "availableStrata": 3
+    },
+    {
+      "id": "dsh-model-72afd0d705290d78",
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "low",
+      "cases": 16,
+      "passed": 15,
+      "calibrationPassed": 12,
+      "heldOutPassed": 3,
+      "latencyMedianMs": 4983.5,
+      "referenceCny": 0.36264,
+      "cashCny": 0,
+      "availableStrata": 3
+    }
+  ],
+  "imported": {
+    "schema_version": "node-quality-bundle-v1",
+    "bundle_sha256": "21dcf9d73ade0283538925b87411f91343fa505369c2182321c4e440503ec5ce",
+    "observations_sha256": "cabde3a4244ab5f121fbd2b38e8f98bcf1324be74fe31110b617782736460e8b",
+    "calibration_tasks": [
+      "extract-billing",
+      "extract-rollback",
+      "extract-time",
+      "generate-cost",
+      "generate-release",
+      "generate-source",
+      "synth-cash",
+      "synth-parallel",
+      "synth-review",
+      "verify-cancel",
+      "verify-evidence",
+      "verify-time"
+    ],
+    "held_out_tasks": [
+      "extract-heldout",
+      "generate-heldout",
+      "synth-heldout",
+      "verify-heldout"
+    ],
+    "model_count": 5,
+    "strata": 15,
+    "excluded_strata": [
+      {
+        "model_id": "dsh-model-2554a193bcd888ad",
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_min_tokens": 32769,
+        "input_max_tokens": 131073,
+        "reason": "held-out-semantic-criterion-failure"
+      },
+      {
+        "model_id": "dsh-model-7077bbf6a06daaa6",
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_min_tokens": 32769,
+        "input_max_tokens": 131073,
+        "reason": "held-out-semantic-criterion-failure"
+      },
+      {
+        "model_id": "dsh-model-72afd0d705290d78",
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_min_tokens": 32769,
+        "input_max_tokens": 131073,
+        "reason": "held-out-semantic-criterion-failure"
+      },
+      {
+        "model_id": "dsh-model-b1aeb12a74ea9990",
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_min_tokens": 32769,
+        "input_max_tokens": 131073,
+        "reason": "held-out-semantic-criterion-failure"
+      },
+      {
+        "model_id": "dsh-model-b1aeb12a74ea9990",
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_min_tokens": 32769,
+        "input_max_tokens": 131073,
+        "reason": "semantic-criterion-failure"
+      }
+    ],
+    "held_out_observations_sha256": "97c74b5f203ebef5fbc6338f4b82fe21a841085a6ed9e0058e9cf1da12e73a58",
+    "held_out_policy": "known-failure-veto-only-no-score-or-usage-fitting",
+    "unmatched_policy": "global-prior-explicitly-unverified",
+    "task_scope": {
+      "version": "exact-task-v1",
+      "description": "冻结技术发布检查及其费用、审核时限、回滚和证据核对节点。仅登记任务使用节点实测，其他任务保留未实测先验。",
+      "taskSha256": [
+        "455e9549e27cf17594bfb4db665d6db84d7a581992e1f4afc6f1d8024506d6fa",
+        "a5180deccddd79f4b00bef86c5c2409df75e33edd6fb6ebf17283b97c8765bff",
+        "547bd111e1f704f80a33a5f186e6592650779ffcc00929f679d3cb4037745fd7",
+        "5363348c4afdbf782c2f9228d6a511246ed5c52d297ad3052cd7f1f488d8c152",
+        "8963460e37b1f177c1da88a964c17bc012572345c1449fa0bef0a83a091346f3",
+        "1ba27f1b85052e2623aed44f23fcfcad7c8f3a4a077d0c8868b05912acb0cc2a",
+        "3d30100c9eb8b6d05f37a3d7c7ad473c3d5cb4f438fcbceea5d9852a9ba6c4c0",
+        "f552d979841dfb63a5855506fa3c8f04d571d89899d05bdbd87c9a0dee4668d2",
+        "4c02e33fc9c8c1014f40b1e8355b93fd372ef8c6fb2f14758642dda2ef55b1f1",
+        "12dd8d2f05a7c2e8cc83d37747819dfe469cf9e37477c7c9ed7f3732b1f2467e",
+        "abcb946cfdbdefd0014e16b2fb00595ef6353e8656abd88cb577b6bf021c3e6c",
+        "81cd22fe3ac1e30e88c8e68d65a03f00cca132a4b0fc7a586f02b77682c9dc47",
+        "d64bdc6bb170bd3271bb3c41e2c732e70acde32f1b6dc76a8ca85453fac95260",
+        "c313b1e0a874d0f02b0e68811240f002b784df13c7cf83f8506e8e83d9427bb8",
+        "0c7ae85120f0190d967db6fc6cf34cf71cf7a735b1992db6d226fdba6b32a811",
+        "d19853d3af15d171b93bc57e0a417fb246eb762616f04be58bf7e85e15456283",
+        "8a5c24d1362c0945e88302a85481d1655e81f030b014cc54f8f68250c626adf1"
+      ]
+    },
+    "whole_task_scores_used": false
+  },
+  "observations": [
+    {
+      "task_id": "extract-time",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\"}",
+      "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+      "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40275
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "f46cdf1aa5a2adcb9e48c51d29d44c52f3b0b8305bbdc8e293cec58f8d1497dc",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+        "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9"
+      },
+      "usage": {
+        "input_tokens": 9438,
+        "output_tokens": 57,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 37
+      },
+      "latency_ms": 922,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-time",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\"}",
+      "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+      "output_sha256": "c27b055669d2f286798b1cf6c7ec70a37472c6ff76c55248a76ae1435c750bf1",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40275
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "f46cdf1aa5a2adcb9e48c51d29d44c52f3b0b8305bbdc8e293cec58f8d1497dc",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+        "output_sha256": "c27b055669d2f286798b1cf6c7ec70a37472c6ff76c55248a76ae1435c750bf1"
+      },
+      "usage": {
+        "input_tokens": 9491,
+        "output_tokens": 100,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 83
+      },
+      "latency_ms": 1426,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-time",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\"}",
+      "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+      "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40275
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "f46cdf1aa5a2adcb9e48c51d29d44c52f3b0b8305bbdc8e293cec58f8d1497dc",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+        "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9"
+      },
+      "usage": {
+        "input_tokens": 9200,
+        "output_tokens": 32,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 1764,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-time",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\"}",
+      "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+      "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40275
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "f46cdf1aa5a2adcb9e48c51d29d44c52f3b0b8305bbdc8e293cec58f8d1497dc",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+        "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9"
+      },
+      "usage": {
+        "input_tokens": 9412,
+        "output_tokens": 81,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3426,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-time",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\"}",
+      "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+      "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40275
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "f46cdf1aa5a2adcb9e48c51d29d44c52f3b0b8305bbdc8e293cec58f8d1497dc",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "19c8b5318279ccd4550d64b35c0ca18e4b39faaa5d487627c688c60126ecaa57",
+        "output_sha256": "761a2c1fc085e21e661cd6f60cfeba30937fa646c3980a09ff2d5611e12c3de9"
+      },
+      "usage": {
+        "input_tokens": 8872,
+        "output_tokens": 74,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 6758,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-billing",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"subscription_record\":\"reference\",\"bill_confirmed\":\"no\",\"refund_confirmed\":\"no\"}",
+      "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+      "output_sha256": "0921a84006599852f8dc9959b0d4ad1129af6da5f7f08cdabcbb30d2a628beea",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40403
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "391004c615ba9d34c59753367b81e7c46eb54cbfc8cec3ccc6580112daa4adf2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "subscription_record",
+              "passed": true
+            },
+            {
+              "id": "bill_confirmed",
+              "passed": true
+            },
+            {
+              "id": "refund_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+        "output_sha256": "0921a84006599852f8dc9959b0d4ad1129af6da5f7f08cdabcbb30d2a628beea"
+      },
+      "usage": {
+        "input_tokens": 9463,
+        "output_tokens": 189,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 168
+      },
+      "latency_ms": 1623,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-billing",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"subscription_record\": \"reference\", \"bill_confirmed\": \"no\", \"refund_confirmed\": \"no\"}",
+      "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+      "output_sha256": "80f53e1ffbd9286a104777d2f6f8135178062aefb80c1a9558aa7d10eb647052",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40403
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "391004c615ba9d34c59753367b81e7c46eb54cbfc8cec3ccc6580112daa4adf2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "subscription_record",
+              "passed": true
+            },
+            {
+              "id": "bill_confirmed",
+              "passed": true
+            },
+            {
+              "id": "refund_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+        "output_sha256": "80f53e1ffbd9286a104777d2f6f8135178062aefb80c1a9558aa7d10eb647052"
+      },
+      "usage": {
+        "input_tokens": 9516,
+        "output_tokens": 159,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 133
+      },
+      "latency_ms": 3299,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-billing",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"subscription_record\": \"reference\", \"bill_confirmed\": \"no\", \"refund_confirmed\": \"no\"}",
+      "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+      "output_sha256": "80f53e1ffbd9286a104777d2f6f8135178062aefb80c1a9558aa7d10eb647052",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40403
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "391004c615ba9d34c59753367b81e7c46eb54cbfc8cec3ccc6580112daa4adf2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "subscription_record",
+              "passed": true
+            },
+            {
+              "id": "bill_confirmed",
+              "passed": true
+            },
+            {
+              "id": "refund_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+        "output_sha256": "80f53e1ffbd9286a104777d2f6f8135178062aefb80c1a9558aa7d10eb647052"
+      },
+      "usage": {
+        "input_tokens": 9228,
+        "output_tokens": 53,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 1981,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-billing",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"subscription_record\":\"reference\",\"bill_confirmed\":\"no\",\"refund_confirmed\":\"no\"}",
+      "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+      "output_sha256": "0921a84006599852f8dc9959b0d4ad1129af6da5f7f08cdabcbb30d2a628beea",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40403
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "391004c615ba9d34c59753367b81e7c46eb54cbfc8cec3ccc6580112daa4adf2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "subscription_record",
+              "passed": true
+            },
+            {
+              "id": "bill_confirmed",
+              "passed": true
+            },
+            {
+              "id": "refund_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+        "output_sha256": "0921a84006599852f8dc9959b0d4ad1129af6da5f7f08cdabcbb30d2a628beea"
+      },
+      "usage": {
+        "input_tokens": 9437,
+        "output_tokens": 91,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3493,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-billing",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"subscription_record\": \"reference\", \"bill_confirmed\": \"no\", \"refund_confirmed\": \"no\"}",
+      "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+      "output_sha256": "80f53e1ffbd9286a104777d2f6f8135178062aefb80c1a9558aa7d10eb647052",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40403
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "391004c615ba9d34c59753367b81e7c46eb54cbfc8cec3ccc6580112daa4adf2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "subscription_record",
+              "passed": true
+            },
+            {
+              "id": "bill_confirmed",
+              "passed": true
+            },
+            {
+              "id": "refund_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "e2135d10a4d5a37c7530517e9c014d3951df94dc9411edf8598047449dc0c530",
+        "output_sha256": "80f53e1ffbd9286a104777d2f6f8135178062aefb80c1a9558aa7d10eb647052"
+      },
+      "usage": {
+        "input_tokens": 8900,
+        "output_tokens": 66,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 12256,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-rollback",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"sessions_retained\":\"yes\",\"providers_retained\":\"yes\",\"credentials_retained\":\"yes\",\"evidence_retained\":\"yes\"}",
+      "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+      "output_sha256": "5ca88f3bac757b4e0e1b03302446dd3a6b987b5d3199b283f1c7a5457e5fb17c",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40317
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "675091962e91dc45d95c1a226bcf44a8267ab63337d787b4e7d4feea652335b1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "sessions_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_retained",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+        "output_sha256": "5ca88f3bac757b4e0e1b03302446dd3a6b987b5d3199b283f1c7a5457e5fb17c"
+      },
+      "usage": {
+        "input_tokens": 9451,
+        "output_tokens": 81,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 49
+      },
+      "latency_ms": 871,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-rollback",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"sessions_retained\":\"yes\",\"providers_retained\":\"yes\",\"credentials_retained\":\"yes\",\"evidence_retained\":\"yes\"}",
+      "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+      "output_sha256": "5ca88f3bac757b4e0e1b03302446dd3a6b987b5d3199b283f1c7a5457e5fb17c",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40317
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "675091962e91dc45d95c1a226bcf44a8267ab63337d787b4e7d4feea652335b1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "sessions_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_retained",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+        "output_sha256": "5ca88f3bac757b4e0e1b03302446dd3a6b987b5d3199b283f1c7a5457e5fb17c"
+      },
+      "usage": {
+        "input_tokens": 9504,
+        "output_tokens": 172,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 140
+      },
+      "latency_ms": 2831,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-rollback",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"sessions_retained\": \"yes\", \"providers_retained\": \"yes\", \"credentials_retained\": \"yes\", \"evidence_retained\": \"yes\"}",
+      "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+      "output_sha256": "560b6247776bf0810a9352668d9cc65235c6ad4e8dae3b12c9c66e74926da868",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40317
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "675091962e91dc45d95c1a226bcf44a8267ab63337d787b4e7d4feea652335b1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "sessions_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_retained",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+        "output_sha256": "560b6247776bf0810a9352668d9cc65235c6ad4e8dae3b12c9c66e74926da868"
+      },
+      "usage": {
+        "input_tokens": 9213,
+        "output_tokens": 50,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 2117,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-rollback",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"sessions_retained\":\"yes\",\"providers_retained\":\"yes\",\"credentials_retained\":\"yes\",\"evidence_retained\":\"yes\"}",
+      "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+      "output_sha256": "5ca88f3bac757b4e0e1b03302446dd3a6b987b5d3199b283f1c7a5457e5fb17c",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40317
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "675091962e91dc45d95c1a226bcf44a8267ab63337d787b4e7d4feea652335b1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "sessions_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_retained",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+        "output_sha256": "5ca88f3bac757b4e0e1b03302446dd3a6b987b5d3199b283f1c7a5457e5fb17c"
+      },
+      "usage": {
+        "input_tokens": 9425,
+        "output_tokens": 116,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 5061,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-rollback",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"sessions_retained\": \"yes\", \"providers_retained\": \"yes\", \"credentials_retained\": \"yes\", \"evidence_retained\": \"yes\"}",
+      "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+      "output_sha256": "560b6247776bf0810a9352668d9cc65235c6ad4e8dae3b12c9c66e74926da868",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40317
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "675091962e91dc45d95c1a226bcf44a8267ab63337d787b4e7d4feea652335b1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "sessions_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_retained",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "101e347428bf62281b409ce1e654b062c2443f746390cc59cea0f0ca4559aa8e",
+        "output_sha256": "560b6247776bf0810a9352668d9cc65235c6ad4e8dae3b12c9c66e74926da868"
+      },
+      "usage": {
+        "input_tokens": 8883,
+        "output_tokens": 149,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 8237,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-heldout",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "held-out",
+      "output": "{\"concurrency\":\"3\",\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\",\"tests_confirmed\":\"no\"}",
+      "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+      "output_sha256": "af52fbf2111531c3af837bede193ba7792ae4e09fc35461ba7905a66e80ba81b",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40355
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "169a036f26ca11830a1129b22907ed94e1c5ce62cf147e9c0d9a53f30a5a2a73",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "concurrency",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+        "output_sha256": "af52fbf2111531c3af837bede193ba7792ae4e09fc35461ba7905a66e80ba81b"
+      },
+      "usage": {
+        "input_tokens": 9461,
+        "output_tokens": 28,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 681,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-heldout",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "held-out",
+      "output": "{\"concurrency\":\"3\",\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\",\"tests_confirmed\":\"no\"}",
+      "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+      "output_sha256": "af52fbf2111531c3af837bede193ba7792ae4e09fc35461ba7905a66e80ba81b",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40355
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "169a036f26ca11830a1129b22907ed94e1c5ce62cf147e9c0d9a53f30a5a2a73",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "concurrency",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+        "output_sha256": "af52fbf2111531c3af837bede193ba7792ae4e09fc35461ba7905a66e80ba81b"
+      },
+      "usage": {
+        "input_tokens": 9514,
+        "output_tokens": 114,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 86
+      },
+      "latency_ms": 2269,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-heldout",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "held-out",
+      "output": "{\"concurrency\": \"3\", \"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\", \"tests_confirmed\": \"no\"}",
+      "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+      "output_sha256": "805b271086716d27a88b9f5206213a4c181ffc741e112110270d040d19705d6f",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40355
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "169a036f26ca11830a1129b22907ed94e1c5ce62cf147e9c0d9a53f30a5a2a73",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "concurrency",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+        "output_sha256": "805b271086716d27a88b9f5206213a4c181ffc741e112110270d040d19705d6f"
+      },
+      "usage": {
+        "input_tokens": 9223,
+        "output_tokens": 54,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 1825,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-heldout",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "held-out",
+      "output": "{\"concurrency\":\"3\",\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\",\"tests_confirmed\":\"no\"}",
+      "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+      "output_sha256": "af52fbf2111531c3af837bede193ba7792ae4e09fc35461ba7905a66e80ba81b",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40355
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "169a036f26ca11830a1129b22907ed94e1c5ce62cf147e9c0d9a53f30a5a2a73",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "concurrency",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+        "output_sha256": "af52fbf2111531c3af837bede193ba7792ae4e09fc35461ba7905a66e80ba81b"
+      },
+      "usage": {
+        "input_tokens": 8895,
+        "output_tokens": 95,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 5930,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "extract-heldout",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "held-out",
+      "output": "{\"concurrency\": \"3\", \"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\", \"tests_confirmed\": \"no\"}",
+      "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+      "output_sha256": "805b271086716d27a88b9f5206213a4c181ffc741e112110270d040d19705d6f",
+      "features": {
+        "node_type": "extraction",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40355
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "169a036f26ca11830a1129b22907ed94e1c5ce62cf147e9c0d9a53f30a5a2a73",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "concurrency",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "27ee13aaf3dbd820258ea777478cd9395799526898846f566740431d5791fe0a",
+        "output_sha256": "805b271086716d27a88b9f5206213a4c181ffc741e112110270d040d19705d6f"
+      },
+      "usage": {
+        "input_tokens": 9435,
+        "output_tokens": 159,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 4021,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-cash",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"settled_reference\":\"0.15\",\"cash_occupied\":\"0.10\"}",
+      "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+      "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40309
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "95eb97e94d0cfaad89a2c0e408c7efaa0228f74a59d08791879005b73eb2060d",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+        "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932"
+      },
+      "usage": {
+        "input_tokens": 9453,
+        "output_tokens": 380,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 361
+      },
+      "latency_ms": 2122,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-cash",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"settled_reference\":\"0.15\",\"cash_occupied\":\"0.10\"}",
+      "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+      "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40309
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "95eb97e94d0cfaad89a2c0e408c7efaa0228f74a59d08791879005b73eb2060d",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+        "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932"
+      },
+      "usage": {
+        "input_tokens": 9219,
+        "output_tokens": 55,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 1961,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-cash",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"settled_reference\":\"0.15\",\"cash_occupied\":\"0.10\"}",
+      "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+      "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40309
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "95eb97e94d0cfaad89a2c0e408c7efaa0228f74a59d08791879005b73eb2060d",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+        "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932"
+      },
+      "usage": {
+        "input_tokens": 9506,
+        "output_tokens": 426,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 407
+      },
+      "latency_ms": 5701,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-cash",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"settled_reference\": \"0.15\", \"cash_occupied\": \"0.10\"}",
+      "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+      "output_sha256": "fbba1f37dd0d03f51c888e022be5e8d229927e34edcd714e5cd69914afe84327",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40309
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "95eb97e94d0cfaad89a2c0e408c7efaa0228f74a59d08791879005b73eb2060d",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+        "output_sha256": "fbba1f37dd0d03f51c888e022be5e8d229927e34edcd714e5cd69914afe84327"
+      },
+      "usage": {
+        "input_tokens": 9427,
+        "output_tokens": 136,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3981,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-cash",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"settled_reference\": \"0.15\", \"cash_occupied\": \"0.10\"}",
+      "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+      "output_sha256": "fbba1f37dd0d03f51c888e022be5e8d229927e34edcd714e5cd69914afe84327",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40309
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "95eb97e94d0cfaad89a2c0e408c7efaa0228f74a59d08791879005b73eb2060d",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "9aa0f4da7ac73148de8a396d3e63693f9d49ddcfc5cbce1800b8919f6d13f24a",
+        "output_sha256": "fbba1f37dd0d03f51c888e022be5e8d229927e34edcd714e5cd69914afe84327"
+      },
+      "usage": {
+        "input_tokens": 8896,
+        "output_tokens": 248,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 11597,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-review",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"effective_review_seconds\": \"70\", \"review_upper_seconds\": \"180\"}",
+      "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+      "output_sha256": "4966eb5cd8f7f142faadee2422367230112eb98e697607da39eba8a2f36c6437",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40348
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "9ebe38552798e10382998d91b0c6a92dd725c763db3f2017a6ba7e115a1c17be",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "effective_review_seconds",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+        "output_sha256": "4966eb5cd8f7f142faadee2422367230112eb98e697607da39eba8a2f36c6437"
+      },
+      "usage": {
+        "input_tokens": 9456,
+        "output_tokens": 192,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 171
+      },
+      "latency_ms": 1327,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-review",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"effective_review_seconds\": \"70\", \"review_upper_seconds\": \"180\"}",
+      "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+      "output_sha256": "4966eb5cd8f7f142faadee2422367230112eb98e697607da39eba8a2f36c6437",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40348
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "9ebe38552798e10382998d91b0c6a92dd725c763db3f2017a6ba7e115a1c17be",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "effective_review_seconds",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+        "output_sha256": "4966eb5cd8f7f142faadee2422367230112eb98e697607da39eba8a2f36c6437"
+      },
+      "usage": {
+        "input_tokens": 9218,
+        "output_tokens": 83,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3183,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-review",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"effective_review_seconds\":\"70\",\"review_upper_seconds\":\"180\"}",
+      "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+      "output_sha256": "46a2efd9206e193061bc01b0f7f73db824b1edcde2cf5945691f019826539b2b",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40348
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "9ebe38552798e10382998d91b0c6a92dd725c763db3f2017a6ba7e115a1c17be",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "effective_review_seconds",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+        "output_sha256": "46a2efd9206e193061bc01b0f7f73db824b1edcde2cf5945691f019826539b2b"
+      },
+      "usage": {
+        "input_tokens": 8889,
+        "output_tokens": 114,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 7711,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-review",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"effective_review_seconds\": \"70\", \"review_upper_seconds\": \"180\"}",
+      "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+      "output_sha256": "4966eb5cd8f7f142faadee2422367230112eb98e697607da39eba8a2f36c6437",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40348
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "9ebe38552798e10382998d91b0c6a92dd725c763db3f2017a6ba7e115a1c17be",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "effective_review_seconds",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+        "output_sha256": "4966eb5cd8f7f142faadee2422367230112eb98e697607da39eba8a2f36c6437"
+      },
+      "usage": {
+        "input_tokens": 9430,
+        "output_tokens": 156,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 4906,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-review",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"effective_review_seconds\":\"70\",\"review_upper_seconds\":\"180\"}",
+      "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+      "output_sha256": "46a2efd9206e193061bc01b0f7f73db824b1edcde2cf5945691f019826539b2b",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40348
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "9ebe38552798e10382998d91b0c6a92dd725c763db3f2017a6ba7e115a1c17be",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "effective_review_seconds",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "afd10c66140793c3cd889e8cdb92fa537322238cc85feb4e32376ebc7e4e4c4a",
+        "output_sha256": "46a2efd9206e193061bc01b0f7f73db824b1edcde2cf5945691f019826539b2b"
+      },
+      "usage": {
+        "input_tokens": 9509,
+        "output_tokens": 950,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 932
+      },
+      "latency_ms": 10142,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-parallel",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"serial_seconds\":\"28\",\"parallel_seconds\":\"15\"}",
+      "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+      "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40246
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "cc6bdc20c7acc030fcc60f06ed251e77f5262c99e300a000acb71e94f6519f02",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "serial_seconds",
+              "passed": true
+            },
+            {
+              "id": "parallel_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+        "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f"
+      },
+      "usage": {
+        "input_tokens": 9437,
+        "output_tokens": 165,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 151
+      },
+      "latency_ms": 1604,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-parallel",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"serial_seconds\":\"28\",\"parallel_seconds\":\"15\"}",
+      "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+      "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40246
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "cc6bdc20c7acc030fcc60f06ed251e77f5262c99e300a000acb71e94f6519f02",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "serial_seconds",
+              "passed": true
+            },
+            {
+              "id": "parallel_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+        "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f"
+      },
+      "usage": {
+        "input_tokens": 9490,
+        "output_tokens": 391,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 377
+      },
+      "latency_ms": 5397,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-parallel",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"serial_seconds\":\"28\",\"parallel_seconds\":\"15\"}",
+      "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+      "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40246
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "cc6bdc20c7acc030fcc60f06ed251e77f5262c99e300a000acb71e94f6519f02",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "serial_seconds",
+              "passed": true
+            },
+            {
+              "id": "parallel_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+        "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f"
+      },
+      "usage": {
+        "input_tokens": 8873,
+        "output_tokens": 163,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 7068,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-parallel",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"serial_seconds\":\"28\",\"parallel_seconds\":\"15\"}",
+      "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+      "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40246
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "cc6bdc20c7acc030fcc60f06ed251e77f5262c99e300a000acb71e94f6519f02",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "serial_seconds",
+              "passed": true
+            },
+            {
+              "id": "parallel_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+        "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f"
+      },
+      "usage": {
+        "input_tokens": 9201,
+        "output_tokens": 290,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 6705,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-parallel",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"serial_seconds\":\"28\",\"parallel_seconds\":\"15\"}",
+      "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+      "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40246
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "cc6bdc20c7acc030fcc60f06ed251e77f5262c99e300a000acb71e94f6519f02",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "serial_seconds",
+              "passed": true
+            },
+            {
+              "id": "parallel_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "937eddccf37550b45df4ecb82cb4ace6bc06a5b11e1021385c3c0b1e9867ad23",
+        "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f"
+      },
+      "usage": {
+        "input_tokens": 9411,
+        "output_tokens": 281,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 6734,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-heldout",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.38\",\"cash_occupied\":\"0.18\",\"released\":\"0.03\"}",
+      "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+      "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40419
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "a5e06ca200b5efcf02d4631793d1b174c8c5a6871761434335d55f4339ba5fa9",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+        "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab"
+      },
+      "usage": {
+        "input_tokens": 9480,
+        "output_tokens": 163,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 137
+      },
+      "latency_ms": 1006,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-heldout",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.38\",\"cash_occupied\":\"0.18\",\"released\":\"0.03\"}",
+      "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+      "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40419
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "a5e06ca200b5efcf02d4631793d1b174c8c5a6871761434335d55f4339ba5fa9",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+        "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab"
+      },
+      "usage": {
+        "input_tokens": 9245,
+        "output_tokens": 84,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 2176,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-heldout",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.38\",\"cash_occupied\":\"0.15\",\"released\":\"0.03\"}",
+      "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+      "output_sha256": "78fe1dcf424e053f841954f91a579d70fd6eea55b7031b6e00cfaaed313dc95c",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40419
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 75.0,
+        "passed": false,
+        "oracle": {
+          "criteria_sha256": "a5e06ca200b5efcf02d4631793d1b174c8c5a6871761434335d55f4339ba5fa9",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": false
+            },
+            {
+              "id": "released",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+        "output_sha256": "78fe1dcf424e053f841954f91a579d70fd6eea55b7031b6e00cfaaed313dc95c"
+      },
+      "usage": {
+        "input_tokens": 9533,
+        "output_tokens": 508,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 482
+      },
+      "latency_ms": 5402,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-heldout",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.38\",\"cash_occupied\":\"0.18\",\"released\":\"0.03\"}",
+      "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+      "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40419
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "a5e06ca200b5efcf02d4631793d1b174c8c5a6871761434335d55f4339ba5fa9",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+        "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab"
+      },
+      "usage": {
+        "input_tokens": 8919,
+        "output_tokens": 579,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 23282,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "synth-heldout",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.38\",\"cash_occupied\":\"0.15\",\"released\":\"0.03\"}",
+      "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+      "output_sha256": "78fe1dcf424e053f841954f91a579d70fd6eea55b7031b6e00cfaaed313dc95c",
+      "features": {
+        "node_type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_budget_tokens": 40419
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 75.0,
+        "passed": false,
+        "oracle": {
+          "criteria_sha256": "a5e06ca200b5efcf02d4631793d1b174c8c5a6871761434335d55f4339ba5fa9",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": false
+            },
+            {
+              "id": "released",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "5e4c91070b99bff0e8e05886bbb8e57294cb9ffa40bc38bb14473815efa7fc4d",
+        "output_sha256": "78fe1dcf424e053f841954f91a579d70fd6eea55b7031b6e00cfaaed313dc95c"
+      },
+      "usage": {
+        "input_tokens": 9454,
+        "output_tokens": 2385,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 36508,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-evidence",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"billing_claim_supported\":\"no\",\"tests_claim_supported\":\"no\"}",
+      "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+      "output_sha256": "66ac963dbdd1ec0f14af2f078afde479f145fbf67d7e8be75fab08f47a005708",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40360
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "4719a499d9f535bd00afbe35d5fa0617e5dae82c25dec69fe07d2fd065c0aec2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "billing_claim_supported",
+              "passed": true
+            },
+            {
+              "id": "tests_claim_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+        "output_sha256": "66ac963dbdd1ec0f14af2f078afde479f145fbf67d7e8be75fab08f47a005708"
+      },
+      "usage": {
+        "input_tokens": 9454,
+        "output_tokens": 147,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 128
+      },
+      "latency_ms": 1122,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-evidence",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"billing_claim_supported\": \"no\", \"tests_claim_supported\": \"no\"}",
+      "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+      "output_sha256": "e29bd9d449ac60bfe2c4777500175d5df949efeb9b333ac81652fc68be00bacc",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40360
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "4719a499d9f535bd00afbe35d5fa0617e5dae82c25dec69fe07d2fd065c0aec2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "billing_claim_supported",
+              "passed": true
+            },
+            {
+              "id": "tests_claim_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+        "output_sha256": "e29bd9d449ac60bfe2c4777500175d5df949efeb9b333ac81652fc68be00bacc"
+      },
+      "usage": {
+        "input_tokens": 9218,
+        "output_tokens": 45,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 1592,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-evidence",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"billing_claim_supported\":\"no\",\"tests_claim_supported\":\"no\"}",
+      "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+      "output_sha256": "66ac963dbdd1ec0f14af2f078afde479f145fbf67d7e8be75fab08f47a005708",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40360
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "4719a499d9f535bd00afbe35d5fa0617e5dae82c25dec69fe07d2fd065c0aec2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "billing_claim_supported",
+              "passed": true
+            },
+            {
+              "id": "tests_claim_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+        "output_sha256": "66ac963dbdd1ec0f14af2f078afde479f145fbf67d7e8be75fab08f47a005708"
+      },
+      "usage": {
+        "input_tokens": 9507,
+        "output_tokens": 250,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 231
+      },
+      "latency_ms": 4006,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-evidence",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"billing_claim_supported\": \"no\", \"tests_claim_supported\": \"no\"}",
+      "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+      "output_sha256": "e29bd9d449ac60bfe2c4777500175d5df949efeb9b333ac81652fc68be00bacc",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40360
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "4719a499d9f535bd00afbe35d5fa0617e5dae82c25dec69fe07d2fd065c0aec2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "billing_claim_supported",
+              "passed": true
+            },
+            {
+              "id": "tests_claim_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+        "output_sha256": "e29bd9d449ac60bfe2c4777500175d5df949efeb9b333ac81652fc68be00bacc"
+      },
+      "usage": {
+        "input_tokens": 9428,
+        "output_tokens": 89,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3160,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-evidence",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"billing_claim_supported\": \"no\", \"tests_claim_supported\": \"no\"}",
+      "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+      "output_sha256": "e29bd9d449ac60bfe2c4777500175d5df949efeb9b333ac81652fc68be00bacc",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40360
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "4719a499d9f535bd00afbe35d5fa0617e5dae82c25dec69fe07d2fd065c0aec2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "billing_claim_supported",
+              "passed": true
+            },
+            {
+              "id": "tests_claim_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "12a892ed71a5e6e188ecced7f96be0ffbc011002319bd27db07874a37ab3fa2c",
+        "output_sha256": "e29bd9d449ac60bfe2c4777500175d5df949efeb9b333ac81652fc68be00bacc"
+      },
+      "usage": {
+        "input_tokens": 8887,
+        "output_tokens": 88,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 7232,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-time",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"wait_180_valid\":\"no\",\"min_180_60_rule_valid\":\"no\"}",
+      "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+      "output_sha256": "576b3219c10c6eb757e3abd4b10fca8a55d620200820c08d63cf9be18bbdf2c7",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40389
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8c74806440e35fa729f6b2d97307dcd8a9646a6c3f2ab353f120d1f3ca1bde95",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "wait_180_valid",
+              "passed": true
+            },
+            {
+              "id": "min_180_60_rule_valid",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+        "output_sha256": "576b3219c10c6eb757e3abd4b10fca8a55d620200820c08d63cf9be18bbdf2c7"
+      },
+      "usage": {
+        "input_tokens": 9469,
+        "output_tokens": 183,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 163
+      },
+      "latency_ms": 2058,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-time",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"wait_180_valid\":\"no\",\"min_180_60_rule_valid\":\"no\"}",
+      "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+      "output_sha256": "576b3219c10c6eb757e3abd4b10fca8a55d620200820c08d63cf9be18bbdf2c7",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40389
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8c74806440e35fa729f6b2d97307dcd8a9646a6c3f2ab353f120d1f3ca1bde95",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "wait_180_valid",
+              "passed": true
+            },
+            {
+              "id": "min_180_60_rule_valid",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+        "output_sha256": "576b3219c10c6eb757e3abd4b10fca8a55d620200820c08d63cf9be18bbdf2c7"
+      },
+      "usage": {
+        "input_tokens": 9236,
+        "output_tokens": 198,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3832,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-time",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"wait_180_valid\": \"no\", \"min_180_60_rule_valid\": \"no\"}",
+      "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+      "output_sha256": "ba3f6a500673f2b925b0fd4688d6622667ab16f8433d13be9d2d3e31c31bb74c",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40389
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8c74806440e35fa729f6b2d97307dcd8a9646a6c3f2ab353f120d1f3ca1bde95",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "wait_180_valid",
+              "passed": true
+            },
+            {
+              "id": "min_180_60_rule_valid",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+        "output_sha256": "ba3f6a500673f2b925b0fd4688d6622667ab16f8433d13be9d2d3e31c31bb74c"
+      },
+      "usage": {
+        "input_tokens": 9443,
+        "output_tokens": 178,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 4844,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-time",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"wait_180_valid\": \"no\", \"min_180_60_rule_valid\": \"no\"}",
+      "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+      "output_sha256": "ba3f6a500673f2b925b0fd4688d6622667ab16f8433d13be9d2d3e31c31bb74c",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40389
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8c74806440e35fa729f6b2d97307dcd8a9646a6c3f2ab353f120d1f3ca1bde95",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "wait_180_valid",
+              "passed": true
+            },
+            {
+              "id": "min_180_60_rule_valid",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+        "output_sha256": "ba3f6a500673f2b925b0fd4688d6622667ab16f8433d13be9d2d3e31c31bb74c"
+      },
+      "usage": {
+        "input_tokens": 8905,
+        "output_tokens": 317,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 11097,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-time",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"wait_180_valid\":\"no\",\"min_180_60_rule_valid\":\"no\"}",
+      "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+      "output_sha256": "576b3219c10c6eb757e3abd4b10fca8a55d620200820c08d63cf9be18bbdf2c7",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40389
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8c74806440e35fa729f6b2d97307dcd8a9646a6c3f2ab353f120d1f3ca1bde95",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "wait_180_valid",
+              "passed": true
+            },
+            {
+              "id": "min_180_60_rule_valid",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a3f0e7ac6a1d2f3b0856145838bd04e66e30a52c10cc2e3aaf5b2df04f0c729d",
+        "output_sha256": "576b3219c10c6eb757e3abd4b10fca8a55d620200820c08d63cf9be18bbdf2c7"
+      },
+      "usage": {
+        "input_tokens": 9522,
+        "output_tokens": 1772,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 1752
+      },
+      "latency_ms": 19163,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-cancel",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"spent_028_supported\":\"no\",\"release_unknown_supported\":\"no\",\"auto_resend_supported\":\"no\"}",
+      "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+      "output_sha256": "04b55a2ca2cddac765a1847b6ae0fc537a17da676558254a6dcb1a657fa092e8",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40440
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "399e865b08fb161d07ef50b46984d668eaf8ceaa8d0eb2f4bbff371f38ba22a1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "spent_028_supported",
+              "passed": true
+            },
+            {
+              "id": "release_unknown_supported",
+              "passed": true
+            },
+            {
+              "id": "auto_resend_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+        "output_sha256": "04b55a2ca2cddac765a1847b6ae0fc537a17da676558254a6dcb1a657fa092e8"
+      },
+      "usage": {
+        "input_tokens": 9486,
+        "output_tokens": 209,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 182
+      },
+      "latency_ms": 1428,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-cancel",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"spent_028_supported\":\"no\",\"release_unknown_supported\":\"no\",\"auto_resend_supported\":\"no\"}",
+      "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+      "output_sha256": "04b55a2ca2cddac765a1847b6ae0fc537a17da676558254a6dcb1a657fa092e8",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40440
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "399e865b08fb161d07ef50b46984d668eaf8ceaa8d0eb2f4bbff371f38ba22a1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "spent_028_supported",
+              "passed": true
+            },
+            {
+              "id": "release_unknown_supported",
+              "passed": true
+            },
+            {
+              "id": "auto_resend_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+        "output_sha256": "04b55a2ca2cddac765a1847b6ae0fc537a17da676558254a6dcb1a657fa092e8"
+      },
+      "usage": {
+        "input_tokens": 9539,
+        "output_tokens": 477,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 450
+      },
+      "latency_ms": 5717,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-cancel",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"spent_028_supported\": \"no\", \"release_unknown_supported\": \"no\", \"auto_resend_supported\": \"no\"}",
+      "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+      "output_sha256": "24e119d8b8ac8937b534781633f6cb26b6e66e12561afb69b38c0c51d484ef94",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40440
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "399e865b08fb161d07ef50b46984d668eaf8ceaa8d0eb2f4bbff371f38ba22a1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "spent_028_supported",
+              "passed": true
+            },
+            {
+              "id": "release_unknown_supported",
+              "passed": true
+            },
+            {
+              "id": "auto_resend_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+        "output_sha256": "24e119d8b8ac8937b534781633f6cb26b6e66e12561afb69b38c0c51d484ef94"
+      },
+      "usage": {
+        "input_tokens": 9248,
+        "output_tokens": 166,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 4909,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-cancel",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"spent_028_supported\": \"no\", \"release_unknown_supported\": \"no\", \"auto_resend_supported\": \"no\"}",
+      "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+      "output_sha256": "24e119d8b8ac8937b534781633f6cb26b6e66e12561afb69b38c0c51d484ef94",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40440
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "399e865b08fb161d07ef50b46984d668eaf8ceaa8d0eb2f4bbff371f38ba22a1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "spent_028_supported",
+              "passed": true
+            },
+            {
+              "id": "release_unknown_supported",
+              "passed": true
+            },
+            {
+              "id": "auto_resend_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+        "output_sha256": "24e119d8b8ac8937b534781633f6cb26b6e66e12561afb69b38c0c51d484ef94"
+      },
+      "usage": {
+        "input_tokens": 9460,
+        "output_tokens": 310,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 6581,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-cancel",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"spent_028_supported\":\"no\",\"release_unknown_supported\":\"no\",\"auto_resend_supported\":\"no\"}",
+      "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+      "output_sha256": "04b55a2ca2cddac765a1847b6ae0fc537a17da676558254a6dcb1a657fa092e8",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40440
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "399e865b08fb161d07ef50b46984d668eaf8ceaa8d0eb2f4bbff371f38ba22a1",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "spent_028_supported",
+              "passed": true
+            },
+            {
+              "id": "release_unknown_supported",
+              "passed": true
+            },
+            {
+              "id": "auto_resend_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "69a7d80008f4a9b7f8479ca7c413f2499ebc171f66c2c9a6013ded9ccc06b91f",
+        "output_sha256": "04b55a2ca2cddac765a1847b6ae0fc537a17da676558254a6dcb1a657fa092e8"
+      },
+      "usage": {
+        "input_tokens": 8918,
+        "output_tokens": 634,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 22386,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-heldout",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "held-out",
+      "output": "{\"parallel_supported\":\"no\",\"universal_savings_supported\":\"no\",\"cash_012_supported\":\"no\"}",
+      "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+      "output_sha256": "562e7b508d9e34f90221d03459be69a1b504a935eeff3f30cc871e559237be2b",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40458
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 75.0,
+        "passed": false,
+        "oracle": {
+          "criteria_sha256": "8976bc8e7f21f981de261ae099cad75c41972cdc03eaa46cf1e8c990938dc41b",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "parallel_supported",
+              "passed": false
+            },
+            {
+              "id": "universal_savings_supported",
+              "passed": true
+            },
+            {
+              "id": "cash_012_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+        "output_sha256": "562e7b508d9e34f90221d03459be69a1b504a935eeff3f30cc871e559237be2b"
+      },
+      "usage": {
+        "input_tokens": 9482,
+        "output_tokens": 214,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 188
+      },
+      "latency_ms": 1451,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-heldout",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "held-out",
+      "output": "{\"parallel_supported\":\"yes\",\"universal_savings_supported\":\"no\",\"cash_012_supported\":\"no\"}",
+      "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+      "output_sha256": "ae35093c5689b1a518f8ffbbaac4e920316f9566c7941a5657ba5d3d8e77ac58",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40458
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8976bc8e7f21f981de261ae099cad75c41972cdc03eaa46cf1e8c990938dc41b",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "parallel_supported",
+              "passed": true
+            },
+            {
+              "id": "universal_savings_supported",
+              "passed": true
+            },
+            {
+              "id": "cash_012_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+        "output_sha256": "ae35093c5689b1a518f8ffbbaac4e920316f9566c7941a5657ba5d3d8e77ac58"
+      },
+      "usage": {
+        "input_tokens": 9248,
+        "output_tokens": 127,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 2580,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-heldout",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "held-out",
+      "output": "{\"parallel_supported\":\"yes\",\"universal_savings_supported\":\"no\",\"cash_012_supported\":\"no\"}",
+      "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+      "output_sha256": "ae35093c5689b1a518f8ffbbaac4e920316f9566c7941a5657ba5d3d8e77ac58",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40458
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8976bc8e7f21f981de261ae099cad75c41972cdc03eaa46cf1e8c990938dc41b",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "parallel_supported",
+              "passed": true
+            },
+            {
+              "id": "universal_savings_supported",
+              "passed": true
+            },
+            {
+              "id": "cash_012_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+        "output_sha256": "ae35093c5689b1a518f8ffbbaac4e920316f9566c7941a5657ba5d3d8e77ac58"
+      },
+      "usage": {
+        "input_tokens": 9535,
+        "output_tokens": 531,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 505
+      },
+      "latency_ms": 6337,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-heldout",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "held-out",
+      "output": "{\"parallel_supported\":\"yes\",\"universal_savings_supported\":\"no\",\"cash_012_supported\":\"no\"}",
+      "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+      "output_sha256": "ae35093c5689b1a518f8ffbbaac4e920316f9566c7941a5657ba5d3d8e77ac58",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40458
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8976bc8e7f21f981de261ae099cad75c41972cdc03eaa46cf1e8c990938dc41b",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "parallel_supported",
+              "passed": true
+            },
+            {
+              "id": "universal_savings_supported",
+              "passed": true
+            },
+            {
+              "id": "cash_012_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+        "output_sha256": "ae35093c5689b1a518f8ffbbaac4e920316f9566c7941a5657ba5d3d8e77ac58"
+      },
+      "usage": {
+        "input_tokens": 8916,
+        "output_tokens": 328,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 13168,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "verify-heldout",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "held-out",
+      "output": "{\"parallel_supported\": \"yes\", \"universal_savings_supported\": \"no\", \"cash_012_supported\": \"no\"}",
+      "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+      "output_sha256": "c405c201b0b5c4560ed37b76f35bd26e6316f39482e3e100ca76fcf09b4171a9",
+      "features": {
+        "node_type": "verification",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40458
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "8976bc8e7f21f981de261ae099cad75c41972cdc03eaa46cf1e8c990938dc41b",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "parallel_supported",
+              "passed": true
+            },
+            {
+              "id": "universal_savings_supported",
+              "passed": true
+            },
+            {
+              "id": "cash_012_supported",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "a281b42e62d958371ea0be0a0a3647eb812287e600564e04572dc82258f47787",
+        "output_sha256": "c405c201b0b5c4560ed37b76f35bd26e6316f39482e3e100ca76fcf09b4171a9"
+      },
+      "usage": {
+        "input_tokens": 9456,
+        "output_tokens": 580,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 11466,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-release",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"bill_checked\":\"no\",\"tests_executed\":\"no\",\"credentials_retained\":\"yes\",\"evidence_retained\":\"yes\",\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\"}",
+      "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+      "output_sha256": "c4738de905501b8b174895893de55db5bec6107c991fef08a42aa10c0fa01ea6",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40522
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "6ccc036f4234d46a533787e3ef5e4d2dad0fe7193218d53822a2b1a109c7c303",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "bill_checked",
+              "passed": true
+            },
+            {
+              "id": "tests_executed",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+        "output_sha256": "c4738de905501b8b174895893de55db5bec6107c991fef08a42aa10c0fa01ea6"
+      },
+      "usage": {
+        "input_tokens": 9495,
+        "output_tokens": 113,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 70
+      },
+      "latency_ms": 949,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-release",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"bill_checked\": \"no\", \"tests_executed\": \"no\", \"credentials_retained\": \"yes\", \"evidence_retained\": \"yes\", \"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\"}",
+      "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+      "output_sha256": "f16beca13e8d7c17e2389a8f951e9078d899b0e9cd69fa8cda9ac8a53fe583ad",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40522
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "6ccc036f4234d46a533787e3ef5e4d2dad0fe7193218d53822a2b1a109c7c303",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "bill_checked",
+              "passed": true
+            },
+            {
+              "id": "tests_executed",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+        "output_sha256": "f16beca13e8d7c17e2389a8f951e9078d899b0e9cd69fa8cda9ac8a53fe583ad"
+      },
+      "usage": {
+        "input_tokens": 9258,
+        "output_tokens": 123,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3179,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-release",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"bill_checked\":\"no\",\"tests_executed\":\"no\",\"credentials_retained\":\"yes\",\"evidence_retained\":\"yes\",\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\"}",
+      "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+      "output_sha256": "c4738de905501b8b174895893de55db5bec6107c991fef08a42aa10c0fa01ea6",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40522
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "6ccc036f4234d46a533787e3ef5e4d2dad0fe7193218d53822a2b1a109c7c303",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "bill_checked",
+              "passed": true
+            },
+            {
+              "id": "tests_executed",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+        "output_sha256": "c4738de905501b8b174895893de55db5bec6107c991fef08a42aa10c0fa01ea6"
+      },
+      "usage": {
+        "input_tokens": 9548,
+        "output_tokens": 413,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 370
+      },
+      "latency_ms": 4335,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-release",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"bill_checked\": \"no\", \"tests_executed\": \"no\", \"credentials_retained\": \"yes\", \"evidence_retained\": \"yes\", \"review_upper_seconds\": \"180\", \"reserve_seconds\": \"60\"}",
+      "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+      "output_sha256": "f16beca13e8d7c17e2389a8f951e9078d899b0e9cd69fa8cda9ac8a53fe583ad",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40522
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "6ccc036f4234d46a533787e3ef5e4d2dad0fe7193218d53822a2b1a109c7c303",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "bill_checked",
+              "passed": true
+            },
+            {
+              "id": "tests_executed",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+        "output_sha256": "f16beca13e8d7c17e2389a8f951e9078d899b0e9cd69fa8cda9ac8a53fe583ad"
+      },
+      "usage": {
+        "input_tokens": 8927,
+        "output_tokens": 140,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 5722,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-release",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"bill_checked\":\"no\",\"tests_executed\":\"no\",\"credentials_retained\":\"yes\",\"evidence_retained\":\"yes\",\"review_upper_seconds\":\"180\",\"reserve_seconds\":\"60\"}",
+      "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+      "output_sha256": "c4738de905501b8b174895893de55db5bec6107c991fef08a42aa10c0fa01ea6",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40522
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "6ccc036f4234d46a533787e3ef5e4d2dad0fe7193218d53822a2b1a109c7c303",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "bill_checked",
+              "passed": true
+            },
+            {
+              "id": "tests_executed",
+              "passed": true
+            },
+            {
+              "id": "credentials_retained",
+              "passed": true
+            },
+            {
+              "id": "evidence_retained",
+              "passed": true
+            },
+            {
+              "id": "review_upper_seconds",
+              "passed": true
+            },
+            {
+              "id": "reserve_seconds",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "842abba66a5c29340a1c3cfadc3146b835ba94c35bda5d8eddcf24fcbf9ac801",
+        "output_sha256": "c4738de905501b8b174895893de55db5bec6107c991fef08a42aa10c0fa01ea6"
+      },
+      "usage": {
+        "input_tokens": 9469,
+        "output_tokens": 120,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3661,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-cost",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "```json\n{\"direct_reference\":\"0.14\",\"dag_reference\":\"0.15\",\"direct_cash\":\"0.002\",\"dag_cash\":\"0.002\"}\n```",
+      "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+      "output_sha256": "1ea150f34f2c801d68c203362d3e98602bbcdbf7495ec91f87e45e408c513681",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40372
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 60.0,
+        "passed": false,
+        "oracle": {
+          "criteria_sha256": "0b17da093941247f15097bca951c7caa6cc524eb8db0feeb27e30fafd7315486",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "direct_reference",
+              "passed": false
+            },
+            {
+              "id": "dag_reference",
+              "passed": false
+            },
+            {
+              "id": "direct_cash",
+              "passed": true
+            },
+            {
+              "id": "dag_cash",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": true,
+        "raw_json_format_compliant": false,
+        "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+        "output_sha256": "1ea150f34f2c801d68c203362d3e98602bbcdbf7495ec91f87e45e408c513681"
+      },
+      "usage": {
+        "input_tokens": 9476,
+        "output_tokens": 642,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 604
+      },
+      "latency_ms": 3563,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-cost",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"direct_reference\":\"0.142\",\"dag_reference\":\"0.152\",\"direct_cash\":\"0.002\",\"dag_cash\":\"0.002\"}",
+      "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+      "output_sha256": "9a861da5efc6411b0ba7f4555f105b270972d8383194d86e8cd576d617c2e6fc",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40372
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "0b17da093941247f15097bca951c7caa6cc524eb8db0feeb27e30fafd7315486",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "direct_reference",
+              "passed": true
+            },
+            {
+              "id": "dag_reference",
+              "passed": true
+            },
+            {
+              "id": "direct_cash",
+              "passed": true
+            },
+            {
+              "id": "dag_cash",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+        "output_sha256": "9a861da5efc6411b0ba7f4555f105b270972d8383194d86e8cd576d617c2e6fc"
+      },
+      "usage": {
+        "input_tokens": 9239,
+        "output_tokens": 145,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 2699,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-cost",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"direct_reference\": \"0.142\", \"dag_reference\": \"0.152\", \"direct_cash\": \"0.002\", \"dag_cash\": \"0.002\"}",
+      "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+      "output_sha256": "d8d72af3ef25b8b82f869e8c211cfbbc5b7290550bd4ce43583de37b49f58b08",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40372
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "0b17da093941247f15097bca951c7caa6cc524eb8db0feeb27e30fafd7315486",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "direct_reference",
+              "passed": true
+            },
+            {
+              "id": "dag_reference",
+              "passed": true
+            },
+            {
+              "id": "direct_cash",
+              "passed": true
+            },
+            {
+              "id": "dag_cash",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+        "output_sha256": "d8d72af3ef25b8b82f869e8c211cfbbc5b7290550bd4ce43583de37b49f58b08"
+      },
+      "usage": {
+        "input_tokens": 8911,
+        "output_tokens": 351,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 13441,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-cost",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"direct_reference\":\"0.142\",\"dag_reference\":\"0.152\",\"direct_cash\":\"0.002\",\"dag_cash\":\"0.002\"}",
+      "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+      "output_sha256": "9a861da5efc6411b0ba7f4555f105b270972d8383194d86e8cd576d617c2e6fc",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40372
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "0b17da093941247f15097bca951c7caa6cc524eb8db0feeb27e30fafd7315486",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "direct_reference",
+              "passed": true
+            },
+            {
+              "id": "dag_reference",
+              "passed": true
+            },
+            {
+              "id": "direct_cash",
+              "passed": true
+            },
+            {
+              "id": "dag_cash",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+        "output_sha256": "9a861da5efc6411b0ba7f4555f105b270972d8383194d86e8cd576d617c2e6fc"
+      },
+      "usage": {
+        "input_tokens": 9529,
+        "output_tokens": 1625,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 1591
+      },
+      "latency_ms": 17167,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-cost",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"direct_reference\":\"0.142\",\"dag_reference\":\"0.152\",\"direct_cash\":\"0.002\",\"dag_cash\":\"0.002\"}",
+      "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+      "output_sha256": "9a861da5efc6411b0ba7f4555f105b270972d8383194d86e8cd576d617c2e6fc",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40372
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "0b17da093941247f15097bca951c7caa6cc524eb8db0feeb27e30fafd7315486",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "direct_reference",
+              "passed": true
+            },
+            {
+              "id": "dag_reference",
+              "passed": true
+            },
+            {
+              "id": "direct_cash",
+              "passed": true
+            },
+            {
+              "id": "dag_cash",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "6d2418e915eab7dfadd2f4c9e12ac8df1191a6b3e0a0227d1cfb06645c4c72d9",
+        "output_sha256": "9a861da5efc6411b0ba7f4555f105b270972d8383194d86e8cd576d617c2e6fc"
+      },
+      "usage": {
+        "input_tokens": 9450,
+        "output_tokens": 1492,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 14189,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-source",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "calibration",
+      "output": "{\"rollback_executed\":\"no\",\"tests_confirmed\":\"no\",\"sessions_planned_retained\":\"yes\",\"providers_planned_retained\":\"yes\"}",
+      "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+      "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40415
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "318882f296805a1f17c20912ee342e579841adfa4162152c1ce90e0a48f896c2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "rollback_executed",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            },
+            {
+              "id": "sessions_planned_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_planned_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+        "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0"
+      },
+      "usage": {
+        "input_tokens": 9468,
+        "output_tokens": 136,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 101
+      },
+      "latency_ms": 1198,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-source",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "calibration",
+      "output": "{\"rollback_executed\":\"no\",\"tests_confirmed\":\"no\",\"sessions_planned_retained\":\"yes\",\"providers_planned_retained\":\"yes\"}",
+      "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+      "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40415
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "318882f296805a1f17c20912ee342e579841adfa4162152c1ce90e0a48f896c2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "rollback_executed",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            },
+            {
+              "id": "sessions_planned_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_planned_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+        "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0"
+      },
+      "usage": {
+        "input_tokens": 9521,
+        "output_tokens": 301,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 266
+      },
+      "latency_ms": 3488,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-source",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "calibration",
+      "output": "{\"rollback_executed\":\"no\",\"tests_confirmed\":\"no\",\"sessions_planned_retained\":\"yes\",\"providers_planned_retained\":\"yes\"}",
+      "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+      "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40415
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "318882f296805a1f17c20912ee342e579841adfa4162152c1ce90e0a48f896c2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "rollback_executed",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            },
+            {
+              "id": "sessions_planned_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_planned_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+        "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0"
+      },
+      "usage": {
+        "input_tokens": 9232,
+        "output_tokens": 85,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3149,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-source",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "calibration",
+      "output": "{\"rollback_executed\":\"no\",\"tests_confirmed\":\"no\",\"sessions_planned_retained\":\"yes\",\"providers_planned_retained\":\"yes\"}",
+      "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+      "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40415
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "318882f296805a1f17c20912ee342e579841adfa4162152c1ce90e0a48f896c2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "rollback_executed",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            },
+            {
+              "id": "sessions_planned_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_planned_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+        "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0"
+      },
+      "usage": {
+        "input_tokens": 8901,
+        "output_tokens": 114,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 7778,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-source",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "calibration",
+      "output": "{\"rollback_executed\":\"no\",\"tests_confirmed\":\"no\",\"sessions_planned_retained\":\"yes\",\"providers_planned_retained\":\"yes\"}",
+      "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+      "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40415
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "318882f296805a1f17c20912ee342e579841adfa4162152c1ce90e0a48f896c2",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "rollback_executed",
+              "passed": true
+            },
+            {
+              "id": "tests_confirmed",
+              "passed": true
+            },
+            {
+              "id": "sessions_planned_retained",
+              "passed": true
+            },
+            {
+              "id": "providers_planned_retained",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "8bca073b7ab7fcd834bdc20efded003dc0d8cb15d616915c874a476f08dbd88c",
+        "output_sha256": "7646dc0df4989fcbe5b51816e0a0ca345b95c2f2843b15976e1069d2853926e0"
+      },
+      "usage": {
+        "input_tokens": 9442,
+        "output_tokens": 285,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 6939,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-heldout",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.60\",\"settled_cash\":\"0.10\",\"cash_occupied\":\"0.35\",\"released\":\"0.04\",\"auto_resend\":\"no\"}",
+      "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+      "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40502
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "d4f395907d9f8376a6a7e3d0b9fe9439d7e9ddbc28954d06add1dc9e8a1cb0e7",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "settled_cash",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            },
+            {
+              "id": "auto_resend",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+        "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a"
+      },
+      "usage": {
+        "input_tokens": 9503,
+        "output_tokens": 469,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 428
+      },
+      "latency_ms": 2275,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-heldout",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.50\",\"settled_cash\":\"0.10\",\"cash_occupied\":\"0.35\",\"released\":\"0.04\",\"auto_resend\":\"no\"}",
+      "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+      "output_sha256": "73fb8ddeafcb4ac4941b00cca6c986065441fdf9710487a0d834ab75114ba17c",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40502
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 83.33333333333333,
+        "passed": false,
+        "oracle": {
+          "criteria_sha256": "d4f395907d9f8376a6a7e3d0b9fe9439d7e9ddbc28954d06add1dc9e8a1cb0e7",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": false
+            },
+            {
+              "id": "settled_cash",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            },
+            {
+              "id": "auto_resend",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+        "output_sha256": "73fb8ddeafcb4ac4941b00cca6c986065441fdf9710487a0d834ab75114ba17c"
+      },
+      "usage": {
+        "input_tokens": 9267,
+        "output_tokens": 143,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 3051,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-heldout",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.60\",\"settled_cash\":\"0.10\",\"cash_occupied\":\"0.35\",\"released\":\"0.04\",\"auto_resend\":\"no\"}",
+      "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+      "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40502
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "d4f395907d9f8376a6a7e3d0b9fe9439d7e9ddbc28954d06add1dc9e8a1cb0e7",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "settled_cash",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            },
+            {
+              "id": "auto_resend",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+        "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a"
+      },
+      "usage": {
+        "input_tokens": 9556,
+        "output_tokens": 1349,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 1308
+      },
+      "latency_ms": 13879,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-heldout",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "split": "held-out",
+      "output": "{\"settled_reference\":\"0.60\",\"settled_cash\":\"0.10\",\"cash_occupied\":\"0.35\",\"released\":\"0.04\",\"auto_resend\":\"no\"}",
+      "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+      "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40502
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "d4f395907d9f8376a6a7e3d0b9fe9439d7e9ddbc28954d06add1dc9e8a1cb0e7",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "settled_cash",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            },
+            {
+              "id": "auto_resend",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+        "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a"
+      },
+      "usage": {
+        "input_tokens": 9477,
+        "output_tokens": 1107,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 19267,
+      "status": "completed",
+      "finish_reason": "stop"
+    },
+    {
+      "task_id": "generate-heldout",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "split": "held-out",
+      "output": "{\"settled_reference\": \"0.60\", \"settled_cash\": \"0.10\", \"cash_occupied\": \"0.35\", \"released\": \"0.04\", \"auto_resend\": \"no\"}",
+      "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+      "output_sha256": "b108ebdf5b95acc26355b562a9ee24822821cda51e917d65a18ed58b3fd24e39",
+      "features": {
+        "node_type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_budget_tokens": 40502
+      },
+      "evaluation": {
+        "method": "independent-node-oracle-v1",
+        "status": "completed",
+        "score": 100.0,
+        "passed": true,
+        "oracle": {
+          "criteria_sha256": "d4f395907d9f8376a6a7e3d0b9fe9439d7e9ddbc28954d06add1dc9e8a1cb0e7",
+          "checks": [
+            {
+              "id": "exact-fields",
+              "passed": true
+            },
+            {
+              "id": "settled_reference",
+              "passed": true
+            },
+            {
+              "id": "settled_cash",
+              "passed": true
+            },
+            {
+              "id": "cash_occupied",
+              "passed": true
+            },
+            {
+              "id": "released",
+              "passed": true
+            },
+            {
+              "id": "auto_resend",
+              "passed": true
+            }
+          ]
+        },
+        "text_policy": "text-json-semantic-v1",
+        "whole_json_fence_removed": false,
+        "raw_json_format_compliant": true,
+        "input_sha256": "0ff5d83d67c260d9fa79e5731a679461a2bb03625b4d980d817e116308017d5b",
+        "output_sha256": "b108ebdf5b95acc26355b562a9ee24822821cda51e917d65a18ed58b3fd24e39"
+      },
+      "usage": {
+        "input_tokens": 8940,
+        "output_tokens": 778,
+        "cached_input_tokens": 256,
+        "reasoning_tokens": 0
+      },
+      "latency_ms": 25800,
+      "status": "completed",
+      "finish_reason": "stop"
+    }
+  ],
+  "privateInputPublished": false,
+  "nodeProfileActivatedForAllTasks": false
+}

@@ -181,6 +181,7 @@ test('route profile discovery reads local persisted observations without a model
   assert.equal(rows[0]?.id,'team/worker')
   assert.equal(JSON.parse(rows[0]?.name??'{}').samples,4)
   assert.ok(f.spawns[0]?.argv.includes('route-profiles'))
+  assert.equal(f.spawns[0]!.argv[f.spawns[0]!.argv.indexOf('--runs-dir')+1],'/tmp/agent-contract/.refractagent/runs')
   assert.equal(f.credentials,0)
 })
 test('v4 同时发现自动与规划路由，并兼容旧自动模型 ID',async()=>{

@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react'
 import type {ReactNode} from 'react'
+import {AUTOMATIC_ATTEMPT_KEY} from '../assistant-stream-compat.js'
 
 // 展示 Python 的只读投影；这里不重新判断能力、预算或路由。
 type Row=Record<string,any>
@@ -11,7 +12,8 @@ export function parseAutomaticHistory(value:unknown):AutomaticHistory{
   return v
 }
 interface Node {kind:string;turn?:number;interrupted?:boolean;message?:string;provenance?:{provider:string};blocks?:readonly {kind:string;text?:string}[]}
-export interface TraceSnapshot {legacy:{nodes:readonly Node[];partial:{turn?:number;blocks:readonly {kind:string;text?:string}[]}|null}}
+export interface TraceSnapshot {legacy:{nodes:readonly Node[];partial:{turn?:number;blocks:readonly {kind:string;text?:string}[]}|null};
+  timeline?:{turns:ReadonlyMap<number,{steps:readonly {data:{get(key:string):unknown}}[]}>}}
 export interface ChatTraceProps {useChat?<T>(select:(snapshot:TraceSnapshot)=>T):T}
 export interface AutomaticRef {id:string;turn?:number;state:'settled'|'running'|'interrupted';error?:string}
 const ID='\\d{8}T\\d{6}Z-[0-9a-f]{12}'
@@ -26,6 +28,15 @@ export function automaticRefs(snapshot:TraceSnapshot):AutomaticRef[]{
   }
   for(const node of snapshot.legacy.nodes)if(node.kind==='assistant')add(node,node.interrupted?'interrupted':'settled')
   if(snapshot.legacy.partial)add({kind:'assistant',...snapshot.legacy.partial},'running')
+  for(const [turn,location] of snapshot.timeline?.turns??[]){
+    for(const step of location.steps){
+      const state=step.data.get(AUTOMATIC_ATTEMPT_KEY) as {refs?:AutomaticRef[]}|undefined
+      for(const ref of state?.refs??[]){
+        if(new RegExp(`^${ID}$`).test(ref.id) && ref.turn===turn && ref.state==='interrupted')
+          refs.set(ref.id,ref)
+      }
+    }
+  }
   for(const node of snapshot.legacy.nodes)if(node.kind==='turn-error')for(const ref of refs.values())if(ref.turn===node.turn){ref.state='interrupted';ref.error=node.message}
   return [...refs.values()].slice(-20).reverse()
 }
@@ -57,6 +68,9 @@ const NAMES:Record<string,string>={
   'rules-only':'按结构规则处理', 'local-unknown-rules-preserved':'Judge 无法确定，保留规则结论',
   'known-calls-only-unbounded-tool-continuations':'只估计已知调用，后续工具续调费用没有完整上界',
   'declared-model-profile-prior':'模型画像先验',
+  'configured-profile-prior':'未匹配独立实测的模型画像先验',
+  'independent-node-evaluation':'范围内的独立节点实测（小样本）',
+  'independent-node-evaluation-and-configured-prior':'范围内节点实测与未覆盖的模型先验混合',
   'worker-schedule-plus-observed-planner; shared-judge-latency-unforecast':'执行调度预测加已发生的规划耗时；未预测共用评审耗时',
 }
 const label=(v:unknown)=>typeof v==='string'?NAMES[v]??v:'未记录'
@@ -90,6 +104,7 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       <p>直接路线预测：{traceNumber(comparison.direct?.total_estimated_cost)} {comparison.billing_unit??'单位未记录'}；DAG 候选预测：{traceNumber(comparison.dag?.total_estimated_cost)} {comparison.billing_unit??'单位未记录'}。</p>
       <p>预测范围：{label(comparison.estimate_scope)}；完整任务费用上界：{comparison.complete_task_cost_bound===false||comparison.complete_task_cost_bound===null?'没有完整上界':comparison.complete_task_cost_bound===true?'已记录':traceNumber(comparison.complete_task_cost_bound)}；工具调用上限：{comparison.tool_call_limit==='unlimited'?'不限制':comparison.tool_call_limit??'未记录'}。</p>
       <p>未选择的候选路线没有被执行；预测差额不能当作实测收益。质量依据：{label(comparison.decision_factors?.quality_basis)}；本任务拆分质量增益{comparison.decision_factors?.task_specific_dag_quality_gain_verified===true?'已有验证证据':'尚未验证'}。</p>
+      {comparison.quality_evidence_basis&&<p>分路线质量依据：Direct {label(comparison.quality_evidence_basis.direct)}；DAG {label(comparison.quality_evidence_basis.dag)}。</p>}
       <p>时延依据：{label(comparison.latency_scope)}；模型配置的时延先验不等于实测等待时间。</p>
     </details>:null}
     <h4>候选模型与选择依据</h4><p>{label(r.selection_rule)}。该次质量门槛 {traceNumber(r.quality_min)}；质量画像与本次最终评审分别展示。</p>
@@ -128,7 +143,9 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
           <td style={cellStyle}>{traceNumber(f.quality_prior)}；{f.quality_source==='independent-node-evaluation'
             ?`独立节点观测 ${f.quality_evidence?.samples??0} 条（小样本）`
             :f.quality_source==='known-node-failure-outside-observed-input-range'?'已有同类节点失败；新输入范围未经复验，阻止回退到全局先验'
+            :f.quality_source==='global-prior-outside-node-evidence-task-scope'?'本任务不在节点实测适用范围，使用未验证先验'
             :f.quality_source==='global-prior-no-matching-node-evidence'?'没有覆盖该节点分层，使用全局先验':'配置先验'}<br/>
+            {f.evidence_scope&&<small>实测范围：{f.evidence_scope.description}；{f.evidence_scope.matched?'本任务已登记':'本任务未匹配'}。<br/></small>}
             {f.quality_evidence?.heldOutStatus&&<small>保留集：{f.quality_evidence.heldOutStatus==='passed'?'通过':f.quality_evidence.heldOutStatus==='failed'?'未通过':'未观察'}；{f.quality_evidence.heldOutSamples??0} 条。<br/></small>}
             <small>分数不是本任务成功率；配置和预览不增加样本。</small></td>
           <td style={cellStyle}>{traceNumber(f.expected_cost)} {f.unit}；输入 {traceNumber(f.expected_input_tokens)}、输出 {traceNumber(f.expected_output_tokens)} tokens<br/>
@@ -141,7 +158,8 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
           <td style={cellStyle}>{f.node_id}<br/>{f.provider}/{f.model}<br/><small>推理等级：{f.reasoning_effort}</small></td>
           <td style={cellStyle}>{f.selected?'已选择':f.eligible===false?'未通过准入':'未选择'}；{traceNumber(f.quality_prior)} 分<br/>
             <small>{f.quality_evidence?`独立节点样本 ${f.quality_evidence.samples??0} 条；保留集 ${f.quality_evidence.heldOutStatus??'未观察'}`:'全局先验；没有匹配的节点实测'}
-            {f.quality_evidence?.excludedReason&&<>；排除依据：{f.quality_evidence.excludedReason}</>}</small></td>
+            {f.quality_evidence?.excludedReason&&<>；排除依据：{f.quality_evidence.excludedReason}</>}
+            {f.evidence_scope&&<>；实测范围：{f.evidence_scope.description}；{f.evidence_scope.matched?'本任务已登记':'本任务未匹配，不采用实测分数'}</>}</small></td>
           <td style={cellStyle}>{traceNumber(f.expected_cost)} {f.unit}<br/><small>{f.billing_mode==='subscription'?'订阅路线，单次现金 0；':'按量路线；'}输入 {traceNumber(f.expected_input_tokens)} / 输出 {traceNumber(f.expected_output_tokens)} tokens</small></td>
         </tr>)}
       </Table>
@@ -149,7 +167,7 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
     {r.parallel_execution?.peak_active_nodes!==undefined&&<p>节点并发：配置上限 {r.parallel_execution.policy?.max_concurrency??'未记录'}，实际峰值 {r.parallel_execution.peak_active_nodes}；独立分支可同时调用模型，汇总等待父节点完成；宿主工具逐个执行。</p>}
     <h4>工具证据、评审与停止原因</h4>
     {r.planning_budget?.version&&<p>规划开始时告知的执行时间包络：{r.planning_budget.execution_after_planner_ms===null?'任务不限时间':timing(r.planning_budget.execution_after_planner_ms)}（已扣评审预留与规划额度）。{r.planning_budget.max_nodes!==undefined&&<>本次最多 {r.planning_budget.max_nodes} 个节点（含最终交付）。</>}时延先验不是速度保证；计划仍须通过准入。</p>}
-    {r.review?.limits_version&&<p>评审预留时间 {timing(r.review.time_reserve_ms)}；评审输出上限 {traceNumber(r.review.output_cap)} tokens。此限制独立于执行模型输出容量。</p>}
+    {r.review?.limits_version&&<p>执行阶段给评审预留 {timing(r.review.time_reserve_ms)}，是进入评审时应留下的时间，不是评审开始后的到期计时器。评审输出上限 {traceNumber(r.review.output_cap)} tokens，独立于执行模型输出容量。</p>}
     {r.review?.limits_version==='automatic-review-envelope-v2'&&<p>审核模型：{r.review.model?.provider} / {r.review.model?.model}；推理等级：{r.review.reasoning_effort}；审核等待上限：{r.review.timeout_ms===null?'不额外限制':traceNumber(r.review.timeout_ms)+' ms'}；任务总期限：{r.review.task_timeout_ms===null?'不限时':traceNumber(r.review.task_timeout_ms)+' ms'}；实际可用审核等待：{r.review.effective_wait_ms===null?'不限时':traceNumber(r.review.effective_wait_ms)+' ms'}。</p>}
     {['proposal-constraints-v1','proposal-constraints-v2','proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5','proposal-constraints-v6','proposal-constraints-v7'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
     {['proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5','proposal-constraints-v6','proposal-constraints-v7'].includes(r.review?.contract_version)&&<p>材料未提供的实现细节保持未知；风险推测须标明前提，不以不同用途的数值不同直接认定冲突。</p>}
@@ -179,6 +197,8 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       </Table><p>引用是否存在由 Python 核对；语义由审核模型判断，不代表已独立证明结论正确。</p>
     </details>}
     {typeof r.deterministic_validation?.passed==='boolean'&&<p>固定事实检查：{r.deterministic_validation.passed?'通过':'未通过'}；已知事实不符时，模型高分不能覆盖该结果。</p>}
+    {r.time_contract_validation?.applicable&&<p>时间用途检查：{r.time_contract_validation.passed?'未发现已覆盖的混淆':'未通过'}；{r.time_contract_validation.reason} 此检查仅覆盖明确的预留与等待表述，不代替整份回复审核。</p>}
+    {r.source_state_validation?.applicable&&<p>材料状态归属检查：{r.source_state_validation.passed?'未发现已覆盖的歧义':'需澄清，暂不交付'}；{r.source_state_validation.reason} 保守阻断不等于证明系统实际未验证。</p>}
     {r.planner_normalizations?.length>0&&<details><summary>规划格式兼容记录</summary><pre>{JSON.stringify(r.planner_normalizations,null,2)}</pre></details>}
     <p>工具证据：{r.tools?.message??'未记录'}；评审：{r.review?.required===false?'按策略未要求':label(r.review?.status)}，分数 {traceNumber(r.review?.score??r.quality?.score)}，原始结论{r.review?.passed===true?'通过':r.review?.passed===false?'未通过':'未记录'}。
       门槛验收：{r.quality_gate==='passed'?'达到':r.quality_gate==='failed'?'未达到':r.quality_gate==='not-required'?'本次未要求':'未记录'}。最终运行状态与质量验收并非同一概念。</p>

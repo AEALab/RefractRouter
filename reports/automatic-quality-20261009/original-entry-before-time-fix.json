@@ -1,0 +1,109 @@
+{
+  "schema_version": "automatic-original-entry-independent-audit-v1",
+  "run_id": "20261009T043334Z-f631d07a1f2e",
+  "sourceVersion": "0.16.22",
+  "pluginVersion": "0.33.6",
+  "task": "请分别审查三个互不依赖的发布检查项，最后整理成一张简短表格，列出风险和一项改进建议。仅依据下面材料，不要调用工具，不要修改文件。\nA. 费用：订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留。\nB. 时间：审核最多等待180秒，同时受任务剩余期限约束；执行阶段给审核预留60秒。\nC. 回滚：关闭新入口；保留原有会话、模型provider、凭证和运行证据。\n不要声称已核对提供方账单或已完成未执行的测试。",
+  "taskSha256": "8a5c24d1362c0945e88302a85481d1655e81f030b014cc54f8f68250c626adf1",
+  "runtimeReportedStatus": "completed",
+  "runtimeReview": {
+    "score": 92,
+    "passed": true,
+    "contract_version": "proposal-constraints-v9"
+  },
+  "independentQualityPassed": false,
+  "independentFindings": [
+    {
+      "id": "reserve-as-review-timer",
+      "quote": "若任务剩余期限或60秒预留先到期，审核可能被提前截断",
+      "reason": "60秒是执行阶段须留下的审核余量，不是审核开始后独立到期的计时器。"
+    },
+    {
+      "id": "unknown-as-unverified",
+      "quote": "保留完整性未经验证",
+      "reason": "材料没有说明验证状态，不能把未知改为否定的历史事实。"
+    },
+    {
+      "id": "unconfirmed-billing-history",
+      "quote": "未与实际扣费核对",
+      "reason": "自身没有核对，不证明此前未核对。"
+    }
+  ],
+  "route": "direct",
+  "routeReason": "direct-estimated-cost-not-worse",
+  "forecasts": {
+    "direct": {
+      "worker_cost": 0.045602,
+      "planner_actual_cost": 0.018898908686,
+      "judge_estimated_cost": 0.056802029557,
+      "total_estimated_cost": 0.12130293824300001,
+      "assignments": {
+        "answer": "dsh-model-72afd0d705290d78"
+      },
+      "quality_proxy": 100.0
+    },
+    "dag": {
+      "worker_cost": 0.194854,
+      "planner_actual_cost": 0.018898908686,
+      "judge_estimated_cost": 0.056802029557,
+      "total_estimated_cost": 0.270554938243,
+      "assignments": {
+        "review_cost": "dsh-model-72afd0d705290d78",
+        "review_time": "dsh-model-72afd0d705290d78",
+        "review_rollback": "dsh-model-72afd0d705290d78",
+        "answer": "dsh-model-72afd0d705290d78"
+      },
+      "quality_proxy": 92.86
+    }
+  },
+  "actual": {
+    "peakActiveNodes": 1,
+    "wallTimeMs": 70101,
+    "referenceCny": 0.13325336002960025,
+    "cashCny": 0.00024989511959999997,
+    "jevCny": 0.00024989511959999997,
+    "modelCalls": 3,
+    "calls": [
+      {
+        "label": "planner",
+        "model_id": "dsh-model-7077bbf6a06daaa6",
+        "input_tokens": 9822,
+        "output_tokens": 302,
+        "latency_ms": 11925,
+        "status": "billed",
+        "charged": 0.018898908686,
+        "billing_mode": "subscription"
+      },
+      {
+        "label": "answer",
+        "model_id": "dsh-model-72afd0d705290d78",
+        "input_tokens": 17795,
+        "output_tokens": 1784,
+        "latency_ms": 34124,
+        "status": "billed",
+        "charged": 0.03380568,
+        "billing_mode": "subscription"
+      },
+      {
+        "label": "final-judge",
+        "model_id": "dsh-review-7077bbf6a06daaa6",
+        "input_tokens": 23048,
+        "output_tokens": 1470,
+        "latency_ms": 23928,
+        "status": "billed",
+        "charged": 0.080298876224,
+        "billing_mode": "subscription"
+      }
+    ]
+  },
+  "answer": "以下仅依据任务材料逐项审查，未调用工具、未修改文件，也不声称已核对提供方账单或已执行任何测试。\n\n| 检查项 | 风险 |\n|---|---|\n| A. 费用 | 订阅模型仅按**公开价格**记为“参考估值”，未与实际扣费核对，可能低估/高估真实费用；按量模型记现金费用依赖真实用量；**“未知用量”预留额度未量化**，能否覆盖超量不确定。 |\n| B. 时间 | **“最多等待180秒”与“执行阶段预留60秒”两个约束并存**；若任务剩余期限或60秒预留先到期，审核可能被提前截断，实际等不满180秒，导致审核不充分或超时风险。 |\n| C. 回滚 | “关闭新入口”若存在遗漏，旧入口/凭证可能仍可用；原有会话、provider、凭证与运行证据的**保留完整性未经验证**，回滚后能否恢复缺乏证据支撑。 |\n\n**一项改进建议**：把三项检查统一升级为“可验证清单”——为未知费用预留设定明确数值并在回滚后与账单对账；将审核时间合并为单一有效约束（明确60秒预留与180秒上限的先后生效关系）并加超时告警；关闭新入口后执行连通性/凭证校验，并对会话与证据做备份校验。使每项都有明确阈值与验证动作，而非依赖估算或口头承诺。\n\n（说明：A项订阅估值基于公开价格，真实费用以提供方账单为准，本次未核对账单；B项为时间预算设计约束，未实际执行测试。）",
+  "answerSha256": "e4333c08ccc94a6a0f95de7fd69324fcb8be3cb36d995a267449534b8a1fc9eb",
+  "sourceFilesSha256": {
+    "result.json": "95fa786fe394fe6b38dd8305dceebf0d3d342027da0c6eb3c982ff1d7e2ea7cb",
+    "summary.json": "7d375d44c662e80e938d21a254bfd7ffb44d0210dc75132e7021c4f6b572322b",
+    "request.json": "fde124a97a4869ccec15f56598d39fc0b601ce42657673f1c1075b849f4b0871"
+  },
+  "privateContextPublished": false,
+  "unselectedDagExecuted": false,
+  "priorOutputReplaced": false
+}

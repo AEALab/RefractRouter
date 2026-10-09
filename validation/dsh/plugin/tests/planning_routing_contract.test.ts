@@ -3,7 +3,7 @@ import test from 'node:test'
 import { spawn } from 'node:child_process'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 import { configure,createAdapter,type AgentContext,type ModelOptions } from '../dist/agent-provider.js'
 import { PlanningController,PlanningWorker,planningMessages } from '../dist/planning-routing.js'
 import type { PlanningConfig, PlanningStrategy } from '../dist/planning-config.js'
@@ -29,7 +29,7 @@ function* reply(text:string,blocks:Record<string,unknown>[]=[]):Generator<Stream
   yield {type:'usage',usage:{inputTokens:100,outputTokens:20}}
   yield {type:'finish',reason:{kind:blocks.length?'tool-calls':'stop'},replayState:{response:{native:'source'}}}
 }
-async function fixture(strategy:PlanningStrategy='static'){
+async function fixture(strategy:PlanningStrategy='static',relativeRuns=false){
   const path=await mkdtemp(resolve(tmpdir(),'rr-planning-'))
   const events=[{type:'step/start',data:{turn:1,step:1} as Record<string,unknown>}]
   const calls:any[]=[]
@@ -48,6 +48,7 @@ async function fixture(strategy:PlanningStrategy='static'){
     subprocess:{
       async resolveExecutable(){return resolve(root,'.venv/bin/python')},
       spawn(spec){
+        if(relativeRuns)assert.equal(spec.argv[spec.argv.indexOf('--runs-dir')+1],path)
         const child=spawn(spec.argv[0],spec.argv.slice(1),{cwd:spec.cwd,env:spec.env,stdio:'pipe',signal:spec.signal})
         child.on('error',()=>{})
         const done=new Promise<{exitCode:number|null;signal:string|null}>(res=>child.once('exit',(exitCode,signal)=>res({exitCode,signal})))
@@ -55,7 +56,7 @@ async function fixture(strategy:PlanningStrategy='static'){
       }
     }
   }
-  let frozen=configure({pythonExecutable:resolve(root,'.venv/bin/python'),runsDir:path,planningRouting:{...config,defaultStrategy:strategy}})
+  let frozen=configure({pythonExecutable:resolve(root,'.venv/bin/python'),runsDir:relativeRuns?relative(root,path):path,planningRouting:{...config,defaultStrategy:strategy}})
   const worker=new PlanningWorker(ctx,()=>frozen)
   const controller=new PlanningController(ctx,()=>frozen,worker)
   const options:ModelOptions={provider:'refractagent',model:'planning',reasoningEffort:'rr:'+strategy,
@@ -70,6 +71,14 @@ async function fixture(strategy:PlanningStrategy='static'){
     async cleanup(){disposal?.();worker.dispose();await new Promise(r=>setTimeout(r,50));await rm(path,{recursive:true,force:true})}}
 }
 async function collect(iterable:AsyncIterable<Record<string,unknown>>){const out:Record<string,unknown>[]=[];for await(const v of iterable)out.push(v);return out}
+
+test('规划 worker 和自动执行采用相同宿主工作区解析相对记录目录',async()=>{
+  const f=await fixture('static',true)
+  try{
+    const result=await f.worker.request({op:'handshake'})
+    assert.equal(result.protocol,'refractagent-planning/4')
+  }finally{await f.cleanup()}
+})
 
 test('规划路由 Kimi 官方传输省略固定温度且保留所选推理等级',async()=>{
   const f=await fixture('static')

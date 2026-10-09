@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from refractrouter.application_config import compile_configuration, execution_capacity_model
+from refractrouter.application_config import compile_configuration, execution_capacity_model, automatic_execution_model
 from refractrouter.configured_routing import configured_profile
 from refractrouter.node_quality import import_node_quality
 from refractrouter.node_routing import load_profile, route_nodes
@@ -14,6 +14,7 @@ from refractrouter.routing_actions import action_binding
 from refractrouter.task_budget import TaskCallBudget
 from refractrouter.task_plan import validate_plan
 from refractrouter.task_runtime import run_task, _shared_judge_forecast
+from refractrouter.node_quality_scope import task_digest
 from tests.test_live_execution import config, CompactClient
 from tests.test_task_decomposition import example
 
@@ -226,3 +227,60 @@ def test_independent_output_envelope_binding_rejects_other_execution_capacity(tm
     raw['execution_action_bindings'][c.manifest.candidates[0].model_id] = 'f' * 64
     with pytest.raises(ValueError, match='实际执行输出容量'):
         import_fixture(tmp_path, c, raw)
+
+
+@pytest.mark.parametrize('negative', [False, True])
+def test_scoped_node_evidence_does_not_claim_unrelated_task_quality(tmp_path, negative):
+    c = configuration()
+    raw = bundle(c)
+    raw['taskScope'] = {'version': 'exact-task-v1', 'description': '冻结发布材料',
+                        'taskSha256': [task_digest('核对发布材料')]}
+    if negative:
+        raw['observations']['observations'][0]['evaluation']['passed'] = False
+    profiles, summary = import_fixture(tmp_path, c, raw)
+    cfg = deepcopy(c.snapshot)
+    for m in cfg['models']:
+        if m['id'] in profiles:
+            m['routing']['profiles'] = profiles[m['id']]
+    c = compile_configuration(cfg)
+    plan = example()
+    plan['nodes'][0]['node_type'] = 'extraction'
+    plan['nodes'][0]['contract']['capability']['risk'] = 'low'
+    plan['nodes'][0]['contract']['capability']['input_budget_tokens'] = 16000
+    mid = c.manifest.candidates[0].model_id
+    matched = configured_profile(c, c.manifest, plan, task='核对发布材料')['forecast_basis']['cost'][mid]
+    assert matched['quality_source'] == 'independent-node-evaluation'
+    assert matched['quality_prior'] == (0 if negative else 95)
+    assert matched['evidence_scope']['matched']
+    outside = configured_profile(c, c.manifest, plan, task='实现一个搜索页面')['forecast_basis']['cost'][mid]
+    assert outside['quality_source'] == 'global-prior-outside-node-evidence-task-scope'
+    assert outside['quality_prior'] == c.predictions[mid]['quality']
+    assert outside['quality_evidence'] is None
+    assert not outside['evidence_scope']['matched']
+    assert summary['task_scope'] == raw['taskScope']
+    raw['taskScope']['taskSha256'].append('不是任务摘要')
+    with pytest.raises(ValueError, match='适用范围无效'):
+        import_fixture(tmp_path, c, raw)
+
+
+def test_automatic_execution_binding_freezes_effective_temperature_without_changing_config(tmp_path):
+    c = configuration()
+    raw = bundle(c)
+    raw['execution_output_mode'] = 'automatic-node-capacity-v1'
+    raw['execution_action_bindings'] = {m.model_id: action_binding(automatic_execution_model(m))
+                                      for m in c.manifest.candidates}
+    before = deepcopy(c.snapshot)
+    import_fixture(tmp_path, c, raw)
+    assert c.snapshot == before
+    mid = c.manifest.candidates[0].model_id
+    raw['execution_action_bindings'][mid] = action_binding(automatic_execution_model(c.manifest.candidates[0], 1))
+    with pytest.raises(ValueError, match='实际执行输出容量'):
+        import_fixture(tmp_path, c, raw)
+def test_selected_quality_basis_reports_mixed_evidence_without_claiming_task_success():
+    from refractrouter.configured_routing import selected_quality_basis
+    profile = {'forecast_basis': {'a': {'m1': {'quality_source': 'independent-node-evaluation'}},
+        'b': {'m2': {'quality_source': 'global-prior-no-matching-node-evidence'}}}}
+    assert selected_quality_basis(profile, {'a': 'm1'}) == 'independent-node-evaluation'
+    assert selected_quality_basis(profile, {'a': 'm1', 'b': 'm2'}) == 'independent-node-evaluation-and-configured-prior'
+    assert selected_quality_basis(profile, {'b': 'm2'}) == 'configured-profile-prior'
+    assert selected_quality_basis(None, {}) == 'configured-profile-prior'

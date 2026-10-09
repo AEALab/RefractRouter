@@ -8,7 +8,7 @@ from .review_claims import state_claims, VERSION as CLAIM_VERSION
 from .review_evidence import catalog, resolve, receipt
 
 REVIEW_CONTRACT = 'proposal-constraints-v7'
-REFERENCE_REVIEW_CONTRACT = 'proposal-constraints-v9'
+REFERENCE_REVIEW_CONTRACT = 'proposal-constraints-v10'
 GROUNDING_CHECKS = ('source-state', 'time-causality')
 GROUNDING_FIELDS = ('check_id', 'status', 'answer_quote', 'source_quote')
 GROUNDING_OPTIONAL_FIELDS = ('rationale',)
@@ -168,12 +168,17 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
         '自身未调用工具不能证明系统从未测试。明确假设、待确认及警告须按语义判断，不做关键词拒绝。'
         '比较参数须核对用途和生效条件，不同用途数值不同不等于冲突。'
         '时间因果先核对事件顺序：事后审核不能影响已经完成的执行，提前预留可以缩小执行时间。'
+        '执行阶段给审核预留时间是进入审核时应留下的余量，不是审核中的独立到期计时器；'
+        '不得批准「预留先到期导致审核截断」或将预留值当作审核等待上限的解释。'
         '「若、可能、风险」不能豁免错误因果或无来源事实。'
         'source-state 检查整份正文的实现、配置或验证状态断言；time-causality 检查时间、费用和操作因果。'
         'source_state_claims 只是核心定位的覆盖提示，不是事实标签；没有命中仍须审核整份正文。'
         '逐句核对项不能由开头免责句替代。逐句 claim_kind 必填，取 FACT、CONDITIONAL、SELF_REPORT、QUOTED_OR_WARNING。'
         'FACT 表示对系统或历史事实作断言；CONDITIONAL 必须有实际前提；SELF_REPORT 只说明本次回答行为；'
         'QUOTED_OR_WARNING 表示引用或警告。事实缺少来源时 FAIL，无法可靠判断时 UNCERTAIN。'
+        '风险表格仍可能含事实断言：「保留完整性未经验证」「未与实际扣费核对」'
+        '没有明确假设或引用否定语境时属于 FACT，不因随后写「可能有风险」就变成警告。'
+        '「材料未说明验证情况」才表示信息不足；「如果未经验证」才有明确条件前提。'
         '引用只选择 evidence_catalog 中的编号，不抄写或改写原文。'
         '前两项审核范围是整份候选：answer_ref=null 表示整体审核，不表示无法判断；'
         '只有需要定位具体段落时才选择 candidate 中的 id。判定必须明确填写 status。'

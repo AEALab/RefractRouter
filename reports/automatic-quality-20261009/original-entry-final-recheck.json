@@ -1,0 +1,282 @@
+{
+  "schema_version": "automatic-original-entry-final-recheck-v1",
+  "run_id": "20261009T055418Z-284c0c254893",
+  "sourceVersion": "0.16.26",
+  "pluginVersion": "0.33.11",
+  "hostVersion": "0.1.5-rc.3",
+  "task": "请分别审查三个互不依赖的发布检查项，最后整理成一张简短表格，列出风险和一项改进建议。仅依据下面材料，不要调用工具，不要修改文件。\nA. 费用：订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留。\nB. 时间：审核最多等待180秒，同时受任务剩余期限约束；执行阶段给审核预留60秒。\nC. 回滚：关闭新入口；保留原有会话、模型provider、凭证和运行证据。\n不要声称已核对提供方账单或已完成未执行的测试。",
+  "taskSha256": "8a5c24d1362c0945e88302a85481d1655e81f030b014cc54f8f68250c626adf1",
+  "freezeSha256": "1cf55e754d90a3f5f4e5c9f809945138577cddb645f956c16bba5d48ff674056",
+  "runtimeReportedStatus": "completed",
+  "runtimeReview": {
+    "score": 95,
+    "passed": true,
+    "rationale": "候选答案完整覆盖三项检查，正确区分材料事实与待确认信息，未声称已核对账单或已执行测试；对180秒/60秒的时间因果解释正确（60秒是进入审核时应保留的余量，不是审核内独立计时器），未将预留值当作审核等待上限，也未将不同用途的数值误判为冲突。改进建议（回滚演练）明确以材料未说明演练状态为前提，未把未知当已确认。",
+    "review_contract": "proposal-constraints-v10"
+  },
+  "independentAcceptance": {
+    "scope": "原任务格式、180秒等待与60秒预留的因果，以及本次自述与材料缺项的归属；不把模型95分当作完整事实证明。",
+    "targetedChecksPassed": true,
+    "checks": [
+      {
+        "id": "time-purpose",
+        "passed": true,
+        "reason": "明确60秒是进入审核时应保留的余量，不是审核内部到期计时器；180秒仍受剩余期限约束。"
+      },
+      {
+        "id": "verification-actor",
+        "passed": true,
+        "reason": "未核对、未测试归于本次；账单核对与回滚演练历史状态保持材料未说明。"
+      },
+      {
+        "id": "one-suggestion-and-preserved-assets",
+        "passed": true,
+        "reason": "提出回滚演练，并核对原会话、provider、凭证和运行证据的保留，不声称已经执行。"
+      },
+      {
+        "id": "actual-call-state",
+        "passed": true,
+        "reason": "四次模型调用用量已结算，零宿主工具；纠正一次后复审，未审定候选没有交付。"
+      }
+    ],
+    "wordingLimitations": [
+      {
+        "quote": "未知用量仅预留、未定价，费用总额存在下界不确定性",
+        "reason": "未定价可能混淆价格未知与费用未确认。此处不据此推断模型缺少官方价格，也不把它当作已验收的账本事实；更准确的表达是用量未确认、预留保持、最终费用待核对。"
+      }
+    ],
+    "fullOpenEndedQualityProved": false
+  },
+  "route": null,
+  "routeReason": "direct-estimated-cost-not-worse",
+  "forecasts": {
+    "direct": {
+      "worker_cost": 0.04573,
+      "planner_actual_cost": 0.023790900448,
+      "judge_estimated_cost": 0.056802029557,
+      "tool_allowance_cost": 0.0,
+      "total_estimated_cost": 0.126322930005,
+      "worker_scheduled_latency_ms": 20381.0,
+      "known_latency_ms": 29329.0,
+      "assignments": {
+        "answer": "dsh-model-72afd0d705290d78"
+      },
+      "quality_proxy": 100.0
+    },
+    "dag": {
+      "worker_cost": 0.226413238663,
+      "planner_actual_cost": 0.023790900448,
+      "judge_estimated_cost": 0.056802029557,
+      "tool_allowance_cost": 0.0,
+      "total_estimated_cost": 0.30700616866799996,
+      "worker_scheduled_latency_ms": 37832.0,
+      "known_latency_ms": 46780.0,
+      "assignments": {
+        "review_cost": "dsh-model-7077bbf6a06daaa6",
+        "review_time": "dsh-model-7077bbf6a06daaa6",
+        "review_rollback": "dsh-model-7077bbf6a06daaa6",
+        "answer": "dsh-model-72afd0d705290d78"
+      },
+      "quality_proxy": 98.215
+    }
+  },
+  "qualityEvidenceBasis": {
+    "direct": "independent-node-evaluation",
+    "dag": "independent-node-evaluation-and-configured-prior"
+  },
+  "candidateDagExecuted": false,
+  "heterogeneousCandidateDag": true,
+  "candidateDagAssignments": {
+    "review_cost": "dsh-model-7077bbf6a06daaa6",
+    "review_time": "dsh-model-7077bbf6a06daaa6",
+    "review_rollback": "dsh-model-7077bbf6a06daaa6",
+    "answer": "dsh-model-72afd0d705290d78"
+  },
+  "actual": {
+    "wallTimeMs": 75469,
+    "hostDisplayedSeconds": 77,
+    "modelCalls": 4,
+    "jevCalls": 1,
+    "toolCalls": 0,
+    "corrections": 1,
+    "referenceCny": 0.13002340427560016,
+    "cashCny": 0.00024989511959999997,
+    "jevCny": 0.00024989511959999997,
+    "llmReferenceCny": 0.12977350915600017,
+    "llmCashCny": 0,
+    "unknownUsage": 0,
+    "peakActiveNodes": 1,
+    "configuredConcurrency": 3,
+    "modelTtftMs": null
+  },
+  "calls": [
+    {
+      "label": "planner",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "status": "billed",
+      "charged": 0.023790900448,
+      "billing_mode": "subscription",
+      "dispatch_at": "2026-10-09T05:54:18.313020+00:00",
+      "input_sha256": "958a469d235e1dd89f055081f0de277010e42387c8789979d5efbff43c57f502",
+      "input_tokens": 9828,
+      "output_tokens": 407,
+      "cached_input_tokens": 2048,
+      "reasoning_tokens": 0,
+      "latency_ms": 8948,
+      "finish_reason": "stop",
+      "usage_available": true,
+      "request_id": "resp_02179152525859789d0c17fc196b3c940c12dd7ad5b500bd60b7f"
+    },
+    {
+      "label": "answer",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "status": "billed",
+      "charged": 0.02464168,
+      "billing_mode": "subscription",
+      "dispatch_at": "2026-10-09T05:54:27.322412+00:00",
+      "input_sha256": "76c25c500953343f1f437e3bac90b515c354930e8931e6cf07ca3b392ffa49a8",
+      "input_tokens": 17841,
+      "output_tokens": 627,
+      "cached_input_tokens": 8192,
+      "reasoning_tokens": 0,
+      "latency_ms": 14808,
+      "finish_reason": "stop",
+      "usage_available": true,
+      "request_id": "resp_02179152526739789d0c17fc196b3c940c12dd7ad5b500be6960d"
+    },
+    {
+      "label": "final-correction",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "status": "billed",
+      "charged": 0.032176,
+      "billing_mode": "subscription",
+      "dispatch_at": "2026-10-09T05:54:42.190582+00:00",
+      "input_sha256": "419c68f305720326806d8ea9ba0441ab3b458ae38d6c7e58dc209648d5439648",
+      "input_tokens": 10028,
+      "output_tokens": 1515,
+      "cached_input_tokens": 0,
+      "reasoning_tokens": 0,
+      "latency_ms": 27959,
+      "finish_reason": "stop",
+      "usage_available": true,
+      "request_id": "resp_02179152528226089d0c17fc196b3c940c12dd7ad5b500b21244a"
+    },
+    {
+      "label": "final-judge-correction",
+      "model_id": "dsh-review-7077bbf6a06daaa6",
+      "status": "billed",
+      "charged": 0.049164928707999996,
+      "billing_mode": "subscription",
+      "dispatch_at": "2026-10-09T05:55:10.167782+00:00",
+      "input_sha256": "8f4fc224f00c70d1f8aa119ead098d76b21314227292e523b36f5d51cfdc597b",
+      "input_tokens": 22716,
+      "output_tokens": 814,
+      "cached_input_tokens": 0,
+      "reasoning_tokens": 0,
+      "latency_ms": 23552,
+      "finish_reason": "stop",
+      "usage_available": true,
+      "request_id": "resp_02179152531023789d0c17fc196b3c940c12dd7ad5b500b1f3234"
+    }
+  ],
+  "timeContractValidation": {
+    "version": "review-time-reservation-guard-v1",
+    "applicable": true,
+    "passed": true,
+    "scope": "explicit-review-wait-and-execution-reserve",
+    "findings": [],
+    "review_wait_ms": 180000.0,
+    "execution_reserve_ms": 60000.0,
+    "reason": "未发现本检查覆盖的预留／等待混淆；其他语义仍须审核。"
+  },
+  "sourceStateValidation": {
+    "version": "source-state-attribution-guard-v3",
+    "applicable": true,
+    "passed": true,
+    "scope": "strict-material-negative-verification-attribution",
+    "findings": [],
+    "reason": "已覆盖措辞的归属检查未发现问题；不证明其他事实正确。"
+  },
+  "finalCorrection": {
+    "version": "bounded-final-correction-v1",
+    "attempt": 1,
+    "maximum": 1,
+    "status": "accepted",
+    "accepted": true,
+    "previous_output_sha256": "908e261178d5d729f1c50756b218aef444be08286fe68cb0913bdd268c9522b6",
+    "corrected_output_sha256": "973bdaf878b23824f42a7ce7bdd1ef920f61f99a93d3f2128349c14dffc59379"
+  },
+  "originalCandidateGuard": {
+    "version": "source-state-attribution-guard-v3",
+    "applicable": true,
+    "passed": false,
+    "scope": "strict-material-negative-verification-attribution",
+    "findings": [
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "也未核对任何提供方账单或执行测试）：",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      },
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "未验证回滚在真实故障下是否成立",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      }
+    ],
+    "reason": "材料没有交代系统的历史验证状态，不能把信息缺失改写为未经验证或未核对的事实。若只说明本次行为，明确写本次未执行／核对；若说明材料缺项，写材料未说明、尚待确认。保留明确条件风险，复核风险表和建议，不声称历史上从未验证。"
+  },
+  "answer": "依据给定材料逐项审查，整理如下（本次未调用工具、未修改文件，也未执行测试或核对提供方账单）：\n\n**三项发布检查**\n\n| 检查项 | 材料内容 | 风险 / 不确定性 |\n|---|---|---|\n| A. 费用 | 订阅模型按公开价格记录参考估值；按量模型记录现金费用；未知用量保留预留 | 订阅估值为“参考”性质，非账单确认，实际计费可能与之有出入；未知用量仅预留、未定价，费用总额存在下界不确定性。材料未说明是否经账单核对，尚待确认 |\n| B. 时间 | 审核最多等待180秒，且受任务剩余期限约束；执行阶段为审核预留60秒 | 180秒是等待上限而非保证时长，实际受剩余期限压缩；60秒是进入审核时应保留的剩余时间，不是审核开始后独立倒数的计时器；若剩余期限不足，审核可能被截断 |\n| C. 回滚 | 关闭新入口；保留原有会话、模型provider、凭证和运行证据 | 材料仅列出回滚应保留的内容，未说明回滚是否已演练或验证，尚待确认；若未演练，真实故障下回滚完整性仍需验证 |\n\n**改进建议**：发布前增加一次端到端回滚演练——实际关闭新入口并验证原会话、模型provider、凭证与运行证据仍完整可用，并记录演练结果；因材料未说明是否已有演练证据，补上该演练可为回滚保障提供直接可核实的依据。\n\n补充说明：三项检查内容均来自给定材料；材料未说明订阅估值是否经账单核对、回滚是否已演练或测试，这些均属待确认信息而非本次可证实的事实。",
+  "answerSha256": "973bdaf878b23824f42a7ce7bdd1ef920f61f99a93d3f2128349c14dffc59379",
+  "installed": {
+    "coreVersion": "0.16.26",
+    "pluginVersion": "0.33.11",
+    "coreFilesMatched": 141,
+    "pluginFilesMatched": 41,
+    "settingsBytePreserved": true,
+    "credentialsBytePreserved": true,
+    "nodeProfilePreserved": true,
+    "nodeProfileSha256": "21dcf9d73ade0283538925b87411f91343fa505369c2182321c4e440503ec5ce",
+    "artifactSha256": {
+      "dsh-refractrouter-validation-0.33.11.tgz": "d3f56cbe3d9e8430f1f20362c6aab096a593f648218c752659325c1e1c391fe6",
+      "refractrouter-0.16.26-py3-none-any.whl": "7ea7ebe277f7f09a2d6860ca0370fe54d3511378e70b328834afbb8eedc3ab21"
+    }
+  },
+  "verification": {
+    "fullPytestPassed": 2060,
+    "pytestSeconds": 251.68,
+    "typecheck": "通过",
+    "pluginContracts": "237项合同测试在完整pytest中执行并通过",
+    "build": "通过",
+    "diffCheck": "通过"
+  },
+  "browserAcceptance": {
+    "chatDelivered": true,
+    "fiveCandidatesInRouteTrace": true,
+    "forecastsAndScopeVisible": true,
+    "dagNodesAndEdgesVisible": true,
+    "planningAndAutomaticSettingsCardsVisible": true,
+    "newEventFeedErrors": 0,
+    "failedRunReferencesRestoredAfterReload": true,
+    "freshFailureLiveProjectionRetested": false,
+    "failureProjectionCoveredByContracts": true
+  },
+  "cashAuthorization": {
+    "cashHistoryProtectedCny": 5.5686969600000005,
+    "cashExecutionUpperCny": 6,
+    "jevUpperCny": 0.0090664896,
+    "maximumProtectedCashCny": 11.5777634496,
+    "dailySettingsChanged": false
+  },
+  "sourceFilesSha256": {
+    "result.json": "2668208a6d87a176b9477218fa04de967ba1c919b241fb50530fa2631d4fedaf",
+    "summary.json": "ee78ce79bada2dce045bc23d65ea97a3b0deac19e6735b0f9dd600b099189c41",
+    "request.json": "10aab11fb831596272d8301a107db5c27a1f0e3ccb9f95a2dc22dfee80fc41e1"
+  },
+  "privateContextPublished": false,
+  "priorOutputReplaced": false,
+  "limitations": [
+    "本次最后一条验证了正常纠正后交付，没有额外制造故障来证明失败分支的现场覆盖；失败引用恢复和投影撤回分别由历史页面、合同测试核对。",
+    "小样本分层仅限冻结任务，不证明开放式任务质量，未运行候选DAG，不能将预测差额算作实际收益。",
+    "提供方确认用量及公开价估值不等于已核对账单；订阅参考和现金不相加。"
+  ]
+}

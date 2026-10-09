@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .profile_calibration import build_stratified_profile
 from .routing_actions import action_binding
+from .node_quality_scope import validate_scope
 
 VERSION = 'node-quality-bundle-v1'
 MAX_BYTES = 16 * 1024 * 1024
@@ -24,6 +25,7 @@ def import_node_quality(path, configuration):
             or raw.get('kind') != 'empirical'):
         raise ValueError('节点能力档案必须包含独立的真实节点观测')
     corpus = raw.get('observations')
+    task_scope = validate_scope(raw.get('taskScope'))
     if not isinstance(corpus, dict) or corpus.get('kind') != 'empirical':
         raise ValueError('模拟观测不能用作产品节点质量')
     bindings = raw.get('action_bindings')
@@ -36,8 +38,13 @@ def import_node_quality(path, configuration):
         raise ValueError('节点能力档案与当前模型版本、推理参数或价格不匹配')
     execution_bindings = raw.get('execution_action_bindings')
     if execution_bindings is not None:
-        from .application_config import execution_capacity_model
-        if execution_bindings != {mid: action_binding(execution_capacity_model(candidates[mid])) for mid in bindings}:
+        from .application_config import execution_capacity_model, automatic_execution_model
+        mode = raw.get('execution_output_mode', 'provider-default-capacity')
+        if mode not in {'provider-default-capacity', 'automatic-node-capacity-v1'}:
+            raise ValueError('节点能力档案的执行参数合同未知')
+        execution_model = (automatic_execution_model if mode == 'automatic-node-capacity-v1'
+                           else execution_capacity_model)
+        if execution_bindings != {mid: action_binding(execution_model(candidates[mid])) for mid in bindings}:
             raise ValueError('节点能力档案与实际执行输出容量不匹配')
     manifest = replace(configuration.manifest, models=tuple(candidates[mid] for mid in bindings))
     profile = build_stratified_profile(corpus, manifest,
@@ -103,6 +110,8 @@ def import_node_quality(path, configuration):
                 'heldOutObservationSha256': (validation_profile or {}).get('observation_sha256'),
                 'latencySource': 'independent-node-observations'},
         })
+        if task_scope is not None:
+            profiles[model.model_id][-1]['evidence']['taskScope'] = task_scope
     return profiles, {'schema_version': VERSION, 'bundle_sha256': digest,
         'observations_sha256': profile['observation_sha256'],
         'calibration_tasks': profile['calibration_task_ids'],
@@ -113,4 +122,5 @@ def import_node_quality(path, configuration):
         'held_out_observations_sha256': (validation_profile or {}).get('observation_sha256'),
         'held_out_policy': 'known-failure-veto-only-no-score-or-usage-fitting',
         'unmatched_policy': 'global-prior-explicitly-unverified',
+        'task_scope': task_scope,
         'whole_task_scores_used': False}
