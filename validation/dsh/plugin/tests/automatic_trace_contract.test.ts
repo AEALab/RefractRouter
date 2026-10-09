@@ -59,6 +59,17 @@ test('浏览器与旧宿主进程组合时明确提示合同不匹配，不因�
   assert.equal(api.parseAutomaticHistory({schema_version:'automatic-routing-trace-v1',records:[],errors:[]}).records.length,0)
 })
 
+test('最终纠正轨迹同时显示初次拒绝和复审结果，旧记录仍可显示',()=>{
+  const api=client(),data:any=record()
+  data.final_correction={version:'bounded-final-correction-v1',maximum:1,attempt:1,status:'accepted',
+    accepted:true,initial_evaluation:{passed:false,score:55,rationale:'初次发现材料外断言'},
+    evaluation:{passed:true,score:95,rationale:'修正版复审通过'}}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['最终答复纠正','初次发现材料外断言','修正版复审通过','复审通过'])assert.ok(tree.includes(text),text)
+  delete data.final_correction
+  assert.ok(!JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}})).includes('最终答复纠正记录'))
+})
+
 test('轨迹展示五款模型、原始答案和历史预算，明确预测与现金的边界',()=>{
   const api=client(),tree=JSON.stringify(api.AutomaticRecord({record:record(),reference:{id:rid,state:'settled',turn:1}}))
   assert.ok(tree.includes('宿主轮次 '));assert.ok(!tree.includes('第 2 轮'))
@@ -97,4 +108,44 @@ test('新版审核轨迹明确包含修正建议和关键约束，旧记录仍�
   const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
   assert.ok(tree.includes('审核同时检查答案、修正建议与恢复步骤'))
   assert.ok(tree.includes('数字正确或高分也不能放行'))
+})
+test('轨迹解释独立审核参数和最终实际可等待时间',()=>{
+  const api=client(),data:any=record()
+  data.review={...data.review,model:{provider:'ark',model:'flash'},reasoning_effort:'high',
+    limits_version:'automatic-review-envelope-v2',timeout_ms:180000,task_timeout_ms:300000,
+    effective_wait_ms:90000}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['ark / flash','high','180,000','300,000','90,000'])assert.ok(tree.includes(text),text)
+})
+test('同一次审核逐项展示事实来源与时间因果，不用高分替代核对',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v4'
+  data.quality={score:95,passed:false,grounding_checks:[{check_id:'source-state',status:'FAIL',
+    answer_quote:'未经实测',source_quote:null,rationale:'材料未说明验证情况'},
+    {check_id:'time-causality',status:'UNCERTAIN',answer_quote:'挤压执行时间',source_quote:null,rationale:'时间关系无法确认'}]}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['来源与因果核对（同一次审核）','事实状态来源','时间与因果','未通过','无法判断',
+    '未经实测','材料未说明验证情况','引用是否存在由 Python 核对'])assert.ok(tree.includes(text),text)
+})
+test('逐句核对显示独立事实句及语义类别，不替审核器判断真假',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v5'
+  data.quality={score:95,passed:false,grounding_checks:[{check_id:'source-claim-c1',status:'FAIL',
+    answer_quote:'回滚未经验证',source_quote:null,claim_kind:'FACT',rationale:'没有验证状态来源'}]}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['事实句 ','c1','系统状态断言','回滚未经验证','没有验证状态来源'])assert.ok(tree.includes(text),text)
+})
+
+test('格式规范化与缺省补充说明如实展示，旧记录没有该项时继续显示',()=>{
+  const api=client(),data:any=record()
+  data.review.contract_version='proposal-constraints-v6'
+  data.quality={score:55,passed:false,response_normalization:{version:'review-field-spelling-v1',model_calls_added:0,
+    changes:[{check_id:'source-claim-c3',from:'rationalale',to:'rationale'}]},
+    grounding_checks:[{check_id:'source-claim-c3',status:'FAIL',answer_quote:'未校验',source_quote:null,
+      claim_kind:'FACT',rationale:null}]}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['审核返回格式规范化','review-field-spelling-v1','rationalale',
+    '判定、分数和引用不变','没有增加审核调用','审核器未提供本项补充说明'])assert.ok(tree.includes(text),text)
+  delete data.quality.response_normalization
+  assert.ok(!JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}})).includes('审核返回格式规范化'))
 })

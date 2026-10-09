@@ -29,6 +29,46 @@ def test_recorded_illegal_plans_preserve_graph_and_compile_without_another_model
         assert plan.final_node_id == raw['nodes'][-1]['id']
 
 
+def test_recorded_extra_closer_preserves_plan_and_uses_no_repair_call(tmp_path, monkeypatch):
+    from dataclasses import replace
+    from refractrouter.compact_planning import load_compact_reply
+    import tests.test_automatic_failure_repairs as this
+    content = json.loads(Path('tests/fixtures/automatic-planner-extra-closer.json').read_text())['response']
+    fixed, changes = load_compact_reply(content, normalize=True)
+    assert len(changes) == 1 and len(fixed['nodes']) == 1
+    assert fixed['nodes'][0]['id'] == 'answer' and fixed['nodes'][0]['parents'] == []
+    assert content[:changes[0]['position']] + content[changes[0]['position']+1:] == json.dumps(
+        fixed, ensure_ascii=False, separators=(',', ':'))
+    class RecordedPlan(CompactClient):
+        def complete(self, model, messages, **kwargs):
+            response = super().complete(model, messages, **kwargs)
+            return replace(response, content=content) if 'DAG 规划器' in messages[0]['content'] else response
+    monkeypatch.setattr(this, 'CompactClient', RecordedPlan)
+    result, client = launch(tmp_path, complexityPolicy='dag')
+    assert result['status'] == 'completed' and len(client.calls) == 3
+    attempt = result['compact_planning']['attempts'][0]
+    assert attempt['output'] == content
+    assert attempt['json_normalization']['changes'] == changes
+    assert all(c['status'] == 'billed' for c in result['calls'])
+
+
+@pytest.mark.parametrize('content', ['{"nodes":[{"job":"文字 } 应保留"}]}',
+    '{"nodes":[{"job":"转义 \\\" } 应保留"}]}'])
+def test_valid_closers_in_strings_are_never_changed(content):
+    from refractrouter.compact_planning import load_compact_reply
+    result, changes = load_compact_reply(content, normalize=True)
+    assert result == json.loads(content) and changes == []
+
+
+@pytest.mark.parametrize('content', ['{"nodes":[{"id":"a"}',
+    '{"nodes":[{"id":"a"}]]}', '{"nodes":[{"id":"a"}}}]}',
+    '{"nodes":[{"id":"a"} {"id":"b"}]}'])
+def test_other_json_syntax_errors_remain_rejected(content):
+    from refractrouter.compact_planning import load_compact_reply
+    with pytest.raises(json.JSONDecodeError):
+        load_compact_reply(content, normalize=True)
+
+
 def launch(tmp_path, *, final_validator=None, timeout_ms=300000, **parameters):
     payload = {'task': '仅依据给定材料核对费用，完整说明各组成项。',
         'strategy': 'auto', 'complexityPolicy': 'direct', 'reviewPolicy': 'always',
@@ -57,6 +97,73 @@ def test_known_wrong_fact_stops_before_paid_judge_even_if_judge_fixture_would_ap
     assert raw['evaluation'] is None
 
 
+def test_reported_grounding_failure_blocks_real_candidate_with_95_score_and_settles_both_calls(tmp_path,monkeypatch):
+    from dataclasses import replace
+    import tests.test_automatic_failure_repairs as this
+    fixture=json.loads(Path('data/research/automatic-grounding-native-counterexample-v1.json').read_text())
+    class SourceChecked(CompactClient):
+        def complete(self,model,messages,**kwargs):
+            response=super().complete(model,messages,**kwargs)
+            if model.role=='judge':
+                verdict=json.loads(response.content)
+                claims=verdict['grounding_checks'][2:]
+                for row in claims:
+                    if '回滚路径未经实测' in row['answer_quote']:
+                        row.update(status='FAIL',claim_kind='FACT',source_quote=None,rationale='未提供测试状态')
+                verdict.update(score=95,passed=False,rationale='记录来源信息缺失，拒绝事实否定断言',
+                    grounding_checks=[{'check_id':'source-state','status':'FAIL',
+                        'answer_quote':'回滚路径未经实测','source_quote':None,'rationale':'材料没有说明测试状态'},
+                    {'check_id':'time-causality','status':'FAIL',
+                        'answer_quote':'若审核实际耗时超过60秒则挤压执行时间','source_quote':None,
+                        'rationale':'审核不挤压已经完成的执行'},*claims])
+                return replace(response,content=json.dumps(verdict))
+            return replace(response,content=fixture['answer'])
+    monkeypatch.setattr(this,'CompactClient',SourceChecked)
+    raw,client=launch(tmp_path)
+    assert raw['status']=='quality-failed' and raw['evaluation']['score']==95
+    assert raw['review']['passed'] is False and raw['final_output']==fixture['answer']
+    assert len(client.calls)==2 and all(c['status']=='billed' for c in raw['calls'])
+    assert len(raw['evaluation']['grounding_checks'])>2
+
+
+def test_recorded_invalid_source_citation_stops_review_and_settles_usage(tmp_path, monkeypatch):
+    from dataclasses import replace
+    import tests.test_automatic_failure_repairs as this
+    fixture = json.loads(Path('data/research/automatic-grounding-invalid-citation-v1.json').read_text())
+    class RecordedCitation(CompactClient):
+        def complete(self, model, messages, **kwargs):
+            response = super().complete(model, messages, **kwargs)
+            if model.role == 'judge':
+                # 保留原非法引用，其余新增覆盖项只模拟接口，不作为语义质量证据。
+                verdict={**fixture['rawVerdict'],'grounding_checks':[
+                    *fixture['rawVerdict']['grounding_checks'],*json.loads(response.content)['grounding_checks'][2:]]}
+                return replace(response, content=json.dumps(verdict))
+            return replace(response, content=fixture['answer'])
+    monkeypatch.setattr(this, 'CompactClient', RecordedCitation)
+    raw, client = launch(tmp_path, task=fixture['task'])
+    assert raw['status'] == 'failed' and raw['evaluation'] is None
+    assert raw['review']['status'] == 'failed' and raw['review']['passed'] is False
+    assert raw['review']['reason'] == 'grounding quote not in task evidence'
+    assert len(client.calls) == 2 and all(c['status'] == 'billed' for c in raw['calls'])
+
+
+def test_recorded_v5_missing_fields_stop_without_repair_or_delivery(tmp_path, monkeypatch):
+    from dataclasses import replace
+    import tests.test_automatic_failure_repairs as this
+    fixture=json.loads(Path('data/research/automatic-grounding-v5-invalid-fields-v1.json').read_text())
+    class RecordedFields(CompactClient):
+        def complete(self, model, messages, **kwargs):
+            response=super().complete(model, messages, **kwargs)
+            content=json.dumps(fixture['rawVerdict']) if model.role=='judge' else fixture['answer']
+            return replace(response, content=content)
+    monkeypatch.setattr(this, 'CompactClient', RecordedFields)
+    raw, client=launch(tmp_path, task=fixture['task'])
+    assert raw['status']=='failed' and raw['evaluation'] is None
+    assert raw['review']['status']=='failed' and raw['review']['passed'] is False
+    assert raw['review']['reason']=='invalid final judge grounding fields (source-claim-c1; missing: claim_kind; unexpected: 0)'
+    assert len(client.calls)==2 and all(c['status']=='billed' for c in raw['calls'])
+
+
 def test_review_uses_separate_output_cap_and_keeps_worker_unlimited(tmp_path, monkeypatch):
     from refractrouter import task_runtime
     from refractrouter.task_execution import execute_nodes as real_execute
@@ -77,6 +184,36 @@ def test_review_uses_separate_output_cap_and_keeps_worker_unlimited(tmp_path, mo
     assert deadlines['judge'] - deadlines['worker'] == pytest.approx(60)
     assert caps == {'worker': 32768, 'judge': 8192}
     assert raw['review']['time_reserve_ms'] == 60000
+
+
+@pytest.mark.parametrize('timeout,unlimited,expected', [(180000, False, 180000),
+    (0, False, 300000), (180000, True, 180000), (0, True, None)])
+def test_review_wait_is_independent_but_cannot_exceed_task_deadline(tmp_path, monkeypatch,
+                                                                  timeout, unlimited, expected):
+    from refractrouter import task_runtime
+    from refractrouter.task_evaluation import evaluate_text as real_evaluate
+    seen = []
+    def evaluate(*args, **kwargs):
+        now = task_runtime.time.monotonic()
+        seen.append(None if kwargs['deadline'] == float('inf') else
+                    (kwargs['deadline'] - now) * 1000)
+        return real_evaluate(*args, **kwargs)
+    monkeypatch.setattr(task_runtime, 'evaluate_text', evaluate)
+    raw, _ = launch(tmp_path, reviewTimeoutMs=timeout,
+                    limits={'unlimitedTime': unlimited})
+    assert raw['status'] == 'completed'
+    assert raw['review']['timeout_ms'] == (timeout or None)
+    if expected is None:
+        assert seen == [None] and raw['review']['effective_wait_ms'] is None
+    else:
+        assert expected - 2000 < seen[0] <= expected
+    assert raw['review']['task_timeout_ms'] == (None if unlimited else 300000)
+
+
+def test_shorter_task_caps_longer_review_wait(tmp_path):
+    raw, _ = launch(tmp_path, timeout_ms=100000, reviewTimeoutMs=180000, reviewReserveMs=0)
+    assert raw['status'] == 'completed'
+    assert 98000 < raw['review']['effective_wait_ms'] <= 100000
 
 
 def test_insufficient_total_time_does_not_dispatch_worker_or_judge(tmp_path):
@@ -124,7 +261,8 @@ def test_late_known_worker_result_does_not_launch_judge_with_tiny_deadline(tmp_p
 
 
 @pytest.mark.parametrize('values', [{'reviewReserveMs': True}, {'reviewReserveMs': -1},
-    {'reviewMaxOutputTokens': 0}, {'reviewMaxOutputTokens': 128001}])
+    {'reviewMaxOutputTokens': 0}, {'reviewMaxOutputTokens': 128001},
+    {'reviewTimeoutMs': True}, {'reviewTimeoutMs': -1}, {'reviewTimeoutMs': 3600001}])
 def test_bad_review_envelopes_are_rejected_before_calls(tmp_path, values):
     with pytest.raises(ValueError):
         launch(tmp_path, **values)

@@ -17,6 +17,10 @@ Advisor Gate 的两次审核、一次返工与复审闭环见
 [规划路由支持矩阵](docs/planning-routing-support-matrix.md)；设置与日常选择见
 [规划路由使用指南](docs/planning-routing-daily-use.md)。
 
+自动路由研究入口的最终审核与一次纠正见
+[最终审核与纠正说明](docs/automatic-final-correction.md)，自然任务、费用和原 DSH 界面验收见
+[2026-10-09 验收记录](reports/automatic-quality-20261009/README.md)。
+
 > 析构知难，衡派选优 — Refract the task, spend every token where it matters.
 
 RefractRouter 面向小型开发团队，提供独立的模型路由选择：在用户可接受的质量前提下，

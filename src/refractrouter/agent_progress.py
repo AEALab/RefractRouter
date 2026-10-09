@@ -76,16 +76,16 @@ def dag_snapshot(result, manifest):
                       'model': actions.get(row.get('model_id', routes.get(nid))),
                       'recovery': row.get('recovery_status')})
     review = result.get('review') or {}
-    if live_roles and review and (review.get('status') in {'running', 'completed', 'skipped'} or terminal):
+    if live_roles and review and (review.get('status') in {'running', 'correcting', 'completed', 'skipped'} or terminal):
         review_state = review.get('status', 'pending')
         if review_state == 'completed':
-            review_state = 'ok'
+            review_state = 'failed' if review.get('passed') is False else 'ok'
         elif review_state == 'skipped':
             review_state = 'skipped'
         elif review_state == 'not-run' or result.get('status') in {'preview', 'planned', 'simulated'}:
             review_state = 'not-run'
-        elif review_state == 'running':
-            review_state = 'running'
+        elif review_state in {'running', 'correcting'}:
+            review_state = 'blocked' if terminal else 'running'
         elif terminal:
             review_state = 'blocked'
         else:
@@ -96,7 +96,7 @@ def dag_snapshot(result, manifest):
         sinks = [node['id'] for node in task_nodes if node['id'] not in parents]
         if not sinks and has_planner:
             sinks = [planner_id]
-        review_calls = [row for row in result.get('calls', []) if row.get('label') == 'final-judge']
+        review_calls = [row for row in result.get('calls', []) if row.get('label') in {'final-judge','final-judge-correction'}]
         nodes.append({'id': reviewer_id, 'parents': sinks,
                       'node_type': 'role-reviewer',
                       'objective': '按评审策略检查最终交付质量', 'state': review_state,
@@ -104,6 +104,7 @@ def dag_snapshot(result, manifest):
                       'model': actions.get(manifest.judge.model_id), 'recovery': None})
     phase = ('finished' if terminal else 'classifying' if any(
         n['node_type'] in {'role-classifier', 'role-placement'} and n['state'] == 'running' for n in nodes)
+        else 'executing' if (result.get('final_correction') or {}).get('status') == 'correcting'
         else 'evaluating' if any(
         c['category'] == 'evaluation' for c in result.get('calls', [])) else
         'executing' if latest else 'routing' if plan else 'planning')

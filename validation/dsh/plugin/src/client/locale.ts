@@ -163,9 +163,9 @@ export const zh: LocaleDictionary = {
   liveProductionBudget: '单任务生产硬上限（人民币 CNY）', liveEvaluationBudget: '单任务评审硬上限（人民币 CNY）',
   liveBudgetUnlimited: '无限制',
   liveProductionUnlimited: '生产费用无限制', liveEvaluationUnlimited: '评审费用无限制',
-  liveUnlimitedBudgetHint: '「无限制」会取消对应类别的单任务人民币金额上限，实际费用仍按路线价格和 token 用量产生。未启用工具时，简单任务最多 1 次模型请求（含评审最多 2 次），拆分任务最多 8 次；启用工具后还可产生工具结果后的模型续调。请求次数不是费用封顶；生产与评审金额分别控制。',
+  liveUnlimitedBudgetHint: '「无限制」会取消对应类别的单任务人民币金额上限，实际费用仍按路线价格和 token 用量产生。未启用工具时，基础流程简单任务最多 1 次模型请求（含评审最多 2 次），拆分任务最多 8 次；开启最终纠正最多另增 2 次，启用工具还可产生模型续调。请求次数不是费用封顶；生产与评审金额分别控制。',
   liveOutputCapacityHint: '模型上下文窗口限制单次请求可处理的输入与输出总量；模型／Provider 的最大输出限制单次可生成的 token 数。这些能力由 DSH 模型目录提供。「单节点输出无限制」只移除插件设置的单节点 token 上限，不会扩大模型本身的容量。',
-  liveCallEnvelope: '每项任务的模型请求次数', liveCallEnvelopeBody: '未启用工具时，简单任务最多 1 次模型请求；启用评审时最多 2 次。拆分任务最多 8 次：规划 1 次 + 执行最多 6 次 + 评审 1 次。次数限制用于控制流程规模，不会限制每次请求的价格或 token 用量。',
+  liveCallEnvelope: '每项任务的模型请求次数', liveCallEnvelopeBody: '基础流程未启用工具时，简单任务最多 1 次模型请求；启用评审时最多 2 次。拆分任务最多 8 次：规划 1 次 + 执行最多 6 次 + 评审 1 次。最终纠正和工具续调另行列出；次数限制不会限制每次请求的价格或 token 用量。',
 }
 
 export const en: LocaleDictionary = {

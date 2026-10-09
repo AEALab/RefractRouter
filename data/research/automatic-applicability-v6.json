@@ -1,0 +1,304 @@
+{
+  "schemaVersion": "automatic-applicability-batch-v6",
+  "sourceCommit": "f158655dc5ca06ac1da558577b80e49345fcdf16",
+  "purpose": "原六题材料与成功判据保持不变；审核使用核心证据编号，并接收限定字段的独立校验回执，正文与提案继续独立审核。",
+  "routes": [
+    "direct",
+    "dag"
+  ],
+  "orderSeed": 20261008,
+  "maxCallsPerDirect": 4,
+  "maxCallsPerDag": 10,
+  "inputBoundPerCall": 65536,
+  "outputLimitPerCall": 8192,
+  "timeoutMs": 300000,
+  "httpRetries": 0,
+  "nodeFallbacks": 0,
+  "plannerRepairs": 0,
+  "delegation": false,
+  "reasoningEffort": "provider-default",
+  "failurePolicy": "普通已结算任务失败保留并继续；认证、用量未知、证据或总授权异常停止整批。",
+  "qualityGate": "冻结事实字段全部正确，解释非空，本项目最终 Judge score>=80 且逐项通过；分别报告事实检查和模型评审，不称为人工独立复核。",
+  "tasks": [
+    {
+      "id": "cost-table",
+      "kind": "simple",
+      "task": "这是小型开发团队对当前 RefractRouter 公开源码的离线审查。材料已在请求中提供，不访问文件、网络或工具，不声称代码已运行。只依据材料和案例生成审查结果。最后输出一个 JSON 对象，含 answers（指定字段）和 explanation（中文审查、风险、修正提案与验证条件，指出材料中的函数或语句）。不得省略正文而只输出推理。\n为团队费用面板制作一份核对表。已结算的订阅调用：1000 输入、200 输出，公开参考输入价0.002 CNY/千tokens、输出价0.008；已结算现金调用：1000 输入、200 输出，输入0.009、输出0.027。另一个已派发现金调用用量未知，预留0.1 CNY。计算已知参考费用、已知现金费用、未知预留、当前现金占用上界；订阅的单次现金金额只能写 null。answers 字段为 knownReferenceCny、knownCashCny、unknownReserveCny、cashProtectedCny、subscriptionCashCny。\n口径定义：knownReferenceCny 是所有已结算调用的公开价格参考估值合计，包含订阅与按量两类；knownCashCny 只包含已结算按量调用的现金估算；unknownReserveCny 是未确认按量调用的预留；cashProtectedCny 是已结算现金估算加未知现金预留。未知预留不属于已结算参考合计。订阅调用单次现金金额无法归属，subscriptionCashCny 为 null。两账本有重叠，不能再次相加。\n结构化账本输入（与上文相同）：[{\"mode\": \"subscription\", \"status\": \"billed\", \"inputTokens\": 1000, \"outputTokens\": 200, \"inputPer1k\": \"0.002\", \"outputPer1k\": \"0.008\"}, {\"mode\": \"metered\", \"status\": \"billed\", \"inputTokens\": 1000, \"outputTokens\": 200, \"inputPer1k\": \"0.009\", \"outputPer1k\": \"0.027\"}, {\"mode\": \"metered\", \"status\": \"unknown-usage\", \"amount\": \"0.1\"}]\n团队交付要求：追踪订阅与现金在面板、预留、取消和结算之间的合同；给出对账步骤，以及一份避免将公开参考估值误称实际扣款的修正提案。\n材料：\nsrc/refractrouter/task_budget.py\ndef cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())\n\nsrc/refractrouter/task_budget.py\ndef settle(self, reservation, response):\n        \"\"\"结算宿主实际执行的调用；与内置 complete 共用费用和输出验收。\"\"\"\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if row['status'] != 'unknown-usage':\n                raise ValueError('call receipt already settled or not dispatched')\n        if self.on_response is not None:\n            self.on_response(row, response)\n        if self.capture_payload:\n            with self.lock:\n                row['response_output'] = response.content\n                row['response'] = asdict(response)\n        counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)\n        if not response.usage_available or ((response.content.strip() or getattr(response, \"tool_calls\", ())) and (response.input_tokens == 0 or response.output_tokens == 0)):\n            raise ValueError('missing or unconfirmed model usage; reservation retained')\n        if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:\n            raise ValueError('invalid model usage; reservation retained')\n        if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':\n            from .deepseek_official_pricing import pricing\n            rates = pricing(model.api_model, at=datetime.fromisoformat(row['dispatch_at']))\n            model = replace(model, input_cost_per_1k=rates['inputPer1k'],\n                cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])\n            row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')\n        actual = number(model_response_cost(model, response), 'model cost')\n        with self.lock:\n            if model.billing_unit in {'CNY', 'USD'}:\n                row['cost_basis'] = 'subscription-reference-valuation' if getattr(model, 'billing_mode', 'metered') == 'subscription' else 'public-price-calculation'\n                row['provider_cost_confirmed'] = False\n            self.charged[row['category']] += actual - row['charged']\n            row.update(charged=actual, status='billed', input_tokens=response.input_tokens,\n                       output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,\n                       cache_usage_source=response.cache_usage_source,\n                       cache_usage_available=response.cache_usage_source is not None, ttft_ms=response.ttft_ms,\n                       reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,\n                       request_id=response.request_id, finish_reason=response.finish_reason,\n                       output_sha256=hashlib.sha256((json.dumps({'content': response.content, 'tool_calls': response.tool_calls},\n                           ensure_ascii=False) if getattr(response, 'tool_calls', ()) else response.content).encode()).hexdigest())\n            if self.cash_limits is not None:\n                row['reference_cost_cny'] = actual\n                row['cash_cost_cny'] = None if getattr(model, 'billing_mode', 'metered') == 'subscription' else actual\n                row['cash_cost_status'] = 'not-attributed-per-call' if getattr(model, 'billing_mode', 'metered') == 'subscription' else 'calculated-not-provider-confirmed'\n                if self.cash_snapshot()[row['category']] > self.cash_limits[row['category']] + 1e-8:\n                    self.stop()\n                    raise ValueError('actual cash cost exceeded limit; execution stopped')\n            if (actual > row['reserved'] + 1e-8\n                    or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):\n                self.stop()\n                raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')\n        if not getattr(response, 'tool_calls', ()) and response.content.strip().startswith('<|FunctionCallBegin|>'):\n            raise ValueError('模型返回工具协议文本而非原生 tool_calls；未执行文本指令')\n        if reservation.tools and getattr(response, 'tool_calls', ()) and response.finish_reason in {'tool_calls', 'stop'}:\n            return response\n        if getattr(response, 'tool_calls', ()) or response.finish_reason != 'stop' or not response.content.strip():\n            finish = response.finish_reason if response.finish_reason in {\n                'stop', 'length', 'content_filter', 'tool_calls', 'function_call'} else 'other'\n            raise InvalidModelOutput(f\"invalid or truncated output for {row['label']} \"\n                f\"(finish_reason={finish}, output_tokens={response.output_tokens}, \"\n                f\"reasoning_tokens={response.reasoning_tokens}, output_cap={output_token_limit(model)})\")\n        return response",
+      "materials": [
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "cash_snapshot",
+            "stop",
+            "dispatch"
+          ],
+          "text": "def cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())"
+        },
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "settle"
+          ],
+          "text": "def settle(self, reservation, response):\n        \"\"\"结算宿主实际执行的调用；与内置 complete 共用费用和输出验收。\"\"\"\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if row['status'] != 'unknown-usage':\n                raise ValueError('call receipt already settled or not dispatched')\n        if self.on_response is not None:\n            self.on_response(row, response)\n        if self.capture_payload:\n            with self.lock:\n                row['response_output'] = response.content\n                row['response'] = asdict(response)\n        counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)\n        if not response.usage_available or ((response.content.strip() or getattr(response, \"tool_calls\", ())) and (response.input_tokens == 0 or response.output_tokens == 0)):\n            raise ValueError('missing or unconfirmed model usage; reservation retained')\n        if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:\n            raise ValueError('invalid model usage; reservation retained')\n        if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':\n            from .deepseek_official_pricing import pricing\n            rates = pricing(model.api_model, at=datetime.fromisoformat(row['dispatch_at']))\n            model = replace(model, input_cost_per_1k=rates['inputPer1k'],\n                cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])\n            row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')\n        actual = number(model_response_cost(model, response), 'model cost')\n        with self.lock:\n            if model.billing_unit in {'CNY', 'USD'}:\n                row['cost_basis'] = 'subscription-reference-valuation' if getattr(model, 'billing_mode', 'metered') == 'subscription' else 'public-price-calculation'\n                row['provider_cost_confirmed'] = False\n            self.charged[row['category']] += actual - row['charged']\n            row.update(charged=actual, status='billed', input_tokens=response.input_tokens,\n                       output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,\n                       cache_usage_source=response.cache_usage_source,\n                       cache_usage_available=response.cache_usage_source is not None, ttft_ms=response.ttft_ms,\n                       reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,\n                       request_id=response.request_id, finish_reason=response.finish_reason,\n                       output_sha256=hashlib.sha256((json.dumps({'content': response.content, 'tool_calls': response.tool_calls},\n                           ensure_ascii=False) if getattr(response, 'tool_calls', ()) else response.content).encode()).hexdigest())\n            if self.cash_limits is not None:\n                row['reference_cost_cny'] = actual\n                row['cash_cost_cny'] = None if getattr(model, 'billing_mode', 'metered') == 'subscription' else actual\n                row['cash_cost_status'] = 'not-attributed-per-call' if getattr(model, 'billing_mode', 'metered') == 'subscription' else 'calculated-not-provider-confirmed'\n                if self.cash_snapshot()[row['category']] > self.cash_limits[row['category']] + 1e-8:\n                    self.stop()\n                    raise ValueError('actual cash cost exceeded limit; execution stopped')\n            if (actual > row['reserved'] + 1e-8\n                    or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):\n                self.stop()\n                raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')\n        if not getattr(response, 'tool_calls', ()) and response.content.strip().startswith('<|FunctionCallBegin|>'):\n            raise ValueError('模型返回工具协议文本而非原生 tool_calls；未执行文本指令')\n        if reservation.tools and getattr(response, 'tool_calls', ()) and response.finish_reason in {'tool_calls', 'stop'}:\n            return response\n        if getattr(response, 'tool_calls', ()) or response.finish_reason != 'stop' or not response.content.strip():\n            finish = response.finish_reason if response.finish_reason in {\n                'stop', 'length', 'content_filter', 'tool_calls', 'function_call'} else 'other'\n            raise InvalidModelOutput(f\"invalid or truncated output for {row['label']} \"\n                f\"(finish_reason={finish}, output_tokens={response.output_tokens}, \"\n                f\"reasoning_tokens={response.reasoning_tokens}, output_cap={output_token_limit(model)})\")\n        return response"
+        }
+      ],
+      "criteria": [
+        "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+        "中文解释核对过程与风险边界，交付完整 JSON。",
+        "订阅公开估值与现金单次归属分开，未知用量保持保护且不可自动释放。",
+        "给出实际可执行的对账步骤与面板字段修正，保留固定套餐成本未归属这一限制。",
+        "按题目明确的合计与分项定义计算，已结算按量费用同时包含在参考合计和现金账本，未知预留不得当成已结算费用。"
+      ],
+      "expectedAnswers": {
+        "knownReferenceCny": 0.018,
+        "knownCashCny": 0.0144,
+        "unknownReserveCny": 0.1,
+        "cashProtectedCny": 0.1144,
+        "subscriptionCashCny": null
+      },
+      "answerContract": {
+        "version": "reference-cash-ledger-v1",
+        "rows": [
+          {
+            "mode": "subscription",
+            "status": "billed",
+            "inputTokens": 1000,
+            "outputTokens": 200,
+            "inputPer1k": "0.002",
+            "outputPer1k": "0.008"
+          },
+          {
+            "mode": "metered",
+            "status": "billed",
+            "inputTokens": 1000,
+            "outputTokens": 200,
+            "inputPer1k": "0.009",
+            "outputPer1k": "0.027"
+          },
+          {
+            "mode": "metered",
+            "status": "unknown-usage",
+            "amount": "0.1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tool-receipts",
+      "kind": "simple",
+      "task": "这是小型开发团队对当前 RefractRouter 公开源码的离线审查。材料已在请求中提供，不访问文件、网络或工具，不声称代码已运行。只依据材料和案例生成审查结果。最后输出一个 JSON 对象，含 answers（指定字段）和 explanation（中文审查、风险、修正提案与验证条件，指出材料中的函数或语句）。不得省略正文而只输出推理。\n为代码评审整理 verify 的验收表。requirements={required:true,tools:[Bash]}。分别只有一条事件：tool=functions.exec_command,status=failed；tool=Bash,status=unclassified；tool=Bash,status=denied。每种分别采用 receipt（require_confirmed=false）和 confirmed=true。answers 字段：failedReceipt、failedConfirmed、unclassifiedReceipt、unclassifiedConfirmed、deniedReceipt、deniedConfirmed、semanticQualityVerified，值均为布尔。\n团队交付要求：审查实际工具验收实现，提出既能阻止凭空答复又不误拒绝“用户本来要求观察失败”的集成方案。至少包括普通 Base URL 与增强证据两条路径、工具别名、未确认结果和语义审核的交接。\n事件合同补充：每条 verify 事件均包含 callId=\"example-call\"，除此之外按各案例列出的 tool/status 判断。\n材料：\nsrc/refractrouter/model_tool_validation.py\nVERSION = 'model-tool-validation-v1'\nCOMMAND_TOOLS = {'bash', 'exec_command', 'functions.exec_command'}\n\ndef _matches(required, actual):\n    required, actual = required.casefold(), actual.casefold()\n    return required == actual or required in COMMAND_TOOLS and actual in COMMAND_TOOLS\n\ndef verify(requirements, events, *, require_confirmed=False):\n    observed = [e for e in events if e['status'] in ({'completed', 'failed'} if require_confirmed\n                else {'completed', 'failed', 'unclassified'})]\n    missing = [n for n in requirements['tools'] if not any(_matches(n, e['tool']) for e in observed)]\n    uncertain = any(e['status'] in {'unconfirmed', 'unclassified', 'unclassified-error'} for e in events)\n    passed = not requirements['required'] or bool(observed) and not missing and not (require_confirmed and uncertain)\n    reason = ('no-explicit-tool-requirement' if not requirements['required'] else\n              'host-tool-status-unconfirmed' if require_confirmed and uncertain else\n              'required-host-tool-not-observed' if not passed else 'host-tool-receipt-observed')\n    return {'schemaVersion': VERSION, 'required': requirements['required'],\n            'requiredTools': requirements['tools'], 'passed': bool(passed), 'reason': reason,\n            'missingTools': missing, 'records': [{k: e[k] for k in ('callId', 'tool', 'status')} for e in events],\n            'requireConfirmed': require_confirmed, 'outcomeConfirmed': bool(observed) and not uncertain,\n            'semanticQualityVerified': False}",
+      "materials": [
+        {
+          "path": "src/refractrouter/model_tool_validation.py",
+          "sha256": "6cf7f7654c8fc626aa5b6f376a3ce227585755ed79c80440bf050b665bdcec61",
+          "selection": [
+            "VERSION",
+            "COMMAND_TOOLS",
+            "verify",
+            "_matches"
+          ],
+          "text": "VERSION = 'model-tool-validation-v1'\nCOMMAND_TOOLS = {'bash', 'exec_command', 'functions.exec_command'}\n\ndef _matches(required, actual):\n    required, actual = required.casefold(), actual.casefold()\n    return required == actual or required in COMMAND_TOOLS and actual in COMMAND_TOOLS\n\ndef verify(requirements, events, *, require_confirmed=False):\n    observed = [e for e in events if e['status'] in ({'completed', 'failed'} if require_confirmed\n                else {'completed', 'failed', 'unclassified'})]\n    missing = [n for n in requirements['tools'] if not any(_matches(n, e['tool']) for e in observed)]\n    uncertain = any(e['status'] in {'unconfirmed', 'unclassified', 'unclassified-error'} for e in events)\n    passed = not requirements['required'] or bool(observed) and not missing and not (require_confirmed and uncertain)\n    reason = ('no-explicit-tool-requirement' if not requirements['required'] else\n              'host-tool-status-unconfirmed' if require_confirmed and uncertain else\n              'required-host-tool-not-observed' if not passed else 'host-tool-receipt-observed')\n    return {'schemaVersion': VERSION, 'required': requirements['required'],\n            'requiredTools': requirements['tools'], 'passed': bool(passed), 'reason': reason,\n            'missingTools': missing, 'records': [{k: e[k] for k in ('callId', 'tool', 'status')} for e in events],\n            'requireConfirmed': require_confirmed, 'outcomeConfirmed': bool(observed) and not uncertain,\n            'semanticQualityVerified': False}"
+        }
+      ],
+      "criteria": [
+        "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+        "中文解释核对过程与风险边界，交付完整 JSON。",
+        "不能把非零退出和语义错误混为一谈；receipt 与 confirmed 的差别正确。",
+        "普通 Base URL 没有可信状态时不得承诺成功；给出宿主证据与后续语义审核的接口建议。"
+      ],
+      "expectedAnswers": {
+        "failedReceipt": true,
+        "failedConfirmed": true,
+        "unclassifiedReceipt": true,
+        "unclassifiedConfirmed": false,
+        "deniedReceipt": false,
+        "deniedConfirmed": false,
+        "semanticQualityVerified": false
+      }
+    },
+    {
+      "id": "cancel-reservations",
+      "kind": "coupled",
+      "task": "这是小型开发团队对当前 RefractRouter 公开源码的离线审查。材料已在请求中提供，不访问文件、网络或工具，不声称代码已运行。只依据材料和案例生成审查结果。最后输出一个 JSON 对象，含 answers（指定字段）和 explanation（中文审查、风险、修正提案与验证条件，指出材料中的函数或语句）。不得省略正文而只输出推理。\n团队要修复取消后账本被清零的问题。同一 production 类别三条记录：billed charged=0.02、unknown-usage charged=0.1、reserved charged=0.03；调用 stop 后，再尝试 dispatch 那条原 reserved。按顺序推导停用后 charged、未知记录保留金额、被取消记录金额和是否允许派发。answers 字段：chargedAfterStop、unknownRetained、cancelledCharged、dispatchAllowed；同时解释建议的修复与为什么不能把未知调用当作未派发释放。\n团队交付要求：审查取消发生在预留后、派发前以及派发后这三种时点的并发处理。为团队制作故障恢复方案和三条回归测试，指出 crash 后不能重新提交的边界。\n材料：\nsrc/refractrouter/task_budget.py\ndef cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())",
+      "materials": [
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "cash_snapshot",
+            "stop",
+            "dispatch"
+          ],
+          "text": "def cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())"
+        }
+      ],
+      "criteria": [
+        "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+        "中文解释核对过程与风险边界，交付完整 JSON。",
+        "覆盖三个取消时点及保留未知用量，不把应用取消等同于提供方未计费。",
+        "提出恢复核对与回归测试，不自动重发可能已派发调用。"
+      ],
+      "expectedAnswers": {
+        "chargedAfterStop": 0.12,
+        "unknownRetained": 0.1,
+        "cancelledCharged": 0,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "request-envelope",
+      "kind": "coupled",
+      "task": "这是小型开发团队对当前 RefractRouter 公开源码的离线审查。材料已在请求中提供，不访问文件、网络或工具，不声称代码已运行。只依据材料和案例生成审查结果。最后输出一个 JSON 对象，含 answers（指定字段）和 explanation（中文审查、风险、修正提案与验证条件，指出材料中的函数或语句）。不得省略正文而只输出推理。\n给团队审查跨语言请求预算的错误：同事直接用字符长度代替 request_input_bound。messages 为 [{\"role\":\"user\",\"content\":\"你好\"}]，无 tools。先按源码精确复现 json.dumps 默认分隔空格、ensure_ascii=False，再用 UTF-8 字节数加256计算上界。然后以输入价0.002、输出价0.008 CNY/千tokens，输出上限8192计算预留。answers 字段：serializedBytes、inputBound、reservedCny、characterCountIsSafe（布尔）。解释整个推导依赖，不引入真实 tokenizer 调用。\n团队交付要求：审查跨语言输入包络和价格预留的设计，提出一个不改动原用户上下文的修正提案；区分 UTF-8 保守字节界、实际 tokenizer、工具 schema 和输出上限，并给出中文与英文回归点。\n材料：\nsrc/refractrouter/task_budget.py\ndef request_input_bound(messages, tools=None):\n    \"\"\"模型请求与节点准入共用相同的保守序列化计数。\"\"\"\n    payload = {\"messages\": messages, \"tools\": tools} if tools else messages\n    return len(json.dumps(payload, ensure_ascii=False).encode()) + 256",
+      "materials": [
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "request_input_bound"
+          ],
+          "text": "def request_input_bound(messages, tools=None):\n    \"\"\"模型请求与节点准入共用相同的保守序列化计数。\"\"\"\n    payload = {\"messages\": messages, \"tools\": tools} if tools else messages\n    return len(json.dumps(payload, ensure_ascii=False).encode()) + 256"
+        }
+      ],
+      "criteria": [
+        "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+        "中文解释核对过程与风险边界，交付完整 JSON。",
+        "不将字节上界称为精确 tokens；不截断历史，明确输出上限也计入预留。",
+        "工具 schema 应纳入实际请求包络，给出中英文验证及修正提案。"
+      ],
+      "expectedAnswers": {
+        "serializedBytes": 39,
+        "inputBound": 295,
+        "reservedCny": 0.066126,
+        "characterCountIsSafe": false
+      }
+    },
+    {
+      "id": "independent-cost-evidence",
+      "kind": "independent",
+      "task": "这是小型开发团队对当前 RefractRouter 公开源码的离线审查。材料已在请求中提供，不访问文件、网络或工具，不声称代码已运行。只依据材料和案例生成审查结果。最后输出一个 JSON 对象，含 answers（指定字段）和 explanation（中文审查、风险、修正提案与验证条件，指出材料中的函数或语句）。不得省略正文而只输出推理。\n给团队发布评审制作两项独立核对，再汇总交付。A：费用面板中订阅已结算参考0.08、现金已结算0.03、现金 unknown-usage 预留0.20；给出已知参考和已知现金及当前现金占用。B：requirements={required:true,tools:[Bash]}，只有 tool=Bash,status=unclassified 的事件；判断 receipt 和 confirmed 是否通过，是否证明语义质量。answers 字段：knownReferenceCny、knownCashCny、cashProtectedCny、receiptPassed、confirmedPassed、semanticQualityVerified。分别解释两个独立模块的风险和上线建议。\n口径定义：knownReferenceCny 是所有已结算调用的公开价格参考估值合计，包含订阅与按量两类；knownCashCny 只包含已结算按量调用的现金估算；unknownReserveCny 是未确认按量调用的预留；cashProtectedCny 是已结算现金估算加未知现金预留。未知预留不属于已结算参考合计。订阅调用单次现金金额无法归属，subscriptionCashCny 为 null。两账本有重叠，不能再次相加。\n结构化账本输入（与上文相同）：[{\"mode\": \"subscription\", \"status\": \"billed\", \"amount\": \"0.08\"}, {\"mode\": \"metered\", \"status\": \"billed\", \"amount\": \"0.03\"}, {\"mode\": \"metered\", \"status\": \"unknown-usage\", \"amount\": \"0.20\"}]\n团队交付要求：分别审查费用账本和工具验收，两项各输出风险、具体改进提案、至少两条验证条件，然后综合成团队可使用的上线检查表。两份独立核对不得用费用结算替代任务质量，或用命令回执替代计费。\n事件合同补充：每条 verify 事件均包含 callId=\"example-call\"，除此之外按各案例列出的 tool/status 判断。\n材料：\nsrc/refractrouter/task_budget.py\ndef cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())\n\nsrc/refractrouter/model_tool_validation.py\nVERSION = 'model-tool-validation-v1'\nCOMMAND_TOOLS = {'bash', 'exec_command', 'functions.exec_command'}\n\ndef _matches(required, actual):\n    required, actual = required.casefold(), actual.casefold()\n    return required == actual or required in COMMAND_TOOLS and actual in COMMAND_TOOLS\n\ndef verify(requirements, events, *, require_confirmed=False):\n    observed = [e for e in events if e['status'] in ({'completed', 'failed'} if require_confirmed\n                else {'completed', 'failed', 'unclassified'})]\n    missing = [n for n in requirements['tools'] if not any(_matches(n, e['tool']) for e in observed)]\n    uncertain = any(e['status'] in {'unconfirmed', 'unclassified', 'unclassified-error'} for e in events)\n    passed = not requirements['required'] or bool(observed) and not missing and not (require_confirmed and uncertain)\n    reason = ('no-explicit-tool-requirement' if not requirements['required'] else\n              'host-tool-status-unconfirmed' if require_confirmed and uncertain else\n              'required-host-tool-not-observed' if not passed else 'host-tool-receipt-observed')\n    return {'schemaVersion': VERSION, 'required': requirements['required'],\n            'requiredTools': requirements['tools'], 'passed': bool(passed), 'reason': reason,\n            'missingTools': missing, 'records': [{k: e[k] for k in ('callId', 'tool', 'status')} for e in events],\n            'requireConfirmed': require_confirmed, 'outcomeConfirmed': bool(observed) and not uncertain,\n            'semanticQualityVerified': False}",
+      "materials": [
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "cash_snapshot",
+            "stop",
+            "dispatch"
+          ],
+          "text": "def cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())"
+        },
+        {
+          "path": "src/refractrouter/model_tool_validation.py",
+          "sha256": "6cf7f7654c8fc626aa5b6f376a3ce227585755ed79c80440bf050b665bdcec61",
+          "selection": [
+            "VERSION",
+            "COMMAND_TOOLS",
+            "verify",
+            "_matches"
+          ],
+          "text": "VERSION = 'model-tool-validation-v1'\nCOMMAND_TOOLS = {'bash', 'exec_command', 'functions.exec_command'}\n\ndef _matches(required, actual):\n    required, actual = required.casefold(), actual.casefold()\n    return required == actual or required in COMMAND_TOOLS and actual in COMMAND_TOOLS\n\ndef verify(requirements, events, *, require_confirmed=False):\n    observed = [e for e in events if e['status'] in ({'completed', 'failed'} if require_confirmed\n                else {'completed', 'failed', 'unclassified'})]\n    missing = [n for n in requirements['tools'] if not any(_matches(n, e['tool']) for e in observed)]\n    uncertain = any(e['status'] in {'unconfirmed', 'unclassified', 'unclassified-error'} for e in events)\n    passed = not requirements['required'] or bool(observed) and not missing and not (require_confirmed and uncertain)\n    reason = ('no-explicit-tool-requirement' if not requirements['required'] else\n              'host-tool-status-unconfirmed' if require_confirmed and uncertain else\n              'required-host-tool-not-observed' if not passed else 'host-tool-receipt-observed')\n    return {'schemaVersion': VERSION, 'required': requirements['required'],\n            'requiredTools': requirements['tools'], 'passed': bool(passed), 'reason': reason,\n            'missingTools': missing, 'records': [{k: e[k] for k in ('callId', 'tool', 'status')} for e in events],\n            'requireConfirmed': require_confirmed, 'outcomeConfirmed': bool(observed) and not uncertain,\n            'semanticQualityVerified': False}"
+        }
+      ],
+      "criteria": [
+        "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+        "中文解释核对过程与风险边界，交付完整 JSON。",
+        "两个独立模块均给出风险、具体提案、验证条件，再汇总检查表。",
+        "费用和任务质量证据分开；保留未知费用与未确认工具状态的差异。",
+        "按题目明确的合计与分项定义计算，已结算按量费用同时包含在参考合计和现金账本，未知预留不得当成已结算费用。"
+      ],
+      "expectedAnswers": {
+        "knownReferenceCny": 0.11,
+        "knownCashCny": 0.03,
+        "cashProtectedCny": 0.23,
+        "receiptPassed": true,
+        "confirmedPassed": false,
+        "semanticQualityVerified": false
+      },
+      "answerContract": {
+        "version": "reference-cash-ledger-v1",
+        "rows": [
+          {
+            "mode": "subscription",
+            "status": "billed",
+            "amount": "0.08"
+          },
+          {
+            "mode": "metered",
+            "status": "billed",
+            "amount": "0.03"
+          },
+          {
+            "mode": "metered",
+            "status": "unknown-usage",
+            "amount": "0.20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "independent-release-review",
+      "kind": "independent",
+      "task": "这是小型开发团队对当前 RefractRouter 公开源码的离线审查。材料已在请求中提供，不访问文件、网络或工具，不声称代码已运行。只依据材料和案例生成审查结果。最后输出一个 JSON 对象，含 answers（指定字段）和 explanation（中文审查、风险、修正提案与验证条件，指出材料中的函数或语句）。不得省略正文而只输出推理。\n为团队上线前审查三个独立问题，再给出汇总建议。A：records 中 billed=0.04、unknown-usage=0.15、reserved=0.02，均同一production类别，调用stop后的占用是多少？B：requirements={required:true,tools:[Bash]}，有 tool=functions.exec_command,status=failed 的可信事件；confirmed 是否通过，是否证明答案质量？C：messages=[{\"role\":\"user\",\"content\":\"你好\"}]，无tools，输入包络上界是多少？answers 字段：chargedAfterStop、confirmedPassed、semanticQualityVerified、inputBound、unknownReleased（布尔）。每个问题独立核对，再指出不能宣称调用成功／语义审核通过／精确 tokenizer 用量的边界。\n团队交付要求：独立审查取消恢复、工具可信事实、输入包络三个模块。每项给出风险与可执行的修正和回归点，再制定包含阻断条件、灰度观察与回滚保留项的发布建议。不得宣称没有实际运行的测试已通过。\n事件合同补充：每条 verify 事件均包含 callId=\"example-call\"，除此之外按各案例列出的 tool/status 判断。\n材料：\nsrc/refractrouter/task_budget.py\ndef cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())\n\nsrc/refractrouter/model_tool_validation.py\nVERSION = 'model-tool-validation-v1'\nCOMMAND_TOOLS = {'bash', 'exec_command', 'functions.exec_command'}\n\ndef _matches(required, actual):\n    required, actual = required.casefold(), actual.casefold()\n    return required == actual or required in COMMAND_TOOLS and actual in COMMAND_TOOLS\n\ndef verify(requirements, events, *, require_confirmed=False):\n    observed = [e for e in events if e['status'] in ({'completed', 'failed'} if require_confirmed\n                else {'completed', 'failed', 'unclassified'})]\n    missing = [n for n in requirements['tools'] if not any(_matches(n, e['tool']) for e in observed)]\n    uncertain = any(e['status'] in {'unconfirmed', 'unclassified', 'unclassified-error'} for e in events)\n    passed = not requirements['required'] or bool(observed) and not missing and not (require_confirmed and uncertain)\n    reason = ('no-explicit-tool-requirement' if not requirements['required'] else\n              'host-tool-status-unconfirmed' if require_confirmed and uncertain else\n              'required-host-tool-not-observed' if not passed else 'host-tool-receipt-observed')\n    return {'schemaVersion': VERSION, 'required': requirements['required'],\n            'requiredTools': requirements['tools'], 'passed': bool(passed), 'reason': reason,\n            'missingTools': missing, 'records': [{k: e[k] for k in ('callId', 'tool', 'status')} for e in events],\n            'requireConfirmed': require_confirmed, 'outcomeConfirmed': bool(observed) and not uncertain,\n            'semanticQualityVerified': False}\n\nsrc/refractrouter/task_budget.py\ndef request_input_bound(messages, tools=None):\n    \"\"\"模型请求与节点准入共用相同的保守序列化计数。\"\"\"\n    payload = {\"messages\": messages, \"tools\": tools} if tools else messages\n    return len(json.dumps(payload, ensure_ascii=False).encode()) + 256",
+      "materials": [
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "cash_snapshot",
+            "stop",
+            "dispatch"
+          ],
+          "text": "def cash_snapshot(self):\n        with self.lock:\n            return {category: sum(row['charged'] for row in self.records\n                if row['category'] == category and row.get('billing_mode', 'metered') != 'subscription')\n                for category in ('production', 'evaluation')}\n\ndef stop(self):\n        \"\"\"仅释放尚未派发的预留；已派发请求继续保留并结算。\"\"\"\n        with self.lock:\n            self.stopped = True\n            for row in self.records:\n                if row['status'] == 'reserved':\n                    self.charged[row['category']] -= row['charged']\n                    row.update(charged=0, status='cancelled-before-dispatch')\n            for category in self.charged:\n                self.charged[category] = sum(r['charged'] for r in self.records if r['category'] == category)\n\ndef dispatch(self, reservation, *, timeout_seconds=None, cancel_event=None):\n        row, model = reservation.row, reservation.model\n        with self.lock:\n            if cancel_event is not None and cancel_event.is_set():\n                self.stop()\n            if self.stopped or row['status'] != 'reserved':\n                self.stop()\n                raise CancelledError('task execution stopped')\n            if timeout_seconds is not None and timeout_seconds <= 0:\n                self.stop()\n                raise ValueError('task-deadline-exhausted')\n            row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),\n                       dispatch_at=datetime.now(timezone.utc).isoformat())"
+        },
+        {
+          "path": "src/refractrouter/model_tool_validation.py",
+          "sha256": "6cf7f7654c8fc626aa5b6f376a3ce227585755ed79c80440bf050b665bdcec61",
+          "selection": [
+            "VERSION",
+            "COMMAND_TOOLS",
+            "verify",
+            "_matches"
+          ],
+          "text": "VERSION = 'model-tool-validation-v1'\nCOMMAND_TOOLS = {'bash', 'exec_command', 'functions.exec_command'}\n\ndef _matches(required, actual):\n    required, actual = required.casefold(), actual.casefold()\n    return required == actual or required in COMMAND_TOOLS and actual in COMMAND_TOOLS\n\ndef verify(requirements, events, *, require_confirmed=False):\n    observed = [e for e in events if e['status'] in ({'completed', 'failed'} if require_confirmed\n                else {'completed', 'failed', 'unclassified'})]\n    missing = [n for n in requirements['tools'] if not any(_matches(n, e['tool']) for e in observed)]\n    uncertain = any(e['status'] in {'unconfirmed', 'unclassified', 'unclassified-error'} for e in events)\n    passed = not requirements['required'] or bool(observed) and not missing and not (require_confirmed and uncertain)\n    reason = ('no-explicit-tool-requirement' if not requirements['required'] else\n              'host-tool-status-unconfirmed' if require_confirmed and uncertain else\n              'required-host-tool-not-observed' if not passed else 'host-tool-receipt-observed')\n    return {'schemaVersion': VERSION, 'required': requirements['required'],\n            'requiredTools': requirements['tools'], 'passed': bool(passed), 'reason': reason,\n            'missingTools': missing, 'records': [{k: e[k] for k in ('callId', 'tool', 'status')} for e in events],\n            'requireConfirmed': require_confirmed, 'outcomeConfirmed': bool(observed) and not uncertain,\n            'semanticQualityVerified': False}"
+        },
+        {
+          "path": "src/refractrouter/task_budget.py",
+          "sha256": "d49cb060a8276b7b757e250a7883600a81cca37bbf3f351a9facf8127bd10ee7",
+          "selection": [
+            "request_input_bound"
+          ],
+          "text": "def request_input_bound(messages, tools=None):\n    \"\"\"模型请求与节点准入共用相同的保守序列化计数。\"\"\"\n    payload = {\"messages\": messages, \"tools\": tools} if tools else messages\n    return len(json.dumps(payload, ensure_ascii=False).encode()) + 256"
+        }
+      ],
+      "criteria": [
+        "准确回答所有指定字段，遵循材料与案例，不虚构执行。",
+        "中文解释核对过程与风险边界，交付完整 JSON。",
+        "覆盖三个模块并给出修正／回归点，汇总阻断条件与回滚保留项。",
+        "不宣称模拟事实等于实际工具成功、语义质量或精确 tokenizer；不自动重发未知调用。"
+      ],
+      "expectedAnswers": {
+        "chargedAfterStop": 0.19,
+        "confirmedPassed": true,
+        "semanticQualityVerified": false,
+        "inputBound": 295,
+        "unknownReleased": false
+      }
+    }
+  ],
+  "plannerTimeoutMs": 90000,
+  "revisionReason": "明确总参考估值与现金口径，加入可执行的账本案例校验；旧 v3 结果保持原样，v4 单独统计。",
+  "parentProtocol": {
+    "path": "data/research/automatic-applicability-v3.json",
+    "sha256": "452fd81aa8aa64a0835dcc127eda4b9aad797941aa866b48b238084fe2cba1b8"
+  },
+  "maxFinalRevisions": 1,
+  "reviewTimeoutMs": 180000,
+  "reviewReserveMs": 60000,
+  "reviewMaxOutputTokens": 8192,
+  "correctionPolicy": "最终答复因质量或确定性事实检查拒绝后，至多一次文字纠正与复审；不重新规划、调用工具或重做节点；不修复非法审核、未知用量、认证或传输错误。",
+  "deterministicReviewReceipt": true,
+  "reviewContract": "proposal-constraints-v8",
+  "evidenceRevisionReason": "完整原材料、候选及带哈希的分页引用需要明确64KiB输入包络；不截断来源，不传隐藏标准答案，不降低质量门槛。"
+}

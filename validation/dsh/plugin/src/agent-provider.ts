@@ -243,6 +243,28 @@ interface PublicFailure {
   message: string
 }
 
+// Consume the core's terminal verdict; the adapter does not judge candidate quality.
+function resultFailure(result: Record<string, unknown>): PublicFailure | undefined {
+  const messages: Record<string, string> = {
+    failed: '规划或执行失败',
+    'quality-failed': '最终回复未通过质量审核',
+    'output-constraint-failed': '最终回复未满足输出限制',
+    'tool-requirement-failed': '工具执行证据未通过验收',
+    'review-time-exhausted': '没有足够时间完成必要审核',
+    'privacy-route-blocked': '目标路线未通过数据域检查',
+    'content-verification-failed': '节点内容未通过验证',
+    cancelled: '任务已取消',
+  }
+  const review = result.review
+  const reviewFailed = result.status === 'failed' && review !== null && typeof review === 'object'
+    && (review as Record<string, unknown>).status === 'failed'
+  const reason = reviewFailed ? '最终审核失败，候选尚未审定' : messages[String(result.status)]
+  if (!reason) return undefined
+  return { kind: result.status === 'cancelled' ? 'aborted' : 'error',
+    code: 'REFRACTAGENT_EXECUTION_FAILED',
+    message: `本次任务未完成：${reason}。候选答案未交付；已发生的费用和错误保留在路由轨迹与运行记录中。` }
+}
+
 function publicFailure(error: unknown, aborted: boolean): PublicFailure {
   const detail = error instanceof Error ? error.message : String(error)
   const summary=detail.replace(/\s+/g,' ').trim().slice(0,300)
@@ -447,7 +469,8 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
     const detail = object(result) && typeof result.error === 'string' ? result.error : 'invalid application result'
     throw new Error(detail)
   }
-  if (typeof result.answer !== 'string' || (expectedMode !== 'preflight' && !result.answer)
+  const terminalFailure = resultFailure(result)
+  if (typeof result.answer !== 'string' || (expectedMode !== 'preflight' && !terminalFailure && !result.answer)
     || !object(result.costs) || !object(result.models)
     || !object(result.usage) || typeof result.result_path !== 'string') throw new Error('invalid RefractAgent result fields')
   const billingUnit=config.dshModelPool?.billingUnit??config.providerConfig?.billingUnit
@@ -471,7 +494,7 @@ function validateResult(result: unknown, config: Readonly<Configuration>, option
   }
   if (result.strategy !== expectedStrategy || result.mode !== expectedMode
     || result.simulated !== (expectedMode === 'demo')) throw new Error('RefractAgent returned a different strategy or execution mode')
-  if (live && (config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion)
+  if (live && !terminalFailure && (config.dshModelPool !== undefined || autoProvider(config.providerConfig?.schemaVersion)
     || config.template === 'auto') && (!['model','direct-gate','direct-after-probe'].includes(String(result.plan_origin))
     || !object(result.plan) || !Array.isArray(result.plan.nodes))) {
     throw new Error('installed core did not return an automatically generated DAG')
@@ -748,6 +771,9 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     ...(control?.authorization ? {authorization:control.authorization} : {}),
     ...(control?.localOnly ? {complexityPolicy:config.liveExecution!.complexityPolicy,
       reviewPolicy:config.liveExecution!.reviewPolicy,maxDynamicSplits:0,
+      ...Object.fromEntries((['reviewTimeoutMs','reviewReserveMs','reviewMaxOutputTokens','maxFinalRevisions'] as const)
+        .filter(key=>config.liveExecution![key]!==undefined)
+        .map(key=>[key,config.liveExecution![key]])),
       maxConcurrency:config.liveExecution!.maxConcurrency ?? 1,
       ...(config.liveExecution!.maxOutputTokens === 'unlimited' ? {unlimitedNodeOutput:true} :
         typeof config.liveExecution!.maxOutputTokens === 'number'?{boundedCallOutput:true}:{}),
@@ -760,7 +786,10 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     ...Object.fromEntries(['plannerModelId','plannerTimeoutMs','plannerMaxOutputTokens','maxDynamicSplits','maxConcurrency','verifyDependencies']
       .filter(key => config[key as keyof Configuration] !== undefined).map(key => [key, config[key as keyof Configuration]])),
     ...(config.outputConstraints ? { outputConstraints: config.outputConstraints } : {}),
-    temperature: options.temperature ?? 0, ...(config.limits ? { limits: config.limits } : {}),
+    temperature: options.temperature ?? 0,
+    ...((control?.localOnly && config.liveExecution?.taskTimeoutMs!==undefined)
+      ?{limits:{...config.limits,unlimitedTime:config.liveExecution.taskTimeoutMs===0}}
+      :config.limits?{limits:config.limits}:{}),
     ...(config.providerConfig ? { providerConfig: config.providerConfig } : {}),
     ...(config.dshModelPool ? {dshModelPool:config.dshModelPool,dshCatalogSnapshot:catalogSnapshot} : {}) }
   const routes = configuredRoutes(config)
@@ -820,7 +849,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   const argv = [executable, ...(pythonModule ? ['-m', 'refractrouter.agent_cli'] : []), 'run',
     useBridge ? '--host-stdio' : '--request-stdin', '--mode', mode,
     '--runs-dir', runsDir, '--production-budget', typeof control?.productionBudget==='object'?JSON.stringify(control.productionBudget):String(control?.productionBudget ?? config.maxProductionCost),
-    '--evaluation-budget', typeof control?.evaluationBudget==='object'?JSON.stringify(control.evaluationBudget):String(control?.evaluationBudget ?? config.maxEvaluationCost), '--timeout-ms', String(config.timeoutMs),
+    '--evaluation-budget', typeof control?.evaluationBudget==='object'?JSON.stringify(control.evaluationBudget):String(control?.evaluationBudget ?? config.maxEvaluationCost), '--timeout-ms', String(control?.localOnly&&config.liveExecution?.taskTimeoutMs ? config.liveExecution.taskTimeoutMs : config.timeoutMs),
     '--max-output-tokens', String(outputCap), ...(live ? ['--execute-paid-run'] : []), ...(progressEnabled ? ['--progress-stdio'] : []),
     ...(config.preset ? ['--preset', config.preset] : [])]
   const confined = ctx.sandbox.confine(argv, policy)
@@ -855,7 +884,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
       const detail = object(result) && typeof result.error === 'string' ? result.error : 'invalid application result'
       throw new Error(detail)
     }
-    if (outcome.exitCode !== 0) throw new Error(`RefractAgent ${String(result.status)}: ${JSON.stringify(result.issues)}`)
+    if (outcome.exitCode !== 0 && !resultFailure(result)) throw new Error(`RefractAgent ${String(result.status)}: ${JSON.stringify(result.issues)}`)
     return validateResult(result,config,options,live,progressEnabled,mode,options.model)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'RefractAgent execution failed'
@@ -958,7 +987,6 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
             const text = queue.shift()!
             if (!reasoningStarted) {
               reasoningStarted = true
-              yield { type: 'block-start', index: 0, blockType: 'reasoning' }
               if (pending) {
                 transcript += pending
                 yield { type: 'reasoning-delta', index: 0, text: pending }
@@ -1004,20 +1032,23 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
       // Operational metadata is separate from the answer, preserving requested JSON/text output.
       if (!reasoningStarted) {
         reasoningStarted = true
-        yield { type: 'block-start', index: 0, blockType: 'reasoning' }
       }
       yield { type: 'reasoning-delta', index: 0, text: info }
       yield { type: 'block-end', index: 0, block: { type: 'reasoning', text: transcript + info } }
+      const terminalFailure = resultFailure(result)
       const deliveredAnswer = result.status === 'tool-requirement-failed'
         ? `本次任务未完成：${object(result.tool_validation)?String(result.tool_validation.message):'工具执行证据未通过验收'} 候选答案已保留在运行记录中。`
-        : result.answer
-      yield { type: 'block-start', index: 1, blockType: 'text' }
+        : terminalFailure?.message ?? result.answer
+      // DSH 支持 delta-only。避免空 block-start 在持久化 attempt 重放时
+      // 暂时撤回已显示的 Chat 节点，导致 rc.3 的事件订阅中断。
       yield { type: 'text-delta', index: 1, text: deliveredAnswer }
       yield { type: 'block-end', index: 1, block: { type: 'text', text: deliveredAnswer } }
       const usage = result.usage as Record<string, number>
       yield { type: 'usage', usage: { inputTokens: usage.input_tokens, outputTokens: usage.output_tokens,
         cacheReadTokens: usage.cache_read_tokens ?? 0, reasoningTokens: usage.reasoning_tokens ?? 0 } }
-      yield { type: 'finish', reason: { kind: 'stop' }, replayState: { response: {
+      yield { type: 'finish', reason: terminalFailure
+        ? { kind: terminalFailure.kind, failure: { code: terminalFailure.code, message: terminalFailure.message } }
+        : { kind: 'stop' }, replayState: { response: {
         refractagent: { runId: result.run_id, strategy: result.strategy, models: result.models,
           modelRoutes: result.model_routes, evaluationModel: result.evaluation_model,
           status: result.status, generationStatus: result.generation_status, quality: result.quality,

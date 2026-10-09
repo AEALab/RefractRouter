@@ -144,7 +144,7 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
             'planningMode', 'plannerPolicy', 'contextPolicy', 'prefixPolicy', 'materials', 'plannerModelId', 'plannerMaxOutputTokens', 'plannerTimeoutMs',
             'maxDynamicSplits', 'maxConcurrency', 'providerConcurrency', 'providerMinIntervalMs', 'maxTotalOutputTokens', 'verifyDependencies', 'limits',
             'complexityPolicy', 'reviewPolicy', 'authorization', 'unlimitedNodeOutput', 'maxDshToolCalls',
-            'decompositionDecision', 'boundedCallOutput', 'reviewReserveMs', 'reviewMaxOutputTokens'}:
+            'decompositionDecision', 'boundedCallOutput', 'reviewReserveMs', 'reviewMaxOutputTokens', 'reviewTimeoutMs', 'maxFinalRevisions'}:
         raise ValueError('invalid RefractAgent request fields')
     if 'boundedCallOutput' in payload and type(payload['boundedCallOutput']) is not bool:
         raise ValueError('boundedCallOutput must be boolean')
@@ -184,7 +184,11 @@ def build_request(payload, *, mode, production_budget, timeout_ms, automatic_rou
     if automatic_routing:
         request['reviewReserveMs'] = payload.get('reviewReserveMs', 60000)
         request['reviewMaxOutputTokens'] = payload.get('reviewMaxOutputTokens', 8192)
-    elif 'reviewReserveMs' in payload or 'reviewMaxOutputTokens' in payload:
+        if 'reviewTimeoutMs' in payload:
+            request['reviewTimeoutMs'] = payload['reviewTimeoutMs']
+        if 'maxFinalRevisions' in payload:
+            request['maxFinalRevisions'] = payload['maxFinalRevisions']
+    elif any(key in payload for key in ('reviewReserveMs','reviewMaxOutputTokens','reviewTimeoutMs','maxFinalRevisions')):
         raise ValueError('review limits require automatic routing')
     if limits.get('unlimitedTime', False):
         request['unlimitedTime'] = True
@@ -432,6 +436,8 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
     max_model_calls = None
     if gate is not None and not (tools_allowed and tool_runtime.max_calls == 'unlimited'):
         max_model_calls = ((1 + int(review['required'])) if gate['decision'] == 'direct' else 8)
+        if review['required']:
+            max_model_calls += 2 * request.get('maxFinalRevisions', 0)
         if tools_allowed:
             max_model_calls += tool_runtime.max_calls
     result = run_task(request, manifest, profile,

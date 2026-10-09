@@ -1,4 +1,5 @@
 """单任务真实执行门禁；全部使用确定性模拟客户端。"""
+from tests.review_fixtures import mock_grounding_checks
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import json
@@ -41,7 +42,7 @@ class CompactClient:
         elif model.role == 'judge':
             criteria = json.loads(messages[-1]['content'])['criteria']
             content = json.dumps({'score': 92, 'passed': True, 'rationale': '已覆盖',
-                'criteria': [{'criterion': item, 'passed': True, 'rationale': '已核对'}
+                'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria': [{'criterion': item, 'passed': True, 'rationale': '已核对'}
                              for item in criteria]}, ensure_ascii=False)
         elif json_mode:
             fields = json.loads(messages[-1]['content'])['contract']['output']['fields']

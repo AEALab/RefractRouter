@@ -1,4 +1,5 @@
 """快速规划、动态子图与确定性依赖复核；所有模型均为无网络模拟。"""
+from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
 from dataclasses import replace
 import json
@@ -45,7 +46,7 @@ class Client:
             output = json.dumps(self.subplan if 'failed_node' in payload else self.plan)
         elif model.role == 'judge':
             output = json.dumps({'passed':True,'score':100,'rationale':'模拟放行',
-                'criteria':[{'criterion':c,'passed':True,'rationale':'模拟放行'} for c in payload['criteria']]})
+                'grounding_checks': mock_grounding_checks(json.loads(messages[-1]['content'])), 'criteria':[{'criterion':c,'passed':True,'rationale':'模拟放行'} for c in payload['criteria']]})
         elif fail == 'unknown':
             raise RuntimeError('unknown usage')
         elif fail == 'request':

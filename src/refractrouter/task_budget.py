@@ -57,6 +57,7 @@ class TaskCallBudget:
         self.adaptive_output_reservation = adaptive_output_reservation
         self.planning_elapsed = 0.0
         self.on_reserve = None
+        self.on_dispatch = None
         self.on_response = None
 
     def deadline(self, deadline):
@@ -83,11 +84,16 @@ class TaskCallBudget:
         with self.lock:
             return dict(self.charged), deepcopy(self.records)
 
-    def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None):
+    def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None,
+                future_input_bound=None):
         if category_limit is not None:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
         input_bound = request_input_bound(messages, tools)
+        if future_input_bound is not None:
+            if type(future_input_bound) is not int or future_input_bound < input_bound or tools:
+                raise ValueError('invalid future review input envelope')
+            input_bound = future_input_bound
         output_bound = available_output_limit(model, input_bound)
         if output_bound <= 0:
             raise ValueError('request leaves no model output capacity')
@@ -98,7 +104,7 @@ class TaskCallBudget:
         with self.lock:
             if self.stopped:
                 raise CancelledError('task execution stopped')
-            if self.max_calls is not None and len(self.records) >= self.max_calls:
+            if self.max_calls is not None and sum(r['status'] != 'cancelled-before-dispatch' for r in self.records) >= self.max_calls:
                 raise ValueError('study-call-limit-exhausted')
             ceiling = min(self.limits[category], category_limit if category_limit is not None else float('inf'))
             input_reserve = input_bound / 1000 * max(model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None) or 0)
@@ -113,7 +119,8 @@ class TaskCallBudget:
             if self.adaptive_output_reservation:
                 model = replace(model, max_output_tokens=output_bound)
             reserve = input_reserve + output_bound / 1000 * model.output_cost_per_1k
-            reserved_output = sum(row.get('reserved_output_tokens', 0) for row in self.records)
+            reserved_output = sum(row.get('reserved_output_tokens', 0) for row in self.records
+                                  if row['status'] != 'cancelled-before-dispatch')
             if (self.max_total_output_tokens is not None
                     and reserved_output + output_bound > self.max_total_output_tokens):
                 raise ValueError(f'task-output-budget-exhausted before {label}')
@@ -130,6 +137,9 @@ class TaskCallBudget:
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
                    'reserved_output_tokens': output_bound,
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
+            if future_input_bound is not None:
+                row.update(reservation_basis='future-input-envelope', protected_input_bound=future_input_bound,
+                           input_bound_confirmed=False)
             if category_limit is not None:
                 row['category_limit'] = category_limit
             if self.capture_payload:
@@ -145,6 +155,50 @@ class TaskCallBudget:
                 self.stop()
                 raise
         return reservation
+
+    def release(self, reservation):
+        """释放一个尚未派发的预留；不能释放已派发的未知用量。"""
+        with self.lock:
+            row = reservation.row
+            if row['status'] == 'cancelled-before-dispatch':
+                return
+            if row['status'] != 'reserved':
+                raise ValueError('cannot release a dispatched model call')
+            self.charged[row['category']] -= row['charged']
+            row.update(charged=0, status='cancelled-before-dispatch')
+
+    def reserve_many(self, requests):
+        """原子保护一个必要调用路径，任一额度不足时释放所有未派发部分。"""
+        if not isinstance(requests, (list, tuple)) or not requests:
+            raise ValueError('reservation path requires calls')
+        reservations = []
+        with self.lock:
+            try:
+                for request in requests:
+                    reservations.append(self.reserve(**request))
+            except BaseException:
+                for reservation in reservations:
+                    self.release(reservation)
+                raise
+        return reservations
+
+    def bind_future_input(self, reservation, messages):
+        """将保护的输入包络绑定到真实请求，不改变已保护额度或调用名额。"""
+        encoded = json.dumps(messages, ensure_ascii=False).encode()
+        bound = request_input_bound(messages)
+        with self.lock:
+            row = reservation.row
+            if (self.stopped or row['status'] != 'reserved'
+                    or row.get('reservation_basis') != 'future-input-envelope'
+                    or row.get('input_bound_confirmed') is not False):
+                raise ValueError('future review reservation cannot be rebound')
+            if bound > row['protected_input_bound']:
+                raise ValueError('final correction review exceeds protected input envelope')
+            reservation.messages = deepcopy(messages)
+            row.update(input_sha256=hashlib.sha256(encoded).hexdigest(), input_bound_confirmed=True,
+                       actual_input_bound=bound)
+            if self.capture_payload:
+                row['request_messages'] = deepcopy(messages)
 
     def stop(self):
         """仅释放尚未派发的预留；已派发请求继续保留并结算。"""
@@ -165,11 +219,19 @@ class TaskCallBudget:
             if self.stopped or row['status'] != 'reserved':
                 self.stop()
                 raise CancelledError('task execution stopped')
+            if row.get('reservation_basis') == 'future-input-envelope' and row.get('input_bound_confirmed') is not True:
+                raise ValueError('future input must be bound before dispatch')
             if timeout_seconds is not None and timeout_seconds <= 0:
                 self.stop()
                 raise ValueError('task-deadline-exhausted')
             row.update(status='unknown-usage', dispatch_monotonic=time.monotonic(),
                        dispatch_at=datetime.now(timezone.utc).isoformat())
+        if self.on_dispatch is not None:
+            try:
+                self.on_dispatch(reservation)
+            except BaseException:
+                self.stop()
+                raise
 
     def invoke(self, reservation, *, timeout_seconds=None, cancel_event=None, unlimited=False):
         row, model = reservation.row, reservation.model

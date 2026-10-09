@@ -130,6 +130,11 @@ export interface LiveExecutionView {
   maxEvaluationCost?:number|'unlimited'
   complexityPolicy:'auto'|'direct'|'dag'
   reviewPolicy:'adaptive'|'always'
+  reviewTimeoutMs?:number
+  reviewReserveMs?:number
+  reviewMaxOutputTokens?:number
+  maxFinalRevisions?:0|1
+  taskTimeoutMs?:number
   allowDshTools?:boolean
   maxDshToolCalls?:number|'unlimited'
   maxConcurrency?:number
@@ -149,6 +154,7 @@ export interface DshModelPoolView {
   billingUnit?: string
   cashLimits?:{production:number;evaluation:number}
   allowSharedJudge?: boolean
+  judgeReasoningEffort?: string
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
     reasoningEffort?:string;
     billingMode?:'subscription'|'metered';referencePricing?:Record<string,unknown>;

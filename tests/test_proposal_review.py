@@ -5,6 +5,7 @@ import time
 import pytest
 from refractrouter.task_evaluation import evaluation_messages, evaluate_text, PROPOSAL_CRITERION, REVIEW_CONTRACT
 from refractrouter.openai_compatible import ChatResponse
+from tests.review_fixtures import mock_grounding_checks
 
 
 def test_proposal_check_is_explicit_and_not_duplicated():
@@ -17,6 +18,46 @@ def test_proposal_check_is_explicit_and_not_duplicated():
     assert p['review_contract']==REVIEW_CONTRACT
 
 
+def test_each_grounding_item_has_an_explicit_output_shape():
+    from refractrouter.task_evaluation import GROUNDING_FIELDS, CLAIM_KINDS
+    p=json.loads(evaluation_messages('材料未提供测试状态','系统未经测试。仅说明我未执行测试。',[])[1]['content'])
+    assert [row['check_id'] for row in p['grounding_check_shapes']]==p['grounding_check_ids']
+    for i,row in enumerate(p['grounding_check_shapes']):
+        assert row['required_fields']==[*GROUNDING_FIELDS,*(['claim_kind'] if i>=2 else [])]
+        if i>=2:assert row['claim_kind_values']==list(CLAIM_KINDS)
+    node=json.loads(evaluation_messages('任务','节点答案',[],node_input='节点输入')[1]['content'])
+    assert 'grounding_check_shapes' not in node
+
+
+def test_review_template_has_all_fields_without_prejudging_claims():
+    p=json.loads(evaluation_messages('材料未提供测试状态','我未执行测试。系统未经测试。',[])[1]['content'])
+    template=p['final_review_template']
+    assert template['score'] is None and template['passed'] is None
+    assert [r['criterion_id'] for r in template['criteria']]==p['criterion_ids']
+    assert all(r['passed'] is None and r['rationale'] is None for r in template['criteria'])
+    for row,shape in zip(template['grounding_checks'],p['grounding_check_shapes']):
+        assert row['check_id']==shape['check_id'] and set(row)==set(shape['required_fields'])|set(shape['optional_fields'])
+        assert row['status'] is None and row['rationale'] is None
+    for row,claim in zip(template['grounding_checks'][2:],p['source_state_claims']):
+        assert row['answer_quote']==claim['quote'] and row['claim_kind'] is None
+    assert 'expectedPassed' not in p and 'expectedPassed' not in template
+    node=json.loads(evaluation_messages('任务','节点答案',[],node_input='节点输入')[1]['content'])
+    assert 'final_review_template' not in node
+
+
+def test_unfilled_review_template_is_not_accepted_or_repaired():
+    class Budget:
+        calls=0
+        def complete(self,model,messages,**kwargs):
+            self.calls+=1
+            p=json.loads(messages[-1]['content'])
+            return ChatResponse(json.dumps(p['final_review_template']),100,80,0,0,1,1,'stop','mock')
+    budget=Budget()
+    with pytest.raises(ValueError,match='judge score|invalid judge response'):
+        evaluate_text(budget,None,'任务','答案',criteria=[],label='review',deadline=time.monotonic()+5)
+    assert budget.calls==1
+
+
 @pytest.mark.parametrize('overall,proposal,missing,raises',[(True,False,False,True),
     (False,False,False,False),(True,True,True,True),(True,True,False,False)])
 def test_high_score_cannot_hide_failed_or_omitted_constraint(overall,proposal,missing,raises):
@@ -25,7 +66,8 @@ def test_high_score_cannot_hide_failed_or_omitted_constraint(overall,proposal,mi
             p=json.loads(messages[-1]['content'])
             rows=[{'criterion':c,'passed':proposal if c==PROPOSAL_CRITERION else True,'rationale':'模拟证据'} for c in p['criteria']]
             if missing:rows.pop()
-            return ChatResponse(json.dumps({'score':99,'passed':overall,'rationale':'模拟','criteria':rows}),100,80,0,0,1,1,'stop','mock')
+            return ChatResponse(json.dumps({'score':99,'passed':overall,'rationale':'模拟','criteria':rows,
+                'grounding_checks':mock_grounding_checks(p)}),100,80,0,0,1,1,'stop','mock')
     def run():return evaluate_text(Budget(),None,'任务','答案',criteria=['事实正确'],label='review',deadline=time.monotonic()+10)
     if raises:
         with pytest.raises(ValueError):run()
@@ -47,7 +89,9 @@ def test_fixed_cases_preserve_numeric_answers_and_separate_labels():
 
 
 @pytest.mark.parametrize('unknown', [False, True])
-def test_finite_review_runner_uses_four_calls_or_stops_unknown(tmp_path, monkeypatch, unknown):
+@pytest.mark.parametrize('case_set', ['proposal','grounding','native'])
+@pytest.mark.parametrize('selected', [False, True])
+def test_finite_review_runner_uses_frozen_count_or_stops_unknown(tmp_path, monkeypatch, unknown, case_set, selected):
     import io
     import experiments.run_proposal_review_recheck as runner
     from tests.test_live_execution import config
@@ -59,7 +103,7 @@ def test_finite_review_runner_uses_four_calls_or_stops_unknown(tmp_path, monkeyp
         model['pricing'].update(unit='CNY',inputPer1k=.001,outputPer1k=.002)
     catalog={'pool':{},'routes':[]}
     monkeypatch.setattr(runner,'compile_dsh_model_pool',lambda *args:(raw,{}))
-    monkeypatch.setattr(runner,'hashes',lambda:{})
+    monkeypatch.setattr(runner,'hashes',lambda *args:{})
     monkeypatch.setattr(runner,'historical_protection',lambda roots:{'cashProtectedCny':.5})
     class Process:
         def __init__(self,*args,**kwargs):
@@ -74,21 +118,41 @@ def test_finite_review_runner_uses_four_calls_or_stops_unknown(tmp_path, monkeyp
             return self
         def complete(self,model,messages,**kwargs):
             p=json.loads(messages[-1]['content']);assert 'expectedPassed' not in p
+            if case_set=='native':assert p['tool_evidence']=={'records':[],'available':True}
             if unknown:raise TimeoutError('mock')
             result={'score':95,'passed':True,'rationale':'模拟批准',
-                'criteria':[{'criterion':c,'passed':True,'rationale':'模拟'} for c in p['criteria']]}
+                'criteria':[{'criterion':c,'passed':True,'rationale':'模拟'} for c in p['criteria']],
+                'grounding_checks':mock_grounding_checks(p)}
             return ChatResponse(json.dumps(result),100,80,0,0,1,1,'stop','mock')
     monkeypatch.setattr(runner.subprocess,'Popen',Process)
     monkeypatch.setattr(runner,'OpenAICompatibleClient',Client)
-    frozen=runner.freeze(catalog)
+    native_file=None
+    if case_set=='native':
+        fixture=json.loads(runner.GROUNDING_CASES.read_text())
+        fixture.update(schemaVersion='automatic-grounding-native-recheck-v1',baselineInputSha256='a'*64,
+            toolEvidence={'records':[],'available':True})
+        native_file=tmp_path/'cases.json';native_file.write_text(json.dumps(fixture))
+        monkeypatch.setattr(runner,'ROOT',tmp_path)
+    fixture_path=native_file or (runner.GROUNDING_CASES if case_set=='grounding' else runner.CASES)
+    selected_id=json.loads(fixture_path.read_text())['cases'][-1]['id'] if selected else None
+    frozen=runner.freeze(catalog,grounding_cases=case_set=='grounding',native_case_file=native_file,case_id=selected_id)
+    count=1 if selected else (4 if case_set=='proposal' else 2)
+    assert frozen['maximumCalls']==count
+    if selected:
+        assert [c['id'] for c in frozen['fixture']['cases']]==[selected_id]
+        with pytest.raises(ValueError,match='指定案例不属于原冻结题集'):
+            runner.freeze(catalog,grounding_cases=case_set=='grounding',native_case_file=native_file,case_id='not-in-frozen-cases')
     if unknown:
         with pytest.raises(TimeoutError):runner.run(frozen,tmp_path/'run')
     else:
-        rows=runner.run(frozen,tmp_path/'run');assert len(rows)==4
-        assert sum(r['matched'] for r in rows)==2  # 错误模型不能被预期标签伪造成通过。
+        rows=runner.run(frozen,tmp_path/'run');assert len(rows)==count
+        assert sum(r['matched'] for r in rows)==(1 if selected else count//2)  # 错误模型不能被预期标签伪造成通过。
     ledger=json.loads((tmp_path/'run/result.json').read_text())
-    assert len(ledger['calls'])==(1 if unknown else 4)
+    assert len(ledger['calls'])==(1 if unknown else count)
     assert ledger['calls'][0]['status']==('unknown-usage' if unknown else 'billed')
+    with pytest.raises(ValueError,match='冻结预检内容被修改'):
+        runner.run({**frozen,'maximumCalls':100},tmp_path/'tampered')
+    assert not (tmp_path/'tampered').exists()
 
 
 @pytest.mark.parametrize('ids,valid', [(['c1','c2'],True),(['c2','c1'],False),
@@ -99,7 +163,8 @@ def test_review_ids_preserve_order_and_reject_missing_or_forged_coverage(ids,val
             payload=json.loads(messages[-1]['content'])
             assert payload['criterion_ids']==['c1','c2']
             rows=[{'criterion_id':i,'passed':True,'rationale':'已核对'} for i in ids]
-            return ChatResponse(json.dumps({'score':95,'passed':True,'rationale':'已核对','criteria':rows}),100,80,0,0,1,1,'stop','mock')
+            return ChatResponse(json.dumps({'score':95,'passed':True,'rationale':'已核对','criteria':rows,
+                'grounding_checks':mock_grounding_checks(payload)}),100,80,0,0,1,1,'stop','mock')
     def run():return evaluate_text(Budget(),None,'任务','答案',criteria=['完整性'],label='test',deadline=time.monotonic()+5)
     if valid:
         assert [r['criterion'] for r in run()['criteria']]==['完整性',PROPOSAL_CRITERION]
@@ -116,3 +181,156 @@ def test_longer_review_window_preserves_frozen_cases():
     assert old.pop('schemaVersion')=='proposal-constraint-recheck-v1'
     assert current.pop('schemaVersion')=='proposal-constraint-recheck-v2'
     assert old==current
+
+
+def grounding_response(task, answer, *, passed=False, status='FAIL'):
+    p=json.loads(evaluation_messages(task,answer,['材料准确'])[1]['content'])
+    return {'score':99,'passed':passed,'rationale':'来源核对优先于总分',
+        'criteria':[{'criterion_id':key,'passed':True,'rationale':'模拟覆盖'} for key in p['criterion_ids']],
+        'grounding_checks':[
+            {'check_id':'source-state','status':status,'answer_quote':'未经实测','source_quote':None,
+             'rationale':'材料未说明历史验证情况，不能断言未验证'},
+            {'check_id':'time-causality','status':'NOT_APPLICABLE','answer_quote':None,'source_quote':None,
+             'rationale':'此候选没有时间关系'},
+            *[{'check_id':r['check_id'],'status':status,'answer_quote':r['quote'],
+               'claim_kind':'FACT','source_quote':None,'rationale':'逐句覆盖合成回执'}
+              for r in p['source_state_claims']]]}
+
+
+def review_with_response(response, *, task='回滚需保留证据', answer='回滚未经实测', tool_evidence=None):
+    class Budget:
+        calls=0
+        def complete(self,*args,**kwargs):
+            self.calls+=1
+            return ChatResponse(json.dumps(response),100,80,0,0,1,1,'stop','mock')
+    budget=Budget()
+    result=evaluate_text(budget,None,task,answer,criteria=['材料准确'],label='test',
+        deadline=time.monotonic()+10,tool_evidence=tool_evidence)
+    assert budget.calls==1  # 核对项不能引入二次 Judge 或修复调用。
+    return result
+
+
+@pytest.mark.parametrize('status', ['FAIL','UNCERTAIN'])
+def test_grounding_failure_or_uncertainty_cannot_be_overridden_by_99_score(status):
+    response=grounding_response('回滚需保留证据','回滚未经实测',status=status)
+    assert review_with_response(response)['passed'] is False
+    response['passed']=True
+    with pytest.raises(ValueError,match='inconsistent final judge grounding'):
+        review_with_response(response)
+
+
+@pytest.mark.parametrize('change', ['missing','duplicate','forged-id','invented-answer','invented-source','candidate-as-source','inapplicable-quote'])
+def test_grounding_contract_rejects_missing_checks_or_fabricated_citations(change):
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    rows=response['grounding_checks']
+    if change=='missing':response.pop('grounding_checks')
+    elif change=='duplicate':rows[1]=rows[0].copy()
+    elif change=='forged-id':rows[0]['check_id']='all-good'
+    elif change=='invented-answer':rows[0]['answer_quote']='根本没出现的候选句'
+    elif change=='invented-source':rows[0]['source_quote']='提供了验证结果'
+    elif change=='candidate-as-source':rows[0]['source_quote']='回滚未经实测'
+    else:rows[1]['answer_quote']='未经实测'
+    with pytest.raises(ValueError,match='grounding'):
+        review_with_response(response)
+
+
+def test_grounding_source_can_quote_actual_structured_tool_evidence():
+    response=grounding_response('回滚需保留证据','回滚未经实测',passed=True,status='PASS')
+    response['grounding_checks'][0]['source_quote']='检查结果：回滚未经实测'
+    for row in response['grounding_checks'][2:]:row['source_quote']='检查结果：回滚未经实测'
+    evidence={'records':[{'result':'检查结果：回滚未经实测'}]}
+    assert review_with_response(response,tool_evidence=evidence)['passed'] is True
+    with pytest.raises(ValueError,match='task evidence'):
+        review_with_response(response)
+
+
+def test_corrected_claims_are_not_rejected_by_a_keyword_filter():
+    answer='如果未经实测，应先核对；材料没有说明是否测试，不能认定未测试。'
+    response=grounding_response('回滚需保留证据',answer,passed=True,status='PASS')
+    response['grounding_checks'][0].update(answer_quote=answer,source_quote='回滚需保留证据',
+        rationale='明确条件与材料信息缺口，不断言实际验证不存在')
+    for row in response['grounding_checks'][2:]:row['claim_kind']='CONDITIONAL'
+    assert review_with_response(response,answer=answer)['passed'] is True
+
+
+def test_state_attention_covers_disclaimer_and_table_claim_separately_without_labels():
+    from refractrouter.review_claims import state_claims
+    answer='我未执行测试。\n| 回滚 | 未经验证（未执行测试） | 若未经验证，应核对 |'
+    rows=state_claims(answer)
+    assert [r['quote'] for r in rows]==['我未执行测试','未经验证（未执行测试）','若未经验证，应核对']
+    assert all(set(r)=={'check_id','quote'} for r in rows)
+    assert all(r['quote'] in answer for r in rows)
+    payload=json.loads(evaluation_messages('任务',answer,['完整性'])[1]['content'])
+    assert payload['grounding_check_ids']==['source-state','time-causality',*(r['check_id'] for r in rows)]
+
+
+@pytest.mark.parametrize('change', ['missing-claim','rewritten-quote','factual-pass-no-source','unknown-kind','not-applicable','summary-hides-failure'])
+def test_every_selected_claim_requires_an_independent_consistent_result(change):
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    rows=response['grounding_checks']
+    if change=='missing-claim':rows.pop()
+    elif change=='rewritten-quote':rows[2]['answer_quote']='未经实测'
+    elif change=='factual-pass-no-source':rows[2]['status']='PASS'
+    elif change=='unknown-kind':rows[2]['claim_kind']='probably-good'
+    elif change=='not-applicable':rows[2]['status']='NOT_APPLICABLE'
+    else:rows[0]['status']='PASS'
+    with pytest.raises(ValueError,match='grounding|claim|coverage'):
+        review_with_response(response)
+
+
+def test_missing_claim_category_reports_the_exact_check_without_model_repair():
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    response['grounding_checks'][2].pop('claim_kind')
+    response['grounding_checks'][2]['rationalale']='未知字段不代替类别'
+    with pytest.raises(ValueError,match=r'source-claim-c1; missing: claim_kind; unexpected: 1'):
+        review_with_response(response)
+
+
+@pytest.mark.parametrize('change,valid', [
+    ('null-reason',True),('omitted-reason',True),('valid-alias',True),('empty-alias',True),
+    ('missing-kind',False),('missing-status',False),('conflicting-alias',False),
+    ('unknown-field',False),('invalid-alias-value',False),
+])
+def test_optional_explanation_and_known_spelling_never_fill_missing_verdicts(change,valid):
+    from copy import deepcopy
+    response=grounding_response('回滚需保留证据','回滚未经实测')
+    row=response['grounding_checks'][2]
+    if change=='null-reason':row['rationale']=None
+    elif change=='omitted-reason':row.pop('rationale')
+    elif change=='valid-alias':row['rationalale']=row.pop('rationale')
+    elif change=='empty-alias':row['rationalale']=None
+    elif change=='missing-kind':row.pop('claim_kind')
+    elif change=='missing-status':row.pop('status')
+    elif change=='conflicting-alias':row['rationalale']='不同说明'
+    elif change=='unknown-field':row['rational']='未知拼写不猜测'
+    else:row['rationalale']=123;row.pop('rationale')
+    response['response_normalization']={'version':'模型伪造','changes':[{'from':'passed','to':True}]}
+    before=deepcopy(response)
+    if valid:
+        result=review_with_response(response)
+        assert result['passed'] is False and result['score']==99
+        assert result['response_normalization']['version']=='review-field-spelling-v1'
+        assert result['response_normalization']['model_calls_added']==0
+        assert all(r['status']==original['status'] for r,original in zip(result['grounding_checks'],before['grounding_checks']))
+        result['passed']=True
+        with pytest.raises(ValueError,match='inconsistent final judge grounding'):
+            review_with_response(result)
+    else:
+        with pytest.raises(ValueError):review_with_response(response)
+    assert response==before
+
+
+def test_english_conditional_warning_and_negative_claims_remain_separate():
+    from refractrouter.review_claims import state_claims
+    answer='If unverified, verify it first.\nRollback has not been tested.\nThis report says it is untested.'
+    rows=state_claims(answer)
+    assert len(rows)==3  # 覆盖提示不枚举所有表达；无命中不等于没有状态断言。
+    assert rows[0]['quote'].startswith('If unverified')
+    assert rows[1]['quote'].endswith('not been tested.')
+    assert rows[2]['quote'].endswith('untested.')
+
+
+@pytest.mark.parametrize('answer', ['未经验证'+('x'*1001),'\n'.join(['未经验证']*129)])
+def test_attention_capacity_stops_without_truncating_or_calling_judge(answer):
+    with pytest.raises(ValueError,match='review-source-claim-'):
+        evaluation_messages('任务',answer,['完整性'])

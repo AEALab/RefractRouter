@@ -40,6 +40,7 @@ def project(summary, runtime=None, *, cash_limits=None):
             'reserved', 'charged', 'billing_mode', 'cost_basis', 'cash_cost_cny', 'cash_cost_status',
             'provider_cost_confirmed', 'input_tokens', 'output_tokens', 'cached_input_tokens',
             'reasoning_tokens', 'ttft_ms', 'latency_ms', 'request_id', 'finish_reason', 'dispatch_at'))
+        row.update(pick(call, ('reservation_basis','protected_input_bound','actual_input_bound','input_bound_confirmed')))
         row['route'] = pick(call.get('route'), ('provider', 'model', 'reasoning_effort'))
         calls.append(row)
     candidates = []
@@ -115,15 +116,37 @@ def project(summary, runtime=None, *, cash_limits=None):
         'external_judge_cost_cny': amount(local.get('costCny')) if local.get('backend') == 'jev' else None,
         'external_judge_called': local.get('backend') == 'jev' and local.get('model') is not None,
         'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed',
-            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version')),
+            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort')),
         'deterministic_validation': pick(runtime.get('deterministic_validation'), ('passed', 'reason')),
         'planning_budget': pick(runtime.get('planning_budget'), ('version', 'task_remaining_ms',
             'review_reserve_ms', 'planner_allowance_ms', 'execution_after_planner_ms',
             'estimates_are_guarantees', 'max_nodes', 'node_limit_basis')),
-        'planner_normalizations': [pick(attempt, ('identifier_normalization', 'type_normalization'))
+        'planner_normalizations': [pick(attempt, ('identifier_normalization', 'type_normalization','json_normalization'))
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
-            if attempt.get('identifier_normalization') or attempt.get('type_normalization')],
-        'quality': pick(quality, ('score', 'passed', 'rationale')), 'quality_gate': quality_gate,
+            if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
+        'quality': {**pick(quality, ('score', 'passed', 'rationale')),
+            **({'evidence_references': pick(quality['evidence_references'],
+                ('version','candidate_sha256','resolved_by','model_calls_added','overall_check_scope'))}
+                if isinstance(quality.get('evidence_references'), dict) else {}),
+            **({'trusted_deterministic_receipt': pick(quality['trusted_deterministic_receipt'],
+                ('version','candidate_sha256','checked_fields','scope'))}
+                if isinstance(quality.get('trusted_deterministic_receipt'), dict) else {}),
+            **({'response_normalization': {
+                **pick(quality['response_normalization'], ('version','model_calls_added')),
+                'changes': [pick(row, ('check_id','from','to'))
+                    for row in quality['response_normalization'].get('changes', [])],
+            }} if isinstance(quality.get('response_normalization'), dict) else {}),
+            **({'grounding_checks': [pick(row, ('check_id','status','answer_quote','source_quote','rationale','claim_kind','answer_ref','source_refs','target_scope'))
+                for row in quality['grounding_checks']]} if isinstance(quality.get('grounding_checks'), list) else {})},
+        'quality_gate': quality_gate,
+        **({'final_correction': {
+            **pick(runtime['final_correction'], ('version','maximum','attempt','status','reason','accepted',
+                'model_id','previous_output_sha256','corrected_output_sha256','review_wait_ms')),
+            'initial_evaluation': pick(runtime['final_correction'].get('initial_evaluation'), ('score','passed','rationale')),
+            'evaluation': pick(runtime['final_correction'].get('evaluation'), ('score','passed','rationale')),
+            'review_protection': pick(runtime['final_correction'].get('review_protection'),
+                ('input_upper_bound','reserved','billing_unit','label')),
+        }} if isinstance(runtime.get('final_correction'), dict) else {}),
         'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),
             'records': [pick(r, ('node', 'call_id', 'tool', 'outcome')) for r in tool.get('records', [])]},
         'missing_evidence': [name for name, present in (

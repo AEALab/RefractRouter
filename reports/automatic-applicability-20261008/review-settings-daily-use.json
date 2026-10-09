@@ -1,0 +1,207 @@
+{
+  "schema_version": "automatic-review-settings-delivery-v1",
+  "core": "0.16.13",
+  "plugin": "0.32.7",
+  "dsh": "0.1.5-rc.3",
+  "profile": "原有web",
+  "source_tests": {
+    "full_python": 1879,
+    "plugin_contracts": 215,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "actual_dsh_tasks": [
+    {
+      "task": "release-note",
+      "run_id": "20261008T110211Z-604e70927041",
+      "status": "completed",
+      "forced_route": false,
+      "route": "direct",
+      "wall_ms": 16278,
+      "model_calls": 2,
+      "reference_cost_cny": 0.06044324252699984,
+      "cash_cost_cny": 0,
+      "jev_cost_cny": 0.0002255289288,
+      "review": {
+        "model": {
+          "provider": "ark",
+          "model": "glm-5.3",
+          "id": "dsh-model-7077bbf6a06daaa6"
+        },
+        "reasoning_effort": "default",
+        "contract_version": "proposal-constraints-v2",
+        "passed": true,
+        "score": 100,
+        "timeout_ms": 180000,
+        "task_timeout_ms": null,
+        "effective_wait_ms": 180000
+      },
+      "manual_content_check": {
+        "passed": true,
+        "reason": "77字，覆盖四项事实且未调用工具"
+      },
+      "call_statuses": [
+        "billed",
+        "billed"
+      ],
+      "result_sha256": "85454ac2ef5c54873cca40bee939e4b2b9a1c11802796f8961131a43efdfb1c2",
+      "answer_sha256": "5436ae9cc710f0368d6b967ce99b5ff7813e6edc6b9cf219617a163c0824a54f"
+    },
+    {
+      "task": "release-checklist",
+      "run_id": "20261008T110344Z-b3f602578cad",
+      "status": "completed",
+      "forced_route": false,
+      "route": "direct",
+      "wall_ms": 48453,
+      "model_calls": 3,
+      "reference_cost_cny": 0.11242904051500008,
+      "cash_cost_cny": 0,
+      "jev_cost_cny": 0.00024989511959999997,
+      "review": {
+        "model": {
+          "provider": "ark",
+          "model": "glm-5.3",
+          "id": "dsh-model-7077bbf6a06daaa6"
+        },
+        "reasoning_effort": "default",
+        "contract_version": "proposal-constraints-v2",
+        "passed": true,
+        "score": 93,
+        "timeout_ms": 180000,
+        "task_timeout_ms": null,
+        "effective_wait_ms": 180000
+      },
+      "manual_content_check": {
+        "passed": false,
+        "reason": "把未提供的回滚操作和自动化覆盖当事实，并将不同用途的60/180秒称为口径冲突"
+      },
+      "call_statuses": [
+        "billed",
+        "billed",
+        "billed"
+      ],
+      "result_sha256": "2e85f4b4d7780003732b26c612e9ec806fac2b4f6aedc9025eb4aa0364d7fc1d",
+      "answer_sha256": "e7356f286d80cf385cbd5529c15759d9bee8f39505676e32b8d7fdc0cf928fdf"
+    }
+  ],
+  "routing_completion": "2/2",
+  "original_manual_quality": "1/2",
+  "grounding_recheck": {
+    "cases": [
+      {
+        "id": "recorded-unsupported-details",
+        "expectedPassed": false,
+        "actualPassed": false,
+        "matched": true,
+        "wallMs": 47806
+      },
+      {
+        "id": "corrected-qualified-risks",
+        "expectedPassed": true,
+        "actualPassed": true,
+        "matched": true,
+        "wallMs": 8972
+      }
+    ],
+    "reference_cost_cny": 0.15449109393199995,
+    "cash_cost_cny": 0,
+    "call_statuses": [
+      "billed",
+      "billed"
+    ],
+    "limitation": "公开任务、材料和原正文成对复验；未复制完整宿主系统上下文，不能独立归因于提示修订或证明普遍准确率"
+  },
+  "unknown_reservations_preserved": true,
+  "post_repair_checks": [
+    {
+      "task": "release-checklist",
+      "run_id": "20261008T111635Z-eb7222a5509c",
+      "status": "failed",
+      "forced_route": false,
+      "route": null,
+      "wall_ms": 6106,
+      "model_calls": 1,
+      "reference_cost_cny": 0.015762807235,
+      "cash_cost_cny": 0,
+      "jev_cost_cny": 0.00024989511959999997,
+      "review": {
+        "model": {
+          "provider": "ark",
+          "model": "glm-5.3",
+          "id": "dsh-model-7077bbf6a06daaa6"
+        },
+        "reasoning_effort": "default",
+        "contract_version": null,
+        "passed": null,
+        "score": null,
+        "timeout_ms": 180000,
+        "task_timeout_ms": null,
+        "effective_wait_ms": null
+      },
+      "manual_content_check": {
+        "passed": null,
+        "reason": "规划 JSON 多一个闭合符；未生成正文，无内容质量判定"
+      },
+      "call_statuses": [
+        "billed"
+      ],
+      "issues": [
+        "Expecting ',' delimiter: line 1 column 209 (char 208)"
+      ],
+      "result_sha256": "06df81f4e0953088faf85c6ba35a4f416867ad2af9d051febb0fea4a5edeb886",
+      "answer_sha256": null,
+      "failure_repair": "compact-json-duplicate-closer-v1；保留原文，原失败夹具通过；无修复模型调用"
+    },
+    {
+      "task": "release-checklist",
+      "run_id": "20261008T113316Z-0fac309ad973",
+      "status": "completed",
+      "forced_route": false,
+      "route": "direct",
+      "wall_ms": 45903,
+      "model_calls": 3,
+      "reference_cost_cny": 0.11850257666099999,
+      "cash_cost_cny": 0,
+      "jev_cost_cny": 0.00024989511959999997,
+      "review": {
+        "model": {
+          "provider": "ark",
+          "model": "glm-5.3",
+          "id": "dsh-model-7077bbf6a06daaa6"
+        },
+        "reasoning_effort": "default",
+        "contract_version": "proposal-constraints-v3",
+        "passed": true,
+        "score": 95,
+        "timeout_ms": 180000,
+        "task_timeout_ms": null,
+        "effective_wait_ms": 180000
+      },
+      "manual_content_check": {
+        "passed": false,
+        "reason": "把未提供验证信息写为未经实测／未校验；把审核超过预留描述为挤压执行时间；不能以95分替代人工复核"
+      },
+      "call_statuses": [
+        "billed",
+        "billed",
+        "billed"
+      ],
+      "issues": [],
+      "result_sha256": "7122fc2cd980d014c13e8489bce013b48fc382c0d557e361966a35fc4a60f313",
+      "answer_sha256": "f3936124710339e64c7bc98d3c9ef75b76fa731b23aa323463e9c4bfceecb25d",
+      "json_normalization_triggered": false
+    }
+  ],
+  "delivery_policy": "消费核心终态；未审定候选不交付，失败回执保留费用和用量",
+  "status": "接线与账本可运行；内容审核仍有误放行，日常使用质量验收未完成",
+  "profile_integrity": {
+    "credentials_unchanged": true,
+    "settings_changed_fields": [
+      "liveExecution.reviewTimeoutMs",
+      "liveExecution.reviewReserveMs",
+      "liveExecution.reviewMaxOutputTokens"
+    ],
+    "profile_replaced": false
+  }
+}

@@ -54,7 +54,9 @@ def source_hashes():
     """同时冻结实际加载的桥接构建与源码，防止预检后更换调用边界。"""
     plugin = ROOT/'validation/dsh/plugin'
     files = [*sorted((ROOT/'src/refractrouter').rglob('*.py')), Path(__file__), HOST, HOST_AUDIT,
-        PROTOCOL, CLARIFIED_PROTOCOL, *sorted((plugin/'src').rglob('*.ts')), *sorted((plugin/'src').rglob('*.tsx')),
+        PROTOCOL, CLARIFIED_PROTOCOL, ROOT/'data/research/automatic-applicability-v5.json',
+        ROOT/'data/research/automatic-applicability-v6.json',
+        *sorted((plugin/'src').rglob('*.ts')), *sorted((plugin/'src').rglob('*.tsx')),
         plugin/'package-lock.json', *sorted((plugin/'dist').rglob('*.js'))]
     if not (plugin/'dist/index.js').exists():
         raise ValueError('请先构建实际宿主桥接，再冻结预检')
@@ -126,7 +128,7 @@ def historical_protection(roots):
             'scope': '可核对的自动路由 result／manifest 按派发身份去重；独立 Jev 账本另行预留。'}
 
 
-def task_check(answer, task):
+def task_check(answer, task, *, review_receipt=False):
     """检查固定事实及完整交付；不把字段存在当作自由文字理由正确。"""
     text = answer.strip()
     if text.startswith('```json') and text.endswith('```'):
@@ -147,8 +149,13 @@ def task_check(answer, task):
             mismatches.append({'key': key, 'expected': expected, 'actual': actual})
     explanation = parsed.get('explanation')
     explained = isinstance(explanation, str) and bool(explanation.strip())
-    return {'passed': not mismatches and explained, 'mismatches': mismatches,
-            'explanationPresent': explained, 'explanationQualityVerified': False}
+    result = {'passed': not mismatches and explained, 'mismatches': mismatches,
+              'explanationPresent': explained, 'explanationQualityVerified': False}
+    if review_receipt and result['passed']:
+        result['review_receipt'] = {'version': 'deterministic-answer-fields-v1',
+            'candidate_sha256': hashlib.sha256(answer.encode()).hexdigest(),
+            'checked_fields': list(task['expectedAnswers']), 'scope': 'answers-only'}
+    return result
 
 
 def ledger_answers(contract):
@@ -187,10 +194,12 @@ def validate_answer_contracts(protocol):
 
 
 def freeze(catalog, history, extra_history_cny, authorization_cny, *,
-           model_capacity_output=False, batch_ceiling_cny=None, task_ids=None, protocol_version='v3'):
-    if protocol_version not in ('v3', 'v4'):
+           model_capacity_output=False, batch_ceiling_cny=None, task_ids=None, sample_ids=None, protocol_version='v3'):
+    if protocol_version not in ('v3', 'v4', 'v5', 'v6'):
         raise ValueError('未知实验协议')
-    protocol = json.loads((CLARIFIED_PROTOCOL if protocol_version == 'v4' else PROTOCOL).read_text())
+    path = ROOT/f'data/research/automatic-applicability-{protocol_version}.json' if protocol_version in ('v5', 'v6') else (
+        CLARIFIED_PROTOCOL if protocol_version == 'v4' else PROTOCOL)
+    protocol = json.loads(path.read_text())
     validate_answer_contracts(protocol)
     source_protocol_version = protocol['schemaVersion']
     if model_capacity_output:
@@ -211,10 +220,21 @@ def freeze(catalog, history, extra_history_cny, authorization_cny, *,
             raise ValueError('定向复验必须使用不重复的已冻结任务 ID')
         protocol['tasks'] = [t for t in protocol['tasks'] if t['id'] in task_ids]
         protocol['targetedRepairRecheck'] = list(task_ids)
+    order = [{'task': t['id'], 'route': route} for t in protocol['tasks'] for route in protocol['routes']]
+    if sample_ids is not None:
+        known = {f"{row['task']}:{row['route']}": row for row in order}
+        if (task_ids is not None or not sample_ids or len(sample_ids) != len(set(sample_ids))
+                or set(sample_ids) - known.keys()):
+            raise ValueError('定向路线复验必须使用不重复的已冻结 task:route，不能同时指定任务组')
+        order = [known[key] for key in sample_ids]
+        selected = {row['task'] for row in order}
+        protocol['tasks'] = [t for t in protocol['tasks'] if t['id'] in selected]
+        protocol['targetedRepairSamples'] = deepcopy(order)
     compiled, provenance = compile_dsh_model_pool(catalog['pool'], {
         'schemaVersion': 'refractagent-dsh-catalog-v1', 'routes': catalog['routes']})
     models = compile_configuration(compiled).manifest.models
-    maximum_calls = len(protocol['tasks']) * (protocol['maxCallsPerDirect'] + protocol['maxCallsPerDag'])
+    maximum_calls = sum(protocol['maxCallsPerDirect'] if row['route'] == 'direct'
+                        else protocol['maxCallsPerDag'] for row in order)
     # 互斥目标用单次最贵合法价格作保守包络，不把五个模型价格相加。
     capacities = {m.model_id: m.max_output_tokens if model_capacity_output
                   else min(m.max_output_tokens, protocol['outputLimitPerCall']) for m in models}
@@ -230,7 +250,6 @@ def freeze(catalog, history, extra_history_cny, authorization_cny, *,
         raise ValueError('必须给出实际获授权的正数现金上限')
     if protected + maximum_cash > authorization_cny:
         raise ValueError('冻结最坏现金包络超出历史授权余额；禁止实跑')
-    order = [{'task': t['id'], 'route': route} for t in protocol['tasks'] for route in protocol['routes']]
     random.Random(protocol['orderSeed']).shuffle(order)
     sources = source_hashes()
     validate_materials(protocol)
@@ -329,6 +348,9 @@ def run(frozen, output, host_command, catalog):
                 'reviewPolicy': 'always', 'maxConcurrency': 1, 'boundedCallOutput': True,
                 'plannerMaxOutputTokens': protocol['outputLimitPerCall'],
                 'plannerTimeoutMs': protocol['plannerTimeoutMs'], 'maxPlanRepairs': 0}
+            for field in ('maxFinalRevisions', 'reviewTimeoutMs', 'reviewReserveMs', 'reviewMaxOutputTokens'):
+                if field in protocol:
+                    payload[field] = protocol[field]
             if protocol.get('executionOutputMode') == 'model-capacity':
                 payload['unlimitedNodeOutput'] = True
             folder = output/task['id']/route
@@ -344,13 +366,15 @@ def run(frozen, output, host_command, catalog):
                 start = time.monotonic()
                 result = run_agent({**payload, 'authorization': auth}, mode='live', execute_paid_run=True,
                     client=Guard(), runs_dir=folder/'live',
-                    final_validator=lambda answer: task_check(answer, task), **common)
+                    final_validator=lambda answer: task_check(answer, task,
+                        review_receipt=protocol.get('deterministicReviewReceipt') is True), **common)
                 raw = json.loads(Path(result['result_path']).read_text())
                 row = {**item, 'status': result['status'], 'modelCalls': state['calls'],
                     'nodeCount': len((raw.get('plan') or {}).get('nodes', [])),
                     'wallMs': round((time.monotonic()-start)*1000),
                     'factCheck': task_check(raw.get('final_output', ''), task),
                     'evaluation': raw.get('evaluation'), 'issues': raw.get('issues'),
+                    'finalCorrection': raw.get('final_correction'),
                     'referenceCostsCny': raw.get('charged'), 'cashCostsCny': raw.get('cash_costs_cny'),
                     'resultPath': str(Path(result['result_path']).relative_to(output.resolve())),
                     'forcedDag': route=='dag'}
@@ -385,7 +409,8 @@ def main():
     parser.add_argument('--model-capacity-output', action='store_true')
     parser.add_argument('--batch-ceiling-cny', type=float)
     parser.add_argument('--task', action='append', dest='task_ids')
-    parser.add_argument('--protocol-version', choices=('v3', 'v4'), default='v3')
+    parser.add_argument('--sample', action='append', dest='sample_ids', help='仅复验冻结的 task:direct 或 task:dag')
+    parser.add_argument('--protocol-version', choices=('v3', 'v4', 'v5', 'v6'), default='v3')
     args = parser.parse_args()
     if not 0 <= args.extra_history_protection_cny < args.authorized_cash_cny:
         parser.error('必须给出独立历史现金的非负保护额度')
@@ -394,7 +419,7 @@ def main():
     catalog = json.loads(args.catalog.read_text())
     frozen = freeze(catalog, history, args.extra_history_protection_cny, args.authorized_cash_cny,
         model_capacity_output=args.model_capacity_output, batch_ceiling_cny=args.batch_ceiling_cny,
-        task_ids=args.task_ids, protocol_version=args.protocol_version)
+        task_ids=args.task_ids, sample_ids=args.sample_ids, protocol_version=args.protocol_version)
     if not args.execute:
         args.output_dir.mkdir(parents=True, exist_ok=False)
         atomic_json(args.output_dir/'preflight.json', frozen)

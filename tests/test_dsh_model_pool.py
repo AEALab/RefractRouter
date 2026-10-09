@@ -114,6 +114,39 @@ def test_role_overrides_use_route_identity_and_worker_pool_selector():
     assert roles=={'strong':['judge'],'fast':['planner','worker','classifier']}
 
 
+@pytest.mark.parametrize('effort', ['low', 'default'])
+def test_review_binding_keeps_same_route_planner_parameters_independent(effort):
+    raw = pool()
+    raw['routes'][0]['reasoningEffort'] = 'high'
+    raw['judgeReasoningEffort'] = effort
+    compiled, evidence = compile_dsh_model_pool(raw, snapshot(
+        ('cloud', 'strong', 262144, 8192), ('local', 'fast', 131072, 4096)),
+        profiles=full_profiles())
+    planner = next(row for row in compiled['models'] if 'planner' in row['roles'])
+    judge = next(row for row in compiled['models'] if 'judge' in row['roles'])
+    assert planner['id'] != judge['id']
+    assert planner['provider'] == judge['provider'] and planner['model'] == judge['model']
+    assert planner['requestOptions']['reasoning_effort'] == 'high'
+    assert judge.get('requestOptions', {}).get('reasoning_effort', 'default') == effort
+    assert judge['roles'] == ['judge']
+    assert judge['pricing'] == planner['pricing']
+    assert evidence['cloud/strong']['review_role']['compiled_model_id'] == judge['id']
+    # 经过生产配置编译和准入，确认新增的用途绑定不是只存在于中间字典。
+    from refractrouter.application_config import compile_configuration
+    manifest = compile_configuration(compiled).manifest
+    actual = next(row for row in manifest.models if 'judge' in row.roles)
+    assert (actual.request_options or {}).get('reasoning_effort', 'default') == effort
+
+
+def test_review_effort_must_be_supported_by_actual_selected_route():
+    raw = pool()
+    raw['judgeReasoningEffort'] = 'rr:stage'
+    with pytest.raises(ValueError, match='judgeReasoningEffort'):
+        compile_dsh_model_pool(raw, snapshot(
+            ('cloud', 'strong', 262144, 8192), ('local', 'fast', 131072, 4096)),
+            profiles=full_profiles())
+
+
 def test_single_route_requires_independent_quality_and_explicit_shared_judge_opt_in():
     profiles=full_profiles();profiles['profiles'].append({'provider':'deepseek-official','model':'deepseek-v4-flash',
         'pricing':{'unit':'USD','inputPer1k':.0003,'cachedInputPer1k':.000006,'outputPer1k':.0012},
