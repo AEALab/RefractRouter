@@ -26,12 +26,20 @@ def compile_routing(raw, output_cap):
     profiles = []
     for item in overrides:
         selectors = {'nodeType', 'difficulty', 'risk', 'inputMinTokens', 'inputMaxTokens'}
-        if not isinstance(item, dict) or set(item) - selectors - {'quality', 'latencyMs', 'outputTokens'}:
+        if not isinstance(item, dict) or set(item) - selectors - {'quality', 'latencyMs', 'outputTokens', 'evidence'}:
             raise ValueError('invalid routing profile fields')
-        values = prediction({k: v for k, v in item.items() if k not in selectors}, output_cap)
+        values = prediction({k: v for k, v in item.items() if k not in selectors | {'evidence'}}, output_cap)
         selector = NodeProfile('configured', item.get('nodeType'), values['quality'], 0,
             values['latency_ms'], 0, difficulty=item.get('difficulty'), risk=item.get('risk'),
             input_min_tokens=item.get('inputMinTokens', 256), input_max_tokens=item.get('inputMaxTokens', 131073))
+        evidence = item.get('evidence')
+        if evidence is not None:
+            if (not isinstance(evidence, dict) or evidence.get('kind') != 'independent-node-evaluation'
+                    or type(evidence.get('samples')) is not int or evidence['samples'] < 0
+                    or any(not isinstance(evidence.get(k), str) or len(evidence[k]) != 64
+                           for k in ('bundleSha256', 'observationSha256'))):
+                raise ValueError('invalid node quality evidence')
+            values['evidence'] = dict(evidence)
         profiles.append((selector, values))
     validate_profiles(tuple(p for p, _ in profiles))
     return {**default, 'profiles': profiles, 'latency_evidence':
@@ -56,6 +64,22 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
             matches = [(index, value) for index, (selector, value) in enumerate(default['profiles']) if selector.matches(node, plan)]
             index, forecast = matches[0] if matches else (None, default)
             capability = plan.contracts.get(node.node_id, {}).get('capability', {})
+            failure_guard = False
+            if not matches and capability:
+                # 容量边界变化不能抹去同类节点的已知失败。新分层有独立正面证据时，
+                # 上面的精确匹配仍可采用它；否则需要重新验证，不能回到乐观全局先验。
+                for selector, values in default['profiles']:
+                    evidence = values.get('evidence') or {}
+                    if (evidence.get('kind') == 'independent-node-evaluation'
+                            and evidence.get('excludedReason') in {
+                                'semantic-criterion-failure', 'known-contract-rejection',
+                                'held-out-semantic-criterion-failure', 'held-out-known-contract-rejection'}
+                            and selector.node_type == node.node_type
+                            and selector.difficulty == capability['difficulty']
+                            and selector.risk == capability['risk']):
+                        forecast = {**values, 'quality': 0, 'output_tokens': None}
+                        failure_guard = True
+                        break
             input_cap = capability.get('input_budget_tokens', 131072)
             input_forecast = input_cap if input_forecasts is None else input_forecasts[node.node_id]
             number(input_forecast, 'forecast input', maximum=input_cap, positive=True)
@@ -66,6 +90,8 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
                 raise ValueError('routing cost input forecast exceeds conservative input bound')
             if forecast['output_tokens'] is not None:
                 output = forecast['output_tokens']
+                if forecast.get('evidence') and capability:
+                    output = max(output, min(model.max_output_tokens, capability['expected_output_tokens']))
             elif cost_input_forecasts is not None and capability:
                 output = min(model.max_output_tokens, capability['expected_output_tokens'])
             else:
@@ -86,7 +112,14 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
                 rows[key]['cost'] = max(rows[key]['cost'], row['cost'])
                 rows[key]['latency_ms'] = max(rows[key]['latency_ms'], row['latency_ms'])
             basis.setdefault(node.node_id, {})[model.model_id] = {'input_tokens': cost_input,
-                'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]'}
+                'output_tokens': output, 'source': 'default' if index is None else f'profiles[{index}]',
+                'quality_source': ('known-node-failure-outside-observed-input-range' if failure_guard else
+                    'global-prior-no-matching-node-evidence' if index is None else
+                    'independent-node-evaluation' if forecast.get('evidence') else 'configured-node-prior'),
+                'quality_evidence': forecast.get('evidence'),
+                'quality_prior': forecast['quality'],
+                'node_features': {'type': node.node_type, 'difficulty': capability.get('difficulty'),
+                    'risk': capability.get('risk'), 'input_capacity': input_cap}}
             if latency is not None:
                 basis[node.node_id][model.model_id]['latency'] = latency
             if input_forecasts is not None:
@@ -98,8 +131,9 @@ def configured_profile(configuration, manifest, plan, *, input_forecasts=None,
                     conservative_input_bound=input_forecast,
                     conservative_input_source='serialized-input-and-planned-parent-output',
                     cost_forecast_source='observed-byte-ratio-v1',
-                    output_forecast_source=('explicit-routing-profile' if forecast['output_tokens'] is not None
-                                            else 'planned-node-output'))
+                    output_forecast_source=('independent-node-usage-and-planned-output' if forecast.get('evidence')
+                        and forecast['output_tokens'] is not None else 'explicit-routing-profile'
+                        if forecast['output_tokens'] is not None else 'planned-node-output'))
     return {'schema_version': 'node-routing-profile-v2' if stratified else 'node-routing-profile-v1',
         'kind': 'configured', 'billing_unit': manifest.billing_unit,
         'scope': '质量为配置先验；时延可使用同规模调用观测，不代表任务成功率或 SLA。',

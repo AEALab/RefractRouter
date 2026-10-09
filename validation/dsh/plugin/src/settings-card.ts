@@ -155,6 +155,7 @@ export interface DshModelPoolView {
   cashLimits?:{production:number;evaluation:number}
   allowSharedJudge?: boolean
   judgeReasoningEffort?: string
+  nodeProfilePath?: string
   routes: Array<{provider:string;model:string;enabled?:boolean;deployment:string;trustPolicy?:string;
     reasoningEffort?:string;
     billingMode?:'subscription'|'metered';referencePricing?:Record<string,unknown>;

@@ -48,14 +48,25 @@ from .review_evidence import receipt as deterministic_receipt
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 
 
-def _shared_judge_forecast(judge, task, criteria, candidates, *, tool_evidence=False):
-    """两条路线共用同一最终答复审核；按完整输出容量给出可审计上界。"""
+def _shared_judge_forecast(judge, task, criteria, candidates, *, tool_evidence=False,
+                           expected_answer_tokens=None):
+    """旧合同保留容量上界；新版费用排序使用独立预期用量，不改变实际预留。"""
     max_answer = max(output_token_limit(model) for model in candidates.values())
+    if expected_answer_tokens is not None:
+        if type(expected_answer_tokens) is not int or expected_answer_tokens < 1:
+            raise ValueError('invalid expected final answer tokens')
+        max_answer = min(max_answer, expected_answer_tokens)
     input_bound = request_input_bound(evaluation_messages(task, '', criteria or [])) + max_answer * 8
     if tool_evidence:
         input_bound += MAX_EVIDENCE_BYTES
+    if expected_answer_tokens is not None:
+        # 与执行节点共用现有字节比例估计；不当作 tokenizer 保证或安全包络。
+        input_bound = max(1, (input_bound + 3) // 4)
+        judge_output = min(output_token_limit(judge), 1024)
+    else:
+        judge_output = output_token_limit(judge)
     return (input_bound * judge.input_cost_per_1k
-            + output_token_limit(judge) * judge.output_cost_per_1k) / 1000
+            + judge_output * judge.output_cost_per_1k) / 1000
 
 
 def _bounded_tool_allowance(routing, candidates, max_calls, input_cap, *, cash_only=False):
@@ -313,8 +324,15 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
     known_providers = {m.provider for m in manifest.models}
     if (set(policy.provider_concurrency) | set(policy.provider_min_interval_ms)) - known_providers:
         raise ValueError("unknown provider in execution policy")
-    if policy.max_concurrency > 1 and any(m.wire_api == "dsh-llm" for m in manifest.models):
-        raise ValueError("parallel tasks require direct HTTP manifests; stdio bridge is synchronous")
+    host_capabilities = None
+    if (policy.max_concurrency > 1 and request['mode'] in {'plan', 'run'}
+            and any(m.wire_api == 'dsh-llm' for m in manifest.models)):
+        bridge = getattr(client, 'dsh_bridge', None)
+        if bridge is None or not callable(getattr(bridge, 'capabilities', None)):
+            raise ValueError('parallel DSH calls require a multiplex host bridge')
+        host_capabilities = bridge.capabilities()
+        if policy.max_concurrency > host_capabilities['maxParallelModelCalls']:
+            raise ValueError('requested concurrency exceeds DSH host capability')
     mode = request["mode"]
     live = mode in {"plan", "run"}
     if live and profile["kind"] != "empirical" and not (configured_application and profile["kind"] == "configured"):
@@ -381,6 +399,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
               "generation_status": "not-started",
               "model_call_limit": runtime_call_limit,
               "max_total_output_tokens": request.get('maxTotalOutputTokens'),
+              'host_capabilities': host_capabilities,
               "complexity_gate": decision_evidence,
               "review": ({**review_evidence, "status": "pending"} if review_evidence else
                          {"policy": "always", "required": True, "reason": "legacy-always-review", "status": "pending"}),
@@ -473,7 +492,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             raise ValueError('task-deadline-exhausted')
         if "plan" in request:
             plan = validate_plan(request["plan"], required_criteria=request.get("acceptanceCriteria"))
-            if configuration is not None and result['plan_origin'] == 'direct-gate':
+            if configuration is not None and (result['plan_origin'] == 'direct-gate' or currency_reference):
                 plan, estimates = compile_generated_capacity(plan, node_task, candidates,
                     output_constraints=request.get('outputConstraints'), input_cap=input_cap,
                     prefix_policy=request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(request.get('maxFinalRevisions', 0)),
@@ -482,7 +501,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
                     cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
-                                          if mixed else None))
+                                          if mixed or currency_reference else None))
                 profiles = load_profile(profile, manifest)
                 result['routing_profile'] = profile
             if request.get('maxDynamicSplits',0) and not plan.contracts:
@@ -585,7 +604,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
                     cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
-                                          if mixed else None))
+                                          if mixed or currency_reference else None))
                 profiles = load_profile(profile, manifest)
                 result['routing_profile'] = profile
         else:
@@ -601,7 +620,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 profile = configured_profile(configuration, manifest, plan.to_dict(),
                     input_forecasts={nid: row['forecast_input_tokens'] for nid, row in estimates.items()},
                     cost_input_forecasts=({nid: row['routing_input_forecast_tokens'] for nid, row in estimates.items()}
-                                          if mixed else None))
+                                          if mixed or currency_reference else None))
                 profiles = load_profile(profile, manifest)
                 result['routing_profile'] = profile
         before_call()
@@ -699,7 +718,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         input_forecasts={nid: row['forecast_input_tokens']
                                          for nid, row in estimates.items()},
                         cost_input_forecasts=({nid: row['routing_input_forecast_tokens']
-                                               for nid, row in estimates.items()} if mixed else None))
+                                               for nid, row in estimates.items()} if mixed or currency_reference else None))
                     direct_profiles = load_profile(direct_profile, manifest)
                     direct_admission = admission_diagnostics(direct, node_task, candidates, direct_profiles,
                         request['qualityMin'], output_constraints=request.get('outputConstraints'),
@@ -750,7 +769,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     _, charged_calls = budget.snapshot()
                     judge_cost = (_shared_judge_forecast(review_judge, execution_task,
                         request.get('acceptanceCriteria'), candidates,
-                        tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
+                        tool_evidence=tool_runtime is not None,
+                        expected_answer_tokens=(plan.contracts[plan.final_node_id]['capability']['expected_output_tokens']
+                            if currency_reference else None)) if result['review']['required'] else 0.0)
                     tool_limit = tool_runtime.max_calls if tool_runtime is not None else 0
                     tool_count = 0 if tool_limit == 'unlimited' else tool_limit
                     comparison = _compare_mixed_execution(
@@ -790,7 +811,9 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         if all(isinstance(row.get('latency_ms'), (int, float)) for row in planner_rows) else None)
                     judge_cost = (_shared_judge_forecast(review_judge, execution_task,
                         request.get('acceptanceCriteria'), candidates,
-                        tool_evidence=tool_runtime is not None) if result['review']['required'] else 0.0)
+                        tool_evidence=tool_runtime is not None,
+                        expected_answer_tokens=(plan.contracts[plan.final_node_id]['capability']['expected_output_tokens']
+                            if currency_reference else None)) if result['review']['required'] else 0.0)
                     tool_limit = tool_runtime.max_calls if tool_runtime is not None else 0
                     tool_count = 0 if tool_limit == 'unlimited' else tool_limit
                     allowances = {name: _bounded_tool_allowance(route, candidates, tool_count, input_cap)
@@ -856,6 +879,17 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 comparison['estimate_scope'] = ('known-calls-only-unbounded-tool-continuations'
                     if tool_limit == 'unlimited' else 'known-calls-and-bounded-tool-continuations')
                 comparison['complete_task_cost_bound'] = tool_limit != 'unlimited'
+                if currency_reference:
+                    comparison['judge_forecast'] = 'shared-planned-answer-usage-v1'
+                    comparison['cost_forecast'] = {
+                        'version': 'planned-usage-cost-v1',
+                        'input_source': 'observed-byte-ratio-v1',
+                        'output_source': 'explicit-profile-or-planned-node-output',
+                        'judge_output_forecast': min(output_token_limit(review_judge), 1024),
+                        'safety_reservations_unchanged': True,
+                        'calibrated': False,
+                    }
+                    comparison['complete_task_cost_bound'] = False
                 comparison['generated_node_count'] = len(plan.nodes)
                 if comparison['route'] == 'dag' and len(plan.nodes) == 1:
                     # A planner call is not itself a split. Keep the generated plan and its

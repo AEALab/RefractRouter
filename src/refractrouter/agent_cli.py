@@ -292,6 +292,8 @@ def main(argv=None):
                 route_observation_path=route_observation_path,
                 dsh_catalog_snapshot=dsh_catalog_snapshot)
         finally:
+            if tool_runtime is not None:
+                tool_runtime.bridge.close()
             for sig, handler in previous.items():
                 signal.signal(sig, handler)
         print(json.dumps(result, ensure_ascii=False, allow_nan=False))

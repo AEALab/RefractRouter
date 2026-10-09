@@ -697,6 +697,11 @@ export function RefractCard(props: RefractCardOwnerProps) {
                 {t('poolSharedJudge')}</label><p className="rra-field-hint">{t('poolSharedJudgeHint')}</p>
               <div className="rra-grid rra-grid-3">{([['planner','poolPlanner','poolPlannerHint'],['judge','poolJudge','poolJudgeHint'],['classifier','poolClassifier','poolClassifierHint']] as const).map(([role,label,hint])=><label className="rra-role-field" key={role}><span className="rra-label">{t(label)}</span><span className="rra-field-hint">{t(hint)}</span><select className="rra-select" disabled={disabled} value={pool.roleOverrides?.[role]??''} onChange={event=>patchRole(role,event.target.value)}><option value="">{t('poolAutoAssign')}</option>{routeOptions.map(row=><option key={identity(row.provider,row.model)} value={identity(row.provider,row.model)}>{identity(row.provider,row.model)}</option>)}</select></label>)}</div>
               <fieldset className="rra-models" disabled={disabled}><legend className="rra-label">{t('poolWorkers')}</legend><p className="rra-field-hint">{t('poolWorkersHint')}</p>{routeOptions.map(row=>{const key=identity(row.provider,row.model);return <label className="rra-check" key={key}><input type="checkbox" checked={pool.roleOverrides?.workers?.includes(key)??false} onChange={event=>patchWorkers(key,event.target.checked)}/>{key}</label>})}</fieldset>
+              <label className="rra-field"><span className="rra-label">节点能力档案</span>
+                <p className="rra-field-hint">由系统验收生成，按节点类型、难度与风险选模。核心核对模型、推理参数、独立评分和至少三次完整候选观测；未覆盖的节点会明确使用全局先验。</p>
+                <input className="rra-input" disabled={disabled} value={pool.nodeProfilePath??''}
+                  placeholder="尚未配置独立节点能力档案" onChange={event=>updatePool({...pool,nodeProfilePath:event.target.value||undefined})}/>
+              </label>
               <details className="rra-details"><summary>{t('poolRoleRules')}</summary><p>{t('poolRoleRulesBody')}</p></details></section></>:null}
           </div> : state.automaticRouting && provider ? <><div className="rra-v4-section"><h3>迁移到 DSH 模型目录</h3><p className="rra-field-hint">旧 providerConfig 会保留供 CLI 和历史运行使用；预览确认后再保存新模型池，不会静默覆盖。</p><button type="button" className="rra-button" onClick={beginPool}>查看迁移预览</button></div><V4Settings t={t} provider={provider} disabled={true}
             advanced={v4Advanced}

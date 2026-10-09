@@ -22,7 +22,7 @@ const runtimeHashes = Object.fromEntries(runtimeFiles.map(path => [path,
 const {parse} = await import(pathToFileURL(`${moduleRoot}/yaml/dist/index.js`).href)
 const settings = parse(readFileSync(`${homedir()}/.dsh/settings.yaml`, 'utf8'))
 const secrets = parse(readFileSync(`${homedir()}/.dsh/.credentials.yaml`, 'utf8'))
-const {callDshLlm} = await import(pathToFileURL(`${process.cwd()}/validation/dsh/plugin/dist/index.js`).href)
+const {callDshLlm, pumpDshBridge} = await import(pathToFileURL(`${process.cwd()}/validation/dsh/plugin/dist/index.js`).href)
 const {apply} = await load('dsh-llm-pi-ai')
 let adapter: any
 const credentials = {resolve: async (ref: string) => ({value: secrets.refs[ref]}),
@@ -52,7 +52,17 @@ const nativeDeepseek = new DeepSeekAdapter({options: () => nativeOfficial,
   resolveApiKey: async () => secrets.refs.DEEPSEEK_API_KEY, resolveUserId: () => undefined,
   prepareExtensions: async () => ({fields: {}, accept: async () => {}})})
 
-for await (const line of createInterface({input: process.stdin})) {
+if(process.env.REFRACT_AUTOMATIC_MULTIPLEX==='1'){
+  // 只验证宿主转发：并发派发、模型选择和费用均由 Python 调用方控制。
+  const routes=settings.refractagent.dshModelPool.routes.filter((r:any)=>r.enabled!==false)
+    .map((r:any)=>({provider:r.provider,model:r.model}))
+  const handle={stdin:process.stdout,stdout:process.stdin,
+    done:Promise.resolve({exitCode:0,signal:null}),waitForExit:async()=>{},collected:{}}
+  await pumpDshBridge({llm:{async *stream(options:any){
+    const current=options.provider==='deepseek-official'?nativeDeepseek:adapter
+    yield* current.stream(options)
+  }}},handle,new AbortController().signal,routes,16*1024*1024)
+}else for await (const line of createInterface({input: process.stdin})) {
   const request = JSON.parse(line)
   let result: any
   if (request.op === 'catalog') {

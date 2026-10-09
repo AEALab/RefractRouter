@@ -60,6 +60,7 @@ def project(summary, runtime=None, *, cash_limits=None):
             'selected_nodes': [nid for nid, row in (summary.get('model_routes') or {}).items()
                                if row.get('id') == mid]})
     costs = summary.get('cost_trace') or {}
+    forecasts = costs.get('selected_nodes', [])
     reference = runtime.get('reference_costs_cny', costs.get('reference_costs_cny'))
     cash = runtime.get('cash_costs_cny', costs.get('cash_costs_cny'))
     limit_snapshot = runtime.get('cash_limit_snapshot', cash_limits)
@@ -105,7 +106,25 @@ def project(summary, runtime=None, *, cash_limits=None):
         'comparison': pick(comparison, ('status', 'route', 'reason', 'selected_candidate',
             'generated_node_count', 'selected_node_count', 'multi_node_selected', 'direct', 'dag',
             'decision_factors', 'estimate_scope', 'complete_task_cost_bound', 'tool_call_limit',
-            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls')),
+            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast')),
+        'node_forecasts': [pick(row, ('node_id','model_id','unit','expected_cost','expected_input_tokens',
+            'expected_output_tokens','conservative_input_bound','input_source','output_source',
+            'quality_source','quality_prior','node_features','provider','model','reasoning_effort')) | {
+                'quality_evidence': pick(row.get('quality_evidence'), ('kind','samples','bundleSha256',
+                    'observationSha256','excludedReason','outputUsageMeanTokens','latencySource',
+                    'heldOutSamples','heldOutStatus'))}
+            for row in forecasts if isinstance(row, dict)],
+        'node_model_candidates': [pick(row, ('node_id','model_id','provider','model','reasoning_effort',
+            'selected','eligible','quality_source','quality_prior','node_features','unit','billing_mode',
+            'expected_input_tokens','expected_output_tokens','expected_cost')) | {
+                'quality_evidence': pick(row.get('quality_evidence'), ('kind','samples','bundleSha256',
+                    'observationSha256','excludedReason','heldOutSamples','heldOutStatus'))}
+            for row in (runtime.get('cost_trace') or summary.get('cost_trace') or {}).get('node_candidates', [])
+            if isinstance(row, dict)],
+        'parallel_execution': pick(summary.get('execution') or runtime.get('execution'),
+            ('peak_active_nodes','policy','failure_policy')),
+        'host_capabilities': pick(summary.get('host_capabilities') or runtime.get('host_capabilities'),
+            ('multiplexModelCalls','maxParallelModelCalls','serializedTools')),
         'selection_rule': summary.get('model_selection_rule', routing.get('cost_preference')),
         'quality_min': routing.get('quality_min_per_node'),
         'profile_scope': summary.get('profile_scope', runtime.get('profile_scope')),

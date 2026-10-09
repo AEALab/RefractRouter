@@ -173,6 +173,28 @@ def test_route_comparison_never_becomes_execution_or_quality_evidence():
     assert len(trace['calls']) == 2  # 未执行的 DAG 不生成假调用
 
 
+def test_node_evidence_and_parallel_facts_are_projected_without_private_materials():
+    s, r = evidence()
+    s['cost_trace'] = {'selected_nodes': [{'node_id': 'answer', 'model_id': 'subscription',
+        'expected_cost': .05, 'expected_input_tokens': 3000, 'expected_output_tokens': 1000,
+        'quality_source': 'independent-node-evaluation', 'quality_prior': 90,
+        'quality_evidence': {'kind': 'independent-node-evaluation', 'samples': 3,
+            'bundleSha256': 'a' * 64, 'private_context': '不能展示的原始材料'},
+        'node_features': {'type': 'generation', 'difficulty': 'medium', 'risk': 'high'}}]}
+    s['cost_trace']['node_candidates'] = [{'node_id': 'answer', 'model_id': 'subscription',
+        'provider': 'ark', 'model': 'flash', 'selected': True, 'eligible': True,
+        'quality_evidence': {'samples': 3, 'heldOutStatus': 'passed', 'heldOutSamples': 1,
+                             'private_context': '不能展示的原始材料'}}]
+    r['execution'] = {'peak_active_nodes': 3, 'policy': {'max_concurrency': 3},
+                      'failure_policy': 'stop-dispatch-and-drain', 'request_messages': ['私有请求']}
+    row = project(s, r)
+    assert row['node_forecasts'][0]['quality_evidence']['samples'] == 3
+    assert row['parallel_execution']['peak_active_nodes'] == 3
+    assert row['node_model_candidates'][0]['quality_evidence']['heldOutStatus'] == 'passed'
+    assert '不能展示' not in json.dumps(row, ensure_ascii=False)
+    assert '私有请求' not in json.dumps(row, ensure_ascii=False)
+
+
 def test_history_uses_frozen_budget_and_does_not_write_or_reroute(tmp_path):
     s, r = evidence()
     del r['cash_limit_snapshot']

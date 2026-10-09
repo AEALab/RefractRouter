@@ -1,0 +1,103 @@
+{
+  "schema_version": "automatic-cost-forecast-diagnosis-v1",
+  "run_id": "20261008T183858Z-b2a833092277",
+  "model_calls_added": 0,
+  "source_result_sha256": "61890e8ef8dc4b1de9f44a8831a51bc3be039b698f96f2cdf0ca3785df993d4f",
+  "billing_unit": "CNY",
+  "routes": {
+    "direct": {
+      "original_worker_cost_cny": 3.296134,
+      "planned_output_scenario_worker_cost_cny": 0.045602000000000004,
+      "notes": "敏感性分析：复用既有混合单位分支的输入字节/4及计划输出方法；不是新的实测成本或已校准预测。",
+      "nodes": [
+        {
+          "node": "answer",
+          "input_capacity_bound": 75203,
+          "input_forecast_byte_ratio": 18801,
+          "maximum_output": 393216,
+          "planned_output": 1000,
+          "original_worker_cost_cny": 3.296134,
+          "planned_output_scenario_cost_cny": 0.045602000000000004
+        }
+      ]
+    },
+    "dag": {
+      "original_worker_cost_cny": 13.235074,
+      "planned_output_scenario_worker_cost_cny": 0.195044,
+      "notes": "敏感性分析：复用既有混合单位分支的输入字节/4及计划输出方法；不是新的实测成本或已校准预测。",
+      "nodes": [
+        {
+          "node": "review_cost",
+          "input_capacity_bound": 75424,
+          "input_forecast_byte_ratio": 18856,
+          "maximum_output": 393216,
+          "planned_output": 1000,
+          "original_worker_cost_cny": 3.296576,
+          "planned_output_scenario_cost_cny": 0.045712
+        },
+        {
+          "node": "review_time",
+          "input_capacity_bound": 75421,
+          "input_forecast_byte_ratio": 18856,
+          "maximum_output": 393216,
+          "planned_output": 1000,
+          "original_worker_cost_cny": 3.29657,
+          "planned_output_scenario_cost_cny": 0.045712
+        },
+        {
+          "node": "review_rollback",
+          "input_capacity_bound": 75407,
+          "input_forecast_byte_ratio": 18852,
+          "maximum_output": 393216,
+          "planned_output": 1000,
+          "original_worker_cost_cny": 3.296542,
+          "planned_output_scenario_cost_cny": 0.045704
+        },
+        {
+          "node": "answer",
+          "input_capacity_bound": 99829,
+          "input_forecast_byte_ratio": 24958,
+          "maximum_output": 393216,
+          "planned_output": 1000,
+          "original_worker_cost_cny": 3.345386,
+          "planned_output_scenario_cost_cny": 0.057916
+        }
+      ]
+    }
+  },
+  "judge": {
+    "maximum_candidate_output": 393216,
+    "input_bound_inferred_from_price": 3209283,
+    "output_limit": 8192,
+    "forecast_cost_cny": 1.9023020428789996,
+    "actual_input_tokens": 22458,
+    "actual_output_tokens": 667
+  },
+  "actual_calls": [
+    {
+      "label": "planner",
+      "input_tokens": 9827,
+      "cached_input_tokens": 2048,
+      "output_tokens": 480,
+      "recomputed_reference_cny": 0.027237583134999997
+    },
+    {
+      "label": "answer",
+      "input_tokens": 17792,
+      "cached_input_tokens": 8192,
+      "output_tokens": 1428,
+      "recomputed_reference_cny": 0.03095168
+    },
+    {
+      "label": "final-judge",
+      "input_tokens": 22458,
+      "cached_input_tokens": 2176,
+      "output_tokens": 667,
+      "recomputed_reference_cny": 0.042028171262
+    }
+  ],
+  "reference_total_cny": 0.100217434397,
+  "original_direct_forecast_cny": 5.225673626013999,
+  "direct_forecast_over_actual_ratio": 52.143358662656304,
+  "sensitivity_worker_route": "direct"
+}
