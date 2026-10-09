@@ -121,6 +121,32 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
           <td style={cellStyle}>{timing(c.ttft_ms)} / {timing(c.latency_ms)}</td></tr>)}
       </Table><p>首字时间为底层模型数据；自动路由交付还包含工具、规划及评审等待，不能等同于用户首字等待。</p>
     </details>
+    {r.node_forecasts?.length>0&&<details><summary>节点选模依据与预计用量</summary>
+      <Table heads={['节点与模型','质量依据','费用预测']}>
+        {r.node_forecasts.map((f:Row)=><tr key={f.node_id}>
+          <td style={cellStyle}>{f.node_id} → {f.provider&&f.model?`${f.provider}/${f.model}`:f.model_id}<br/><small>{f.node_features?.type} / {f.node_features?.difficulty} / {f.node_features?.risk}</small></td>
+          <td style={cellStyle}>{traceNumber(f.quality_prior)}；{f.quality_source==='independent-node-evaluation'
+            ?`独立节点观测 ${f.quality_evidence?.samples??0} 条（小样本）`
+            :f.quality_source==='known-node-failure-outside-observed-input-range'?'已有同类节点失败；新输入范围未经复验，阻止回退到全局先验'
+            :f.quality_source==='global-prior-no-matching-node-evidence'?'没有覆盖该节点分层，使用全局先验':'配置先验'}<br/>
+            {f.quality_evidence?.heldOutStatus&&<small>保留集：{f.quality_evidence.heldOutStatus==='passed'?'通过':f.quality_evidence.heldOutStatus==='failed'?'未通过':'未观察'}；{f.quality_evidence.heldOutSamples??0} 条。<br/></small>}
+            <small>分数不是本任务成功率；配置和预览不增加样本。</small></td>
+          <td style={cellStyle}>{traceNumber(f.expected_cost)} {f.unit}；输入 {traceNumber(f.expected_input_tokens)}、输出 {traceNumber(f.expected_output_tokens)} tokens<br/>
+            <small>预计用量与安全预留分开；实际费用见调用账本。</small></td></tr>)}
+      </Table>
+    </details>}
+    {r.node_model_candidates?.length>0&&<details><summary>逐节点候选比较（{r.node_model_candidates.length} 项）</summary>
+      <Table heads={['节点 / 候选','选择与质量依据','参考费用预测']}>
+        {r.node_model_candidates.map((f:Row)=><tr key={`${f.node_id}/${f.model_id}`}>
+          <td style={cellStyle}>{f.node_id}<br/>{f.provider}/{f.model}<br/><small>推理等级：{f.reasoning_effort}</small></td>
+          <td style={cellStyle}>{f.selected?'已选择':f.eligible===false?'未通过准入':'未选择'}；{traceNumber(f.quality_prior)} 分<br/>
+            <small>{f.quality_evidence?`独立节点样本 ${f.quality_evidence.samples??0} 条；保留集 ${f.quality_evidence.heldOutStatus??'未观察'}`:'全局先验；没有匹配的节点实测'}
+            {f.quality_evidence?.excludedReason&&<>；排除依据：{f.quality_evidence.excludedReason}</>}</small></td>
+          <td style={cellStyle}>{traceNumber(f.expected_cost)} {f.unit}<br/><small>{f.billing_mode==='subscription'?'订阅路线，单次现金 0；':'按量路线；'}输入 {traceNumber(f.expected_input_tokens)} / 输出 {traceNumber(f.expected_output_tokens)} tokens</small></td>
+        </tr>)}
+      </Table>
+    </details>}
+    {r.parallel_execution?.peak_active_nodes!==undefined&&<p>节点并发：配置上限 {r.parallel_execution.policy?.max_concurrency??'未记录'}，实际峰值 {r.parallel_execution.peak_active_nodes}；独立分支可同时调用模型，汇总等待父节点完成；宿主工具逐个执行。</p>}
     <h4>工具证据、评审与停止原因</h4>
     {r.planning_budget?.version&&<p>规划开始时告知的执行时间包络：{r.planning_budget.execution_after_planner_ms===null?'任务不限时间':timing(r.planning_budget.execution_after_planner_ms)}（已扣评审预留与规划额度）。{r.planning_budget.max_nodes!==undefined&&<>本次最多 {r.planning_budget.max_nodes} 个节点（含最终交付）。</>}时延先验不是速度保证；计划仍须通过准入。</p>}
     {r.review?.limits_version&&<p>评审预留时间 {timing(r.review.time_reserve_ms)}；评审输出上限 {traceNumber(r.review.output_cap)} tokens。此限制独立于执行模型输出容量。</p>}

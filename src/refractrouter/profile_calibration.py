@@ -93,10 +93,23 @@ def build_stratified_profile(raw, manifest, *, calibration_task_ids, test_task_i
         else:
             score = number(judge.get('score'), 'node quality', maximum=100)
         if contract_valid and not unavailable:
-            if judge.get('method') != 'independent-text-node-v1' or judge.get('status') != 'completed':
+            if judge.get('method') not in {'independent-text-node-v1', 'independent-node-oracle-v1'} or judge.get('status') != 'completed':
                 raise ValueError('missing independent node quality')
             if type(judge.get('passed')) is not bool:
                 raise ValueError('missing semantic pass state')
+            if judge['method'] == 'independent-node-oracle-v1':
+                oracle = judge.get('oracle')
+                checks = oracle.get('checks') if isinstance(oracle, dict) else None
+                if (not isinstance(checks, list) or not 1 <= len(checks) <= 64
+                        or any(not isinstance(c, dict) or set(c) != {'id', 'passed'}
+                               or not isinstance(c['id'], str) or not c['id']
+                               or type(c['passed']) is not bool for c in checks)
+                        or len({c['id'] for c in checks}) != len(checks)
+                        or not isinstance(oracle.get('criteria_sha256'), str)
+                        or len(oracle['criteria_sha256']) != 64
+                        or judge['passed'] != all(c['passed'] for c in checks)
+                        or abs(score - 100 * sum(c['passed'] for c in checks) / len(checks)) > 1e-9):
+                    raise ValueError('invalid independent node oracle receipt')
             if not judge['passed']:
                 rejected[key] = 'semantic-criterion-failure'
         elif not contract_valid and (judge.get('method') != 'deterministic-rejection' or score != 0):

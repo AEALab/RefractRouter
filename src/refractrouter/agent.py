@@ -62,6 +62,7 @@ def automatic_cost_trace(result, manifest):
     basis = (result.get('routing_profile') or {}).get('forecast_basis') or {}
     models = {model.model_id: model for model in manifest.models}
     selected = []
+    node_candidates = []
     expected = {'CNY': 0.0} if result.get('accounting_basis') == 'public-reference-valuation' else {'AFP': 0.0, 'CNY': 0.0}
     for node_id, model_id in assignments.items():
         row = basis.get(node_id, {}).get(model_id)
@@ -76,8 +77,31 @@ def automatic_cost_trace(result, manifest):
                          'expected_cost': amount, 'expected_input_tokens': row['input_tokens'],
                          'expected_output_tokens': row['output_tokens'],
                          'conservative_input_bound': row.get('conservative_input_bound'),
+                         'quality_source': row.get('quality_source'),
+                         'quality_evidence': row.get('quality_evidence'),
+                         'quality_prior': row.get('quality_prior'),
+                         'node_features': row.get('node_features'),
+                         'provider': model.provider, 'model': model.api_model,
+                         'reasoning_effort': model.request_options.get('reasoning_effort', 'default'),
                          'input_source': row.get('cost_forecast_source', row.get('input_forecast_source')),
                          'output_source': row.get('output_forecast_source', row.get('source'))})
+    for node_id, forecasts in basis.items():
+        for model_id, row in forecasts.items():
+            model = models.get(model_id)
+            if model is None:
+                continue
+            eligible = (result.get('plan_admission') or {}).get(node_id, {}).get('eligible_models')
+            node_candidates.append({'node_id': node_id, 'model_id': model_id,
+                'provider': model.provider, 'model': model.api_model,
+                'reasoning_effort': model.request_options.get('reasoning_effort', 'default'),
+                'selected': assignments.get(node_id) == model_id,
+                'eligible': model_id in eligible if eligible is not None else None,
+                'quality_source': row.get('quality_source'), 'quality_prior': row.get('quality_prior'),
+                'quality_evidence': row.get('quality_evidence'), 'node_features': row.get('node_features'),
+                'unit': model.billing_unit, 'billing_mode': model.billing_mode,
+                'expected_input_tokens': row['input_tokens'], 'expected_output_tokens': row['output_tokens'],
+                'expected_cost': (row['input_tokens'] * model.input_cost_per_1k
+                                  + row['output_tokens'] * model.output_cost_per_1k) / 1000})
     calls = [{'label': call['label'], 'model_id': call['model_id'],
               'unit': call.get('billing_unit') or manifest.billing_unit,
               'status': call['status'], 'reserved': call['reserved'],
@@ -85,10 +109,12 @@ def automatic_cost_trace(result, manifest):
               'cost_basis': call.get('cost_basis'), 'cash_cost_cny': call.get('cash_cost_cny')}
              for call in result.get('calls', ())]
     trace = {'schema_version': 'automatic-cost-trace-v1', 'selected_nodes': selected,
+            'node_candidates': node_candidates,
             'selected_expected_by_unit': expected, 'calls': calls,
             'accounting_basis': result.get('accounting_basis'),
             'reference_costs_cny': result.get('reference_costs_cny'),
             'cash_costs_cny': result.get('cash_costs_cny'),
+            'forecast_version': ((result.get('route_comparison') or {}).get('cost_forecast') or {}).get('version'),
             'review_protection': (result.get('review') or {}).get('protection')}
     if trace['accounting_basis'] == 'public-reference-valuation':
         decision = (result.get('complexity_gate') or {}).get('local_decision') or {}
@@ -548,6 +574,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         'simulated': mode == 'demo', 'wall_time_ms': result['wall_time_ms'],
         'plan_origin': result['plan_origin'], 'plan': result['plan'], 'dag': dag_snapshot(result, manifest),
         'plan_admission': result.get('plan_admission'),
+        'execution': result.get('execution'), 'execution_policy': result.get('execution_policy'),
+        'host_capabilities': result.get('host_capabilities'),
+        'plan_analysis': result.get('plan_analysis'),
         'route_comparison': result.get('route_comparison'),
         'planner': result.get('planner_selection'), 'plan_ready_ms': result.get('plan_ready_ms'),
         'model_call_limit': result.get('model_call_limit'),

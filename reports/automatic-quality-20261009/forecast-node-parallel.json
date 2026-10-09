@@ -1,0 +1,1264 @@
+{
+  "schema_version": "automatic-forecast-node-parallel-acceptance-v1",
+  "calibration_batches": [
+    {
+      "batch": "20261009-node-quality-live-01",
+      "frozen_sha256": "8452a1d5687ca70e6544de75c3000c2e9ba54c5880bea049626f52e109328000",
+      "model_calls": 16,
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "reference_costs_cny": {
+        "production": 0.5421813304080012,
+        "evaluation": 0.0
+      },
+      "raw_passed": 8,
+      "observations": 16,
+      "held_out_passed": false,
+      "unknown_usage": 0,
+      "declared_models": {
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": "low"
+        }
+      },
+      "original_observations_sha256": "7cabb2a3b79bc6eed67284c896941a8f53a047bca0288fa22e2f78654bfb017d",
+      "results": [
+        {
+          "task_id": "ledger-simple",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9198,
+            "output_tokens": 117,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4647,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "ledger-simple",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "ffb3367a85e9a0978843a15a3e02ea3c37812dd37fe38139be2bf843e833799e",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9404,
+            "output_tokens": 2466,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 23206,
+          "split": "calibration",
+          "passed": false
+        },
+        {
+          "task_id": "ledger-cancel",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "6d1608355c244cc34c72149659b9d52572e2f04400fdb27ad3d64c45891065a0",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9199,
+            "output_tokens": 48,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 3244,
+          "split": "calibration",
+          "passed": false
+        },
+        {
+          "task_id": "ledger-cancel",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "062c782a425573cb13a316e171f968ffe73d75bd74c2bcb6a00ac4afc701bb62",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9406,
+            "output_tokens": 221,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 5336,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "parallel-time",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "f6fa570b0a362606f7328040148546d65b262290380b79491c0cd7a71cc4ee6c",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9186,
+            "output_tokens": 94,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4768,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "parallel-time",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9394,
+            "output_tokens": 209,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 5587,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "ledger-held-out",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "f9c64a3ff5ff6291d2d5b683eceda1f8de4379e8a3b8d9b5de31608af65c5cc3",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9208,
+            "output_tokens": 296,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 9172,
+          "split": "held-out",
+          "passed": false
+        },
+        {
+          "task_id": "ledger-held-out",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "f9c64a3ff5ff6291d2d5b683eceda1f8de4379e8a3b8d9b5de31608af65c5cc3",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9413,
+            "output_tokens": 4660,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 47033,
+          "split": "held-out",
+          "passed": false
+        },
+        {
+          "task_id": "all-in-cost",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "c5ca805050e39b5076e14d55a37b475a77bab912ea131068d265098c8319ee2c",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9252,
+            "output_tokens": 145,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 6405,
+          "split": "calibration",
+          "passed": false
+        },
+        {
+          "task_id": "all-in-cost",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "0e41cbc2d80bd7fd83cb280ec7c640b87980a103b4ff3402897dfe6f7f9bf5a5",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9461,
+            "output_tokens": 662,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 12317,
+          "split": "calibration",
+          "passed": false
+        },
+        {
+          "task_id": "cancel-no-resend",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "248fb04ef12a3148d0768114d1aaef6e26a2d7d994336860179249de64b58b62",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9236,
+            "output_tokens": 986,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 34219,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "cancel-no-resend",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "60e19831a60584b4cb69237346a5fcb569b6fe9b339209eb6ac458cb384df157",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9443,
+            "output_tokens": 261,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 5573,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "cache-price",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "fa9bc070d6f0bbc51575fbc957e66a643d68b2f5453dc95d774a277744e223cd",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9207,
+            "output_tokens": 406,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 14018,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "cache-price",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "8d2934fd6e859ff2d5a4f8fd078c778495c0c99407de31ec65b6ad5c8f6dd56a",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9410,
+            "output_tokens": 290,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 6156,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "refund-held-out",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "a31b25fb43a54b803300c7326d818ad63770eefdcef1d3f88cea5d9fdcdf54c9",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9230,
+            "output_tokens": 3921,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 143227,
+          "split": "held-out",
+          "passed": false
+        },
+        {
+          "task_id": "refund-held-out",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "a31b25fb43a54b803300c7326d818ad63770eefdcef1d3f88cea5d9fdcdf54c9",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9436,
+            "output_tokens": 318,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 6418,
+          "split": "held-out",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "batch": "20261009-node-quality-live-02",
+      "frozen_sha256": "46407f1f4891226482bcd99d1158fd536098b3f6eeb3f627952c4acdcdb15e76",
+      "model_calls": 16,
+      "cash_costs_cny": {
+        "production": 0,
+        "evaluation": 0
+      },
+      "reference_costs_cny": {
+        "production": 0.3416253481680003,
+        "evaluation": 0.0
+      },
+      "raw_passed": 14,
+      "observations": 16,
+      "held_out_passed": false,
+      "unknown_usage": 0,
+      "declared_models": {
+        "dsh-model-7077bbf6a06daaa6": {
+          "id": "dsh-model-7077bbf6a06daaa6",
+          "provider": "ark",
+          "model": "glm-5.3",
+          "reasoning_effort": null
+        },
+        "dsh-model-72afd0d705290d78": {
+          "id": "dsh-model-72afd0d705290d78",
+          "provider": "ark",
+          "model": "deepseek-v4-flash",
+          "reasoning_effort": "low"
+        }
+      },
+      "original_observations_sha256": "9e8f2ba72fc558c8be01c36d405b0968a87fa375078fa79b3645378cb90e83ff",
+      "results": [
+        {
+          "task_id": "ledger-simple",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9241,
+            "output_tokens": 57,
+            "cached_input_tokens": 8960,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 2527,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "ledger-simple",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "832a4cc83f30cc8205d4445771732387c44087e9104942bace1541ec752a0932",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9447,
+            "output_tokens": 261,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 6418,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "ledger-cancel",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "f2c266fd95a98e8cd4934de0eaa7d1519c1a275fde55912dbcaaf4d5c02f67ee",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9228,
+            "output_tokens": 82,
+            "cached_input_tokens": 8960,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 3904,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "ledger-cancel",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "f2c266fd95a98e8cd4934de0eaa7d1519c1a275fde55912dbcaaf4d5c02f67ee",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9436,
+            "output_tokens": 231,
+            "cached_input_tokens": 8192,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 5096,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "parallel-time",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "f6fa570b0a362606f7328040148546d65b262290380b79491c0cd7a71cc4ee6c",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9186,
+            "output_tokens": 79,
+            "cached_input_tokens": 9152,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4008,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "parallel-time",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "b4a6e4dc45cb4fc9e6b55a93c2480b2c95238ad463abbf4c33f44c90c285935f",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9394,
+            "output_tokens": 155,
+            "cached_input_tokens": 8192,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 3854,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "ledger-held-out",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "f7ea7ce86f9131845bb39ec0c8a172416e871d707dcd2225a6fd6d7aa970043e",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9251,
+            "output_tokens": 88,
+            "cached_input_tokens": 8960,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 3182,
+          "split": "held-out",
+          "passed": false
+        },
+        {
+          "task_id": "ledger-held-out",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "2bcf48f2ae9bb10839fb98e0d393906d1ff4bd271b116e6ebfed528da60aecab",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9456,
+            "output_tokens": 685,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 12244,
+          "split": "held-out",
+          "passed": true
+        },
+        {
+          "task_id": "all-in-cost",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "69944942cd4d1bf486547f22bddc0eefbe599c808378b8b1863a23b4a49f8fcd",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9294,
+            "output_tokens": 115,
+            "cached_input_tokens": 8960,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4337,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "all-in-cost",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "1ae78ef427e92e1f90735c96157f44bd1ed17d677a0679df016689f575ab4d85",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9502,
+            "output_tokens": 487,
+            "cached_input_tokens": 8192,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 7134,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "cancel-no-resend",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "248fb04ef12a3148d0768114d1aaef6e26a2d7d994336860179249de64b58b62",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9236,
+            "output_tokens": 96,
+            "cached_input_tokens": 9216,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4000,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "cancel-no-resend",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "c140e158bfd602573348b4b8bda50cef18ef95c1b93c93809cd1983324e25349",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9443,
+            "output_tokens": 187,
+            "cached_input_tokens": 8192,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4389,
+          "split": "calibration",
+          "passed": false
+        },
+        {
+          "task_id": "cache-price",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "fa9bc070d6f0bbc51575fbc957e66a643d68b2f5453dc95d774a277744e223cd",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9207,
+            "output_tokens": 416,
+            "cached_input_tokens": 9152,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 14738,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "cache-price",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "8d2934fd6e859ff2d5a4f8fd078c778495c0c99407de31ec65b6ad5c8f6dd56a",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9410,
+            "output_tokens": 287,
+            "cached_input_tokens": 8192,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 4826,
+          "split": "calibration",
+          "passed": true
+        },
+        {
+          "task_id": "refund-held-out",
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9273,
+            "output_tokens": 3582,
+            "cached_input_tokens": 8960,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 128047,
+          "split": "held-out",
+          "passed": true
+        },
+        {
+          "task_id": "refund-held-out",
+          "model_id": "dsh-model-72afd0d705290d78",
+          "output_sha256": "013ba9e667aa64d0148867c813f33dd41c69f194c24689a223d46dbc7572e74a",
+          "status": "completed",
+          "finish_reason": "stop",
+          "usage": {
+            "input_tokens": 9479,
+            "output_tokens": 845,
+            "cached_input_tokens": 0,
+            "reasoning_tokens": 0
+          },
+          "latency_ms": 8886,
+          "split": "held-out",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "derived_semantic_evaluation": {
+    "new_model_calls": 0,
+    "derivation": {
+      "policy": "text-json-semantic-v1",
+      "new_model_calls": 0,
+      "source_preflight_sha256": "fe5f72369e73615b4d6ac7516e336bf9d65205050b089f92f0a7b171daee863c",
+      "source_observations_sha256": "9e8f2ba72fc558c8be01c36d405b0968a87fa375078fa79b3645378cb90e83ff",
+      "raw_responses_unchanged": true,
+      "format_compliance_reported_separately": true
+    },
+    "imported": {
+      "schema_version": "node-quality-bundle-v1",
+      "bundle_sha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+      "observations_sha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+      "calibration_tasks": [
+        "all-in-cost",
+        "cache-price",
+        "cancel-no-resend",
+        "ledger-cancel",
+        "ledger-simple",
+        "parallel-time"
+      ],
+      "held_out_tasks": [
+        "ledger-held-out",
+        "refund-held-out"
+      ],
+      "model_count": 2,
+      "strata": 3,
+      "excluded_strata": [
+        {
+          "model_id": "dsh-model-7077bbf6a06daaa6",
+          "node_type": "synthesis",
+          "difficulty": "low",
+          "risk": "low",
+          "input_min_tokens": 32769,
+          "input_max_tokens": 131073,
+          "reason": "held-out-semantic-criterion-failure"
+        }
+      ],
+      "held_out_observations_sha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+      "held_out_policy": "known-failure-veto-only-no-score-or-usage-fitting",
+      "unmatched_policy": "global-prior-explicitly-unverified",
+      "whole_task_scores_used": false
+    },
+    "passed": 15,
+    "observations": 16,
+    "raw_json_format_failures": 1,
+    "held_out_passed": false
+  },
+  "parallel": {
+    "scope": "controlled-functional-only",
+    "passed": true,
+    "status": "completed",
+    "root_requests_overlap": true,
+    "join_after_all_roots": true,
+    "execution": {
+      "policy": {
+        "policy_version": "topological-list-v1",
+        "max_concurrency": 3,
+        "provider_concurrency": {},
+        "provider_min_interval_ms": {}
+      },
+      "peak_active_nodes": 3,
+      "not_started": [],
+      "failure_policy": "stop-dispatch-and-drain",
+      "started_ms": 6.704790983349085,
+      "peak_running_nodes": 3,
+      "ended_ms": 17896.709957858548,
+      "wall_time_ms": 17890.006916830316
+    },
+    "host_capabilities": {
+      "multiplexModelCalls": true,
+      "maxParallelModelCalls": 8,
+      "serializedTools": true
+    },
+    "wall_time_ms": 36073,
+    "model_calls": 5,
+    "reference_costs_cny": {
+      "production": 0.0878600000000005,
+      "evaluation": 0.03241175589400003
+    },
+    "cash_costs_cny": {
+      "production": 0,
+      "evaluation": 0
+    },
+    "nodes": [
+      {
+        "node_id": "ledger",
+        "model_id": "dsh-model-72afd0d705290d78",
+        "start_ms": 9.499707957729697,
+        "end_ms": 6405.860124854371,
+        "status": "ok"
+      },
+      {
+        "node_id": "timing",
+        "model_id": "dsh-model-72afd0d705290d78",
+        "start_ms": 14.775082934647799,
+        "end_ms": 4205.414082854986,
+        "status": "ok"
+      },
+      {
+        "node_id": "cancel",
+        "model_id": "dsh-model-72afd0d705290d78",
+        "start_ms": 19.620665814727545,
+        "end_ms": 4591.754665831104,
+        "status": "ok"
+      },
+      {
+        "node_id": "answer",
+        "model_id": "dsh-model-72afd0d705290d78",
+        "start_ms": 6411.149624967948,
+        "end_ms": 17888.451415812597,
+        "status": "ok"
+      }
+    ],
+    "issues": []
+  },
+  "parallel_quality": {
+    "score": 100,
+    "passed": true
+  },
+  "node_candidates": [
+    {
+      "node_id": "ledger",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 94.69,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41051
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10263,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.024622
+    },
+    {
+      "node_id": "ledger",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 93.81,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41051
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10263,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.106191
+    },
+    {
+      "node_id": "ledger",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 98.23,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41051
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10263,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.25645999999999997
+    },
+    {
+      "node_id": "ledger",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "provider": "ark",
+      "model": "glm-5.3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": false,
+      "quality_source": "independent-node-evaluation",
+      "quality_prior": 0,
+      "quality_evidence": {
+        "kind": "independent-node-evaluation",
+        "samples": 3,
+        "bundleSha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+        "observationSha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+        "excludedReason": "held-out-semantic-criterion-failure",
+        "outputUsageMeanTokens": 73,
+        "heldOutSamples": 1,
+        "heldOutStatus": "failed",
+        "heldOutObservationSha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+        "latencySource": "independent-node-observations"
+      },
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41051
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 10263,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.029023627619
+    },
+    {
+      "node_id": "ledger",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "low",
+      "selected": true,
+      "eligible": true,
+      "quality_source": "independent-node-evaluation",
+      "quality_prior": 100.0,
+      "quality_evidence": {
+        "kind": "independent-node-evaluation",
+        "samples": 3,
+        "bundleSha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+        "observationSha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+        "excludedReason": null,
+        "outputUsageMeanTokens": 216,
+        "heldOutSamples": 1,
+        "heldOutStatus": "passed",
+        "heldOutObservationSha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+        "latencySource": "independent-node-observations"
+      },
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41051
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 10263,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.024622
+    },
+    {
+      "node_id": "timing",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 94.69,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41032
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10258,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.024612000000000002
+    },
+    {
+      "node_id": "timing",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 93.81,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41032
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10258,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.10614599999999999
+    },
+    {
+      "node_id": "timing",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 98.23,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41032
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10258,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.25636000000000003
+    },
+    {
+      "node_id": "timing",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "provider": "ark",
+      "model": "glm-5.3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": false,
+      "quality_source": "independent-node-evaluation",
+      "quality_prior": 0,
+      "quality_evidence": {
+        "kind": "independent-node-evaluation",
+        "samples": 3,
+        "bundleSha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+        "observationSha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+        "excludedReason": "held-out-semantic-criterion-failure",
+        "outputUsageMeanTokens": 73,
+        "heldOutSamples": 1,
+        "heldOutStatus": "failed",
+        "heldOutObservationSha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+        "latencySource": "independent-node-observations"
+      },
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41032
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 10258,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.029021266554
+    },
+    {
+      "node_id": "timing",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "low",
+      "selected": true,
+      "eligible": true,
+      "quality_source": "independent-node-evaluation",
+      "quality_prior": 100.0,
+      "quality_evidence": {
+        "kind": "independent-node-evaluation",
+        "samples": 3,
+        "bundleSha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+        "observationSha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+        "excludedReason": null,
+        "outputUsageMeanTokens": 216,
+        "heldOutSamples": 1,
+        "heldOutStatus": "passed",
+        "heldOutObservationSha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+        "latencySource": "independent-node-observations"
+      },
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41032
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 10258,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.024612000000000002
+    },
+    {
+      "node_id": "cancel",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 94.69,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41086
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10272,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.024640000000000002
+    },
+    {
+      "node_id": "cancel",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 93.81,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41086
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10272,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.10627199999999999
+    },
+    {
+      "node_id": "cancel",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 98.23,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41086
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 10272,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.25664
+    },
+    {
+      "node_id": "cancel",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "provider": "ark",
+      "model": "glm-5.3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": false,
+      "quality_source": "independent-node-evaluation",
+      "quality_prior": 0,
+      "quality_evidence": {
+        "kind": "independent-node-evaluation",
+        "samples": 3,
+        "bundleSha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+        "observationSha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+        "excludedReason": "held-out-semantic-criterion-failure",
+        "outputUsageMeanTokens": 73,
+        "heldOutSamples": 1,
+        "heldOutStatus": "failed",
+        "heldOutObservationSha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+        "latencySource": "independent-node-observations"
+      },
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41086
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 10272,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.029027877536
+    },
+    {
+      "node_id": "cancel",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "low",
+      "selected": true,
+      "eligible": true,
+      "quality_source": "independent-node-evaluation",
+      "quality_prior": 100.0,
+      "quality_evidence": {
+        "kind": "independent-node-evaluation",
+        "samples": 3,
+        "bundleSha256": "72aa35a78900fe59426245b1c4c0bd1c0c42197df36913ed1196cbd985bcae04",
+        "observationSha256": "7333608d878fa30ade68658952087f27503e762c7ca5c71d369ad37ddb8a7a58",
+        "excludedReason": null,
+        "outputUsageMeanTokens": 216,
+        "heldOutSamples": 1,
+        "heldOutStatus": "passed",
+        "heldOutObservationSha256": "84f596890d9aa98dd3bb0e65e7582729f3d7e540b72dc044cbb48213c425fe54",
+        "latencySource": "independent-node-observations"
+      },
+      "node_features": {
+        "type": "synthesis",
+        "difficulty": "low",
+        "risk": "low",
+        "input_capacity": 41086
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 10272,
+      "expected_output_tokens": 512,
+      "expected_cost": 0.024640000000000002
+    },
+    {
+      "node_id": "answer",
+      "model_id": "dsh-model-b1aeb12a74ea9990",
+      "provider": "deepseek-official",
+      "model": "deepseek-flash",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": false,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 94.69,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_capacity": 1000000
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 13433,
+      "expected_output_tokens": 1024,
+      "expected_cost": 0.035058
+    },
+    {
+      "node_id": "answer",
+      "model_id": "dsh-model-2554a193bcd888ad",
+      "provider": "deepseek-official",
+      "model": "deepseek-v4-pro",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": false,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 93.81,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_capacity": 1000000
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 13433,
+      "expected_output_tokens": 1024,
+      "expected_cost": 0.14854499999999998
+    },
+    {
+      "node_id": "answer",
+      "model_id": "dsh-model-06fd0d4ad75fef1d",
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 98.23,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_capacity": 1000000
+      },
+      "unit": "CNY",
+      "billing_mode": "metered",
+      "expected_input_tokens": 13433,
+      "expected_output_tokens": 1024,
+      "expected_cost": 0.37106000000000006
+    },
+    {
+      "node_id": "answer",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "provider": "ark",
+      "model": "glm-5.3",
+      "reasoning_effort": "default",
+      "selected": false,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 99.12,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_capacity": 1000000
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 13433,
+      "expected_output_tokens": 1024,
+      "expected_cost": 0.054697848428999996
+    },
+    {
+      "node_id": "answer",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "provider": "ark",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "low",
+      "selected": true,
+      "eligible": true,
+      "quality_source": "global-prior-no-matching-node-evidence",
+      "quality_prior": 92.86,
+      "quality_evidence": null,
+      "node_features": {
+        "type": "generation",
+        "difficulty": "medium",
+        "risk": "high",
+        "input_capacity": 1000000
+      },
+      "unit": "CNY",
+      "billing_mode": "subscription",
+      "expected_input_tokens": 13433,
+      "expected_output_tokens": 1024,
+      "expected_cost": 0.035058
+    }
+  ],
+  "forecast_execution_cny": 0.108932,
+  "tests": {
+    "python_full_passed": 1998,
+    "duration_seconds": 238.32,
+    "typescript_typecheck": "passed",
+    "plugin_contracts_in_python_suite": true,
+    "build": "passed"
+  },
+  "installation": {
+    "coreVersion": "0.16.21",
+    "pluginVersion": "0.33.5",
+    "coreFilesMatched": 138,
+    "pluginFilesMatched": 39,
+    "settingsBytePreserved": true,
+    "credentialsBytePreserved": true,
+    "artifactSha256": {
+      "refractrouter-0.16.21-py3-none-any.whl": "6dd07d0004302c0f83f00914fbfeef47b43303499d88f70cafdad98a64b23953",
+      "dsh-refractrouter-validation-0.33.5.tgz": "007fc664997a3d0fd0a4fdcb2acecf213ee2b2f9cfc5c4eb13b016d6b5a86463"
+    }
+  },
+  "profile_targeted_change": {
+    "path": "refractagent.liveExecution.maxConcurrency",
+    "before": "默认 1",
+    "after": 3,
+    "otherSettingsPreserved": true,
+    "credentialsBytePreserved": true
+  },
+  "daily_node_profile_activated": false,
+  "http_retries": 0,
+  "unpaid_rejected_parallel_attempt_model_calls": 0
+}

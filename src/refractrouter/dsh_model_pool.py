@@ -450,5 +450,18 @@ def compile_dsh_model_pool(pool, catalog_snapshot, *, profiles=None, latency_pro
         'objective':deepcopy(pool.get('objective', {'qualityMin':80,'primary':'cost','secondary':'latency','dagMode':'auto'})),
         'security':security, 'trustPolicies':deepcopy(pool.get('trustPolicies', [])),
         'providers':providers, 'models':models}
-    compile_configuration(config)
+    compiled = compile_configuration(config)
+    node_source = pool.get('nodeProfilePath')
+    if node_source is not None:
+        if not isinstance(node_source, str) or not node_source.strip():
+            raise ValueError('nodeProfilePath 必须是节点能力档案的路径')
+        from .node_quality import import_node_quality
+        node_profiles, node_evidence = import_node_quality(node_source, compiled)
+        for model in config['models']:
+            if model['id'] in node_profiles and 'worker' in model['roles']:
+                model['routing']['profiles'] = node_profiles[model['id']]
+                route = next(key for key, row in evidence.items()
+                             if row.get('compiled_model_id') == model['id'])
+                evidence[route]['node_quality'] = node_evidence
+        compile_configuration(config)
     return config, evidence

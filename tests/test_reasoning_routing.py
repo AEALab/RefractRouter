@@ -175,7 +175,11 @@ def test_token_interval_and_risk_select_exact_profile_without_leaking_to_other_n
         'inputMaxTokens':131073, 'quality':81, 'outputTokens':1200})
     config = compile_configuration(raw)
     profile = configured_profile(config, config.manifest, plan)
-    assert profile['forecast_basis']['cost']['shared-low'] == {'input_tokens':16000,'output_tokens':1200,'source':'profiles[1]'}
+    basis = profile['forecast_basis']['cost']['shared-low']
+    assert {k: basis[k] for k in ('input_tokens', 'output_tokens', 'source')} == {
+        'input_tokens':16000,'output_tokens':1200,'source':'profiles[1]'}
+    assert basis['quality_source'] == 'configured-node-prior'
+    assert basis['quality_evidence'] is None
     assert profile['forecast_basis']['risk']['shared-low']['source'] == 'default'
 
 

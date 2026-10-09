@@ -97,6 +97,7 @@ export interface DshModelPool {
   cashLimits?: {production:number;evaluation:number}
   allowSharedJudge?: boolean
   judgeReasoningEffort?: string
+  nodeProfilePath?: string
   routes: DshModelPoolRoute[]
   roleOverrides?: { planner?: string; judge?: string; classifier?: string; workers?: string[] }
   objective?: Record<string, unknown>
@@ -241,7 +242,7 @@ export function validateRouterConnection(value: unknown): asserts value is Route
 export function validateDshModelPool(value: unknown): asserts value is DshModelPool {
   if (!isRecordValue(value) || !['refractagent-dsh-model-pool-v1','refractagent-dsh-model-pool-v2','refractagent-dsh-model-pool-v3','refractagent-dsh-model-pool-v4','refractagent-dsh-model-pool-v5'].includes(String(value.schemaVersion))
     || !Array.isArray(value.routes) || value.routes.length > 128
-    || Object.keys(value).some(key => !['schemaVersion','billingUnit','cashLimits','allowSharedJudge','judgeReasoningEffort','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
+    || Object.keys(value).some(key => !['schemaVersion','billingUnit','cashLimits','allowSharedJudge','judgeReasoningEffort','nodeProfilePath','routes','roleOverrides','objective','security','trustPolicies'].includes(key))) {
     throw new Error('invalid dshModelPool')
   }
   if (value.allowSharedJudge !== undefined && typeof value.allowSharedJudge !== 'boolean') {
@@ -249,6 +250,8 @@ export function validateDshModelPool(value: unknown): asserts value is DshModelP
   }
   if(value.judgeReasoningEffort!==undefined&&(typeof value.judgeReasoningEffort!=='string'||!value.judgeReasoningEffort.trim()))
     throw new Error('invalid dshModelPool judgeReasoningEffort')
+  if(value.nodeProfilePath!==undefined&&(typeof value.nodeProfilePath!=='string'||!value.nodeProfilePath.trim()))
+    throw new Error('invalid dshModelPool nodeProfilePath')
   const identities = new Set<string>()
   for (const route of value.routes) {
     if (!isRecordValue(route) || typeof route.provider !== 'string' || !route.provider
