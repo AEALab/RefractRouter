@@ -19,6 +19,7 @@
 
 “规划”表示模型调用策略，不建立 DAG。“自动”不保证每次拆分，也不保证 DAG 更省钱或更快。
 详情见[两种路由说明](https://aealab.github.io/RefractRouter/routing.html)。
+自动路由入口、轨迹解读、停止状态与回滚步骤见[日常操作指南](docs/automatic-routing-operations.md)。
 
 ## 规划路由的六种策略
 
