@@ -9,6 +9,28 @@ permissions:
   contents: read
 
 jobs:
+  docs-site:
+    name: 文档站与公开下载校验
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: 安装锁定的构建依赖
+        run: |
+          npm ci --prefix validation/dsh/plugin
+          npm ci --prefix website
+      - name: 构建白名单下载包与中文文档
+        run: |
+          uv run --no-project python scripts/build_public_distribution.py
+          npm run --prefix website build
+      - name: 校验版本、站内链接与安装包
+        run: uv run --no-project python scripts/validate_docs_site.py
+
   test-and-validate:
     runs-on: ubuntu-latest
     steps:

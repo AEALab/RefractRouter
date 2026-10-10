@@ -1,0 +1,49 @@
+:root {
+  --vp-c-brand-1: #17836a;
+  --vp-c-brand-2: #126951;
+  --vp-c-brand-3: #158a6b;
+  --vp-c-brand-soft: rgba(23, 131, 106, .09);
+  --vp-c-text-1: #242c2a;
+  --vp-c-text-2: #52605b;
+  --vp-c-bg-alt: #f6f8f7;
+  --vp-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --vp-sidebar-width: 272px;
+}
+.dark {
+  --vp-c-brand-1: #79d1b4;
+  --vp-c-brand-2: #9adeca;
+  --vp-c-brand-3: #3eab88;
+  --vp-c-brand-soft: rgba(121, 209, 180, .12);
+  --vp-c-text-1: #e4ebe8;
+  --vp-c-text-2: #b2bcb8;
+  --vp-c-bg-alt: #1c211f;
+}
+.vp-doc h1 { letter-spacing: -.035em; line-height: 1.4; }
+.vp-doc p, .vp-doc li { line-height: 1.85; }
+.vp-doc h2 { margin-top: 40px; }
+.vp-doc table { width: 100%; }
+.vp-doc td, .vp-doc th { font-size: 14px; }
+.VPNavBarTitle .title { font-weight: 650; letter-spacing: -.03em; }
+.VPNavBarTitle .logo { height: 29px; width: 29px; }
+.VPSidebarItem .text { font-size: 14px; }
+.doc-kicker { margin-bottom: 10px; color: var(--vp-c-brand-1); font-size: 12px; font-weight: 650; letter-spacing: .12em; }
+.doc-intro { font-size: 18px; line-height: 1.9; color: var(--vp-c-text-2); }
+.doc-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 30px; }
+.doc-badge { display: inline-block; padding: 3px 10px; border: 1px solid var(--vp-c-divider); border-radius: 5px; color: var(--vp-c-text-2); font-size: 12px; }
+.doc-badge.research { color: #936323; background: #faf4e7; border-color: #ead9b8; }
+.dark .doc-badge.research { color: #e3bd7c; background: #362d1d; border-color: #584529; }
+.doc-diagram { margin: 24px 0; padding: 22px; border: 1px solid var(--vp-c-divider); border-radius: 10px; background: var(--vp-c-bg-alt); }
+.doc-diagram img { display: block; width: 100%; }
+.doc-diagram figcaption { margin-top: 12px; color: var(--vp-c-text-2); font-size: 12px; line-height: 1.7; }
+.dark .doc-diagram { background: #edf3f0; }
+.dark .doc-diagram figcaption { color: #52605b; }
+.doc-route-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
+.doc-route-link { display: block; padding: 20px; border: 1px solid var(--vp-c-divider); border-radius: 8px; text-decoration: none !important; }
+.doc-route-link:hover { border-color: var(--vp-c-brand-1); background: var(--vp-c-brand-soft); }
+.doc-route-link strong { display: block; margin-bottom: 8px; font-size: 17px; }
+.doc-route-link span { display: block; color: var(--vp-c-text-2); font-size: 13px; line-height: 1.7; }
+@media (max-width: 640px) {
+  .doc-route-links { grid-template-columns: 1fr; }
+  .doc-intro { font-size: 16px; }
+  .doc-diagram { padding: 12px; }
+}

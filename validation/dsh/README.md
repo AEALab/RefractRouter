@@ -6,8 +6,8 @@
 
 ## 用户安装入口
 
-普通用户请从 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 开始，
-或阅读 [仓库内同版说明](../../docs/refractagent-local-quickstart.md)。
+普通用户请从[线上下载安装指南](https://aealab.github.io/RefractRouter/installation.html)开始，
+或阅读[仓库内同版说明](../../docs/refractagent-local-quickstart.md)。
 RefractAgent 模型入口安装 wheel 和插件 tgz 后即可使用，不需要单独启动 Router HTTP 服务。
 普通用户通过插件设置从 DSH 当前模型目录选择路线；旧 `providerConfig` 继续用于 CLI、历史配置
 和非 DSH 入口，Ark Agent Plan 仍为可选项。详见 [配置指南](../../docs/provider-configuration.md)。
@@ -40,9 +40,11 @@ DSH 负责工具调度、会话、沙箱、进程生命周期和凭证服务。�
 通用 `dsh-llm` 基准清单通过受限 stdio 桥使用 DSH provider，凭证留在宿主内。
 DSH 外层助手的模型配置与核心对 DAG 节点的选模分别管理。
 
-上述历史工具仍依赖匹配的 RefractRouter 源码环境。RefractAgent 三策略模型入口使用
-已安装的 Python 核心，已支持脱离源码目录执行。两类入口均由 DSH 启动本地 Python 进程；
-当前尚未提供独立部署的 Router HTTP 服务。
+上述历史工具仍依赖匹配的 RefractRouter 源码环境。RefractAgent 规划与自动路由模型入口使用
+已安装的 Python 核心，可脱离源码目录执行。默认由 DSH 管理本机 Python 进程。
+独立标准模型 HTTP 服务由 `refractrouter-gateway` 提供，六种规划策略可供 Codex CLI 等
+客户端配置 Base URL；它与历史 `refractagent serve` 任务协议不同。
+详见[独立模型路由](../../docs/independent-model-router.md)。
 
 ## 安装与验证
 

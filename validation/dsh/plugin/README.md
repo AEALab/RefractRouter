@@ -1,688 +1,121 @@
-## 0.26.0：Escalation 缓冲审核与一次接管
+# RefractRouter DSH 插件
 
-Escalation 使用独立 `escalation-decision-v1`，起始模型的正文和工具调用在 Judge 放行前
-全部缓冲。明确缺陷、最终停滞或无法判断立即由强模型接管；工具过程中连续两次停滞才接管。
-接管后当前任务固定使用强模型且不再追加审核。协议升级为 `refractagent-planning/4`，本地
-Judge 使用可查询、可取消的独立 job；设置页分别配置三个模型的推理等级、数据域和信任策略。
+DSH 插件是独立 Python Router 的宿主适配层，提供模型入口、配置与动态图形。
+模型选择、审核、预算与结算由 Python 负责；工具执行、权限、上下文压缩、会话和委派由 DSH 负责。
+标准 Base URL 接入不依赖这个插件。
 
-有限真实验收中，`deepseek-v4-flash` Judge 的明确缺陷 6/6 未放行、合格 6/6 放行；当前
-Laya revision 与 `glm-5.3-flash` 的 1024 token 路线仍标为实验状态。需要 Python 核心
-0.13.0 与 DSH 0.1.5-rc.1。
+当前开发预览：插件 **0.33.21**、Python 核心 **0.16.33**；已验证 DSH **0.1.5-rc.3**、
+Node.js **≥22.19.0 且 <23**、pnpm **10.15.0**。核对日期：2026-10-10。
 
-## 0.25.0：Task 多模型池与本地 Judge
+## 用户下载安装
 
-Task 从用户配置的有序模型池选定一次主执行模型；单一合格候选不调用 Judge，多候选可使用
-DSH 轻量 LLM 或固定 revision 的本地 Laya-MLX。图片输入保留原生内容块，受管 Seedream 工具
-通过 Python 预算门槛后调用一次提供方接口，并把结果保存为 DSH 图片附件。
-
-能力状态区分官方声明、适配接通与真实验收。未取得付费验收授权时，Seedream 只标记为
-`connected`，不会派发；DSH 0.1.5-rc.1 尚无原生影片内容块和附件服务，因此本版不宣称影片
-已接通。需要 Python 核心 0.12.0 与 DSH 0.1.5-rc.1。
-
-## 0.24.0：Stage 阶段路由
-
-Stage 会从 DSH 原生工具事件读取结构化退出状态，对重复任务失败去重，并按“升级当前轮＋
-下一轮”实现默认两轮强模型保持。预算只为当轮选中的目标模型按实际请求预留；设置页分为
-简洁设置与高级参数，路由轨迹显示证据、评分、保持状态、推理等级、首字等待与累计费用。
-核心 0.16.6／插件 0.32.0 起，该页同时读取自动路由的冻结记录，展示原始结构判别、
-完整候选、费用及预算、工具回执和评审状态。旧记录缺失字段明确标注，不套用当前设置。
-详细边界见[自动路由轨迹合同](../../../docs/automatic-routing-trace.md)。
-
-需要 Python 核心 0.11.0 与 DSH 0.1.5-rc.1。三路线效果协议与零调用预检见
-`docs/stage-routing-study.md`；真实 72 次实验仍需要单独确认 AFP 双预算。
-
-## 0.23.0：规划路由
-
-新增独立模型 `refractagent/planning`，保留原自动路由与 DAG 页签。
-六类策略默认 Stage；模型、预算和信任域须在「规划路由」设置分区显式配置。
-会话模式在原生模型菜单的「路由模式」项中选择，从下个任务生效；
-「设置 → 插件 → RefractAgent 规划路由」保存默认策略与详细参数；
-自动路由在独立的「RefractAgent 自动路由」卡片中设置。
-规划路由的生产预算、任务期限和最大调用数使用 0 表示无该项上限。
-推理等级从 DSH 模型目录选择，容量和准确计价由系统查询；查不到时提示待核对。
-物理模型推理等级由角色配置决定。
-
-需要 Python 核心 0.10.0 与 DSH 0.1.5-rc.1；先升级核心，再安装插件。
-规划路由保持 DSH 原生工具与委派；主任务账本尚不汇总子 Agent 支出。
-原入口额度和实验限制不随此次升级改变。关闭 `planningRouting.enabled` 可回滚入口，
-运行证据保留。详见 [配置、协议与策略说明](../../../docs/trajectory-routing-strategies.md)。
-
-# RefractRouter DSH 验证与接入插件
-
-首次安装请阅读 [Wiki：安装与启动指南](https://github.com/AEALab/RefractRouter/wiki/安装与启动指南) 或
-[仓库内同版说明](../../../docs/refractagent-local-quickstart.md)，包含 DSH 安装、核心安装、
-provider 配置和网页启动。默认由插件按请求启动本机 Python 核心；也可在设置卡片填写
-RefractRouter URL，改走远程服务。
-
-## 未发布：模型档案与设置说明
-
-模型目录会直接展示核心 `data/model-profiles-v2.json` 的冻结价格、条件档位、来源及冻结时间。
-公开档案没有质量或时延预测时，页面允许保存草稿但明确标记为“尚不能运行”；未知路线须完整
-声明价格、质量和时延，并会在证据中标记为“用户声明、未经项目校准”。Ark 路线展示的是模型
-原厂参考价，不替代 AFP 实际结算。
-
-高级设置中的规划模型、执行模型池、评审模型和分类模型均带有常驻用途说明，并可展开查看自动
-分配规则。数据模式、四种部署属性及信任策略也在同一区域解释。真实数据使用
-`simulated-local` 时，必须选择允许敏感数据、启用审计且明确确认外部传输的策略，否则保存前
-会在对应路线显示可定位错误；质量和时延警告不会阻止保存草稿。
-
-## 0.22.0：持久团队任务
-
-远程连接会先检查 Router 协议与当前成员可用项目。HTTP v2 必须从服务端返回的项目清单中
-选择项目，不能自由填写项目 ID；项目发现由 DSH 宿主解析凭证，浏览器不接触 token。
-
-提交后插件按任务 ID读取持久事件。NDJSON 连接断开会从最后事件序号继续，不重复提交、节点或
-最终答案；DSH 取消会调用任务取消接口。运行结果显示任务 ID、项目、持久状态，以及发生重连时
-“连接恢复后继续显示”的提示。只有提交前确认服务不支持 v2 时才使用 HTTP v1 兼容路径。
-
-## 0.21.0：RefractRouter URL
-
-设置卡片新增“RefractRouter 连接”，可选择本地 Python 核心或远程 Router URL。远程模式
-支持可选的 DSH 凭证引用，通过 NDJSON 接收 Python 核心的实时进度和最终结果，不再启动本机
-Python 子进程。非回环 HTTP URL 会被拒绝，团队地址必须使用 HTTPS；URL 中不得嵌入凭证。
-
-配套核心 `0.9.0` 提供 `refractagent serve`。HTTP v1 当前只开放预检和模拟，HTTP v2
-另提供持久团队任务服务；插件 `0.22.0` 起优先使用 v2。两个协议都不承载真实执行或
-DSH 原生工具回调；实验性 `auto-live` 始终启动本机核心。详见
-[RefractRouter HTTP 服务](../../../docs/router-http-service.md)。
-
-## 0.20.0：DSH 模型目录与自动职责
-
-普通用户在「设置 → 插件 → 插件配置 → RefractAgent 路由」中直接勾选 DSH「设置 → 模型」
-已有的 `provider/model` 路线，并为每条路线声明本地、外部云、可信云或模拟本地部署属性。
-界面不再要求手填 Provider 名称、URL、模型 ID 或密钥，且不会列出 `refractagent` 自身。
-
-Python 核心在每次运行前根据宿主解析的只读目录快照、冻结公开档案和用户价格覆盖分配规划模型、
-评审模型、分类模型与执行模型池。质量只接受冻结的独立第三方先验，时延从正常调用自动积累；
-两者均不能手填。旧 `providerConfig` 仅作为迁移来源保留，不会被静默覆盖。
-
-默认 `auto` 仍只做模拟。设置页显式启用开发真实执行、选择 `synthetic`、
-`desensitized` 或 `live` 数据模式，并配置生产与评审的 CNY（人民币）预算后，
-才显示 `auto-live`。`live` 模式只准入本地或已有信任策略的可信云模型；
-详见[真实数据准入](../../../docs/automatic-live-data.md)。该设置即为开发试用授权；每个任务仍先运行零调用复杂度与预算
-预检，预检通过后才解析凭证并派发模型。真实执行设置用一个次数值控制 DSH 工具：
-`0` 表示不使用，正整数限制单任务总调用次数，也可选择「不限次数」。只传递当前回合由 DSH
-提供的工具，实际调用继续经过 DSH 权限与审批。工具目录与次数选择纳入预检摘要，工具续调
-计入模型请求次数和生产费用。「不限次数」移除 Router 的总调用和单节点轮数上限，并不取消
-DSH 权限、取消、超时或模型容量；用户应谨慎设置费用与时间限制。关闭时需要工具的任务仍会
-在派发前拒绝。远程 Router live 不承载
-DSH 工具回调。
-
-## 0.19.2：长会话与失败终止
-
-自动预览会根据完整序列化会话和工具描述重算节点输入容量；只要请求仍处于应用上限和候选
-模型窗口内，用户无需放开上下文限制。自动流程若在规划、预检或执行中失败，插件会立即结束
-思考块并发送带稳定错误码的终止事件，页面不再停留在运行状态，也不会把失败包装成答案。
-
-高级设置中的 `relaxBudget` 显示为“放开费用上限”，它只影响生产和评审费用限制。上下文上限
-仍由“放开上下文长度限制”单独控制，模型窗口与节点实际容量始终执行。
-
-## 0.19.1：默认简洁设置
-
-v4 卡片默认只显示自动路由状态、最低质量和数据类型，并用一行摘要说明模型、Provider 和
-本地处理能力。日常使用不需要理解规划器、执行器、评审器、分类器或逐项价格预测。
-完整的 DAG 策略、分类器、信任策略、Provider、模型角色、限制开关和 JSON 保留在
-「显示高级部署设置」中，可随时展开或返回简洁视图；配置格式和核心行为不变。
-
-## 0.19.0：v4 自动路由设置界面
-
-`refractagent-providers-v4` 在「设置 → 插件 → 插件配置 → RefractAgent 路由」中使用单一
-自动路由界面，不显示 v1–v3 的省成本、均衡、质量优先三模式。界面可编辑路由目标、数据模式、
-敏感分类器、信任策略、Provider、模型职责、计价以及质量和时延预测；旧配置继续使用原界面。
-若 DSH 仍为新会话保留升级前的 `economy`、`balanced` 或 `quality` 选择，适配层会把该旧 ID
-规范化为 `auto`；默认只公开模拟入口，满足真实执行静态条件且宿主具有审批服务时才额外公开
-`auto-live`。
-
-结构可行性预览只统计 Provider、模型、信任策略、职责和本地部署声明，并明确标记“待核心校验”。
-它不在 TypeScript 中判断敏感数据能否外发、选择模型或决定 direct/DAG。保存前仍可用高级 JSON
-检查完整配置，并用 `refractagent validate-config` 执行零调用的 Python 业务校验。
-
-在仓库根目录可使用只运行模拟模式的界面验收覆盖；它通过 `process.cwd()` 使用当前 `.venv`，
-Provider 和模型均为占位声明，不会解析凭证：
+从[线上下载与安装指南](https://aealab.github.io/RefractRouter/installation.html)取得匹配的
+wheel、tgz、源码及 SHA-256 文件，也可阅读[仓库指南](../../../docs/refractagent-local-quickstart.md)。
+插件尚未公开到 npm，不要通过同名 registry 包安装。
 
 ```bash
-dsh --profile web --patch validation/dsh/v4-ui-demo.patch.yml \
-  --host 127.0.0.1 --port 53611 --no-open
+uv tool install ./refractrouter-0.16.33-py3-none-any.whl
+uv tool update-shell
+export PATH="$(uv tool dir --bin):$PATH"
+refractagent --help
+dsh plugin --profile web add ./dsh-refractrouter-validation-0.33.21.tgz \
+  --offline --ignore-scripts
 ```
 
-## 0.18.0：v4 自动路由设置合同
+`web` 替换为自己的既有 profile。安装前保存旧包与配置备份；按原参数重启 DSH，
+沿用原 `DSH_HOME`、工作目录、provider 与凭证，不以新的隔离 profile 替换日常环境。
+首次安装时的空模型池初始化见[DSH 接入](https://aealab.github.io/RefractRouter/integrations/dsh.html)。
 
-设置控制器现已支持 `refractagent-providers-v4` 的路由质量门槛、DAG 模式、数据模式、
-敏感词，以及 Provider、模型和信任策略的结构化增删改。所有编辑先进入同一草稿，保存、放弃和
-重置沿用 DSH settings namespace；高级 JSON 与结构化字段双向同步，不丢失合法的嵌套扩展字段。
+## 两个模型入口
 
-Provider 只能保存 `credentialEnv` 引用。浏览器草稿会拒绝 `apiKey`、`token`、`secret` 等
-凭证值字段；最终配置语义由 Python 核心执行：
+| 入口 | 执行方式 | 设置 |
+| --- | --- | --- |
+| RefractAgent 规划路由 | 六种策略选模或审核，保持 DSH 原生 Agent 循环 | 独立规划路由卡片；模型菜单的“路由模式” |
+| RefractAgent 自动路由 | 独立 Direct / DAG 研究入口，先判断是否值得拆分 | 独立自动路由卡片；真实执行必须显式启用 |
+
+规划策略为 Static、Stage、Task、Composite、Advisor Gate 和 Escalation。
+Static 当前固定高效角色，Random 在高效／强执行两个角色之间抽取；Task 使用有序多模型池。
+Stage 从新增可信证据换模；Composite 先 Task 选常用模型，再 Stage 临时接管。
+Advisor 最终审核最多两次、返工一次；Escalation 必要时丢弃候选并锁定接管模型。
+详细规则与验证范围见[线上策略说明](https://aealab.github.io/RefractRouter/strategies/index.html)。
+
+未配置完成时，零调用诊断列出缺项，不用模拟回答冒充真实执行。策略值 `rr:stage` 等由适配器
+转成内部策略，不能传给底层模型的 `reasoning_effort`。物理模型的推理等级由自己的配置决定。
+
+## 生产模块与可选验收工具
+
+分发包只需启用生产路由模块。`validation-tools` 默认关闭，不需要在生产环境同时启用。
+历史包名和模块 ID 保留用于配置兼容，名称里的 `validation` 不代表必须启用实验工具。
+
+| 导出 | 用途 |
+| --- | --- |
+| 包主入口 `dist/entry.js` | DSH 前端发现及生产路由；以 `entryMode: routing` 配置 |
+| `/routing`、`/agent` | 底层路由适配接口；只启用子路径可能不能发现前端 |
+| `/validation-tools` | 可选 `refractrouter_validate`、`refractrouter_task` 研究工具 |
+| `/client` | 构建后的 DSH 前端，非独立服务 |
+
+`conversation.view` 同时保留任务 DAG 与路由轨迹页签；`settings.plugin.item` 提供两个设置卡片。
+记录可收合，展示开始时间、耗时、实际模型与动态状态。历史来源缺字段时提示缺项，不套用当前配置。
+
+历史验证与文本任务工具依赖匹配源码环境；生产 RefractAgent 模型入口可用已安装核心脱离源码运行。
+配置中的 `pythonExecutable` 默认是 `refractagent`，须能在 DSH 的启动 PATH 中找到。
+
+## 模型、Judge 与费用
+
+- 模型与凭证复用 DSH 目录；系统按实际 provider、接口与版本核对能力及价格。
+- 新版规划配置 v7、自动模型池 v5 采用现金与参考金额，不增加 AFP 预算。Ark 订阅继续使用
+  `/api/plan/v3`；订阅单次增量现金与公开价格参考估值分开，不相加、不把订阅月费当成零。
+- 历史 AFP 配置与证据按原合同读取，升级需明确操作，不自动折算或修改旧费用。
+- Jev 默认新配置使用 OpenRouter；直接 Typesafe.ai、本地 Laya 和 DSH LLM 为不同后端。
+  云端凭证通过引用解析，不放入插件配置、源码或浏览器。Laya 的质量未达标用途保留实验标识。
+- 规划预算、期限和最大调用数支持 `0＝不限制 Router 对应上限`，提供方容量与宿主权限仍有效。
+- 取消释放未派发保护额度；已派发未知用量继续保留待核对预留并停止，不自动 HTTP 重试。
+- 账本仅覆盖受管模型调用，不宣称覆盖所有宿主工具、独立子 Agent 或订阅月费。
+
+本地／外部云／可信云／模拟本地是部署与数据域声明，不是能力等级。
+云端需要独立授权；把 Judge 设为本地不会授权其他云端执行模型。
+
+## 从源码构建
+
+以下命令在仓库根目录执行：
 
 ```bash
-refractagent validate-config --provider-config ./providers-v4.json
-```
-
-该命令不解析凭证、不调用模型。TypeScript 仍不实现安全准入、模型筛选、费用求解或
-direct/DAG 判定。当前版本先冻结设置读写合同；新版卡片布局和可行性预览在后续版本接入。
-
-## 0.14.0：官方文字模型清单与 AFP 成本档位
-
-配合 Python 核心 0.4.1，DSH 的 Ark 预设默认展开官方 11 个文字生成模型，使用实际模型 ID，
-另有一次独立的 Kimi K3 评审调用。K3 需要 Medium / Large / Max；这是独立调用而非独立型号。
-图片、视频、向量和语音需要专用适配器，不进入文字路由池。历史实验 manifest 保持原样。
-
-模式分别配置两项独立参数：
-
-- **模型成本档位**：按官方常规 AFP 系数 0.25、0.5、2.5、4.5、5.5、10 划分，
-  选择输入和输出系数上限。Python 用该上限与手动选择的模型取交集；空集明确报错。
-- **推理强度**：minimal / low / medium / high / xhigh 是可选模型参数，
-  不对应价格等级；模型支持范围不同，默认不显式传递。GLM-5.3 保持开启思考。
-
-例如省成本选择 0.5，候选为 Seed 2.0 Mini、Seed 2.0 Lite、DeepSeek V4 Flash 和 GLM 5.3 Flash。
-不限制档位时可选择全部文字模型。成本上限仅约束生产候选，不筛掉评审调用。
-价格显示单位为每万 token 的 AFP 系数，核心每千 token 单价为系数除以 10。
-采用 2026-09-12 核对的常规价格，不把已到期活动价格固化为永久价格。
-
-系数不是质量评分。新增模型使用统一的未校准质量和时延占位预测，
-质量优先的有效区分仍需要用户配置或独立任务评测，不按价格捏造能力排名。
-CLI `--preset ark-agent-plan` 的历史实验兼容路径仍使用原 manifest；
-新完整应用清单通过 `config-example --provider-type ark-agent-plan` 和 DSH 设置展开使用。
-官方依据见 [AFP 成本档位说明](../../../docs/ark-afp-cost-tiers.md)。
-
-## 0.13.2：按真实模型名称选择
-
-三种模式使用模型勾选列表，显示 `deepseek-v4-flash`、`minimax-m3` 等真实名称。
-勾选后该模式仅从选中模型中路由；不勾选表示使用全部可用候选模型。
-评审模型不在列表中。`cheap`、`mid` 等历史内部 ID 仅用于存储关联，无需用户填写。
-同名模型来自不同配置时，会附加 provider 和配置 ID 以区分。
-
-## 0.13.1：可编辑预设与输入示例
-
-卡片沿用 DSH 官方设置卡片的布局、配色、折叠箭头与按钮样式。
-Ark 预设自动展开为可编辑表单，无需先手写 JSON；未修改时仍执行原预设，
-保存模型配置后切换为自定义配置，重置恢复预设。凭证环境变量引用沿用部署值。
-模型输入提示取当前候选模型的真实 ID（例如 `cheap`），留空表示全部候选模型。
-JSON 编辑器提供完整通用示例；须替换接口、模型 ID 和价格后使用。
-未完成的 JSON 与输入中的换行会保留，放弃修改可还原。
-
-`src/provider-examples.json` 是 Python `example_configuration()` 的配置数据导出，
-测试核对两者一致并验证三模式编译；插件不复制 Python 配置编译或路由逻辑。
-Ark 可编辑示例使用 `thinking: auto`，允许用户选择的推理强度生效。
-
-## 0.13.0：DSH 插件设置卡片
-
-安装 0.13.0 后，可在 DSH 网页的「设置 → 插件 → 插件配置」展开
-「RefractAgent 路由」卡片。卡片通过 DSH 原生 settings namespace 保存用户覆盖，支持：
-
-- 编辑完整的 `refractagent-providers-v1` provider 与模型配置；
-- 设置全局及省成本／均衡／质量优先三种模式的默认 reasoning effort 和模型池；
-- 开关 `relaxBudget` 与 `relaxContext`；
-- 保存、放弃草稿，以及清除用户覆盖并恢复部署组合值。
-
-设置写入 DSH 的用户设置文件并热加载到后续模型调用；密钥仍只保存为凭证引用，
-不会显示或写入卡片。插件浏览器半边使用 DSH 的 `dsh.client` 和
-`settings.plugin.item` 扩展点，不修改 DSH 源码。复杂 provider 字段以完整 JSON 编辑，
-宿主保存前继续执行与命令行配置相同的完整校验。
-
-## 未发布：可选输出长度检查
-
-本分支的匹配核心和插件支持显式 `outputConstraints`，无默认字数限制。
-`refractrouter_task` 可逐任务设置，`refractagent` 原生模型可在专用插件实例中配置。
-Python 执行最终正文的确定性计数；插件分别展示生成、语义评审和长度检查状态，
-保留完整答案、费用及回放，不因超限自动修复。
-详见[输出长度检查](../../../docs/output-constraints.md)。
-
-## 0.12.0：三模式配置与限制开关
-
-配合 Python 核心 0.4.0，`providerConfig` 新增 `defaultReasoningEffort` 与 `strategies`：
-可声明全局或按模式（省成本／均衡／质量优先）的默认推理档位，并可按模式限定候选模型池。
-档位解析优先级为模型显式配置高于模式默认，模式默认高于全局默认；
-`refractagent models` 会回显该映射。
-
-插件配置新增可选 `limits`：`relaxBudget` 放开预算对选路与派发的拦截，账本仍逐次记账；
-`relaxContext` 将对话上下文上限从 120000 字节放宽到 1000000 字节，仍受各模型
-`contextWindow` 约束。两者默认关闭；生成器可用 `dsh-config --relax-budget
---relax-context` 写入。详见[provider 与模型配置](../../../docs/provider-configuration.md)。
-
-## 0.11.0：用户配置 provider 与模型
-
-配合 Python 核心 0.3.0，`refractagent` 配置新增 `providerConfig`：
-用户声明候选和评审模型，可组合 Chat Completions、OpenAI Responses 推理接口、
-DSH 宿主模型与可选 Ark Agent Plan。
-完整字段、凭证、计费单位及迁移步骤见
-[provider 与模型配置](../../../docs/provider-configuration.md)。
-
-```bash
-refractagent config-example --provider-type dsh --output ./providers.json
-# 编辑清单，填写当前 DSH profile 已注册的 provider 和模型
-refractagent models --provider-config ./providers.json
-refractagent dsh-config --provider-config ./providers.json \
-  --output ./refractagent-live.json --mode live --production-budget 2 --evaluation-budget 1
-```
-
-首次部署将覆盖文件中的 `allowPaidRuns` 改为 `true` 并重启 DSH。
-真实模式必须有 `providerConfig` 或显式 `preset: "ark-agent-plan"`。
-从 0.10.0 升级的 Ark 配置需补上该预设字段。以下版本记录及验证工具的清单规则属于历史入口。
-
-## 0.17.0：DAG 节点原生工具
-
-需要 Python 核心 0.6.0。使用宿主本次模型请求提供的 `tools`，自动启用双向 stdio 通道。
-技能加载返回的附加上下文与工具结果送回同一节点；每次模型续调独立预留并记账。
-工具通过宿主 `tools.execute` 执行，沿用真实 Agent 的权限、审批和取消；调用与结果写入轨迹。
-工具执行后不自动回退或重新拆分该节点，避免重复副作用。不会执行正文中的伪工具标记。
-保留「任务 DAG」页签和插件设置；三种策略继续由 Python 选模。
-边界与无网络验证见[原生工具说明](../../../docs/native-tool-execution.md)。
-
-## 0.10.0：RefractAgent 本机策略模型
-
-安装 Python 核心 `refractrouter` 0.2.0 和本插件后，DSH 模型列表增加
-`refractagent/economy`（省成本）、`refractagent/balanced`（均衡）和
-`refractagent/quality`（质量优先）。它们调用同一 Python 核心，支持文本任务、
-对话上下文、整任务与预设 DAG；该历史版本不生成 DSH 工具调用，原生工具自 0.17.0 起支持。
-
-收到核心 wheel 和插件 tgz 后，可在任务工作目录执行：
-
-```bash
-uv tool install /absolute/path/refractrouter-0.2.0-py3-none-any.whl
-dsh plugin --profile web add /absolute/path/dsh-refractrouter-validation-0.10.0.tgz
-refractagent dsh-config --output ./refractagent-demo.json \
-  --runs-dir ./.refractagent/runs --mode demo --strategy balanced
-dsh --profile web --patch ./refractagent-demo.json
-```
-
-在模型选择器中选择三个 RefractAgent 模型之一。默认是带 `[SIMULATED]` 标记的零调用演示。
-真实执行需生成 `--mode live` 配置，设置生产与评审预算，显式开启 `allowPaidRuns`，
-并由宿主解析 `CODEX_ARK_API_KEY`；密钥不写入配置。Ark 固定使用 Agent Plan `/api/plan/v3`。
-安装环境要求 Python 3.11+、Node 22.19+（22.x）、DSH `0.1.1-rc.2`。
-
-核心安装包自带运行所需的清单、profile 和计划，新模型入口可脱离源码目录运行。
-答案与模型、状态、费用记录分开返回，`refractagent show RUN_DIRECTORY` 可查看保存的结果。
-完整构建、headless、真实执行和故障处理见
-[本机安装说明](../../../docs/refractagent-local-quickstart.md)。
-
-## 0.9.0：复用 K3 基线继续 DAG
-
-`stage: "resume"` 接收成功的 `baseline-ready` 输入目录，默认只执行零调用预检。
-获批后只运行 Pro 参考路线与三模型节点探针，最多 28 次，完成后等待节点评审。
-Python 验证原始索引、配置和代码兼容记录，并分别保存基线历史费用与本阶段新增费用。
-不重新生成 K3，不自动进入组合阶段。具体交接见
-[恢复准备记录](../../../reports/v0.5-k3-resume-readiness/README.md)。
-
-## 0.8.0：仅执行 K3 基线
-
-`{"phase":"k3-baseline","stage":"baseline"}` 默认生成单次零调用预检。
-获批真实执行时，只生成 K3 整任务报告，等待上限 300 秒；成功后返回 `baseline-ready`，
-失败则返回 `blocked`，两者均不运行参考路线或探针。仍需冻结输入、已通过的校准、
-生产额度和显式付费开关。其他阶段的等待上限仍为 120 秒。
-
-## 0.7.0：K3 整任务主对照
-
-新增 `phase: "k3-baseline"`，支持 `stage: "prepare" | "compose"`、`inputDir` 和
-`reviewsPath`；路径相对工作区解析。默认零调用预检，单轮、零重试，付费开关保持关闭。
-本阶段采用 Python 冻结的质量达标后最低费用策略，不接收旧 `selectionPolicy`。
-真实执行必须先通过独立评审校准，阶段间校验冻结材料和同一评审身份。
-`prepare` 返回等待节点评审，`compose` 返回等待最终评审；工具 `pass` 仅表示该阶段
-交接完整，不代表实验完成或收益成立。最终汇总由 Python 纯读取入口完成。
-
-```json
-{"phase":"k3-baseline","stage":"prepare","executePaidRun":false}
-```
-
-配置 Agent Plan 清单、`billingUnit: "AFP"`、`credentialEnv: "CODEX_ARK_API_KEY"` 和
-`maxRetries: 0`。初始阶段计划 29 次生产调用，组合阶段最多 7 次；外部评审费用单列未知。
-新阶段无内部评审调用，获批付费请求的 `maxEvaluationCost` 可为零；其他阶段规则不变。
-完整说明见 [实验设计与交接方法](../../../docs/k3-baseline-comparison.md)。
-
-本包是 RefractRouter 的 DSH 宿主适配层，与核心保留在同一仓库，通过
-`validation/dsh/plugin/` 明确区分。Router 是项目核心；插件用于验证核心能力，
-“DSH + 插件连接核心 Router”也是未来产品化的实现形态之一。
-
-插件注册 `refractrouter_validate` 和 `refractrouter_task`，分别提供冻结基准验证和
-文本任务入口。任务规划、DAG 校验、节点选模、执行与评估由 Python 核心及运行时负责。
-上述两个历史工具通过本地 Python runner 执行，仍依赖匹配的 RefractRouter 源码环境；
-0.10.0 的 RefractAgent 模型入口另由已安装核心提供。当前没有独立 Router 服务。详见
-[项目架构](../../../docs/architecture.md) 和 [集成边界](../README.md)。
-
-Version 0.4.0 adds `phase: "contract-replay"` for the seven archived issue #25 writer failures.
-It defaults to preflight, permits at most three repeats, requires configured `maxRetries: 0`,
-and stops on the first failed output contract. Paid calls retain the same deployment enablement,
-credential resolution, exact Agent Plan endpoint, and two budget ceilings. No judge is invoked;
-the tool still requires a positive evaluation ceiling for a paid request, but replay evaluation
-spend is zero. A replay pass establishes contract validity only, not semantic quality or Go.
-
-## 文本任务工具（0.7.0）
-
-`refractrouter_task` 通过 Python 核心规划和执行文本任务。模型规划使用
-`text-task-plan-v2`，节点须声明输入字段、依赖理由、输出契约、能力需求与验收覆盖。
-支持单节点和独立分支，并保存结构诊断；默认串行，可用 `maxConcurrency` 配置
-有界并发，并传递 `providerConcurrency`、`providerMinIntervalMs`。核心负责实际调度与
-预算原子预留；DSH stdio LLM 桥仍限串行。
-`acceptanceCriteria` 可传入 1 至 10 项不可由规划器改写的验收条件。
-
-`preflight` 使用单节点保守预览，`demo` 使用模拟产物；`plan` 调用真实规划器并返回
-路由，`run` 继续执行与独立评审。A 使用约束，B 还需显式三项权重。
-详细格式、例子和限制见 [DAG 拆分机制](../../../docs/dag-decomposition.md) 与
-[文本任务指南](../../../docs/text-task-routing.md)。
-
-`taskProfilePath` 默认为 `data/routing/demo-usd-v1.json`，仅用于预检和模拟。
-Agent Plan 可使用与 AFP 清单匹配的 `data/routing/report-transfer-v1.json`，但这仍是
-单一报告任务的迁移预测。付费模式保留部署开关、双预算、原生凭证和进程控制及零重试。
-
-## 基准候选选模策略
-
-0.5.0 加入的 `selectionPolicy` 参数继续保留，仅由 `refractrouter_validate` 传给
-Python 基准 runner 的 `--selection-policy`；默认 `all-candidates-required-v1`。
-显式 `exclude-known-contract-rejections-v2` 保留完整矩阵中的已知契约拒绝证据，
-但从候选选择中排除这些模型。执行或评分缺失、参考上下文无效、重复单元格和节点无可用
-候选仍会停止组合。Python 负责全部业务规则，契约回放只接受默认策略。
-
-```json
-{"phase":"dry-run","repeats":1,"selectionPolicy":"exclude-known-contract-rejections-v2","executePaidRun":false}
-```
-
-策略记录在预检、矩阵、总结和 DSH 证据中；新真实运行必须使用新目录。已知拒绝保留在
-`failure_taxonomy`，阻断实验的问题另列 `blocking_failures`；最终质量及 Go 阈值不变。
-文本任务工具使用自己的 A/B 路由参数，不向文本 runner 传递基准专用策略。
-
-## Supported versions
-
-Version 0.6.0 adds `phase: "execution-modes"`, the explicit v0.4 evidence-state experiment.
-It defaults to v2 selection, accepts one to three repeats and requires configured `maxRetries: 0`.
-Configure the Agent Plan manifest, `billingUnit: "AFP"` and
-`credentialEnv: "CODEX_ARK_API_KEY"`, then invoke:
-
-```json
-{"phase":"execution-modes","repeats":1,"executePaidRun":false}
-```
-
-The zero-call preflight reports 80 planned requests for one task/repeat: three one-shot reports,
-three seven-node single-model reports, 21 node probes, one seven-node composed report, and 28 judges.
-Python owns the versioned evidence state, comparison cohorts and call ledger. The plugin only
-forwards this bounded phase. A paid execution needs fresh output, explicit scoped authorization,
-enabled deployment configuration, resolved Agent Plan credentials and both budget ceilings.
-See [the experiment design](../../../docs/evidence-state-execution-modes.md).
-
-The v0.1 compatibility contract is intentionally narrow:
-
-| Component | Supported | CI coverage |
-|---|---|---|
-| DSH CLI | `0.1.1-rc.2` exactly | `0.1.1-rc.2` |
-| Node.js | `>=22.19.0 <23` | `22.19.0` and latest Node 22 |
-| pnpm | `10.15.0` | `10.15.0` |
-| Python | `>=3.11` | `3.12` |
-
-DSH is still a release candidate, so a different DSH version requires a compatibility review and a
-passing clean-profile lifecycle run before use. `dsh.compatibility` in `package.json` records the DSH
-and Node contract for automation and review; current DSH does not enforce that metadata itself.
-
-The package follows SemVer while it remains on `0.x`: compatible fixes increment the patch version;
-changes to tool arguments, output, bundle configuration, or the Python runner contract increment the
-minor version. The repository pins the tested DSH and pnpm versions in CI.
-
-## Distribution decision for v0.1
-
-v0.1 is a private, repository-owned package installed from a checkout path. It will not be published
-to a registry while the DSH contract is pre-release and the benchmark is still experimental. This
-keeps the plugin and its Python runner on the same reviewed commit.
-
-For an immutable handoff, create a tarball from that commit and install the resulting file:
-
-```bash
-mkdir -p /tmp/refractrouter-plugin
-npm pack ./validation/dsh/plugin --pack-destination /tmp/refractrouter-plugin
-dsh plugin --profile headless add /tmp/refractrouter-plugin/dsh-refractrouter-validation-0.9.0.tgz
-```
-
-The package contains only generated `dist/` JavaScript and declarations, `cordis.patch.yml`,
-`README.md`, `CHANGELOG.md`, and `package.json`. It has no runtime npm dependencies or install
-scripts. `prepack` compiles the source before packing; first install the locked build dependencies
-with `npm ci --prefix validation/dsh/plugin` (all examples run from the repository root).
-
-## TypeScript source and build
-
-Version 0.4.1 migrates the plugin and its contracts to strict TypeScript. `src/index.ts` is the source
-entry; `src/contracts.ts` defines configuration, arguments, results and the consumed DSH host ports;
-`src/evidence.ts` decodes fields projected from the Python runner's JSON. Routing, scoring, cost
-accounting and Go / No-go remain in Python. Malformed evidence fields now fail as structured
-`invalid-evidence` diagnostics instead of being forwarded with incorrect types.
-
-```bash
+uv sync --frozen --extra dev --extra deepagents
 npm ci --prefix validation/dsh/plugin
 npm run --prefix validation/dsh/plugin typecheck
-npm test --prefix validation/dsh/plugin
+npm run --prefix validation/dsh/plugin test:contracts
+npm run --prefix validation/dsh/plugin build
+npm pack ./validation/dsh/plugin --pack-destination ./dist
 uv run pytest
 ```
 
-`npm test` builds `src/` to `dist/`, compiles `tests/*.test.ts` to `.test-dist/`, and runs the compiled
-contracts against the generated plugin. Both compiler configurations enable `strict` and
-`noEmitOnError`. `main` and `exports` resolve to `dist/index.js`; `types` resolves to
-`dist/index.d.ts`. The generated directories are ignored by Git. Never edit them manually.
-A checkout must be built before installation; a packed tarball is ready to load without TypeScript.
-The package-content contract installs a tarball in isolation and imports its declared entry.
+`npm pack` 的 `prepack` 会自动构建。不要手动编辑 `dist/`、`.test-dist/` 或提交生成目录。
+历史变更按[变更日志](CHANGELOG.md)读取，不将旧版本限制写成当前默认值。
 
-The dependency-free structural host ports target DSH 0.1.1-rc.2. They are checked with typed fixtures
-and real profile loading; they do not vendor DSH implementations. New languages or duplicated
-cross-layer business logic require a documented architecture review and maintainer approval before
-merge. The repository's `docs/architecture.md` records the review requirements.
+## 验收与故障处理
 
-## 职责边界
-
-- DSH 提供组合、生命周期、工具调度、模型 provider、凭证解析、进程隔离与会话证据。
-  DSH 外层助手的模型配置与 Router 对 DAG 节点的选模分别管理。
-- 插件负责参数类型、部署级付费开关与预算上限、受限诊断输出，以及 Python 证据到
-  结构化工具结果的转换。
-- `real_runner.py` 组织基准验证，`task_runner.py` 组织文本任务调用与证据落盘；
-  路由、评分和调用预算记账复用 Python 实现，不在插件中复制。
-- 插件通过 `ctx.subprocess` 启动固定参数列表，不让模型拼装 Shell 命令。
-- 直接 HTTP 清单在获准付费操作时解析凭证，仅传给经过筛选的子进程环境，并对诊断
-  脱敏。AFP 清单还要求 `ark-plan` 和精确的 Agent Plan `/api/plan/v3` 端点。
-  通用 `dsh-llm` 清单将凭证保留在 DSH 内，由受限 stdio 桥传递请求、结果和遥测；
-  桥接层执行核心已确定的模型调用，不作路由决策。
-
-## Install, inspect, remove, and restore
-
-Install the pinned CLI tools first. `dsh plugin` invokes `pnpm` from `PATH`.
+源码、构建包、安装包和运行界面分别核对。没有模型调用的生命周期验证只证明安装路径：
 
 ```bash
-npm install --global pnpm@10.15.0 @deepseek-ai/dsh@0.1.1-rc.2
-npm ci --prefix validation/dsh/plugin
-npm run --prefix validation/dsh/plugin build
-dsh plugin --profile headless add ./validation/dsh/plugin
-dsh --profile headless --dump-config | rg -A6 refractrouter-validation
-dsh --profile headless --help
-```
-
-The config dump must show `allowPaidRuns: false`. The help command boots the composed profile and
-validates plugin loading without starting a model turn.
-
-Remove and reinstall the bundle with:
-
-```bash
-dsh plugin --profile headless remove dsh-refractrouter-validation
-dsh plugin --profile headless add ./validation/dsh/plugin
-```
-
-Restart any running profile after installation, removal, or configuration changes. The automated
-equivalent uses a disposable `DSH_HOME`:
-
-```bash
-python3 scripts/validate_dsh_plugin_lifecycle.py
 python3 scripts/validate_dsh_plugin_lifecycle.py --packed
 ```
 
-## Configuration
+这个开发脚本使用临时目录，不能替换用户 profile。启用研究工具后，即使工具本身只预检，
+DSH 外层助手也可能收费；不要把 DSH 对话描述成必然零费用。
 
-Bundle defaults live in `cordis.patch.yml`. Override them in the profile's higher-precedence
-`$DSH_HOME/profiles/<profile>/cordis.patch.yml`:
+每次升级先检查原安装来源，再确认两张卡片、两个页签、节点和连线、策略选择、原模型与凭证。
+出现价格缺项、未知用量、replay 不兼容或基础设施错误时查对应记录，不删历史、不填假价格，
+也不扩大额度掩盖故障。
 
-```yaml
-- id: refractrouter-validation
-  config:
-    allowPaidRuns: true
-    billingUnit: USD
-    maxProductionCost: 8
-    maxEvaluationCost: 2
-    maxRetries: 0
-```
+自适应审核的低风险跳过已完成原 profile 真实检查；本轮 GLM low 最终审核遇到 429，
+尚未完成真实审核／纠正质量验收。媒体完整流程与 P6 共享预算也仍需独立验收。
+当前新增维护范围为 DSH 与 Codex CLI，Hermes 历史证据保留。
 
-The main deployment fields are:
+## 深入阅读
 
-| Field | Default | Purpose |
-|---|---:|---|
-| `allowPaidRuns` | `false` | Deployment switch required for any model call |
-| `billingUnit` | `USD` | Unit required to match the selected manifest (`USD` or `AFP`) |
-| `maxProductionCost` | `2` | Maximum production budget in `billingUnit` |
-| `maxEvaluationCost` | `1` | Maximum judge budget in `billingUnit` |
-| `maxRetries` | `0` | Retry count passed to the runner; zero bounds Agent Plan attempts |
-| `timeoutMs` | `7200000` | Whole runner deadline |
-| `processGraceMs` | `5000` | Managed subprocess termination grace |
-| `outputCaptureBytes` | `262144` | Tail retained for each standard stream |
-| `maxEvidenceBytes` | `2097152` | Largest accepted evidence JSON |
-| `credentialEnv` | `OPENAI_API_KEY` | Credential reference; direct HTTP also uses it as the scrubbed child variable |
-
-Paths for the runner, dataset, manifest, `uv` executable, and `uv` cache are also configurable for
-deployment. Unknown fields fail configuration validation.
-
-Paid execution requires all three independent gates: `allowPaidRuns: true` in deployment config,
-positive production and evaluation limits in the individual tool call, and a configured credential.
-Either requested limit above its deployment ceiling is rejected before credential resolution or
-subprocess launch. The runner also rejects a limit below its conservative preflight estimate before
-the first model call and reserves one estimated call against the remaining ledger before each call.
-
-For the Agent Plan dry run, configure a DSH provider route named `ark-plan` for the short outer agent
-turn through ArkCLI Helper, the official `ark-plan-api` plugin, or the DSH Models UI. Use the Agent
-Plan endpoint and the same credential reference as the manifest. The outer route needs only the
-low-coefficient `deepseek-v4-flash` model and zero provider retries:
-
-```yaml
-llm-pi-ai:
-  providers:
-    ark-plan:
-      displayName: Ark Agent Plan
-      apiKeyEnv: CODEX_ARK_API_KEY
-      api: openai-responses
-      baseURL: https://ark.cn-beijing.volces.com/api/plan/v3
-      retryPolicy:
-        mode: normal
-        maxRetries: 0
-      models:
-        - id: deepseek-v4-flash
-          name: deepseek-v4-flash
-```
-
-Then apply this profile override:
-
-```yaml
-- id: refractrouter-validation
-  config:
-    allowPaidRuns: false
-    billingUnit: AFP
-    maxProductionCost: 400
-    maxEvaluationCost: 90
-    maxRetries: 0
-    manifestPath: data/model-manifests/volcengine-agent-plan.json
-    credentialEnv: CODEX_ARK_API_KEY
-```
-
-The zero-cost preflight verifies AFP billing, provider `ark-plan`, and the exact base URL
-`https://ark.cn-beijing.volces.com/api/plan/v3`. It rejects the ordinary Ark `/api/v3` endpoint before
-credential resolution or process launch. During a paid operation, DSH resolves the Agent Plan key and
-injects it only into the scrubbed Python child, which calls `/api/plan/v3/chat/completions` directly.
-The runner uses a 120-second per-request timeout and zero retries. The manifest caps every response at
-8,192 tokens; the preflight output estimate defaults to the manifest cap and rejects a lower explicit
-estimate even in zero-cost mode. Because this cap includes reasoning tokens, the manifest sends
-`thinking: {"type": "disabled"}` to reserve the output allowance for the required structured result.
-
-Paid direct runs create `model-progress.ndjson` beside `preflight.json`. Each request writes a
-prompt-free start record before dispatch and a finish record with status, latency, request ID, and
-token usage and finish reason. `finish_reason=length` is classified as `output-truncated` by the
-node adapter while preserving the partial output and billed usage. This file identifies the current model during a long run without storing prompts,
-generated content, or credentials, and its hash is included in the final evidence. Generic
-`dsh-llm` manifests retain the equivalent `bridge-progress.ndjson` evidence.
-
-When the DSH orchestration turn also uses Agent Plan, pin it to the lowest-coefficient candidate:
-
-```yaml
-- id: agent-default-model
-  config:
-    provider: ark-plan
-    model: deepseek-v4-flash
-```
-
-The outer agent calls occur outside the plugin's production/evaluation ledgers. Issue #19 proposes
-400 AFP production, 90 AFP evaluation, and a separate 5 AFP outer allowance (495 AFP total). This
-is a new budget request, not covered by issue #4's prior 265 AFP authorization. Keep paid execution
-disabled until the new budget is approved.
-
-## Invoke each phase
-
-Zero-cost preflight examples:
-
-```text
-Call refractrouter_validate exactly once with
-{"phase":"dry-run","executePaidRun":false} and return the tool result unchanged.
-
-Call refractrouter_validate exactly once with
-{"phase":"pilot","repeats":1,"executePaidRun":false} and return the tool result unchanged.
-
-Call refractrouter_validate exactly once with
-{"phase":"final","repeats":1,"executePaidRun":false} and return the tool result unchanged.
-```
-
-Pass one of those tasks to `dsh --profile headless '<task>'`. The DSH orchestration provider still
-handles the short agent turn; `executePaidRun:false` guarantees the RefractRouter candidate and judge
-models are not called.
-
-After configuring the credential and deployment switch, a paid dry run call is:
-
-```text
-Call refractrouter_validate exactly once with
-{"phase":"dry-run","executePaidRun":true,"maxProductionCost":8,"maxEvaluationCost":2}
-and return the tool result unchanged.
-```
-
-With the Agent Plan override above, the corresponding call uses AFP ceilings:
-
-```text
-Call refractrouter_validate exactly once with
-{"phase":"dry-run","executePaidRun":true,"maxProductionCost":400,"maxEvaluationCost":90}
-and return the tool result unchanged.
-```
-
-Do not move to `pilot` or `final` until the preceding issue's evidence and budget checks pass.
-
-## Failure diagnosis
-
-| Symptom | Meaning and action |
-|---|---|
-| `pnpm not found on PATH` | Install pinned pnpm and repeat `dsh plugin add`. |
-| Plugin missing from `--dump-config` | Remove and reinstall it; inspect the profile `package.json` dependency and `dsh.profile.bundles`. |
-| Profile boot rejects configuration | Remove unknown fields and verify value types in the higher-precedence patch. |
-| `paid validation is disabled` | Keep the safe default, or explicitly enable paid runs for an approved execution. |
-| `requires configured credential` | Configure the manifest's credential reference in DSH; never put the value in a patch or tool call. |
-| `missing-llm-provider:*` | A generic `dsh-llm` manifest references an unavailable DSH provider. |
-| `unresolved-llm-model:*` | A generic `dsh-llm` manifest references an unavailable provider/model route. |
-| `llm-provider-retry-policy-not-zero:*` | Set a generic bridge provider's nested `retryPolicy` to `mode: normal` and `maxRetries: 0`. |
-| `plugin-runner-timeout` / `plugin-runner-aborted` | Inspect the evidence and bounded stream tails, then adjust the deployment timeout only if the run plan justifies it. |
-| `plugin-runner-stdout-truncated` / `plugin-runner-stderr-truncated` | Increase the capture limit for diagnosis; truncation fails closed. |
-| `invalid-evidence` / `missing-evidence` | Verify runner paths, write access, evidence size, Python dependencies, and the child exit code. |
-| Sandbox provider refuses confinement | Use a supported DSH sandbox backend and a `workspace-write` profile. The runner needs temporary output writes. |
-
-Captured stdout and stderr are diagnostic tails, not complete logs. DSH bounds each stream, and the
-plugin rejects oversized evidence instead of parsing an unbounded file. Caller cancellation before
-spawn prevents process creation; cancellation or timeout during execution terminates the managed
-process tree through `ctx.subprocess`.
-
-## Upgrade and rollback
-
-Before upgrading, record the current repository commit, plugin version, DSH version, profile patch,
-and evidence hashes. Update the checkout, run the complete test and lifecycle commands, then restart
-the profile. A DSH version change also requires updating the compatibility metadata and CI matrix.
-
-To roll back, switch to the recorded clean commit or install its saved tarball, restore the previous
-profile patch, remove and reinstall the plugin, and run a zero-cost preflight before any paid run.
-
-
-### 规划器思考与容量
-
-在设置 → 插件 → 插件配置 → RefractAgent 路由中，可选择“规划器思考方式”：
-继承模型设置（默认）、开启、关闭。例如复杂依赖分析可开启思考，简单分类可关闭。
-配置 JSON 示例为 `"plannerThinking": "enabled"`，位于 provider 配置顶层。
-核心 0.5.0 配合插件 0.15.0，自动紧凑规划使用模型完整输出容量且无应用规划超时；
-规划等待不扣除后续执行时间，仍支持手动取消并遵守用户预算及服务商限制。
+- [项目定位与宿主边界](../../../docs/independent-model-router.md)
+- [规划路由日常使用](../../../docs/planning-routing-daily-use.md)
+- [金额计价迁移](../../../docs/currency-only-migration.md)
+- [自动路由最终审核](../../../docs/automatic-review-settings.md)
+- [历史研究与实验索引](../../../docs/research-index.md)
+- [线上版本与验证范围](https://aealab.github.io/RefractRouter/status.html)
