@@ -1,5 +1,9 @@
 # 自动路由费用预测、节点选模与 DSH 并行
 
+后续真实文件、工具续接及 Codex 接入验收见
+[真实工作流设计](automatic-real-workflows.md)与
+[验收报告](../reports/automatic-workflows-20261009/acceptance.md)。本页保留原阶段的冻结证据。
+
 ## 适用范围
 
 本次改动用于独立的自动路由 DAG 研究入口。标准 Base URL 模型接口继续采用规划路由策略，

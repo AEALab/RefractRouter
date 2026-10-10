@@ -379,6 +379,7 @@ export function RefractCard(props: RefractCardOwnerProps) {
       </button>
       {expanded ? (
         <div className="rra-body">
+          <p className="rra-field-hint">生产插件：routing 提供自动／规划路由、设置与运行记录；validation-tools 是可选的研究验收工具，默认关闭。关闭验收工具不会关闭这张设置卡片或任务 DAG。</p>
           <div className="rra-v4-section"><div className="rra-section-head"><div><h3>RefractRouter 连接</h3>
             <p className="rra-field-hint">本地模式由插件启动已安装的 Python 核心；远程模式把任务发送到指定 Router 服务。</p></div>
             {state.overriddenRouter?<button type="button" className="rra-reset" disabled={disabled} onClick={()=>props.resetField('router')}>恢复默认</button>:null}</div>

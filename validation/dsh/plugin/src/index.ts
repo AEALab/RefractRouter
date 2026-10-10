@@ -527,6 +527,9 @@ export async function callDshLlm(
     let previousWasUsage = false
     let terminalUsage: TokenUsage | undefined
     let finish: FinishChunk | undefined
+    const streamStarted = performance.now()
+    let firstTextMs: number | undefined
+    let firstToolMs: number | undefined
     const stream = ctx.llm.stream(options)
     const iterator = stream[Symbol.asyncIterator]()
     try {
@@ -534,6 +537,14 @@ export async function callDshLlm(
         const step = await nextWithSignal(iterator, callSignal)
         if (step.done) break
         const chunk = step.value
+        if (firstTextMs === undefined && ((chunk.type === 'text-delta' && chunk.text.length > 0)
+            || (chunk.type === 'block-end' && chunk.block?.type === 'text' && chunk.block.text?.length))) {
+          firstTextMs = Math.round(performance.now() - streamStarted)
+        }
+        if (firstToolMs === undefined && ((chunk.type === 'tool-call-delta' && (chunk.name || chunk.argumentsDelta))
+            || (chunk.type === 'block-end' && chunk.block?.type === 'tool-call'))) {
+          firstToolMs = Math.round(performance.now() - streamStarted)
+        }
         if (chunk.type === 'tool-call-delta' && chunk.index !== undefined) {
           const call = toolCalls.get(chunk.index) ?? { id: '', type: 'function' as const, function: { name: '', arguments: '' } }
           if (chunk.id) call.id = chunk.id
@@ -587,6 +598,8 @@ export async function callDshLlm(
         failure_type: timedOut ? 'timeout' : bridgeFailureType(failure.code),
         message: String(failure.message ?? 'DSH LLM request failed').slice(0, 300),
         request_id: failure.requestId,
+        ...(firstTextMs !== undefined ? {ttft_ms: firstTextMs} : {}),
+        ...(firstToolMs !== undefined ? {first_tool_ms: firstToolMs} : {}),
         ...(confirmed ? {usage_confirmed: true as const, content, usage: {
           input_tokens: inputTotal,
           output_tokens: Number(counts[1]), cached_input_tokens: Number(counts[2]),
@@ -600,6 +613,8 @@ export async function callDshLlm(
       ...base,
       ok: true,
       content,
+      ...(firstTextMs !== undefined ? {ttft_ms: firstTextMs} : {}),
+      ...(firstToolMs !== undefined ? {first_tool_ms: firstToolMs} : {}),
       usage: {
         input_tokens: Number(usage.inputTokens ?? 0) + cachedInput + cacheWrite,
         output_tokens: Number(usage.outputTokens ?? 0),

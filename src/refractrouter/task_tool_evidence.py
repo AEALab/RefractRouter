@@ -4,6 +4,9 @@ import hashlib
 import json
 import re
 
+from .responses_api import output_token_limit
+from .task_budget import request_input_bound
+
 VERSION = 'task-tool-evidence-v1'
 # 包含嵌套 JSON 转义的请求增量；不截断证据，也不增加隐式摘要调用。
 MAX_EVIDENCE_BYTES = 16 * 1024
@@ -70,7 +73,10 @@ def _outcome(record):
     return 'unconfirmed'
 
 
-def collect_tool_evidence(requirements, records, *, available):
+def collect_tool_evidence(requirements, records, *, available, max_evidence_bytes=MAX_EVIDENCE_BYTES):
+    # 旧冻结合同维持固定包络；现行货币参考合同检查实际完整审核请求。
+    if max_evidence_bytes is not None and (type(max_evidence_bytes) is not int or max_evidence_bytes < 1):
+        raise ValueError('invalid tool evidence envelope')
     rows = []
     for record in records:
         call = record.get('call') or {}
@@ -98,22 +104,39 @@ def collect_tool_evidence(requirements, records, *, available):
     # 与 messages 的嵌套 JSON 序列化一致；所有材料计入容量，不取摘要或切片。
     size = len(json.dumps(json.dumps({'tool_evidence': evidence}, ensure_ascii=False),
                           ensure_ascii=False).encode())
-    if size > MAX_EVIDENCE_BYTES:
+    if passed and max_evidence_bytes is not None and size > max_evidence_bytes:
         passed, reason = False, 'tool-evidence-envelope-exceeded'
     summary = {'schema_version': VERSION, 'required': required, 'required_tools': requirements['tools'],
                'passed': passed, 'reason': reason, 'missing_tools': missing,
                'records': [{k: r[k] for k in ('node', 'call_id', 'tool', 'outcome')} for r in rows],
-               'evidence_bytes': size, 'evidence_limit_bytes': MAX_EVIDENCE_BYTES,
+               'evidence_bytes': size, 'evidence_limit_bytes': max_evidence_bytes,
                'evidence_sha256': hashlib.sha256(json.dumps(evidence, sort_keys=True,
                                                           ensure_ascii=False).encode()).hexdigest()}
     return evidence, summary
 
 
+def check_review_capacity(validation, model, messages):
+    """检查带完整工具材料与引用目录的真实请求，不以证据大小猜测模型容量。"""
+    result = deepcopy(validation)
+    bound = request_input_bound(messages)
+    limit = model.context_window - output_token_limit(model)
+    result.update(capacity_basis='complete-review-request-v1', review_model_id=model.model_id,
+                  review_input_bound=bound, review_input_limit=limit)
+    if result['passed'] and bound > limit:
+        result.update(passed=False, reason='review-input-capacity-exceeded')
+    return result
+
+
 def validation_message(summary):
+    if summary['reason'] == 'tool-evidence-envelope-exceeded':
+        return (f"工具证据为 {summary['evidence_bytes']} 字节，超过旧合同的 "
+                f"{summary['evidence_limit_bytes']} 字节上限；审核未派发，证据未截断。")
+    if summary['reason'] == 'review-input-capacity-exceeded':
+        return (f"完整审核输入的保守计数为 {summary['review_input_bound']}，超过审核模型的 "
+                f"{summary['review_input_limit']} 可用输入容量；审核未派发，证据未截断。")
     messages = {
         'host-tool-result-unconfirmed': '工具结果尚未确认，已停止验收；不会自动重新执行。',
         'required-host-tool-not-observed': '明确要求的工具操作缺少已确认的宿主执行回执，答案不能作为任务完成证明。',
-        'tool-evidence-envelope-exceeded': '工具验收证据超过完整输入上限，已停止评审；没有截断证据。',
         'host-tool-receipt-observed': '已核对宿主工具回执；操作及结果是否满足要求仍由语义评审检查。',
         'no-explicit-tool-requirement': '未识别到明确工具要求；已提供实际回执供语义评审检查。',
     }

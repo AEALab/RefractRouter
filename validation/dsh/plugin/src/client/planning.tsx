@@ -1,4 +1,6 @@
-import {AutomaticTrace,automaticRefs,parseAutomaticHistory,type AutomaticHistory,type ChatTraceProps} from './automatic-trace.js'
+import {AutomaticTrace,automaticRefs,loadAutomaticHistory,type AutomaticHistory,type ChatTraceProps} from './automatic-trace.js'
+import {TraceRecord,type TraceTiming} from './trace-record.js'
+import {RouteFlow,flowLatency,flowTone,type RouteFlowNode} from './route-flow.js'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { EMPTY_PLANNING, PLANNING_NAMES, validatePlanningShape, type MediaRouteConfig, type PlanningConfig, type PlanningStrategy, type TaskJudgeConfig } from '../planning-config.js'
 import type { CardScope, DshModelPoolView } from '../settings-card.js'
@@ -34,7 +36,9 @@ const HELP:Record<PlanningStrategy,string>={
   advisor:'执行器准备结束时审核，必要时有界返工。',
   escalation:'审核高效模型回复，连续困难时切换并锁定强模型。',
   static:'固定执行模型，或每个任务随机选择一次并在工具续接中保持。'}
-const ROLES={efficient:'高效执行模型',capable:'强执行模型',classifier:'兼容旧策略的判别 LLM',advisor:'Advisor 审核 LLM（DSH 模型）'} as const
+const ROLES={efficient:'高效执行模型',capable:'强执行模型',
+  classifier:'兼容旧策略的判别 LLM（旧版 Task／Composite／Escalation）',
+  advisor:'Advisor 审核 LLM（仅 Advisor · DSH 模型）'} as const
 const SEEDREAM_CONNECTED:MediaRouteConfig={id:'ark-plan-seedream-5-lite',provider:'ark-plan',credentialProvider:'ark',
   model:'doubao-seedream-5.0-lite',operations:['image-generate','image-edit'],billingUnit:'AFP',
   pricing:{basis:'image',unitCost:99,source:'https://docs.volcengine.com/docs/ark/agent-plan-personal-afp-credits-billing-rules?lang=zh',checkedAt:'2026-09-26'},
@@ -376,7 +380,7 @@ export function PlanningSettings({scope,preview,loadCatalog,loadMetadata,loadFx,
       {draft.jev?.actionGate&&<p className="rra-field-hint">实验规则在 24 条有限留出题上与旧规则同为 22 条符合标签，没有证明更好；其阈值目前固定，不作为任意可调参数。</p>}
     </div>
     <div className="rra-row-card"><h3>模型与角色</h3><p className="rra-field-hint">四种角色集中管理；每项策略只要求它实际使用的模型。系统查询容量和价格；历史值保留并注明尚未核对，新路线缺项时不可运行。</p>
-      <p className="rra-field-hint">「Advisor 审核 LLM」引用 DSH 模型目录；Advisor 下方也可选实验性的本地 Laya-MLX Judge。两者使用不同接口，本地权重不会出现在 DSH 模型下拉菜单。兼容旧策略的判别角色供旧版 Task、Composite 和旧版 Escalation 使用。</p>
+      <p className="rra-field-hint">旧策略的判别 LLM 用于 Task／Composite 的选模及 Escalation 的升级判断；Advisor 审核 LLM 用于最终回复审核。两者均引用 DSH 模型目录。新版策略使用各自保存的 Judge 设置；Advisor 选择 Jev 或本地 Laya 时，不调用这里的审核 LLM。这两项用于旧配置兼容及新版设置预填。</p>
     {Object.entries(ROLES).map(([r,label])=>{
       const role=r as keyof typeof ROLES,model=draft.models?.find(m=>m.id===draft.roles?.[role])
       const key=model?modelKey(model.provider,model.model,model.billingUnit==='USD'?'CNY':model.billingUnit??draft.billingUnit??'CNY'):''
@@ -821,11 +825,11 @@ type TaskRouteEvidence={candidateId?:string;reason?:string;costBasis?:string;lat
   firstCallUpperBounds?:Record<string,{amount:number;unit:string}>;qualifiedCandidates?:string[];
   decision?:TaskRouteEvidence}
 type JevGateEvidence={accepted:boolean;minimumConfidence?:number|null;minimumProbability?:number|null;reason:string}
-type History={records:Array<{runId:string;strategy:string;status:string;costs:{production:number|null};billingUnit:string|null;billingWarning?:string;
+type History={records:Array<{runId:string;strategy:string;status:string;timing?:TraceTiming;identity?:{turn:string|number};costs:{production:number|null};billingUnit:string|null;billingWarning?:string;
   configuration?:{advisor?:{threshold?:number};escalation?:{threshold?:number};jev?:{actionGate?:string}};
   costsByUnit?:Record<string,{production:number;evaluation:number}>;
   referenceCosts?:{currency:string;occupied:number;limit:number}|null;
-  calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;billing_mode?:'subscription'|'metered';latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number}}>;
+  calls:Array<{call_id?:string;label?:string;model_id:string;provider?:string;actual_model?:string;purpose:string;disposition:string;status?:string;charged:number;billing_unit?:string;billing_mode?:'subscription'|'metered';dispatch_at?:string;latency_ms?:number;ttft_ms?:number;reasoning_effort?:string;usage_type?:string;usage?:{basis?:string;actualUnits?:number;maximumUnits?:number};review_status?:string}>;
   decisions:Array<{callId?:string|null;candidateCallId?:string;candidateDisposition?:string;
     reason:string;role?:string;model?:string;step?:number;score?:number|null;evidenceIds?:string[];evidenceSummary?:string;holdBefore?:number;holdAfter?:number;ruleVersion?:string;
     streakBefore?:number;streakAfter?:number;takeoverUnreviewed?:boolean;
@@ -884,12 +888,16 @@ const REASON:Record<string,string>={fixed:'固定模型','static-fixed':'Static 
   'escalation-takeover':'连续停滞达到门槛，丢弃候选并接管',
   'context-compaction-host':'宿主请求上下文压缩；使用通用角色模型，不推进策略状态'}
 const PURPOSE:Record<string,string>={execute:'执行',task:'任务判别',advisor:'审核',
-  escalation:'升级判别',redo:'返工执行',takeover:'强模型接管',compaction:'上下文压缩'}
+  stage:'阶段判别',escalation:'升级判别',redo:'返工执行',takeover:'强模型接管',compaction:'上下文压缩'}
 const VERDICT:Record<string,string>={APPROVE:'通过',REDO:'要求返工',UNRESOLVED:'无法确定',
   PROCEED:'放行',DEFECT:'明确缺陷',STALL:'疑似停滞',UNCERTAIN:'无法判断',
   NEED_STRONG:'需要强模型',EFFICIENT:'高效模型适合',CAPABLE:'需要强模型'}
 const DISPOSITION:Record<string,string>={accepted:'已交付',discarded:'已丢弃',consult:'判别已结算',
   buffered:'尚未交付',pending:'调用中',reserved:'已预留',failed:'失败'}
+function callDisposition(call:History['records'][number]['calls'][number]):string{
+  if(call.disposition==='accepted'&&['task','stage','advisor','escalation'].includes(call.purpose))return '判别回执已接受'
+  return DISPOSITION[call.disposition]??call.disposition??call.status??'状态未记录'
+}
 const STATUS:Record<string,string>={running:'运行中',cancelled:'已取消',
   completed:'已完成',
   'interrupted-needs-reconciliation':'进程中断，待核对在途调用',
@@ -907,6 +915,22 @@ function traceAmount(value:number|null|undefined){
   if(typeof value!=='number'||!Number.isFinite(value))return '待核对'
   if(value>0&&value<.00000001)return '小于 0.00000001'
   return TRACE_AMOUNT.format(value)
+}
+export function planningFlowNodes(r:History['records'][number]):RouteFlowNode[]{
+  return r.calls.map((c,index)=>{
+    const related=c.call_id?r.decisions.filter(d=>d.callId===c.call_id||d.candidateCallId===c.call_id):[]
+    const reasons=related.map(d=>`${REASON[d.reason]??d.reason}${d.reviewVerdict?` · ${VERDICT[d.reviewVerdict]??d.reviewVerdict}`:''}`)
+    const disposition=c.status==='unknown-usage'&&c.disposition==='pending'
+      ?r.status==='running'?'已派发，等待结果与用量':'用量待核对，已停止':
+      callDisposition(c)
+    return {id:c.call_id??`${index}-${c.label??'call'}`,title:PURPOSE[c.purpose]??c.purpose,
+      model:c.provider&&c.actual_model?`${c.provider} / ${c.actual_model}`:c.model_id,
+      status:disposition+(c.review_status==='takeover-unreviewed'?' · 接管后未追加审核':
+        c.review_status==='revised-unreviewed'?' · 未复审':''),
+      tone:flowTone(c.status,c.disposition,r.status==='running'),details:[
+        reasons.join('；')||'等待判定或本次未记录独立判定依据',
+        `推理等级 ${c.reasoning_effort??'提供方默认'} · 总耗时 ${flowLatency(c.latency_ms)} · ${c.usage_type==='local-decision'?'本地推论，无 API 费用':`${traceAmount(c.charged)} ${r.billingWarning?'单位待核对':c.billing_unit??r.billingUnit??'单位未记录'}${c.billing_mode==='subscription'?'（订阅参考估值）':''}`}`]}
+  })
 }
 function jevDecisionExplanation(record:History['records'][number],row:History['records'][number]['decisions'][number]){
   if(row.backend!=='jev'&&row.decision?.backend!=='jev')return ''
@@ -965,14 +989,21 @@ function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutom
   const snapshot=useChat?.(s=>s)
   const references=snapshot?automaticRefs(snapshot):[]
   const [data,setData]=useState<History>(),[error,setError]=useState('')
-  useEffect(()=>{let active=true
-    const refresh=()=>void load().then(v=>{if(active)setData(v)}).catch(e=>{if(active)setError(errorText(e))})
-    refresh();const timer=setInterval(refresh,2500);return()=>{active=false;clearInterval(timer)}
+  useEffect(()=>{let active=true,inflight=false
+    const refresh=async()=>{if(inflight)return;inflight=true
+      try{const value=await load();if(active){setData(value);setError('')}}
+      catch(e){if(active)setError(errorText(e))}finally{inflight=false}}
+    void refresh();const timer=setInterval(()=>void refresh(),2500);return()=>{active=false;clearInterval(timer)}
   },[load])
   return <section style={{padding:24}}><h2>路由轨迹</h2><p>这里区分 Judge 原始答案与 Router 最终动作；任务运行状态不等于质量已通过独立验收。只统计当前受管 Agent，普通 DSH 子模型费用尚未汇总。</p>
     <AutomaticTrace references={references} load={loadAutomatic}/>
     <p role="status">{error}</p>{data?.records.length?<h2>规划路由</h2>:!references.length&&<p>当前已加载会话没有自动路由引用或规划路由记录。</p>}
-    {data?.records.map(r=><article key={r.runId}><h3>{PLANNING_NAMES[r.strategy as PlanningStrategy]??r.strategy} · {STATUS[r.status]??`已停止：${r.status}`}</h3>
+    {data?.records.map(r=><TraceRecord key={r.runId}
+      title={`${PLANNING_NAMES[r.strategy as PlanningStrategy]??r.strategy} · ${STATUS[r.status]??`已停止：${r.status}`}`}
+      identity={`宿主轮次 ${r.identity?.turn??'未记录'} · 记录 ${r.runId}`}
+      startedAt={r.timing?.startedAt??r.calls.find(c=>c.dispatch_at)?.dispatch_at}
+      timeLabel={r.timing?.startedAt?'开始时间':'首个模型调用'} elapsedMs={r.timing?.elapsedMs} running={r.status==='running'}>
+      <RouteFlow identity={`planning-${r.runId}`} nodes={planningFlowNodes(r)} state={STATUS[r.status]??r.status} running={r.status==='running'}/>
       {r.referenceCosts?<p>参考成本占用 {traceAmount(r.referenceCosts.occupied)} CNY；按量费用占用 {traceAmount(r.costsByUnit?.CNY?.production??0)} CNY。参考成本已包含按量调用，两项不相加；订阅费未按调用分摊。</p>:r.billingWarning?<p>{traceAmount(r.costs.production)}（单位待核对）</p>:
         r.costsByUnit?<p>{Object.entries(r.costsByUnit).filter(([unit,amount])=>amount.production!==0||r.calls.some(c=>c.billing_unit===unit))
           .map(([unit,amount])=>`${traceAmount(amount.production)} ${unit}`).join('；')||'尚无调用'}</p>:
@@ -982,7 +1013,7 @@ function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutom
       <table><thead><tr>{['模型／推理等级','用途','交付状态','本次金额／累计占用','首字／总耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
         <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
           const related=c.call_id?r.decisions.filter(row=>row.callId===c.call_id||row.candidateCallId===c.call_id):[]
-          return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{DISPOSITION[c.disposition]??c.disposition??c.status}{(c as unknown as {review_status?:string}).review_status==='revised-unreviewed'?' · 未复审':''}{(c as unknown as {review_status?:string}).review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
+          return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{callDisposition(c)}{c.review_status==='revised-unreviewed'?' · 未复审':''}{c.review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>
           <td>{c.usage_type==='local-decision'?'本地推论，无 API 费用':<>{c.billing_mode==='subscription'?'订阅参考成本：':''}{c.status==='unknown-usage'?'用量待核对，保留预留：':c.status==='reserved'?'尚未派发预留：':''}{traceAmount(c.charged)}{r.billingWarning?'（单位待核对）':unit?` ${unit}`:''}<br/><small>{r.referenceCosts?'累计参考占用':'累计占用'} {traceAmount(totals[unit])}{unit?` ${unit}`:''}</small></>}</td><td>{c.ttft_ms?.toFixed(0)??'待核对'}／{c.latency_ms?.toFixed(0)??'待核对'}</td>
           <td>{related.length?related.map((d,index)=><div key={`${d.reason}-${index}`}>
             {REASON[d.reason]??d.reason}{typeof d.score==='number'?`（${d.decision?.backend==='jev'||d.decision?.scoreKind==='selection-probability'?'获选项概率':d.decision?.scoreKind==='ordered-capability-coverage'?'能力覆盖评分':'判别信号'} ${d.score.toFixed(3)}）`:''}
@@ -1008,7 +1039,7 @@ function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutom
           {d.ruleVersion?`规则 ${d.ruleVersion}`:'旧记录未保存规则版本'}。{d.evidenceIds?.length?<EvidenceIds ids={d.evidenceIds}/>:null}<TaskEvidence row={d}/>
         </li>)}</ol>
       </section>}
-    </article>)}
+    </TraceRecord>)}
   </section>
 }
 export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {
@@ -1043,13 +1074,10 @@ export function planningUi(ctx:ClientContext,scope:CardScope):PlanningUi {
 }
 export function applyPlanning(ctx:ClientContext){
   ctx.effect(labelPlanningModeMenu,'refractagent-planning: mode menu label')
+  const loadAutomatic=loadAutomaticHistory(ctx)!
   ctx.slots.inject('conversation.view',function*(){
     yield ctx.slots.register({name:'conversation.view',id:'refractagent-routing',order:16,label:()=> '路由轨迹',
-      inject:(sessionId:string)=>({loadAutomatic:async(runIds:string[])=>{
-        const r=await ctx.remote.llm.discoverModels('refractagent-planning',{api:'automatic-trace',provider:JSON.stringify(runIds)})
-        if(!r.ok)throw new Error(r.error?.message??'自动路由轨迹读取失败')
-        return parseAutomaticHistory(JSON.parse(r.value?.[0]?.name??'{}'))
-      },load:async()=>{
+      inject:(sessionId:string)=>({loadAutomatic,load:async()=>{
         const r=await ctx.remote.llm.discoverModels('refractagent-planning',{provider:sessionId})
         if(!r.ok)throw new Error(r.error?.message)
         return JSON.parse(r.value?.[0]?.name??'{"records":[]}') as History

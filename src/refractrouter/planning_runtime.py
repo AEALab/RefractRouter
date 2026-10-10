@@ -1,6 +1,7 @@
 """无 DAG 的逐调用规划路由：宿主执行模型与工具，核心持有状态和账本。"""
 from copy import deepcopy
 from dataclasses import asdict, replace
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -79,7 +80,13 @@ class PlanningRuntime(StageHybridRuntime):
         active_units = {call["billing_unit"] for call in calls if "billing_unit" in call}
         single_unit = next(iter(active_units)) if len(active_units) == 1 else None
         legacy_costs = costs_by_unit[single_unit] if single_unit else {"production": None, "evaluation": None}
+        timing = run.get("timing")
+        if timing is not None and timing["finishedAt"] is None:
+            timing["elapsedMs"] = max(0, (time.monotonic() - run["started_monotonic"]) * 1000)
+            if run["status"] != "running":
+                timing["finishedAt"] = datetime.now(timezone.utc).isoformat()
         public = {"protocol": PROTOCOL, "runId": run["id"], "identity": run["identity"],
+            **({"timing": deepcopy(timing)} if timing is not None else {}),
             "strategy": run["strategy"], "configDigest": run["config_digest"], "status": run["status"],
             "configuration": run["config"]["raw"], "state": run["state"], "decisions": run["decisions"], "calls": calls,
             "referenceCosts": run["budget"].reference_snapshot(), "costs": legacy_costs, "billingUnit": single_unit, "costsByUnit": costs_by_unit,
@@ -129,6 +136,8 @@ class PlanningRuntime(StageHybridRuntime):
             strategy = "static"
             config["parameters"]["staticMode"] = "fixed"
         run = {"id": key, "identity": deepcopy(identity), "config": config, "strategy": strategy,
+            "started_monotonic": time.monotonic(),
+            "timing": {"startedAt": datetime.now(timezone.utc).isoformat(), "finishedAt": None, "elapsedMs": 0},
             "config_digest": digest(request["config"]), "status": "running", "flow": None,
             "deadline": time.monotonic() + config["timeout"] / 1000 if config["timeout"] else None,
             "budget": PlanningBudget(config["budgets"], max_calls=config["max_calls"] or None, reference_limit=config.get("reference_limit")),

@@ -165,6 +165,48 @@ def begin(runtime, strategy="stage", turn=1, session="a", child=False, config=No
         "strategy": strategy, "config": config or configuration(strategy), "child": child})["runId"]
 
 
+def test_trace_task_timing_spans_tool_wait_and_freezes_at_end(tmp_path, monkeypatch):
+    clock = [100.0]
+    monkeypatch.setattr("refractrouter.planning_runtime.time.monotonic", lambda: clock[0])
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static")
+    started = runtime.handle({"op": "query", "runId": run})["timing"]
+    assert datetime.fromisoformat(started["startedAt"]).tzinfo is not None
+    assert started["finishedAt"] is None
+    clock[0] = 105.0
+    action = step(runtime, run)
+    receipt(runtime, run, action)
+    clock[0] = 120.0  # 宿主等待也属于端到端任务耗时，而非仅累加模型调用。
+    runtime.handle({"op": "end", "runId": run})
+    final = runtime.handle({"op": "query", "runId": run})["timing"]
+    assert final["elapsedMs"] == 20000
+    assert final["startedAt"] == started["startedAt"]
+    assert datetime.fromisoformat(final["finishedAt"]).tzinfo is not None
+    clock[0] = 150.0
+    assert runtime.handle({"op": "query", "runId": run})["timing"] == final
+    restored = PlanningRuntime(tmp_path).handle({"op": "history", "session": "a"})["records"][0]
+    assert restored["timing"] == final
+
+
+def test_trace_cancel_preserves_elapsed_and_old_history_has_no_invented_timing(tmp_path, monkeypatch):
+    clock = [100.0]
+    monkeypatch.setattr("refractrouter.planning_runtime.time.monotonic", lambda: clock[0])
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static")
+    clock[0] = 104.5
+    runtime.handle({"op": "cancel", "runId": run})
+    saved = runtime.handle({"op": "query", "runId": run})
+    assert saved["timing"]["elapsedMs"] == 4500
+    assert saved["timing"]["finishedAt"]
+    path = runtime.root / (run + ".json")
+    saved.pop("timing")  # 兼容已有历史；读取不借文件修改时间推测开始或完成。
+    path.write_text(json.dumps(saved))
+    before = path.read_bytes()
+    old = PlanningRuntime(tmp_path).handle({"op": "history", "session": "a"})["records"][0]
+    assert "timing" not in old
+    assert path.read_bytes() == before
+
+
 def step(runtime, run, messages=None, **kw):
     return runtime.handle({"op": "step", "runId": run, "messages": messages or [
         {"role": "system", "content": "遵循工具权限"},

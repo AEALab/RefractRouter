@@ -1,5 +1,11 @@
 # 规划路由支持矩阵
 
+> 本表保留 2026-10-04 批次的冻结范围与结论，不代表当前用户 profile 或最新配置。
+> 当前开发预览为核心 0.16.33、插件 0.33.21；新增维护范围为 DSH 与 Codex CLI。
+> 新版预算采用现金与参考金额，历史 AFP 证据保留原单位。
+> 当前入口、下载与未完成项见[日常使用指南](planning-routing-daily-use.md)和
+> [线上验证范围](https://aealab.github.io/RefractRouter/status.html)。
+
 ## 状态定义
 
 | 标记 | 含义 |

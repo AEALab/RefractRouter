@@ -31,6 +31,7 @@ def project(summary, runtime=None, *, cash_limits=None):
     routing = runtime.get('routing') or {}
     comparison = summary.get('route_comparison') or runtime.get('route_comparison') or {}
     admission = summary.get('plan_admission') or runtime.get('plan_admission') or {}
+    directory = summary.get('candidate_models') or runtime.get('candidate_models') or {}
     calls = []
     source_calls = runtime.get('calls')
     if source_calls is None:
@@ -39,14 +40,19 @@ def project(summary, runtime=None, *, cash_limits=None):
         row = pick(call, ('label', 'model_id', 'category', 'billing_unit', 'unit', 'status',
             'reserved', 'charged', 'billing_mode', 'cost_basis', 'cash_cost_cny', 'cash_cost_status',
             'provider_cost_confirmed', 'input_tokens', 'output_tokens', 'cached_input_tokens',
-            'reasoning_tokens', 'ttft_ms', 'latency_ms', 'request_id', 'finish_reason', 'dispatch_at'))
+            'reasoning_tokens', 'ttft_ms', 'first_tool_ms', 'latency_ms', 'request_id', 'finish_reason', 'dispatch_at'))
         row.update(pick(call, ('reservation_basis','protected_input_bound','actual_input_bound','input_bound_confirmed')))
+        if not row.get('billing_unit') and not row.get('unit'):
+            # 旧调用行未重复存单位时，只沿用该次冻结模型／账本的单位，不读当前设置。
+            model_unit = (directory.get(call.get('model_id')) or {}).get('billing_unit')
+            unit = model_unit or runtime.get('billing_unit') or summary.get('billing_unit')
+            if isinstance(unit, str) and unit:
+                row['billing_unit'] = unit
         row['route'] = pick(call.get('route'), ('provider', 'model', 'reasoning_effort'))
         calls.append(row)
     candidates = []
     checks = (routing.get('diagnostics') or {}).get('candidate_checks') or {}
     # 模型目录必须来自该次运行的冻结记录；不能借当前目录补全旧任务。
-    directory = summary.get('candidate_models') or runtime.get('candidate_models') or {}
     for mid, model in directory.items():
         evidence = []
         sources = comparison.get('model_admission') or {'execution': {
@@ -84,6 +90,9 @@ def project(summary, runtime=None, *, cash_limits=None):
     review = summary.get('review') or runtime.get('review') or {}
     quality = summary.get('quality') or runtime.get('evaluation') or {}
     score, floor = amount(quality.get('score')), amount(routing.get('quality_min_per_node'))
+    dag = summary.get('dag') or runtime.get('dag') or {}
+    if not isinstance(dag, dict):
+        dag = {}
     quality_gate = 'not-recorded'
     if ((runtime.get('deterministic_validation') or {}).get('passed') is False
             or (runtime.get('time_contract_validation') or {}).get('passed') is False
@@ -98,6 +107,12 @@ def project(summary, runtime=None, *, cash_limits=None):
     return {'schema_version': SCHEMA, 'run_id': summary.get('run_id'),
         'status': summary.get('status', runtime.get('status')), 'simulated': summary.get('simulated'),
         'mode': summary.get('mode', runtime.get('mode')), 'wall_time_ms': summary.get('wall_time_ms', runtime.get('wall_time_ms')),
+        'dag': {**pick(dag, ('phase', 'status', 'simulated', 'reason', 'plan_origin')),
+            'nodes': [{**pick(node, ('id', 'objective', 'parents', 'node_type', 'difficulty', 'risk',
+                        'state', 'attempt', 'recovery')),
+                       'model': pick(node.get('model'), ('id', 'provider', 'model', 'reasoning_effort'))
+                                if isinstance(node.get('model'), dict) else None}
+                      for node in dag.get('nodes', []) if isinstance(node, dict)]},
         'issues': summary.get('issues', runtime.get('issues', [])),
         'limitations': summary.get('limitations', runtime.get('limitations', [])),
         'structure': {**pick(gate, ('policy_version', 'rule_decision', 'decision', 'combination', 'reasons')),
@@ -108,7 +123,7 @@ def project(summary, runtime=None, *, cash_limits=None):
         'comparison': pick(comparison, ('status', 'route', 'reason', 'selected_candidate',
             'generated_node_count', 'selected_node_count', 'multi_node_selected', 'direct', 'dag',
             'decision_factors', 'estimate_scope', 'complete_task_cost_bound', 'tool_call_limit',
-            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast','quality_evidence_basis')),
+            'billing_unit', 'prediction_source', 'latency_scope', 'latency_evidence', 'candidate_diagnostics', 'budget_shortfalls', 'cost_forecast', 'judge_forecast','quality_evidence_basis', 'output_forecast')),
         'node_forecasts': [pick(row, ('node_id','model_id','unit','expected_cost','expected_input_tokens',
             'expected_output_tokens','conservative_input_bound','input_source','output_source',
             'quality_source','quality_prior','node_features','provider','model','reasoning_effort','evidence_scope')) | {
@@ -137,7 +152,9 @@ def project(summary, runtime=None, *, cash_limits=None):
         'external_judge_cost_cny': amount(local.get('costCny')) if local.get('backend') == 'jev' else None,
         'external_judge_called': local.get('backend') == 'jev' and local.get('model') is not None,
         'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed',
-            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort')),
+            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort',
+            'version','phase','reserve_required','task_reasons','preflight_reason','candidate_signals','tool_result_count')),
+        'review_failure': pick(review.get('failure'), ('version','kind','repairable','uncertain_checks','usage_pending')),
         'deterministic_validation': pick(runtime.get('deterministic_validation'), ('passed', 'reason')),
         'time_contract_validation': pick(runtime.get('time_contract_validation'),
             ('version','applicable','passed','reason','scope','review_wait_ms','execution_reserve_ms')),
@@ -150,6 +167,9 @@ def project(summary, runtime=None, *, cash_limits=None):
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
             if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
         'quality': {**pick(quality, ('score', 'passed', 'rationale')),
+            **({'input_representation': pick(quality['input_representation'],
+                ('version','bytes','source_count','candidate_count','complete_values','summarized','truncated'))}
+                if isinstance(quality.get('input_representation'), dict) else {}),
             **({'evidence_references': pick(quality['evidence_references'],
                 ('version','candidate_sha256','resolved_by','model_calls_added','overall_check_scope'))}
                 if isinstance(quality.get('evidence_references'), dict) else {}),
@@ -172,7 +192,9 @@ def project(summary, runtime=None, *, cash_limits=None):
             'review_protection': pick(runtime['final_correction'].get('review_protection'),
                 ('input_upper_bound','reserved','billing_unit','label')),
         }} if isinstance(runtime.get('final_correction'), dict) else {}),
-        'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),
+        'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools',
+            'evidence_bytes', 'evidence_limit_bytes', 'capacity_basis', 'review_model_id',
+            'review_input_bound', 'review_input_limit')),
             'records': [pick(r, ('node', 'call_id', 'tool', 'outcome')) for r in tool.get('records', [])]},
         'missing_evidence': [name for name, present in (
             ('candidate-directory', bool(directory)),

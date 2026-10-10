@@ -226,7 +226,7 @@ def main():
             run([executable,'dsh-config','--output',patch,'--runs-dir',runs,'--mode','demo',
                  '--production-budget',1000,'--strategy',strategy])
             composed = run(['dsh','--profile','headless','--patch',patch,'--dump-config'])
-            assert 'name: dsh-refractrouter-validation/agent' in composed
+            assert '- id: refractagent\n  name: dsh-refractrouter-validation\n' in composed
             assert 'provider: refractagent' in composed
             task = '请用两句话比较小规模试点和全面推广。'
             answer = run(['dsh','--profile','headless','--patch',patch,task])

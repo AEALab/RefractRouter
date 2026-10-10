@@ -348,6 +348,7 @@ class ChatResponse:
     replay_state: object = None
     cache_usage_source: str | None = None
     ttft_ms: int | None = None
+    first_tool_ms: int | None = None
 
 
 class ModelInvocationError(RuntimeError):
@@ -632,6 +633,10 @@ class OpenAICompatibleClient:
                         cached_input_tokens=int(usage.get("cached_input_tokens", 0)),
                         reasoning_tokens=int(usage.get("reasoning_tokens", 0)),
                         latency_ms=round((time.perf_counter() - started) * 1000),
+                        ttft_ms=(response.get('ttft_ms') if type(response.get('ttft_ms')) is int
+                            and response['ttft_ms'] >= 0 else None),
+                        first_tool_ms=(response.get('first_tool_ms') if type(response.get('first_tool_ms')) is int
+                            and response['first_tool_ms'] >= 0 else None),
                         attempts=attempts,
                         finish_reason=(
                             str(response["finish_reason"])
@@ -661,6 +666,10 @@ class OpenAICompatibleClient:
                             output_tokens=counts[1], cached_input_tokens=counts[2], reasoning_tokens=counts[3],
                             raw_usage={'cacheWriteTokens': write}, cache_usage_source='dsh-terminal-usage',
                             latency_ms=latency, attempts=attempts, finish_reason='error',
+                            ttft_ms=(response.get('ttft_ms') if type(response.get('ttft_ms')) is int
+                                and response['ttft_ms'] >= 0 else None),
+                            first_tool_ms=(response.get('first_tool_ms') if type(response.get('first_tool_ms')) is int
+                                and response['first_tool_ms'] >= 0 else None),
                             request_id=str(response['request_id']) if response.get('request_id') else None)
                         raise ModelInvocationError(last_failure, last_message, attempts, latency,
                             confirmed_response=receipt)

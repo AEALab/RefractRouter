@@ -57,6 +57,10 @@ function state(row: NodeView): string {
   return escape(label) + (row.attempt > 1 ? `（第 ${row.attempt} 次）` : '')
     + (row.recovery ? ` · ${escape(row.recovery)}` : '')
 }
+export function dagNodePresentation(row:NodeView) {
+  return {id:row.id,objective:row.objective,parents:row.parents,model:model(row),state:state(row),
+    type:row.node_type??'未提供',difficulty:row.difficulty??'未提供',risk:row.risk??'未提供'}
+}
 export function dagListing(view: DagView): string {
   if (!view.nodes.length) return ''
   return '\n【节点清单】\n' + view.nodes.map(row => `${escape(row.id)} · ${escape(row.objective)}\n  类型：${escape(row.node_type ?? '未提供')}；难度：${escape(row.difficulty ?? '未提供')}；风险：${escape(row.risk ?? '未提供')}\n  依赖：${row.parents.map(escape).join('、') || '无'}\n  模型：${model(row)}\n  状态：${state(row)}`).join('\n\n') + '\n'

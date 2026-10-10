@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "release-readiness-v1",
+  "核对日期": "2026-10-10",
+  "核心版本": "0.16.33",
+  "插件版本": "0.33.21",
+  "DSH版本": "0.1.5-rc.3",
+  "完整测试": {
+    "通过": 2096,
+    "子测试通过": 5,
+    "耗时秒": 232.08
+  },
+  "TypeScript类型检查": "通过",
+  "插件构建": "通过",
+  "分发构建": "通过",
+  "文档站校验": {
+    "中文正文页面": 21,
+    "HTML含404页面": 22,
+    "站内链接": "通过",
+    "分发包及SHA256": "通过"
+  },
+  "本次付费模型调用": 0,
+  "原始本机证据SHA256": {
+    "adaptive-review-20261010.json": "9fce7dff98d22e16cc33b42cb0917f5f0dd8894bf6671e31f4c6cc6177b0ed58",
+    "docs-site-20261010.json": "a08a4289c13bb18944eac50c5147a1d3f4ddc85100994252502e380c00bd6d1a",
+    "refract-pr195-20261010-tests.txt": "8e96e96235ee8fad63df669e2f49aa58866b28b1b55291733c8d86c6e614426d",
+    "acceptance.json": "8f817d9e98e3026f2c89abf2382a2ba3619f81768a1eb920e7946a2faf92253c"
+  },
+  "构建产物": [
+    {
+      "file": "refractrouter-0.16.33-py3-none-any.whl",
+      "bytes": 568322,
+      "sha256": "fcaca05b3111a7430f9f6c91b904c8c5e4d5284eb0c36624e992d673c043d118"
+    },
+    {
+      "file": "dsh-refractrouter-validation-0.33.21.tgz",
+      "bytes": 228779,
+      "sha256": "53bc0f3502b92a1b913e7725b07b499e399fe43e890779d78c92f2c4ef9f9285"
+    },
+    {
+      "file": "refractrouter-source-0.16.33.zip",
+      "bytes": 2708347,
+      "sha256": "b3f910c798ad12ad147aa10833cf5c5d3890ee370d9b260671629963c1e520a9"
+    },
+    {
+      "file": "refractrouter-install-0.16.33.zip",
+      "bytes": 794507,
+      "sha256": "9f25236400c8be50e35673a57d20313b74c6382ef89690c0119cfa2d2f555fab"
+    }
+  ],
+  "公开边界": "不上传用户配置、凭证、会话、完整运行日志和用户界面截图。",
+  "未完成": "真实最终审核与纠正质量仍受已记录的 429 阻塞；本次不重发。",
+  "安装校验脚本同步": {
+    "首轮CI": "完整测试和文档站通过，生命周期步骤因旧入口默认值断言失败，其他矩阵项被取消。",
+    "修正": [
+      "scripts/validate_dsh_plugin_lifecycle.py",
+      "scripts/validate_refractagent_install.py"
+    ],
+    "复验": {
+      "目录生命周期": {
+        "install": "local-path",
+        "lifecycle": [
+          "install",
+          "override",
+          "remove",
+          "reinstall",
+          "boot"
+        ],
+        "paid_calls": 0,
+        "profile": "headless",
+        "status": "pass",
+        "versions": {
+          "dsh": "0.1.5-rc.3",
+          "node": "22.22.3",
+          "pnpm": "10.15.0"
+        }
+      },
+      "tarball生命周期": {
+        "install": "tarball",
+        "lifecycle": [
+          "install",
+          "override",
+          "remove",
+          "reinstall",
+          "boot"
+        ],
+        "paid_calls": 0,
+        "profile": "headless",
+        "status": "pass",
+        "versions": {
+          "dsh": "0.1.5-rc.3",
+          "node": "22.22.3",
+          "pnpm": "10.15.0"
+        }
+      },
+      "安装包原生模拟接线": {
+        "status": "pass",
+        "scope": "installed-wheel-and-tgz-native-dsh-demo",
+        "paid_model_calls": 0,
+        "live_acceptance": false,
+        "results": [
+          {
+            "strategy": "economy",
+            "models": {
+              "answer": "deepseek-v4-flash"
+            },
+            "status": "simulated",
+            "simulated": true,
+            "costs": {
+              "production": 0.0025,
+              "evaluation": 0,
+              "unconfirmed": 0
+            }
+          },
+          {
+            "strategy": "balanced",
+            "models": {
+              "answer": "minimax-m3"
+            },
+            "status": "simulated",
+            "simulated": true,
+            "costs": {
+              "production": 0.0125,
+              "evaluation": 0,
+              "unconfirmed": 0
+            }
+          },
+          {
+            "strategy": "quality",
+            "models": {
+              "answer": "deepseek-v4-pro"
+            },
+            "status": "simulated",
+            "simulated": true,
+            "costs": {
+              "production": 0.0275,
+              "evaluation": 0,
+              "unconfirmed": 0
+            }
+          }
+        ],
+        "versions": {
+          "dsh": "0.1.5-rc.3",
+          "node": "v22.22.3"
+        }
+      }
+    }
+  }
+}
