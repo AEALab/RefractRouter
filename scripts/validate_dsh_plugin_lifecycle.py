@@ -69,13 +69,20 @@ def assert_default_config(dump: str) -> None:
     expected = (
         "# == dsh-refractrouter-validation\n"
         "- id: refractrouter-validation\n"
-        "  name: dsh-refractrouter-validation\n"
+        "  name: dsh-refractrouter-validation/validation-tools\n"
+        "  disabled: true\n"
         "  config:\n"
         "    allowPaidRuns: false\n"
         "    billingUnit: USD\n"
         "    maxProductionCost: 2\n"
         "    maxEvaluationCost: 1\n"
-        "    maxRetries: 0"
+        "    maxRetries: 0\n"
+        "- id: refractagent\n"
+        "  name: dsh-refractrouter-validation\n"
+        "  config:\n"
+        "    entryMode: routing\n"
+        "    executionMode: demo\n"
+        "    allowPaidRuns: false"
     )
     if expected not in dump:
         raise RuntimeError("composed profile does not contain the plugin's safe defaults")
