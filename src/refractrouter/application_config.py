@@ -213,6 +213,14 @@ def execution_capacity_model(model):
     return ExecutionModelSpec(**{**values, 'max_output_tokens': capacity})
 
 
+def automatic_execution_model(model, temperature=0):
+    """校准与自动路由使用相同执行容量和任务温度，不改写保存的模型配置。"""
+    from dataclasses import replace
+    capacity = execution_capacity_model(model)
+    return (capacity if capacity.wire_api == 'responses' else
+            replace(capacity, request_options={**capacity.request_options, 'temperature': temperature}))
+
+
 @dataclass(frozen=True)
 class ApplicationConfiguration:
     manifest: ModelManifest

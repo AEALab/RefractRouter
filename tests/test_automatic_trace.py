@@ -10,6 +10,21 @@ from refractrouter.planning_runtime import PlanningRuntime
 RID = '20261007T064045Z-118980e3a74b'
 
 
+def test_tool_review_capacity_is_visible_without_private_evidence_or_rewriting_old_failure():
+    tool = {'passed': False, 'reason': 'review-input-capacity-exceeded',
+        'message': '完整审核输入超出实际模型容量，未派发。', 'evidence_bytes': 65759,
+        'evidence_limit_bytes': None, 'capacity_basis': 'complete-review-request-v1',
+        'review_model_id': 'reviewer', 'review_input_bound': 200000, 'review_input_limit': 24576,
+        'records': [{'tool': 'web_search', 'call_id': 'search-1', 'outcome': 'returned',
+                     'content': '机密工具原文'}]}
+    result = project({'run_id': RID, 'status': 'tool-requirement-failed', 'tool_validation': tool})
+    assert result['tools']['evidence_bytes'] == 65759
+    assert result['tools']['review_input_bound'] == 200000
+    assert result['tools']['review_input_limit'] == 24576
+    assert result['tools']['passed'] is False
+    assert '机密工具原文' not in json.dumps(result, ensure_ascii=False)
+
+
 def evidence():
     summary = {'run_id': RID, 'strategy': 'auto', 'status': 'completed',
         'model_routes': {'answer': {'id': 'subscription'}},
@@ -57,6 +72,31 @@ def test_trace_keeps_all_candidates_raw_judge_and_real_call_identity():
     assert (s, r) == before
 
 
+def test_dag_history_keeps_frozen_topology_and_states_without_private_payloads():
+    summary, runtime = evidence()
+    summary['status'] = 'failed'
+    summary['wall_time_ms'] = 90238
+    summary['dag'] = {'phase': 'finished', 'status': 'failed', 'simulated': False,
+        'reason': '最后收到的流程', 'request_messages': ['私有提示'],
+        'nodes': [{'id': 'first', 'objective': '读取材料', 'parents': [], 'node_type': 'extraction',
+            'state': 'ok', 'attempt': 1, 'recovery': None,
+            'model': {'id': 'frozen-model', 'provider': 'ark', 'model': 'flash',
+                      'reasoning_effort': 'low', 'credential': '私有密钥'},
+            'response_output': '私有正文'},
+            {'id': 'second', 'objective': '汇总', 'parents': ['first'], 'node_type': 'synthesis',
+             'state': 'blocked', 'attempt': 0, 'model': None, 'recovery': None}]}
+    before = deepcopy((summary, runtime))
+    trace = project(summary, runtime)
+    assert trace['dag']['status'] == 'failed'
+    assert trace['dag']['nodes'][1]['parents'] == ['first']
+    assert trace['dag']['nodes'][1]['state'] == 'blocked'
+    assert trace['dag']['nodes'][0]['model']['reasoning_effort'] == 'low'
+    assert trace['wall_time_ms'] == 90238
+    assert '私有' not in json.dumps(trace, ensure_ascii=False)
+    assert (summary, runtime) == before
+    assert project({}, {})['dag']['nodes'] == []
+
+
 def test_final_correction_trace_keeps_decisions_and_protection_without_private_payloads():
     s,r=evidence()
     r['final_correction']={'version':'bounded-final-correction-v1','maximum':1,'attempt':1,
@@ -73,6 +113,29 @@ def test_final_correction_trace_keeps_decisions_and_protection_without_private_p
     assert row['review_protection']['reserved']==.7
     assert '不应展示' not in json.dumps(row,ensure_ascii=False)
     assert '隐藏' not in json.dumps(row,ensure_ascii=False) and '私有' not in json.dumps(row,ensure_ascii=False)
+
+
+def test_time_contract_block_is_visible_but_never_exports_full_candidate_or_source():
+    s, r = evidence()
+    r['time_contract_validation'] = {'version': 'review-time-reservation-guard-v1',
+        'applicable': True, 'passed': False, 'reason': '预留不是到期计时器',
+        'review_wait_ms': 180000, 'execution_reserve_ms': 60000,
+        'findings': [{'answer_quote': '私有候选正文'}], 'task': '私有完整上下文'}
+    trace = project(s, r)
+    assert trace['quality_gate'] == 'failed'
+    assert trace['time_contract_validation']['reason'] == '预留不是到期计时器'
+    assert '私有' not in json.dumps(trace, ensure_ascii=False)
+
+
+def test_source_attribution_check_preserves_conservative_reason_without_private_text():
+    s, r = evidence()
+    r['source_state_validation'] = {'version': 'source-state-attribution-guard-v1',
+        'applicable': True, 'passed': False, 'reason': '需澄清归属，不证明实际未验证',
+        'findings': [{'answer_quote': '私有候选全文'}]}
+    trace = project(s, r)
+    assert trace['quality_gate'] == 'failed'
+    assert trace['source_state_validation']['passed'] is False
+    assert '私有' not in json.dumps(trace, ensure_ascii=False)
 
 
 def test_grounding_trace_preserves_verdicts_and_verified_short_quotes_only():
@@ -113,6 +176,22 @@ def test_cash_reference_pending_and_external_judge_are_separate():
     r['calls'][-1]['charged'] = None
     assert project(s, r)['ledger'][0]['pending_cash_cny'] is None
     assert project(s, r)['ledger'][0]['remaining_cash_cny'] is None
+
+
+@pytest.mark.parametrize('unit', ['CNY', 'AFP'])
+def test_missing_call_unit_uses_only_frozen_evidence_and_preserves_explicit_units(unit):
+    s, r = evidence()
+    r['billing_unit'] = unit
+    s['candidate_models']['subscription']['billing_unit'] = unit
+    del r['calls'][0]['billing_unit']
+    before = deepcopy((s, r))
+    assert project(s, r)['calls'][0]['billing_unit'] == unit
+    assert project(s, r)['calls'][1]['billing_unit'] == 'CNY'
+    assert (s, r) == before
+    del s['candidate_models']['subscription']['billing_unit']
+    assert project(s, r)['calls'][0]['billing_unit'] == unit
+    del r['billing_unit']
+    assert 'billing_unit' not in project(s, r)['calls'][0]
 
 
 def test_released_reservation_and_zero_unlimited_are_not_billed():
@@ -171,6 +250,28 @@ def test_route_comparison_never_becomes_execution_or_quality_evidence():
     assert trace['comparison']['complete_task_cost_bound'] is None
     assert not trace['comparison']['decision_factors']['task_specific_dag_quality_gain_verified']
     assert len(trace['calls']) == 2  # 未执行的 DAG 不生成假调用
+
+
+def test_node_evidence_and_parallel_facts_are_projected_without_private_materials():
+    s, r = evidence()
+    s['cost_trace'] = {'selected_nodes': [{'node_id': 'answer', 'model_id': 'subscription',
+        'expected_cost': .05, 'expected_input_tokens': 3000, 'expected_output_tokens': 1000,
+        'quality_source': 'independent-node-evaluation', 'quality_prior': 90,
+        'quality_evidence': {'kind': 'independent-node-evaluation', 'samples': 3,
+            'bundleSha256': 'a' * 64, 'private_context': '不能展示的原始材料'},
+        'node_features': {'type': 'generation', 'difficulty': 'medium', 'risk': 'high'}}]}
+    s['cost_trace']['node_candidates'] = [{'node_id': 'answer', 'model_id': 'subscription',
+        'provider': 'ark', 'model': 'flash', 'selected': True, 'eligible': True,
+        'quality_evidence': {'samples': 3, 'heldOutStatus': 'passed', 'heldOutSamples': 1,
+                             'private_context': '不能展示的原始材料'}}]
+    r['execution'] = {'peak_active_nodes': 3, 'policy': {'max_concurrency': 3},
+                      'failure_policy': 'stop-dispatch-and-drain', 'request_messages': ['私有请求']}
+    row = project(s, r)
+    assert row['node_forecasts'][0]['quality_evidence']['samples'] == 3
+    assert row['parallel_execution']['peak_active_nodes'] == 3
+    assert row['node_model_candidates'][0]['quality_evidence']['heldOutStatus'] == 'passed'
+    assert '不能展示' not in json.dumps(row, ensure_ascii=False)
+    assert '私有请求' not in json.dumps(row, ensure_ascii=False)
 
 
 def test_history_uses_frozen_budget_and_does_not_write_or_reroute(tmp_path):

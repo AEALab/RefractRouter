@@ -26,6 +26,9 @@ def catalog(base, slug, advertised):
             support_verbosity=False, supports_search_tool=False, use_responses_lite=False,
             apply_patch_tool_type=None, additional_speed_tiers=[], service_tiers=[],
             availability_nux=None, upgrade=None)
+        # 目录继承的是宿主指令，不是基线模型的私有 custom 执行协议。
+        # 目前 Router 只接通 function；让客户端保留原生 function 工具循环。
+        model.update(tool_mode=None, experimental_supported_tools=[], node_repl_disabled=True)
         # 压缩由 Codex 执行；只根据真实容量收紧原客户端阈值。
         original = model.get('auto_compact_token_limit')
         limit = max(1, caps['contextWindow'] - caps['maxOutputTokens'])

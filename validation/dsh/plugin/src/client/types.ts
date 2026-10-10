@@ -1,5 +1,6 @@
 /** 浏览器半边的结构化契约：对应 DSH 客户端插件上下文提供的服务。 */
 import type { CardScope } from '../settings-card.js'
+import type { AssistantEventRegistry } from '../assistant-stream-compat.js'
 
 export interface LocaleDictionary {
   [key: string]: string
@@ -22,6 +23,7 @@ export interface ClientSlotsService {
 }
 
 export interface ClientContext {
+  uiConversation?: {events: AssistantEventRegistry}
   slots: ClientSlotsService
   locale: ClientLocaleService
   settingsScope: ClientSettingsScopeBinder

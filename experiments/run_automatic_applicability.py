@@ -85,13 +85,32 @@ def validate_materials(protocol):
 def historical_roots(root, deployed_root):
     """私有证据与旧公开产物共同核对，复制的派发记录由账本身份去重。"""
     return [*root.joinpath('reports').glob('automatic*'), root/'.refractagent/runs',
-            root/'.refractagent/private-audit', deployed_root/'.refractagent/runs',
-            deployed_root/'.refractagent/private-audit']
+            root/'.refractagent/private-audit', root/'.refractagent/acceptance',
+            deployed_root/'.refractagent/runs', deployed_root/'.refractagent/private-audit',
+            deployed_root/'.refractagent/acceptance']
 
 
 def historical_protection(roots):
     """按真实派发身份去重；旧订阅单位不冒充现金，未知现金预留继续占额度。"""
     calls = {}
+    def collect(row, model, path, unit):
+        if (unit != 'CNY' or not row.get('dispatch_at')
+                or model.get('deployment') in {'local', 'simulated-local'}
+                or model.get('billing_mode', row.get('billing_mode')) == 'subscription'):
+            return
+        identity = digest([row['dispatch_at'], row['model_id'], row.get('input_sha256')])
+        amount = row.get('charged', row.get('reserved', 0))
+        if type(amount) not in (int, float) or not math.isfinite(amount) or amount < 0:
+            raise ValueError('历史现金费用无效，不能继续派发')
+        entry = {'source': str(path), 'model': row['model_id'], 'status': row['status'],
+                 'amountCny': amount}
+        previous = calls.get(identity)
+        if previous and previous['amountCny'] != amount:
+            if previous['status'] == 'billed' and entry['status'] == 'billed':
+                raise ValueError('同一历史调用的费用记录冲突')
+            if previous['status'] == 'billed':
+                return
+        calls[identity] = entry
     for base in roots:
         if not base.exists():
             continue
@@ -107,25 +126,16 @@ def historical_protection(roots):
             for row in raw.get('calls', []):
                 model = models.get(row.get('model_id'), {})
                 unit = row.get('billing_unit', raw.get('billing_unit', manifest.get('billing_unit')))
-                if (unit != 'CNY' or not row.get('dispatch_at')
-                        or model.get('deployment') in {'local', 'simulated-local'}
-                        or model.get('billing_mode', row.get('billing_mode')) == 'subscription'):
-                    continue
-                identity = digest([row['dispatch_at'], row['model_id'], row.get('input_sha256')])
-                amount = row.get('charged', row.get('reserved', 0))
-                entry = {'source': str(path), 'model': row['model_id'], 'status': row['status'],
-                         'amountCny': amount}
-                previous = calls.get(identity)
-                if previous and previous['amountCny'] != amount:
-                    # 同一派发的后续结算优先；两个不同结算金额必须人工核对。
-                    if previous['status'] == 'billed' and entry['status'] == 'billed':
-                        raise ValueError('同一历史调用的费用记录冲突')
-                    if previous['status'] == 'billed':
-                        continue
-                calls[identity] = entry
+                collect(row, model, path, unit)
+        for path in base.rglob('batch-ledger.json'):
+            raw = json.loads(path.read_text())
+            if not {'referenceCostsCny', 'cashCostsCny', 'records'} <= set(raw):
+                continue
+            for row in raw['records']:
+                collect(row, {}, path, row.get('billing_unit', 'CNY'))
     return {'calls': calls, 'cashProtectedCny': sum(r['amountCny'] for r in calls.values()),
             'unknownCount': sum(r['status'] == 'unknown-usage' for r in calls.values()),
-            'scope': '可核对的自动路由 result／manifest 按派发身份去重；独立 Jev 账本另行预留。'}
+            'scope': '自动路由 result／manifest 与有限验收批账本按派发身份去重；独立 Jev 账本另行预留。'}
 
 
 def task_check(answer, task, *, review_receipt=False):

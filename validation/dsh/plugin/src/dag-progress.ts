@@ -57,6 +57,10 @@ function state(row: NodeView): string {
   return escape(label) + (row.attempt > 1 ? `（第 ${row.attempt} 次）` : '')
     + (row.recovery ? ` · ${escape(row.recovery)}` : '')
 }
+export function dagNodePresentation(row:NodeView) {
+  return {id:row.id,objective:row.objective,parents:row.parents,model:model(row),state:state(row),
+    type:row.node_type??'未提供',difficulty:row.difficulty??'未提供',risk:row.risk??'未提供'}
+}
 export function dagListing(view: DagView): string {
   if (!view.nodes.length) return ''
   return '\n【节点清单】\n' + view.nodes.map(row => `${escape(row.id)} · ${escape(row.objective)}\n  类型：${escape(row.node_type ?? '未提供')}；难度：${escape(row.difficulty ?? '未提供')}；风险：${escape(row.risk ?? '未提供')}\n  依赖：${row.parents.map(escape).join('、') || '无'}\n  模型：${model(row)}\n  状态：${state(row)}`).join('\n\n') + '\n'
@@ -121,7 +125,7 @@ export function runSummary(result: Record<string, unknown>): string {
         :`direct 预计 ${object(comparison.direct)?number(comparison.direct.total_estimated_cost):'不可行'}，`
         +`${generatedLabel} 预计 ${object(comparison.dag)?number(comparison.dag.total_estimated_cost):'不可行'} ${String(result.billing_unit)}\n`)
       + qualityLine
-      + (comparison.complete_task_cost_bound===false?'费用范围：仅比较已知规划、执行与最终评审；无限工具续接费用未估计，每次后续调用仍检查预算，不保证整任务费用上界。\n':'')
+      + (comparison.complete_task_cost_bound===false?'费用范围：预计用量用于路线比较，不是最高费用上界；实际派发按完整输入和输出上限预留，后续工具续接另行检查预算。\n':'')
     : ''
   const netSavings=object(comparison.dag_net_estimated_savings_vs_unprobed_direct_by_unit)
     ?`规划前基线净节省预测：${vector(comparison.dag_net_estimated_savings_vs_unprobed_direct_by_unit)}；AFP 与 CNY 分账，不能直接相加；尚未经反事实实测\n`
@@ -173,7 +177,13 @@ export function runSummary(result: Record<string, unknown>): string {
   const expectedLines=selected.filter(object).map(row=>
     `${escape(String(row.node_id))} → ${escape(String(row.model_id))}：预计 ${number(row.expected_cost)} ${escape(String(row.unit))}；`
     +`输入预计 ${String(row.expected_input_tokens)} tokens（保守上界 ${String(row.conservative_input_bound??'未提供')}），`
-    +`输出预计 ${String(row.expected_output_tokens)} tokens；依据 ${escape(String(row.input_source??'未提供'))} / ${escape(String(row.output_source??'未提供'))}\n`).join('')
+    +`输出预计 ${String(row.expected_output_tokens)} tokens；依据 ${escape(String(row.input_source??'未提供'))} / ${escape(String(row.output_source??'未提供'))}；`
+    +`节点质量 ${number(row.quality_prior)}，${row.quality_source==='independent-node-evaluation'
+      ?`独立节点证据 ${object(row.quality_evidence)?String(row.quality_evidence.samples):'未提供'} 条`
+      :row.quality_source==='known-node-failure-outside-observed-input-range'?'同类节点已有失败；新输入范围未经复验，不采用乐观全局先验'
+      :row.quality_source==='global-prior-outside-node-evidence-task-scope'?'本任务不在节点实测适用范围，使用未验证先验'
+      :row.quality_source==='global-prior-no-matching-node-evidence'?'未覆盖该节点分层，使用全局先验（非节点实测）':'配置先验'}；`
+    +(object(row.evidence_scope)?`实测范围 ${escape(String(row.evidence_scope.description))}，${row.evidence_scope.matched?'本任务已登记':'本任务未匹配'}\n`:'\n')).join('')
   const actualLines=callRows.filter(object).map(row=>
     `${escape(String(row.label))} · ${escape(String(row.model_id))}：预留上界 ${number(row.reserved)} ${escape(String(row.unit))}，`
     +`${row.status==='billed'?'实际结算':row.status==='unknown-usage'?'待核对预留':row.status==='cancelled-before-dispatch'?'已释放':'当前占用'} ${number(row.charged)} ${escape(String(row.unit))}，状态 ${escape(String(row.status))}\n`).join('')
@@ -192,8 +202,12 @@ export function runSummary(result: Record<string, unknown>): string {
   const toolLine=toolValidation?`工具验收：${toolValidation.passed===true?'回执检查通过':'未通过'}；${escape(String(toolValidation.message??toolValidation.reason))}\n`
     +(Array.isArray(toolValidation.records)?toolValidation.records.filter(object).map(row=>
       `工具 ${escape(String(row.tool))} · 调用 ${escape(String(row.call_id))} · 宿主结果 ${escape(String(row.outcome))}\n`).join(''):''):''
+  const execution=object(result.execution)?result.execution:{}
+  const concurrency=object(result.execution_policy)?result.execution_policy:{}
+  const parallelLine=typeof execution.peak_active_nodes==='number'
+    ?`节点派发：配置并发 ${String(concurrency.max_concurrency??1)}，实际峰值 ${String(execution.peak_active_nodes)}；汇总节点等待父节点完成，宿主工具逐个执行。\n`:''
   return `\n【任务摘要】\n策略：${String(result.strategy_name)}；整体状态：${String(result.status)}\n`
-    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + selectionLine + modelLines + latencyLines + costTraceLine + toolLine
+    + route + localLine + comparisonLine + netSavings + valueLine + diagnosticLines + selectionLine + modelLines + latencyLines + costTraceLine + toolLine + parallelLine
     + `生成：${String(result.generation_status ?? '未提供')}；语义评审：${quality.passed === true ? '通过' : quality.passed === false ? '未通过' : '未提供'}，得分 ${String(quality.score ?? '未提供')}\n`
     + (mixed?`费用分账：${mixedCosts}\n`
       +(allIn?`已知合计（含外部拆分 Judge）：AFP ${number(allIn.AFP)}、CNY ${number(allIn.CNY)}；${externalJudge?`外部判别调用 ${String(externalJudge.call_id??'未提供')}，CNY ${number(externalJudge.cost)}`:''}\n`:'')

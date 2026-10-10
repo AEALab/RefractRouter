@@ -1,0 +1,101 @@
+{
+  "schema_version": "automatic-original-entry-independent-audit-v1",
+  "run_id": "20261009T053929Z-538a36a1e664",
+  "sourceVersion": "0.16.25",
+  "pluginVersion": "0.33.10",
+  "runtimeReportedStatus": "quality-failed",
+  "qualityNotAccepted": true,
+  "guardFalsePositiveConfirmed": true,
+  "reason": "明确本次主体后的也以及顿号并列导致 v2 丢失自述归属；仅作新规则派生复查，不追改原判定。",
+  "originalValidation": {
+    "version": "source-state-attribution-guard-v2",
+    "applicable": true,
+    "passed": false,
+    "scope": "strict-material-negative-verification-attribution",
+    "findings": [
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "本次也未调用工具、未修改文件、未核对账单、未执行测试",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      },
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "本次也未调用工具、未修改文件、未核对账单、未执行测试",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      },
+      {
+        "check_id": "negative-verification-attribution",
+        "answer_quote": "本次也未核对账单",
+        "reason": "否定验证措辞没有明确本次主体、条件前提或匹配的原材料断言；需澄清归属。"
+      }
+    ],
+    "reason": "材料没有交代系统的历史验证状态，不能把信息缺失改写为未经验证或未核对的事实。若只说明本次行为，明确写本次未执行／核对；若说明材料缺项，写材料未说明、尚待确认。保留明确条件风险，复核风险表和建议，不声称历史上从未验证。"
+  },
+  "derivedAttributionCheck": {
+    "version": "source-state-attribution-guard-v3",
+    "applicable": true,
+    "passed": true,
+    "scope": "strict-material-negative-verification-attribution",
+    "findings": [],
+    "reason": "已覆盖措辞的归属检查未发现问题；不证明其他事实正确。"
+  },
+  "derivedCheckIsNotOriginalDecision": true,
+  "derivedCheckDoesNotProveSemanticQuality": true,
+  "answer": "以下仅依据题目给定材料对三个互不依赖的发布检查项进行审查。材料未提供提供方账单、实时价格或任何测试执行记录，本次也未调用工具、未修改文件、未核对账单、未执行测试；凡涉及这些的数值均按口径评估/估算，涉及材料未说明的项一律标注「材料未说明，尚待确认」。\n\n## 发布检查项审查\n\n| 检查项 | 既定口径 | 主要风险 |\n|---|---|---|\n| A. 费用 | 订阅模型按公开价格记参考估值；按量模型记现金费用；未知用量保留预留 | ① 公开价格估算可能与订阅套餐实际计费（tier、用量封顶、含税、生效时间）存在差异，导致估值失真；② 按量现金费用依赖实际用量与价格，材料未提供账单核对记录，本次也未核对账单，金额可能出现偏差；③ 预留口径未定义（金额上限还是比例），若用量超预期，预留不足，最终费用可能超估 |\n| B. 时间 | 审核最多等待 180 秒，受任务剩余期限约束；执行阶段给审核预留 60 秒 | ① 60 秒预留是进入审核时应留下的时间，与 180 秒等待上限口径不同；若执行阶段耗时过长，进入审核时剩余时间可能不足，审核会被任务剩余期限压缩/截断，实际等待可能少于 180 秒；② 未明确 60 秒预留、180 秒上限与任务剩余期限三者冲突时的取舍规则 |\n| C. 回滚 | 关闭新入口；保留原有会话、模型 provider、凭证与运行证据 | ① 若关闭新入口不彻底（缓存/CDN、旧版本入口未覆盖），仍可能被外部访问；② 保留凭证存在安全隐患——若回滚后未及时回收/轮换权限，凭证可能成为泄露面；③ 运行证据长期保留涉及日志留存与数据合规（隐私、审计）约束，材料未说明留存期限，尚待确认 |\n\n**一项改进建议**：为每个检查项补充明确的量化验收标准与复核节点——费用预留设定金额上限并标注「估算/待账单核对」；时间项明确「进入审核时应留 60 秒，同时受 180 秒等待上限和任务剩余期限双重约束」，冲突时取更严格者；回滚项增加「关闭入口后的可达性验证 + 凭证权限回收/轮换」步骤。在本次未执行相应验证（如账单核对、入口可达性测试）前，相关状态仅标注为「本次未验证」或「材料未说明，尚待确认」，不视为已确认通过。",
+  "answerSha256": "28a46f715ffaeed275c86e90f27fc05f3372ab07b190506a2eb6d742a6968efb",
+  "calls": [
+    {
+      "label": "planner",
+      "model_id": "dsh-model-7077bbf6a06daaa6",
+      "status": "billed",
+      "charged": 0.019111269618,
+      "input_tokens": 9818,
+      "output_tokens": 308,
+      "latency_ms": 6639,
+      "billing_mode": "subscription"
+    },
+    {
+      "label": "answer",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "status": "billed",
+      "charged": 0.03035568,
+      "input_tokens": 17826,
+      "output_tokens": 1345,
+      "latency_ms": 29738,
+      "billing_mode": "subscription"
+    },
+    {
+      "label": "final-correction",
+      "model_id": "dsh-model-72afd0d705290d78",
+      "status": "billed",
+      "charged": 0.032692,
+      "input_tokens": 10174,
+      "output_tokens": 1543,
+      "latency_ms": 26311,
+      "billing_mode": "subscription"
+    },
+    {
+      "label": "final-judge-correction",
+      "model_id": "dsh-review-7077bbf6a06daaa6",
+      "status": "cancelled-before-dispatch",
+      "charged": 0,
+      "input_tokens": null,
+      "output_tokens": null,
+      "latency_ms": null,
+      "billing_mode": "subscription"
+    }
+  ],
+  "actual": {
+    "wallTimeMs": 62802,
+    "referenceCny": 0.08240884473759952,
+    "cashCny": 0.00024989511959999997,
+    "jevCny": 0.00024989511959999997
+  },
+  "sourceFilesSha256": {
+    "result.json": "92547e0745e01f9169a5861096de7b3a14d425d9b96fd515cf48bfe1f96bf2f4",
+    "summary.json": "b0d51bf1780880ad26c5600e88121c50e7fd5267e02b3591f316f55594093909",
+    "request.json": "b4555e0d581f9e9375a1df573941a0884982db4b62a52e1de55589a3d67c53c6"
+  },
+  "privateContextPublished": false,
+  "priorOutputReplaced": false
+}

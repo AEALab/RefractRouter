@@ -118,3 +118,84 @@ test('DSH model bridge assembles native calls and replays matched assistant/tool
   assert.equal(seen[0]!.messages[1]!.source.model,'previous-model')
   assert.deepEqual(seen[0]!.messages[1]!.source.replayState,{response:{id:'previous'}})
 })
+
+test('parallel host calls overlap, retain out-of-order identities and consume progress immediately',async()=>{
+  const stdin=new PassThrough(),stdout=new PassThrough(),replies:Record<string,unknown>[]=[]
+  const progress:unknown[]=[],starts:string[]=[]
+  let unblock!:()=>void
+  const firstWaiting=new Promise<void>(resolve=>{unblock=resolve})
+  stdin.on('data',chunk=>{
+    replies.push(JSON.parse(String(chunk)))
+    if(replies.filter(r=>r.protocol==='refractrouter-dsh-llm/v1').length===2)
+      stdout.end(JSON.stringify({schema_version:'refractagent-result-v1'})+'\n')
+  })
+  const handle={stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),waitForExit:async()=>{},collected:{}}
+  const ctx={llm:{listProviders:()=>[],providerRetryPolicy:()=>({mode:'normal',maxRetries:0}),
+    resolveModelInfo:async()=>undefined,async *stream(options:LlmOptions):AsyncGenerator<StreamChunk>{
+    starts.push(options.model)
+    if(options.model==='slow') await firstWaiting
+    yield {type:'text-delta',text:options.model}
+    yield {type:'usage',usage:{inputTokens:10,outputTokens:2}}
+    yield {type:'finish',reason:{kind:'stop'}}
+    if(options.model==='fast') setTimeout(unblock,0)
+  }}}
+  const result=pumpDshBridge(ctx,handle,new AbortController().signal,
+    [{provider:'test',model:'slow'},{provider:'test',model:'fast'}],2097152,p=>progress.push(p))
+  const base={protocol:'refractrouter-dsh-llm/v1',type:'request',provider:'test',timeout_ms:1000,
+    max_tokens:1000,messages:[{role:'user',content:'公开测试'}]}
+  stdout.write(JSON.stringify({protocol:'refractrouter-host/v1',type:'request',id:'cap',operation:'capabilities'})+'\n')
+  stdout.write(JSON.stringify({...base,id:'a',model:'slow'})+'\n')
+  stdout.write(JSON.stringify({protocol:'refractagent-progress/v1',sequence:1})+'\n')
+  stdout.write(JSON.stringify({...base,id:'b',model:'fast'})+'\n')
+  await result
+  assert.deepEqual(starts,['slow','fast'])
+  assert.equal(progress.length,1)
+  assert.deepEqual(replies.map(r=>r.id),['cap','b','a'])
+  assert.equal(replies[1]!.content,'fast')
+  assert.equal(replies[2]!.content,'slow')
+})
+
+test('parallel model bridge still serializes side-effecting native tools',async()=>{
+  const f=fixture(),stdin=new PassThrough(),stdout=new PassThrough()
+  let active=0,peak=0,responses=0,release!:()=>void
+  const started:string[]=[]
+  const held=new Promise<void>(resolve=>{release=resolve})
+  f.ctx.tools!.execute=async input=>{
+    started.push(String(input.callId));active++;peak=Math.max(peak,active)
+    if(started.length===1) await held
+    active--
+    return {isError:false,content:[{type:'text',text:'正常完成'}]}
+  }
+  stdin.on('data',()=>{responses++;if(responses===2)stdout.end('{}\n')})
+  const handle={stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),waitForExit:async()=>{},collected:{}}
+  const done=pumpDshBridge(undefined,handle,new AbortController().signal,[],2097152,
+    undefined,bindNativeTools(f.ctx,schemas))
+  stdout.write(JSON.stringify(request)+'\n')
+  stdout.write(JSON.stringify({...request,id:'2',call:{...request.call,id:'c2'}})+'\n')
+  await new Promise(resolve=>setImmediate(resolve))
+  assert.equal(started.length,1)
+  release()
+  await done
+  assert.equal(started.length,2)
+  assert.equal(peak,1)
+})
+
+test('cancel aborts all concurrent model waits and does not resend',async()=>{
+  const stdin=new PassThrough(),stdout=new PassThrough(),controller=new AbortController()
+  const replies:Record<string,unknown>[]=[]
+  let starts=0
+  stdin.on('data',chunk=>{replies.push(JSON.parse(String(chunk)));if(replies.length===2)stdout.end('{}\n')})
+  const handle={stdin,stdout,done:Promise.resolve({exitCode:0,signal:null}),waitForExit:async()=>{},collected:{}}
+  const ctx={llm:{listProviders:()=>[],providerRetryPolicy:()=>({mode:'normal',maxRetries:0}),
+    resolveModelInfo:async()=>undefined,async *stream():AsyncGenerator<StreamChunk>{
+    starts++;if(starts===2)setImmediate(()=>controller.abort())
+    await new Promise<void>(()=>{})
+  }}}
+  const result=pumpDshBridge(ctx,handle,controller.signal,[{provider:'test',model:'fixture'}],2097152)
+  for(const id of ['1','2'])stdout.write(JSON.stringify({protocol:'refractrouter-dsh-llm/v1',
+    type:'request',id,provider:'test',model:'fixture',timeout_ms:1000,max_tokens:1000,
+    messages:[{role:'user',content:'测试取消'}]})+'\n')
+  await result
+  assert.equal(starts,2)
+  assert.ok(replies.every(r=>r.ok===false&&r.failure_type==='aborted'))
+})

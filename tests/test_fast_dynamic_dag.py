@@ -71,7 +71,7 @@ def test_default_small_planner_is_compact_and_production_remains_quality_routed(
     assert result['status']=='completed', result['issues']
     assert client.calls[0][0].model_id=='fast'
     assert client.calls[0][0].max_output_tokens==2048
-    assert set(client.calls[0][1])=={'task','parallel_capacity','max_nodes'}
+    assert set(client.calls[0][1])=={'task','parallel_capacity','max_nodes','output_forecast_cap'}
     assert len(raw['compact_planning']['attempts'])==1
     assert result['plan_ready_ms']>=0
     assert raw['execution']['policy']['max_concurrency']==4

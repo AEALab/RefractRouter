@@ -2,6 +2,7 @@ import {test} from 'node:test'
 import assert from 'node:assert/strict'
 import {readFileSync} from 'node:fs'
 import {runInNewContext} from 'node:vm'
+import {setImmediate as flush} from 'node:timers/promises'
 
 function client(){let api:any
   const element=(type:any,props:any,...children:any[])=>typeof type==='function'?type({...props,children:children.length?children:props?.children}):{type,props,children:children.length?children:props?.children}
@@ -12,6 +13,76 @@ function client(){let api:any
 }
 const rid='20261007T064045Z-118980e3a74b'
 const text=`正在预检并执行真实自动路由。\n完成；记录：/safe/runs/${rid}/result.json`
+
+test('工具容量显示完整审核计数与实际容量，旧记录保留旧包络而不冒充重新审核',()=>{
+  const api=client()
+  for(const tools of [
+    {evidence_bytes:65759,capacity_basis:'complete-review-request-v1',review_input_bound:210000,review_input_limit:1040384},
+    {evidence_bytes:65759,evidence_limit_bytes:16384},
+  ]){
+    const rendered=JSON.stringify(api.AutomaticRecord({record:{...record(),tools},reference:{id:rid,state:'settled'}}))
+    assert.ok(rendered.includes('65,759'))
+    if('capacity_basis' in tools){assert.ok(rendered.includes('210,000'));assert.ok(rendered.includes('1,040,384'))}
+    else{assert.ok(rendered.includes('旧合同证据上限'));assert.ok(rendered.includes('16,384'))}
+  }
+})
+
+test('每条轨迹默认收合，标题仍显示执行时间、耗时和轮次，正文留在展开内容内',()=>{
+  const api=client(),tree=api.AutomaticRecord({record:record(),reference:{id:rid,state:'settled',turn:3}})
+  assert.equal(tree.type,'details')
+  assert.equal(tree.props.open,undefined)
+  assert.equal(tree.children[0].type,'summary')
+  const title=JSON.stringify(tree.children[0])
+  for(const value of ['自动路由','已完成','2026-10-07','总耗时','20.0 秒','宿主轮次 3'])assert.ok(title.includes(value),value)
+  assert.ok(!title.includes('任务判别与最终执行路线'))
+  assert.ok(JSON.stringify(tree.children[1]).includes('任务判别与最终执行路线'))
+  const planning=api.TraceRecord({title:'任务 · 已完成',identity:'记录 task-1',
+    startedAt:'2026-10-09T10:23:01Z',elapsedMs:62685,children:'规划路由明细'})
+  assert.equal(planning.type,'details');assert.equal(planning.props.open,undefined)
+  assert.ok(JSON.stringify(planning.children[0]).includes('1 分 2 秒'))
+})
+
+test('轨迹转换 UTC 为本地时间，旧记录缺失耗时不伪造零值',()=>{
+  const api=client()
+  assert.equal(api.traceTimestamp(api.automaticStartedAt(rid),'Asia/Shanghai'),'2026-10-07 14:40:45')
+  assert.equal(api.automaticStartedAt('20260230T064045Z-118980e3a74b'),undefined)
+  assert.equal(api.traceTimestamp('not-a-date'),'未记录')
+  assert.equal(api.traceDuration(undefined),'未记录')
+  assert.equal(api.traceDuration(null),'未记录')
+  assert.equal(api.traceDuration(-1),'未记录')
+  assert.equal(api.traceDuration(0),'0 毫秒')
+  assert.equal(api.traceDuration(3662000),'1 小时 1 分 2 秒')
+  const tree=api.TraceRecord({title:'静态 · 已完成',identity:'历史记录',children:'原始证据'})
+  assert.ok(JSON.stringify(tree.children[0]).includes('未记录'))
+})
+
+test('运行中的轨迹定时刷新，慢响应不并发覆盖；卸载后迟到结果不更新',async()=>{
+  let api:any,tick:()=>Promise<void>|void,cleanup:()=>void,loads=0,cleared=false
+  const updates:any[]=[],pending:Array<(value:any)=>void>=[]
+  const react={useState:(value:any)=>[value,(next:any)=>updates.push(next)],useEffect:(effect:any)=>{cleanup=effect()}}
+  runInNewContext(readFileSync(new URL('../dist/client.js',import.meta.url),'utf8'),{
+    window:{__ModuleLoader__:{load:({factory}:any)=>{api=factory(()=>react)}}},Intl,
+    setInterval:(fn:any,ms:number)=>{tick=fn;assert.equal(ms,2500);return 1},clearInterval:()=>{cleared=true}})
+  const load=()=>{loads++;return new Promise(resolve=>pending.push(resolve))}
+  api.useAutomaticHistory([{id:rid,state:'running'}],load)
+  assert.equal(loads,1);tick!();assert.equal(loads,1)
+  const first={records:[{run_id:rid,status:'started'}],errors:[]}
+  pending.shift()!(first);await flush()
+  assert.ok(updates.includes(first));tick!();assert.equal(loads,2)
+  cleanup!();assert.equal(cleared,true)
+  const late={records:[{run_id:rid,status:'completed'}],errors:[]}
+  pending.shift()!(late);await flush()
+  assert.ok(!updates.includes(late))
+})
+
+test('节点实测超出任务适用范围时明确显示未匹配，不能显示为实测成绩',()=>{
+  const api=client(),data:any=record()
+  data.node_forecasts=[{node_id:'answer',model_id:'m0',quality_prior:85,
+    quality_source:'global-prior-outside-node-evidence-task-scope',
+    evidence_scope:{description:'冻结技术发布检查',matched:false}}]
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['本任务不在节点实测适用范围','使用未验证先验','冻结技术发布检查','本任务未匹配'])assert.ok(tree.includes(text),text)
+})
 
 test('自动轨迹只读取当前会话的受控助手记录引用，兼容旧版路径标记',()=>{
   const api=client(),snapshot={legacy:{nodes:[
@@ -32,6 +103,41 @@ test('自动轨迹识别运行、中断和重复引用，不把终止记录当�
   ],partial:null}})
   assert.equal(result.length,1);assert.equal(result[0].state,'interrupted');assert.equal(result[0].error,'调用失败')
   assert.equal(api.automaticRefs({legacy:{nodes:[],partial:{turn:4,blocks:[{kind:'reasoning',text:prefix}]}}})[0].state,'running')
+})
+
+test('刷新后的失败 attempt 从本会话 Location 引用读取，不依赖正常助手正文',()=>{
+  const api=client(),reference={id:rid,turn:2,state:'interrupted',error:'质量未通过'}
+  const snapshot={legacy:{nodes:[{kind:'turn-error',turn:2,message:'核心停止'}],partial:null},
+    timeline:{turns:new Map([[2,{steps:[{data:{get:(key:string)=>key==='refractagent-automatic-attempt'
+      ? {refs:[reference,{...reference,id:'../../private'},{...reference,turn:3}]}:undefined}}]}]])}}
+  const result=api.automaticRefs(snapshot)
+  assert.equal(result.length,1)
+  assert.equal(result[0].id,rid)
+  assert.equal(result[0].state,'interrupted')
+  assert.equal(result[0].error,'核心停止')
+})
+
+test('历史失败从 timeline 补入时，最新运行与完成记录仍置顶',()=>{
+  const api=client(),old='20261009T080344Z-f47e7a13a3bc',done='20261009T101959Z-f90b211b1e63',latest='20261009T102301Z-0b401d001507'
+  const blocks=(id:string)=>[{kind:'reasoning',text:`正在预检并执行真实自动路由。\n【自动路由记录】${id}`}]
+  const snapshot:any={legacy:{nodes:[{kind:'assistant',turn:3,blocks:blocks(done)},
+    {kind:'turn-error',turn:1,message:'最终审核失败'}],partial:{turn:4,blocks:blocks(latest)}},
+    timeline:{turns:new Map([[1,{steps:[{data:{get:()=>({refs:[{id:old,turn:1,state:'interrupted'}]})}}]}]])}}
+  let result=api.automaticRefs(snapshot)
+  assert.deepEqual(Array.from(result,(r:any)=>r.id),[latest,done,old])
+  assert.equal(result[0].state,'running');assert.equal(result[2].error,'最终审核失败')
+  snapshot.legacy.nodes.push({kind:'assistant',turn:4,blocks:blocks(latest)})
+  snapshot.legacy.partial=null
+  result=api.automaticRefs(snapshot)
+  assert.equal(result[0].id,latest);assert.equal(result[0].state,'settled')
+})
+
+test('最近二十条按运行时间截取，补入的旧失败不挤掉新记录',()=>{
+  const api=client(),ids=Array.from({length:21},(_,i)=>`20261009T10${i.toString().padStart(2,'0')}00Z-000000000001`)
+  const snapshot={legacy:{nodes:ids.map((id,i)=>({kind:'assistant',turn:i+2,
+    blocks:[{kind:'reasoning',text:`正在预检并执行真实自动路由。\n【自动路由记录】${id}`}]})),partial:null},
+    timeline:{turns:new Map([[1,{steps:[{data:{get:()=>({refs:[{id:rid,turn:1,state:'interrupted'}]})}}]}]])}}
+  assert.deepEqual(Array.from(api.automaticRefs(snapshot),(r:any)=>r.id),ids.slice(1).reverse())
 })
 
 test('自动轨迹不接受自由文本路径、穿越或无限数量引用',()=>{
@@ -96,9 +202,23 @@ test('轨迹显示独立评审包络、固定事实阻断和已记录的格式�
   data.planner_normalizations=[{type_normalization:{version:'compact-type-alias-v1',
     changes:[{node_id:'facts',from:'analysis',to:'synthesis'}]}}]
   const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
-  for(const expected of ['固定事实检查未通过，未派发评审','评审预留时间',api.traceNumber(8192),
+  for(const expected of ['固定事实检查未通过，未派发评审','执行阶段给评审预留',api.traceNumber(8192),
     '独立于执行模型输出容量','模型高分不能覆盖','compact-type-alias-v1','synthesis',
     '已扣评审预留与规划额度','时延先验不是速度保证','本次最多','个节点（含最终交付）'])assert.ok(tree.includes(expected),expected)
+})
+
+test('时间用途阻断明确显示，预留不再被描述为审核中的计时器',()=>{
+  const api=client(),data:any=record()
+  data.time_contract_validation={applicable:true,passed:false,reason:'预留不是审核到期计时器'}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['时间用途检查','未通过','预留不是审核到期计时器','不代替整份回复审核'])assert.ok(tree.includes(text),text)
+})
+
+test('材料状态检查说明保守阻断与事实已证伪的区别',()=>{
+  const api=client(),data:any=record()
+  data.source_state_validation={applicable:true,passed:false,reason:'归属不清'}
+  const tree=JSON.stringify(api.AutomaticRecord({record:data,reference:{id:rid,state:'settled'}}))
+  for(const text of ['材料状态归属检查','需澄清，暂不交付','不等于证明系统实际未验证'])assert.ok(tree.includes(text),text)
 })
 
 

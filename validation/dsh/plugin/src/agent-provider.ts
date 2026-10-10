@@ -214,8 +214,8 @@ async function routeProfileCatalog(ctx: AgentContext, config: Readonly<Configura
   try{executable=await ctx.subprocess.resolveExecutable(config.pythonExecutable,env,signal??new AbortController().signal)}
   catch{throw new Error('RefractAgent 可执行程序未找到；无法读取本地时延观测')}
   const pythonModule=/(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
-  const argv=[executable,...(pythonModule?['-m','refractrouter.agent_cli']:[]),'route-profiles','--runs-dir',resolve(config.runsDir)]
   const policy=ctx.sandboxPolicy.resolve({})
+  const argv=[executable,...(pythonModule?['-m','refractrouter.agent_cli']:[]),'route-profiles','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
   const confined=ctx.sandbox.confine(argv,policy)
   const handle=ctx.subprocess.spawn({argv:confined.argv,cwd:policy.workspaceRoot,env,
     stdio:{stdin:'ignore',stdout:{maxBytes:1048576},stderr:{maxBytes:16384}},
@@ -258,7 +258,19 @@ function resultFailure(result: Record<string, unknown>): PublicFailure | undefin
   const review = result.review
   const reviewFailed = result.status === 'failed' && review !== null && typeof review === 'object'
     && (review as Record<string, unknown>).status === 'failed'
-  const reason = reviewFailed ? '最终审核失败，候选尚未审定' : messages[String(result.status)]
+  const toolValidation = result.tool_validation as Record<string, unknown> | undefined
+  const reviewRecord = object(review) ? review : undefined
+  const reviewFailure = object(reviewRecord?.failure) ? reviewRecord.failure : undefined
+  const reviewMessages: Record<string, string> = {
+    'insufficient-evidence': '审核证据不足，未追加纠正或重跑工具',
+    'below-quality-threshold': '审核分数未达门槛，未发现可明确纠正的缺陷',
+    'infrastructure-error': '审核服务或传输失败，未自动重试',
+    'unconfirmed-model-usage': '模型用量待核对，保留预留并停止后续调用',
+    'unexpected-candidate-risk': '候选出现预检未保护的新审核风险，本次停止',
+  }
+  const reason = result.status === 'tool-requirement-failed' && typeof toolValidation?.message === 'string'
+    ? toolValidation.message : reviewMessages[String(reviewFailure?.kind)]
+      ?? (reviewFailed ? '最终审核失败，候选尚未审定' : messages[String(result.status)])
   if (!reason) return undefined
   return { kind: result.status === 'cancelled' ? 'aborted' : 'error',
     code: 'REFRACTAGENT_EXECUTION_FAILED',

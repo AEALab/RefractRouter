@@ -1,0 +1,31 @@
+{
+  "schema_version": "automatic-node-quality-cases-v1",
+  "scope": "公开文本材料中的账本、调度和来源约束。仅用于小样本节点能力校准，不证明任意任务的模型质量。",
+  "models": ["ark/deepseek-v4-flash", "ark/glm-5.3"],
+  "cases": [
+    {"id":"ledger-simple","split":"calibration","type":"synthesis","difficulty":"low","risk":"low",
+      "task":"材料：已结算订阅参考估值0.12 CNY，已结算现金0.03 CNY，未知现金预留0.07 CNY。分别计算已结算总参考成本与现金占用。只输出JSON，对应字段settled_reference、cash_occupied的值为不带单位的数字字符串。",
+      "expected":{"settled_reference":"0.15","cash_occupied":"0.10"}},
+    {"id":"ledger-cancel","split":"calibration","type":"synthesis","difficulty":"low","risk":"low",
+      "task":"材料：尚未派发预留0.06 CNY，已经派发但用量未知预留0.09 CNY，已结算现金0.02 CNY。取消只释放尚未派发部分。只输出JSON，字段released、remaining_occupied、settled_cash的值为不带单位的数字字符串。",
+      "expected":{"released":"0.06","remaining_occupied":"0.11","settled_cash":"0.02"}},
+    {"id":"parallel-time","split":"calibration","type":"synthesis","difficulty":"low","risk":"low",
+      "task":"三个无依赖分支分别耗时8、12、5秒。汇总耗时3秒，须等全部分支完成。模型调用并发容量3，没有额外延时。只输出JSON，字段serial_seconds和parallel_seconds的值为数字字符串。",
+      "expected":{"serial_seconds":"28","parallel_seconds":"15"}},
+    {"id":"ledger-held-out","split":"held-out","type":"synthesis","difficulty":"low","risk":"low",
+      "task":"已结算订阅参考估值0.31 CNY，已结算现金0.07 CNY，未知现金预留0.11 CNY，尚未派发预留0.03 CNY。取消释放尚未派发部分，未知预留仍保留。只输出JSON，字段settled_reference、cash_occupied、released的值为数字字符串。",
+      "expected":{"settled_reference":"0.38","cash_occupied":"0.18","released":"0.03"}},
+    {"id":"all-in-cost","split":"calibration","type":"generation","difficulty":"medium","risk":"high",
+      "task":"请核对两种路线的成本，不能把参考估值当成订阅现金扣款。Direct执行参考0.10、审核参考0.04、Jev现金0.002 CNY；DAG规划参考0.03、四节点合计参考0.08、审核参考0.04、Jev现金0.002 CNY。所有规划、执行和审核都走订阅路线，现金为0；Jev按量收费。只输出JSON，字段direct_all_in_reference、dag_all_in_reference、direct_cash、dag_cash的值为数字字符串。",
+      "expected":{"direct_all_in_reference":"0.142","dag_all_in_reference":"0.152","direct_cash":"0.002","dag_cash":"0.002"}},
+    {"id":"cancel-no-resend","split":"calibration","type":"generation","difficulty":"medium","risk":"high",
+      "task":"一次原请求已派发，用量未知，现金预留0.20 CNY；另一次调用已确认现金0.08 CNY。退款没有确认。用户取消等待，提供方未确认取消。需要核对：已结算现金、必须保留的未知预留、目前现金占用，以及是否允许自动重发原请求。只输出JSON，前三字段settled_cash、unknown_reservation、occupied_cash为数字字符串，auto_resend为yes或no字符串。",
+      "expected":{"settled_cash":"0.08","unknown_reservation":"0.20","occupied_cash":"0.28","auto_resend":"no"}},
+    {"id":"cache-price","split":"calibration","type":"generation","difficulty":"medium","risk":"high",
+      "task":"给定每百万token输入未命中2 CNY、缓存命中0.2 CNY、输出8 CNY。一次调用总输入10000，含6000缓存命中，输出1000，输出已包含推理token。不要额外重复计算推理。只输出JSON，字段input_cost、output_cost、total_cost的值为数字字符串。",
+      "expected":{"input_cost":"0.0092","output_cost":"0.008","total_cost":"0.0172"}},
+    {"id":"refund-held-out","split":"held-out","type":"generation","difficulty":"medium","risk":"high",
+      "task":"订阅已结算参考估值0.50 CNY，按量已结算现金0.10 CNY，已派发未知现金预留0.25 CNY，尚未派发预留0.04 CNY。取消释放尚未派发预留，退款未确认，不能把未知预留当已结算。只输出JSON：settled_reference、settled_cash、cash_occupied、released为数字字符串；auto_resend为yes或no。",
+      "expected":{"settled_reference":"0.60","settled_cash":"0.10","cash_occupied":"0.35","released":"0.04","auto_resend":"no"}}
+  ]
+}

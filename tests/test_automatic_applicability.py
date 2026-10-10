@@ -32,6 +32,24 @@ def test_private_evidence_cash_remains_protected_across_worktree_and_installatio
     assert len(protected['calls']) == 2
 
 
+def test_finite_batch_cash_is_deduplicated_and_unknown_reservations_are_retained(tmp_path):
+    root = tmp_path/'project'
+    folder = root/'.refractagent/acceptance/new-batch'
+    folder.mkdir(parents=True)
+    paid = {'model_id': 'cash', 'dispatch_at': '2026-10-09T00:00:00Z',
+            'input_sha256': 'one', 'status': 'billed', 'charged': .2, 'billing_mode': 'metered'}
+    pending = {**paid, 'input_sha256': 'two', 'status': 'unknown-usage', 'charged': .3}
+    subscription = {**pending, 'input_sha256': 'three', 'billing_mode': 'subscription', 'charged': 8}
+    unsubmitted = {**pending, 'input_sha256': 'four', 'dispatch_at': None, 'status': 'reserved', 'charged': 4}
+    (folder/'batch-ledger.json').write_text(json.dumps({'referenceCostsCny': {}, 'cashCostsCny': {},
+        'records': [paid, pending, subscription, unsubmitted]}))
+    (folder/'result.json').write_text(json.dumps({'billing_unit': 'CNY', 'calls': [paid]}))
+    (folder/'manifest.json').write_text(json.dumps({'models': [{'model_id': 'cash', 'billing_mode': 'metered'}]}))
+    protected = historical_protection(historical_roots(root, root))
+    assert protected['cashProtectedCny'] == .5 and protected['unknownCount'] == 1
+    assert len(protected['calls']) == 2
+
+
 @pytest.mark.parametrize('native_capacity', [False, True])
 def test_finite_runner_records_all_routes_with_local_model_fixtures(tmp_path, monkeypatch, native_capacity):
     """完整调用胶水无网络验证，防止期限／空计划／路径汇总故障进入付费批次。"""

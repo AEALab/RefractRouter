@@ -37,7 +37,7 @@ def correction_messages(task, candidate, feedback, criteria, *, tool_evidence=No
 def correct_final(budget, model, judge, task, candidate, feedback, criteria, *, record, persist,
                   execution_deadline, task_deadline, review_timeout_ms=None, cancel_event=None,
                   tool_evidence=None, output_constraints=None, validate=None, admit=None,
-                  production_cap=None):
+                  production_cap=None, compact_evidence=False):
     """在纠正派发前原子预留纠正和必要复审；失败时仅释放未派发的额度。"""
     def check_cancel():
         if cancel_event is not None and cancel_event.is_set():
@@ -121,7 +121,7 @@ def correct_final(budget, model, judge, task, candidate, feedback, criteria, *, 
         persist()
         verdict = evaluate_text(ProtectedReview(), judge, task, corrected, criteria=criteria,
             label='final-judge-correction', deadline=deadline, tool_evidence=tool_evidence,
-            evidence_refs=True, deterministic_receipt=trusted_receipt)
+            evidence_refs=True, deterministic_receipt=trusted_receipt, compact_evidence=compact_evidence)
         check_cancel()
         record.update(status='reviewed', evaluation=deepcopy(verdict))
         persist()

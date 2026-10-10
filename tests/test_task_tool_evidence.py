@@ -1,11 +1,13 @@
 """复现 #178：工具约束不能由猜对答案、模型自述或宽松 Judge 代替。"""
 from tests.review_fixtures import mock_grounding_checks
 from copy import deepcopy
+from dataclasses import replace
 import json
 
 import pytest
 
-from refractrouter.task_tool_evidence import collect_tool_evidence, tool_requirements, MAX_EVIDENCE_BYTES
+from refractrouter.task_tool_evidence import (collect_tool_evidence, tool_requirements, MAX_EVIDENCE_BYTES,
+                                             check_review_capacity, validation_message)
 from refractrouter.task_runtime import run_task, _shared_judge_forecast
 from refractrouter.task_evaluation import evaluation_messages
 from refractrouter.task_budget import request_input_bound
@@ -165,3 +167,105 @@ def test_rejected_candidate_releases_review_protection_and_preserves_unit_costs(
     assert result['review']['protection']['status'] == 'released-unspent'
     assert all(result['charged'][unit]['evaluation'] == 0 for unit in ('AFP', 'CNY'))
     assert result['calls'] and all(c['status'] == 'billed' for c in result['calls'])
+
+
+class ResearchClient(CandidateClient):
+    """模拟本次研究的 11 条回执；内容为合成材料，不冒充原运行回放。"""
+    def complete(self, model, messages, **kwargs):
+        if model.role != 'judge' and not any(m['role'] == 'tool' for m in messages):
+            self.calls.append((model, deepcopy(messages), kwargs))
+            names = ['skill', 'web_search', 'bash', 'web_fetch', 'web_search', 'web_fetch',
+                     'web_fetch', 'bash', 'bash', 'bash', 'web_search']
+            return reply(calls=[call(name, id=f'research-{i}', args=json.dumps({'query': f'资料-{i}'}))
+                                for i, name in enumerate(names)])
+        return super().complete(model, messages, **kwargs)
+
+
+class ResearchHost(Host):
+    def exchange(self, protocol, payload):
+        self.calls.append(deepcopy(payload))
+        name = payload['call']['function']['name']
+        return {'ok': True, 'result': {
+            'isError': name == 'web_fetch',
+            'content': [{'type': 'text', 'text': payload['call']['id'] + '资料"\\' * 700}],
+            **({'hostResult': {'exitCode': 0}} if name == 'bash' else {})}}
+
+
+def research(*, refs=False, context=None, evaluation_limit=100):
+    from tests.test_automatic_cost_profiles import configuration
+    from refractrouter.configured_routing import configured_profile
+    compiled = configuration()
+    if context is not None:
+        compiled = replace(compiled, manifest=replace(compiled.manifest,
+            models=tuple(replace(m, context_window=context) if m.model_id == compiled.manifest.judge.model_id
+                         else m for m in compiled.manifest.models)))
+    task = '根据真实检索资料分析数字双碳战略；无法读取的来源请如实说明。'
+    schemas = [{'name': n, 'description': n, 'parameters': {'type': 'object'}}
+               for n in ('skill', 'web_search', 'web_fetch', 'bash')]
+    plan = preview_plan(task).to_dict()
+    host, client = ResearchHost(), ResearchClient(answer='仅依据已获得的资料；三条网页读取失败。')
+    result = run_task({**REQUEST, 'task': task, 'method': 'A', 'weights': None, 'costMax': 100,
+        'plan': plan, 'maxFinalRevisions': int(refs)}, compiled.manifest,
+        configured_profile(compiled, compiled.manifest, plan), client=client,
+        tool_runtime=StdioToolRuntime(schemas, host), production_limit=100,
+        evaluation_limit=evaluation_limit, configured_application=True, configuration=compiled)
+    return result, client, host
+
+
+@pytest.mark.parametrize('refs', [False, True])
+def test_currency_research_full_evidence_reaches_judge_without_fixed_16k_cap_or_tool_reexecution(refs):
+    result, client, host = research(refs=refs)
+    assert result['status'] == 'completed', result['issues']
+    validation = result['tool_validation']
+    assert validation['evidence_bytes'] > 65759  # 超过真实事故的规模。
+    assert validation['evidence_limit_bytes'] is None
+    assert validation['review_input_bound'] <= validation['review_input_limit']
+    judges = [c for c in client.calls if c[0].role == 'judge']
+    assert len(judges) == 1 and len(host.calls) == 11
+    judge, messages, _ = judges[0]
+    payload = json.loads(messages[-1]['content'])
+    from refractrouter.review_evidence import materialize
+    records = materialize(payload['evidence_catalog'], 'tool_evidence')['records']
+    assert len(records) == 11
+    assert sum(r['outcome'] == 'unclassified-error' for r in records) == 3
+    for r, original in zip(records, host.calls):
+        assert r['content'][0]['text'] == original['call']['id'] + '资料"\\' * 700
+    assert payload['evidence_catalog']['version'] == 'review-evidence-references-v3'
+    assert 'tool_evidence' not in payload  # 完整字段在结构引用中，不重复发送。
+    bound = request_input_bound(messages)
+    assert validation['review_input_bound'] == bound
+    row = next(c for c in result['calls'] if c['label'] == 'final-judge')
+    # 预留真实完整消息；结算不把容量上界冒充实际用量。
+    assert row['reserved'] >= bound / 1000 * judge.input_cost_per_1k
+    assert row['charged'] < row['reserved']
+
+
+def test_small_judge_capacity_blocks_full_request_before_paid_review_and_preserves_receipts():
+    result, client, host = research(refs=True, context=32768)
+    assert result['status'] == 'tool-requirement-failed', result['issues']
+    validation = result['tool_validation']
+    assert validation['reason'] == 'review-input-capacity-exceeded'
+    assert validation['review_input_bound'] > validation['review_input_limit']
+    assert '审核未派发' in validation['message']
+    assert len(host.calls) == 11 and not any(c[0].role == 'judge' for c in client.calls)
+    assert result['charged']['evaluation'] == 0 and result['charged']['production'] > 0
+
+
+def test_larger_evidence_never_bypasses_review_budget():
+    result, client, host = research(evaluation_limit=.000001)
+    assert result['status'] == 'failed', result['issues']
+    assert any('evaluation-budget-exhausted' in str(i) for i in result['issues'])
+    assert not any(c[0].role == 'judge' for c in client.calls) and len(host.calls) == 11
+    assert result['charged']['evaluation'] == 0
+
+
+def test_unknown_receipt_has_priority_over_size_and_capacity():
+    unknown = record(status='execution-unconfirmed')
+    unknown['result']['content'][0]['text'] = '未知' * MAX_EVIDENCE_BYTES
+    for limit in (MAX_EVIDENCE_BYTES, None):
+        _, validation = collect_tool_evidence(tool_requirements(TASK), [unknown], available=True,
+                                            max_evidence_bytes=limit)
+        validation = check_review_capacity(validation, MANIFEST.judge,
+            [{'role': 'user', 'content': '长内容' * MANIFEST.judge.context_window}])
+        assert validation['passed'] is False and validation['reason'] == 'host-tool-result-unconfirmed'
+        assert '不会自动重新执行' in validation_message(validation)

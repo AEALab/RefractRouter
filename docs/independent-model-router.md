@@ -1,7 +1,8 @@
 # 独立模型路由与宿主边界
 
-决策日期：2026-09-27，最近核对：2026-10-02。
-适用版本：Router 0.15.5、DSH 插件 0.29.1。
+决策日期：2026-09-27，最近核对：2026-10-10。
+当前说明对应开发预览：Router 0.16.33、DSH 插件 0.33.21、DSH 0.1.5-rc.3。
+首次使用见[下载安装](refractagent-local-quickstart.md)；历史接线证据仍按各自版本解释。
 
 ## 产品目标
 
@@ -13,7 +14,9 @@ RefractRouter 为小型开发团队提供独立的模型路由选择服务。优
 
 可接受质量需要来自任务验收与团队反馈；Judge 的适合度和确定性分数不是成功率。
 当前 Task 的首次调用费用上界也不是整任务预期费用，不把它描述为全局成本最优。
-AFP 与 CNY 分账，未经团队明确提供可比较依据，不把订阅点数等同于现金。
+新版采用金额参考估值与实际现金分账，继续保留 Ark 订阅接口，不以 AFP 作为新配置的预算。
+订阅路线的单次增量现金可以为零，参考估值仍按核对的公开价格记录，不能与现金相加。
+旧版本 AFP 配置和证据按原合同读取，不自动换算或追改。详见[金额计价迁移](currency-only-migration.md)。
 
 ## 职责
 
@@ -230,10 +233,10 @@ uv run python validation/codex/model_catalog.py \
 依据：[Codex 官方配置说明](https://learn.chatgpt.com/docs/config-file/config-reference)。
 
 
-## 三客户端验收范围
+## 客户端验收范围
 
-当前产品接入验证仅覆盖 **DSH、Codex、Hermes**。
-Hermes 的本机原生 Agent 接线及费用证据见
+当前新增维护与验收范围为 **DSH、Codex CLI**。Hermes 的历史接线证据保留，
+不作为当前全部策略已兼容的承诺。Hermes 的本机原生 Agent 接线及费用证据见
 [Hermes 验收报告](../reports/hermes-gateway-acceptance-20260927/README.md)。
 
 Hermes 应显式选择现有 profile，并使用模型目录声明的冻结推理档位；不更改日常默认配置。

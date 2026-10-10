@@ -802,10 +802,12 @@ test('published tarball loads from its compiled export without source or build d
       'dist/index.js', 'dist/index.d.ts', 'dist/task-tool.js', 'dist/task-tool.d.ts',
       'dist/agent-provider.js', 'dist/afp-metadata.json',
     'dist/agent-provider.d.ts',
+      'dist/assistant-stream-compat.js', 'dist/assistant-stream-compat.d.ts',
       'dist/planning-config.js', 'dist/planning-config.d.ts',
       'dist/planning-routing.js', 'dist/planning-routing.d.ts',
       'dist/output-constraints.js', 'dist/output-constraints.d.ts',
       'dist/dag-progress.js', 'dist/dag-progress.d.ts',
+      'dist/entry.js', 'dist/entry.d.ts',
       'dist/native-tools.js', 'dist/native-tools.d.ts',
       'dist/media-tools.js', 'dist/media-tools.d.ts',
       'dist/model-wire-options.js', 'dist/model-wire-options.d.ts',
@@ -1111,4 +1113,28 @@ test('正文结束块恢复无增量、修正和多块顺序，不重复正文�
       if (!result.ok) assert.equal(result.usage_confirmed, true)
     }
   }
+})
+
+test('首字等待只计真实正文，工具与隐藏推理不能冒充首字', async () => {
+  const ctx = {llm:{async *stream(): AsyncGenerator<StreamChunk> {
+    yield {type:'reasoning-delta',text:'隐藏推理'}
+    yield {type:'tool-call-delta',index:1,id:'t1',name:'read',argumentsDelta:'{}'}
+    await new Promise(resolve=>setTimeout(resolve,25))
+    yield {type:'text-delta',index:0,text:''}
+    yield {type:'block-end',index:0,block:{type:'text',text:'实际正文'}}
+    yield {type:'usage',usage:{inputTokens:10,outputTokens:8}}
+    yield {type:'finish',reason:{kind:'stop'}}
+  }}}
+  const result = await callDshLlm(ctx,{protocol:'refractrouter-dsh-llm/v1',type:'request',id:'timing',
+    provider:'fixture',model:'fixture',messages:[],max_tokens:128,timeout_ms:1000})
+  if (!result.ok) throw new Error(result.message)
+  assert.ok(typeof result.ttft_ms === 'number' && result.ttft_ms >= 20)
+  assert.ok(typeof result.first_tool_ms === 'number' && result.first_tool_ms < result.ttft_ms)
+  const noText = await callDshLlm({llm:{async *stream(): AsyncGenerator<StreamChunk> {
+    yield {type:'reasoning-delta',text:'只有推理'}
+    yield {type:'usage',usage:{inputTokens:10,outputTokens:8}}
+    yield {type:'finish',reason:{kind:'stop'}}
+  }}},{protocol:'refractrouter-dsh-llm/v1',type:'request',id:'no-text',
+    provider:'fixture',model:'fixture',messages:[],max_tokens:128,timeout_ms:1000})
+  assert.equal(noText.ttft_ms,undefined)
 })

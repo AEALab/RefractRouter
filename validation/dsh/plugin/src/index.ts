@@ -26,6 +26,7 @@ const DEFAULT_EVIDENCE_BYTES = 2_097_152
 const MAX_MODEL_TIMEOUT_MS = 300_000
 const REDACTED = '[REDACTED]'
 const DSH_BRIDGE_PROTOCOL = 'refractrouter-dsh-llm/v1'
+const HOST_CAPABILITIES_PROTOCOL = 'refractrouter-host/v1'
 const AGENT_PLAN_BASE_URL = 'https://ark.cn-beijing.volces.com/api/plan/v3'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -526,6 +527,9 @@ export async function callDshLlm(
     let previousWasUsage = false
     let terminalUsage: TokenUsage | undefined
     let finish: FinishChunk | undefined
+    const streamStarted = performance.now()
+    let firstTextMs: number | undefined
+    let firstToolMs: number | undefined
     const stream = ctx.llm.stream(options)
     const iterator = stream[Symbol.asyncIterator]()
     try {
@@ -533,6 +537,14 @@ export async function callDshLlm(
         const step = await nextWithSignal(iterator, callSignal)
         if (step.done) break
         const chunk = step.value
+        if (firstTextMs === undefined && ((chunk.type === 'text-delta' && chunk.text.length > 0)
+            || (chunk.type === 'block-end' && chunk.block?.type === 'text' && chunk.block.text?.length))) {
+          firstTextMs = Math.round(performance.now() - streamStarted)
+        }
+        if (firstToolMs === undefined && ((chunk.type === 'tool-call-delta' && (chunk.name || chunk.argumentsDelta))
+            || (chunk.type === 'block-end' && chunk.block?.type === 'tool-call'))) {
+          firstToolMs = Math.round(performance.now() - streamStarted)
+        }
         if (chunk.type === 'tool-call-delta' && chunk.index !== undefined) {
           const call = toolCalls.get(chunk.index) ?? { id: '', type: 'function' as const, function: { name: '', arguments: '' } }
           if (chunk.id) call.id = chunk.id
@@ -586,6 +598,8 @@ export async function callDshLlm(
         failure_type: timedOut ? 'timeout' : bridgeFailureType(failure.code),
         message: String(failure.message ?? 'DSH LLM request failed').slice(0, 300),
         request_id: failure.requestId,
+        ...(firstTextMs !== undefined ? {ttft_ms: firstTextMs} : {}),
+        ...(firstToolMs !== undefined ? {first_tool_ms: firstToolMs} : {}),
         ...(confirmed ? {usage_confirmed: true as const, content, usage: {
           input_tokens: inputTotal,
           output_tokens: Number(counts[1]), cached_input_tokens: Number(counts[2]),
@@ -599,6 +613,8 @@ export async function callDshLlm(
       ...base,
       ok: true,
       content,
+      ...(firstTextMs !== undefined ? {ttft_ms: firstTextMs} : {}),
+      ...(firstToolMs !== undefined ? {first_tool_ms: firstToolMs} : {}),
       usage: {
         input_tokens: Number(usage.inputTokens ?? 0) + cachedInput + cacheWrite,
         output_tokens: Number(usage.outputTokens ?? 0),
@@ -673,6 +689,26 @@ export async function pumpDshBridge(
   const allowed = new Set(routes.map(route => `${route.provider}\u0000${route.model}`))
   const capture = tailCapture(maxBytes)
   const lines = createInterface({ input: handle.stdout, crlfDelay: Infinity })
+  const stopped = new AbortController()
+  const callSignal = AbortSignal.any([signal, stopped.signal])
+  const pending = new Set<Promise<void>>()
+  const seenIds = new Set<string>()
+  let modelCalls = 0
+  let toolQueue = Promise.resolve()
+  let writes = Promise.resolve()
+  let failure: unknown
+  const respond = (response: object) => {
+    writes = writes.then(() => writeLine(handle.stdin!, response))
+    return writes
+  }
+  const launch = (operation: () => Promise<void>) => {
+    const job = operation().catch(error => {
+      failure ??= error
+      stopped.abort()
+      lines.close()
+    }).finally(() => pending.delete(job))
+    pending.add(job)
+  }
   try {
     for await (const line of lines) {
       if (Buffer.byteLength(line) > maxBytes) {
@@ -689,10 +725,25 @@ export async function pumpDshBridge(
         onProgress(request)
         continue
       }
+      if (isRecord(request) && [TOOL_PROTOCOL, DSH_BRIDGE_PROTOCOL, HOST_CAPABILITIES_PROTOCOL].includes(String(request.protocol))) {
+        if (request.type !== 'request' || typeof request.id !== 'string' || !request.id
+          || seenIds.has(request.id)) throw new Error('invalid or duplicate host request identity')
+        seenIds.add(request.id)
+      }
+      if (isRecord(request) && request.protocol === HOST_CAPABILITIES_PROTOCOL) {
+        if (request.operation !== 'capabilities') throw new Error('unsupported host operation')
+        await respond({protocol:HOST_CAPABILITIES_PROTOCOL,type:'response',id:request.id,ok:true,
+          capabilities:{multiplexModelCalls:true,maxParallelModelCalls:8,serializedTools:true}})
+        continue
+      }
       if (isRecord(request) && request.protocol === TOOL_PROTOCOL) {
         if (!nativeTools) throw new Error('unexpected native tool request')
-        const response = await nativeTools.execute(request, signal)
-        await writeLine(handle.stdin, response)
+        const toolRequest = request
+        toolQueue = toolQueue.then(async () => {
+          const response = await nativeTools.execute(toolRequest, callSignal)
+          await respond(response)
+        })
+        launch(() => toolQueue)
         continue
       }
       if (!isRecord(request) || request.protocol !== DSH_BRIDGE_PROTOCOL || request.type !== 'request') {
@@ -701,19 +752,32 @@ export async function pumpDshBridge(
       }
       if (!ctx) throw new Error('unexpected DSH request from direct HTTP process')
       const route = `${String(request.provider)}\u0000${String(request.model)}`
-      const response: BridgeResponse = allowed.has(route)
-        ? await callDshLlm(ctx, request, signal)
-        : {
+      if (!allowed.has(route) || modelCalls >= 8) {
+        await respond({
             protocol: DSH_BRIDGE_PROTOCOL,
             type: 'response',
             id: String(request.id ?? ''),
             ok: false,
             failure_type: 'invalid-model-config',
-            message: 'model route is not frozen in the manifest',
-          }
-      await writeLine(handle.stdin, response)
+            message: !allowed.has(route) ? 'model route is not frozen in the manifest'
+              : 'host parallel model call limit exceeded',
+          })
+        continue
+      }
+      const modelRequest = request
+      modelCalls += 1
+      launch(async () => {
+        try {
+          await respond(await callDshLlm(ctx, modelRequest, callSignal))
+        } finally { modelCalls -= 1 }
+      })
     }
+    await Promise.all([...pending])
+    await writes
+    if (failure !== undefined) throw failure
   } finally {
+    stopped.abort()
+    await Promise.allSettled([...pending])
     handle.stdin.end()
   }
   return capture.read()

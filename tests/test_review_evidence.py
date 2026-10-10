@@ -92,6 +92,20 @@ def test_observed_empty_alias_is_removed_with_audit_and_no_inferred_verdict():
         'model_calls_added': 0}
 
 
+def test_review_prompt_declares_the_same_reference_limit_as_validation():
+    from refractrouter.review_evidence import MAX_SOURCE_REFS, resolve
+    messages = evaluation_messages('已有材料', '候选答复', ['正确'], evidence_refs=True)
+    p = json.loads(messages[-1]['content'])
+    assert p['grounding_reference_limits']['source_refs_per_check'] == MAX_SOURCE_REFS == 8
+    assert '最多8个互不重复' in messages[0]['content']
+    evidence = deepcopy(p['evidence_catalog'])
+    evidence['sources'] = [{'id':f's{i}', 'text':'可信原文'} for i in range(1,10)]
+    response = verdict(p)
+    response['grounding_checks'][0]['source_refs'] = [f's{i}' for i in range(1,10)]
+    with pytest.raises(ValueError, match='9 refs, maximum 8'):
+        resolve(response, evidence, p['grounding_check_ids'], set())
+
+
 @pytest.mark.parametrize('bad', ['nonempty-alias', 'missing-status', 'unknown-overall-ref',
                                 'missing-claim-ref', 'invalid-null-status', 'inconsistent-whole-pass'])
 def test_whole_candidate_scope_does_not_relax_verdict_or_claim_validation(bad):

@@ -131,6 +131,7 @@ class DynamicDecomposition:
                 expanded, estimates = compile_generated_capacity(expanded, self.task, self.candidates,
                     prefix_policy=self.request.get('prefixPolicy', 'legacy'), source_faithfulness=bool(self.request.get('maxFinalRevisions', 0)), output_constraints=self.request.get('outputConstraints'), input_cap=self.input_cap, tools=self.tools)
                 profile = configured_profile(self.configuration, self.manifest, expanded.to_dict(),
+                    task=self.request['task'],
                     input_forecasts={n: row['forecast_input_tokens'] for n,row in estimates.items()})
                 profiles = load_profile(profile, self.manifest)
                 event['routing_profile'] = profile

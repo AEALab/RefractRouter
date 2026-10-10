@@ -7,7 +7,8 @@ import socket
 import sys
 import time
 from dataclasses import dataclass, field
-from threading import Lock
+from threading import Condition, Lock, Thread
+from concurrent.futures import Future, TimeoutError as FutureTimeout
 from uuid import uuid4
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +33,7 @@ def write_host_record(record, writer=None):
         stream.flush()
 
 DSH_BRIDGE_PROTOCOL = "refractrouter-dsh-llm/v1"
+HOST_CAPABILITIES_PROTOCOL = "refractrouter-host/v1"
 
 
 def _progress_count(value: object) -> int:
@@ -110,7 +112,7 @@ class DshBridge(Protocol):
 
 
 class DshStdioBridge:
-    """Synchronous NDJSON bridge to the parent DSH plugin process."""
+    """按请求身份分发回复；模型调用可并行，宿主工具仍由原执行边界串行处理。"""
 
     def __init__(
         self,
@@ -127,22 +129,91 @@ class DshStdioBridge:
             Path(configured_progress) if configured_progress is not None else None
         )
         self.request_id = 0
-        self.lock = Lock()
+        self.lock = Condition()
+        self.pending = {}
+        self.reader_thread = None
+        self.failure = None
+        self.closed = False
+
+    def _fail(self, error):
+        with self.lock:
+            if self.failure is None:
+                self.failure = error
+            for _, future in self.pending.values():
+                if not future.done():
+                    future.set_exception(self.failure)
+            self.pending.clear()
+            self.lock.notify_all()
+
+    def _read_responses(self):
+        try:
+            while True:
+                with self.lock:
+                    self.lock.wait_for(lambda: self.pending or self.closed or self.failure)
+                    if self.closed or self.failure:
+                        return
+                line = self.reader.readline(2097153)
+                if not line or len(line.encode()) > 2097152:
+                    raise RuntimeError('host bridge response missing or too large')
+                response = json.loads(line)
+                with self.lock:
+                    if not isinstance(response, dict):
+                        raise RuntimeError('host bridge response mismatch')
+                    matched = self.pending.get(response.get('id'))
+                    if (matched is None or response.get('protocol') != matched[0]
+                            or response.get('type') != 'response'):
+                        raise RuntimeError('host bridge response mismatch')
+                    self.pending.pop(response['id'])
+                    matched[1].set_result(response)
+        except Exception as exc:
+            # 不猜测身份、不重发；所有在途调用由各自账本保留为待核对。
+            self._fail(exc)
 
     def exchange(self, protocol, payload):
         with self.lock:
+            if self.closed or self.failure:
+                raise RuntimeError('host bridge is stopped') from self.failure
             self.request_id += 1
             request_id = str(self.request_id)
             request = {**payload, "protocol": protocol, "type": "request", "id": request_id}
-            write_host_record(request, self.writer)
-            line = self.reader.readline(2097153)
-            if not line or len(line.encode()) > 2097152:
-                raise RuntimeError("host bridge response missing or too large")
-            response = json.loads(line)
-            if (not isinstance(response, dict) or response.get("protocol") != protocol
-                    or response.get("type") != "response" or response.get("id") != request_id):
-                raise RuntimeError("host bridge response mismatch")
-            return response
+            future = Future()
+            self.pending[request_id] = (protocol, future)
+            try:
+                write_host_record(request, self.writer)
+            except Exception as exc:
+                self._fail(exc)
+                raise
+            if self.reader_thread is None:
+                self.reader_thread = Thread(target=self._read_responses,
+                    name='refractrouter-host-replies', daemon=True)
+                self.reader_thread.start()
+            self.lock.notify_all()
+        timeout_ms = payload.get('timeout_ms')
+        timeout = None if timeout_ms is None else timeout_ms / 1000 + 1
+        try:
+            return future.result(timeout=timeout)
+        except FutureTimeout:
+            self._fail(RuntimeError('host bridge response timed out; usage unconfirmed'))
+            raise RuntimeError('host bridge response timed out; usage unconfirmed') from None
+
+    def capabilities(self):
+        response = self.exchange(HOST_CAPABILITIES_PROTOCOL,
+            {'operation': 'capabilities', 'timeout_ms': 3000})
+        value = response.get('capabilities')
+        if (response.get('ok') is not True or not isinstance(value, dict)
+                or value.get('multiplexModelCalls') is not True
+                or type(value.get('maxParallelModelCalls')) is not int
+                or not 1 <= value['maxParallelModelCalls'] <= 8
+                or value.get('serializedTools') is not True):
+            raise ValueError('DSH host does not support verified parallel model calls')
+        return value
+
+    def close(self):
+        with self.lock:
+            self.closed = True
+            self._fail(RuntimeError('host bridge closed; pending usage unconfirmed'))
+        if self.reader_thread is not None:
+            self.reader_thread.join(timeout=.2)
 
     def _record_progress(self, event: Mapping[str, object]) -> None:
         _append_progress(self.progress_path, event)
@@ -277,6 +348,7 @@ class ChatResponse:
     replay_state: object = None
     cache_usage_source: str | None = None
     ttft_ms: int | None = None
+    first_tool_ms: int | None = None
 
 
 class ModelInvocationError(RuntimeError):
@@ -561,6 +633,10 @@ class OpenAICompatibleClient:
                         cached_input_tokens=int(usage.get("cached_input_tokens", 0)),
                         reasoning_tokens=int(usage.get("reasoning_tokens", 0)),
                         latency_ms=round((time.perf_counter() - started) * 1000),
+                        ttft_ms=(response.get('ttft_ms') if type(response.get('ttft_ms')) is int
+                            and response['ttft_ms'] >= 0 else None),
+                        first_tool_ms=(response.get('first_tool_ms') if type(response.get('first_tool_ms')) is int
+                            and response['first_tool_ms'] >= 0 else None),
                         attempts=attempts,
                         finish_reason=(
                             str(response["finish_reason"])
@@ -590,6 +666,10 @@ class OpenAICompatibleClient:
                             output_tokens=counts[1], cached_input_tokens=counts[2], reasoning_tokens=counts[3],
                             raw_usage={'cacheWriteTokens': write}, cache_usage_source='dsh-terminal-usage',
                             latency_ms=latency, attempts=attempts, finish_reason='error',
+                            ttft_ms=(response.get('ttft_ms') if type(response.get('ttft_ms')) is int
+                                and response['ttft_ms'] >= 0 else None),
+                            first_tool_ms=(response.get('first_tool_ms') if type(response.get('first_tool_ms')) is int
+                                and response['first_tool_ms'] >= 0 else None),
                             request_id=str(response['request_id']) if response.get('request_id') else None)
                         raise ModelInvocationError(last_failure, last_message, attempts, latency,
                             confirmed_response=receipt)

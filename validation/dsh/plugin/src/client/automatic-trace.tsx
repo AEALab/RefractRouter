@@ -1,5 +1,8 @@
 import {useEffect,useState} from 'react'
 import type {ReactNode} from 'react'
+import {AUTOMATIC_ATTEMPT_KEY} from '../assistant-stream-compat.js'
+import {TraceRecord,automaticStartedAt} from './trace-record.js'
+import {RouteFlow,flowLatency,flowTone,type RouteFlowNode} from './route-flow.js'
 
 // 展示 Python 的只读投影；这里不重新判断能力、预算或路由。
 type Row=Record<string,any>
@@ -11,7 +14,8 @@ export function parseAutomaticHistory(value:unknown):AutomaticHistory{
   return v
 }
 interface Node {kind:string;turn?:number;interrupted?:boolean;message?:string;provenance?:{provider:string};blocks?:readonly {kind:string;text?:string}[]}
-export interface TraceSnapshot {legacy:{nodes:readonly Node[];partial:{turn?:number;blocks:readonly {kind:string;text?:string}[]}|null}}
+export interface TraceSnapshot {legacy:{nodes:readonly Node[];partial:{turn?:number;blocks:readonly {kind:string;text?:string}[]}|null};
+  timeline?:{turns:ReadonlyMap<number,{steps:readonly {data:{get(key:string):unknown}}[]}>}}
 export interface ChatTraceProps {useChat?<T>(select:(snapshot:TraceSnapshot)=>T):T}
 export interface AutomaticRef {id:string;turn?:number;state:'settled'|'running'|'interrupted';error?:string}
 const ID='\\d{8}T\\d{6}Z-[0-9a-f]{12}'
@@ -26,8 +30,20 @@ export function automaticRefs(snapshot:TraceSnapshot):AutomaticRef[]{
   }
   for(const node of snapshot.legacy.nodes)if(node.kind==='assistant')add(node,node.interrupted?'interrupted':'settled')
   if(snapshot.legacy.partial)add({kind:'assistant',...snapshot.legacy.partial},'running')
+  for(const [turn,location] of snapshot.timeline?.turns??[]){
+    for(const step of location.steps){
+      const state=step.data.get(AUTOMATIC_ATTEMPT_KEY) as {refs?:AutomaticRef[]}|undefined
+      for(const ref of state?.refs??[]){
+        if(new RegExp(`^${ID}$`).test(ref.id) && ref.turn===turn && ref.state==='interrupted')
+          refs.set(ref.id,ref)
+      }
+    }
+  }
   for(const node of snapshot.legacy.nodes)if(node.kind==='turn-error')for(const ref of refs.values())if(ref.turn===node.turn){ref.state='interrupted';ref.error=node.message}
-  return [...refs.values()].slice(-20).reverse()
+  // 失败引用从 timeline 补入，Map 的插入顺序不代表运行时间。
+  return [...refs.values()].sort((a,b)=>
+    b.id.slice(0,16).localeCompare(a.id.slice(0,16))
+    || (b.turn??-1)-(a.turn??-1) || b.id.localeCompare(a.id)).slice(0,20)
 }
 const NAMES:Record<string,string>={
   direct:'整任务直接执行',dag:'DAG 拆分执行',completed:'已完成',preview:'零调用预览',running:'运行中',
@@ -40,6 +56,19 @@ const NAMES:Record<string,string>={
   'planning-would-consume-review-reserve':'任务时间不足以保留评审，未派发规划',
   'execution-would-consume-review-reserve':'剩余时间不足以保留评审，未派发执行',
   'quality-failed':'质量未通过','no-feasible-route':'没有可执行路线','tool-requirement-failed':'工具证据未通过',
+  'adaptive-low-risk-direct':'低风险 Direct，跳过付费审核',
+  'awaiting-actual-evidence':'先保护审核额度，等待实际证据再决定',
+  'always-review':'按设置始终审核','dag-or-blocked':'拆分或准入需要审核',
+  'materials-present':'任务带有材料','acceptance-criteria-present':'有明确验收条件',
+  'strict-output-contract':'有输出合同','task-requires-tools':'任务要求工具',
+  'task-needs-factual-verification':'任务需要事实查证','host-tools-used':'实际使用宿主工具',
+  'context-dependent-request':'本次要求依赖既有任务上下文',
+  'candidate-cites-sources':'候选引用来源','candidate-asserts-system-state':'候选声明实现或验证状态',
+  'deterministic-check-failed':'确定性检查发现缺陷','not-approved':'尚未审定，停止交付',
+  'insufficient-evidence':'审核证据不足；不追加纠正','candidate-defect':'明确候选缺陷；最多纠正一次',
+  'below-quality-threshold':'低于门槛但无明确可纠正缺陷','approved':'审核通过',
+  'infrastructure-error':'基础设施失败；不自动重试','unconfirmed-model-usage':'用量待核对；保留预留',
+  'not-reviewed':'本次未调用审核器','unexpected-candidate-risk':'候选出现未保护的新审核风险',
   'data-domain-not-authorized':'数据域未获授权','quality-below-minimum':'质量先验低于门槛',
   'input-or-output-capacity':'输入或输出容量不足','missing-profile':'缺少匹配画像',eligible:'通过画像、容量及数据域检查',
   'not-recorded':'该次运行未记录',dominated:'被同提供方、同预测时延的更优候选覆盖',selected:'选中',
@@ -57,6 +86,9 @@ const NAMES:Record<string,string>={
   'rules-only':'按结构规则处理', 'local-unknown-rules-preserved':'Judge 无法确定，保留规则结论',
   'known-calls-only-unbounded-tool-continuations':'只估计已知调用，后续工具续调费用没有完整上界',
   'declared-model-profile-prior':'模型画像先验',
+  'configured-profile-prior':'未匹配独立实测的模型画像先验',
+  'independent-node-evaluation':'范围内的独立节点实测（小样本）',
+  'independent-node-evaluation-and-configured-prior':'范围内节点实测与未覆盖的模型先验混合',
   'worker-schedule-plus-observed-planner; shared-judge-latency-unforecast':'执行调度预测加已发生的规划耗时；未预测共用评审耗时',
 }
 const label=(v:unknown)=>typeof v==='string'?NAMES[v]??v:'未记录'
@@ -67,13 +99,38 @@ const route=(v:Row|undefined)=>v?.provider&&v.model?`${v.provider} / ${v.model}`
 const timing=(v:unknown)=>typeof v==='number'?`${traceNumber(v)} ms`:'未记录'
 const cellStyle={textAlign:'left' as const,padding:'10px 12px',borderBottom:'1px solid var(--border-color, #8884)',verticalAlign:'top' as const}
 function Table({heads,children}:{heads:string[];children:ReactNode}){return <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}><thead><tr>{heads.map(h=><th key={h} style={cellStyle}>{h}</th>)}</tr></thead><tbody>{children}</tbody></table></div>}
+export function automaticFlowNodes(r:Row,running:boolean):RouteFlowNode[]{
+  const judge=r.structure?.judge
+  const independent:RouteFlowNode[]=judge?.model?[{id:'structure-judge',independent:true,
+    title:'结构 Judge（独立记录）',model:judge.provider?`${judge.provider} / ${judge.model}`:judge.model,
+    status:`原始分类 ${judge.rawVerdict??'未记录'} · 规则合并 ${judge.verdict??'未记录'}`,
+    tone:'neutral',details:[`判别总耗时 ${flowLatency(judge.latencyMs)} · ${judge.experimental?'实验路线':'未记录验收状态'}`,
+      r.external_judge_called?`独立费用 ${money(r.external_judge_cost_cny)}（未计入主账本）`:'本地判别；费用见该次记录']}]:[]
+  return [...independent,...(r.calls??[]).map((c:Row,index:number)=>({id:`${index}-${c.label??'call'}`,
+    title:({'final-judge':'最终审核','__planner__':'任务规划','__evaluation__':'最终审核'} as Record<string,string>)[c.label]??c.label??'用途未记录',model:route(c.route),
+    status:c.status==='unknown-usage'&&running?'已派发，等待结果与用量':label(c.status),
+    tone:flowTone(c.status,undefined,running),details:[
+      `${label(c.category)} · 推理等级 ${c.route?.reasoning_effort??'提供方默认'} · 总耗时 ${flowLatency(c.latency_ms)}`,
+      `${c.status==='unknown-usage'?'待核对占用':c.status==='reserved'?'未派发预留':'账本金额'} ${traceNumber(c.charged)} ${c.billing_unit??c.unit??'单位未记录'}${c.billing_mode==='subscription'?'（订阅参考估值）':''}`]}))]
+}
 export function AutomaticRecord({record:r,reference}:{record:Row;reference:AutomaticRef}){
+  const comparison=r.comparison??{}
+  const state=reference.state==='interrupted'?'宿主已中断':label(r.status)
+  const routeName=comparison.route?` · ${label(comparison.route)}`:''
+  return <TraceRecord title={`自动路由 · ${state}${r.simulated?'（模拟）':''}${routeName}`}
+    identity={`宿主轮次 ${reference.turn??'未记录'} · 记录 ${r.run_id}`}
+    startedAt={automaticStartedAt(r.run_id)} elapsedMs={r.wall_time_ms} running={reference.state==='running'}>
+    <AutomaticRecordContent record={r} reference={reference}/>
+  </TraceRecord>
+}
+function AutomaticRecordContent({record:r,reference}:{record:Row;reference:AutomaticRef}){
   const gate=r.structure??{},judge=gate.judge??{},comparison=r.comparison??{}
-  return <article style={{border:'1px solid var(--border-color, #8884)',borderRadius:12,padding:18,marginBottom:18}}>
-    <h3>自动路由 · {reference.state==='interrupted'?'宿主已中断':label(r.status)}{r.simulated?'（模拟）':''}</h3>
-    <small>记录 {r.run_id}；宿主轮次 {reference.turn??'未记录'}；端到端 {timing(r.wall_time_ms)}</small>
+  const running=reference.state==='running'&&(r.status==='started'||r.status==='running')
+  return <>
     {reference.state==='running'&&<p role="status">宿主任务运行中；以下为最近持久化的证据，尚未完成的步骤不代表通过。</p>}
     {reference.state==='interrupted'&&<p role="status">{reference.error??'宿主已停止；核心状态以最后保存的证据为准。'} 不自动重发待核对调用。</p>}
+    <RouteFlow identity={`automatic-${r.run_id}`} nodes={automaticFlowNodes(r,running)}
+      state={reference.state==='interrupted'?'宿主已中断':label(r.status)} running={running} orderLabel="账本预留顺序"/>
     <h4>任务判别与最终执行路线</h4>
     <p>结构规则：{label(gate.rule_decision)} → Judge 合并后：{label(gate.decision)}。{label(gate.combination)}。</p>
     <p>最终执行：{comparison.route?label(comparison.route):label(gate.decision)}；{comparison.reason?label(comparison.reason):`计划来源 ${r.plan_origin??'未记录'}`}。
@@ -90,6 +147,8 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       <p>直接路线预测：{traceNumber(comparison.direct?.total_estimated_cost)} {comparison.billing_unit??'单位未记录'}；DAG 候选预测：{traceNumber(comparison.dag?.total_estimated_cost)} {comparison.billing_unit??'单位未记录'}。</p>
       <p>预测范围：{label(comparison.estimate_scope)}；完整任务费用上界：{comparison.complete_task_cost_bound===false||comparison.complete_task_cost_bound===null?'没有完整上界':comparison.complete_task_cost_bound===true?'已记录':traceNumber(comparison.complete_task_cost_bound)}；工具调用上限：{comparison.tool_call_limit==='unlimited'?'不限制':comparison.tool_call_limit??'未记录'}。</p>
       <p>未选择的候选路线没有被执行；预测差额不能当作实测收益。质量依据：{label(comparison.decision_factors?.quality_basis)}；本任务拆分质量增益{comparison.decision_factors?.task_specific_dag_quality_gain_verified===true?'已有验证证据':'尚未验证'}。</p>
+      {comparison.quality_evidence_basis&&<p>分路线质量依据：Direct {label(comparison.quality_evidence_basis.direct)}；DAG {label(comparison.quality_evidence_basis.dag)}。</p>}
+      {comparison.output_forecast&&<p>最终交付预测：Direct {traceNumber(comparison.output_forecast.direct_final_tokens)} tokens；DAG {traceNumber(comparison.output_forecast.generated_final_tokens)} tokens。中间产物未加到 Direct；这是未校准预测，不限制实际输出。</p>}
       <p>时延依据：{label(comparison.latency_scope)}；模型配置的时延先验不等于实测等待时间。</p>
     </details>:null}
     <h4>候选模型与选择依据</h4><p>{label(r.selection_rule)}。该次质量门槛 {traceNumber(r.quality_min)}；质量画像与本次最终评审分别展示。</p>
@@ -113,18 +172,55 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       </Table></>:<p>历史记录采用原计费合同，以下调用按原单位列示，不自动换算或重算。</p>}
     {r.external_judge_called&&<p>独立 Jev 判别：{r.external_judge_cost_cny===null?'费用待核对':money(r.external_judge_cost_cny)}；单独记账，未计入上述主任务现金余额。</p>}
     <details><summary>实际调用顺序与用量（{r.calls?.length??0} 次）</summary>
+      <p>首字表示模型返回首段正文的时间；仅工具调用的轮次没有正文首字。最终答复还需等待审核，用户等待以端到端时间为准。</p>
       <p>按账本预留顺序列示；并发派发时不等同于完成顺序。未派发的记录不是实际模型调用。</p>
       <Table heads={['顺序／用途／模型','状态与金额','输入／缓存／输出 tokens','首字／调用总耗时']}>
         {r.calls.map((c:Row,i:number)=><tr key={`${c.label}-${i}`}><td style={cellStyle}>{i+1}. {c.label} · {label(c.category)}<br/>{route(c.route)}<br/><small>推理等级：{c.route?.reasoning_effort??'提供方默认'}</small></td>
           <td style={cellStyle}>{label(c.status)}<br/>{c.billing_mode==='subscription'?'订阅参考估值':'按量计算／原合同'} {traceNumber(c.charged)} {c.billing_unit??c.unit??'单位未记录'}<br/><small>派发前预留 {traceNumber(c.reserved)}；状态待核对的金额不是已确认消费。</small></td>
           <td style={cellStyle}>{traceNumber(c.input_tokens)} / {traceNumber(c.cached_input_tokens)} / {traceNumber(c.output_tokens)}</td>
-          <td style={cellStyle}>{timing(c.ttft_ms)} / {timing(c.latency_ms)}</td></tr>)}
+          <td style={cellStyle}>{timing(c.ttft_ms)} / {timing(c.latency_ms)}{c.first_tool_ms!==undefined&&c.first_tool_ms!==null?<><br/><small>首个工具请求 {timing(c.first_tool_ms)}</small></>:null}</td></tr>)}
       </Table><p>首字时间为底层模型数据；自动路由交付还包含工具、规划及评审等待，不能等同于用户首字等待。</p>
     </details>
+    {r.node_forecasts?.length>0&&<details><summary>节点选模依据与预计用量</summary>
+      <Table heads={['节点与模型','质量依据','费用预测']}>
+        {r.node_forecasts.map((f:Row)=><tr key={f.node_id}>
+          <td style={cellStyle}>{f.node_id} → {f.provider&&f.model?`${f.provider}/${f.model}`:f.model_id}<br/><small>{f.node_features?.type} / {f.node_features?.difficulty} / {f.node_features?.risk}</small></td>
+          <td style={cellStyle}>{traceNumber(f.quality_prior)}；{f.quality_source==='independent-node-evaluation'
+            ?`独立节点观测 ${f.quality_evidence?.samples??0} 条（小样本）`
+            :f.quality_source==='known-node-failure-outside-observed-input-range'?'已有同类节点失败；新输入范围未经复验，阻止回退到全局先验'
+            :f.quality_source==='global-prior-outside-node-evidence-task-scope'?'本任务不在节点实测适用范围，使用未验证先验'
+            :f.quality_source==='global-prior-no-matching-node-evidence'?'没有覆盖该节点分层，使用全局先验':'配置先验'}<br/>
+            {f.evidence_scope&&<small>实测范围：{f.evidence_scope.description}；{f.evidence_scope.matched?'本任务已登记':'本任务未匹配'}。<br/></small>}
+            {f.quality_evidence?.heldOutStatus&&<small>保留集：{f.quality_evidence.heldOutStatus==='passed'?'通过':f.quality_evidence.heldOutStatus==='failed'?'未通过':'未观察'}；{f.quality_evidence.heldOutSamples??0} 条。<br/></small>}
+            <small>分数不是本任务成功率；配置和预览不增加样本。</small></td>
+          <td style={cellStyle}>{traceNumber(f.expected_cost)} {f.unit}；输入 {traceNumber(f.expected_input_tokens)}、输出 {traceNumber(f.expected_output_tokens)} tokens<br/>
+            <small>预计用量与安全预留分开；实际费用见调用账本。</small></td></tr>)}
+      </Table>
+    </details>}
+    {r.node_model_candidates?.length>0&&<details><summary>逐节点候选比较（{r.node_model_candidates.length} 项）</summary>
+      <Table heads={['节点 / 候选','选择与质量依据','参考费用预测']}>
+        {r.node_model_candidates.map((f:Row)=><tr key={`${f.node_id}/${f.model_id}`}>
+          <td style={cellStyle}>{f.node_id}<br/>{f.provider}/{f.model}<br/><small>推理等级：{f.reasoning_effort}</small></td>
+          <td style={cellStyle}>{f.selected?'已选择':f.eligible===false?'未通过准入':'未选择'}；{traceNumber(f.quality_prior)} 分<br/>
+            <small>{f.quality_evidence?`独立节点样本 ${f.quality_evidence.samples??0} 条；保留集 ${f.quality_evidence.heldOutStatus??'未观察'}`:'全局先验；没有匹配的节点实测'}
+            {f.quality_evidence?.excludedReason&&<>；排除依据：{f.quality_evidence.excludedReason}</>}
+            {f.evidence_scope&&<>；实测范围：{f.evidence_scope.description}；{f.evidence_scope.matched?'本任务已登记':'本任务未匹配，不采用实测分数'}</>}</small></td>
+          <td style={cellStyle}>{traceNumber(f.expected_cost)} {f.unit}<br/><small>{f.billing_mode==='subscription'?'订阅路线，单次现金 0；':'按量路线；'}输入 {traceNumber(f.expected_input_tokens)} / 输出 {traceNumber(f.expected_output_tokens)} tokens</small></td>
+        </tr>)}
+      </Table>
+    </details>}
+    {r.parallel_execution?.peak_active_nodes!==undefined&&<p>节点并发：配置上限 {r.parallel_execution.policy?.max_concurrency??'未记录'}，实际峰值 {r.parallel_execution.peak_active_nodes}；独立分支可同时调用模型，汇总等待父节点完成；宿主工具逐个执行。</p>}
     <h4>工具证据、评审与停止原因</h4>
     {r.planning_budget?.version&&<p>规划开始时告知的执行时间包络：{r.planning_budget.execution_after_planner_ms===null?'任务不限时间':timing(r.planning_budget.execution_after_planner_ms)}（已扣评审预留与规划额度）。{r.planning_budget.max_nodes!==undefined&&<>本次最多 {r.planning_budget.max_nodes} 个节点（含最终交付）。</>}时延先验不是速度保证；计划仍须通过准入。</p>}
-    {r.review?.limits_version&&<p>评审预留时间 {timing(r.review.time_reserve_ms)}；评审输出上限 {traceNumber(r.review.output_cap)} tokens。此限制独立于执行模型输出容量。</p>}
+    {r.review?.limits_version&&<p>执行阶段给评审预留 {timing(r.review.time_reserve_ms)}，是进入评审时应留下的时间，不是评审开始后的到期计时器。评审输出上限 {traceNumber(r.review.output_cap)} tokens，独立于执行模型输出容量。</p>}
     {r.review?.limits_version==='automatic-review-envelope-v2'&&<p>审核模型：{r.review.model?.provider} / {r.review.model?.model}；推理等级：{r.review.reasoning_effort}；审核等待上限：{r.review.timeout_ms===null?'不额外限制':traceNumber(r.review.timeout_ms)+' ms'}；任务总期限：{r.review.task_timeout_ms===null?'不限时':traceNumber(r.review.task_timeout_ms)+' ms'}；实际可用审核等待：{r.review.effective_wait_ms===null?'不限时':traceNumber(r.review.effective_wait_ms)+' ms'}。</p>}
+    {r.review?.version==='adaptive-final-review-v1'&&<section aria-label="自适应审核决策">
+      <h4>自适应审核</h4>
+      <p>{r.review.phase==='final'?'实际执行后决定':'预检保护，尚未最终决定'}：{String(r.review.reason??'').split(',').map(label).join('；')}。规则 {r.review.version}。</p>
+      <p>实际工具结果 {r.review.tool_result_count??'尚未记录'} 条；候选风险信号：{r.review.candidate_signals?.length?r.review.candidate_signals.map(label).join('、'):'无已覆盖信号'}。跳过审核不表示独立证明质量通过。</p>
+    </section>}
+    {r.review_failure?.kind&&<p>审核结果分类：{label(r.review_failure.kind)}；{r.review_failure.repairable?'允许按配置进行一次文本纠正及复审':'不追加模型纠正或重跑工具'}。{r.review_failure.usage_pending?'调用用量仍待核对，已派发预留继续保留。':''}</p>}
+    {r.quality?.input_representation&&<p>审核输入：完整结构引用 {r.quality.input_representation.version}，{traceNumber(r.quality.input_representation.bytes)} 字节；{r.quality.input_representation.source_count} 段来源、{r.quality.input_representation.candidate_count} 段候选。原文去重，保留字段、来源与工具配对；没有截断或摘要。</p>}
     {['proposal-constraints-v1','proposal-constraints-v2','proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5','proposal-constraints-v6','proposal-constraints-v7'].includes(r.review?.contract_version)&&<p>审核同时检查答案、修正建议与恢复步骤；关键约束不满足时，数字正确或高分也不能放行。</p>}
     {['proposal-constraints-v3','proposal-constraints-v4','proposal-constraints-v5','proposal-constraints-v6','proposal-constraints-v7'].includes(r.review?.contract_version)&&<p>材料未提供的实现细节保持未知；风险推测须标明前提，不以不同用途的数值不同直接认定冲突。</p>}
     {r.final_correction&&<section aria-label="最终答复纠正记录">
@@ -153,30 +249,49 @@ export function AutomaticRecord({record:r,reference}:{record:Row;reference:Autom
       </Table><p>引用是否存在由 Python 核对；语义由审核模型判断，不代表已独立证明结论正确。</p>
     </details>}
     {typeof r.deterministic_validation?.passed==='boolean'&&<p>固定事实检查：{r.deterministic_validation.passed?'通过':'未通过'}；已知事实不符时，模型高分不能覆盖该结果。</p>}
+    {r.time_contract_validation?.applicable&&<p>时间用途检查：{r.time_contract_validation.passed?'未发现已覆盖的混淆':'未通过'}；{r.time_contract_validation.reason} 此检查仅覆盖明确的预留与等待表述，不代替整份回复审核。</p>}
+    {r.source_state_validation?.applicable&&<p>材料状态归属检查：{r.source_state_validation.passed?'未发现已覆盖的歧义':'需澄清，暂不交付'}；{r.source_state_validation.reason} 保守阻断不等于证明系统实际未验证。</p>}
     {r.planner_normalizations?.length>0&&<details><summary>规划格式兼容记录</summary><pre>{JSON.stringify(r.planner_normalizations,null,2)}</pre></details>}
     <p>工具证据：{r.tools?.message??'未记录'}；评审：{r.review?.required===false?'按策略未要求':label(r.review?.status)}，分数 {traceNumber(r.review?.score??r.quality?.score)}，原始结论{r.review?.passed===true?'通过':r.review?.passed===false?'未通过':'未记录'}。
       门槛验收：{r.quality_gate==='passed'?'达到':r.quality_gate==='failed'?'未达到':r.quality_gate==='not-required'?'本次未要求':'未记录'}。最终运行状态与质量验收并非同一概念。</p>
+    {typeof r.tools?.evidence_bytes==='number'&&<p>完整工具证据 {traceNumber(r.tools.evidence_bytes)} 字节；{r.tools.capacity_basis==='complete-review-request-v1'
+      ?`完整审核输入保守计数 ${traceNumber(r.tools.review_input_bound)} / 可用容量 ${traceNumber(r.tools.review_input_limit)}（含正文、参数和引用目录）`
+      :r.tools.evidence_limit_bytes!=null?`旧合同证据上限 ${traceNumber(r.tools.evidence_limit_bytes)} 字节`:'以实际审核模型容量为准'}。</p>}
     {r.tools?.records?.length?<details><summary>宿主工具回执（{r.tools.records.length} 条）</summary><ol>{r.tools.records.map((t:Row,i:number)=><li key={`${t.call_id}-${i}`}>{t.node} / {t.tool}：{t.outcome}；回执 {t.call_id}</li>)}</ol><p>completed 表示回执已返回，不自动证明测试成功或命令退出为零。</p></details>:null}
     {r.quality?.rationale&&<details><summary>评审说明</summary><p>{r.quality.rationale}</p><p>这是模型评审记录，不替代独立测试或人工验收。</p></details>}
     {r.issues?.length?<ul>{r.issues.map((v:unknown,i:number)=><li key={i}>{typeof v==='string'?v:JSON.stringify(v)}</li>)}</ul>:<p>该记录未报告运行错误。</p>}
     <details><summary>范围与缺失证据</summary><p>仅覆盖 Router 受管模型调用；宿主其他工具、独立子 Agent 及订阅月费未归入本次按调用现金成本。</p>
       {r.profile_scope&&<p>画像范围：{r.profile_scope}</p>}
       {r.limitations?.map((v:string,i:number)=><p key={i}>{v}</p>)}{r.missing_evidence?.length?<p>缺失字段：{r.missing_evidence.join('、')}。缺失不表示已通过或零费用。</p>:null}</details>
-  </article>
+  </>
 }
-export function AutomaticTrace({references,load}:{references:AutomaticRef[];load:(ids:string[])=>Promise<AutomaticHistory>}){
+export function useAutomaticHistory(references:AutomaticRef[],load?: (ids:string[])=>Promise<AutomaticHistory>){
   const [data,setData]=useState<AutomaticHistory>(),[error,setError]=useState('')
   const key=references.map(r=>`${r.id}:${r.state}`).join(',')
   useEffect(()=>{let active=true,inflight=false
-    setData(undefined);setError('')
-    const refresh=async()=>{if(inflight||!references.length)return;inflight=true
+    setError('')
+    const refresh=async()=>{if(inflight||!references.length||!load)return;inflight=true
       try{const value=await load(references.map(r=>r.id));if(active){setData(value);setError('')}}
       catch(e){if(active)setError(e instanceof Error?e.message:String(e))}finally{inflight=false}}
     void refresh();const timer=references.some(r=>r.state==='running')?setInterval(()=>void refresh(),2500):undefined
     return()=>{active=false;if(timer)clearInterval(timer)}
   },[load,key])
+  return {data,error}
+}
+export function loadAutomaticHistory(ctx:{remote?:{llm:{discoverModels:(ns:string,request:{api:string;provider:string})=>Promise<{
+  ok:boolean;value?:Array<{name?:string}>;error?:{message:string}
+}>}}}):((ids:string[])=>Promise<AutomaticHistory>)|undefined{
+  if(!ctx.remote?.llm)return
+  return async(ids:string[])=>{
+    const response=await ctx.remote!.llm.discoverModels('refractagent-planning',{api:'automatic-trace',provider:JSON.stringify(ids)})
+    if(!response.ok)throw new Error(response.error?.message??'自动路由轨迹读取失败')
+    return parseAutomaticHistory(JSON.parse(response.value?.[0]?.name??'{}'))
+  }
+}
+export function AutomaticTrace({references,load}:{references:AutomaticRef[];load:(ids:string[])=>Promise<AutomaticHistory>}){
+  const {data,error}=useAutomaticHistory(references,load)
   if(!references.length)return null
-  return <section><h2>自动路由</h2><p>只展示当前已加载会话引用的最近 20 条记录；历史预算、模型与结论来自当时的冻结证据。</p>
+  return <section><h2>自动路由</h2><p>最近 20 条记录按运行时间由新到旧排列；点击标题展开或收合，时间按本地时区显示。运行中自动刷新。</p>
     {error&&<p role="alert">轨迹读取失败：{error}。不会重新执行任务。</p>}
     {!data&&!error&&<p role="status">正在读取已有运行证据，不调用模型…</p>}
     {data?.errors.filter(e=>references.some(ref=>ref.id===e.run_id)).map(e=><p key={e.run_id} role="status">{e.run_id}：{e.message}</p>)}

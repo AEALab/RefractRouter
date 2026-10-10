@@ -8,7 +8,8 @@ from .review_claims import state_claims, VERSION as CLAIM_VERSION
 from .review_evidence import catalog, resolve, receipt
 
 REVIEW_CONTRACT = 'proposal-constraints-v7'
-REFERENCE_REVIEW_CONTRACT = 'proposal-constraints-v9'
+REFERENCE_REVIEW_CONTRACT = 'proposal-constraints-v10'
+COMPACT_REVIEW_CONTRACT = 'proposal-constraints-v11'
 GROUNDING_CHECKS = ('source-state', 'time-causality')
 GROUNDING_FIELDS = ('check_id', 'status', 'answer_quote', 'source_quote')
 GROUNDING_OPTIONAL_FIELDS = ('rationale',)
@@ -135,7 +136,7 @@ def _quoted_evaluation_messages(task, answer, criteria, *, node_input=None, tool
 
 
 def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidence=None,
-                        evidence_refs=False, deterministic_receipt=None):
+                        evidence_refs=False, deterministic_receipt=None, compact_evidence=False):
     # 旧冻结实验与节点合同继续读取原引用格式；新版纠正闭环显式选择编号合同。
     legacy = _quoted_evaluation_messages(task, answer, criteria,
         node_input=node_input, tool_evidence=tool_evidence)
@@ -144,9 +145,18 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
     if deterministic_receipt is not None:
         deterministic_receipt = receipt({'passed': True, 'review_receipt': deterministic_receipt}, answer)
     payload = json.loads(legacy[-1]['content'])
-    payload['review_contract'] = REFERENCE_REVIEW_CONTRACT
-    evidence = catalog(task, answer, payload['criteria'], payload['source_state_claims'], tool_evidence)
+    payload['review_contract'] = COMPACT_REVIEW_CONTRACT if compact_evidence else REFERENCE_REVIEW_CONTRACT
+    evidence = catalog(task, answer, payload['criteria'], payload['source_state_claims'], tool_evidence,
+                       compact=compact_evidence)
     payload['evidence_catalog'] = evidence
+    if compact_evidence:
+        # 原文已完整绑定编号及结构，避免原始 JSON、解码叶子和引用目录重复发送。
+        for key in ('task', 'answer', 'tool_evidence'):
+            payload.pop(key, None)
+        payload['criteria_layout'] = evidence['layout']['criteria']
+    from .review_evidence import MAX_SOURCE_REFS
+    payload['grounding_reference_limits'] = {'source_refs_per_check': MAX_SOURCE_REFS,
+        'allow_duplicate_refs': False}
     payload['grounding_check_shapes'] = [
         {'check_id': key, 'required_fields': ['check_id', 'status', 'answer_ref', 'source_refs',
             *(['claim_kind'] if key in evidence['claim_refs'] else [])],
@@ -168,16 +178,22 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
         '自身未调用工具不能证明系统从未测试。明确假设、待确认及警告须按语义判断，不做关键词拒绝。'
         '比较参数须核对用途和生效条件，不同用途数值不同不等于冲突。'
         '时间因果先核对事件顺序：事后审核不能影响已经完成的执行，提前预留可以缩小执行时间。'
+        '执行阶段给审核预留时间是进入审核时应留下的余量，不是审核中的独立到期计时器；'
+        '不得批准「预留先到期导致审核截断」或将预留值当作审核等待上限的解释。'
         '「若、可能、风险」不能豁免错误因果或无来源事实。'
         'source-state 检查整份正文的实现、配置或验证状态断言；time-causality 检查时间、费用和操作因果。'
         'source_state_claims 只是核心定位的覆盖提示，不是事实标签；没有命中仍须审核整份正文。'
         '逐句核对项不能由开头免责句替代。逐句 claim_kind 必填，取 FACT、CONDITIONAL、SELF_REPORT、QUOTED_OR_WARNING。'
         'FACT 表示对系统或历史事实作断言；CONDITIONAL 必须有实际前提；SELF_REPORT 只说明本次回答行为；'
         'QUOTED_OR_WARNING 表示引用或警告。事实缺少来源时 FAIL，无法可靠判断时 UNCERTAIN。'
+        '风险表格仍可能含事实断言：「保留完整性未经验证」「未与实际扣费核对」'
+        '没有明确假设或引用否定语境时属于 FACT，不因随后写「可能有风险」就变成警告。'
+        '「材料未说明验证情况」才表示信息不足；「如果未经验证」才有明确条件前提。'
         '引用只选择 evidence_catalog 中的编号，不抄写或改写原文。'
         '前两项审核范围是整份候选：answer_ref=null 表示整体审核，不表示无法判断；'
         '只有需要定位具体段落时才选择 candidate 中的 id。判定必须明确填写 status。'
         'source_refs 选择 sources 中支持该结论的 id 数组，可为空，不得用候选给候选事实自证。'
+        '每项 source_refs 最多8个互不重复的编号；只选最能支持本项结论的来源，不罗列全部工具历史。'
         '原文与解码的 JSON 字符串均由核心绑定原始输入；不需要重新转义这些文字。'
         '逐句 answer_ref 已固定，保持不变。FACT 判 PASS 必须选择实际支持该事实的来源，不能选择无关材料。'
         '前两项不适用时 status=NOT_APPLICABLE、answer_ref=null、source_refs=[]；逐句项不能不适用。'
@@ -196,6 +212,13 @@ def evaluation_messages(task, answer, criteria, *, node_input=None, tool_evidenc
             '已确认字段无需用心算重复判错或建议替换；检查解释是否与这些已确认值和原材料一致。'
             '回执不确认 explanation 的质量、建议安全、工具成功、材料状态或其他未检查计算；这些仍须独立审核。'
             '不得将局部字段校验通过当作整体审核通过；正文存在无来源事实或有害提案仍须拒绝。')
+    if compact_evidence:
+        prompt += (
+            '完整任务、候选、验收条件与工具证据位于 evidence_catalog.layout。'
+            'text_refs 按顺序连接对应编号的 text 可还原原文，空数组表示空字符串；'
+            'object 包装原对象、array 包装原数组；其余数值保持原样，不是摘要。sources 与 candidate 不可互换。'
+            '同一原文只存一份；origins 保留其所有来源路径，工具 ID、参数和结果仍须按 layout 配对。'
+            'criteria_layout 的次序对应 criterion_ids；不得因不再重复原文而遗漏任务或证据。')
     return [{'role': 'system', 'content': prompt},
             {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)}]
 
@@ -292,10 +315,11 @@ def normalize_grounding_field_spelling(result, answer):
 
 
 def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, input_cap=None, node_input=None,
-                  tool_evidence=None, evidence_refs=False, deterministic_receipt=None):
+                  tool_evidence=None, evidence_refs=False, deterministic_receipt=None, compact_evidence=False):
     node = node_input is not None
     messages = evaluation_messages(task, answer, criteria, node_input=node_input, tool_evidence=tool_evidence,
-        evidence_refs=evidence_refs, deterministic_receipt=deterministic_receipt)
+        evidence_refs=evidence_refs, deterministic_receipt=deterministic_receipt,
+        compact_evidence=compact_evidence)
     checked_criteria = review_criteria(criteria, node=node)
     if input_cap is not None and len(json.dumps(messages, ensure_ascii=False).encode()) + 256 > input_cap:
         raise ValueError('judge-input-cap-exceeded')
@@ -339,5 +363,12 @@ def evaluate_text(budget, judge, task, answer, *, criteria, label, deadline, inp
         else:
             result = normalize_grounding_field_spelling(result, answer)
             validate_grounding_checks(result, task, answer, tool_evidence)
-    result['review_contract'] = REFERENCE_REVIEW_CONTRACT if evidence_refs and not node else REVIEW_CONTRACT
+    result['review_contract'] = ((COMPACT_REVIEW_CONTRACT if compact_evidence else REFERENCE_REVIEW_CONTRACT)
+                                if evidence_refs and not node else REVIEW_CONTRACT)
+    if compact_evidence and evidence_refs and not node:
+        result['input_representation'] = {'version': payload['evidence_catalog']['version'],
+            'bytes': len(json.dumps(messages, ensure_ascii=False).encode()),
+            'source_count': len(payload['evidence_catalog']['sources']),
+            'candidate_count': len(payload['evidence_catalog']['candidate']),
+            'complete_values': True, 'summarized': False, 'truncated': False}
     return result

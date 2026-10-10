@@ -1,7 +1,7 @@
 {
   "name": "dsh-refractrouter-validation",
-  "version": "0.33.4",
-  "description": "DeepSeek Harness bundle for structured RefractRouter benchmark validation",
+  "version": "0.33.21",
+  "description": "RefractRouter 路由接入与可选验收工具，保留 DSH 原生 Agent 能力",
   "private": true,
   "license": "MIT",
   "repository": {
@@ -21,16 +21,24 @@
     "validation"
   ],
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/entry.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/entry.d.ts",
+      "import": "./dist/entry.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./agent": {
       "types": "./dist/agent-provider.d.ts",
       "import": "./dist/agent-provider.js"
+    },
+    "./routing": {
+      "types": "./dist/agent-provider.d.ts",
+      "import": "./dist/agent-provider.js"
+    },
+    "./validation-tools": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./client": {
       "default": "./dist/client.js"
@@ -56,6 +64,7 @@
         "@deepseek-ai/dsh-client-locale",
         "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-conversation",
         "@deepseek-ai/dsh-client-ui-model-selection"
       ],
       "platform": "web"
@@ -65,7 +74,7 @@
       "node": ">=22.19.0 <23"
     }
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/entry.d.ts",
   "scripts": {
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.client.json",
     "build": "tsc && node scripts/build-client.mjs",

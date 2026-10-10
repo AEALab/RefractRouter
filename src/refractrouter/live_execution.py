@@ -156,7 +156,10 @@ def complexity_gate(payload, context, *, policy="auto", tools_allowed=False,
             "statistics": statistics, "local_decision": local}
 
 
-def review_decision(payload, gate, *, policy="adaptive", tools_allowed=False):
+def review_decision(payload, gate, *, policy="adaptive", tools_allowed=False, current_rules=False):
+    if current_rules:
+        from .automatic_review import preflight
+        return preflight(payload, gate, policy=policy, tools_allowed=tools_allowed)
     if policy not in {"adaptive", "always"}:
         raise ValueError("reviewPolicy must be adaptive or always")
     reasons = []

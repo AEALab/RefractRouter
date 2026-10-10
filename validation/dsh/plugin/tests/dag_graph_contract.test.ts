@@ -4,10 +4,15 @@ import { readFileSync } from 'node:fs'
 import { runInNewContext } from 'node:vm'
 import { progressText, runSummary, type ProgressEvent } from '../dist/dag-progress.js'
 
-function client() {
+function client(savedHistory?:any) {
   let api: any
+  const element=(type:any,props:any,...children:any[]):any=>typeof type==='function'
+    ?type({...props,children:children.length?children:props?.children})
+    :{type,props,children:children.length?children:props?.children}
+  const react={createElement:element,jsx:(type:any,props:any)=>element(type,props),jsxs:(type:any,props:any)=>element(type,props),
+    useState:(initial:any)=>[initial===undefined?savedHistory:initial,()=>{}],useEffect:()=>{}}
   runInNewContext(readFileSync(new URL('../dist/client.js', import.meta.url), 'utf8'), {
-    window: { __ModuleLoader__: { load: ({ factory }: any) => { api = factory(() => ({ createElement: () => null })) } } },
+    window: { __ModuleLoader__: { load: ({ factory }: any) => { api = factory(() => react) } } },Intl,
   })
   return api
 }
@@ -101,7 +106,7 @@ test('自动路由摘要把规划器单节点结果标为未拆分',()=>{
   assert.match(summary,/规划器单节点候选 预计 0.1100 CNY/)
 })
 
-test('客户端只贡献独立页签，不发起请求或改动原会话渲染器', () => {
+test('客户端只贡献独立页签，不派发模型或改动原会话渲染器', () => {
   const api = client(); let config: any, View: any
   api.applyGraph({ slots: { inject: (_: string, cb: () => void) => [...(cb() as any)], register: (value: any, component: any) => { config = value; View = component } } })
   assert.equal(config.name, 'conversation.view')
@@ -113,6 +118,62 @@ test('客户端只贡献独立页签，不发起请求或改动原会话渲染�
     return select({ legacy: { nodes: [], partial: null } })
   } }))
   assert.equal(selected, true)
+})
+
+test('DAG 历史分开保存每次拓扑，按时间倒序排列并显示耗时',()=>{
+  const api=client(),old='20261009T080344Z-f47e7a13a3bc',latest='20261009T103148Z-d5bc2ff8b89e'
+  const message=(id:string,node:string,seconds:number)=>'正在预检并执行真实自动路由。\n'
+    +`【自动路由记录】${id}\n`+progressText(event(node))+`\n【任务摘要】\n耗时：${seconds} 秒\n`
+  const snapshot={legacy:{nodes:[{kind:'assistant',turn:1,blocks:[{kind:'reasoning',text:message(old,'old',90.24)}]},
+    {kind:'assistant',turn:2,blocks:[{kind:'reasoning',text:message(latest,'latest',39.48)}]}],partial:null}}
+  const records=api.dagRecords(snapshot)
+  assert.deepEqual(Array.from(records,(r:any)=>r.runId),[latest,old])
+  assert.equal(records[0].elapsedMs,39480);assert.equal(records[1].elapsedMs,90240)
+  assert.equal(records[0].data.nodes[0].id,'latest');assert.equal(records[1].data.nodes[0].id,'old')
+  let View:any
+  api.applyGraph({slots:{inject:(_:string,f:any)=>[...f()],register:(_:any,v:any)=>{View=v}}})
+  const tree=View({useChat:(select:any)=>select(snapshot)}),all=JSON.stringify(tree)
+  const cards=tree.children.filter((node:any)=>node?.type==='details'&&node.props?.className==='rra-trace-record')
+  assert.equal(cards.length,2)
+  for(const card of cards){assert.equal(card.props.open,undefined);assert.equal(card.children[0].type,'summary')}
+  for(const value of ['开始时间','总耗时','39.5 秒','1 分 30 秒','节点完整说明与依赖'])assert.ok(all.includes(value),value)
+  const markers=cards.map((card:any)=>JSON.stringify(card).match(/refract-dag-arrow-[a-z0-9TZ-]+/)?.[0])
+  assert.ok(markers[0]);assert.notEqual(markers[0],markers[1])
+})
+
+test('同一任务的流式更新去重；失败 timeline 引用保留，旧失败不置顶',()=>{
+  const api=client(),old='20261009T080344Z-f47e7a13a3bc',latest='20261009T103148Z-d5bc2ff8b89e'
+  const blocks=(id:string,node:string)=>[{kind:'reasoning',text:'正在预检并执行真实自动路由。\n'
+    +`【自动路由记录】${id}\n`+progressText(event(node))}]
+  const snapshot:any={legacy:{nodes:[{kind:'assistant',turn:2,blocks:blocks(latest,'old-topology')}],
+    partial:{turn:2,blocks:blocks(latest,'new-topology')}},
+    timeline:{turns:new Map([[1,{steps:[{data:{get:()=>({refs:[{id:old,turn:1,state:'interrupted',error:'审核停止'}]})}}]}]])}}
+  const records=api.dagRecords(snapshot)
+  assert.equal(records.length,2);assert.equal(records[0].runId,latest)
+  assert.equal(records[0].state,'running');assert.equal(records[0].data.nodes[0].id,'new-topology')
+  assert.equal(records[1].state,'interrupted');assert.equal(records[1].error,'审核停止')
+  assert.equal(records[1].elapsedMs,undefined)
+  assert.equal(api.dagRecords({legacy:{nodes:[{kind:'assistant',provenance:{provider:'other'},
+    blocks:blocks(latest,'foreign')}],partial:null}}).length,0)
+})
+
+test('结束消息只有记录 ID 时从冻结证据回放图；运行时采用最新节点状态',()=>{
+  const id='20261009T103148Z-d5bc2ff8b89e',dag:any=event('upstream')
+  dag.nodes[0].parents=[];dag.phase='finished';dag.status='completed';dag.nodes[0].state='ok'
+  dag.nodes.push(event('answer',['upstream'],'ok').nodes[0])
+  const api=client({schema_version:'automatic-routing-trace-v1',errors:[],records:[{run_id:id,status:'completed',dag,wall_time_ms:39480}]})
+  let View:any
+  api.applyGraph({slots:{inject:(_:string,f:any)=>[...f()],register:(_:any,v:any)=>{View=v}}})
+  const blocks=[{kind:'reasoning',text:`正在预检并执行真实自动路由。\n【自动路由记录】${id}\n【执行结束】\n`}]
+  let snapshot:any={legacy:{nodes:[{kind:'assistant',turn:1,blocks}],partial:null}}
+  let tree=JSON.stringify(View({useChat:(select:any)=>select(snapshot)}))
+  for(const text of ['2 个流程节点','任务 DAG 依赖图','upstream','answer','已完成'])assert.ok(tree.includes(text),text)
+  assert.ok(!tree.includes('尚无可回放'))
+  const live=event('answer',[],'running')
+  snapshot={legacy:{nodes:[],partial:{turn:1,blocks:[{kind:'reasoning',text:blocks[0].text+progressText(live)}]}}}
+  tree=JSON.stringify(View({useChat:(select:any)=>select(snapshot)}))
+  assert.ok(tree.includes('1 个流程节点'));assert.ok(tree.includes('运行中'))
+  assert.ok(!tree.includes('upstream'))
 })
 
 
@@ -206,7 +267,8 @@ test('轨迹解释真实模型、数据域排除和不限定工具的预测范�
       all_in_known_reference_cost_cny:.141}})
   assert.match(summary,/moonshot\/kimi-k3（external）/)
   assert.match(summary,/当前输入的数据域未授权/)
-  assert.match(summary,/无限工具续接费用未估计/)
+  assert.match(summary,/预计用量用于路线比较，不是最高费用上界/)
+  assert.match(summary,/后续工具续接另行检查预算/)
   assert.match(summary,/先通过质量、容量与数据域检查，再最小化新增现金/)
   assert.match(summary,/非订阅账单/)
   assert.match(summary,/新增现金生产 0.0000、评审 0.0000 CNY/)

@@ -8,17 +8,29 @@ import { RefractCard } from './refract-card.js'
 import { en, LOCALE_NS, zh } from './locale.js'
 import type { ClientContext, RouteLatencyDirectory, RouterProjectDirectory } from './types.js'
 import { FROZEN_MODEL_PROFILES } from './model-profiles.js'
+import { automaticAttemptDefinition, retainAutomaticAttemptNode } from '../assistant-stream-compat.js'
 
 const graph = graphModule(createElement as unknown as Parameters<typeof graphModule>[0])
 const PLANNING_LOCALE_NS = 'refractagent-planning-card'
 export const parse = graph.parse
 export const layout = graph.layout
+export const dagRecords = graph.records
 export const applyGraph = graph.apply
-export {automaticRefs,AutomaticRecord,traceNumber,parseAutomaticHistory} from './automatic-trace.js'
+export {automaticRefs,AutomaticRecord,automaticFlowNodes,traceNumber,parseAutomaticHistory,useAutomaticHistory} from './automatic-trace.js'
+export {TraceRecord,automaticStartedAt,traceTimestamp,traceDuration} from './trace-record.js'
+export {RouteFlow,flowTone} from './route-flow.js'
+export {planningFlowNodes} from './planning.js'
 
-export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope']
+export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'uiConversation']
 
 export function apply(ctx: ClientContext): void {
+  ctx.effect(() => {
+    if(!ctx.uiConversation)return
+    const registry=ctx.uiConversation.events
+    const restore=retainAutomaticAttemptNode(registry)
+    const unregister=registry.register?.(automaticAttemptDefinition())
+    return ()=>{unregister?.();restore()}
+  }, 'refractagent: 保留失败 attempt 的隐藏节点与轨迹引用')
   graph.apply(ctx)
   const planning=planningUi(ctx,ctx.settingsScope.bind({namespace:SETTINGS_NAMESPACE}))
   applyPlanning(ctx)
