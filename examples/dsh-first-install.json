@@ -1,0 +1,45 @@
+[
+  {
+    "id": "refractagent",
+    "config": {
+      "entryMode": "routing",
+      "pythonExecutable": "refractagent",
+      "executionMode": "demo",
+      "allowPaidRuns": false,
+      "template": "auto",
+      "maxProductionCost": 5,
+      "maxEvaluationCost": 1,
+      "timeoutMs": 300000,
+      "maxOutputTokens": 8192,
+      "dshModelPool": {
+        "schemaVersion": "refractagent-dsh-model-pool-v5",
+        "billingUnit": "CNY",
+        "routes": [],
+        "security": {
+          "dataMode": "live",
+          "sensitiveTerms": []
+        },
+        "trustPolicies": []
+      },
+      "planningRouting": {
+        "schemaVersion": "refractagent-planning-v7",
+        "enabled": false,
+        "defaultStrategy": "stage",
+        "billingUnit": "CNY",
+        "maxProductionCost": 5,
+        "maxReferenceCost": 10,
+        "timeoutMs": 300000,
+        "maxCalls": 16,
+        "models": [],
+        "roles": {},
+        "trustPolicies": [],
+        "compatiblePairs": [],
+        "jev": {
+          "route": "openrouter",
+          "credentialRef": "OPENROUTER_API_KEY",
+          "deployment": "external-cloud"
+        }
+      }
+    }
+  }
+]

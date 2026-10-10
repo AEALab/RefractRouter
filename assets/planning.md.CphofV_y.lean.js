@@ -1,0 +1,1 @@
+import{_ as a,o as e,c as d,a2 as r}from"./chunks/framework.BqDA2HS7.js";const u=JSON.parse('{"title":"规划路由","description":"","frontmatter":{},"headers":[],"relativePath":"planning.md","filePath":"planning.md"}'),i={name:"planning.md"};function o(n,t,l,s,h,p){return e(),d("div",null,[...t[0]||(t[0]=[r("",17)])])}const _=a(i,[["render",o]]);export{u as __pageData,_ as default};

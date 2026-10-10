@@ -1,0 +1,1 @@
+import{_ as a,o as e,c as r,a2 as d}from"./chunks/framework.BqDA2HS7.js";const p=JSON.parse('{"title":"运行记录与图形","description":"","frontmatter":{},"headers":[],"relativePath":"traces.md","filePath":"traces.md"}'),o={name:"traces.md"};function i(l,t,h,n,c,s){return e(),r("div",null,[...t[0]||(t[0]=[d("",14)])])}const u=a(o,[["render",i]]);export{p as __pageData,u as default};

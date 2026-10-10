@@ -1,0 +1,1 @@
+import{_ as e,o as a,c as d,a2 as o}from"./chunks/framework.BqDA2HS7.js";const p=JSON.parse('{"title":"Judge 与 Jev","description":"","frontmatter":{},"headers":[],"relativePath":"judges.md","filePath":"judges.md"}'),r={name:"judges.md"};function i(n,t,l,c,s,h){return a(),d("div",null,[...t[0]||(t[0]=[o("",21)])])}const b=e(r,[["render",i]]);export{p as __pageData,b as default};

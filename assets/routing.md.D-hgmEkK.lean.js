@@ -1,0 +1,1 @@
+import{_ as a,o as d,c as e,a2 as r}from"./chunks/framework.BqDA2HS7.js";const u=JSON.parse('{"title":"两种路由怎么选","description":"","frontmatter":{},"headers":[],"relativePath":"routing.md","filePath":"routing.md"}'),o={name:"routing.md"};function i(n,t,l,s,h,c){return d(),e("div",null,[...t[0]||(t[0]=[r("",12)])])}const _=a(o,[["render",i]]);export{u as __pageData,_ as default};
