@@ -87,6 +87,21 @@ test('核心规划失败仍返回终止说明、已结算用量与回放，不�
   assert.equal(f.spawns.length,1)
 })
 
+test('真实自动路由的工具容量失败显示核心具体原因，候选不交付',async()=>{
+  for(const reason of ['tool-evidence-envelope-exceeded','review-input-capacity-exceeded']){
+    const message=reason==='tool-evidence-envelope-exceeded'
+      ?'工具证据为 65759 字节，超过旧合同的 16384 字节上限；审核未派发，证据未截断。'
+      :'完整审核输入的保守计数为 75000，超过审核模型的 24576 可用输入容量；审核未派发，证据未截断。'
+    const f=fixture({mode:'live',simulated:false,status:'tool-requirement-failed',answer:'不得交付的研究候选',
+      tool_validation:{passed:false,reason,message,records:[]}})
+    const output=await chunks(createAdapter(f.ctx,()=>configure({executionMode:'live',allowPaidRuns:true,preset:'ark-agent-plan'})))
+    const text=output.filter(c=>c.type==='text-delta').map(c=>c.text).join('')
+    assert.ok(text.includes(message))
+    assert.ok(!text.includes('不得交付的研究候选'))
+    assert.equal((output.at(-1)?.reason as any).kind,'error')
+  }
+})
+
 test('核心审核格式失败明确显示审核阶段，不误报规划失败或交付候选',async()=>{
   const f=fixture({mode:'live',simulated:false,status:'failed',answer:'未审定候选正文',
     review:{required:true,status:'failed',passed:false,reason:'invalid final judge grounding fields'}})

@@ -50,7 +50,7 @@ class DSHPluginTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "validate.yml").read_text(encoding="utf-8")
 
         self.assertEqual(package["name"], "dsh-refractrouter-validation")
-        self.assertEqual(package["version"], "0.33.13")
+        self.assertEqual(package["version"], "0.33.21")
         self.assertTrue(package["private"])
         self.assertEqual(package["engines"]["node"], ">=22.19.0 <23")
         self.assertEqual(package["packageManager"], "pnpm@10.15.0")
@@ -70,6 +70,16 @@ class DSHPluginTests(unittest.TestCase):
         self.assertIn("maxProductionCost: 2", patch)
         self.assertIn("maxEvaluationCost: 1", patch)
         self.assertIn("maxRetries: 0", patch)
+        self.assertEqual(package['exports']['./routing'], package['exports']['./agent'])
+        self.assertEqual(package['exports']['./validation-tools']['import'], './dist/index.js')
+        self.assertEqual(package['exports']['.']['import'], './dist/entry.js')
+        validation_entry, routing_entry = patch.split('    - id: refractagent')
+        self.assertIn('name: dsh-refractrouter-validation/validation-tools', validation_entry)
+        self.assertIn('disabled: true', validation_entry)
+        # 实际 DSH 只扫描启用的包主入口来加载 client，子路径不能作为唯一生产入口。
+        self.assertIn('name: dsh-refractrouter-validation\n', routing_entry)
+        self.assertIn('entryMode: routing', routing_entry)
+        self.assertNotIn('disabled: true', routing_entry)
         self.assertIn("--before=2026-09-27T00:00:00Z", workflow)
         self.assertIn("@deepseek-ai/dsh@0.1.5-rc.3", workflow)
 

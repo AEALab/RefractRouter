@@ -4,6 +4,7 @@ import hashlib
 import json
 
 VERSION = 'review-evidence-references-v2'
+COMPACT_VERSION = 'review-evidence-references-v3'
 RECEIPT_VERSION = 'deterministic-answer-fields-v1'
 MAX_SOURCE_REFS = 8
 
@@ -47,7 +48,9 @@ def _chunks(value, capacity=1200):
         yield page
 
 
-def catalog(task, answer, criteria, claims, tool_evidence=None):
+def catalog(task, answer, criteria, claims, tool_evidence=None, *, compact=False):
+    if compact:
+        return compact_catalog(task, answer, criteria, claims, tool_evidence)
     sources, candidates, seen = [], [], set()
     def add(target, prefix, value, origin):
         for chunk in _chunks(value):
@@ -81,6 +84,79 @@ def catalog(task, answer, criteria, claims, tool_evidence=None):
     return {'version': VERSION, 'task_sha256': hashlib.sha256(task.encode()).hexdigest(),
             'candidate_sha256': hashlib.sha256(answer.encode()).hexdigest(),
             'sources': sources, 'candidate': candidates, 'claim_refs': claim_refs}
+
+
+def compact_catalog(task, answer, criteria, claims, tool_evidence=None):
+    """只发送一份原文，并用结构引用保留消息顺序、字段和每个来源。
+
+    JSON 只解码一次，文本叶子完整分页，不删历史、不截断、不生成摘要。
+    原始序列化与字节哈希继续留在运行记录，发送给 Judge 的结构可还原所有值。
+    """
+    sources, candidates, seen = [], [], {}
+    def tree(value, target, prefix, origin, path=()):
+        if isinstance(value, str):
+            refs = []
+            for chunk in _chunks(value):
+                identity = (prefix, chunk)
+                occurrence = {'origin': origin, 'path': list(path)}
+                if identity in seen:
+                    row = seen[identity]
+                    if occurrence not in row['origins']:
+                        row['origins'].append(occurrence)
+                else:
+                    row = {'id': f'{prefix}{len(target)+1}', 'origin': origin,
+                           'origins': [occurrence], 'text': chunk,
+                           'sha256': hashlib.sha256(chunk.encode()).hexdigest()}
+                    seen[identity] = row
+                    target.append(row)
+                refs.append(row['id'])
+            return {'text_refs': refs}
+        if isinstance(value, dict):
+            return {'object': {key: tree(child, target, prefix, origin, (*path, key))
+                               for key, child in value.items()}}
+        if isinstance(value, list):
+            return {'array': [tree(child, target, prefix, origin, (*path, index))
+                              for index, child in enumerate(value)]}
+        return value
+    def structured(text):
+        value = _json_value(text)
+        return value if isinstance(value, (dict, list)) else text
+    layout = {'task': tree(structured(task), sources, 's', 'task'),
+              'criteria': tree(criteria, sources, 's', 'criterion'),
+              'candidate': tree(structured(answer), candidates, 'a', 'candidate')}
+    if tool_evidence is not None:
+        layout['tool_evidence'] = tree(tool_evidence, sources, 's', 'host-tool-evidence')
+    claim_refs = {}
+    for index, claim in enumerate(claims):
+        key = f'ac{index+1}'
+        claim_refs[claim['check_id']] = key
+        candidates.append({'id': key, 'origin': 'located-candidate-claim', 'text': claim['quote'],
+                           'sha256': hashlib.sha256(claim['quote'].encode()).hexdigest()})
+    if len(sources) + len(candidates) > 2048:
+        raise ValueError('review-evidence-reference-cap-exceeded')
+    return {'version': COMPACT_VERSION, 'layout': layout,
+            'task_sha256': hashlib.sha256(task.encode()).hexdigest(),
+            'candidate_sha256': hashlib.sha256(answer.encode()).hexdigest(),
+            'tool_evidence_sha256': (hashlib.sha256(json.dumps(tool_evidence,
+                ensure_ascii=False).encode()).hexdigest() if tool_evidence is not None else None),
+            'sources': sources, 'candidate': candidates, 'claim_refs': claim_refs}
+
+
+def materialize(evidence, key):
+    """从完整结构还原值；用于容量和保留合同验证，不使用模型返回的引用。"""
+    rows = evidence['candidate'] if key == 'candidate' else evidence['sources']
+    texts = {row['id']: row['text'] for row in rows}
+    def read(value):
+        if not isinstance(value, dict):
+            return value
+        if set(value) == {'text_refs'}:
+            return ''.join(texts[ref] for ref in value['text_refs'])
+        if set(value) == {'object'}:
+            return {name: read(child) for name, child in value['object'].items()}
+        if set(value) == {'array'}:
+            return [read(child) for child in value['array']]
+        raise ValueError('invalid review evidence layout')
+    return read(evidence['layout'][key])
 
 
 def receipt(validation, answer):
@@ -157,6 +233,6 @@ def resolve(result, evidence, check_ids, claim_kinds):
     return {**result, 'grounding_checks': resolved, 'response_normalization': {
         'version': 'review-reference-empty-alias-v1', 'changes': changes, 'model_calls_added': 0},
         'evidence_references': {
-        'version': VERSION, 'task_sha256': evidence['task_sha256'],
+        'version': evidence['version'], 'task_sha256': evidence['task_sha256'],
         'candidate_sha256': evidence['candidate_sha256'], 'resolved_by': 'router',
         'overall_check_scope': 'whole-candidate', 'model_calls_added': 0}}

@@ -10,6 +10,21 @@ from refractrouter.planning_runtime import PlanningRuntime
 RID = '20261007T064045Z-118980e3a74b'
 
 
+def test_tool_review_capacity_is_visible_without_private_evidence_or_rewriting_old_failure():
+    tool = {'passed': False, 'reason': 'review-input-capacity-exceeded',
+        'message': '完整审核输入超出实际模型容量，未派发。', 'evidence_bytes': 65759,
+        'evidence_limit_bytes': None, 'capacity_basis': 'complete-review-request-v1',
+        'review_model_id': 'reviewer', 'review_input_bound': 200000, 'review_input_limit': 24576,
+        'records': [{'tool': 'web_search', 'call_id': 'search-1', 'outcome': 'returned',
+                     'content': '机密工具原文'}]}
+    result = project({'run_id': RID, 'status': 'tool-requirement-failed', 'tool_validation': tool})
+    assert result['tools']['evidence_bytes'] == 65759
+    assert result['tools']['review_input_bound'] == 200000
+    assert result['tools']['review_input_limit'] == 24576
+    assert result['tools']['passed'] is False
+    assert '机密工具原文' not in json.dumps(result, ensure_ascii=False)
+
+
 def evidence():
     summary = {'run_id': RID, 'strategy': 'auto', 'status': 'completed',
         'model_routes': {'answer': {'id': 'subscription'}},
@@ -55,6 +70,31 @@ def test_trace_keeps_all_candidates_raw_judge_and_real_call_identity():
     assert '机密' not in json.dumps(trace, ensure_ascii=False)
     assert 'recordPath' not in json.dumps(trace)
     assert (s, r) == before
+
+
+def test_dag_history_keeps_frozen_topology_and_states_without_private_payloads():
+    summary, runtime = evidence()
+    summary['status'] = 'failed'
+    summary['wall_time_ms'] = 90238
+    summary['dag'] = {'phase': 'finished', 'status': 'failed', 'simulated': False,
+        'reason': '最后收到的流程', 'request_messages': ['私有提示'],
+        'nodes': [{'id': 'first', 'objective': '读取材料', 'parents': [], 'node_type': 'extraction',
+            'state': 'ok', 'attempt': 1, 'recovery': None,
+            'model': {'id': 'frozen-model', 'provider': 'ark', 'model': 'flash',
+                      'reasoning_effort': 'low', 'credential': '私有密钥'},
+            'response_output': '私有正文'},
+            {'id': 'second', 'objective': '汇总', 'parents': ['first'], 'node_type': 'synthesis',
+             'state': 'blocked', 'attempt': 0, 'model': None, 'recovery': None}]}
+    before = deepcopy((summary, runtime))
+    trace = project(summary, runtime)
+    assert trace['dag']['status'] == 'failed'
+    assert trace['dag']['nodes'][1]['parents'] == ['first']
+    assert trace['dag']['nodes'][1]['state'] == 'blocked'
+    assert trace['dag']['nodes'][0]['model']['reasoning_effort'] == 'low'
+    assert trace['wall_time_ms'] == 90238
+    assert '私有' not in json.dumps(trace, ensure_ascii=False)
+    assert (summary, runtime) == before
+    assert project({}, {})['dag']['nodes'] == []
 
 
 def test_final_correction_trace_keeps_decisions_and_protection_without_private_payloads():

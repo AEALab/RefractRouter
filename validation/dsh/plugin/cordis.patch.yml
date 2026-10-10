@@ -1,9 +1,9 @@
-# RefractRouter validation remains a normal Cordis contribution. The base
-# profile owns tools, subprocess, sandbox, policy, and credential providers;
-# this bundle contributes only the domain-specific consumer.
+# 生产入口只启用路由接入；验收工具按需启用，继续保留原稳定 ID。
+# 工具、权限、凭证及会话仍由宿主提供。
 - insert:
     - id: refractrouter-validation
-      name: dsh-refractrouter-validation
+      name: dsh-refractrouter-validation/validation-tools
+      disabled: true
       config:
         allowPaidRuns: false
         billingUnit: USD
@@ -11,7 +11,8 @@
         maxEvaluationCost: 1
         maxRetries: 0
     - id: refractagent
-      name: dsh-refractrouter-validation/agent
+      name: dsh-refractrouter-validation
       config:
+        entryMode: routing
         executionMode: demo
         allowPaidRuns: false

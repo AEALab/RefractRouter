@@ -1,12 +1,15 @@
-/** DSH 客户端贡献：只投影插件已展示的进度，不读取文件、不执行请求或重新推断路由。 */
+/** DSH 客户端贡献：展示宿主进度与核心只读证据，不派发模型或重新推断路由。 */
+import {automaticRefs,loadAutomaticHistory,useAutomaticHistory,type AutomaticHistory,type AutomaticRef,type TraceSnapshot} from './automatic-trace.js'
+import {TraceRecord,automaticStartedAt} from './trace-record.js'
+import {decodeDag,dagNodePresentation} from '../dag-progress.js'
+import type {ClientContext} from './types.js'
 interface GraphNode { id: string; objective: string; parents: string[]; model: string; state: string; type: string; difficulty: string; risk: string }
 interface GraphData { nodes: GraphNode[]; phase: string; interrupted: boolean }
-interface Block { kind: string; text?: string }
-interface Snapshot { nodes: Array<{ kind: string; blocks?: Block[]; turn?: number }>; partial: { blocks: Block[] } | null }
-interface ChatSnapshot { legacy: Snapshot }
-interface GraphProps { useChat<T>(select: (snapshot: ChatSnapshot) => T): T }
-type ElementFactory = (tag: string | ((props: GraphProps) => unknown), props: Record<string, unknown> | null, ...children: unknown[]) => unknown
-interface GraphContext { slots: { inject(name: string, callback: () => Generator<unknown>): void; register(options: Record<string, unknown>, component: (props: GraphProps) => unknown): unknown } }
+interface GraphProps { useChat<T>(select: (snapshot: TraceSnapshot) => T): T; loadAutomatic?:(ids:string[])=>Promise<AutomaticHistory> }
+interface GraphRecord {key:string;runId?:string;turn?:number;data:GraphData|null;startedAt?:string;elapsedMs?:number;
+  state:AutomaticRef['state'];error?:string;order:number}
+type ElementFactory = (tag: string | ((props: any) => unknown), props: Record<string, unknown> | null, ...children: unknown[]) => unknown
+interface GraphContext { remote?:ClientContext['remote'];slots: { inject(name: string, callback: () => Generator<unknown>): void; register(options: Record<string, unknown>, component: (props: GraphProps) => unknown): unknown } }
 export function graphModule(h: ElementFactory) {
   const catalog = [
     ['planning', '规划', '分解问题、制定分析路径与步骤。'],
@@ -58,6 +61,33 @@ export function graphModule(h: ElementFactory) {
       return [n.id, { x: 24 + (widest - counts.get(level)!) * 155 + column * 310, y: 24 + level * 200 }]
     }))
   }
+  function records(snapshot:TraceSnapshot):GraphRecord[]{
+    const found=new Map<string,GraphRecord>()
+    const add=(text:string,turn:number|undefined,state:AutomaticRef['state'],order:number)=>{
+      const data=parse(text)
+      if(!data)return
+      const match=/【自动路由记录】(\d{8}T\d{6}Z-[0-9a-f]{12})|^记录：[^\n]*[\/\\](\d{8}T\d{6}Z-[0-9a-f]{12})[\/\\](?:result|summary)\.json/m.exec(text)
+      const id=match?.[1]??match?.[2],key=id??`legacy-${turn??'unknown'}-${order}`
+      const duration=[...text.matchAll(/^耗时：(\d+(?:\.\d+)?) 秒\s*$/gm)].at(-1)
+      found.set(key,{key,runId:id,turn,data,state: data.interrupted?'interrupted':state,order,
+        startedAt:id?automaticStartedAt(id):undefined,elapsedMs:duration?Number(duration[1])*1000:undefined})
+    }
+    snapshot.legacy.nodes.forEach((node,index)=>{
+      if(node.kind==='assistant'&&(!node.provenance||node.provenance.provider==='refractagent'))
+        add(node.blocks?.filter(b=>b.kind==='reasoning').map(b=>b.text??'').join('\n')??'',node.turn,
+          node.interrupted?'interrupted':'settled',index)
+    })
+    if(snapshot.legacy.partial)add(snapshot.legacy.partial.blocks.filter(b=>b.kind==='reasoning').map(b=>b.text??'').join('\n'),
+      snapshot.legacy.partial.turn,'running',snapshot.legacy.nodes.length)
+    for(const ref of automaticRefs(snapshot)){
+      const previous=found.get(ref.id)
+      found.set(ref.id,{...(previous??{key:ref.id,runId:ref.id,data:null,order:-1,startedAt:automaticStartedAt(ref.id)}),
+        turn:ref.turn,state:ref.state,error:ref.error})
+    }
+    return [...found.values()].sort((a,b)=>
+      (b.startedAt?.localeCompare(a.startedAt??'')??(a.startedAt?-1:0))
+      ||(b.turn??b.order)-(a.turn??a.order)||b.order-a.order).slice(0,20)
+  }
   function color(state: string, role = false): string {
     if (state.startsWith('已完成')) return '#34d399'
     if (state.includes('失败')) return '#fb7185'
@@ -66,18 +96,19 @@ export function graphModule(h: ElementFactory) {
     if (state.startsWith('排队')) return '#fbbf24'
     return '#94a3b8'
   }
-  function graph(data: GraphData) {
+  function graph(data: GraphData,key:string) {
     const positions = layout(data.nodes)!
     const points = [...positions.values()]
     const width = Math.max(360, ...points.map(p => p.x + 302)), height = Math.max(160, ...points.map(p => p.y + 170))
+    const marker=`refract-dag-arrow-${key.replace(/[^a-zA-Z0-9-]/g,'-')}`
     const edges = data.nodes.flatMap(n => n.parents.map(parent => {
       const a = positions.get(parent)!, b = positions.get(n.id)!
-      return h('path', { key: `${parent}:${n.id}`, d: `M ${a.x+140} ${a.y+148} C ${a.x+140} ${a.y+172}, ${b.x+140} ${b.y-24}, ${b.x+140} ${b.y-6}`, fill: 'none', stroke: '#94a3b8', strokeWidth: 2, markerEnd: 'url(#refract-dag-arrow)' })
+      return h('path', { key: `${parent}:${n.id}`, d: `M ${a.x+140} ${a.y+148} C ${a.x+140} ${a.y+172}, ${b.x+140} ${b.y-24}, ${b.x+140} ${b.y-6}`, fill: 'none', stroke: '#94a3b8', strokeWidth: 2, markerEnd: `url(#${marker})` })
     }))
     return h('div', { style: { overflowX: 'auto', borderRadius: 16, background: '#111827', padding: 8 } },
       h('svg', { role: 'img', 'aria-label': '任务 DAG 依赖图，箭头从上游指向下游', viewBox: `0 0 ${width} ${height}`, width, height, style: { display: 'block', minWidth: '100%' } },
         h('title', null, '任务 DAG：箭头表示下游消费上游结果'),
-        h('defs', null, h('marker', { id: 'refract-dag-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, h('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#94a3b8' }))),
+        h('defs', null, h('marker', { id: marker, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, h('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: '#94a3b8' }))),
         ...edges, ...data.nodes.map(n => {
           const p = positions.get(n.id)!, role = roles[n.type]
           const label = role?.label ?? catalog.find(row => row[0] === n.type)?.[1] ?? n.type
@@ -91,19 +122,46 @@ export function graphModule(h: ElementFactory) {
             h('text', { x: 14, y: 130, fill: color(n.state, Boolean(role)), fontSize: 13 }, n.state.slice(0, 28)))
         })))
   }
-  function View({ useChat }: GraphProps) {
+  function View({ useChat,loadAutomatic }: GraphProps) {
     // conversation.view 的会话正文由 DSH Chat 标准 hook 提供；useSession 只包含
     // Session 元数据。legacy 是 DSH 为完整消息序列与流式 partial 保留的兼容投影。
-    const snapshot = useChat(s => s.legacy)
-    const blocks = [...snapshot.nodes.filter(n => n.kind === 'assistant').map(n => n.blocks ?? []), ...(snapshot.partial ? [snapshot.partial.blocks] : [])]
-    let data: GraphData | null = null
-    for (const list of blocks) for (const b of list) if (b.kind === 'reasoning' && b.text) { const candidate = parse(b.text); if (candidate) data = candidate }
+    const snapshot = useChat(s => s)
+    const history=records(snapshot)
+    const references=history.flatMap(r=>r.runId?[{id:r.runId,turn:r.turn,state:r.state,error:r.error}]:[])
+    const {data: saved,error}=useAutomaticHistory(references,loadAutomatic)
+    const phases:Record<string,string>={classifying:'数据分级与部署准入',planning:'规划任务',routing:'计划就绪／模型分配',
+      executing:'执行节点',evaluating:'独立评审',finished:'执行结束'}
     return h('section', { style: { padding: '20px 24px', color: 'var(--dsw-alias-label-primary)', maxWidth: 1100, margin: 'auto', width: '100%', boxSizing: 'border-box' } },
       h('h2', null, '任务 DAG'),
-      h('p', null, '展示当前已加载会话中最近一次任务流程。实线方框是实际执行任务，带色虚线框是规划、数据分级／部署准入或评审等流程角色；箭头表示先后依赖，不代表相邻节点一定串行。'),
-      h('p', { role: 'status' }, data ? `${data.phase}${data.interrupted ? ' · 已中断，图中保留最后收到的状态' : ''}` : '尚无任务流程图。提交新任务后，会显示本轮实际发生的规划、执行、数据准入与评审环节。'),
-      data?.nodes.length ? graph(data) : null,
-      data?.nodes.length ? h('details', null, h('summary', null, '节点完整说明与依赖'), ...data.nodes.map(n => h('p', { key: n.id }, `${n.id} · ${n.objective}｜类型 ${n.type}｜模型 ${n.model}｜状态 ${n.state}｜依赖 ${n.parents.join('、') || '无'}`))) : null,
+      h('p', null, '当前会话最近 20 条任务流程按时间由新到旧排列，默认收合；点击标题查看节点和连线。标题显示本地开始时间与总耗时，运行中自动更新。'),
+      error?h('p',{role:'alert'},`历史图读取失败：${error}。保留宿主已保存的图，不重发任务。`):null,
+      !history.length?h('p',{role:'status'},'尚无任务流程图。提交新任务后，会显示实际发生的规划、执行、数据准入与评审环节。'):null,
+      ...history.map(record=>{
+        const result=saved?.records.find(r=>r.run_id===record.runId)
+        const readError=saved?.errors.find(r=>r.run_id===record.runId)
+        let data=record.data
+        let graphError=''
+        if((record.state!=='running'||!data?.nodes.length)&&result?.dag?.nodes?.length){
+          // 结构化历史直接展示，不再序列化为文本后解析；客户端 bundle 的缩进
+          // 会改变多行模板里的空白，不能把这种字符串往返作为回放合同。
+          try{const dag=decodeDag(result.dag),nodes=dag.nodes.map(dagNodePresentation)
+            if(layout(nodes))data={nodes,phase:phases[dag.phase]??dag.phase,interrupted:record.state==='interrupted'}
+            else graphError='节点或依赖格式无法回放'}catch(e){graphError=e instanceof Error?e.message:String(e)}
+        }
+        const status=record.state==='interrupted'?'宿主已中断':record.state==='running'?'运行中':
+          result?.status==='completed'?'已完成':result?.status==='preview'?'零调用预览':result?.status?`已停止：${result.status}`:data?.phase??'状态未记录'
+        return h(TraceRecord,{key:record.key,title:`任务 DAG · ${status}${data?.nodes.length?` · ${data.nodes.length} 个流程节点`:''}`,
+          identity:`宿主轮次 ${record.turn??'未记录'}${record.runId?` · 记录 ${record.runId}`:''}`,
+          startedAt:record.startedAt,elapsedMs:result?.wall_time_ms??record.elapsedMs,running:record.state==='running'},
+          h('p',{role:'status'},record.error??`${data?.phase??'尚无完整节点进度'}${record.state==='interrupted'?' · 保留最后保存的状态，不自动重发。':''}`),
+          readError?h('p',{role:'status'},`历史证据读取失败：${readError.message}。`):null,
+          graphError?h('p',{role:'status'},`历史图校验未通过：${graphError}。保留宿主已保存的节点。`):null,
+          data?.nodes.length?graph(data,record.key):h('p',null,'该次记录尚无可回放的节点图；缺少图不表示任务已完成。'),
+          data?.nodes.length?h('details',null,h('summary',null,'节点完整说明与依赖'),...data.nodes.map(n=>h('p',{key:n.id},
+            `${n.id} · ${n.objective}｜类型 ${n.type}｜模型 ${n.model}｜状态 ${n.state}｜依赖 ${n.parents.join('、')||'无'}`))):null)
+      }),
+      h('details',null,h('summary',null,'流程角色与任务分类说明'),
+      h('p',null,'实线方框是实际执行任务，带色虚线框是规划、数据分级／部署准入或评审等流程角色；箭头表示先后依赖，不代表相邻节点一定串行。'),
       h('h3', null, '流程角色节点'),
       h('p', null, '角色节点表示 DAG 的控制与质量环节，不是普通交付节点；它们使用虚线边框，并按核心进度显示运行、完成、阻断或跳过状态。'),
       h('table', { style: { width: '100%', borderCollapse: 'collapse', lineHeight: 1.8 } }, h('thead', null, h('tr', null, h('th', { style: { textAlign: 'left' } }, '角色'), h('th', { style: { textAlign: 'left' } }, '作用与出现条件'))),
@@ -113,9 +171,10 @@ export function graphModule(h: ElementFactory) {
       h('p', null, 'forecast（预测）、drivers（驱动因素）、trend（趋势）、answer（最终回答）是自由命名的节点 ID，没有固定清单；名称不能决定正式类型。'),
       h('table', { style: { width: '100%', borderCollapse: 'collapse', lineHeight: 1.8 } }, h('thead', null, h('tr', null, h('th', { style: { textAlign: 'left' } }, '正式类型'), h('th', { style: { textAlign: 'left' } }, '说明'))),
         h('tbody', null, ...catalog.map(([id, label, description]) => h('tr', { key: id }, h('td', { style: { padding: '8px 12px 8px 0', verticalAlign: 'top' } }, `${label} · ${id}`), h('td', null, description))))),
-      h('p', null, '上表只说明实际执行节点的正式类型，不包含规划、分类和评审等流程角色。难度 difficulty、风险 risk 均为 low / medium / high，由规划器估计；模型分配还考虑预算、上下文与输出需求及核心配置，不由节点名称直接决定。'))
+      h('p', null, '上表只说明实际执行节点的正式类型，不包含规划、分类和评审等流程角色。难度 difficulty、风险 risk 均为 low / medium / high，由规划器估计；模型分配还考虑预算、上下文与输出需求及核心配置，不由节点名称直接决定。')))
   }
   return { inject: ['slots'], apply(ctx: GraphContext) {
-    ctx.slots.inject('conversation.view', function* () { yield ctx.slots.register({ name: 'conversation.view', id: 'refractagent-dag', order: 15, label: () => '任务 DAG' }, View) })
-  }, parse, layout }
+    const loadAutomatic=loadAutomaticHistory(ctx)
+    ctx.slots.inject('conversation.view', function* () { yield ctx.slots.register({ name: 'conversation.view', id: 'refractagent-dag', order: 15, label: () => '任务 DAG',inject:()=>({loadAutomatic}) }, View) })
+  }, parse, layout, records }
 }

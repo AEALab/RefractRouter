@@ -90,6 +90,9 @@ def project(summary, runtime=None, *, cash_limits=None):
     review = summary.get('review') or runtime.get('review') or {}
     quality = summary.get('quality') or runtime.get('evaluation') or {}
     score, floor = amount(quality.get('score')), amount(routing.get('quality_min_per_node'))
+    dag = summary.get('dag') or runtime.get('dag') or {}
+    if not isinstance(dag, dict):
+        dag = {}
     quality_gate = 'not-recorded'
     if ((runtime.get('deterministic_validation') or {}).get('passed') is False
             or (runtime.get('time_contract_validation') or {}).get('passed') is False
@@ -104,6 +107,12 @@ def project(summary, runtime=None, *, cash_limits=None):
     return {'schema_version': SCHEMA, 'run_id': summary.get('run_id'),
         'status': summary.get('status', runtime.get('status')), 'simulated': summary.get('simulated'),
         'mode': summary.get('mode', runtime.get('mode')), 'wall_time_ms': summary.get('wall_time_ms', runtime.get('wall_time_ms')),
+        'dag': {**pick(dag, ('phase', 'status', 'simulated', 'reason', 'plan_origin')),
+            'nodes': [{**pick(node, ('id', 'objective', 'parents', 'node_type', 'difficulty', 'risk',
+                        'state', 'attempt', 'recovery')),
+                       'model': pick(node.get('model'), ('id', 'provider', 'model', 'reasoning_effort'))
+                                if isinstance(node.get('model'), dict) else None}
+                      for node in dag.get('nodes', []) if isinstance(node, dict)]},
         'issues': summary.get('issues', runtime.get('issues', [])),
         'limitations': summary.get('limitations', runtime.get('limitations', [])),
         'structure': {**pick(gate, ('policy_version', 'rule_decision', 'decision', 'combination', 'reasons')),
@@ -143,7 +152,9 @@ def project(summary, runtime=None, *, cash_limits=None):
         'external_judge_cost_cny': amount(local.get('costCny')) if local.get('backend') == 'jev' else None,
         'external_judge_called': local.get('backend') == 'jev' and local.get('model') is not None,
         'review': pick(review, ('policy', 'required', 'reason', 'status', 'score', 'passed',
-            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort')),
+            'time_reserve_ms', 'output_cap', 'limits_version', 'contract_version','timeout_ms','task_timeout_ms','effective_wait_ms','model','reasoning_effort',
+            'version','phase','reserve_required','task_reasons','preflight_reason','candidate_signals','tool_result_count')),
+        'review_failure': pick(review.get('failure'), ('version','kind','repairable','uncertain_checks','usage_pending')),
         'deterministic_validation': pick(runtime.get('deterministic_validation'), ('passed', 'reason')),
         'time_contract_validation': pick(runtime.get('time_contract_validation'),
             ('version','applicable','passed','reason','scope','review_wait_ms','execution_reserve_ms')),
@@ -156,6 +167,9 @@ def project(summary, runtime=None, *, cash_limits=None):
             for attempt in (runtime.get('compact_planning') or {}).get('attempts', [])
             if attempt.get('identifier_normalization') or attempt.get('type_normalization') or attempt.get('json_normalization')],
         'quality': {**pick(quality, ('score', 'passed', 'rationale')),
+            **({'input_representation': pick(quality['input_representation'],
+                ('version','bytes','source_count','candidate_count','complete_values','summarized','truncated'))}
+                if isinstance(quality.get('input_representation'), dict) else {}),
             **({'evidence_references': pick(quality['evidence_references'],
                 ('version','candidate_sha256','resolved_by','model_calls_added','overall_check_scope'))}
                 if isinstance(quality.get('evidence_references'), dict) else {}),
@@ -178,7 +192,9 @@ def project(summary, runtime=None, *, cash_limits=None):
             'review_protection': pick(runtime['final_correction'].get('review_protection'),
                 ('input_upper_bound','reserved','billing_unit','label')),
         }} if isinstance(runtime.get('final_correction'), dict) else {}),
-        'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools')),
+        'tools': {**pick(tool, ('required', 'required_tools', 'passed', 'reason', 'message', 'missing_tools',
+            'evidence_bytes', 'evidence_limit_bytes', 'capacity_basis', 'review_model_id',
+            'review_input_bound', 'review_input_limit')),
             'records': [pick(r, ('node', 'call_id', 'tool', 'outcome')) for r in tool.get('records', [])]},
         'missing_evidence': [name for name, present in (
             ('candidate-directory', bool(directory)),

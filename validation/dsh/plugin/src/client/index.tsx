@@ -14,8 +14,12 @@ const graph = graphModule(createElement as unknown as Parameters<typeof graphMod
 const PLANNING_LOCALE_NS = 'refractagent-planning-card'
 export const parse = graph.parse
 export const layout = graph.layout
+export const dagRecords = graph.records
 export const applyGraph = graph.apply
-export {automaticRefs,AutomaticRecord,traceNumber,parseAutomaticHistory} from './automatic-trace.js'
+export {automaticRefs,AutomaticRecord,automaticFlowNodes,traceNumber,parseAutomaticHistory,useAutomaticHistory} from './automatic-trace.js'
+export {TraceRecord,automaticStartedAt,traceTimestamp,traceDuration} from './trace-record.js'
+export {RouteFlow,flowTone} from './route-flow.js'
+export {planningFlowNodes} from './planning.js'
 
 export const inject = ['slots', 'locale', 'remote', 'remote.session', 'remote.llm', 'remote.settings', 'settingsScope', 'uiConversation']
 

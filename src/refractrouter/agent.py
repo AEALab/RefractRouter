@@ -362,6 +362,9 @@ def run_agent(payload, *, mode='preflight', runs_dir, production_budget=40,
         manifest_file = Path(manifest_path) if manifest_path else Path(str(resource('agent-plan.json')))
         manifest = load_model_manifest(manifest_file)
         manifest_data = json.loads(manifest_file.read_text())
+    if automatic_routing and configured and configured.snapshot['schemaVersion'] == 'refractagent-providers-v6':
+        review = review_decision(payload, gate, policy=payload.get('reviewPolicy', 'adaptive'),
+                                 tools_allowed=tools_allowed, current_rules=True)
     if automatic_routing and gate['decision'] == 'direct':
         request['plan'] = plan_template('single', payload.get('acceptanceCriteria'))
     if automatic_routing and mode == 'live':

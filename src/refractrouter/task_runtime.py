@@ -23,7 +23,7 @@ from .task_scheduling import ExecutionPolicy
 from .task_execution import execute_nodes
 from .task_evaluation import evaluate_text, evaluation_messages
 from .task_tool_evidence import (MAX_EVIDENCE_BYTES, collect_tool_evidence,
-                                 tool_requirements, validation_message)
+                                 tool_requirements, validation_message, check_review_capacity)
 from .output_constraints import check_output_constraints, validate_output_constraints
 from concurrent.futures import CancelledError
 from .task_plan import PLANNER_SYSTEM, preview_plan, text, validate_plan
@@ -46,6 +46,7 @@ from .final_correction import correct_final, VERSION as CORRECTION_VERSION
 from .review_evidence import receipt as deterministic_receipt
 from .review_time_guard import check_review_time
 from .source_state_guard import check_source_state
+from .automatic_review import VERSION as ADAPTIVE_REVIEW_VERSION, finalize as finalize_review, outcome as review_outcome
 
 AGENT_PLAN_URL = "https://ark.cn-beijing.volces.com/api/plan/v3"
 
@@ -1058,13 +1059,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             tool_evidence = None
             if tool_runtime is not None or required_tools['required']:
                 tool_evidence, validation = collect_tool_evidence(required_tools,
-                    tool_runtime.snapshot()[tool_record_start:] if tool_runtime else [], available=tool_runtime is not None)
+                    tool_runtime.snapshot()[tool_record_start:] if tool_runtime else [], available=tool_runtime is not None,
+                    max_evidence_bytes=None if currency_reference else MAX_EVIDENCE_BYTES)
                 validation['message'] = validation_message(validation)
                 result['tool_validation'] = validation
                 if not validation['passed']:
                     result['status'] = 'tool-requirement-failed'
                     result['review'].update(status='blocked-tool-evidence', passed=False,
-                                            reason=validation['reason'])
+                                            reason=validation['reason'],
+                                            failure={'kind': ('unconfirmed-tool-result' if validation['reason'] == 'host-tool-result-unconfirmed'
+                                                else 'insufficient-tool-evidence'), 'repairable': False})
                     result['issues'].append(validation['message'])
                     persist()
                     return result  # 无法验收时不再花费最终 Judge，也不替宿主补跑工具。
@@ -1081,6 +1085,22 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         result['status'] = 'quality-failed'
                         persist()
                         return result
+            if result['review'].get('version') == ADAPTIVE_REVIEW_VERSION:
+                resolved = finalize_review(review_evidence, answer=result['final_output'],
+                    tool_evidence=tool_evidence, known_failure=known_failure)
+                result['review'].update(resolved)
+                if resolved['required'] and not resolved['reserve_required']:
+                    # 封闭微型任务若实际候选产生新风险，不绕过审核；原预检未保护
+                    # 此路径时停止，让下一任务重新预检，不能事后改变已授权路径。
+                    result['status'] = 'quality-failed'
+                    result['review'].update(status='blocked-unprotected-review', passed=False,
+                        failure={'kind': 'unexpected-candidate-risk', 'repairable': False})
+                    result['issues'].append('candidate-requires-unprotected-review')
+                    persist()
+                    return result
+                if not resolved['required'] and mixed:
+                    budget.release_review_protection()
+                persist()
             if result['review']['required'] and placement is not None:
                 isolation = judge_isolation(placement, review_judge)
                 placement['judge_isolation'] = isolation
@@ -1103,6 +1123,24 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         persist()
                         return result
             if result['review']['required']:
+                if tool_evidence is not None and known_failure is None:
+                    # 与实际 Judge 派发使用相同消息；包含引用目录，不只计算工具正文。
+                    review_messages = evaluation_messages(execution_task, result['final_output'],
+                        plan.acceptance_criteria, tool_evidence=tool_evidence,
+                        evidence_refs=currency_reference or bool(request.get('maxFinalRevisions', 0)),
+                        compact_evidence=currency_reference,
+                        deterministic_receipt=deterministic_receipt(
+                            result.get('deterministic_validation'), result['final_output']))
+                    validation = check_review_capacity(result['tool_validation'], review_judge, review_messages)
+                    validation['message'] = validation_message(validation)
+                    result['tool_validation'] = validation
+                    if not validation['passed']:
+                        result['status'] = 'tool-requirement-failed'
+                        result['review'].update(status='blocked-tool-evidence', passed=False,
+                                               reason=validation['reason'])
+                        result['issues'].append(validation['message'])
+                        persist()
+                        return result
                 if before_call() < review_reserve:
                     result['status'] = 'review-time-exhausted'
                     result['review'].update(status='not-dispatched-insufficient-time', passed=False,
@@ -1120,14 +1158,24 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                 persist()
                 judged = known_failure or evaluate_text(budget, review_judge, execution_task, result["final_output"],
                     criteria=plan.acceptance_criteria, label="final-judge", deadline=review_deadline,
-                    tool_evidence=tool_evidence, evidence_refs=bool(request.get('maxFinalRevisions', 0)),
+                    tool_evidence=tool_evidence, evidence_refs=currency_reference or bool(request.get('maxFinalRevisions', 0)),
+                    compact_evidence=currency_reference,
                     deterministic_receipt=deterministic_receipt(result.get('deterministic_validation'), result['final_output']))
                 result["evaluation"] = judged
                 result["review"].update(status="completed", score=judged['score'], passed=judged['passed'],
                                         contract_version=judged.get('review_contract'))
                 persist()
                 result["status"] = "completed" if judged["passed"] and judged['score'] >= request['qualityMin'] else "quality-failed"
-                if result['status'] == 'quality-failed' and request.get('maxFinalRevisions', 0):
+                result['review']['failure'] = (review_outcome(judged, request['qualityMin'])
+                    if currency_reference else {'kind': 'candidate-defect' if result['status'] == 'quality-failed'
+                        else 'approved', 'repairable': result['status'] == 'quality-failed',
+                        'version': 'legacy-final-review'})
+                if result['status'] == 'quality-failed' and not result['review']['failure']['repairable']:
+                    result['review']['status'] = 'not-approved'
+                    result['issues'].append('final-review-' + result['review']['failure']['kind'])
+                    persist()
+                if (result['status'] == 'quality-failed' and request.get('maxFinalRevisions', 0)
+                        and result['review']['failure']['repairable']):
                     record = {'version': CORRECTION_VERSION, 'maximum': 1, 'attempt': 0,
                               'status': 'pending', 'initial_evaluation': deepcopy(judged)}
                     if result.get('deterministic_validation') is not None:
@@ -1161,7 +1209,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                         validate=check_corrected,
                         admit=(None if guard is None else lambda messages: guard.require(plan.final_node_id,
                             result['routing']['assignments'][plan.final_node_id], messages, stage='final-correction')),
-                        production_cap=request['costMax'])
+                        production_cap=request['costMax'], compact_evidence=currency_reference)
                     result['final_output'] = corrected
                     result['format_validation'] = check_output_constraints(request.get('outputConstraints'), corrected)
                     result['time_contract_validation'] = check_review_time(request['task'], corrected)
@@ -1172,8 +1220,10 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
                     if revised is not None:
                         result['evaluation'] = revised
                         result['review'].update(status='completed', score=revised['score'], passed=revised['passed'],
-                            contract_version=revised.get('review_contract'), correction_count=1)
-                        result['review'].pop('reason', None)
+                            contract_version=revised.get('review_contract'), correction_count=1,
+                            failure=review_outcome(revised, request['qualityMin']))
+                        if result['review'].get('version') != ADAPTIVE_REVIEW_VERSION:
+                            result['review'].pop('reason', None)
                         result['status'] = ('completed' if revised['passed'] and revised['score'] >= request['qualityMin']
                                             else 'quality-failed')
                     else:
@@ -1190,6 +1240,7 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
             else:
                 result["evaluation"] = None
                 result["review"]["status"] = "skipped"
+                result['review']['failure'] = {'kind': 'not-reviewed', 'repairable': False}
                 result["status"] = "completed"
             if result['format_validation']['passed'] is False:
                 result['status'] = 'output-constraint-failed'
@@ -1206,6 +1257,16 @@ def run_task(request, manifest, profile, *, client=None, production_limit=None, 
         result["status"] = ("cancelled" if isinstance(exc, CancelledError) else
             'privacy-route-blocked' if isinstance(exc, PrivacyRouteViolation) else
             'content-verification-failed' if isinstance(exc, NodeSemanticFailure) else "failed")
+        if result['review'].get('status') in {'running', 'correcting'}:
+            pending_usage = any(row['status'] == 'unknown-usage' for row in budget.records)
+            kind = ('cancelled' if isinstance(exc, CancelledError) else
+                    'infrastructure-error' if isinstance(exc, ModelInvocationError) else
+                    'unconfirmed-model-usage' if pending_usage else
+                    'invalid-review-or-runtime-error')
+            result['review']['failure'] = {'kind': kind, 'repairable': False,
+                                          'usage_pending': pending_usage}
+            if isinstance(exc, ModelInvocationError):
+                result['review']['failure']['transport'] = exc.public_details()
         # Provider exception strings may contain credentials or response bodies.
         detail = str(exc) if isinstance(exc, (ValueError, json.JSONDecodeError, CancelledError)) else type(exc).__name__
         if isinstance(exc, ModelInvocationError):
