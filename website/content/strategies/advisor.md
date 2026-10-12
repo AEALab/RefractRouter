@@ -3,6 +3,8 @@
 Advisor 使用固定执行器，在准备交付最终回复时审核候选。
 默认最多 **两次审核、一次返工**，最终或复审通过才交付。
 
+<figure class="doc-diagram"><img src="/strategy-advisor.svg" alt="Advisor 审核闭环：首审通过交付，REDO 返工一次后复审，第二次未通过停止"/><figcaption>审核上限是硬边界：最多两次审核加一次返工，不存在无限循环。</figcaption></figure>
+
 ## 审核闭环
 
 | 边界与判定 | 行为 |

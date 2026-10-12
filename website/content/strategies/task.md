@@ -3,6 +3,8 @@
 Task 在新任务开始时，从用户自选模型池选择主执行模型，任务内保持。
 工具续接、追加指导和上下文压缩不重新执行分类。
 
+<figure class="doc-diagram"><img src="/strategy-task.svg" alt="Task 的能力过滤、单候选直选、多候选 Judge 与备援路径"/><figcaption>Task 只在任务开始做一次决策；之后无论多少轮工具续接，都不重新分类。</figcaption></figure>
+
 ## 一次选模流程
 
 1. 冻结模型池、优先顺序、Judge、备援、参数、价格和预算。

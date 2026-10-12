@@ -29,6 +29,7 @@ export default defineConfig({
     sidebar: [
       { text: '开始使用', collapsed: false, items: [
         { text: '项目简介', link: '/' },
+        { text: '架构', link: '/architecture' },
         { text: '下载安装', link: '/installation' },
         { text: '第一项任务', link: '/quickstart' },
         { text: '两种路由怎么选', link: '/routing' },

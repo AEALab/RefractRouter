@@ -1,1 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 256" role="img" aria-labelledby="title desc"><title id="title">自动路由的 Direct 与 DAG</title><desc id="desc">任务经过是否拆分的有限判别和 Python 准入；可以直接执行或规划 DAG，再按任务风险和实际证据决定最终审核。</desc><defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="m0 0 10 5-10 5" fill="#789187"/></marker></defs><g font-family="system-ui,-apple-system,sans-serif" text-anchor="middle"><g fill="none" stroke="#91a69d" stroke-width="1.5" marker-end="url(#a)"><path d="M156 128h33"/><path d="M347 128h30V48h35"/><path d="M377 128v83h35"/><path d="M578 48h22v80h30"/><path d="M578 211h22v-83"/></g><rect x="1" y="86" width="154" height="84" rx="8" fill="#fff" stroke="#d0ddd6"/><text x="78" y="120" font-size="17" font-weight="650" fill="#243b31">用户任务</text><text x="78" y="147" font-size="12" fill="#62776d">要求 · 输入 · 预算</text><rect x="197" y="79" width="150" height="98" rx="8" fill="#e0f1e9" stroke="#81baa4"/><text x="272" y="112" font-size="16" font-weight="650" fill="#176e51">判断与准入</text><text x="272" y="139" font-size="12" fill="#3f725a">规则 / 可选 Jev</text><text x="272" y="160" font-size="11" fill="#3f725a">最终路线由 Python 决定</text><rect x="420" y="13" width="157" height="70" rx="8" fill="#fff" stroke="#d0ddd6"/><text x="498" y="42" font-size="16" font-weight="650" fill="#243b31">Direct</text><text x="498" y="66" font-size="11" fill="#62776d">整任务执行 · 保留工具续接</text><rect x="420" y="156" width="157" height="99" rx="8" fill="#fff7e9" stroke="#e1cbaa"/><text x="498" y="183" font-size="16" font-weight="650" fill="#7c602f">DAG</text><text x="498" y="207" font-size="11" fill="#886e45">规划 → 节点分配 → 汇总</text><text x="498" y="231" font-size="11" fill="#886e45">独立节点可并行调用模型</text><rect x="639" y="87" width="80" height="83" rx="8" fill="#e0f1e9" stroke="#81baa4"/><text x="679" y="119" font-size="13" font-weight="650" fill="#176e51">最终候选</text><text x="679" y="143" font-size="11" fill="#3f725a">按风险审核</text><text x="272" y="237" font-size="11" fill="#62776d">可拆分不等于一定选择 DAG</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 570" role="img" aria-labelledby="title desc">
+  <title id="title">自动路由决策流程</title>
+  <desc id="desc">任务经过预检与零调用准入、拆分判别、规划调用、Direct 与 DAG 比较，最终按自适应规则审核交付。</desc>
+  <defs>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10" fill="none" stroke="#8aa297" stroke-width="1.6"/>
+    </marker>
+  </defs>
+  <g font-family="system-ui,-apple-system,sans-serif">
+    <rect x="305" y="16" width="150" height="44" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="36" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">任务输入</text>
+    <text x="380" y="53" font-size="11" fill="#52605b" text-anchor="middle">要求 · 材料 · 预算 · 期限</text>
+    <rect x="250" y="84" width="260" height="64" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="380" y="107" font-size="14" font-weight="650" fill="#176e51" text-anchor="middle">预检与零调用准入</text>
+    <text x="380" y="127" font-size="11" fill="#3f725a" text-anchor="middle">模型池 · 数据域 · 容量 · 价格 · 预算包络</text>
+    <text x="380" y="143" font-size="11" fill="#3f725a" text-anchor="middle">不通过则停止，不派发任何调用</text>
+    <rect x="250" y="172" width="260" height="64" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="195" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">拆分判别（可选）</text>
+    <text x="380" y="215" font-size="11" fill="#52605b" text-anchor="middle">微型任务跳过 · 结构规则先判</text>
+    <text x="380" y="231" font-size="11" fill="#52605b" text-anchor="middle">需要时调用本地 Laya 或官方 Jev</text>
+    <rect x="250" y="260" width="260" height="56" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="283" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">规划调用（付费）</text>
+    <text x="380" y="303" font-size="11" fill="#52605b" text-anchor="middle">生成候选 DAG · 校验依赖与输出合同</text>
+    <rect x="250" y="340" width="260" height="64" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="380" y="363" font-size="14" font-weight="650" fill="#176e51" text-anchor="middle">路线比较（零额外调用）</text>
+    <text x="380" y="383" font-size="11" fill="#3f725a" text-anchor="middle">按角色 · 敏感放置 · 容量 · 质量门槛过滤</text>
+    <text x="380" y="399" font-size="11" fill="#3f725a" text-anchor="middle">再比较成本与时延</text>
+    <rect x="560" y="340" width="170" height="56" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="645" y="362" font-size="13" font-weight="650" fill="#243b31" text-anchor="middle">Direct</text>
+    <text x="645" y="382" font-size="11" fill="#52605b" text-anchor="middle">整任务执行 · 保留工具续接</text>
+    <rect x="560" y="408" width="170" height="56" rx="9" fill="#fff7e9" stroke="#e1cbaa"/>
+    <text x="645" y="430" font-size="13" font-weight="650" fill="#7c602f" text-anchor="middle">DAG 路线</text>
+    <text x="645" y="450" font-size="11" fill="#886e45" text-anchor="middle">节点选模 · 依赖调度 · 并行调用</text>
+    <rect x="250" y="432" width="260" height="52" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="455" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">执行选定路线</text>
+    <text x="380" y="474" font-size="11" fill="#52605b" text-anchor="middle">实际用量逐次结算 · 失败按冻结规则处理</text>
+    <rect x="250" y="512" width="260" height="40" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="380" y="537" font-size="13" font-weight="650" fill="#176e51" text-anchor="middle">自适应最终审核 → 交付</text>
+    <path d="M380 60v24" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M380 148v24" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M380 236v24" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M380 316v24" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M510 368h50" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M510 392h30v44h20" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M380 404v28" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <path d="M380 484v28" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#aa)"/>
+    <text x="20" y="524" font-size="11" fill="#8aa297">单节点规划结果仍归为 Direct；</text>
+    <text x="20" y="542" font-size="11" fill="#8aa297">规划调用照常计费</text>
+  </g>
+</svg>

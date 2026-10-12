@@ -5,7 +5,7 @@
 自动路由先判断任务结构，再比较整任务 Direct 与 DAG 候选。DAG 的节点可以使用不同模型
 与推理等级；合法的独立分支可以并行调用模型。
 
-<figure class="doc-diagram"><img src="/automatic-flow.svg" alt="任务经过判断与准入后进入 Direct 或 DAG，再依据风险检查最终候选"/><figcaption>能拆分、选择 DAG、候选通过审核，是三个不同判断。</figcaption></figure>
+<figure class="doc-diagram"><img src="/automatic-flow.svg" alt="自动路由完整决策流程：预检、拆分判别、规划、路线比较、执行与自适应审核"/><figcaption>能拆分、选择 DAG、候选通过审核，是三个不同判断；单节点规划结果仍归为 Direct。</figcaption></figure>
 
 ## 一次运行的过程
 

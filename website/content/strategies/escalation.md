@@ -3,6 +3,8 @@
 先由起始模型执行，Judge 检查未交付候选；需要接管时丢弃候选，由指定模型继续原生 Agent 循环。
 每任务最多一次接管，接管后锁定该模型，不再调用 Judge。
 
+<figure class="doc-diagram"><img src="/strategy-escalation.svg" alt="Escalation 四种判别与接管路径"/><figcaption>PROCEED 放行；DEFECT、最终轮 STALL 和 UNCERTAIN 立即接管；工具过程 STALL 连续两次后接管。</figcaption></figure>
+
 ## 四种判别与动作
 
 | 判别／情况 | 行为 |
