@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="t d">
+  <title id="t">Composite 策略：Task 初选加 Stage 逐轮</title>
+  <desc id="d">任务开始时 Task 从池中选出常用模型，后续按 Stage 规则在常用模型与指定接管模型之间切换。</desc>
+  <defs><marker id="ca" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10" fill="none" stroke="#8aa297" stroke-width="1.6"/></marker></defs>
+  <g font-family="system-ui,-apple-system,sans-serif">
+    <rect x="270" y="14" width="220" height="48" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="36" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">新任务开始</text>
+    <text x="380" y="54" font-size="11" fill="#52605b" text-anchor="middle">冻结模型池 · Judge · 接管模型</text>
+    <rect x="230" y="90" width="300" height="66" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="380" y="113" font-size="13" font-weight="650" fill="#176e51" text-anchor="middle">Task 初选（一次）</text>
+    <text x="380" y="133" font-size="11" fill="#3f725a" text-anchor="middle">能力过滤 → 单候选直选 / 一次 Judge</text>
+    <text x="380" y="149" font-size="11" fill="#3f725a" text-anchor="middle">选出任务内的「常用模型」</text>
+    <rect x="230" y="190" width="300" height="56" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="212" font-size="13" font-weight="650" fill="#243b31" text-anchor="middle">后续逐轮 Stage 规则</text>
+    <text x="380" y="232" font-size="11" fill="#52605b" text-anchor="middle">消费新增工具证据 · 不重复 Task 分类</text>
+    <rect x="80" y="282" width="240" height="60" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="200" y="304" font-size="13" font-weight="650" fill="#176e51" text-anchor="middle">常用模型执行</text>
+    <text x="200" y="324" font-size="11" fill="#3f725a" text-anchor="middle">无困难时的默认档位</text>
+    <rect x="440" y="282" width="240" height="60" rx="9" fill="#fff7e9" stroke="#e1cbaa"/>
+    <text x="560" y="304" font-size="13" font-weight="650" fill="#7c602f" text-anchor="middle">临时切换到接管模型</text>
+    <text x="560" y="324" font-size="11" fill="#886e45" text-anchor="middle">重复失败 / 新困难 / Task 不确定备援</text>
+    <rect x="230" y="362" width="300" height="30" rx="7" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="382" font-size="12" font-weight="600" fill="#243b31" text-anchor="middle">保持期结束且无新困难 → 恢复常用模型</text>
+    <path d="M380 62v24" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ca)"/>
+    <path d="M380 156v30" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ca)"/>
+    <path d="M300 246c-40 10 -80 20 -95 32" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ca)"/>
+    <path d="M460 246c40 10 80 20 95 32" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ca)"/>
+    <path d="M320 342c20 8 80 14 120 18" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ca)"/>
+    <path d="M440 342c-20 8 -80 14 -120 18" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ca)"/>
+  </g>
+</svg>
