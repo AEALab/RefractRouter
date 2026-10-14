@@ -28,6 +28,20 @@ Advisor 使用固定执行器，在准备交付最终回复时审核候选。
 该下拉框只用于 LLM 后端；本地 Laya 也是独立审核器类型，不是普通 DSH 生成模型。
 当前 Laya 审核质量标为实验；选择它需要显式接受实验状态并提前就绪。
 
+## 系统设置示范
+
+<figure class="doc-screenshot"><a href="/screenshots/dsh-20261014/strategy-advisor-settings.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/strategy-advisor-settings.png" alt="实际 Advisor 设置：固定 V4.1 执行器与官方 Jev 审核类型"/></a><figcaption>2026-10-14 实际界面：固定执行器负责答案，Judge 负责最终候选 Gate，两个角色分别设置。</figcaption></figure>
+
+<figure class="doc-screenshot"><a href="/screenshots/dsh-20261014/strategy-advisor-parameters.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/strategy-advisor-parameters.png" alt="实际 Advisor 高级参数：获选概率门槛 0.8、审核期限和容量"/></a><figcaption>实际展开高级参数：获选概率门槛 0.8、期限 30000 ms、输入容量 65536、候选输出 2048、Judge 输出 1024。</figcaption></figure>
+
+概率门槛约束 Jev 获选答案能否进入动作规则，不是“正确率达到 80%”。
+执行器、输入容量与期限应覆盖实际任务；超过容量或无法判断按停止规则处理。
+界面固定显示最多两次审核、一次返工，没有靠不断增加次数保证通过的配置。
+
+适用场景是准备交付一份有明确合同的总结：要求三条结论都能对应已读取资料。
+若首审要求补充缺失依据，候选先丢弃，原执行器根据反馈改正文，再复审；
+已经完成的工具不重跑。这个返工示例解释动作规则，下面真实案例只覆盖首次批准。
+
 ## 判别与故障
 
 审核检查用户要求、已接受历史、工具证据和候选；复审包含前次问题与反馈。
@@ -48,6 +62,9 @@ LLM 输出严格校验；非法结构、超容量、认证／传输故障或未�
 ### 真实案例
 
 advisor-01 任务：执行器 `deepseek-v4.1-flash` 先生成候选（`advisor-initial`），
+用户只要求回复 `ADVISOR_01_OK`，不使用工具，也不添加其他文字。
 候选缓冲后交独立 Judge `deepseek-v4-flash` 审核，判定通过（`advisor-approved`）后交付。
 共 2 次受管调用（1 执行 + 1 审核），费用 3.670 AFP，首字 1.41 秒，总延迟 4.50 秒。
 同批次 24 项 Advisor 任务全部一次审核通过；REDO 返工路径由确定性夹具单独验证。
+这是[2026-09-29 的 LLM 审核案例](../planning.md#六策略真实运行案例)；
+当前截图的官方 Jev 审核不沿用它的调用价格或 Judge 分数。
