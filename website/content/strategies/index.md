@@ -3,6 +3,8 @@
 先明确什么结果算合格，再选择需要的路由行为。增加 Judge 或切换模型可能提高费用与等待时间，
 并不自动提高质量。
 
+<figure class="doc-screenshot compact"><a href="/screenshots/dsh-20261014/strategy-task-settings.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/strategy-task-settings.png" alt="实际策略设置入口：上方默认路由策略、下方正在编辑的策略"/></a><figcaption>2026-10-14 实际界面（Task 编辑视图）：在「正在编辑的策略」切换查看各策略字段；上方「默认路由策略」才是新任务实际使用的策略，两者不要混淆。</figcaption></figure>
+
 ## 按需求选择
 
 | 你希望的行为 | 策略 | 需要额外 Judge 吗？ |

@@ -32,6 +32,8 @@ TypeScript，两边的行为偏差会直接导致实际调用与记录不符。�
 
 以 DSH 中的一次 Stage 调用为例，数据这样流动：
 
+<figure class="doc-diagram"><img src="/planning-call-journey.svg" alt="规划路由调用旅程：请求、选模、签发、返回、记账，工具证据回到核心"/><figcaption>绿色两步在 Python 核心完成；宿主工具语义不进入核心，核心只消费证据状态。</figcaption></figure>
+
 1. DSH 原生循环准备发起模型请求，插件拦截这个请求，通过本机子进程发给 Python 核心。
 2. 核心按冻结的任务状态和策略规则选出目标模型，原子预留预算后签发调用指令。
 3. 插件把调用转给 DSH 的模型服务，模型流式返回；工具调用原样交回 DSH 执行。
@@ -51,16 +53,16 @@ DAG 的完整成本。详见[自动路由](automatic.md)的流程图。
 
 | 模块 | 职责 |
 | --- | --- |
-| planning_runtime.py | 规划路由主状态机：任务冻结、六策略流转、预算包络、证据持久化 |
-| planning_policy.py | Stage 信号计算、工具事件归一、Static 抽样 |
-| stage_hybrid.py | Stage 协作模式的判别合同与状态转换 |
-| planning_decision.py | Task 候选过滤、Judge 合同、结果严格校验 |
-| advisor_decision.py / escalation_decision.py | 两个审核策略的独立判别合同 |
-| automatic_routing.py | 自动路由两级求解：门控 + Direct/DAG 比较 |
-| model_gateway.py | 标准模型 HTTP 服务，refract/* 虚拟模型 |
-| task_budget.py | 原子预留、派发、结算，规划与 DAG 共用 |
+| [planning_runtime.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/planning_runtime.py) | 规划路由主状态机：任务冻结、六策略流转、预算包络、证据持久化 |
+| [planning_policy.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/planning_policy.py) | Stage 信号计算、工具事件归一、Static 抽样 |
+| [stage_hybrid.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/stage_hybrid.py) | Stage 协作模式的判别合同与状态转换 |
+| [planning_decision.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/planning_decision.py) | Task 候选过滤、Judge 合同、结果严格校验 |
+| [advisor_decision.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/advisor_decision.py) / [escalation_decision.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/escalation_decision.py) | 两个审核策略的独立判别合同 |
+| [automatic_routing.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/automatic_routing.py) | 自动路由两级求解：门控 + Direct/DAG 比较 |
+| [model_gateway.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/model_gateway.py) | 标准模型 HTTP 服务，refract/* 虚拟模型 |
+| [task_budget.py](https://github.com/AEALab/RefractRouter/blob/main/src/refractrouter/task_budget.py) | 原子预留、派发、结算，规划与 DAG 共用 |
 
-完整文件表见仓库的架构文档。
+完整文件表见[仓库的架构文档](https://github.com/AEALab/RefractRouter/blob/main/docs/architecture.md)。
 
 ## 语言边界的硬规则
 
@@ -70,4 +72,4 @@ DAG 的完整成本。详见[自动路由](automatic.md)的流程图。
 - 新增实现语言或跨层复制业务逻辑，须先在架构 Issue 或 ADR 中提案并获维护者批准。
 
 这些规则不是风格偏好，而是防止两个权威实现漂移的机制。历史事故与恢复核对记录在
-仓库的 DAG 恢复核对文档中。
+[DAG 恢复核对](https://github.com/AEALab/RefractRouter/blob/main/docs/dag-restoration-audit.md)中。

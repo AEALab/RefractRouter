@@ -25,7 +25,7 @@ title: 项目简介
 
 ## Python 核心与 DSH 插件
 
-<figure class="doc-diagram"><img src="/architecture-layers.svg" alt="四层架构：宿主 Agent、DSH 插件或标准网关、Python 核心、模型服务"/><figcaption>策略、准入、账本与证据只在 Python 核心实现一次；插件与网关是两种接入方式。</figcaption></figure>
+<figure class="doc-diagram"><img src="/router-boundary.svg" alt="Agent、Router 与模型的职责：Agent 保持原生执行循环，Router 选模与记账"/><figcaption>Agent 保持工具、权限与任务推进；Router 只做选模、判别、费用与轨迹。分层图见[架构](architecture.md)。</figcaption></figure>
 
 很多人第一次接触会以为 DSH 插件就是 RefractRouter。实际上插件只是宿主适配层：
 它把 DSH 的请求转给独立的 Python 核心，核心决定用哪个模型、如何审核、怎么记账，
@@ -34,12 +34,22 @@ title: 项目简介
 
 分层细节、模块速查和语言边界见[架构](architecture.md)。
 
+## 一次真实运行留下的证据
+
+每次路由都会在本机留下可核对的记录：实际模型、判别、费用与决策理由。
+下图是 2026-10-07 一次自动路由任务的路由轨迹：Jev 判为可拆分，但比较 Direct 与 DAG
+的预测成本后选择整任务直接执行——候选计划 4 个节点，最终只用 1 个。
+
+<figure class="doc-screenshot"><a href="/screenshots/auto-route-summary.jpg" target="_blank" rel="noopener"><img src="/screenshots/auto-route-summary.jpg" alt="真实路由轨迹：可拆分但最终选择整任务 Direct 执行"/></a><figcaption>「可拆分」与「应该拆分」是两个判断；读法详解见[运行记录](traces.md)，完整案例见[自动路由](automatic.md)。</figcaption></figure>
+
 ## 适用场景
 
-- **代码任务**：由 Agent 读写文件、运行测试，Stage 根据可信执行证据切换模型。
-- **研究与写作**：Task 在任务开始时选择主模型；Advisor 对最终候选进行审核。
-- **成本受控的探索**：Escalation 先使用起始模型，必要时由指定接管模型接手。
-- **独立子问题研究**：通过自动路由尝试 DAG；同时核对规划、汇总和审核的额外开销。
+- **代码任务**：由 Agent 读写文件、运行测试，[Stage](strategies/stage.md) 根据可信执行证据切换模型。
+- **研究与写作**：[Task](strategies/task.md) 在任务开始时选择主模型；[Advisor](strategies/advisor.md) 对最终候选进行审核。
+- **成本受控的探索**：[Escalation](strategies/escalation.md) 先使用起始模型，必要时由指定接管模型接手。
+- **独立子问题研究**：通过[自动路由](automatic.md)尝试 DAG；同时核对规划、汇总和审核的额外开销。
+
+每条场景都附有真实验收案例与设置截图，不只停留在概念描述。
 
 ## 从哪里开始
 

@@ -3,6 +3,13 @@
 这是自动路由的最终候选审核，独立于规划 Advisor／Escalation 的设置与状态。
 当前规则为 `adaptive-final-review-v1`，适用于新版人民币参考计价配置。
 
+## 系统设置
+
+<figure class="doc-screenshot"><a href="/screenshots/dsh-20261014/automatic-review-settings.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/automatic-review-settings.png" alt="实际最终回复审核设置：GLM 5.3 Low、180 秒期限、预留 60 秒、拒绝后纠正一次并复审"/></a><figcaption>2026-10-14 实际界面：审核模型与推理等级独立配置；等待上限 180 秒仍受任务剩余期限约束；预留 60 秒是留给审核的任务余量；「纠正一次并复审」只改正文，不重跑已完成节点或工具。</figcaption></figure>
+
+截图中的审核模型 `ark/glm-5.3`（Low）、8192 tokens 输出上限是当时配置示例；
+执行输出与审核输出容量分开计算，推理 token 是否计入输出以实际接口为准。
+
 ## 哪些任务需要审核
 
 预检先保护可能需要的审核路径。最终候选形成后，根据原任务风险与实际证据决定派发：
