@@ -36,3 +36,11 @@ Composite 将 Task 的任务级初选，与 Stage 的后续轨迹判断组合。
 Task 一次判别与逐轮执行分别计账；纯规则 Stage 不增加 Judge。
 只预留本轮选中执行模型的费用，接管余额不足明确停止，不静默降档。
 轨迹包含初选、证据、保持、恢复和任何实验 Judge 的原始结果。
+
+### 真实案例
+
+composite-01 任务：先由 Task 阶段的 Judge `glm-5.3-flash` 分类并选出常用模型
+（`task-llm-judge` → `composite-task-selected`），执行轮次交回 Stage 规则判断；
+工具回执 `ambiguous` 时触发临时接管判断（`composite-ambiguous-base`），由
+`deepseek-v4-flash` 接续执行。共 3 次受管调用（1 判别 + 2 执行），费用 1.408 AFP，
+首字 3.21 秒，总延迟 7.66 秒。

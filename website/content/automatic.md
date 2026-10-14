@@ -37,6 +37,39 @@ Jev 适合回答是否存在值得分别处理的独立工作、分支间是否�
 模型调用并行与工具执行并行分开处理：独立节点可以并行调用，宿主工具保持既有调度与审批。
 汇总等待必要上游完成；节点失败按冻结停止或有界切换规则处理。
 
+## 真实运行案例
+
+下面是 2026-10-07 一次真实自动路由任务的完整记录（证据目录
+`reports/automatic-routing-trace-20261007`），任务内容是独立审查三个互不依赖的文件。
+
+**第一步：Jev 判别任务结构。** Judge 对“是否依赖前一步输出”“是否可独立开始”“是否只有
+一项工作”三个问题给出概率，规则合并后分类为 SEPARABLE（可拆分）。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-trace-jev.jpg" alt="Jev 原始答案：三个结构问题的概率"/><figcaption>Jev 原始答案区：概率由规则合成分类，不是模型的置信度；实验路线明确标注。</figcaption></figure>
+
+**第二步：比较两条路线后选择 Direct。** 直接路线预测 0.687 CNY，DAG 候选预测
+1.385 CNY——拆分带来的并行收益不足以抵消规划、汇总与上下文重复的开销，最终整任务直接执行。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-route-decision.jpg" alt="任务判别与最终执行路线：SEPARABLE 但选择 Direct"/><figcaption>任务判别与最终执行路线：Jev 判为可拆分，但路线比较后选择 Direct，候选 4 节点计划只用 1 个。</figcaption></figure>
+
+**第三步：执行、工具回执与费用结算。** 任务执行中宿主返回 bash 工具回执，费用账本按用途
+分别记录参考成本与现金用量。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-tool-receipts.jpg" alt="工具回执与评审结果"/><figcaption>工具证据区：answer 节点的两条 bash 回执均为 completed；评审分数 100，门槛验收达到。</figcaption></figure>
+
+同一个任务族里，另一次运行（2026-10-09，`reports/automatic-quality-20261009`）的 Jev
+同样判为 SEPARABLE，但直接路线预测 0.126 CNY 低于 DAG 的 0.307 CNY，同样选择 Direct。
+两次真实运行说明：**可拆分不等于应该拆分**，路线比较才是最终决策。
+
+### 什么时候真的走 DAG
+
+当任务确实包含多个可并行的独立子工作时，DAG 视图会显示分支结构与依赖连线：
+
+<figure class="doc-diagram"><img src="/screenshots/auto-dag-full.jpg" alt="多节点 DAG：cost 与 risk 并行，answer 等待依赖"/><figcaption>多节点 DAG：cost 与 risk 无依赖关系可以并行调用模型，answer 等待两者完成。</figcaption></figure>
+
+节点的正式类型（规划、提取、综合、生成、验证）与难度、风险由规划器估计；
+每个节点可以分配不同模型与推理等级。
+
 ## 在 DSH 中配置
 
 使用独立的 **RefractAgent 自动路由** 卡片：选择执行模型池、数据域与信任策略，

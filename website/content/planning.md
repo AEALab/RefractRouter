@@ -28,6 +28,45 @@
 “正在编辑的策略”不等于“默认路由策略”。保存设置从下个任务生效；正在运行的任务使用
 已冻结配置。默认策略不应强行覆盖会话已经选择的模式。
 
+## 界面与设置
+
+规划路由的设置位于 DSH 设置窗口的 **插件** 区域，与自动路由各自独立卡片：
+
+<figure class="doc-diagram"><img src="/screenshots/settings-cards.jpg" alt="设置窗口：RefractAgent 规划路由与自动路由两张卡片"/><figcaption>插件设置页：规划路由显示“已启用”，自动路由显示“可运行”；两者配置互不混放。</figcaption></figure>
+
+展开 **RefractAgent 规划路由** 卡片后，按正在编辑的策略配置模型角色、Judge、预算与数据域，
+运行零调用检查后保存。在对话输入框的模型菜单中选择“路由模式”即可使用。
+
+## 六策略真实运行案例
+
+下表来自 2026-09-29 的 128 项正式验收（`reports/dsh-strategy-stability-20260929-v3`），
+每个策略抽取第一个任务作为示例。模型为 `deepseek-v4-flash`（DSF）、
+`deepseek-v4.1-flash`（V4.1）与 `glm-5.3-flash`（GLM）。
+
+| 策略 | 调用序列 | 决策原因 | 费用（AFP） | 首字 | 总延迟 |
+| --- | --- | --- | --- | --- | --- |
+| Static | V4.1 | static-random-selected | 3.116 | 1.79s | 1.80s |
+| Stage | DSF → DSF | no-signal → ambiguous | 1.254 | 1.24s | 4.38s |
+| Task | GLM(判) → DSF | task-llm-judge → quality-then-first-call-cost | 0.774 | 3.13s | 5.60s |
+| Composite | GLM(判) → DSF → DSF | task-llm-judge → selected → ambiguous-base | 1.408 | 3.21s | 7.66s |
+| Advisor | V4.1 → DSF(审) | advisor-initial → advisor-approved | 3.670 | 1.41s | 4.50s |
+| Escalation | DSF → GLM(审) | escalation-initial → escalation-proceed | 1.170 | 2.33s | 4.75s |
+
+几个值得注意的行为：
+
+- **Static** 的冻结随机在两条执行路线间抽取，同一批次 12 项任务同时覆盖了 DSF 与 V4.1。
+- **Stage** 第一轮无信号用高效模型，工具回执 ambiguous 后保持同一模型；同批次 24 项
+  每项恰好一次宿主工具调用。
+- **Task** 的 Judge（GLM）只调用一次完成分类，之后固定选择质量达标且首调用成本更低的 DSF。
+- **Composite** 比 Task 多一次执行调用：Task 选出常用模型后，后续轮次由 Stage 规则
+  判断是否需要临时接管。
+- **Advisor** 的执行与审核分开计费（V4.1 执行 + DSF 审核），候选经审核批准后才交付。
+- **Escalation** 的 Judge 检查起始候选后放行（PROCEED），同批次 24 项全部一次通过，
+  未触发接管。
+
+完整 128 项任务的逐任务记录、模型分布与失败批次分析见
+`reports/dsh-strategy-stability-20260929-v3/README.md` 与 `records.jsonl`。
+
 ## 新任务与续接
 
 新用户轮次建立新任务状态。工具续接、进行中的追加指导和宿主压缩沿用当前状态，

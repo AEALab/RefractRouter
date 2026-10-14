@@ -16,6 +16,15 @@
 | 标准 Base URL | 六个 `refract/*` 虚拟模型 | 不通过标准模型 API 隐式进入 DAG |
 | 当前定位 | 文本与原生工具的模型路由 | DAG 拆分与收益探索的独立入口 |
 
+## 在 DSH 中找到两个入口
+
+两种路由在 DSH 设置中使用独立的配置卡片，互不混放：
+
+<figure class="doc-diagram"><img src="/screenshots/settings-cards.jpg" alt="DSH 设置窗口的插件页：规划路由与自动路由两张卡片"/><figcaption>设置 → 插件：RefractAgent 规划路由（已启用）与 RefractAgent 自动路由（可运行）各自独立配置。</figcaption></figure>
+
+配置完成后，在对话输入框的模型菜单中选择对应入口：规划路由显示为“路由模式”，
+自动路由显示为“自动路由（真实执行）”。
+
 ## 建议的选择顺序
 
 日常任务先从规划 Static 开始。固定模型可用后，再根据需要选择 Stage、Task、Advisor、

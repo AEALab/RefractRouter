@@ -36,3 +36,10 @@ Random 需要两个执行角色及权重。权重 `1:1` 表示同等抽样概率
 
 固定／随机理由、选中的真实模型与推理等级、调用用途、费用和耗时。
 如果 Fixed 产生额外 Judge 调用，需核对是否实际选择了其他策略。
+
+### 真实案例
+
+2026-09-29 验收批次的 static-01 任务（`reports/dsh-strategy-stability-20260929-v3/records.jsonl`）：
+冻结随机种子选中 `deepseek-v4.1-flash`，1 次受管调用，费用 3.116 AFP，首字 1.79 秒，
+总延迟 1.80 秒，决策原因 `static-random-selected`。同一批次 12 项 Static 任务里，
+随机策略同时覆盖了 `deepseek-v4-flash`（如 static-02：0.622 AFP）与 V4.1 两条执行路线。

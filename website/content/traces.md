@@ -3,6 +3,10 @@
 记录既用于排查一次任务，也用于核对模型路由是否符合策略。不同记录可以收合，
 保留开始时间与执行耗时，避免多次任务混在一起难以查找。
 
+DSH 界面把记录分成两个页签：**任务 DAG** 展示拆分计划与节点状态，
+**路由轨迹** 展示每次模型调用的策略原因、判别、费用与停止原因。两者读取同一份
+本机证据文件，只是视图不同。
+
 ## 两个页签
 
 | 页签 | 主要内容 |
@@ -12,6 +16,83 @@
 
 自动路由也有可审计的调用记录与轨迹。Direct 可以没有任务节点图；规划失败可能只有规划调用，
 不能因为没有 DAG 就丢失费用或错误。
+
+## 路由轨迹页详解
+
+路由轨迹页区分 **Judge 原始答案** 与 **Router 最终动作**：任务运行状态不等于质量已通过
+独立验收。下面的截图来自一次真实的自动路由任务。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-route-summary.jpg" alt="路由轨迹页：任务判断与最终执行路线"/><figcaption>路由轨迹页的“自动路由”卡片：记录 ID、宿主轮次、端到端耗时、任务判别与最终执行路线。</figcaption></figure>
+
+从上到下依次核对四个区块：
+
+1. **记录头**：记录 ID、宿主轮次、端到端耗时。记录 ID 是本机证据文件的名字，
+   可以直接用来排查。
+2. **任务判断与最终执行路线**：结构规则给出的结论（例如“DAG 拆分执行”）、
+   最终选择的执行方式、候选计划节点数与选中节点数。
+3. **Judge 信息**：判别后端（如 OpenRouter Jev）、原始分类、规则合并后的分类、
+   判别耗时与排队时间。实验性路线会明确标注。
+4. **路线预测与适用范围**：Direct 与 DAG 两条路线的预测成本、预测范围的边界说明。
+   未选择的候选路线没有被执行，预测差额不能当作实测收益。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-trace-jev.jpg" alt="Jev 原始答案表格：依赖前一步输出、可独立开始、只有一项工作的概率"/><figcaption>Judge 原始答案区：三个结构问题的概率，由规则合成分类，不是模型直接给出的置信度。</figcaption></figure>
+
+Jev 原始答案区列出每个结构问题的概率（例如“是否依赖前一步输出 0.08”）。页面同时说明：
+这些分类概率由规则合成，不是模型直接给出的 Choice probability 或 confidence，
+也不表示任务成功率。合同版本（如 `decomposition-decision-v2`）与规则版本
+（如 `automatic-decomposition-hybrid-v5`）会一起展示。
+
+### 工具证据与评审
+
+<figure class="doc-diagram"><img src="/screenshots/auto-tool-receipts.jpg" alt="工具证据、评审与停止原因：宿主工具回执列表"/><figcaption>工具回执区：每条回执显示节点名、工具、completed 状态与调用 ID。completed 表示回执已返回，不自动证明命令成功。</figcaption></figure>
+
+工具证据区列出宿主返回的结构化回执：节点（如 answer）、工具名（如 bash）、
+状态（completed）和调用 ID。**completed 表示回执已返回，不自动证明测试成功或命令退出为零。**
+评审行显示是否完成、分数、原始结论与门槛验收结果——最终运行状态与质量验收是两个概念。
+
+### 费用与预算
+
+<figure class="doc-diagram"><img src="/screenshots/auto-fee-ledger.jpg" alt="费用与预算表格：参考成本占用、现金结算、待核对预留"/><figcaption>费用与预算区：按用途区分参考成本占用与现金用量；参考估值不与现金占用相加。</figcaption></figure>
+
+费用账本按用途（生产、规划、评审等）分列：参考成本占用、现金用量结算／待核对、
+当时现金预算与剩余。逐模型的准入记录显示实际分配状态；旧记录未保存的检查项会提示
+“通过准入不等于预算可执行”。
+
+## 任务 DAG 页详解
+
+<figure class="doc-diagram"><img src="/screenshots/auto-dag-nodes.jpg" alt="任务 DAG 页：执行节点卡片与角色节点说明"/><figcaption>DAG 视图：每个节点卡片显示节点 ID、正式类型、难度风险、职责说明、分配模型与状态。</figcaption></figure>
+
+DAG 视图里每个节点卡片包含五类信息：
+
+| 字段 | 说明 | 示例 |
+| --- | --- | --- |
+| 节点 ID | 规划器命名的标识，没有固定清单 | answer、forecast、risk |
+| 正式类型 | planning／extraction／synthesis／generation／verification | 生成 · generation |
+| 难度与风险 | 规划器估计的 low／medium／high | 难度 medium · 风险 high |
+| 职责说明 | 这个节点要产出什么 | 完整回答当前用户任务 |
+| 模型与状态 | 分配的 provider／模型（推理等级）与运行状态 | ark/deepseek-v4-flash (low) · 已完成 |
+
+箭头表示下游需要上游结果；同层无依赖的节点可以并行调用模型。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-dag-full.jpg" alt="多节点 DAG：并行分支与汇总节点"/><figcaption>运行中的多节点 DAG：cost 与 risk 两个并行分支，answer 节点等待依赖完成。</figcaption></figure>
+
+### 流程角色节点
+
+DAG 页还有一类**虚线边框的角色节点**：它们表示控制与质量环节，不是普通交付节点。
+
+| 角色 | 作用与出现条件 |
+| --- | --- |
+| 规划前输入分级 · role-classifier | 规划模型调用前检查任务输入的敏感级别与部署许可 |
+| 节点放置准入 · role-placement | 规划完成后检查敏感级别与可用部署路线 |
+| 最终评审 · final-judge | 按自适应审核规则决定是否需要独立评审 |
+
+角色节点按核心进度显示运行、完成、阻断或跳过状态，帮助区分“流程没走到”和“执行失败”。
+
+<figure class="doc-diagram"><img src="/screenshots/auto-dag-types.jpg" alt="任务节点正式类型表格：规划、提取、综合、生成、验证"/><figcaption>节点正式类型表：类型由实际执行节点的职责决定，不由节点名称决定。</figcaption></figure>
+
+节点 ID（forecast、drivers、trend、answer）是规划器起的名字，没有固定清单；
+正式类型（规划、提取、综合、生成、验证）描述职责。难度与风险由规划器估计，
+模型分配还考虑预算、上下文与输出需求及核心配置，不由节点名称直接决定。
 
 ## 每次记录应该看什么
 
