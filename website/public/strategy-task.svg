@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="t d">
+  <title id="t">Task 策略的一次选模流程</title>
+  <desc id="d">任务开始时从模型池过滤合格候选，单候选直选，多候选执行一次 Judge 判别，不确定时使用指定备援。</desc>
+  <defs><marker id="ta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10" fill="none" stroke="#8aa297" stroke-width="1.6"/></marker></defs>
+  <g font-family="system-ui,-apple-system,sans-serif">
+    <rect x="280" y="14" width="200" height="44" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="380" y="42" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">新任务开始</text>
+    <rect x="250" y="84" width="260" height="76" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="380" y="108" font-size="13" font-weight="650" fill="#176e51" text-anchor="middle">能力过滤（零调用）</text>
+    <text x="380" y="128" font-size="11" fill="#3f725a" text-anchor="middle">主执行器 · 工具调用 · 图片/影片输入</text>
+    <text x="380" y="146" font-size="11" fill="#3f725a" text-anchor="middle">格式 · 数量 · 大小 · 时长 · 维度</text>
+    <rect x="110" y="194" width="200" height="60" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="210" y="217" font-size="13" font-weight="650" fill="#243b31" text-anchor="middle">单一合格候选</text>
+    <text x="210" y="238" font-size="11" fill="#52605b" text-anchor="middle">直接使用，跳过 Judge</text>
+    <rect x="340" y="194" width="200" height="60" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="440" y="217" font-size="13" font-weight="650" fill="#243b31" text-anchor="middle">多个合格候选</text>
+    <text x="440" y="238" font-size="11" fill="#52605b" text-anchor="middle">一次 Judge 逐候选打分</text>
+    <rect x="570" y="194" width="170" height="60" rx="9" fill="#fff7e9" stroke="#e1cbaa"/>
+    <text x="655" y="217" font-size="13" font-weight="650" fill="#7c602f" text-anchor="middle">无合格候选</text>
+    <text x="655" y="238" font-size="11" fill="#886e45" text-anchor="middle">停止并列出缺项</text>
+    <rect x="340" y="292" width="200" height="56" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="440" y="314" font-size="13" font-weight="650" fill="#176e51" text-anchor="middle">质量合格 → 比较首次调用上界</text>
+    <text x="440" y="334" font-size="11" fill="#3f725a" text-anchor="middle">不确定 → 指定备援（须通过准入）</text>
+    <rect x="340" y="364" width="200" height="28" rx="7" fill="#fff" stroke="#c9d8d0"/>
+    <text x="440" y="383" font-size="12" font-weight="600" fill="#243b31" text-anchor="middle">任务内保持 · 不重新分类</text>
+    <path d="M380 58v22" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+    <path d="M310 160c-40 10 -80 20 -95 30" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+    <path d="M380 160v30" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+    <path d="M500 160c30 10 60 20 90 30" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+    <path d="M440 254v34" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+    <path d="M440 348v12" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+    <path d="M210 254c60 40 100 60 130 70" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#ta)"/>
+  </g>
+</svg>

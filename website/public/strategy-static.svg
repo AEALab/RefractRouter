@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="t d">
+  <title id="t">Static 策略流程</title>
+  <desc id="d">新任务开始时固定或按权重随机选择一次执行模型，任务内保持不变。</desc>
+  <defs><marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10" fill="none" stroke="#8aa297" stroke-width="1.6"/></marker></defs>
+  <g font-family="system-ui,-apple-system,sans-serif">
+    <rect x="270" y="14" width="180" height="48" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="360" y="43" font-size="14" font-weight="650" fill="#243b31" text-anchor="middle">新任务开始</text>
+    <rect x="130" y="94" width="200" height="60" rx="9" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="230" y="117" font-size="13" font-weight="650" fill="#176e51" text-anchor="middle">Fixed：固定高效角色</text>
+    <text x="230" y="138" font-size="11" fill="#3f725a" text-anchor="middle">每次调用使用同一模型</text>
+    <rect x="390" y="94" width="200" height="60" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="490" y="117" font-size="13" font-weight="650" fill="#243b31" text-anchor="middle">Random：按权重抽样一次</text>
+    <text x="490" y="138" font-size="11" fill="#52605b" text-anchor="middle">冻结 seed · 可复现对照</text>
+    <rect x="270" y="192" width="180" height="48" rx="9" fill="#fff" stroke="#c9d8d0"/>
+    <text x="360" y="215" font-size="13" font-weight="650" fill="#243b31" text-anchor="middle">任务内保持</text>
+    <text x="360" y="232" font-size="11" fill="#52605b" text-anchor="middle">工具续接不重新抽样</text>
+    <rect x="270" y="262" width="180" height="30" rx="7" fill="#e0f1e9" stroke="#81baa4"/>
+    <text x="360" y="282" font-size="12" font-weight="600" fill="#176e51" text-anchor="middle">零 Judge · 零审核</text>
+    <path d="M330 62c-30 8 -60 18 -80 30" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+    <path d="M390 62c30 8 60 18 80 30" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+    <path d="M280 154c30 14 40 24 60 36" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+    <path d="M440 154c-30 14 -40 24 -60 36" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+    <path d="M360 240v20" stroke="#8aa297" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+  </g>
+</svg>

@@ -3,6 +3,8 @@
 Composite 将 Task 的任务级初选，与 Stage 的后续轨迹判断组合。
 它使用自己的模型池与 Judge 设置，不创建 DAG。
 
+<figure class="doc-diagram"><img src="/strategy-composite.svg" alt="Composite 先 Task 初选常用模型，再按 Stage 规则临时切换到接管模型"/><figcaption>常用模型是任务默认档位；接管模型既是临时升级目标，也是 Task 不确定时的备援。</figcaption></figure>
+
 ## Task 与 Stage 的交接
 
 1. Task 在任务开始从池中选定常用模型；单候选跳过 Judge。

@@ -23,18 +23,16 @@ title: 项目简介
 “规划”在这里指**模型调用策略**，不会把你的任务拆成 DAG。“自动”也不表示每次都拆分：
 即使任务可以拆分，Router 仍可能选择 Direct。详见[两种路由怎么选](routing.md)。
 
-## 与 Agent 的分工
+## Python 核心与 DSH 插件
 
-<figure class="doc-diagram"><img src="/router-boundary.svg" alt="Agent 负责工具、权限和任务推进，Router 负责模型选择、判别、费用与轨迹"/><figcaption>工具执行、审批、技能、上下文压缩、委派与任务推进继续由接入方 Agent 负责。</figcaption></figure>
+<figure class="doc-diagram"><img src="/architecture-layers.svg" alt="四层架构：宿主 Agent、DSH 插件或标准网关、Python 核心、模型服务"/><figcaption>策略、准入、账本与证据只在 Python 核心实现一次；插件与网关是两种接入方式。</figcaption></figure>
 
-| RefractRouter 负责 | DSH / Codex 等 Agent 负责 |
-| --- | --- |
-| 模型准入与选择、Judge 判别、候选审核 | 工具与文件操作、审批、任务推进 |
-| 受管模型调用的预留、结算和审计 | 会话、系统指令、技能、上下文压缩 |
-| 模型协议转换和回复真实来源 | 子 Agent 与后台生命周期 |
+很多人第一次接触会以为 DSH 插件就是 RefractRouter。实际上插件只是宿主适配层：
+它把 DSH 的请求转给独立的 Python 核心，核心决定用哪个模型、如何审核、怎么记账，
+插件再把结果和轨迹展示出来。Codex CLI 走的是另一条路：标准模型网关按 Base URL
+接入，不装插件。两条路最终调用的是同一套 Python 策略实现。
 
-DSH 插件提供模型入口、设置和图形展示。独立标准模型服务则通过 Base URL 接入，
-不依赖 DSH，也不在标准模型请求中建立 DAG。
+分层细节、模块速查和语言边界见[架构](architecture.md)。
 
 ## 适用场景
 

@@ -3,6 +3,8 @@
 Stage 从高效模型开始，根据新增的可信执行证据选择下一轮模型。
 它调整模型调用，不规划 DAG，也不替接入方执行工具。
 
+<figure class="doc-diagram"><img src="/strategy-stage.svg" alt="Stage 的优先级判定：未确认停止、重复失败升级、规则信号比较"/><figcaption>判定顺序固定：先查未确认，再查重复失败，最后算规则信号；保持期结束后恢复高效模型。</figcaption></figure>
+
 ## 规则模式
 
 默认窗口为最近 3 条有效工具结果，判断阈值为 0.5，接管保持 2 次执行。

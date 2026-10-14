@@ -2,6 +2,8 @@
 
 Static 在新任务开始时选一个执行模型，工具续接沿用选择。它不调用 Task Judge 或审核器。
 
+<figure class="doc-diagram"><img src="/strategy-static.svg" alt="Static 在任务开始固定或按权重抽样一次，任务内保持"/><figcaption>Static 是最简单的策略：选一次、用到底，零 Judge 零审核。</figcaption></figure>
+
 ## 当前设置的真实含义
 
 | 模式 | 当前实现 |
