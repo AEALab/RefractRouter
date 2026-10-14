@@ -11,6 +11,8 @@ DSH 插件连接独立 Python 核心，提供两种模型入口、设置卡片�
 4. 会话中看到 **任务 DAG** 与 **路由轨迹** 两个页签。
 5. 原来的 provider、凭证与会话仍在。
 
+<figure class="doc-screenshot"><a href="/screenshots/dsh-20261014/settings-cards.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/settings-cards.png" alt="实际 DSH 设置窗口：两个 RefractAgent 路由卡片"/></a><figcaption>2026-10-14 实际界面：安装正确时两张卡片同时出现。只看到一张或显示旧三档入口时，先核对插件版本与 profile。</figcaption></figure>
+
 包名为历史兼容保留 `dsh-refractrouter-validation`，不表示需要启用验收工具。
 生产入口通过包主入口加载前端；只启用 `/routing` 子路径可能不能发现设置与页签。
 
@@ -39,6 +41,8 @@ dsh --profile web --patch ./dsh-first-install.json \
 
 自动路由：选择“自动路由（真实执行）”，确认实时配置已启用；模拟入口仍为安装演示，
 不能拿模拟文字当成真实回答。
+
+<figure class="doc-screenshot compact"><a href="/screenshots/dsh-20261014/routing-mode-menu.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/routing-mode-menu.png" alt="实际模型菜单中的路由入口"/></a><figcaption>模型菜单中的两个入口：规划路由按策略列出；自动路由的「模拟」与「真实执行」是两条不同路线。</figcaption></figure>
 
 ## 原生工具与模型历史
 

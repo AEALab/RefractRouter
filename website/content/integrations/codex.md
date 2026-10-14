@@ -9,6 +9,25 @@ Codex CLI 可通过独立标准模型网关使用规划策略。Router 不替 Co
 配置示意与完整边界见[仓库中的独立模型接口说明](https://github.com/AEALab/RefractRouter/blob/main/docs/independent-model-router.md)。
 空 `planningRouting` 不是可运行配置，DSH 设置不能直接当作独立网关凭证。
 
+配置骨架如下；`planningRouting` 需填入经核对的角色、能力、价格与额度，骨架本身不是
+可直接运行的免费价格预设：
+
+```json
+{
+  "schemaVersion": "refractrouter-gateway-config-v1",
+  "authTokenEnv": "REFRACTROUTER_API_KEY",
+  "providers": {
+    "ark": {
+      "baseURL": "https://ark.cn-beijing.volces.com/api/plan/v3",
+      "apiKeyEnv": "ARK_API_KEY",
+      "timeoutSeconds": 120,
+      "tokenLimitParameter": "max_tokens"
+    }
+  },
+  "planningRouting": {}
+}
+```
+
 ```bash
 refractrouter-gateway --config /绝对路径/gateway.json \
   --runs-dir /绝对路径/router-evidence --preflight
@@ -18,6 +37,12 @@ refractrouter-gateway --config /绝对路径/gateway.json \
 
 预检不调用模型。服务认证由配置中的 `authTokenEnv` 指定；这个 Router token 与上游模型 key 分开。
 非回环部署另需要 TLS、访问控制和运维措施，本版不把本机验收称为完整团队部署。
+
+启动后可以这样核对服务状态：
+
+- `GET /healthz`：无需认证的存活检查，只说明进程仍在运行。
+- `GET /readyz`：需要服务 Bearer token，返回协议版本、配置摘要（SHA-256）与可用策略。
+- 所有 JSON 与 SSE 响应带 `X-RefractRouter-Protocol` 头，客户端可在正式调用前核对合同。
 
 ## 模型与协议
 
