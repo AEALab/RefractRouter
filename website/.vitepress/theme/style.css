@@ -35,6 +35,11 @@
 .doc-diagram { margin: 24px 0; padding: 22px; border: 1px solid var(--vp-c-divider); border-radius: 10px; background: var(--vp-c-bg-alt); }
 .doc-diagram img { display: block; width: 100%; }
 .doc-diagram figcaption { margin-top: 12px; color: var(--vp-c-text-2); font-size: 12px; line-height: 1.7; }
+.doc-screenshot { margin: 24px 0; }
+.doc-screenshot a { display: block; }
+.doc-screenshot img { display: block; width: 100%; max-width: 800px; margin: 0 auto; border: 1px solid var(--vp-c-divider); border-radius: 8px; }
+.doc-screenshot.compact img { max-width: 540px; }
+.doc-screenshot figcaption { margin-top: 12px; color: var(--vp-c-text-2); font-size: 13px; line-height: 1.8; }
 .dark .doc-diagram { background: #edf3f0; }
 .dark .doc-diagram figcaption { color: #52605b; }
 .doc-route-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }

@@ -16,6 +16,21 @@
 | 标准 Base URL | 六个 `refract/*` 虚拟模型 | 不通过标准模型 API 隐式进入 DAG |
 | 当前定位 | 文本与原生工具的模型路由 | DAG 拆分与收益探索的独立入口 |
 
+## 在 DSH 中找到两个入口
+
+两种路由在 DSH 设置中使用独立的配置卡片，互不混放：
+
+<figure class="doc-screenshot"><a href="/screenshots/dsh-20261014/settings-cards.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/settings-cards.png" alt="2026 年 10 月 14 日实际 DSH 设置页：规划路由与自动路由卡片"/></a><figcaption>2026-10-14 实际系统截图：设置 → 插件。点击图片可查看原尺寸。</figcaption></figure>
+
+配置完成后，在对话输入框的模型菜单中选择对应入口：规划路由显示为“路由模式”，
+自动路由显示为“自动路由（真实执行）”。
+
+<figure class="doc-screenshot compact"><a href="/screenshots/dsh-20261014/routing-mode-menu.png" target="_blank" rel="noopener"><img src="/screenshots/dsh-20261014/routing-mode-menu.png" alt="实际模型菜单中的自动路由模拟、自动路由真实执行和规划路由入口"/></a><figcaption>模型菜单的 RefractAgent 本地路由分组。模拟入口用于检查接线与记录，不能据此判断真实模型效果。</figcaption></figure>
+
+本组新截图使用 DSH `0.1.5-rc.3`、已安装插件 `0.33.25`，不覆盖已安装版本。
+仓库当前插件为 `0.33.21`，因此实际客户端的新控件与源码下载包可能存在版本差异。
+截图中的模型、金额和默认值是当时配置示例，使用时仍须核对自己的模型能力与价格。
+
 ## 建议的选择顺序
 
 日常任务先从规划 Static 开始。固定模型可用后，再根据需要选择 Stage、Task、Advisor、
