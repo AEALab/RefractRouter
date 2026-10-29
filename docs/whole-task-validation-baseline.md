@@ -47,6 +47,12 @@ uv run python experiments/run_whole_task_baseline.py --output-dir /tmp/新的基
 环境禁止回环端口时属于该环境的集成测试阻塞，需要在允许本地端口的受支持环境运行，
 不能把它当作路由算法质量问题，也不能跳过后宣称完整验收通过。
 
+PR #212 首次 Linux CI 的已安装包验收发现另一个可见性错误：uv 工具环境放在临时
+workspace 的兄弟目录，而 DSH 的 bwrap 使用空 `/tmp` 后只重新绑定 workspace。
+因此宿主已安装的 Python 在沙箱内报告不存在。安装验收将 uv 工具与入口放入隔离
+workspace 的 `.installation`，保持宿主沙箱策略不变，并以真实安装模拟验收复核。
+这不修改用户安装位置或默认配置；首次失败和取消任务仍保留于 CI 记录。
+
 ## 整任务评测合同
 
 `data/whole-task-routing/evaluation-contract-v1.json` 固定以下共同口径：
