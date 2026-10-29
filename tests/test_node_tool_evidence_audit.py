@@ -74,3 +74,13 @@ def test_snapshot_hash_stays_bound_when_live_summary_advances(tmp_path, monkeypa
     assert result["integrityStatus"] == "pass" and result["completeness"] == "pending"
     assert result["summarySha256"] == hashlib.sha256(snapshot.read_bytes()).hexdigest()
     assert result["summarySha256"] != audit.sha(path)
+
+
+def test_encoding_failure_is_not_reported_as_clean_field_checks(tmp_path):
+    directory, row, frozen = fixture(tmp_path)
+    row.update(checks=[], qualityError="Invalid control character")
+    result = audit.audit_case(row, directory, frozen)
+    assert result["errors"] == []  # 费用一致与交付可接受是不同结论。
+    assert result["deliveryParseError"] == "Invalid control character"
+    assert result["fieldChecksAvailable"] is False
+    assert any("空字段检查列表" in note for note in result["notes"])

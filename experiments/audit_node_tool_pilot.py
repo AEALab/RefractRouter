@@ -99,9 +99,13 @@ def audit_case(row, directory, frozen):
         receipts.append(item)
     if abs(sum(c["charged"] for c in row["calls"]) - row["chargedOrReserved"]) > 1e-8:
         errors.append("个案汇总与调用账本费用不同")
+    if row.get("qualityError"):
+        notes.append("原交付未通过冻结解析合同；空字段检查列表不表示字段全部正确")
     failures = [c for c in row.get("checks", []) if c["status"] == "fail"]
     return {"runId": row["runId"], "phase": row["phase"], "arm": row["arm"], "status": row["status"],
-            "factStatus": row["factStatus"], "failedValueChecks": [c for c in failures if not c["check"].endswith(":sources")],
+            "factStatus": row["factStatus"], "deliveryParseError": row.get("qualityError"),
+            "fieldChecksAvailable": bool(row.get("checks")),
+            "failedValueChecks": [c for c in failures if not c["check"].endswith(":sources")],
             "failedCitationChecks": [c for c in failures if c["check"].endswith(":sources")],
             "chargedOrReservedAfp": row["chargedOrReserved"], "importedFrom": row.get("importedFrom"),
             "receipts": receipts, "errors": errors, "notes": sorted(set(notes))}
@@ -147,6 +151,7 @@ def audit(result_dir, *, root=ROOT, snapshot_path=None):
     comparison = Counter(r["arm"] for r in summary["runs"] if r["phase"] == "comparison")
     complete = summary["status"] == "completed-development-pilot" and len(cases) == 45 and all(comparison[a] == 9 for a in ("one-shot", "node-as-tool", "dag"))
     return {"schema": "node-tool-pilot-evidence-audit-v1", "batchStatus": summary["status"],
+            "scope": "核对原始用量、费用与证据绑定，不代表交付质量通过",
             "summarySha256": hashlib.sha256(snapshot).hexdigest(), "protocolSha256": summary["protocolSha256"],
             "integrityStatus": "fail" if errors else "pass", "completeness": "complete" if complete else "pending",
             "cohortSamples": len(cases), "comparisonSamples": dict(comparison),

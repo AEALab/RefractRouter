@@ -1,0 +1,29 @@
+{
+  "content": "{\n  \"answer\": \"依据 s1 的有效工作清单，并剔除 s2 已废弃的旧信息（A=4、C 依赖 B、F=1），有效时长为 A=3、B=5、C=4、D=2、E=2、F=3、G=1。所有任务连续执行、不拆分，任意时刻最多占用两个执行槽。\\n\\n可执行排程（忽略发布窗口）：A 数据库迁移 0–3；D 合规审查 0–2；B API 验证 3–8；C UI 验证 3–7；E 集成测试 8–10；F 安全复核 8–11；G 发布 11–12。并发检查：0–2 同时做 A、D；2–3 只做 A；3–7 同时做 B、C；7–8 只做 B；8–10 同时做 E、F；10–11 只做 F；11–12 做 G，满足两槽限制。考虑发布窗口时，G 必须完整落在 [14,16] 内，因此 G 最早排为 14–15；11–14 是窗口等待，不是技术工作。\\n\\n计算：E 依赖 B 和 C，B 最早 8 完成、C 最早 7 完成，所以 E 最早开始为 8；E 最早完成 10。F 依赖 B，B 最早 8 完成，F 最早完成 11。D 无前置，最早完成 2。因此发布前置工作 D/E/F 全部齐备的最早时刻是 11。技术关键路径为 A→B→F→G，时长为 3+5+3+1=12 小时；忽略发布窗口时 G 最早 11 开始、12 结束，即 technical_finish=12。发布窗口不改变技术关键路径；窗口内 G 最早 14 开始、15 结束，即 window_finish=15。\\n\\nt=0 时全部工作尚未开始；D 的 2 小时只是预计耗时，尚无合规签字；也没有任何测试通过记录。因此目前不能宣称批准已完成，current_approval_confirmed=false。\",\n  \"findings\": [\n    {\n      \"id\": \"pre_release_ready\",\n      \"value\": 11,\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"technical_finish\",\n      \"value\": 12,\n      \"sources\": [\"s1\", \"s3\"]\n    },\n    {\n      \"id\": \"window_finish\",\n      \"value\": 15,\n      \"sources\": [\"s1\", \"s3\"]\n    },\n    {\n      \"id\": \"critical_path\",\n      \"value\": [\"A\", \"B\", \"F\", \"G\"],\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"earliest_e_start\",\n      \"value\": 8,\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"current_approval_confirmed\",\n      \"value\": false,\n      \"sources\": [\"s4\"]\n    }\n  ]\n}",
+  "input_tokens": 2599,
+  "output_tokens": 7372,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 6660,
+  "latency_ms": 121249,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932744365823dcd3c0a2d24a55cb96c7787eab35382472dd7",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 2599,
+    "output_tokens": 7372,
+    "total_tokens": 9971,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 6660
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

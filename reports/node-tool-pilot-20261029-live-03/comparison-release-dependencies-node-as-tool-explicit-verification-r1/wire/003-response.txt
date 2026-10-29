@@ -1,0 +1,998 @@
+event: response.created
+data: {"type":"response.created","response":{"created_at":1793274025,"id":"resp_021793274024426c35f1a31989945a684cc428e09e81c794c5516","max_output_tokens":384000,"model":"deepseek-v4-flash-ga-260731","object":"response","output":[],"thinking":{"type":"enabled"},"service_tier":"default","status":"in_progress","temperature":0,"tools":[{"name":"refract_expert","type":"function","description":"让文本专家分析、核对或汇总给定材料。只传所需材料，不执行外部工具；返回产物、逐字引文、限制和费用依据。","parameters":{"type":"object","additionalProperties":false,"required":["intent","task","context"],"properties":{"intent":{"type":"string","enum":["analyze","check","synthesize"]},"task":{"type":"string","minLength":1,"maxLength":6000},"context":{"type":"string","minLength":1,"maxLength":6000}}}}],"caching":{"type":"disabled"},"store":false},"sequence_number":0}
+
+event: response.in_progress
+data: {"type":"response.in_progress","response":{"created_at":1793274025,"id":"resp_021793274024426c35f1a31989945a684cc428e09e81c794c5516","max_output_tokens":384000,"model":"deepseek-v4-flash-ga-260731","object":"response","output":[],"thinking":{"type":"enabled"},"service_tier":"default","status":"in_progress","temperature":0,"tools":[{"name":"refract_expert","type":"function","description":"让文本专家分析、核对或汇总给定材料。只传所需材料，不执行外部工具；返回产物、逐字引文、限制和费用依据。","parameters":{"type":"object","additionalProperties":false,"required":["intent","task","context"],"properties":{"intent":{"type":"string","enum":["analyze","check","synthesize"]},"task":{"type":"string","minLength":1,"maxLength":6000},"context":{"type":"string","minLength":1,"maxLength":6000}}}}],"caching":{"type":"disabled"},"store":false},"sequence_number":1}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","output_index":0,"item":{"id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","type":"reasoning","summary":[],"status":"in_progress"},"sequence_number":2}
+
+event: response.reasoning_summary_part.added
+data: {"type":"response.reasoning_summary_part.added","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"summary_index":0,"part":{"type":"summary_text","text":""},"sequence_number":3}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":"The","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":4}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" check confirms my computation","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":5}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":". Note","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":6}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" the expert noted","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":7}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" \"材料","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":8}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":"未提供 s4\" —","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":9}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" but in my actual","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":10}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" context s","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":11}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":"4 IS provided. Let me","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":12}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" use s4 from","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":13}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" the actual materials","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":14}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":": s4 says","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":15}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" at t=0, all","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":16}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" work not started;","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":17}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" D is just expected ","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":18}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":"2h, no compliance signature","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":19}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":", no test pass records;","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":20}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" planned completion ≠ actual approval.","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":21}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" So current_approval_conf","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":22}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":"irmed = false.\n\nNow produce","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":23}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" final JSON with","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":24}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" answer","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":25}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" and","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":26}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":" findings","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":27}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","summary_index":0,"delta":".","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"sequence_number":28}
+
+event: response.reasoning_summary_text.done
+data: {"type":"response.reasoning_summary_text.done","summary_index":0,"item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"text":"The check confirms my computation. Note the expert noted \"材料未提供 s4\" — but in my actual context s4 IS provided. Let me use s4 from the actual materials: s4 says at t=0, all work not started; D is just expected 2h, no compliance signature, no test pass records; planned completion ≠ actual approval. So current_approval_confirmed = false.\n\nNow produce final JSON with answer and findings.","sequence_number":29}
+
+event: response.reasoning_summary_part.done
+data: {"type":"response.reasoning_summary_part.done","item_id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","output_index":0,"summary_index":0,"part":{"type":"summary_text","text":"The check confirms my computation. Note the expert noted \"材料未提供 s4\" — but in my actual context s4 IS provided. Let me use s4 from the actual materials: s4 says at t=0, all work not started; D is just expected 2h, no compliance signature, no test pass records; planned completion ≠ actual approval. So current_approval_confirmed = false.\n\nNow produce final JSON with answer and findings."},"sequence_number":30}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","output_index":0,"item":{"id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","type":"reasoning","summary":[{"type":"summary_text","text":"The check confirms my computation. Note the expert noted \"材料未提供 s4\" — but in my actual context s4 IS provided. Let me use s4 from the actual materials: s4 says at t=0, all work not started; D is just expected 2h, no compliance signature, no test pass records; planned completion ≠ actual approval. So current_approval_confirmed = false.\n\nNow produce final JSON with answer and findings."}],"status":"completed"},"sequence_number":31}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","output_index":1,"item":{"type":"message","role":"assistant","content":[],"status":"in_progress","id":"msg_02179327402666300000000000000000000ffffac183ac22920fa"},"sequence_number":32}
+
+event: response.content_part.added
+data: {"type":"response.content_part.added","content_index":0,"item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"part":{"type":"output_text","text":""},"sequence_number":33}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"```","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":34}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"json\n{\n  \"answer","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":35}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\": \"一","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":36}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"、有效","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":37}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"数据","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":38}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"与口径","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":39}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"。以","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":40}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" s1《","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":41}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"有效工作清单》为准：","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":42}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A 数据库迁移 3","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":43}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 小时（无前置）、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":44}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"B API 验证 5","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":45}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 小时（依赖 A）、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":46}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"C UI 验证 4","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":47}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 小时（依赖 A）、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":48}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"D 合规审查 2","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":49}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 小时（无前置）、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":50}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"E 集成测试 2","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":51}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 小时（依赖 B ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":52}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"和 C）、F 安全","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":53}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"复核 3 小时（","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":54}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"依赖 B）、G 发布","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":55}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 1 小时（依赖","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":56}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" D、E、F ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":57}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"全部完成）。每","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":58}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"项独占一个执行槽","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":59}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，最多两个槽并发，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":60}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"不允许拆分任务。s2","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":61}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"《","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":62}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"版本修订》明确旧备忘录","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":63}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"中“","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":64}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A=4 小时、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":65}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"C 依赖 B、F","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":66}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"=1 小时”三项","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":67}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"已被","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":68}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" s1 替代，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":69}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"因此本","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":70}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"排程一律","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":71}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"使用 s1 的","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":72}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"时长与依赖，不与","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":73}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"旧版叠加","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":74}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"或混用（若","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":75}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"误用旧版","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":76}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"会出现","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":77}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"伪关键","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":78}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"路径，如 A→","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":79}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"B→C→E→","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":80}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"G，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":81}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"但这不是有效模型）。\n\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":82}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"二、满足","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":83}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"两槽","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":84}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"限制","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":85}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"的可执行排程（以","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":86}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" t=0 为开始","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":87}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"）。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":88}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"D ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":89}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"与 A 均","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":90}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"无前置，可同时","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":91}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"开工","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":92}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"：D","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":93}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 0–2；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":94}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A 0–3。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":95}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":96}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 完成后","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":97}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" B、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":98}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"C 同时","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":99}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"开工：C","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":100}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 3–7；B","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":101}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 3–8。B","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":102}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":103}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"C 完成后 E","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":104}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"、F 同时开工：","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":105}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"E 8–10；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":106}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"F 8–11。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":107}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"随后 G","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":108}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 11–12。并发","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":109}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"检查：0–2 ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":110}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"时段仅 A、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":111}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"D 两项；3–","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":112}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"7 时段仅 B、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":113}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"C 两项；8–","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":114}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"10 时段仅 E、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":115}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"F 两项；其余时段","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":116}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"各","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":117}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"至多一项，全程不超过","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":118}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"两个槽，且无","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":119}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"拆分。D","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":120}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 最早完成","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":121}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 2，B","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":122}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 最早完成 8，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":123}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"C 最早完成 7","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":124}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":125}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"E 依赖","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":126}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" B 和 C 且","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":127}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"取","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":128}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"两者之末，故 earliest","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":129}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"_e_start = 8；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":130}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"F","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":131}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 依赖 B，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":132}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"最早 ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":133}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"8 开始、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":134}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"11","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":135}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 完成。D","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":136}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"/E/F 全部完成","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":137}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"的最早时刻为 max(","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":138}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"2, 10, ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":139}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"11) = 11，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":140}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"即 pre_release_ready","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":141}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" = 11。\n\n三、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":142}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"关键路径与理论","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":143}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"最早完成。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":144}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"候选","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":145}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"路径时长","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":146}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"：A(3)→B(5)→","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":147}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"F(3)→G(","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":148}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"1) = 12 ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":149}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"小时；A(3)→","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":150}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"B(5)→E(","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":151}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"2)→G(1)","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":152}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" = 11 小时；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":153}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A(3)→C(","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":154}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"4)→E(2)→","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":155}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"G(1) = ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":156}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"10 小时；D(","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":157}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"2)→G(1)","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":158}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" = 3 小时。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":159}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"最长","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":160}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"者为 A→B→F","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":161}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"→G，共","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":162}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 12 小时，故","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":163}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" critical_path = [","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":164}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A, B, F,","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":165}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" G]；由于","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":166}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"该","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":167}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"链本身至少需","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":168}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 12 小时且","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":169}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"上述","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":170}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"排程恰好","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":171}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":172}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"12 小时完成","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":173}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，不存在更早可行","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":174}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"排程。忽略发布","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":175}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"窗口的理论","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":176}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"最早 G 结束时间 =","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":177}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 11","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":178}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" + 1 = 12","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":179}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，即 technical_finish","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":180}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" = 12。\n\n四、","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":181}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"发布窗口的影响。s3","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":182}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 规定仅 G 必须","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":183}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"完整位于","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":184}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" [14,16]","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":185}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 小时区间内","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":186}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，其他任务可在","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":187}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"此前完成","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":188}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，且无","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":189}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"等待或资源切换开销。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":190}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"技术排程中 G ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":191}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"位于","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":192}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 11–12，不在","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":193}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"窗口内，须","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":194}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"推迟","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":195}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"到窗口","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":196}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"内最早位置 ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":197}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"14–15，因此","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":198}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"考虑","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":199}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"窗口后的","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":200}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"最早","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":201}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" G 结束时间","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":202}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" window","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":203}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"_finish = 15","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":204}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"。这","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":205}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"属于窗口等待","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":206}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"造成的 3 小时（","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":207}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"12→14）延迟","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":208}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，与 ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":209}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"12 小时的技术关键路径","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":210}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"相互独立，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":211}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"二者须区分：关键","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":212}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"路径本身仍为","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":213}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" A","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":214}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"→B→F→G","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":215}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"（12 小时），","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":216}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"窗口只","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":217}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"决定","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":218}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" G 的最终","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":219}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"落位。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":220}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"推迟","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":221}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" G 不","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":222}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"破坏依赖","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":223}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"（D/E/F 最","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":224}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"晚 11 已完成","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":225}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"）","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":226}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"也不增加","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":227}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"并发（","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":228}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"G","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":229}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 独占","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":230}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"）。\n\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":231}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"五、批准状态。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":232}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"s","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":233}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"4《","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":234}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"状态快照》表明","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":235}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" t=0 时","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":236}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"全部工作尚未开始；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":237}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"D 仅是预计需要","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":238}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 2 小时，尚无","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":239}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"合规签字，也没有任何测试","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":240}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"通过记录。","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":241}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"计划中的完成","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":242}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"时刻不等于已经","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":243}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"发生的批准。因此目前","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":244}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"不能","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":245}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"宣称批准已完成：current","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":246}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"_approval_confirmed =","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":247}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" false。即便","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":248}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"理论上","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":249}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" pre_release_ready ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":250}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"最早可为 11（","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":251}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"对应 D ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":252}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"的合规签字","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":253}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"、E 的集成测试","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":254}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"、F 的安全复核","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":255}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"全部实际","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":256}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"完成），那","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":257}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"也只是未来计划","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":258}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"时刻","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":259}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，在","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":260}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" t=0 尚未","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":261}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"发生。\n\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":262}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"六、证据与不确定性","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":263}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"。时长","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":264}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"、依赖与","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":265}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"并发约束","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":266}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"来自 s1；","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":267}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"s2 排除","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":268}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"旧版","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":269}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"信息","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":270}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"；窗口","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":271}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"规则","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":272}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"来自 s3；状态","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":273}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"事实","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":274}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"来自 s4；字段","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":275}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"口径来自 s5。材料","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":276}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"未提供实际","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":277}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"执行日志","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":278}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":279}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"故","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":280}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"上述为","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":281}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"基于","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":282}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"给定约束的理论排","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":283}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"程；若实测","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":284}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"时长或依赖变化，","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":285}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"需按","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":286}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"新数据重算。除此之外","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":287}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"，计算在","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":288}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"给定模型","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":289}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"下无重大","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":290}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"不确定性。\",\n  \"find","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":291}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"ings\": [\n    {\"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":292}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"id\": \"pre_release","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":293}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"_ready\", \"value\":","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":294}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" 11, \"sources","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":295}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\": [\"s1\", \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":296}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"s5","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":297}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\"]},\n    {\"id\":","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":298}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" \"technical_finish\",","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":299}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" \"value\": 12,","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":300}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" \"sources\": [\"s","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":301}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"1\", \"s3\"]","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":302}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"},\n    {\"id\": \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":303}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"window_finish\", \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":304}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"value\": 15, \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":305}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"sources\": [\"s1","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":306}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\", \"s3\"]},\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":307}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"    {\"id\": \"critical","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":308}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"_path\", \"value\": [\"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":309}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"A\", \"B\", \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":310}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"F\", \"G\"], \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":311}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"sources\": [\"s1","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":312}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\", \"s5\"]},\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":313}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"    {\"id\": \"ear","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":314}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"liest_e_start\", \"value","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":315}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"\": 8, \"s","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":316}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"ources\": [\"s1\",","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":317}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" \"s5\"]},\n   ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":318}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" {\"id\": \"current_","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":319}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"approval_confirmed\", \"","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":320}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"value\": false, \"s","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":321}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"ources\": [\"s4\"]","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":322}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"}\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":323}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" ","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":324}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":" ]\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":325}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"}\n","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":326}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","content_index":0,"delta":"```","item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"sequence_number":327}
+
+event: response.output_text.done
+data: {"type":"response.output_text.done","content_index":0,"item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"text":"```json\n{\n  \"answer\": \"一、有效数据与口径。以 s1《有效工作清单》为准：A 数据库迁移 3 小时（无前置）、B API 验证 5 小时（依赖 A）、C UI 验证 4 小时（依赖 A）、D 合规审查 2 小时（无前置）、E 集成测试 2 小时（依赖 B 和 C）、F 安全复核 3 小时（依赖 B）、G 发布 1 小时（依赖 D、E、F 全部完成）。每项独占一个执行槽，最多两个槽并发，不允许拆分任务。s2《版本修订》明确旧备忘录中“A=4 小时、C 依赖 B、F=1 小时”三项已被 s1 替代，因此本排程一律使用 s1 的时长与依赖，不与旧版叠加或混用（若误用旧版会出现伪关键路径，如 A→B→C→E→G，但这不是有效模型）。\n\n二、满足两槽限制的可执行排程（以 t=0 为开始）。D 与 A 均无前置，可同时开工：D 0–2；A 0–3。A 完成后 B、C 同时开工：C 3–7；B 3–8。B、C 完成后 E、F 同时开工：E 8–10；F 8–11。随后 G 11–12。并发检查：0–2 时段仅 A、D 两项；3–7 时段仅 B、C 两项；8–10 时段仅 E、F 两项；其余时段各至多一项，全程不超过两个槽，且无拆分。D 最早完成 2，B 最早完成 8，C 最早完成 7；E 依赖 B 和 C 且取两者之末，故 earliest_e_start = 8；F 依赖 B，最早 8 开始、11 完成。D/E/F 全部完成的最早时刻为 max(2, 10, 11) = 11，即 pre_release_ready = 11。\n\n三、关键路径与理论最早完成。候选路径时长：A(3)→B(5)→F(3)→G(1) = 12 小时；A(3)→B(5)→E(2)→G(1) = 11 小时；A(3)→C(4)→E(2)→G(1) = 10 小时；D(2)→G(1) = 3 小时。最长者为 A→B→F→G，共 12 小时，故 critical_path = [A, B, F, G]；由于该链本身至少需 12 小时且上述排程恰好 12 小时完成，不存在更早可行排程。忽略发布窗口的理论最早 G 结束时间 = 11 + 1 = 12，即 technical_finish = 12。\n\n四、发布窗口的影响。s3 规定仅 G 必须完整位于 [14,16] 小时区间内，其他任务可在此前完成，且无等待或资源切换开销。技术排程中 G 位于 11–12，不在窗口内，须推迟到窗口内最早位置 14–15，因此考虑窗口后的最早 G 结束时间 window_finish = 15。这属于窗口等待造成的 3 小时（12→14）延迟，与 12 小时的技术关键路径相互独立，二者须区分：关键路径本身仍为 A→B→F→G（12 小时），窗口只决定 G 的最终落位。推迟 G 不破坏依赖（D/E/F 最晚 11 已完成）也不增加并发（G 独占）。\n\n五、批准状态。s4《状态快照》表明 t=0 时全部工作尚未开始；D 仅是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。计划中的完成时刻不等于已经发生的批准。因此目前不能宣称批准已完成：current_approval_confirmed = false。即便理论上 pre_release_ready 最早可为 11（对应 D 的合规签字、E 的集成测试、F 的安全复核全部实际完成），那也只是未来计划时刻，在 t=0 尚未发生。\n\n六、证据与不确定性。时长、依赖与并发约束来自 s1；s2 排除旧版信息；窗口规则来自 s3；状态事实来自 s4；字段口径来自 s5。材料未提供实际执行日志，故上述为基于给定约束的理论排程；若实测时长或依赖变化，需按新数据重算。除此之外，计算在给定模型下无重大不确定性。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}\n```","sequence_number":328}
+
+event: response.content_part.done
+data: {"type":"response.content_part.done","content_index":0,"item_id":"msg_02179327402666300000000000000000000ffffac183ac22920fa","output_index":1,"part":{"type":"output_text","text":"```json\n{\n  \"answer\": \"一、有效数据与口径。以 s1《有效工作清单》为准：A 数据库迁移 3 小时（无前置）、B API 验证 5 小时（依赖 A）、C UI 验证 4 小时（依赖 A）、D 合规审查 2 小时（无前置）、E 集成测试 2 小时（依赖 B 和 C）、F 安全复核 3 小时（依赖 B）、G 发布 1 小时（依赖 D、E、F 全部完成）。每项独占一个执行槽，最多两个槽并发，不允许拆分任务。s2《版本修订》明确旧备忘录中“A=4 小时、C 依赖 B、F=1 小时”三项已被 s1 替代，因此本排程一律使用 s1 的时长与依赖，不与旧版叠加或混用（若误用旧版会出现伪关键路径，如 A→B→C→E→G，但这不是有效模型）。\n\n二、满足两槽限制的可执行排程（以 t=0 为开始）。D 与 A 均无前置，可同时开工：D 0–2；A 0–3。A 完成后 B、C 同时开工：C 3–7；B 3–8。B、C 完成后 E、F 同时开工：E 8–10；F 8–11。随后 G 11–12。并发检查：0–2 时段仅 A、D 两项；3–7 时段仅 B、C 两项；8–10 时段仅 E、F 两项；其余时段各至多一项，全程不超过两个槽，且无拆分。D 最早完成 2，B 最早完成 8，C 最早完成 7；E 依赖 B 和 C 且取两者之末，故 earliest_e_start = 8；F 依赖 B，最早 8 开始、11 完成。D/E/F 全部完成的最早时刻为 max(2, 10, 11) = 11，即 pre_release_ready = 11。\n\n三、关键路径与理论最早完成。候选路径时长：A(3)→B(5)→F(3)→G(1) = 12 小时；A(3)→B(5)→E(2)→G(1) = 11 小时；A(3)→C(4)→E(2)→G(1) = 10 小时；D(2)→G(1) = 3 小时。最长者为 A→B→F→G，共 12 小时，故 critical_path = [A, B, F, G]；由于该链本身至少需 12 小时且上述排程恰好 12 小时完成，不存在更早可行排程。忽略发布窗口的理论最早 G 结束时间 = 11 + 1 = 12，即 technical_finish = 12。\n\n四、发布窗口的影响。s3 规定仅 G 必须完整位于 [14,16] 小时区间内，其他任务可在此前完成，且无等待或资源切换开销。技术排程中 G 位于 11–12，不在窗口内，须推迟到窗口内最早位置 14–15，因此考虑窗口后的最早 G 结束时间 window_finish = 15。这属于窗口等待造成的 3 小时（12→14）延迟，与 12 小时的技术关键路径相互独立，二者须区分：关键路径本身仍为 A→B→F→G（12 小时），窗口只决定 G 的最终落位。推迟 G 不破坏依赖（D/E/F 最晚 11 已完成）也不增加并发（G 独占）。\n\n五、批准状态。s4《状态快照》表明 t=0 时全部工作尚未开始；D 仅是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。计划中的完成时刻不等于已经发生的批准。因此目前不能宣称批准已完成：current_approval_confirmed = false。即便理论上 pre_release_ready 最早可为 11（对应 D 的合规签字、E 的集成测试、F 的安全复核全部实际完成），那也只是未来计划时刻，在 t=0 尚未发生。\n\n六、证据与不确定性。时长、依赖与并发约束来自 s1；s2 排除旧版信息；窗口规则来自 s3；状态事实来自 s4；字段口径来自 s5。材料未提供实际执行日志，故上述为基于给定约束的理论排程；若实测时长或依赖变化，需按新数据重算。除此之外，计算在给定模型下无重大不确定性。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}\n```"},"sequence_number":329}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","output_index":1,"item":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"```json\n{\n  \"answer\": \"一、有效数据与口径。以 s1《有效工作清单》为准：A 数据库迁移 3 小时（无前置）、B API 验证 5 小时（依赖 A）、C UI 验证 4 小时（依赖 A）、D 合规审查 2 小时（无前置）、E 集成测试 2 小时（依赖 B 和 C）、F 安全复核 3 小时（依赖 B）、G 发布 1 小时（依赖 D、E、F 全部完成）。每项独占一个执行槽，最多两个槽并发，不允许拆分任务。s2《版本修订》明确旧备忘录中“A=4 小时、C 依赖 B、F=1 小时”三项已被 s1 替代，因此本排程一律使用 s1 的时长与依赖，不与旧版叠加或混用（若误用旧版会出现伪关键路径，如 A→B→C→E→G，但这不是有效模型）。\n\n二、满足两槽限制的可执行排程（以 t=0 为开始）。D 与 A 均无前置，可同时开工：D 0–2；A 0–3。A 完成后 B、C 同时开工：C 3–7；B 3–8。B、C 完成后 E、F 同时开工：E 8–10；F 8–11。随后 G 11–12。并发检查：0–2 时段仅 A、D 两项；3–7 时段仅 B、C 两项；8–10 时段仅 E、F 两项；其余时段各至多一项，全程不超过两个槽，且无拆分。D 最早完成 2，B 最早完成 8，C 最早完成 7；E 依赖 B 和 C 且取两者之末，故 earliest_e_start = 8；F 依赖 B，最早 8 开始、11 完成。D/E/F 全部完成的最早时刻为 max(2, 10, 11) = 11，即 pre_release_ready = 11。\n\n三、关键路径与理论最早完成。候选路径时长：A(3)→B(5)→F(3)→G(1) = 12 小时；A(3)→B(5)→E(2)→G(1) = 11 小时；A(3)→C(4)→E(2)→G(1) = 10 小时；D(2)→G(1) = 3 小时。最长者为 A→B→F→G，共 12 小时，故 critical_path = [A, B, F, G]；由于该链本身至少需 12 小时且上述排程恰好 12 小时完成，不存在更早可行排程。忽略发布窗口的理论最早 G 结束时间 = 11 + 1 = 12，即 technical_finish = 12。\n\n四、发布窗口的影响。s3 规定仅 G 必须完整位于 [14,16] 小时区间内，其他任务可在此前完成，且无等待或资源切换开销。技术排程中 G 位于 11–12，不在窗口内，须推迟到窗口内最早位置 14–15，因此考虑窗口后的最早 G 结束时间 window_finish = 15。这属于窗口等待造成的 3 小时（12→14）延迟，与 12 小时的技术关键路径相互独立，二者须区分：关键路径本身仍为 A→B→F→G（12 小时），窗口只决定 G 的最终落位。推迟 G 不破坏依赖（D/E/F 最晚 11 已完成）也不增加并发（G 独占）。\n\n五、批准状态。s4《状态快照》表明 t=0 时全部工作尚未开始；D 仅是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。计划中的完成时刻不等于已经发生的批准。因此目前不能宣称批准已完成：current_approval_confirmed = false。即便理论上 pre_release_ready 最早可为 11（对应 D 的合规签字、E 的集成测试、F 的安全复核全部实际完成），那也只是未来计划时刻，在 t=0 尚未发生。\n\n六、证据与不确定性。时长、依赖与并发约束来自 s1；s2 排除旧版信息；窗口规则来自 s3；状态事实来自 s4；字段口径来自 s5。材料未提供实际执行日志，故上述为基于给定约束的理论排程；若实测时长或依赖变化，需按新数据重算。除此之外，计算在给定模型下无重大不确定性。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}\n```"}],"status":"completed","id":"msg_02179327402666300000000000000000000ffffac183ac22920fa"},"sequence_number":330}
+
+event: response.completed
+data: {"type":"response.completed","response":{"created_at":1793274025,"id":"resp_021793274024426c35f1a31989945a684cc428e09e81c794c5516","max_output_tokens":384000,"model":"deepseek-v4-flash-ga-260731","object":"response","output":[{"id":"rs_02179327402546000000000000000000000ffffac183ac2ce63d1","type":"reasoning","summary":[{"type":"summary_text","text":"The check confirms my computation. Note the expert noted \"材料未提供 s4\" — but in my actual context s4 IS provided. Let me use s4 from the actual materials: s4 says at t=0, all work not started; D is just expected 2h, no compliance signature, no test pass records; planned completion ≠ actual approval. So current_approval_confirmed = false.\n\nNow produce final JSON with answer and findings."}],"status":"completed"},{"type":"message","role":"assistant","content":[{"type":"output_text","text":"```json\n{\n  \"answer\": \"一、有效数据与口径。以 s1《有效工作清单》为准：A 数据库迁移 3 小时（无前置）、B API 验证 5 小时（依赖 A）、C UI 验证 4 小时（依赖 A）、D 合规审查 2 小时（无前置）、E 集成测试 2 小时（依赖 B 和 C）、F 安全复核 3 小时（依赖 B）、G 发布 1 小时（依赖 D、E、F 全部完成）。每项独占一个执行槽，最多两个槽并发，不允许拆分任务。s2《版本修订》明确旧备忘录中“A=4 小时、C 依赖 B、F=1 小时”三项已被 s1 替代，因此本排程一律使用 s1 的时长与依赖，不与旧版叠加或混用（若误用旧版会出现伪关键路径，如 A→B→C→E→G，但这不是有效模型）。\n\n二、满足两槽限制的可执行排程（以 t=0 为开始）。D 与 A 均无前置，可同时开工：D 0–2；A 0–3。A 完成后 B、C 同时开工：C 3–7；B 3–8。B、C 完成后 E、F 同时开工：E 8–10；F 8–11。随后 G 11–12。并发检查：0–2 时段仅 A、D 两项；3–7 时段仅 B、C 两项；8–10 时段仅 E、F 两项；其余时段各至多一项，全程不超过两个槽，且无拆分。D 最早完成 2，B 最早完成 8，C 最早完成 7；E 依赖 B 和 C 且取两者之末，故 earliest_e_start = 8；F 依赖 B，最早 8 开始、11 完成。D/E/F 全部完成的最早时刻为 max(2, 10, 11) = 11，即 pre_release_ready = 11。\n\n三、关键路径与理论最早完成。候选路径时长：A(3)→B(5)→F(3)→G(1) = 12 小时；A(3)→B(5)→E(2)→G(1) = 11 小时；A(3)→C(4)→E(2)→G(1) = 10 小时；D(2)→G(1) = 3 小时。最长者为 A→B→F→G，共 12 小时，故 critical_path = [A, B, F, G]；由于该链本身至少需 12 小时且上述排程恰好 12 小时完成，不存在更早可行排程。忽略发布窗口的理论最早 G 结束时间 = 11 + 1 = 12，即 technical_finish = 12。\n\n四、发布窗口的影响。s3 规定仅 G 必须完整位于 [14,16] 小时区间内，其他任务可在此前完成，且无等待或资源切换开销。技术排程中 G 位于 11–12，不在窗口内，须推迟到窗口内最早位置 14–15，因此考虑窗口后的最早 G 结束时间 window_finish = 15。这属于窗口等待造成的 3 小时（12→14）延迟，与 12 小时的技术关键路径相互独立，二者须区分：关键路径本身仍为 A→B→F→G（12 小时），窗口只决定 G 的最终落位。推迟 G 不破坏依赖（D/E/F 最晚 11 已完成）也不增加并发（G 独占）。\n\n五、批准状态。s4《状态快照》表明 t=0 时全部工作尚未开始；D 仅是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。计划中的完成时刻不等于已经发生的批准。因此目前不能宣称批准已完成：current_approval_confirmed = false。即便理论上 pre_release_ready 最早可为 11（对应 D 的合规签字、E 的集成测试、F 的安全复核全部实际完成），那也只是未来计划时刻，在 t=0 尚未发生。\n\n六、证据与不确定性。时长、依赖与并发约束来自 s1；s2 排除旧版信息；窗口规则来自 s3；状态事实来自 s4；字段口径来自 s5。材料未提供实际执行日志，故上述为基于给定约束的理论排程；若实测时长或依赖变化，需按新数据重算。除此之外，计算在给定模型下无重大不确定性。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}\n```"}],"status":"completed","id":"msg_02179327402666300000000000000000000ffffac183ac22920fa"}],"thinking":{"type":"enabled"},"service_tier":"default","status":"completed","temperature":0,"tools":[{"name":"refract_expert","type":"function","description":"让文本专家分析、核对或汇总给定材料。只传所需材料，不执行外部工具；返回产物、逐字引文、限制和费用依据。","parameters":{"type":"object","additionalProperties":false,"required":["intent","task","context"],"properties":{"intent":{"type":"string","enum":["analyze","check","synthesize"]},"task":{"type":"string","minLength":1,"maxLength":6000},"context":{"type":"string","minLength":1,"maxLength":6000}}}}],"usage":{"input_tokens":6390,"output_tokens":1294,"total_tokens":7684,"input_tokens_details":{"cached_tokens":0},"output_tokens_details":{"reasoning_tokens":93}},"caching":{"type":"disabled"},"store":false},"sequence_number":331}
+
+data: [DONE]
+

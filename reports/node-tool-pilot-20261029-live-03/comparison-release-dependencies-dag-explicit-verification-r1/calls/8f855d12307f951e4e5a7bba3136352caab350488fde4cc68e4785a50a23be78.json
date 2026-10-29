@@ -1,0 +1,29 @@
+{
+  "content": "本节点职责为提取权威任务时长、依赖、发布窗口与状态快照，输出事实表；不计算排程、关键路径或窗口等待。以下内容仅依据原始材料 s1–s5 提取。\n\n### 1. 权威任务时长与依赖（来源：s1；s2 废除项不采用）\n\n| 任务 | 时长（连续工作小时） | 前置依赖 | 备注 |\n|---|---|---|---|\n| A 数据库迁移 | 3 | 无 | 旧版“A=4 小时”已废除（s2） |\n| B API 验证 | 5 | A | |\n| C UI 验证 | 4 | A | 旧版“C 依赖 B”已废除（s2） |\n| D 合规审查 | 2 | 无 | |\n| E 集成测试 | 2 | B、C | |\n| F 安全复核 | 3 | B | 旧版“F=1 小时”已废除（s2） |\n| G 发布 | 1 | D、E、F 全部完成 | |\n\n### 2. 执行约束（来源：s1、任务指令）\n\n- 所有时长是连续工作小时；不允许拆分任务。\n- 每项任务独占一个执行槽；最多同时执行两项工作。\n\n### 3. 发布窗口与时间口径（来源：s3）\n\n- 只有 G 必须完整位于 [14,16] 小时区间内；其他任务可在此之前完成。\n- 不设其他等待或资源切换开销。\n- “理论最早完成时间”（technical_finish）定义为忽略该窗口后 G 的结束时间。\n\n### 4. t=0 状态快照（来源：s4）\n\n- 全部工作尚未开始。\n- D 仅预计需要 2 小时，尚无合规签字；无任何测试通过记录。\n- 计划中的完成时间不等于已经发生的批准。\n- 因此 t=0 不能宣称批准已完成；对应事实为“尚未确认合规批准”。\n\n### 5. 交付口径（来源：s5）\n\n- pre_release_ready：D/E/F 都能完成的最早时刻。\n- critical_path：节点 ID 列表，必须包含最终 G。\n- earliest_e_start：E 最早开始时刻。\n- 完整排程需满足最多两槽限制；排程与上述指标由后续计算环节生成，本节点不计算。\n\n### 6. 待下游计算的项\n\n- pre_release_ready\n- technical_finish\n- window_finish\n- critical_path\n- earliest_e_start\n- current_approval_confirmed\n\n计算时应使用本表事实，不得沿用 s2 已废除的旧版时长或依赖。",
+  "input_tokens": 1156,
+  "output_tokens": 6018,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 5437,
+  "latency_ms": 89384,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932740899603b39ea1d457e6524cc696cd2a0824aa13e2ce4",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1156,
+    "output_tokens": 6018,
+    "total_tokens": 7174,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 5437
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

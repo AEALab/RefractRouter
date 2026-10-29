@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"先从源材料还原有效依赖、时长与状态约束，再推算满足双槽限制的排程与关键路径，最后生成完整中文交付并核对时间/批准语义。\",\"nodes\":[{\"id\":\"extract_facts\",\"type\":\"extraction\",\"job\":\"提取权威任务时长/依赖/发布窗口/状态快照，输出事实表\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"schedule\",\"type\":\"synthesis\",\"job\":\"按前序与双槽约束推算排程/关键路径/最早时刻\",\"parents\":[\"extract_facts\"],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"生成完整中文正文与 findings，核对语义口径\",\"parents\":[\"extract_facts\",\"schedule\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1387,
+  "output_tokens": 2307,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 2123,
+  "latency_ms": 46577,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932740433672fe30231c3416749cd01035ba2ea7b6141d323",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1387,
+    "output_tokens": 2307,
+    "total_tokens": 3694,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 2123
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

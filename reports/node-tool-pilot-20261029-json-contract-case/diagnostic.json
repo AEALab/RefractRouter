@@ -1,0 +1,57 @@
+{
+  "primaryStatus": "fail",
+  "primaryError": "Invalid control character at: line 2 column 318 (char 319)",
+  "onlyDiagnostic": true,
+  "relaxedDecode": "json.loads(strict=False)，仅只读分析副本，不计入主判据",
+  "diagnosticChecks": {
+    "status": "fail",
+    "checks": [
+      {
+        "check": "pre_release_ready",
+        "status": "pass",
+        "reason": "参考事实相符"
+      },
+      {
+        "check": "technical_finish:sources",
+        "status": "fail",
+        "reason": "引用缺失、错误或不足"
+      },
+      {
+        "check": "technical_finish",
+        "status": "pass",
+        "reason": "参考事实相符"
+      },
+      {
+        "check": "window_finish",
+        "status": "pass",
+        "reason": "参考事实相符"
+      },
+      {
+        "check": "critical_path:sources",
+        "status": "fail",
+        "reason": "引用缺失、错误或不足"
+      },
+      {
+        "check": "critical_path",
+        "status": "pass",
+        "reason": "参考事实相符"
+      },
+      {
+        "check": "earliest_e_start",
+        "status": "pass",
+        "reason": "参考事实相符"
+      },
+      {
+        "check": "current_approval_confirmed",
+        "status": "pass",
+        "reason": "参考事实相符"
+      }
+    ],
+    "unverified": [
+      "正文语义、证据是否真正支持主张、全局一致性"
+    ]
+  },
+  "originalSha256": "3984766a208577843348f114afac98ff37de201f02cffe192516772342306ba9",
+  "valueOnlyDiagnostic": "pass",
+  "sourceCoverageDiagnostic": "fail"
+}

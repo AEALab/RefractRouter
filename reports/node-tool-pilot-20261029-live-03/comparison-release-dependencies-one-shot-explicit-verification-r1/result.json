@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "simulated": false,
+  "output": "{\n  \"answer\": \"以下时间均以小时计，从 t=0 起算。按 t=0 开始，全部工作尚未开始。使用有效工作清单 s1 的时长与依赖：A=3h、B 依赖 A 且 5h、C 依赖 A 且 4h、D=2h、E 依赖 B 和 C 且 2h、F 依赖 B 且 3h、G 依赖 D/E/F 且 1h。s2 中旧 A=4h、C 依赖 B、F=1h 一律不采用。\\n\\n满足两槽限制的可执行排程为：0–2h 做 D 与 A；2–3h 继续 A；3–7h 做 B 与 C；7–8h 继续 B；8–10h 做 E 与 F；10–11h 继续 F；11–14h 空闲等待发布窗口；14–15h 做 G。\\n\\n由此：D 最早 2h 完成；C 最早 7h 完成；B 最早 8h 完成；E 最早 8h 开始、10h 完成；F 最早 8h 开始、11h 完成。因此 D/E/F 全部完成的最早时刻是 11h，即 pre_release_ready=11。E 的最早开始是 8h，即 earliest_e_start=8。忽略发布窗口时，G 最早 11h 开始、12h 结束，所以 technical_finish=12。技术关键路径为 A→B→F→G，长度为 3+5+3+1=12；A→B→E→G 为 11，A→C→E→G 为 10，D→G 为 3，均不构成关键路径。\\n\\n考虑发布窗口 [14,16] 时，G 必须完整落在该区间内，因此最早只能 14h 开始，15h 结束，所以 window_finish=15。11–14h 的等待是发布窗口约束造成的等待，不属于技术关键路径节点。\\n\\n目前不能宣称批准已完成：t=0 时合规审查 D 尚无签字，也没有任何测试通过记录；D/E/F 的完成只是计划中的最早时间，不是已经发生的事实。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}",
+  "requests": 1,
+  "expertCalls": 0,
+  "taskElapsedMs": 411710.38300000003,
+  "unexpectedNetwork": 0,
+  "transport": "DSH LlmRuntime + 官方 PiAiAdapter + /api/plan/v3/responses",
+  "recordPath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-one-shot-explicit-verification-r1/evidence/planning/7c34a30788a5d846139516f3d7ba274011f5bcae64accc6ae4a491589abbd793.json"
+}

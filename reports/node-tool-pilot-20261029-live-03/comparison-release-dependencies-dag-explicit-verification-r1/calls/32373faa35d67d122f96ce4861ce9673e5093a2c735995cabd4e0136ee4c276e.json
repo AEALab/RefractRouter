@@ -1,0 +1,29 @@
+{
+  "content": "依据 s1 的有效工作清单计算，并排除 s2 中已作废的旧信息：A=3 小时、C 依赖 A、F=3 小时；不采用 A=4、C 依赖 B、F=1。\n\n## 排程\n\n在 t=0 开始，为满足“最多同时执行两项工作”且不拆分任务，一个可执行排程如下：\n\n- A 数据库迁移：0–3\n- D 合规审查：0–2\n- B API 验证：3–8\n- C UI 验证：3–7\n- E 集成测试：8–10\n- F 安全复核：8–11\n- G 发布：11–12（忽略发布窗口时）\n\n并发检查：0–2 同时做 A、D；3–7 同时做 B、C；8–10 同时做 E、F；其余时段最多一项，符合两槽限制。\n\n若考虑发布窗口，G 必须完整位于 [14,16] 小时内，因此 G 最早安排在 14–15；11–14 为窗口等待。\n\n## 关键计算\n\n- E 依赖 B 和 C。B 最早 8 完成，C 最早 7 完成，所以 E 最早开始时间为 8。\n- F 依赖 B，且 B 最早 8 完成，所以 F 最早开始时间为 8。\n- D 最早 2 完成，E 最早 10 完成，F 最早 11 完成，因此 D/E/F 全部就绪的最早时刻是 11。\n- G 依赖 D、E、F，所以忽略窗口时 G 最早 11 开始、12 结束。\n- 技术关键路径为 A → B → F → G，时长为 3 + 5 + 3 + 1 = 12 小时；它决定了忽略窗口时的最早完成时间。\n- 发布窗口只约束 G，不影响技术关键路径；G 从 14 开始、15 结束，因此考虑窗口后的最早发布完成时间为 15。\n- t=0 时全部工作尚未开始，D 尚无合规签字，也没有任何测试通过记录，因此目前不能宣称批准已完成。\n\n## 结论清单\n\n- id: pre_release_ready；value: 11；sources: s1, s5\n- id: technical_finish；value: 12；sources: s1, s3\n- id: window_finish；value: 15；sources: s1, s3\n- id: critical_path；value: [\"A\", \"B\", \"F\", \"G\"]；sources: s1, s5\n- id: earliest_e_start；value: 8；sources: s1, s5\n- id: current_approval_confirmed；value: false；sources: s4",
+  "input_tokens": 1833,
+  "output_tokens": 14227,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 13607,
+  "latency_ms": 257199,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179327417936402e43eb8440d3b95b4166e4756a9601126dd65",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1833,
+    "output_tokens": 14227,
+    "total_tokens": 16060,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 13607
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
