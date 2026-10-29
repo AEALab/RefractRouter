@@ -36,7 +36,7 @@ def classifier(target=None, family="fixture-extract"):
         for key in ("small", "large")}}})
 
 
-def sample(directory, cfg, model, count=1):
+def sample(directory, cfg, model, count=1, *, trailing_tool=False):
     runtime = PlanningRuntime(directory)
     run = begin(runtime, "task", config=cfg, session=directory.name)
     messages = [{"role": "user", "content": f"提取第{directory.name}份构造数据的字段。"}]
@@ -47,6 +47,9 @@ def sample(directory, cfg, model, count=1):
         execute = step(runtime, run, messages=messages)
         assert execute["model"]["id"] == model
         receipt(runtime, run, execute, content="模拟提取交付")
+    if trailing_tool:
+        receipt(runtime, run, step(runtime, run, messages=messages), content="尚需读取工具结果",
+                tools=({"id": "pending-tool", "name": "read", "arguments": "{}"},))
     runtime.handle({"op": "end", "runId": run})
     # 本例明确构造已知冷缓存观测；真实宿主缺缓存元数据时保持未知，不作同样处理。
     for row in runtime.runs[run]["budget"].records:
@@ -54,7 +57,7 @@ def sample(directory, cfg, model, count=1):
         row["cache_usage_source"] = "fixture-cold-cache"
     runtime.persist(runtime.runs[run])
     result = runtime.handle({"op": "outcome", "runId": run, "identity": runtime.runs[run]["identity"]})
-    last = result["candidates"][-1]
+    last = result["candidates"][-2] if trailing_tool else result["candidates"][-1]
     assessment = {"schemaVersion": "whole-task-acceptance-v1", "candidateId": last["candidateId"],
         "candidateSha256": last["candidateSha256"], "criteriaSha256": cfg["taskShadow"]["families"][0]["criteriaSha256"],
         "method": "frozen-full-task-oracle-v1", "scope": "complete-delivery-and-requirements", "independent": True,
@@ -251,3 +254,44 @@ def test_changed_normalized_exchange_or_price_data_invalidates_old_binding(tmp_p
         bounds={key: {"unit": "CNY", "amount": .01} for key in ("small", "large")}, remaining={"CNY": 10},
         min_samples=3, quality_min=.5, as_of=date.today().isoformat())
     assert result["uncertain"] is True
+
+
+def test_earlier_stop_cannot_cover_later_accepted_tool_call(tmp_path):
+    cfg = configuration()
+    value = sample(tmp_path / "pending-final-tool", cfg, "small", trailing_tool=True)
+    profile = build_profile([value], kind="simulation")
+    assert profile["observations"][0]["quality"] == "unknown"
+    assert profile["observations"][0]["qualityReason"] == "assessment-bound-to-earlier-delivery"
+
+
+def test_budget_rejection_preserves_valid_quality_and_full_cost_predictions(tmp_path):
+    cfg, _, profile = profile_fixture(tmp_path)
+    result = query(cfg, profile, remaining={"CNY": .001})
+    assert result["uncertain"] is True and result["candidateId"] is None
+    assert result["costBasis"] == "empirical-full-managed-task"
+    for row in result["rows"]:
+        assert row["qualified"] is True and row["estimate"] is not None
+        assert row["budgetAdmitted"] is False and row["selectionAdmitted"] is False
+
+
+def test_unlimited_remaining_budget_uses_existing_ledger_semantics(tmp_path):
+    cfg, _, profile = profile_fixture(tmp_path)
+    assert query(cfg, profile, remaining={"CNY": float("inf")})["uncertain"] is False
+
+
+@pytest.mark.parametrize("unlimited", ["cash", "reference"])
+def test_runtime_unlimited_limits_do_not_turn_into_zero_shadow_balance(tmp_path, unlimited):
+    cfg = configuration()
+    if unlimited == "cash":
+        cfg["maxProductionCostByUnit"]["CNY"] = 0
+    else:
+        cfg["maxReferenceCost"] = 0
+    samples = [sample(tmp_path / f"{model}-{i}", cfg, model) for model in ("small", "large") for i in range(3)]
+    profile = build_profile(samples, kind="simulation")
+    cfg["taskShadow"].update(profile=profile, profileSha256=digest(profile))
+    runtime = PlanningRuntime(tmp_path / "live-fixture")
+    run = begin(runtime, "task", config=cfg)
+    receipt(runtime, run, step(runtime, run), classifier())
+    shadow = runtime.runs[run]["state"]["taskShadow"]
+    assert shadow["uncertain"] is False
+    assert all(r["budgetAdmitted"] for r in shadow["rows"])

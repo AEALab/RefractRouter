@@ -286,7 +286,10 @@ def main():
             results.append({k:summary[k] for k in ('strategy','models','status','simulated','costs')})
         configured = validate_configured_providers(run, workspace, executable, runs, env) if args.configured_providers else None
         readonly_facts = validate_readonly_facts(run, workspace, executable)
-        evidence = {'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        installed_python = executable.resolve().with_name('python')
+        task_shadow = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_task_shadow_worker.py',
+                                      '--executable', executable, '--workspace', workspace]))
+        evidence = {'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},

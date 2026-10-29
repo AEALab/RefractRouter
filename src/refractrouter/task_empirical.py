@@ -165,7 +165,7 @@ def _budget_available(bound, remaining):
     for unit, value in required.items():
         limit = remaining.get(unit)
         if (type(value) not in (int, float) or not math.isfinite(value) or value < 0
-                or type(limit) not in (int, float) or not math.isfinite(limit) or value > limit):
+                or type(limit) not in (int, float) or math.isnan(limit) or limit < 0 or value > limit):
             return False
     return True
 
@@ -189,7 +189,7 @@ def _quality(result, context, assessment):
     if final.get("finish_reason") != "stop":
         return "unknown", "assessment-not-final-delivery", digest(assessment)
     accepted = {c["candidateId"] for c in result.get("candidates", []) if c["routerDisposition"] == "accepted"}
-    final_calls = [r for r in result["calls"] if r.get("call_id") in accepted and r.get("finish_reason") == "stop"]
+    final_calls = [r for r in result["calls"] if r.get("call_id") in accepted]
     if not final_calls or final_calls[-1]["call_id"] != assessment["candidateId"]:
         return "unknown", "assessment-bound-to-earlier-delivery", digest(assessment)
     checks = assessment["checks"]
@@ -372,46 +372,48 @@ def predict(profile, context, *, candidate_ids, fallback, bounds, remaining, min
         if "excluded" not in row and row["context"] == context and row["modelId"] in allowed:
             grouped[row["modelId"]].append(row)
     eligible = []
+    qualified_without_cost = False
     for model in candidate_ids:
         rows = grouped[model]
-        reasons = []
+        binding_reasons = []
         revisions = [b.get("revision") for b in context["modelBindings"].values()]
         if any(not isinstance(r, str) or r.strip().lower() in ("", "unknown", "unpinned", "unavailable") for r in revisions):
-            reasons.append("model-revision-unpinned")
+            binding_reasons.append("model-revision-unpinned")
+        quality_reasons, cost_reasons = list(binding_reasons), list(binding_reasons)
         n, passed = len(rows), sum(r["quality"] == "pass" for r in rows)
         lower = 1 - interval(n - passed, n)["upper"] if n else None
         if n < min_samples:
-            reasons.append("insufficient-samples")
+            quality_reasons.append("insufficient-samples")
+            cost_reasons.append("insufficient-samples")
         if len({r["sourceClusterId"] for r in rows}) != n:
-            reasons.append("reused-source-cluster")
+            quality_reasons.append("reused-source-cluster")
         if len({r["taskInputSha256"] for r in rows}) != n:
-            reasons.append("reused-task-input")
+            quality_reasons.append("reused-task-input")
         if any(r["quality"] == "unknown" for r in rows) or lower is None or lower < quality_min:
-            reasons.append("independent-quality-unproven")
+            quality_reasons.append("independent-quality-unproven")
         costs, dimensions = [], set()
         for row in rows:
             cost = row["costObservation"]
             reference = cost.get("referenceCostCny")
             if (cost.get("pricedCallAmountsComplete") is not True or cost.get("cacheUsageComplete") is not True
                     or reference is None and len(cost["costs"]) != 1):
-                reasons.append("incomplete-cost-or-incomparable-lanes")
+                cost_reasons.append("incomplete-cost-or-incomparable-lanes")
                 continue
             item = ({"lane": "reference-valuation", "unit": "CNY", **reference}
                     if reference is not None else cost["costs"][0])
             dimensions.add((item["lane"], item["unit"]))
             value = float(item["knownCalculated"])
             if not math.isfinite(value) or value < 0 or float(item["unknownProtected"]) != 0:
-                reasons.append("invalid-or-unknown-cost")
+                cost_reasons.append("invalid-or-unknown-cost")
                 continue
             costs.append(value)
         if len(dimensions) != 1:
-            reasons.append("incomparable-cost-dimensions")
+            cost_reasons.append("incomparable-cost-dimensions")
         dimension = next(iter(dimensions)) if len(dimensions) == 1 else None
         bound = bounds.get(model)
-        if not _budget_available(bound, remaining):
-            reasons.append("hard-budget-unavailable")
+        budget_ok = _budget_available(bound, remaining)
         estimate = None
-        if costs and not reasons:
+        if costs and not cost_reasons:
             center = mean(costs)
             # 逐样本留一均值误差，仅为已知轨迹的描述，不是新任务的误差保证。
             exact_costs = [Decimal(str(v)) for v in costs]
@@ -420,10 +422,20 @@ def predict(profile, context, *, candidate_ids, fallback, bounds, remaining, min
             estimate = {"mean": center, "median": median(costs), "observedMin": min(costs), "observedMax": max(costs),
                         "leaveOneOutMae": loo, "sampleCount": len(costs), "dimension": list(dimension),
                         "rangeKind": "observed-not-guaranteed", "includesAllManagedCalls": True}
-            eligible.append((center, candidate_ids.index(model), model, dimension))
+            base["costBasis"] = "empirical-full-managed-task"
+            if not quality_reasons and budget_ok:
+                eligible.append((center, candidate_ids.index(model), model, dimension))
+        if not quality_reasons and estimate is None:
+            qualified_without_cost = True
+        reasons = quality_reasons + cost_reasons + ([] if budget_ok else ["hard-budget-unavailable"])
         base["rows"].append({"modelId": model, "samples": n, "independentPasses": passed,
-                            "qualityLower95": lower, "qualified": not reasons, "reasons": sorted(set(reasons)),
+                            "qualityLower95": lower, "qualified": not quality_reasons,
+                            "qualityReasons": sorted(set(quality_reasons)), "costReasons": sorted(set(cost_reasons)),
+                            "budgetAdmitted": budget_ok, "selectionAdmitted": not reasons,
+                            "reasons": sorted(set(reasons)),
                             "estimate": estimate, "sourceRecordsSha256": digest(sorted(r["runId"] for r in rows))})
+    if qualified_without_cost:
+        return {**base, "reason": "qualified-candidate-cost-unavailable"}
     if not eligible:
         return {**base, "reason": "no-empirically-qualified-candidate"}
     if len({item[3] for item in eligible}) != 1:

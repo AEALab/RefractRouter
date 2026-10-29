@@ -773,7 +773,8 @@ class PlanningRuntime(StageHybridRuntime):
         remaining = {unit: run["budget"].remaining(unit) for unit in c["budgets"]}
         if c.get("reference_limit") is not None:
             snapshot = run["budget"].reference_snapshot()
-            remaining["REFERENCE_CNY"] = max(0, snapshot["limit"] - snapshot["occupied"])
+            remaining["REFERENCE_CNY"] = (float("inf") if snapshot["limit"] == 0 else
+                                          max(0, snapshot["limit"] - snapshot["occupied"]))
         state["taskShadow"] = predict(shadow["profile"], context,
             candidate_ids=[r["id"] for r in flow.get("candidates", [])], fallback=self._task_route(run)["fallback"],
             bounds=flow.get("taskAdmittedBounds", {}), remaining=remaining,
