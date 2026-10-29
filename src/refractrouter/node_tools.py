@@ -129,6 +129,27 @@ def runtime_digest(value):
     return digest(value)
 
 
+def parse_node_artifact(content, node_input):
+    """引文逐字段匹配专家实际收到的输入，不把两字段拼成不存在的原文。"""
+    artifact = json.loads(content)
+    if not isinstance(artifact, dict) or set(artifact) != {"artifact", "quotes", "limitations"}:
+        raise ValueError("专家产物字段不完整")
+    if not isinstance(artifact["artifact"], str) or not artifact["artifact"].strip():
+        raise ValueError("专家产物为空")
+    for key in ("quotes", "limitations"):
+        if not isinstance(artifact[key], list) or len(artifact[key]) > 32 or any(
+                not isinstance(item, str) or not item.strip() for item in artifact[key]):
+            raise ValueError("专家引文或限制格式无效")
+    sources = []
+    for index, quote in enumerate(artifact["quotes"]):
+        fields = [key for key in ("task", "context") if quote in node_input[key]]
+        if not fields:
+            raise ValueError("专家引文不是 task 或 context 的逐字子串")
+        sources.append({"quoteIndex": index, "inputFields": fields})
+    # 这里只证明文本出现在委派输入，不能当作原始业务材料或事实正确性的认证。
+    return artifact, sources
+
+
 def finish(runtime, run, token, response):
     flow, state = run["flow"], run["nodeTools"]
     row = flow["nodeInvocation"]
@@ -140,23 +161,13 @@ def finish(runtime, run, token, response):
     try:
         if response.tool_calls or response.finish_reason != "stop":
             raise ValueError("文本专家不得继续工具调用或交付未完成回复")
-        artifact = json.loads(response.content)
-        if not isinstance(artifact, dict) or set(artifact) != {"artifact", "quotes", "limitations"}:
-            raise ValueError("专家产物字段不完整")
-        if not isinstance(artifact["artifact"], str) or not artifact["artifact"].strip():
-            raise ValueError("专家产物为空")
-        for key in ("quotes", "limitations"):
-            if not isinstance(artifact[key], list) or len(artifact[key]) > 32 or any(
-                    not isinstance(item, str) or not item.strip() for item in artifact[key]):
-                raise ValueError("专家引文或限制格式无效")
-        if any(quote not in flow["nodeInput"]["context"] for quote in artifact["quotes"]):
-            raise ValueError("专家引文不是输入材料的逐字子串")
+        artifact, quote_sources = parse_node_artifact(response.content, flow["nodeInput"])
     except (ValueError, TypeError, KeyError) as exc:
         row.update(status="failed", reason=str(exc))
         runtime.stop(run, "node-output-invalid")
         raise ValueError("专家输出无效；已结算费用，不自动重试：" + str(exc)) from exc
     call = next(c for c in run["budget"].records if c.get("call_id") == token)
-    row.update(status="completed", outputDigest=runtime_digest(artifact))
+    row.update(status="completed", outputDigest=runtime_digest(artifact), quoteSources=quote_sources)
     result = {**artifact, "toolCallId": row["toolCallId"], "modelCallId": token,
         "model": call["actual_model"], "provider": call["provider"],
         "billingUnit": call["billing_unit"], "cost": call["charged"],

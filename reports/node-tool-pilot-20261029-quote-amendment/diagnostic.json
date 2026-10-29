@@ -1,0 +1,60 @@
+{
+  "说明": "只读诊断，不修改旧失败或旧评分，不发送模型请求。",
+  "原批次状态": "stopped-implementation-changed",
+  "原摘要Sha256": "9f0fad362c1a2f937d0ec0a8f31b1535e2ccd189c78c956471aa12f844e8ddfa",
+  "原样本": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r2",
+  "原任务状态": "failed",
+  "原字段检查": "not-evaluated",
+  "原费用AFP": 1.3578,
+  "原实际请求数": 2,
+  "原外层等待毫秒": 385734.1557079926,
+  "实际输入字符数": 1117,
+  "专家输出token": 17190,
+  "专家正常结束": "stop",
+  "quotes": [
+    {
+      "quoteIndex": 0,
+      "inputFields": [
+        "task"
+      ],
+      "文本": "所有订单起始余额 0；按全局 event_id 去重（首次出现保留 (order_id,kind,amount,status) 身份；同 ID 同内容=重复不计；同 ID 异内容=冲突隔离不更新余额）",
+      "旧context规则通过": false
+    },
+    {
+      "quoteIndex": 1,
+      "inputFields": [
+        "context"
+      ],
+      "文本": "事件表（s2）共 13 行，按行序处理，列 event_id|order_id|kind|amount|status",
+      "旧context规则通过": true
+    },
+    {
+      "quoteIndex": 2,
+      "inputFields": [
+        "task"
+      ],
+      "文本": "事件行序：p1|O1|pay|100|success ×2；r1|O1|refund|30|success；r2|O1|refund|20|success ×2；p2|O2|pay|80|success；r3|O2|refund|90|success；p3|O3|pay|120|success；r4|O3|refund|120|success；r4|O2|refund|120|success；r5|O1|refund|60|success；p4|O2|pay|60|pending；p5|O4|pay|50|success",
+      "旧context规则通过": false
+    },
+    {
+      "quoteIndex": 3,
+      "inputFields": [
+        "context"
+      ],
+      "文本": "缺陷代码（s3）用 order_id 去重",
+      "旧context规则通过": true
+    },
+    {
+      "quoteIndex": 4,
+      "inputFields": [
+        "context"
+      ],
+      "文本": "wrong_key 为缺陷代码错误使用的字段名",
+      "旧context规则通过": true
+    }
+  ],
+  "副本符合修订后引文规则": true,
+  "副本不证明原任务已交付": true,
+  "累计历史请求": 88,
+  "累计历史费用与预留AFP": 51.731700000000004
+}

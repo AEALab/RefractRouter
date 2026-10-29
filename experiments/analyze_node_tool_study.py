@@ -70,6 +70,31 @@ def report(result):
         lines += ["",f"历史诊断调用及未知预留合计 {diagnostic:.6f} AFP，计入累计授权，未隐藏于主表之外。",
             "DSH 与 Python 的流式/非流式适配路径、职责提示及上下文投影仍不同，结果不作为单因素因果证明。"]
     tuning=[r for r in result["runs"] if r["phase"]=="prompt-audit"]
+    quote=result.get("quoteAmendment",{})
+    if quote.get("diagnosticFailures"):
+        lines += ["", "## 输入字段验收修订", "",
+            "旧规范只接受 context 引文，但模型实际还收到 task 中的材料；本次修订逐字段核对 task 与 context，不跨字段拼接。",
+            "原失败、用量和费用继续保留；只因已证实的字段误拒收重采，不按原任务得分挑选。",
+            "旧检查通过的产物在新检查下仍通过；模型提示、工具 schema 和已成功交互的可见内容不变，兼容样本原样接续。",
+            "引文出现于委派输入，不等于来自原始业务来源或事实已经证明。", "",
+            "| 原样本 | 原结果 | 原 AFP | 原模型阶段秒数 | 当前主比较结果 |", "|---|---|---:|---:|---|"]
+        for failure in quote["diagnosticFailures"]:
+            old=failure["originalOutcome"];new=next((r for r in rows if r["runId"]==failure["runId"]),None)
+            elapsed=old.get("runtimeElapsedMs")
+            duration=f"{elapsed/1000:.3f}" if elapsed is not None else "未取得"
+            status=f"{new['status']} / {new['factStatus']}" if new else "待重采"
+            lines.append(f"| {failure['runId']} | {old['status']} / {old['factStatus']} | {old['chargedOrReserved']:.6f} | {duration} | {status} |")
+        lines += ["", "原产物在只读副本中符合修订后的子串规则，不表示原任务已完成；原失败分数不追改。"]
+        original={(g["taskId"],g["repeat"]) for g in quote.get("originalSamplingFreshGroups",[])}
+        if original:
+            lines += ["", "### 原采样修订预先冻结的五组", "",
+                "保留原分组，包含字段修订重采的那一例；同时另看上文本次修订后全部新采集的分组。",
+                "分组不按结果改选，采样时序与版本修订边界均保留。", "",
+                "| 路线 | 已收录/原计划 | 主判据通过 | AFP |", "|---|---:|---:|---:|"]
+            for arm in ("one-shot","node-as-tool","dag"):
+                group=[r for r in rows if r["arm"]==arm and (r["taskId"],r["repeat"]) in original]
+                lines.append(f"| {arm} | {len(group)}/{len(original)} | {sum(r['factStatus']=='pass' for r in group)} | {sum(r['chargedOrReserved'] for r in group):.6f} |")
+    lines += ["", "任务时长中位数仅使用实际记录的 taskElapsedMs；缺失不补零。未交付的等待与费用须在原始账本或失败诊断中单列。"]
     lines += ["", "## 基线开发与结论限制", "",
         f"基线提示开发使用 {len(tuning)} 个样本，AFP 记账值 {sum(r['chargedOrReserved'] for r in tuning):.6f}；所选提示：`{result.get('selectedPrompt','未选择')}`。",
         "提示按预注册的关键事实检查和费用选择；不是已获独立语义认证的最佳提示。",

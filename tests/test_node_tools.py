@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from refractrouter.node_tools import NAME, catalog
+from refractrouter.node_tools import NAME, catalog, parse_node_artifact
 from refractrouter.planning_runtime import PlanningRuntime
 from tests.test_planning_routing import configuration, receipt
 
@@ -167,6 +167,24 @@ def test_invalid_quote_bills_actual_call_then_stops(tmp_path):
         receipt(r, run, action, content=json.dumps({"artifact": "错误", "quotes": ["不是原文"], "limitations": []}))
     assert r.runs[run]["budget"].records[-1]["status"] == "billed"
     assert r.runs[run]["status"] == "node-output-invalid"
+
+
+def test_literal_task_quote_is_accepted_without_changing_visible_result(tmp_path):
+    r, run = setup(tmp_path)
+    action = node(r, run)
+    result = receipt(r, run, action, content=json.dumps(
+        {"artifact": "回读委派输入，不是事实认证", "quotes": ["核对价格", "100 元"], "limitations": []}))
+    assert result["action"] == "node-result" and r.runs[run]["status"] == "running"
+    invocation = r.runs[run]["nodeTools"]["invocations"][0]
+    assert invocation["quoteSources"] == [{"quoteIndex": 0, "inputFields": ["task"]},
+                                         {"quoteIndex": 1, "inputFields": ["context"]}]
+    assert "quoteSources" not in result["result"]  # 只加审计记录，不改变已成功样本的模型可见消息。
+
+
+def test_quote_must_not_be_manufactured_by_joining_input_fields():
+    body = json.dumps({"artifact": "原样引文测试", "quotes": ["甲乙"], "limitations": []})
+    with pytest.raises(ValueError, match="逐字子串"):
+        parse_node_artifact(body, {"task": "甲", "context": "乙"})
 
 
 def test_parallel_node_request_does_not_cancel_inflight(tmp_path):

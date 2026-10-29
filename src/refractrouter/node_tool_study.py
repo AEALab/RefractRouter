@@ -13,6 +13,7 @@ import time
 
 from .compact_planning import COMPACT_PLANNER_SYSTEM, compile_compact
 from .openai_compatible import ChatResponse, OpenAICompatibleClient
+from .node_tools import parse_node_artifact
 from .planning_config import compile_config
 from .quality_runtime import FINAL_SYSTEM, parse_delivery
 from .quality_study import check_output, digest, execution_payload
@@ -22,7 +23,7 @@ from .task_execution import execute_nodes
 from .task_scheduling import ExecutionPolicy
 
 ROOT = Path(__file__).resolve().parents[2]
-SCHEMA = "node-tool-three-arm-pilot-v4"
+SCHEMA = "node-tool-three-arm-pilot-v5"
 RATE = Decimal(".05")
 ARMS = ("one-shot", "node-as-tool", "dag")
 PROMPTS = {"existing-contract": FINAL_SYSTEM, "explicit-verification": FINAL_SYSTEM +
@@ -111,8 +112,9 @@ def resumed_optimization(paths, expected):
                     "reason":"旧 DAG 没有显式 temperature=0，留作诊断并计费，不混入同采样比较"})
                 continue
             if rid not in cases or rid in seen:raise ValueError("接续样本身份不符或重复")
-            if row["status"]!="completed" or not row["costKnown"] or any(c["status"]!="billed" for c in row["calls"]):
-                raise ValueError("未完成或用量未知的样本不能接续；失败主判据本身不影响接续")
+            terminal = row["status"] == "completed" or row["status"] == "failed" and row.get("failureKind") == "model-output"
+            if not terminal or not row["costKnown"] or any(c["status"]!="billed" for c in row["calls"]):
+                raise ValueError("未结束或用量未知的样本不能接续；已结算模型输出失败和失败主判据均须保留")
             old_path=path.parent/"cases"/(rid+".json");old=json.loads(old_path.read_text());new=cases[rid]
             for key in ("runId","taskId","arm","repeat","promptId","phase","payload","system","inputLimit",
                         "maxMainCalls","maxModelCalls","provider","dshVersion"):
@@ -120,11 +122,46 @@ def resumed_optimization(paths, expected):
             if old["planningConfig"]["models"]!=new["planningConfig"]["models"]:
                 raise ValueError("接续模型配置不一致")
             proof=sampling_evidence(path.parent/rid,row,expected["model"])
+            repaired = context_quote_misrejection(row, path.parent/rid)
+            if repaired:
+                excluded.append({"runId":rid,"source":str(path.relative_to(ROOT)),"sourceSha256":file_hash(path),"kind":"quote-input-field",
+                    "reason":"原引用逐字位于 task，旧校验只查 context 而误拒收；原失败及费用留作诊断，修订后重新采集本例",
+                    "samplingEvidence":proof,**repaired})
+                continue
             seen.add(rid);entries.append({"runId":rid,"phase":row["phase"],"arm":row["arm"],
                 "maxModelCalls":new["maxModelCalls"],"taskId":new["taskId"],"repeat":new["repeat"],
                 "promptId":new["promptId"],"source":str(path.relative_to(ROOT)),
                 "sourceSha256":file_hash(path),"caseSha256":file_hash(old_path),"samplingEvidence":proof})
     return sources,entries,excluded
+
+
+def context_quote_misrejection(row, directory):
+    """只识别可复核的旧字段误拒收，不按任务得分或候选胜负选择重跑。"""
+    if row["arm"] != "node-as-tool" or row["status"] != "failed" or row.get("coreStatus") != "node-output-invalid":
+        return None
+    files = list((directory/"evidence/planning").glob("*.json"))
+    if len(files) != 1:
+        raise ValueError("已结算专家失败缺少唯一核心证据")
+    core = json.loads(files[0].read_text())
+    invocation = next((i for i in core.get("nodeTools",{}).get("invocations",[])
+                       if i.get("reason") == "专家引文不是输入材料的逐字子串"), None)
+    if invocation is None:
+        return None
+    call = next(c for c in row["calls"] if c.get("call_id") == invocation["modelCallId"])
+    request = json.loads(call["request_messages"][1]["content"])
+    if call.get("finish_reason") != "stop":
+        return None
+    try:
+        artifact, locations = parse_node_artifact(call["response_output"], request)
+    except (ValueError, TypeError, KeyError):
+        return None  # 真正不满足新合同的失败不重跑，原样进入主比较。
+    if not any(q not in request["context"] for q in artifact["quotes"]):
+        return None
+    return {"coreEvidence":str(files[0].relative_to(ROOT)),"coreEvidenceSha256":file_hash(files[0]),
+            "expertCallId":call["call_id"],"quoteSourcesUnderCorrection":locations,
+            "originalOutcome":{"status":row["status"],"factStatus":row["factStatus"],
+                "chargedOrReserved":row["chargedOrReserved"],"requests":len(row["calls"]),
+                "runtimeElapsedMs":core.get("timing",{}).get("elapsedMs"),"outerElapsedMs":row.get("outerElapsedMs")}}
 
 
 def reused_rows(frozen):
@@ -272,6 +309,8 @@ def prepare(prior_results=(), resume_optimization=()):
         "tasks":{t["task_id"]:execution_payload(t) for t in tasks},"taskBindings":{t["task_id"]:t["task_sha256"] for t in tasks},
         "prompts":PROMPTS,"nodeHint":NODE_HINT,"caps":CAPS,"model":asdict(model()),
         "sampling":{"temperature":0,"thinking":"provider-default","top_p":"provider-default"},
+        "quotePolicy":{"inputFields":["task","context"],"matching":"在各字段内分别逐字匹配，不跨字段拼接",
+            "meaning":"只证明委派输入存在该文本，不证明原始来源、事实或推理正确"},
         "arms":list(ARMS),"repeats":3,"optimization":optimization,"schedule":schedule,
         "promptSelection":"关键事实检查通过数最多，其次失败检查最少，再以该候选总费用较低、提示 ID 字典序较小决胜；不使用随后三路线结果调参",
         "maxModelCalls":sum(c["maxModelCalls"] for c in optimization)+sum({"one-shot":1,"node-as-tool":7,"dag":5}[s["arm"]] for s in schedule),
@@ -296,11 +335,21 @@ def prepare(prior_results=(), resume_optimization=()):
     result["remainingApprovedAfp"]=float(Decimal(str(APPROVED_AFP))-sum(Decimal(str(v["actualOrReservedAfp"])) for v in result["priorResults"]))
     result["maxNewModelCalls"]=min(result["scheduledMaxNewModelCalls"],result["remainingApprovedCalls"])
     imported_groups={(e["taskId"],e["repeat"]) for e in result["reusedSamples"] if e["phase"]=="comparison"}
-    result["samplingAmendment"]={"nativeReuse":"仅复用原始请求显式 temperature=0 的全部匹配样本，含失败主判据",
+    result["samplingAmendment"]={"nativeReuse":"复用原始请求显式 temperature=0 的全部匹配样本，含已结算模型输出失败和失败主判据",
         "discardedDag":"旧 DAG 未显式温度的结果只保留为诊断，费用累计，不混入主比较",
         "freshGroups":[{"taskId":tid,"repeat":rep} for rep in range(1,4) for tid in result["tasks"] if (tid,rep) not in imported_groups],
         "timingLimit":"主分析包含接续样本；补充查看完全新采集配对，不能宣称全体保持原先交错时间顺序",
         "transportLimit":"DSH 为流式宿主适配器，DAG 为 Python 非流式客户端；均计完整任务时间，比较当前实现，不作单因素因果归因"}
+    original_groups=[]
+    for source in result["resumeSources"]:
+        prior=json.loads((ROOT/source["path"]).with_name("frozen.json").read_text())
+        if prior.get("schema")=="node-tool-three-arm-pilot-v4":
+            original_groups=prior.get("samplingAmendment",{}).get("freshGroups",[])
+    result["quoteAmendment"]={"diagnosticFailures":[r for r in result["excludedDiagnosticSamples"] if r.get("kind")=="quote-input-field"],
+        "originalSamplingFreshGroups":original_groups,
+        "sensitivity":"同时公布原误拒收失败与修正后重采结果；只读副本通过新子串核对不等于原任务完成，不改原分数",
+        "reuseReason":"成功样本的实际提示、请求、工具结果及调用序列不变；旧检查通过的引文也通过新检查。其他已结算输出失败原样保留，不按胜负筛除。",
+        "scope":"仅修订实际输入字段的逐字核对；不改模型提示、工具 schema、任务材料、最终评分、重试或已批准累计额度"}
     result["timePolicy"]="研究入口不设人工总超时或单请求超时；模型物理容量、已批准累计次数与费用继续强制执行"
     result["protocolSha256"]=digest(result)
     return json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
@@ -411,7 +460,8 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
         "runs":reused_rows(frozen),"realModelCalls":0,"actualOrReservedAfp":0,
         "cumulativeRealModelCalls":sum(v["realModelCalls"] for v in frozen["priorResults"]),
         "cumulativeActualOrReservedAfp":sum(v["actualOrReservedAfp"] for v in frozen["priorResults"]),"qualityVerdict":"Insufficient-evidence","providerBillingConfirmed":False,
-        "sampling":frozen["sampling"],"samplingAmendment":frozen["samplingAmendment"]}
+        "sampling":frozen["sampling"],"samplingAmendment":frozen["samplingAmendment"],
+        "quotePolicy":frozen["quotePolicy"],"quoteAmendment":frozen["quoteAmendment"]}
     write(out/"frozen.json",frozen)
     def persist():write(out/"summary.json",result)
     def trial(case):

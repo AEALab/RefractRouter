@@ -65,7 +65,7 @@ def metric(row, key):
         return None
     if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
         raise ValueError("图表指标须为有限非负数，不能把未知值画成零")
-    return value / 1000 if key == "taskElapsedMs" else value
+    return value / 1000 if key in ("taskElapsedMs", "outerElapsedMs") else value
 
 
 def render(result_dir, output_dir, *, snapshot=None, allow_partial=False, font=None):
@@ -98,7 +98,7 @@ def render(result_dir, output_dir, *, snapshot=None, allow_partial=False, font=N
                     row = rows.get((tid, repeat, arm)); value = metric(row, key)
                     x = repeat + (arm_index - 1) * .24
                     if value is None:
-                        ax.text(x, .025, "—", transform=ax.get_xaxis_transform(), ha="center", color="#9098A2")
+                        ax.text(x, .025, "—" if row is None else "×", transform=ax.get_xaxis_transform(), ha="center", color="#9098A2")
                         continue
                     ax.bar(x, value, .22, color=route_colors[arm_index],
                            hatch="//" if key == "chargedOrReserved" and not row.get("costKnown", False) else None)
@@ -124,7 +124,7 @@ def render(result_dir, output_dir, *, snapshot=None, allow_partial=False, font=N
         rendered_bounds[key] = {"原始数据最大值": maximum, "各子图实际纵轴上界": actual_upper}
     fig.suptitle("三路线费用与耗时｜" + stage, fontsize=17, y=.985)
     fig.legend([patches.Patch(color=c) for c in route_colors], NAMES, loc="upper center", ncol=3, bbox_to_anchor=(.5, .95))
-    fig.text(.5, .025, "包含未通过检查的交付，不表示同等质量下收益；时长含规划和专家。— 表示未收录，斜线费用含未知预留。", ha="center", fontsize=10)
+    fig.text(.5, .025, "包含检查未过样本，不表示同等质量收益；时长含规划和专家。—未收录；×已收录但无可比指标，详见原账本。斜线为费用预留。", ha="center", fontsize=10)
     fig.subplots_adjust(top=.84, bottom=.10, hspace=.27, wspace=.12)
     for suffix in ("png", "svg"):
         fig.savefig(out / ("cost-latency." + suffix), dpi=160)
@@ -148,18 +148,20 @@ def render(result_dir, output_dir, *, snapshot=None, allow_partial=False, font=N
         fig.savefig(out / ("quality-matrix." + suffix), dpi=160)
     plt.close(fig)
     with (out / "plotted-data.csv").open("w") as stream:
-        writer = csv.writer(stream); writer.writerow(["任务", "轮次", "路线", "显示类别", "AFP结算或预留", "完整任务秒数", "费用已知"])
+        writer = csv.writer(stream); writer.writerow(["任务", "轮次", "路线", "显示类别", "AFP结算或预留", "完整任务秒数", "费用已知", "外层秒数含冷启动", "执行状态"])
         for tid, repeat in groups:
             for arm in ARMS:
                 row = rows.get((tid, repeat, arm))
                 writer.writerow([tid, repeat, arm, category(row), metric(row, "chargedOrReserved"),
-                                 metric(row, "taskElapsedMs"), row.get("costKnown") if row else None])
+                                 metric(row, "taskElapsedMs"), row.get("costKnown") if row else None,
+                                 metric(row, "outerElapsedMs"), row.get("status") if row else None])
     metadata = {"说明": "只读可视化；类别只解释原检查，不重新评分。", "完整研究": complete,
                 "比较样本": len(rows), "缺失比较样本": 27 - len(rows), "原摘要Sha256": hashlib.sha256(raw).hexdigest(),
                 "协议Sha256": summary["protocolSha256"], "Matplotlib版本": matplotlib.__version__,
                 "生成脚本Sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                 "中文字体": str(font_path) if font_path.is_file() else "系统默认字体",
                 "实际坐标轴核对": rendered_bounds,
+                "时长口径": "仅绘制 taskElapsedMs，缺失不补零；失败外层等待在 CSV 单列，不伪装成完成时长",
                 "类别计数": dict(Counter(category(rows.get((tid, repeat, arm))) for tid, repeat in groups for arm in ARMS))}
     (out / "plot-metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n")
     return metadata

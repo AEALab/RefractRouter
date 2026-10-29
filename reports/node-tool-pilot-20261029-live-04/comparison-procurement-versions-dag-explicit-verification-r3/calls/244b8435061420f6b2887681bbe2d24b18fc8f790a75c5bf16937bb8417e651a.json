@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"价格核算分两组并行，A/B与C/D独立；资格筛选和比较依赖核算结果；最终节点汇总全部并完整交付。\",\"nodes\":[{\"id\":\"calc_ab\",\"type\":\"generation\",\"job\":\"核算A、B含税总价并标注B证书待确认\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"calc_cd\",\"type\":\"generation\",\"job\":\"核算C、D含税总价并标注C券无效、D超期\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"low\"},{\"id\":\"check_eligible\",\"type\":\"verification\",\"job\":\"核对硬条件筛选已确定合格供应商并比价选最低\",\"parents\":[\"calc_ab\",\"calc_cd\"],\"difficulty\":\"high\",\"risk\":\"high\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答核算、筛选与选中结果及不确定性\",\"parents\":[\"calc_ab\",\"calc_cd\",\"check_eligible\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1537,
+  "output_tokens": 2243,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 2021,
+  "latency_ms": 42883,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793282949467dfda270f226adba1bf628b57be6483cfed1f04",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 2243,
+    "total_tokens": 3780,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 2021
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

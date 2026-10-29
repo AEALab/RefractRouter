@@ -1,0 +1,2542 @@
+{
+  "schema": "node-tool-pilot-evidence-audit-v1",
+  "batchStatus": "stopped-implementation-changed",
+  "scope": "核对原始用量、费用与证据绑定，不代表交付质量通过",
+  "summarySha256": "9f0fad362c1a2f937d0ec0a8f31b1535e2ccd189c78c956471aa12f844e8ddfa",
+  "protocolSha256": "193723da0e26edd9b819812a063bbe1bd063cf2c2e36282a6ae684e1ba08f1d9",
+  "integrityStatus": "pass",
+  "completeness": "pending",
+  "cohortSamples": 38,
+  "comparisonSamples": {
+    "one-shot": 6,
+    "node-as-tool": 7,
+    "dag": 7
+  },
+  "newRequests": 34,
+  "cumulativeRequests": 88,
+  "settledOrHistoricalReservedAfp": 51.731700000000004,
+  "budgetNote": "运行中数值只覆盖已收录样本及历史预留；在途预留另由当前个案核心账本保护。",
+  "providerBillingConfirmed": false,
+  "errors": [],
+  "cases": [
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r1",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "cost_a:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_b:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_c:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_d:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "selected_cost:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.6865,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-02/summary.json",
+        "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r1",
+        "protocolSha256": "9d106efc71a7083376ac12a698bde2f5227cf92ef2fdfdd9c8eabf3e1345f6c0"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "9dc2b05bb6bc43b6868d9878510e157f",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.6865,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-02/prompt-audit-procurement-versions-one-shot-existing-contract-r1/wire/001-response.txt",
+          "evidenceSha256": "d923dbe53069d92888fc0bb2666a1f5445cdbe3ea160fceac6e12bc3805fac47",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793268028610888862656ddb6bf8fba16f467f9d03d91c7a72",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1057,
+          "providerOutputTokens": 12673,
+          "providerReasoningTokens": 11856,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.6865
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r1",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.71635,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-02/summary.json",
+        "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r1",
+        "protocolSha256": "9d106efc71a7083376ac12a698bde2f5227cf92ef2fdfdd9c8eabf3e1345f6c0"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "ae1718c4759441fc8b28796abd111f67",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.71635,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-02/prompt-audit-procurement-versions-one-shot-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "2f7b5df24010e32e833ad97524d53e560c8ae450ba2753806746d31e71561af4",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793268247275ef74dd90a5750f77dc784a69dff0f3adb0c022",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1090,
+          "providerOutputTokens": 13237,
+          "providerReasoningTokens": 12287,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.71635
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r1",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.10175,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-02/summary.json",
+        "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r1",
+        "protocolSha256": "9d106efc71a7083376ac12a698bde2f5227cf92ef2fdfdd9c8eabf3e1345f6c0"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "191655fdbcc24b7484ad3f2330022bcc",
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.10175,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-02/prompt-audit-release-dependencies-one-shot-existing-contract-r1/wire/001-response.txt",
+          "evidenceSha256": "3288365656c3763019144ee9b98a1b92ac82019567096faa66fd5516f1ee6ac4",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932684676196cb63cadb26a6eb1a5dd8bb71cce3d7f305adb",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 923,
+          "providerOutputTokens": 21112,
+          "providerReasoningTokens": 20343,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 1.10175
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r1",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.92175,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "f570212510074333ace16eca910a0e22",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.92175,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "2b622e55ba4b2525d3a30b49f70607a0c1cf714b21aedd466570aa31ec6be616",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793269397116ea9999fb310f5017a5d432d00d65dc9a9bc58e",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 956,
+          "providerOutputTokens": 17479,
+          "providerReasoningTokens": 16876,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.92175
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r1",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.54845,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "8e935f2e793043908008e818cabf295f",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.54845,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-existing-contract-r1/wire/001-response.txt",
+          "evidenceSha256": "03cdd3144358ef851fbbc878cfe3ad95c7b0e8ea44691bc0cd22ee5faac9b55c",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793269710706388e10ad0dcd28daa4414437ebb5a857db81fd",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1074,
+          "providerOutputTokens": 9895,
+          "providerReasoningTokens": 8680,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.54845
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r1",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.5279,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "f58b4d0ce2f749d795dd7324af08d49c",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.5279,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "66f3af99ae7e2c97c4a864526be30e488b0c9f0de5617bfc8982f02b1710ca77",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793269872663fe278ef4a49fd99537752324bd80717af7c579",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1107,
+          "providerOutputTokens": 9451,
+          "providerReasoningTokens": 8252,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.5279
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r2",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.68795,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "4024c8160d3849d7a0a38124aed9e296",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.68795,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "eebd3b5fc9056debd5e9358f1854d18038876399bc953cf54816bfa64e70b08f",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932700283894c9833b195a1cac5bbbd18e9e4e5ff83effd60",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1090,
+          "providerOutputTokens": 12669,
+          "providerReasoningTokens": 11776,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.68795
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r2",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "b_confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.6783,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "2e9a1220e9c34d639ce371e31e195aa7",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.6783,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-existing-contract-r2/wire/001-response.txt",
+          "evidenceSha256": "66a19f2a4950364ed1c02f1efdb05bee333e2eee3bdea2f8bde5901c54abd653",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793270229660af71e85a49ed90f7564e7e8026279fe7e1a240",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1057,
+          "providerOutputTokens": 12509,
+          "providerReasoningTokens": 11544,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.6783
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r2",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.5699,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "15f480553011432689e19169603ea8b9",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.5699,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "d521041760a3c157ca805dc83efc1a55407c0fb8638de51f25910db24e6dd0e5",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932704240152fe30231c3416749cd01035ba2ea7b61853fca",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 956,
+          "providerOutputTokens": 10442,
+          "providerReasoningTokens": 9822,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.5699
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r2",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.62795,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "87dbf8ff38044e47979b618d9e403dd3",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.62795,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-existing-contract-r2/wire/001-response.txt",
+          "evidenceSha256": "4fab3035a231d1af2cd16275579a1dc09abbb5731cb122735485e78651b9f5d1",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_02179327059943072ea91cebe75e8e291705b4c0b59095ee38685",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 923,
+          "providerOutputTokens": 11636,
+          "providerReasoningTokens": 11012,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.62795
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r2",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.7305,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "486c1fe1994f43869a47632c049181b4",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.7305,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "56893f6c9121eb5d4b1e054ecda49babc59bcd638fb96dcb2f72850e4713c68e",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932708002569c467886153d5c7930328e02fcfdb87bbb9171",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1107,
+          "providerOutputTokens": 13503,
+          "providerReasoningTokens": 12187,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.7305
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r2",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.4145,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "05ff2351e31a4e50a519595a4c184140",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.4145,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-existing-contract-r2/wire/001-response.txt",
+          "evidenceSha256": "ce06320e649d5a2fd364c321a126c8dc508ca798745c5a80ab2b0e550e73e725",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_02179327101222361e61b6be4ea80d80d16a59ce3c2929c6e5420",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1074,
+          "providerOutputTokens": 7216,
+          "providerReasoningTokens": 6519,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.4145
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r3",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "cost_a:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_b:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_c:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_d:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "selected_cost:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "b_confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.8051,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r3",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "2941a7283a8e496e8311d5a82eba875b",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.8051,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-existing-contract-r3/wire/001-response.txt",
+          "evidenceSha256": "30f5d21b91c065d12e642274c4e023eff105b6f46f556edebe4cc8c74e8947c6",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793271125771f03de131648b6a84481dc8a11850669d30907c",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1057,
+          "providerOutputTokens": 15045,
+          "providerReasoningTokens": 14304,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.8051
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r3",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.54675,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r3",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "18b4ad29a0d14087b994bb18d2b9d32b",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.54675,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-explicit-verification-r3/wire/001-response.txt",
+          "evidenceSha256": "fee909fc0aa7e24bb234255f58656046cae5ca3ef77bb902c1db5417e39ecdcc",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932713718337353f3427d14b408829bcafe679788b653b811",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1090,
+          "providerOutputTokens": 9845,
+          "providerReasoningTokens": 8890,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.54675
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r3",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.5383,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r3",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "7430af8f0c0e48109a8731f480b0d100",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.5383,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-existing-contract-r3/wire/001-response.txt",
+          "evidenceSha256": "f846274dd66190061c5d309a446ce0075d76dcfe01840a912600d797968534fc",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932715231059714750b4c92df19b7d86c8470c87ebf4977c7",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 923,
+          "providerOutputTokens": 9843,
+          "providerReasoningTokens": 9257,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.5383
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r3",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.04735,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r3",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "1231bb92bf554f41988c00f605e139a4",
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.04735,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r3/wire/001-response.txt",
+          "evidenceSha256": "36bdb0f709debb8991a2d88e353ec0b9fd9b0abe8321590bb641884d18741d95",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_02179327169132093e048b1e87f4ca8485d3a0240faade7bc779c",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 956,
+          "providerOutputTokens": 19991,
+          "providerReasoningTokens": 19287,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 1.04735
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r3",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.6843,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r3",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "8033a88470b84d0eb0cceed9bc839655",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.6843,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-existing-contract-r3/wire/001-response.txt",
+          "evidenceSha256": "963969c9a419b82fe4f68b9a55c8b4da82a41fcab1d0ea7dd85ce1ea771703bb",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793272054524bdd5db804b0f31a919b8f9d8940b3f7ff4e2ad",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1074,
+          "providerOutputTokens": 12612,
+          "providerReasoningTokens": 11426,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.6843
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r3",
+      "phase": "prompt-audit",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.69785,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r3",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "37046c7ce2224d17b7267e5bdbac3989",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.69785,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-explicit-verification-r3/wire/001-response.txt",
+          "evidenceSha256": "83874d5fa0e01beee1a81fa0f05bbe9a197f6dff893e3af354906a47c35f92f4",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793272256426d2ec6088cd57f16be69183642d63bc771b6b65",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1107,
+          "providerOutputTokens": 12850,
+          "providerReasoningTokens": 11570,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.69785
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-one-shot-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.97695,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-procurement-versions-one-shot-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "43da794c447e4ca89563e1aa640be774",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.97695,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-one-shot-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "abfde046c1b09eae744fa13cfe760e0b3b9c6b4d6410483fe861edfa577cae58",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793272457090bbc1b38287ece59059a49659ad58bad9dda8c5",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1090,
+          "providerOutputTokens": 18449,
+          "providerReasoningTokens": 17415,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.97695
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 1.2347,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 1,
+      "dispatchedExpertRequests": 1,
+      "receipts": [
+        {
+          "ledgerCallId": "37c5f9e61859449d8806c6638abb31ae",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.345,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "d153751bfef0d07a04cb34ccc4ffe7288a2ce593a95ff941452325cd6860a175",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932727484564f644a6b4f65cd7c798419da6087253158d62c",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1505,
+          "providerOutputTokens": 5395,
+          "providerReasoningTokens": 4706,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.345
+        },
+        {
+          "ledgerCallId": "4fed39bb520c4839b3569030f77a369e",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.4095,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/wire/002-response.txt",
+          "evidenceSha256": "c9526e1b85fd409a1251c08c168292c73ad6b58f439b347a24005d2604e4605a",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932728305414f644a6b4f65cd7c798419da60872531951894",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "node-tool",
+          "nodeIntent": "check",
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 789,
+          "providerOutputTokens": 7401,
+          "providerReasoningTokens": 6522,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.4095
+        },
+        {
+          "ledgerCallId": "6f5bdae5264145858a8215e8bdfbd247",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.4802,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/wire/003-response.txt",
+          "evidenceSha256": "80f8e059884c8f4f23f5e0580156f466aa3f039cb6420cf0cd1f6360572582df",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932729430994f644a6b4f65cd7c798419da60872531d2855d",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 8014,
+          "providerOutputTokens": 1590,
+          "providerReasoningTokens": 377,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.4802
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-release-dependencies-one-shot-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.2598,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-release-dependencies-one-shot-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "ba3b7de080dc4ea7a4d3906d6160f646",
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.2598,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-one-shot-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "a2086c74924ea6dd8b0a0174518edeeae1a6724a002c57a9a5c41e206756a521",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793273412534d80e86c43f25c545aaf1644cd986b2f32d4603",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 956,
+          "providerOutputTokens": 24240,
+          "providerReasoningTokens": 23529,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 1.2598
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": "Invalid control character at: line 2 column 318 (char 319)",
+      "fieldChecksAvailable": false,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 1.0857999999999999,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 1,
+      "dispatchedExpertRequests": 1,
+      "receipts": [
+        {
+          "ledgerCallId": "9871b0f19b1442978cdd8e2497a10aed",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.2635,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-node-as-tool-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "1dd553eef918e55de8e6a486b590fc46644d1bd408453a85639db17792e8e52d",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793273824711c35f1a31989945a684cc428e09e81c793d9f8b",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1371,
+          "providerOutputTokens": 3899,
+          "providerReasoningTokens": 3469,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.2635
+        },
+        {
+          "ledgerCallId": "d9115bc3b0cf47e29fcbc365b97cc216",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.4381,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-node-as-tool-explicit-verification-r1/wire/002-response.txt",
+          "evidenceSha256": "891ab74d772476eee36afa126e89ae2f3886eb251a863395c46c3fc3681e68c6",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793273888169c35f1a31989945a684cc428e09e81c79c03740",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "node-tool",
+          "nodeIntent": "check",
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 530,
+          "providerOutputTokens": 8232,
+          "providerReasoningTokens": 7355,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.4381
+        },
+        {
+          "ledgerCallId": "3aa56ceb5a06425ab971f47500526be4",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.3842,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-node-as-tool-explicit-verification-r1/wire/003-response.txt",
+          "evidenceSha256": "854260e6581adf771ef56bcbe19c616fa4dafcac2999dc6a4eb85e9dc480f0d7",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793274024426c35f1a31989945a684cc428e09e81c794c5516",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 6390,
+          "providerOutputTokens": 1294,
+          "providerReasoningTokens": 93,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.3842
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原交付未通过冻结解析合同；空字段检查列表不表示字段全部正确",
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.8103,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 1,
+      "dispatchedExpertRequests": 1,
+      "receipts": [
+        {
+          "ledgerCallId": "39d969a7b6ae4b2888d84121b794a4dd",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.4105,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "0e17e5bf50d3b741b9b75ee2f9cc5780cc3bd26ad020b04e7d9a9aa2e756292e",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793274558477ef74dd90a5750f77dc784a69dff0f3adfa13cb",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1522,
+          "providerOutputTokens": 6688,
+          "providerReasoningTokens": 5956,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.4105
+        },
+        {
+          "ledgerCallId": "1af346679c7241ee8a2fb294b2ff0aa0",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.84875,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/wire/002-response.txt",
+          "evidenceSha256": "5ebef4daf361eeee515cfae9072a1058a4191e917cbca31d14da34a0f23455d1",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793274663033ef74dd90a5750f77dc784a69dff0f3adc926ab",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "node-tool",
+          "nodeIntent": "check",
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 833,
+          "providerOutputTokens": 16142,
+          "providerReasoningTokens": 15483,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.84875
+        },
+        {
+          "ledgerCallId": "2351440cd65741ce8e983c834e1638fd",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.55105,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/wire/003-response.txt",
+          "evidenceSha256": "69dec350aa3f31bdccae3d1f20d64d0f274e7099cb2b69700cac75fe5690032b",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793274910358ef74dd90a5750f77dc784a69dff0f3ad8bc321",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 9075,
+          "providerOutputTokens": 1946,
+          "providerReasoningTokens": 12,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.55105
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-ledger-idempotency-one-shot-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.6326,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-ledger-idempotency-one-shot-explicit-verification-r1",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "c3d4064ff5ae47afbd77b73db93fd853",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.6326,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-one-shot-explicit-verification-r1/wire/001-response.txt",
+          "evidenceSha256": "e09bcb3d703baad0e658039e71461f64d8e4384da9acc1e55872e1940b1e5329",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932749358516d6c4a2c22a8ac0107afc732836cd4222f7be9",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1107,
+          "providerOutputTokens": 11545,
+          "providerReasoningTokens": 10009,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.6326
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-one-shot-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.66955,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-procurement-versions-one-shot-explicit-verification-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "0627f95ae65a42a0ae5c1f09b8aebe79",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.66955,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-one-shot-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "eec5c42c287ec6c09ede88d39df85e5fd9f78df184d6c894b02051e754ddd93a",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_02179327564427261e61b6be4ea80d80d16a59ce3c2929cf61f17",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1090,
+          "providerOutputTokens": 12301,
+          "providerReasoningTokens": 11417,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.66955
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "b_confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.631,
+      "importedFrom": {
+        "summary": "reports/node-tool-pilot-20261029-live-03/summary.json",
+        "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r2",
+        "protocolSha256": "efd1d0ea6ac1c274ac983e8f52f0684ce936cdcf3cca96fe1965a48b91b6717c"
+      },
+      "reportedExpertInvocations": 1,
+      "dispatchedExpertRequests": 1,
+      "receipts": [
+        {
+          "ledgerCallId": "fc79436ee87f4ee9a14415ece8d166e5",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.3063,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "82652ac4db82e587c3ab8f911f067880693c50360cc55093957d39d278510ccb",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932758493539c467886153d5c7930328e02fcfdb87b386380",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1505,
+          "providerOutputTokens": 4621,
+          "providerReasoningTokens": 3976,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.3063
+        },
+        {
+          "ledgerCallId": "70e6f7ec473f44488422adef274cb0dc",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.90515,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/wire/002-response.txt",
+          "evidenceSha256": "199bb688543538824ceee9de39a036c572fe09e72e108cf593a692268df6c6fd",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932759206009c467886153d5c7930328e02fcfdb87b70f098",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "node-tool",
+          "nodeIntent": "check",
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 745,
+          "providerOutputTokens": 17358,
+          "providerReasoningTokens": 16530,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.90515
+        },
+        {
+          "ledgerCallId": "68c6845ea53c4d57a3091bed17c65388",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.41955,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/wire/003-response.txt",
+          "evidenceSha256": "a49b6e134548a2e55bd2cd463f63f2eb4c975b68571d494595910b06017f759a",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932761902859c467886153d5c7930328e02fcfdb87b2f75d8",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 7189,
+          "providerOutputTokens": 1202,
+          "providerReasoningTokens": 54,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.41955
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "cost_a:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_b:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_c:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "cost_d:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "selected_supplier:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "selected_cost:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "b_confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.98945,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.11105,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "38d0a31c7893cf2095c83c9f9b24dfbd8d93dab53a046cdea9afa7f057bc099b",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/001-response.json",
+          "wireEvidenceSha256": "e5c8771e88c3f4d40ae8cda9fc5d439ddbdd55be589c54c98e19337289a73b01",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1537,
+          "providerOutputTokens": 684,
+          "providerReasoningTokens": 507,
+          "ledgerReasoningTokens": 507,
+          "recalculatedAfp": 0.11105
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.3687,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/calls/65f80b8188ed966c48fd5ad2765b357ed845593b46fbd4b704c5b15d9d946b1c.json",
+          "evidenceSha256": "4b77039e1a7f5a3d643d2bde1c92ae789c43c9d95860180e64ceefc3b9513968",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/002-response.json",
+          "wireEvidenceSha256": "c87bdb7aa5ce2a6b4ef964ab11793a4bb73a7009148486f88d57e6a08159d017",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1300,
+          "providerOutputTokens": 6074,
+          "providerReasoningTokens": 5346,
+          "ledgerReasoningTokens": 5346,
+          "recalculatedAfp": 0.3687
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.7796,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/calls/b41716ad4bbeab13ec21ae28100377848c773cb7c569eb1e03e50a1deb2ea7be.json",
+          "evidenceSha256": "92d33fde9136cc9fa0f4a5d72d96ba6c71faaa68e8c1ded08ae8772cbc0b4021",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/003-response.json",
+          "wireEvidenceSha256": "d9d36631dca599b6bf5ff4c08110baed93ca1592d88fa7cdde229f986437a1b8",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1298,
+          "providerOutputTokens": 14294,
+          "providerReasoningTokens": 13649,
+          "ledgerReasoningTokens": 13649,
+          "recalculatedAfp": 0.7796
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.7301,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "9fb59964adc2b1bd2dee7ba0b2dd94a8913164bf56094e4a574634fa9d30e565",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/004-response.json",
+          "wireEvidenceSha256": "7b32e2d509b8a9b08d0d8bd7b10999562da44591b7eac5284e5aebb388059d48",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 2917,
+          "providerOutputTokens": 11685,
+          "providerReasoningTokens": 10725,
+          "ledgerReasoningTokens": 10725,
+          "recalculatedAfp": 0.7301
+        }
+      ],
+      "errors": [],
+      "notes": []
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.148,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.1394,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "9ec2b4d860e96968da7254800f26d07195fffd16a2f9b442b348550062f2a89a",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/wire/001-response.json",
+          "wireEvidenceSha256": "9776a17e04fcbdf6f176c3cd0c26b99141866d92d1e87d1d4d70609a18a102ec",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1387,
+          "providerOutputTokens": 1401,
+          "providerReasoningTokens": 1338,
+          "ledgerReasoningTokens": 1338,
+          "recalculatedAfp": 0.1394
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.0086,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "1b6ff02534c369fe25f83a982df6ef89a92edda1b48dbbde5269bfa0f6a4dc8e",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/wire/002-response.json",
+          "wireEvidenceSha256": "1bd697188063efcc4a6f712a3a4a4f16e0d8e91dad21e7294aca5edf7405aef6",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1236,
+          "providerOutputTokens": 18936,
+          "providerReasoningTokens": 18187,
+          "ledgerReasoningTokens": 18187,
+          "recalculatedAfp": 1.0086
+        }
+      ],
+      "errors": [],
+      "notes": []
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 3.5006500000000003,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.1425,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "6a87552a269b0648997f4497ee0bb341aa8df54ad47069bca93a2935dd2c5365",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/001-response.json",
+          "wireEvidenceSha256": "fd162498054055312431e5942fbd167c7949094151dd0d0ef927fde56c1bfa6e",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1537,
+          "providerOutputTokens": 1313,
+          "providerReasoningTokens": 1118,
+          "ledgerReasoningTokens": 1118,
+          "recalculatedAfp": 0.1425
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.77595,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/calls/fef3d88c890f90e86b21751dcd68c07d4ea2c0431711693d61d4d280406123ec.json",
+          "evidenceSha256": "7f4a9becb3b22354472a4e4998dc6261cc0137b6158c745767c44fe28b980199",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/002-response.json",
+          "wireEvidenceSha256": "91bdda4fabef16d98fcb3f90e1814b7d84396cbc7d2244a3ed454845983a51ca",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1308,
+          "providerOutputTokens": 14211,
+          "providerReasoningTokens": 12701,
+          "ledgerReasoningTokens": 12701,
+          "recalculatedAfp": 0.77595
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.0284,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/calls/0ea9a8fec8b0dcd9c06251842fed84b328c529f141e77982613b65c40410fbd8.json",
+          "evidenceSha256": "9ac8eb580ca08ae4aa11d969fa8aaf9c63b1416f56a538d697430b12fdf8a2be",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/003-response.json",
+          "wireEvidenceSha256": "762bb78cc3826b59609a4a9059bc74c9c80a1808aa1af7e13828bd8ca1de2d1b",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1304,
+          "providerOutputTokens": 19264,
+          "providerReasoningTokens": 17936,
+          "ledgerReasoningTokens": 17936,
+          "recalculatedAfp": 1.0284
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.5538,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "52bf040979c3302026207a92068b3cf2c4350ec93d045c05995f11ab6ecd5953",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/004-response.json",
+          "wireEvidenceSha256": "4f19cf420505a8eb0c1415d65454f9696bde787a776628956122ebae9e6bc4d8",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 4483,
+          "providerOutputTokens": 26593,
+          "providerReasoningTokens": 25022,
+          "ledgerReasoningTokens": 25022,
+          "recalculatedAfp": 1.5538
+        }
+      ],
+      "errors": [],
+      "notes": []
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.81135,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.3972,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "062106ab35615edb907777be0601a85a4a6a3b9f6c482473435e49eb164f75e9",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/001-response.json",
+          "wireEvidenceSha256": "5bd2d63a8bcf5e117d90ee574c85562c6a43c0c8ea61b4d7757f774307660e47",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1537,
+          "providerOutputTokens": 6407,
+          "providerReasoningTokens": 6209,
+          "ledgerReasoningTokens": 6209,
+          "recalculatedAfp": 0.3972
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.11435,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/calls/9b66638543bba6b9b409270e8949b1e04dadde040eed6973ea32354cae3a37be.json",
+          "evidenceSha256": "017ae9428bbe33f624e09ec49c6276e6b8b2510258dd4f179a548310743b12c0",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/002-response.json",
+          "wireEvidenceSha256": "f4d4d596b7c68bad834e61ebcec733df58b2e388fe7cb1c16dfa12549ce59d68",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1296,
+          "providerOutputTokens": 991,
+          "providerReasoningTokens": 796,
+          "ledgerReasoningTokens": 796,
+          "recalculatedAfp": 0.11435
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.16305,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/calls/8d0921dd37bea0383529bfef6646b2667e8c6e8dcf02a26cc2a9a56edcd36650.json",
+          "evidenceSha256": "c4ea091503a2e0e1417fb2f9edf750b8858c08c2fc490dae68db82d029036d8e",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/003-response.json",
+          "wireEvidenceSha256": "08f0e6d5daca4571121222150eeac915192371095d6d8d1ee0ad83edaac9a943",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1293,
+          "providerOutputTokens": 1968,
+          "providerReasoningTokens": 1646,
+          "ledgerReasoningTokens": 1646,
+          "recalculatedAfp": 0.16305
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.17195,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/calls/9358b5772427e6bc46669d8c7b25300d3e1f3ac896369f82a37c2abd9ca884a7.json",
+          "evidenceSha256": "02dae771ccfa76d862ec237bd75d21b5e2b8fba5f802da1bcd04c31856ec14d2",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/004-response.json",
+          "wireEvidenceSha256": "60338946b5ef68ed2c8cbce993494bd17f903e44983ab0c71d60cd8b2ef7bed6",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1297,
+          "providerOutputTokens": 2142,
+          "providerReasoningTokens": 1738,
+          "ledgerReasoningTokens": 1738,
+          "recalculatedAfp": 0.17195
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.9648,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "588ce83e33ce130b0bdf765e0d901f38e60df4e31041e6c87cd6eaa9ca099263",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/005-response.json",
+          "wireEvidenceSha256": "92772a66d22b5eb6fc24d623940d227e14ce02b64c4c7be8b46d0e3acbdb3446",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 2484,
+          "providerOutputTokens": 16812,
+          "providerReasoningTokens": 15853,
+          "ledgerReasoningTokens": 15853,
+          "recalculatedAfp": 0.9648
+        }
+      ],
+      "errors": [],
+      "notes": []
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.8745,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.119,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "017e4c9874bb1ecdcff7fbd306fc8fafb7888ff76319fa9f77094ba39fbf3863",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/001-response.json",
+          "wireEvidenceSha256": "911226e0338a0d015357d0285cd02f88ebfccea927d2c93c2cc8331a0bd875c5",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1387,
+          "providerOutputTokens": 993,
+          "providerReasoningTokens": 843,
+          "ledgerReasoningTokens": 843,
+          "recalculatedAfp": 0.119
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.20205,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/calls/95be8981bbbdab8f086faaa78d583b65bbc9ec9393b65e4622cfda88152980d9.json",
+          "evidenceSha256": "fbbd60ec252a779824df73432fa2d563025d1a02da2d630552b3d3f87ef73b60",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/002-response.json",
+          "wireEvidenceSha256": "283346cc02edd60acceb75f59ed1cfe5741ad1c38bc42da8649431f8f5f628e8",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1133,
+          "providerOutputTokens": 2908,
+          "providerReasoningTokens": 2399,
+          "ledgerReasoningTokens": 2399,
+          "recalculatedAfp": 0.20205
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.80085,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/calls/6adfd7d4e873c083da36a1996a6f493d2d48f6156a089fe3b17be709c57e1193.json",
+          "evidenceSha256": "c7afc3a3838f6daf53e13f5535768947c013cdf303c19f3f74601b9580d81db1",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/003-response.json",
+          "wireEvidenceSha256": "89f19dd632414fdb8495441bbb49bd7471c5f5b81129e1ee1742e7544030f708",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1743,
+          "providerOutputTokens": 14274,
+          "providerReasoningTokens": 13409,
+          "ledgerReasoningTokens": 13409,
+          "recalculatedAfp": 0.80085
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.7526,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "29957d183a4324c358c8c27f699b93fa5a50209866258c32b94ec11c9ff57629",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/004-response.json",
+          "wireEvidenceSha256": "68ea68351a4c78820a268d62f939d021593ee4c5c4eb174df028c2c0e1a57a09",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 2225,
+          "providerOutputTokens": 12827,
+          "providerReasoningTokens": 11977,
+          "ledgerReasoningTokens": 11977,
+          "recalculatedAfp": 0.7526
+        }
+      ],
+      "errors": [],
+      "notes": []
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.36,
+      "importedFrom": null,
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "599feb247d834bd3915c7c98fb3b4fc9",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.36,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-node-as-tool-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "35fa83361e4aa9eb5fad4d3efc5246d211dc93de0ea78d6677d3db41e2bfcb7d",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793281425955291c0f5a72b510a28c7f913d2f5a6ea9a82e39",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1371,
+          "providerOutputTokens": 5829,
+          "providerReasoningTokens": 4809,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.36
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-release-dependencies-one-shot-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "technical_finish:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "critical_path:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.03305,
+      "importedFrom": null,
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "986bdf61eff448c8bb259e5cafb67725",
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.03305,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-one-shot-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "b56c40b5984ee77a6c0cbc048d0b7fb533a61cf8f117e46b33d2717d39fc0045",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793281513110bbc1b38287ece59059a49659ad58bad96ea7a2",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 956,
+          "providerOutputTokens": 19705,
+          "providerReasoningTokens": 18999,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 1.03305
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-ledger-idempotency-one-shot-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "one-shot",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "wrong_key:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 0.9936,
+      "importedFrom": null,
+      "reportedExpertInvocations": 0,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": "a9b868a0c9ac4661b80769e32dd8d305",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.9936,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-one-shot-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "a699752834f063fb4fce41b1764ab804a63daf13eef68ffb9a310c13dd40f152",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_02179328185245458818742e03404164f2bdc6cf7ab386a3006f1",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1107,
+          "providerOutputTokens": 18765,
+          "providerReasoningTokens": 17783,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.9936
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "pass",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 0.83985,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.08485,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "7197851303089b91d4d8fef13d9c83b1ac6199ee11bc9368aefd672ee45686a4",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/wire/001-response.json",
+          "wireEvidenceSha256": "36f46e368d93e3176f3294947b37ea0bc571af7037f34348cb26c8a0d47aea21",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1537,
+          "providerOutputTokens": 160,
+          "providerReasoningTokens": 91,
+          "ledgerReasoningTokens": 91,
+          "recalculatedAfp": 0.08485
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.755,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "93933354b96cfaa3823fd59ac628c933a56a49fc4574edacb41f27cb6b9eec48",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/wire/002-response.json",
+          "wireEvidenceSha256": "22239a6a7efb562742d03acde0164daa87f48340aca67d650b349f02a398bd09",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1387,
+          "providerOutputTokens": 13713,
+          "providerReasoningTokens": 12622,
+          "ledgerReasoningTokens": 12622,
+          "recalculatedAfp": 0.755
+        }
+      ],
+      "errors": [],
+      "notes": []
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r2",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "failed",
+      "factStatus": "not-evaluated",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": false,
+      "failedValueChecks": [],
+      "failedCitationChecks": [],
+      "chargedOrReservedAfp": 1.3578,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 1,
+      "receipts": [
+        {
+          "ledgerCallId": "05a03f08106649d08da1d96906d77db4",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.4614,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-node-as-tool-explicit-verification-r2/wire/001-response.txt",
+          "evidenceSha256": "3f1aa527dffc8705e9e04f8ea4ef8a2c12d6696806594765aca255573e30c7d3",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932823726873dcd3c0a2d24a55cb96c7787eab35382727550",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1522,
+          "providerOutputTokens": 7706,
+          "providerReasoningTokens": 7068,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.4614
+        },
+        {
+          "ledgerCallId": "efdfd6379be8474aaf383d8136379675",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.8964,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-node-as-tool-explicit-verification-r2/wire/002-response.txt",
+          "evidenceSha256": "0ddcf9756bd7b960bf37b56a249beef5f735c66452dfb419e8c03e41a7ec3e63",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_0217932824897213dcd3c0a2d24a55cb96c7787eab353822de213",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "node-tool",
+          "nodeIntent": "check",
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 738,
+          "providerOutputTokens": 17190,
+          "providerReasoningTokens": 16367,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.8964
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r3",
+      "phase": "comparison",
+      "arm": "node-as-tool",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "b_confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 1.11815,
+      "importedFrom": null,
+      "reportedExpertInvocations": 1,
+      "dispatchedExpertRequests": 1,
+      "receipts": [
+        {
+          "ledgerCallId": "49f5d35f97834448abf5afd153797e76",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.3129,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/wire/001-response.txt",
+          "evidenceSha256": "ffbf814fd417db58433b363dbbc947013c3b78610f8b6c35265402768ae792b4",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793282758426f0644a9747ad3d38d721f78a849566c69198a9",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1505,
+          "providerOutputTokens": 4753,
+          "providerReasoningTokens": 4094,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.3129
+        },
+        {
+          "ledgerCallId": "7729ac9b15d84d89bdb0aec0544ca33f",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.40605,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/wire/002-response.txt",
+          "evidenceSha256": "e6f6b6e99c5e25765a970e36b38c531c5c9e4ba799e88a72e3491742b96a3144",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793282831335f0644a9747ad3d38d721f78a849566c6dfd8dd",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [],
+          "purpose": "node-tool",
+          "nodeIntent": "check",
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 760,
+          "providerOutputTokens": 7361,
+          "providerReasoningTokens": 6810,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.40605
+        },
+        {
+          "ledgerCallId": "73383e951d964dfc83f7c851dfc7c5a4",
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.3992,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/wire/003-response.txt",
+          "evidenceSha256": "3562fb2d1cbfb0900355175ca285bdc6564c0864ae685c00caec5391f3eefaaa",
+          "responseStatus": "completed",
+          "providerResponseId": "resp_021793282937798f0644a9747ad3d38d721f78a849566c6a4c9b3",
+          "requestedOutputTokens": 384000,
+          "requestedTemperature": 0,
+          "providedToolNames": [
+            "refract_expert"
+          ],
+          "purpose": "execute",
+          "nodeIntent": null,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 7054,
+          "providerOutputTokens": 930,
+          "providerReasoningTokens": 20,
+          "ledgerReasoningTokens": 0,
+          "recalculatedAfp": 0.3992
+        }
+      ],
+      "errors": [],
+      "notes": [
+        "原始响应与宿主的思考细项不同；按原始细项展示，总输出计费另行核对"
+      ]
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "phase": "comparison",
+      "arm": "dag",
+      "status": "completed",
+      "factStatus": "fail",
+      "deliveryParseError": null,
+      "fieldChecksAvailable": true,
+      "failedValueChecks": [],
+      "failedCitationChecks": [
+        {
+          "check": "confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        },
+        {
+          "check": "b_confirmed_eligible:sources",
+          "status": "fail",
+          "reason": "引用缺失、错误或不足"
+        }
+      ],
+      "chargedOrReservedAfp": 2.7174,
+      "importedFrom": null,
+      "reportedExpertInvocations": null,
+      "dispatchedExpertRequests": 0,
+      "receipts": [
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.189,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/calls/244b8435061420f6b2887681bbe2d24b18fc8f790a75c5bf16937bb8417e651a.json",
+          "evidenceSha256": "47fe3e7832a5bc0a1866e7e6232fb21f507690b64a3fc2ca633a57f7bf076045",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/001-response.json",
+          "wireEvidenceSha256": "f64ad0fefb086c24262bf83cf82c1c3bd3f25c1ace5933f00d6885deeb745fe1",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1537,
+          "providerOutputTokens": 2243,
+          "providerReasoningTokens": 2021,
+          "ledgerReasoningTokens": 2021,
+          "recalculatedAfp": 0.189
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.57295,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/calls/0415da27dd3c69f354edc8243cbcdf975ddfb465b6f2bcce756494abfc9d57df.json",
+          "evidenceSha256": "b6960d22de92e3a03312f71c9a161dbcdd7a50ec88b548de3e4456d84cb65561",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/002-response.json",
+          "wireEvidenceSha256": "86a48d9c66db6e0ddca3912613bf4bd84b2a66e4de5537c5121d157994de3304",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1300,
+          "providerOutputTokens": 10159,
+          "providerReasoningTokens": 9673,
+          "ledgerReasoningTokens": 9673,
+          "recalculatedAfp": 0.57295
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.34665,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/calls/bd3d1f6df443dd193df6bdf0b1d38790e5e140b2ddd5178490a193bed5ec4ebd.json",
+          "evidenceSha256": "f6afeb18b11b17203e4b003493ebb53b834504dfbfe6a47e737cf3fb821e5cf2",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/003-response.json",
+          "wireEvidenceSha256": "9751c2639691c29953bf95b921f02cb9240bbbdb2e1e8914767dd3dff586ab76",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 1309,
+          "providerOutputTokens": 5624,
+          "providerReasoningTokens": 5358,
+          "ledgerReasoningTokens": 5358,
+          "recalculatedAfp": 0.34665
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 0.5442,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/calls/c9cde7f6fb1c671b294560c8282671593ba8ab921572ceb4f43b1871cd9e68bb.json",
+          "evidenceSha256": "86bb626ae0c0065a94caa17dbc821405b0277a0b8d3d64ff82ea048ade58edc7",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/004-response.json",
+          "wireEvidenceSha256": "b2c0a939715e81ab09384677c3522faf536d9182952fd23df05ed502335b6891",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 2153,
+          "providerOutputTokens": 8731,
+          "providerReasoningTokens": 7876,
+          "ledgerReasoningTokens": 7876,
+          "recalculatedAfp": 0.5442
+        },
+        {
+          "ledgerCallId": null,
+          "ledgerStatus": "billed",
+          "chargedAfp": 1.0646,
+          "evidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/calls/1ec70af4695c87cd2b4b22b381402399573a90c66a2658b3f1f7c9a9b038ffaf.json",
+          "evidenceSha256": "b50583d696cfb2a5759043f39e5b41a6033bc1d8cb5dd789f5061c7e4bd2a721",
+          "attempts": 1,
+          "wireEvidence": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/005-response.json",
+          "wireEvidenceSha256": "064e9c4c7a4c0cee92c30290be6c5da230e76aa506c28c073279b798d727967a",
+          "requestedTemperature": 0,
+          "requestedOutputTokens": 384000,
+          "providerReportedModel": "deepseek-v4-flash-ga-260731",
+          "providerInputTokens": 3195,
+          "providerOutputTokens": 18097,
+          "providerReasoningTokens": 17055,
+          "ledgerReasoningTokens": 17055,
+          "recalculatedAfp": 1.0646
+        }
+      ],
+      "errors": [],
+      "notes": []
+    }
+  ]
+}

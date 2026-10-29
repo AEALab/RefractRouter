@@ -1,0 +1,29 @@
+{
+  "content": "按 2026-11-03 下单、数量 240 件，依据材料核算如下。\n\n**A 含税到货总价：16,329.6 元**\n- 货款（不含税）= 240 × 58 = 13,920 元\n- 增值税 = 13,920 × 13% = 1,809.6 元\n- 含税货款 = 13,920 + 1,809.6 = 15,729.6 元\n- 未满 300 件，95 折不适用\n- 运费 = 600 元，运费已含税，不再加税\n- 总价 = 15,729.6 + 600 = 16,329.6 元\n- 约束核验：到货 11-17、证书有效、未超 18,000 元上限；但保修 18 个月，不满足“至少 24 个月”，A 不合格。\n\n**B 含税到货总价（按 2026-11-02 起生效的新版报价）：15,776 元**\n- 新版报价替代 2026-10-28 版，不得新旧两版价格相加\n- 含税单价 = 65 元，运费 = 800 元\n- 含税货款 = 240 × 65 = 15,600 元\n- 满 200 件，货款打 96 折：15,600 × 0.96 = 14,976 元；运费不打折\n- 总价 = 14,976 + 800 = 15,776 元\n- 约束核验：到货 11-18、保修 24 个月、未超 18,000 元上限；但证书状态为“补交，尚未确认有效”，且更新通知明确证书状态不变，因此 B 尚未确认合格，不能放入已确定合格集合，只能作为附条件候选人。\n\n核算结果：\n- cost_a = 16329.6；sources: s2, s1\n- cost_b = 15776；sources: s4, s3, s1\n- b_confirmed_eligible = false；sources: s3, s4",
+  "input_tokens": 1300,
+  "output_tokens": 10159,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 9673,
+  "latency_ms": 162169,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179328299236091eb505e0b3b4db7bd42120475941dff9b8a23",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1300,
+    "output_tokens": 10159,
+    "total_tokens": 11459,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 9673
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

@@ -21,6 +21,7 @@ def test_plot_preserves_format_missing_and_source_distinctions():
     assert category({**row, "checks": [{"check": "cost", "status": "fail"}]}) == "values"
     assert metric(None, "chargedOrReserved") is None
     assert metric(row, "taskElapsedMs") == 1.2
+    assert metric({"outerElapsedMs": 2500}, "outerElapsedMs") == 2.5
     assert metric({**row, "chargedOrReserved": 0}, "chargedOrReserved") == 0
     for value in (float("nan"), float("inf"), -1, True):
         with pytest.raises(ValueError, match="未知值"):
