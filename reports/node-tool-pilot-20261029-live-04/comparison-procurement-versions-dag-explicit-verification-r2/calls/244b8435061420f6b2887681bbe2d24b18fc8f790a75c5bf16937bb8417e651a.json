@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"独立核算各供应商总价与资格，C/D 合并，最后由汇总节点筛选并交付\",\"nodes\":[{\"id\":\"cost_a\",\"type\":\"extraction\",\"job\":\"核算A含税到货总价，标注保修不足淘汰\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"cost_b\",\"type\":\"extraction\",\"job\":\"按新版本核算B总价，注明证书未确认\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"high\"},{\"id\":\"cost_cd\",\"type\":\"extraction\",\"job\":\"核算C、D总价，检查硬条件并给资格\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总全部结果，核对材料后输出完整正文和findings\",\"parents\":[\"cost_a\",\"cost_b\",\"cost_cd\"],\"difficulty\":\"high\",\"risk\":\"high\"}]}",
+  "input_tokens": 1537,
+  "output_tokens": 6407,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 6209,
+  "latency_ms": 114265,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793280444879dfda270f226adba1bf628b57be6483cf92f259",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 6407,
+    "total_tokens": 7944,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 6209
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
