@@ -1,5 +1,6 @@
 """验收助手必须约束半行回执，并清理超时或取消的祖孙进程。"""
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
@@ -8,6 +9,13 @@ import pytest
 
 from scripts.validate_refractagent_install import run_process
 from scripts.validate_task_shadow_worker import validate
+
+
+def test_stage_fixture_crosses_real_core_process_without_real_models(tmp_path):
+    result = validate(Path(sys.executable).with_name("refractagent"), tmp_path, mode="stage")
+    assert result["actual_model_calls"] == ["small", "small", "large", "large", "small"]
+    assert result["classification_calls"] == 0 and result["shadow_only"] is True
+    assert result["modelCalls"] == 0 and result["actual_model_benefit_proven"] is False
 
 
 def test_partial_response_has_deadline_and_worker_is_reaped(tmp_path):

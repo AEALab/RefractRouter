@@ -34,9 +34,53 @@ def configuration():
             "minSamples": 3, "qualityMin": .95}}
 
 
-def validate(executable, workspace, *, response_timeout=15):
+def stage_configuration():
+    value = configuration()
+    value.update(defaultStrategy="stage", stageShadow={"schemaVersion": "stage-progress-shadow-v1",
+        "holdTurns": 2, "stallConfirmations": 2, "checkers": [{"id": "fixture", "revision": "fixture-r1",
+        "suiteSha256": "b" * 64, "assertionIds": ["complete", "correct"]}]})
+    del value["task"]
+    del value["taskShadow"]
+    return value
+
+
+def stage_fixture(rpc, reply, run, identity, messages):
+    action = rpc(op="step", runId=run, messages=messages, tools=[])
+    assert action["purpose"] == "execute" and action["model"]["id"] == "small"
+    reply(action, "模拟初始执行")
+    initial = rpc(op="outcome", runId=run, identity=identity)
+    task_sha = hashlib.sha256(json.dumps(initial["taskProjection"], ensure_ascii=False,
+        sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    events = []
+    for key in ("first", "second"):
+        events.append({"id": key, "callId": key, "tool": "fixture-check", "kind": "observe",
+            "status": "failed", "fingerprint": "same-fixture-assertion", "validation": {
+                "schemaVersion": "stage-check-evidence-v1", "taskSha256": task_sha,
+                "checkerId": "fixture", "checkerRevision": "fixture-r1", "suiteSha256": "b" * 64,
+                "snapshotSha256": "1" * 64, "codeGeneration": 1, "phase": "acceptance", "complete": True,
+                "checks": [{"id": "complete", "status": "failed"}, {"id": "correct", "status": "passed"}]}})
+        action = rpc(op="step", runId=run, messages=messages, tools=[], toolEvidence=events)
+        assert action["model"]["id"] == ("small" if key == "first" else "large")
+        reply(action, "模拟后续执行")
+    for expected in ("large", "small"):
+        action = rpc(op="step", runId=run, messages=messages, tools=[], toolEvidence=events)
+        assert action["model"]["id"] == expected
+        reply(action, "模拟保持与到期")
+    rpc(op="end", runId=run)
+    outcome = rpc(op="outcome", runId=run, identity=identity)
+    shadow = outcome["stageProgressShadow"]
+    assert shadow["role"] == "capable" and shadow["actualSelectionChanged"] is False
+    assert len(outcome["calls"]) == 5 and all(c["purpose"] == "execute" for c in outcome["calls"])
+    return {"scope": "installed-core-v8-stage-worker", "status": "pass", "modelCalls": 0,
+            "actual_model_calls": [c["actual_model"] for c in outcome["calls"]], "classification_calls": 0,
+            "shadow_only": True, "no_evidence_keeps_strong_suggestion": True, "actual_model_benefit_proven": False}
+
+
+def validate(executable, workspace, *, response_timeout=15, mode="task"):
+    if mode not in ("task", "stage"):
+        raise ValueError("未知影子验收模式")
     executable, workspace = Path(executable).resolve(), Path(workspace).resolve()
-    process = subprocess.Popen([str(executable), "planning-worker", "--runs-dir", str(workspace / "shadow-runs")],
+    process = subprocess.Popen([str(executable), "planning-worker", "--runs-dir", str(workspace / "shadow-runs" / mode)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, cwd=workspace)
     sequence = 0
     pending = bytearray()
@@ -63,18 +107,20 @@ def validate(executable, workspace, *, response_timeout=15):
         assert response.get("id") == str(sequence) and response.get("ok") is True, response
         return response["result"]
     try:
-        identity = {"session": "installed-shadow", "agent": "fixture", "turn": 1}
-        started = rpc(op="begin", identity=identity, config=configuration())
+        identity = {"session": "installed-shadow-" + mode, "agent": "fixture", "turn": 1}
+        started = rpc(op="begin", identity=identity, config=stage_configuration() if mode == "stage" else configuration())
         run = started["runId"]
         messages = [{"role": "user", "content": "提取给定字段。"}]
+        def reply(action, content):
+            return rpc(op="complete", runId=run, callId=action["callId"], response={"content": content,
+                "inputTokens": 100, "outputTokens": 20, "finishReason": "stop", "usageAvailable": True})
+        if mode == "stage":
+            return stage_fixture(rpc, reply, run, identity, messages)
         judge = rpc(op="step", runId=run, messages=messages, tools=[])
         assert judge["purpose"] == "task"
         assert json.loads(judge["messages"][1]["content"])["contract"] == "task-decision-with-family-v3"
         raw = {"taskFamily": "fixture-extract", "answers": {"candidates": {
             key: {"score": .99, "missingInformation": 0} for key in ("C1", "C2")}}}
-        def reply(action, content):
-            return rpc(op="complete", runId=run, callId=action["callId"], response={"content": content,
-                "inputTokens": 100, "outputTokens": 20, "finishReason": "stop", "usageAvailable": True})
         execute = reply(judge, json.dumps(raw))
         assert execute["purpose"] == "execute" and execute["model"]["id"] == "small"
         reply(execute, "模拟完整交付")
@@ -114,8 +160,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--executable", required=True, type=Path)
     parser.add_argument("--workspace", required=True, type=Path)
+    parser.add_argument("--mode", choices=("task", "stage"), default="task")
     args = parser.parse_args()
-    print(json.dumps(validate(args.executable, args.workspace), ensure_ascii=False))
+    print(json.dumps(validate(args.executable, args.workspace, mode=args.mode), ensure_ascii=False))
 
 
 if __name__ == "__main__":

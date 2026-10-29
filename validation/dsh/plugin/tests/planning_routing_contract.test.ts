@@ -102,6 +102,27 @@ test('v8影子配置经真实Python核心往返，未知缓存保留且不追加
   }finally{await f.cleanup()}
 })
 
+test('Stage影子经DSH传到Python，不追加Judge或把普通宿主历史当作完整验收',async()=>{
+  const f=await fixture('stage')
+  try{
+    f.setPlanning({...config,schemaVersion:'refractagent-planning-v8',defaultStrategy:'stage',billingUnit:'CNY',
+      maxProductionCostByUnit:{CNY:10},models:config.models!.map(m=>({...m,billingUnit:'CNY'})),
+      stageShadow:{schemaVersion:'stage-progress-shadow-v1',holdTurns:2,stallConfirmations:2,
+        checkers:[{id:'fixture',revision:'fixture-r1',suiteSha256:'b'.repeat(64),assertionIds:['complete']}]}})
+    const chunks=await collect(f.controller.stream({...f.options,reasoningEffort:'rr:stage'}))
+    const finish=chunks.find(c=>c.type==='finish') as any
+    const runId=finish.replayState.response.refractPlanning.runId
+    const outcome=await f.controller.outcome({op:'outcome',runId,turn:1})
+    assert.equal(outcome.stageProgressShadow.mode,'shadow')
+    assert.equal(outcome.stageProgressShadow.actualSelectionChanged,false)
+    assert.equal(outcome.stageProgressShadow.wholeTaskQualityProven,false)
+    assert.deepEqual(outcome.stageProgressShadow.progress,['no-new-evidence'])
+    assert.equal(f.calls.length,1)
+    assert.equal(f.calls[0].model,'small')
+    assert.equal(f.toolExecutions,0)
+  }finally{await f.cleanup()}
+})
+
 test('任务结果按真实宿主会话查询和反馈，不追加模型调用或改写用量',async()=>{
   const f=await fixture('static')
   try{

@@ -1,0 +1,3038 @@
+{
+  "schemaVersion": "stage-progress-corpus-v1",
+  "kind": "constructed",
+  "description": "人工构造协议反例，供规则重放；不是独立真实任务或模型能力标签。费用为包含模拟共同审核的同轨迹重定价，不证明实际质量、调用轨迹或节省。",
+  "config": {
+    "schemaVersion": "stage-progress-shadow-v1",
+    "holdTurns": 2,
+    "stallConfirmations": 2,
+    "checkers": [
+      {
+        "id": "tests",
+        "revision": "frozen-r1",
+        "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "assertionIds": [
+          "A",
+          "B"
+        ]
+      }
+    ]
+  },
+  "legacyParameters": {
+    "window": 3,
+    "threshold": 0.5,
+    "holdTurns": 2
+  },
+  "simulatedPrices": {
+    "unit": "CNY",
+    "efficient": "0.01",
+    "capable": "0.05",
+    "commonCalls": [
+      {
+        "purpose": "review",
+        "amount": "0.02"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "normal-red-green",
+      "description": "预期红灯重复不应误升级，完整绿灯仍为正常测试过程。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "red1",
+              "callId": "red1",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "red1",
+              "callId": "red1",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "red2",
+              "callId": "red2",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "red1",
+              "callId": "red1",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "red2",
+              "callId": "red2",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "red1",
+              "callId": "red1",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "red2",
+              "callId": "red2",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "expected-red",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "stall-no-new-acceptance",
+      "description": "同断言持续失败后保持；写入和保持耗尽都不能代替新验收。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "write",
+              "callId": "write",
+              "tool": "write",
+              "kind": "mutate",
+              "status": "completed",
+              "fingerprint": "write"
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "write",
+              "callId": "write",
+              "tool": "write",
+              "kind": "mutate",
+              "status": "completed",
+              "fingerprint": "write"
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "write",
+              "callId": "write",
+              "tool": "write",
+              "kind": "mutate",
+              "status": "completed",
+              "fingerprint": "write"
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "failure-set-shrinks",
+      "description": "失败集合缩小表明进展，不因命令指纹相同直接升级。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "failed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "failed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "failed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "codeGeneration": 3,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "partial-not-full",
+      "description": "部分通过或一次写入不能解除仍有失败的全量验收。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "write",
+              "callId": "write",
+              "tool": "write",
+              "kind": "mutate",
+              "status": "completed",
+              "fingerprint": "write"
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "write",
+              "callId": "write",
+              "tool": "write",
+              "kind": "mutate",
+              "status": "completed",
+              "fingerprint": "write"
+            },
+            {
+              "id": "partial",
+              "callId": "partial",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": false,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "write",
+              "callId": "write",
+              "tool": "write",
+              "kind": "mutate",
+              "status": "completed",
+              "fingerprint": "write"
+            },
+            {
+              "id": "partial",
+              "callId": "partial",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": false,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "codeGeneration": 3,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "late-old-generation",
+      "description": "旧代码代次的晚到通过不能恢复，晚到失败不能再次升级。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "late-green",
+              "callId": "late-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "late-green",
+              "callId": "late-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "new-green",
+              "callId": "new-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "codeGeneration": 3,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "old-green",
+              "callId": "old-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "late-green",
+              "callId": "late-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "new-green",
+              "callId": "new-green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "codeGeneration": 3,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "late-failure",
+              "callId": "late-failure",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "incomparable-unknown",
+      "description": "检查器版本不可比时保留未知，不计作已知能力或质量样本。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "other",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "unknown"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "other",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "other",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "unknown"
+        }
+      ]
+    },
+    {
+      "id": "environment-boundary",
+      "description": "网络、认证、资源及权限类宿主状态不成为模型能力失败。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "network",
+              "callId": "network",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "network",
+              "callId": "network",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "auth",
+              "callId": "auth",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "network",
+              "callId": "network",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "auth",
+              "callId": "auth",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "resource",
+              "callId": "resource",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "network",
+              "callId": "network",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "auth",
+              "callId": "auth",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "resource",
+              "callId": "resource",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "infrastructure",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "permission",
+              "callId": "permission",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "denied",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "duplicate-event",
+      "description": "同一事件的历史重放不能构成新的失败。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        }
+      ]
+    },
+    {
+      "id": "regression-after-restore",
+      "description": "完整新快照验收后降档，再现已知失败可再次升级。",
+      "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "steps": [
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "efficient"
+        },
+        {
+          "events": [
+            {
+              "id": "one",
+              "callId": "one",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "two",
+              "callId": "two",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                "codeGeneration": 1,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "green",
+              "callId": "green",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "completed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                "codeGeneration": 2,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "passed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "regression",
+              "callId": "regression",
+              "tool": "checker",
+              "kind": "observe",
+              "fingerprint": "same-command",
+              "status": "failed",
+              "validation": {
+                "schemaVersion": "stage-check-evidence-v1",
+                "taskSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "checkerId": "tests",
+                "checkerRevision": "frozen-r1",
+                "suiteSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "snapshotSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+                "codeGeneration": 3,
+                "phase": "acceptance",
+                "complete": true,
+                "checks": [
+                  {
+                    "id": "A",
+                    "status": "failed"
+                  },
+                  {
+                    "id": "B",
+                    "status": "passed"
+                  }
+                ]
+              }
+            }
+          ],
+          "expectedRole": "capable"
+        }
+      ]
+    }
+  ]
+}
