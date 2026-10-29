@@ -1,0 +1,29 @@
+{
+  "content": "在 t=0 的观察时刻，**不能宣称批准已完成**，`current_approval_confirmed` 应判定为 **false**。\n\n依据状态快照（s4）：全部工作尚未开始；D 的合规审查只是预计需要 2 小时，尚无合规签字；也没有任何测试通过记录。因此，排程中计算出的各种最早完成时间都只是基于时长和依赖关系的理论推算，属于“计划完成时间”，不等于“已经实际发生的批准”。\n\n结论：**目前没有已确认的合规批准，也不应沿用任何计划时间将其描述为已完成。**",
+  "input_tokens": 1146,
+  "output_tokens": 5897,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 5771,
+  "latency_ms": 108091,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179327660590793e048b1e87f4ca8485d3a0240faade79c5c5b",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1146,
+    "output_tokens": 5897,
+    "total_tokens": 7043,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 5771
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

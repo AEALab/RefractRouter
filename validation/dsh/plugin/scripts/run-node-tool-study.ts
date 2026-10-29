@@ -31,6 +31,8 @@ globalThis.fetch=async(input:any,init?:any)=>{
   const url=new URL(safeRequest(input))
   if(url.origin!=='https://ark.cn-beijing.volces.com'||url.pathname!=='/api/plan/v3/responses'){
     unexpectedNetwork++;throw new Error('研究入口拒绝非冻结模型端点')}
+  const payload=JSON.parse(String(init?.body??''))
+  assert.equal(payload.temperature,spec.sampling.temperature,'实际 DSH temperature 与冻结控制不符')
   requests++
   if(requests>spec.maxModelCalls)throw new Error('宿主传输超过冻结模型调用数')
   if(live){

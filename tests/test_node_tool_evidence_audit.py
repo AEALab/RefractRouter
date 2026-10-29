@@ -98,3 +98,17 @@ def test_archived_snapshot_can_be_rechecked_after_live_summary_changes(tmp_path)
     result = audit.audit(tmp_path, summary_path=saved)
     assert result["integrityStatus"] == "pass" and result["cohortSamples"] == 1
     assert result["summarySha256"] == audit.sha(saved)
+
+
+def test_controlled_cohort_detects_sampling_mismatch_even_when_cost_matches(tmp_path):
+    directory, row, frozen = fixture(tmp_path)
+    frozen["sampling"] = {"temperature": 0}
+    path = directory / "wire/001-request.json"
+    request = json.loads(path.read_text())
+    request["temperature"] = .7
+    path.write_text(json.dumps(request))
+    result = audit.audit_case(row, directory, frozen)
+    assert any("temperature" in error for error in result["errors"])
+    request["temperature"] = 0
+    path.write_text(json.dumps(request))
+    assert audit.audit_case(row, directory, frozen)["errors"] == []

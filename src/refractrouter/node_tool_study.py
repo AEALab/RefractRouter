@@ -22,7 +22,7 @@ from .task_execution import execute_nodes
 from .task_scheduling import ExecutionPolicy
 
 ROOT = Path(__file__).resolve().parents[2]
-SCHEMA = "node-tool-three-arm-pilot-v3"
+SCHEMA = "node-tool-three-arm-pilot-v4"
 RATE = Decimal(".05")
 ARMS = ("one-shot", "node-as-tool", "dag")
 PROMPTS = {"existing-contract": FINAL_SYSTEM, "explicit-verification": FINAL_SYSTEM +
@@ -62,8 +62,38 @@ def carry_in(paths):
     return entries
 
 
+def expected_cases(expected):
+    cases={c["runId"]:c for c in expected["optimization"]}
+    tasks={tid:{"task_id":tid,**payload} for tid,payload in expected["tasks"].items()}
+    for spec in expected["schedule"]:
+        for prompt in PROMPTS:
+            c=case_spec(tasks[spec["taskId"]],spec["arm"],spec["repeat"],prompt)
+            cases[c["runId"]]=c
+    return cases
+
+
+def sampling_evidence(directory, row, expected_model):
+    if row["arm"]=="dag":
+        paths=[directory/(c["wire_evidence_prefix"]+"-request.json") for c in row["calls"]]
+    else:
+        paths=sorted((directory/"wire").glob("*-request.json"))
+    if len(paths)!=len(row["calls"]) or not paths:
+        raise ValueError("接续样本缺少逐调用采样证据")
+    bindings=[]
+    for path in paths:
+        payload=json.loads(path.read_text())
+        temperature=payload.get("temperature")
+        if type(temperature) not in (int,float) or temperature!=0:
+            raise ValueError("接续样本实际 temperature 不是零")
+        if payload.get("model")!=expected_model["api_model"] or payload.get("max_output_tokens")!=expected_model["max_output_tokens"]:
+            raise ValueError("接续样本实际模型或容量不符")
+        bindings.append({"path":str(path.relative_to(ROOT)),"sha256":file_hash(path)})
+    return bindings
+
+
 def resumed_optimization(paths, expected):
-    sources=[];entries=[];seen=set();cases={c["runId"]:c for c in expected["optimization"]}
+    # 名称保留给历史脚本；现在也可接续实际采样参数相同的比较样本。
+    sources=[];entries=[];excluded=[];seen=set();cases=expected_cases(expected)
     for name in paths:
         path=Path(name).resolve()
         if not path.is_relative_to(ROOT):raise ValueError("接续证据必须位于当前工作区")
@@ -71,31 +101,40 @@ def resumed_optimization(paths, expected):
         if previous.get("simulated") is not False or previous["status"]=="running":
             raise ValueError("不能接续仍在变化的批次或模拟样本")
         for key in ("tasks","taskBindings","prompts","nodeHint","model","caps"):
-            if digest(prior[key])!=digest(expected[key]):raise ValueError("接续模型、材料或提示不同，不能混入当前开发样本")
+            if digest(prior[key])!=digest(expected[key]):raise ValueError("接续模型、材料或提示不同，不能混入当前样本")
         sources.append({"path":str(path.relative_to(ROOT)),"sha256":file_hash(path)})
         for row in previous["runs"]:
-            if row["phase"]!="prompt-audit":continue
+            if row.get("importedFrom"):continue  # 叶来源单独列入，不能重复计费或重复导入。
             rid=row["runId"]
+            if row["arm"]=="dag" and prior.get("sampling",{}).get("temperature")!=0:
+                excluded.append({"runId":rid,"source":str(path.relative_to(ROOT)),
+                    "reason":"旧 DAG 没有显式 temperature=0，留作诊断并计费，不混入同采样比较"})
+                continue
             if rid not in cases or rid in seen:raise ValueError("接续样本身份不符或重复")
             if row["status"]!="completed" or not row["costKnown"] or any(c["status"]!="billed" for c in row["calls"]):
-                raise ValueError("未完成或用量未知的样本不能接续为有效开发结果")
+                raise ValueError("未完成或用量未知的样本不能接续；失败主判据本身不影响接续")
             old_path=path.parent/"cases"/(rid+".json");old=json.loads(old_path.read_text());new=cases[rid]
             for key in ("runId","taskId","arm","repeat","promptId","phase","payload","system","inputLimit",
                         "maxMainCalls","maxModelCalls","provider","dshVersion"):
                 if old[key]!=new[key]:raise ValueError("接续个案执行参数不一致")
             if old["planningConfig"]["models"]!=new["planningConfig"]["models"]:
                 raise ValueError("接续模型配置不一致")
-            seen.add(rid);entries.append({"runId":rid,"source":str(path.relative_to(ROOT)),
-                "sourceSha256":file_hash(path),"caseSha256":file_hash(old_path)})
-    return sources,entries
+            proof=sampling_evidence(path.parent/rid,row,expected["model"])
+            seen.add(rid);entries.append({"runId":rid,"phase":row["phase"],"arm":row["arm"],
+                "maxModelCalls":new["maxModelCalls"],"taskId":new["taskId"],"repeat":new["repeat"],
+                "promptId":new["promptId"],"source":str(path.relative_to(ROOT)),
+                "sourceSha256":file_hash(path),"caseSha256":file_hash(old_path),"samplingEvidence":proof})
+    return sources,entries,excluded
 
 
 def reused_rows(frozen):
     result=[]
-    for entry in frozen["reusedOptimization"]:
+    for entry in frozen.get("reusedSamples",frozen.get("reusedOptimization",[])):
         source=ROOT/entry["source"]
         if file_hash(source)!=entry["sourceSha256"]:raise ValueError("接续开发证据发生变化")
         row=deepcopy(next(r for r in json.loads(source.read_text())["runs"] if r["runId"]==entry["runId"]))
+        for proof in entry.get("samplingEvidence",[]):
+            if file_hash(ROOT/proof["path"])!=proof["sha256"]:raise ValueError("接续请求采样证据发生变化")
         row["importedFrom"]={"summary":entry["source"],"runId":entry["runId"],"protocolSha256":json.loads(source.read_text())["protocolSha256"]}
         result.append(row)
     return result
@@ -197,7 +236,7 @@ def case_spec(task, arm, repeat, prompt_id, *, phase="comparison", protocol_hash
         "maxMainCalls":4 if arm == "node-as-tool" else 1,"timeoutMs":0,
         "provider":{"id":"ark-node-study","baseURL":model().base_url,"api":"openai-responses",
             "credentialRef":"CODEX_ARK_API_KEY","retryPolicy":{"mode":"normal","maxRetries":0}},
-        "protocolSha256":protocol_hash,"dshVersion":"0.1.5-rc.3"}
+        "protocolSha256":protocol_hash,"dshVersion":"0.1.5-rc.3","sampling":{"temperature":0}}
     if arm == "node-as-tool":
         maximum = 4 * bound("main") + 3 * bound("expert")
         raw.update(maxModelCalls=7,nodeTools={"enabled":True,"maxNodeCalls":3,"maxInputChars":6000,
@@ -232,6 +271,7 @@ def prepare(prior_results=(), resume_optimization=()):
     result={"schema":SCHEMA,"purpose":"一天内完成 node-as-tool 相对一次性回答与完整 DAG 的可复核开发先导",
         "tasks":{t["task_id"]:execution_payload(t) for t in tasks},"taskBindings":{t["task_id"]:t["task_sha256"] for t in tasks},
         "prompts":PROMPTS,"nodeHint":NODE_HINT,"caps":CAPS,"model":asdict(model()),
+        "sampling":{"temperature":0,"thinking":"provider-default","top_p":"provider-default"},
         "arms":list(ARMS),"repeats":3,"optimization":optimization,"schedule":schedule,
         "promptSelection":"关键事实检查通过数最多，其次失败检查最少，再以该候选总费用较低、提示 ID 字典序较小决胜；不使用随后三路线结果调参",
         "maxModelCalls":sum(c["maxModelCalls"] for c in optimization)+sum({"one-shot":1,"node-as-tool":7,"dag":5}[s["arm"]] for s in schedule),
@@ -245,11 +285,22 @@ def prepare(prior_results=(), resume_optimization=()):
         "failurePolicy":"节点错误停止本任务下游并结算在途；未知用量、认证、账本或证据异常停止整批；无 HTTP 自动重试",
         "timing":"每任务从模型/规划执行开始计时，不含进程冷启动；另保留各调用时延及全过程外层耗时",
         "budgetIncludes":"18 次基线提示开发 + 27 次三路线样本；DAG 规划与专家费用均包含，不含未批准的额外付费评审"}
-    result["resumeOptimizationSources"],result["reusedOptimization"] = resumed_optimization(resume_optimization,result)
+    result["resumeSources"],result["reusedSamples"],result["excludedDiagnosticSamples"] = resumed_optimization(resume_optimization,result)
+    result["resumeOptimizationSources"]=result["resumeSources"]
+    result["reusedOptimization"]=[v for v in result["reusedSamples"] if v["phase"]=="prompt-audit"]
     prior_bindings={v["path"]:v["sha256"] for v in result["priorResults"]}
     if any(prior_bindings.get(v["path"])!=v["sha256"] for v in result["resumeOptimizationSources"]):
         raise ValueError("接续开发样本必须同时计入累计费用与次数，不能重新获得预算")
-    result["maxNewModelCalls"]=result["maxModelCalls"]-len(result["reusedOptimization"])
+    result["scheduledMaxNewModelCalls"]=result["maxModelCalls"]-sum(v["maxModelCalls"] for v in result["reusedSamples"])
+    result["remainingApprovedCalls"]=max(0,APPROVED_CALLS-sum(v["realModelCalls"] for v in result["priorResults"]))
+    result["remainingApprovedAfp"]=float(Decimal(str(APPROVED_AFP))-sum(Decimal(str(v["actualOrReservedAfp"])) for v in result["priorResults"]))
+    result["maxNewModelCalls"]=min(result["scheduledMaxNewModelCalls"],result["remainingApprovedCalls"])
+    imported_groups={(e["taskId"],e["repeat"]) for e in result["reusedSamples"] if e["phase"]=="comparison"}
+    result["samplingAmendment"]={"nativeReuse":"仅复用原始请求显式 temperature=0 的全部匹配样本，含失败主判据",
+        "discardedDag":"旧 DAG 未显式温度的结果只保留为诊断，费用累计，不混入主比较",
+        "freshGroups":[{"taskId":tid,"repeat":rep} for rep in range(1,4) for tid in result["tasks"] if (tid,rep) not in imported_groups],
+        "timingLimit":"主分析包含接续样本；补充查看完全新采集配对，不能宣称全体保持原先交错时间顺序",
+        "transportLimit":"DSH 为流式宿主适配器，DAG 为 Python 非流式客户端；均计完整任务时间，比较当前实现，不作单因素因果归因"}
     result["timePolicy"]="研究入口不设人工总超时或单请求超时；模型物理容量、已批准累计次数与费用继续强制执行"
     result["protocolSha256"]=digest(result)
     return json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
@@ -269,7 +320,7 @@ class PilotBudget(TaskCallBudget):
         stage=self.stages[label];cap=CAPS[stage];messages=deepcopy(messages)
         if stage=="final":messages[0]["content"]=self.final_system
         if request_input_bound(messages)>cap["input"]:raise ValueError("请求超过冻结阶段输入上限")
-        r=super().reserve(replace(m,max_output_tokens=cap["output"]),messages,label=label,**kwargs)
+        r=super().reserve(replace(m,max_output_tokens=cap["output"],request_options={**m.request_options,"temperature":0}),messages,label=label,**kwargs)
         r.row.update(stage=stage,provider=m.provider,actual_model=m.api_model,billing_unit=m.billing_unit)
         return r
 
@@ -287,9 +338,15 @@ class RehearsalClient:
         return ChatResponse(json.dumps(value,ensure_ascii=False),100,50,0,0,1,1,"stop",None)
 
 
-def run_dag(case,out,*,simulated):
+def run_dag(case,out,*,simulated,client=None):
     out.mkdir(parents=True,exist_ok=False);started=time.monotonic()
-    budget=PilotBudget(RehearsalClient() if simulated else OpenAICompatibleClient(max_retries=0,timeout_seconds=None),case["afpUpperBound"])
+    from .node_study_transport import StudyWireTransport
+    if callable(client):client=client(out/"wire")
+    if client is None:
+        client=RehearsalClient() if simulated else OpenAICompatibleClient(max_retries=0,timeout_seconds=None,
+            transport=StudyWireTransport(out/"wire"))
+    transport=getattr(client,"transport",None)
+    budget=PilotBudget(client,case["afpUpperBound"])
     budget.final_system=PROMPTS[case["promptId"]]
     lock=RLock()
     (out/"calls").mkdir()
@@ -299,6 +356,7 @@ def run_dag(case,out,*,simulated):
             record["costs"],record["calls"]=budget.snapshot();write(out/"dag.json",record)
     def archive(row,response):
         with lock:
+            if isinstance(transport,StudyWireTransport):row["wire_evidence_prefix"]=transport.current_prefix()
             write(out/"calls"/(hashlib.sha256(row["label"].encode()).hexdigest()+".json"),asdict(response))
             persist()
     budget.on_reserve=lambda _:persist();budget.on_dispatch=lambda _:persist();budget.on_response=archive
@@ -329,6 +387,16 @@ def score_row(task,ref,text):
         return {"factStatus":"fail","qualityStatus":"fail","qualityError":str(exc),"checks":[]}
 
 
+def select_prompt(rows):
+    ranking=[]
+    for prompt in PROMPTS:
+        group=[r for r in rows if r["phase"]=="prompt-audit" and r["promptId"]==prompt]
+        ranking.append((-sum(r["factStatus"]=="pass" for r in group),
+            sum(c["status"]=="fail" for r in group for c in r["checks"]),
+            sum(r["chargedOrReserved"] for r in group),prompt))
+    return min(ranking)[-1],ranking
+
+
 def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_afp=None):
     validate(frozen)
     if live and (approved_hash!=frozen["protocolSha256"] or approved_afp!=frozen["productionAfpUpperBound"]):
@@ -342,7 +410,8 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
     result={"schema":SCHEMA,"status":"running","simulated":not live,"protocolSha256":frozen["protocolSha256"],
         "runs":reused_rows(frozen),"realModelCalls":0,"actualOrReservedAfp":0,
         "cumulativeRealModelCalls":sum(v["realModelCalls"] for v in frozen["priorResults"]),
-        "cumulativeActualOrReservedAfp":sum(v["actualOrReservedAfp"] for v in frozen["priorResults"]),"qualityVerdict":"Insufficient-evidence","providerBillingConfirmed":False}
+        "cumulativeActualOrReservedAfp":sum(v["actualOrReservedAfp"] for v in frozen["priorResults"]),"qualityVerdict":"Insufficient-evidence","providerBillingConfirmed":False,
+        "sampling":frozen["sampling"],"samplingAmendment":frozen["samplingAmendment"]}
     write(out/"frozen.json",frozen)
     def persist():write(out/"summary.json",result)
     def trial(case):
@@ -401,15 +470,13 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
     for case in frozen["optimization"]:
         if case["runId"] in reused_ids:continue
         if not trial(deepcopy(case)):return result
-    ranking=[]
-    for p in PROMPTS:
-        rows=[r for r in result["runs"] if r["promptId"]==p]
-        ranking.append((-sum(r["factStatus"]=="pass" for r in rows),
-            sum(c["status"]=="fail" for r in rows for c in r["checks"]),sum(r["chargedOrReserved"] for r in rows),p))
-    chosen=min(ranking)[-1];result["selectedPrompt"]=chosen
+    chosen,ranking=select_prompt(result["runs"]);result["selectedPrompt"]=chosen
+    if any(r["phase"]=="comparison" and r["promptId"]!=chosen for r in result["runs"]):
+        raise ValueError("接续比较所用提示与冻结开发选择不一致")
     result["promptSelectionEvidence"]=ranking;persist()
     for spec in frozen["schedule"]:
         case=case_spec(by_id[spec["taskId"]],spec["arm"],spec["repeat"],chosen)
+        if case["runId"] in reused_ids:continue
         if not trial(case):return result
     result["status"]="completed-rehearsal" if not live else "completed-development-pilot"
     result["pairs"]=[]

@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"排程计算与批准状态判断相互独立，可并行；最终节点整合并核对约束后交付。\",\"nodes\":[{\"id\":\"schedule\",\"type\":\"synthesis\",\"job\":\"按有效清单算排程、关键路径、E最早开始与三个完成时刻\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"approval_status\",\"type\":\"synthesis\",\"job\":\"根据状态快照判断批准是否已确认，不沿用计划时间\",\"parents\":[],\"difficulty\":\"low\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答任务：整合并核对排程与批准结论，给出正文与findings\",\"parents\":[\"schedule\",\"approval_status\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1387,
+  "output_tokens": 1670,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 1502,
+  "latency_ms": 34790,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793276571105f9405f279a0f30d2c73a697bf053f75a97ed80",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1387,
+    "output_tokens": 1670,
+    "total_tokens": 3057,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 1502
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

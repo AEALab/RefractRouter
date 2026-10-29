@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"任务包含多供应商价格核算与硬条件资格评估，两者相对独立可并行，最后由汇总节点生成最终答案并核对\",\"nodes\":[{\"id\":\"cost_calc\",\"type\":\"synthesis\",\"job\":\"核算A/B/C/D含税到货总价，注意折扣、优惠券、税率\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\",\"expected_output_tokens\":120},{\"id\":\"eligibility\",\"type\":\"synthesis\",\"job\":\"按硬条件评估各供应商资格，明确B证书待确认状态\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\",\"expected_output_tokens\":120},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总价格与资格，选最低价合格供应商并完整说明\",\"parents\":[\"cost_calc\",\"eligibility\"],\"difficulty\":\"medium\",\"risk\":\"medium\",\"expected_output_tokens\":280}]}",
+  "input_tokens": 1537,
+  "output_tokens": 614,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 427,
+  "latency_ms": 13110,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932762083636d6c4a2c22a8ac0107afc732836cd4229f9459",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 614,
+    "total_tokens": 2151,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 427
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

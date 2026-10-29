@@ -10,7 +10,7 @@ def main():
     p.add_argument("--output-dir",type=Path,required=True);p.add_argument("--frozen",type=Path)
     p.add_argument("--dsh-node-modules",type=Path);p.add_argument("--python",type=Path)
     p.add_argument("--prior-result",type=Path,action="append",default=[])
-    p.add_argument("--resume-optimization",type=Path,action="append",default=[])
+    p.add_argument("--resume-samples","--resume-optimization",dest="resume_optimization",type=Path,action="append",default=[])
     p.add_argument("--approved-protocol-sha256");p.add_argument("--approved-afp",type=float)
     m=p.add_mutually_exclusive_group();m.add_argument("--rehearse",action="store_true");m.add_argument("--execute-paid-run",action="store_true")
     a=p.parse_args()

@@ -1,0 +1,29 @@
+{
+  "content": "以下按 `s1` 有效工作清单计算；不采用 `s2` 中旧版的“A=4 小时、C 依赖 B、F=1 小时”。时间以 `t=0` 为起点，单位为小时；任务不拆分，且任意时刻最多两项并行。\n\n## 可执行排程（考虑发布窗口）\n\n| 时间段 | 执行任务 | 说明 |\n|---|---:|---|\n| 0–2 | A、D | 两项并行 |\n| 2–3 | A | 一项 |\n| 3–7 | B、C | 两项并行 |\n| 7–8 | B | 一项 |\n| 8–10 | E、F | 两项并行 |\n| 10–11 | F | 一项 |\n| 11–14 | 等待 | G 最早 11 可开始，但窗口要求不能早于 14 |\n| 14–15 | G | 完整落在 [14,16] 内 |\n\n若忽略发布窗口，G 可在 11–12 执行并结束，因此理论最早完成时间为 12。\n\n## 关键计算\n\n- A 最早完成：3\n- B 最早完成：8；C 最早完成：7\n- E 最早开始：max(B 完成 8, C 完成 7) = 8；E 最早完成 10\n- F 最早开始：8；F 最早完成 11\n- D 最早完成：2\n- D/E/F 全部完成的最早时刻：max(2, 10, 11) = 11\n- 忽略窗口的 G 最早结束：11 + 1 = 12\n- 窗口约束下，G 最早完整落入 [14,16] 的开始时间是 14，因此最早结束为 15\n\n关键路径比较：\n\n- A-B-F-G：3 + 5 + 3 + 1 = 12\n- A-B-E-G：3 + 5 + 2 + 1 = 11\n- A-C-E-G：3 + 4 + 2 + 1 = 10\n- D-G：2 + 1 = 3\n\n因此技术关键路径是 `A-B-F-G`。发布窗口造成的 11→14 等待属于窗口等待，不是任务节点，不加入关键路径节点列表；实际窗口完成时间是在技术完成时间 12 的基础上增加 3 小时等待，得到 15。\n\n## 批准状态\n\n`t=0` 时所有工作尚未开始，D 只是预计需要 2 小时，尚无合规签字，也没有测试通过记录。计划中的完成时间不等于已经发生的批准，因此目前不能宣称批准已完成。\n\n## Findings\n\n- id: `pre_release_ready`  \n  value: 11  \n  sources: `[\"s1\", \"s5\"]`\n\n- id: `technical_finish`  \n  value: 12  \n  sources: `[\"s1\", \"s3\"]`\n\n- id: `window_finish`  \n  value: 15  \n  sources: `[\"s1\", \"s3\"]`\n\n- id: `critical_path`  \n  value: `[\"A\", \"B\", \"F\", \"G\"]`  \n  sources: `[\"s1\", \"s5\"]`\n\n- id: `earliest_e_start`  \n  value: 8  \n  sources: `[\"s1\", \"s5\"]`\n\n- id: `current_approval_confirmed`  \n  value: false  \n  sources: `[\"s4\"]`",
+  "input_tokens": 1154,
+  "output_tokens": 15304,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 14541,
+  "latency_ms": 286943,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179327660589727412d2b56652b4ea3ae682b9da5d5c5417e3b",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1154,
+    "output_tokens": 15304,
+    "total_tokens": 16458,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 14541
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

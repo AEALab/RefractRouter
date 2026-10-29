@@ -1,0 +1,29 @@
+{
+  "content": "{\n  \"answer\": \"采用 s1 的有效工作清单计算，不采用 s2 中已废弃的旧版信息（A=4 小时、C 依赖 B、F=1 小时）。有效时长为：A=3，B=5，C=4，D=2，E=2，F=3，G=1；依赖为 A 无前置，B、C 依赖 A，D 无前置，E 依赖 B 和 C，F 依赖 B，G 依赖 D、E、F。任务不拆分；任意时刻最多两项并行。\\n\\n可执行排程（考虑发布窗口）：\\n| 时间段 | 执行任务 | 说明 |\\n| 0–2 | A、D | 两项并行 |\\n| 2–3 | A | A 连续执行到 3 |\\n| 3–7 | B、C | 两项并行 |\\n| 7–8 | B | B 连续执行到 8 |\\n| 8–10 | E、F | 两项并行 |\\n| 10–11 | F | F 连续执行到 11 |\\n| 11–14 | 等待 | 发布前置已理论齐备，但 G 必须完整落在 [14,16] |\\n| 14–15 | G | 完整落在窗口内，最早发布结束为 15 |\\n\\n表中同一任务的相邻行只是展示占用槽位的变化，A、B、F 各自仍是一次连续执行，未拆分。\\n\\n各任务理论完成：A=3；B=8；C=7；D=2；E=10；F=11。因此 D、E、F 全部完成的最早时刻是 max(2,10,11)=11，即 pre_release_ready=11。E 最早开始时刻为 max(B 完成 8, C 完成 7)=8，即 earliest_e_start=8。\\n\\n理论最早完成时间（忽略窗口）为 G 最早可在 11 开始、12 结束，所以 technical_finish=12。考虑窗口后，G 最早只能从 14 开始，14–15 执行并结束，所以 window_finish=15；窗口等待是 11→14 的 3 小时，不属于任务节点。\\n\\n关键路径比较：\\nA-B-F-G=3+5+3+1=12；\\nA-B-E-G=3+5+2+1=11；\\nA-C-E-G=3+4+2+1=10；\\nD-G=2+1=3。\\n技术关键路径为 A-B-F-G，节点 ID 列表为 [A, B, F, G]（含最终 G）。由于上述排程中每个时段最多两项且关键路径任务均未因资源受限而推迟，该路径在资源约束下仍然成立；窗口等待不计入节点关键路径。\\n\\n批准状态：t=0 时全部工作尚未开始；D 只是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。因此目前不能宣称批准已完成；排程中的完成时间只是理论/计划完成时间，不是已实际发生的批准。批准已完成未被证明，current_approval_confirmed=false。\\n\\n以上为仅依据所给材料进行的静态推算；没有执行外部工具。实际批准状态需要真实签字或测试通过记录才能确认；若实际执行时长或依赖发生变化，上述数值需按新证据重算。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}",
+  "input_tokens": 2300,
+  "output_tokens": 17807,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 16845,
+  "latency_ms": 275804,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793276892861bdd5db804b0f31a919b8f9d8940b3f7f23de20",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 2300,
+    "output_tokens": 17807,
+    "total_tokens": 20107,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 16845
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

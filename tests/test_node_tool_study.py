@@ -185,13 +185,15 @@ def test_completed_identical_development_samples_can_resume_without_replay(tmp_p
     expected=prepare();case=deepcopy(expected["optimization"][0]);case["timeoutMs"]=600000
     case["planningConfig"]["timeoutMs"]=600000
     old=tmp_path/"old";old.mkdir();(old/"cases").mkdir()
-    row={"runId":case["runId"],"phase":"prompt-audit","status":"completed","costKnown":True,
+    row={"runId":case["runId"],"phase":"prompt-audit","arm":"one-shot","status":"completed","costKnown":True,
         "calls":[{"status":"billed","charged":.1}]}
     study.write(old/"summary.json",{"status":"stopped-implementation-changed","simulated":False,"runs":[row],"protocolSha256":"old"})
     study.write(old/"frozen.json",expected);study.write(old/"cases"/(case["runId"]+".json"),case)
+    wire=old/case["runId"]/"wire";wire.mkdir(parents=True)
+    study.write(wire/"001-request.json",{"temperature":0,"model":expected["model"]["api_model"],"max_output_tokens":384000})
     expected["model"]["tags"]=tuple(expected["model"]["tags"])  # 冻结 JSON 往返不改变模型身份。
     monkeypatch.setattr(study,"ROOT",tmp_path)
-    sources,entries=study.resumed_optimization([old/"summary.json"],expected)
+    sources,entries,excluded=study.resumed_optimization([old/"summary.json"],expected)
     imported=study.reused_rows({"reusedOptimization":entries})
     assert len(imported)==1 and imported[0]["importedFrom"]["protocolSha256"]=="old"
     case["system"]+="改变执行提示"
@@ -202,6 +204,6 @@ def test_completed_identical_development_samples_can_resume_without_replay(tmp_p
 
 def test_resuming_samples_cannot_reset_their_spending(monkeypatch):
     import refractrouter.node_tool_study as study
-    monkeypatch.setattr(study,"resumed_optimization",lambda *args:([{"path":"missing","sha256":"x"}],[]))
+    monkeypatch.setattr(study,"resumed_optimization",lambda *args:([{"path":"missing","sha256":"x"}],[],[]))
     with pytest.raises(ValueError,match="累计费用与次数"):
         study.prepare()

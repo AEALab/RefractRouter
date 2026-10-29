@@ -1,0 +1,29 @@
+{
+  "content": "按硬条件评估结果\n\n一、约束与口径\n- 硬条件：数量 240 件；含税到货总价 ≤ 18000 元；最晚到货日 2026-11-18；保修 ≥ 24 个月；证书已确认有效；下单日 2026-11-03；所有供应商容量均足够。\n- 总价只计货款、适用税额和运费；不估计未给出的费用。\n- A 的货款不含税，需加 13% 增值税；A 的运费已含税，不再加税。B/C/D 的报价均为含税单价，不再另加增值税。\n- B 采用 2026-11-02 起生效的新版报价，不把新旧两版价格相加。\n\n二、各家核算与资格\n\nA（依据 s1、s2）\n- 货款（不含税）：58 × 240 = 13920 元\n- 增值税：13920 × 13% = 1809.6 元\n- 含税货款：13920 + 1809.6 = 15729.6 元\n- 运费：600 元，已含税\n- 含税到货总价：15729.6 + 600 = 16329.6 元\n- 未满 300 件，不打 95 折。\n- 资格：到货 11-17、证书有效、价格未超上限；但保修 18 个月，不足 24 个月，淘汰。\n\nB（依据 s3、s4）\n- 按 2026-11-02 起生效的更新版：含税单价 65 元，运费 800 元。\n- 货款（含税）：65 × 240 = 15600 元\n- 满 200 件货款打 96 折：15600 × 0.96 = 14976 元\n- 运费不打折：800 元\n- 含税到货总价：14976 + 800 = 15776 元\n- 资格：保修 24 个月、到货 11-18、价格未超上限；但证书状态为“补交，尚未确认有效”，且更新通知明确证书状态不变。因此 B 资格待确认，不能放入已确定合格集合。\n\nC（依据 s1、s5）\n- 含税单价 62 元，运费 680 元。\n- 货款：62 × 240 = 14880 元\n- 含税到货总价：14880 + 680 = 15560 元\n- 800 元优惠券仅适用于 11-01 及以前支付，本任务不适用。\n- 资格：保修 24 个月、证书有效、到货 11-18、价格未超上限，已确定合格。\n\nD（依据 s1、s6）\n- 含税单价 59 元，运费 900 元，无折扣。\n- 货款：59 × 240 = 14160 元\n- 含税到货总价：14160 + 900 = 15060 元\n- 资格：保修 24 个月、证书有效、价格未超上限；但到货 11-19，晚于最晚到货日 11-18，淘汰。\n\n三、结论\n- 已确定合格供应商：仅 C。\n- 最低价合格者：C，含税到货总价 15560 元。\n- B 是否已确定合格：否。B 的证书未确认有效，只能作为附条件候选；即使 B 后续确认，其总价 15776 元也高于 C 的 15560 元，不改变选择结果。\n\n结果列表：\n- id: cost_a；value: 16329.6；sources: [s1, s2, s7]\n- id: cost_b；value: 15776；sources: [s1, s3, s4, s7]\n- id: cost_c；value: 15560；sources: [s1, s5, s7]\n- id: cost_d；value: 15060；sources: [s1, s6, s7]\n- id: confirmed_eligible；value: [\"C\"]；sources: [s1, s2, s3, s4, s5, s6]\n- id: selected_supplier；value: \"C\"；sources: [s1, s5]\n- id: selected_cost；value: 15560；sources: [s1, s5]\n- id: b_confirmed_eligible；value: false；sources: [s3, s4]",
+  "input_tokens": 1298,
+  "output_tokens": 11244,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 10224,
+  "latency_ms": 178706,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793276221500fe278ef4a49fd99537752324bd80717a7852a3",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1298,
+    "output_tokens": 11244,
+    "total_tokens": 12542,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 10224
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

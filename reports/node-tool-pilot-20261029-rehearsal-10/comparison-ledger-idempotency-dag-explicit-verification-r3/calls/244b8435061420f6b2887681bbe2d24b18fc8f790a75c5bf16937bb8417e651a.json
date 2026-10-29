@@ -1,0 +1,19 @@
+{
+  "content": "{\"reason\": \"离线调度演练，不是实际拆分决策\", \"nodes\": [{\"id\": \"analyze\", \"type\": \"synthesis\", \"job\": \"分析资料，保留来源\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"check\", \"type\": \"verification\", \"job\": \"独立核对约束\", \"parents\": [], \"difficulty\": \"medium\", \"risk\": \"medium\"}, {\"id\": \"answer\", \"type\": \"generation\", \"job\": \"完整交付\", \"parents\": [\"analyze\", \"check\"], \"difficulty\": \"medium\", \"risk\": \"medium\"}]}",
+  "input_tokens": 100,
+  "output_tokens": 50,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 0,
+  "latency_ms": 1,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": null,
+  "usage_available": true,
+  "raw_usage": null,
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": null,
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

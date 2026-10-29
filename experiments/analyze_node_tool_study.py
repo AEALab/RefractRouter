@@ -14,15 +14,15 @@ def report(result):
         "本结果限于三个构造开发任务、同一 DeepSeek V4 Flash 和三次重复；不代表最佳单模型或留出泛化。", "",
         f"批次状态：`{result['status']}`；协议：`{result['protocolSha256']}`。",
         f"本目录新增真实模型请求：{result['realModelCalls']}；按用量计算及未知预留合计：{result['actualOrReservedAfp']:.6f} AFP。",
-        f"跨批累计请求：{result.get("cumulativeRealModelCalls",result["realModelCalls"])} / 135；累计费用及预留：{result.get("cumulativeActualOrReservedAfp",result["actualOrReservedAfp"]):.6f} / 286 AFP。",
+        f"跨批累计请求：{result.get('cumulativeRealModelCalls',result['realModelCalls'])} / 135；累计费用及预留：{result.get('cumulativeActualOrReservedAfp',result['actualOrReservedAfp']):.6f} / 286 AFP。",
         "AFP 是套餐用量，非人民币实付；供应商账单未独立确认。", "",
-        "## 路线结果", "", "| 路线 | 完成/计划 | 字段值及引用均通过 | AFP 合计 | 任务时长中位数 ms |",
-        "|---|---:|---:|---:|---:|"]
+        "## 路线结果", "", "| 路线 | 执行返回/计划 | JSON 可解析 | 冻结字段与来源覆盖均通过 | AFP 合计 | 任务时长中位数 ms |",
+        "|---|---:|---:|---:|---:|---:|"]
     for arm in ("one-shot","node-as-tool","dag"):
         group=[r for r in rows if r["arm"]==arm]
         timing=[r["taskElapsedMs"] for r in group if r.get("taskElapsedMs") is not None]
         duration=f"{median(timing):.1f}" if timing else "未取得"
-        lines.append(f"| {arm} | {sum(r['status']=='completed' for r in group)}/9 | {sum(r['factStatus']=='pass' for r in group)}/{len(group)} | {sum(r['chargedOrReserved'] for r in group):.6f} | {duration} |")
+        lines.append(f"| {arm} | {sum(r['status']=='completed' for r in group)}/9 | {sum(r['status']=='completed' and not r.get('qualityError') for r in group)}/{len(group)} | {sum(r['factStatus']=='pass' for r in group)}/{len(group)} | {sum(r['chargedOrReserved'] for r in group):.6f} | {duration} |")
     lines += ["", "## 错误归因诊断", "", "主判据和提示选择规则保持冻结；以下只区分字段值错误与引用列举不足，不放宽通过门槛。", "",
         "| 路线 | 完整交付 | 字段值全部正确 | 仅因引用扣分 |", "|---|---:|---:|---:|"]
     for arm in ("one-shot","node-as-tool","dag"):
@@ -34,7 +34,7 @@ def report(result):
         lines.append(f"| {arm} | {len(group)} | {len(value_ok)} | {len(citation_only)} |")
     reused=[r for r in result["runs"] if r.get("importedFrom")]
     if reused:
-        lines += ["",f"接续已完成且参数一致的提示开发样本：{len(reused)} 个；保留原始协议、个案哈希与账本，不重放模型请求。"]
+        lines += ["",f"接续已完成且参数一致的提示开发样本：{sum(r['phase']=='prompt-audit' for r in reused)} 个；比较样本：{sum(r['phase']=='comparison' for r in reused)} 个；保留原始协议、实际采样请求哈希与账本，不重放模型请求。"]
     lines += ["", "关键事实及引用通过不等于自由正文或整体任务通过；语义审查仍为 pending。",
         "没有产出、输出失败和未知用量保留在分母与原始记录中。", "", "## 按任务配对", "",
         "| 任务 | one-shot 事实通过/3 | node-as-tool 事实通过/3 | DAG 事实通过/3 |",
@@ -52,6 +52,23 @@ def report(result):
     lines.append(f"- 专家工具实际被调用的样本：{sum(r.get('expertCalls',0)>0 for r in nodes)}/{len(nodes)}；专家调用总数：{sum(r.get('expertCalls',0) for r in nodes)}。")
     dags=[r for r in rows if r["arm"]=="dag"]
     lines.append(f"- DAG 实际多节点样本：{sum(r.get('graphNodes',0)>1 for r in dags)}/{len(dags)}。未触发专家或拆分的样本单独标记，不能当作机制收益。")
+    amendment=result.get("samplingAmendment")
+    if amendment:
+        fresh={(g["taskId"],g["repeat"]) for g in amendment["freshGroups"]}
+        groups=[r for r in rows if (r["taskId"],r["repeat"]) in fresh]
+        lines += ["", "## 采样修订与时序边界", "", "三路线实际请求均显式 temperature=0；未显式温度的历史 DAG 仅作诊断并计费，不混入主比较。",
+            "接续样本包含原主判据失败的交付，未按胜负筛选。主提示选择只读取提示开发阶段。",
+            "接续导致部分配对不再保持原先交错时间顺序；以下补充查看三路线均在修订后采集的配对。",
+            "此分组在修订预检时按来源冻结，不按结果选取。", "",
+            "| 路线 | 全新配对样本 | 主判据通过 | AFP 合计 | 任务秒数中位数 |", "|---|---:|---:|---:|---:|"]
+        for arm in ("one-shot","node-as-tool","dag"):
+            group=[r for r in groups if r["arm"]==arm]
+            timing=[r["taskElapsedMs"]/1000 for r in group if r.get("taskElapsedMs") is not None]
+            duration=f"{median(timing):.3f}" if timing else "未取得"
+            lines.append(f"| {arm} | {len(group)}/{len(fresh)} | {sum(r['factStatus']=='pass' for r in group)} | {sum(r['chargedOrReserved'] for r in group):.6f} | {duration} |")
+        diagnostic=result.get("cumulativeActualOrReservedAfp",0)-sum(r["chargedOrReserved"] for r in result["runs"])
+        lines += ["",f"历史诊断调用及未知预留合计 {diagnostic:.6f} AFP，计入累计授权，未隐藏于主表之外。",
+            "DSH 与 Python 的流式/非流式适配路径、职责提示及上下文投影仍不同，结果不作为单因素因果证明。"]
     tuning=[r for r in result["runs"] if r["phase"]=="prompt-audit"]
     lines += ["", "## 基线开发与结论限制", "",
         f"基线提示开发使用 {len(tuning)} 个样本，AFP 记账值 {sum(r['chargedOrReserved'] for r in tuning):.6f}；所选提示：`{result.get('selectedPrompt','未选择')}`。",

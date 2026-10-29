@@ -51,6 +51,16 @@ def expected_afp(usage, model):
     return float(cost)
 
 
+def check_wire_controls(request, frozen, errors):
+    if request.get("max_output_tokens") != frozen["model"]["max_output_tokens"]:
+        errors.append("真实请求未使用冻结的完整模型输出容量")
+    if request.get("model") != frozen["model"]["api_model"]:
+        errors.append("真实请求模型与冻结清单不符")
+    if frozen.get("sampling", {}).get("temperature") == 0:
+        if type(request.get("temperature")) not in (int, float) or request.get("temperature") != 0:
+            errors.append("实际请求 temperature 与同采样控制不符")
+
+
 def audit_case(row, directory, frozen):
     errors, notes, receipts = [], [], []
     calls = [c for c in row["calls"] if c["status"] != "cancelled-before-dispatch"]
@@ -67,6 +77,25 @@ def audit_case(row, directory, frozen):
                 item.update(evidence=str(path), evidenceSha256=sha(path), attempts=response["attempts"])
                 if response["attempts"] != 1:
                     errors.append("DAG 回执尝试次数不是一")
+                wire = call.get("wire_evidence_prefix")
+                if wire:
+                    prefix = directory / wire
+                    request = read(Path(str(prefix) + "-request.json"))
+                    response_path = Path(str(prefix) + "-response.json")
+                    original = read(response_path)
+                    receipt = read(Path(str(prefix) + "-receipt.json"))
+                    check_wire_controls(request, frozen, errors)
+                    if original.get("usage") != usage:
+                        errors.append("DAG 原始 HTTP 用量与解析回执不一致")
+                    request_id = receipt.get("requestId") or original.get("id")
+                    if request_id != call.get("request_id"):
+                        errors.append("DAG 并发调用与原始 HTTP 关联不符")
+                    observed_model = original.get("model")
+                    item.update(wireEvidence=str(response_path), wireEvidenceSha256=sha(response_path),
+                                requestedTemperature=request.get("temperature"),
+                                requestedOutputTokens=request.get("max_output_tokens"))
+                elif frozen.get("sampling", {}).get("temperature") == 0:
+                    errors.append("同采样 DAG 缺少原始 HTTP 证据")
             else:
                 prefix = directory / "wire" / str(index).zfill(3)
                 path = Path(str(prefix) + "-response.txt")
@@ -74,11 +103,9 @@ def audit_case(row, directory, frozen):
                 usage, observed_model = response["usage"], response["model"]
                 request = read(Path(str(prefix) + "-request.json"))
                 item.update(evidence=str(path), evidenceSha256=sha(path), responseStatus=response["status"],
-                            providerResponseId=response["id"], requestedOutputTokens=request["max_output_tokens"])
-                if request["max_output_tokens"] != frozen["model"]["max_output_tokens"]:
-                    errors.append("真实请求未使用冻结的完整模型输出容量")
-                if request["model"] != frozen["model"]["api_model"]:
-                    errors.append("真实请求模型与冻结清单不符")
+                            providerResponseId=response["id"], requestedOutputTokens=request["max_output_tokens"],
+                            requestedTemperature=request.get("temperature"))
+                check_wire_controls(request, frozen, errors)
             raw_cost = expected_afp(usage, frozen["model"])
             reasoning = usage.get("output_tokens_details", {}).get("reasoning_tokens")
             item.update(providerReportedModel=observed_model, providerInputTokens=usage["input_tokens"],
