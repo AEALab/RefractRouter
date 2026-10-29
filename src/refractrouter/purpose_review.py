@@ -77,12 +77,12 @@ def _rows(rows, *, maximum):
 
 def packet(purpose, task, requirements, candidate, sources):
     """candidate 必须是本用途的完整实际材料；历史/来源由调用方传入，不能只交模型选中的片段。"""
-    if purpose not in PURPOSES:
+    if not isinstance(purpose, str) or purpose not in PURPOSES:
         raise ValueError("未知评审用途")
     _text(task)
     _text(candidate)
     _rows(requirements, maximum=64)
-    if not requirements:
+    if not requirements or any(not r["text"].strip() for r in requirements):
         raise ValueError("必须明确全部验收要求")
     _rows(sources, maximum=128)
     body = deepcopy({"contract": VERSION, "purpose": purpose, "task": task,

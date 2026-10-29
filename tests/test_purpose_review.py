@@ -98,3 +98,15 @@ def test_full_material_is_copied_not_summarized_or_replaced_by_selected_quotes()
     assert len(value["requirements"]) == 1
     with pytest.raises(ValueError, match="容量"):
         packet("advisor-delivery", "任务", value["requirements"], "a" * 262145, [])
+
+
+@pytest.mark.parametrize("text", ["", " ", "\r\n\t"])
+def test_blank_requirement_cannot_be_used_as_a_placeholder_to_approve_a_candidate(text):
+    with pytest.raises(ValueError, match="全部验收要求"):
+        packet("advisor-delivery", "任务", [{"id": "r", "text": text}], "正文", [])
+
+
+@pytest.mark.parametrize("purpose", [[], {}, True, None])
+def test_non_string_purpose_uses_normal_invalid_input_path(purpose):
+    with pytest.raises(ValueError, match="用途"):
+        packet(purpose, "任务", [{"id": "r", "text": "要求"}], "正文", [])
