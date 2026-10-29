@@ -1255,6 +1255,7 @@ class PlanningRuntime(StageHybridRuntime):
             self.discard(run, token)
             run['decisions'].append({'step': s['step'], 'role': 'tool-validation',
                 'model': reservation.model.model_id, 'callId': token,
+                'candidateCallId': token,
                 'reason': tool_check['reason'], 'candidateDisposition': 'discarded',
                 'evidenceIds': [e['callId'] for e in tool_check['records']],
                 'ruleVersion': tool_check['schemaVersion']})

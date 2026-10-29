@@ -187,3 +187,17 @@ def test_legacy_result_is_read_without_inventing_feedback_or_rewriting_evidence(
     assert view["metadataStatus"] == "legacy-unknown" and view["candidates"] == []
     assert view["calls"][0]["charged"] == record["calls"][0]["charged"]
     assert path.read_bytes() == before
+
+
+def test_required_host_tool_rejection_is_bound_to_candidate_as_tool_feedback(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static")
+    action = step(runtime, run, toolRequirements={"required": True, "tools": ["read"]},
+                  taskToolEvidence=[], requireConfirmedToolEvidence=True)
+    with pytest.raises(ValueError, match="明确工具要求"):
+        receipt(runtime, run, action, content="声称已经读完")
+    view = query(runtime, run)
+    assert view["candidates"][0]["routerDisposition"] == "discarded"
+    assert view["candidates"][0]["acceptanceBySource"]["tool"] == "rejected"
+    assert view["candidates"][0]["acceptanceBySource"]["model-review"] == "unknown"
+    assert view["calls"][0]["charged"] > 0

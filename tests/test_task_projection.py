@@ -49,3 +49,47 @@ def test_summary_alone_is_unknown_and_capacity_is_explicit():
     assert not state["complete"] and state["issue"] == "current-task-unknown"
     state = task_state([user("x" * 100)], [], 20)
     assert not state["complete"] and state["issue"] == "task-text-exceeds-judge-capacity"
+
+
+def test_no_id_user_can_restore_prior_requirement_and_trigger_stage_guidance():
+    from refractrouter.stage_hybrid import initial_state, observe
+    first = [user("以 JSON 输出")]
+    second = first + [user("改用 YAML")]
+    third = second + [user("以 JSON 输出")]
+    projection = project(first)
+    projection = project(second, projection)
+    state, _, _ = observe(initial_state(), second, [], [], 0,
+        {"window": 3}, projection=projection)
+    restored = project(third, projection)
+    view = judge_view([], restored)
+    assert view["latestUserInstruction"][0]["text"] == "以 JSON 输出"
+    assert len(restored["guidance"]) == 2
+    assert project(third, restored) == restored
+    _, trigger, _ = observe(state, third, [], [], 1,
+        {"window": 3, "maxJudgements": 10}, projection=restored)
+    assert trigger == "guidance-changed"
+
+
+def test_all_new_guidance_survives_compaction_and_trimmed_history():
+    first = [user("检查价格", id="a")]
+    projection = project(first)
+    second = first + [user("只读，不修改文件", id="b"), user("结果用中文", id="c")]
+    projection = project(second, projection)
+    assert [g["messageId"] for g in projection["guidance"]] == ["b", "c"]
+    compacted = [user("摘要：正在工作", source={"kind": "compaction"})]
+    assert project(compacted, projection) == projection
+    view = judge_view(compacted, projection)
+    assert "只读，不修改文件" in json.dumps(view, ensure_ascii=False)
+    assert project([second[-1]], projection)["guidance"] == projection["guidance"]
+    third = [second[-1], user("用表格呈现", id="d")]
+    extended = project(third, projection)
+    assert [g["messageId"] for g in extended["guidance"]] == ["b", "c", "d"]
+
+
+def test_same_host_message_id_with_changed_body_is_rejected():
+    import pytest
+    projection = project([user("原要求", id="a")])
+    with pytest.raises(ValueError, match="矛盾变化"):
+        project([user("新正文", id="a")], projection)
+    with pytest.raises(ValueError, match="矛盾变化"):
+        project([user("原要求", id="a"), user("矛盾正文", id="a")])
