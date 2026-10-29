@@ -37,6 +37,14 @@ TypeScript 只传递原生请求、执行核心签发的模型调用及展示轨
 Task v3 的模型池、共同 Judge 合同、本地 Laya-MLX 及媒体边界见
 [Task 多模型路由、本地 Judge 与媒体接入](task-local-judge-media.md)。
 
+## 节点工具研究入口
+
+Issue #200 的 node-as-tool 首版由独立研究脚本显式启用，不注册到默认产品入口。
+DSH 主循环可通过真实工具调用委派纯文本专家请求；Python 复用规划运行时的选模、
+隐私准入与同一父 run 账本，DSH 只负责宿主身份、工具注册和模型传输。
+不创建 DAG，也不在标准模型 API 内执行工具循环。该入口不表示通用子 Agent 已共享预算。
+详见 [实验接口与验收](node-as-tool-protocol.md)、[对照与裁定](node-as-tool-eval.md)。
+
 ## 独立模型调用边界
 
 ```mermaid

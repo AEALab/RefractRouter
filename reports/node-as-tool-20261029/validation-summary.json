@@ -1,0 +1,23 @@
+{
+  "status": "P0–P1 工程验收通过；P2 效果对照尚未开始",
+  "pythonFullSuite": {
+    "passed": 2116,
+    "command": "uv run pytest",
+    "exitCode": 0
+  },
+  "nodeToolBehaviorTests": 20,
+  "typescriptStrictCheck": {
+    "command": "npm run --prefix validation/dsh/plugin typecheck",
+    "exitCode": 0
+  },
+  "realDshAcceptance": {
+    "static": "reports/node-as-tool-20261029-static-05/acceptance.json",
+    "stage": "reports/node-as-tool-20261029-stage-05/acceptance.json"
+  },
+  "sourceHashesVerifiedAgainstCurrentWorktree": true,
+  "toolReceiptAndLedgerPairsVerified": true,
+  "networkModelCalls": 0,
+  "realModelCost": 0,
+  "qualityBenefitProven": false,
+  "paidComparisonStatus": "未授权、未运行"
+}

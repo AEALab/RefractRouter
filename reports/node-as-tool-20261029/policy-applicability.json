@@ -1,0 +1,62 @@
+{
+  "observed": {
+    "static": {
+      "modelsByCall": [
+        "small",
+        "small",
+        "small",
+        "small",
+        "small",
+        "small",
+        "small"
+      ],
+      "modelSwitchCount": 0,
+      "decisionReasons": [
+        "static-fixed",
+        "static-fixed",
+        "static-fixed",
+        "static-fixed",
+        "static-fixed",
+        "static-fixed",
+        "static-fixed"
+      ],
+      "expertModels": [
+        "small",
+        "small",
+        "small"
+      ]
+    },
+    "stage": {
+      "modelsByCall": [
+        "small",
+        "small",
+        "small",
+        "small",
+        "small",
+        "small",
+        "small"
+      ],
+      "modelSwitchCount": 0,
+      "decisionReasons": [
+        "no-signal",
+        "no-signal",
+        "ambiguous",
+        "no-signal",
+        "ambiguous",
+        "no-signal",
+        "ambiguous"
+      ],
+      "expertModels": [
+        "small",
+        "small",
+        "small"
+      ]
+    }
+  },
+  "finding": "此离线夹具未触发 Stage 切换；只能证明连通性。规则 Stage 使用工具执行信号，格式正确但内容错误不自动成为质量失败信号。",
+  "p2Gate": "付费前核对所选任务与路由信号的适配性。无实际切换时标记 policy-not-exercised，不能把固定与 Stage 的差解释为模型分配收益。",
+  "evidence": {
+    "static": "reports/node-as-tool-20261029-static-05/acceptance.json",
+    "stage": "reports/node-as-tool-20261029-stage-05/acceptance.json"
+  }
+}

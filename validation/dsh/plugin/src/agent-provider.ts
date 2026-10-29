@@ -133,7 +133,7 @@ export interface AgentAdapter {
 }
 export type AgentContext = NativeToolContext & Pick<DshContext, 'subprocess' | 'sandbox' | 'sandboxPolicy' | 'credentials'> & {
   attachments?:DshContext['attachments']
-  tools?:NativeToolContext['tools']&{register?(tool:unknown):void}
+  tools?:NativeToolContext['tools']&{register?(tool:unknown):unknown}
   settings?: SettingsFiberContext['settings']
   llm: Partial<LlmService> & { registerAdapter(providers: string[], adapter: AgentAdapter): unknown }
   on?: {

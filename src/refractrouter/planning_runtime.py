@@ -90,6 +90,7 @@ class PlanningRuntime(StageHybridRuntime):
             "strategy": run["strategy"], "configDigest": run["config_digest"], "status": run["status"],
             "configuration": run["config"]["raw"], "state": run["state"], "decisions": run["decisions"], "calls": calls,
             "referenceCosts": run["budget"].reference_snapshot(), "costs": legacy_costs, "billingUnit": single_unit, "costsByUnit": costs_by_unit,
+            **({"nodeTools": {k: deepcopy(v) for k, v in run["nodeTools"].items() if k != "offered"}} if run.get("nodeTools") else {}),
             "phase": run["flow"]["pending"][2] if run["flow"] and run["flow"]["pending"] else "idle",
             "coverage": "managed-agent-only", "resultPath": str(path.resolve())}
         temporary = path.with_suffix(".tmp")
@@ -112,8 +113,12 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("需要真实 session/agent/turn 身份")
         if any(not isinstance(v, (str, int)) or isinstance(v, bool) or not str(v) for v in identity.values()):
             raise ValueError("无效执行身份")
+        from .node_tools import profile as compile_node_profile
+        node_profile = compile_node_profile(request.get("nodeTools"))
         key = digest(identity)
         if key in self.runs:
+            if (self.runs[key].get("nodeTools") or {}).get("profile") != node_profile:
+                raise ValueError("任务的节点工具实验配置已冻结")
             return self.describe(self.runs[key])
         # 不从未知派发状态自动恢复或重发；相同身份必须人工核对。
         if (self.root / (key + ".json")).exists():
@@ -126,6 +131,11 @@ class PlanningRuntime(StageHybridRuntime):
         preview_raw = deepcopy(request["config"])
         if child:
             preview_raw["parameters"] = {**preview_raw.get("parameters", {}), "staticMode": "fixed"}
+        if node_profile and (child or strategy not in ("static", "stage")
+                or strategy == "stage" and config["stage"]["mode"] != "rules"):
+            raise ValueError("节点工具首版仅支持主任务 Static 或规则 Stage")
+        if node_profile and (not config["max_calls"] or not config["timeout"]):
+            raise ValueError("节点工具实验需要有限的父任务调用数与期限")
         catalog = preview(preview_raw, request.get("hostIssues"))
         selected = next((r for r in catalog["strategies"] if r["id"] == strategy), None)
         if not selected or not selected["available"]:
@@ -147,6 +157,8 @@ class PlanningRuntime(StageHybridRuntime):
                       "selected_model": None, "judge_decision": None, "mediaOperations": {},
                       "advisorPhase": "initial", "advisorFeedback": None},
             "decisions": []}
+        if node_profile:
+            run["nodeTools"] = {"profile": node_profile, "invocations": [], "offered": {}}
         self.runs[key] = run
         self.persist(run)
         roles = list(REQUIRED[strategy])
@@ -249,6 +261,9 @@ class PlanningRuntime(StageHybridRuntime):
 
     def stop(self, run, reason):
         run["status"] = reason
+        flow = run.get("flow") or {}
+        if flow.get("nodeInvocation") and flow.get("pending"):
+            flow["nodeInvocation"]["status"] = "cancelled" if reason == "cancelled" else "usage-unknown"
         for state_key in ("stageHybrid", "compositeStageHybrid"):
             records = run["state"].get(state_key, {}).get("localRecords", [])
             if records and records[-1]["status"] == "pending":
@@ -266,6 +281,8 @@ class PlanningRuntime(StageHybridRuntime):
         tools = deepcopy(request.get("tools", []))
         if not isinstance(messages, list) or not messages or not isinstance(tools, list):
             raise ValueError("需要原生消息和工具定义")
+        from .node_tools import validate_tools
+        validate_tools(run, tools)
         pending_tools = set()
         seen_tools = set()
         def check_blocks(blocks):
@@ -298,6 +315,8 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("请求超过协议上限")
         events = (validate_evidence(request["toolEvidence"]) if "toolEvidence" in request
                   else tool_events(messages, request.get("events")))
+        if run.get("nodeTools"):
+            run["nodeParentEvents"] = deepcopy(events)
         evidence = digest(events)
         fresh = evidence != run["state"]["last_evidence"]
         if any(e["status"] == "unconfirmed" for e in events[-run["config"]["parameters"]["window"]:]):
@@ -908,6 +927,10 @@ class PlanningRuntime(StageHybridRuntime):
                                    conversion_as_of=model.conversion_as_of)
         run["budget"].dispatch(reservation)
         run["flow"]["pending"] = (token, reservation, purpose)
+        if purpose == "node-tool":
+            node = run["flow"]["nodeInvocation"]
+            node.update(modelCallId=token, status="dispatched")
+            reservation.row.update(tool_call_id=node["toolCallId"], node_intent=node["intent"])
         if update:
             run["state"].update(update)
         self.persist(run)  # 先写未知用量状态，再允许宿主派发。
@@ -1170,14 +1193,29 @@ class PlanningRuntime(StageHybridRuntime):
             if write_tokens and reservation.model.cache_write_cost_per_1k is None:
                 raise ValueError("缓存写入价格未确认；保留预留并停止")
             run["budget"].settle(reservation, response)
-        except Exception:
-            self.stop(run, "call-failed")
+        except Exception as exc:
+            if purpose == "node-tool" and reservation.row["status"] == "billed":
+                from .task_budget import InvalidModelOutput
+                flow["pending"] = None
+                flow["nodeInvocation"].update(status="failed", reason=str(exc))
+                reservation.row.update(disposition="discarded", cache_write_tokens=write_tokens)
+                reason = "node-output-invalid" if isinstance(exc, InvalidModelOutput) else "node-call-failed"
+                self.stop(run, reason if run["status"] == "running" else run["status"])
+            else:
+                self.stop(run, "call-failed")
             raise
+        if purpose == "node-tool":
+            reservation.row["cache_write_tokens"] = write_tokens
         flow["pending"] = None
         flow["responses"][token] = {"content": response.content, "toolCalls": response.tool_calls,
                                     "finishReason": response.finish_reason}
         reservation.row["disposition"] = "consult" if purpose in ("task", "advisor", "escalation") else "buffered"
         self.persist(run)
+        if purpose == "node-tool":
+            from .node_tools import finish
+            if run["deadline"] is not None and time.monotonic() >= run["deadline"]:
+                self.stop(run, "deadline-exhausted")
+            return finish(self, run, token, response)
         if run["status"] != "running" or (run["deadline"] is not None and time.monotonic() >= run["deadline"]):
             self.stop(run, run["status"] if run["status"] != "running" else "deadline-exhausted")
             return {"action": "stop", **self.describe(run)}
@@ -1433,6 +1471,9 @@ class PlanningRuntime(StageHybridRuntime):
         if advance:
             run["state"]["step"] += 1
         feedback = run["flow"]["feedback"]
+        if "nodeInvocation" not in run["flow"]:
+            from .node_tools import offer_calls
+            offer_calls(self, run, run["flow"]["responses"][token])
         run["flow"] = None
         record = self.persist(run)
         return {"action": "release", "callId": token, "feedback": feedback, "record": record, **self.describe(run)}
@@ -1740,9 +1781,12 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
-                "composite-task-stage-v1",
+                "composite-task-stage-v1", "node-as-tool-v1-experimental",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
+        if operation == "node-tools-catalog":
+            from .node_tools import catalog
+            return catalog(request.get("nodeTools"))
         if operation == "jev-complete":
             return self.complete_jev(self.runs[request["runId"]], request)
         if operation == "fx":
@@ -1830,11 +1874,14 @@ class PlanningRuntime(StageHybridRuntime):
                           "interrupted-needs-reconciliation" if run["flow"] else "completed")
             return self.describe(run)
         # 新请求与现有 flow 冲突时，只拒绝新请求，不能取消正在结算的原调用。
-        if operation == "step":
+        if operation in ("step", "node-tool-start"):
             self.require(key)
             if run["flow"] is not None:
                 raise ValueError("相同任务存在未结算的模型请求")
         try:
+            if operation == "node-tool-start":
+                from .node_tools import start
+                return start(self, request)
             if operation == "media-reserve":
                 return self.media_reserve(self.require(key), request)
             if operation == "media-update":

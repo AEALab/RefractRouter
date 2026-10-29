@@ -809,6 +809,7 @@ test('published tarball loads from its compiled export without source or build d
       'dist/dag-progress.js', 'dist/dag-progress.d.ts',
       'dist/entry.js', 'dist/entry.d.ts',
       'dist/native-tools.js', 'dist/native-tools.d.ts',
+      'dist/node-tools.js', 'dist/node-tools.d.ts',
       'dist/media-tools.js', 'dist/media-tools.d.ts',
       'dist/model-wire-options.js', 'dist/model-wire-options.d.ts',
       'dist/tool-evidence.js', 'dist/tool-evidence.d.ts',

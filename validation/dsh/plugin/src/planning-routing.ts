@@ -132,6 +132,7 @@ function waitFor(ms:number,signal:AbortSignal):Promise<void>{
 export class PlanningController {
   readonly rpc:PlanningRpc
   private tasks=new Map<string,string>()
+  private nodeToolProfile?:Json
   private settings:AgentContext['settings']
   private handshake?:Promise<string[]>
   constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc,
@@ -366,6 +367,67 @@ export class PlanningController {
     if(!runId)throw new Error('媒体工具只能在已启动的规划路由任务中使用')
     return runId
   }
+  /** 仅研究入口显式安装；产品 apply 不调用此方法。schema 与限额由 Python 返回。 */
+  async enableNodeTools(profile:Json):Promise<Json>{
+    if(this.nodeToolProfile||this.tasks.size)throw new Error('节点工具必须在任务开始前安装一次')
+    const handshake=await this.rpc.request({op:'handshake'})
+    if(!handshake.capabilities?.includes('node-as-tool-v1-experimental'))throw new Error('核心不支持节点工具实验')
+    const catalog=await this.rpc.request({op:'node-tools-catalog',nodeTools:profile})
+    if(!catalog.tools?.length)throw new Error('节点工具未显式启用')
+    return catalog
+  }
+  activateNodeTools(profile:Json):void{
+    if(this.nodeToolProfile||this.tasks.size)throw new Error('节点工具必须在任务开始前安装一次')
+    this.nodeToolProfile=structuredClone(profile)
+  }
+  async executeNodeTool(agent:NativeAgent,callId:string,name:string,args:unknown,signal:AbortSignal):Promise<Json>{
+    if(!this.nodeToolProfile||!this.ctx.llm.stream)throw new Error('节点工具实验未启用')
+    signal.throwIfAborted()
+    const runId=this.runForAgent(agent)
+    const events=sessionEvents(agent),step=[...events].reverse().find(e=>e.type==='step/start'||e.type==='turn/end')
+    if(step?.type!=='step/start'||!events.some(e=>e.type==='tool/call'&&e.data.callId===callId
+      &&e.data.name===name&&e.data.turn===step.data.turn&&e.data.step===step.data.step))
+      throw new Error('节点工具缺少真实宿主 tool/call 事件')
+    const cancel=()=>{void this.rpc.request({op:'cancel',runId}).catch(()=>{})}
+    signal.addEventListener('abort',cancel,{once:true})
+    let issued=false,settled=false
+    try{
+      const action=await this.rpc.request({op:'node-tool-start',runId,toolCallId:callId,name,arguments:args})
+      issued=true
+      signal.throwIfAborted()
+      const remaining=typeof action.remainingMs==='number'?action.remainingMs:300000
+      const callSignal=AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,remaining))])
+      const blocks=new Map<number,Json>()
+      let content='',usage:TokenUsage|undefined,finish:Json|undefined,bytes=0
+      const started=performance.now()
+      for await(const native of this.ctx.llm.stream(nativeOptions(action,callSignal,{provider:action.model.provider,model:action.model.model,messages:[]}))){
+        const chunk=native as Json
+        bytes+=Buffer.byteLength(JSON.stringify(chunk))
+        if(bytes>8*1024*1024)throw new Error('专家回复超过缓冲上限')
+        if(finish)throw new Error('专家 finish 后继续输出')
+        if(chunk.type==='text-delta')content+=String(chunk.text)
+        if(chunk.type==='block-end')blocks.set(chunk.index,chunk.block)
+        if(chunk.type==='usage')usage=chunk.usage
+        if(chunk.type==='finish')finish=chunk
+      }
+      if(!finish)throw new Error('专家缺少完成回执；保留未知用量')
+      if(!content)content=[...blocks.values()].filter(b=>b.type==='text').map(b=>b.text).join('')
+      const completed=await this.rpc.request({op:'complete',runId,callId:action.callId,response:{content,
+        toolCalls:[...blocks.values()].filter(b=>b.type==='tool-call'),finishReason:finish.reason?.kind,
+        usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
+        inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
+        cachedInputTokens:usage?.cacheReadTokens??0,cacheWriteTokens:usage?.cacheWriteTokens??0,
+        outputTokens:usage?.outputTokens??0,reasoningTokens:usage?.reasoningTokens??0,
+        latencyMs:performance.now()-started}})
+      settled=true
+      signal.throwIfAborted()
+      if(completed.action!=='node-result')throw new Error('核心没有接受专家结果')
+      return completed.result
+    }finally{
+      signal.removeEventListener('abort',cancel)
+      if(issued&&!settled)await this.rpc.request({op:'cancel',runId}).catch(()=>{})
+    }
+  }
   async reserveMedia(agent:NativeAgent,input:Json):Promise<Json>{
     return this.rpc.request({op:'media-reserve',runId:this.runForAgent(agent),...input})
   }
@@ -417,7 +479,8 @@ export class PlanningController {
             hostIssues.__jev__='凭证未配置；请在 DSH 凭证服务登记该引用'
         }
         const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,
-          child:agent.session.header?.origin==='subagent'})
+          child:agent.session.header?.origin==='subagent',
+          ...(this.nodeToolProfile?{nodeTools:this.nodeToolProfile}:{})})
         runId=String(started.runId);this.tasks.set(key,runId)
         if(this.ctx.llm.resolveModelInfo)for(const route of started.models??[])
           await this.ctx.llm.resolveModelInfo(route.provider,route.model)

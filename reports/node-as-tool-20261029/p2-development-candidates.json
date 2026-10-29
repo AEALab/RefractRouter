@@ -1,0 +1,192 @@
+{
+  "status": "草案，未送模型、未批准付费、不是正式留出",
+  "purpose": "开发集 prompt 审查与调用包络准备；不把结构标签或参考值送进模型。",
+  "tasks": [
+    {
+      "task_id": "analysis-01",
+      "public_payload": {
+        "instruction": "依据台账计算实存应为多少，并判断是否可以把差异归因于失窃。输出 expected_stock、observed_gap、theft_proven。",
+        "materials": [
+          {
+            "source_id": "s1",
+            "title": "进出记录",
+            "text": "月初库存80件；本月入库30件，出库46件；报损4件已审批，报损不包含在出库数内。"
+          },
+          {
+            "source_id": "s2",
+            "title": "盘点记录",
+            "text": "月末实盘59件；单据仍有2份待核对，未提供对应数量。无监控或责任调查结果。"
+          }
+        ],
+        "requested_findings": {
+          "expected_stock": "应存件数",
+          "observed_gap": "实盘减应存",
+          "theft_proven": "材料是否已经证明失窃"
+        },
+        "semantic_criteria": [
+          "区分台账差异与原因认定；不擅自补齐待核对数量。"
+        ],
+        "output_contract": {
+          "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+          "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+        }
+      },
+      "payload_sha256": "93012c90ee86eaf9f15de73a7a3419340f5fa4481a790b8e9cada9dd9ca5fe47"
+    },
+    {
+      "task_id": "analysis-02",
+      "public_payload": {
+        "instruction": "分别分析问卷与客服记录，指出能证实的数量和不能合并的统计。输出 survey_negative、service_complaints、can_pool。",
+        "materials": [
+          {
+            "source_id": "s1",
+            "title": "问卷",
+            "text": "自愿填写的50份问卷中，14份表示不满意；未记录是否联系过客服，也未记录未填写者。"
+          },
+          {
+            "source_id": "s2",
+            "title": "客服",
+            "text": "同周共有20条投诉工单，其中4条是同一客户追问；无法与问卷身份对应。"
+          }
+        ],
+        "requested_findings": {
+          "survey_negative": "问卷不满意份数",
+          "service_complaints": "投诉工单条数",
+          "can_pool": "能否合成全体客户不满意率"
+        },
+        "semantic_criteria": [
+          "不把工单当客户数；分别分析两来源并说明抽样与重叠限制。"
+        ],
+        "output_contract": {
+          "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+          "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+        }
+      },
+      "payload_sha256": "32c26ea3177cbf0e6dcfee6f04ad5e9d08bc7b3f7f9a612dfc23cf38c88b5661"
+    },
+    {
+      "task_id": "rules-01",
+      "public_payload": {
+        "instruction": "依据规则判断此次申请能否全数批准。输出 remaining、requested、full_approval。",
+        "materials": [
+          {
+            "source_id": "s1",
+            "title": "规则",
+            "text": "每位成员最多同时持有5件设备；归还只有办理签收后才从持有数扣除。"
+          },
+          {
+            "source_id": "s2",
+            "title": "申请",
+            "text": "申请者已签出3件，另称有1件已放回但尚未签收；本次申请3件。"
+          }
+        ],
+        "requested_findings": {
+          "remaining": "现在可新增借用数",
+          "requested": "此次请求数",
+          "full_approval": "是否可全数批准"
+        },
+        "semantic_criteria": [
+          "不可把口头归还视作已完成手续。"
+        ],
+        "output_contract": {
+          "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+          "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+        }
+      },
+      "payload_sha256": "4f05dd36b9013c5da6d53dec62fda9f0e831e552e2d8a60bf443718e12d09cfa"
+    },
+    {
+      "task_id": "rules-02",
+      "public_payload": {
+        "instruction": "核对每个步骤能否在当前状态执行。输出 allowed_now、blocked_now、required_edge。",
+        "materials": [
+          {
+            "source_id": "s1",
+            "title": "流程",
+            "text": "打包结束才能签名；签名通过才能发布。检查报告只证明打包成功，不代表签名完成。"
+          },
+          {
+            "source_id": "s2",
+            "title": "现状",
+            "text": "打包已结束并通过检查；签名未执行；负责人要求现在直接发布。"
+          }
+        ],
+        "requested_findings": {
+          "allowed_now": "可执行步骤列表",
+          "blocked_now": "仍不能执行步骤列表",
+          "required_edge": "发布直接前置边，用两个步骤名列表表达"
+        },
+        "semantic_criteria": [
+          "最终正文不得倒写依赖或暗示检查通过就能直接发布。"
+        ],
+        "output_contract": {
+          "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+          "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+        }
+      },
+      "payload_sha256": "6f658f6b2bc7fa485b3b89a99d813c16e5495b0d096483974ccd3dd21cd17530"
+    },
+    {
+      "task_id": "decision-01",
+      "public_payload": {
+        "instruction": "分别核对打印和配送，再选满足全部条件的最低总价组合。输出 printer、delivery、total_cost。",
+        "materials": [
+          {
+            "source_id": "s1",
+            "title": "需求与打印",
+            "text": "需双面彩色100份。P报价300元可双面彩色，Q报价200元仅黑白。"
+          },
+          {
+            "source_id": "s2",
+            "title": "配送与预算",
+            "text": "须周五前送达。D报价80元周四送达，E报价40元周六送达；总预算400元。"
+          }
+        ],
+        "requested_findings": {
+          "printer": "所选打印商",
+          "delivery": "配送方案",
+          "total_cost": "总价元"
+        },
+        "semantic_criteria": [
+          "最终组合同时满足所有条件，不能各取便宜项后忽略全局要求。"
+        ],
+        "output_contract": {
+          "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+          "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+        }
+      },
+      "payload_sha256": "22a1ef3c2ac2b37d94350953fbcdad82302d8f6c748fbb1772118e8dcac1063d"
+    },
+    {
+      "task_id": "decision-02",
+      "public_payload": {
+        "instruction": "先判断带班资格，再分配早晚两班，每人最多一班。输出 morning、evening、feasible。",
+        "materials": [
+          {
+            "source_id": "s1",
+            "title": "要求",
+            "text": "每班1人且必须持有有效培训记录。早班08:00–12:00，晚班16:00–20:00。"
+          },
+          {
+            "source_id": "s2",
+            "title": "人员",
+            "text": "甲培训有效，只能早班；乙培训有效，只能晚班；丙培训过期，两班均有空。"
+          }
+        ],
+        "requested_findings": {
+          "morning": "早班人员",
+          "evening": "晚班人员",
+          "feasible": "是否存在符合全部条件安排"
+        },
+        "semantic_criteria": [
+          "同时核验资格、可用时间与班次限制；正文及补充建议都必须符合这些条件。"
+        ],
+        "output_contract": {
+          "answer": "中文说明：结论、依据、限制及必要的权衡；无字数上限，受统一最终输出 token 容量限制。",
+          "findings": "列表，每项含 id、value、sources；id 使用 requested_findings 中的键，sources 使用材料 source_id。"
+        }
+      },
+      "payload_sha256": "4fba3ae2951e18f34410ed8136aa462e4054e0ebba9ed4feecfe54e18274b501"
+    }
+  ]
+}
