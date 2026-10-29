@@ -84,3 +84,23 @@ def test_forged_evidence_and_missing_candidate_cannot_be_replayed_as_pass():
     assert result["prediction"] == "FORMAT_REJECT"
     with pytest.raises(ValueError, match="合同不匹配"):
         parse_native("advisor-delivery", "stage-decision-v2", {}, {}, input_kind="raw-json")
+
+
+def test_unknown_purpose_and_empty_contract_cannot_fall_through_to_escalation():
+    with pytest.raises(ValueError, match="合同不匹配"):
+        parse_native("unregistered-purpose", None,
+                     {"verdict": "PROCEED", "confidence": 1., "evidenceIds": [], "reason": "允许"},
+                     {"evidenceIds": [], "threshold": .8}, input_kind="archived-normalized-decision")
+
+
+@pytest.mark.parametrize("purpose,payload,context", [
+    ("task-fit", {}, {"candidateIds": ["a"], "targetCandidateId": "a", "threshold": .8}),
+    ("stage-progress", {}, {"upgradeThreshold": .8, "downgradeThreshold": .9}),
+    ("advisor-delivery", {"verdict": "REDO"}, {}),
+    ("escalation-takeover", {}, {"evidenceIds": [], "threshold": .8}),
+])
+def test_valid_json_contract_rejection_preserves_wire_success(purpose, payload, context):
+    result = parse_native(purpose, CONTRACTS[purpose], json.dumps(payload), context, input_kind="raw-json")
+    assert result["wireStatus"] == "pass"
+    assert result["contractStatus"] == "rejected"
+    assert result["prediction"] == "FORMAT_REJECT"

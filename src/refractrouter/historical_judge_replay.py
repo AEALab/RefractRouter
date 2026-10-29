@@ -203,6 +203,8 @@ def replay(directory):
         answer = next(i["answer"] for i in bindings[index, arm]["items"] if i["id"] == defect["item_id"])
         _bound(answer, defect, expected_sha=defect["answer_sha256"])
         texts, _ = _sources(material["context"])
+        _require(isinstance(defect["source_bindings"], list) and 1 <= len(defect["source_bindings"]) <= 128,
+                 "确定来源反例必须有非空来源绑定")
         for source in defect["source_bindings"]:
             if source["file_id"] == "question":
                 _require(source["source_id"] == "question", "题干来源身份漂移")

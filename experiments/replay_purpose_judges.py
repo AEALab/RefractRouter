@@ -31,10 +31,25 @@ def snapshot(directory):
     return {str(p.resolve()): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
+def validate_output(history, output):
+    protected = [history, ROOT / "src", ROOT / "experiments"]
+    native = decode((history / "native-archives.json").read_bytes().decode())
+    for spec in native["groups"]:
+        for field in ("report", "contextSource", "templateMetadataSource"):
+            if field in spec:
+                path = (ROOT / spec[field]).resolve()
+                if not path.is_relative_to(ROOT):
+                    raise ValueError("归档越出仓库")
+                study = (ROOT / "reports" / path.relative_to(ROOT / "reports").parts[0]
+                         if path.is_relative_to(ROOT / "reports") else path.parent)
+                protected.append(study)
+    if any(output.is_relative_to(p) or p.is_relative_to(output) for p in protected):
+        raise ValueError("输出不能覆盖或混入历史材料及实现目录")
+
+
 def run(history, output):
     history, output = Path(history).resolve(), Path(output).resolve()
-    if output.is_relative_to(history) or history.is_relative_to(output):
-        raise ValueError("输出不能覆盖或混入历史材料")
+    validate_output(history, output)
     output.mkdir(parents=True, exist_ok=False)
     try:
         before = snapshot(history)

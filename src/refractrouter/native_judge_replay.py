@@ -26,15 +26,18 @@ def _threshold(value):
 
 def parse_native(purpose, contract, payload, context, *, input_kind):
     """输入种类显式声明。旧归一化对象不是原始响应，不能为它生成假的原始字节摘要。"""
-    if not isinstance(purpose, str) or CONTRACTS.get(purpose) != contract:
+    if not isinstance(purpose, str) or purpose not in CONTRACTS or CONTRACTS[purpose] != contract:
         raise ValueError("原生评审用途与合同不匹配")
     if input_kind not in ("raw-json", "archived-structured-answers", "archived-normalized-decision"):
         raise ValueError("原始记录类型无效")
     raw_hash = None
+    wire_status = "unavailable"
     try:
         if input_kind == "raw-json":
+            wire_status = "rejected"
             raw_hash = text_digest(payload) if isinstance(payload, str) else None
             value = decode(payload)
+            wire_status = "pass"
         else:
             wire(payload)
             value = payload
@@ -76,12 +79,12 @@ def parse_native(purpose, contract, payload, context, *, input_kind):
             prediction = {"PROCEED": "ALLOW", "DEFECT": "BLOCK", "STALL": "BLOCK", "UNCERTAIN": "UNKNOWN"}[native["verdict"]]
         return {"prediction": prediction, "nativeDecision": native, "contractStatus": "pass",
                 "rawSha256": raw_hash, "payloadSha256": digest(value), "inputKind": input_kind,
-                "wireStatus": "pass" if input_kind == "raw-json" else "unavailable",
+                "wireStatus": wire_status,
                 "quoteBindingStatus": "not-supported-by-this-contract", "semanticStatus": "unknown"}
     except (ValueError, TypeError, KeyError, UnicodeError, RecursionError) as exc:
         return {"prediction": "FORMAT_REJECT", "nativeDecision": None, "contractStatus": "rejected",
                 "rawSha256": raw_hash, "inputKind": input_kind,
-                "wireStatus": "rejected" if input_kind == "raw-json" else "unavailable",
+                "wireStatus": wire_status,
                 "quoteBindingStatus": "unavailable", "semanticStatus": "unknown",
                 "errorType": type(exc).__name__, "reason": str(exc)}
 

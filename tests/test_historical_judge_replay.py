@@ -8,7 +8,7 @@ import shutil
 import pytest
 
 from refractrouter.historical_judge_replay import replay, _panel
-from experiments.replay_purpose_judges import run
+from experiments.replay_purpose_judges import run, validate_output
 
 
 DATA = Path(__file__).resolve().parents[1] / "data/judge-regression-v1"
@@ -146,3 +146,27 @@ def test_source_binding_requires_both_line_fields_even_when_candidate_binding_do
     (copied / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False))
     with pytest.raises(ValueError, match="完整行号"):
         replay(copied)
+
+
+def test_empty_source_list_cannot_be_counted_as_verified_counterexample(tmp_path):
+    copied = tmp_path / "history"
+    shutil.copytree(DATA, copied)
+    path = copied / "source-adjudication.json"
+    adjudication = json.loads(path.read_bytes())
+    adjudication["confirmed_defects"][0]["source_bindings"] = []
+    path.write_text(json.dumps(adjudication, ensure_ascii=False))
+    manifest = json.loads((copied / "manifest.json").read_bytes())
+    manifest["originalFiles"][path.name]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    (copied / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False))
+    with pytest.raises(ValueError, match="非空来源绑定"):
+        replay(copied)
+
+
+@pytest.mark.parametrize("relative", [
+    "reports/task-judge-audit-20260926/new-output", "reports/advisor-acceptance-20260928/new-output",
+    "data/new-output", "src/new-output", "experiments/new-output",
+])
+def test_output_cannot_be_inserted_in_external_archives_or_implementation_before_mkdir(relative):
+    root = Path(__file__).resolve().parents[1]
+    with pytest.raises(ValueError, match="混入历史材料"):
+        validate_output(DATA, root / relative)
