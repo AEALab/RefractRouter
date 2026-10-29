@@ -408,7 +408,7 @@ export class PlanningController {
       for await(const native of this.ctx.llm.stream(nativeOptions(action,callSignal,{provider:action.model.provider,model:action.model.model,messages:[]}))){
         const chunk=native as Json
         bytes+=Buffer.byteLength(JSON.stringify(chunk))
-        if(bytes>8*1024*1024)throw new Error('专家回复超过缓冲上限')
+        if(bytes>Math.max(8*1024*1024,action.model.maxTokens*256))throw new Error('专家回复超过模型容量缓冲上限')
         if(finish)throw new Error('专家 finish 后继续输出')
         if(chunk.type==='text-delta')content+=String(chunk.text)
         if(chunk.type==='block-end')blocks.set(chunk.index,chunk.block)
@@ -524,7 +524,7 @@ export class PlanningController {
           callSignal.throwIfAborted()
           const chunk=native as Json
           bytes+=Buffer.byteLength(JSON.stringify(chunk))
-          if(bytes>8*1024*1024)throw new Error('规划路由回复缓冲超过 8 MiB')
+          if(bytes>Math.max(8*1024*1024,action.model.maxTokens*256))throw new Error('规划路由回复超过模型容量缓冲上限')
           if(chunk.type==='usage'){usage=chunk.usage as TokenUsage;continue}
           if(chunk.type==='finish'){finish=chunk;continue}
           if(finish)throw new Error('模型 finish 后继续输出')
@@ -540,6 +540,20 @@ export class PlanningController {
         }
         if(!streamError&&!finish)streamError=new Error('底层模型没有返回完成回执；用量待核对')
         if(streamError||callSignal.aborted){
+          if(callSignal.aborted)await this.rpc.request({op:'cancel',runId})
+          if(usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number'
+            &&Number.isSafeInteger(usage.inputTokens)&&Number.isSafeInteger(usage.outputTokens)
+            &&usage.inputTokens+usage.outputTokens>0){
+            const failureText=String(streamError??'调用已取消')
+            try{await this.rpc.request({op:'complete',runId,callId:action.callId,response:{
+              content,toolCalls:[],finishReason:/Response incomplete: length/.test(failureText)?'length':'error',
+              usageAvailable:true,inputTokens:usage.inputTokens+(usage.cacheReadTokens??0)+(usage.cacheWriteTokens??0),
+              cachedInputTokens:usage.cacheReadTokens??0,cacheWriteTokens:usage.cacheWriteTokens??0,
+              outputTokens:usage.outputTokens,reasoningTokens:usage.reasoningTokens??0,latencyMs:performance.now()-started}})
+            }catch(settlement){
+              streamError=new Error(failureText+'；核心结算：'+String(settlement))
+            }
+          }
           await this.rpc.request({op:'cancel',runId})
           if(streamError)throw streamError
           callSignal.throwIfAborted()

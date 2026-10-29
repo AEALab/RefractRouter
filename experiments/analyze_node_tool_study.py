@@ -14,6 +14,7 @@ def report(result):
         "本结果限于三个构造开发任务、同一 DeepSeek V4 Flash 和三次重复；不代表最佳单模型或留出泛化。", "",
         f"批次状态：`{result['status']}`；协议：`{result['protocolSha256']}`。",
         f"真实模型请求：{result['realModelCalls']}；按用量计算及未知预留合计：{result['actualOrReservedAfp']:.6f} AFP。",
+        f"跨批累计请求：{result.get("cumulativeRealModelCalls",result["realModelCalls"])} / 135；累计费用及预留：{result.get("cumulativeActualOrReservedAfp",result["actualOrReservedAfp"]):.6f} / 286 AFP。",
         "AFP 是套餐用量，非人民币实付；供应商账单未独立确认。", "",
         "## 路线结果", "", "| 路线 | 完成/计划 | 关键事实检查通过 | AFP 合计 | 任务时长中位数 ms |",
         "|---|---:|---:|---:|---:|"]

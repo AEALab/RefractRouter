@@ -53,6 +53,11 @@ def obj(value, allowed, name):
 
 @dataclass(frozen=True)
 class PlanningModel(ModelSpec):
+    # 规划调用按已编译模型容量预留，不能沿用历史文本协议的隐藏 8192 截断。
+    @property
+    def unrestricted_planning_output(self):
+        return True
+
     billing_mode: str = "metered"
     deployment: str = "external-cloud"
     trust_policy: str | None = None

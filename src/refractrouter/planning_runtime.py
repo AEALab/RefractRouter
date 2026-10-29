@@ -1210,7 +1210,7 @@ class PlanningRuntime(StageHybridRuntime):
                 reason = "node-output-invalid" if isinstance(exc, InvalidModelOutput) else "node-call-failed"
                 self.stop(run, reason if run["status"] == "running" else run["status"])
             else:
-                self.stop(run, "call-failed")
+                self.stop(run, "call-failed" if run["status"] == "running" else run["status"])
             raise
         if purpose == "node-tool":
             reservation.row["cache_write_tokens"] = write_tokens

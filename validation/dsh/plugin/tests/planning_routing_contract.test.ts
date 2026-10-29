@@ -540,6 +540,7 @@ test('切换策略当前轮保持冻结，新轮重新分类；取消不释放�
     await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor',signal:cancel.signal})))
     const history=await f.controller.history('native-session')
     assert.equal(history.records[0].status,'cancelled')
+    assert.equal(history.records[0].calls.at(-1)?.status,'billed')
   }finally{await f.cleanup()}
 })
 
@@ -853,5 +854,35 @@ test('金额版新增 Ark 模型自动取得参考价且不回退 AFP',async()=>
     assert.equal(info.billingUnit,'CNY')
     assert.equal(info.referencePricing.executionEndpoint,'https://ark.cn-beijing.volces.com/api/plan/v3')
     assert.equal(f.calls.length,0)
+  }finally{await f.cleanup()}
+})
+
+
+test('长度截断的原生错误回执先结算实际用量，不误记未知且不自动重试',async()=>{
+  const f=await fixture()
+  try{
+    f.setReplies([()=>({*[Symbol.iterator](){
+      yield {type:'usage',usage:{inputTokens:100,outputTokens:20,reasoningTokens:18}} as StreamChunk
+      yield {type:'finish',reason:{kind:'error',failure:{code:'PI_AI_ERROR',message:'Response incomplete: length'}}} as StreamChunk
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream(f.options)),/Response incomplete: length/)
+    const history=await f.controller.history('native-session')
+    const row=history.records[0].calls[0]
+    assert.equal(row.status,'billed');assert.equal(row.finish_reason,'length')
+    assert.equal(row.input_tokens,100);assert.equal(row.output_tokens,20)
+    assert.equal(row.reasoning_tokens,18);assert.equal(f.calls.length,1)
+  }finally{await f.cleanup()}
+})
+
+test('SDK 错误附带默认零用量时继续保留未知预留',async()=>{
+  const f=await fixture()
+  try{
+    f.setReplies([()=>({*[Symbol.iterator](){
+      yield {type:'usage',usage:{inputTokens:0,outputTokens:0}} as StreamChunk
+      yield {type:'finish',reason:{kind:'error',failure:{code:'PI_AI_ERROR',message:'connection closed'}}} as StreamChunk
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream(f.options)),/connection closed/)
+    const history=await f.controller.history('native-session')
+    assert.equal(history.records[0].calls[0].status,'unknown-usage')
   }finally{await f.cleanup()}
 })

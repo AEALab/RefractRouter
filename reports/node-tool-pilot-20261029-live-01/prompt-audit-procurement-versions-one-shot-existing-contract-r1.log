@@ -1,0 +1,11 @@
+file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/planning-routing.js:653
+                    streamError = new Error('底层模型调用失败' + (failure?.code ? '（' + String(failure.code) + '）' : '') +
+                                  ^
+
+Error: 底层模型调用失败（PI_AI_ERROR）：Response incomplete: length
+    at PlanningController.stream (file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/planning-routing.js:653:35)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Object.stream (file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/agent-provider.js:1030:17)
+    at async file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/scripts/run-node-tool-study.ts:106:21
+
+Node.js v22.22.3

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from refractrouter.node_tool_study import (ROOT,ARMS,PROMPTS,CAPS,prepare,validate,load_tasks,
-    case_spec,run_dag,run,score_row)
+    case_spec,run_dag,run,score_row,model,cumulative_admission,carry_in)
 from refractrouter.planning_runtime import PlanningRuntime
 from refractrouter.task_budget import request_input_bound
 from tests.test_planning_routing import configuration
@@ -18,7 +18,9 @@ def test_preregistered_three_arm_scope_and_full_budget():
     assert f["maxModelCalls"]==135
     assert f["httpRetries"]==0 and f["evaluationModelCalls"]==0
     assert set(f["arms"])==set(ARMS)
-    assert f["conservativeAfpSum"]<=f["productionAfpUpperBound"]
+    assert f["conservativeAfpSum"]>f["productionAfpUpperBound"]
+    assert f["cumulativeModelCallLimit"]==135
+    assert {v["output"] for v in f["caps"].values()}=={384000}
     assert f["productionAfpUpperBound"]==286
     assert all(set(v)=={"instruction","materials","requested_findings","semantic_criteria","output_contract"} for v in f["tasks"].values())
     assert all("expected" not in json.dumps(c["payload"]) for c in f["optimization"])
@@ -116,3 +118,55 @@ def test_false_facts_cannot_become_pending():
     output={"answer":"没有独立语义审查","findings":[]}
     s=score_row(t,refs[t["task_id"]],json.dumps(output))
     assert s["factStatus"]==s["qualityStatus"]=="fail"
+
+
+def test_full_model_output_is_not_silently_reduced_to_legacy_limit(tmp_path):
+    from refractrouter.responses_api import output_token_limit
+    assert output_token_limit(model())==384000
+    t=load_tasks()[0][0];c=case_spec(t,"one-shot",1,"existing-contract")
+    runtime=PlanningRuntime(tmp_path)
+    run_id=runtime.handle({"op":"begin","identity":{"session":"s","agent":"a","turn":1},
+        "config":c["planningConfig"]})["runId"]
+    action=runtime.handle({"op":"step","runId":run_id,"messages":[{"role":"user","content":"核对材料"}],"tools":[]})
+    row=runtime.runs[run_id]["budget"].records[0]
+    assert action["model"]["maxTokens"]==row["reserved_output_tokens"]==384000
+    assert row["reserved"]>=19.2
+
+
+def test_cumulative_admission_carries_failed_request_and_keeps_full_output():
+    t=load_tasks()[0][0];c=case_spec(t,"node-as-tool",1,"existing-contract")
+    state={"cumulativeRealModelCalls":1,"cumulativeActualOrReservedAfp":100.63}
+    assert cumulative_admission(state,c) is None
+    assert c["afpUpperBound"]==185.37
+    assert c["planningConfig"]["models"][0]["maxOutputTokens"]==384000
+    assert c["nodeTools"]["maxOutputTokens"]==384000
+    state["cumulativeRealModelCalls"]=129
+    assert cumulative_admission(state,c)=="stopped-approved-call-limit"
+    state.update(cumulativeRealModelCalls=1,cumulativeActualOrReservedAfp=286)
+    assert cumulative_admission(state,c)=="stopped-approved-afp-limit"
+
+
+def test_historical_unknown_usage_reserve_is_not_erased_or_reset():
+    f=prepare([ROOT/"reports/node-tool-pilot-20261029-live-01/summary.json"])
+    assert f["priorResults"][0]["realModelCalls"]==1
+    assert f["priorResults"][0]["actualOrReservedAfp"]==pytest.approx(.63)
+    validate(f)
+    f["priorResults"][0]["actualOrReservedAfp"]=0
+    with pytest.raises(ValueError,match="冻结"):validate(f)
+
+
+def test_host_archive_failure_cannot_be_hidden_by_completed_result(tmp_path,monkeypatch):
+    import subprocess
+    import refractrouter.node_tool_study as study
+    def failed_host(command,**kwargs):
+        directory=Path(command[5]);directory.mkdir()
+        (directory/"evidence/planning").mkdir(parents=True)
+        study.write(directory/"evidence/planning/run.json",{"status":"completed","calls":[{"status":"billed","charged":.01}]})
+        study.write(directory/"result.json",{"status":"completed","output":"{}"})
+        return subprocess.CompletedProcess(command,1,"","原始响应归档写入失败")
+    monkeypatch.setattr(study.subprocess,"run",failed_host)
+    result=run(prepare(),tmp_path/"batch",node_modules="/missing",python="/missing")
+    assert result["status"]=="stopped-needs-inspection"
+    assert len(result["runs"])==1
+    assert result["runs"][0]["status"]=="failed"
+    assert result["runs"][0]["factStatus"]=="not-evaluated"

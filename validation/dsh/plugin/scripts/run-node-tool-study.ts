@@ -23,6 +23,9 @@ const {createAdapter,configure}=await import('../dist/agent-provider.js')
 const {registerExperimentalNodeTools}=await import('../dist/node-tools.js')
 let requests=0,unexpectedNetwork=0
 const originalFetch=globalThis.fetch
+const wireJobs:Promise<void>[]=[]
+const scrub=(value:string)=>process.env.CODEX_ARK_API_KEY?value.split(process.env.CODEX_ARK_API_KEY).join('[已隐藏凭证]'):value
+await mkdir(resolve(output,'wire'))
 const safeRequest=(input:any)=>String(typeof input==='string'?input:input instanceof URL?input:input.url)
 globalThis.fetch=async(input:any,init?:any)=>{
   const url=new URL(safeRequest(input))
@@ -30,7 +33,20 @@ globalThis.fetch=async(input:any,init?:any)=>{
     unexpectedNetwork++;throw new Error('研究入口拒绝非冻结模型端点')}
   requests++
   if(requests>spec.maxModelCalls)throw new Error('宿主传输超过冻结模型调用数')
-  if(live)return originalFetch(input,init)
+  if(live){
+    const id=String(requests).padStart(3,'0')
+    // 仅归档正文和非敏感关联 ID，不保存凭证头；clone 读取原请求的响应，不增加请求。
+    await writeFile(resolve(output,'wire',id+'-request.json'),scrub(String(init?.body??'')))
+    const response=await originalFetch(input,init)
+    const job=response.clone().text().then(async body=>{
+      await writeFile(resolve(output,'wire',id+'-response.txt'),scrub(body))
+      await writeFile(resolve(output,'wire',id+'-receipt.json'),JSON.stringify({status:response.status,
+        requestId:response.headers.get('x-request-id'),contentType:response.headers.get('content-type')}))
+    })
+    // 立即挂接异常处理，最终仍须确认归档全部成功，避免后台拒绝丢失证据。
+    job.catch(()=>{});wireJobs.push(job)
+    return response
+  }
   const body=JSON.parse(init.body),all=JSON.stringify(body)
   const expert=all.includes('你是文本专家')
   const tools=body.tools??[]
@@ -138,6 +154,7 @@ try{
   await writeFile(resolve(output,'failure.json'),JSON.stringify({error:String(error),requests,live},null,2))
   throw error
 }finally{
+  await Promise.all(wireJobs)
   await writeFile(resolve(output,'worker-stderr.log'),workerStderr)
   await writeFile(resolve(output,'session-events.json'),JSON.stringify(session.snapshotEvents(),null,2))
   for(const dispose of disposers.reverse())dispose()

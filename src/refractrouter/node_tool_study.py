@@ -1,7 +1,7 @@
 """node-as-tool 当日开发先导：三路线、真实宿主、既有 DAG 调度和可复核事实。"""
 from collections import Counter
 from copy import deepcopy
-from dataclasses import asdict, replace
+from dataclasses import asdict, replace, dataclass
 from decimal import Decimal, ROUND_CEILING
 import hashlib
 import json
@@ -22,15 +22,59 @@ from .task_execution import execute_nodes
 from .task_scheduling import ExecutionPolicy
 
 ROOT = Path(__file__).resolve().parents[2]
-SCHEMA = "node-tool-three-arm-pilot-v1"
+SCHEMA = "node-tool-three-arm-pilot-v2"
 RATE = Decimal(".05")
 ARMS = ("one-shot", "node-as-tool", "dag")
 PROMPTS = {"existing-contract": FINAL_SYSTEM, "explicit-verification": FINAL_SYSTEM +
     "交付前逐项复核计算、版本替代、必要条件与来源支持。证据不足时明确未证明，不靠猜测补齐。正文和字段必须一致。"}
 NODE_HINT = "可按需调用 refract_expert 分析材料、核对约束或综合结论。复杂子问题可委派，不必机械拆分；专家结果仍需自行核对。最终按原交付合同回答。"
-CAPS = {"main": {"input": 65536, "output": 8192}, "expert": {"input": 32768, "output": 2048},
-        "planner": {"input": 16384, "output": 1200}, "worker": {"input": 32768, "output": 2048},
-        "final": {"input": 65536, "output": 8192}}
+# 使用模型目录的完整输出容量；思考与正文共享额度，不再用研究自设的小额度截断。
+from .ark_plan import catalog
+MODEL_OUTPUT = next(m["max_output_tokens"] for m in catalog()["models"] if m["model_id"] == "deepseek-v4-flash")
+CAPS = {stage: {"input": 32768 if stage == "expert" else 600000, "output": MODEL_OUTPUT}
+        for stage in ("main", "expert", "planner", "worker", "final")}
+APPROVED_AFP = 286
+APPROVED_CALLS = 135
+
+
+@dataclass(frozen=True)
+class PilotModel(ModelSpec):
+    unrestricted_execution_output: bool = True
+
+
+def carry_in(paths):
+    entries=[]
+    for name in paths:
+        path=Path(name).resolve()
+        if not path.is_relative_to(ROOT):
+            raise ValueError("历史用量证据必须位于当前研究工作区")
+        record=json.loads(path.read_text())
+        if record.get("simulated") is not False:
+            raise ValueError("不能把演练当成历史真实用量")
+        calls=sum(c["status"] != "cancelled-before-dispatch" for r in record["runs"] for c in r["calls"])
+        cost=sum(Decimal(str(c["charged"])) for r in record["runs"] for c in r["calls"])
+        if calls != record["realModelCalls"] or abs(float(cost)-record["actualOrReservedAfp"]) > 1e-8:
+            raise ValueError("历史汇总与原始调用账本不一致")
+        entries.append({"path":str(path.relative_to(ROOT)),"sha256":file_hash(path),
+            "realModelCalls":calls,"actualOrReservedAfp":float(cost),"protocolSha256":record["protocolSha256"]})
+    if len({v["path"] for v in entries}) != len(entries):
+        raise ValueError("历史批次不得重复累计")
+    return entries
+
+
+def cumulative_admission(result, case):
+    # 原先导的失败调用和未知用量预留持续占用同一人类批准额度。
+    if result["cumulativeRealModelCalls"] + case["maxModelCalls"] > APPROVED_CALLS:
+        return "stopped-approved-call-limit"
+    remaining=Decimal(str(APPROVED_AFP))-Decimal(str(result["cumulativeActualOrReservedAfp"]))
+    if remaining <= 0:
+        return "stopped-approved-afp-limit"
+    # 只给实际派发保留足额容量；逐调用预留在 Python 核心执行。
+    # 不能用所有未来请求都输出到模型最大容量的总和，提前阻断整个研究。
+    case["unconstrainedAfpUpperBound"]=case["afpUpperBound"]
+    case["afpUpperBound"]=min(case["afpUpperBound"],float(remaining))
+    case["planningConfig"]["maxProductionCostByUnit"]["AFP"]=case["afpUpperBound"]
+    return None
 
 
 def write(path, value):
@@ -69,9 +113,9 @@ def load_tasks():
 def model():
     from .ark_plan import catalog
     row = next(m for m in catalog()["models"] if m["model_id"] == "deepseek-v4-flash")
-    return ModelSpec("flash", "ark-plan", .05, .05, .55, billing_unit="AFP", api_model=row["model_id"],
+    return PilotModel("flash", "ark-plan", .05, .05, .55, billing_unit="AFP", api_model=row["model_id"],
         base_url="https://ark.cn-beijing.volces.com/api/plan/v3", api_key_env="CODEX_ARK_API_KEY",
-        context_window=row["context_window_tokens"], max_output_tokens=8192, wire_api="responses",
+        context_window=row["context_window_tokens"], max_output_tokens=MODEL_OUTPUT, wire_api="responses",
         json_mode_strategy="prompt-only", cached_input_cost_per_1k=.05)
 
 
@@ -80,7 +124,7 @@ def config(maximum, calls):
     raw = {"schemaVersion":"refractagent-planning-v2", "enabled":True,"defaultStrategy":"static",
         "maxProductionCostByUnit":{"AFP":maximum},"maxCalls":calls,"timeoutMs":600000,
         "models":[{"id":"flash","provider":"ark-node-study","model":m.api_model,
-            "contextWindow":m.context_window,"maxOutputTokens":8192,"inputPer1k":.05,
+            "contextWindow":m.context_window,"maxOutputTokens":MODEL_OUTPUT,"inputPer1k":.05,
             "outputPer1k":.05,"cachedInputPer1k":.05,"billingUnit":"AFP",
             "deployment":"trusted-cloud","trustPolicy":"node-pilot"}],"roles":{"efficient":"flash"},
         "parameters":{"staticMode":"fixed"},"trustPolicies":[{"id":"node-pilot","residency":"CN",
@@ -133,7 +177,7 @@ def case_spec(task, arm, repeat, prompt_id, *, phase="comparison", protocol_hash
     return raw
 
 
-def prepare():
+def prepare(prior_results=()):
     tasks, refs = load_tasks()
     optimization = [case_spec(t,"one-shot",rep,p,phase="prompt-audit")
         for rep in range(1,4) for t in tasks for p in (list(PROMPTS) if rep%2 else list(reversed(PROMPTS)))]
@@ -152,7 +196,9 @@ def prepare():
         "arms":list(ARMS),"repeats":3,"optimization":optimization,"schedule":schedule,
         "promptSelection":"关键事实检查通过数最多，其次失败检查最少，再以该候选总费用较低、提示 ID 字典序较小决胜；不使用随后三路线结果调参",
         "maxModelCalls":sum(c["maxModelCalls"] for c in optimization)+sum({"one-shot":1,"node-as-tool":7,"dag":5}[s["arm"]] for s in schedule),
-        "conservativeAfpSum":total,"productionAfpUpperBound":int(Decimal(str(total)).to_integral_value(rounding=ROUND_CEILING)),"evaluationModelCalls":0,"httpRetries":0,"maxNodeFallbacks":0,
+        "conservativeAfpSum":total,"productionAfpUpperBound":APPROVED_AFP,
+        "cumulativeModelCallLimit":APPROVED_CALLS,"priorResults":carry_in(prior_results),
+        "admissionPolicy":"累计实际费用与未知预留不超过 286 AFP；每次派发按完整模型容量预留，已结算余额可复用；所有真实请求累计不超过 135 次","evaluationModelCalls":0,"httpRetries":0,"maxNodeFallbacks":0,
         "pricing":{"sourceUrl":"https://www.volcengine.com/docs/82379/2516283?lang=zh","verifiedAt":"2026-10-29",
             "inputCoefficient":.5,"outputCoefficient":.5,"discountAssumed":False,"unit":"AFP 套餐用量，非人民币实付"},
         "implementation":implementation(),"dshVersion":"0.1.5-rc.3","qualityVerdict":"Insufficient-evidence",
@@ -165,7 +211,7 @@ def prepare():
 
 
 def validate(frozen):
-    if frozen != prepare():
+    if frozen != prepare([ROOT/v["path"] for v in frozen.get("priorResults",[])]):
         raise ValueError("冻结任务、实现、模型、费用或提示发生变化；不得复用旧批准摘要")
 
 
@@ -197,7 +243,7 @@ class RehearsalClient:
 
 def run_dag(case,out,*,simulated):
     out.mkdir(parents=True,exist_ok=False);started=time.monotonic()
-    budget=PilotBudget(RehearsalClient() if simulated else OpenAICompatibleClient(max_retries=0),case["afpUpperBound"])
+    budget=PilotBudget(RehearsalClient() if simulated else OpenAICompatibleClient(max_retries=0,timeout_seconds=600),case["afpUpperBound"])
     budget.final_system=PROMPTS[case["promptId"]]
     lock=RLock()
     (out/"calls").mkdir()
@@ -215,7 +261,7 @@ def run_dag(case,out,*,simulated):
         budget.stages["planner"]="planner"
         response=budget.complete(model(),[{"role":"system","content":COMPACT_PLANNER_SYSTEM},
             {"role":"user","content":json.dumps({"task":case["payload"],"max_nodes":4},ensure_ascii=False)}],
-            label="planner",timeout_seconds=90)
+            label="planner",timeout_seconds=600)
         plan=compile_compact(json.loads(response.content),criteria=case["payload"]["semantic_criteria"],max_nodes=4)
         record["plan"]=plan.to_dict()
         for n in plan.nodes:budget.stages["dag:"+n.node_id]="final" if n.node_id==plan.final_node_id else "worker"
@@ -248,13 +294,18 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
     out=Path(out).resolve();out.mkdir(parents=True,exist_ok=False);(out/"cases").mkdir()
     tasks,refs=load_tasks();by_id={t["task_id"]:t for t in tasks}
     result={"schema":SCHEMA,"status":"running","simulated":not live,"protocolSha256":frozen["protocolSha256"],
-        "runs":[],"realModelCalls":0,"actualOrReservedAfp":0,"qualityVerdict":"Insufficient-evidence","providerBillingConfirmed":False}
+        "runs":[],"realModelCalls":0,"actualOrReservedAfp":0,
+        "cumulativeRealModelCalls":sum(v["realModelCalls"] for v in frozen["priorResults"]),
+        "cumulativeActualOrReservedAfp":sum(v["actualOrReservedAfp"] for v in frozen["priorResults"]),"qualityVerdict":"Insufficient-evidence","providerBillingConfirmed":False}
     write(out/"frozen.json",frozen)
     def persist():write(out/"summary.json",result)
     def trial(case):
         if implementation()!=frozen["implementation"]:
             result["status"]="stopped-implementation-changed";persist();return False
         case["protocolSha256"]=frozen["protocolSha256"]
+        refused=cumulative_admission(result,case)
+        if refused:
+            result["status"]=refused;persist();return False
         write(out/"cases"/(case["runId"]+".json"),case)
         directory=out/case["runId"];entered=time.monotonic()
         if case["arm"]=="dag":
@@ -276,17 +327,23 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
                 evidence=json.loads(records[0].read_text());calls=evidence["calls"];core_status=evidence["status"]
             row=json.loads((directory/"result.json").read_text()) if (directory/"result.json").exists() else {
                 "status":"failed","output":"","error":str((directory/"failure.json").read_text()) if (directory/"failure.json").exists() else "宿主失败"}
+            if completed.returncode != 0:
+                row.update(status="failed",error=row.get("error") or completed.stderr[-2000:] or "宿主归档或执行异常")
             row["coreStatus"]=core_status
             if row["status"]!="completed":row["failureKind"]="model-output" if core_status in ("node-output-invalid","call-failed") else "infrastructure"
         row.update(runId=case["runId"],taskId=case["taskId"],arm=case["arm"],phase=case["phase"],
             repeat=case["repeat"],promptId=case["promptId"],calls=calls,outerElapsedMs=(time.monotonic()-entered)*1000,
             chargedOrReserved=sum(c["charged"] for c in calls),costKnown=all(c["status"] in ("billed","cancelled-before-dispatch") for c in calls))
         result["runs"].append(row)
-        result["realModelCalls"]+=len(calls) if live else 0
+        result["realModelCalls"]+=sum(c["status"]!="cancelled-before-dispatch" for c in calls) if live else 0
         result["actualOrReservedAfp"]+=row["chargedOrReserved"] if live else 0
-        row.update(score_row(by_id[case["taskId"]],refs[case["taskId"]],row.get("output","")))
+        result["cumulativeRealModelCalls"]=result["realModelCalls"]+sum(v["realModelCalls"] for v in frozen["priorResults"])
+        result["cumulativeActualOrReservedAfp"]=result["actualOrReservedAfp"]+sum(v["actualOrReservedAfp"] for v in frozen["priorResults"])
+        row.update(score_row(by_id[case["taskId"]],refs[case["taskId"]],row.get("output","")) if row["status"]=="completed"
+            else {"factStatus":"not-evaluated","qualityStatus":"pending","checks":[],"unverified":["未取得完整交付；运行错误不冒充模型事实错误"]})
         if (len(calls)>case["maxModelCalls"] or row["chargedOrReserved"]>case["afpUpperBound"]+1e-8
-                or result["actualOrReservedAfp"]>frozen["productionAfpUpperBound"]+1e-8):
+                or result["cumulativeActualOrReservedAfp"]>frozen["productionAfpUpperBound"]+1e-8
+                or result["cumulativeRealModelCalls"]>frozen["cumulativeModelCallLimit"]):
             result["status"]="stopped-budget-integrity";persist();return False
         # 已结算的无效答案可以继续独立样本；传输、认证、未知用量或写入异常不能继续。
         if (not row["costKnown"] or not calls or row["status"]!="completed" and

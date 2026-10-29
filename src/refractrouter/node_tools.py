@@ -17,7 +17,7 @@ def profile(raw):
         raise ValueError("节点工具研究入口需要显式 enabled=true；关闭时省略 nodeTools")
     result = {"enabled": True}
     for key, default, upper in (("maxNodeCalls", 3, 16), ("maxTools", 40, 50),
-                                ("maxInputChars", 12000, 50000), ("maxOutputTokens", 1024, 8192)):
+                                ("maxInputChars", 12000, 50000), ("maxOutputTokens", 1024, 10000000)):
         value = raw.get(key, default)
         if type(value) is not int or not 1 <= value <= upper:
             raise ValueError(f"节点工具 {key} 必须为 1–{upper} 的整数")
