@@ -10,6 +10,9 @@
 - `case-*-materials.json`：从原请求提取的完整可见材料、完整候选和要求；新容器不冒充原文件。
 - `source-adjudication.json`：原有来源反证和未决边界，逐字节保留。它声明不是人工金标。
 - `case-*-template.txt`：从原评审请求提取的系统模板原文，作为精确后端分组依据。
+- `case-*-request.json`：原评审请求正文，原样保留并与原派发摘要交叉核对，未含认证头。
+- `native-archives.json`：四用途72条现有解析器归档、上下文与模板来源文件的固定摘要。
+- `semantic-boundaries.json`：18条四用途构造开发边界，期望不进入模型 packet；不算独立校准。
 
 完整材料不含凭据、现金账本、参考补丁或隐藏评估文件；不会作为新任务输入自动发送。
 Sphinx 来源提交 `f1061c012e214f16fd8790dec3c283d787e3daa8`，SymPy 来源提交

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
+import re
 
 from .judge_qualification import qualify
 from .purpose_review import decode, digest, text_digest
@@ -22,7 +23,7 @@ def _file(root, name):
     _require(isinstance(name, str) and Path(name).name == name, "重放文件名不合法")
     path = root / name
     _require(not path.is_symlink() and path.stat().st_size <= 1024 * 1024, "重放文件超量或是链接")
-    return path.read_text(encoding="utf-8")
+    return path.read_bytes().decode("utf-8")
 
 
 def _sources(context):
@@ -52,7 +53,26 @@ def _references(rows, lines):
                  "来源引用超出冻结行范围")
 
 
-def _panel(material, judgment, conversion):
+def _panel(material, judgment, conversion, request):
+    _require(judgment["mechanically_valid"] is True and conversion["mechanically_valid"] is True,
+             "本重放不把原程序机械拒绝修成有效评审")
+    messages = request["messages"]
+    _require(len(messages) == 2 and messages[0]["role"] == "system" and messages[1]["role"] == "user",
+             "原始评审请求结构漂移")
+    original = decode(messages[1]["content"])
+    _require(digest(original["candidates"]) == judgment["candidates_sha256"], "原始评审候选摘要不符")
+    _require(digest(original["requirements"]) == judgment["requirements_sha256"], "原始评审要求摘要不符")
+    extracted = {c["id"]: c["payload"] for c in original["candidates"]}
+    _require(extracted == material["candidates"], "提取候选与实际原始评审请求不同")
+    normalized_requirements = [{"id": r["id"], "text": r["text_zh"]} for r in material["requirements"]]
+    _require(normalized_requirements == original["requirements"], "提取要求与实际原始评审请求不同")
+    visible = original["context"]
+    _require([s["source_id"] for s in material["context"]["sources"] if s["role"] == "primary"]
+             == [visible["primary_source_id"]], "提取主来源身份与原请求不同")
+    _require(visible["question"] == material["context"]["question"], "提取题干与原始请求不同")
+    files = [{"source_id": f["source_id"], "file_id": f["file_id"], "path": f["path"],
+              "text": f["numbered_source"]} for f in material["context"]["files"]]
+    _require(files == visible["files"], "提取来源与实际原始评审请求不同")
     raw = judgment["raw_utf8"]
     _require(text_digest(raw) == judgment["raw_sha256"], "原始评审摘要不符")
     payload = decode(raw)
@@ -123,13 +143,22 @@ def _panel(material, judgment, conversion):
     return results
 
 
-def _bound(text, binding, *, expected_sha):
+def _bound(text, binding, *, expected_sha, require_lines=False):
     _require(text_digest(text) == expected_sha, "来源/候选全文摘要漂移")
     start, end = binding["start_codepoint"], binding["end_codepoint"]
     _require(type(start) is int and type(end) is int and 0 <= start < end <= len(text), "反例原文范围错误")
     _require(text[start:end] == binding["quote"], "反例原文与实际材料不同")
     _require(len(text[:start].encode()) == binding["start_utf8_byte"]
              and len(text[:end].encode()) == binding["end_utf8_byte"], "反例字节范围漂移")
+    if require_lines or "start_line" in binding or "end_line" in binding:
+        _require("start_line" in binding and "end_line" in binding, "反例来源必须提供完整行号")
+        starts = [0] + [m.end() for m in re.finditer(r"\r\n|\r|\n", text) if m.end() < len(text)]
+        first, last = binding["start_line"], binding["end_line"]
+        _require(type(first) is int and type(last) is int and 1 <= first <= last <= len(starts),
+                 "反例来源行号无效")
+        lower, upper = starts[first - 1], starts[last] if last < len(starts) else len(text)
+        _require(lower <= start < end <= upper and text.find(binding["quote"], lower, upper) == start
+                 and text.find(binding["quote"], start + 1, upper) < 0, "反例来源行号与原文位置不符或不唯一")
 
 
 def replay(directory):
@@ -139,7 +168,7 @@ def replay(directory):
     for name, provenance in manifest["originalFiles"].items():
         _require(text_digest(_file(root, name)) == provenance["sha256"], "归档原始文件漂移：" + name)
     adjudication = decode(_file(root, "source-adjudication.json"))
-    cases, folds, bindings = {}, {}, {}
+    cases, folds, bindings, context_ids = {}, {}, {}, {}
     for panel in manifest["panels"]:
         raw = _file(root, panel["materials"])
         _require(text_digest(raw) == panel["materialsSha256"], "完整候选/来源材料漂移")
@@ -148,7 +177,22 @@ def replay(directory):
         _require(index not in cases, "历史来源簇重复")
         cases[index] = (panel, material)
         blind = decode(_file(root, panel["blindMap"]))["task_map"]
-        labels = _panel(material, decode(_file(root, panel["judgment"])), decode(_file(root, panel["conversion"])))
+        request_raw = _file(root, panel["request"])
+        _require(text_digest(request_raw) == panel["requestSha256"], "原始评审请求摘要漂移")
+        judgment = decode(_file(root, panel["judgment"]))
+        context_ids[index] = judgment["context_sha256"]
+        request = decode(request_raw)
+        _require(request["model"] == panel["backend"]["model"] and
+                 text_digest(request["messages"][0]["content"]) == panel["backend"]["templateSha256"],
+                 "后端/模板身份与原始请求不同")
+        labels = _panel(material, judgment, decode(_file(root, panel["conversion"])), request)
+        texts, _ = _sources(material["context"])
+        for source in material["context"]["sources"]:
+            members = [{"path": f["path"], "file_utf8_sha256": text_digest(texts[f["source_id"], f["file_id"]])}
+                       for f in material["context"]["files"] if f["source_id"] == source["source_id"]]
+            members.sort(key=lambda f: f["path"])
+            _require(digest({"commit": source["origin_commit"], "files": members}) == source["snapshot_sha256"],
+                     "冻结来源快照摘要漂移")
         for cid, arm in blind.items():
             folds[index, arm] = labels[cid]
             bindings[index, arm] = material["candidates"][cid]
@@ -161,11 +205,18 @@ def replay(directory):
         texts, _ = _sources(material["context"])
         for source in defect["source_bindings"]:
             if source["file_id"] == "question":
+                _require(source["source_id"] == "question", "题干来源身份漂移")
                 text, sha = material["context"]["question"], source["question_sha256"]
             else:
+                metadata = next(f for f in material["context"]["files"]
+                                if (f["source_id"], f["file_id"]) == (source["source_id"], source["file_id"]))
+                origin = next(s for s in material["context"]["sources"] if s["source_id"] == source["source_id"])
+                _require(source["path"] == metadata["path"] and source["commit"] == origin["origin_commit"]
+                         and source["snapshot_sha256"] == origin["snapshot_sha256"]
+                         and source["context_sha256"] == context_ids[index], "反例来源身份与冻结材料不符")
                 text = texts[source["source_id"], source["file_id"]]
                 sha = source["file_utf8_sha256"]
-            _bound(text, source, expected_sha=sha)
+            _bound(text, source, expected_sha=sha, require_lines=True)
         defects[index, arm].append(defect)
     observations = []
     for (index, arm), found in sorted(defects.items()):

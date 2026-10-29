@@ -5,7 +5,7 @@ import json
 import pytest
 
 from refractrouter.purpose_review import (
-    PURPOSES, decode, llm_messages, packet, parse_review, span, wire,
+    PURPOSES, decode, inspect_review, llm_messages, packet, parse_review, span, wire,
 )
 
 
@@ -110,3 +110,22 @@ def test_blank_requirement_cannot_be_used_as_a_placeholder_to_approve_a_candidat
 def test_non_string_purpose_uses_normal_invalid_input_path(purpose):
     with pytest.raises(ValueError, match="用途"):
         packet(purpose, "任务", [{"id": "r", "text": "要求"}], "正文", [])
+
+
+def test_wire_schema_binding_and_semantics_are_separate_records():
+    value, result = fixture()
+    good = inspect_review(wire(result), value)
+    assert good["bindingStatus"] == "pass" and good["semanticStatus"] == "unknown"
+    assert inspect_review("{", value)["rejectedLayer"] == "wire"
+    incomplete = deepcopy(result)
+    incomplete["checks"].pop()
+    assert inspect_review(wire(incomplete), value)["rejectedLayer"] == "schema"
+    unrelated = deepcopy(result)
+    unrelated["checks"][0]["candidateRefs"][0]["quote"] = "伪造"
+    observed = inspect_review(wire(unrelated), value)
+    assert observed["rejectedLayer"] == "binding"
+    assert observed["prediction"] == "FORMAT_REJECT" and observed["semanticStatus"] == "unknown"
+    invalid_packet = deepcopy(value)
+    invalid_packet["candidate"] += "另一个候选"
+    with pytest.raises(ValueError, match="漂移"):
+        inspect_review(wire(result), invalid_packet)

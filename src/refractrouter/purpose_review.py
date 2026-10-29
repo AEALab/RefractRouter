@@ -16,6 +16,12 @@ PURPOSES = {
 MAX_BYTES = 1024 * 1024
 
 
+class ReviewRejected(ValueError):
+    def __init__(self, layer, message):
+        super().__init__(message)
+        self.layer = layer
+
+
 def wire(value):
     try:
         pending, count = [(value, 0)], 0
@@ -153,63 +159,85 @@ def span(text, start, end, *, source_id=None):
 
 def _references(rows, candidate, sources, *, source):
     if not isinstance(rows, list) or len(rows) > 64:
-        raise ValueError("评审引用类型或数量错误")
+        raise ReviewRejected("schema", "评审引用类型或数量错误")
     seen = set()
     for row in rows:
         keys = {"start", "end", "quote", "sha256"} | ({"sourceId"} if source else set())
         if not isinstance(row, dict) or set(row) != keys:
-            raise ValueError("评审引用字段错误")
+            raise ReviewRejected("schema", "评审引用字段错误")
         source_id = row.get("sourceId")
         if source and (not isinstance(source_id, str) or source_id not in sources):
-            raise ValueError("评审引用未知来源")
+            raise ReviewRejected("binding", "评审引用未知来源")
         text = sources[source_id] if source else candidate
-        expected = span(text, row["start"], row["end"], source_id=source_id)
+        try:
+            expected = span(text, row["start"], row["end"], source_id=source_id)
+        except ValueError as exc:
+            raise ReviewRejected("binding", str(exc)) from exc
         if row != expected or wire(row) in seen:
-            raise ValueError("评审引用原文/哈希不符或重复")
+            raise ReviewRejected("binding", "评审引用原文/哈希不符或重复")
         seen.add(wire(row))
 
 
 def parse_review(raw, value):
     """只验证 wire、全文覆盖声明和原文绑定。返回的模型判词仍须独立校准。"""
     validate_packet(value)
-    result = decode(raw)
+    try:
+        result = decode(raw)
+    except ValueError as exc:
+        raise ReviewRejected("wire", str(exc)) from exc
     if not isinstance(result, dict) or set(result) != {
         "contract", "purpose", "packetSha256", "coverage", "checks", "verdict"
     }:
-        raise ValueError("评审响应字段错误")
+        raise ReviewRejected("schema", "评审响应字段错误")
     for key in ("contract", "purpose", "packetSha256"):
         if result[key] != value[key]:
-            raise ValueError("评审用途、版本或材料摘要不匹配")
+            raise ReviewRejected("binding", "评审用途、版本或材料摘要不匹配")
     ids = [r["id"] for r in value["requirements"]]
     coverage = result["coverage"]
     if (not isinstance(coverage, dict) or set(coverage) != {"candidate", "requirements"}
             or coverage != {"candidate": "full", "requirements": ids}):
-        raise ValueError("评审未声明完整候选及全部要求")
+        raise ReviewRejected("schema", "评审未声明完整候选及全部要求")
     rows = result["checks"]
     if not isinstance(rows, list) or len(rows) != len(ids):
-        raise ValueError("评审未逐项覆盖全部要求")
+        raise ReviewRejected("schema", "评审未逐项覆盖全部要求")
     seen, statuses = set(), []
     sources = {s["id"]: s["text"] for s in value["sources"]}
     for row in rows:
         if not isinstance(row, dict) or set(row) != {
             "requirementId", "status", "reason", "candidateRefs", "sourceRefs"
         }:
-            raise ValueError("评审检查字段错误")
+            raise ReviewRejected("schema", "评审检查字段错误")
         key, status = row["requirementId"], row["status"]
         if not isinstance(key, str) or key not in ids or key in seen or status not in ("PASS", "FAIL", "UNKNOWN"):
-            raise ValueError("评审检查缺失、重复或状态无效")
-        if not _text(row["reason"], 4000).strip():
-            raise ValueError("评审缺少判断依据")
+            raise ReviewRejected("schema", "评审检查缺失、重复或状态无效")
+        if (not isinstance(row["reason"], str) or not row["reason"].strip() or len(row["reason"]) > 4000):
+            raise ReviewRejected("schema", "评审缺少判断依据")
         _references(row["candidateRefs"], value["candidate"], sources, source=False)
         _references(row["sourceRefs"], value["candidate"], sources, source=True)
         if status != "UNKNOWN" and (not value["candidate"] or not row["candidateRefs"]):
-            raise ValueError("确定判断缺少实际候选原文绑定")
+            raise ReviewRejected("binding", "确定判断缺少实际候选原文绑定")
         seen.add(key)
         statuses.append(status)
     verdict = "BLOCK" if "FAIL" in statuses else "UNKNOWN" if "UNKNOWN" in statuses else "ALLOW"
     if result["verdict"] != verdict:
-        raise ValueError("评审总判词与逐项结果不一致")
+        raise ReviewRejected("schema", "评审总判词与逐项结果不一致")
     return {"verdict": verdict, "checks": deepcopy(rows), "mechanicallyValid": True,
             "semanticValidityProven": False, "coverageIsSelfReported": True,
             "contract": VERSION, "purpose": value["purpose"], "packetSha256": value["packetSha256"],
             "rawSha256": text_digest(raw)}
+
+
+def inspect_review(raw, value):
+    """将模型响应三层诊断分开记录；无效输入材料仍抛错，不甩给模型承担。"""
+    validate_packet(value)
+    try:
+        parsed = parse_review(raw, value)
+    except ReviewRejected as exc:
+        return {"prediction": "FORMAT_REJECT", "rejectedLayer": exc.layer, "reason": str(exc),
+                "wireStatus": "rejected" if exc.layer == "wire" else "pass",
+                "schemaStatus": "unavailable" if exc.layer == "wire" else
+                                "rejected" if exc.layer == "schema" else "not-fully-validated",
+                "bindingStatus": "rejected" if exc.layer == "binding" else "unavailable",
+                "semanticStatus": "unknown", "semanticValidityProven": False}
+    return {**parsed, "prediction": parsed["verdict"], "wireStatus": "pass", "schemaStatus": "pass",
+            "bindingStatus": "pass", "semanticStatus": "unknown"}

@@ -118,3 +118,25 @@ def test_unknown_rate_is_measured_on_independent_batch_not_diluted_by_old_regres
         r["prediction"] = "UNKNOWN"
     rows.extend(row(f"old-{i}") for i in range(400))
     assert "unknown-rate-exceeded" in qualify(rows, {key(rows[0]): POLICY})["groups"][0]["reasons"]
+
+
+@pytest.mark.parametrize("kind", ["historical-regression", "constructed-contract"])
+@pytest.mark.parametrize("different_backend", [False, True])
+def test_independent_sources_cannot_overlap_exposed_sources_in_any_backend(kind, different_backend):
+    rows = independent()
+    exposed = row("already-exposed", cluster=rows[0]["clusterId"], kind=kind)
+    if different_backend:
+        exposed["backend"]["model"] = "another-model"
+    report = qualify([*rows, exposed], {key(rows[0]): POLICY})
+    group = next(g for g in report["groups"] if g["groupId"] == key(rows[0]))
+    assert group["qualified"] is False
+    assert "independent-calibration-overlaps-exposed-source-cluster" in group["reasons"]
+
+
+@pytest.mark.parametrize("revision", [" unknown ", "unpinned\n", "\tunavailable"])
+def test_unpinned_revision_markers_cannot_hide_in_identity_whitespace(revision):
+    rows = independent()
+    for r in rows:
+        r["backend"]["modelRevision"] = revision
+    with pytest.raises(ValueError, match="首尾空白"):
+        qualify(rows, {key(rows[0]): POLICY})

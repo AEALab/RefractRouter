@@ -27,6 +27,8 @@ def backend_identity(value):
     for key in IDENTITY_FIELDS - {"scoreThreshold"}:
         if not isinstance(value[key], str) or not value[key].strip() or len(value[key]) > 256:
             raise ValueError("评审身份字段无效")
+        if value[key] != value[key].strip():
+            raise ValueError("评审身份字段不得有首尾空白")
     if len(value["templateSha256"]) != 64 or any(c not in "0123456789abcdef" for c in value["templateSha256"]):
         raise ValueError("评审模板摘要无效")
     if value["scoreThreshold"] is not None:
@@ -100,6 +102,7 @@ def qualify(observations, policies):
         groups[key].append(row)
     if set(policies) - set(groups):
         raise ValueError("准入策略包含未观察的评审身份")
+    exposed_clusters = {r["clusterId"] for r in observations if r["sampleKind"] != "independent-calibration"}
     results = []
     for key, rows in sorted(groups.items()):
         counts = Counter(r["prediction"] for r in rows)
@@ -145,6 +148,8 @@ def qualify(observations, policies):
             reasons.append("unresolved-case-approved")
         if len({r["clusterId"] for r in independent}) != len(independent):
             reasons.append("independent-calibration-has-reused-source-cluster")
+        if exposed_clusters.intersection(r["clusterId"] for r in independent):
+            reasons.append("independent-calibration-overlaps-exposed-source-cluster")
         if rows[0]["backend"]["modelRevision"].lower() in ("unknown", "unpinned", "unavailable"):
             reasons.append("model-revision-unpinned")
         results.append({"groupId": key, "identity": {"purpose": rows[0]["purpose"], "backend": rows[0]["backend"]},

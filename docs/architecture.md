@@ -36,6 +36,8 @@ TypeScript 只传递原生请求、执行核心签发的模型调用及展示轨
 [规划路由](trajectory-routing-strategies.md)。
 Task v3 的模型池、共同 Judge 合同、本地 Laya-MLX 及媒体边界见
 [Task 多模型路由、本地 Judge 与媒体接入](task-local-judge-media.md)。
+分用途评审的离线回归、来源反证与后端资格边界见
+[评审回归与准入](purpose-judge-regression.md)。候选合同不自动替换产品审核器或阈值。
 
 ## 独立模型调用边界
 
