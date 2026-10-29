@@ -11,7 +11,7 @@ export interface PlanningModelCapabilities {
   checkedAt?:string
 }
 export interface PlanningModelConfig {
-  id:string;provider:string;model:string;contextWindow?:number;maxOutputTokens?:number
+  id:string;provider:string;model:string;revision?:string;contextWindow?:number;maxOutputTokens?:number
   inputPer1k?:number;outputPer1k?:number;cachedInputPer1k?:number;cacheWritePer1k?:number
   reasoningEffort?:string;billingUnit?:'USD'|'AFP'|'CNY';deployment?:string;trustPolicy?:string
   billingMode?:'metered'|'subscription';referencePricing?:{executionEndpoint:string;price:Record<string,unknown>;mapping:Record<string,unknown>;schedule?:Array<{minInputTokens:number;price:Record<string,unknown>}>}
@@ -55,7 +55,7 @@ export interface MediaRouteConfig {
   verified?:boolean;verification?:CapabilityLevel;endpoint?:string
 }
 export interface PlanningConfig {
-  schemaVersion:'refractagent-planning-v1'|'refractagent-planning-v2'|'refractagent-planning-v3'|'refractagent-planning-v4'|'refractagent-planning-v5'|'refractagent-planning-v6'|'refractagent-planning-v7'
+  schemaVersion:'refractagent-planning-v1'|'refractagent-planning-v2'|'refractagent-planning-v3'|'refractagent-planning-v4'|'refractagent-planning-v5'|'refractagent-planning-v6'|'refractagent-planning-v7'|'refractagent-planning-v8'
   enabled:boolean;defaultStrategy?:PlanningStrategy
   billingUnit?:'USD'|'AFP'|'CNY';maxProductionCost?:number;maxReferenceCost?:number
   maxProductionCostByUnit?:Partial<Record<'USD'|'AFP'|'CNY',number>>;timeoutMs?:number;maxCalls?:number
@@ -65,6 +65,7 @@ export interface PlanningConfig {
   security?:{sensitiveTerms?:string[];maxPromptBytes?:number}
   trustPolicies?:Array<Record<string,unknown>>
   compatiblePairs?:string[][]
+  taskShadow?:Record<string,unknown>
   task?:TaskRoutingConfig
   composite?:CompositeRoutingConfig
   escalation?:EscalationRoutingConfig
@@ -84,7 +85,7 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
   if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('planningRouting 必须为对象')
   // 这里只约束传输类型。候选资格、计价、安全准入与 Judge 合同统一由 Python 检查。
   const v=value as Json
-  if(!['refractagent-planning-v1','refractagent-planning-v2','refractagent-planning-v3','refractagent-planning-v4','refractagent-planning-v5','refractagent-planning-v6','refractagent-planning-v7'].includes(String(v.schemaVersion))||typeof v.enabled!=='boolean')
+  if(!['refractagent-planning-v1','refractagent-planning-v2','refractagent-planning-v3','refractagent-planning-v4','refractagent-planning-v5','refractagent-planning-v6','refractagent-planning-v7','refractagent-planning-v8'].includes(String(v.schemaVersion))||typeof v.enabled!=='boolean')
     throw new Error('planningRouting 需要 schemaVersion 与 enabled')
   if(v.defaultStrategy!==undefined&&(typeof v.defaultStrategy!=='string'||!(v.defaultStrategy in PLANNING_NAMES)))
     throw new Error('未知规划路由策略')
@@ -95,6 +96,8 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
     throw new Error('planningRouting.roles 需要角色引用对象')
   if(v.parameters!==undefined&&(!v.parameters||typeof v.parameters!=='object'||Array.isArray(v.parameters)))
     throw new Error('planningRouting.parameters 需要对象')
+  if(v.taskShadow!==undefined&&(!v.taskShadow||typeof v.taskShadow!=='object'||Array.isArray(v.taskShadow)))
+    throw new Error('planningRouting.taskShadow 需要影子配置对象')
   if(v.task!==undefined&&(!v.task||typeof v.task!=='object'||Array.isArray(v.task)))
     throw new Error('planningRouting.task 需要 Task 设置对象')
   if(v.composite!==undefined&&(!v.composite||typeof v.composite!=='object'||Array.isArray(v.composite)))

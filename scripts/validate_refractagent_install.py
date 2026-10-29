@@ -11,10 +11,38 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def run_process(command, *, cwd, env, stdin=None, timeout=180):
+    """命令及其 worker 共用独立进程组，超时或取消时一起清理。"""
+    process = subprocess.Popen([str(x) for x in command], cwd=cwd, env=env,
+        text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        start_new_session=True)
+    try:
+        stdout, stderr = process.communicate(input=stdin, timeout=timeout)
+    except BaseException:
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        try:
+            process.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass
+        finally:
+            # 后代可能已关闭管道，communicate 返回不代表整个组已退出。
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate(timeout=2)
+        raise
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
 
 
 def isolated_environment(base, workspace, inherited):
@@ -244,8 +272,7 @@ def main():
         env = isolated_environment(base, workspace, os.environ)
         commands = []
         def run(command, cwd=workspace, *, stdin=None):
-            result = subprocess.run([str(x) for x in command], cwd=cwd, env=env,
-                text=True, input=stdin, capture_output=True, timeout=180)
+            result = run_process(command, cwd=cwd, env=env, stdin=stdin)
             commands.append({'command':[str(x) for x in command], 'exit_code':result.returncode})
             if result.returncode:
                 raise RuntimeError(f'{command[0]} failed: {result.stderr[-5000:]}\n{result.stdout[-1000:]}')
@@ -286,7 +313,10 @@ def main():
             results.append({k:summary[k] for k in ('strategy','models','status','simulated','costs')})
         configured = validate_configured_providers(run, workspace, executable, runs, env) if args.configured_providers else None
         readonly_facts = validate_readonly_facts(run, workspace, executable)
-        evidence = {'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        installed_python = executable.resolve().with_name('python')
+        task_shadow = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_task_shadow_worker.py',
+                                      '--executable', executable, '--workspace', workspace]))
+        evidence = {'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},

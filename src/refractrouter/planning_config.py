@@ -17,6 +17,7 @@ SCHEMA_V4 = "refractagent-planning-v4"
 SCHEMA_V5 = "refractagent-planning-v5"
 SCHEMA_V6 = "refractagent-planning-v6"
 SCHEMA_V7 = "refractagent-planning-v7"
+SCHEMA_V8 = "refractagent-planning-v8"
 PROTOCOL = "refractagent-planning/4"
 MAX_CONFIG_BYTES = 16 * 1024 * 1024
 STRATEGIES = ("stage", "task", "composite", "advisor", "escalation", "static")
@@ -105,7 +106,7 @@ def _task_config(raw, schema, declared_ids, roles):
         return {"mode": "legacy", "pool": list(dict.fromkeys(pool)),
             "fallback": roles.get("capable"), "judge": {"type": "llm", "modelId": roles.get("classifier")},
             "threshold": .8, "maxInputChars": 12000}
-    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
+    if schema not in (SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8):
         raise ValueError(f"Task 模型池需要 {SCHEMA_V3} 或 {SCHEMA_V4}")
     task = obj(supplied, ("pool", "fallback", "judge", "threshold", "maxInputChars",
                           "maxExecutionOutputTokens", "maxJudgeOutputTokens"), "task")
@@ -161,7 +162,7 @@ def _escalation_config(raw, schema, declared_ids, roles):
             "stallConfirmations": parameters["confirmations"], "threshold": .8,
             "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536,
             "maxExecutionOutputTokens": 8192, "maxJudgeOutputTokens": 1024}
-    if schema not in (SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
+    if schema not in (SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8):
         raise ValueError(f"Escalation 独立设置需要 {SCHEMA_V4}")
     value = obj(supplied, ("initial", "takeover", "judge", "stallConfirmations", "threshold",
         "judgeTimeoutMs", "maxJudgeInputBytes", "maxExecutionOutputTokens", "maxJudgeOutputTokens"),
@@ -215,11 +216,11 @@ def _advisor_config(raw, schema, declared_ids, roles):
     if supplied is None:
         return {"mode": "legacy", "judge": {"type": "llm", "modelId": roles.get("advisor")},
                 "threshold": .8, "judgeTimeoutMs": 30000, "maxJudgeInputBytes": 65536}
-    if schema not in (SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
+    if schema not in (SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8):
         raise ValueError(f"Advisor 独立 Judge 设置需要 {SCHEMA_V5} 或 {SCHEMA_V6}")
     allowed = ("judge", "threshold", "judgeTimeoutMs", "maxJudgeInputBytes",
                "allowExperimental")
-    if schema in (SCHEMA_V6, SCHEMA_V7):
+    if schema in (SCHEMA_V6, SCHEMA_V7, SCHEMA_V8):
         allowed += ("executor", "maxExecutionOutputTokens", "maxJudgeOutputTokens")
     value = obj(supplied, allowed, "advisor")
     executor = value.get("executor", roles.get("efficient"))
@@ -245,7 +246,7 @@ def _advisor_config(raw, schema, declared_ids, roles):
             raise ValueError("Advisor 本地 Judge 尚待专项验收；需明确启用实验模式")
     elif judge.get("type") != "jev":
         raise ValueError("advisor.judge.type 必须是 llm、local-decision 或 jev")
-    return {"mode": "configured", "flow": "gate-v2" if schema in (SCHEMA_V6, SCHEMA_V7) else "legacy",
+    return {"mode": "configured", "flow": "gate-v2" if schema in (SCHEMA_V6, SCHEMA_V7, SCHEMA_V8) else "legacy",
         "executor": executor, "judge": judge,
         "allowExperimental": value.get("allowExperimental") is True,
         "threshold": number(value.get("threshold", .8), "advisor.threshold", 0, 1),
@@ -256,15 +257,15 @@ def _advisor_config(raw, schema, declared_ids, roles):
             "advisor.maxExecutionOutputTokens", 256, 1000000, True),
         "maxJudgeOutputTokens": number(value.get("maxJudgeOutputTokens", 1024),
             "advisor.maxJudgeOutputTokens", 64, 16384, True),
-        "maxReviews": 2 if schema in (SCHEMA_V6, SCHEMA_V7) else None,
-        "maxRedos": 1 if schema in (SCHEMA_V6, SCHEMA_V7) else None}
+        "maxReviews": 2 if schema in (SCHEMA_V6, SCHEMA_V7, SCHEMA_V8) else None,
+        "maxRedos": 1 if schema in (SCHEMA_V6, SCHEMA_V7, SCHEMA_V8) else None}
 
 
 def _stage_config(raw):
     supplied = raw.get("stage")
     if supplied is None:
         return {"mode": "rules"}
-    if raw["schemaVersion"] not in (SCHEMA_V5, SCHEMA_V6, SCHEMA_V7):
+    if raw["schemaVersion"] not in (SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8):
         raise ValueError("Stage 独立设置需要 planning v5 或 v6")
     stage = obj(supplied, ("mode", "judge", "allowExperimental", "window", "interval",
         "maxJudgements", "holdTurns", "downgradeConfirmations", "upgradeThreshold",
@@ -310,7 +311,7 @@ def _composite_config(raw, schema, declared_ids, roles):
             "takeover": roles.get("capable"), "stage": {"mode": "rules",
                 "window": parameters["window"], "threshold": parameters["threshold"],
                 "holdTurns": parameters["holdTurns"]}}
-    if schema not in (SCHEMA_V6, SCHEMA_V7):
+    if schema not in (SCHEMA_V6, SCHEMA_V7, SCHEMA_V8):
         raise ValueError(f"Composite 独立设置需要 {SCHEMA_V6}")
     value = obj(supplied, ("pool", "takeover", "judge", "threshold", "maxInputChars",
         "maxExecutionOutputTokens", "maxJudgeOutputTokens", "stage"), "composite")
@@ -346,13 +347,13 @@ def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
         "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage",
-        "composite", "mediaRoutes", "jev", "maxReferenceCost"), "planningRouting"))
-    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7) or type(raw.get("enabled")) is not bool:
+        "composite", "mediaRoutes", "jev", "maxReferenceCost", "taskShadow"), "planningRouting"))
+    if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
             isinstance(model, dict) and "billingUnit" in model for model in raw.get("models", []))):
         raise ValueError(f"多计费单位配置需要 {SCHEMA_V2}")
-    if raw["schemaVersion"] == SCHEMA_V7:
+    if raw["schemaVersion"] in (SCHEMA_V7, SCHEMA_V8):
         if raw.get("billingUnit") != "CNY":
             raise ValueError("金额版规划路由必须使用 CNY 预算")
         if set(raw.get("maxProductionCostByUnit", {})) - {"CNY"}:
@@ -364,7 +365,7 @@ def compile_config(raw):
                 raise ValueError("金额版不能执行 AFP 路线；请先配置对应公开金额价格")
     reference_limit = raw.get("maxReferenceCost")
     if reference_limit is not None:
-        if raw["schemaVersion"] != SCHEMA_V7:
+        if raw["schemaVersion"] not in (SCHEMA_V7, SCHEMA_V8):
             raise ValueError("参考成本预算需要 v7 配置")
         number(reference_limit, "maxReferenceCost")
     strategy = raw.get("defaultStrategy", "stage")
@@ -429,7 +430,11 @@ def compile_config(raw):
         m = obj(item, ("id", "provider", "model", "contextWindow", "maxOutputTokens",
             "inputPer1k", "outputPer1k", "cachedInputPer1k", "cacheWritePer1k", "reasoningEffort",
             "deployment", "trustPolicy", "capabilityCard", "billingUnit", "capabilities",
-            "billingMode", "referencePricing"), "model")
+            "billingMode", "referencePricing", "revision"), "model")
+        if "revision" in m:
+            if raw["schemaVersion"] != SCHEMA_V8 or (not isinstance(m["revision"], str) or not m["revision"]
+                    or m["revision"] != m["revision"].strip() or len(m["revision"]) > 256):
+                raise ValueError("模型 revision 需要 v8 的明确固定身份")
         model_id = m.get("id")
         if not isinstance(model_id, str) or not model_id.strip() or len(model_id) > 256:
             raise ValueError("model.id 无效")
@@ -513,6 +518,10 @@ def compile_config(raw):
             raise ValueError("角色引用不存在的模型")
     task = _task_config(raw, raw["schemaVersion"], declared_ids, roles)
     composite = _composite_config(raw, raw["schemaVersion"], declared_ids, roles)
+    from .task_empirical import compile_shadow
+    task_shadow = compile_shadow(raw.get("taskShadow"), schema=raw["schemaVersion"], pool=task["pool"])
+    if task_shadow is not None and (strategy != "task" or task["mode"] != "pool"):
+        raise ValueError("经验影子首版只用于独立 Task 模型池")
     escalation = _escalation_config(raw, raw["schemaVersion"], declared_ids, roles)
     advisor = _advisor_config(raw, raw["schemaVersion"], declared_ids, roles)
     media_routes = raw.get("mediaRoutes", [])
@@ -568,7 +577,7 @@ def compile_config(raw):
         if media_mode not in ('metered', 'subscription'):
             raise ValueError('mediaRoute.billingMode 无效')
         if media_mode == 'subscription':
-            if raw['schemaVersion'] != SCHEMA_V7 or reference_limit is None:
+            if raw['schemaVersion'] not in (SCHEMA_V7, SCHEMA_V8) or reference_limit is None:
                 raise ValueError('订阅媒体需要新版参考成本账本')
             from .currency_pricing import reference_price, subscription_valuation
             reference = row.get('referencePricing', {})
@@ -609,7 +618,7 @@ def compile_config(raw):
     return {"raw": raw, "enabled": raw["enabled"], "strategy": strategy, "unit": unit, "budget": budget,
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
-        "task": task, "composite": composite, "escalation": escalation, "advisor": advisor,
+        "task": task, "task_shadow": task_shadow, "composite": composite, "escalation": escalation, "advisor": advisor,
         "stage": _stage_config(raw), "jev": jev, "media_routes": normalized_media,
         "model_issues": model_issues, "reference_limit": reference_limit}
 

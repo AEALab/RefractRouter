@@ -8,6 +8,7 @@ import { configure,createAdapter,type AgentContext,type ModelOptions } from '../
 import { PlanningController,PlanningWorker,planningMessages } from '../dist/planning-routing.js'
 import type { PlanningConfig, PlanningStrategy } from '../dist/planning-config.js'
 import type { StreamChunk } from '../dist/contracts.js'
+import { createHash } from 'node:crypto'
 
 const root=resolve('../../..')
 const config:PlanningConfig={schemaVersion:'refractagent-planning-v1',enabled:true,maxProductionCost:10,
@@ -71,6 +72,35 @@ async function fixture(strategy:PlanningStrategy='static',relativeRuns=false){
     async cleanup(){disposal?.();worker.dispose();await new Promise(r=>setTimeout(r,50));await rm(path,{recursive:true,force:true})}}
 }
 async function collect(iterable:AsyncIterable<Record<string,unknown>>){const out:Record<string,unknown>[]=[];for await(const v of iterable)out.push(v);return out}
+
+test('v8影子配置经真实Python核心往返，未知缓存保留且不追加分类或改变执行模型',async()=>{
+  const f=await fixture('task')
+  try{
+    const profile={kind:'simulation',observations:[],schemaVersion:'task-empirical-profile-v1'}
+    const today=new Date().toISOString().slice(0,10)
+    f.setPlanning({...config,schemaVersion:'refractagent-planning-v8',defaultStrategy:'task',billingUnit:'CNY',
+      maxProductionCostByUnit:{CNY:10},models:config.models!.map(m=>({...m,revision:'fixture-r1',billingUnit:'CNY',
+        capabilities:{mainExecutor:m.id!=='judge',toolCalling:'verified'}})),
+      task:{pool:['small','large'],fallback:'large',judge:{type:'llm',modelId:'judge'},threshold:.8},
+      taskShadow:{schemaVersion:'task-expected-cost-shadow-v1',profile,
+        profileSha256:createHash('sha256').update(JSON.stringify(profile)).digest('hex'),
+        families:[{id:'fixture-extract',description:'构造提取协议探针',criteriaSha256:'a'.repeat(64),criterionIds:['complete']}],
+        routeVersion:'dsh-fixture-v1',cacheCondition:'unknown',pricingDate:today,expiresOn:today,minSamples:3,qualityMin:.95}})
+    const response=JSON.stringify({taskFamily:'fixture-extract',answers:{candidates:{
+      C1:{score:.99,missingInformation:0},C2:{score:.99,missingInformation:0}}}})
+    f.setReplies([()=>reply(response),()=>reply('模拟交付')])
+    const chunks=await collect(f.controller.stream({...f.options,reasoningEffort:'rr:task'}))
+    const finish=chunks.find(c=>c.type==='finish') as any
+    const runId=finish.replayState.response.refractPlanning.runId
+    const outcome=await f.controller.outcome({op:'outcome',runId,turn:1})
+    assert.equal(outcome.costContext.family,'fixture-extract')
+    assert.equal(outcome.taskShadow.actualSelectionChanged,false)
+    assert.equal(outcome.taskShadow.uncertain,true)
+    assert.equal(f.calls.length,2)
+    assert.equal(f.calls[1].model,'small')
+    assert.equal(f.toolExecutions,0)
+  }finally{await f.cleanup()}
+})
 
 test('任务结果按真实宿主会话查询和反馈，不追加模型调用或改写用量',async()=>{
   const f=await fixture('static')
