@@ -1,0 +1,755 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.12.1, anyio-4.15.0
+collected 2141 items
+
+tests/test_adaptive_review.py ....................                       [  0%]
+tests/test_advisor_acceptance.py ....                                    [  1%]
+tests/test_afp_cost_analysis.py ....                                     [  1%]
+tests/test_agent_application.py ............                             [  1%]
+tests/test_agent_progress.py ......                                      [  2%]
+tests/test_agent_server.py ..F.                                          [  2%]
+tests/test_applicability_host_audit.py ..                                [  2%]
+tests/test_application_boundaries.py ..........                          [  2%]
+tests/test_ark_afp_tiers.py ...............                              [  3%]
+tests/test_ark_thinking_capabilities.py .........                        [  4%]
+tests/test_assignment_reduction.py .....                                 [  4%]
+tests/test_automatic_actual_catalog.py ...........                       [  4%]
+tests/test_automatic_applicability.py ................                   [  5%]
+tests/test_automatic_budget.py ............                              [  6%]
+tests/test_automatic_cash_admission.py ..................                [  6%]
+tests/test_automatic_cost_profiles.py .................                  [  7%]
+tests/test_automatic_dag.py .........                                    [  8%]
+tests/test_automatic_failure_repairs.py ................................ [  9%]
+...........                                                              [ 10%]
+tests/test_automatic_mixed_assignment.py .......                         [ 10%]
+tests/test_automatic_mixed_configuration.py ..........                   [ 10%]
+tests/test_automatic_output_forecast.py ...                              [ 11%]
+tests/test_automatic_routing.py .........................                [ 12%]
+tests/test_automatic_trace.py ..........................                 [ 13%]
+tests/test_automatic_workflow_fixtures.py .                              [ 13%]
+tests/test_benchmark.py .......                                          [ 13%]
+tests/test_blind_calibration.py ...........                              [ 14%]
+tests/test_client_tool_evidence.py ...                                   [ 14%]
+tests/test_compact_identifier_normalization.py ...                       [ 14%]
+tests/test_compact_planner_thinking.py ........                          [ 14%]
+tests/test_comparison_cohorts.py ..............                          [ 15%]
+tests/test_composite_acceptance.py .                                     [ 15%]
+tests/test_confirmed_failure_usage.py ...............                    [ 16%]
+tests/test_contract_replay.py ................                           [ 17%]
+tests/test_cost_first_planning.py .............                          [ 17%]
+tests/test_currency_migration.py ...........................             [ 19%]
+tests/test_currency_pricing.py ..................                        [ 19%]
+tests/test_dag_batch_study.py .....                                      [ 20%]
+tests/test_dag_handoff.py ...                                            [ 20%]
+tests/test_dag_study.py ........                                         [ 20%]
+tests/test_dag_study_report.py .....                                     [ 20%]
+tests/test_dataset.py .                                                  [ 20%]
+tests/test_decomposition_decision.py ...................                 [ 21%]
+tests/test_decomposition_jev.py ...............                          [ 22%]
+tests/test_decomposition_value.py ..............                         [ 23%]
+tests/test_deepagents_executor.py .                                      [ 23%]
+tests/test_deepseek_official_pricing.py .................                [ 23%]
+tests/test_dsh_canonical_runner.py ..                                    [ 24%]
+tests/test_dsh_live_failures.py ..                                       [ 24%]
+tests/test_dsh_model_pool.py ..................                          [ 24%]
+tests/test_dsh_parallel_bridge.py ...                                    [ 25%]
+tests/test_dsh_plugin.py .....                                           [ 25%]
+tests/test_dsh_real_runner.py ......                                     [ 25%]
+tests/test_dsh_runner.py .                                               [ 25%]
+tests/test_dsh_strategy_branches.py ..                                   [ 25%]
+tests/test_dsh_strategy_stability.py ....                                [ 25%]
+tests/test_escalation_acceptance.py ....                                 [ 26%]
+tests/test_evidence_state.py ..........                                  [ 26%]
+tests/test_execution_modes.py ..............                             [ 27%]
+tests/test_explicit_planner_limit.py .........                           [ 27%]
+tests/test_fast_dynamic_dag.py ..........................                [ 28%]
+tests/test_final_correction.py .................                         [ 29%]
+tests/test_finalize_real.py ....................                         [ 30%]
+tests/test_gateway_capabilities.py ........                              [ 31%]
+tests/test_gateway_streaming.py FFFFFF.......                            [ 31%]
+tests/test_generated_input_capacity.py .....                             [ 31%]
+tests/test_graph_executor.py ...                                         [ 31%]
+tests/test_http_timeout_diagnostics.py ..........                        [ 32%]
+tests/test_jev_choice_gate.py ..........                                 [ 32%]
+tests/test_jev_decision.py .......                                       [ 33%]
+tests/test_jev_openrouter.py ............                                [ 33%]
+tests/test_jev_planning_integration.py ..............                    [ 34%]
+tests/test_joint_research.py ...                                         [ 34%]
+tests/test_judge.py ..                                                   [ 34%]
+tests/test_judge_cost_projection.py ......                               [ 34%]
+tests/test_judge_question_audit.py .......                               [ 35%]
+tests/test_judge_replay_export.py ..........                             [ 35%]
+tests/test_judge_replay_moa.py ............................              [ 37%]
+tests/test_judge_tool_flow.py ....                                       [ 37%]
+tests/test_k3_baseline.py ....................................           [ 38%]
+tests/test_k3_reviews.py ....................                            [ 39%]
+tests/test_live_execution.py .......................................     [ 41%]
+tests/test_local_decision_backend.py ......                              [ 41%]
+tests/test_manifest.py ..                                                [ 42%]
+tests/test_minimal_planning.py ........................                  [ 43%]
+tests/test_moa_consensus_aggregation.py ..........                       [ 43%]
+tests/test_moa_escalation_runner.py .........                            [ 44%]
+tests/test_moa_quality_pipeline.py ................                      [ 44%]
+tests/test_moa_review.py ....................                            [ 45%]
+tests/test_model_catalog.py ...                                          [ 45%]
+tests/test_model_failure_diagnostics.py ...                              [ 46%]
+tests/test_model_gateway.py ............FF........F......F.....          [ 47%]
+tests/test_model_registry.py ..                                          [ 47%]
+tests/test_model_selection.py ...................                        [ 48%]
+tests/test_model_tool_validation.py .............                        [ 49%]
+tests/test_native_tool_runtime.py .........................              [ 50%]
+tests/test_node_quality.py ................                              [ 51%]
+tests/test_node_quality_acceptance.py ........                           [ 51%]
+tests/test_node_recovery.py ......................                       [ 52%]
+tests/test_node_selection_policy.py ............                         [ 53%]
+tests/test_node_study_sampling.py ....                                   [ 53%]
+tests/test_node_tool_evidence_audit.py ......                            [ 53%]
+tests/test_node_tool_study.py ...............                            [ 54%]
+tests/test_node_tools.py ....................                            [ 55%]
+tests/test_openai_compatible.py ...........                              [ 55%]
+tests/test_openrouter_pricing.py ..........                              [ 56%]
+tests/test_oracles.py ..                                                 [ 56%]
+tests/test_output_constraints.py ...............................         [ 57%]
+tests/test_pareto_development.py ............                            [ 58%]
+tests/test_planning_jev_benchmark.py ..                                  [ 58%]
+tests/test_planning_routing.py ......................................... [ 60%]
+........................................................................ [ 63%]
+......                                                                   [ 63%]
+tests/test_plugin_event_migration.py .                                   [ 64%]
+tests/test_prefix_cache.py .......................                       [ 65%]
+tests/test_price_refresh.py ..                                           [ 65%]
+tests/test_privacy_classifier_validation.py .......                      [ 65%]
+tests/test_privacy_placement.py ........................................ [ 67%]
+..........                                                               [ 67%]
+tests/test_profile_strata.py .............                               [ 68%]
+tests/test_proposal_review.py .......................................... [ 70%]
+...............                                                          [ 71%]
+tests/test_provider_configuration.py ................................... [ 72%]
+...........                                                              [ 73%]
+tests/test_quality_calibration.py ................                       [ 74%]
+tests/test_quality_failure_attribution.py ....                           [ 74%]
+tests/test_quality_runtime.py ........                                   [ 74%]
+tests/test_quality_statistics.py ........                                [ 74%]
+tests/test_quality_study.py ......................                       [ 75%]
+tests/test_real_runner.py ......                                         [ 76%]
+tests/test_reasoning_routing.py ..............................           [ 77%]
+tests/test_recovery_study.py ............................                [ 78%]
+tests/test_replay_cheap_judge.py .....                                   [ 79%]
+tests/test_report_renderer.py .                                          [ 79%]
+tests/test_research_analysis.py ...............                          [ 79%]
+tests/test_research_calibration.py ......                                [ 80%]
+tests/test_research_execution.py ................                        [ 80%]
+tests/test_research_live_pilot.py ...                                    [ 81%]
+tests/test_research_protocol.py ...............                          [ 81%]
+tests/test_responses_api.py ........................                     [ 82%]
+tests/test_review_evidence.py ..............................             [ 84%]
+tests/test_review_time_guard.py ...................                      [ 85%]
+tests/test_route_observations.py ..........                              [ 85%]
+tests/test_routing.py ...                                                [ 85%]
+tests/test_scoring.py .....                                              [ 86%]
+tests/test_security_benchmark.py .....                                   [ 86%]
+tests/test_security_benchmark_bindings.py .............                  [ 86%]
+tests/test_security_benchmark_budget.py ..........                       [ 87%]
+tests/test_selective_context.py .........................                [ 88%]
+tests/test_source_pack.py ...                                            [ 88%]
+tests/test_source_state_guard.py ..................................      [ 90%]
+tests/test_stage_daily_acceptance.py ....                                [ 90%]
+tests/test_stage_hybrid.py ...................                           [ 91%]
+tests/test_stage_study.py ...........                                    [ 91%]
+tests/test_subscription_budget.py ..............                         [ 92%]
+tests/test_symmetric_routing.py ...                                      [ 92%]
+tests/test_task_concurrency.py ..................                        [ 93%]
+tests/test_task_decomposition.py ....................................... [ 95%]
+...                                                                      [ 95%]
+tests/test_task_output_budget.py ...                                     [ 95%]
+tests/test_task_quality_pilot.py .....                                   [ 95%]
+tests/test_task_research_holdout.py ..                                   [ 95%]
+tests/test_task_tool_evidence.py ....................................    [ 97%]
+tests/test_team_service.py ..FF                                          [ 97%]
+tests/test_text_handoff_replay.py ........                               [ 98%]
+tests/test_text_tasks.py ..........................                      [ 99%]
+tests/test_unlimited_task_time.py ...                                    [ 99%]
+tests/test_unrestricted_planning.py .....                                [ 99%]
+tests/test_usage_integrity.py .....                                      [100%]
+
+=================================== FAILURES ===================================
+___________________ test_http_health_auth_and_ndjson_result ____________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bcc1430>
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_http_health_auth_and_ndjs0')
+
+    def test_http_health_auth_and_ndjson_result(monkeypatch, tmp_path):
+        monkeypatch.setenv('ROUTER_TEST_TOKEN', 'private-value')
+        monkeypatch.setattr('refractrouter.agent_server.run_agent', lambda payload, **kwargs: {
+            'schema_version': 'refractagent-result-v1', 'answer': '模拟完成'
+        })
+>       server = ThreadingHTTPServer(('127.0.0.1', 0), handler_factory(
+            ServerConfiguration(tmp_path, auth_token_env='ROUTER_TEST_TOKEN')))
+
+tests/test_agent_server.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10bcc1fd0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_ test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[None-False] _
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_first_text_arrives_before0')
+responses = False, failure = None
+
+    @pytest.mark.parametrize('responses',[False,True])
+    @pytest.mark.parametrize('failure',[None,'unknown','disconnect'])
+    def test_first_text_arrives_before_upstream_finish_and_errors_have_no_success(tmp_path,responses,failure):
+>       up,seen,released,finish=upstream(unknown=failure=='unknown',disconnect=failure=='disconnect')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gateway_streaming.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_gateway_streaming.py:32: in upstream
+    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10e621cd0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_ test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[None-True] _
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_first_text_arrives_before1')
+responses = True, failure = None
+
+    @pytest.mark.parametrize('responses',[False,True])
+    @pytest.mark.parametrize('failure',[None,'unknown','disconnect'])
+    def test_first_text_arrives_before_upstream_finish_and_errors_have_no_success(tmp_path,responses,failure):
+>       up,seen,released,finish=upstream(unknown=failure=='unknown',disconnect=failure=='disconnect')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gateway_streaming.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_gateway_streaming.py:32: in upstream
+    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10e781790>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_ test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[unknown-False] _
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_first_text_arrives_before2')
+responses = False, failure = 'unknown'
+
+    @pytest.mark.parametrize('responses',[False,True])
+    @pytest.mark.parametrize('failure',[None,'unknown','disconnect'])
+    def test_first_text_arrives_before_upstream_finish_and_errors_have_no_success(tmp_path,responses,failure):
+>       up,seen,released,finish=upstream(unknown=failure=='unknown',disconnect=failure=='disconnect')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gateway_streaming.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_gateway_streaming.py:32: in upstream
+    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10e6232c0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_ test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[unknown-True] _
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_first_text_arrives_before3')
+responses = True, failure = 'unknown'
+
+    @pytest.mark.parametrize('responses',[False,True])
+    @pytest.mark.parametrize('failure',[None,'unknown','disconnect'])
+    def test_first_text_arrives_before_upstream_finish_and_errors_have_no_success(tmp_path,responses,failure):
+>       up,seen,released,finish=upstream(unknown=failure=='unknown',disconnect=failure=='disconnect')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gateway_streaming.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_gateway_streaming.py:32: in upstream
+    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10e5c35f0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_ test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[disconnect-False] _
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_first_text_arrives_before4')
+responses = False, failure = 'disconnect'
+
+    @pytest.mark.parametrize('responses',[False,True])
+    @pytest.mark.parametrize('failure',[None,'unknown','disconnect'])
+    def test_first_text_arrives_before_upstream_finish_and_errors_have_no_success(tmp_path,responses,failure):
+>       up,seen,released,finish=upstream(unknown=failure=='unknown',disconnect=failure=='disconnect')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gateway_streaming.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_gateway_streaming.py:32: in upstream
+    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10e797a10>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_ test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[disconnect-True] _
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_first_text_arrives_before5')
+responses = True, failure = 'disconnect'
+
+    @pytest.mark.parametrize('responses',[False,True])
+    @pytest.mark.parametrize('failure',[None,'unknown','disconnect'])
+    def test_first_text_arrives_before_upstream_finish_and_errors_have_no_success(tmp_path,responses,failure):
+>       up,seen,released,finish=upstream(unknown=failure=='unknown',disconnect=failure=='disconnect')
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gateway_streaming.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_gateway_streaming.py:32: in upstream
+    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10e620170>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_________________________ test_http_auth_sse_and_tools _________________________
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_http_auth_sse_and_tools0')
+
+    def test_http_auth_sse_and_tools(tmp_path):
+        gw = gateway(tmp_path, Caller(reply(calls=[call()])))
+>       server = create_server(gw, port=0, token='fixture-only')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_model_gateway.py:242: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/refractrouter/model_gateway.py:701: in create_server
+    return ThreadingHTTPServer((host, port), Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10eba5610>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+____________ test_http_liveness_readiness_protocol_and_content_type ____________
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_http_liveness_readiness_p0')
+
+    def test_http_liveness_readiness_protocol_and_content_type(tmp_path):
+        caller = Caller(reply())
+        gw = gateway(tmp_path, caller)
+>       server = create_server(gw, port=0, token='fixture-only')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_model_gateway.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/refractrouter/model_gateway.py:701: in create_server
+    return ThreadingHTTPServer((host, port), Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10ee5b560>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+__________ test_tool_evidence_endpoint_requires_auth_and_issued_call ___________
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_tool_evidence_endpoint_re0')
+
+    def test_tool_evidence_endpoint_requires_auth_and_issued_call(tmp_path):
+        gw = gateway(tmp_path, Caller(reply(calls=[call('hook-call')]), reply()),
+                     configuration('stage'))
+>       server = create_server(gw, port=0, token='fixture-only')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_model_gateway.py:415: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/refractrouter/model_gateway.py:701: in create_server
+    return ThreadingHTTPServer((host, port), Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10eea2ed0>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+__________________ test_responses_http_serves_protocol_events __________________
+
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_responses_http_serves_pro0')
+
+    def test_responses_http_serves_protocol_events(tmp_path):
+        gw = gateway(tmp_path, Caller(reply()))
+>       server = create_server(gw, port=0);Thread(target=server.serve_forever, daemon=True).start()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_model_gateway.py:528: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/refractrouter/model_gateway.py:701: in create_server
+    return ThreadingHTTPServer((host, port), Handler)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10eea0a10>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_____________ test_http_v2_projects_idempotency_events_and_access ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10e6de510>
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_http_v2_projects_idempote0')
+
+    def test_http_v2_projects_idempotency_events_and_access(monkeypatch, tmp_path):
+        monkeypatch.setattr('refractrouter.agent_server.run_agent', lambda payload, **kwargs: {
+            'schema_version': 'refractagent-result-v1', 'run_id': 'run-demo',
+            'status': 'simulated', 'answer': '模拟完成',
+        })
+        configuration = team(tmp_path, monkeypatch)
+        RouteObservationStore(configuration.state_path, scope='alpha').record_run('observed-run', [{
+            'label':'node','model_id':'route','category':'production','status':'billed',
+            'latency_ms':432,'finish_reason':'stop','input_tokens':10,'output_tokens':5,
+            'cached_input_tokens':0}], {'route':{'provider':'cloud','model':'fast',
+            'effective_model':'Fast-v1','reasoning_effort':'default'}})
+>       server = ThreadingHTTPServer(('127.0.0.1', 0), handler_factory(
+            ServerConfiguration(tmp_path / 'legacy', team=configuration)))
+
+tests/test_team_service.py:125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10eea3860>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+_______________ test_http_v2_cancel_is_idempotent_and_stops_core _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10eeda660>
+tmp_path = PosixPath('/private/var/folders/k7/gkd3c8vx14g4d5kzs_fn2qgw0000gn/T/pytest-of-chun-hsianglee/pytest-1901/test_http_v2_cancel_is_idempot0')
+
+    def test_http_v2_cancel_is_idempotent_and_stops_core(monkeypatch, tmp_path):
+        started = Event()
+    
+        def blocking(payload, **kwargs):
+            started.set()
+            assert kwargs['cancel_event'].wait(2)
+            return {'status': 'failed', 'issues': ['cancelled']}
+    
+        monkeypatch.setattr('refractrouter.agent_server.run_agent', blocking)
+        configuration = team(tmp_path, monkeypatch)
+>       server = ThreadingHTTPServer(('127.0.0.1', 0), handler_factory(
+            ServerConfiguration(tmp_path / 'legacy', team=configuration)))
+
+tests/test_team_service.py:184: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:457: in __init__
+    self.server_bind()
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/http/server.py:140: in server_bind
+    socketserver.TCPServer.server_bind(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <http.server.ThreadingHTTPServer object at 0x10eed9610>
+
+    def server_bind(self):
+        """Called by constructor to bind the socket.
+    
+        May be overridden.
+    
+        """
+        if self.allow_reuse_address and hasattr(socket, "SO_REUSEADDR"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Since Linux 6.12.9, SO_REUSEPORT is not allowed
+        # on other address families than AF_INET/AF_INET6.
+        if (
+            self.allow_reuse_port and hasattr(socket, "SO_REUSEPORT")
+            and self.address_family in (socket.AF_INET, socket.AF_INET6)
+        ):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+>       self.socket.bind(self.server_address)
+E       PermissionError: [Errno 1] Operation not permitted
+
+../../../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/socketserver.py:478: PermissionError
+=========================== short test summary info ============================
+FAILED tests/test_agent_server.py::test_http_health_auth_and_ndjson_result - ...
+FAILED tests/test_gateway_streaming.py::test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[None-False]
+FAILED tests/test_gateway_streaming.py::test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[None-True]
+FAILED tests/test_gateway_streaming.py::test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[unknown-False]
+FAILED tests/test_gateway_streaming.py::test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[unknown-True]
+FAILED tests/test_gateway_streaming.py::test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[disconnect-False]
+FAILED tests/test_gateway_streaming.py::test_first_text_arrives_before_upstream_finish_and_errors_have_no_success[disconnect-True]
+FAILED tests/test_model_gateway.py::test_http_auth_sse_and_tools - Permission...
+FAILED tests/test_model_gateway.py::test_http_liveness_readiness_protocol_and_content_type
+FAILED tests/test_model_gateway.py::test_tool_evidence_endpoint_requires_auth_and_issued_call
+FAILED tests/test_model_gateway.py::test_responses_http_serves_protocol_events
+FAILED tests/test_team_service.py::test_http_v2_projects_idempotency_events_and_access
+FAILED tests/test_team_service.py::test_http_v2_cancel_is_idempotent_and_stops_core
+================= 13 failed, 2128 passed in 217.54s (0:03:37) ==================
