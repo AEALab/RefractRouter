@@ -1,0 +1,880 @@
+{
+  "scope": "三个构造开发任务、三路线、各三次重复；不代表总体因果或独立语义认证。",
+  "summarySha256": "61f440a76afc55a95a1ba9c39d52f82a54c5187f652ba3d0ca26bf38d01c0870",
+  "protocolSha256": "79c7e3c4a87412046865e87e5e7f17987d836f4639a216c720d5706867095df6",
+  "routes": {
+    "one-shot": {
+      "samples": 9,
+      "completed": 9,
+      "jsonParsed": 9,
+      "valueChecksPassed": 9,
+      "frozenPrimaryPassed": 2,
+      "afp": 7.3735,
+      "medianTaskSeconds": 225.03079958299998,
+      "timedSamples": 9,
+      "modelRequests": 9
+    },
+    "node-as-tool": {
+      "samples": 9,
+      "completed": 9,
+      "jsonParsed": 8,
+      "valueChecksPassed": 8,
+      "frozenPrimaryPassed": 2,
+      "afp": 12.1577,
+      "medianTaskSeconds": 271.62750825,
+      "timedSamples": 9,
+      "modelRequests": 25
+    },
+    "dag": {
+      "samples": 9,
+      "completed": 9,
+      "jsonParsed": 9,
+      "valueChecksPassed": 9,
+      "frozenPrimaryPassed": 2,
+      "afp": 17.5021,
+      "medianTaskSeconds": 451.31744054192677,
+      "timedSamples": 9,
+      "modelRequests": 33
+    }
+  },
+  "subsets": {
+    "原采样修订预定义五组": {
+      "one-shot": {
+        "samples": 5,
+        "completed": 5,
+        "jsonParsed": 5,
+        "valueChecksPassed": 5,
+        "frozenPrimaryPassed": 0,
+        "afp": 3.8346,
+        "medianTaskSeconds": 225.03079958299998,
+        "timedSamples": 5,
+        "modelRequests": 5
+      },
+      "node-as-tool": {
+        "samples": 5,
+        "completed": 5,
+        "jsonParsed": 5,
+        "valueChecksPassed": 5,
+        "frozenPrimaryPassed": 1,
+        "afp": 6.3959,
+        "medianTaskSeconds": 271.62750825,
+        "timedSamples": 5,
+        "modelRequests": 13
+      },
+      "dag": {
+        "samples": 5,
+        "completed": 5,
+        "jsonParsed": 5,
+        "valueChecksPassed": 5,
+        "frozenPrimaryPassed": 2,
+        "afp": 9.05265,
+        "medianTaskSeconds": 412.1998392501846,
+        "timedSamples": 5,
+        "modelRequests": 18
+      }
+    },
+    "字段修订后全部新采集两组": {
+      "one-shot": {
+        "samples": 2,
+        "completed": 2,
+        "jsonParsed": 2,
+        "valueChecksPassed": 2,
+        "frozenPrimaryPassed": 0,
+        "afp": 1.5025,
+        "medianTaskSeconds": 219.96735675,
+        "timedSamples": 2,
+        "modelRequests": 2
+      },
+      "node-as-tool": {
+        "samples": 2,
+        "completed": 2,
+        "jsonParsed": 2,
+        "valueChecksPassed": 2,
+        "frozenPrimaryPassed": 0,
+        "afp": 2.9792,
+        "medianTaskSeconds": 311.2151628125,
+        "timedSamples": 2,
+        "modelRequests": 6
+      },
+      "dag": {
+        "samples": 2,
+        "completed": 2,
+        "jsonParsed": 2,
+        "valueChecksPassed": 2,
+        "frozenPrimaryPassed": 1,
+        "afp": 3.6209,
+        "medianTaskSeconds": 375.25885129207745,
+        "timedSamples": 2,
+        "modelRequests": 7
+      }
+    }
+  },
+  "providerReportedModelsPrimaryCohort": {
+    "deepseek-v4-flash-ga-260731": 85
+  },
+  "rawProviderTokens": {
+    "baseline": {
+      "requests": 18,
+      "inputTokens": 18621,
+      "outputTokens": 232008,
+      "cachedInputTokensReported": 0,
+      "cacheDetailsAvailableRequests": 18,
+      "reasoningTokensReported": 215888,
+      "reasoningDetailsAvailableRequests": 18
+    },
+    "one-shot": {
+      "requests": 9,
+      "inputTokens": 9459,
+      "outputTokens": 138011,
+      "cachedInputTokensReported": 0,
+      "cacheDetailsAvailableRequests": 9,
+      "reasoningTokensReported": 129119,
+      "reasoningDetailsAvailableRequests": 9
+    },
+    "node-as-tool": {
+      "requests": 25,
+      "inputTokens": 79458,
+      "outputTokens": 163696,
+      "cachedInputTokensReported": 0,
+      "cacheDetailsAvailableRequests": 25,
+      "reasoningTokensReported": 140951,
+      "reasoningDetailsAvailableRequests": 25
+    },
+    "dag": {
+      "requests": 33,
+      "inputTokens": 59051,
+      "outputTokens": 290991,
+      "cachedInputTokensReported": 0,
+      "cacheDetailsAvailableRequests": 33,
+      "reasoningTokensReported": 268044,
+      "reasoningDetailsAvailableRequests": 33
+    }
+  },
+  "modelStages": {
+    "baseline": {
+      "requests": 18,
+      "afp": 12.53145,
+      "inputTokens": 18621,
+      "outputTokens": 232008
+    },
+    "one-shot:execute": {
+      "requests": 9,
+      "afp": 7.3735,
+      "inputTokens": 9459,
+      "outputTokens": 138011
+    },
+    "node-as-tool:execute": {
+      "requests": 17,
+      "afp": 6.6449,
+      "inputTokens": 73690,
+      "outputTokens": 59208
+    },
+    "node-as-tool:node-tool": {
+      "requests": 8,
+      "afp": 5.5128,
+      "inputTokens": 5768,
+      "outputTokens": 104488
+    },
+    "dag:planner": {
+      "requests": 9,
+      "afp": 1.56025,
+      "inputTokens": 13383,
+      "outputTokens": 17822
+    },
+    "dag:worker": {
+      "requests": 15,
+      "afp": 7.9647,
+      "inputTokens": 20480,
+      "outputTokens": 138814
+    },
+    "dag:final": {
+      "requests": 9,
+      "afp": 7.97715,
+      "inputTokens": 25188,
+      "outputTokens": 134355
+    }
+  },
+  "mechanisms": {
+    "expertUsedSamples": 8,
+    "expertUnusedSamples": [
+      "comparison-release-dependencies-node-as-tool-explicit-verification-r2"
+    ],
+    "expertIntents": {
+      "check": 8
+    },
+    "dagShapes": [
+      {
+        "runId": "comparison-procurement-versions-dag-explicit-verification-r1",
+        "nodes": 3,
+        "peakConcurrency": 2,
+        "edges": {
+          "cost_calcs": [],
+          "eligibility": [],
+          "answer": [
+            "cost_calcs",
+            "eligibility"
+          ]
+        }
+      },
+      {
+        "runId": "comparison-release-dependencies-dag-explicit-verification-r1",
+        "nodes": 1,
+        "peakConcurrency": 1,
+        "edges": {
+          "answer": []
+        }
+      },
+      {
+        "runId": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+        "nodes": 3,
+        "peakConcurrency": 2,
+        "edges": {
+          "event_analysis": [],
+          "defect_diagnosis": [],
+          "answer": [
+            "event_analysis",
+            "defect_diagnosis"
+          ]
+        }
+      },
+      {
+        "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+        "nodes": 4,
+        "peakConcurrency": 2,
+        "edges": {
+          "cost_a": [],
+          "cost_b": [],
+          "cost_cd": [],
+          "answer": [
+            "cost_a",
+            "cost_b",
+            "cost_cd"
+          ]
+        }
+      },
+      {
+        "runId": "comparison-release-dependencies-dag-explicit-verification-r2",
+        "nodes": 3,
+        "peakConcurrency": 1,
+        "edges": {
+          "extract": [],
+          "compute_schedule": [
+            "extract"
+          ],
+          "answer": [
+            "compute_schedule"
+          ]
+        }
+      },
+      {
+        "runId": "comparison-ledger-idempotency-dag-explicit-verification-r2",
+        "nodes": 1,
+        "peakConcurrency": 1,
+        "edges": {
+          "answer": []
+        }
+      },
+      {
+        "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+        "nodes": 4,
+        "peakConcurrency": 2,
+        "edges": {
+          "calc_ab": [],
+          "calc_cd": [],
+          "check_eligible": [
+            "calc_ab",
+            "calc_cd"
+          ],
+          "answer": [
+            "calc_ab",
+            "calc_cd",
+            "check_eligible"
+          ]
+        }
+      },
+      {
+        "runId": "comparison-release-dependencies-dag-explicit-verification-r3",
+        "nodes": 2,
+        "peakConcurrency": 1,
+        "edges": {
+          "schedule": [],
+          "answer": [
+            "schedule"
+          ]
+        }
+      },
+      {
+        "runId": "comparison-ledger-idempotency-dag-explicit-verification-r3",
+        "nodes": 3,
+        "peakConcurrency": 2,
+        "edges": {
+          "ledger": [],
+          "bugfix": [],
+          "answer": [
+            "ledger",
+            "bugfix"
+          ]
+        }
+      }
+    ],
+    "multiNodeDagSamples": 7,
+    "actuallyParallelDagSamples": 5
+  },
+  "paired": {
+    "node-as-tool": {
+      "transitions": {
+        "fail→pass": 2,
+        "pass→fail": 2,
+        "fail→fail": 5
+      },
+      "resourceOnlyCheaperThanOneShot": 2,
+      "resourceOnlyFasterThanOneShot": 3
+    },
+    "dag": {
+      "transitions": {
+        "fail→fail": 5,
+        "pass→fail": 2,
+        "fail→pass": 2
+      },
+      "resourceOnlyCheaperThanOneShot": 2,
+      "resourceOnlyFasterThanOneShot": 2
+    },
+    "expertParsedSubset": {
+      "samples": 7,
+      "cheaperThanMatchedOneShot": 0,
+      "note": "事后机制诊断，不是随机额外分组，不替代完整主比较。"
+    }
+  },
+  "baseline": {
+    "samples": 18,
+    "completed": 18,
+    "jsonParsed": 18,
+    "valueChecksPassed": 18,
+    "frozenPrimaryPassed": 3,
+    "afp": 12.53145,
+    "medianTaskSeconds": 200.437074,
+    "timedSamples": 18,
+    "modelRequests": 18
+  },
+  "comparisonAfp": 37.0333,
+  "primaryCohortAfp": 49.56475,
+  "diagnosticAndUnknownReserveAfp": 12.513550000000006,
+  "cumulativeRequests": 107,
+  "cumulativeAfp": 62.078300000000006,
+  "unknownReserveAfp": 0.63,
+  "confirmedUsageValuationAfp": 61.4483,
+  "providerBillingConfirmed": false,
+  "qualityVerdict": "Insufficient-evidence",
+  "receipts": [
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r1",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-02/prompt-audit-procurement-versions-one-shot-existing-contract-r1/wire/001-response.txt",
+      "sha256": "d923dbe53069d92888fc0bb2666a1f5445cdbe3ea160fceac6e12bc3805fac47"
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r1",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-02/prompt-audit-procurement-versions-one-shot-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "2f7b5df24010e32e833ad97524d53e560c8ae450ba2753806746d31e71561af4"
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r1",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-02/prompt-audit-release-dependencies-one-shot-existing-contract-r1/wire/001-response.txt",
+      "sha256": "3288365656c3763019144ee9b98a1b92ac82019567096faa66fd5516f1ee6ac4"
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r1",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "2b622e55ba4b2525d3a30b49f70607a0c1cf714b21aedd466570aa31ec6be616"
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r1",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-existing-contract-r1/wire/001-response.txt",
+      "sha256": "03cdd3144358ef851fbbc878cfe3ad95c7b0e8ea44691bc0cd22ee5faac9b55c"
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r1",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "66f3af99ae7e2c97c4a864526be30e488b0c9f0de5617bfc8982f02b1710ca77"
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r2",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "eebd3b5fc9056debd5e9358f1854d18038876399bc953cf54816bfa64e70b08f"
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r2",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-existing-contract-r2/wire/001-response.txt",
+      "sha256": "66a19f2a4950364ed1c02f1efdb05bee333e2eee3bdea2f8bde5901c54abd653"
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r2",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "d521041760a3c157ca805dc83efc1a55407c0fb8638de51f25910db24e6dd0e5"
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r2",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-existing-contract-r2/wire/001-response.txt",
+      "sha256": "4fab3035a231d1af2cd16275579a1dc09abbb5731cb122735485e78651b9f5d1"
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r2",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "56893f6c9121eb5d4b1e054ecda49babc59bcd638fb96dcb2f72850e4713c68e"
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r2",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-existing-contract-r2/wire/001-response.txt",
+      "sha256": "ce06320e649d5a2fd364c321a126c8dc508ca798745c5a80ab2b0e550e73e725"
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r3",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-existing-contract-r3/wire/001-response.txt",
+      "sha256": "30f5d21b91c065d12e642274c4e023eff105b6f46f556edebe4cc8c74e8947c6"
+    },
+    {
+      "runId": "prompt-audit-procurement-versions-one-shot-explicit-verification-r3",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-procurement-versions-one-shot-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "fee909fc0aa7e24bb234255f58656046cae5ca3ef77bb902c1db5417e39ecdcc"
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-existing-contract-r3",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-existing-contract-r3/wire/001-response.txt",
+      "sha256": "f846274dd66190061c5d309a446ce0075d76dcfe01840a912600d797968534fc"
+    },
+    {
+      "runId": "prompt-audit-release-dependencies-one-shot-explicit-verification-r3",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "36bdb0f709debb8991a2d88e353ec0b9fd9b0abe8321590bb641884d18741d95"
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-existing-contract-r3",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-existing-contract-r3/wire/001-response.txt",
+      "sha256": "963969c9a419b82fe4f68b9a55c8b4da82a41fcab1d0ea7dd85ce1ea771703bb"
+    },
+    {
+      "runId": "prompt-audit-ledger-idempotency-one-shot-explicit-verification-r3",
+      "purpose": "baseline",
+      "response": "reports/node-tool-pilot-20261029-live-03/prompt-audit-ledger-idempotency-one-shot-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "83874d5fa0e01beee1a81fa0f05bbe9a197f6dff893e3af354906a47c35f92f4"
+    },
+    {
+      "runId": "comparison-procurement-versions-one-shot-explicit-verification-r1",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-one-shot-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "abfde046c1b09eae744fa13cfe760e0b3b9c6b4d6410483fe861edfa577cae58"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "d153751bfef0d07a04cb34ccc4ffe7288a2ce593a95ff941452325cd6860a175"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/wire/002-response.txt",
+      "sha256": "c9526e1b85fd409a1251c08c168292c73ad6b58f439b347a24005d2604e4605a"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/wire/003-response.txt",
+      "sha256": "80f8e059884c8f4f23f5e0580156f466aa3f039cb6420cf0cd1f6360572582df"
+    },
+    {
+      "runId": "comparison-release-dependencies-one-shot-explicit-verification-r1",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-one-shot-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "a2086c74924ea6dd8b0a0174518edeeae1a6724a002c57a9a5c41e206756a521"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-node-as-tool-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "1dd553eef918e55de8e6a486b590fc46644d1bd408453a85639db17792e8e52d"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-node-as-tool-explicit-verification-r1/wire/002-response.txt",
+      "sha256": "891ab74d772476eee36afa126e89ae2f3886eb251a863395c46c3fc3681e68c6"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-node-as-tool-explicit-verification-r1/wire/003-response.txt",
+      "sha256": "854260e6581adf771ef56bcbe19c616fa4dafcac2999dc6a4eb85e9dc480f0d7"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "0e17e5bf50d3b741b9b75ee2f9cc5780cc3bd26ad020b04e7d9a9aa2e756292e"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/wire/002-response.txt",
+      "sha256": "5ebef4daf361eeee515cfae9072a1058a4191e917cbca31d14da34a0f23455d1"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r1",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/wire/003-response.txt",
+      "sha256": "69dec350aa3f31bdccae3d1f20d64d0f274e7099cb2b69700cac75fe5690032b"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-one-shot-explicit-verification-r1",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-one-shot-explicit-verification-r1/wire/001-response.txt",
+      "sha256": "e09bcb3d703baad0e658039e71461f64d8e4384da9acc1e55872e1940b1e5329"
+    },
+    {
+      "runId": "comparison-procurement-versions-one-shot-explicit-verification-r2",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-one-shot-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "eec5c42c287ec6c09ede88d39df85e5fd9f78df184d6c894b02051e754ddd93a"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "82652ac4db82e587c3ab8f911f067880693c50360cc55093957d39d278510ccb"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/wire/002-response.txt",
+      "sha256": "199bb688543538824ceee9de39a036c572fe09e72e108cf593a692268df6c6fd"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/wire/003-response.txt",
+      "sha256": "a49b6e134548a2e55bd2cd463f63f2eb4c975b68571d494595910b06017f759a"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r1",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/001-response.json",
+      "sha256": "e5c8771e88c3f4d40ae8cda9fc5d439ddbdd55be589c54c98e19337289a73b01"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r1",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/002-response.json",
+      "sha256": "c87bdb7aa5ce2a6b4ef964ab11793a4bb73a7009148486f88d57e6a08159d017"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r1",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/003-response.json",
+      "sha256": "d9d36631dca599b6bf5ff4c08110baed93ca1592d88fa7cdde229f986437a1b8"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r1",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/wire/004-response.json",
+      "sha256": "7b32e2d509b8a9b08d0d8bd7b10999562da44591b7eac5284e5aebb388059d48"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r1",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/wire/001-response.json",
+      "sha256": "9776a17e04fcbdf6f176c3cd0c26b99141866d92d1e87d1d4d70609a18a102ec"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r1",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/wire/002-response.json",
+      "sha256": "1bd697188063efcc4a6f712a3a4a4f16e0d8e91dad21e7294aca5edf7405aef6"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/001-response.json",
+      "sha256": "fd162498054055312431e5942fbd167c7949094151dd0d0ef927fde56c1bfa6e"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/002-response.json",
+      "sha256": "91bdda4fabef16d98fcb3f90e1814b7d84396cbc7d2244a3ed454845983a51ca"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/003-response.json",
+      "sha256": "762bb78cc3826b59609a4a9059bc74c9c80a1808aa1af7e13828bd8ca1de2d1b"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/wire/004-response.json",
+      "sha256": "4f19cf420505a8eb0c1415d65454f9696bde787a776628956122ebae9e6bc4d8"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/001-response.json",
+      "sha256": "5bd2d63a8bcf5e117d90ee574c85562c6a43c0c8ea61b4d7757f774307660e47"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/002-response.json",
+      "sha256": "f4d4d596b7c68bad834e61ebcec733df58b2e388fe7cb1c16dfa12549ce59d68"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/003-response.json",
+      "sha256": "08f0e6d5daca4571121222150eeac915192371095d6d8d1ee0ad83edaac9a943"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/004-response.json",
+      "sha256": "60338946b5ef68ed2c8cbce993494bd17f903e44983ab0c71d60cd8b2ef7bed6"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/wire/005-response.json",
+      "sha256": "92772a66d22b5eb6fc24d623940d227e14ce02b64c4c7be8b46d0e3acbdb3446"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r2",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/001-response.json",
+      "sha256": "911226e0338a0d015357d0285cd02f88ebfccea927d2c93c2cc8331a0bd875c5"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r2",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/002-response.json",
+      "sha256": "283346cc02edd60acceb75f59ed1cfe5741ad1c38bc42da8649431f8f5f628e8"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r2",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/003-response.json",
+      "sha256": "89f19dd632414fdb8495441bbb49bd7471c5f5b81129e1ee1742e7544030f708"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r2",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/wire/004-response.json",
+      "sha256": "68ea68351a4c78820a268d62f939d021593ee4c5c4eb174df028c2c0e1a57a09"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-node-as-tool-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "35fa83361e4aa9eb5fad4d3efc5246d211dc93de0ea78d6677d3db41e2bfcb7d"
+    },
+    {
+      "runId": "comparison-release-dependencies-one-shot-explicit-verification-r2",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-one-shot-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "b56c40b5984ee77a6c0cbc048d0b7fb533a61cf8f117e46b33d2717d39fc0045"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-one-shot-explicit-verification-r2",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-one-shot-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "a699752834f063fb4fce41b1764ab804a63daf13eef68ffb9a310c13dd40f152"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r2",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/wire/001-response.json",
+      "sha256": "36f46e368d93e3176f3294947b37ea0bc571af7037f34348cb26c8a0d47aea21"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r2",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/wire/002-response.json",
+      "sha256": "22239a6a7efb562742d03acde0164daa87f48340aca67d650b349f02a398bd09"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "ffbf814fd417db58433b363dbbc947013c3b78610f8b6c35265402768ae792b4"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/wire/002-response.txt",
+      "sha256": "e6f6b6e99c5e25765a970e36b38c531c5c9e4ba799e88a72e3491742b96a3144"
+    },
+    {
+      "runId": "comparison-procurement-versions-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/wire/003-response.txt",
+      "sha256": "3562fb2d1cbfb0900355175ca285bdc6564c0864ae685c00caec5391f3eefaaa"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/001-response.json",
+      "sha256": "f64ad0fefb086c24262bf83cf82c1c3bd3f25c1ace5933f00d6885deeb745fe1"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/002-response.json",
+      "sha256": "86a48d9c66db6e0ddca3912613bf4bd84b2a66e4de5537c5121d157994de3304"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/003-response.json",
+      "sha256": "9751c2639691c29953bf95b921f02cb9240bbbdb2e1e8914767dd3dff586ab76"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/004-response.json",
+      "sha256": "b2c0a939715e81ab09384677c3522faf536d9182952fd23df05ed502335b6891"
+    },
+    {
+      "runId": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/wire/005-response.json",
+      "sha256": "064e9c4c7a4c0cee92c30290be6c5da230e76aa506c28c073279b798d727967a"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r2/wire/001-response.txt",
+      "sha256": "fe0deec7f87565f558ed9ae3463ae057a33f8963c513df78f107fbf9c50b9088"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r2/wire/002-response.txt",
+      "sha256": "52f2a312640f60f9c45b11bc84fef5b07cae1811bacfba3bce007a21b83253f4"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r2",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r2/wire/003-response.txt",
+      "sha256": "b3491bd3c83c5bd0a02a250d1bd677f6feec2a96eea81cf1c340f84aba61f2fc"
+    },
+    {
+      "runId": "comparison-procurement-versions-one-shot-explicit-verification-r3",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-procurement-versions-one-shot-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "d8a1986d756273a9efa3d720110d0c3f3ff0789abb7bcb8f274030e8d5ad2b9f"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-node-as-tool-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "ebf5cc4255cc7f19a4b1222af9e53d15d05b8b38bc6ae2892bfb306c8abef939"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-node-as-tool-explicit-verification-r3/wire/002-response.txt",
+      "sha256": "dbec80e3abfb74442353d373a63542cb00e2759e5bd21647da3734afe3c2c280"
+    },
+    {
+      "runId": "comparison-release-dependencies-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-node-as-tool-explicit-verification-r3/wire/003-response.txt",
+      "sha256": "c3eabb3ce4f49bf510a8c7ceb8be41c371602f66c743f72bfbf0e029734b10e5"
+    },
+    {
+      "runId": "comparison-release-dependencies-one-shot-explicit-verification-r3",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-one-shot-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "68aa576748aa39d2ab904693f20cb85da2264608433f71cb9e9c113e320dc553"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r3",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-dag-explicit-verification-r3/wire/001-response.json",
+      "sha256": "fe1d200be3b7f55027b740d1af858b8bf84c3dfa1ead4092d1c3236ff18d708e"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r3",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-dag-explicit-verification-r3/wire/002-response.json",
+      "sha256": "8b97c6753b6bf16e67144570bfc3fcdd111407abd3a7845136d0540c69789758"
+    },
+    {
+      "runId": "comparison-release-dependencies-dag-explicit-verification-r3",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-dag-explicit-verification-r3/wire/003-response.json",
+      "sha256": "1e10f2a78911becb54c83d961b51f0704d9b33f83e805df622a573f9e4b0a9b7"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-one-shot-explicit-verification-r3",
+      "purpose": "one-shot:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-one-shot-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "734c855df0c3b29d5f2438dd6fd00de7dd3073ee7c5b6c064d76e68318c03043"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r3",
+      "purpose": "dag:planner",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-dag-explicit-verification-r3/wire/001-response.json",
+      "sha256": "64101a59cbce67bd29af2558a337be5f847c5ce47ac4a0c59c32b3097ed7d833"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r3",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-dag-explicit-verification-r3/wire/002-response.json",
+      "sha256": "f7fbca1bbfb02445eda2c23a7f526f6fe8f7e81dd0374556bf31acd809d2b92d"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r3",
+      "purpose": "dag:worker",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-dag-explicit-verification-r3/wire/003-response.json",
+      "sha256": "f59a6dae5a9cc12509c53d47b627ef5955520770b447fc472d78384e800080b8"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-dag-explicit-verification-r3",
+      "purpose": "dag:final",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-dag-explicit-verification-r3/wire/004-response.json",
+      "sha256": "0356b929423651c8989659f81bdac635853ed6e92550e455e9d9976fba0631fa"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r3/wire/001-response.txt",
+      "sha256": "d3c8292686186fec743020a3c27cd5b88100e22acb279395227f4c6f1b975b05"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:node-tool",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r3/wire/002-response.txt",
+      "sha256": "eadefc3768c72d4ecf760187a84adbb01e0f73f23dc89792fdc028978f801eb7"
+    },
+    {
+      "runId": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r3",
+      "purpose": "node-as-tool:execute",
+      "response": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r3/wire/003-response.txt",
+      "sha256": "b119f902a7fdc876749864a5a30ba7b018aacdf30c0af3885b87139168a04c2a"
+    }
+  ]
+}

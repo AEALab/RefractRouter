@@ -184,6 +184,30 @@
       "输出Sha256": "82ebbab80c384f09af0bade363cf526f989ac706dba6757fc1fc532639349f89",
       "原冻结主判据": "pass",
       "回读范围": "两槽、依赖、技术关键路径、窗口等待与批准状态；助手事后回读"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-one-shot-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-one-shot-explicit-verification-r3/result.json",
+      "来源Sha256": "6bec09b9cd2b4a6220eb808ef02f89a4368806a028bf9b5f74ed8e472fae7068",
+      "输出Sha256": "888c372645bc9ae9e5ed097eed318e1dc94aa7f4694d2732cb96e81c59209786",
+      "原冻结主判据": "fail",
+      "回读范围": "逐行余额、事件去重、冲突隔离、退款与pending、错误键及修正建议；助手事后回读"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-dag-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-dag-explicit-verification-r3/dag.json",
+      "来源Sha256": "2170a4188eb138812cbfab5b2749b45d001bb7d54701fed556307a86d4247cdd",
+      "输出Sha256": "352d2afa7ad60da36cd6b21c7910a6f5b1cd671d1f8d9f0e9766514315c356a2",
+      "原冻结主判据": "fail",
+      "回读范围": "逐行余额、事件去重、冲突隔离、退款与pending、错误键及修正建议；助手事后回读"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r3/result.json",
+      "来源Sha256": "b972e19cbfe4bbfcaa978308891cae40458e4feccce96237f5ae758ba77bea59",
+      "输出Sha256": "9dd8caa2ad96d260a9f56e23101cf536a19c1864528271b903dc9e2e847d4761",
+      "原冻结主判据": "fail",
+      "回读范围": "事件身份、逐行余额、冲突与被拒退款、pending、错误代码及条件替代口径；助手事后回读"
     }
   ],
   "原合同不合格单列": [
@@ -208,5 +232,6 @@
       "专家产物Sha256": "a1d0f7f1c90b0fac1ef526d473c0e91837e2fab54c20ea7019695e2663a02885",
       "交互观察": "提交给专家的任务、上下文及专家产物中没有最终那段两小时等待描述；专家核对关键数值，不代表后来生成的整份正文已经审查。"
     }
-  ]
+  ],
+  "回读范围收尾": "全部26个严格可解析主比较交付的关键计算与约束已回读；另1个原JSON合同失败单列；无独立真人语义双审认证。"
 }

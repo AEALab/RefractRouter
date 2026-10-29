@@ -1,0 +1,95 @@
+{
+  "目标": "比较需要多职责协助的候选任务中按需专家、one-shot和实时DAG，提供一天内可验证先导结果，再判断通用分流器是否值得推进",
+  "核验时间UTC": "2026-10-29T15:39:57.039184+00:00",
+  "目标创建UTC": "2026-10-29T08:38:21+00:00",
+  "目标耗时小时": 7.026677551111112,
+  "一天内": true,
+  "工作树": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter",
+  "分支": "codex/planning-node-as-tool",
+  "运行源码检查点": "bde2ae442",
+  "协议": "79c7e3c4a87412046865e87e5e7f17987d836f4639a216c720d5706867095df6",
+  "核验结论": "通过：本日先导完成；不宣称总体质量等价或净收益已证明",
+  "逐项核验": [
+    {
+      "要求": "三路线各三次及基线开发完整",
+      "结果": "通过",
+      "证据说明": "45主样本、27比较、18基线、18配对，矩阵逐项一致"
+    },
+    {
+      "要求": "提示选择公平",
+      "结果": "通过",
+      "证据说明": "只读取18基线重算赢家，与冻结explicit-verification一致"
+    },
+    {
+      "要求": "原分数未改",
+      "结果": "通过",
+      "证据说明": "45份输出按相同冻结任务与参考重算，原分数和检查逐项一致"
+    },
+    {
+      "要求": "原始回执与费用",
+      "结果": "通过",
+      "证据说明": "85主请求逐条核对无误，累计107请求/62.0783AFP，含全部诊断及0.63未知预留"
+    },
+    {
+      "要求": "请求控制",
+      "结果": "通过",
+      "证据说明": "主请求/专家/规划/节点逐条温度0、完整容量384000，模型报告版本一致"
+    },
+    {
+      "要求": "机制如实记录",
+      "结果": "通过",
+      "证据说明": "8/9触发专家，全部check；7/9实际拆图，5/9实际并行；未触发样本保留"
+    },
+    {
+      "要求": "失败与修订透明",
+      "结果": "通过",
+      "证据说明": "旧不同采样和字段误拒收原始结果/费用保留；37兼容样本及两套预定义分组完整"
+    },
+    {
+      "要求": "正文与图表",
+      "结果": "通过",
+      "证据说明": "26可解析终稿关键正文回读、1原格式失败单列；两张完整图已目视核对并绑定数据哈希"
+    },
+    {
+      "要求": "工程验收",
+      "结果": "通过",
+      "证据说明": "最终2149项无付费模型测试通过，严格TypeScript检查通过；冻结实现校验一致"
+    },
+    {
+      "要求": "结果交付",
+      "结果": "通过",
+      "证据说明": "完整报告、CSV、机器统计、原始审计、复现入口与文档索引均保存"
+    },
+    {
+      "要求": "适用边界",
+      "结果": "通过",
+      "证据说明": "仅同模型三合成开发任务；独立真人语义双审/正式五臂/通用分流器不在本日先导，收益保持Insufficient-evidence"
+    }
+  ],
+  "费用上限AFP": 286,
+  "请求上限": 135,
+  "实际累计请求": 107,
+  "费用与预留AFP": 62.0783,
+  "提供方独立账单确认": false,
+  "语义收益判定": "Insufficient-evidence",
+  "环境凭证可用于精确泄露匹配": true,
+  "精确凭证匹配数": 0,
+  "文件哈希": {
+    "reports/node-tool-pilot-20261029-live-05/summary.json": "61f440a76afc55a95a1ba9c39d52f82a54c5187f652ba3d0ca26bf38d01c0870",
+    "reports/node-tool-pilot-20261029-live-05/frozen.json": "ef8e4278934efdc803aedac5def6b3ef16426b98264958412f539e3a8ca092ea",
+    "reports/node-tool-pilot-20261029-live-05/README.md": "8c3809e298356510083db82cd8ac4551305352d9e02e0c08caecaffecd7c39c6",
+    "reports/node-tool-pilot-20261029-audit-19/audit.json": "5b95dabefc93cca9ccb2bc418a1ae95bf519284a9895fb7838a4fe53131d0081",
+    "reports/node-tool-pilot-20261029-final/README.md": "bbbb262609be374d0a7f6a9bbcb6f45f4f253e10d1ed29efa28aaf1d2b7e7844",
+    "reports/node-tool-pilot-20261029-final/metrics.json": "66aa9c405d0efac54e666ba372cfe331b546ddce7e1d1f0e10f507ebf048a46f",
+    "reports/node-tool-pilot-20261029-final/paired-results.csv": "a837b5553b51b2e3dab69d127e993745be5772dd05e647baeedbdcf19f23d1b2",
+    "reports/node-tool-pilot-20261029-final/derive-metrics.py": "7da165ca8e3e09d5db21c597190c83cf287f833a1d2a75da1a4cbaa76ce32f4c",
+    "reports/node-tool-pilot-20261029-final/pytest.log": "137d36c95b4f1bebd00d399d612c39bc6024a792d01ac726004d2a7258e05845",
+    "reports/node-tool-pilot-20261029-final/typecheck.log": "4983e2ab2413200e71c1a4f111e34172e773bf6522ab5108aa079f5f62b148e8",
+    "reports/node-tool-pilot-20261029-final-figures/plot-metadata.json": "e7bbc943490117976e289759505fd3f41622a0693b8b04d27564b00d01b48b01",
+    "reports/node-tool-pilot-20261029-final-figures/cost-latency.png": "ac7fbeb7668b2e95b82a786ec144422eaabec718317394b76f9ee19e0d1bb1c0",
+    "reports/node-tool-pilot-20261029-final-figures/quality-matrix.png": "10bdac51d3e3f298c2091a7630642ec3ee9bc1f70b5829b5e5f2ec2054394233",
+    "reports/node-tool-pilot-20261029-body-readback/review.json": "1750d6fab6a912b8bb8fcec25204f43ff5485da8e1e9cf73219b21496d4f9d70",
+    "docs/node-as-tool-eval.md": "2de54cd38bf3bb257ddf5c731e469770498f71064e85bd2fc25ec20fd112cfce",
+    "docs/node-tool-one-day-pilot.md": "b040b0a2670caa63ac0795f1142964413888247b48cacd56a59535f5ca7a6738"
+  }
+}

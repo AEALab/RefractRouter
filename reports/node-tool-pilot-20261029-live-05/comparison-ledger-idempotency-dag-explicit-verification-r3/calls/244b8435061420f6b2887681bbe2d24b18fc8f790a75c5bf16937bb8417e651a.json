@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"计算与缺陷诊断相互独立，可并行分支，最后统一汇总交付并核对事实与一致性。\",\"nodes\":[{\"id\":\"ledger\",\"type\":\"synthesis\",\"job\":\"按业务规则计算应计金额、余额及重复/冲突/被拒/未结算\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"bugfix\",\"type\":\"synthesis\",\"job\":\"诊断去重缺陷，给出修正思路与关键测试建议\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总完整交付，核对原文事实、依赖与一致性\",\"parents\":[\"ledger\",\"bugfix\"],\"difficulty\":\"high\",\"risk\":\"high\"}]}",
+  "input_tokens": 1537,
+  "output_tokens": 698,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 540,
+  "latency_ms": 15342,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793286132809f47b3ae95ec9e82c79e9e226fe2407f9547e14",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 698,
+    "total_tokens": 2235,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 540
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
