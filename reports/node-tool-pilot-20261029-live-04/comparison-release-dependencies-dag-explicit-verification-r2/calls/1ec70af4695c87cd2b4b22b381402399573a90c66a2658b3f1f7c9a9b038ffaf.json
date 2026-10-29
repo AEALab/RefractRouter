@@ -1,0 +1,29 @@
+{
+  "content": "{\n  \"answer\": \"按 s1 有效工作清单，任务时长与依赖为：A=3h 无前置；B=5h 依赖 A；C=4h 依赖 A；D=2h 无前置；E=2h 依赖 B、C；F=3h 依赖 B；G=1h 依赖 D、E、F。s2 已明确旧备忘录中 A=4h、C 依赖 B、F=1h 无效，故不采用。s3 还说明没有其他等待或资源切换开销。\\n\\n满足两槽限制且不拆分的排程：\\n- 0–2：A、D\\n- 2–3：A\\n- 3–7：B、C\\n- 7–8：B\\n- 8–10：E、F\\n- 10–11：F\\n- 11–12：G（暂忽略窗口）\\n\\n任意时刻最多同时执行两项工作，且每项任务连续执行、未拆分。由此：D 最早完成 t=2，E 最早开始 t=8（受 B 在 t=8 完成、C 在 t=7 完成共同约束），E 最早完成 t=10，F 最早完成 t=11。因此 pre_release_ready=11。忽略发布窗口时，G 最早可在 t=11 开始、t=12 完成，所以 technical_finish=12。\\n\\n考虑 s3 发布窗口：G 必须完整位于 [14,16] 小时内，且 G 时长为 1 小时，因此最早合法安排是 G 在 14–15 完成；11–14 是等待窗口。窗口化排程为：\\n- 0–2：A、D\\n- 2–3：A\\n- 3–7：B、C\\n- 7–8：B\\n- 8–10：E、F\\n- 10–11：F\\n- 11–14：等待\\n- 14–15：G\\n所以 window_finish=15。\\n\\n关键路径：候选路径中 A→B→F→G 长度为 3+5+3+1=12，是最长路径，且包含最终 G，因此 critical_path=[A,B,F,G]。其他路径如 A→B→E→G 为 11，A→C→E→G 为 10，D→G 为 3。发布窗口造成的 11→14 等待是外部窗口约束产生的间隔，不是任务节点，因此不进入关键路径节点列表。\\n\\nt=0 时全部工作尚未开始；D 尚无合规签字，也没有任何测试通过记录。排程中的完成时间只是计划中的最早可能完成时间，不等于已经发生的批准。因此目前不能宣称批准已完成，current_approval_confirmed=false。\",\n  \"findings\": [\n    {\n      \"id\": \"pre_release_ready\",\n      \"value\": 11,\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"technical_finish\",\n      \"value\": 12,\n      \"sources\": [\"s1\", \"s3\"]\n    },\n    {\n      \"id\": \"window_finish\",\n      \"value\": 15,\n      \"sources\": [\"s1\", \"s3\"]\n    },\n    {\n      \"id\": \"critical_path\",\n      \"value\": [\"A\", \"B\", \"F\", \"G\"],\n      \"sources\": [\"s1\", \"s2\"]\n    },\n    {\n      \"id\": \"earliest_e_start\",\n      \"value\": 8,\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"current_approval_confirmed\",\n      \"value\": false,\n      \"sources\": [\"s4\"]\n    }\n  ]\n}",
+  "input_tokens": 2225,
+  "output_tokens": 12827,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 11977,
+  "latency_ms": 202939,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179328122221573b8dfe497f31d2aa905b6fe2ab6c681a98560",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 2225,
+    "output_tokens": 12827,
+    "total_tokens": 15052,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 11977
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

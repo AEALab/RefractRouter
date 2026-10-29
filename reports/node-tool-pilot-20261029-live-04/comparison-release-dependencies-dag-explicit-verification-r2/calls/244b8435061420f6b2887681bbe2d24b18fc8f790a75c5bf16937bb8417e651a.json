@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"提取权威信息并计算排程，再汇总交付并核对约束，避免旧版混入。\",\"nodes\":[{\"id\":\"extract\",\"type\":\"extraction\",\"job\":\"提取有效时长、依赖、窗口与状态约束\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"compute_schedule\",\"type\":\"synthesis\",\"job\":\"计算排程、关键路径与各findings值\",\"parents\":[\"extract\"],\"difficulty\":\"high\",\"risk\":\"high\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"交付完整中文正文与findings列表，核对约束\",\"parents\":[\"compute_schedule\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1387,
+  "output_tokens": 993,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 843,
+  "latency_ms": 21140,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932808962654a18dd3860b887d86b9a7f28a91109c38f7e06",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1387,
+    "output_tokens": 993,
+    "total_tokens": 2380,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 843
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

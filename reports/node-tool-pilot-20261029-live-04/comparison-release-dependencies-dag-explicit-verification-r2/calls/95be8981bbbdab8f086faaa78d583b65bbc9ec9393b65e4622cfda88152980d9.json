@@ -1,0 +1,29 @@
+{
+  "content": "依据 s1（有效工作清单）和 s2（版本修订），s2 修订的三项信息已取代旧版，不叠加、不沿用。提取结果如下：\n\n### 有效任务时长与依赖（来源：s1）\n- A 数据库迁移：3 小时；无前置。\n- B API 验证：5 小时；依赖 A。\n- C UI 验证：4 小时；依赖 A。\n- D 合规审查：2 小时；无前置。\n- E 集成测试：2 小时；依赖 B 和 C。\n- F 安全复核：3 小时；依赖 B。\n- G 发布：1 小时；依赖 D、E、F 全部完成。\n\n### 旧版修订覆盖项（来源：s2）\n- A 时长由 4 小时改为 3 小时。\n- C 依赖由“依赖 B”改为“依赖 A”。\n- F 时长由 1 小时改为 3 小时。\n以上三项以 s1 为准。\n\n### 资源约束（来源：s1）\n- 所有时长都是连续工作小时。\n- 每项工作独占一个执行槽。\n- 最多同时执行两项工作。\n- 任务不允许拆分。\n- s3 说明不设其他等待或资源切换开销。\n\n### 发布窗口约束（来源：s3）\n- 仅 G 必须完整位于区间 [14, 16] 小时内。\n- 其他任务可以在此前完成。\n- 忽略该窗口时的理论最早完成时间，指 G 的结束时间。\n\n### 状态与批准约束（来源：s4、s5）\n- t=0 时全部工作尚未开始。\n- D 只是预计需要 2 小时，尚无合规签字。\n- 没有任何测试通过记录。\n- 计划中的完成时间不等于已经发生的批准；预计完成、预计通过都不能描述为已发生。\n- s5 定义口径：`pre_release_ready` 是 D/E/F 都能完成的最早时刻；`critical_path` 使用节点 ID 列表且包含最终 G；`earliest_e_start` 是 E 的最早开始时刻。\n\n### 不确定性\n- 除 s2 明确修订的三项外，s1 与旧版没有其他冲突。\n- t=0 状态下，“合规批准”和“测试通过”均未被确认；不能依据排程结果宣称批准已完成。",
+  "input_tokens": 1133,
+  "output_tokens": 2908,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 2399,
+  "latency_ms": 50843,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179328091742193e048b1e87f4ca8485d3a0240faade7a642f8",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1133,
+    "output_tokens": 2908,
+    "total_tokens": 4041,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 2399
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
