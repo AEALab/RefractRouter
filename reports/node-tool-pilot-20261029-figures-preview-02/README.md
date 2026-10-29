@@ -30,7 +30,9 @@ AFP 是按冻结费率计算的套餐用量，非人民币实付或独立确认�
 复现此阶段图，需要 Matplotlib 和支持中文的字体：
 
 ```bash
-uv run --no-project --with matplotlib python experiments/plot_node_tool_pilot.py \
+uv run --no-project \
+  --with-requirements reports/node-tool-pilot-20261029-figures-preview-02/analysis-requirements.txt \
+  python experiments/plot_node_tool_pilot.py \
   --result-dir reports/node-tool-pilot-20261029-live-04 \
   --summary-snapshot reports/node-tool-pilot-20261029-audit-11/summary.snapshot.json \
   --output-dir reports/新的阶段图目录 --allow-partial
