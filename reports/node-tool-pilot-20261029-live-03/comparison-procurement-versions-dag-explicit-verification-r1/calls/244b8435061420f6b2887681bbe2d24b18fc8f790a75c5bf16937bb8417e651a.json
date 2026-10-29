@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"先统一核算四家含税到货总价并判定硬性资格，最后节点完整交付；计算与核验合并避免重复拆分。\",\"nodes\":[{\"id\":\"costs_eligibility\",\"type\":\"synthesis\",\"job\":\"核算四家含税到货总价并判定资格\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总为完整中文答案并核对证据\",\"parents\":[\"costs_eligibility\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1537,
+  "output_tokens": 3490,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 3368,
+  "latency_ms": 63162,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932729637947f7defdca68741f744da3a9cb51804c46fed16",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 3490,
+    "total_tokens": 5027,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 3368
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

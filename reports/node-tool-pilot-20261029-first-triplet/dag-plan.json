@@ -1,0 +1,83 @@
+{
+  "nodes": [
+    {
+      "node_id": "costs_eligibility",
+      "node_type": "synthesis",
+      "prompt_template": "核算四家含税到货总价并判定资格",
+      "parents": [],
+      "contract": {
+        "objective": "核算四家含税到货总价并判定资格",
+        "inputs": {},
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "核算四家含税到货总价并判定资格"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 65536,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "只履行当前职责；以原始材料核对事实、依赖和上游结论。"
+        ],
+        "covers": [],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    },
+    {
+      "node_id": "answer",
+      "node_type": "generation",
+      "prompt_template": "汇总为完整中文答案并核对证据",
+      "parents": [
+        "costs_eligibility"
+      ],
+      "contract": {
+        "objective": "汇总为完整中文答案并核对证据",
+        "inputs": {
+          "costs_eligibility": {
+            "fields": [
+              "text"
+            ],
+            "reason": "当前职责消费该上游节点的结果。"
+          }
+        },
+        "output": {
+          "format": "text",
+          "fields": {
+            "text": "完整呈现用户要求的各部分及结论；核对原始事实，不遗漏分支正文。"
+          }
+        },
+        "capability": {
+          "difficulty": "medium",
+          "risk": "medium",
+          "input_budget_tokens": 65536,
+          "expected_output_tokens": 1000
+        },
+        "checks": [
+          "准确说明 VAT、折扣门槛、优惠券日期及运费不重复计税。",
+          "引用更新版本替代旧报价，不把未确认的证书当通过。",
+          "保修、交付日、证书和价格全部是硬条件，明确各家淘汰或待定原因。"
+        ],
+        "covers": [
+          0,
+          1,
+          2
+        ],
+        "execution": "text-model",
+        "failure_policy": "stop"
+      }
+    }
+  ],
+  "final_node_id": "answer",
+  "acceptance_criteria": [
+    "准确说明 VAT、折扣门槛、优惠券日期及运费不重复计税。",
+    "引用更新版本替代旧报价，不把未确认的证书当通过。",
+    "保修、交付日、证书和价格全部是硬条件，明确各家淘汰或待定原因。"
+  ],
+  "schema_version": "text-task-plan-v2",
+  "decomposition_reason": "先统一核算四家含税到货总价并判定硬性资格，最后节点完整交付；计算与核验合并避免重复拆分。"
+}
