@@ -1,0 +1,321 @@
+[
+  {
+    "type": "step/start",
+    "seq": 0,
+    "time": 1793262449771,
+    "data": {
+      "turn": 1,
+      "step": 1
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 1,
+    "time": 1793262449795,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "assistant-1",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "refract-node-fixture",
+                "model": "small",
+                "runId": "07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e"
+              }
+            }
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "node-0",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"analyze\",\"task\":\"核对项目总价\",\"context\":\"项目总价为 100 元。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 2,
+    "time": 1793262449795,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "callId": "node-0",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"analyze\",\"task\":\"核对项目总价\",\"context\":\"项目总价为 100 元。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 3,
+    "time": 1793262449807,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "tool-1",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "node-0"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "node-0",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"项目总价为 100 元。\",\"quotes\":[\"总价为 100 元\"],\"limitations\":[\"仅核对给定材料\"],\"toolCallId\":\"node-0\",\"modelCallId\":\"0b28b7ca8b694f51b7f5a9abf5465216\",\"model\":\"small\",\"provider\":\"refract-node-fixture\",\"billingUnit\":\"CNY\",\"cost\":0.00016,\"costBasis\":\"public-price-calculation\",\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":30,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":0.16800000000000637,\"evidenceId\":\"07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e:0b28b7ca8b694f51b7f5a9abf5465216\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 4,
+    "time": 1793262449807,
+    "data": {
+      "turn": 1,
+      "step": 2
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 5,
+    "time": 1793262449817,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "message": {
+        "id": "assistant-2",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "refract-node-fixture",
+                "model": "small",
+                "runId": "07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e"
+              }
+            }
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "node-1",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"check\",\"task\":\"核对项目总价\",\"context\":\"项目总价为 100 元。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 6,
+    "time": 1793262449817,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "callId": "node-1",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"check\",\"task\":\"核对项目总价\",\"context\":\"项目总价为 100 元。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 7,
+    "time": 1793262449829,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "message": {
+        "id": "tool-2",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "node-1"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "node-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"项目总价为 100 元。\",\"quotes\":[\"总价为 100 元\"],\"limitations\":[\"仅核对给定材料\"],\"toolCallId\":\"node-1\",\"modelCallId\":\"1048798458364bb2ab4e692cb44d2b9c\",\"model\":\"small\",\"provider\":\"refract-node-fixture\",\"billingUnit\":\"CNY\",\"cost\":0.00016,\"costBasis\":\"public-price-calculation\",\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":30,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":0.7481659999999692,\"evidenceId\":\"07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e:1048798458364bb2ab4e692cb44d2b9c\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 8,
+    "time": 1793262449829,
+    "data": {
+      "turn": 1,
+      "step": 3
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 9,
+    "time": 1793262449845,
+    "data": {
+      "turn": 1,
+      "step": 3,
+      "message": {
+        "id": "assistant-3",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "refract-node-fixture",
+                "model": "small",
+                "runId": "07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e"
+              }
+            }
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "node-2",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"synthesize\",\"task\":\"核对项目总价\",\"context\":\"项目总价为 100 元。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 10,
+    "time": 1793262449845,
+    "data": {
+      "turn": 1,
+      "step": 3,
+      "callId": "node-2",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"synthesize\",\"task\":\"核对项目总价\",\"context\":\"项目总价为 100 元。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 11,
+    "time": 1793262449851,
+    "data": {
+      "turn": 1,
+      "step": 3,
+      "message": {
+        "id": "tool-3",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "node-2"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "node-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"项目总价为 100 元。\",\"quotes\":[\"总价为 100 元\"],\"limitations\":[\"仅核对给定材料\"],\"toolCallId\":\"node-2\",\"modelCallId\":\"c1587d28a1434cac9e2e60063ea57886\",\"model\":\"small\",\"provider\":\"refract-node-fixture\",\"billingUnit\":\"CNY\",\"cost\":0.00016,\"costBasis\":\"public-price-calculation\",\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":30,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":0.18941699999999173,\"evidenceId\":\"07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e:c1587d28a1434cac9e2e60063ea57886\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 12,
+    "time": 1793262449851,
+    "data": {
+      "turn": 1,
+      "step": 4
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 13,
+    "time": 1793262449859,
+    "data": {
+      "turn": 1,
+      "step": 4,
+      "message": {
+        "id": "assistant-4",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "refract-node-fixture",
+                "model": "small",
+                "runId": "07f536123c259bcd0b93cd9e4c268c001fb6463c7161184d9e328c049cc1e75e"
+              }
+            }
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "已完成三次专家工具调用；项目总价为 100 元。"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  }
+]

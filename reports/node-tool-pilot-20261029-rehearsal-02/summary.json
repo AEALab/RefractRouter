@@ -1,0 +1,32 @@
+{
+  "schema": "node-tool-three-arm-pilot-v1",
+  "status": "stopped-needs-inspection",
+  "simulated": true,
+  "protocolSha256": "73d119bd0958127b1df5781ceee4d845d790ba740bc17bda21e8a058254fb68a",
+  "runs": [
+    {
+      "status": "failed",
+      "output": "",
+      "error": "Expecting value: line 1 column 1 (char 0)",
+      "coreStatus": null,
+      "failureKind": "infrastructure",
+      "runId": "prompt-audit-procurement-versions-one-shot-existing-contract-r1",
+      "taskId": "procurement-versions",
+      "arm": "one-shot",
+      "phase": "prompt-audit",
+      "repeat": 1,
+      "promptId": "existing-contract",
+      "calls": [],
+      "outerElapsedMs": 524.7232080437243,
+      "chargedOrReserved": 0,
+      "costKnown": true,
+      "factStatus": "fail",
+      "qualityStatus": "fail",
+      "checks": []
+    }
+  ],
+  "realModelCalls": 0,
+  "actualOrReservedAfp": 0,
+  "qualityVerdict": "Insufficient-evidence",
+  "providerBillingConfirmed": false
+}

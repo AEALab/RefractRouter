@@ -8,9 +8,10 @@ import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import http from 'node:http'
 import https from 'node:https'
-const [modules,executable,output,strategy,flag]=process.argv.slice(2)
-if(!modules||!executable||!output||!['static','stage'].includes(strategy)||flag!=='--enable-node-tools')
-  throw new Error('用法：node check-node-tools.ts <DSH node_modules> <Python> <新证据目录> static|stage --enable-node-tools')
+const [modules,executable,output,strategy,flag,scenario='clean']=process.argv.slice(2)
+if(!modules||!executable||!output||!['static','stage'].includes(strategy)||flag!=='--enable-node-tools'
+  ||!['clean','task-failures','semantic-error'].includes(scenario))
+  throw new Error('用法：node check-node-tools.ts <DSH node_modules> <Python> <新证据目录> static|stage --enable-node-tools [clean|task-failures|semantic-error]')
 await mkdir(output,{recursive:false}) // 证据不得覆盖或复用。
 const base=resolve(modules,'@deepseek-ai')
 const load=(name:string)=>import(pathToFileURL(resolve(base,name,'lib/index.js')).href)
@@ -22,6 +23,7 @@ const {LlmRuntime}=await load('dsh-llm')
 const {PlanningController}=await import('../dist/planning-routing.js')
 const {createAdapter,configure}=await import('../dist/agent-provider.js')
 const {registerExperimentalNodeTools}=await import('../dist/node-tools.js')
+const {ToolEvidenceCapture}=await import('../dist/tool-evidence.js')
 let networkAttempts=0,requests=0
 const denyNetwork=()=>{networkAttempts++;throw new Error('离线验收禁止网络调用')}
 globalThis.fetch=denyNetwork as typeof fetch
@@ -53,6 +55,22 @@ const ctx=new Context()
 new SystemPrompt(ctx,{})
 new ToolRuntime(ctx)
 new LlmRuntime(ctx)
+const capture=new ToolEvidenceCapture()
+ctx.on('tools/result',(exec:any,result:any)=>capture.observe(exec,result))
+let probeExecutions=0
+if(scenario==='task-failures')ctx.tools.register({name:'bash',description:'离线夹具：仅执行固定的非零退出探针',
+  parameters:{type:'object',properties:{command:{type:'string',enum:['fixture-exit-7']}},required:['command'],additionalProperties:false},
+  output:{schema:{type:'object'},render:(_args:unknown,value:any)=>[{type:'text',text:JSON.stringify(value)}]},
+  async execute(args:any){
+    assert.deepEqual(args,{command:'fixture-exit-7'})
+    probeExecutions++
+    const child=spawn(executable,['-c','import sys; sys.exit(7)'],{cwd:resolve(output),
+      env:{...process.env,PYTHONPATH:guard},stdio:'ignore'})
+    const exitCode=await new Promise<number|null>((done,reject)=>{child.once('error',reject);child.once('exit',done)})
+    assert.equal(exitCode,7)
+    return {kind:'foreground',exitCode,signal:null,timedOut:false,aborted:false}
+  }})
+const expectedArtifact=scenario==='semantic-error'?'项目总价为 99 元。':'项目总价为 100 元。'
 const info=(provider:string,model:string)=>({provider,id:model,name:'节点工具离线模型 '+model,
   inputModalities:['text'],context:{contextWindow:1000000},defaultMaxTokens:1024})
 const fixture:any={
@@ -66,12 +84,16 @@ const fixture:any={
     let block:any
     const results=options.messages.flatMap((m:any)=>Array.isArray(m.content)?m.content:[])
       .filter((b:any)=>b.type==='tool-result')
-    if(options.tools?.some((t:any)=>t.name==='refract_expert')&&results.length<3){
-      block={type:'tool-call',id:'node-'+results.length,name:'refract_expert',arguments:JSON.stringify({
-        intent:['analyze','check','synthesize'][results.length],task:'核对项目总价',context:'项目总价为 100 元。'})}
+    const expertCount=results.filter((b:any)=>b.toolCallId.startsWith('node-')).length
+    const probeCount=results.filter((b:any)=>b.toolCallId.startsWith('probe-')).length
+    if(options.tools?.length&&scenario==='task-failures'&&probeCount<2){
+      block={type:'tool-call',id:'probe-'+probeCount,name:'bash',arguments:JSON.stringify({command:'fixture-exit-7'})}
+    }else if(options.tools?.some((t:any)=>t.name==='refract_expert')&&expertCount<3){
+      block={type:'tool-call',id:'node-'+expertCount,name:'refract_expert',arguments:JSON.stringify({
+        intent:['analyze','check','synthesize'][expertCount],task:'核对项目总价',context:'项目总价为 100 元。'})}
     }else{
-      block={type:'text',text:options.tools?.length?'已完成三次专家工具调用':JSON.stringify({
-        artifact:'项目总价为 100 元。',quotes:['总价为 100 元'],limitations:['仅核对给定材料']})}
+      block={type:'text',text:options.tools?.length?'已完成三次专家工具调用；'+expectedArtifact:JSON.stringify({
+        artifact:expectedArtifact,quotes:['总价为 100 元'],limitations:['仅核对给定材料']})}
     }
     yield {type:'block-start',index:0,blockType:block.type}
     if(block.type==='tool-call')yield {type:'tool-call-delta',index:0,id:block.id,name:block.name,argumentsDelta:block.arguments}
@@ -81,7 +103,7 @@ const fixture:any={
     yield {type:'finish',reason:{kind:block.type==='tool-call'?'tool-calls':'stop'}}
   }}
 ctx.llm.registerAdapter(['refract-node-fixture'],fixture)
-const session=Session.create('refract-node-tools-'+strategy)
+const session=Session.create('refract-node-tools-'+strategy+'-'+scenario)
 const agent={id:session.header.id,session,ctx}
 const disposals:Array<()=>void>=[]
 const context:any={llm:ctx.llm,tools:ctx.tools,agents:{requireInitiator:()=>agent},
@@ -97,18 +119,18 @@ const context:any={llm:ctx.llm,tools:ctx.tools,agents:{requireInitiator:()=>agen
     return {stdin:child.stdin,stdout:child.stdout,done,waitForExit:()=>done,terminate:()=>child.kill(),collected:{}}
   }}}
 const config=configure({pythonExecutable:executable,runsDir:'evidence',planningRouting:{
-  schemaVersion:'refractagent-planning-v1',enabled:true,maxProductionCost:10,maxCalls:7,defaultStrategy:strategy as any,
+  schemaVersion:'refractagent-planning-v1',enabled:true,maxProductionCost:10,maxCalls:scenario==='task-failures'?9:7,defaultStrategy:strategy as any,
   models:['small','large'].map(id=>({id,provider:'refract-node-fixture',model:id,contextWindow:1000000,
     maxOutputTokens:1024,inputPer1k:.001,outputPer1k:.002,deployment:'local'})),
   roles:{efficient:'small',capable:'large'}}})
-const planning=new PlanningController(context,()=>config)
-const adapter=createAdapter(context,()=>config,undefined,planning)
+const planning=new PlanningController(context,()=>config,undefined,capture)
+const adapter=createAdapter(context,()=>config,capture,planning)
 const messages:any[]=[{id:'user',role:'user',source:{kind:'user'},content:[{type:'text',text:'核对总价并完成三次专家分析'}]}]
 try{
   const dispose=await registerExperimentalNodeTools(context,planning,{enabled:true},()=>ctx.tools.schemas())
   disposals.push(dispose)
   let tools=0
-  for(let step=1;step<=4;step++){
+  for(let step=1;step<=(scenario==='task-failures'?6:4);step++){
     session.append('step/start',{turn:1,step})
     const chunks:any[]=[]
     for await(const chunk of adapter.stream({provider:'refractagent',model:'planning',reasoningEffort:'rr:'+strategy,
@@ -126,13 +148,15 @@ try{
         agent,signal:new AbortController().signal})
       assert.equal(result.isError,false,JSON.stringify(result))
       const value=JSON.parse(result.content[0].text)
-      assert.equal(value.toolCallId,call.id)
-      assert.equal(value.artifact,'项目总价为 100 元。')
+      if(call.name==='refract_expert'){
+        assert.equal(value.toolCallId,call.id)
+        assert.equal(value.artifact,expectedArtifact)
+        tools++
+      }else assert.equal(value.exitCode,7)
       const message={id:'tool-'+step,role:'user',source:{kind:'tool',callId:call.id},
         content:[{type:'tool-result',toolCallId:call.id,content:result.content,isError:result.isError}]}
       messages.push(message)
       session.append('tool/result',{turn:1,step,message},{surfaceOp:'append'})
-      tools++
     }
   }
   const history=await planning.rpc.request({op:'history',session:session.header.id})
@@ -140,24 +164,31 @@ try{
   await planning.rpc.request({op:'end',runId})
   const record=await planning.rpc.request({op:'query',runId})
   assert.equal(tools,3)
-  assert.equal(requests,7)
+  assert.equal(requests,scenario==='task-failures'?9:7)
   assert.equal(networkAttempts,0)
   assert.equal((await readdir(guard)).includes('attempted'),false)
   assert.equal((await readdir(guard)).includes('dag-attempted'),false)
   assert.equal(await readFile(resolve(guard,'ready'),'utf8'),'socket-dns-dag-guards-active')
   assert.equal((await readdir(resolve(output,'evidence/planning'))).length,1)
   assert.equal(record.status,'completed')
-  assert.equal(record.calls.length,7)
+  assert.equal(record.calls.length,requests)
   assert.equal(record.calls.filter((c:any)=>c.purpose==='node-tool').length,3)
   assert.ok(record.calls.every((c:any)=>c.status==='billed'))
   assert.ok(record.nodeTools.invocations.every((i:any)=>i.status==='completed'))
   const events=session.snapshotEvents()
-  assert.equal(events.filter((e:any)=>e.type==='tool/call').length,3)
-  assert.equal(events.filter((e:any)=>e.type==='tool/result').length,3)
+  assert.equal(events.filter((e:any)=>e.type==='tool/call').length,tools+probeExecutions)
+  assert.equal(events.filter((e:any)=>e.type==='tool/result').length,tools+probeExecutions)
   const sum=record.calls.reduce((total:number,c:any)=>total+c.charged,0)
   assert.ok(Math.abs(record.costs.production-sum)<1e-10)
   assert.match(messages.at(-1).content[0].text,/已完成三次/)
-  const acceptance={status:'pass',strategy,protocol:'node-as-tool-v1-experimental',
+  const models=record.calls.map((c:any)=>c.model_id)
+  const switches=models.slice(1).filter((m:string,i:number)=>m!==models[i]).length
+  const capableCalls=models.filter((m:string)=>m==='large').length
+  assert.equal(probeExecutions,scenario==='task-failures'?2:0)
+  if(strategy==='stage'&&scenario==='task-failures')assert.ok(capableCalls>=2)
+  else assert.equal(capableCalls,0)
+  const acceptance={status:'pass',strategy,scenario,modelsByCall:models,modelSwitchCount:switches,
+    capableCalls,probeExecutions,semanticMismatchObserved:scenario==='semantic-error',protocol:'node-as-tool-v1-experimental',
     host:'DSH LlmRuntime + Session + ToolRuntime',fixtureModelRequests:requests,expertToolCalls:tools,
     networkAttempts,networkModelCalls:0,dagConstructionGuard:true,dagCreated:false,parentRunCount:1,sharedLedgerCalls:record.calls.length,
     simulatedCost:record.costs,realModelCost:0,qualityBenefitProven:false,nodeVersion:process.version,
@@ -166,6 +197,6 @@ try{
   await writeFile(resolve(output,'acceptance.json'),JSON.stringify(acceptance,null,2))
   console.log(JSON.stringify(acceptance))
 }catch(error){
-  await writeFile(resolve(output,'failure.json'),JSON.stringify({error:String(error),requests,networkAttempts},null,2))
+  await writeFile(resolve(output,'failure.json'),JSON.stringify({error:String(error),scenario,requests,networkAttempts},null,2))
   throw error
 }finally{for(const dispose of disposals.reverse())dispose()}

@@ -1,0 +1,186 @@
+{
+  "schema": "node-tool-pilot-tasks-v1",
+  "tasks": [
+    {
+      "task_id": "procurement-versions",
+      "title": "含更新报价与资格门槛的采购比选",
+      "split": "development",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-29",
+        "limits": "虚构组织与数据；按多专业职责选择候选任务，不断言必须拆分；未获独立真人材料审查。"
+      },
+      "instruction": "在 2026-11-03 下单采购 240 件设备。只依据材料，核算 A/B/C/D 最终含税到货总价，筛出已确定符合全部硬条件的供应商，选最低价合格者。说明 B 的条件性和未确认事项，不把待确认资格当作通过。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "采购约束",
+          "text": "数量 240 件；含税到货价上限 18000 元；最晚到货日 2026-11-18（当天可）；保修至少 24 个月；必须有已经确认有效的证书。下单日 2026-11-03。所有供应商容量均足够。"
+        },
+        {
+          "source_id": "s2",
+          "title": "A 报价",
+          "text": "单价 58 元，不含 13% 增值税；运费 600 元，运费已经含税，不再加税。满 300 件才能对货款打 95 折，未满不打折。保修 18 个月，证书有效，到货日 11-17。"
+        },
+        {
+          "source_id": "s3",
+          "title": "B 初始报价",
+          "text": "2026-10-28 版：含税单价 64 元，运费 400 元。满 200 件货款打 96 折，运费不打折。保修 24 个月，承诺到货 11-18；证书补交，尚未确认有效。"
+        },
+        {
+          "source_id": "s4",
+          "title": "B 更新通知",
+          "text": "2026-11-02 起生效并替代此前价格：含税单价改为 65 元，运费改为 800 元。折扣、保修、到货承诺和证书状态均不变。不得把新旧两版价格相加。"
+        },
+        {
+          "source_id": "s5",
+          "title": "C 报价",
+          "text": "含税单价 62 元，运费 680 元。800 元优惠券仅适用于 11-01 及以前支付；本任务无法适用。保修 24 个月，证书有效，到货日 11-18。"
+        },
+        {
+          "source_id": "s6",
+          "title": "D 报价",
+          "text": "含税单价 59 元，运费 900 元，无折扣。保修 24 个月，证书有效，到货日 11-19。"
+        },
+        {
+          "source_id": "s7",
+          "title": "口径说明",
+          "text": "总价只计货款、适用税额和运费；不估计未给出的费用。对资格待确认的报价可以列出附条件比较，但不能将其放入已确定合格集合。"
+        }
+      ],
+      "requested_findings": {
+        "cost_a": "A 含税到货总价",
+        "cost_b": "按新版本的 B 总价",
+        "cost_c": "C 总价",
+        "cost_d": "D 总价",
+        "confirmed_eligible": "已确定合格的供应商列表",
+        "selected_supplier": "选中的已确定合格者",
+        "selected_cost": "选中总价",
+        "b_confirmed_eligible": "B 是否已确定合格"
+      },
+      "semantic_criteria": [
+        "准确说明 VAT、折扣门槛、优惠券日期及运费不重复计税。",
+        "引用更新版本替代旧报价，不把未确认的证书当通过。",
+        "保修、交付日、证书和价格全部是硬条件，明确各家淘汰或待定原因。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、约束、证据与不确定性；不得声称执行外部工具。",
+        "findings": "列表，每项恰含 id、value、sources。id 使用 requested_findings；value 保持数值/布尔/列表/字符串类型；sources 使用 source_id。"
+      },
+      "task_sha256": "2c1528beed12144d66fd32c043d0975ee09a816908e9833ce7552717a187d2cc"
+    },
+    {
+      "task_id": "release-dependencies",
+      "title": "版本更新、并发与窗口约束下的发布排程",
+      "split": "development",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-29",
+        "limits": "虚构组织与数据；按多专业职责选择候选任务，不断言必须拆分；未获独立真人材料审查。"
+      },
+      "instruction": "以 t=0 为开始，按最新依赖计算理论最早完成时间，并安排发布窗口内的最早发布。所有时长是连续工作小时，最多同时执行两项工作，不允许拆分任务。给出可执行排程、关键路径和目前能否宣称批准已完成。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "有效工作清单",
+          "text": "A 数据库迁移 3 小时，无前置；B API 验证 5 小时，依赖 A；C UI 验证 4 小时，依赖 A；D 合规审查 2 小时，无前置；E 集成测试 2 小时，依赖 B 和 C；F 安全复核 3 小时，依赖 B；G 发布 1 小时，依赖 D、E、F 全部完成。每项独占一个执行槽，最多两个槽。"
+        },
+        {
+          "source_id": "s2",
+          "title": "版本修订",
+          "text": "旧备忘录把 A 写为 4 小时、把 C 写成依赖 B、把 F 写为 1 小时。这些三项信息已被有效工作清单替代，不能沿用或与新版叠加。"
+        },
+        {
+          "source_id": "s3",
+          "title": "发布窗口",
+          "text": "只有 G 必须完整位于区间 [14,16] 小时内；其他任务可以在此前完成。不设其他等待或资源切换开销。理论最早完成时间是忽略这个窗口后的 G 结束时间。"
+        },
+        {
+          "source_id": "s4",
+          "title": "状态快照",
+          "text": "观察时刻 t=0，全部工作尚未开始；D 只是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。计划中的完成时间不等于已经发生的批准。"
+        },
+        {
+          "source_id": "s5",
+          "title": "交付口径",
+          "text": "pre_release_ready 表示 D/E/F 都能完成的最早时刻；critical_path 使用节点 ID 列表，含最终 G；earliest_e_start 是 E 最早开始时刻。给出一个满足两槽限制的完整排程作为正文依据。"
+        }
+      ],
+      "requested_findings": {
+        "pre_release_ready": "发布前置工作最早齐备时刻",
+        "technical_finish": "忽略窗口的最早 G 结束时间",
+        "window_finish": "考虑窗口的最早 G 结束时间",
+        "critical_path": "关键路径节点 ID",
+        "earliest_e_start": "E 最早开始",
+        "current_approval_confirmed": "t=0 是否已确认合规批准"
+      },
+      "semantic_criteria": [
+        "不能使用旧版本依赖和时长；正文排程须满足最多两项并发。",
+        "区分技术关键路径和发布窗口等待。",
+        "不能把预计审查完成或预计测试通过描述成已发生。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、约束、证据与不确定性；不得声称执行外部工具。",
+        "findings": "列表，每项恰含 id、value、sources。id 使用 requested_findings；value 保持数值/布尔/列表/字符串类型；sources 使用 source_id。"
+      },
+      "task_sha256": "962c690b00016e11a1cae23f18373b6d5d9e6742e8e4b89075eefc47bec7d4d2"
+    },
+    {
+      "task_id": "ledger-idempotency",
+      "title": "流水幂等与退款约束的代码核对",
+      "split": "development",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-29",
+        "limits": "虚构组织与数据；按多专业职责选择候选任务，不断言必须拆分；未获独立真人材料审查。"
+      },
+      "instruction": "按事件顺序手工核对流水与给出的代码，计算真实应计结果；诊断去重缺陷，给出修正思路和关键测试。不要声称运行了代码。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "业务规则",
+          "text": "所有订单起始余额为 0。按全局 event_id 去重：首次见到的事件保留其 (order_id,kind,amount,status)；同 ID 同内容的后续事件计为重复且不再应用；同 ID 内容不同计为冲突并隔离，不更新余额。首次事件即使退款被拒或状态 pending 也保留其身份。只结算 success；pending 金额不计现金。退款超过该订单当前余额则拒绝，余额不变；不能用别的订单余额垫付。"
+        },
+        {
+          "source_id": "s2",
+          "title": "事件表",
+          "text": "列为 event_id | order_id | kind | amount | status，按行顺序处理：\np1 | O1 | pay | 100 | success\np1 | O1 | pay | 100 | success\nr1 | O1 | refund | 30 | success\nr2 | O1 | refund | 20 | success\nr2 | O1 | refund | 20 | success\np2 | O2 | pay | 80 | success\nr3 | O2 | refund | 90 | success\np3 | O3 | pay | 120 | success\nr4 | O3 | refund | 120 | success\nr4 | O2 | refund | 120 | success\nr5 | O1 | refund | 60 | success\np4 | O2 | pay | 60 | pending\np5 | O4 | pay | 50 | success"
+        },
+        {
+          "source_id": "s3",
+          "title": "当前缺陷代码",
+          "text": "seen=set(); balances={}\nfor e in events:\n    if e.order_id in seen: continue\n    seen.add(e.order_id)\n    if e.status != \"success\": continue\n    balances[e.order_id]=balances.get(e.order_id,0)+(e.amount if e.kind==\"pay\" else -e.amount)\n该代码用 order_id 去重；这不是业务要求的 event_id。"
+        },
+        {
+          "source_id": "s4",
+          "title": "交付要求",
+          "text": "total_paid/refunded/net 只计应当应用的 success 事件。duplicate_count 不含冲突，rejected_refunds 不含冲突。remaining 使用按 O1/O2/O3/O4 顺序的数值列表。wrong_key 是缺陷代码错误使用的字段名。需给出与规则一致的去重与退款校验顺序，区分重复、冲突和退款被拒。"
+        }
+      ],
+      "requested_findings": {
+        "total_paid": "正确应计支付合计",
+        "total_refunded": "正确应计退款合计",
+        "net": "正确净额",
+        "remaining": "四个订单余额列表",
+        "duplicate_count": "相同事件重复次数",
+        "conflict_count": "同 ID 异内容冲突数",
+        "rejected_refunds": "余额不足退款数",
+        "pending_excluded": "未结算金额",
+        "wrong_key": "代码错误的去重字段"
+      },
+      "semantic_criteria": [
+        "正文计算与结构字段一致，解释 r4 冲突及被拒退款。",
+        "修正思路按 event_id 与完整载荷区分重复和冲突，并在退款前检查订单余额。",
+        "代码和测试只作建议，不声称已执行。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、约束、证据与不确定性；不得声称执行外部工具。",
+        "findings": "列表，每项恰含 id、value、sources。id 使用 requested_findings；value 保持数值/布尔/列表/字符串类型；sources 使用 source_id。"
+      },
+      "task_sha256": "cb2ebb2941a64a3e481c028d8c39ea8736f5f21ac0073e75962c2249ad135036"
+    }
+  ]
+}

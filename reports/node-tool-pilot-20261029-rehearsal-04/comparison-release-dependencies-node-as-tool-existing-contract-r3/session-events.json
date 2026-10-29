@@ -1,0 +1,168 @@
+[
+  {
+    "type": "step/start",
+    "seq": 0,
+    "time": 1793265112938,
+    "data": {
+      "turn": 1,
+      "step": 1
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 1,
+    "time": 1793265112985,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "assistant-1",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-1",
+                  "stopReason": "toolUse"
+                },
+                "runId": "0fd27b0fdb5c60d3f97addc46144e1510120ace4a9d629be5b0844dd2d3379ba"
+              }
+            },
+            "blocks": [
+              {
+                "type": "tool-call"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "expert-1|fc-1",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 2,
+    "time": 1793265112985,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "callId": "expert-1|fc-1",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 3,
+    "time": 1793265112992,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "tool-expert-1|fc-1",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "expert-1|fc-1"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "expert-1|fc-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"离线中间产物，不构成真实能力证据\",\"quotes\":[],\"limitations\":[\"模拟响应\"],\"toolCallId\":\"expert-1|fc-1\",\"modelCallId\":\"feb75d3627e54539809bbb0d92b1891b\",\"model\":\"deepseek-v4-flash\",\"provider\":\"ark-node-study\",\"billingUnit\":\"AFP\",\"cost\":0.008,\"costBasis\":null,\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":60,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":1.7042500000000018,\"evidenceId\":\"0fd27b0fdb5c60d3f97addc46144e1510120ace4a9d629be5b0844dd2d3379ba:feb75d3627e54539809bbb0d92b1891b\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 4,
+    "time": 1793265112992,
+    "data": {
+      "turn": 1,
+      "step": 2
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 5,
+    "time": 1793265112998,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "message": {
+        "id": "assistant-2",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-3",
+                  "stopReason": "stop"
+                },
+                "runId": "0fd27b0fdb5c60d3f97addc46144e1510120ace4a9d629be5b0844dd2d3379ba"
+              }
+            },
+            "blocks": [
+              {
+                "type": "text",
+                "textSignature": "{\"v\":1,\"id\":\"msg-3\"}"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"answer\":\"离线交付，只验证协议与账本\",\"findings\":[]}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  }
+]

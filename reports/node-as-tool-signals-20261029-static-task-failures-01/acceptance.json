@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "strategy": "static",
+  "scenario": "task-failures",
+  "modelsByCall": [
+    "small",
+    "small",
+    "small",
+    "small",
+    "small",
+    "small",
+    "small",
+    "small",
+    "small"
+  ],
+  "modelSwitchCount": 0,
+  "capableCalls": 0,
+  "probeExecutions": 2,
+  "semanticMismatchObserved": false,
+  "protocol": "node-as-tool-v1-experimental",
+  "host": "DSH LlmRuntime + Session + ToolRuntime",
+  "fixtureModelRequests": 9,
+  "expertToolCalls": 3,
+  "networkAttempts": 0,
+  "networkModelCalls": 0,
+  "dagConstructionGuard": true,
+  "dagCreated": false,
+  "parentRunCount": 1,
+  "sharedLedgerCalls": 9,
+  "simulatedCost": {
+    "production": 0.00144,
+    "evaluation": 0
+  },
+  "realModelCost": 0,
+  "qualityBenefitProven": false,
+  "nodeVersion": "v22.22.3",
+  "evidencePath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-as-tool-signals-20261029-static-task-failures-01/evidence/planning/fa40e1403de6abf41211211a490a6ca406ee115d407b4b4ba6ae30d7a42d0915.json",
+  "scope": "离线契约验收，不证明任务质量、成本或时延收益"
+}

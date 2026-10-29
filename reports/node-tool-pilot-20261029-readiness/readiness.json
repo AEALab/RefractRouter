@@ -1,0 +1,31 @@
+{
+  "status": "可审阅，等待付费范围与预算批准",
+  "protocolSha256": "04e4a6db78acc90847d51f7284c0481ed084bebaee6f5f737634b230be52e60e",
+  "productionAfpUpperBound": 286,
+  "conservativeAfpSum": 285.00075,
+  "maximumModelCalls": 135,
+  "taskIds": [
+    "procurement-versions",
+    "release-dependencies",
+    "ledger-idempotency"
+  ],
+  "repeats": 3,
+  "routes": [
+    "one-shot",
+    "node-as-tool",
+    "dag"
+  ],
+  "baselineDevelopmentCases": 18,
+  "comparisonCases": 27,
+  "fullPytestPassed": 2124,
+  "strictTypescriptExitCode": 0,
+  "rehearsalCases": 45,
+  "rehearsalPairs": 18,
+  "realModelCalls": 0,
+  "realAfpConsumed": 0,
+  "sourceHashesVerified": true,
+  "dshVersion": "0.1.5-rc.3",
+  "pricingSourceSha256": "00385bb066bcfc8ab9827908ebc1db1421a282caa78cd1d9bd0a86b4a874e01f",
+  "pricingSourceUrl": "https://www.volcengine.com/docs/82379/2516283?lang=zh",
+  "evidenceTier": "工程演练；尚无真实收益结果"
+}

@@ -133,6 +133,7 @@ export class PlanningController {
   readonly rpc:PlanningRpc
   private tasks=new Map<string,string>()
   private nodeToolProfile?:Json
+  private callInputLimit?:number
   private settings:AgentContext['settings']
   private handshake?:Promise<string[]>
   constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc,
@@ -367,6 +368,10 @@ export class PlanningController {
     if(!runId)throw new Error('媒体工具只能在已启动的规划路由任务中使用')
     return runId
   }
+  setCallInputLimit(limit:number):void{
+    if(this.tasks.size)throw new Error('调用输入上限必须在任务开始前设置')
+    this.callInputLimit=limit
+  }
   /** 仅研究入口显式安装；产品 apply 不调用此方法。schema 与限额由 Python 返回。 */
   async enableNodeTools(profile:Json):Promise<Json>{
     if(this.nodeToolProfile||this.tasks.size)throw new Error('节点工具必须在任务开始前安装一次')
@@ -480,6 +485,7 @@ export class PlanningController {
         }
         const started=await this.rpc.request({op:'begin',identity,config,strategy,hostIssues,
           child:agent.session.header?.origin==='subagent',
+          ...(this.callInputLimit!==undefined?{callInputLimit:this.callInputLimit}:{}),
           ...(this.nodeToolProfile?{nodeTools:this.nodeToolProfile}:{})})
         runId=String(started.runId);this.tasks.set(key,runId)
         if(this.ctx.llm.resolveModelInfo)for(const route of started.models??[])

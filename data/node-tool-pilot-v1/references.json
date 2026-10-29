@@ -1,0 +1,243 @@
+{
+  "schema": "node-tool-pilot-references-v1",
+  "tasks": {
+    "procurement-versions": {
+      "task_sha256": "2c1528beed12144d66fd32c043d0975ee09a816908e9833ce7552717a187d2cc",
+      "checks": [
+        {
+          "field": "cost_a",
+          "op": "equal",
+          "expected": 16329.6,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "cost_b",
+          "op": "equal",
+          "expected": 15776,
+          "required_sources": [
+            "s1",
+            "s3",
+            "s4"
+          ]
+        },
+        {
+          "field": "cost_c",
+          "op": "equal",
+          "expected": 15560,
+          "required_sources": [
+            "s1",
+            "s5"
+          ]
+        },
+        {
+          "field": "cost_d",
+          "op": "equal",
+          "expected": 15060,
+          "required_sources": [
+            "s1",
+            "s6"
+          ]
+        },
+        {
+          "field": "confirmed_eligible",
+          "op": "set_equal",
+          "expected": [
+            "C"
+          ],
+          "required_sources": [
+            "s1",
+            "s2",
+            "s3",
+            "s4",
+            "s5",
+            "s6"
+          ]
+        },
+        {
+          "field": "selected_supplier",
+          "op": "equal",
+          "expected": "C",
+          "required_sources": [
+            "s1",
+            "s5"
+          ]
+        },
+        {
+          "field": "selected_cost",
+          "op": "equal",
+          "expected": 15560,
+          "required_sources": [
+            "s1",
+            "s5"
+          ]
+        },
+        {
+          "field": "b_confirmed_eligible",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s1",
+            "s3",
+            "s4"
+          ]
+        }
+      ]
+    },
+    "release-dependencies": {
+      "task_sha256": "962c690b00016e11a1cae23f18373b6d5d9e6742e8e4b89075eefc47bec7d4d2",
+      "checks": [
+        {
+          "field": "pre_release_ready",
+          "op": "equal",
+          "expected": 11,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "technical_finish",
+          "op": "equal",
+          "expected": 12,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "window_finish",
+          "op": "equal",
+          "expected": 15,
+          "required_sources": [
+            "s1",
+            "s3"
+          ]
+        },
+        {
+          "field": "critical_path",
+          "op": "equal",
+          "expected": [
+            "A",
+            "B",
+            "F",
+            "G"
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "earliest_e_start",
+          "op": "equal",
+          "expected": 8,
+          "required_sources": [
+            "s1"
+          ]
+        },
+        {
+          "field": "current_approval_confirmed",
+          "op": "equal",
+          "expected": false,
+          "required_sources": [
+            "s4"
+          ]
+        }
+      ]
+    },
+    "ledger-idempotency": {
+      "task_sha256": "cb2ebb2941a64a3e481c028d8c39ea8736f5f21ac0073e75962c2249ad135036",
+      "checks": [
+        {
+          "field": "total_paid",
+          "op": "equal",
+          "expected": 350,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "total_refunded",
+          "op": "equal",
+          "expected": 170,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "net",
+          "op": "equal",
+          "expected": 180,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "remaining",
+          "op": "equal",
+          "expected": [
+            50,
+            80,
+            0,
+            50
+          ],
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "duplicate_count",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "conflict_count",
+          "op": "equal",
+          "expected": 1,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "rejected_refunds",
+          "op": "equal",
+          "expected": 2,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "pending_excluded",
+          "op": "equal",
+          "expected": 60,
+          "required_sources": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "field": "wrong_key",
+          "op": "equal",
+          "expected": "order_id",
+          "required_sources": [
+            "s1",
+            "s3"
+          ]
+        }
+      ]
+    }
+  },
+  "review_status": "作者构造参考，未完成独立真人语义审查"
+}

@@ -1,0 +1,63 @@
+[
+  {
+    "type": "step/start",
+    "seq": 0,
+    "time": 1793265102465,
+    "data": {
+      "turn": 1,
+      "step": 1
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 1,
+    "time": 1793265102514,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "assistant-1",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-1",
+                  "stopReason": "stop"
+                },
+                "runId": "5781a08e55ddaaa6d6d548537653646d0537db74e197ba1b5b0104598477d221"
+              }
+            },
+            "blocks": [
+              {
+                "type": "text",
+                "textSignature": "{\"v\":1,\"id\":\"msg-1\"}"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"answer\":\"离线交付，只验证协议与账本\",\"findings\":[]}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  }
+]

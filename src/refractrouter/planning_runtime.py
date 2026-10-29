@@ -88,7 +88,7 @@ class PlanningRuntime(StageHybridRuntime):
         public = {"protocol": PROTOCOL, "runId": run["id"], "identity": run["identity"],
             **({"timing": deepcopy(timing)} if timing is not None else {}),
             "strategy": run["strategy"], "configDigest": run["config_digest"], "status": run["status"],
-            "configuration": run["config"]["raw"], "state": run["state"], "decisions": run["decisions"], "calls": calls,
+            "configuration": run["config"]["raw"], "callInputLimit": run.get("call_input_limit", MAX_WIRE_BYTES), "state": run["state"], "decisions": run["decisions"], "calls": calls,
             "referenceCosts": run["budget"].reference_snapshot(), "costs": legacy_costs, "billingUnit": single_unit, "costsByUnit": costs_by_unit,
             **({"nodeTools": {k: deepcopy(v) for k, v in run["nodeTools"].items() if k != "offered"}} if run.get("nodeTools") else {}),
             "phase": run["flow"]["pending"][2] if run["flow"] and run["flow"]["pending"] else "idle",
@@ -115,8 +115,13 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("无效执行身份")
         from .node_tools import profile as compile_node_profile
         node_profile = compile_node_profile(request.get("nodeTools"))
+        call_input_limit = request.get("callInputLimit", MAX_WIRE_BYTES)
+        if type(call_input_limit) is not int or not 256 <= call_input_limit <= MAX_WIRE_BYTES:
+            raise ValueError("调用输入上限必须为 256 至协议容量的整数")
         key = digest(identity)
         if key in self.runs:
+            if self.runs[key].get("call_input_limit", MAX_WIRE_BYTES) != call_input_limit:
+                raise ValueError("调用输入上限已经冻结")
             if (self.runs[key].get("nodeTools") or {}).get("profile") != node_profile:
                 raise ValueError("任务的节点工具实验配置已冻结")
             return self.describe(self.runs[key])
@@ -159,6 +164,7 @@ class PlanningRuntime(StageHybridRuntime):
             "decisions": []}
         if node_profile:
             run["nodeTools"] = {"profile": node_profile, "invocations": [], "offered": {}}
+        run["call_input_limit"] = call_input_limit
         self.runs[key] = run
         self.persist(run)
         roles = list(REQUIRED[strategy])
@@ -882,6 +888,8 @@ class PlanningRuntime(StageHybridRuntime):
 
     def issue(self, run, role, purpose, messages, tools, *, model_id=None, buffered=True, update=None,
               output_cap=None):
+        if request_input_bound(messages, tools) > run.get("call_input_limit", MAX_WIRE_BYTES):
+            raise ValueError("实际调用输入超过冻结上限")
         model = self.admit(run, role, messages, tools, model_id=model_id)
         pricing = None
         reserve_pricing = None
@@ -1781,7 +1789,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
-                "composite-task-stage-v1", "node-as-tool-v1-experimental",
+                "composite-task-stage-v1", "node-as-tool-v1-experimental", "call-input-limit-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "node-tools-catalog":

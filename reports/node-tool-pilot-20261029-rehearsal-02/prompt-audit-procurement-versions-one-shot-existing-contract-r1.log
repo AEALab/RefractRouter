@@ -1,0 +1,9 @@
+file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/planning-routing.js:89
+        void this.handle.done.then(() => this.fail(new Error('规划路由进程结束；未确认调用不得自动重发')), e => this.fail(e instanceof Error ? e : new Error(String(e))));
+                                                   ^
+
+Error: 规划路由进程结束；未确认调用不得自动重发
+    at file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/planning-routing.js:89:52
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Node.js v22.22.3

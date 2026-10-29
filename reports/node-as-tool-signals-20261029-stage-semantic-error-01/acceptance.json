@@ -1,0 +1,37 @@
+{
+  "status": "pass",
+  "strategy": "stage",
+  "scenario": "semantic-error",
+  "modelsByCall": [
+    "small",
+    "small",
+    "small",
+    "small",
+    "small",
+    "small",
+    "small"
+  ],
+  "modelSwitchCount": 0,
+  "capableCalls": 0,
+  "probeExecutions": 0,
+  "semanticMismatchObserved": true,
+  "protocol": "node-as-tool-v1-experimental",
+  "host": "DSH LlmRuntime + Session + ToolRuntime",
+  "fixtureModelRequests": 7,
+  "expertToolCalls": 3,
+  "networkAttempts": 0,
+  "networkModelCalls": 0,
+  "dagConstructionGuard": true,
+  "dagCreated": false,
+  "parentRunCount": 1,
+  "sharedLedgerCalls": 7,
+  "simulatedCost": {
+    "production": 0.0011200000000000001,
+    "evaluation": 0
+  },
+  "realModelCost": 0,
+  "qualityBenefitProven": false,
+  "nodeVersion": "v22.22.3",
+  "evidencePath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-as-tool-signals-20261029-stage-semantic-error-01/evidence/planning/ac1f2eca803ea263e4bcbe89cd561d88550565277fed5c73e1cb30b45488e19d.json",
+  "scope": "离线契约验收，不证明任务质量、成本或时延收益"
+}
