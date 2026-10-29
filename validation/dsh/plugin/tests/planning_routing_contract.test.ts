@@ -72,6 +72,31 @@ async function fixture(strategy:PlanningStrategy='static',relativeRuns=false){
 }
 async function collect(iterable:AsyncIterable<Record<string,unknown>>){const out:Record<string,unknown>[]=[];for await(const v of iterable)out.push(v);return out}
 
+test('任务结果按真实宿主会话查询和反馈，不追加模型调用或改写用量',async()=>{
+  const f=await fixture('static')
+  try{
+    const chunks=await collect(f.controller.stream(f.options))
+    const finish=chunks.find(chunk=>chunk.type==='finish') as any
+    const runId=finish.replayState.response.refractPlanning.runId
+    const view=await f.controller.outcome({op:'outcome',runId,turn:1})
+    assert.equal(view.schemaVersion,'task-result-v1')
+    assert.equal(view.candidates.length,1)
+    const candidate=view.candidates[0]
+    const feedback={eventId:'dsh-feedback-1',candidateId:candidate.candidateId,
+      candidateSha256:candidate.candidateSha256,status:'accepted',criteriaVersion:'user-v1',
+      reasonCode:'accepted',supersedes:null}
+    const accepted=await f.controller.outcome({op:'outcome-feedback',runId,turn:1,feedback})
+    assert.equal(accepted.candidates[0].acceptanceBySource.user,'accepted')
+    assert.equal(accepted.candidates[0].acceptanceBySource['hidden-evaluation'],'unknown')
+    assert.deepEqual(accepted.costsByUnit,view.costsByUnit)
+    await assert.rejects(()=>f.controller.outcome({op:'outcome-feedback',runId,turn:1,
+      feedback:{...feedback,source:'hidden-evaluation'}}),/来源/)
+    await assert.rejects(()=>f.controller.outcome({op:'outcome',runId,turn:2}),/访问域/)
+    assert.equal(f.calls.length,1)
+    assert.equal(f.toolExecutions,0)
+  }finally{await f.cleanup()}
+})
+
 test('规划 worker 和自动执行采用相同宿主工作区解析相对记录目录',async()=>{
   const f=await fixture('static',true)
   try{

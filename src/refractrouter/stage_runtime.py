@@ -17,7 +17,7 @@ class StageHybridRuntime:
                                 "stateKey": state_key, "ruleVersion": rule_version}
         state = s.setdefault(state_key, initial_state())
         proposed, trigger, reason = observe(state, flow["messages"], flow["tools"],
-            flow["events"], s["step"], stage_config)
+            flow["events"], s["step"], stage_config, projection=s.get("currentTask"))
         flow["stagePlan"] = {"state": proposed, "trigger": trigger, "reason": reason}
         if not trigger:
             return self._emit_hybrid_stage(run, proposed, reason)
@@ -55,7 +55,7 @@ class StageHybridRuntime:
         judge_request = decision_request(flow["messages"], proposed["events"],
             self._resolve_model(run, model_id=model_ids["efficient"]),
             self._resolve_model(run, model_id=model_ids["capable"]),
-            stage_config["maxJudgeInputBytes"])
+            stage_config["maxJudgeInputBytes"], projection=s.get("currentTask"))
         flow["stageRequest"] = judge_request
         if not judge_request["complete"]:
             return self._finish_hybrid_stage(run, None, issue="insufficient-context")

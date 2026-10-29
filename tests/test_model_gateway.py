@@ -70,6 +70,64 @@ def follow(req, result):
         {'role': 'tool', 'tool_call_id': result['choices'][0]['message']['tool_calls'][0]['id'], 'content': '文件内容'}]}
 
 
+def test_outcome_scope_feedback_and_restart_without_redispatch(tmp_path):
+    caller = Caller(reply('私有候选正文'))
+    gw = gateway(tmp_path, caller)
+    ids = []
+    gw.complete(request(), scope='alice', on_outcome=ids.append)
+    run = ids[0]
+    view = gw.outcome({'runId': run}, scope='alice')
+    assert '私有候选正文' not in json.dumps(view, ensure_ascii=False)
+    with pytest.raises(ValueError, match='访问域'):
+        gw.outcome({'runId': run}, scope='bob')
+    candidate = view['candidates'][0]
+    feedback = {'eventId': 'user-1', 'candidateId': candidate['candidateId'],
+        'candidateSha256': candidate['candidateSha256'], 'status': 'accepted',
+        'criteriaVersion': 'manual-v1', 'reasonCode': 'accepted', 'supersedes': None}
+    updated = gw.outcome({'operation': 'outcome-feedback', 'runId': run, 'feedback': feedback}, scope='alice')
+    assert updated['candidates'][0]['acceptanceBySource']['user'] == 'accepted'
+    assert updated['candidates'][0]['acceptanceBySource']['hidden-evaluation'] == 'unknown'
+    with pytest.raises(ValueError, match='作者'):
+        gw.outcome({'operation': 'outcome-feedback', 'runId': run,
+                    'feedback': {**feedback, 'actor': 'another-user'}}, scope='alice')
+    gw.close()
+    restarted = gateway(tmp_path, Caller())
+    assert restarted.outcome({'runId': run}, scope='alice') == updated
+    assert len(caller.actions) == 1
+    restarted.close()
+
+
+@pytest.mark.parametrize('responses,stream', [(False, False), (False, True), (True, False), (True, True)])
+def test_http_outcome_handle_is_outside_model_wire_and_authenticated(tmp_path, responses, stream):
+    gw = gateway(tmp_path, Caller(reply()))
+    server = create_server(gw, port=0, token='test-token')
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = 'http://127.0.0.1:' + str(server.server_port)
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer test-token'}
+    body = {'model': 'refract/static', 'stream': stream, 'input': '回答'} if responses else {**request(), 'stream': stream}
+    try:
+        with urlopen(Request(base + ('/v1/responses' if responses else '/v1/chat/completions'),
+                             data=json.dumps(body).encode(), headers=headers)) as response:
+            handle = response.headers['X-RefractRouter-Outcome']
+            payload = response.read().decode()
+        assert len(handle) == 64
+        assert 'task-result-v1' not in payload
+        data = json.dumps({'operation': 'outcome-export', 'runId': handle}).encode()
+        with urlopen(Request(base + '/v1/refract/outcomes', data=data, headers=headers)) as response:
+            view = json.load(response)
+        assert view['schemaVersion'] == 'task-result-v1'
+        assert len(view['calls']) == 1
+        with pytest.raises(HTTPError) as denied:
+            urlopen(Request(base + '/v1/refract/outcomes', data=data, headers={'Content-Type': 'application/json'}))
+        assert denied.value.code == 401
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+        gw.close()
+
+
 @pytest.mark.parametrize('strategy', ['static', 'stage'])
 def test_plain_api_tool_continuation_never_executes_tools(tmp_path, monkeypatch, strategy):
     import refractrouter.tool_runtime as tools

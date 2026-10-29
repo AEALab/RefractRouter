@@ -36,13 +36,14 @@ def _blocks(messages):
                             yield nested
 
 
-def task_state(messages, tools, max_chars):
+def task_state(messages, tools, max_chars, *, projection=None):
     """建立不含二进制内容的稳定 Judge state，并显式报告容量不足。"""
-    texts, media = [], []
+    from .task_projection import judge_view
+    media = []
     for block in _blocks(messages):
         kind = block.get("type")
         if kind == "text" and isinstance(block.get("text"), str):
-            texts.append(block["text"])
+            pass
         elif kind in ("image", "video", "file"):
             attachment = block.get("attachment", {})
             media.append({"type": kind, "mediaType": attachment.get("mediaType"),
@@ -50,13 +51,23 @@ def task_state(messages, tools, max_chars):
                           "byteLength": attachment.get("byteLength", attachment.get("bytes")),
                           "width": attachment.get("width"), "height": attachment.get("height"),
                           "durationMs": attachment.get("durationMs")})
-    text = "\n".join(texts)
+    view = judge_view(messages, projection)
+    # 单条纯文本保持轻量；一旦有历史，明确标注初始任务、追加要求和各角色来源。
+    history = view["history"]
+    simple = (len(history) == 1 and history[0]["source"] == "request" and not view["guidance"]
+              and view["task"] == history[0]["content"]) and all(
+        b.get("type") == "text" for b in history[0]["content"])
+    text = ("\n".join(b["text"] for b in history[0]["content"]) if simple else
+            json.dumps(view, ensure_ascii=False, sort_keys=True))
     if len(text) > max_chars:
         return {"contract": DECISION_CONTRACT, "text": text[:max_chars], "media": media,
                 "tools": [tool.get("name") for tool in tools if isinstance(tool, dict)],
                 "complete": False, "issue": "task-text-exceeds-judge-capacity"}
     return {"contract": DECISION_CONTRACT, "text": text, "media": media,
-            "tools": [tool.get("name") for tool in tools if isinstance(tool, dict)], "complete": True}
+            "projectionVersion": view["projectionVersion"],
+            "tools": [tool.get("name") for tool in tools if isinstance(tool, dict)],
+            "complete": bool(view["task"]),
+            **({"issue": "current-task-unknown"} if not view["task"] else {})}
 
 
 def filter_candidates(config, state, route=None):

@@ -5,6 +5,20 @@ def display(value):
     return '不可用' if value is None else str(value)
 
 
+def task_result_markdown(view):
+    """只格式化新版核心视图；保留历史 DAG 报告原口径。"""
+    lines = ['# 任务结果与验收', '', f"任务：`{view['runId']}`；状态：`{view['status']}`。",
+             '只覆盖 Router 管理的调用；宿主外层及子 Agent 未管理消费未知。',
+             '费用引用原逐调用账本，未知用量继续占预留；模型通过和用户接受分别展示。', '',
+             '| 候选 | Router 处置 | 用户接受 | 隐藏验收 | 工具检查 | 模型评审 |',
+             '|---|---|---|---|---|---|']
+    for candidate in view['candidates']:
+        labels = candidate['acceptanceBySource']
+        lines.append(f"| `{candidate['candidateId']}` | {candidate['routerDisposition']} | "
+            f"{labels['user']} | {labels['hidden-evaluation']} | {labels['tool']} | {labels['model-review']} |")
+    return '\n'.join(lines) + '\n'
+
+
 def baseline_markdown(summary):
     lines = ['# 执行方式对照汇总', '',
              '质量、成本和延迟使用相同的成功且完成独立评审的任务／轮次集合。',
