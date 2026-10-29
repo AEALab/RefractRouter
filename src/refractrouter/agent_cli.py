@@ -119,8 +119,21 @@ def main(argv=None):
     outcome.add_argument('--request-file', type=Path, required=True,
                          help='包含 op、runId、完整 identity 及该操作字段的 JSON 文件')
     outcome.add_argument('--output', type=Path, help='以私有权限新建导出文件，不覆盖已有文件')
+    facts = commands.add_parser('fact-tool', help='宿主固定可见快照的只读局部事实与字段校验，零模型调用')
+    facts.add_argument('--manifest', type=Path, required=True)
+    facts.add_argument('--manifest-sha256', required=True)
+    facts.add_argument('--workspace-root', type=Path, required=True)
+    facts.add_argument('--request-stdin', action='store_true', required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == 'fact-tool':
+            from .readonly_fact_host import run as fact_run, strict_json, MAX_REQUEST_BYTES
+            raw = sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)
+            if len(raw) > MAX_REQUEST_BYTES:
+                raise ValueError('事实工具请求超过容量')
+            result = fact_run(args.manifest, args.manifest_sha256, args.workspace_root, strict_json(raw))
+            print(json.dumps(result, ensure_ascii=False, separators=(',', ':')))
+            return 0
         if args.command == 'outcome':
             from .planning_runtime import PlanningRuntime
             request = json.loads(args.request_file.read_text())

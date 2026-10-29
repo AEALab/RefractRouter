@@ -460,7 +460,7 @@ test('demo uses installed core through native sandboxed subprocess and preserves
   const f=fixture(); const result=await chunks(createAdapter(f.ctx, () => configure()))
   assert.equal(f.credentials,0)
   const spawn=f.spawns[0]!
-  assert.deepEqual(spawn.argv.slice(0,5),['sandbox','/installed/core/bin/python','-m','refractrouter.agent_cli','run'])
+  assert.deepEqual(spawn.argv.slice(0,7),['sandbox','/installed/core/bin/python','-I','-B','-m','refractrouter.agent_cli','run'])
   assert.ok(!spawn.argv.includes('--execute-paid-run'))
   assert.equal(spawn.env.PYTHONPATH,undefined)
   assert.ok(JSON.parse(spawn.input()).context.includes('保留系统要求'))

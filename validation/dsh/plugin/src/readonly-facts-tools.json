@@ -1,0 +1,64 @@
+[
+  {
+    "name": "refract_source_excerpt",
+    "description": "按宿主固定的可见快照提取精确原文及字符/UTF-8字节区间，不解释语义。",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "start",
+        "end",
+        "unit"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "char",
+            "utf8-byte"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "refract_python_structure",
+    "description": "读取可见Python词法符号的分支/return原文与明确语法结构；不能证明运行时结果或整题正确。",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "symbol",
+        "definitionLine"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "definitionLine": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      }
+    }
+  }
+]

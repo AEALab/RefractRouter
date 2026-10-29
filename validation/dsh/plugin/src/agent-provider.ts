@@ -14,6 +14,8 @@ import { dshToolCallLimit, freezeConfiguration, validateDshModelPool, validatePr
 import { installRefractSettings, overlaySettings, type SettingsFiberContext } from './settings-integration.js'
 import { ToolEvidenceCapture } from './tool-evidence.js'
 import { registerPlanningMediaTools } from './media-tools.js'
+import { registerReadonlyFactTools, validateFactTools, type FactToolsConfig } from './readonly-facts.js'
+import { CORE_RUNTIME_ENV,installedCoreCommand } from './core-command.js'
 
 export const name = 'refractagent'
 export const inject = ['llm', 'subprocess', 'sandbox', 'sandboxPolicy', 'credentials', 'tools', 'agents', 'settings', 'attachments']
@@ -90,6 +92,7 @@ export interface Configuration {
   dshModelPool?: DshModelPool
   limits?: LimitsConfiguration
   planningRouting?: PlanningConfig
+  factTools?: FactToolsConfig
   liveExecution?: LiveExecutionConfiguration
   template: 'single' | 'compare' | 'auto'
   outputConstraints?: OutputConstraints
@@ -208,14 +211,13 @@ async function routeProfileCatalog(ctx: AgentContext, config: Readonly<Configura
     if(!response.ok)throw new Error(`Router HTTP ${response.status}: ${await response.text()}`)
     return await response.json() as Record<string,unknown>
   }
-  const env:Record<string,string>={}
+  const env:Record<string,string>={...CORE_RUNTIME_ENV}
   for(const key of ['PATH','HOME','LANG','LC_ALL','TMPDIR','SYSTEMROOT']){const value=process.env[key];if(value)env[key]=value}
   let executable:string
   try{executable=await ctx.subprocess.resolveExecutable(config.pythonExecutable,env,signal??new AbortController().signal)}
   catch{throw new Error('RefractAgent 可执行程序未找到；无法读取本地时延观测')}
-  const pythonModule=/(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
   const policy=ctx.sandboxPolicy.resolve({})
-  const argv=[executable,...(pythonModule?['-m','refractrouter.agent_cli']:[]),'route-profiles','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
+  const argv=[...installedCoreCommand(executable),'route-profiles','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
   const confined=ctx.sandbox.confine(argv,policy)
   const handle=ctx.subprocess.spawn({argv:confined.argv,cwd:policy.workspaceRoot,env,
     stdio:{stdin:'ignore',stdout:{maxBytes:1048576},stderr:{maxBytes:16384}},
@@ -341,10 +343,11 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     timeoutMs: 300000, maxOutputTokens: 8192, credentialEnv: 'CODEX_ARK_API_KEY', template: 'single',
     routerUrl: undefined as unknown, routerCredential: undefined as unknown, routerProject: undefined as unknown,
     preset: undefined as unknown, providerConfig: undefined as unknown, dshModelPool: undefined as unknown, limits: undefined as unknown,
-    planningRouting: undefined as unknown, liveExecution: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
+    planningRouting: undefined as unknown, factTools: undefined as unknown,
+    liveExecution: undefined as unknown, outputConstraints: undefined as unknown, ...raw }
   const allowed = new Set(['pythonExecutable', 'runsDir', 'executionMode', 'allowPaidRuns', 'maxProductionCost',
     'maxEvaluationCost', 'timeoutMs', 'maxOutputTokens', 'credentialEnv', 'routerUrl', 'routerCredential', 'routerProject', 'template', 'preset', 'providerConfig', 'dshModelPool', 'outputConstraints',
-    'limits', 'liveExecution', 'planningRouting', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
+    'limits', 'liveExecution', 'planningRouting', 'factTools', 'plannerModelId', 'plannerTimeoutMs', 'plannerMaxOutputTokens', 'maxDynamicSplits', 'maxConcurrency', 'verifyDependencies'])
   if (Object.keys(raw).some(key => !allowed.has(key))) throw new Error('unknown RefractAgent configuration field')
   for (const key of ['pythonExecutable', 'runsDir', 'credentialEnv'] as const) {
     if (typeof result[key] !== 'string' || !result[key].trim()) throw new Error(`invalid ${key}`)
@@ -399,6 +402,7 @@ export function configure(raw: unknown = {}): Readonly<Configuration> {
     validateDshModelPool(result.dshModelPool)
   }
   if (result.planningRouting !== undefined) validatePlanningShape(result.planningRouting)
+  if (result.factTools !== undefined) validateFactTools(result.factTools)
   if (result.liveExecution !== undefined) validateLiveExecution(result.liveExecution)
   return freezeConfiguration(JSON.parse(JSON.stringify(result)) as Configuration)
 }
@@ -827,7 +831,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
   }
   const policy = ctx.sandboxPolicy.resolve({})
   const runsDir = resolve(policy.workspaceRoot, config.runsDir)
-  const env: Record<string, string> = {}
+  const env: Record<string, string> = {...CORE_RUNTIME_ENV}
   for (const key of ['PATH', 'HOME', 'LANG', 'LC_ALL', 'TMPDIR', 'SYSTEMROOT']) {
     const value = process.env[key]
     if (value) env[key] = value
@@ -857,8 +861,7 @@ async function invoke(ctx: AgentContext, config: Readonly<Configuration>, option
     ? config.liveExecution.maxOutputTokens : config.maxOutputTokens
   const outputCap = unlimitedNodeOutput ? 128000 : Math.min(configuredOutputCap, options.maxTokens ?? configuredOutputCap)
   if (!Number.isInteger(outputCap) || outputCap < 1000) throw new Error('RefractAgent requires maxTokens >= 1000')
-  const pythonModule = /(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
-  const argv = [executable, ...(pythonModule ? ['-m', 'refractrouter.agent_cli'] : []), 'run',
+  const argv = [...installedCoreCommand(executable), 'run',
     useBridge ? '--host-stdio' : '--request-stdin', '--mode', mode,
     '--runs-dir', runsDir, '--production-budget', typeof control?.productionBudget==='object'?JSON.stringify(control.productionBudget):String(control?.productionBudget ?? config.maxProductionCost),
     '--evaluation-budget', typeof control?.evaluationBudget==='object'?JSON.stringify(control.evaluationBudget):String(control?.evaluationBudget ?? config.maxEvaluationCost), '--timeout-ms', String(control?.localOnly&&config.liveExecution?.taskTimeoutMs ? config.liveExecution.taskTimeoutMs : config.timeoutMs),
@@ -1090,7 +1093,8 @@ export function apply(ctx: AgentContext, raw: unknown = {}): void {
   let effective: Readonly<Configuration> = composed
   const evidence = new ToolEvidenceCapture()
   ctx.on?.('tools/result',(exec,result)=>evidence.observe(exec,result))
-  const planning=new PlanningController(ctx,()=>effective,undefined,evidence)
+  const facts=registerReadonlyFactTools(ctx,()=>effective)
+  const planning=new PlanningController(ctx,()=>effective,undefined,evidence,facts)
   const adapter=createAdapter(ctx, () => effective, evidence,planning)
   ctx.llm.registerAdapter(['refractagent'], adapter)
   // 媒体工具始终由宿主登记；执行时由 Python 对当前 Task、路线与预算做资格检查。
