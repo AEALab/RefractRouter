@@ -106,6 +106,18 @@ def audit_case(row, directory, frozen):
                             providerResponseId=response["id"], requestedOutputTokens=request["max_output_tokens"],
                             requestedTemperature=request.get("temperature"))
                 check_wire_controls(request, frozen, errors)
+                tool_names = [tool.get("name") for tool in request.get("tools", [])]
+                item.update(providedToolNames=tool_names, purpose=call.get("purpose"),
+                            nodeIntent=call.get("node_intent"))
+                if row["arm"] == "one-shot" and tool_names:
+                    errors.append("一次性回答请求意外提供了工具")
+                if row["arm"] == "node-as-tool":
+                    if index == 1 and "refract_expert" not in tool_names:
+                        errors.append("工具可用路线的首请求未实际提供专家工具")
+                    if any(name != "refract_expert" for name in tool_names):
+                        errors.append("工具可用路线提供了未冻结工具")
+                    if call.get("purpose") == "node-tool" and tool_names:
+                        errors.append("专家子请求不应提供内部工具循环")
             raw_cost = expected_afp(usage, frozen["model"])
             reasoning = usage.get("output_tokens_details", {}).get("reasoning_tokens")
             item.update(providerReportedModel=observed_model, providerInputTokens=usage["input_tokens"],
@@ -135,6 +147,8 @@ def audit_case(row, directory, frozen):
             "failedValueChecks": [c for c in failures if not c["check"].endswith(":sources")],
             "failedCitationChecks": [c for c in failures if c["check"].endswith(":sources")],
             "chargedOrReservedAfp": row["chargedOrReserved"], "importedFrom": row.get("importedFrom"),
+            "reportedExpertInvocations": row.get("expertCalls"),
+            "dispatchedExpertRequests": sum(c.get("purpose") == "node-tool" for c in calls),
             "receipts": receipts, "errors": errors, "notes": sorted(set(notes))}
 
 

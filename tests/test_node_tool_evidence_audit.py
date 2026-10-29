@@ -56,6 +56,26 @@ def test_native_detail_loss_does_not_hide_wrong_charges(tmp_path):
         audit.terminal_receipt(path)
 
 
+def test_tool_availability_is_checked_from_wire_not_only_arm_label(tmp_path):
+    directory, row, frozen = fixture(tmp_path)
+    path = directory / "wire/001-request.json"
+    request = json.loads(path.read_text())
+    request["tools"] = [{"type": "function", "name": "refract_expert"}]
+    path.write_text(json.dumps(request))
+    assert any("意外提供" in e for e in audit.audit_case(row, directory, frozen)["errors"])
+    row.update(arm="node-as-tool", expertCalls=0)
+    result = audit.audit_case(row, directory, frozen)
+    assert result["errors"] == [] and result["dispatchedExpertRequests"] == 0
+    assert result["receipts"][0]["providedToolNames"] == ["refract_expert"]
+    request["tools"] = []
+    path.write_text(json.dumps(request))
+    assert any("首请求" in e for e in audit.audit_case(row, directory, frozen)["errors"])
+    request["tools"] = [{"type": "function", "name": "refract_expert"}]
+    path.write_text(json.dumps(request))
+    row["calls"][0]["purpose"] = "node-tool"
+    assert any("内部工具循环" in e for e in audit.audit_case(row, directory, frozen)["errors"])
+
+
 def test_snapshot_hash_stays_bound_when_live_summary_advances(tmp_path, monkeypatch):
     _, row, frozen = fixture(tmp_path)
     summary = {"simulated": False, "status": "running", "runs": [row], "protocolSha256": "protocol",
