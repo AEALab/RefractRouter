@@ -382,7 +382,7 @@ class ModelGateway:
         if any(v is not None for v in explicit):
             if not all(isinstance(v, str) and 0 < len(v) <= 256 for v in explicit):
                 raise ValueError("显式身份必须同时提供 refract_session 与 refract_task")
-            return {"session": scope + ':' + explicit[0], "agent": "api", "turn": explicit[1]}
+            return {"session": 'gateway-scope-v2:' + digest([scope, explicit[0]]), "agent": "api", "turn": explicit[1]}
         messages = request['messages']
         # 标准 function 工具续接可用已交付的 call ID 对应任务；新 user 消息建立新任务。
         tail = []
@@ -401,7 +401,7 @@ class ModelGateway:
                 if history_digest(prefix) != entry['prefix']:
                     raise ValueError("工具续接历史已改变；请提供显式任务身份并核对上下文")
                 return entry['identity']
-        return {"session": scope + ':' + uuid4().hex, "agent": "api", "turn": 1}
+        return {"session": 'gateway-scope-v2:' + digest([scope, uuid4().hex]), "agent": "api", "turn": 1}
 
     def record_host_evidence(self, submitted, *, scope='default'):
         """保存已交付工具调用的宿主事实；工具仍由客户端执行。"""
@@ -494,9 +494,13 @@ class ModelGateway:
                 sources = [e.get("source") for e in entries if e and e.get("source")]
                 if sources and len(sources) == len(calls) and all(s == sources[0] for s in sources):
                     message["source"] = deepcopy(sources[0])
+            owner = {'scope': scope, 'identity': identity}
+            existing_owner = self.state.get('outcomes', {}).get(digest(identity))
+            if existing_owner is not None and existing_owner != owner:
+                raise ValueError('结果任务所有权冲突；拒绝覆盖访问域')
             begun = self.runtime.handle({'op': 'begin', 'identity': identity, 'config': self.planning, 'strategy': strategy})
             run_id = begun['runId']
-            self.state.setdefault('outcomes', {})[run_id] = {'scope': scope, 'identity': identity}
+            self.state.setdefault('outcomes', {}).setdefault(run_id, owner)
             self.save()  # 先固定所有权再派发；失败不能留下可跨域读取的无主结果。
             if on_outcome is not None:
                 on_outcome(run_id)

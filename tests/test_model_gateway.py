@@ -97,6 +97,38 @@ def test_outcome_scope_feedback_and_restart_without_redispatch(tmp_path):
     restarted.close()
 
 
+def test_delimited_scope_session_pairs_are_distinct_and_cannot_steal_results(tmp_path):
+    gw = gateway(tmp_path, Caller(reply(), reply()))
+    first = {**request(), 'metadata': {'refract_session': 'branch:target', 'refract_task': '1'}}
+    second = {**request(), 'metadata': {'refract_session': 'target', 'refract_task': '1'}}
+    left, right = [], []
+    gw.complete(first, scope='org', on_outcome=left.append)
+    gw.complete(second, scope='org:branch', on_outcome=right.append)
+    assert left[0] != right[0]
+    assert gw.outcome({'runId': left[0]}, scope='org')['runId'] == left[0]
+    assert gw.outcome({'runId': right[0]}, scope='org:branch')['runId'] == right[0]
+    with pytest.raises(ValueError, match='访问域'):
+        gw.outcome({'runId': left[0]}, scope='org:branch')
+    gw.close()
+
+
+def test_existing_outcome_owner_is_immutable_even_for_legacy_identity_collision(tmp_path, monkeypatch):
+    caller = Caller(reply())
+    gw = gateway(tmp_path, caller)
+    ids = []
+    gw.complete(request(), scope='owner', on_outcome=ids.append)
+    original = deepcopy(gw.state['outcomes'][ids[0]])
+    monkeypatch.setattr(gw, '_identity', lambda *_: original['identity'])
+    with pytest.raises(ValueError, match='所有权冲突'):
+        gw.complete(request(), scope='other')
+    assert gw.state['outcomes'][ids[0]] == original
+    assert gw.outcome({'runId': ids[0]}, scope='owner')['runId'] == ids[0]
+    with pytest.raises(ValueError, match='访问域'):
+        gw.outcome({'runId': ids[0]}, scope='other')
+    assert len(caller.actions) == 1
+    gw.close()
+
+
 @pytest.mark.parametrize('responses,stream', [(False, False), (False, True), (True, False), (True, True)])
 def test_http_outcome_handle_is_outside_model_wire_and_authenticated(tmp_path, responses, stream):
     gw = gateway(tmp_path, Caller(reply()))

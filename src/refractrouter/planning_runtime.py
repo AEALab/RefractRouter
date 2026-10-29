@@ -132,8 +132,10 @@ class PlanningRuntime(StageHybridRuntime):
             if not path.is_file() or path.is_symlink():
                 raise ValueError("结果任务不存在或不属于当前访问域")
             record = json.loads(path.read_text())
-            if record["status"] == "running":
-                record["status"] = "interrupted-needs-reconciliation"
+        persisted_status = record["status"]
+        if key not in self.runs and persisted_status == "running":
+            # 未加载并不证明原进程停止；显示待核对，删除仍以原证状态为准。
+            record["status"] = "interrupted-needs-reconciliation"
         if record["identity"] != request.get("identity"):
             raise ValueError("结果任务不存在或不属于当前访问域")
         if record.get("resultSchemaVersion") == RESULT_VERSION:
@@ -153,7 +155,7 @@ class PlanningRuntime(StageHybridRuntime):
                 status=feedback["status"], criteria=feedback["criteriaVersion"], reason=feedback["reasonCode"],
                 supersedes=feedback["supersedes"]))
         elif operation == "outcome-delete":
-            if record["status"] == "running" or record.get("phase") != "idle":
+            if persisted_status == "running" or record.get("phase") != "idle":
                 raise ValueError("仍在执行或结算中的任务不能删除结果元数据")
             self.task_results.journal.delete(scope, key, request.get("expectedHead"))
         elif operation not in {"outcome", "outcome-export"}:

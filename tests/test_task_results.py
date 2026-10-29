@@ -201,3 +201,20 @@ def test_required_host_tool_rejection_is_bound_to_candidate_as_tool_feedback(tmp
     assert view["candidates"][0]["acceptanceBySource"]["tool"] == "rejected"
     assert view["candidates"][0]["acceptanceBySource"]["model-review"] == "unknown"
     assert view["calls"][0]["charged"] > 0
+
+
+def test_cli_cannot_delete_an_idle_but_running_task_in_another_runtime(tmp_path, capsys):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static")
+    receipt(runtime, run, step(runtime, run))
+    view = query(runtime, run)
+    path = runtime.root / (run + ".json")
+    before = path.read_bytes()
+    request = tmp_path / "delete.json"
+    request.write_text(json.dumps({"op": "outcome-delete", "runId": run,
+        "identity": view["identity"], "expectedHead": view["eventHead"]}))
+    assert cli(["outcome", "--runs-dir", str(tmp_path), "--request-file", str(request)]) != 0
+    assert "仍在执行" in capsys.readouterr().out
+    assert path.read_bytes() == before
+    assert query(runtime, run)["metadataStatus"] == "recorded"
+    assert runtime.runs[run]["status"] == "running"
