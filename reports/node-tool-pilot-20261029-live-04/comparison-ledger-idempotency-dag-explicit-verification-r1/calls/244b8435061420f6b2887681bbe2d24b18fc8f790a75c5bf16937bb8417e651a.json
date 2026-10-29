@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"计算与诊断相互独立并行，最终合并核验。事件计算需严格按序模拟，故单独作为高风险节点。\",\"nodes\":[{\"id\":\"event_analysis\",\"type\":\"extraction\",\"job\":\"按业务规则逐事件模拟：去重冲突、退款校验，计算九个字段\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"high\",\"expected_output_tokens\":450},{\"id\":\"defect_diagnosis\",\"type\":\"synthesis\",\"job\":\"诊断缺陷代码错误去重键，给出修正思路与关键测试建议\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\",\"expected_output_tokens\":350},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"整合数值与诊断，核对原始事实，撰写完整中文答案和findings\",\"parents\":[\"event_analysis\",\"defect_diagnosis\"],\"difficulty\":\"high\",\"risk\":\"medium\",\"expected_output_tokens\":900}]}",
+  "input_tokens": 1537,
+  "output_tokens": 1313,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 1118,
+  "latency_ms": 26135,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793279632491ffbfb0a147800028083cadce647c2c44227a01",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 1313,
+    "total_tokens": 2850,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 1118
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

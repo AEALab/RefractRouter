@@ -1,0 +1,10 @@
+任务,轮次,路线,模型调用数,JSON可解析,字段值全部正确,冻结主判据,AFP,任务秒数,专家调用数,业务图节点数,原始来源
+procurement-versions,1,one-shot,1,True,True,fail,0.976950,290.917,0,,reports/node-tool-pilot-20261029-live-03/summary.json
+procurement-versions,1,node-as-tool,3,True,True,pass,1.234700,215.325,1,,reports/node-tool-pilot-20261029-live-03/summary.json
+release-dependencies,1,one-shot,1,True,True,fail,1.259800,411.710,0,,reports/node-tool-pilot-20261029-live-03/summary.json
+release-dependencies,1,node-as-tool,3,False,未评,fail,1.085800,218.652,1,,reports/node-tool-pilot-20261029-live-03/summary.json
+ledger-idempotency,1,node-as-tool,3,True,True,fail,1.810300,376.855,1,,reports/node-tool-pilot-20261029-live-03/summary.json
+ledger-idempotency,1,one-shot,1,True,True,pass,0.632600,164.331,0,,reports/node-tool-pilot-20261029-live-03/summary.json
+procurement-versions,1,dag,4,True,True,fail,1.989450,452.618,0,3,reports/node-tool-pilot-20261029-live-04/summary.json
+release-dependencies,1,dag,2,True,True,fail,1.148000,364.733,0,1,reports/node-tool-pilot-20261029-live-04/summary.json
+ledger-idempotency,1,dag,4,True,True,fail,3.500650,812.347,0,3,reports/node-tool-pilot-20261029-live-04/summary.json
