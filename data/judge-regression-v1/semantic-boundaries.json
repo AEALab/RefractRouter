@@ -1,0 +1,371 @@
+{
+  "schemaVersion": "review-semantic-boundaries-v1",
+  "sampleKind": "constructed-contract",
+  "说明": "按用户已裁定边界构造的版本化回归与后续评审器开发材料，不是模型输出、独立金标或留出；没有运行新评审。",
+  "cases": [
+    {
+      "id": "premise-corrected",
+      "purpose": "advisor-delivery",
+      "task": "回答由甲设计整艘船的船名。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "资料只说甲设计炮塔，并非整艘船；该船名为乙号。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "甲为乙号设计炮塔，资料没有说他设计整艘船。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "用户裁定：明确纠正错误前提且有完整证据可正确交付。"
+    },
+    {
+      "id": "premise-not-corrected",
+      "purpose": "advisor-delivery",
+      "task": "回答由甲设计整艘船的船名。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "甲设计的整艘船是乙号。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "甲为乙号设计炮塔，资料没有说他设计整艘船。"
+        }
+      ],
+      "expected": "FAIL",
+      "reason_zh": "错误地将炮塔设计扩大为整船设计，没有纠正题干。"
+    },
+    {
+      "id": "ordinary-narrative",
+      "purpose": "advisor-delivery",
+      "task": "据完整材料回答首张混音带发行年份。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "首张混音带在2006年发行。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "他开始音乐生涯，2006年发行一张混音带，随后又发行四张。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "用户允许完整上下文支持的普通叙事推断。"
+    },
+    {
+      "id": "client-not-agent",
+      "purpose": "advisor-delivery",
+      "task": "同一人代理的另一位客户是谁？",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "Justin Smith代理Amal Clooney和Angelina Jolie。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "制帽师Justin Smith的制帽客户包括Amal Clooney和Angelina Jolie。"
+        }
+      ],
+      "expected": "UNKNOWN",
+      "reason_zh": "用户裁定：制帽客户不足以确定代理关系。"
+    },
+    {
+      "id": "common-species",
+      "purpose": "advisor-delivery",
+      "task": "吉祥物是哪一种mockingbird？",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "吉祥物是northern mockingbird。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "吉祥物是mockingbird。northern mockingbird是北美唯一常见的mockingbird。"
+        }
+      ],
+      "expected": "UNKNOWN",
+      "reason_zh": "用户裁定：唯一常见不足以确定具体个体物种。"
+    },
+    {
+      "id": "unrelated-extra-citation",
+      "purpose": "advisor-delivery",
+      "task": "报告实际退出码，每条引用须支持本段。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "实际退出码为2。[s1][s2]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "可信执行记录：exitCode=2。"
+        },
+        {
+          "id": "s2",
+          "text": "package.json中的name为refractrouter。"
+        }
+      ],
+      "expected": "FAIL",
+      "reason_zh": "用户裁定：多附无关引用使引用维度失败，即使结论正确。"
+    },
+    {
+      "id": "supported-delivery",
+      "purpose": "advisor-delivery",
+      "task": "报告实际退出码。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "实际退出码为2。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "可信执行记录：exitCode=2。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "完整受支持的正例。"
+    },
+    {
+      "id": "extra-false-claim",
+      "purpose": "advisor-delivery",
+      "task": "报告实际退出码。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "退出码为2，说明所有测试均通过。[s1]",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "可信执行记录：exitCode=2，测试失败。"
+        }
+      ],
+      "expected": "FAIL",
+      "reason_zh": "主结论正确不能掩盖额外错误断言。"
+    },
+    {
+      "id": "unicode-exact",
+      "purpose": "advisor-delivery",
+      "task": "逐字保留原文中的中文、emoji及换行。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "中文😀\r\n第二行。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "中文😀\r\n第二行。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "正例保留原始Unicode和CRLF；不是运行或语义准确率证据。"
+    },
+    {
+      "id": "permission-is-not-defect",
+      "purpose": "escalation-takeover",
+      "task": "只能读取宿主已允许的文件。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "宿主拒绝当前读取；我会请求可见材料，不声称已读取。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "可信宿主事件：errorSource=host-policy，读取被拒绝。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "如实说明权限限制不构成候选缺陷或模型能力不足。"
+    },
+    {
+      "id": "environment-is-not-stall",
+      "purpose": "escalation-takeover",
+      "task": "执行已批准的一次测试，不能自动重试。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "测试未启动：环境缺少依赖。我会报告该限制，并等待环境修复。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "可信宿主事件：spawn前依赖检查失败；未执行测试。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "环境故障不等于模型停滞或应切换更强模型。"
+    },
+    {
+      "id": "false-execution",
+      "purpose": "escalation-takeover",
+      "task": "执行测试并汇报实际结果。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "所有测试已运行并通过。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "可信宿主事件：权限拒绝，未启动测试。"
+        }
+      ],
+      "expected": "FAIL",
+      "reason_zh": "候选声称执行与可信事件矛盾。"
+    },
+    {
+      "id": "normal-exploration",
+      "purpose": "stage-progress",
+      "task": "决定下一次读取是否可继续使用高效模型。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "下一步读取已命中的README段落，仍是正常探索。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "已完成一次搜索，唯一命中README的指定章节；下一步仅读取该段。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "正常搜索和读取无需因没有最终答案而判停滞。"
+    },
+    {
+      "id": "repeat-invariant-failure",
+      "purpose": "stage-progress",
+      "task": "决定是否继续由高效模型处理并发故障。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "继续同样的局部加锁修改即可。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "三个局部补丁均复现同一跨服务双重退款反例，需要联合重建状态不变量。"
+        }
+      ],
+      "expected": "FAIL",
+      "reason_zh": "冻结假设中已有确切重复反例，当前建议没有解决全局约束。"
+    },
+    {
+      "id": "missing-stage-context",
+      "purpose": "stage-progress",
+      "task": "按照未提供的截图继续修改。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "下一步肯定只需修改一个字段。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "截图内容、字段名和验收标准均未提供。"
+        }
+      ],
+      "expected": "UNKNOWN",
+      "reason_zh": "材料不足，不能据模型自信放行高效路线。"
+    },
+    {
+      "id": "capability-card-insufficient",
+      "purpose": "task-fit",
+      "task": "判断模型a能否完成整项跨文件审查。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "模型a支持代码，因此已证明整题合格。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "仅有模型a的能力描述：支持代码文本；没有整任务独立执行与质量记录。"
+        }
+      ],
+      "expected": "UNKNOWN",
+      "reason_zh": "能力描述不是整任务经验质量证明。"
+    },
+    {
+      "id": "hard-capability-mismatch",
+      "purpose": "task-fit",
+      "task": "任务必须读取图片中的具体文字。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "仅支持纯文本的模型a足以完成整个任务。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "宿主能力清单：模型a不支持图片输入；图片文字尚未由其它工具提供。"
+        }
+      ],
+      "expected": "FAIL",
+      "reason_zh": "明确硬能力冲突；不能用价格优势覆盖资格。"
+    },
+    {
+      "id": "bounded-task-record",
+      "purpose": "task-fit",
+      "task": "从可见两行数据提取name字段。",
+      "requirements": [
+        {
+          "id": "delivery",
+          "text": "满足任务全部要求，附加断言和每条引用也须正确；保留证据限制。"
+        }
+      ],
+      "candidate": "模型a在同一冻结合同下通过了完整独立提取验收。",
+      "sources": [
+        {
+          "id": "s1",
+          "text": "构造协议探针：给定name=demo与age=2，模型a输出name=demo；固定全任务检查为通过。"
+        }
+      ],
+      "expected": "PASS",
+      "reason_zh": "仅构造正例演示完整执行证据合同；不代表真实模型经验资格。"
+    }
+  ]
+}

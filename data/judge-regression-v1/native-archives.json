@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "native-judge-archives-v1",
+  "说明": "仅现有解析器对旧结构化输出/归一化判词的兼容重放，不伪造缺失的原始响应，不继承旧expected为新金标。",
+  "groups": [
+    {
+      "purpose": "task-fit",
+      "contract": "task-decision-v2",
+      "report": "reports/task-judge-audit-20260926/holdout-production.json",
+      "format": "json",
+      "inputKind": "archived-normalized-decision",
+      "threshold": 0.8,
+      "reportSha256": "c3b3ab56bf5d8e9422a09c284b453f2ddf7a78eb6cbca1a0367987eff7e3e61a",
+      "backend": {
+        "provider": "local-laya-mlx",
+        "model": "aac6fef/laya-multilingual-mlx",
+        "modelRevision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+        "templateSha256": null,
+        "templateStatus": "完整原始模板不可用，不以当前提示替代",
+        "contractVersion": "task-decision-v2",
+        "scoreThresholds": {
+          "threshold": 0.8
+        }
+      },
+      "contextSource": "data/task-judge-holdout-20260926.json",
+      "contextSourceSha256": "7b5c09e0f779e3981addc08b3a88452092083350fa3044e293564de700f17d9a"
+    },
+    {
+      "purpose": "stage-progress",
+      "contract": "stage-decision-v2",
+      "report": "reports/stage-local-judge-20260927/holdout-v2.json",
+      "format": "json",
+      "inputKind": "archived-structured-answers",
+      "thresholds": {
+        "upgradeThreshold": 0.8,
+        "downgradeThreshold": 0.9
+      },
+      "reportSha256": "ca6dc9f03ccf2bcee110ed55113c107c83a55b62c4d66bdafb087cc22aaa0d2a",
+      "backend": {
+        "provider": "local-laya-mlx",
+        "model": "aac6fef/laya-multilingual-mlx",
+        "modelRevision": "f2b4faf51023039425946074e2cf1361d2db11d5",
+        "templateSha256": null,
+        "templateStatus": "完整原始模板不可用，不以当前提示替代",
+        "contractVersion": "stage-decision-v2",
+        "scoreThresholds": {
+          "upgradeThreshold": 0.8,
+          "downgradeThreshold": 0.9
+        }
+      },
+      "contextSource": "data/stage-judge-holdout-v2.json",
+      "contextSourceSha256": "8b7927da1726a57fb9d6c0faf75b01b195a3e37acab7d76007848bb248b94d54"
+    },
+    {
+      "purpose": "advisor-delivery",
+      "contract": "advisor-review-v2",
+      "report": "reports/advisor-acceptance-20260928/llm-judge-v2/judge-results.jsonl",
+      "format": "jsonl",
+      "inputKind": "archived-normalized-decision",
+      "reportSha256": "4136a12b40329596b1888825653e740cd3618ac5f6e8785c54ee2c00b5c4e306",
+      "backend": {
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "modelRevision": "unknown",
+        "templateSha256": "bc4e955a3f07299779da8b4d75e265fa51239145ee9b47bc27e90b3dcd0bc9fb",
+        "templateStatus": "来自原预检的模板摘要",
+        "contractVersion": "advisor-review-v2",
+        "scoreThresholds": {}
+      },
+      "contextSource": "data/benchmarks/advisor-judge-v1.json",
+      "contextSourceSha256": "28b34593290ac38b7852ac58559d310160aa84750dbd76bacbc48f55ccdcda9c",
+      "templateMetadataSource": "reports/advisor-acceptance-20260928/llm-judge-v2/preflight.json",
+      "templateMetadataSha256": "29b6ae25a216099590a405db33d608319e7bccc3d84432198ea2b1788f237b82"
+    },
+    {
+      "purpose": "escalation-takeover",
+      "contract": "escalation-decision-v1",
+      "report": "reports/escalation-acceptance-20260927/llm-judge-contract-v2/judge-results.jsonl",
+      "format": "jsonl",
+      "inputKind": "archived-normalized-decision",
+      "threshold": 0.8,
+      "reportSha256": "48b43154c721a86485b1148f573a9b8875a6ab0686ce382ae73d40b394e5af85",
+      "evidenceIdsByCase": {
+        "zh-proceed-1": [],
+        "zh-proceed-2": [],
+        "en-proceed-1": [],
+        "en-proceed-2": [],
+        "mix-proceed-1": [],
+        "mix-proceed-2": [],
+        "zh-defect-1": [],
+        "zh-defect-2": [],
+        "en-defect-1": [],
+        "en-defect-2": [],
+        "mix-defect-1": [],
+        "mix-defect-2": [],
+        "zh-stall-1": [],
+        "zh-stall-2": [],
+        "en-stall-1": [],
+        "en-stall-2": [],
+        "mix-stall-1": [],
+        "mix-stall-2": [],
+        "zh-uncertain-1": [],
+        "zh-uncertain-2": [],
+        "en-uncertain-1": [],
+        "en-uncertain-2": [],
+        "mix-uncertain-1": [],
+        "mix-uncertain-2": []
+      },
+      "backend": {
+        "provider": "ark-plan",
+        "model": "deepseek-v4-flash",
+        "modelRevision": "unknown",
+        "templateSha256": "8811fb73255d1fc9da0f42dd1d63303f7bd1634d949b379793d874dcc6011ea7",
+        "templateStatus": "来自原预检的模板摘要",
+        "contractVersion": "escalation-decision-v1",
+        "scoreThresholds": {
+          "threshold": 0.8
+        }
+      },
+      "contextSource": "data/benchmarks/escalation-judge-v1.json",
+      "contextSourceSha256": "aaecb6b4c71d3e6a7a4b2345ffc4bf8fe268748109dc33ccc787f42ce209b713",
+      "templateMetadataSource": "reports/escalation-acceptance-20260927/llm-judge-contract-v2/preflight.json",
+      "templateMetadataSha256": "fdc4c4f3c242d1e798824d037fc6a3d5d3c12df9677ec5b969e6c23d7c36f74e"
+    }
+  ]
+}
