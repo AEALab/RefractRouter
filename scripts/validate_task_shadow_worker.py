@@ -3,9 +3,12 @@ import argparse
 from datetime import date, timedelta
 import hashlib
 import json
+import os
 from pathlib import Path
 import select
 import subprocess
+import sys
+import time
 
 
 def configuration():
@@ -31,20 +34,32 @@ def configuration():
             "minSamples": 3, "qualityMin": .95}}
 
 
-def validate(executable, workspace):
+def validate(executable, workspace, *, response_timeout=15):
     executable, workspace = Path(executable).resolve(), Path(workspace).resolve()
     process = subprocess.Popen([str(executable), "planning-worker", "--runs-dir", str(workspace / "shadow-runs")],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=workspace)
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, cwd=workspace)
     sequence = 0
+    pending = bytearray()
     def rpc(**request):
         nonlocal sequence
         sequence += 1
         payload = {"protocol": "refractagent-planning/4", "id": str(sequence), **request}
-        process.stdin.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        process.stdin.write((json.dumps(payload, ensure_ascii=False) + "\n").encode())
         process.stdin.flush()
-        if not select.select([process.stdout], [], [], 15)[0]:
-            raise RuntimeError("影子进程回执超时")
-        response = json.loads(process.stdout.readline())
+        deadline = time.monotonic() + response_timeout
+        while b"\n" not in pending:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([process.stdout], [], [], remaining)[0]:
+                raise RuntimeError("影子进程完整行回执超时")
+            chunk = os.read(process.stdout.fileno(), 65536)
+            if not chunk:
+                raise RuntimeError("影子进程在完整回执前退出")
+            pending.extend(chunk)
+            if len(pending) > 1024 * 1024:
+                raise RuntimeError("影子进程回执超过1MiB")
+        line, _, remainder = pending.partition(b"\n")
+        pending[:] = remainder
+        response = json.loads(line)
         assert response.get("id") == str(sequence) and response.get("ok") is True, response
         return response["result"]
     try:
@@ -77,16 +92,22 @@ def validate(executable, workspace):
                 "classification_calls": 1, "execution_model_fixed": True, "shadow_only": True,
                 "unknown_cache_preserved": True, "actual_model_benefit_proven": False}
     finally:
+        failed = sys.exc_info()[0] is not None
         process.stdin.close()
         try:
-            process.wait(timeout=10)
+            process.wait(timeout=1)
         except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait(timeout=10)
-        if process.returncode:
-            raise RuntimeError("影子验收进程异常退出：" + process.stderr.read()[-2000:])
+            process.terminate()
+            try:
+                process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=1)
+        error = process.stderr.read()[-2000:].decode("utf-8", errors="replace")
         process.stdout.close()
         process.stderr.close()
+        if process.returncode and not failed:
+            raise RuntimeError("影子验收进程异常退出：" + error)
 
 
 def main():

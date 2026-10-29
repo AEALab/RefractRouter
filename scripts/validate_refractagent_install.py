@@ -11,10 +11,35 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def run_process(command, *, cwd, env, stdin=None, timeout=180):
+    """命令及其 worker 共用独立进程组，超时或取消时一起清理。"""
+    process = subprocess.Popen([str(x) for x in command], cwd=cwd, env=env,
+        text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        start_new_session=True)
+    try:
+        stdout, stderr = process.communicate(input=stdin, timeout=timeout)
+    except BaseException:
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        try:
+            process.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate(timeout=2)
+        raise
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
 
 
 def isolated_environment(base, workspace, inherited):
@@ -244,8 +269,7 @@ def main():
         env = isolated_environment(base, workspace, os.environ)
         commands = []
         def run(command, cwd=workspace, *, stdin=None):
-            result = subprocess.run([str(x) for x in command], cwd=cwd, env=env,
-                text=True, input=stdin, capture_output=True, timeout=180)
+            result = run_process(command, cwd=cwd, env=env, stdin=stdin)
             commands.append({'command':[str(x) for x in command], 'exit_code':result.returncode})
             if result.returncode:
                 raise RuntimeError(f'{command[0]} failed: {result.stderr[-5000:]}\n{result.stdout[-1000:]}')
