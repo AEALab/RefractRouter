@@ -84,3 +84,17 @@ def test_encoding_failure_is_not_reported_as_clean_field_checks(tmp_path):
     assert result["deliveryParseError"] == "Invalid control character"
     assert result["fieldChecksAvailable"] is False
     assert any("空字段检查列表" in note for note in result["notes"])
+
+
+def test_archived_snapshot_can_be_rechecked_after_live_summary_changes(tmp_path):
+    _, row, frozen = fixture(tmp_path)
+    summary = {"simulated": False, "status": "running", "runs": [row], "protocolSha256": "protocol",
+               "realModelCalls": 1, "actualOrReservedAfp": .015,
+               "cumulativeRealModelCalls": 1, "cumulativeActualOrReservedAfp": .015}
+    saved = tmp_path / "saved.snapshot.json"
+    saved.write_text(json.dumps(summary))
+    (tmp_path / "frozen.json").write_text(json.dumps(frozen))
+    (tmp_path / "summary.json").write_text(json.dumps({"status": "later-state"}))
+    result = audit.audit(tmp_path, summary_path=saved)
+    assert result["integrityStatus"] == "pass" and result["cohortSamples"] == 1
+    assert result["summarySha256"] == audit.sha(saved)

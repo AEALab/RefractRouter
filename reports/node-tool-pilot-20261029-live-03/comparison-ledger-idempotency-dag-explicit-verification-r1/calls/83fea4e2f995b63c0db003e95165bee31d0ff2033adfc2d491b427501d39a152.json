@@ -1,0 +1,29 @@
+{
+  "content": "未运行代码；以下按业务规则手工核对。\n\n按行处理过程（O1/O2/O3/O4 初始余额均为 0）：\n\n- `p1 | O1 | pay | 100 | success`：首次事件，应用，O1=100。\n- `p1` 重复：同 ID 同内容，重复计数 +1，不应用。\n- `r1 | O1 | refund | 30 | success`：首次事件，O1=70。\n- `r2 | O1 | refund | 20 | success`：首次事件，O1=50。\n- `r2` 重复：同 ID 同内容，重复计数 +1，不应用。\n- `p2 | O2 | pay | 80 | success`：首次事件，O2=80。\n- `r3 | O2 | refund | 90 | success`：O2 当前余额 80，退款 90 超过余额，拒绝，O2 仍为 80；被拒退款计数 +1。\n- `p3 | O3 | pay | 120 | success`：首次事件，O3=120。\n- `r4 | O3 | refund | 120 | success`：该 event_id 首次见到，应用，O3=0。\n- `r4 | O2 | refund | 120 | success`：同 event_id 但 order_id 与首次载荷不同，判定冲突并隔离，不更新余额；不计入被拒退款。\n- `r5 | O1 | refund | 60 | success`：O1 当前余额 50，退款 60 超过余额，拒绝，O1 仍为 50；被拒退款计数 +1。\n- `p4 | O2 | pay | 60 | pending`：pending 不计现金，也不更新余额；未结算金额为 60。\n- `p5 | O4 | pay | 50 | success`：首次事件，O4=50。\n\n计算汇总：\n\n- `total_paid` = 100 + 80 + 120 + 50 = 350\n- `total_refunded` = 30 + 20 + 120 = 170\n- `net` = 350 - 170 = 180\n- `remaining` = [50, 80, 0, 50]\n\n缺陷代码问题：用 `order_id` 去重，而不是用 `event_id` 去重。修正思路是：以 `event_id` 为去重键，并用完整载荷判断“重复”或“冲突”；应用前先检查退款是否超过该订单当前余额。关键测试应包括：同 event_id 同载荷不重复入账；同 event_id 不同载荷隔离；退款超余额被拒且余额不变；pending 不入账。\n\n| id | value | sources |\n|---|---|---|\n| total_paid | 350 | s1,s2,s4 |\n| total_refunded | 170 | s1,s2,s4 |\n| net | 180 | s1,s2,s4 |\n| remaining | [50, 80, 0, 50] | s1,s2,s4 |\n| duplicate_count | 2 | s1,s2,s4 |\n| conflict_count | 1 | s1,s2,s4 |\n| rejected_refunds | 2 | s1,s2,s4 |\n| pending_excluded | 60 | s1,s2,s4 |\n| wrong_key | \"order_id\" | s3,s4 |",
+  "input_tokens": 1292,
+  "output_tokens": 17300,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 16553,
+  "latency_ms": 306243,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179327514700941f89ff67558dec75454d97963e9341b6d7271",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1292,
+    "output_tokens": 17300,
+    "total_tokens": 18592,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 16553
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

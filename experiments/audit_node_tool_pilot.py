@@ -111,9 +111,9 @@ def audit_case(row, directory, frozen):
             "receipts": receipts, "errors": errors, "notes": sorted(set(notes))}
 
 
-def audit(result_dir, *, root=ROOT, snapshot_path=None):
+def audit(result_dir, *, root=ROOT, snapshot_path=None, summary_path=None):
     result_dir = Path(result_dir).resolve()
-    snapshot = (result_dir / "summary.json").read_bytes()
+    snapshot = Path(summary_path or result_dir / "summary.json").read_bytes()
     summary, frozen = json.loads(snapshot), read(result_dir / "frozen.json")
     if snapshot_path is not None:
         Path(snapshot_path).write_bytes(snapshot)
@@ -165,9 +165,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--result-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--summary-snapshot", type=Path,
+                        help="只读复核已归档的阶段快照，不受主实验继续追加样本影响")
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=False)
-    result = audit(args.result_dir, snapshot_path=args.output_dir / "summary.snapshot.json")
+    result = audit(args.result_dir, snapshot_path=args.output_dir / "summary.snapshot.json",
+                   summary_path=args.summary_snapshot)
     (args.output_dir / "audit.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps({k: result[k] for k in ("integrityStatus", "completeness", "cohortSamples", "cumulativeRequests", "errors")}, ensure_ascii=False))
     return 0 if result["integrityStatus"] == "pass" else 1

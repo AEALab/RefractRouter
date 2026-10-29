@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"拆为事件计算与缺陷诊断两个独立分支，最后汇总核对一致性。\",\"nodes\":[{\"id\":\"compute_findings\",\"type\":\"synthesis\",\"job\":\"按规则手工处理事件，输出全部 findings 数值\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"defect_diagnosis\",\"type\":\"generation\",\"job\":\"诊断 order_id 去重缺陷，给出修正思路与关键测试\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"汇总两部分结果并核对矛盾/遗漏，形成完整中文交付\",\"parents\":[\"compute_findings\",\"defect_diagnosis\"],\"difficulty\":\"high\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1537,
+  "output_tokens": 2743,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 2584,
+  "latency_ms": 46810,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793275100181d2ec6088cd57f16be69183642d63bc77b96529",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1537,
+    "output_tokens": 2743,
+    "total_tokens": 4280,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 2584
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
