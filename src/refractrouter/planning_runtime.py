@@ -1027,6 +1027,14 @@ class PlanningRuntime(StageHybridRuntime):
         self._record_task_shadow(run)
         hold, score, reason = s["hold"], None, "fixed"
         decision = None
+        stage_shadow_state = stage_shadow_decision = None
+        if strategy == "stage" and c.get("stage_shadow") is not None:
+            from .stage_progress import decide as decide_stage_shadow
+            from .task_projection import summary
+            from .task_outcomes import digest as canonical_digest
+            task_sha = canonical_digest(summary(s.get("currentTask")))
+            stage_shadow_state, stage_shadow_decision = decide_stage_shadow(flow["events"],
+                s.get("stageProgressState"), c["stage_shadow"], task_sha)
         selected_model_id = None
         if role is None:
             if strategy == "static":
@@ -1110,14 +1118,18 @@ class PlanningRuntime(StageHybridRuntime):
         consumed = consumed[-128:]
         configured_escalation = strategy == "escalation" and c["escalation"]["mode"] == "configured"
         resolved_model_id = selected_model_id or c["roles"][role]
+        shadow_update = ({"stageProgressState": stage_shadow_state, "stageProgressShadow": stage_shadow_decision}
+                         if stage_shadow_state is not None else {})
         action = self.issue(run, role, purpose, messages, flow["tools"], model_id=selected_model_id,
             buffered=strategy == "advisor" or (strategy == "escalation" and not s["latched"]),
             update={"hold": hold, "last_model": resolved_model_id,
                     "last_evidence": flow["evidence"],
                     "stall": stall, "last_tool_fingerprint": fingerprints[-1] if fingerprints else previous,
-                    "consumedEvidenceIds": consumed})
+                    "consumedEvidenceIds": consumed, **shadow_update})
         row = {"step": s["step"], "role": role, "model": resolved_model_id,
                "reason": reason, "score": score, "callId": action["callId"]}
+        if stage_shadow_decision is not None:
+            row["stageProgressShadow"] = deepcopy(stage_shadow_decision)
         if strategy == "advisor":
             row.update(ruleVersion="advisor-gate-v2" if c["advisor"].get("flow") == "gate-v2"
                        else "advisor-review-v1", reviewCount=s["reviews"], redoCount=s["redos"],

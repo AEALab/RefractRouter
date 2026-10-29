@@ -66,6 +66,7 @@ export interface PlanningConfig {
   trustPolicies?:Array<Record<string,unknown>>
   compatiblePairs?:string[][]
   taskShadow?:Record<string,unknown>
+  stageShadow?:Record<string,unknown>
   task?:TaskRoutingConfig
   composite?:CompositeRoutingConfig
   escalation?:EscalationRoutingConfig
@@ -98,6 +99,8 @@ export function validatePlanningShape(value:unknown):asserts value is PlanningCo
     throw new Error('planningRouting.parameters 需要对象')
   if(v.taskShadow!==undefined&&(!v.taskShadow||typeof v.taskShadow!=='object'||Array.isArray(v.taskShadow)))
     throw new Error('planningRouting.taskShadow 需要影子配置对象')
+  if(v.stageShadow!==undefined&&(!v.stageShadow||typeof v.stageShadow!=='object'||Array.isArray(v.stageShadow)))
+    throw new Error('planningRouting.stageShadow 需要影子配置对象')
   if(v.task!==undefined&&(!v.task||typeof v.task!=='object'||Array.isArray(v.task)))
     throw new Error('planningRouting.task 需要 Task 设置对象')
   if(v.composite!==undefined&&(!v.composite||typeof v.composite!=='object'||Array.isArray(v.composite)))

@@ -113,6 +113,7 @@ class TaskResults:
             "costContext": deepcopy(record.get("state", {}).get("taskCostContext")),
             "classificationTaskDigest": record.get("state", {}).get("taskClassificationProjectionDigest"),
             "taskShadow": deepcopy(record.get("state", {}).get("taskShadow")),
+            "stageProgressShadow": deepcopy(record.get("state", {}).get("stageProgressShadow")),
             "evidenceDigest": record.get("state", {}).get("last_evidence"),
             "models": [{"id": m["id"], "provider": m.get("provider"), "model": m.get("model"),
                         "revision": m.get("revision"), "revisionStatus": "configured" if m.get("revision") else "not-pinned"}
