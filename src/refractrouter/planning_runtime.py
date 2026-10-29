@@ -1027,14 +1027,26 @@ class PlanningRuntime(StageHybridRuntime):
         self._record_task_shadow(run)
         hold, score, reason = s["hold"], None, "fixed"
         decision = None
-        stage_shadow_state = stage_shadow_decision = None
+        stage_shadow_decision = None
+        shadow_update = {}
         if strategy == "stage" and c.get("stage_shadow") is not None:
-            from .stage_progress import decide as decide_stage_shadow
-            from .task_projection import summary
-            from .task_outcomes import digest as canonical_digest
-            task_sha = canonical_digest(summary(s.get("currentTask")))
-            stage_shadow_state, stage_shadow_decision = decide_stage_shadow(flow["events"],
-                s.get("stageProgressState"), c["stage_shadow"], task_sha)
+            if s.get("stageProgressStopped"):
+                stage_shadow_decision = deepcopy(s["stageProgressShadow"])
+            else:
+                try:
+                    from .stage_progress import decide as decide_stage_shadow
+                    from .task_projection import summary
+                    from .task_outcomes import digest as canonical_digest
+                    task_sha = canonical_digest(summary(s.get("currentTask")))
+                    proposed, stage_shadow_decision = decide_stage_shadow(flow["events"],
+                        s.get("stageProgressState"), c["stage_shadow"], task_sha)
+                    shadow_update = {"stageProgressState": proposed, "stageProgressShadow": stage_shadow_decision}
+                except Exception as exc:
+                    # 影子分析失效不能取消实际任务、影响原账本或反复重做分析。
+                    stage_shadow_decision = {"schemaVersion": "stage-progress-shadow-v1", "mode": "shadow",
+                        "status": "stopped", "reason": "shadow-processing-error", "errorType": type(exc).__name__,
+                        "detail": str(exc)[:512], "actualSelectionChanged": False, "wholeTaskQualityProven": False}
+                    shadow_update = {"stageProgressShadow": stage_shadow_decision, "stageProgressStopped": True}
         selected_model_id = None
         if role is None:
             if strategy == "static":
@@ -1118,8 +1130,6 @@ class PlanningRuntime(StageHybridRuntime):
         consumed = consumed[-128:]
         configured_escalation = strategy == "escalation" and c["escalation"]["mode"] == "configured"
         resolved_model_id = selected_model_id or c["roles"][role]
-        shadow_update = ({"stageProgressState": stage_shadow_state, "stageProgressShadow": stage_shadow_decision}
-                         if stage_shadow_state is not None else {})
         action = self.issue(run, role, purpose, messages, flow["tools"], model_id=selected_model_id,
             buffered=strategy == "advisor" or (strategy == "escalation" and not s["latched"]),
             update={"hold": hold, "last_model": resolved_model_id,

@@ -245,3 +245,36 @@ def test_stage_shadow_is_explicit_v8_rules_only_and_old_config_stays_disabled():
     cfg["defaultStrategy"] = "static"
     with pytest.raises(ValueError, match="独立规则 Stage"):
         compile_config(cfg)
+
+
+@pytest.mark.parametrize("fault", ["oversized", "conflicting-event"])
+def test_shadow_failure_stops_only_observation_and_keeps_actual_calls_and_costs(tmp_path, fault):
+    from refractrouter.planning_runtime import PlanningRuntime
+    from tests.test_planning_routing import begin, step, receipt
+    results = []
+    for enabled in (False, True):
+        cfg = runtime_configuration()
+        if not enabled:
+            del cfg["stageShadow"]
+        runtime = PlanningRuntime(tmp_path / str(enabled))
+        run_id = begin(runtime, config=cfg)
+        ev = {"id": "stable", "callId": "stable", "tool": "read", "kind": "observe",
+              "status": "completed", "fingerprint": "first"}
+        if fault == "oversized":
+            ev["metadata"] = "x" * (1024 * 1024)
+        action = step(runtime, run_id, toolEvidence=[ev])
+        receipt(runtime, run_id, action)
+        if fault == "conflicting-event":
+            ev["fingerprint"] = "conflicting"
+        for _ in range(2):
+            action = step(runtime, run_id, toolEvidence=[ev])
+            assert action["model"]["id"] == "small"
+            receipt(runtime, run_id, action)
+        runtime.handle({"op": "end", "runId": run_id})
+        outcome = runtime.handle({"op": "outcome", "runId": run_id, "identity": runtime.runs[run_id]["identity"]})
+        assert outcome["status"] == "completed" and len(outcome["calls"]) == 3
+        if enabled:
+            assert outcome["stageProgressShadow"]["status"] == "stopped"
+            assert runtime.runs[run_id]["state"]["stageProgressStopped"] is True
+        results.append(outcome["costsByUnit"])
+    assert results[0] == results[1]
