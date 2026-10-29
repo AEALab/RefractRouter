@@ -147,6 +147,18 @@ def test_write_invalidates_old_generation_even_with_fresh_event_id():
     assert decision["role"] == "capable" and "stale-code-generation" in decision["progress"]
 
 
+def test_each_write_advances_fence_and_middle_generation_cannot_restore():
+    state = strong_state()
+    state, _ = run([], state)
+    writes = [{"id": key, "callId": key, "tool": "write", "kind": "mutate",
+               "status": "completed", "fingerprint": key} for key in ("write1", "write2")]
+    state, _ = run([writes[0]], state)
+    state, decision = run([writes[1], evidence("late-middle-green", failed=(), snapshot="2")], state)
+    assert state["minimumGeneration"] == 3 and decision["role"] == "capable"
+    _, decision = run([evidence("current-green", failed=(), snapshot="3")], state)
+    assert decision["role"] == "efficient"
+
+
 def test_new_task_resets_strong_state_and_checker_history():
     state = strong_state()
     other_task = "f" * 64

@@ -112,7 +112,7 @@ def decide(events, state, config, task_sha256):
         if event["kind"] == "mutate":
             # 写入成功不是验收进展，且会使之前快照上的通过过时。
             proposed["snapshot"] = None
-            proposed["minimumGeneration"] = max(proposed["minimumGeneration"], proposed["generation"] + 1)
+            proposed["minimumGeneration"] = max(proposed["minimumGeneration"], proposed["generation"]) + 1
             upgrade_keys.clear()
         value = _packet(event, config, task_sha256)
         if value is None:
