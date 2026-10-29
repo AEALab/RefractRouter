@@ -155,3 +155,11 @@ def test_missing_subscription_reference_and_huge_invalid_amount_are_rejected(tmp
     source["calls"][0]["charged"] = 2 ** 10000
     with pytest.raises(ValueError, match="有限非负"):
         observe(source)
+
+
+def test_legacy_null_timing_does_not_erase_known_terminal_fees(tmp_path):
+    source = static_result(tmp_path)
+    source["timing"] = None
+    assert observe(source)["pricedCallAmountsComplete"] is True
+    source["status"] = "running"
+    assert observe(source)["pricedCallAmountsComplete"] is False

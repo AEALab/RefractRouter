@@ -295,3 +295,26 @@ def test_runtime_unlimited_limits_do_not_turn_into_zero_shadow_balance(tmp_path,
     shadow = runtime.runs[run]["state"]["taskShadow"]
     assert shadow["uncertain"] is False
     assert all(r["budgetAdmitted"] for r in shadow["rows"])
+
+
+def test_freeze_records_actual_loaded_modules_and_rejects_a_shadow_package(tmp_path):
+    import os
+    import subprocess
+    import sys
+    root = __import__("pathlib").Path(__file__).resolve().parents[1]
+    fake = tmp_path / "fake/refractrouter"
+    fake.mkdir(parents=True)
+    (fake / "__init__.py").write_text("")
+    (fake / "task_empirical.py").write_text("def build_profile(*a, **k): return {}\n")
+    (fake / "task_outcomes.py").write_text("def digest(value): return 'fake'\n")
+    inputs = tmp_path / "input"
+    inputs.mkdir()
+    source = inputs / "samples.json"
+    source.write_text('{"schemaVersion":"task-calibration-input-v1","kind":"simulation","samples":[]}')
+    out = tmp_path / "output"
+    result = subprocess.run([sys.executable, str(root / "experiments/build_task_empirical_profile.py"),
+                             "--input", str(source), "--output-dir", str(out)],
+                            env={**os.environ, "PYTHONPATH": str(fake.parent)}, capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "实际加载实现" in json.loads((out / "failure.json").read_text())["reason"]
+    assert not (out / "profile.json").exists()

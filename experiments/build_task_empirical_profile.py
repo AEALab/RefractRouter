@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import platform
+import sys
 
 from refractrouter.task_empirical import build_profile
 from refractrouter.task_outcomes import digest
@@ -23,7 +24,14 @@ def unique_object(pairs):
 
 def implementation():
     names = ("task_empirical.py", "task_cost_observation.py", "task_outcomes.py", "judge_qualification.py", "purpose_review.py")
-    paths = [Path(__file__), *(ROOT / "src/refractrouter" / name for name in names)]
+    paths = [Path(__file__)]
+    for name in names:
+        module = sys.modules.get("refractrouter." + name.removesuffix(".py"))
+        loaded = Path(module.__file__).resolve() if module is not None and getattr(module, "__file__", None) else None
+        expected = (ROOT / "src/refractrouter" / name).resolve()
+        if loaded != expected:
+            raise ValueError("实际加载实现与本工作区不符：" + name)
+        paths.append(loaded)
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 

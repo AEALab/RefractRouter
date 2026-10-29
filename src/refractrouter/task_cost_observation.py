@@ -20,7 +20,8 @@ def observe(result):
     """只消费 #203 原账本投影。失败和丢弃候选照计费，未知保留，币种/订阅分账。"""
     if (not isinstance(result, dict) or result.get("schemaVersion") != "task-result-v1"
             or result.get("financialAuthority") != "original-call-ledger"
-            or result.get("coverage") != "managed-agent-only"):
+            or result.get("coverage") != "managed-agent-only"
+            or not isinstance(result.get("status"), str) or not result["status"]):
         raise ValueError("需要原逐调用账本的任务结果投影")
     calls = result.get("calls")
     if not isinstance(calls, list) or not isinstance(result.get("costsByUnit"), dict):
@@ -91,8 +92,7 @@ def observe(result):
     return {"schemaVersion": VERSION, "sourceResultSha256": digest(result), "runId": result["runId"],
             "taskStatus": result["status"], "coverage": "managed-agent-only",
             "outsideManagedCalls": result.get("outsideManagedCalls", "unknown"),
-            "pricedCallAmountsComplete": not unresolved and result["status"] != "running"
-                                        and result.get("timing", {}).get("finishedAt") is not None,
+            "pricedCallAmountsComplete": not unresolved and result["status"] != "running",
             "costs": [{"lane": lane, "unit": unit, "knownCalculated": str(known[lane, unit]),
                        "unknownProtected": str(unknown[lane, unit])} for lane, unit in lanes],
             "byPurpose": [{"lane": lane, "unit": unit, "purpose": purpose, "ledgerOccupied": str(value)}
