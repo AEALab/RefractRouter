@@ -1,0 +1,29 @@
+{
+  "content": "{\n  \"answer\": \"核对：本答案只采用 s1 的有效工作清单；s2 中 A=4 小时、C 依赖 B、F=1 小时的旧信息不参与计算。所有任务连续执行、不拆分；任意时刻最多两个执行槽；切换和等待无额外开销。t=0 时全部工作尚未开始，因此下列完成时刻均为计划值，不是实际已发生。\\n\\n可执行排程（两个槽位固定分配）：槽1：A 0-3，B 3-8，F 8-11，空闲 11-14，G 14-15。槽2：D 0-2，空闲 2-3，C 3-7，空闲 7-8，E 8-10，空闲 10-15。该排程任意时刻不超过 2 个任务。\\n\\n依赖计算：A 最早 3 完成；B 与 C 均依赖 A，可于 3 起并行，B 最早 8 完成，C 最早 7 完成；D 无前置，最早 2 完成。E 依赖 B 和 C，所以 earliest_e_start = 8，E 最早 10 完成；F 依赖 B，所以 F 最早 8 开始、11 完成。因此 D/E/F 全部完成的最早时刻 pre_release_ready = 11。忽略发布窗口时，G 可在 11 开始、12 结束，technical_finish = 12。\\n\\n考虑发布窗口：只有 G 必须完整处于 [14,16]，且 G 时长 1 小时，因此最早合法开始是 14，结束是 15，window_finish = 15；11 到 14 是窗口等待，不计入技术关键路径。\\n\\n关键路径：最长依赖链为 A(3) → B(5) → F(3) → G(1)，总长 12，因此 critical_path = [A, B, F, G]。备选链 A-B-E-G=11、A-C-E-G=10、D-G=3，均不更长。\\n\\n批准状态：截至 t=0，D 尚未开始，没有合规签字，也没有任何测试通过记录；计划中 D 可在 2 完成，但计划完成不等于已发生批准。因此 current_approval_confirmed = false，目前不能宣称批准已完成。\",\n  \"findings\": [\n    {\n      \"id\": \"pre_release_ready\",\n      \"value\": 11,\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"technical_finish\",\n      \"value\": 12,\n      \"sources\": [\"s1\", \"s3\"]\n    },\n    {\n      \"id\": \"window_finish\",\n      \"value\": 15,\n      \"sources\": [\"s1\", \"s3\"]\n    },\n    {\n      \"id\": \"critical_path\",\n      \"value\": [\"A\", \"B\", \"F\", \"G\"],\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"earliest_e_start\",\n      \"value\": 8,\n      \"sources\": [\"s1\", \"s5\"]\n    },\n    {\n      \"id\": \"current_approval_confirmed\",\n      \"value\": false,\n      \"sources\": [\"s4\"]\n    }\n  ]\n}",
+  "input_tokens": 1236,
+  "output_tokens": 18936,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 18187,
+  "latency_ms": 333643,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "02179327929877424e994d08a876ec3f4dc3077f2522d848f04bc",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1236,
+    "output_tokens": 18936,
+    "total_tokens": 20172,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 18187
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
