@@ -8,6 +8,9 @@ import type { LlmOptions, ProcessHandle, TokenUsage } from './contracts.js'
 
 import { EMPTY_PLANNING, PLANNING_PROTOCOL } from './planning-config.js'
 import { ToolEvidenceCapture } from './tool-evidence.js'
+import type { ReadonlyFactTools } from './readonly-facts.js'
+import { CORE_RUNTIME_ENV,installedCoreCommand } from './core-command.js'
+import { dshCandidate } from './dsh-candidate.js'
 type Json=Record<string,any>
 export interface PlanningRpc {request(value:Json):Promise<Json>;dispose():void}
 function usesJev(config:Json):boolean {
@@ -34,14 +37,13 @@ export class PlanningWorker implements PlanningRpc {
   dispose():void {this.lifecycle.abort();this.handle?.terminate?.();this.fail(new Error('规划路由进程已关闭'))}
   private fail(error:Error):void {this.failure=error;for(const p of this.pending.values())p.reject(error);this.pending.clear()}
   private async start():Promise<void> {
-    const config=this.source(),env:Record<string,string>={PYTHONUNBUFFERED:'1'}
+    const config=this.source(),env:Record<string,string>={...CORE_RUNTIME_ENV}
     for(const key of ['PATH','HOME','LANG','LC_ALL','TMPDIR','SYSTEMROOT']){
       if(process.env[key])env[key]=process.env[key]!
     }
     const executable=await this.ctx.subprocess.resolveExecutable(config.pythonExecutable,env,this.lifecycle.signal)
-    const module=/(?:^|\/|\\)python(?:\d+(?:\.\d+)?)?(?:\.exe)?$/i.test(executable)
     const policy=this.ctx.sandboxPolicy.resolve({})
-    const argv=[executable,...(module?['-m','refractrouter.agent_cli']:[]),'planning-worker','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
+    const argv=[...installedCoreCommand(executable),'planning-worker','--runs-dir',resolve(policy.workspaceRoot,config.runsDir)]
     this.handle=this.ctx.subprocess.spawn({argv:this.ctx.sandbox.confine(argv,policy).argv,
       cwd:policy.workspaceRoot,env,stdio:{stdin:'pipe',stdout:'pipe',stderr:{maxBytes:16384}},
       signal:this.lifecycle.signal,graceMs:2000})
@@ -135,7 +137,7 @@ export class PlanningController {
   private settings:AgentContext['settings']
   private handshake?:Promise<string[]>
   constructor(private ctx:AgentContext,private source:()=>Readonly<Configuration>,rpc?:PlanningRpc,
-    private evidence=new ToolEvidenceCapture()){
+    private evidence=new ToolEvidenceCapture(),private facts?:ReadonlyFactTools){
     this.rpc=rpc??new PlanningWorker(ctx,source)
     this.settings=ctx.settings
     ctx.inject?.(['settings'],sctx=>{this.settings=sctx.settings})
@@ -442,7 +444,7 @@ export class PlanningController {
       let action=await this.rpc.request({op:'step',runId,messages,tools:options.tools??[],
         requestId:randomUUID(),maxTokens:options.maxTokens,purpose:options.purpose,
         events:this.evidence.enrich(session,nativeEvents)})
-      const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean}>()
+      const outputs=new Map<string,{chunks:Json[];finish:Json;model:Json;buffered:boolean;candidate:Json}>()
       const total:TokenUsage={}
       while(action.action==='call'||action.action==='wait'||action.action==='jev'){
         if(action.action==='wait'){
@@ -459,8 +461,8 @@ export class PlanningController {
         const limits=[action.remainingMs,action.timeoutMs].filter((value):value is number=>
           typeof value==='number'&&Number.isFinite(value))
         const callSignal=limits.length?AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,Math.min(...limits)))]):signal
-        const chunks:Json[]=[],blocks=new Map<number,Json>()
-        let content='',usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
+        const chunks:Json[]=[]
+        let usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
         const started=performance.now()
         let streamError:unknown
         try{for await(const native of this.ctx.llm.stream(nativeOptions(action,callSignal,options))){
@@ -471,8 +473,7 @@ export class PlanningController {
           if(chunk.type==='usage'){usage=chunk.usage as TokenUsage;continue}
           if(chunk.type==='finish'){finish=chunk;continue}
           if(finish)throw new Error('模型 finish 后继续输出')
-          if(chunk.type==='text-delta'){content+=String(chunk.text);ttftMs??=performance.now()-started}
-          if(chunk.type==='block-end')blocks.set(chunk.index,chunk.block)
+          if(chunk.type==='text-delta')ttftMs??=performance.now()-started
           chunks.push(chunk)
           if(!action.buffered)yield chunk
         }}catch(error){streamError=error}
@@ -487,12 +488,11 @@ export class PlanningController {
           if(streamError)throw streamError
           callSignal.throwIfAborted()
         }
-        const tools=[...blocks.values()].filter(b=>b.type==='tool-call')
-        if(!content)content=[...blocks.values()].filter(b=>b.type==='text').map(b=>b.text).join('')
         if(usage)sumUsage(total,usage)
-        outputs.set(action.callId,{chunks,finish:finish??{},model:action.model,buffered:action.buffered})
+        const candidate=dshCandidate(chunks,finish?.reason?.kind)
+        outputs.set(action.callId,{chunks,finish:finish??{},model:action.model,buffered:action.buffered,candidate})
         action=await this.rpc.request({op:'complete',runId,callId:action.callId,response:{
-          content,toolCalls:tools,finishReason:finish?.reason?.kind==='tool-calls'?'tool_calls':finish?.reason?.kind,
+          ...candidate,
           usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
           inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
           cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,
@@ -507,10 +507,14 @@ export class PlanningController {
       if(accepted.buffered)for(const chunk of accepted.chunks){signal.throwIfAborted();yield chunk}
       yield {type:'usage',usage:total}
       const replay=accepted.finish.replayState as Json|undefined
+      const factVerification=options.purpose==='compaction'?undefined:
+        await this.facts?.verifyCandidate(identity,action.callId,accepted.candidate,agent,signal)
+      signal.throwIfAborted()
       done=true
       if(standalone)await this.rpc.request({op:'end',runId})
       yield {...accepted.finish,type:'finish',replayState:{response:{refractPlanning:{
         version:2,contentContract:'dsh-content-blocks-v1',provider:accepted.model.provider,model:accepted.model.model,
+        ...(factVerification?{factVerification}:{}),
         ...(replay?{response:replay.response}:{}),...(action.feedback?{feedback:action.feedback}:{}),runId}},...(replay?.blocks?{blocks:replay.blocks}:{})}}
     }finally{
       cancelled.abort()

@@ -1,7 +1,6 @@
-"""Install both distributions in isolation and run all three native DSH models.
+"""隔离安装 wheel/tgz，验收三种模拟策略和只读事实 CLI；不冒充真实模型验收。
 
-No provider credential is needed. Demo output is never reported as live acceptance.
-This deliberately runs outside the checkout, using an installed wheel and tgz.
+在源码目录外使用实际安装包，无需 provider 凭证。
 """
 from __future__ import annotations
 
@@ -193,6 +192,39 @@ def validate_configured_providers(run, workspace, executable, runs, env):
     return {'scope': 'installed-dsh-and-python-local-http-fixtures', 'external_model_calls': 0, 'results': results}
 
 
+def validate_readonly_facts(run, workspace, executable):
+    """实际安装的 Python 核心从外部工作区读取固定快照；不依赖源码 import。"""
+    text = 'def answer():\n    return (1, 2)\n'
+    source = workspace / 'visible-source.py'
+    source.write_text(text)
+    manifest = workspace / 'facts-manifest.json'
+    raw = json.dumps({'schemaVersion': 'readonly-facts-host-v1', 'root': '.',
+                     'files': {source.name: hashlib.sha256(text.encode()).hexdigest()}}).encode()
+    manifest.write_bytes(raw)
+    command = [executable, 'fact-tool', '--manifest', manifest, '--manifest-sha256',
+               hashlib.sha256(raw).hexdigest(), '--workspace-root', workspace, '--request-stdin']
+    identity = {'session': 'installed-facts', 'agent': 'host', 'turn': 1}
+    query = {'op': 'query', 'identity': identity, 'operation': 'python-structure',
+             'arguments': {'path': source.name, 'symbol': 'answer', 'definitionLine': None}}
+    result = json.loads(run(command, stdin=json.dumps(query)))
+    visible = json.loads(result['modelText'])
+    assert result['schemaVersion'] == 'readonly-facts-host-v1' and result['modelCalls'] == 0
+    assert visible['status'] == 'known' and result['visibleUtf8Bytes'] == len(result['modelText'].encode())
+    fact = visible['facts'][0]
+    candidate = {'content': json.dumps({'answer': {'arity': 2}, 'structuralAssertions': [
+        {'factId': fact['factId'], 'field': 'fixedTupleArity', 'answerPointer': '/answer/arity'}]}),
+        'toolCalls': [], 'finishReason': 'stop'}
+    verification = json.loads(run(command, stdin=json.dumps({'op': 'verify', 'identity': identity,
+        'candidateId': 'installed-final', 'candidate': candidate, 'receipts': [result['receipt']]})))['verification']
+    assert verification['allBoundFieldsSupported'] and not verification['wholeTaskQualityProven']
+    denied = json.loads(run(command, stdin=json.dumps({**query,
+        'arguments': {**query['arguments'], 'path': 'hidden-evaluation.py'}})))
+    assert json.loads(denied['modelText'])['status'] == 'denied'
+    return {'scope': 'installed-core-readonly-facts-cli', 'external_model_calls': 0,
+            'bound_fields_supported': True, 'whole_task_quality_proven': False,
+            'outside_manifest_denied': True, 'candidate_sha256': verification['candidateSha256']}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
@@ -211,9 +243,9 @@ def main():
         workspace.mkdir()
         env = isolated_environment(base, workspace, os.environ)
         commands = []
-        def run(command, cwd=workspace):
+        def run(command, cwd=workspace, *, stdin=None):
             result = subprocess.run([str(x) for x in command], cwd=cwd, env=env,
-                text=True, capture_output=True, timeout=180)
+                text=True, input=stdin, capture_output=True, timeout=180)
             commands.append({'command':[str(x) for x in command], 'exit_code':result.returncode})
             if result.returncode:
                 raise RuntimeError(f'{command[0]} failed: {result.stderr[-5000:]}\n{result.stdout[-1000:]}')
@@ -253,7 +285,8 @@ def main():
             # Preserve compact acceptance results, not temporary input/system-prompt dumps.
             results.append({k:summary[k] for k in ('strategy','models','status','simulated','costs')})
         configured = validate_configured_providers(run, workspace, executable, runs, env) if args.configured_providers else None
-        evidence = {'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        readonly_facts = validate_readonly_facts(run, workspace, executable)
+        evidence = {'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},
