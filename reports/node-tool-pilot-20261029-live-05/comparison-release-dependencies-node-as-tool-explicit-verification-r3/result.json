@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "simulated": false,
+  "output": "{\"answer\":\"以下计算以有效工作清单（s1）为准；旧备忘录（s2）中的 A=4 小时、C 依赖 B、F=1 小时三项已被替代，本计算使用 A=3 小时、C 依赖 A、F=3 小时，不叠加旧值。任务与依赖为：A 数据库迁移 3 小时（无前置）；B API 验证 5 小时（依赖 A）；C UI 验证 4 小时（依赖 A）；D 合规审查 2 小时（无前置）；E 集成测试 2 小时（依赖 B 和 C）；F 安全复核 3 小时（依赖 B）；G 发布 1 小时（依赖 D、E、F 全部完成）。每项任务独占一个执行槽，任意时刻最多两项并发，任务不可拆分、时长连续。\\n\\n可执行排程（满足两槽限制）：0–2 小时并行执行 A 与 D；2–3 小时仅执行 A（D 已完成，B、C 需等 A 于 3 小时完成）；3–7 小时并行执行 B 与 C；7–8 小时仅执行 B（E 需等 B 于 8 小时完成，F 同样依赖 B）；8–10 小时并行执行 E 与 F；10–11 小时仅执行 F（E 已于 10 完成）；11–12 小时执行 G。由此各任务完成时刻为：A=3、D=2、B=8、C=7、E=10、F=11。\\n\\n发布前置工作 D、E、F 三者最早全部齐备的时刻为 max(2,10,11)=11，即 pre_release_ready=11。E 最早开始时刻由其两个前置中最晚完成者决定，为 max(B 完成=8, C 完成=7)=8，即 earliest_e_start=8。\\n\\n技术关键路径为 A→B→F→G，长度 3+5+3+1=12；其他路径 A→B→E→G=11、A→C→E→G=10、D→G=3 均更短，不构成关键。忽略发布窗口时，G 于 11 开始、12 结束，故技术最早完成时间 technical_finish=12。\\n\\n考虑发布窗口：s3 规定只有 G 必须完整位于 [14,16] 小时内，其余任务可在此之前完成。G 时长 1 小时，为完整落在窗口内，最早可行安排为 14–15 小时，因此考虑窗口的最早 G 结束时间 window_finish=15。12–14 小时为等待窗口产生的空闲，不改变技术关键路径本身；技术关键路径（12）与窗口等待（2 小时）需区分，不应把 window_finish 误解为关键路径长度。\\n\\n关于批准状态：s4 表明 t=0 时全部工作尚未开始，D 只是预计需要 2 小时，尚无合规签字，也没有任何测试通过记录。排程中的完成时间只是计划值，不等于已经发生的批准。因此目前不能宣称合规批准已完成，current_approval_confirmed=false；只有 D/E/F 实际完成并取得签字或通过记录后，才可宣称批准完成。\\n\\n不确定性说明：上述各时刻均假设 s1 的时长与依赖精确成立、无额外等待或资源切换开销；若任一任务实际耗时超过估计或依赖关系发生变化，则各完成时刻、关键路径和窗口内发布安排需相应重算。材料未给出各任务实际的完成记录或签字证据，因此本结果仅为计划性最早时间，不等同于已发生的批准事实。\",\"findings\":[{\"id\":\"pre_release_ready\",\"value\":11,\"sources\":[\"s1\",\"s5\"]},{\"id\":\"technical_finish\",\"value\":12,\"sources\":[\"s1\",\"s3\"]},{\"id\":\"window_finish\",\"value\":15,\"sources\":[\"s1\",\"s3\"]},{\"id\":\"critical_path\",\"value\":[\"A\",\"B\",\"F\",\"G\"],\"sources\":[\"s1\"]},{\"id\":\"earliest_e_start\",\"value\":8,\"sources\":[\"s1\"]},{\"id\":\"current_approval_confirmed\",\"value\":false,\"sources\":[\"s4\"]}]}",
+  "requests": 3,
+  "expertCalls": 1,
+  "taskElapsedMs": 271627.50825,
+  "unexpectedNetwork": 0,
+  "transport": "DSH LlmRuntime + 官方 PiAiAdapter + /api/plan/v3/responses",
+  "recordPath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-node-as-tool-explicit-verification-r3/evidence/planning/f4eb0f3e694cfb2bf78c5418533f7e9679015c0f8cfcc7f4b6ee4d22c541964b.json"
+}

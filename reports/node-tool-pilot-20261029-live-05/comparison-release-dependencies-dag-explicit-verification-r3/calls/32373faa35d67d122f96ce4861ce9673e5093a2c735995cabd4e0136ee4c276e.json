@@ -1,0 +1,29 @@
+{
+  "content": "# 两槽排程与关键路径计算\n\n## 1. 有效数据与依赖\n依据 s1《有效工作清单》，并结合 s2《版本修订》排除旧版信息，采用以下时长与依赖：\n\n- A 数据库迁移：3 小时，无前置\n- B API 验证：5 小时，依赖 A\n- C UI 验证：4 小时，依赖 A（不使用旧版“依赖 B”）\n- D 合规审查：2 小时，无前置\n- E 集成测试：2 小时，依赖 B 和 C\n- F 安全复核：3 小时（不使用旧版 1 小时），依赖 B\n- G 发布：1 小时，依赖 D、E、F 全部完成\n\n## 2. 理论最早排程（忽略发布窗口）\n以下排程满足“最多两个执行槽、每项独占一个槽、任务不拆分”：\n\n| 时段 | 槽 1 | 槽 2 |\n| --- | --- | --- |\n| 0–2 | A | D |\n| 2–3 | A | 空闲 |\n| 3–7 | B | C |\n| 7–8 | B | 空闲 |\n| 8–10 | E | F |\n| 10–11 | 空闲 | F |\n| 11–12 | G | 空闲 |\n\n各时段并发任务数：0–2 为 2，3–7 为 2，8–10 为 2，其余时段不超过 1，满足两槽限制。\n\n## 3. 关键路径与理论最早完成\n路径长度（小时）：\n- A→B→F→G：3+5+3+1=12\n- A→B→E→G：3+5+2+1=11\n- A→C→E→G：3+4+2+1=10\n- D→G：2+1=3\n\n因此技术关键路径为 A→B→F→G，critical_path=[\"A\",\"B\",\"F\",\"G\"]。忽略发布窗口时，G 最早在 11–12 执行，结束于 12，即 technical_finish=12。\n\n## 4. 发布窗口\ns3《发布窗口》要求 G 必须完整位于 [14,16] 小时区间内。技术排程中 G 在 11–12 结束，不满足窗口，因此把 G 推迟到 14–15，这是窗口内能容纳 1 小时 G 的最早位置。D/E/F 已在第 11 小时全部完成，等待不产生资源切换开销。所以考虑窗口的最早 G 结束时间为 15，即 window_finish=15。11–14 是发布窗口等待，不属于技术关键路径延误。\n\n## 5. 含窗口的完整排程\n| 时段 | 槽 1 | 槽 2 |\n| --- | --- | --- |\n| 0–2 | A | D |\n| 2–3 | A | 空闲 |\n| 3–7 | B | C |\n| 7–8 | B | 空闲 |\n| 8–10 | E | F |\n| 10–11 | 空闲 | F |\n| 11–14 | 空闲 | 空闲（等待窗口） |\n| 14–15 | G | 空闲 |\n\n## 6. 指标与状态判定\n- pre_release_ready=11：D 完成于 2，E 完成于 10，F 完成于 11，三者最早全部完成的时刻是 11。\n- earliest_e_start=8：E 依赖 B 和 C；B 最早 8 完成，C 最早 7 完成，所以 E 最早 8 开始。\n- current_approval_confirmed=false：s4《状态快照》明确 t=0 时全部工作尚未开始，D 尚无合规签字，也没有测试通过记录；计划中的完成时间不等于已经发生的批准，因此目前不能宣称批准已完成。\n\n## 7. 不确定性与边界\n- 计算基于 s1 给定的确定性时长和依赖；若实际执行出现延误或资源可用性变化，需按新条件重排。\n- 发布窗口只约束 G；若业务要求更晚发布，也可选择 15–16，但按“最早发布”口径取 14–15，结束于 15。\n- 没有把预计的审查完成或测试通过描述为已发生；批准状态以 s4 为准。\n\n## Findings\n- id: pre_release_ready, value: 11, sources: [\"s1\", \"s2\", \"s5\"]\n- id: technical_finish, value: 12, sources: [\"s1\", \"s2\", \"s3\"]\n- id: window_finish, value: 15, sources: [\"s1\", \"s2\", \"s3\"]\n- id: critical_path, value: [\"A\", \"B\", \"F\", \"G\"], sources: [\"s1\", \"s2\"]\n- id: earliest_e_start, value: 8, sources: [\"s1\", \"s2\"]\n- id: current_approval_confirmed, value: false, sources: [\"s4\"]",
+  "input_tokens": 1139,
+  "output_tokens": 13146,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 12015,
+  "latency_ms": 210681,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "021793285580673f4d7ae5d724d9e41b76430b6d79530bc81815e",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1139,
+    "output_tokens": 13146,
+    "total_tokens": 14285,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 12015
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

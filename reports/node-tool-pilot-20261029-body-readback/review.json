@@ -1,0 +1,212 @@
+{
+  "说明": "助手事后正文回读，不改主判据，不替代独立真人语义双审，不增加模型调用。",
+  "已回读严格可解析答案": [
+    {
+      "样本": "comparison-procurement-versions-one-shot-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-one-shot-explicit-verification-r1/result.json",
+      "来源Sha256": "3b0def73d25c87519e3e36c6999f3619f1db2cb644a0a449b18910ef071a70cf",
+      "输出Sha256": "0d6ba14c3972559bb0fe2e62d9e8cce2c836de7e8a6f43d5b5959c05f36f162c",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-node-as-tool-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r1/result.json",
+      "来源Sha256": "f665ee81defbc39a706b9eb1147b8b36a48b547d9a105cea3c9d05151371682e",
+      "输出Sha256": "071f4ceae9617c7526c40b381c5e9ec0267c84292755c18e5d0520ce92df7835",
+      "原冻结主判据": "pass",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-one-shot-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-release-dependencies-one-shot-explicit-verification-r1/result.json",
+      "来源Sha256": "91556396b2cc6ecf4a5637440f61dd4bb45c7c23f13f114cd5be978a701bf855",
+      "输出Sha256": "f273d3734e3c5ff729c2c6a8d24b41183208e565ce8c50ab988b494e6fb5e724",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-node-as-tool-explicit-verification-r1/result.json",
+      "来源Sha256": "b1cd166535f9c0ade14e6d7c8c1ccdafb462cf13c50258f6412fe11fc1824b80",
+      "输出Sha256": "80985b5b7d76193b060845c0991c815053de5bb4d27616e8999a776ff8c6fb0a",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-one-shot-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-ledger-idempotency-one-shot-explicit-verification-r1/result.json",
+      "来源Sha256": "6b0cea9b4c63cd972f81e4580965cb37dc175059aec374db8bb3a331df71020e",
+      "输出Sha256": "deae6a63a42b6e3452d3caf1edd88f1bd72f0d4b3c95b0eef0adbbbee7f73dd6",
+      "原冻结主判据": "pass",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-one-shot-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-one-shot-explicit-verification-r2/result.json",
+      "来源Sha256": "8f9078c142da09805314cfcd38d196008c398deb261dd0e512bf69235fd1e856",
+      "输出Sha256": "15d58833149442a71839b60677543d83b6e9be01079af46b311cd497b5ce14ec",
+      "原冻结主判据": "pass",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-node-as-tool-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-03/comparison-procurement-versions-node-as-tool-explicit-verification-r2/result.json",
+      "来源Sha256": "2202d0018e5cf4d51d7795a3500c6af305048f6caced6bde2f56b6a341c3781d",
+      "输出Sha256": "615832d96eaf5053f50d75bede1481664d9b1d6fad4ea8f1cd7319004ccbc8f5",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-dag-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r1/dag.json",
+      "来源Sha256": "3e4359ccddc99f26d61e55edfd1e4c724c519c8fb435eb79fd20f7d44d29b965",
+      "输出Sha256": "e87cbb6e9d32e4472918950c5db7ce4dc1dd73d278bf11d9c140321744508009",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-dag-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r1/dag.json",
+      "来源Sha256": "df9ac8edec0857ed5c14d37ed5035e44dbe1b74c89389882d9b5d910b71eafe5",
+      "输出Sha256": "a585662f2643ef8a92711ac6addfb3db82674bd9c92d52bfcc7f14bac748360b",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-dag-explicit-verification-r1",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r1/dag.json",
+      "来源Sha256": "8db78b692357040138bebadf158c567a78fc9a1198d2b637f8777e1dd6af8e94",
+      "输出Sha256": "98cd53a4448c3b778230a14734b233aaaf6f62df9776a2c8e79b4c8db951d42e",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-dag-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r2/dag.json",
+      "来源Sha256": "e448c9848a7b16d98c92c60d355523ea83dfdf9025b85c926515f1d6296ca629",
+      "输出Sha256": "4cfc402b80b2c5d0e91668747a13d0a2a3826878433640a4fc683d579ee52ad3",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-dag-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-dag-explicit-verification-r2/dag.json",
+      "来源Sha256": "b0d5c4d58b98f00c0f08e528ab9fd92825620cfb4a5602c78c15bc7080b79b1a",
+      "输出Sha256": "5240c8cfa5f3e27732ef66cae7db6ecdf4513d8d46557d0055b499cc71b42809",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-node-as-tool-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-node-as-tool-explicit-verification-r2/result.json",
+      "来源Sha256": "4035745829ef8480c323420685dc07fe141fe9c2eee1d6d5cdad6a4c4fcb6d37",
+      "输出Sha256": "294ea5914ad61018210ba85d90c10f8647a7e2308b55fc6c65f8849e3d2d8afe",
+      "原冻结主判据": "pass",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-one-shot-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-release-dependencies-one-shot-explicit-verification-r2/result.json",
+      "来源Sha256": "1eee58451d73eab8ea82f517af64df1278b598687b74d92517a08a4c88f0421c",
+      "输出Sha256": "e7653e3975fca57d39a7907eee755eaf8d3a59120608b002eb43733609f4bd9d",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-one-shot-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-one-shot-explicit-verification-r2/result.json",
+      "来源Sha256": "242afd454d5d723d65dc6c6a177234bd4788594a0eea0f5cfaa6ed2843d4f844",
+      "输出Sha256": "acea0a515ca8a7809479c0264173122004bcf331d6210227f9ac1f1d41c9f484",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-dag-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-ledger-idempotency-dag-explicit-verification-r2/dag.json",
+      "来源Sha256": "9e13b054c56938dcef91774130cec196a6d013cca4dd77c3c8780828be6b5a29",
+      "输出Sha256": "9ba83f3d5d787acdb74032ef16e9db7f875a80fdf32ed1b98c37645daca759fc",
+      "原冻结主判据": "pass",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-node-as-tool-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-node-as-tool-explicit-verification-r3/result.json",
+      "来源Sha256": "81aae49aebfef2e4126e26bbf8dd4e59ed6a7898369959ce05d3422e0bd5290c",
+      "输出Sha256": "8be24668bf027f306db41a2c2c33a0fec7b745cc0cdc6fc85f08831c400f9711",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-dag-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-04/comparison-procurement-versions-dag-explicit-verification-r3/dag.json",
+      "来源Sha256": "b3c981fedd5362774d780530552d2c243159353feb4a410705ca5072134c3bf7",
+      "输出Sha256": "e688c92b9b478775fb9484c75ac6c4b8b77ea3bd1d7a21d77a3da0fcc2467ec0",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-ledger-idempotency-node-as-tool-explicit-verification-r2",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-ledger-idempotency-node-as-tool-explicit-verification-r2/result.json",
+      "来源Sha256": "16032f23503692d4a39b4e5ac6a149b2356a3aa73cc7a4fd9d9bd843347ac4cd",
+      "输出Sha256": "14858085035d9a0cfc8fcd1aa67a83d0b66e2bf96461c32d28ede80367ca00a4",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-procurement-versions-one-shot-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-procurement-versions-one-shot-explicit-verification-r3/result.json",
+      "来源Sha256": "bcb25e08b2ed380c1ed9fca66363f73ea8b45c7156cbe5d031b51cdc7d493a51",
+      "输出Sha256": "fec1d7e0e13a701f30749ff22b7de93c7db62c1927e4f383a47b41bf2bb700fd",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-node-as-tool-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-node-as-tool-explicit-verification-r3/result.json",
+      "来源Sha256": "389d39910c0c8446b2763fb0ed6241ecdbb634e3364166e9890e0133670472cc",
+      "输出Sha256": "86b107ddd6aa3a55176de4c1e543dcf256261f4631a0cdb380a613bc72a18d0a",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-one-shot-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-one-shot-explicit-verification-r3/result.json",
+      "来源Sha256": "f68b41eac553d62a84ce4391702f281e5f560a4cc828872941609310c6c09979",
+      "输出Sha256": "e87ee9aee5d1b0c043268ef48db225fe8923fe153c2abf261787297c23e47111",
+      "原冻结主判据": "fail",
+      "回读范围": "关键计算、约束及正文与字段一致性；助手事后回读，非独立真人双审"
+    },
+    {
+      "样本": "comparison-release-dependencies-dag-explicit-verification-r3",
+      "来源": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-dag-explicit-verification-r3/dag.json",
+      "来源Sha256": "5e373d66a601d12bbfd844b71ff8d56b9310dab5fa107888a3daac7fb0c1cdff",
+      "输出Sha256": "82ebbab80c384f09af0bade363cf526f989ac706dba6757fc1fc532639349f89",
+      "原冻结主判据": "pass",
+      "回读范围": "两槽、依赖、技术关键路径、窗口等待与批准状态；助手事后回读"
+    }
+  ],
+  "原合同不合格单列": [
+    {
+      "样本": "comparison-release-dependencies-node-as-tool-explicit-verification-r1",
+      "原因": "原 JSON 合同失败，不做严格解码后的正文认证；已有只读副本诊断另列。"
+    }
+  ],
+  "具体问题": [
+    {
+      "样本": "comparison-release-dependencies-node-as-tool-explicit-verification-r3",
+      "类别": "窗口等待口径混用",
+      "原文段落": "考虑发布窗口：s3 规定只有 G 必须完整位于 [14,16] 小时内，其余任务可在此之前完成。G 时长 1 小时，为完整落在窗口内，最早可行安排为 14–15 小时，因此考虑窗口的最早 G 结束时间 window_finish=15。12–14 小时为等待窗口产生的空闲，不改变技术关键路径本身；技术关键路径（12）与窗口等待（2 小时）需区分，不应把 window_finish 误解为关键路径长度。",
+      "原始提供方响应与宿主交付逐字一致": true,
+      "原始SSE": "reports/node-tool-pilot-20261029-live-05/comparison-release-dependencies-node-as-tool-explicit-verification-r3/wire/003-response.txt",
+      "原始SSESha256": "c3eabb3ce4f49bf510a8c7ceb8be41c371602f66c743f72bfbf0e029734b10e5",
+      "正确计算": "前置齐备11，G时长1，窗口结束15，最早开始14；实际窗口等待14-11=3小时。",
+      "解释": "正文从忽略窗口的G结束12开始计算空闲，遗漏实际窗口化排程中11至12的等待；冻结字段值仍正确。",
+      "原评分未改": true,
+      "委派任务Sha256": "adcb7fd30066b7b5f9ed2eb5e668321c50d2335fd6b6558a485eecf0f97c18a6",
+      "委派上下文Sha256": "7e45f4c87c4aa193809660d2f09a5c962bb36f47244ae0eef7900b12cda72f2e",
+      "专家产物Sha256": "a1d0f7f1c90b0fac1ef526d473c0e91837e2fab54c20ea7019695e2663a02885",
+      "交互观察": "提交给专家的任务、上下文及专家产物中没有最终那段两小时等待描述；专家核对关键数值，不代表后来生成的整份正文已经审查。"
+    }
+  ]
+}

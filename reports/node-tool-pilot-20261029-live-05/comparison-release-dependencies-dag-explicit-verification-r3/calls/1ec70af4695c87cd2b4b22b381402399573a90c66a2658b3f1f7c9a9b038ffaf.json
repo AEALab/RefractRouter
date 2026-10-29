@@ -1,0 +1,29 @@
+{
+  "content": "{\n  \"answer\": \"以 t=0 为开始，全部工作尚未开始。依据 s1《有效工作清单》并遵循 s2《版本修订》，采用最新时长和依赖：A=3小时且无前置；B=5小时且依赖A；C=4小时且依赖A（不是旧版依赖B）；D=2小时且无前置；E=2小时且依赖B、C；F=3小时且依赖B（不是旧版1小时）；G=1小时且依赖D、E、F全部完成。任务不可拆分，每项独占一个执行槽，最多两个槽。\\n\\n可执行排程如下：\\n0-2：槽1 A，槽2 D\\n2-3：槽1 A，槽2 空闲\\n3-7：槽1 B，槽2 C\\n7-8：槽1 B，槽2 空闲\\n8-10：槽1 E，槽2 F\\n10-11：槽1 空闲，槽2 F\\n11-14：等待发布窗口（槽空闲）\\n14-15：槽1 G，槽2 空闲\\n\\n按该排程：D完成于2，A完成于3，C完成于7，B完成于8，E完成于10，F完成于11。因此D/E/F最早全部齐备的时刻为11，即 pre_release_ready=11。E依赖B和C，B最早8完成、C最早7完成，所以E最早开始时间为8，即 earliest_e_start=8。忽略发布窗口时，G最早可在11-12执行，因此 technical_finish=12。\\n\\n路径长度如下：A→B→F→G=3+5+3+1=12；A→B→E→G=3+5+2+1=11；A→C→E→G=3+4+2+1=10；D→G=2+1=3。技术关键路径为A→B→F→G，critical_path=[\\\"A\\\",\\\"B\\\",\\\"F\\\",\\\"G\\\"]。11-14的等待是发布窗口约束造成的等待，不改变技术关键路径。\\n\\ns3《发布窗口》只要求G完整位于[14,16]小时内。为了最早发布，将G安排在14-15执行，结束于15；因此 window_finish=15。若安排在15-16也能满足窗口，但不是最早。\\n\\n关于批准状态：s4《状态快照》明确t=0时所有工作尚未开始，D尚无合规签字，也没有测试通过记录；计划中的完成时间不等于已经发生的批准。因此目前不能宣称批准已确认，current_approval_confirmed=false。\\n\\n以上计算基于s1给定的确定性时长与依赖，未执行外部工具；若实际执行出现延误或额外约束，需要按新条件重新排程。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s2\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s2\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s2\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s2\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s2\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}",
+  "input_tokens": 2488,
+  "output_tokens": 7875,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 7043,
+  "latency_ms": 125757,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932857913794f644a6b4f65cd7c798419da6087253199c9fe",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 2488,
+    "output_tokens": 7875,
+    "total_tokens": 10363,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 7043
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}

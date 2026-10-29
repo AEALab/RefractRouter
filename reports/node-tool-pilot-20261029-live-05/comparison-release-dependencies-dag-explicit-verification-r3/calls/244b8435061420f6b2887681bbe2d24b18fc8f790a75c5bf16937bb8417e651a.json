@@ -1,0 +1,29 @@
+{
+  "content": "{\"reason\":\"单例调度问题，核心计算与最终汇总两节点足够；事实核对并入交付节点以避免重复校验。\",\"nodes\":[{\"id\":\"schedule\",\"type\":\"synthesis\",\"job\":\"计算两槽排程、关键路径与全部时间指标\",\"parents\":[],\"difficulty\":\"medium\",\"risk\":\"medium\"},{\"id\":\"answer\",\"type\":\"generation\",\"job\":\"完整回答任务并核对原始事实\",\"parents\":[\"schedule\"],\"difficulty\":\"medium\",\"risk\":\"medium\"}]}",
+  "input_tokens": 1387,
+  "output_tokens": 3923,
+  "cached_input_tokens": 0,
+  "reasoning_tokens": 3816,
+  "latency_ms": 75739,
+  "attempts": 1,
+  "finish_reason": "stop",
+  "request_id": "0217932855049356216202cdc086c00ba26009437f217e979cfcc",
+  "usage_available": true,
+  "raw_usage": {
+    "input_tokens": 1387,
+    "output_tokens": 3923,
+    "total_tokens": 5310,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 3816
+    }
+  },
+  "tool_calls": [],
+  "replay_messages": [],
+  "replay_state": null,
+  "cache_usage_source": "input_tokens_details.cached_tokens",
+  "ttft_ms": null,
+  "first_tool_ms": null
+}
