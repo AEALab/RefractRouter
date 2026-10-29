@@ -18,7 +18,8 @@ def structure(tool, symbol='f', line=None):
     return tool.request('python-structure', {'path': 'visible.py', 'symbol': symbol, 'definitionLine': line})
 
 
-def candidate(value):
+def candidate(value, assertions=None):
+    value = {**value, **({'structuralAssertions': assertions} if assertions is not None else {})}
     return {'content': json.dumps(value, ensure_ascii=False), 'toolCalls': [], 'finishReason': 'stop'}
 
 
@@ -90,22 +91,22 @@ def test_assertions_bind_actual_candidate_fields_and_recheck_source(tmp_path):
     tool, _ = service(tmp_path, 'def f():\n    return (1, 2)\n')
     fact = structure(tool)['facts'][0]
     assertions = [{'factId': fact['factId'], 'field': 'fixedTupleArity', 'answerPointer': '/answer/arity'}]
-    good = tool.verify_candidate('first', candidate({'answer': {'arity': 2}, 'freeText': '此段未经语义验证'}), assertions)
+    good = tool.verify_candidate('first', candidate({'answer': {'arity': 2}, 'freeText': '此段未经语义验证'}, assertions), assertions)
     assert good['allBoundFieldsSupported']
     assert not good['wholeTaskQualityProven'] and not good['unboundTextSemanticsChecked']
-    bad = tool.verify_candidate('second', candidate({'answer': {'arity': 3}}), assertions)
+    bad = tool.verify_candidate('second', candidate({'answer': {'arity': 3}}, assertions), assertions)
     assert bad['rows'][0]['verdict'] == 'contradicted'
     assert bad['candidateSha256'] != good['candidateSha256']
     (tmp_path / 'visible.py').write_text('def f():\n    return (1, 2, 3)\n')
-    assert tool.verify_candidate('third', candidate({'answer': {'arity': 2}}), assertions)['rows'][0]['verdict'] == 'unknown'
+    assert tool.verify_candidate('third', candidate({'answer': {'arity': 2}}, assertions), assertions)['rows'][0]['verdict'] == 'unknown'
 
 
 def test_forged_fact_and_runtime_type_cannot_claim_support(tmp_path):
     tool, _ = service(tmp_path, 'def f():\n    return 1\n')
     fact = structure(tool)['facts'][0]
     for fact_id, field in [('a' * 64, 'astKind'), (fact['factId'], 'runtime_type')]:
-        result = tool.verify_candidate('candidate', candidate({'type': 'int'}), [
-            {'factId': fact_id, 'field': field, 'answerPointer': '/type'}])
+        assertions = [{'factId': fact_id, 'field': field, 'answerPointer': '/answer/type'}]
+        result = tool.verify_candidate('candidate', candidate({'answer': {'type': 'int'}}, assertions))
         assert result['rows'][0]['verdict'] == 'unknown'
         assert not result['allBoundFieldsSupported']
 
@@ -116,7 +117,7 @@ def test_duplicate_json_keys_are_ambiguous_and_repo_code_is_not_executed(tmp_pat
     tool, _ = service(tmp_path, source)
     fact = structure(tool)['facts'][0]
     assert not marker.exists()
-    with pytest.raises(ValueError, match='重复 JSON'):
+    with pytest.raises(ValueError, match='重复'):
         tool.verify_candidate('candidate', {'content': '{"answer":1,"answer":2}', 'toolCalls': [], 'finishReason': 'stop'},
             [{'factId': fact['factId'], 'field': 'expressionSource', 'answerPointer': '/answer'}])
 
@@ -176,8 +177,8 @@ def test_finally_generator_and_bare_return_are_only_lexical_facts(tmp_path):
     result = structure(tool)
     returns = [f for f in result['facts'] if f['kind'] == 'return-expression']
     assert len(returns) == 2 and returns[-1]['details']['astKind'] is None
-    check = tool.verify_candidate('candidate', candidate({'runtime': 'tuple'}), [
-        {'factId': returns[0]['factId'], 'field': 'runtime_type', 'answerPointer': '/runtime'}])
+    assertions = [{'factId': returns[0]['factId'], 'field': 'runtime_type', 'answerPointer': '/answer/runtime'}]
+    check = tool.verify_candidate('candidate', candidate({'answer': {'runtime': 'tuple'}}, assertions))
     assert check['rows'][0]['verdict'] == 'unknown'
 
 
@@ -208,7 +209,30 @@ def test_frozen_upstream_regression_preserves_three_formats_and_starred_return(t
         assert starred['details']['astKind'] == 'Tuple'
         assert starred['details']['fixedTupleArity'] is None
         assert '*(d[1] for d in fds)' in starred['span']['quote']
-        check = tool.verify_candidate('sympy-regression', candidate({'arity':2,'kind':'Tuple'}), [
-            {'factId': starred['factId'], 'field': 'fixedTupleArity', 'answerPointer': '/arity'},
-            {'factId': starred['factId'], 'field': 'astKind', 'answerPointer': '/kind'}])
+        assertions = [
+            {'factId': starred['factId'], 'field': 'fixedTupleArity', 'answerPointer': '/answer/arity'},
+            {'factId': starred['factId'], 'field': 'astKind', 'answerPointer': '/answer/kind'}]
+        check = tool.verify_candidate('sympy-regression', candidate({'answer': {'arity':2,'kind':'Tuple'}}, assertions))
         assert [r['verdict'] for r in check['rows']] == ['unknown','supported']
+
+
+def test_public_library_cannot_use_undeclared_assertions_or_side_channel(tmp_path):
+    tool, _ = service(tmp_path, 'def f():\n    return (1,2)\n')
+    fact = structure(tool)['facts'][0]
+    outside = [{'factId': fact['factId'], 'field': 'fixedTupleArity', 'answerPointer': '/sideChannel'}]
+    actual = candidate({'answer': {'arity':3}, 'sideChannel':2}, [])
+    with pytest.raises(ValueError, match='not-declared'):
+        tool.verify_candidate('actual', actual, outside)
+    with pytest.raises(ValueError, match='outside-final-answer'):
+        tool.verify_candidate('actual', candidate({'answer': {'arity':3}, 'sideChannel':2}, outside))
+
+
+@pytest.mark.parametrize('extra', ['1e999', '"\\ud800"'])
+def test_public_library_checks_decoded_unused_values_too(tmp_path, extra):
+    tool, _ = service(tmp_path, 'def f():\n    return (1,2)\n')
+    fact = structure(tool)['facts'][0]
+    assertions = [{'factId': fact['factId'], 'field': 'fixedTupleArity', 'answerPointer': '/answer/arity'}]
+    text = '{"answer":{"arity":2},"structuralAssertions":' + json.dumps(assertions) + ',"unused":' + extra + '}'
+    actual = {'content': text, 'toolCalls': [], 'finishReason': 'stop'}
+    with pytest.raises(ValueError):
+        tool.verify_candidate('actual', actual)

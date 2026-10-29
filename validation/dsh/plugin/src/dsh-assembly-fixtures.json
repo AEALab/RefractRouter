@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "dsh-assembly-fixtures-v1",
+  "package": "@deepseek-ai/dsh-llm",
+  "version": "0.1.5-rc.3",
+  "moduleSha256": "f54d86572d4c0e8d9348cdc65e4c4684a4956a91162815d3c52ee7c0c58225ed",
+  "fixtures": [
+    {
+      "name": "结束块覆盖不同的增量",
+      "chunks": [
+        {
+          "type": "text-delta",
+          "index": 0,
+          "text": "2"
+        },
+        {
+          "type": "block-end",
+          "index": 0,
+          "block": {
+            "type": "text",
+            "text": "3"
+          }
+        }
+      ],
+      "finish": "stop",
+      "expected": {
+        "content": "3",
+        "toolCalls": [],
+        "finishReason": "stop"
+      }
+    },
+    {
+      "name": "部分文本块只有结束块",
+      "chunks": [
+        {
+          "type": "text-delta",
+          "index": 0,
+          "text": "前文"
+        },
+        {
+          "type": "block-end",
+          "index": 0,
+          "block": {
+            "type": "text",
+            "text": "前文"
+          }
+        },
+        {
+          "type": "block-end",
+          "index": 1,
+          "block": {
+            "type": "text",
+            "text": "后文😀"
+          }
+        }
+      ],
+      "finish": "stop",
+      "expected": {
+        "content": "前文后文😀",
+        "toolCalls": [],
+        "finishReason": "stop"
+      }
+    },
+    {
+      "name": "仅增量协议",
+      "chunks": [
+        {
+          "type": "text-delta",
+          "index": 0,
+          "text": "中"
+        },
+        {
+          "type": "text-delta",
+          "index": 0,
+          "text": "文😀"
+        }
+      ],
+      "finish": "stop",
+      "expected": {
+        "content": "中文😀",
+        "toolCalls": [],
+        "finishReason": "stop"
+      }
+    },
+    {
+      "name": "已结束块忽略后续非法增量",
+      "chunks": [
+        {
+          "type": "block-end",
+          "index": 0,
+          "block": {
+            "type": "text",
+            "text": "完成"
+          }
+        },
+        {
+          "type": "text-delta",
+          "index": 0,
+          "text": "不应追加"
+        }
+      ],
+      "finish": "stop",
+      "expected": {
+        "content": "完成",
+        "toolCalls": [],
+        "finishReason": "stop"
+      }
+    },
+    {
+      "name": "按首次出现顺序组装",
+      "chunks": [
+        {
+          "type": "block-start",
+          "index": 8,
+          "blockType": "text"
+        },
+        {
+          "type": "block-start",
+          "index": 1,
+          "blockType": "text"
+        },
+        {
+          "type": "block-end",
+          "index": 1,
+          "block": {
+            "type": "text",
+            "text": "后"
+          }
+        },
+        {
+          "type": "block-end",
+          "index": 8,
+          "block": {
+            "type": "text",
+            "text": "先"
+          }
+        }
+      ],
+      "finish": "stop",
+      "expected": {
+        "content": "先后",
+        "toolCalls": [],
+        "finishReason": "stop"
+      }
+    },
+    {
+      "name": "工具参数只有增量",
+      "chunks": [
+        {
+          "type": "tool-call-delta",
+          "index": 0,
+          "id": "call-1",
+          "name": "read",
+          "argumentsDelta": "{\"p\":"
+        },
+        {
+          "type": "tool-call-delta",
+          "index": 0,
+          "id": "call-1",
+          "argumentsDelta": "\"文\"}"
+        }
+      ],
+      "finish": "tool-calls",
+      "expected": {
+        "content": "",
+        "toolCalls": [
+          {
+            "type": "tool-call",
+            "id": "call-1",
+            "name": "read",
+            "arguments": "{\"p\":\"文\"}"
+          }
+        ],
+        "finishReason": "tool_calls"
+      }
+    },
+    {
+      "name": "截断丢弃不安全工具",
+      "chunks": [
+        {
+          "type": "block-end",
+          "index": 0,
+          "block": {
+            "type": "tool-call",
+            "id": "call-1",
+            "name": "read",
+            "arguments": "{}"
+          }
+        },
+        {
+          "type": "text-delta",
+          "index": 1,
+          "text": "未完"
+        }
+      ],
+      "finish": "max-tokens",
+      "expected": {
+        "content": "未完",
+        "toolCalls": [],
+        "finishReason": "max-tokens"
+      }
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import { EMPTY_PLANNING, PLANNING_PROTOCOL } from './planning-config.js'
 import { ToolEvidenceCapture } from './tool-evidence.js'
 import type { ReadonlyFactTools } from './readonly-facts.js'
 import { CORE_RUNTIME_ENV,installedCoreCommand } from './core-command.js'
+import { dshCandidate } from './dsh-candidate.js'
 type Json=Record<string,any>
 export interface PlanningRpc {request(value:Json):Promise<Json>;dispose():void}
 function usesJev(config:Json):boolean {
@@ -460,8 +461,8 @@ export class PlanningController {
         const limits=[action.remainingMs,action.timeoutMs].filter((value):value is number=>
           typeof value==='number'&&Number.isFinite(value))
         const callSignal=limits.length?AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,Math.min(...limits)))]):signal
-        const chunks:Json[]=[],blocks=new Map<number,Json>()
-        let content='',usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
+        const chunks:Json[]=[]
+        let usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
         const started=performance.now()
         let streamError:unknown
         try{for await(const native of this.ctx.llm.stream(nativeOptions(action,callSignal,options))){
@@ -472,8 +473,7 @@ export class PlanningController {
           if(chunk.type==='usage'){usage=chunk.usage as TokenUsage;continue}
           if(chunk.type==='finish'){finish=chunk;continue}
           if(finish)throw new Error('模型 finish 后继续输出')
-          if(chunk.type==='text-delta'){content+=String(chunk.text);ttftMs??=performance.now()-started}
-          if(chunk.type==='block-end')blocks.set(chunk.index,chunk.block)
+          if(chunk.type==='text-delta')ttftMs??=performance.now()-started
           chunks.push(chunk)
           if(!action.buffered)yield chunk
         }}catch(error){streamError=error}
@@ -488,13 +488,11 @@ export class PlanningController {
           if(streamError)throw streamError
           callSignal.throwIfAborted()
         }
-        const tools=[...blocks.values()].filter(b=>b.type==='tool-call')
-        if(!content)content=[...blocks.values()].filter(b=>b.type==='text').map(b=>b.text).join('')
         if(usage)sumUsage(total,usage)
-        const candidate={content,toolCalls:tools,finishReason:finish?.reason?.kind==='tool-calls'?'tool_calls':finish?.reason?.kind}
+        const candidate=dshCandidate(chunks,finish?.reason?.kind)
         outputs.set(action.callId,{chunks,finish:finish??{},model:action.model,buffered:action.buffered,candidate})
         action=await this.rpc.request({op:'complete',runId,callId:action.callId,response:{
-          content,toolCalls:tools,finishReason:finish?.reason?.kind==='tool-calls'?'tool_calls':finish?.reason?.kind,
+          ...candidate,
           usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
           inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
           cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,

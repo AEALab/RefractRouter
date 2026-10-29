@@ -92,6 +92,28 @@ def validate_candidate(candidate_id, candidate):
     return sha(wire(candidate))
 
 
+def strict_json(raw):
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            if key in result:
+                raise ValueError('JSON 包含重复字段')
+            result[key] = value
+        return result
+    def finite_float(value):
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError('JSON 数值必须有限')
+        return number
+    try:
+        result = json.loads(raw, object_pairs_hook=pairs, parse_float=finite_float,
+            parse_constant=lambda _: (_ for _ in ()).throw(ValueError('JSON 数值无效')))
+        check_json_value(result)
+        return result
+    except RecursionError as exc:
+        raise ValueError('JSON 嵌套超过处理容量') from exc
+
+
 def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
@@ -345,21 +367,20 @@ class ReadonlyFacts:
             payload['visibleUtf8Bytes'] = len(wire(payload))
         return payload
 
-    def verify_candidate(self, candidate_id, candidate, assertions, *, allowed_fact_ids=None):
+    def verify_candidate(self, candidate_id, candidate, assertions=None, *, allowed_fact_ids=None):
         """宿主传入实际最终候选；模型仅声明断言，不提供事实库或替代最终正文。"""
         candidate_digest = validate_candidate(candidate_id, candidate)
-        check_json_value(assertions)
+        answer = strict_json(candidate['content'])
+        if type(answer) is not dict or 'answer' not in answer or 'structuralAssertions' not in answer:
+            raise Unavailable('no-explicit-structural-assertions')
+        declared = answer['structuralAssertions']
+        if assertions is not None:
+            check_json_value(assertions)
+            if wire(assertions) != wire(declared):
+                raise Unavailable('assertions-not-declared-by-candidate')
+        assertions = declared
         if type(assertions) is not list or len(assertions) > 64:
             raise ValueError('显式断言须为有界列表')
-        def object_pairs(pairs):
-            result = {}
-            for key, value in pairs:
-                if key in result:
-                    raise ValueError('候选包含重复 JSON 键，不能唯一绑定字段')
-                result[key] = value
-            return result
-        answer = json.loads(candidate['content'], object_pairs_hook=object_pairs,
-                            parse_constant=lambda _: (_ for _ in ()).throw(ValueError('非法 JSON 数值')))
         rows, seen = [], set()
         for assertion in assertions:
             if type(assertion) is not dict or set(assertion) != {'factId', 'field', 'answerPointer'}:
@@ -368,6 +389,8 @@ class ReadonlyFacts:
             if (type(fact_id) is not str or re.fullmatch('[0-9a-f]{64}', fact_id) is None
                     or type(field) is not str or type(pointer) is not str):
                 raise ValueError('断言身份或字段类型无效')
+            if pointer != '/answer' and not pointer.startswith('/answer/'):
+                raise Unavailable('assertion-outside-final-answer')
             identity = (fact_id, field, pointer)
             if identity in seen:
                 raise ValueError('重复断言不能重复计数')

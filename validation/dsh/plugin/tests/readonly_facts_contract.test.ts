@@ -8,7 +8,7 @@ import { resolve } from 'node:path'
 import { configure,type AgentContext,type ModelOptions } from '../dist/agent-provider.js'
 import { PlanningController,planningMessages } from '../dist/planning-routing.js'
 import { registerReadonlyFactTools } from '../dist/readonly-facts.js'
-import type { SpawnSpec } from '../dist/contracts.js'
+import type { SpawnSpec,StreamChunk } from '../dist/contracts.js'
 
 type Json=Record<string,any>
 const root=resolve('../../..')
@@ -24,7 +24,7 @@ async function fixture(){
   const tools=new Map<string,Json>(),specs:SpawnSpec[]=[],calls:Json[]=[],policies:Json[]=[],disposers:Array<()=>void>=[]
   const events:Array<{type:string;data:Record<string,unknown>}>=[{type:'step/start',data:{turn:1,step:1}}]
   const agent={id:'host-agent',session:{header:{id:'host-session',cwd:workspace},events,append(){}}}
-  let answer='完成',nextTool=true
+  let answer='完成',nextTool=true,overrideChunks:StreamChunk[]|undefined
   const tool={type:'tool-call',id:'fact-call',name:'refract_python_structure',arguments:JSON.stringify(args)}
   const ctx:AgentContext={
     agents:{requireInitiator:()=>agent},credentials:{async describe(){return {configured:false}},async resolve(){throw new Error('事实工具不能读取凭证')}},
@@ -46,6 +46,7 @@ async function fixture(){
     llm:{registerAdapter(){},async *stream(options){
       calls.push(options)
       if(nextTool){nextTool=false;yield {type:'block-end',index:0,block:tool}}
+      else if(overrideChunks)yield* overrideChunks
       else {yield {type:'text-delta',index:0,text:answer};yield {type:'block-end',index:0,block:{type:'text',text:answer}}}
       yield {type:'usage',usage:{inputTokens:100,outputTokens:20}}
       yield {type:'finish',reason:{kind:calls.length===1?'tool-calls':'stop'}}
@@ -63,6 +64,7 @@ async function fixture(){
     tools:[...tools.values()].map(({name,description,parameters})=>({name,description,parameters}))}
   return {workspace,tools,host,controller,options,agent,events,tool,calls,specs,policies,
     setAnswer(value:string){answer=value},disable(){config=configure({...config,factTools:{...config.factTools!,enabled:false}})},
+    setChunks(value:StreamChunk[]){overrideChunks=value},
     async cleanup(){for(const dispose of disposers)dispose();controller.rpc.dispose();await new Promise(r=>setTimeout(r,50));await rm(workspace,{recursive:true,force:true})}}
 }
 async function collect(stream:AsyncIterable<Json>){const chunks=[];for await(const chunk of stream)chunks.push(chunk);return chunks}
@@ -122,5 +124,37 @@ test('模型参数不能扩大固定范围；宿主禁用或配置变更后不�
     await assert.rejects(()=>source.execute(args,{agent:f.agent,signal:new AbortController().signal}),/未启用/)
     assert.equal(f.specs.length,before)
     assert.equal(f.calls.length,0)
+  }finally{await f.cleanup()}
+})
+
+for(const scenario of ['增量与结束块不同','部分块仅有结束块'])test('实际候选绑定：'+scenario,async()=>{
+  const f=await fixture()
+  try{
+    const first=await collect(f.controller.stream(f.options))
+    const finish=first.find(c=>c.type==='finish') as Json
+    const value=await f.tools.get('refract_python_structure')!.execute(args,{agent:f.agent,signal:new AbortController().signal})
+    const fact=JSON.parse(value.modelText).facts.find((v:Json)=>v.kind==='return-expression')
+    const body={answer:{arity:2},structuralAssertions:[{factId:fact.factId,field:'fixedTupleArity',answerPointer:'/answer/arity'}]}
+    const good=JSON.stringify(body),bad=JSON.stringify({...body,answer:{arity:3}})
+    let delivered=good
+    if(scenario==='增量与结束块不同'){
+      delivered=bad
+      f.setChunks([{type:'text-delta',index:0,text:good},{type:'block-end',index:0,block:{type:'text',text:bad}}])
+    }else{
+      const split=Math.floor(good.length/2)
+      f.setChunks([{type:'text-delta',index:0,text:good.slice(0,split)},
+        {type:'block-end',index:0,block:{type:'text',text:good.slice(0,split)}},
+        {type:'block-end',index:1,block:{type:'text',text:good.slice(split)}}])
+    }
+    f.events.push({type:'step/start',data:{turn:1,step:2}})
+    const chunks=await collect(f.controller.stream({...f.options,messages:[...f.options.messages,
+      {role:'assistant',content:[f.tool],source:{kind:'model',provider:'refractagent',model:'planning',replayState:finish.replayState}},
+      {role:'user',content:[{type:'tool-result',toolCallId:'fact-call',content:[{type:'text',text:value.modelText}]}]}]}))
+    const last=chunks.find(c=>c.type==='finish') as Json
+    const report=last.replayState.response.refractPlanning.factVerification
+    assert.equal(report.allBoundFieldsSupported,scenario==='部分块仅有结束块')
+    const record=(await f.controller.history('host-session')).records[0]
+    assert.equal(record.calls.at(-1).output_sha256,hash(delivered))
+    assert.equal(f.calls.length,2)
   }finally{await f.cleanup()}
 })

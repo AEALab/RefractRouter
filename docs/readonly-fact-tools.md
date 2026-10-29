@@ -72,6 +72,7 @@
 
 宿主从实际已接受候选取得 `content`、`toolCalls`、`finishReason` 和真实调用 ID，
 使用与 `task-result-v1` 一致的候选哈希。只有最终 `stop` 文本且无待执行工具调用才能校验。
+公共 Python 库和 CLI 共用严格解码与声明检查，不能另传一份正文未声明的断言绕过约束。
 声明必须定位 `/answer` 或其子字段，不能用旁路证明字段替代最终答案。
 只核对 `source`、`astKind`、`expressionSource`、`fixedTupleArity`、`hasStarred`、
 `conditionSource` 等支持字段；没有可确定值或未支持字段时未知。
@@ -123,6 +124,11 @@ DSH 会话/Agent/turn 来自真实宿主事件，清单配置在任务内冻结�
 Planning 模型入口在核心已结算并接受候选后，用宿主回执核验实际候选，报告放在
 `refractPlanning.factVerification` 中；后续模型历史转换不会把报告、回执或索引塞回提示。
 报告只用于观测，不修改核心的交付选择；自定义其他模型入口没有自动最终校验时仍属未验收。
+
+规范候选按 DSH 原生 `BlockAssembler` 的首次出现顺序建立，结束块正文覆盖增量；
+部分文本仅有结束块或仅有增量时也保留。核心结算和最终事实校验共享同一规范候选。
+协议回归数据由已安装的 `@deepseek-ai/dsh-llm@0.1.5-rc.3` 直接生成，记录模块哈希；
+生成脚本为 `validation/dsh/plugin/scripts/freeze-host-assembly.ts`。
 
 ## 用量、时间与验证
 

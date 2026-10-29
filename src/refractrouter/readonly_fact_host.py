@@ -1,7 +1,6 @@
 """宿主固定范围的事实工具入口；不由 Router 派发，不读取模型凭据或执行仓库代码。"""
 from copy import deepcopy
 import json
-import math
 import os
 from pathlib import Path
 import re
@@ -9,32 +8,10 @@ import stat
 import time
 
 from .readonly_facts import (ReadonlyFacts, Unavailable, VERSION, LIMITS, sha, wire,
-                             check_json_value, validate_candidate)
+                             check_json_value, validate_candidate, strict_json)
 
 HOST_VERSION = 'readonly-facts-host-v1'
 MAX_REQUEST_BYTES = 1024 * 1024
-
-
-def strict_json(raw):
-    def pairs(items):
-        result = {}
-        for key, value in items:
-            if key in result:
-                raise ValueError('JSON 包含重复字段')
-            result[key] = value
-        return result
-    def finite_float(value):
-        number = float(value)
-        if not math.isfinite(number):
-            raise ValueError('JSON 数值必须有限')
-        return number
-    try:
-        result = json.loads(raw, object_pairs_hook=pairs, parse_float=finite_float,
-            parse_constant=lambda _: (_ for _ in ()).throw(ValueError('JSON 数值无效')))
-        check_json_value(result)
-        return result
-    except RecursionError as exc:
-        raise ValueError('JSON 嵌套超过处理容量') from exc
 
 
 def load_host(path, pinned_sha256, workspace):
@@ -126,16 +103,7 @@ def execute(host, request):
     candidate_digest = None
     try:
         candidate_digest = validate_candidate(request['candidateId'], candidate)
-        parsed = strict_json(candidate['content'])
-        if type(parsed) is not dict or 'structuralAssertions' not in parsed or 'answer' not in parsed:
-            raise Unavailable('no-explicit-structural-assertions')
-        declarations = parsed['structuralAssertions']
-        if type(declarations) is list and any(type(a) is dict and type(a.get('answerPointer')) is str
-                and a['answerPointer'] != '/answer' and not a['answerPointer'].startswith('/answer/')
-                for a in declarations):
-            raise Unavailable('assertion-outside-final-answer')
-        result = host.verify_candidate(request['candidateId'], candidate, parsed['structuralAssertions'],
-                                       allowed_fact_ids=allowed_fact_ids)
+        result = host.verify_candidate(request['candidateId'], candidate, allowed_fact_ids=allowed_fact_ids)
     except (KeyError, TypeError, ValueError, RecursionError) as exc:
         result = {'schemaVersion': VERSION, 'snapshotId': host.snapshot_id,
             'candidateId': request['candidateId'], 'candidateSha256': candidate_digest,

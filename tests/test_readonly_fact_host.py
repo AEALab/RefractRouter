@@ -162,7 +162,7 @@ def test_candidate_capacity_is_checked_before_json_parse(tmp_path, monkeypatch):
     path, pin = manifest(tmp_path)
     host = load_host(path, pin, tmp_path)
     called = []
-    monkeypatch.setattr('refractrouter.readonly_fact_host.strict_json', lambda raw: called.append(raw))
+    monkeypatch.setattr('refractrouter.readonly_facts.strict_json', lambda raw: called.append(raw))
     candidate = {'content': '{"structuralAssertions":[]}' + ' ' * 262144, 'toolCalls': [], 'finishReason': 'stop'}
     try:
         result = execute(host, {'op': 'verify', 'identity': OWNER, 'candidateId': 'large',
