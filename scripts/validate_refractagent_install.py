@@ -33,6 +33,9 @@ def run_process(command, *, cwd, env, stdin=None, timeout=180):
         try:
             process.communicate(timeout=2)
         except subprocess.TimeoutExpired:
+            pass
+        finally:
+            # 后代可能已关闭管道，communicate 返回不代表整个组已退出。
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:

@@ -1,7 +1,5 @@
 """验收助手必须约束半行回执，并清理超时或取消的祖孙进程。"""
 import os
-from pathlib import Path
-import signal
 import subprocess
 import sys
 import time
@@ -28,11 +26,12 @@ def test_partial_response_has_deadline_and_worker_is_reaped(tmp_path):
         os.kill(int(pid_file.read_text()), 0)
 
 
-@pytest.mark.parametrize("cancel", [False, True])
-def test_outer_timeout_or_cancel_cleans_grandchild_group(tmp_path, monkeypatch, cancel):
+@pytest.mark.parametrize("cancel,close_pipes", [(False, False), (True, False), (False, True)])
+def test_outer_timeout_or_cancel_cleans_grandchild_group(tmp_path, monkeypatch, cancel, close_pipes):
     heartbeat = tmp_path / "heartbeat"
-    child = ("import signal,time\nfrom pathlib import Path\n"
+    child = ("import signal,time,os\nfrom pathlib import Path\n"
              "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+             + ("os.close(1)\nos.close(2)\n" if close_pipes else "") +
              f"p=Path({str(heartbeat)!r})\n"
              "while True:\n p.write_text(str(time.time_ns()))\n time.sleep(.02)\n")
     parent = ("import subprocess,sys,time\n" +
