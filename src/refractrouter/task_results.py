@@ -11,7 +11,8 @@ CALL_FIELDS = ("call_id", "model_id", "provider", "actual_model", "purpose", "st
                "reference_cost_cny", "cash_cost_cny", "cash_cost_status", "cost_basis",
                "provider_cost_confirmed", "input_tokens", "output_tokens", "cached_input_tokens",
                "cache_usage_source", "cache_usage_available", "reasoning_tokens", "latency_ms",
-               "ttft_ms", "request_id", "dispatch_at", "finish_reason", "usage_type")
+               "ttft_ms", "request_id", "dispatch_at", "finish_reason", "usage_type", "price_snapshot",
+               "pricing_tier", "pricing_source", "pricing_checked_at")
 
 
 def event(identifier, kind, *, candidate=None, source="router", actor="router", status,
@@ -109,6 +110,9 @@ class TaskResults:
             "coverage": "managed-agent-only", "outsideManagedCalls": "unknown",
             "status": record["status"], "strategy": record["strategy"], "configDigest": record["configDigest"],
             "taskProjection": projection_summary(record.get("state", {}).get("currentTask")),
+            "costContext": deepcopy(record.get("state", {}).get("taskCostContext")),
+            "classificationTaskDigest": record.get("state", {}).get("taskClassificationProjectionDigest"),
+            "taskShadow": deepcopy(record.get("state", {}).get("taskShadow")),
             "evidenceDigest": record.get("state", {}).get("last_evidence"),
             "models": [{"id": m["id"], "provider": m.get("provider"), "model": m.get("model"),
                         "revision": m.get("revision"), "revisionStatus": "configured" if m.get("revision") else "not-pinned"}

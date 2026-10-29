@@ -8,6 +8,7 @@ import pytest
 from refractrouter.planning_runtime import PlanningRuntime
 from refractrouter.task_cost_observation import observe
 from tests.test_planning_routing import begin, step, receipt, advisor_gate_configuration
+from tests.test_planning_routing import configuration
 
 
 def view(runtime, run):
@@ -87,3 +88,70 @@ def test_duplicate_or_missing_billed_calls_cannot_understate_costs(tmp_path):
     bad["calls"] = []
     with pytest.raises(ValueError, match="总账不一致"):
         observe(bad)
+
+
+@pytest.mark.parametrize("status", ["billed-failed", "billed-cancelled"])
+def test_settled_media_failure_counts_actual_fee_and_does_not_restore_released_reserve(tmp_path, status):
+    runtime = PlanningRuntime(tmp_path)
+    cfg = configuration("static")
+    cfg.update(schemaVersion="refractagent-planning-v2", billingUnit="AFP", maxProductionCost=1000)
+    run = begin(runtime, "static", config=cfg)
+    budget = runtime.runs[run]["budget"]
+    row = budget.reserve_non_token("AFP", 198, label="fixture-media", purpose="image-generate", usage={})
+    budget.dispatch_non_token(row, operation_id="media-1")
+    budget.settle_non_token(row, 99, {}, status=status)
+    runtime.handle({"op": "end", "runId": run})
+    result = observe(view(runtime, run))
+    assert result["costs"][0]["knownCalculated"] == "99"
+    assert result["costs"][0]["unknownProtected"] == "0"
+
+
+def test_reserved_not_dispatched_operation_keeps_reserve_without_fabricating_call_id(tmp_path):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static")
+    runtime.runs[run]["budget"].reserve_non_token("CNY", .5, label="pending", purpose="media", usage={})
+    runtime.persist(runtime.runs[run])
+    result = observe(view(runtime, run))
+    assert result["pendingReservationCount"] == 1
+    assert result["unknownCallIds"] == []
+    assert result["costs"][0]["unknownProtected"] == "0.5"
+    assert result["pricedCallAmountsComplete"] is False
+
+
+def test_local_judge_zero_fee_record_keeps_paid_execution_observation(tmp_path):
+    source = static_result(tmp_path)
+    source["calls"].append({"call_id": "local-job", "model_id": "local-model", "provider": "local",
+        "purpose": "advisor", "status": "local-inference", "charged": 0, "usage_type": "local-decision"})
+    result = observe(source)
+    assert result["localInferenceCallIds"] == ["local-job"]
+    assert len(result["callIds"]) == 2
+    assert Decimal(result["costs"][0]["knownCalculated"]) > 0
+
+
+@pytest.mark.parametrize("reason", ["length", "review-unresolved"])
+def test_settled_terminal_failure_has_complete_fees_without_proving_quality(tmp_path, reason):
+    runtime = PlanningRuntime(tmp_path)
+    run = begin(runtime, "static" if reason == "length" else "advisor",
+                config=configuration("static") if reason == "length" else advisor_gate_configuration())
+    if reason == "length":
+        with pytest.raises(ValueError):
+            receipt(runtime, run, step(runtime, run), finishReason="length")
+    else:
+        judge = receipt(runtime, run, step(runtime, run))
+        with pytest.raises(ValueError):
+            receipt(runtime, run, judge, json.dumps({"verdict": "UNRESOLVED"}))
+    result = observe(view(runtime, run))
+    assert result["pricedCallAmountsComplete"] is True
+    assert result["wholeTaskQuality"] == "unknown"
+
+
+def test_missing_subscription_reference_and_huge_invalid_amount_are_rejected(tmp_path):
+    source = static_result(tmp_path)
+    source["calls"][0]["billing_mode"] = "subscription"
+    source["costsByUnit"] = {}
+    with pytest.raises(ValueError, match="参考总账"):
+        observe(source)
+    source = static_result(tmp_path / "huge")
+    source["calls"][0]["charged"] = 2 ** 10000
+    with pytest.raises(ValueError, match="有限非负"):
+        observe(source)

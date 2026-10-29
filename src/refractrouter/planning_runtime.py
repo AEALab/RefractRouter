@@ -713,6 +713,7 @@ class PlanningRuntime(StageHybridRuntime):
             judge_bound = self._cost_bound(judge, self._task_judge_messages(run), [],
                                           self._task_route(run)["maxJudgeOutputTokens"])
         admitted, rejected = [], []
+        run["flow"]["taskAdmittedBounds"] = {}
         for item in candidates:
             model = c["models"][item["id"]]
             try:
@@ -722,8 +723,8 @@ class PlanningRuntime(StageHybridRuntime):
                 if input_bound + output_cap > model.context_window:
                     raise ValueError("上下文容量不足")
                 required = {}
-                run["budget"].add_required(required, model,
-                    self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens")))
+                execution_bound = self._cost_bound(model, flow["messages"], flow["tools"], flow.get("maxTokens"))
+                run["budget"].add_required(required, model, execution_bound)
                 if judge_unit is not None:
                     run["budget"].add_required(required, judge_model, judge_bound)
                 if any(amount > run["budget"].remaining(unit) for unit, amount in required.items()):
@@ -732,6 +733,9 @@ class PlanningRuntime(StageHybridRuntime):
                 rejected.append({"id": item["id"], "reason": str(exc)})
             else:
                 admitted.append(item)
+                run["flow"]["taskAdmittedBounds"][item["id"]] = {"unit": model.billing_unit,
+                    "amount": execution_bound, "cashAmount": 0 if model.billing_mode == "subscription" else execution_bound,
+                    **({"referenceAmount": execution_bound} if c.get("reference_limit") is not None else {})}
         return admitted, rejected
 
     def _task_rank(self, run, assessments):
@@ -747,6 +751,36 @@ class PlanningRuntime(StageHybridRuntime):
         selected = select_task_candidate(assessments, self._task_route(run)["fallback"], bounds)
         selected["firstCallUpperBounds"] = bounds
         return selected
+
+    def _record_task_shadow(self, run):
+        from .task_empirical import make_context, predict
+        c, state, flow = run["config"], run["state"], run["flow"]
+        shadow = c.get("task_shadow")
+        if run["strategy"] != "task" or shadow is None:
+            return
+        from .task_projection import summary as projection_summary
+        from .task_outcomes import digest as metadata_digest
+        projection_digest = metadata_digest(projection_summary(state.get("currentTask")))
+        if "taskShadow" in state:
+            if projection_digest != state.get("taskClassificationProjectionDigest"):
+                state["taskShadow"]["predictionStale"] = True
+                state["taskShadow"]["staleReason"] = "task-instructions-changed"
+                self.persist(run)
+            return
+        state["taskClassificationProjectionDigest"] = projection_digest
+        context = state.get("taskCostContext") or make_context(c, None)
+        state["taskCostContext"] = context
+        remaining = {unit: run["budget"].remaining(unit) for unit in c["budgets"]}
+        if c.get("reference_limit") is not None:
+            snapshot = run["budget"].reference_snapshot()
+            remaining["REFERENCE_CNY"] = max(0, snapshot["limit"] - snapshot["occupied"])
+        state["taskShadow"] = predict(shadow["profile"], context,
+            candidate_ids=[r["id"] for r in flow.get("candidates", [])], fallback=self._task_route(run)["fallback"],
+            bounds=flow.get("taskAdmittedBounds", {}), remaining=remaining,
+            min_samples=shadow["minSamples"], quality_min=shadow["qualityMin"],
+            as_of=datetime.now(timezone.utc).date().isoformat())
+        state["taskShadow"]["actualCandidateId"] = state.get("selected_model")
+        self.persist(run)
 
     def _preflight_task_path(self, run, candidates, *, include_judge):
         """保护一次 Judge 与一个互斥执行候选；候选之间不重复累加。"""
@@ -989,6 +1023,7 @@ class PlanningRuntime(StageHybridRuntime):
     def execute(self, run, role=None, purpose="execute"):
         s, c, flow = run["state"], run["config"], run["flow"]
         p, strategy = c["parameters"], run["strategy"]
+        self._record_task_shadow(run)
         hold, score, reason = s["hold"], None, "fixed"
         decision = None
         selected_model_id = None
@@ -1125,6 +1160,12 @@ class PlanningRuntime(StageHybridRuntime):
                 "score 只表示任务适合度，missingInformation 表示关键证据不足程度；不考虑价格或时延，"
                 "不把分数解释为任务成功率。不得调用工具或添加说明。"
         )
+        if c.get("task_shadow") is not None:
+            request["contract"] = "task-decision-with-family-v3"
+            request["taskFamilyCatalog"] = [{"id": f["id"], "description": f["description"]}
+                                          for f in c["task_shadow"]["families"]]
+            contract += ("同一对象另含顶层taskFamily：从taskFamilyCatalog选择最符合完整任务的id，"
+                         "类别不明或任务混合时返回null。分类与逐候选评价在这一次请求内完成。")
         return [{"role": "system", "content": contract},
                 {"role": "user", "content": json.dumps(request, ensure_ascii=False)}]
 
@@ -1272,6 +1313,11 @@ class PlanningRuntime(StageHybridRuntime):
                 candidates = [item["id"] for item in flow["candidates"]]
                 try:
                     payload = json.loads(response.content)
+                    if run["config"].get("task_shadow") is not None:
+                        from .task_empirical import make_context
+                        family = payload.get("taskFamily") if isinstance(payload, dict) else None
+                        # 不合规或未知类别只让影子预测未知，不伪造分类或追加一次模型请求。
+                        s["taskCostContext"] = make_context(run["config"], family if isinstance(family, str) else None)
                     aliases = {f"C{index}": candidate_id
                                for index, candidate_id in enumerate(candidates, 1)}
                     answers = payload.get("answers") if isinstance(payload, dict) else None
