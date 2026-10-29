@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "simulated": false,
+  "output": "{\n  \"answer\": \"以 s1/s2 为准：A=3小时、B=5小时、C=4小时且依赖A，D=2小时，E=2小时且依赖B和C，F=3小时且依赖B，G=1小时且依赖D、E、F。s2 中旧版 A=4、C依赖B、F=1 的信息作废，不与新版叠加。\\n\\n两槽限制下的可行排程（忽略发布窗口）：\\n0-2：D；0-3：A\\n3-7：C；3-8：B\\n8-10：E；8-11：F\\n11-12：G\\n任何时刻同时执行任务不超过2个；2-3、7-8、10-11 各只有一个任务在运行，满足连续执行且不拆分。\\n\\n由此：D最早2完成；B最早8完成，所以E最早8开始、10完成，F最早8开始、11完成；D/E/F全部完成的最早时刻为max(2,10,11)=11，因此pre_release_ready=11。G依赖三者全部完成，最早11开始、12结束，所以忽略窗口的technical_finish=12。\\n\\n关键路径是A→B→F→G，总时长3+5+3+1=12；A→B→E→G为11，A→C→E→G为10，D不在最长路径上。\\n\\n考虑发布窗口[14,16]：G必须完整落在此区间。忽略窗口时G最早11-12，早于窗口，因此需推迟；D/E/F在11已完成，不阻碍G在14开始。最早可在14开始G，14-15结束，仍完整位于窗口内，所以window_finish=15。\\n\\nt=0时全部工作尚未开始，D尚无合规签字，也没有测试通过记录；以上时间只是按计划最早可完成时刻，不是实际已发生。因此目前不能宣称批准已完成。本回答仅基于材料计算，未执行外部工具。\",\n  \"findings\": [\n    {\"id\":\"pre_release_ready\",\"value\":11,\"sources\":[\"s1\",\"s2\",\"s5\"]},\n    {\"id\":\"technical_finish\",\"value\":12,\"sources\":[\"s1\",\"s2\",\"s3\"]},\n    {\"id\":\"window_finish\",\"value\":15,\"sources\":[\"s1\",\"s3\"]},\n    {\"id\":\"critical_path\",\"value\":[\"A\",\"B\",\"F\",\"G\"],\"sources\":[\"s1\",\"s2\"]},\n    {\"id\":\"earliest_e_start\",\"value\":8,\"sources\":[\"s1\",\"s2\"]},\n    {\"id\":\"current_approval_confirmed\",\"value\":false,\"sources\":[\"s4\"]}\n  ]\n}",
+  "requests": 1,
+  "expertCalls": 0,
+  "taskElapsedMs": 174769.186042,
+  "unexpectedNetwork": 0,
+  "transport": "DSH LlmRuntime + 官方 PiAiAdapter + /api/plan/v3/responses",
+  "recordPath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-explicit-verification-r2/evidence/planning/183b1d34a051b65ee0159e6b44f01acc8d595819844212e3a808a9fa3e125492.json"
+}

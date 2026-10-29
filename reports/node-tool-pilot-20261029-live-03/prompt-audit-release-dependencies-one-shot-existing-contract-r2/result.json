@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "simulated": false,
+  "output": "{\n  \"answer\": \"依据有效工作清单 s1 计算，不使用 s2 中的旧时长/旧依赖。两个执行槽的可执行排程如下：槽1：A 0–3，B 3–8，F 8–11，G 14–15；槽2：D 0–2，空闲 2–3，C 3–7，E 8–10，空闲 10–14。该排程任何时刻最多两项并发，所有任务连续不拆分，依赖顺序均满足。D 于2完成，E 于10完成，F 于11完成，因此 D/E/F 全部完成的最早时刻 pre_release_ready=11。E 最早开始时刻 earliest_e_start=8：B 最早在8完成（A 3小时 + B 5小时），C 在7完成，E 同时依赖 B、C，所以8是可达到的下界。关键路径按依赖链长度比较：A→B→F→G 为3+5+3+1=12；A→B→E→G 为11；A→C→E→G 为10；D→G 为3；因此关键路径节点为 A、B、F、G。忽略发布窗口时，G 可在11开始、12结束，技术最早完成时间 technical_finish=12。由于 G 必须完整位于 [14,16] 窗口内，G 不能从11开始；最早只能在14开始、15结束，因此考虑窗口的最早 G 结束时间 window_finish=15。窗口等待是唯一因窗口造成的等待，未另计切换开销。目前不能宣称批准已完成：t=0 时全部工作尚未开始，D 的2小时只是预计时长、尚无合规签字，E/F 也没有测试通过记录；上述11/12/15均为计划最早时刻，不是已经发生的批准，因此 current_approval_confirmed=false。未调用外部工具；结果基于给定材料中的时长、依赖和窗口约束。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}",
+  "requests": 1,
+  "expertCalls": 0,
+  "taskElapsedMs": 200234.74312499998,
+  "unexpectedNetwork": 0,
+  "transport": "DSH LlmRuntime + 官方 PiAiAdapter + /api/plan/v3/responses",
+  "recordPath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-03/prompt-audit-release-dependencies-one-shot-existing-contract-r2/evidence/planning/07fcdc9ee4ac8d5f9b12cf473fe4113ae025cc2296f06a5e35cc635dabd34bfd.json"
+}
