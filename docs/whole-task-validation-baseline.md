@@ -25,15 +25,24 @@ uv run python experiments/run_whole_task_baseline.py --output-dir /tmp/新的基
   不保存凭证值；未提交文件也有身份，符号链接只绑定链接文本、不读取外部目标。
 - `command.json`、`pytest.log`：实际执行命令、完整合并日志。
 - `junit.xml`：完整测试结果，失败、错误和跳过均保留。
-- `network.json`：防护范围、回环访问及被阻断外部尝试的计数。
+- `network.json`：防护范围、回环访问及被阻断外部尝试，以及收集/选中/取消选择/实际调用计数。
 - `source-after.json`：运行后重算原源码清单；任何原文件字节未恢复也会阻断基线。
 - `result.json`：真实退出码、耗时和基线判定；缺失证据、空测试、失败或跳过均不通过。
 
 网络防护阻断本 pytest Python 进程中的外部 DNS、TCP/UDP 地址访问，允许回环模拟服务器。
+回环正反向名称查询使用确定性本地映射，`getaddrinfo/getnameinfo` 只传数值地址，
+不会将未在本地登记的127.0.0.2等地址交给系统PTR解析器。
+直接socket连接/发包接口同样把localhost改为对应地址族的数值地址，再交给C层；
+bind只接受数值地址或本地确定性映射，避免绕过Python名称解析包装。
 负控测试会故意触发阻断，所以 `blocked_external` 不必为零。
 它不是 OS 级网络沙箱，也不保证独立 Python/Node 子进程无法联网。
 宿主契约仍使用模拟提供方；runner 不向子进程传递继承的认证变量，
 不以此代替宿主文件隔离或宣称核对了真实供应商扣费。
+
+runner 会清理继承的 `PYTEST_*`、`PYTHONPATH/PYTHONHOME`，显式选择完整 `tests` 目录，
+并禁用隐式 `addopts`。收集数、选中数与实际调用数必须一致且大于0，取消选择必须为0；
+JUnit 子测试可增加记录数，但不会被当作新增独立测试。没有计数证据也不能通过。
+这是PR #212合并后独立审查发现的补充修正，原合并、CI和审查记录保留，#202重新打开跟踪。
 
 ## 基线与历史问题分开
 

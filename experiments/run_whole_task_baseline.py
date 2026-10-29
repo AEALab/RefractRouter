@@ -24,7 +24,8 @@ def write_json(path, value):
 def test_environment(environment):
     """剔除继承的认证变量；不声称这是子进程/宿主文件的 OS 级隔离。"""
     result = {key: value for key, value in environment.items()
-              if re.search(r"(?:TOKEN|PASSWORD|SECRET|CREDENTIAL|API_?KEY|ACCESS_?KEY)", key, re.I) is None}
+              if not key.startswith("PYTEST_") and key not in {"PYTHONPATH", "PYTHONHOME"}
+              and re.search(r"(?:TOKEN|PASSWORD|SECRET|CREDENTIAL|API_?KEY|ACCESS_?KEY)", key, re.I) is None}
     result.update(UV_OFFLINE="1", LANGSMITH_TRACING="false", REFRACT_TEST_OFFLINE="1")
     return result
 
@@ -71,13 +72,22 @@ def summarize_junit(path):
             for key in ("tests", "failures", "errors", "skipped")}
 
 
+def collection_complete(network, junit):
+    counts = network.get("collection", {}) if isinstance(network, dict) else {}
+    if (set(counts) != {"collected", "selected", "deselected", "executed"}
+            or any(type(value) is not int or value < 0 for value in counts.values())):
+        return False
+    return (counts["collected"] == counts["selected"] == counts["executed"] > 0
+            and counts["deselected"] == 0 and junit is not None and junit["tests"] >= counts["executed"])
+
+
 def run(output):
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     env = test_environment(os.environ)
     environment = describe_environment(env)
     write_json(output / "environment.json", environment)
-    command = ["uv", "run", "pytest", "--junitxml=" + str(output / "junit.xml"),
+    command = ["uv", "run", "pytest", "tests", "-o", "addopts=", "--junitxml=" + str(output / "junit.xml"),
                "--offline-network-report=" + str(output / "network.json")]
     write_json(output / "command.json", command)
     started = time.monotonic()
@@ -91,7 +101,8 @@ def run(output):
     write_json(output / "source-after.json", after)
     passed = (completed.returncode == 0 and junit is not None and junit["tests"] > 0
               and junit["failures"] == junit["errors"] == junit["skipped"] == 0
-              and network is not None and network.get("external_network_blocked") is True and not changes)
+              and network is not None and network.get("external_network_blocked") is True
+              and collection_complete(network, junit) and not changes)
     result = {"schemaVersion": "whole-task-baseline-v1", "testExitCode": completed.returncode,
               "passed": passed, "seconds": time.monotonic() - started, "junit": junit,
               "network": network, "paidExecutionRequested": False,
