@@ -29,6 +29,8 @@ from .local_judge_service import LocalJudgeProcess
 from .stage_runtime import StageHybridRuntime
 from .deepseek_official_pricing import pricing as deepseek_cny_pricing
 from .openai_compatible import ChatResponse
+from .task_projection import project as project_current_task
+from .task_results import TaskResults, VERSION as RESULT_VERSION, scope_for as result_scope
 from .jev_bridge import (build_request as build_jev_request, interpret as interpret_jev,
                          validate_usage as validate_jev_usage, cost_cny as jev_cost_cny,
                          settled_cost_cny)
@@ -65,6 +67,7 @@ class PlanningRuntime(StageHybridRuntime):
         self.lock = RLock()
         self.local_judges = {}
         self.local_service = LocalJudgeProcess()
+        self._task_results = None
         from .decomposition_jev import DecompositionJevRuntime
         self.decomposition_jev = DecompositionJevRuntime(Path(runs_dir) / "decomposition")
 
@@ -85,7 +88,9 @@ class PlanningRuntime(StageHybridRuntime):
             timing["elapsedMs"] = max(0, (time.monotonic() - run["started_monotonic"]) * 1000)
             if run["status"] != "running":
                 timing["finishedAt"] = datetime.now(timezone.utc).isoformat()
-        public = {"protocol": PROTOCOL, "runId": run["id"], "identity": run["identity"],
+        public = {"protocol": PROTOCOL, "resultSchemaVersion": RESULT_VERSION,
+            "runId": run["id"], "identity": run["identity"],
+            "parentIdentity": run.get("parent_identity"),
             **({"timing": deepcopy(timing)} if timing is not None else {}),
             "strategy": run["strategy"], "configDigest": run["config_digest"], "status": run["status"],
             "configuration": run["config"]["raw"], "state": run["state"], "decisions": run["decisions"], "calls": calls,
@@ -100,11 +105,62 @@ class PlanningRuntime(StageHybridRuntime):
                 f.flush()
                 os.fsync(f.fileno())
             os.replace(temporary, path)
+            self.task_results.sync(public)
         except Exception:
             run["status"] = "evidence-failed"
             run["budget"].stop()
             raise
         return public
+
+    @property
+    def task_results(self):
+        if self._task_results is None:
+            self._task_results = TaskResults(self.root / "outcomes")
+        return self._task_results
+
+    def outcome(self, request):
+        """本地宿主传真实身份；网络接入层先认证访问域，再调用此入口。"""
+        key = request.get("runId")
+        if not isinstance(key, str) or len(key) != 64 or any(c not in "0123456789abcdef" for c in key):
+            raise ValueError("结果任务身份无效")
+        if key in self.runs:
+            if self.runs[key]["identity"] != request.get("identity"):
+                raise ValueError("结果任务不存在或不属于当前访问域")
+            record = self.persist(self.runs[key])
+        else:
+            path = self.root / (key + ".json")
+            if not path.is_file() or path.is_symlink():
+                raise ValueError("结果任务不存在或不属于当前访问域")
+            record = json.loads(path.read_text())
+        persisted_status = record["status"]
+        if key not in self.runs and persisted_status == "running":
+            # 未加载并不证明原进程停止；显示待核对，删除仍以原证状态为准。
+            record["status"] = "interrupted-needs-reconciliation"
+        if record["identity"] != request.get("identity"):
+            raise ValueError("结果任务不存在或不属于当前访问域")
+        if record.get("resultSchemaVersion") == RESULT_VERSION:
+            self.task_results.sync(record)
+        operation = request["op"]
+        scope = result_scope(record)
+        if operation == "outcome-feedback":
+            from .task_results import event
+            feedback = request.get("feedback")
+            fields = {"eventId", "actor", "candidateId", "candidateSha256", "status", "criteriaVersion",
+                      "reasonCode", "supersedes"}
+            if not isinstance(feedback, dict) or set(feedback) != fields:
+                raise ValueError("用户反馈字段不完整或包含未知字段")
+            # 外部反馈固定为 user；不能提交隐藏验收/模型评审身份或金额。
+            self.task_results.journal.append(scope, key, event(feedback["eventId"], "feedback",
+                source="user", actor=feedback["actor"], candidate=(feedback["candidateId"], feedback["candidateSha256"]),
+                status=feedback["status"], criteria=feedback["criteriaVersion"], reason=feedback["reasonCode"],
+                supersedes=feedback["supersedes"]))
+        elif operation == "outcome-delete":
+            if persisted_status == "running" or record.get("phase") != "idle":
+                raise ValueError("仍在执行或结算中的任务不能删除结果元数据")
+            self.task_results.journal.delete(scope, key, request.get("expectedHead"))
+        elif operation not in {"outcome", "outcome-export"}:
+            raise ValueError("未知结果操作")
+        return self.task_results.view(record)
 
     def begin(self, request):
         identity = request["identity"]
@@ -113,6 +169,11 @@ class PlanningRuntime(StageHybridRuntime):
         if any(not isinstance(v, (str, int)) or isinstance(v, bool) or not str(v) for v in identity.values()):
             raise ValueError("无效执行身份")
         key = digest(identity)
+        parent = request.get("parentIdentity")
+        if parent is not None and (not isinstance(parent, dict) or set(parent) != {"session", "agent", "turn"}
+                or any(not isinstance(v, (str, int)) or isinstance(v, bool) or not str(v) for v in parent.values())
+                or parent == identity):
+            raise ValueError("无效宿主父任务身份")
         if key in self.runs:
             return self.describe(self.runs[key])
         # 不从未知派发状态自动恢复或重发；相同身份必须人工核对。
@@ -135,7 +196,8 @@ class PlanningRuntime(StageHybridRuntime):
         if child:
             strategy = "static"
             config["parameters"]["staticMode"] = "fixed"
-        run = {"id": key, "identity": deepcopy(identity), "config": config, "strategy": strategy,
+        run = {"id": key, "identity": deepcopy(identity), "parent_identity": deepcopy(parent),
+            "config": config, "strategy": strategy,
             "started_monotonic": time.monotonic(),
             "timing": {"startedAt": datetime.now(timezone.utc).isoformat(), "finishedAt": None, "elapsedMs": 0},
             "config_digest": digest(request["config"]), "status": "running", "flow": None,
@@ -361,9 +423,14 @@ class PlanningRuntime(StageHybridRuntime):
         if strategy == "advisor" and c["advisor"].get("flow") == "gate-v2":
             advisor_cap = c["advisor"]["maxExecutionOutputTokens"]
             output_cap = min(advisor_cap, output_cap) if output_cap is not None else advisor_cap
+        request_id = request.get("requestId") or uuid.uuid4().hex
+        if not isinstance(request_id, str) or len(request_id) > 128:
+            raise ValueError("无效宿主请求身份")
         run["flow"] = {"messages": messages, "tools": tools, "events": events, "pending": None,
-                       "responses": {}, "feedback": None, "requestId": request.get("requestId"), "evidence": evidence,
+                       "responses": {}, "feedback": None, "requestId": request_id, "evidence": evidence,
                        "fresh": fresh, "maxTokens": output_cap, "purpose": request.get("purpose")}
+        if request.get("purpose") != "compaction":
+            s["currentTask"] = project_current_task(messages, s.get("currentTask"))
         if 'toolRequirements' in request and request.get('purpose') != 'compaction':
             from .model_tool_validation import validate_requirements, verify
             incoming = validate_requirements(request['toolRequirements'])
@@ -390,7 +457,7 @@ class PlanningRuntime(StageHybridRuntime):
         if strategy == "stage" and c["stage"]["mode"] == "hybrid":
             return self.start_hybrid_stage(run)
         if task_v3 and not s["classified"]:
-            state = task_state(messages, tools, task_route["maxInputChars"])
+            state = task_state(messages, tools, task_route["maxInputChars"], projection=s.get("currentTask"))
             candidates, rejected = filter_candidates(c, state, task_route)
             run["flow"]["taskState"] = state
             run["flow"]["candidates"] = candidates
@@ -894,6 +961,7 @@ class PlanningRuntime(StageHybridRuntime):
         reservation.model = model
         token = uuid.uuid4().hex
         reservation.row.update(call_id=token, purpose=purpose, disposition="pending",
+                               host_request_id=run["flow"]["requestId"],
                                provider=model.provider, actual_model=model.api_model,
                                reasoning_effort=model.request_options.get("reasoning_effort"))
         if model.billing_mode == 'subscription':
@@ -1134,7 +1202,8 @@ class PlanningRuntime(StageHybridRuntime):
                 model_id=judge["modelId"], output_cap=config["maxJudgeOutputTokens"])
             action["timeoutMs"] = min(config["judgeTimeoutMs"], action["remainingMs"]) if action["remainingMs"] is not None else config["judgeTimeoutMs"]
             return action
-        content = {"task_and_trajectory": flow["messages"]}
+        from .task_projection import judge_view
+        content = {"task_and_trajectory": judge_view(flow["messages"], run["state"].get("currentTask"))}
         if purpose != "task":
             content["candidate_reply"] = flow["responses"][flow["executor"]]
         if purpose == "task":
@@ -1188,6 +1257,7 @@ class PlanningRuntime(StageHybridRuntime):
             self.discard(run, token)
             run['decisions'].append({'step': s['step'], 'role': 'tool-validation',
                 'model': reservation.model.model_id, 'callId': token,
+                'candidateCallId': token,
                 'reason': tool_check['reason'], 'candidateDisposition': 'discarded',
                 'evidenceIds': [e['callId'] for e in tool_check['records']],
                 'ruleVersion': tool_check['schemaVersion']})
@@ -1741,6 +1811,7 @@ class PlanningRuntime(StageHybridRuntime):
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
                 "composite-task-stage-v1",
+                "task-result-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "jev-complete":
@@ -1796,6 +1867,9 @@ class PlanningRuntime(StageHybridRuntime):
                     for call in row["calls"]:
                         for field in ("request_messages", "request_tools", "response", "response_output"):
                             call.pop(field, None)
+                    if "currentTask" in row["state"]:
+                        from .task_projection import summary as projection_summary
+                        row["state"]["currentTask"] = projection_summary(row["state"]["currentTask"])
                     if row["runId"] not in self.runs and row["status"] == "running":
                         row["status"] = "interrupted-needs-reconciliation"
                     records.append(row)
@@ -1806,6 +1880,8 @@ class PlanningRuntime(StageHybridRuntime):
             return preview(request.get("config", {}), request.get("hostIssues"))
         if operation == "begin":
             return self.begin(request)
+        if operation in {"outcome", "outcome-feedback", "outcome-export", "outcome-delete"}:
+            return self.outcome(request)
         key = request.get("runId")
         if key not in self.runs:
             raise ValueError("未知任务")

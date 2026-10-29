@@ -916,7 +916,9 @@ export function createAdapter(ctx: AgentContext, source: () => Readonly<Configur
     const subscription=request.api==='subscription-metadata'&&request.provider?JSON.parse(request.provider):null
     const migration=request.api==='currency-migration'&&request.provider?JSON.parse(request.provider):null
     const poolMigration=request.api==='currency-pool-migration'&&request.provider?JSON.parse(request.provider):null
-    const value=request.api==='automatic-trace'&&request.provider
+    const value=request.api==='task-outcome'&&request.provider
+      ?await planning.outcome(JSON.parse(request.provider))
+      :request.api==='automatic-trace'&&request.provider
       ?await planning.automaticTrace(JSON.parse(request.provider))
       :poolMigration
       ?await planning.currencyPoolMigration(poolMigration.config,poolMigration.productionCash,poolMigration.evaluationCash)

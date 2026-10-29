@@ -327,6 +327,18 @@ export class PlanningController {
     return {result:await response.json() as Json,latencyMs:performance.now()-started}
   }
   async history(session:string):Promise<Json>{return this.rpc.request({op:'history',session})}
+  async outcome(request:Json):Promise<Json>{
+    await this.ensureHandshake()
+    if(!(await this.handshake!).includes('task-result-v1'))throw new Error('当前核心不支持任务结果视图，请升级核心')
+    const agent=this.ctx.agents?.requireInitiator()
+    if(!agent?.session.header?.id||!agent.id)throw new Error('结果查询需要当前宿主会话')
+    const {op,runId,turn,feedback,expectedHead,...extra}=request
+    if(Object.keys(extra).length||!['outcome','outcome-feedback','outcome-export','outcome-delete'].includes(op))
+      throw new Error('未知任务结果操作或字段')
+    if(feedback&&('actor' in feedback||'source' in feedback))throw new Error('反馈作者与来源由宿主绑定')
+    return this.rpc.request({op,runId,identity:{session:agent.session.header.id,agent:agent.id,turn},
+      ...(feedback?{feedback:{...feedback,actor:'dsh-user'}}:{}),...(expectedHead?{expectedHead}:{})})
+  }
   async automaticTrace(runIds:string[]):Promise<Json>{
     await this.ensureHandshake()
     if(!(await this.handshake!).includes('automatic-routing-trace-v1'))

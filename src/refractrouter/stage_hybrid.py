@@ -31,7 +31,7 @@ def initial_state():
             "requestDigest": None, "localRecords": [], "frozen": False}
 
 
-def observe(state, messages, tools, events, step, config):
+def observe(state, messages, tools, events, step, config, *, projection=None):
     """预览下一边界；只在真正派发时提交返回的状态。"""
     proposed = deepcopy(state)
     request_hash = digest([messages, tools])
@@ -51,16 +51,8 @@ def observe(state, messages, tools, events, step, config):
         raise ValueError("Stage 任务工具证据超过技术上限")
     if step > 0 and any(e["status"] in ("unconfirmed", "infrastructure") for e in fresh):
         raise ValueError("Stage 工具结果未确认或基础设施故障，停止续接")
-    user_texts = []
-    for message in messages:
-        if message["role"] != "user":
-            continue
-        content = message["content"]
-        text = content if isinstance(content, str) else "\n".join(
-            b.get("text", "") for b in content if b.get("type") == "text")
-        if text:
-            user_texts.append(text)
-    user_hash = digest(user_texts)
+    from .task_projection import project, summary
+    user_hash = digest(summary(projection if projection is not None else project(messages)))
     guidance = state["userDigest"] is not None and user_hash != state["userDigest"]
     proposed.update(requestDigest=request_hash, userDigest=user_hash,
                     events=list(retained.values())[-config["window"]:])
@@ -102,7 +94,7 @@ def observe(state, messages, tools, events, step, config):
     return proposed, reason, "hold" if state["role"] == "capable" else "efficient-default"
 
 
-def decision_request(messages, events, efficient, capable, limit):
+def decision_request(messages, events, efficient, capable, limit, *, projection=None):
     """不截断文本。省略工具 schema/replay 等机器字段；历史完整性不足则显式回退。"""
     history = []
     complete = True
@@ -138,11 +130,11 @@ def decision_request(messages, events, efficient, capable, limit):
              for e in events]
     user_messages = [m for m in history if m["role"] == "user" and any(
         b["type"] == "text" for b in m["content"])]
-    state = {"task": user_messages[0]["content"] if user_messages else [],
-             "latestUserInstruction": user_messages[-1]["content"] if user_messages else [],
-             "history": history, "evidence": facts,
+    from .task_projection import judge_view
+    view = judge_view(messages, projection)
+    state = {**view, "evidence": facts,
              "efficient": efficient.capability_card, "capable": capable.capability_card}
-    complete = (complete and bool(user_messages) and bool(efficient.capability_card.strip())
+    complete = (complete and bool(view["task"]) and bool(efficient.capability_card.strip())
                 and bool(capable.capability_card.strip()))
     size = len(json.dumps(state, ensure_ascii=False).encode())
     return {"version": VERSION, "state": state, "questions": deepcopy(QUESTIONS),

@@ -382,7 +382,14 @@ class ModelGateway:
         if any(v is not None for v in explicit):
             if not all(isinstance(v, str) and 0 < len(v) <= 256 for v in explicit):
                 raise ValueError("显式身份必须同时提供 refract_session 与 refract_task")
-            return {"session": scope + ':' + explicit[0], "agent": "api", "turn": explicit[1]}
+            # 编码升级不能把已派发旧任务变成全新预算；不安全地迁移就明确拒绝。
+            legacy = {"session": scope + ':' + explicit[0], "agent": "api", "turn": explicit[1]}
+            legacy_id = digest(legacy)
+            if (legacy_id in self.runtime.runs or (self.runtime.root / (legacy_id + '.json')).exists()
+                    or legacy_id in self.state.get('outcomes', {})
+                    or any(entry.get('identity') == legacy for entry in self.state['tools'].values())):
+                raise ValueError('已有旧版任务证据；身份升级不能自动重新派发，请核对后显式使用新任务ID')
+            return {"session": 'gateway-scope-v2:' + digest([scope, explicit[0]]), "agent": "api", "turn": explicit[1]}
         messages = request['messages']
         # 标准 function 工具续接可用已交付的 call ID 对应任务；新 user 消息建立新任务。
         tail = []
@@ -401,7 +408,7 @@ class ModelGateway:
                 if history_digest(prefix) != entry['prefix']:
                     raise ValueError("工具续接历史已改变；请提供显式任务身份并核对上下文")
                 return entry['identity']
-        return {"session": scope + ':' + uuid4().hex, "agent": "api", "turn": 1}
+        return {"session": 'gateway-scope-v2:' + digest([scope, uuid4().hex]), "agent": "api", "turn": 1}
 
     def record_host_evidence(self, submitted, *, scope='default'):
         """保存已交付工具调用的宿主事实；工具仍由客户端执行。"""
@@ -434,7 +441,28 @@ class ModelGateway:
                     raise
         return {'accepted': True, 'callId': call_id}
 
-    def complete(self, request, *, scope='default', cancelled=lambda: False, on_text=None):
+    def outcome(self, request, *, scope='default'):
+        if not isinstance(request, dict) or set(request) - {'operation', 'runId', 'feedback', 'expectedHead'}:
+            raise ValueError('结果查询包含未知字段')
+        operation = request.get('operation', 'outcome')
+        if operation not in {'outcome', 'outcome-feedback', 'outcome-export', 'outcome-delete'}:
+            raise ValueError('未知结果查询操作')
+        with self.lock:
+            owner = self.state.get('outcomes', {}).get(request.get('runId'))
+            if not owner or owner['scope'] != scope:
+                raise ValueError('结果任务不存在或不属于当前访问域')
+            value = {'op': operation, 'runId': request['runId'], 'identity': owner['identity']}
+            if 'feedback' in request:
+                feedback = deepcopy(request['feedback'])
+                if not isinstance(feedback, dict) or 'actor' in feedback or 'source' in feedback:
+                    raise ValueError('反馈来源和作者由认证接入层绑定')
+                feedback['actor'] = 'gateway-user'
+                value['feedback'] = feedback
+            if 'expectedHead' in request:
+                value['expectedHead'] = request['expectedHead']
+            return self.runtime.handle(value)
+
+    def complete(self, request, *, scope='default', cancelled=lambda: False, on_text=None, on_outcome=None):
         started = time.monotonic()
         allowed = {'model', 'messages', 'tools', 'stream', 'stream_options', 'max_tokens', 'max_completion_tokens',
                    'metadata', 'n', 'reasoning_effort', *EXECUTION_OPTIONS}
@@ -473,8 +501,16 @@ class ModelGateway:
                 sources = [e.get("source") for e in entries if e and e.get("source")]
                 if sources and len(sources) == len(calls) and all(s == sources[0] for s in sources):
                     message["source"] = deepcopy(sources[0])
+            owner = {'scope': scope, 'identity': identity}
+            existing_owner = self.state.get('outcomes', {}).get(digest(identity))
+            if existing_owner is not None and existing_owner != owner:
+                raise ValueError('结果任务所有权冲突；拒绝覆盖访问域')
             begun = self.runtime.handle({'op': 'begin', 'identity': identity, 'config': self.planning, 'strategy': strategy})
             run_id = begun['runId']
+            self.state.setdefault('outcomes', {}).setdefault(run_id, owner)
+            self.save()  # 先固定所有权再派发；失败不能留下可跨域读取的无主结果。
+            if on_outcome is not None:
+                on_outcome(run_id)
             if begun['strategy'] != strategy:
                 raise ValueError('当前任务的路由策略已冻结；新任务才能切换策略')
             all_facts = self.state.setdefault('toolEvidence', {})
@@ -619,6 +655,8 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Content-Length', str(len(data)))
             self.send_header('X-RefractRouter-Protocol', GATEWAY_PROTOCOL_VERSION)
+            if getattr(self, 'outcome_id', None):
+                self.send_header('X-RefractRouter-Outcome', self.outcome_id)
             self.end_headers()
             self.wfile.write(data)
 
@@ -638,10 +676,11 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                 self.send_json(404, {'error': {'message': '未知接口'}})
 
         def do_POST(self):
+            self.outcome_id = None
             if not self.authorized():
                 self.send_json(401, {'error': {'message': '认证失败', 'type': 'authentication_error'}})
                 return
-            if self.path not in ('/v1/chat/completions', '/v1/responses', '/v1/tool-evidence'):
+            if self.path not in ('/v1/chat/completions', '/v1/responses', '/v1/tool-evidence', '/v1/refract/outcomes'):
                 self.send_json(404, {'error': {'message': '未知接口'}})
                 return
             media_type = self.headers.get('Content-Type', '').split(';', 1)[0].strip().lower()
@@ -659,6 +698,8 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                         self.send_header('Content-Type', 'text/event-stream')
                         self.send_header('Cache-Control', 'no-cache')
                         self.send_header('X-RefractRouter-Protocol', GATEWAY_PROTOCOL_VERSION)
+                        if self.outcome_id:
+                            self.send_header('X-RefractRouter-Outcome', self.outcome_id)
                         self.end_headers()
                         sent = True
                     self.wfile.write(data)
@@ -679,13 +720,17 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
                 if self.path == '/v1/tool-evidence':
                     self.send_json(200, gateway.record_host_evidence(request))
                     return
+                if self.path == '/v1/refract/outcomes':
+                    self.send_json(200, gateway.outcome(request))
+                    return
                 responses = self.path == '/v1/responses'
                 aliases = gateway_responses.lower_tools(request)[1] if responses else {}
                 if responses: request = gateway_responses.to_chat(request)
                 if request.get('stream'):
                     wire = WireStream(send, responses=responses, aliases=aliases,
                         include_usage=(request.get('stream_options') or {}).get('include_usage', False))
-                result = gateway.complete(request, cancelled=disconnected, on_text=wire.text if wire else None)
+                result = gateway.complete(request, cancelled=disconnected, on_text=wire.text if wire else None,
+                    on_outcome=lambda value: setattr(self, 'outcome_id', value))
                 if wire:
                     wire.finish(result)
                 else:

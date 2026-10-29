@@ -114,8 +114,32 @@ def main(argv=None):
     server.add_argument('--max-output-tokens', type=int, default=128000)
     planning = commands.add_parser("planning-worker", help="规划路由宿主进程协议")
     planning.add_argument("--runs-dir", type=Path, required=True)
+    outcome = commands.add_parser('outcome', help='查询、追加用户反馈、导出或删除结果元数据；零模型调用')
+    outcome.add_argument('--runs-dir', type=Path, required=True)
+    outcome.add_argument('--request-file', type=Path, required=True,
+                         help='包含 op、runId、完整 identity 及该操作字段的 JSON 文件')
+    outcome.add_argument('--output', type=Path, help='以私有权限新建导出文件，不覆盖已有文件')
     args = parser.parse_args(argv)
     try:
+        if args.command == 'outcome':
+            from .planning_runtime import PlanningRuntime
+            request = json.loads(args.request_file.read_text())
+            if not isinstance(request, dict) or request.get('op') not in {
+                    'outcome', 'outcome-feedback', 'outcome-export', 'outcome-delete'}:
+                raise ValueError('仅接受结果查询、用户反馈、导出和结果元数据删除')
+            runtime = PlanningRuntime(args.runs_dir)
+            try:
+                result = runtime.handle(request)
+            finally:
+                runtime.local_service.close()
+            rendered = json.dumps(result, ensure_ascii=False, indent=2) + '\n'
+            if args.output:
+                fd = os.open(args.output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                with os.fdopen(fd, 'w') as stream:
+                    stream.write(rendered)
+            else:
+                print(rendered, end='')
+            return 0
         if args.command == "planning-worker":
             from .planning_worker import serve
             serve(args.runs_dir)

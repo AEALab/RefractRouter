@@ -70,6 +70,131 @@ def follow(req, result):
         {'role': 'tool', 'tool_call_id': result['choices'][0]['message']['tool_calls'][0]['id'], 'content': '文件内容'}]}
 
 
+def test_outcome_scope_feedback_and_restart_without_redispatch(tmp_path):
+    caller = Caller(reply('私有候选正文'))
+    gw = gateway(tmp_path, caller)
+    ids = []
+    gw.complete(request(), scope='alice', on_outcome=ids.append)
+    run = ids[0]
+    view = gw.outcome({'runId': run}, scope='alice')
+    assert '私有候选正文' not in json.dumps(view, ensure_ascii=False)
+    with pytest.raises(ValueError, match='访问域'):
+        gw.outcome({'runId': run}, scope='bob')
+    candidate = view['candidates'][0]
+    feedback = {'eventId': 'user-1', 'candidateId': candidate['candidateId'],
+        'candidateSha256': candidate['candidateSha256'], 'status': 'accepted',
+        'criteriaVersion': 'manual-v1', 'reasonCode': 'accepted', 'supersedes': None}
+    updated = gw.outcome({'operation': 'outcome-feedback', 'runId': run, 'feedback': feedback}, scope='alice')
+    assert updated['candidates'][0]['acceptanceBySource']['user'] == 'accepted'
+    assert updated['candidates'][0]['acceptanceBySource']['hidden-evaluation'] == 'unknown'
+    with pytest.raises(ValueError, match='作者'):
+        gw.outcome({'operation': 'outcome-feedback', 'runId': run,
+                    'feedback': {**feedback, 'actor': 'another-user'}}, scope='alice')
+    gw.close()
+    restarted = gateway(tmp_path, Caller())
+    assert restarted.outcome({'runId': run}, scope='alice') == updated
+    assert len(caller.actions) == 1
+    restarted.close()
+
+
+def test_delimited_scope_session_pairs_are_distinct_and_cannot_steal_results(tmp_path):
+    gw = gateway(tmp_path, Caller(reply(), reply()))
+    first = {**request(), 'metadata': {'refract_session': 'branch:target', 'refract_task': '1'}}
+    second = {**request(), 'metadata': {'refract_session': 'target', 'refract_task': '1'}}
+    left, right = [], []
+    gw.complete(first, scope='org', on_outcome=left.append)
+    gw.complete(second, scope='org:branch', on_outcome=right.append)
+    assert left[0] != right[0]
+    assert gw.outcome({'runId': left[0]}, scope='org')['runId'] == left[0]
+    assert gw.outcome({'runId': right[0]}, scope='org:branch')['runId'] == right[0]
+    with pytest.raises(ValueError, match='访问域'):
+        gw.outcome({'runId': left[0]}, scope='org:branch')
+    gw.close()
+
+
+def test_existing_outcome_owner_is_immutable_even_for_legacy_identity_collision(tmp_path, monkeypatch):
+    caller = Caller(reply())
+    gw = gateway(tmp_path, caller)
+    ids = []
+    gw.complete(request(), scope='owner', on_outcome=ids.append)
+    original = deepcopy(gw.state['outcomes'][ids[0]])
+    monkeypatch.setattr(gw, '_identity', lambda *_: original['identity'])
+    with pytest.raises(ValueError, match='所有权冲突'):
+        gw.complete(request(), scope='other')
+    assert gw.state['outcomes'][ids[0]] == original
+    assert gw.outcome({'runId': ids[0]}, scope='owner')['runId'] == ids[0]
+    with pytest.raises(ValueError, match='访问域'):
+        gw.outcome({'runId': ids[0]}, scope='other')
+    assert len(caller.actions) == 1
+    gw.close()
+
+
+@pytest.mark.parametrize('remaining_evidence', ['file', 'outcome', 'tool'])
+def test_identity_upgrade_never_redispatches_a_known_legacy_explicit_task(tmp_path, monkeypatch, remaining_evidence):
+    caller = Caller(reply(calls=[call()]))
+    old = gateway(tmp_path, caller)
+    legacy = {'session': 'default:upgrade-session', 'agent': 'api', 'turn': 'same-task'}
+    # 固定旧版身份合同建立真实模拟调用；不依赖 Git 或已安装旧包。
+    monkeypatch.setattr(old, '_identity', lambda *_: legacy)
+    req = {**request(), 'metadata': {'refract_session': 'upgrade-session', 'refract_task': 'same-task'}}
+    result = old.complete(req)
+    legacy_id = next(iter(old.runtime.runs))
+    path = old.runtime.root / (legacy_id + '.json')
+    original = path.read_bytes()
+    if remaining_evidence != 'file':
+        path.unlink()  # 模拟部分证据缺失；任何仍存在的旧映射都不能被当成新预算。
+    if remaining_evidence != 'outcome':
+        old.state.pop('outcomes', None)
+    if remaining_evidence != 'tool':
+        old.state['tools'] = {}
+    old.save()
+    before = old.path.read_bytes()
+    old.close()
+    resumed_caller = Caller(reply())
+    current = gateway(tmp_path, resumed_caller)
+    with pytest.raises(ValueError, match='旧版任务证据'):
+        current.complete(follow(req, result))
+    assert resumed_caller.actions == []
+    assert not current.runtime.runs
+    assert current.path.read_bytes() == before
+    if remaining_evidence == 'file':
+        assert path.read_bytes() == original
+    else:
+        assert not path.exists()
+    current.close()
+
+
+@pytest.mark.parametrize('responses,stream', [(False, False), (False, True), (True, False), (True, True)])
+def test_http_outcome_handle_is_outside_model_wire_and_authenticated(tmp_path, responses, stream):
+    gw = gateway(tmp_path, Caller(reply()))
+    server = create_server(gw, port=0, token='test-token')
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    base = 'http://127.0.0.1:' + str(server.server_port)
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer test-token'}
+    body = {'model': 'refract/static', 'stream': stream, 'input': '回答'} if responses else {**request(), 'stream': stream}
+    try:
+        with urlopen(Request(base + ('/v1/responses' if responses else '/v1/chat/completions'),
+                             data=json.dumps(body).encode(), headers=headers)) as response:
+            handle = response.headers['X-RefractRouter-Outcome']
+            payload = response.read().decode()
+        assert len(handle) == 64
+        assert 'task-result-v1' not in payload
+        data = json.dumps({'operation': 'outcome-export', 'runId': handle}).encode()
+        with urlopen(Request(base + '/v1/refract/outcomes', data=data, headers=headers)) as response:
+            view = json.load(response)
+        assert view['schemaVersion'] == 'task-result-v1'
+        assert len(view['calls']) == 1
+        with pytest.raises(HTTPError) as denied:
+            urlopen(Request(base + '/v1/refract/outcomes', data=data, headers={'Content-Type': 'application/json'}))
+        assert denied.value.code == 401
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+        gw.close()
+
+
 @pytest.mark.parametrize('strategy', ['static', 'stage'])
 def test_plain_api_tool_continuation_never_executes_tools(tmp_path, monkeypatch, strategy):
     import refractrouter.tool_runtime as tools
