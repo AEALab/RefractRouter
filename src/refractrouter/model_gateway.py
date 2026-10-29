@@ -382,6 +382,13 @@ class ModelGateway:
         if any(v is not None for v in explicit):
             if not all(isinstance(v, str) and 0 < len(v) <= 256 for v in explicit):
                 raise ValueError("显式身份必须同时提供 refract_session 与 refract_task")
+            # 编码升级不能把已派发旧任务变成全新预算；不安全地迁移就明确拒绝。
+            legacy = {"session": scope + ':' + explicit[0], "agent": "api", "turn": explicit[1]}
+            legacy_id = digest(legacy)
+            if (legacy_id in self.runtime.runs or (self.runtime.root / (legacy_id + '.json')).exists()
+                    or legacy_id in self.state.get('outcomes', {})
+                    or any(entry.get('identity') == legacy for entry in self.state['tools'].values())):
+                raise ValueError('已有旧版任务证据；身份升级不能自动重新派发，请核对后显式使用新任务ID')
             return {"session": 'gateway-scope-v2:' + digest([scope, explicit[0]]), "agent": "api", "turn": explicit[1]}
         messages = request['messages']
         # 标准 function 工具续接可用已交付的 call ID 对应任务；新 user 消息建立新任务。

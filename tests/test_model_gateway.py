@@ -129,6 +129,41 @@ def test_existing_outcome_owner_is_immutable_even_for_legacy_identity_collision(
     gw.close()
 
 
+@pytest.mark.parametrize('remaining_evidence', ['file', 'outcome', 'tool'])
+def test_identity_upgrade_never_redispatches_a_known_legacy_explicit_task(tmp_path, monkeypatch, remaining_evidence):
+    caller = Caller(reply(calls=[call()]))
+    old = gateway(tmp_path, caller)
+    legacy = {'session': 'default:upgrade-session', 'agent': 'api', 'turn': 'same-task'}
+    # 固定旧版身份合同建立真实模拟调用；不依赖 Git 或已安装旧包。
+    monkeypatch.setattr(old, '_identity', lambda *_: legacy)
+    req = {**request(), 'metadata': {'refract_session': 'upgrade-session', 'refract_task': 'same-task'}}
+    result = old.complete(req)
+    legacy_id = next(iter(old.runtime.runs))
+    path = old.runtime.root / (legacy_id + '.json')
+    original = path.read_bytes()
+    if remaining_evidence != 'file':
+        path.unlink()  # 模拟部分证据缺失；任何仍存在的旧映射都不能被当成新预算。
+    if remaining_evidence != 'outcome':
+        old.state.pop('outcomes', None)
+    if remaining_evidence != 'tool':
+        old.state['tools'] = {}
+    old.save()
+    before = old.path.read_bytes()
+    old.close()
+    resumed_caller = Caller(reply())
+    current = gateway(tmp_path, resumed_caller)
+    with pytest.raises(ValueError, match='旧版任务证据'):
+        current.complete(follow(req, result))
+    assert resumed_caller.actions == []
+    assert not current.runtime.runs
+    assert current.path.read_bytes() == before
+    if remaining_evidence == 'file':
+        assert path.read_bytes() == original
+    else:
+        assert not path.exists()
+    current.close()
+
+
 @pytest.mark.parametrize('responses,stream', [(False, False), (False, True), (True, False), (True, True)])
 def test_http_outcome_handle_is_outside_model_wire_and_authenticated(tmp_path, responses, stream):
     gw = gateway(tmp_path, Caller(reply()))
