@@ -18,6 +18,21 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def isolated_environment(base, workspace, inherited):
+    """安装环境位于唯一可见的工作区内，不扩大宿主沙箱权限。
+
+    Linux bwrap 会将 /tmp 替换为空文件系统，再绑定 workspaceRoot；
+    若 uv 工具放在临时工作区的兄弟目录，宿主可见但沙箱内无法执行。
+    """
+    env = inherited.copy()
+    for key in list(env):
+        if key.endswith(('API_KEY', 'API_TOKEN')) or key in {'PYTHONPATH', 'PYTHONHOME', 'VIRTUAL_ENV'}:
+            env.pop(key, None)
+    env.update(DSH_HOME=str(base/'dsh'), UV_TOOL_DIR=str(workspace/'.installation/tools'),
+               UV_TOOL_BIN_DIR=str(workspace/'.installation/bin'), npm_config_cache=str(base/'npm-cache'))
+    return env
+
+
 def validate_configured_providers(run, workspace, executable, runs, env):
     """已安装 DSH + Python 的本机 HTTP 联调；不会请求外部模型服务。"""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -194,12 +209,7 @@ def main():
         base = Path(temporary)
         workspace = base/'workspace'
         workspace.mkdir()
-        env = os.environ.copy()
-        for key in list(env):
-            if key.endswith(('API_KEY','API_TOKEN')) or key in {'PYTHONPATH','PYTHONHOME','VIRTUAL_ENV'}:
-                env.pop(key,None)
-        env.update(DSH_HOME=str(base/'dsh'), UV_TOOL_DIR=str(base/'tools'),
-                   UV_TOOL_BIN_DIR=str(base/'bin'), npm_config_cache=str(base/'npm-cache'))
+        env = isolated_environment(base, workspace, os.environ)
         commands = []
         def run(command, cwd=workspace):
             result = subprocess.run([str(x) for x in command], cwd=cwd, env=env,
@@ -213,7 +223,7 @@ def main():
         packed = json.loads(run(['npm','pack',ROOT/'validation/dsh/plugin','--pack-destination',base/'packages','--json'],ROOT))
         tgz = base/'packages'/packed[0]['filename']
         run(['uv','tool','install',wheel])
-        executable = base/'bin/refractagent'
+        executable = Path(env['UV_TOOL_BIN_DIR'])/'refractagent'
         catalog = json.loads(run([executable,'models']))
         assert [m['id'] for m in catalog['models']] == ['economy','balanced','quality']
         run(['dsh','plugin','--profile','headless','add',tgz])

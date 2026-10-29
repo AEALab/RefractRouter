@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "whole-task-evaluation-v1",
+  "rules": {
+    "unit": "independent-task",
+    "failureDenominator": "all-frozen-tasks",
+    "unknownQuality": "not-passed",
+    "outputLimit": "model-native",
+    "httpRetries": 0,
+    "costComponents": ["all-execution-attempts", "all-routing-calls", "all-online-reviews"],
+    "researchEvaluation": "separate-and-report-total",
+    "billing": "cash-reference-and-historical-afp-separate",
+    "unknownUsage": "retain-reservation-stop-batch-settle-inflight",
+    "criticalRegression": "stop-configuration",
+    "infrastructureFailure": "stop-batch-settle-inflight",
+    "hiddenEvaluation": "outside-model-tools-cache-and-readable-logs",
+    "repeatedObservation": "not-new-independent-task",
+    "insufficientEvidence": "keep-current-default-no-auto-expansion"
+  },
+  "acceptance": {
+    "qualityMargin": "0.03",
+    "confidence": "0.95",
+    "minimumSavings": "0.20",
+    "criticalErrorsAllowed": 0,
+    "positiveSavingsInBothHalves": true,
+    "intervalUnit": "independent-task"
+  }
+}

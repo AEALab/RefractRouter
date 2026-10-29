@@ -50,8 +50,10 @@ jobs:
         run: npm run --prefix validation/dsh/plugin typecheck
       - name: Build DSH plugin
         run: npm run --prefix validation/dsh/plugin build
-      - name: Run tests
-        run: uv run pytest
+      - name: 运行完整零调用测试并归档基线
+        run: >-
+          uv run python experiments/run_whole_task_baseline.py
+          --output-dir "${RUNNER_TEMP}/whole-task-baseline"
       - name: Validate canonical fake-model experiment
         run: >-
           uv run python validation/dsh/canonical_runner.py
@@ -75,6 +77,7 @@ jobs:
             ${{ runner.temp }}/canonical-evidence.json
             ${{ runner.temp }}/real-preflight-evidence.json
             ${{ runner.temp }}/real-preflight/preflight.json
+            ${{ runner.temp }}/whole-task-baseline/
           if-no-files-found: warn
 
   dsh-plugin-compatibility:
