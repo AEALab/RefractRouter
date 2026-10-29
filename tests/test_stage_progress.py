@@ -17,6 +17,7 @@ def configuration():
 def evidence(identifier, failed=("A",), snapshot="1", **changes):
     packet = {"schemaVersion": CHECK_VERSION, "taskSha256": TASK, "checkerId": "tests",
         "checkerRevision": "frozen-r1", "suiteSha256": SUITE, "snapshotSha256": snapshot * 64,
+        "codeGeneration": int(snapshot, 16),
         "phase": "acceptance", "complete": True,
         "checks": [{"id": key, "status": "failed" if key in failed else "passed"} for key in ("A", "B")]}
     packet.update(changes)
@@ -118,6 +119,41 @@ def test_different_failure_sets_are_not_repeated_failure():
 def test_latest_complete_pass_resolves_earlier_failures_in_same_boundary():
     _, decision = run([evidence("one"), evidence("two"), evidence("green", failed=(), snapshot="2")])
     assert decision["role"] == "efficient"
+
+
+def test_resolved_stall_cannot_upgrade_different_first_failure_in_same_boundary():
+    _, decision = run([evidence("one"), evidence("two"), evidence("green", failed=(), snapshot="2"),
+                       evidence("different-first-failure", failed=("B",), snapshot="3")])
+    assert decision["role"] == "efficient"
+
+
+def test_old_snapshot_arriving_late_cannot_restore_or_reupgrade():
+    state, _ = run([evidence("old-green", failed=(), snapshot="1")])
+    state, _ = run([evidence("one", snapshot="2"), evidence("two", snapshot="2")], state)
+    state, _ = run([], state)
+    state, decision = run([evidence("late-old-green", failed=(), snapshot="1")], state)
+    assert decision["role"] == "capable" and "stale-code-generation" in decision["progress"]
+    state, _ = run([evidence("new-green", failed=(), snapshot="3")], state)
+    _, decision = run([evidence("late-old-failure", snapshot="1")], state)
+    assert decision["role"] == "efficient"
+
+
+def test_write_invalidates_old_generation_even_with_fresh_event_id():
+    state = strong_state()
+    state, _ = run([], state)
+    write = {"id": "write", "callId": "write", "tool": "write", "kind": "mutate",
+             "status": "completed", "fingerprint": "write"}
+    _, decision = run([write, evidence("old-but-new-id", failed=())], state)
+    assert decision["role"] == "capable" and "stale-code-generation" in decision["progress"]
+
+
+def test_new_task_resets_strong_state_and_checker_history():
+    state = strong_state()
+    other_task = "f" * 64
+    state, decision = decide([evidence("green", failed=(), snapshot="2", taskSha256=other_task)],
+                             state, configuration(), other_task)
+    assert decision["role"] == "efficient" and "task-context-reset" in decision["progress"]
+    assert state["unresolved"] == {} and "first" not in state["seen"]
 
 
 def test_all_checkers_must_pass_same_snapshot_before_restore():
