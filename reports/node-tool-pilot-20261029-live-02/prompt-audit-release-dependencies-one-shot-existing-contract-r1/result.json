@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "simulated": false,
+  "output": "{\n  \"answer\": \"根据 s1 的最新有效工作清单计算，s2 中旧版信息（A=4、C 依赖 B、F=1）不采用。\\n\\n任务：A 3h 无前置；B 5h 依赖 A；C 4h 依赖 A；D 2h 无前置；E 2h 依赖 B、C；F 3h 依赖 B；G 1h 依赖 D、E、F。两槽、不可拆分、无切换开销。\\n\\n技术排程（忽略窗口）：\\n槽1：A 0-3，B 3-8，E 8-10，空闲 10-11，G 11-12。\\n槽2：D 0-2，空闲 2-3，C 3-7，空闲 7-8，F 8-11。\\n\\n因为 E 必须等 B 到 8 和 C 到 7，所以 E 最早开始为 8；F 也最早从 B 完成后的 8 开始。D 完成于 2，E 最早完成于 10，F 最早完成于 11，因此 D/E/F 全部完成的最早时刻 pre_release_ready=11。G 最早可从 11 开始，12 结束，technical_finish=12。技术关键路径为 A-B-F-G，长度 3+5+3+1=12；它达到下界，所以 12 是忽略窗口的理论最早完成时间。窗口等待不改变这条技术关键路径。\\n\\n发布窗口：G 必须完整位于 [14,16]，因此 G 最早开始时间为 14（13 开始会落在窗口外），G 14-15 结束，window_finish=15。\\n可执行窗口排程：\\n槽1：A 0-3，B 3-8，E 8-10，空闲 10-14，G 14-15。\\n槽2：D 0-2，空闲 2-3，C 3-7，空闲 7-8，F 8-11，空闲 11-14。\\n该排程满足两槽、依赖和窗口约束；D/E/F 在 14 前全部完成，G 在 14 开始发布。\\n\\n批准状态：t=0 时全部工作尚未开始；D 尚无合规签字，也没有测试通过记录。排程中的完成时间只是计划估计，不等于已发生的批准，因此 current_approval_confirmed=false。若后续实际完成并取得签字/通过记录，才可确认批准完成。\",\n  \"findings\": [\n    {\"id\": \"pre_release_ready\", \"value\": 11, \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"technical_finish\", \"value\": 12, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"window_finish\", \"value\": 15, \"sources\": [\"s1\", \"s3\"]},\n    {\"id\": \"critical_path\", \"value\": [\"A\", \"B\", \"F\", \"G\"], \"sources\": [\"s1\", \"s5\"]},\n    {\"id\": \"earliest_e_start\", \"value\": 8, \"sources\": [\"s1\"]},\n    {\"id\": \"current_approval_confirmed\", \"value\": false, \"sources\": [\"s4\"]}\n  ]\n}",
+  "requests": 1,
+  "expertCalls": 0,
+  "taskElapsedMs": 369522.703958,
+  "unexpectedNetwork": 0,
+  "transport": "DSH LlmRuntime + 官方 PiAiAdapter + /api/plan/v3/responses",
+  "recordPath": "/Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/reports/node-tool-pilot-20261029-live-02/prompt-audit-release-dependencies-one-shot-existing-contract-r1/evidence/planning/5781a08e55ddaaa6d6d548537653646d0537db74e197ba1b5b0104598477d221.json"
+}

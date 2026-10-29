@@ -1,0 +1,13 @@
+file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/planning-routing.js:80
+                        pending.reject(new Error(String(value.error ?? '规划路由失败')));
+                                       ^
+
+Error: 节点工具实验需要有限的父任务调用数与期限
+    at Socket.<anonymous> (file:///Users/chun-hsianglee/.codex/worktrees/planning-routing-research/RefractRouter/validation/dsh/plugin/dist/planning-routing.js:80:40)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+
+Node.js v22.22.3

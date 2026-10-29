@@ -109,6 +109,7 @@ planning.setCallInputLimit(spec.inputLimit)
 const adapter=createAdapter(context,()=>config,undefined,planning)
 const messages:any[]=[{id:spec.runId,role:'user',source:{kind:'user'},
   content:[{type:'text',text:JSON.stringify(spec.payload)}]}]
+const caseSignal=spec.timeoutMs>0?AbortSignal.timeout(spec.timeoutMs):new AbortController().signal
 let runId:string|undefined,finished=false,outputText='',expertCalls=0
 let entered=0
 try{
@@ -120,7 +121,7 @@ try{
     session.append('step/start',{turn:1,step})
     const chunks:any[]=[]
     for await(const c of adapter.stream({provider:'refractagent',model:'planning',reasoningEffort:'rr:static',
-      system:spec.system,sessionId:session.header.id,messages,tools:ctx.tools.schemas(),signal:AbortSignal.timeout(spec.timeoutMs)}))chunks.push(c)
+      system:spec.system,sessionId:session.header.id,messages,tools:ctx.tools.schemas(),signal:caseSignal}))chunks.push(c)
     const blocks=chunks.filter(c=>c.type==='block-end').map(c=>c.block),finish=chunks.find(c=>c.type==='finish')
     assert.ok(finish);runId=finish.replayState?.response?.refractPlanning?.runId
     const assistant={id:'assistant-'+step,role:'assistant',source:{kind:'model',provider:'refractagent',model:'planning',
@@ -132,7 +133,7 @@ try{
       assert.equal(call.name,'refract_expert')
       session.append('tool/call',{turn:1,step,callId:call.id,name:call.name,arguments:call.arguments})
       const result=await ctx.tools.execute({callId:call.id,name:call.name,arguments:JSON.parse(call.arguments),agent,
-        signal:AbortSignal.timeout(spec.timeoutMs)})
+        signal:caseSignal})
       expertCalls++
       const message={id:'tool-'+call.id,role:'user',source:{kind:'tool',callId:call.id},content:[{
         type:'tool-result',toolCallId:call.id,content:result.content,isError:result.isError}]}

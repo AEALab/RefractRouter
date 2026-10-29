@@ -201,10 +201,9 @@ def test_parent_money_limit_also_bounds_expert(tmp_path):
     assert r.runs[run]["nodeTools"]["invocations"][0]["status"] == "refused"
 
 
-@pytest.mark.parametrize("field", ["maxCalls", "timeoutMs"])
-def test_experiment_requires_bounded_parent(tmp_path, field):
+def test_experiment_requires_bounded_parent_calls(tmp_path):
     cfg = configuration("static")
-    cfg[field] = 0
+    cfg["maxCalls"] = 0
     with pytest.raises(ValueError, match="有限"):
         setup(tmp_path, cfg=cfg)
 
@@ -227,3 +226,15 @@ def test_core_directory_does_not_depend_on_dsh_types():
     assert directory["owner"] == "python-core"
     assert set(directory["nodeMapping"]) == {"analyze", "check", "synthesize"}
     assert "session" not in json.dumps(directory)
+
+
+def test_unlimited_time_experts_default_to_model_capacity_and_honor_explicit_cap(tmp_path):
+    cfg=configuration("static");cfg["timeoutMs"]=0
+    for m in cfg["models"]:m.update(contextWindow=64000,maxOutputTokens=20000)
+    r,run=setup(tmp_path/"native",cfg=cfg)
+    action=node(r,run)
+    assert action["remainingMs"] is None
+    assert action["model"]["maxTokens"]==20000
+    assert r.runs[run]["budget"].records[-1]["reserved_output_tokens"]==20000
+    r,run=setup(tmp_path/"explicit",cfg=cfg,profile={"enabled":True,"maxOutputTokens":512})
+    assert node(r,run)["model"]["maxTokens"]==512

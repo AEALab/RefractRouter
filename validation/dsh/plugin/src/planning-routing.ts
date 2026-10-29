@@ -400,8 +400,8 @@ export class PlanningController {
       const action=await this.rpc.request({op:'node-tool-start',runId,toolCallId:callId,name,arguments:args})
       issued=true
       signal.throwIfAborted()
-      const remaining=typeof action.remainingMs==='number'?action.remainingMs:300000
-      const callSignal=AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,remaining))])
+      const callSignal=typeof action.remainingMs==='number'
+        ?AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,action.remainingMs))]):signal
       const blocks=new Map<number,Json>()
       let content='',usage:TokenUsage|undefined,finish:Json|undefined,bytes=0
       const started=performance.now()

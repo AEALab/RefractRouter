@@ -22,7 +22,7 @@ from .task_execution import execute_nodes
 from .task_scheduling import ExecutionPolicy
 
 ROOT = Path(__file__).resolve().parents[2]
-SCHEMA = "node-tool-three-arm-pilot-v2"
+SCHEMA = "node-tool-three-arm-pilot-v3"
 RATE = Decimal(".05")
 ARMS = ("one-shot", "node-as-tool", "dag")
 PROMPTS = {"existing-contract": FINAL_SYSTEM, "explicit-verification": FINAL_SYSTEM +
@@ -51,8 +51,8 @@ def carry_in(paths):
         record=json.loads(path.read_text())
         if record.get("simulated") is not False:
             raise ValueError("不能把演练当成历史真实用量")
-        calls=sum(c["status"] != "cancelled-before-dispatch" for r in record["runs"] for c in r["calls"])
-        cost=sum(Decimal(str(c["charged"])) for r in record["runs"] for c in r["calls"])
+        calls=sum(c["status"] != "cancelled-before-dispatch" for r in record["runs"] if not r.get("importedFrom") for c in r["calls"])
+        cost=sum(Decimal(str(c["charged"])) for r in record["runs"] if not r.get("importedFrom") for c in r["calls"])
         if calls != record["realModelCalls"] or abs(float(cost)-record["actualOrReservedAfp"]) > 1e-8:
             raise ValueError("历史汇总与原始调用账本不一致")
         entries.append({"path":str(path.relative_to(ROOT)),"sha256":file_hash(path),
@@ -60,6 +60,45 @@ def carry_in(paths):
     if len({v["path"] for v in entries}) != len(entries):
         raise ValueError("历史批次不得重复累计")
     return entries
+
+
+def resumed_optimization(paths, expected):
+    sources=[];entries=[];seen=set();cases={c["runId"]:c for c in expected["optimization"]}
+    for name in paths:
+        path=Path(name).resolve()
+        if not path.is_relative_to(ROOT):raise ValueError("接续证据必须位于当前工作区")
+        previous=json.loads(path.read_text());prior=json.loads((path.parent/"frozen.json").read_text())
+        if previous.get("simulated") is not False or previous["status"]=="running":
+            raise ValueError("不能接续仍在变化的批次或模拟样本")
+        for key in ("tasks","taskBindings","prompts","nodeHint","model","caps"):
+            if digest(prior[key])!=digest(expected[key]):raise ValueError("接续模型、材料或提示不同，不能混入当前开发样本")
+        sources.append({"path":str(path.relative_to(ROOT)),"sha256":file_hash(path)})
+        for row in previous["runs"]:
+            if row["phase"]!="prompt-audit":continue
+            rid=row["runId"]
+            if rid not in cases or rid in seen:raise ValueError("接续样本身份不符或重复")
+            if row["status"]!="completed" or not row["costKnown"] or any(c["status"]!="billed" for c in row["calls"]):
+                raise ValueError("未完成或用量未知的样本不能接续为有效开发结果")
+            old_path=path.parent/"cases"/(rid+".json");old=json.loads(old_path.read_text());new=cases[rid]
+            for key in ("runId","taskId","arm","repeat","promptId","phase","payload","system","inputLimit",
+                        "maxMainCalls","maxModelCalls","provider","dshVersion"):
+                if old[key]!=new[key]:raise ValueError("接续个案执行参数不一致")
+            if old["planningConfig"]["models"]!=new["planningConfig"]["models"]:
+                raise ValueError("接续模型配置不一致")
+            seen.add(rid);entries.append({"runId":rid,"source":str(path.relative_to(ROOT)),
+                "sourceSha256":file_hash(path),"caseSha256":file_hash(old_path)})
+    return sources,entries
+
+
+def reused_rows(frozen):
+    result=[]
+    for entry in frozen["reusedOptimization"]:
+        source=ROOT/entry["source"]
+        if file_hash(source)!=entry["sourceSha256"]:raise ValueError("接续开发证据发生变化")
+        row=deepcopy(next(r for r in json.loads(source.read_text())["runs"] if r["runId"]==entry["runId"]))
+        row["importedFrom"]={"summary":entry["source"],"runId":entry["runId"],"protocolSha256":json.loads(source.read_text())["protocolSha256"]}
+        result.append(row)
+    return result
 
 
 def cumulative_admission(result, case):
@@ -122,7 +161,7 @@ def model():
 def config(maximum, calls):
     m = model()
     raw = {"schemaVersion":"refractagent-planning-v2", "enabled":True,"defaultStrategy":"static",
-        "maxProductionCostByUnit":{"AFP":maximum},"maxCalls":calls,"timeoutMs":600000,
+        "maxProductionCostByUnit":{"AFP":maximum},"maxCalls":calls,"timeoutMs":0,
         "models":[{"id":"flash","provider":"ark-node-study","model":m.api_model,
             "contextWindow":m.context_window,"maxOutputTokens":MODEL_OUTPUT,"inputPer1k":.05,
             "outputPer1k":.05,"cachedInputPer1k":.05,"billingUnit":"AFP",
@@ -155,7 +194,7 @@ def case_spec(task, arm, repeat, prompt_id, *, phase="comparison", protocol_hash
     system = PROMPTS[prompt_id] + (NODE_HINT if arm == "node-as-tool" else "")
     raw = {"runId":rid,"taskId":task["task_id"],"arm":arm,"repeat":repeat,"promptId":prompt_id,
         "phase":phase,"payload":payload,"system":system,"inputLimit":CAPS["main"]["input"],
-        "maxMainCalls":4 if arm == "node-as-tool" else 1,"timeoutMs":600000,
+        "maxMainCalls":4 if arm == "node-as-tool" else 1,"timeoutMs":0,
         "provider":{"id":"ark-node-study","baseURL":model().base_url,"api":"openai-responses",
             "credentialRef":"CODEX_ARK_API_KEY","retryPolicy":{"mode":"normal","maxRetries":0}},
         "protocolSha256":protocol_hash,"dshVersion":"0.1.5-rc.3"}
@@ -177,7 +216,7 @@ def case_spec(task, arm, repeat, prompt_id, *, phase="comparison", protocol_hash
     return raw
 
 
-def prepare(prior_results=()):
+def prepare(prior_results=(), resume_optimization=()):
     tasks, refs = load_tasks()
     optimization = [case_spec(t,"one-shot",rep,p,phase="prompt-audit")
         for rep in range(1,4) for t in tasks for p in (list(PROMPTS) if rep%2 else list(reversed(PROMPTS)))]
@@ -206,12 +245,19 @@ def prepare(prior_results=()):
         "failurePolicy":"节点错误停止本任务下游并结算在途；未知用量、认证、账本或证据异常停止整批；无 HTTP 自动重试",
         "timing":"每任务从模型/规划执行开始计时，不含进程冷启动；另保留各调用时延及全过程外层耗时",
         "budgetIncludes":"18 次基线提示开发 + 27 次三路线样本；DAG 规划与专家费用均包含，不含未批准的额外付费评审"}
+    result["resumeOptimizationSources"],result["reusedOptimization"] = resumed_optimization(resume_optimization,result)
+    prior_bindings={v["path"]:v["sha256"] for v in result["priorResults"]}
+    if any(prior_bindings.get(v["path"])!=v["sha256"] for v in result["resumeOptimizationSources"]):
+        raise ValueError("接续开发样本必须同时计入累计费用与次数，不能重新获得预算")
+    result["maxNewModelCalls"]=result["maxModelCalls"]-len(result["reusedOptimization"])
+    result["timePolicy"]="研究入口不设人工总超时或单请求超时；模型物理容量、已批准累计次数与费用继续强制执行"
     result["protocolSha256"]=digest(result)
     return json.loads(json.dumps(result,ensure_ascii=False,allow_nan=False))
 
 
 def validate(frozen):
-    if frozen != prepare([ROOT/v["path"] for v in frozen.get("priorResults",[])]):
+    if frozen != prepare([ROOT/v["path"] for v in frozen.get("priorResults",[])],
+            [ROOT/v["path"] for v in frozen.get("resumeOptimizationSources",[])]):
         raise ValueError("冻结任务、实现、模型、费用或提示发生变化；不得复用旧批准摘要")
 
 
@@ -243,7 +289,7 @@ class RehearsalClient:
 
 def run_dag(case,out,*,simulated):
     out.mkdir(parents=True,exist_ok=False);started=time.monotonic()
-    budget=PilotBudget(RehearsalClient() if simulated else OpenAICompatibleClient(max_retries=0,timeout_seconds=600),case["afpUpperBound"])
+    budget=PilotBudget(RehearsalClient() if simulated else OpenAICompatibleClient(max_retries=0,timeout_seconds=None),case["afpUpperBound"])
     budget.final_system=PROMPTS[case["promptId"]]
     lock=RLock()
     (out/"calls").mkdir()
@@ -261,13 +307,13 @@ def run_dag(case,out,*,simulated):
         budget.stages["planner"]="planner"
         response=budget.complete(model(),[{"role":"system","content":COMPACT_PLANNER_SYSTEM},
             {"role":"user","content":json.dumps({"task":case["payload"],"max_nodes":4},ensure_ascii=False)}],
-            label="planner",timeout_seconds=600)
+            label="planner",timeout_seconds=None)
         plan=compile_compact(json.loads(response.content),criteria=case["payload"]["semantic_criteria"],max_nodes=4)
         record["plan"]=plan.to_dict()
         for n in plan.nodes:budget.stages["dag:"+n.node_id]="final" if n.node_id==plan.final_node_id else "worker"
         text=execute_nodes(plan,json.dumps(case["payload"],ensure_ascii=False),
             {n.node_id:"flash" for n in plan.nodes},{"flash":model()},budget,ExecutionPolicy(2,{"ark-plan":2},{"ark-plan":0}),
-            record,persist,started=started,deadline=started+600,label_prefix="dag:",classify_failure=True)
+            record,persist,started=started,deadline=float("inf"),label_prefix="dag:",classify_failure=True)
         record.update(status="completed",output=text,taskElapsedMs=(time.monotonic()-started)*1000)
     except Exception as exc:record.update(status="failed",error=str(exc),failureKind="model-output" if isinstance(exc,ValueError) else "infrastructure")
     finally:budget.stop();persist()
@@ -294,7 +340,7 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
     out=Path(out).resolve();out.mkdir(parents=True,exist_ok=False);(out/"cases").mkdir()
     tasks,refs=load_tasks();by_id={t["task_id"]:t for t in tasks}
     result={"schema":SCHEMA,"status":"running","simulated":not live,"protocolSha256":frozen["protocolSha256"],
-        "runs":[],"realModelCalls":0,"actualOrReservedAfp":0,
+        "runs":reused_rows(frozen),"realModelCalls":0,"actualOrReservedAfp":0,
         "cumulativeRealModelCalls":sum(v["realModelCalls"] for v in frozen["priorResults"]),
         "cumulativeActualOrReservedAfp":sum(v["actualOrReservedAfp"] for v in frozen["priorResults"]),"qualityVerdict":"Insufficient-evidence","providerBillingConfirmed":False}
     write(out/"frozen.json",frozen)
@@ -317,7 +363,7 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
                 str(Path(node_modules).resolve()),str(Path(python).absolute()),str(out/"cases"/(case["runId"]+".json")),
                 str(directory),"--execute-paid-run" if live else "--rehearse",frozen["protocolSha256"]]
             try:
-                completed=subprocess.run(command,cwd=ROOT,capture_output=True,text=True,timeout=case["timeoutMs"]/1000+30)
+                completed=subprocess.run(command,cwd=ROOT,capture_output=True,text=True,timeout=None if not case["timeoutMs"] else case["timeoutMs"]/1000+30)
             except subprocess.TimeoutExpired as exc:
                 def decoded(value):return value.decode(errors="replace") if isinstance(value,bytes) else value or ""
                 completed=subprocess.CompletedProcess(command,124,decoded(exc.stdout),decoded(exc.stderr)+"宿主超过冻结时限，已终止；在途用量待核对")
@@ -351,7 +397,9 @@ def run(frozen,out,*,node_modules,python,live=False,approved_hash=None,approved_
             result["status"]="stopped-needs-inspection";persist();return False
         persist();return True
     persist()
+    reused_ids={r["runId"] for r in result["runs"]}
     for case in frozen["optimization"]:
+        if case["runId"] in reused_ids:continue
         if not trial(deepcopy(case)):return result
     ranking=[]
     for p in PROMPTS:

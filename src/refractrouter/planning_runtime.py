@@ -139,8 +139,8 @@ class PlanningRuntime(StageHybridRuntime):
         if node_profile and (child or strategy not in ("static", "stage")
                 or strategy == "stage" and config["stage"]["mode"] != "rules"):
             raise ValueError("节点工具首版仅支持主任务 Static 或规则 Stage")
-        if node_profile and (not config["max_calls"] or not config["timeout"]):
-            raise ValueError("节点工具实验需要有限的父任务调用数与期限")
+        if node_profile and not config["max_calls"]:
+            raise ValueError("节点工具实验需要有限的父任务调用数")
         catalog = preview(preview_raw, request.get("hostIssues"))
         selected = next((r for r in catalog["strategies"] if r["id"] == strategy), None)
         if not selected or not selected["available"]:

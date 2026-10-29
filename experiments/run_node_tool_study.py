@@ -10,6 +10,7 @@ def main():
     p.add_argument("--output-dir",type=Path,required=True);p.add_argument("--frozen",type=Path)
     p.add_argument("--dsh-node-modules",type=Path);p.add_argument("--python",type=Path)
     p.add_argument("--prior-result",type=Path,action="append",default=[])
+    p.add_argument("--resume-optimization",type=Path,action="append",default=[])
     p.add_argument("--approved-protocol-sha256");p.add_argument("--approved-afp",type=float)
     m=p.add_mutually_exclusive_group();m.add_argument("--rehearse",action="store_true");m.add_argument("--execute-paid-run",action="store_true")
     a=p.parse_args()
@@ -19,7 +20,7 @@ def main():
             live=a.execute_paid_run,approved_hash=a.approved_protocol_sha256,approved_afp=a.approved_afp)
         print(json.dumps({k:result[k] for k in ("status","simulated","realModelCalls","actualOrReservedAfp")},ensure_ascii=False))
         return 0 if result["status"].startswith("completed") else 1
-    frozen=prepare(a.prior_result);a.output_dir.mkdir(parents=True,exist_ok=False);write(a.output_dir/"frozen.json",frozen)
+    frozen=prepare(a.prior_result,a.resume_optimization);a.output_dir.mkdir(parents=True,exist_ok=False);write(a.output_dir/"frozen.json",frozen)
     print(json.dumps({k:frozen[k] for k in ("protocolSha256","maxModelCalls","productionAfpUpperBound","budgetIncludes")},ensure_ascii=False))
     return 0
 

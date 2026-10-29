@@ -17,11 +17,15 @@ def profile(raw):
         raise ValueError("节点工具研究入口需要显式 enabled=true；关闭时省略 nodeTools")
     result = {"enabled": True}
     for key, default, upper in (("maxNodeCalls", 3, 16), ("maxTools", 40, 50),
-                                ("maxInputChars", 12000, 50000), ("maxOutputTokens", 1024, 10000000)):
+                                ("maxInputChars", 12000, 50000)):
         value = raw.get(key, default)
         if type(value) is not int or not 1 <= value <= upper:
             raise ValueError(f"节点工具 {key} 必须为 1–{upper} 的整数")
         result[key] = value
+    output=raw.get("maxOutputTokens")
+    if output is not None and (type(output) is not int or not 1 <= output <= 10000000):
+        raise ValueError("节点工具 maxOutputTokens 必须为有效整数或 null（使用所选模型容量）")
+    result["maxOutputTokens"]=output
     return result
 
 
@@ -136,8 +140,6 @@ def finish(runtime, run, token, response):
     try:
         if response.tool_calls or response.finish_reason != "stop":
             raise ValueError("文本专家不得继续工具调用或交付未完成回复")
-        if len(response.content) > 64000:
-            raise ValueError("专家输出超过协议上限")
         artifact = json.loads(response.content)
         if not isinstance(artifact, dict) or set(artifact) != {"artifact", "quotes", "limitations"}:
             raise ValueError("专家产物字段不完整")

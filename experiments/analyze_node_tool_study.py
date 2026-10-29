@@ -13,17 +13,29 @@ def report(result):
     lines=[f"# {title}","", "**模拟回复只验证执行与统计链路，不能说明模型质量、成本或时延收益。**" if simulated else
         "本结果限于三个构造开发任务、同一 DeepSeek V4 Flash 和三次重复；不代表最佳单模型或留出泛化。", "",
         f"批次状态：`{result['status']}`；协议：`{result['protocolSha256']}`。",
-        f"真实模型请求：{result['realModelCalls']}；按用量计算及未知预留合计：{result['actualOrReservedAfp']:.6f} AFP。",
+        f"本目录新增真实模型请求：{result['realModelCalls']}；按用量计算及未知预留合计：{result['actualOrReservedAfp']:.6f} AFP。",
         f"跨批累计请求：{result.get("cumulativeRealModelCalls",result["realModelCalls"])} / 135；累计费用及预留：{result.get("cumulativeActualOrReservedAfp",result["actualOrReservedAfp"]):.6f} / 286 AFP。",
         "AFP 是套餐用量，非人民币实付；供应商账单未独立确认。", "",
-        "## 路线结果", "", "| 路线 | 完成/计划 | 关键事实检查通过 | AFP 合计 | 任务时长中位数 ms |",
+        "## 路线结果", "", "| 路线 | 完成/计划 | 字段值及引用均通过 | AFP 合计 | 任务时长中位数 ms |",
         "|---|---:|---:|---:|---:|"]
     for arm in ("one-shot","node-as-tool","dag"):
         group=[r for r in rows if r["arm"]==arm]
         timing=[r["taskElapsedMs"] for r in group if r.get("taskElapsedMs") is not None]
         duration=f"{median(timing):.1f}" if timing else "未取得"
         lines.append(f"| {arm} | {sum(r['status']=='completed' for r in group)}/9 | {sum(r['factStatus']=='pass' for r in group)}/{len(group)} | {sum(r['chargedOrReserved'] for r in group):.6f} | {duration} |")
-    lines += ["", "关键事实通过不等于自由正文或整体任务通过；语义审查仍为 pending。",
+    lines += ["", "## 错误归因诊断", "", "主判据和提示选择规则保持冻结；以下只区分字段值错误与引用列举不足，不放宽通过门槛。", "",
+        "| 路线 | 完整交付 | 字段值全部正确 | 仅因引用扣分 |", "|---|---:|---:|---:|"]
+    for arm in ("one-shot","node-as-tool","dag"):
+        group=[r for r in rows if r["arm"]==arm and r["status"]=="completed"]
+        value_ok=[r for r in group if r.get("checks") and all(c["status"]=="pass"
+            for c in r["checks"] if not c["check"].endswith(":sources"))]
+        citation_only=[r for r in value_ok if r["factStatus"]!="pass" and any(c["check"].endswith(":sources")
+            and c["status"]=="fail" for c in r["checks"])]
+        lines.append(f"| {arm} | {len(group)} | {len(value_ok)} | {len(citation_only)} |")
+    reused=[r for r in result["runs"] if r.get("importedFrom")]
+    if reused:
+        lines += ["",f"接续已完成且参数一致的提示开发样本：{len(reused)} 个；保留原始协议、个案哈希与账本，不重放模型请求。"]
+    lines += ["", "关键事实及引用通过不等于自由正文或整体任务通过；语义审查仍为 pending。",
         "没有产出、输出失败和未知用量保留在分母与原始记录中。", "", "## 按任务配对", "",
         "| 任务 | one-shot 事实通过/3 | node-as-tool 事实通过/3 | DAG 事实通过/3 |",
         "|---|---:|---:|---:|"]
