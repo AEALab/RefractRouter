@@ -9,10 +9,13 @@ from experiments import run_whole_task_baseline as baseline
 
 def test_environment_removes_credentials_without_rewriting_paths():
     env = baseline.test_environment({"PATH": "/usr/bin", "HOME": "/fixture", "ARK_API_KEY": "secret",
-        "VOLC_ACCESSKEY": "secret", "VOLC_SECRETKEY": "secret", "GH_TOKEN": "secret", "DEEPSEEK_API_KEY": "secret"})
+        "VOLC_ACCESSKEY": "secret", "VOLC_SECRETKEY": "secret", "GH_TOKEN": "secret", "DEEPSEEK_API_KEY": "secret",
+        "PYTEST_ADDOPTS": "-k test_loopback_addresses", "PYTEST_PLUGINS": "fixture-filter",
+        "PYTHONPATH": "/old/source"})
     assert env["PATH"] == "/usr/bin" and env["HOME"] == "/fixture"
     assert not any("secret" in value for value in env.values())
     assert env["UV_OFFLINE"] == "1"
+    assert not {"PYTEST_ADDOPTS", "PYTEST_PLUGINS", "PYTHONPATH"} & env.keys()
 
 
 def test_snapshot_binds_uncommitted_bytes_and_does_not_follow_symlink(tmp_path):
@@ -37,9 +40,11 @@ def test_actual_exit_reports_and_guard_all_required(tmp_path, monkeypatch, exit_
 
     def fake_test(command, **kwargs):
         assert command[:3] == ["uv", "run", "pytest"]
+        assert command[3:6] == ["tests", "-o", "addopts="]
         (target / "junit.xml").write_text(f'<testsuites><testsuite tests="3" failures="{failures}" errors="0" skipped="{skips}"/></testsuites>')
         if guard:
-            (target / "network.json").write_text(json.dumps({"external_network_blocked": True}))
+            (target / "network.json").write_text(json.dumps({"external_network_blocked": True,
+                "collection": {"collected": 3, "selected": 3, "deselected": 0, "executed": 3}}))
         kwargs["stdout"].write("确定性夹具日志\n")
         return SimpleNamespace(returncode=exit_code)
 
@@ -71,7 +76,8 @@ def test_source_modified_by_test_cannot_produce_passing_baseline(tmp_path, monke
     def fake(command, **kwargs):
         source.write_text("changed")
         (target / "junit.xml").write_text('<testsuites><testsuite tests="1"/></testsuites>')
-        (target / "network.json").write_text('{"external_network_blocked": true}')
+        (target / "network.json").write_text(json.dumps({"external_network_blocked": True,
+            "collection": {"collected": 1, "selected": 1, "deselected": 0, "executed": 1}}))
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(baseline.subprocess, "run", fake)
@@ -79,3 +85,14 @@ def test_source_modified_by_test_cannot_produce_passing_baseline(tmp_path, monke
     result = json.loads((target / "result.json").read_text())
     assert not result["passed"]
     assert result["sourceChangesAfterRun"] == [source.name]
+
+
+@pytest.mark.parametrize("counts,valid", [
+    ({"collected": 15, "selected": 4, "deselected": 11, "executed": 4}, False),
+    ({"collected": 15, "selected": 15, "deselected": 0, "executed": 14}, False),
+    ({"collected": 0, "selected": 0, "deselected": 0, "executed": 0}, False),
+    ({"collected": 15, "selected": 15, "deselected": 0, "executed": 15}, True),
+    ({}, False),
+])
+def test_partial_or_unexecuted_collection_is_not_complete(counts, valid):
+    assert baseline.collection_complete({"collection": counts}, {"tests": 15}) is valid
