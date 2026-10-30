@@ -205,6 +205,13 @@ v8 的 [整任务经验费用与影子选择](task-empirical-shadow.md)以独立
 Advisor / Escalation，按具体干预关联修复，保留未知及审核故障；条件触发仅供冻结研究，
 不改产品严格审核或把机械检查通过当作整题正确。
 
+[版本治理与有限试用](routing-release-governance.md)由 Python 固定配置、schema、价格、
+模型及 provider 身份和核心实现。可选 Gateway v3 仅将任务固定到既有 Gateway v2，
+不新增策略、工具循环或 DSH 业务实现。发布门槛复用独立配对验收；Composite 还需其
+实际内嵌 Task / Stage 各自合格，并在同题、同工具、同交付边界下优于两者。
+本地 SQLite 保存发布和任务归属，原逐调用账本仍是费用来源。停止与回滚只影响新任务，
+未知用量不释放；重启不自动重发。当前真实收益未合格，保留单策略和默认配置。
+
 CI 安装锁定的 Python 和 TypeScript 依赖，检查类型、构建插件并运行 `uv run pytest`，
 其中包含编译后的 TypeScript 契约测试。兼容矩阵在 Node `22.19.0` 和最新 Node 22 上
 启动 DSH `0.1.1-rc.2`，覆盖安装、配置覆盖、卸载、重装及源码和打包分发路径。

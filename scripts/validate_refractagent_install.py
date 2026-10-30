@@ -323,7 +323,9 @@ def main():
                                       '--executable', executable, '--workspace', workspace, '--mode', 'stage']))
         gateway_protocol = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_gateway_protocol_install.py',
                                           '--workspace', workspace]))
-        evidence = {'gateway_protocol': gateway_protocol, 'stage_shadow': stage_shadow, 'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        governed_gateway = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_governed_gateway_install.py',
+                                          '--workspace', workspace/'governed-gateway']))
+        evidence = {'governed_gateway': governed_gateway, 'gateway_protocol': gateway_protocol, 'stage_shadow': stage_shadow, 'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},

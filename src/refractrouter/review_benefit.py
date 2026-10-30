@@ -62,6 +62,11 @@ def _labels(result, annotations, criteria):
     return rows
 
 
+def independent_labels(result, annotations, *, criteria_sha256):
+    """供监控复用的独立裁定绑定；缺失保持未知，不由评审模型自证。"""
+    return _labels(result, annotations, criteria_sha256)
+
+
 def audit(result, annotations, *, criteria_sha256):
     wire(annotations)
     costs = observe(result)

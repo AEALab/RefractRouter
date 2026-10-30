@@ -599,7 +599,9 @@ class ModelGateway:
                         'cacheUsageSource': response.cache_usage_source, 'rawUsage': response.raw_usage,
                         'routerOperationMs': action.get('routerOperationMs'),
                         'finishReason': response.finish_reason, 'toolCalls': list(response.tool_calls),
-                        'latencyMs': response.latency_ms, 'requestId': response.request_id, 'ttftMs': response.ttft_ms}})
+                        'latencyMs': response.latency_ms, 'requestId': response.request_id, 'ttftMs': response.ttft_ms,
+                        'observedActualModel':response.actual_model,'observedProviderRevision':response.provider_revision,
+                        'priceBindingConfirmed':response.price_binding_confirmed}})
             if action['action'] != 'release':
                 raise RuntimeError("模型调用已停止")
             selected = responses[action['callId']]
@@ -697,7 +699,8 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
             elif path == '/v1/models':
                 self.send_json(200, gateway.models())
             elif path == '/readyz':
-                self.send_json(200, gateway.service_info())
+                info=gateway.service_info()
+                self.send_json(200 if info['status']=='ready' else 503, info)
             elif path == '/health':
                 self.send_json(200, {'status': 'ok', 'service': GATEWAY_PROTOCOL_VERSION})
             else:
@@ -778,6 +781,13 @@ def create_server(gateway, host='127.0.0.1', port=8088, token=None):
 
 def load_gateway_config(path):
     raw = json.loads(path.read_text())
+    if isinstance(raw,dict) and raw.get('schemaVersion')=='refractrouter-gateway-config-v3':
+        if set(raw)-{'schemaVersion','authTokenEnv','releaseRegistry'} or not isinstance(raw.get('releaseRegistry'),str):
+            raise ValueError('治理网关需要固定本地发布账本，不能混入临时配置')
+        if 'authTokenEnv' in raw and (not isinstance(raw['authTokenEnv'],str) or not raw['authTokenEnv']):
+            raise ValueError('authTokenEnv必须是非空环境变量名称')
+        raw['releaseRegistry']=str((path.parent/raw['releaseRegistry']).resolve())
+        return raw
     allowed = {'schemaVersion', 'authTokenEnv', 'providers', 'planningRouting'}
     if not isinstance(raw, dict) or set(raw) - allowed:
         raise ValueError('网关配置不是对象或包含未知字段')
@@ -788,6 +798,13 @@ def load_gateway_config(path):
     if not isinstance(raw.get('providers'), dict) or not isinstance(raw.get('planningRouting'), dict):
         raise ValueError('网关配置必须包含 providers 与 planningRouting')
     return raw
+
+
+def gateway_for_config(config,runs_dir):
+    if config.get('schemaVersion')=='refractrouter-gateway-config-v3':
+        from .governed_gateway import GovernedGateway
+        return GovernedGateway(config,runs_dir)
+    return ModelGateway(config,runs_dir)
 
 
 def main():
@@ -805,12 +822,15 @@ def main():
     token = os.environ.get(token_env) if token_env else None
     if token_env and not token:
         raise ValueError('服务认证凭证未配置')
-    gateway = ModelGateway(config, args.runs_dir)
+    gateway = gateway_for_config(config, args.runs_dir)
     if args.preflight:
         print(json.dumps({**gateway.service_info(), 'models': gateway.models()}, ensure_ascii=False))
         gateway.close()
         return 0
     if args.load_stage_judge:
+        if config.get('schemaVersion')=='refractrouter-gateway-config-v3':
+            gateway.close()
+            raise ValueError('治理配置不能在启动时改变Judge；须先冻结并验收独立版本')
         local_config = deepcopy(gateway.planning)
         local_config['defaultStrategy'] = 'stage'
         try:

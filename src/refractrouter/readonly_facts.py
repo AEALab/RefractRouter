@@ -92,7 +92,7 @@ def validate_candidate(candidate_id, candidate):
     return sha(wire(candidate))
 
 
-def strict_json(raw):
+def strict_json(raw, *, maximum_bytes=1024 * 1024):
     def pairs(items):
         result = {}
         for key, value in items:
@@ -108,7 +108,7 @@ def strict_json(raw):
     try:
         result = json.loads(raw, object_pairs_hook=pairs, parse_float=finite_float,
             parse_constant=lambda _: (_ for _ in ()).throw(ValueError('JSON 数值无效')))
-        check_json_value(result)
+        check_json_value(result, maximum_bytes=maximum_bytes)
         return result
     except RecursionError as exc:
         raise ValueError('JSON 嵌套超过处理容量') from exc

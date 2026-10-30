@@ -303,6 +303,14 @@ class TaskCallBudget:
                 row['response_output'] = response.content
                 row['response'] = asdict(response)
         counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)
+        if getattr(response, 'actual_model', None) is not None:
+            row['observed_actual_model'] = response.actual_model
+        if getattr(response, 'provider_revision', None) is not None:
+            row['observed_provider_revision'] = response.provider_revision
+        if getattr(response, 'price_binding_confirmed', None) is not None:
+            row['price_binding_confirmed'] = response.price_binding_confirmed
+        if getattr(response, 'price_binding_confirmed', None) is False:
+            raise ValueError('provider price binding unconfirmed; reservation retained')
         if not response.usage_available or ((response.content.strip() or getattr(response, "tool_calls", ())) and (response.input_tokens == 0 or response.output_tokens == 0)):
             raise ValueError('missing or unconfirmed model usage; reservation retained')
         if (any(type(x) is not int or x < 0 for x in counts)
