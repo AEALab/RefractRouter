@@ -644,6 +644,50 @@ test('收到用量后取消仍结算一次，不再追加Advisor审核或释放�
   }finally{await f.cleanup()}
 })
 
+for(const inputTokens of [0,100])test(`取消工具候选的零输出用量不得释放预留，输入${inputTokens}`,async()=>{
+  const f=await fixture('advisor')
+  try{
+    const cancel=new AbortController()
+    f.setReplies([()=>({*[Symbol.iterator](){
+      for(const chunk of reply('',[{type:'tool-call',id:'pending-read',name:'read',arguments:'{}'}])){
+        if(chunk.type==='usage'){
+          yield {type:'usage',usage:{inputTokens,outputTokens:0}} as StreamChunk
+          cancel.abort();return
+        }
+        yield chunk
+      }
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor',signal:cancel.signal})))
+    const history=await f.controller.history('native-session')
+    const rows=history.records[0].calls.filter((c:any)=>c.call_id)
+    assert.equal(rows.length,1)
+    assert.equal(rows[0].status,'unknown-usage')
+    assert.ok(rows[0].charged>0)
+    assert.equal(rows[0].charged,rows[0].reserved)
+    assert.equal(f.calls.length,1)
+    assert.equal(f.toolExecutions,0)
+  }finally{await f.cleanup()}
+})
+
+test('取消时内容块投影失败不能改为空候选来结算零用量',async()=>{
+  const f=await fixture('advisor')
+  try{
+    const cancel=new AbortController()
+    f.setReplies([()=>({*[Symbol.iterator](){
+      yield {type:'block-start',index:-1,block:{type:'tool-call'}} as unknown as StreamChunk
+      yield {type:'usage',usage:{inputTokens:0,outputTokens:0}} as StreamChunk
+      cancel.abort()
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor',signal:cancel.signal})))
+    const history=await f.controller.history('native-session')
+    const row=history.records[0].calls.find((c:any)=>c.call_id)
+    assert.equal(row.status,'unknown-usage')
+    assert.equal(row.charged,row.reserved)
+    assert.ok(row.charged>0)
+    assert.equal(f.calls.length,1)
+  }finally{await f.cleanup()}
+})
+
 test('规划入口可发现但未配置零调用拒绝；原生历史来源保持',async()=>{
   const f=await fixture()
   try{

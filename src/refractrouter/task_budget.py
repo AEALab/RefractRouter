@@ -283,6 +283,10 @@ class TaskCallBudget:
                 or response.cached_input_tokens > response.input_tokens
                 or response.reasoning_tokens > response.output_tokens):
             raise ValueError('invalid model usage; reservation retained')
+        raw_usage = response.raw_usage if isinstance(response.raw_usage, dict) else {}
+        write_known = raw_usage.get('cacheWriteUsageAvailable', 'cacheWriteTokens' in raw_usage) is True
+        if getattr(model, 'cache_write_cost_per_1k', None) is not None and not write_known:
+            raise ValueError('unconfirmed cache write usage; reservation retained')
         if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
             from .deepseek_official_pricing import pricing
             rates = pricing(model.api_model, at=datetime.fromisoformat(row['dispatch_at']))
@@ -299,6 +303,8 @@ class TaskCallBudget:
                        output_tokens=response.output_tokens, cached_input_tokens=response.cached_input_tokens,
                        cache_usage_source=response.cache_usage_source,
                        cache_usage_available=response.cache_usage_source is not None, ttft_ms=response.ttft_ms,
+                       cache_write_tokens=raw_usage.get('cacheWriteTokens') if write_known else None,
+                       cache_write_usage_available=write_known,
                        first_tool_ms=response.first_tool_ms,
                        reasoning_tokens=response.reasoning_tokens, latency_ms=response.latency_ms,
                        request_id=response.request_id, finish_reason=response.finish_reason,

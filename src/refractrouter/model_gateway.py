@@ -546,6 +546,7 @@ class ModelGateway:
                     (self.state['tools'].get(scope + ':' + e['callId']) or {}).get('identity') == identity],
                 **({'maxTokens': cap} if cap is not None else {})})
         responses, targets, total_in, total_out = {}, {}, 0, 0
+        total_cached, total_reasoning = 0, 0
         meta = {'id':'chatcmpl-' + uuid4().hex, 'created':int(time.time()), 'model':request['model']}
         try:
             while action['action'] in ('call', 'wait'):
@@ -573,6 +574,10 @@ class ModelGateway:
                 targets[action['callId']] = deepcopy(action['model'])
                 total_in += response.input_tokens
                 total_out += response.output_tokens
+                from .cache_usage import observed_details
+                cached, reasoning = observed_details(response)
+                total_cached = total_cached + cached if total_cached is not None and cached is not None else None
+                total_reasoning = total_reasoning + reasoning if total_reasoning is not None and reasoning is not None else None
                 # 先结算已派发调用，取消不释放已花费或未知用量。
                 if cancelled():
                     self.runtime.handle({'op': 'cancel', 'runId': run_id})
@@ -580,6 +585,7 @@ class ModelGateway:
                     'response': {'content': response.content, 'inputTokens': response.input_tokens,
                         'outputTokens': response.output_tokens, 'cachedInputTokens': response.cached_input_tokens,
                         'reasoningTokens': response.reasoning_tokens, 'usageAvailable': response.usage_available,
+                        'cacheUsageSource': response.cache_usage_source, 'rawUsage': response.raw_usage,
                         'finishReason': response.finish_reason, 'toolCalls': list(response.tool_calls),
                         'latencyMs': response.latency_ms, 'requestId': response.request_id, 'ttftMs': response.ttft_ms}})
             if action['action'] != 'release':
@@ -592,6 +598,10 @@ class ModelGateway:
                     'finish_reason': selected.finish_reason}],
                 'usage': {'prompt_tokens': total_in, 'completion_tokens': total_out,
                           'total_tokens': total_in + total_out}}
+            if total_cached is not None:
+                result['usage']['prompt_tokens_details'] = {'cached_tokens': total_cached}
+            if total_reasoning is not None:
+                result['usage']['completion_tokens_details'] = {'reasoning_tokens': total_reasoning}
             with self.lock:
                 prefix = history_digest(request['messages'] + [message])
                 for call in selected.tool_calls:

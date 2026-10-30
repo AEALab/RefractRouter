@@ -1289,13 +1289,19 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("未知或已结算的调用回执")
         token, reservation, purpose = flow["pending"]
         raw = request.get("response", {})
+        cache_source = raw.get("cacheUsageSource")
+        if cache_source is not None and (not isinstance(cache_source, str) or not cache_source
+                or cache_source != cache_source.strip() or len(cache_source) > 256):
+            raise ValueError("缓存用量来源必须为有界非空字符串")
         response = ChatResponse(content=raw.get("content", ""), input_tokens=raw.get("inputTokens", 0),
             output_tokens=raw.get("outputTokens", 0), cached_input_tokens=raw.get("cachedInputTokens", 0),
             reasoning_tokens=raw.get("reasoningTokens", 0), latency_ms=raw.get("latencyMs", 0),
             attempts=1, finish_reason=raw.get("finishReason"), request_id=raw.get("requestId"),
             usage_available=raw.get("usageAvailable") is True, tool_calls=tuple(raw.get("toolCalls", [])),
             ttft_ms=raw.get("ttftMs"), replay_state=raw.get("replayState"),
-            raw_usage={"cacheWriteTokens": raw.get("cacheWriteTokens", 0)})
+            raw_usage={"cacheWriteTokens": raw.get("cacheWriteTokens", 0),
+                       "cacheWriteUsageAvailable": "cacheWriteTokens" in raw, "providerUsage": raw.get("rawUsage")},
+            cache_usage_source=cache_source)
         try:
             write_tokens = raw.get("cacheWriteTokens", 0)
             if type(write_tokens) is not int or write_tokens < 0 or write_tokens + response.cached_input_tokens > response.input_tokens:

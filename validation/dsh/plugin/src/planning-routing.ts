@@ -128,9 +128,10 @@ function responseReceipt(candidate:Json,usage:TokenUsage|undefined,finish:Json|u
   return {...candidate,
     usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
     inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
-    cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,
+    ...(usage?.cacheWriteTokens!==undefined?{cacheWriteTokens:usage.cacheWriteTokens}:{}),ttftMs,replayState:finish?.replayState,
     cachedInputTokens:usage?.cacheReadTokens??0,outputTokens:usage?.outputTokens??0,
-    reasoningTokens:usage?.reasoningTokens??0,latencyMs}
+    reasoningTokens:usage?.reasoningTokens??0,latencyMs,rawUsage:usage,
+    ...(usage?.cacheReadTokens!==undefined?{cacheUsageSource:'dsh-usage.cacheReadTokens'}:{})}
 }
 function waitFor(ms:number,signal:AbortSignal):Promise<void>{
   return new Promise((resolve,reject)=>{
@@ -506,12 +507,12 @@ export class PlanningController {
         if(streamError||callSignal.aborted){
           await this.rpc.request({op:'cancel',runId})
           if(usage&&!usageConflict){
-            let partial:Json
+            let partial:Json|undefined
             try{partial=dshCandidate(chunks,finish?.reason?.kind??'cancelled')}
-            catch{partial={content:'',toolCalls:[],finishReason:finish?.reason?.kind??'cancelled'}}
+            catch{streamError??=new Error('取消回复的内容块无效；保留预留并停止')}
             // 先停止整个任务，再结算原调用；不放行候选工具或触发下一次审核。
-            await this.rpc.request({op:'complete',runId,callId:action.callId,
-              response:responseReceipt({...partial,toolCalls:[]},usage,finish,ttftMs,performance.now()-started)})
+            if(partial)await this.rpc.request({op:'complete',runId,callId:action.callId,
+              response:responseReceipt(partial,usage,finish,ttftMs,performance.now()-started)})
           }
           if(streamError)throw streamError
           callSignal.throwIfAborted()

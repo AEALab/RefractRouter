@@ -170,7 +170,8 @@ def test_known_usage_is_counted_once_and_not_as_reasoning_plus_output(tmp_path, 
         if stream:
             wire.finish(result)
         response = decode_sse(packets)[-1]["response"] if stream else from_chat(result)
-        assert response["usage"] == {"input_tokens": 80, "output_tokens": 24, "total_tokens": 104}
+        assert response["usage"] == {"input_tokens": 80, "output_tokens": 24, "total_tokens": 104,
+            "input_tokens_details": {"cached_tokens": 20}, "output_tokens_details": {"reasoning_tokens": 8}}
         row = next(iter(gw.runtime.runs.values()))["budget"].records[0]
         assert row["input_tokens"] == 80 and row["output_tokens"] == 24
         assert row["reasoning_tokens"] == 8 and row["cached_input_tokens"] == 20
@@ -195,7 +196,6 @@ def test_invalid_reasoning_usage_must_retain_reservation(tmp_path, monkeypatch, 
     ("input_tokens_details", {"cached_tokens": 20}),
     ("output_tokens_details", {"reasoning_tokens": 8}),
 ])
-@pytest.mark.xfail(strict=True, reason="RCP-003：转换层仅返回总用量，尚未传递已知细分；兼容性缺项")
 def test_converter_preserves_known_usage_breakdown(detail, expected):
     raw = completion()
     raw["created"] = 0
@@ -204,7 +204,6 @@ def test_converter_preserves_known_usage_breakdown(detail, expected):
 
 
 @pytest.mark.parametrize("stream", [False, True])
-@pytest.mark.xfail(strict=True, reason="RCP-003：已知缓存计数的来源在核心结算交接时丢失")
 def test_known_cache_observability_survives_core_settlement(tmp_path, monkeypatch, stream):
     upstream = MemoryUpstream(monkeypatch, [completion()])
     with closing(upstream.gateway(tmp_path)) as gw:

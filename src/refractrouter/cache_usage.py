@@ -19,3 +19,18 @@ def cache_usage(usage, input_tokens, *, detail_keys=('prompt_tokens_details', 'i
              and all(type(value) is int and 0 <= value <= input_tokens for value, _ in found)
              and len({value for value, _ in found if type(value) is int}) == 1)
     return (found[0][0] if valid else 0), (found[0][1] if valid else None), valid
+
+
+def observed_details(response):
+    """只投影有来源的已知细分；缺字段不伪造成零缓存或零思考。"""
+    cached = response.cached_input_tokens if response.cache_usage_source is not None else None
+    raw = response.raw_usage
+    reasoning = None
+    if isinstance(raw, dict):
+        for key in ("completion_tokens_details", "output_tokens_details"):
+            detail = raw.get(key)
+            if isinstance(detail, dict) and "reasoning_tokens" in detail:
+                value = detail["reasoning_tokens"]
+                if type(value) is int and 0 <= value <= response.output_tokens and value == response.reasoning_tokens:
+                    reasoning = value
+    return cached, reasoning

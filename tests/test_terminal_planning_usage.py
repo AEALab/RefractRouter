@@ -33,3 +33,17 @@ def test_cancelled_call_without_valid_usage_keeps_full_unknown_reserve(tmp_path)
         receipt(runtime, run_id, action, usageAvailable=False, finishReason=None)
     row = runtime.runs[run_id]["budget"].records[0]
     assert row["status"] == "unknown-usage" and row["charged"] == row["reserved"] > 0
+
+
+@pytest.mark.parametrize("input_tokens", [0, 100])
+def test_cancelled_tool_output_retains_evidence_when_zero_output_usage_is_rejected(tmp_path, input_tokens):
+    runtime = PlanningRuntime(tmp_path)
+    run_id = begin(runtime, "advisor")
+    action = step(runtime, run_id)
+    runtime.handle({"op": "cancel", "runId": run_id})
+    with pytest.raises(ValueError, match="unconfirmed"):
+        receipt(runtime, run_id, action, content="", tools=({"id": "read", "name": "read", "arguments": "{}"},),
+                inputTokens=input_tokens, outputTokens=0, finishReason=None)
+    row = runtime.runs[run_id]["budget"].records[0]
+    assert row["status"] == "unknown-usage" and row["charged"] == row["reserved"] > 0
+    assert row["response"]["tool_calls"]

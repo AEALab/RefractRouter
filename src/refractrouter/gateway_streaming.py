@@ -167,6 +167,8 @@ class WireStream:
         from .gateway_responses import from_chat
         self.start(result)
         choice = result['choices'][0]; message = choice['message']
+        if choice['finish_reason'] not in ('stop', 'tool_calls'):
+            raise ValueError('上游未成功结束，不能发布成功或工具完成事件')
         text = message.get('content') or ''
         if self.text_started and text != self.live_text:
             raise ValueError('已释放的文本不能被替换')

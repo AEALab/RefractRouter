@@ -191,7 +191,6 @@ def test_response_identity_change_is_rejected(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("with_tool", [False, True])
-@pytest.mark.xfail(strict=True, reason="RCP-004：incomplete 外层仍配有 completed 输出项；仅转换器可达")
 def test_incomplete_converter_does_not_mark_unfinished_items_completed(with_tool):
     raw = completion("未完成", [function_call(arguments='{"path":')] if with_tool else (), finish="length")
     raw["created"] = 0
