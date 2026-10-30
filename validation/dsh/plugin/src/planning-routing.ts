@@ -165,7 +165,7 @@ export class PlanningController {
     await Promise.all((config.models??[]).map(async (model:Json)=>{
       try{
         const info=await this.metadata(model.provider,model.model,
-          config.schemaVersion==='refractagent-planning-v7'&&!model.referencePricing?'REFERENCE':'AUTO',model)
+          ['refractagent-planning-v7','refractagent-planning-v8'].includes(config.schemaVersion)&&!model.referencePricing?'REFERENCE':'AUTO',model)
         const hostModel=await this.ctx.llm.resolveModelInfo!(model.provider,model.model) as Json
         const reasoning=hostModel.reasoning as Json|undefined
         const efforts=Array.isArray(reasoning?.efforts)
@@ -358,7 +358,7 @@ export class PlanningController {
     return this.rpc.request({op:'automatic-trace',runIds})
   }
   private async ensureHandshake(hybridStage=false,compositeV6=false,decomposition=false,
-    localBackends=false,jev=false,openrouter=false,currency=false):Promise<void>{
+    localBackends=false,jev=false,openrouter=false,currency=false,terminalUsage=false,strictProtocol=false):Promise<void>{
     this.handshake??=this.rpc.request({op:'handshake'}).then(result=>{
       if(result.protocol!==PLANNING_PROTOCOL||!Array.isArray(result.capabilities)
           ||!result.capabilities.includes('escalation-decision-v1')
@@ -381,6 +381,10 @@ export class PlanningController {
       throw new Error('当前核心不支持官方 Jev Judge；请同时升级核心和插件')
     if(openrouter&&!capabilities.includes('jev-openrouter-v1'))
       throw new Error('当前核心不支持 OpenRouter Jev；请同时升级核心和插件')
+    if(terminalUsage&&!capabilities.includes('planning-terminal-usage-v1'))
+      throw new Error('当前核心不支持取消后的终止用量结算；请同时升级核心和插件')
+    if(strictProtocol&&!capabilities.includes('all-executor-protocol-admission-v1'))
+      throw new Error('当前核心不支持全执行候选协议准入；请同时升级核心和插件')
   }
   private runForAgent(agent:NativeAgent):string{
     const event=[...sessionEvents(agent)].reverse().find(item=>item.type==='step/start'||item.type==='turn/end')
@@ -432,7 +436,8 @@ export class PlanningController {
       signal.throwIfAborted()
       await this.ensureHandshake(strategy==='stage'&&config.stage?.mode==='hybrid',
         strategy==='composite'&&Boolean(config.composite),false,false,activeJev,
-        activeJev&&config.jev?.route==='openrouter',config.schemaVersion==='refractagent-planning-v7')
+        activeJev&&config.jev?.route==='openrouter',
+        ['refractagent-planning-v7','refractagent-planning-v8'].includes(config.schemaVersion),true,!!config.protocolAdmission)
       if(!runId){
         const hostIssues=await this.completeMetadata(config)
         if(activeJev){

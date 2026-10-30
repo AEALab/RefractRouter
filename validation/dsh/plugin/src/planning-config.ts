@@ -4,6 +4,7 @@ export type TaskModality = 'imageInput'|'videoInput'|'imageOutput'|'videoOutput'
 export interface PlanningModelCapabilities {
   mainExecutor?:boolean
   toolCalling?:CapabilityLevel
+  requestFeatures?:Partial<Record<'jsonObject'|'jsonSchema'|'strictTools'|'toolChoice'|'parallelToolCalls'|'promptCacheKey',CapabilityLevel>>
   modalities?:Partial<Record<TaskModality,CapabilityLevel>>
   formats?:Partial<Record<TaskModality,string[]>>
   limits?:Partial<Record<'maxImages'|'maxImageBytes'|'maxVideoBytes'|'maxVideoSeconds'|'maxWidth'|'maxHeight',number>>
@@ -67,6 +68,7 @@ export interface PlanningConfig {
   compatiblePairs?:string[][]
   taskShadow?:Record<string,unknown>
   stageShadow?:Record<string,unknown>
+  protocolAdmission?:'all-executor-protocol-admission-v1'
   task?:TaskRoutingConfig
   composite?:CompositeRoutingConfig
   escalation?:EscalationRoutingConfig

@@ -118,8 +118,13 @@ def test_private_reasoning_is_not_attached_to_different_source(tmp_path, monkeyp
         if change == "model":
             gw.planning["roles"]["efficient"] = "large"
             follow["metadata"] = {"refract_session": "new", "refract_task": "new"}
-        gw.complete(to_chat(follow), scope="other" if change == "scope" else "default")
-    assert all("reasoning_content" not in m for m in upstream.requests[1]["payload"]["messages"])
+        if change == "model":
+            with pytest.raises(ValueError, match="replay"):
+                gw.complete(to_chat(follow))
+            assert len(upstream.requests) == 1
+        else:
+            gw.complete(to_chat(follow), scope="other")
+            assert all("reasoning_content" not in m for m in upstream.requests[1]["payload"]["messages"])
 
 
 @pytest.mark.parametrize("mutate", ["text", "arguments", "call_id", "injected_reasoning"])

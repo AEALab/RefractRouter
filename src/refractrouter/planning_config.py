@@ -68,7 +68,7 @@ class PlanningModel(ModelSpec):
 
 
 def _capabilities(raw):
-    value = obj(raw or {}, ("mainExecutor", "toolCalling", "modalities", "formats", "limits",
+    value = obj(raw or {}, ("mainExecutor", "toolCalling", "modalities", "formats", "limits", "requestFeatures",
                             "source", "checkedAt"), "model.capabilities")
     main = value.get("mainExecutor", True)
     if type(main) is not bool:
@@ -76,6 +76,10 @@ def _capabilities(raw):
     tools = value.get("toolCalling", "unknown")
     if tools not in TASK_CAPABILITY_LEVELS:
         raise ValueError("capabilities.toolCalling 状态无效")
+    from .protocol_admission import REQUEST_FEATURES
+    features = obj(value.get('requestFeatures', {}), REQUEST_FEATURES, 'capabilities.requestFeatures')
+    if any(level not in TASK_CAPABILITY_LEVELS for level in features.values()):
+        raise ValueError('capabilities.requestFeatures 状态无效')
     modalities = obj(value.get("modalities", {}), TASK_MODALITIES, "capabilities.modalities")
     for name, level in modalities.items():
         if level not in TASK_CAPABILITY_LEVELS:
@@ -93,6 +97,7 @@ def _capabilities(raw):
         if value.get(name) is not None and (not isinstance(value[name], str) or len(value[name]) > 1000):
             raise ValueError(f"capabilities.{name} 无效")
     return {"mainExecutor": main, "toolCalling": tools,
+        "requestFeatures": {name: features.get(name, 'unknown') for name in REQUEST_FEATURES},
         "modalities": {name: modalities.get(name, "unknown") for name in TASK_MODALITIES},
         "formats": formats, "limits": limits,
         **({"source": value["source"]} if value.get("source") else {}),
@@ -347,7 +352,7 @@ def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
         "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage",
-        "composite", "mediaRoutes", "jev", "maxReferenceCost", "taskShadow", "stageShadow"), "planningRouting"))
+        "composite", "mediaRoutes", "jev", "maxReferenceCost", "taskShadow", "stageShadow", "protocolAdmission"), "planningRouting"))
     if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
@@ -371,6 +376,10 @@ def compile_config(raw):
     strategy = raw.get("defaultStrategy", "stage")
     if strategy not in STRATEGIES:
         raise ValueError("未知规划路由策略")
+    protocol_admission = raw.get('protocolAdmission')
+    if protocol_admission is not None and (protocol_admission != 'all-executor-protocol-admission-v1'
+                                           or raw['schemaVersion'] != SCHEMA_V8):
+        raise ValueError('全执行候选协议准入需要v8及明确版本合同')
     unit = raw.get("billingUnit", "USD" if raw["schemaVersion"] == SCHEMA else "CNY")
     if unit not in ("USD", "AFP", "CNY"):
         raise ValueError("不支持的计费单位")
@@ -624,6 +633,7 @@ def compile_config(raw):
     return {"raw": raw, "enabled": raw["enabled"], "strategy": strategy, "unit": unit, "budget": budget,
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
+        "protocol_admission": protocol_admission,
         "task": task, "task_shadow": task_shadow, "composite": composite, "escalation": escalation, "advisor": advisor,
         "stage": stage_config, "stage_shadow": stage_shadow, "jev": jev, "media_routes": normalized_media,
         "model_issues": model_issues, "reference_limit": reference_limit}

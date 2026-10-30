@@ -366,6 +366,10 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("工具结果未确认")
         c, s = run["config"], run["state"]
         strategy = "static" if request.get("purpose") == "compaction" else run["strategy"]
+        if c.get('protocol_admission') is not None:
+            from .protocol_admission import admit_all
+            admit_all(c, strategy, messages, tools, request.get('executionOptions', {}),
+                      request.get('maxTokens'), self.admit)
         task_route = self._task_route(run)
         task_v3 = strategy in ("task", "composite") and task_route["mode"] == "pool"
         # 一个任务只允许一个在途策略流程。Stage 先选本轮目标模型，再由 issue
@@ -850,26 +854,8 @@ class PlanningRuntime(StageHybridRuntime):
             old = next((m.model_id for m in c["models"].values()
                         if m.provider == source.get("provider") and m.api_model == source.get("model")), None)
             if old != model.model_id and [old, model.model_id] not in c["pairs"]:
-                content = message.get("content")
-                # 宿主标准文本与已配对的工具调用可按原结构发送；去掉提供方专用
-                # replay 和思考块，避免把旧模型的私有状态交给新模型。
-                def standard(block):
-                    if not isinstance(block, dict):
-                        return False
-                    if block.get("type") == "text":
-                        return isinstance(block.get("text"), str)
-                    if block.get("type") == "reasoning":
-                        return True
-                    return (block.get("type") == "tool-call"
-                            and all(isinstance(block.get(key), str) for key in ("id", "name", "arguments")))
-
-                if (message.get("role") == "assistant" and isinstance(content, list)
-                        and any(isinstance(block, dict) and block.get("type") in ("text", "tool-call")
-                                for block in content) and all(standard(block) for block in content)):
-                    message["content"] = [block for block in content if block["type"] != "reasoning"]
-                    source.pop("replayState", None)
-                else:
-                    raise ValueError("模型历史 replay 组合未经兼容验收")
+                # 不通过删除真实 replay 或思考历史来制造换模兼容。
+                raise ValueError("模型历史 replay 组合未经兼容验收；保留原始历史并拒绝派发")
         return model
 
     def issue_jev(self, run, kind, request, *, timeout_ms):
@@ -1891,6 +1877,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
+                "planning-routing-v8", "planning-terminal-usage-v1", "all-executor-protocol-admission-v1",
                 "composite-task-stage-v1",
                 "task-result-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",

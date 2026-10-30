@@ -130,13 +130,13 @@ class WireStream:
     def event(self, kind, **data):
         value = {'type':kind, 'sequence_number':self.sequence, **data}
         self.sequence += 1
-        self.send(b'event: '+kind.encode()+b'\ndata: '+encoded(value)+b'\n\n')
+        return self.send(b'event: '+kind.encode()+b'\ndata: '+encoded(value)+b'\n\n')
 
     def chunk(self, delta, finish=None, usage=None):
         value = {**self.base,'object':'chat.completion.chunk',
             'choices':[] if usage is not None else [{'index':0,'delta':delta,'finish_reason':finish}]}
         if usage is not None: value['usage'] = usage
-        self.send(b'data: '+encoded(value)+b'\n\n')
+        return self.send(b'data: '+encoded(value)+b'\n\n')
 
     def start(self, meta):
         if self.started: return
@@ -157,11 +157,12 @@ class WireStream:
                     'id':self.message_id,'role':'assistant','status':'in_progress','content':[]})
                 self.event('response.content_part.added',item_id=self.message_id,output_index=0,
                     content_index=0,part={'type':'output_text','text':'','annotations':[]})
-            self.event('response.output_text.delta',item_id=self.message_id,output_index=0,
+            delivered = self.event('response.output_text.delta',item_id=self.message_id,output_index=0,
                 content_index=0,delta=text)
-        else: self.chunk({'content':text})
+        else: delivered = self.chunk({'content':text})
         self.text_started = True
         self.live_text += text
+        return delivered is not False
 
     def finish(self, result):
         from .gateway_responses import from_chat

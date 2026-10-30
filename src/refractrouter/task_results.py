@@ -11,7 +11,8 @@ CALL_FIELDS = ("call_id", "model_id", "provider", "actual_model", "purpose", "st
                "reference_cost_cny", "cash_cost_cny", "cash_cost_status", "cost_basis",
                "provider_cost_confirmed", "input_tokens", "output_tokens", "cached_input_tokens",
                "cache_usage_source", "cache_usage_available", "cache_write_tokens", "cache_write_usage_available",
-               "userFirstTextMs", "deliveryMode", "releasedTextBytes", "first_tool_ms", "reasoning_tokens", "latency_ms",
+               "userFirstTextMs", "userFirstTextOrigin", "deliveryMode", "deliveryAttempted", "deliveryRejected",
+               "releasedTextBytes", "first_tool_ms", "reasoning_tokens", "latency_ms",
                "ttft_ms", "request_id", "dispatch_at", "finish_reason", "usage_type", "price_snapshot",
                "pricing_tier", "pricing_source", "pricing_checked_at")
 

@@ -1010,7 +1010,7 @@ function Trace({load,loadAutomatic,useChat}:{load:()=>Promise<History>;loadAutom
         <p>{traceAmount(r.costs.production)} {r.billingUnit}</p>}
       {r.billingWarning&&<p role="status">{r.billingWarning}</p>}
       {r.calls.some(c=>c.status==='unknown-usage'||c.status==='reserved')&&<p role="status">以上金额包含尚未结算的预留，不等于已确认扣费。用量待核对的调用不会自动重发。</p>}
-      <table><thead><tr>{['模型／推理等级','用途','交付状态','本次金额／累计占用','首字／总耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
+      <table><thead><tr>{['模型／推理等级','用途','交付状态','本次金额／累计占用','上游首 token／调用耗时 ms','决策与证据'].map(h=><th key={h}>{h}</th>)}</tr></thead>
         <tbody>{(()=>{const totals:Record<string,number>={};return r.calls.map(c=>{const unit=c.billing_unit??r.billingUnit??'';totals[unit]=(totals[unit]??0)+c.charged
           const related=c.call_id?r.decisions.filter(row=>row.callId===c.call_id||row.candidateCallId===c.call_id):[]
           return <tr key={c.call_id??c.label}><td>{c.provider&&c.actual_model?`${c.provider}/${c.actual_model}`:c.model_id}<br/><small>{c.usage_type==='non-token'?`${c.usage?.actualUnits??c.usage?.maximumUnits??'待核对'} ${c.usage?.basis??'媒体单位'}`:c.reasoning_effort??'提供方默认'}</small></td><td>{PURPOSE[c.purpose]??c.purpose}</td><td>{callDisposition(c)}{c.review_status==='revised-unreviewed'?' · 未复审':''}{c.review_status==='takeover-unreviewed'?' · 接管后未审核':''}</td>

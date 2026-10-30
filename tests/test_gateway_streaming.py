@@ -148,6 +148,52 @@ def test_cancel_after_text_settles_dispatched_stream_without_replacement(tmp_pat
     gw.close()
 
 
+def test_buffered_user_first_text_is_after_review_not_upstream_ttft(tmp_path, monkeypatch):
+    from dataclasses import replace
+    from types import SimpleNamespace
+    import time
+    from tests.test_model_gateway import Caller, reply, request, gateway
+    clock = [100.0]
+    monkeypatch.setattr('refractrouter.model_gateway.time', SimpleNamespace(
+        monotonic=lambda: clock[0], time=time.time, perf_counter=time.perf_counter, sleep=time.sleep))
+    class ClockedCaller(Caller):
+        def __call__(self, action, options):
+            clock[0] += .1 if action['purpose'] == 'execute' else .5
+            return super().__call__(action, options)
+    caller = ClockedCaller(replace(reply('已审核交付'), ttft_ms=1),
+        reply(json.dumps({'verdict': 'APPROVE', 'feedback': '通过'})))
+    gw = gateway(tmp_path, caller, configuration('advisor'))
+    seen = []
+    gw.complete(request('advisor'), on_text=lambda meta, text: seen.append((len(caller.actions), text)))
+    row = next(iter(gw.runtime.runs.values()))['budget'].records[0]
+    assert seen == [(2, '已审核交付')] and row['deliveryMode'] == 'buffered-release'
+    assert row['userFirstTextMs'] == 600 and row['ttft_ms'] == 1
+    assert row['userFirstTextOrigin'] == 'gateway-request-start'
+    assert row['releasedTextBytes'] == len('已审核交付'.encode())
+    gw.close()
+
+
+def test_failed_text_delivery_is_not_counted_as_visible_or_attempted_again(tmp_path):
+    from tests.test_model_gateway import Caller, reply, request, gateway
+    class StreamingCaller(Caller):
+        def stream(self, action, options, on_text):
+            on_text('第一段')
+            on_text('第二段')
+            return super().__call__(action, options)
+    gw = gateway(tmp_path, StreamingCaller(reply('第一段第二段')))
+    seen = []
+    def reject(meta, text):
+        seen.append(text)
+        return False
+    with pytest.raises(ConnectionError, match='未接收'):
+        gw.complete(request(), on_text=reject)
+    row = next(iter(gw.runtime.runs.values()))['budget'].records[0]
+    assert seen == ['第一段'] and row['status'] == 'billed'
+    assert 'userFirstTextMs' not in row and row.get('releasedTextBytes', 0) == 0
+    assert row['deliveryRejected'] is True
+    gw.close()
+
+
 @pytest.mark.parametrize('arguments',['{"path":"wrong","path":"demo"}', '{"path":"different"}', '{"path":"demo","extra":1}'])
 def test_history_does_not_normalize_ambiguous_or_changed_arguments(tmp_path,arguments):
     from tests.test_model_gateway import gateway,Caller,reply,call,request,follow
