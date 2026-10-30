@@ -1,0 +1,91 @@
+{
+  "schema": "heterogeneous-preflight-audit-v1",
+  "protocolSha256": "00546aa89a857a225e899c36f197c0b5b3d2e911eec65ac3b8fa6629eeffa5f8",
+  "status": "passed",
+  "realModelCalls": 0,
+  "realAfp": 0,
+  "matrixCases": 288,
+  "nativeChecks": [
+    {
+      "arm": "direct-L",
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "parentLedgerRecords": 1,
+      "mainSteps": 1,
+      "simulatedAfp": 0.008
+    },
+    {
+      "arm": "direct-H",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "parentLedgerRecords": 1,
+      "mainSteps": 1,
+      "simulatedAfp": 0.088
+    },
+    {
+      "arm": "node-LL",
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash",
+        "deepseek-v4-flash"
+      ],
+      "parentLedgerRecords": 7,
+      "mainSteps": 4,
+      "simulatedAfp": 0.056
+    },
+    {
+      "arm": "node-LH",
+      "models": [
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-flash",
+        "deepseek-v4-pro",
+        "deepseek-v4-flash"
+      ],
+      "parentLedgerRecords": 7,
+      "mainSteps": 4,
+      "simulatedAfp": 0.296
+    }
+  ],
+  "serializedRequests": 23,
+  "secretMatches": 0,
+  "requestHashes": {
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/planner-wire/001-request.json": "f8eb7b198fdc29466fe566c35748dd88571e6eb61e155b0810bc3a3d57367cf3",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/dag-mixed/wire/002-request.json": "c2a41a38168f114b43317e6b115d1eb8a0590ece9e3b47914f307c872f7cd07d",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/dag-mixed/wire/003-request.json": "d73ffd5d1ede6c46337fd562078cc93d3bcd0cb1ed2570cf957577708e68e6f4",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/dag-mixed/wire/001-request.json": "455d410a8e53e2287c5438f863a3df01effeb03b27ffa3bfa7cce7da988b16c9",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/002-request.json": "d88a8b7b02815e26bce944607776a8230824072071084f2f674f000119a83e97",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/005-request.json": "968b98810d4b26558eb1666b5b877d9861d441efbfd40dde7741703e1adff3a4",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/004-request.json": "d88a8b7b02815e26bce944607776a8230824072071084f2f674f000119a83e97",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/003-request.json": "4e2c3273d29c080e2be3d03bdd4451e3ddf8d596929a1ea99919cc0a8857a62e",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/001-request.json": "0e289d7ef54c21069b7e4e9068023f3f6171933ac11b408ef0a46acb62f72a7d",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/006-request.json": "d88a8b7b02815e26bce944607776a8230824072071084f2f674f000119a83e97",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LH/wire/007-request.json": "382d31ce76a0b5ceac2a302e5f346bc7165e039851f542de72e3c1b72ca0849a",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/direct-L/wire/001-request.json": "8b36c51968dcc094bd507aa439a5c0696961c3deac60d0f1b4c7622d20e479c4",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/dag-L/wire/002-request.json": "82566976ba5ad6d13f84f2a353807277b69bf822ddb563a6a02040f48d57d49c",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/dag-L/wire/003-request.json": "d28db562964fac3dd509e74a6486d581f1b292cab5b0570f91d3aa74b0dde005",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/dag-L/wire/001-request.json": "455d410a8e53e2287c5438f863a3df01effeb03b27ffa3bfa7cce7da988b16c9",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/direct-H/wire/001-request.json": "bb3b2fc421a91c16ba0d907f495a84cfbbe3ee6de4b89fb76018b8d7ee438d0d",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/002-request.json": "9b1303bcdb6621c56671a2edca6ae28ccf0229b1740cbc4b113885b697d5ec11",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/005-request.json": "68121209a945ff7636cc745e545d0f7f5e6c98c44ca63c690320d9ba9db401b2",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/004-request.json": "9b1303bcdb6621c56671a2edca6ae28ccf0229b1740cbc4b113885b697d5ec11",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/003-request.json": "3ac1ab9dd2afa4f1c6213cb190fb27dba09a17acde9b210a4cef6156332fa58b",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/001-request.json": "0e289d7ef54c21069b7e4e9068023f3f6171933ac11b408ef0a46acb62f72a7d",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/006-request.json": "9b1303bcdb6621c56671a2edca6ae28ccf0229b1740cbc4b113885b697d5ec11",
+    "reports/node-tool-heterogeneous-20261030-preflight-03/rehearsal/node-LL/wire/007-request.json": "9871d8bab9218365eacb765b742e0a371f4a18c640c0119848e72f79507d5ced"
+  },
+  "limitations": [
+    "本轮真实模型版本及能力资格探测尚未执行",
+    "开发提示赢家尚未产生",
+    "独立材料及正文语义审查待完成",
+    "新增付费范围与预算尚未批准"
+  ]
+}

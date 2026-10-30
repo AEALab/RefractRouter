@@ -256,3 +256,64 @@ def test_unlimited_time_experts_default_to_model_capacity_and_honor_explicit_cap
     assert r.runs[run]["budget"].records[-1]["reserved_output_tokens"]==20000
     r,run=setup(tmp_path/"explicit",cfg=cfg,profile={"enabled":True,"maxOutputTokens":512})
     assert node(r,run)["model"]["maxTokens"]==512
+
+
+@pytest.mark.parametrize("main,expert", [("small", "large"), ("large", "small"), ("small", "small")])
+def test_independent_binding_preserves_main_state_and_parent_ledger(tmp_path, main, expert):
+    cfg = configuration("static")
+    cfg["maxCalls"] = 7
+    cfg["timeoutMs"] = 0
+    binding = {"enabled": True, "modelBindings": {"main": main, "expert": expert}}
+    r, run = setup(tmp_path, cfg=cfg, profile=binding)
+    assert r.runs[run]["budget"].records[0]["model_id"] == main
+    state = deepcopy(r.runs[run]["state"])
+    action = node(r, run)
+    assert action["model"]["id"] == expert and action["tools"] == []
+    assert action["remainingMs"] is None
+    artifact(r, run, action)
+    assert r.runs[run]["state"] == state
+    followup = r.handle({"op": "step", "runId": run,
+        "messages": [{"role": "user", "content": "根据专家结果完成任务"}],
+        "tools": catalog(binding)["tools"]})
+    assert followup["model"]["id"] == main
+    receipt(r, run, followup, content="完整交付")
+    r.handle({"op": "end", "runId": run})
+    record = r.handle({"op": "query", "runId": run})
+    assert [c["model_id"] for c in record["calls"]] == [main, expert, main]
+    assert all(c["status"] == "billed" for c in record["calls"])
+    assert record["costs"]["production"] == pytest.approx(sum(c["charged"] for c in record["calls"]))
+    assert [d["channel"] for d in record["decisions"]] == ["main", "expert", "main"]
+
+
+def test_binding_models_are_disclosed_and_missing_models_refused(tmp_path):
+    r = PlanningRuntime(tmp_path)
+    cfg = configuration("static")
+    request = {"op": "begin", "identity": {"session": "s", "agent": "a", "turn": 1},
+        "config": cfg, "nodeTools": {"enabled": True,
+            "modelBindings": {"main": "small", "expert": "large"}}}
+    result = r.handle(request)
+    assert len(result["models"]) == 2
+    request["identity"]["turn"] = 2
+    request["nodeTools"]["modelBindings"]["expert"] = "missing"
+    with pytest.raises(ValueError, match="模型不可用"):
+        r.handle(request)
+
+
+@pytest.mark.parametrize("binding", [{"main": "small"}, {"main": "small", "expert": ""},
+                                    {"main": "small", "expert": "large", "fallback": "small"}])
+def test_binding_requires_explicit_complete_pair(binding):
+    with pytest.raises(ValueError, match="独立选模"):
+        catalog({"enabled": True, "modelBindings": binding})
+
+
+def test_binding_rejects_stage_and_keeps_expert_privacy_admission(tmp_path):
+    binding = {"enabled": True, "modelBindings": {"main": "small", "expert": "large"}}
+    with pytest.raises(ValueError, match="Static fixed"):
+        setup(tmp_path / "stage", cfg=configuration("stage"), profile=binding)
+    cfg = configuration("static")
+    cfg["security"] = {"sensitiveTerms": ["100 元"]}
+    next(m for m in cfg["models"] if m["id"] == "large")["deployment"] = "external-cloud"
+    r, run = setup(tmp_path / "privacy", cfg=cfg, profile=binding)
+    with pytest.raises(ValueError, match="数据域"):
+        node(r, run)
+    assert len(r.runs[run]["budget"].records) == 1

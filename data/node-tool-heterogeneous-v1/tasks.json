@@ -1,0 +1,854 @@
+{
+  "schema": "heterogeneous-materials-v1",
+  "tasks": [
+    {
+      "task_id": "purchase-0",
+      "title": "仪器采购复核",
+      "split": "development",
+      "family": "purchase",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "采购 175 件。比较三个供应商最新含税到货总价，选已确认符合全部硬条件的最低价者；解释未确认事项。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "数量 175，预算 15003.25 元，交期不晚于11-24，保修至少24个月，证书须已确认有效。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "A：单价 71 元未税，税率9%，运费460元已含税；数量达到400才打95折。保修18个月，证书有效，11-22到货。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "B旧报价：含税单价 74，运费300；新通知替代价格：含税单价 76，运费820。货款数量达到150打94折，运费不折扣；保修24个月，11-24到货，证书待确认。"
+        },
+        {
+          "source_id": "s4",
+          "title": "材料4",
+          "text": "C：含税单价 75，运费610；500元优惠券仅11-01及以前付款，本任务11-05付款。保修30个月，证书有效，11-24到货。"
+        }
+      ],
+      "requested_findings": {
+        "cost_a": "A总价",
+        "cost_b": "B最新总价",
+        "cost_c": "C总价",
+        "selected": "已确认合格的最低价者",
+        "b_confirmed": "B是否已确认合格"
+      },
+      "semantic_criteria": [
+        "复算税费和折扣，不叠加旧报价；资格未确认不能当通过。",
+        "正文与字段一致；不能把价格最低等同资格合格。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "7eae111274537d545dd280aabe00142c87964a69fb345423fa89b9d4ac7e5d74"
+    },
+    {
+      "task_id": "schedule-0",
+      "title": "批处理上线安排",
+      "split": "development",
+      "family": "schedule",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "给出最多两项并发、任务不可拆分的最早排程；区分前置齐备、技术完工、窗口完工及等待时长。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "有效清单：A 4小时无前置；B 6小时依赖A；C 3小时依赖A；D 1小时无前置；E 2小时依赖B和C；F 4小时依赖B；G 2小时依赖D/E/F。每项独占一个槽，最多两个槽。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "旧文档曾写F=1小时、C依赖B，均被有效清单替代。G必须完整位于[18,22]；其他任务无窗口。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "t=0全部任务未开始；D只有预计时长，尚无签字或测试完成记录。等待从G前置齐备时算到G实际开始。"
+        }
+      ],
+      "requested_findings": {
+        "ready": "G前置最早齐备",
+        "technical_finish": "忽略窗口的最早G结束",
+        "window_finish": "考虑窗口的最早G结束",
+        "window_wait": "窗口排程的实际等待时长",
+        "approval_confirmed": "现在是否已有批准"
+      },
+      "semantic_criteria": [
+        "给出满足依赖和两槽限制的完整排程。",
+        "不能用技术完工到窗口开始之差冒充实际等待；预计完成不等于已批准。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "cfaafbfd0978466e7f53d827ddc84934946e289b6f993f9f78a3a90aa942fb57"
+    },
+    {
+      "task_id": "ledger-0",
+      "title": "结算事件去重",
+      "split": "development",
+      "family": "ledger",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "按顺序复算账本，并指出“所有事件直接加总、按整个载荷去重”的实现为什么错误。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "规则：初始余额0。相同id且载荷相同是重复；相同id载荷不同是冲突，保留首次、不覆盖；冲突不入账。paid入账，refund仅在不超过当前余额时扣减，否则拒绝；pending不入账。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "[{\"id\": \"p1\", \"kind\": \"paid\", \"amount\": 900}, {\"id\": \"p1\", \"kind\": \"paid\", \"amount\": 900}, {\"id\": \"p2\", \"kind\": \"paid\", \"amount\": 75}, {\"id\": \"p2\", \"kind\": \"paid\", \"amount\": 76}, {\"id\": \"r1\", \"kind\": \"refund\", \"amount\": 140}, {\"id\": \"r2\", \"kind\": \"refund\", \"amount\": 975}, {\"id\": \"q1\", \"kind\": \"pending\", \"amount\": 500}]"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "金额单位为元；拒绝退款不允许把余额变负；不能假定pending以后会成功。"
+        }
+      ],
+      "requested_findings": {
+        "balance": "已确认余额",
+        "duplicates": "重复id",
+        "conflicts": "冲突id",
+        "rejected_refunds": "拒绝退款id",
+        "pending": "未确认id"
+      },
+      "semantic_criteria": [
+        "区分重复与冲突，按首次有效载荷入账。",
+        "给出修正的处理顺序或伪代码，不把pending算成已收款。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "02d4152b2d4991177f9f9a0291087e6c9966e66332a0cab1590db806d7c8bd15"
+    },
+    {
+      "task_id": "inventory-0",
+      "title": "双仓装配可用量",
+      "split": "development",
+      "family": "inventory",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "计算截止11-12可用零件和最多可组装套数，说明为什么不能使用全口径库存。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "两个仓库汇总X在库 137，已预留 28，质检冻结 9；预留与冻结互不重叠。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "已确认11-11到货X 36；11-10已确认另消耗X 5；还有预计11-14到货50和未确认到货80，均不在本次可用范围。Y在上述扣除后截止11-12可用 89。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "每套用X三件、Y两件，不能拆分套装。不允许解除预留或冻结，且已消耗数量尚未从在库汇总扣除。"
+        }
+      ],
+      "requested_findings": {
+        "available_x": "截止日可用X",
+        "available_y": "截止日可用Y",
+        "max_kits": "最多完整套数",
+        "unconfirmed_included": "是否纳入未确认到货"
+      },
+      "semantic_criteria": [
+        "不重复扣除、不使用截止日之后或未确认到货；给出整数套装的瓶颈。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "d0b295b8b91e74be61e115a97ae3070f66fc06319db7ae1e3d025b87611e49e3"
+    },
+    {
+      "task_id": "metrics-0",
+      "title": "服务达标率汇总",
+      "split": "development",
+      "family": "metrics",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "复核全局达标率和门槛判断，解释分组平均值不能代替全局比率，并说明能否得出P95。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "甲组样本 120，其中达标 108；乙组样本 880，其中达标 836。两个分组互斥且穷尽本期全部已完成样本。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "内部报告门槛：全局已完成样本达标率至少94%才通过。不将未完成样本纳入这个分母；另有90件未完成，不能视为达标。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "未提供逐件耗时、分位数或耗时分布；两个组仅给了各自平均耗时，不允许由均值推出P95。"
+        }
+      ],
+      "requested_findings": {
+        "completed": "已完成样本总数",
+        "on_time": "达标总数",
+        "rate_percent": "全局达标百分数，至少四位小数",
+        "threshold_met": "是否达到94%",
+        "p95_identified": "材料是否足以确定P95"
+      },
+      "semantic_criteria": [
+        "用总达标数除总完成数，不能直接平均两个组的百分比。",
+        "未完成与未知耗时不冒充成功或已知P95。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "9bc9041408a5fe7e5018ead0348a73c437d60fae00c4ec18b76364ab7d95c516"
+    },
+    {
+      "task_id": "approval-0",
+      "title": "数据变更审批资格",
+      "split": "development",
+      "family": "approval",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "只判断材料中三项申请是否已经获准，不执行任何操作；列出阻止确认的条件。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "现行规则R1替代旧规则：每项申请至少两名不同审查人签字，均不得是申请人；至少一名属于合规组。过期签字无效，到期日当天有效。缺材料记未确认，不能推定补齐。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "观察日11-10。申请A由u1发起，签字u2（合规，有效到11-20）、u3（工程，有效到11-20）；申请B由u4发起，签字u4（合规，有效到11-20）、u5（工程，有效到11-20）。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "申请C由u6发起，签字u7（合规，有效到11-09）、u8（工程，有效到11-20）；还有一份待核实签字，不知道身份和有效期。"
+        },
+        {
+          "source_id": "s4",
+          "title": "材料4",
+          "text": "旧规则只要求一个签字，已经失效。计划中的补签和审批排程不能作为已经批准的证据。"
+        }
+      ],
+      "requested_findings": {
+        "approved": "已确认批准集合",
+        "b_approved": "B是否已获批准",
+        "c_approved": "C是否已获批准",
+        "old_rule_used": "是否可以沿用旧规则"
+      },
+      "semantic_criteria": [
+        "不能把申请人签字计入、过期签字计入或未知签字当有效。",
+        "引用现行规则并逐项解释，不声称已经执行外部操作。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "922cc52a488869c8465f31e76050802a6f1d2208cc6c868e40ccc554c4d5c838"
+    },
+    {
+      "task_id": "purchase-1",
+      "title": "实验室备用件采购",
+      "split": "candidate-holdout",
+      "family": "purchase",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "采购 260 件。比较三个供应商最新含税到货总价，选已确认符合全部硬条件的最低价者；解释未确认事项。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "数量 260，预算 17613.80 元，交期不晚于11-24，保修至少24个月，证书须已确认有效。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "A：单价 57 元未税，税率9%，运费460元已含税；数量达到400才打95折。保修18个月，证书有效，11-22到货。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "B旧报价：含税单价 60，运费300；新通知替代价格：含税单价 62，运费820。货款数量达到150打94折，运费不折扣；保修24个月，11-24到货，证书待确认。"
+        },
+        {
+          "source_id": "s4",
+          "title": "材料4",
+          "text": "C：含税单价 61，运费610；500元优惠券仅11-01及以前付款，本任务11-05付款。保修30个月，证书有效，11-24到货。"
+        }
+      ],
+      "requested_findings": {
+        "cost_a": "A总价",
+        "cost_b": "B最新总价",
+        "cost_c": "C总价",
+        "selected": "已确认合格的最低价者",
+        "b_confirmed": "B是否已确认合格"
+      },
+      "semantic_criteria": [
+        "复算税费和折扣，不叠加旧报价；资格未确认不能当通过。",
+        "正文与字段一致；不能把价格最低等同资格合格。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "1d93bf9ba00ef3dc90c41d1e09041d47333947029dc021a52dc93accc05dcafc"
+    },
+    {
+      "task_id": "schedule-1",
+      "title": "数据管道切换安排",
+      "split": "candidate-holdout",
+      "family": "schedule",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "给出最多两项并发、任务不可拆分的最早排程；区分前置齐备、技术完工、窗口完工及等待时长。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "有效清单：A 2小时无前置；B 7小时依赖A；C 5小时依赖A；D 1小时无前置；E 2小时依赖B和C；F 3小时依赖B；G 2小时依赖D/E/F。每项独占一个槽，最多两个槽。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "旧文档曾写F=1小时、C依赖B，均被有效清单替代。G必须完整位于[16,20]；其他任务无窗口。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "t=0全部任务未开始；D只有预计时长，尚无签字或测试完成记录。等待从G前置齐备时算到G实际开始。"
+        }
+      ],
+      "requested_findings": {
+        "ready": "G前置最早齐备",
+        "technical_finish": "忽略窗口的最早G结束",
+        "window_finish": "考虑窗口的最早G结束",
+        "window_wait": "窗口排程的实际等待时长",
+        "approval_confirmed": "现在是否已有批准"
+      },
+      "semantic_criteria": [
+        "给出满足依赖和两槽限制的完整排程。",
+        "不能用技术完工到窗口开始之差冒充实际等待；预计完成不等于已批准。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "a12068c556a97ea89a802698f87f2951c1cf36893bccb55dca36d2eb3f9e3700"
+    },
+    {
+      "task_id": "ledger-1",
+      "title": "订阅退款流水核验",
+      "split": "candidate-holdout",
+      "family": "ledger",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "按顺序复算账本，并指出“所有事件直接加总、按整个载荷去重”的实现为什么错误。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "规则：初始余额0。相同id且载荷相同是重复；相同id载荷不同是冲突，保留首次、不覆盖；冲突不入账。paid入账，refund仅在不超过当前余额时扣减，否则拒绝；pending不入账。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "[{\"id\": \"p1\", \"kind\": \"paid\", \"amount\": 1200}, {\"id\": \"p1\", \"kind\": \"paid\", \"amount\": 1200}, {\"id\": \"p2\", \"kind\": \"paid\", \"amount\": 105}, {\"id\": \"p2\", \"kind\": \"paid\", \"amount\": 106}, {\"id\": \"r1\", \"kind\": \"refund\", \"amount\": 260}, {\"id\": \"r2\", \"kind\": \"refund\", \"amount\": 1305}, {\"id\": \"q1\", \"kind\": \"pending\", \"amount\": 500}]"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "金额单位为元；拒绝退款不允许把余额变负；不能假定pending以后会成功。"
+        }
+      ],
+      "requested_findings": {
+        "balance": "已确认余额",
+        "duplicates": "重复id",
+        "conflicts": "冲突id",
+        "rejected_refunds": "拒绝退款id",
+        "pending": "未确认id"
+      },
+      "semantic_criteria": [
+        "区分重复与冲突，按首次有效载荷入账。",
+        "给出修正的处理顺序或伪代码，不把pending算成已收款。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "a206617f565ae9374446f850faa56258215bcc9cb2c405e6d1c1731dfee840ca"
+    },
+    {
+      "task_id": "inventory-1",
+      "title": "备件套装交付能力",
+      "split": "candidate-holdout",
+      "family": "inventory",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "计算截止11-12可用零件和最多可组装套数，说明为什么不能使用全口径库存。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "两个仓库汇总X在库 182，已预留 47，质检冻结 11；预留与冻结互不重叠。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "已确认11-11到货X 25；11-10已确认另消耗X 7；还有预计11-14到货50和未确认到货80，均不在本次可用范围。Y在上述扣除后截止11-12可用 120。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "每套用X三件、Y两件，不能拆分套装。不允许解除预留或冻结，且已消耗数量尚未从在库汇总扣除。"
+        }
+      ],
+      "requested_findings": {
+        "available_x": "截止日可用X",
+        "available_y": "截止日可用Y",
+        "max_kits": "最多完整套数",
+        "unconfirmed_included": "是否纳入未确认到货"
+      },
+      "semantic_criteria": [
+        "不重复扣除、不使用截止日之后或未确认到货；给出整数套装的瓶颈。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "cc5f4b4cdf4dc9b6b0c334f1e556ff192dc1fe57d4c8e7773987d608977cf211"
+    },
+    {
+      "task_id": "metrics-1",
+      "title": "客服队列加权复核",
+      "split": "candidate-holdout",
+      "family": "metrics",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "复核全局达标率和门槛判断，解释分组平均值不能代替全局比率，并说明能否得出P95。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "甲组样本 75，其中达标 60；乙组样本 925，其中达标 888。两个分组互斥且穷尽本期全部已完成样本。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "内部报告门槛：全局已完成样本达标率至少94%才通过。不将未完成样本纳入这个分母；另有90件未完成，不能视为达标。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "未提供逐件耗时、分位数或耗时分布；两个组仅给了各自平均耗时，不允许由均值推出P95。"
+        }
+      ],
+      "requested_findings": {
+        "completed": "已完成样本总数",
+        "on_time": "达标总数",
+        "rate_percent": "全局达标百分数，至少四位小数",
+        "threshold_met": "是否达到94%",
+        "p95_identified": "材料是否足以确定P95"
+      },
+      "semantic_criteria": [
+        "用总达标数除总完成数，不能直接平均两个组的百分比。",
+        "未完成与未知耗时不冒充成功或已知P95。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "cb6c0348c8b10ea6d87f0ccc324f503b978c275b37ba5d1f2f8d094515a9bca8"
+    },
+    {
+      "task_id": "approval-1",
+      "title": "维护操作批准复核",
+      "split": "candidate-holdout",
+      "family": "approval",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "只判断材料中三项申请是否已经获准，不执行任何操作；列出阻止确认的条件。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "现行规则R2替代旧规则：每项申请至少两名不同审查人签字，均不得是申请人；至少一名属于合规组。过期签字无效，到期日当天有效。缺材料记未确认，不能推定补齐。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "观察日11-11。申请A由u1发起，签字u2（合规，有效到11-20）、u3（工程，有效到11-20）；申请B由u4发起，签字u4（合规，有效到11-20）、u5（工程，有效到11-20）。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "申请C由u6发起，签字u7（合规，有效到11-10）、u8（工程，有效到11-20）；还有一份待核实签字，不知道身份和有效期。"
+        },
+        {
+          "source_id": "s4",
+          "title": "材料4",
+          "text": "旧规则只要求一个签字，已经失效。计划中的补签和审批排程不能作为已经批准的证据。"
+        }
+      ],
+      "requested_findings": {
+        "approved": "已确认批准集合",
+        "b_approved": "B是否已获批准",
+        "c_approved": "C是否已获批准",
+        "old_rule_used": "是否可以沿用旧规则"
+      },
+      "semantic_criteria": [
+        "不能把申请人签字计入、过期签字计入或未知签字当有效。",
+        "引用现行规则并逐项解释，不声称已经执行外部操作。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "7f5c8f7be047ead83c3280619d0a5eac1b46945c18dd087d9529a2ee19c945af"
+    },
+    {
+      "task_id": "purchase-2",
+      "title": "维护终端采购",
+      "split": "candidate-holdout",
+      "family": "purchase",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "采购 335 件。比较三个供应商最新含税到货总价，选已确认符合全部硬条件的最低价者；解释未确认事项。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "数量 335，预算 17355.00 元，交期不晚于11-24，保修至少24个月，证书须已确认有效。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "A：单价 43 元未税，税率9%，运费460元已含税；数量达到400才打95折。保修18个月，证书有效，11-22到货。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "B旧报价：含税单价 46，运费300；新通知替代价格：含税单价 48，运费820。货款数量达到150打94折，运费不折扣；保修24个月，11-24到货，证书待确认。"
+        },
+        {
+          "source_id": "s4",
+          "title": "材料4",
+          "text": "C：含税单价 47，运费610；500元优惠券仅11-01及以前付款，本任务11-05付款。保修30个月，证书有效，11-24到货。"
+        }
+      ],
+      "requested_findings": {
+        "cost_a": "A总价",
+        "cost_b": "B最新总价",
+        "cost_c": "C总价",
+        "selected": "已确认合格的最低价者",
+        "b_confirmed": "B是否已确认合格"
+      },
+      "semantic_criteria": [
+        "复算税费和折扣，不叠加旧报价；资格未确认不能当通过。",
+        "正文与字段一致；不能把价格最低等同资格合格。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "cfc064f161d57ce3bad6669c8da71618b84734611b490fdbd499ba29bec33dbf"
+    },
+    {
+      "task_id": "schedule-2",
+      "title": "区域服务迁移安排",
+      "split": "candidate-holdout",
+      "family": "schedule",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "给出最多两项并发、任务不可拆分的最早排程；区分前置齐备、技术完工、窗口完工及等待时长。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "有效清单：A 5小时无前置；B 4小时依赖A；C 6小时依赖A；D 1小时无前置；E 2小时依赖B和C；F 5小时依赖B；G 1小时依赖D/E/F。每项独占一个槽，最多两个槽。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "旧文档曾写F=1小时、C依赖B，均被有效清单替代。G必须完整位于[18,21]；其他任务无窗口。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "t=0全部任务未开始；D只有预计时长，尚无签字或测试完成记录。等待从G前置齐备时算到G实际开始。"
+        }
+      ],
+      "requested_findings": {
+        "ready": "G前置最早齐备",
+        "technical_finish": "忽略窗口的最早G结束",
+        "window_finish": "考虑窗口的最早G结束",
+        "window_wait": "窗口排程的实际等待时长",
+        "approval_confirmed": "现在是否已有批准"
+      },
+      "semantic_criteria": [
+        "给出满足依赖和两槽限制的完整排程。",
+        "不能用技术完工到窗口开始之差冒充实际等待；预计完成不等于已批准。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "0ffd86b693f788f44e3ab50f6808ced45ed97707beed3463023997d38f77fb15"
+    },
+    {
+      "task_id": "ledger-2",
+      "title": "票务回调流水核验",
+      "split": "candidate-holdout",
+      "family": "ledger",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "按顺序复算账本，并指出“所有事件直接加总、按整个载荷去重”的实现为什么错误。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "规则：初始余额0。相同id且载荷相同是重复；相同id载荷不同是冲突，保留首次、不覆盖；冲突不入账。paid入账，refund仅在不超过当前余额时扣减，否则拒绝；pending不入账。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "[{\"id\": \"p1\", \"kind\": \"paid\", \"amount\": 1800}, {\"id\": \"p1\", \"kind\": \"paid\", \"amount\": 1800}, {\"id\": \"p2\", \"kind\": \"paid\", \"amount\": 125}, {\"id\": \"p2\", \"kind\": \"paid\", \"amount\": 126}, {\"id\": \"r1\", \"kind\": \"refund\", \"amount\": 330}, {\"id\": \"r2\", \"kind\": \"refund\", \"amount\": 1925}, {\"id\": \"q1\", \"kind\": \"pending\", \"amount\": 500}]"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "金额单位为元；拒绝退款不允许把余额变负；不能假定pending以后会成功。"
+        }
+      ],
+      "requested_findings": {
+        "balance": "已确认余额",
+        "duplicates": "重复id",
+        "conflicts": "冲突id",
+        "rejected_refunds": "拒绝退款id",
+        "pending": "未确认id"
+      },
+      "semantic_criteria": [
+        "区分重复与冲突，按首次有效载荷入账。",
+        "给出修正的处理顺序或伪代码，不把pending算成已收款。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "901cc8b164d9a44928c48a4cb9a54c92956e70da5e9ebb921d23550df8ca2fbb"
+    },
+    {
+      "task_id": "inventory-2",
+      "title": "传感器套件库存核验",
+      "split": "candidate-holdout",
+      "family": "inventory",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "计算截止11-12可用零件和最多可组装套数，说明为什么不能使用全口径库存。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "两个仓库汇总X在库 219，已预留 31，质检冻结 17；预留与冻结互不重叠。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "已确认11-11到货X 48；11-10已确认另消耗X 9；还有预计11-14到货50和未确认到货80，均不在本次可用范围。Y在上述扣除后截止11-12可用 103。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "每套用X三件、Y两件，不能拆分套装。不允许解除预留或冻结，且已消耗数量尚未从在库汇总扣除。"
+        }
+      ],
+      "requested_findings": {
+        "available_x": "截止日可用X",
+        "available_y": "截止日可用Y",
+        "max_kits": "最多完整套数",
+        "unconfirmed_included": "是否纳入未确认到货"
+      },
+      "semantic_criteria": [
+        "不重复扣除、不使用截止日之后或未确认到货；给出整数套装的瓶颈。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "e0164c9964479c5334280f34b514b472726324bc20d7b82e59f4448ec9dbdb6d"
+    },
+    {
+      "task_id": "metrics-2",
+      "title": "处理时限日报核验",
+      "split": "candidate-holdout",
+      "family": "metrics",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "复核全局达标率和门槛判断，解释分组平均值不能代替全局比率，并说明能否得出P95。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "甲组样本 240，其中达标 204；乙组样本 760，其中达标 737。两个分组互斥且穷尽本期全部已完成样本。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "内部报告门槛：全局已完成样本达标率至少94%才通过。不将未完成样本纳入这个分母；另有90件未完成，不能视为达标。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "未提供逐件耗时、分位数或耗时分布；两个组仅给了各自平均耗时，不允许由均值推出P95。"
+        }
+      ],
+      "requested_findings": {
+        "completed": "已完成样本总数",
+        "on_time": "达标总数",
+        "rate_percent": "全局达标百分数，至少四位小数",
+        "threshold_met": "是否达到94%",
+        "p95_identified": "材料是否足以确定P95"
+      },
+      "semantic_criteria": [
+        "用总达标数除总完成数，不能直接平均两个组的百分比。",
+        "未完成与未知耗时不冒充成功或已知P95。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "7c6c0527f6b6599a2048a393f0f2974c3843c8bcd7f254505017dd149ff58ffc"
+    },
+    {
+      "task_id": "approval-2",
+      "title": "配置发布授权材料复核",
+      "split": "candidate-holdout",
+      "family": "approval",
+      "provenance": {
+        "kind": "constructed",
+        "creator": "Codex",
+        "date": "2026-10-30",
+        "limits": "同族共用生成逻辑；未获独立材料审查，不声称语义独立或真实业务代表性。"
+      },
+      "instruction": "只判断材料中三项申请是否已经获准，不执行任何操作；列出阻止确认的条件。",
+      "materials": [
+        {
+          "source_id": "s1",
+          "title": "材料1",
+          "text": "现行规则R3替代旧规则：每项申请至少两名不同审查人签字，均不得是申请人；至少一名属于合规组。过期签字无效，到期日当天有效。缺材料记未确认，不能推定补齐。"
+        },
+        {
+          "source_id": "s2",
+          "title": "材料2",
+          "text": "观察日11-12。申请A由u1发起，签字u2（合规，有效到11-20）、u3（工程，有效到11-20）；申请B由u4发起，签字u4（合规，有效到11-20）、u5（工程，有效到11-20）。"
+        },
+        {
+          "source_id": "s3",
+          "title": "材料3",
+          "text": "申请C由u6发起，签字u7（合规，有效到11-11）、u8（工程，有效到11-20）；还有一份待核实签字，不知道身份和有效期。"
+        },
+        {
+          "source_id": "s4",
+          "title": "材料4",
+          "text": "旧规则只要求一个签字，已经失效。计划中的补签和审批排程不能作为已经批准的证据。"
+        }
+      ],
+      "requested_findings": {
+        "approved": "已确认批准集合",
+        "b_approved": "B是否已获批准",
+        "c_approved": "C是否已获批准",
+        "old_rule_used": "是否可以沿用旧规则"
+      },
+      "semantic_criteria": [
+        "不能把申请人签字计入、过期签字计入或未知签字当有效。",
+        "引用现行规则并逐项解释，不声称已经执行外部操作。"
+      ],
+      "output_contract": {
+        "answer": "完整中文正文，解释计算、依据、限制和不确定性。只分析材料，不执行外部工具。",
+        "findings": "列表；每项恰有 id/value/sources，覆盖全部 requested_findings，保留类型；引用支持该结论的 source_id。"
+      },
+      "task_sha256": "e9675cc20ba118a17bf1ddbe326009d1f234196e1cc2c9114dc96237fb34de61"
+    }
+  ]
+}

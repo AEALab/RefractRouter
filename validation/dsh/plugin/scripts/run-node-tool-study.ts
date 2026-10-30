@@ -33,6 +33,18 @@ globalThis.fetch=async(input:any,init?:any)=>{
     unexpectedNetwork++;throw new Error('研究入口拒绝非冻结模型端点')}
   const payload=JSON.parse(String(init?.body??''))
   assert.equal(payload.temperature,spec.sampling.temperature,'实际 DSH temperature 与冻结控制不符')
+  if(spec.wireControls){
+    const expert=JSON.stringify(payload).includes('你是文本专家')
+    const binding=spec.nodeTools?.modelBindings
+    const id=binding?.[expert?'expert':'main']??spec.planningConfig.roles.efficient
+    const model=spec.planningConfig.models.find((m:any)=>m.id===id)
+    assert.equal(payload.model,model.model,'实际主模型/专家独立选模不符')
+    assert.equal(payload.max_output_tokens,model.maxOutputTokens,'实际输出容量与冻结模型不符')
+    assert.equal(payload.top_p,undefined,'研究保持 top_p 提供方默认')
+    assert.equal(payload.reasoning,undefined,'研究保持思考提供方默认')
+    if(!live)await writeFile(resolve(output,'wire',String(requests+1).padStart(3,'0')+'-request.json'),
+      scrub(String(init?.body??'')))
+  }
   requests++
   if(requests>spec.maxModelCalls)throw new Error('宿主传输超过冻结模型调用数')
   if(live){
@@ -53,7 +65,7 @@ globalThis.fetch=async(input:any,init?:any)=>{
   const expert=all.includes('你是文本专家')
   const tools=body.tools??[]
   const prior=(body.input??[]).filter((i:any)=>i.type==='function_call_output').length
-  const call=!expert&&tools.length>0&&prior===0
+  const call=!expert&&tools.length>0&&prior<(spec.rehearsalExpertCalls??1)
   const content=expert?JSON.stringify({artifact:'离线中间产物，不构成真实能力证据',quotes:[],limitations:['模拟响应']}):
     JSON.stringify({answer:'离线交付，只验证协议与账本',findings:[]})
   const item=call?{type:'function_call',id:'fc-'+requests,call_id:'expert-'+requests,name:'refract_expert',
@@ -117,6 +129,8 @@ let entered=0
 try{
   const hello=await planning.rpc.request({op:'handshake'})
   assert.ok(hello.capabilities?.includes('call-input-limit-v1'),'Python 核心没有冻结调用输入上限能力')
+  if(spec.nodeTools?.modelBindings)assert.ok(hello.capabilities?.includes('node-tool-model-bindings-v1'),
+    'Python 核心没有主模型和专家独立绑定能力')
   if(spec.nodeTools)disposers.push(await registerExperimentalNodeTools(context,planning,spec.nodeTools,()=>ctx.tools.schemas()))
   entered=performance.now()
   for(let step=1;step<=spec.maxMainCalls;step++){

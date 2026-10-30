@@ -11,7 +11,7 @@ INTENTS = {"analyze": "分析材料并提取有依据的结论", "check": "检�
 def profile(raw):
     if raw is None:
         return None
-    if not isinstance(raw, dict) or set(raw) - {"enabled", "maxNodeCalls", "maxTools", "maxInputChars", "maxOutputTokens"}:
+    if not isinstance(raw, dict) or set(raw) - {"enabled", "maxNodeCalls", "maxTools", "maxInputChars", "maxOutputTokens", "modelBindings"}:
         raise ValueError("节点工具实验配置字段无效")
     if raw.get("enabled") is not True:
         raise ValueError("节点工具研究入口需要显式 enabled=true；关闭时省略 nodeTools")
@@ -26,6 +26,13 @@ def profile(raw):
     if output is not None and (type(output) is not int or not 1 <= output <= 10000000):
         raise ValueError("节点工具 maxOutputTokens 必须为有效整数或 null（使用所选模型容量）")
     result["maxOutputTokens"]=output
+    if "modelBindings" in raw:
+        bindings = raw["modelBindings"]
+        if (not isinstance(bindings, dict) or set(bindings) != {"main", "expert"}
+                or any(not isinstance(value, str) or not value.strip() or len(value) > 256
+                       for value in bindings.values())):
+            raise ValueError("独立选模必须同时指定 modelBindings.main/expert")
+        result["modelBindings"] = dict(bindings)
     return result
 
 
@@ -175,5 +182,6 @@ def finish(runtime, run, token, response):
         "referenceCost": call.get("reference_cost_cny"), "cashCostStatus": call.get("cash_cost_status"),
         "usage": {k: call.get(k) for k in ("input_tokens", "output_tokens", "cached_input_tokens", "cache_write_tokens", "reasoning_tokens")}, "latencyMs": response.latency_ms,
         "evidenceId": run["id"] + ":" + token}
-    runtime.release(run, token)
+    # 显式绑定的专家是独立调用，不消费或污染主循环选模状态；费用仍在父账本。
+    runtime.release(run, token, advance=not bool(state["profile"].get("modelBindings")))
     return {"action": "node-result", "result": result, **runtime.describe(run)}

@@ -1,0 +1,378 @@
+[
+  {
+    "type": "step/start",
+    "seq": 0,
+    "time": 1793323532882,
+    "data": {
+      "turn": 1,
+      "step": 1
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 1,
+    "time": 1793323532946,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "assistant-1",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-1",
+                  "stopReason": "toolUse"
+                },
+                "runId": "ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4"
+              }
+            },
+            "blocks": [
+              {
+                "type": "tool-call"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "expert-1|fc-1",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 2,
+    "time": 1793323532946,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "callId": "expert-1|fc-1",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 3,
+    "time": 1793323532959,
+    "data": {
+      "turn": 1,
+      "step": 1,
+      "message": {
+        "id": "tool-expert-1|fc-1",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "expert-1|fc-1"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "expert-1|fc-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"离线中间产物，不构成真实能力证据\",\"quotes\":[],\"limitations\":[\"模拟响应\"],\"toolCallId\":\"expert-1|fc-1\",\"modelCallId\":\"6cef01a68b444764a0efad2dfe0d1819\",\"model\":\"deepseek-v4-pro\",\"provider\":\"ark-node-study\",\"billingUnit\":\"AFP\",\"cost\":0.088,\"costBasis\":null,\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":60,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":3.68995799999999,\"evidenceId\":\"ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4:6cef01a68b444764a0efad2dfe0d1819\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 4,
+    "time": 1793323532959,
+    "data": {
+      "turn": 1,
+      "step": 2
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 5,
+    "time": 1793323532968,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "message": {
+        "id": "assistant-2",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-3",
+                  "stopReason": "toolUse"
+                },
+                "runId": "ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4"
+              }
+            },
+            "blocks": [
+              {
+                "type": "tool-call"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "expert-3|fc-3",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 6,
+    "time": 1793323532968,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "callId": "expert-3|fc-3",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 7,
+    "time": 1793323532977,
+    "data": {
+      "turn": 1,
+      "step": 2,
+      "message": {
+        "id": "tool-expert-3|fc-3",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "expert-3|fc-3"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "expert-3|fc-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"离线中间产物，不构成真实能力证据\",\"quotes\":[],\"limitations\":[\"模拟响应\"],\"toolCallId\":\"expert-3|fc-3\",\"modelCallId\":\"e43f42acb59c489aafb1a8bcad007dbd\",\"model\":\"deepseek-v4-pro\",\"provider\":\"ark-node-study\",\"billingUnit\":\"AFP\",\"cost\":0.088,\"costBasis\":null,\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":60,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":2.7585410000000365,\"evidenceId\":\"ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4:e43f42acb59c489aafb1a8bcad007dbd\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 8,
+    "time": 1793323532977,
+    "data": {
+      "turn": 1,
+      "step": 3
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 9,
+    "time": 1793323532994,
+    "data": {
+      "turn": 1,
+      "step": 3,
+      "message": {
+        "id": "assistant-3",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-5",
+                  "stopReason": "toolUse"
+                },
+                "runId": "ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4"
+              }
+            },
+            "blocks": [
+              {
+                "type": "tool-call"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "tool-call",
+            "id": "expert-5|fc-5",
+            "name": "refract_expert",
+            "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "tool/call",
+    "seq": 10,
+    "time": 1793323532994,
+    "data": {
+      "turn": 1,
+      "step": 3,
+      "callId": "expert-5|fc-5",
+      "name": "refract_expert",
+      "arguments": "{\"intent\":\"analyze\",\"task\":\"分析给定材料\",\"context\":\"这是离线夹具材料。\"}"
+    }
+  },
+  {
+    "type": "tool/result",
+    "seq": 11,
+    "time": 1793323533011,
+    "data": {
+      "turn": 1,
+      "step": 3,
+      "message": {
+        "id": "tool-expert-5|fc-5",
+        "role": "user",
+        "source": {
+          "kind": "tool",
+          "callId": "expert-5|fc-5"
+        },
+        "content": [
+          {
+            "type": "tool-result",
+            "toolCallId": "expert-5|fc-5",
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"artifact\":\"离线中间产物，不构成真实能力证据\",\"quotes\":[],\"limitations\":[\"模拟响应\"],\"toolCallId\":\"expert-5|fc-5\",\"modelCallId\":\"035a014ff58848aeb4307c069189d33e\",\"model\":\"deepseek-v4-pro\",\"provider\":\"ark-node-study\",\"billingUnit\":\"AFP\",\"cost\":0.088,\"costBasis\":null,\"cashCost\":null,\"referenceCost\":null,\"cashCostStatus\":null,\"usage\":{\"input_tokens\":100,\"output_tokens\":60,\"cached_input_tokens\":0,\"cache_write_tokens\":0,\"reasoning_tokens\":0},\"latencyMs\":2.1850000000000023,\"evidenceId\":\"ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4:035a014ff58848aeb4307c069189d33e\"}"
+              }
+            ],
+            "isError": false
+          }
+        ]
+      }
+    },
+    "surfaceOp": "append"
+  },
+  {
+    "type": "step/start",
+    "seq": 12,
+    "time": 1793323533011,
+    "data": {
+      "turn": 1,
+      "step": 4
+    }
+  },
+  {
+    "type": "assistant/message",
+    "seq": 13,
+    "time": 1793323533029,
+    "data": {
+      "turn": 1,
+      "step": 4,
+      "message": {
+        "id": "assistant-4",
+        "role": "assistant",
+        "source": {
+          "kind": "model",
+          "provider": "refractagent",
+          "model": "planning",
+          "replayState": {
+            "response": {
+              "refractPlanning": {
+                "version": 2,
+                "contentContract": "dsh-content-blocks-v1",
+                "provider": "ark-node-study",
+                "model": "deepseek-v4-flash",
+                "response": {
+                  "kind": "pi-ai",
+                  "version": 2,
+                  "api": "openai-responses",
+                  "provider": "ark-node-study",
+                  "model": "deepseek-v4-flash",
+                  "responseId": "resp-7",
+                  "stopReason": "stop"
+                },
+                "runId": "ea52bbdf11101c12973ff75a462cf93fbde0ba7b01ed71de771f78c33c4d6ba4"
+              }
+            },
+            "blocks": [
+              {
+                "type": "text",
+                "textSignature": "{\"v\":1,\"id\":\"msg-7\"}"
+              }
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"answer\":\"离线交付，只验证协议与账本\",\"findings\":[]}"
+          }
+        ]
+      },
+      "stream": []
+    },
+    "surfaceOp": "append"
+  }
+]

@@ -1,0 +1,980 @@
+{
+  "schema": "heterogeneous-references-v1",
+  "references": {
+    "purchase-0": {
+      "task_id": "purchase-0",
+      "task_sha256": "7eae111274537d545dd280aabe00142c87964a69fb345423fa89b9d4ac7e5d74",
+      "findings": {
+        "cost_a": {
+          "value": 14003.25,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "cost_b": {
+          "value": 13322.0,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        },
+        "cost_c": {
+          "value": 13735,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s4"
+            ]
+          ]
+        },
+        "selected": {
+          "value": "C",
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3",
+              "s4"
+            ]
+          ]
+        },
+        "b_confirmed": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "schedule-0": {
+      "task_id": "schedule-0",
+      "task_sha256": "cfaafbfd0978466e7f53d827ddc84934946e289b6f993f9f78a3a90aa942fb57",
+      "findings": {
+        "ready": {
+          "value": 14,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "technical_finish": {
+          "value": 16,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "window_finish": {
+          "value": 20,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "window_wait": {
+          "value": 4,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "approval_confirmed": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "ledger-0": {
+      "task_id": "ledger-0",
+      "task_sha256": "02d4152b2d4991177f9f9a0291087e6c9966e66332a0cab1590db806d7c8bd15",
+      "findings": {
+        "balance": {
+          "value": 835,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "duplicates": {
+          "value": [
+            "p1"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "conflicts": {
+          "value": [
+            "p2"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "rejected_refunds": {
+          "value": [
+            "r2"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "pending": {
+          "value": [
+            "q1"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        }
+      }
+    },
+    "inventory-0": {
+      "task_id": "inventory-0",
+      "task_sha256": "d0b295b8b91e74be61e115a97ae3070f66fc06319db7ae1e3d025b87611e49e3",
+      "findings": {
+        "available_x": {
+          "value": 131,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "available_y": {
+          "value": 89,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s2"
+            ]
+          ]
+        },
+        "max_kits": {
+          "value": 43,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "unconfirmed_included": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s2"
+            ]
+          ]
+        }
+      }
+    },
+    "metrics-0": {
+      "task_id": "metrics-0",
+      "task_sha256": "9bc9041408a5fe7e5018ead0348a73c437d60fae00c4ec18b76364ab7d95c516",
+      "findings": {
+        "completed": {
+          "value": 1000,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "on_time": {
+          "value": 944,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "rate_percent": {
+          "value": 94.4,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "threshold_met": {
+          "value": true,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "p95_identified": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "approval-0": {
+      "task_id": "approval-0",
+      "task_sha256": "922cc52a488869c8465f31e76050802a6f1d2208cc6c868e40ccc554c4d5c838",
+      "findings": {
+        "approved": {
+          "value": [
+            "A"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "b_approved": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "c_approved": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        },
+        "old_rule_used": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ],
+            [
+              "s4"
+            ]
+          ]
+        }
+      }
+    },
+    "purchase-1": {
+      "task_id": "purchase-1",
+      "task_sha256": "1d93bf9ba00ef3dc90c41d1e09041d47333947029dc021a52dc93accc05dcafc",
+      "findings": {
+        "cost_a": {
+          "value": 16613.8,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "cost_b": {
+          "value": 15972.8,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        },
+        "cost_c": {
+          "value": 16470,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s4"
+            ]
+          ]
+        },
+        "selected": {
+          "value": "C",
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3",
+              "s4"
+            ]
+          ]
+        },
+        "b_confirmed": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "schedule-1": {
+      "task_id": "schedule-1",
+      "task_sha256": "a12068c556a97ea89a802698f87f2951c1cf36893bccb55dca36d2eb3f9e3700",
+      "findings": {
+        "ready": {
+          "value": 12,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "technical_finish": {
+          "value": 14,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "window_finish": {
+          "value": 18,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "window_wait": {
+          "value": 4,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "approval_confirmed": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "ledger-1": {
+      "task_id": "ledger-1",
+      "task_sha256": "a206617f565ae9374446f850faa56258215bcc9cb2c405e6d1c1731dfee840ca",
+      "findings": {
+        "balance": {
+          "value": 1045,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "duplicates": {
+          "value": [
+            "p1"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "conflicts": {
+          "value": [
+            "p2"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "rejected_refunds": {
+          "value": [
+            "r2"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "pending": {
+          "value": [
+            "q1"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        }
+      }
+    },
+    "inventory-1": {
+      "task_id": "inventory-1",
+      "task_sha256": "cc5f4b4cdf4dc9b6b0c334f1e556ff192dc1fe57d4c8e7773987d608977cf211",
+      "findings": {
+        "available_x": {
+          "value": 142,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "available_y": {
+          "value": 120,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s2"
+            ]
+          ]
+        },
+        "max_kits": {
+          "value": 47,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "unconfirmed_included": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s2"
+            ]
+          ]
+        }
+      }
+    },
+    "metrics-1": {
+      "task_id": "metrics-1",
+      "task_sha256": "cb6c0348c8b10ea6d87f0ccc324f503b978c275b37ba5d1f2f8d094515a9bca8",
+      "findings": {
+        "completed": {
+          "value": 1000,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "on_time": {
+          "value": 948,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "rate_percent": {
+          "value": 94.8,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "threshold_met": {
+          "value": true,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "p95_identified": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "approval-1": {
+      "task_id": "approval-1",
+      "task_sha256": "7f5c8f7be047ead83c3280619d0a5eac1b46945c18dd087d9529a2ee19c945af",
+      "findings": {
+        "approved": {
+          "value": [
+            "A"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "b_approved": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "c_approved": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        },
+        "old_rule_used": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ],
+            [
+              "s4"
+            ]
+          ]
+        }
+      }
+    },
+    "purchase-2": {
+      "task_id": "purchase-2",
+      "task_sha256": "cfc064f161d57ce3bad6669c8da71618b84734611b490fdbd499ba29bec33dbf",
+      "findings": {
+        "cost_a": {
+          "value": 16161.45,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "cost_b": {
+          "value": 15935.2,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        },
+        "cost_c": {
+          "value": 16355,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s4"
+            ]
+          ]
+        },
+        "selected": {
+          "value": "C",
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3",
+              "s4"
+            ]
+          ]
+        },
+        "b_confirmed": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "schedule-2": {
+      "task_id": "schedule-2",
+      "task_sha256": "0ffd86b693f788f44e3ab50f6808ced45ed97707beed3463023997d38f77fb15",
+      "findings": {
+        "ready": {
+          "value": 14,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "technical_finish": {
+          "value": 15,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "window_finish": {
+          "value": 19,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "window_wait": {
+          "value": 4,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "approval_confirmed": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "ledger-2": {
+      "task_id": "ledger-2",
+      "task_sha256": "901cc8b164d9a44928c48a4cb9a54c92956e70da5e9ebb921d23550df8ca2fbb",
+      "findings": {
+        "balance": {
+          "value": 1595,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "duplicates": {
+          "value": [
+            "p1"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "conflicts": {
+          "value": [
+            "p2"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "rejected_refunds": {
+          "value": [
+            "r2"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "pending": {
+          "value": [
+            "q1"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        }
+      }
+    },
+    "inventory-2": {
+      "task_id": "inventory-2",
+      "task_sha256": "e0164c9964479c5334280f34b514b472726324bc20d7b82e59f4448ec9dbdb6d",
+      "findings": {
+        "available_x": {
+          "value": 210,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "available_y": {
+          "value": 103,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s2"
+            ]
+          ]
+        },
+        "max_kits": {
+          "value": 51,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "unconfirmed_included": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s2"
+            ]
+          ]
+        }
+      }
+    },
+    "metrics-2": {
+      "task_id": "metrics-2",
+      "task_sha256": "7c6c0527f6b6599a2048a393f0f2974c3843c8bcd7f254505017dd149ff58ffc",
+      "findings": {
+        "completed": {
+          "value": 1000,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "on_time": {
+          "value": 941,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "rate_percent": {
+          "value": 94.1,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ]
+          ]
+        },
+        "threshold_met": {
+          "value": true,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "p95_identified": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s3"
+            ]
+          ]
+        }
+      }
+    },
+    "approval-2": {
+      "task_id": "approval-2",
+      "task_sha256": "e9675cc20ba118a17bf1ddbe326009d1f234196e1cc2c9114dc96237fb34de61",
+      "findings": {
+        "approved": {
+          "value": [
+            "A"
+          ],
+          "kind": "set",
+          "support_options": [
+            [
+              "s1",
+              "s2",
+              "s3"
+            ]
+          ]
+        },
+        "b_approved": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s2"
+            ]
+          ]
+        },
+        "c_approved": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1",
+              "s3"
+            ]
+          ]
+        },
+        "old_rule_used": {
+          "value": false,
+          "kind": "scalar",
+          "support_options": [
+            [
+              "s1"
+            ],
+            [
+              "s4"
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

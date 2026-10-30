@@ -141,6 +141,16 @@ class PlanningRuntime(StageHybridRuntime):
             raise ValueError("节点工具首版仅支持主任务 Static 或规则 Stage")
         if node_profile and not config["max_calls"]:
             raise ValueError("节点工具实验需要有限的父任务调用数")
+        bindings = (node_profile or {}).get("modelBindings")
+        if bindings:
+            if strategy != "static" or config["parameters"]["staticMode"] != "fixed":
+                raise ValueError("主模型和专家独立绑定仅支持研究入口 Static fixed")
+            for model_id in bindings.values():
+                if (model_id not in config["models"] or model_id in config["model_issues"]
+                        or model_id in (request.get("hostIssues") or {})):
+                    raise ValueError("独立绑定的模型不可用：" + model_id)
+                if config["models"][model_id].billing_unit not in config["budgets"]:
+                    raise ValueError("独立绑定的模型缺少对应币种预算：" + model_id)
         catalog = preview(preview_raw, request.get("hostIssues"))
         selected = next((r for r in catalog["strategies"] if r["id"] == strategy), None)
         if not selected or not selected["available"]:
@@ -206,6 +216,8 @@ class PlanningRuntime(StageHybridRuntime):
             model_ids.extend(config["roles"][role] for role in roles)
         if strategy == "static" and config["parameters"]["staticMode"] == "random":
             model_ids.append(config["roles"]["capable"])
+        if bindings:
+            model_ids.extend(bindings.values())
         if (strategy == "stage" and config["stage"]["mode"] == "hybrid"
                 and config["stage"]["judge"]["type"] == "local-decision"):
             judge = config["stage"]["judge"]
@@ -955,6 +967,17 @@ class PlanningRuntime(StageHybridRuntime):
         hold, score, reason = s["hold"], None, "fixed"
         decision = None
         selected_model_id = None
+        bindings = ((run.get("nodeTools") or {}).get("profile") or {}).get("modelBindings")
+        if bindings and purpose in ("execute", "node-tool"):
+            channel = "expert" if purpose == "node-tool" else "main"
+            selected = bindings[channel]
+            action = self.issue(run, "node-" + channel, purpose, flow["messages"], flow["tools"],
+                model_id=selected, update={"last_model": selected} if channel == "main" else None)
+            run["decisions"].append({"step": s["step"], "role": "node-" + channel,
+                "model": selected, "reason": "experimental-independent-binding", "callId": action["callId"],
+                "channel": channel, "ruleVersion": "node-model-bindings-v1"})
+            self.persist(run)
+            return action
         if role is None:
             if strategy == "static":
                 # Random 在任务开始时选一次；工具续接沿用同一模型。
@@ -1789,7 +1812,7 @@ class PlanningRuntime(StageHybridRuntime):
             return {"protocol": PROTOCOL, "capabilities": ["escalation-decision-v1",
                 "stage-decision-v2", "planning-routing-v5", "planning-routing-v6",
                 "planning-routing-v7", "currency-pricing-v1", "automatic-routing-trace-v1",
-                "composite-task-stage-v1", "node-as-tool-v1-experimental", "call-input-limit-v1",
+                "composite-task-stage-v1", "node-as-tool-v1-experimental", "call-input-limit-v1", "node-tool-model-bindings-v1",
                 "decomposition-decision-v1", "decomposition-decision-v2", "decomposition-jev-v1", "local-judge-jobs", "local-decision-backends-v1",
                 "planning-routing-v4", "media-reference-v1", "jev-judge-v1", "jev-openrouter-v1"]}
         if operation == "node-tools-catalog":
