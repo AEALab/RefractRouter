@@ -456,6 +456,8 @@ class PlanningRuntime(StageHybridRuntime):
             s['requireConfirmedToolEvidence'] = confirmed
             s['toolValidation'] = verify(requirements, task_events, require_confirmed=confirmed)
         if request.get("purpose") == "compaction":
+            if s.get('taskShadow') is not None or execution_options or request.get('maxTokens') is not None:
+                self._record_task_shadow(run)
             action = self.issue(run, "efficient", "compaction", messages, [], buffered=False)
             run["decisions"].append({"step": s["step"], "role": "efficient",
                 "model": c["roles"]["efficient"], "reason": "context-compaction-host",
@@ -1009,7 +1011,7 @@ class PlanningRuntime(StageHybridRuntime):
                                host_request_id=run["flow"]["requestId"],
                                provider=model.provider, actual_model=model.api_model,
                                reasoning_effort=model.request_options.get("reasoning_effort"))
-        if purpose in ('execute', 'redo', 'takeover') and run['flow'].get('requestedMaxTokens') is not None:
+        if purpose in ('execute', 'redo', 'takeover', 'compaction') and run['flow'].get('requestedMaxTokens') is not None:
             reservation.row['caller_output_cap'] = run['flow']['requestedMaxTokens']
         if model.billing_mode == 'subscription':
             source = next(item for item in run['config']['raw']['models'] if item['id'] == model.model_id)

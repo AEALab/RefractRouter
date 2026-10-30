@@ -17,7 +17,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .schemas import ModelSpec
-from .cache_usage import cache_usage
+from .cache_usage import cache_usage, reasoning_usage, total_usage_valid
 from .responses_api import output_token_limit, decode_response, request_payload
 
 
@@ -720,22 +720,13 @@ class OpenAICompatibleClient:
             raise ModelInvocationError(
                 "invalid-response", f"Invalid Chat Completions response: {type(exc).__name__}", attempts, latency_ms
             ) from exc
-        prompt_details = usage.get("prompt_tokens_details") or usage.get("input_tokens_details") or {}
-        completion_details = usage.get("completion_tokens_details")
-        if completion_details is None or completion_details == {}:
-            completion_details = usage.get("output_tokens_details")
-        if completion_details is None:
-            completion_details = {}
         latency_ms = round((time.perf_counter() - started) * 1000)
         headers = {key.lower(): value for key, value in response.headers.items()}
         input_count = usage.get("prompt_tokens", usage.get("input_tokens"))
         output_count = usage.get("completion_tokens", usage.get("output_tokens"))
-        usage_available = all(type(v) is int and v >= 0 for v in (input_count, output_count))
+        usage_available = total_usage_valid(usage, input_count, output_count)
         cached, cache_source, cache_valid = cache_usage(raw_usage, input_count)
-        reasoning_count = (completion_details.get("reasoning_tokens", 0)
-                           if isinstance(completion_details, dict) else None)
-        reasoning_valid = (type(reasoning_count) is int and reasoning_count >= 0
-                           and type(output_count) is int and reasoning_count <= output_count)
+        reasoning_count, reasoning_valid = reasoning_usage(usage, output_count)
         return ChatResponse(
             content=content,
             input_tokens=input_count if type(input_count) is int else 0,

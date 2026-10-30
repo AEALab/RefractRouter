@@ -294,7 +294,13 @@ class TaskCallBudget:
             raise ValueError('invalid model usage; reservation retained')
         raw_usage = response.raw_usage if isinstance(response.raw_usage, dict) else {}
         write_known = raw_usage.get('cacheWriteUsageAvailable', 'cacheWriteTokens' in raw_usage) is True
-        if getattr(model, 'cache_write_cost_per_1k', None) is not None and not write_known:
+        input_rate, write_rate = model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None)
+        reference = getattr(model, 'reference_pricing', None)
+        if reference and reference.get('schedule'):
+            from .currency_pricing import reference_price
+            rates = dict(reference_price(reference, input_tokens=response.input_tokens).rates)
+            input_rate, write_rate = rates['input'], rates.get('cacheWrite', rates['input'])
+        if write_rate is not None and write_rate != input_rate and not write_known:
             raise ValueError('unconfirmed cache write usage; reservation retained')
         if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
             from .deepseek_official_pricing import pricing

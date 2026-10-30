@@ -5,9 +5,15 @@ from refractrouter.planning_runtime import PlanningRuntime
 from tests.test_planning_routing import begin, step, receipt
 
 
+@pytest.fixture
+def runtime(tmp_path):
+    value = PlanningRuntime(tmp_path)
+    yield value
+    value.local_service.close()
+
+
 @pytest.mark.parametrize("finish", [None, "length", "error", "tool_calls", "stop"])
-def test_cancelled_call_with_known_usage_is_settled_once_without_judge(tmp_path, finish):
-    runtime = PlanningRuntime(tmp_path)
+def test_cancelled_call_with_known_usage_is_settled_once_without_judge(runtime, finish):
     run_id = begin(runtime, "advisor")
     action = step(runtime, run_id)
     runtime.handle({"op": "cancel", "runId": run_id})
@@ -24,8 +30,7 @@ def test_cancelled_call_with_known_usage_is_settled_once_without_judge(tmp_path,
     assert runtime.runs[run_id]["budget"].snapshot() == before
 
 
-def test_cancelled_call_without_valid_usage_keeps_full_unknown_reserve(tmp_path):
-    runtime = PlanningRuntime(tmp_path)
+def test_cancelled_call_without_valid_usage_keeps_full_unknown_reserve(runtime):
     run_id = begin(runtime, "static")
     action = step(runtime, run_id)
     runtime.handle({"op": "cancel", "runId": run_id})
@@ -36,8 +41,7 @@ def test_cancelled_call_without_valid_usage_keeps_full_unknown_reserve(tmp_path)
 
 
 @pytest.mark.parametrize("input_tokens", [0, 100])
-def test_cancelled_tool_output_retains_evidence_when_zero_output_usage_is_rejected(tmp_path, input_tokens):
-    runtime = PlanningRuntime(tmp_path)
+def test_cancelled_tool_output_retains_evidence_when_zero_output_usage_is_rejected(runtime, input_tokens):
     run_id = begin(runtime, "advisor")
     action = step(runtime, run_id)
     runtime.handle({"op": "cancel", "runId": run_id})

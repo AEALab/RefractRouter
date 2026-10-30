@@ -241,7 +241,8 @@ def build_profile(samples, *, kind):
         wire(context)
         _context(context)
         executions = [r for r in result["calls"] if r.get("purpose") in ("execute", "redo", "takeover")]
-        if any(r.get('request_options_sha256') or r.get('caller_output_cap') is not None for r in executions):
+        contracts = [r for r in result["calls"] if r.get("purpose") in ("execute", "redo", "takeover", "compaction")]
+        if any(r.get('request_options_sha256') or r.get('caller_output_cap') is not None for r in contracts):
             rows.append({'runId': token, 'excluded': 'request-contract-not-in-v1-strata'})
             continue
         model_ids = {r.get("model_id") for r in executions}
