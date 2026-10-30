@@ -75,7 +75,7 @@ def revise(source, run, output):
     manifest['revision'] = {'previousManifestSha256': sha(manifest_raw),
         'previousLedgerSha256': sha(ledger_raw), 'reason': '多份原始答卷使用Markdown代码块，明确违约；仅统一强调直接JSON。',
         'scoringSemanticsChanged': False, 'previousResultsRegraded': False, 'newIndependentTasks': 0,
-        'networkCause': '前批14次请求传输失败，未取得响应，具体底层原因未知；HEAD只证明当前连通。'}
+        'networkCause': f'前批第{len(ledger["calls"])}次请求传输失败，未取得响应，具体底层原因未知；HEAD只证明当前连通。'}
     manifest['funding'].update(sourcePath=str(finance_path.resolve()), sourceSha256=sha(finance_path.read_bytes()),
         priorKnownStandardAFP=financial['cumulative_known_standard_afp_lower'],
         priorUnknownStandardAFP=financial['cumulative_unknown_reserved_standard_afp'],

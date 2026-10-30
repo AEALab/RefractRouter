@@ -1,0 +1,178 @@
+{
+  "credentialAvailable": true,
+  "funding": {
+    "actualAccountBalanceKnown": false,
+    "cashAuthorizationCNY": "300",
+    "cashAuthorizationHeadroomCNY": "273.6492297497578",
+    "newCashConditionalOnPlanNoOverageCNY": 0,
+    "priorProtectedCashCNY": "26.3507702502422",
+    "priorUnknownReservesReleased": false,
+    "sourceSha256": "d2fdf6204f083f2910935086bbb1b87308f7b8c978cec8a74b93c7f701f5a5f7"
+  },
+  "hiddenEvaluationRead": false,
+  "implementation": {
+    "moduleSha256": {
+      "cache_usage.py": "bfa692324f9417093e71e612bd82ff0d0225c58fa85263943cb2fe671a82afd2",
+      "development_study.py": "347700195faa80207bb4c0e4044917f56dc504cb6cd936d71e23d2253ebfdda2",
+      "openai_compatible.py": "fca20264e1b0e1d8f79d00beb28590ba2d9e37460fabedcc0dfb4a020904c3b9",
+      "readonly_fact_host.py": "5eebf99ffeaf98eb87af5e3a5f65fb15bfde64a9005ef01eeca8e11a0526d703",
+      "readonly_facts.py": "01e588f92add40b9b33d7576114f9b0c8029e19fafd6566a6dd8dfb7f16508c2",
+      "task_budget.py": "14a446fee197c56b2489fd5b848ea6751b23fd41f80c798f13b8e9d8b8c92e2a",
+      "tool_runtime.py": "c4900c57f1ae2509421ac5e098dea856f9d3a09281c1aeb213a54cc9dd7c2e74"
+    },
+    "pythonVersion": "3.12.13"
+  },
+  "inputs": [
+    {
+      "arm": "S0",
+      "initialInputByteBound": 10671,
+      "maxCalls": 1,
+      "maxStandardAFP": 471.85920000000004,
+      "taskId": "dev-click",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "W0",
+      "initialInputByteBound": 10671,
+      "maxCalls": 1,
+      "maxStandardAFP": 52.4288,
+      "taskId": "dev-click",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "WF",
+      "initialInputByteBound": 11577,
+      "maxCalls": 4,
+      "maxStandardAFP": 209.7152,
+      "taskId": "dev-click",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "S0",
+      "initialInputByteBound": 61734,
+      "maxCalls": 1,
+      "maxStandardAFP": 471.85920000000004,
+      "taskId": "dev-platformdirs",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "W0",
+      "initialInputByteBound": 61734,
+      "maxCalls": 1,
+      "maxStandardAFP": 52.4288,
+      "taskId": "dev-platformdirs",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "WF",
+      "initialInputByteBound": 62640,
+      "maxCalls": 4,
+      "maxStandardAFP": 209.7152,
+      "taskId": "dev-platformdirs",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "S0",
+      "initialInputByteBound": 73722,
+      "maxCalls": 1,
+      "maxStandardAFP": 471.85920000000004,
+      "taskId": "dev-urllib3",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "W0",
+      "initialInputByteBound": 73722,
+      "maxCalls": 1,
+      "maxStandardAFP": 52.4288,
+      "taskId": "dev-urllib3",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "WF",
+      "initialInputByteBound": 74628,
+      "maxCalls": 4,
+      "maxStandardAFP": 209.7152,
+      "taskId": "dev-urllib3",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "S0",
+      "initialInputByteBound": 33297,
+      "maxCalls": 1,
+      "maxStandardAFP": 471.85920000000004,
+      "taskId": "dev-cachetools",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "W0",
+      "initialInputByteBound": 33297,
+      "maxCalls": 1,
+      "maxStandardAFP": 52.4288,
+      "taskId": "dev-cachetools",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "WF",
+      "initialInputByteBound": 34203,
+      "maxCalls": 4,
+      "maxStandardAFP": 209.7152,
+      "taskId": "dev-cachetools",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "S0",
+      "initialInputByteBound": 40058,
+      "maxCalls": 1,
+      "maxStandardAFP": 471.85920000000004,
+      "taskId": "dev-httpcore",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "W0",
+      "initialInputByteBound": 40058,
+      "maxCalls": 1,
+      "maxStandardAFP": 52.4288,
+      "taskId": "dev-httpcore",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "WF",
+      "initialInputByteBound": 40964,
+      "maxCalls": 4,
+      "maxStandardAFP": 209.7152,
+      "taskId": "dev-httpcore",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "S0",
+      "initialInputByteBound": 138738,
+      "maxCalls": 1,
+      "maxStandardAFP": 471.85920000000004,
+      "taskId": "dev-anyio",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "W0",
+      "initialInputByteBound": 138738,
+      "maxCalls": 1,
+      "maxStandardAFP": 52.4288,
+      "taskId": "dev-anyio",
+      "wireAnswerLimit": 131072
+    },
+    {
+      "arm": "WF",
+      "initialInputByteBound": 139644,
+      "maxCalls": 4,
+      "maxStandardAFP": 209.7152,
+      "taskId": "dev-anyio",
+      "wireAnswerLimit": 131072
+    }
+  ],
+  "manifestSha256": "0dc1d90d685211c9fa1e4158df608ba16de686a1367d638d50bd962a89ba308e",
+  "maxCalls": 36,
+  "maxStandardAFP": 4404.0192,
+  "modelCalls": 0,
+  "productPathChanged": false,
+  "releaseAllowed": false,
+  "schemaVersion": "whole-task-development-preflight-v1"
+}

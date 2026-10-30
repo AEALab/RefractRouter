@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "whole-task-development-decision-v1",
+  "issue": 210,
+  "decision": "停止本配置扩量，保持默认；不进入留出或后续策略矩阵。",
+  "reason": [
+    "事实工具实际使用0次，未显示增量收益。",
+    "独立任务只有6道，无法证明质量损失不超过3个百分点。",
+    "完整引用仍有缺项；原评分另发现装饰器范围误拒，已另存零调用修复诊断。"
+  ],
+  "uniqueDevelopmentTasks": 6,
+  "repeatedRunsAreNewIndependentTasks": false,
+  "heldoutTasksMaterialized": 0,
+  "heldoutTasksExecuted": 0,
+  "batches": 2,
+  "httpRequests": 32,
+  "billedRequests": 31,
+  "unknownRequests": 1,
+  "newKnownStandardAFP": "73.93870",
+  "newUnknownReservedStandardAFP": "52.4288",
+  "actualProviderDebitVerified": false,
+  "productPathChanged": false,
+  "releaseAllowed": false,
+  "engineeringAndHumanAuditHoursMeasured": false,
+  "localResearchScoringModelCalls": 0,
+  "sourceCommits": {
+    "batch1": "8dabf40de",
+    "batch2": "aa83ec158"
+  },
+  "frozenArtifacts": {
+    "whole-task-development-20261030-v2/manifest.json": "e096c462ae0701ce91733d9c575bd770e63904ae64c441d6dc9ec04d2ddbc546",
+    "whole-task-development-20261030-v2/isolated-evaluation/oracles.json": "150d1f36ee299e014cf0e9525f9686556e4a7325a9dd821d5a36d4ff0f9a550b",
+    "whole-task-development-20261030-v3/manifest.json": "0dc1d90d685211c9fa1e4158df608ba16de686a1367d638d50bd962a89ba308e",
+    "whole-task-development-20261030-v3/isolated-evaluation/oracles.json": "99430c249dfd160a9b354c79e4f40e14f088d5302b6b1c7e88351e84ea8a2ab0",
+    "whole-task-development-run-20261030-01/ledger.json": "e0d759685cb06d9f73719bbb303883db931d7cbf9996e72e808482c817852b67",
+    "whole-task-development-run-20261030-02/ledger.json": "ebf4488ac240062150ac1aa8bf122d7d17c5bf7182b2e6e190e22fe88b0203e9"
+  }
+}

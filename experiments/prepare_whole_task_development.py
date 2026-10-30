@@ -27,7 +27,8 @@ def scope(text, symbol):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 name = prefix + node.name
                 if name == symbol:
-                    candidates.append((sum(map(len, lines[:node.lineno-1])), sum(map(len, lines[:node.end_lineno]))))
+                    first = min([node.lineno, *(d.lineno for d in node.decorator_list)])
+                    candidates.append((sum(map(len, lines[:first-1])), sum(map(len, lines[:node.end_lineno]))))
                 visit(node.body, name + '.')
     visit(ast.parse(text).body)
     if len(candidates) != 1:

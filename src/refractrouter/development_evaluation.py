@@ -28,6 +28,31 @@ def tree_sha(text):
     return sha(ast.dump(ast.parse(text.encode('utf-8')), include_attributes=False).encode())
 
 
+def repair_decorator_ranges(files, oracle):
+    """只修复旧符号范围漏掉装饰器的错误；原冻结 oracle 不变，不修改评分语义。"""
+    repaired, changes = deepcopy(oracle), []
+    if oracle['filesSha256'] != {p: sha(t.encode()) for p, t in files.items()}:
+        raise ValueError('诊断重放来源不匹配')
+    for field, groups in repaired['evidence'].items():
+        for group in groups:
+            path = group['path']
+            if not path.endswith('.py'): continue
+            text = files[path]; lines = text.splitlines(keepends=True)
+            for node in ast.walk(ast.parse(text.encode('utf-8'))):
+                if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) or not node.decorator_list:
+                    continue
+                old_start = sum(map(len, lines[:node.lineno-1]))
+                end = sum(map(len, lines[:node.end_lineno]))
+                first = min(d.lineno for d in node.decorator_list)
+                new_start = sum(map(len, lines[:first-1]))
+                if group['start'] == old_start and group['end'] == end:
+                    group['start'] = new_start
+                    changes.append({'field': field, 'path': path, 'oldStart': old_start,
+                        'newStart': new_start, 'end': end, 'change': 'include-existing-decorators'})
+                    break
+    return repaired, changes
+
+
 def apply_edits(files, edits):
     """只在内存内替换已可见的原文；后续语法树检查限制可变行为，不执行代码。"""
     if type(edits) is not list or len(edits) > 8:

@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from refractrouter.development_evaluation import evaluate, paired_screen
+from refractrouter.development_evaluation import evaluate, paired_screen, repair_decorator_ranges
 from refractrouter.task_cost_observation import amount
 
 
@@ -15,7 +15,7 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def score(suite_root, run_root, expected_manifest, expected_oracles):
+def score(suite_root, run_root, expected_manifest, expected_oracles, *, diagnostic_decorators=False):
     root, run = Path(suite_root).resolve(), Path(run_root).resolve()
     manifest_raw = (root/'manifest.json').read_bytes()
     oracle_raw = (root/'isolated-evaluation/oracles.json').read_bytes()
@@ -33,7 +33,7 @@ def score(suite_root, run_root, expected_manifest, expected_oracles):
     if abs(sum(amount(c['charged']) for c in ledger['calls'])
             - amount(ledger['chargedStandardAFPIncludingUnknownReserves'])) > Decimal('0.00000001'):
         raise ValueError('逐调用费用与保护总账不平，停止评分')
-    indexed = {}; items = []
+    indexed = {}; items = []; repairs = []
     for result in ledger['results']:
         key = result['taskId'], result['arm']
         if key in indexed:
@@ -49,6 +49,10 @@ def score(suite_root, run_root, expected_manifest, expected_oracles):
         if oracles[task['taskId']]['oracle']['criteriaSha256'] != task['criteriaSha256']:
             raise ValueError('公开要求与隔离评分合同身份不符')
         files = {r['path']: (root/task['root']/r['path']).read_bytes().decode('utf-8') for r in task['files']}
+        oracle = oracles[task['taskId']]['oracle']
+        if diagnostic_decorators:
+            oracle, changes = repair_decorator_ranges(files, oracle)
+            repairs.extend(dict(taskId=task['taskId'], **c) for c in changes)
         for arm in ('S0', 'W0', 'WF'):
             raw = indexed.get((task['taskId'], arm))
             calls = [r for r in ledger['calls'] if r.get('task_id') == task['taskId'] and r.get('arm') == arm]
@@ -64,7 +68,7 @@ def score(suite_root, run_root, expected_manifest, expected_oracles):
                         or calls[-1].get('response', {}).get('usage_available') is not True
                         or calls[-1].get('response', {}).get('tool_calls')):
                     raise ValueError('最终答卷不能绑定到已结算的正常终止回执')
-            assessment = evaluate(raw['candidate'], files, oracles[task['taskId']]['oracle']) if (
+            assessment = evaluate(raw['candidate'], files, oracle) if (
                 raw and raw['status'] == 'completed' and isinstance(raw.get('candidate'), str)) else None
             items.append({'taskId': task['taskId'], 'arm': arm, 'half': task['half'],
                 'kind': task['kind'], 'assessment': assessment,
@@ -92,6 +96,8 @@ def score(suite_root, run_root, expected_manifest, expected_oracles):
         'modelCalls': sum(i['modelCalls'] for i in items if i['arm'] == arm),
         'toolQueries': sum(i['toolQueries'] for i in items if i['arm'] == arm)} for arm in ('S0', 'W0', 'WF')}
     return {'schemaVersion': 'whole-task-development-assessment-v1', 'manifestSha256': expected_manifest,
+        'diagnosticOnly': diagnostic_decorators, 'decoratorRangeRepairs': repairs,
+        'formalFrozenResultReplaced': False,
         'oracleSha256': expected_oracles, 'ledgerSha256': sha(ledger_raw), 'items': items,
         'comparisons': comparisons, 'totals': totals, 'modelCallsForResearchScoring': 0,
         'actualProviderDebitVerified': False, 'heldoutExecuted': 0, 'releaseAllowed': False,
@@ -103,13 +109,16 @@ if __name__ == '__main__':
     parser.add_argument('--suite', required=True); parser.add_argument('--run', required=True)
     parser.add_argument('--manifest-sha256', required=True); parser.add_argument('--oracle-sha256', required=True)
     parser.add_argument('--output', required=True)
+    parser.add_argument('--diagnostic-decorators', action='store_true',
+        help='仅作另存的装饰器范围误拒诊断，不替换原冻结评分')
     args = parser.parse_args()
     os.environ.clear()
     def audit(event, _):
         if event in {'socket.connect', 'socket.getaddrinfo', 'subprocess.Popen', 'os.system'}:
             raise RuntimeError('隔离评分禁止联网和启动执行进程')
     sys.addaudithook(audit)
-    result = score(args.suite, args.run, args.manifest_sha256, args.oracle_sha256)
+    result = score(args.suite, args.run, args.manifest_sha256, args.oracle_sha256,
+        diagnostic_decorators=args.diagnostic_decorators)
     with Path(args.output).open('x') as stream:
         json.dump(result, stream, ensure_ascii=False, indent=2, allow_nan=False); stream.write('\n')
     print(json.dumps({'totals': result['totals'], 'releaseAllowed': False}, ensure_ascii=False))

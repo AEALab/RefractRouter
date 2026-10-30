@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from refractrouter.development_evaluation import evaluate, paired_screen, sha, tree_sha
+from refractrouter.development_evaluation import evaluate, paired_screen, sha, tree_sha, repair_decorator_ranges
 
 
 FILES = {'a.py': 'CAP = 3\nOTHER = 1\n', 'b.py': 'from a import CAP\nvalue = CAP\n'}
@@ -85,6 +85,28 @@ def test_semantically_frozen_alternative_fragments_are_accepted():
     assert evaluate(json.dumps(candidate), files, oracle)['passed']
     oracle['evidence']['cap'][0]['anyOf'] = []
     with pytest.raises(ValueError): evaluate(json.dumps(candidate), files, oracle)
+
+
+def test_decorator_range_bug_replay_changes_only_scope_and_preserves_old_result():
+    from experiments.prepare_whole_task_development import scope
+    from copy import deepcopy
+    text = 'class Demo:\n    @classmethod\n    def cap(cls):\n        return 3\n'
+    files = {'a.py': text}
+    old_start = text.index('    def cap(')
+    oracle = {'criteriaSha256': 'a'*64, 'answers': {'cap': 3}, 'expectedTrees': {},
+        'filesSha256': {'a.py': sha(text.encode())},
+        'evidence': {'cap': [{'path': 'a.py', 'start': old_start, 'end': len(text), 'allOf': ['return 3']}]}}
+    candidate = json.dumps({'answers': {'cap': 3}, 'edits': [], 'evidence': {'cap': [
+        {'path': 'a.py', 'quote': text[text.index('    @classmethod'):]}]}})
+    before = deepcopy(oracle)
+    assert not evaluate(candidate, files, oracle)['passed']
+    repaired, changes = repair_decorator_ranges(files, oracle)
+    assert oracle == before
+    assert len(changes) == 1
+    assert repaired['evidence']['cap'][0]['start'] == scope(text, 'Demo.cap')[0]
+    assert evaluate(candidate, files, repaired)['passed']
+    repaired['evidence']['cap'][0]['start'] = old_start
+    assert repaired == before
 
 
 def rows(n):
