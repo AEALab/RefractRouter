@@ -87,7 +87,7 @@ class TaskCallBudget:
             return dict(self.charged), deepcopy(self.records)
 
     def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None,
-                future_input_bound=None, request_options=None):
+                future_input_bound=None, request_options=None, context_token_envelope=None):
         if category_limit is not None:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
@@ -105,6 +105,16 @@ class TaskCallBudget:
             model = replace(model, max_output_tokens=output_bound)
         if input_bound + output_bound > model.context_window:
             raise ValueError('request exceeds conservative context bound')
+        if context_token_envelope is not None:
+            if (type(context_token_envelope) is not int or not model.context_window <= context_token_envelope <= 10_000_000
+                    or future_input_bound is not None or self.adaptive_output_reservation
+                    or getattr(model, 'price_policy', None) or getattr(model, 'reference_pricing', None)):
+                raise ValueError('invalid shared context token envelope')
+            # 回答上限不等于“回答＋思考”上限。保留原线缆上限，以整个上下文和最贵边际价
+            # 保护输入＋全部输出；两者共享上下文，不将各自上界再次相加。
+            marginal = max(number(v, 'token price') for v in (
+                model.input_cost_per_1k, model.output_cost_per_1k,
+                model.cached_input_cost_per_1k or 0, getattr(model, 'cache_write_cost_per_1k', None) or 0))
         with self.lock:
             if self.stopped:
                 raise CancelledError('task execution stopped')
@@ -123,10 +133,14 @@ class TaskCallBudget:
             if self.adaptive_output_reservation:
                 model = replace(model, max_output_tokens=output_bound)
             reserve = input_reserve + output_bound / 1000 * model.output_cost_per_1k
+            protected_output = output_bound
+            if context_token_envelope is not None:
+                reserve = context_token_envelope / 1000 * marginal
+                protected_output = context_token_envelope
             reserved_output = sum(row.get('reserved_output_tokens', 0) for row in self.records
                                   if row['status'] != 'cancelled-before-dispatch')
             if (self.max_total_output_tokens is not None
-                    and reserved_output + output_bound > self.max_total_output_tokens):
+                    and reserved_output + protected_output > self.max_total_output_tokens):
                 raise ValueError(f'task-output-budget-exhausted before {label}')
             if self.charged[category] + reserve > ceiling + 1e-12:
                 raise ValueError(f'{category}-budget-exhausted before {label}')
@@ -139,8 +153,11 @@ class TaskCallBudget:
             row = {'label': label, 'model_id': model.model_id, 'category': category,
                    'billing_mode': getattr(model, 'billing_mode', 'metered'),
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
-                   'reserved_output_tokens': output_bound,
+                   'reserved_output_tokens': protected_output,
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
+            if context_token_envelope is not None:
+                row.update(reservation_basis='shared-context-token-envelope',
+                           protected_total_tokens=context_token_envelope, reserved_answer_tokens=output_bound)
             if request_options:
                 row['request_options_sha256'] = hashlib.sha256(json.dumps(
                     request_options, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()
@@ -299,6 +316,15 @@ class TaskCallBudget:
                 cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])
             row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
         raw_usage = response.raw_usage if isinstance(response.raw_usage, dict) else {}
+        answer_bound_valid = True
+        if row.get('reservation_basis') == 'shared-context-token-envelope':
+            from .cache_usage import observed_details
+            _, observed_reasoning = observed_details(response)
+            answer_tokens = response.output_tokens - observed_reasoning if observed_reasoning is not None else None
+            # 思考细分缺失时仍可结算总费用，但不能把占位零当成已验证的纯回答长度。
+            answer_bound_valid = (answer_tokens <= row['reserved_answer_tokens'] if answer_tokens is not None
+                                  else response.output_tokens <= row['reserved_answer_tokens'])
+            row.update(observed_answer_tokens=answer_tokens, answer_bound_confirmed=answer_bound_valid)
         write_known = raw_usage.get('cacheWriteUsageAvailable', 'cacheWriteTokens' in raw_usage) is True
         input_rate, write_rate = model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None)
         reference = getattr(model, 'reference_pricing', None)
@@ -332,7 +358,9 @@ class TaskCallBudget:
                 if self.cash_snapshot()[row['category']] > self.cash_limits[row['category']] + 1e-8:
                     self.stop()
                     raise ValueError('actual cash cost exceeded limit; execution stopped')
-            if (actual > row['reserved'] + 1e-8
+            if (not answer_bound_valid or actual > row['reserved'] + 1e-8
+                    or row.get('protected_total_tokens') is not None
+                       and response.input_tokens + response.output_tokens > row['protected_total_tokens']
                     or self.charged[row['category']] > min(self.limits[row['category']], row.get('category_limit', float('inf')))):
                 self.stop()
                 raise ValueError('provider usage exceeded conservative budget reserve; execution stopped')

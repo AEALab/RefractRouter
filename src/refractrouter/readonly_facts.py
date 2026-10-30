@@ -243,6 +243,10 @@ class ReadonlyFacts:
             for fd in reversed(descriptors):
                 os.close(fd)
 
+    def snapshot_texts(self):
+        """宿主读取固定允许清单的完整 UTF-8 快照；同样逐文件拒绝链接和哈希漂移。"""
+        return {path: self._read(path).decode('utf-8') for path in self.manifest}
+
     def _fact(self, path, kind, span, details):
         self._visible(path, span)
         fact = {'toolVersion': VERSION, 'parserVersion': PARSER_VERSION, 'snapshotId': self.snapshot_id, 'path': path,
