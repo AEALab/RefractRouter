@@ -347,7 +347,7 @@ def compile_config(raw):
     raw = deepcopy(obj(raw, ("schemaVersion", "enabled", "defaultStrategy", "billingUnit",
         "maxProductionCost", "maxProductionCostByUnit", "timeoutMs", "maxCalls", "models", "roles", "parameters",
         "security", "trustPolicies", "compatiblePairs", "task", "escalation", "advisor", "stage",
-        "composite", "mediaRoutes", "jev", "maxReferenceCost", "taskShadow"), "planningRouting"))
+        "composite", "mediaRoutes", "jev", "maxReferenceCost", "taskShadow", "stageShadow"), "planningRouting"))
     if raw.get("schemaVersion") not in (SCHEMA, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4, SCHEMA_V5, SCHEMA_V6, SCHEMA_V7, SCHEMA_V8) or type(raw.get("enabled")) is not bool:
         raise ValueError("需要版本化 planningRouting 配置和 enabled")
     if raw["schemaVersion"] == SCHEMA and ("maxProductionCostByUnit" in raw or any(
@@ -522,6 +522,12 @@ def compile_config(raw):
     task_shadow = compile_shadow(raw.get("taskShadow"), schema=raw["schemaVersion"], pool=task["pool"])
     if task_shadow is not None and (strategy != "task" or task["mode"] != "pool"):
         raise ValueError("经验影子首版只用于独立 Task 模型池")
+    from .stage_progress import compile_shadow as compile_stage_shadow
+    stage_shadow = compile_stage_shadow(raw.get("stageShadow"))
+    stage_config = _stage_config(raw)
+    if stage_shadow is not None and (raw["schemaVersion"] != SCHEMA_V8 or strategy != "stage"
+                                     or stage_config["mode"] != "rules"):
+        raise ValueError("Stage 证据影子首版只用于 v8 独立规则 Stage")
     escalation = _escalation_config(raw, raw["schemaVersion"], declared_ids, roles)
     advisor = _advisor_config(raw, raw["schemaVersion"], declared_ids, roles)
     media_routes = raw.get("mediaRoutes", [])
@@ -619,7 +625,7 @@ def compile_config(raw):
         "timeout": timeout, "max_calls": max_calls, "models": models, "roles": roles,
         "parameters": parameters, "security": security, "pairs": pairs, "budgets": budgets,
         "task": task, "task_shadow": task_shadow, "composite": composite, "escalation": escalation, "advisor": advisor,
-        "stage": _stage_config(raw), "jev": jev, "media_routes": normalized_media,
+        "stage": stage_config, "stage_shadow": stage_shadow, "jev": jev, "media_routes": normalized_media,
         "model_issues": model_issues, "reference_limit": reference_limit}
 
 

@@ -316,7 +316,9 @@ def main():
         installed_python = executable.resolve().with_name('python')
         task_shadow = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_task_shadow_worker.py',
                                       '--executable', executable, '--workspace', workspace]))
-        evidence = {'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
+        stage_shadow = json.loads(run([installed_python, '-I', '-B', ROOT/'scripts/validate_task_shadow_worker.py',
+                                      '--executable', executable, '--workspace', workspace, '--mode', 'stage']))
+        evidence = {'stage_shadow': stage_shadow, 'task_shadow': task_shadow, 'readonly_facts': readonly_facts, 'configured_providers': configured, 'status':'pass','scope':'installed-wheel-and-tgz-native-dsh-demo',
             'paid_model_calls':0,'live_acceptance':False,'catalog':catalog,'results':results,
             'versions':{'dsh':run(['dsh','--version']).strip(),'node':run(['node','--version']).strip()},
             'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (wheel,tgz)},
