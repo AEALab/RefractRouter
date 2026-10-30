@@ -47,6 +47,8 @@ def request_features(options, schemas):
         stops = [options['stop']] if isinstance(options['stop'], str) else options['stop']
         if not isinstance(stops, list) or not 1 <= len(stops) <= 4 or any(not isinstance(s, str) or not s for s in stops):
             raise ValueError('stop 只支持非空字符串或至多四项字符串')
+    if any(not isinstance(schema, dict) or not isinstance(schema.get('name'), str) or not schema['name'] for schema in schemas):
+        raise ValueError('工具定义缺少名称')
     names = {schema['name'] for schema in schemas}
     for schema in schemas:
         if 'strict' in schema and type(schema['strict']) is not bool:
@@ -97,10 +99,12 @@ def admit_all(config, strategy, messages, schemas, options, cap, admit):
     models = execution_models(config, strategy)
     if not models:
         raise ValueError('当前策略没有执行候选')
-    bound = request_input_bound(messages, schemas)
+    bound = request_input_bound(messages, schemas, options)
+    history_uses_tools = any(isinstance(block, dict) and block.get('type') in ('tool-call', 'tool-result')
+        for message in messages for block in (message.get('content') if isinstance(message.get('content'), list) else []))
     for model in models:
         features = (model.capabilities or {}).get('requestFeatures', {})
-        if schemas and (model.capabilities or {}).get('toolCalling') != 'verified':
+        if (schemas or history_uses_tools) and (model.capabilities or {}).get('toolCalling') != 'verified':
             raise ValueError(f'候选 {model.model_id} 的 function 能力未验收')
         for feature in sorted(required):
             if features.get(feature) != 'verified':
@@ -108,6 +112,6 @@ def admit_all(config, strategy, messages, schemas, options, cap, admit):
         output = model.max_output_tokens if cap is None else cap
         if output > model.max_output_tokens or bound + output > model.context_window:
             raise ValueError(f'候选 {model.model_id} 的请求容量不足')
-        admit({'config': config}, model_id=model.model_id, role=None, messages=messages, tools=schemas)
+        admit({'config': config}, model_id=model.model_id, role=None, messages=messages, tools=schemas, execution_options=options)
     return {'schemaVersion': 'all-executor-protocol-admission-v1', 'candidateCount': len(models),
             'requiredFeatures': sorted(required), 'scope': 'configured-capability-evidence', 'modelCalls': 0}

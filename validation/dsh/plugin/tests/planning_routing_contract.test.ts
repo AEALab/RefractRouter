@@ -123,6 +123,39 @@ test('Stage影子经DSH传到Python，不追加Judge或把普通宿主历史当�
   }finally{await f.cleanup()}
 })
 
+test('Advisor缓冲首字在审核后交给宿主，Router处理与上游耗时分别记录',async()=>{
+  const f=await fixture('advisor')
+  try{
+    f.setReplies([()=>reply('完整交付'),()=>reply(JSON.stringify({verdict:'APPROVE',feedback:'通过'}))])
+    for await(const chunk of f.controller.stream({...f.options,reasoningEffort:'rr:advisor'}))
+      if(chunk.type==='text-delta')assert.equal(f.calls.length,2)
+    const record=(await f.controller.history('native-session')).records[0]
+    const candidate=record.calls.find((c:any)=>c.purpose==='execute')
+    assert.equal(candidate.deliveryMode,'buffered-release')
+    assert.equal(candidate.userFirstTextOrigin,'dsh-model-request-start')
+    assert.ok(candidate.userFirstTextMs>=candidate.ttft_ms)
+    assert.ok(candidate.routerOperationMs>=0&&candidate.routerRoundTripMs>=0)
+    assert.equal(candidate.releasedTextBytes,Buffer.byteLength('完整交付'))
+    assert.equal(f.calls.length,2)
+  }finally{await f.cleanup()}
+})
+
+test('收到首字后消费方停止，保留未知费用也记录实际宿主交付',async()=>{
+  const f=await fixture('static')
+  try{
+    f.setReplies([()=>reply('中文🦀')])
+    for await(const chunk of f.controller.stream(f.options))if(chunk.type==='text-delta')break
+    const record=(await f.controller.history('native-session')).records[0]
+    const row=record.calls.find((c:any)=>c.call_id)
+    assert.equal(row.status,'unknown-usage')
+    assert.equal(row.charged,row.reserved)
+    assert.equal(row.deliveryMode,'live-text')
+    assert.ok(row.userFirstTextMs>=0)
+    assert.equal(row.releasedTextBytes,Buffer.byteLength('中文🦀'))
+    assert.equal(f.calls.length,1)
+  }finally{await f.cleanup()}
+})
+
 test('任务结果按真实宿主会话查询和反馈，不追加模型调用或改写用量',async()=>{
   const f=await fixture('static')
   try{
@@ -664,6 +697,29 @@ for(const inputTokens of [0,100])test(`取消工具候选的零输出用量不�
     assert.equal(rows[0].status,'unknown-usage')
     assert.ok(rows[0].charged>0)
     assert.equal(rows[0].charged,rows[0].reserved)
+    assert.equal(f.calls.length,1)
+    assert.equal(f.toolExecutions,0)
+  }finally{await f.cleanup()}
+})
+
+for(const cancelAfter of [false,true])for(const inputTokens of [0,100])test(`max-tokens工具证据保留，取消${cancelAfter}输入${inputTokens}`,async()=>{
+  const f=await fixture('advisor')
+  try{
+    const cancel=new AbortController()
+    f.setReplies([()=>({*[Symbol.iterator](){
+      for(const chunk of reply('',[{type:'tool-call',id:'pending-read',name:'read',arguments:'{}'}])){
+        if(chunk.type==='usage')yield {type:'usage',usage:{inputTokens,outputTokens:0}} as StreamChunk
+        else if(chunk.type==='finish')yield {type:'finish',reason:{kind:'max-tokens'}} as StreamChunk
+        else yield chunk
+      }
+      if(cancelAfter)cancel.abort()
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor',signal:cancel.signal})))
+    const history=await f.controller.history('native-session')
+    const row=history.records[0].calls.find((c:any)=>c.call_id)
+    assert.equal(row.status,'unknown-usage')
+    assert.equal(row.charged,row.reserved)
+    assert.ok(row.charged>0)
     assert.equal(f.calls.length,1)
     assert.equal(f.toolExecutions,0)
   }finally{await f.cleanup()}

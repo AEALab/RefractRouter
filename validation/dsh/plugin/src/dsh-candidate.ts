@@ -1,7 +1,7 @@
 /** 按宿主 BlockAssembler 的首次出现顺序投影规范候选；block-end 覆盖增量。 */
 type Json=Record<string,any>
 interface Partial {kind:string;text:string;id?:string;name?:string;arguments:string;block?:Json}
-export function dshCandidate(chunks:readonly Json[],finishReason:unknown):Json{
+export function dshCandidate(chunks:readonly Json[],finishReason:unknown,preserveToolEvidence=false):Json{
   const partials=new Map<number|undefined,Partial>()
   function ensure(chunk:Json,kind:string):Partial{
     const index=chunk.index as number|undefined
@@ -27,6 +27,6 @@ export function dshCandidate(chunks:readonly Json[],finishReason:unknown):Json{
     ?{type:'tool-call',id:p.id??`call-${index}`,name:p.name??'',arguments:p.arguments}
     :p.kind==='text'||p.kind==='reasoning'?{type:p.kind,text:p.text}:(()=>{throw new Error('未知的未结束DSH内容块')})()))
   return {content:blocks.filter(b=>b.type==='text').map(b=>b.text).join(''),
-    toolCalls:finishReason==='max-tokens'?[]:blocks.filter(b=>b.type==='tool-call'),
+    toolCalls:finishReason==='max-tokens'&&!preserveToolEvidence?[]:blocks.filter(b=>b.type==='tool-call'),
     finishReason:finishReason==='tool-calls'?'tool_calls':finishReason}
 }

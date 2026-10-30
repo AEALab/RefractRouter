@@ -100,6 +100,25 @@ def test_cheap_per_call_but_repeated_full_task_cost_is_ranked_correctly(tmp_path
     assert all(s["result"]["calls"][0]["purpose"] == "task" for s in samples)
 
 
+def test_new_request_contract_cannot_borrow_old_empirical_strata(tmp_path):
+    cfg = configuration()
+    runtime = PlanningRuntime(tmp_path / 'runtime')
+    run = begin(runtime, 'task', config=cfg)
+    action = receipt(runtime, run, step(runtime, run,
+        executionOptions={'response_format': {'type': 'json_object'}}), classifier())
+    assert action['purpose'] == 'execute'
+    shadow = runtime.runs[run]['state']['taskShadow']
+    assert shadow['uncertain'] is True and shadow['candidateId'] is None
+    assert shadow['reason'] == 'request-contract-not-in-v1-strata'
+    receipt(runtime, run, action)
+    runtime.handle({'op': 'end', 'runId': run})
+    runtime.local_service.close()
+    _, samples, _ = profile_fixture(tmp_path / 'samples')
+    samples[0]['result']['calls'][-1]['request_options_sha256'] = 'a' * 64
+    profile = build_profile(samples, kind='simulation')
+    assert profile['observations'][0]['excluded'] == 'request-contract-not-in-v1-strata'
+
+
 def test_runtime_records_shadow_but_executes_legacy_choice_once_and_keeps_model(tmp_path):
     cfg, _, profile = profile_fixture(tmp_path)
     cfg["taskShadow"].update(profile=profile, profileSha256=digest(profile))

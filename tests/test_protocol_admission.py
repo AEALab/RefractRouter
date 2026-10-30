@@ -149,3 +149,95 @@ def test_optional_host_neutral_core_guard_uses_all_candidates(tmp_path):
         step(runtime, run_id)
     assert runtime.runs[run_id]['budget'].records == []
     runtime.local_service.close()
+
+
+def test_gateway_passes_actual_options_to_explicit_v8_core_guard(tmp_path):
+    cfg = declared()
+    cfg.update(schemaVersion='refractagent-planning-v8', billingUnit='CNY',
+               protocolAdmission='all-executor-protocol-admission-v1')
+    for model in cfg['models']:
+        model['billingUnit'] = 'CNY'
+    cfg['models'][0]['capabilities']['requestFeatures']['jsonSchema'] = 'unknown'
+    caller = Caller()
+    gw = ModelGateway({'planningRouting': cfg}, tmp_path, caller)
+    with pytest.raises(ValueError, match='jsonSchema'):
+        gw.complete({**request(), 'response_format': {'type': 'json_schema', 'json_schema': {
+            'name': 'answer', 'schema': {'type': 'object'}}}})
+    assert not caller.actions and all(not r['budget'].records for r in gw.runtime.runs.values())
+    gw.close()
+
+
+def test_output_schema_contributes_to_capacity_before_any_dispatch(tmp_path):
+    cfg = declared()
+    cfg['models'][0]['contextWindow'] = 2048
+    caller = Caller()
+    gw = strict(tmp_path, cfg, caller)
+    with pytest.raises(ValueError, match='容量'):
+        gw.complete({**request(), 'response_format': {'type': 'json_schema', 'json_schema': {
+            'name': 'answer', 'schema': {'type': 'object', 'description': 'x' * 4096}}}})
+    assert not caller.actions and not gw.runtime.runs
+    gw.close()
+
+
+def test_empty_current_tools_do_not_bypass_function_history_capability(tmp_path):
+    from tests.test_model_gateway import call
+    cfg = declared()
+    cfg['models'][0]['capabilities']['toolCalling'] = 'unknown'
+    caller = Caller()
+    gw = strict(tmp_path, cfg, caller)
+    body = request(messages=[{'role': 'user', 'content': '读文件'},
+        {'role': 'assistant', 'content': None, 'tool_calls': [call()]},
+        {'role': 'tool', 'tool_call_id': 'call-1', 'content': '内容'}])
+    body['tools'] = []
+    with pytest.raises(ValueError, match='function'):
+        gw.complete(body)
+    assert not caller.actions and not gw.runtime.runs
+    gw.close()
+
+
+def test_schema_is_in_budget_reservation_without_being_added_to_messages(tmp_path):
+    cfg = declared()
+    cfg.update(schemaVersion='refractagent-planning-v8', billingUnit='CNY', maxProductionCost=.003,
+               maxProductionCostByUnit={'CNY': .003})
+    for model in cfg['models']:
+        model['billingUnit'] = 'CNY'
+    plain = {'model': 'refract/static', 'messages': [{'role': 'user', 'content': '回答'}]}
+    control = strict(tmp_path / 'control', cfg, Caller(reply()))
+    control.complete(plain)
+    assert len(control.runtime.runs) == 1
+    control.close()
+    caller = Caller()
+    gw = strict(tmp_path / 'schema', cfg, caller)
+    original = {**plain, 'response_format': {'type': 'json_schema', 'json_schema': {
+        'name': 'answer', 'schema': {'type': 'object', 'description': 'x' * 2000}}}}
+    saved = deepcopy(original)
+    with pytest.raises(ValueError, match='预算'):
+        gw.complete(original)
+    assert original == saved and not caller.actions
+    assert all(not r['budget'].records for r in gw.runtime.runs.values())
+    gw.close()
+
+
+def test_sensitive_schema_uses_same_data_domain_admission_as_text(tmp_path):
+    cfg = declared()
+    cfg['models'][0]['deployment'] = 'external-cloud'
+    cfg['security'] = {'sensitiveTerms': ['private-schema-marker']}
+    caller = Caller()
+    gw = strict(tmp_path, cfg, caller)
+    with pytest.raises(ValueError, match='数据域'):
+        gw.complete({**request(), 'response_format': {'type': 'json_schema', 'json_schema': {
+            'name': 'answer', 'schema': {'type': 'object', 'description': 'private-schema-marker'}}}})
+    assert not caller.actions and not gw.runtime.runs
+    gw.close()
+
+
+def test_redo_keeps_the_same_schema_and_caller_options_without_network():
+    from refractrouter.model_gateway import HttpModelCaller
+    caller = HttpModelCaller({'fixture': {'baseURL': 'http://fixture.invalid/v1'}})
+    options = {'response_format': {'type': 'json_schema', 'json_schema': {'name': 'r', 'schema': {'type': 'object'}}},
+               'prompt_cache_key': 'same-key', 'tool_choice': 'none'}
+    saved = deepcopy(options)
+    action = {'model': {'provider': 'fixture', 'model': 'fake', 'maxTokens': 1024},
+              'purpose': 'redo', 'messages': [{'role': 'user', 'content': '按原格式返工'}], 'tools': []}
+    _, _, payload, _ = caller._request(action, options)
+    assert all(payload[key] == value for key, value in options.items()) and options == saved

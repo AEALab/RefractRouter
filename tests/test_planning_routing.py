@@ -509,8 +509,8 @@ def test_task_judge_preflight_prices_the_exact_dispatched_request(tmp_path, monk
     priced = []
     original = runtime._cost_bound
 
-    def capture(model, messages, tools, output_cap=None):
-        amount = original(model, messages, tools, output_cap)
+    def capture(model, messages, tools, output_cap=None, request_options=None):
+        amount = original(model, messages, tools, output_cap, request_options)
         if model.model_id == "judge":
             priced.append((deepcopy(messages), amount))
         return amount

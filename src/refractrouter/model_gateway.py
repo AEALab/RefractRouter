@@ -540,7 +540,7 @@ class ModelGateway:
                             del all_facts[run_id]
                     raise
             action = self.runtime.handle({'op': 'step', 'runId': run_id, 'messages': messages,
-                'tools': schemas, 'toolEvidence': evidence,
+                'tools': schemas, 'toolEvidence': evidence, 'executionOptions': options,
                 'toolRequirements': request_requirements(messages, schemas),
                 'requireConfirmedToolEvidence': tool_policy == 'confirmed',
                 'taskToolEvidence': [e for e in evidence if
@@ -597,6 +597,7 @@ class ModelGateway:
                         'outputTokens': response.output_tokens, 'cachedInputTokens': response.cached_input_tokens,
                         'reasoningTokens': response.reasoning_tokens, 'usageAvailable': response.usage_available,
                         'cacheUsageSource': response.cache_usage_source, 'rawUsage': response.raw_usage,
+                        'routerOperationMs': action.get('routerOperationMs'),
                         'finishReason': response.finish_reason, 'toolCalls': list(response.tool_calls),
                         'latencyMs': response.latency_ms, 'requestId': response.request_id, 'ttftMs': response.ttft_ms}})
             if action['action'] != 'release':

@@ -16,9 +16,11 @@ from .node_routing import number
 from .openai_compatible import ModelInvocationError, model_response_cost
 
 
-def request_input_bound(messages, tools=None):
+def request_input_bound(messages, tools=None, request_options=None):
     """模型请求与节点准入共用相同的保守序列化计数。"""
     payload = {"messages": messages, "tools": tools} if tools else messages
+    if request_options:
+        payload = {'request': payload, 'executionOptions': request_options}
     return len(json.dumps(payload, ensure_ascii=False).encode()) + 256
 
 
@@ -85,11 +87,13 @@ class TaskCallBudget:
             return dict(self.charged), deepcopy(self.records)
 
     def reserve(self, model, messages, *, category='production', label, json_mode=False, category_limit=None, tools=None,
-                future_input_bound=None):
+                future_input_bound=None, request_options=None):
         if category_limit is not None:
             category_limit = number(category_limit, 'category limit')
         encoded = json.dumps({"messages": messages, "tools": tools} if tools else messages, ensure_ascii=False).encode()
-        input_bound = request_input_bound(messages, tools)
+        if request_options:
+            encoded = json.dumps({'request': json.loads(encoded), 'executionOptions': request_options}, ensure_ascii=False).encode()
+        input_bound = request_input_bound(messages, tools, request_options)
         if future_input_bound is not None:
             if type(future_input_bound) is not int or future_input_bound < input_bound or tools:
                 raise ValueError('invalid future review input envelope')
@@ -137,6 +141,9 @@ class TaskCallBudget:
                    'reserved': reserve, 'charged': reserve, 'status': 'reserved',
                    'reserved_output_tokens': output_bound,
                    'input_sha256': hashlib.sha256(encoded).hexdigest()}
+            if request_options:
+                row['request_options_sha256'] = hashlib.sha256(json.dumps(
+                    request_options, ensure_ascii=False, sort_keys=True, allow_nan=False).encode()).hexdigest()
             if future_input_bound is not None:
                 row.update(reservation_basis='future-input-envelope', protected_input_bound=future_input_bound,
                            input_bound_confirmed=False)
@@ -146,6 +153,8 @@ class TaskCallBudget:
                 row['request_messages'] = deepcopy(messages)
                 if tools:
                     row['request_tools'] = deepcopy(tools)
+                if request_options:
+                    row['request_options'] = deepcopy(request_options)
             self.records.append(row)
         reservation = Reservation(model, messages, row, json_mode, tools)
         if self.on_reserve is not None:
