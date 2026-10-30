@@ -108,16 +108,22 @@ def validate(workspace):
         usage = next(c['usage'] for c in chunks if c.get('usage'))
         assert usage['prompt_tokens_details'] == {'cached_tokens': 20}
         assert usage['completion_tokens_details'] == {'reasoning_tokens': 8}
+        stage = json.loads(post('/v1/chat/completions', {**deepcopy(chat), 'model': 'refract/stage',
+            'messages': [{'role': 'user', 'content': 'Stage成功探针'}]}))
+        assert json.loads(stage['choices'][0]['message']['content'])['result'] == TEXT
+        assert len(seen) == 5 and seen[-1]['response_format'] == schema
         gateway.planning['models'][1]['capabilities']['requestFeatures']['jsonSchema'] = 'unknown'
         rejected = {**deepcopy(chat), 'model': 'refract/stage', 'messages': [{'role': 'user', 'content': '拒绝探针'}]}
         try:
             post('/v1/chat/completions', rejected)
         except HTTPError as error:
             assert error.code == 400
+            diagnostic = json.loads(error.read())
+            assert diagnostic['error']['message'] == '候选 large 的 jsonSchema 能力未验收'
             error.close()
         else:
             raise AssertionError('未验收的可能执行候选不应派发')
-        assert len(seen) == 4
+        assert len(seen) == 5
         return {'status': 'pass', 'scope': 'installed-wheel-http-gateway-v2', 'paid_model_calls': 0,
                 'upstream_fixture_calls': len(seen), 'tool_reasoning_roundtrip': True,
                 'cache_and_reasoning_details': True, 'unicode_sse': True, 'all_candidate_rejection': True,

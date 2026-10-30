@@ -110,3 +110,27 @@ def test_unknown_cache_write_only_blocks_when_it_changes_amount(write_price):
         row = budget.snapshot()[1][0]
         assert row['status'] == 'billed' and row['cache_write_usage_available'] is False
         assert row['cache_write_tokens'] is None  # 金额可确定，不补造未知细分。
+
+
+@pytest.mark.parametrize('hour', [10, 22])
+@pytest.mark.parametrize('write_tokens', [None, 0, 100])
+def test_missing_cache_write_uses_dispatch_time_materialized_price(hour, write_tokens):
+    from refractrouter.application_config import ApplicationModelSpec
+    model = ApplicationModelSpec(**{**asdict(real_model()), 'context_window': 65536,
+        'api_model': 'deepseek-flash', 'billing_unit': 'CNY', 'input_cost_per_1k': .002,
+        'cache_write_cost_per_1k': .002, 'price_policy': 'deepseek-official-cny-v1'})
+    raw = None if write_tokens is None else {'cacheWriteTokens': write_tokens}
+    response = ChatResponse('回复', 100, 20, 0, 0, 1, 1, 'stop', 'fixture', raw_usage=raw)
+    budget = TaskCallBudget(None, 100, 100)
+    reservation = budget.reserve(model, [{'role': 'user', 'content': '输入'}], label='dispatch-price')
+    budget.dispatch(reservation)
+    reservation.row['dispatch_at'] = f'2026-10-28T{hour}:00:00+08:00'
+    if hour == 22 and write_tokens is None:
+        with pytest.raises(ValueError, match='unconfirmed cache write usage'):
+            budget.settle(reservation, response)
+        assert reservation.row['status'] == 'unknown-usage'
+    else:
+        budget.settle(reservation, response)
+        expected = .00036 if hour == 10 else .00018 + write_tokens * .000001
+        assert reservation.row['charged'] == pytest.approx(expected)
+        assert reservation.row['cache_write_usage_available'] is (write_tokens is not None)

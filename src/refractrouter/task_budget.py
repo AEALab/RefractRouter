@@ -292,6 +292,12 @@ class TaskCallBudget:
                 or response.cached_input_tokens > response.input_tokens
                 or response.reasoning_tokens > response.output_tokens):
             raise ValueError('invalid model usage; reservation retained')
+        if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
+            from .deepseek_official_pricing import pricing
+            rates = pricing(model.api_model, at=datetime.fromisoformat(row['dispatch_at']))
+            model = replace(model, input_cost_per_1k=rates['inputPer1k'],
+                cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])
+            row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
         raw_usage = response.raw_usage if isinstance(response.raw_usage, dict) else {}
         write_known = raw_usage.get('cacheWriteUsageAvailable', 'cacheWriteTokens' in raw_usage) is True
         input_rate, write_rate = model.input_cost_per_1k, getattr(model, 'cache_write_cost_per_1k', None)
@@ -302,12 +308,6 @@ class TaskCallBudget:
             input_rate, write_rate = rates['input'], rates.get('cacheWrite', rates['input'])
         if write_rate is not None and write_rate != input_rate and not write_known:
             raise ValueError('unconfirmed cache write usage; reservation retained')
-        if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
-            from .deepseek_official_pricing import pricing
-            rates = pricing(model.api_model, at=datetime.fromisoformat(row['dispatch_at']))
-            model = replace(model, input_cost_per_1k=rates['inputPer1k'],
-                cached_input_cost_per_1k=rates['cachedInputPer1k'], output_cost_per_1k=rates['outputPer1k'])
-            row['price_snapshot'] = dict(rates, unit='CNY', basis='dispatch-time-official-estimate')
         actual = number(model_response_cost(model, response), 'model cost')
         with self.lock:
             if model.billing_unit in {'CNY', 'USD'}:
