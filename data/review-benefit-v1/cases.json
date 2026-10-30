@@ -1,0 +1,515 @@
+{
+  "schemaVersion": "review-benefit-fixtures-v1",
+  "kind": "constructed-contract",
+  "criteriaSha256": "e6fd471148e2db954451c7dc5c925d7f81aaf27623b791d6e1bf811d0dd505ce",
+  "configuration": {
+    "schemaVersion": "refractagent-planning-v6",
+    "enabled": true,
+    "defaultStrategy": "static",
+    "billingUnit": "CNY",
+    "maxProductionCostByUnit": {
+      "CNY": 100
+    },
+    "maxCalls": 12,
+    "timeoutMs": 300000,
+    "models": [
+      {
+        "id": "small",
+        "provider": "fixture",
+        "model": "fake-small",
+        "contextWindow": 32000,
+        "maxOutputTokens": 1024,
+        "billingUnit": "CNY",
+        "inputPer1k": 0.001,
+        "outputPer1k": 0.002,
+        "deployment": "local",
+        "capabilities": {
+          "mainExecutor": true,
+          "toolCalling": "verified",
+          "modalities": {}
+        }
+      },
+      {
+        "id": "large",
+        "provider": "fixture",
+        "model": "fake-large",
+        "contextWindow": 32000,
+        "maxOutputTokens": 1024,
+        "billingUnit": "CNY",
+        "inputPer1k": 0.004,
+        "outputPer1k": 0.008,
+        "deployment": "local",
+        "capabilities": {
+          "mainExecutor": true,
+          "toolCalling": "verified",
+          "modalities": {}
+        }
+      },
+      {
+        "id": "judge",
+        "provider": "fixture",
+        "model": "fake-judge",
+        "contextWindow": 32000,
+        "maxOutputTokens": 1024,
+        "billingUnit": "CNY",
+        "inputPer1k": 0.002,
+        "outputPer1k": 0.004,
+        "deployment": "local",
+        "capabilities": {
+          "mainExecutor": false,
+          "toolCalling": "verified",
+          "modalities": {}
+        }
+      }
+    ],
+    "roles": {
+      "efficient": "small",
+      "capable": "large",
+      "classifier": "judge",
+      "advisor": "judge"
+    },
+    "advisor": {
+      "executor": "small",
+      "judge": {
+        "type": "llm",
+        "modelId": "judge"
+      },
+      "threshold": 0.8,
+      "judgeTimeoutMs": 30000,
+      "maxJudgeInputBytes": 8000,
+      "maxExecutionOutputTokens": 1024,
+      "maxJudgeOutputTokens": 256
+    },
+    "escalation": {
+      "initial": "small",
+      "takeover": "large",
+      "judge": {
+        "type": "llm",
+        "modelId": "judge"
+      },
+      "threshold": 0.8,
+      "stallConfirmations": 2,
+      "judgeTimeoutMs": 30000,
+      "maxJudgeInputBytes": 8000,
+      "maxExecutionOutputTokens": 1024,
+      "maxJudgeOutputTokens": 256
+    }
+  },
+  "cases": [
+    {
+      "caseId": "advisor-good",
+      "strategy": "advisor",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS"
+        },
+        {
+          "purpose": "advisor",
+          "content": "{\"verdict\": \"APPROVE\"}",
+          "gold": null
+        }
+      ]
+    },
+    {
+      "caseId": "advisor-false-allow",
+      "strategy": "advisor",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "错误或待确认交付",
+          "gold": "FAIL"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "明确错误交付",
+          "gold": "FAIL"
+        },
+        {
+          "purpose": "advisor",
+          "content": "{\"verdict\": \"APPROVE\"}",
+          "gold": null
+        }
+      ]
+    },
+    {
+      "caseId": "advisor-repair",
+      "strategy": "advisor",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "错误或待确认交付",
+          "gold": "FAIL"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "明确错误交付",
+          "gold": "FAIL"
+        },
+        {
+          "purpose": "advisor",
+          "content": "{\"verdict\": \"REDO\", \"feedback\": \"按固定要求修正明确错误。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "redo",
+          "content": "完整修正交付",
+          "gold": "PASS"
+        },
+        {
+          "purpose": "advisor",
+          "content": "{\"verdict\": \"APPROVE\"}",
+          "gold": null
+        }
+      ]
+    },
+    {
+      "caseId": "advisor-unknown",
+      "strategy": "advisor",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "错误或待确认交付",
+          "gold": "UNKNOWN"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "证据不足",
+          "gold": "UNKNOWN"
+        },
+        {
+          "purpose": "advisor",
+          "content": "{\"verdict\": \"UNRESOLVED\"}",
+          "gold": null,
+          "expectedError": "审核未通过"
+        }
+      ]
+    },
+    {
+      "caseId": "escalation-repair",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "错误或待确认交付",
+          "gold": "FAIL"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "明确错误交付",
+          "gold": "FAIL"
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"DEFECT\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "takeover",
+          "content": "完整修正交付",
+          "gold": "PASS"
+        }
+      ]
+    },
+    {
+      "caseId": "escalation-unnecessary",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS"
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"DEFECT\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "takeover",
+          "content": "完整交付",
+          "gold": "PASS"
+        }
+      ]
+    },
+    {
+      "caseId": "escalation-false-allow",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "错误或待确认交付",
+          "gold": "FAIL"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "明确错误交付",
+          "gold": "FAIL"
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"PROCEED\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        }
+      ]
+    },
+    {
+      "caseId": "escalation-discard-tool",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "FAIL",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "FAIL",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"DEFECT\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "takeover",
+          "content": "完整交付",
+          "gold": "PASS"
+        }
+      ]
+    },
+    {
+      "caseId": "earlier-fail-later-good",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "FAIL",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        },
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS",
+          "newStep": true
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "FAIL",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"PROCEED\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS",
+          "newStep": true
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"DEFECT\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "takeover",
+          "content": "完整交付",
+          "gold": "PASS"
+        }
+      ]
+    },
+    {
+      "caseId": "earlier-good-later-fail",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "PASS",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        },
+        {
+          "purpose": "execute",
+          "content": "明确错误交付",
+          "gold": "FAIL",
+          "newStep": true
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "PASS",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"PROCEED\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "execute",
+          "content": "明确错误交付",
+          "gold": "FAIL",
+          "newStep": true
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"DEFECT\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        },
+        {
+          "purpose": "takeover",
+          "content": "完整修正交付",
+          "gold": "PASS"
+        }
+      ]
+    },
+    {
+      "caseId": "stall-releases-bad-tool",
+      "strategy": "escalation",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "FAIL",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "请求读取固定资料。",
+          "gold": "FAIL",
+          "toolCalls": [
+            {
+              "id": "read-one",
+              "name": "read",
+              "arguments": "{\"path\":\"fixture.txt\"}"
+            }
+          ]
+        },
+        {
+          "purpose": "escalation",
+          "content": "{\"verdict\": \"STALL\", \"confidence\": 0.99, \"evidenceIds\": [], \"reason\": \"构造判词，不代表真实评审能力。\"}",
+          "gold": null
+        }
+      ]
+    },
+    {
+      "caseId": "advisor-invalid-review",
+      "strategy": "advisor",
+      "task": "依据完整材料完成交付；不读取未获授权的位置。",
+      "baseline": [
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS"
+        }
+      ],
+      "reviewed": [
+        {
+          "purpose": "execute",
+          "content": "完整交付",
+          "gold": "PASS"
+        },
+        {
+          "purpose": "advisor",
+          "content": "{\"verdict\":\"PASS\"}",
+          "gold": null,
+          "expectedError": "Advisor Judge 返回无效结构"
+        }
+      ]
+    }
+  ]
+}
