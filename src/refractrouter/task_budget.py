@@ -279,7 +279,9 @@ class TaskCallBudget:
         counts = (response.input_tokens, response.output_tokens, response.cached_input_tokens, response.reasoning_tokens)
         if not response.usage_available or ((response.content.strip() or getattr(response, "tool_calls", ())) and (response.input_tokens == 0 or response.output_tokens == 0)):
             raise ValueError('missing or unconfirmed model usage; reservation retained')
-        if any(type(x) is not int or x < 0 for x in counts) or response.cached_input_tokens > response.input_tokens:
+        if (any(type(x) is not int or x < 0 for x in counts)
+                or response.cached_input_tokens > response.input_tokens
+                or response.reasoning_tokens > response.output_tokens):
             raise ValueError('invalid model usage; reservation retained')
         if getattr(model, 'price_policy', None) == 'deepseek-official-cny-v1':
             from .deepseek_official_pricing import pricing

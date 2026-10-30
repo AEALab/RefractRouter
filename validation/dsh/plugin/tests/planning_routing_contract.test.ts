@@ -619,6 +619,31 @@ test('切换策略当前轮保持冻结，新轮重新分类；取消不释放�
   }finally{await f.cleanup()}
 })
 
+test('收到用量后取消仍结算一次，不再追加Advisor审核或释放已派发费用',async()=>{
+  const f=await fixture('advisor')
+  try{
+    const cancel=new AbortController()
+    f.setReplies([()=>({*[Symbol.iterator](){
+      yield {type:'text-delta',index:0,text:'尚未交付的候选'} as StreamChunk
+      yield {type:'usage',usage:{inputTokens:100,outputTokens:20}} as StreamChunk
+      cancel.abort()
+    }})])
+    await assert.rejects(()=>collect(f.controller.stream({...f.options,reasoningEffort:'rr:advisor',signal:cancel.signal})))
+    const history=await f.controller.history('native-session')
+    const record=history.records[0]
+    assert.equal(record.status,'cancelled')
+    const dispatched=record.calls.filter((c:any)=>c.call_id)
+    assert.equal(dispatched.length,1)
+    assert.equal(dispatched[0].status,'billed')
+    assert.equal(dispatched[0].disposition,'discarded')
+    assert.equal(dispatched[0].input_tokens,100)
+    assert.equal(dispatched[0].output_tokens,20)
+    assert.ok(dispatched[0].charged>0&&dispatched[0].charged<dispatched[0].reserved)
+    assert.equal(f.calls.length,1)
+    assert.equal(f.toolExecutions,0)
+  }finally{await f.cleanup()}
+})
+
 test('规划入口可发现但未配置零调用拒绝；原生历史来源保持',async()=>{
   const f=await fixture()
   try{

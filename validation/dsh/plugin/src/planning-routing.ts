@@ -123,6 +123,15 @@ function sumUsage(total:TokenUsage,usage:TokenUsage):void {
   for(const key of ['inputTokens','outputTokens','cacheReadTokens','cacheWriteTokens','reasoningTokens'] as const)
     total[key]=(total[key]??0)+(usage[key]??0)
 }
+function responseReceipt(candidate:Json,usage:TokenUsage|undefined,finish:Json|undefined,
+  ttftMs:number|undefined,latencyMs:number):Json {
+  return {...candidate,
+    usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
+    inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
+    cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,
+    cachedInputTokens:usage?.cacheReadTokens??0,outputTokens:usage?.outputTokens??0,
+    reasoningTokens:usage?.reasoningTokens??0,latencyMs}
+}
 function waitFor(ms:number,signal:AbortSignal):Promise<void>{
   return new Promise((resolve,reject)=>{
     if(signal.aborted){reject(signal.reason);return}
@@ -462,21 +471,32 @@ export class PlanningController {
           typeof value==='number'&&Number.isFinite(value))
         const callSignal=limits.length?AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,Math.min(...limits)))]):signal
         const chunks:Json[]=[]
-        let usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined
+        let usage:TokenUsage|undefined,finish:Json|undefined,bytes=0,ttftMs:number|undefined,usageConflict=false
         const started=performance.now()
         let streamError:unknown
         try{for await(const native of this.ctx.llm.stream(nativeOptions(action,callSignal,options))){
-          callSignal.throwIfAborted()
           const chunk=native as Json
           bytes+=Buffer.byteLength(JSON.stringify(chunk))
           if(bytes>8*1024*1024)throw new Error('规划路由回复缓冲超过 8 MiB')
-          if(chunk.type==='usage'){usage=chunk.usage as TokenUsage;continue}
+          if(chunk.type==='usage'){
+            const next=chunk.usage as TokenUsage|undefined
+            if(!next||typeof next!=='object'||Array.isArray(next)){
+              usageConflict=true;throw new Error('模型用量回执类型无效；保留预留')
+            }
+            for(const key of ['inputTokens','outputTokens','cacheReadTokens','cacheWriteTokens','reasoningTokens'] as const)
+              if(usage?.[key]!==undefined&&next[key]!==undefined&&usage[key]!==next[key])usageConflict=true
+            usage={...usage,...next}
+            callSignal.throwIfAborted()
+            continue
+          }
+          callSignal.throwIfAborted()
           if(chunk.type==='finish'){finish=chunk;continue}
           if(finish)throw new Error('模型 finish 后继续输出')
           if(chunk.type==='text-delta')ttftMs??=performance.now()-started
           chunks.push(chunk)
           if(!action.buffered)yield chunk
         }}catch(error){streamError=error}
+        if(usageConflict)streamError=new Error('模型用量回执冲突；保留预留并停止')
         if(!streamError&&finish?.reason?.kind==='error'){
           const failure=finish.reason.failure as Json|undefined
           streamError=new Error('底层模型调用失败'+(failure?.code?'（'+String(failure.code)+'）':'')+
@@ -485,19 +505,22 @@ export class PlanningController {
         if(!streamError&&!finish)streamError=new Error('底层模型没有返回完成回执；用量待核对')
         if(streamError||callSignal.aborted){
           await this.rpc.request({op:'cancel',runId})
+          if(usage&&!usageConflict){
+            let partial:Json
+            try{partial=dshCandidate(chunks,finish?.reason?.kind??'cancelled')}
+            catch{partial={content:'',toolCalls:[],finishReason:finish?.reason?.kind??'cancelled'}}
+            // 先停止整个任务，再结算原调用；不放行候选工具或触发下一次审核。
+            await this.rpc.request({op:'complete',runId,callId:action.callId,
+              response:responseReceipt({...partial,toolCalls:[]},usage,finish,ttftMs,performance.now()-started)})
+          }
           if(streamError)throw streamError
           callSignal.throwIfAborted()
         }
         if(usage)sumUsage(total,usage)
         const candidate=dshCandidate(chunks,finish?.reason?.kind)
         outputs.set(action.callId,{chunks,finish:finish??{},model:action.model,buffered:action.buffered,candidate})
-        action=await this.rpc.request({op:'complete',runId,callId:action.callId,response:{
-          ...candidate,
-          usageAvailable:!!usage&&typeof usage.inputTokens==='number'&&typeof usage.outputTokens==='number',
-          inputTokens:(usage?.inputTokens??0)+(usage?.cacheReadTokens??0)+(usage?.cacheWriteTokens??0),
-          cacheWriteTokens:usage?.cacheWriteTokens??0,ttftMs,replayState:finish?.replayState,
-          cachedInputTokens:usage?.cacheReadTokens??0,outputTokens:usage?.outputTokens??0,
-          reasoningTokens:usage?.reasoningTokens??0,latencyMs:performance.now()-started}})
+        action=await this.rpc.request({op:'complete',runId,callId:action.callId,
+          response:responseReceipt(candidate,usage,finish,ttftMs,performance.now()-started)})
         callSignal.throwIfAborted()
       }
       signal.throwIfAborted()

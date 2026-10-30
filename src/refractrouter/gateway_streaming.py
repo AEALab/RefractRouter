@@ -53,7 +53,13 @@ def stream_chat(url, headers, payload, timeout, on_text):
             data = json.loads(raw)
             if not isinstance(data, dict) or data.get('error'):
                 raise ValueError('上游流返回错误或无效事件')
-            response_id = response_id or data.get('id')
+            chunk_id = data.get('id')
+            if chunk_id is not None:
+                if not isinstance(chunk_id, str) or not chunk_id:
+                    raise ValueError('无效上游流响应身份')
+                if response_id is not None and response_id != chunk_id:
+                    raise ValueError('上游流响应身份改变；保留未知用量预留')
+                response_id = chunk_id
             if data.get('usage') is not None:
                 if usage is not None and usage != data['usage']:
                     raise ValueError('上游流用量回执互相矛盾')

@@ -721,25 +721,34 @@ class OpenAICompatibleClient:
                 "invalid-response", f"Invalid Chat Completions response: {type(exc).__name__}", attempts, latency_ms
             ) from exc
         prompt_details = usage.get("prompt_tokens_details") or usage.get("input_tokens_details") or {}
-        completion_details = usage.get("completion_tokens_details") or usage.get("output_tokens_details") or {}
+        completion_details = usage.get("completion_tokens_details")
+        if completion_details is None or completion_details == {}:
+            completion_details = usage.get("output_tokens_details")
+        if completion_details is None:
+            completion_details = {}
         latency_ms = round((time.perf_counter() - started) * 1000)
         headers = {key.lower(): value for key, value in response.headers.items()}
         input_count = usage.get("prompt_tokens", usage.get("input_tokens"))
         output_count = usage.get("completion_tokens", usage.get("output_tokens"))
         usage_available = all(type(v) is int and v >= 0 for v in (input_count, output_count))
         cached, cache_source, cache_valid = cache_usage(raw_usage, input_count)
+        reasoning_count = (completion_details.get("reasoning_tokens", 0)
+                           if isinstance(completion_details, dict) else None)
+        reasoning_valid = (type(reasoning_count) is int and reasoning_count >= 0
+                           and type(output_count) is int and reasoning_count <= output_count)
         return ChatResponse(
             content=content,
             input_tokens=input_count if type(input_count) is int else 0,
             output_tokens=output_count if type(output_count) is int else 0,
             cached_input_tokens=cached,
             cache_usage_source=cache_source,
-            reasoning_tokens=int(completion_details.get("reasoning_tokens", 0)),
+            # 无效字段原样保留在 raw_usage；占位计数不能成为已确认用量。
+            reasoning_tokens=reasoning_count if type(reasoning_count) is int else 0,
             latency_ms=latency_ms,
             attempts=attempts,
             finish_reason=choice.get("finish_reason"),
             request_id=headers.get("x-request-id") or data.get("id"),
-            usage_available=usage_available and cache_valid,
+            usage_available=usage_available and cache_valid and reasoning_valid,
             raw_usage=raw_usage,
             tool_calls=tuple(choice["message"].get("tool_calls") or ()),
             replay_messages=(choice["message"],),

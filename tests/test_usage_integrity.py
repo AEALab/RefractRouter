@@ -41,3 +41,19 @@ def test_archived_partial_response_is_rejected_before_zero_cost_billing():
     with pytest.raises(ValueError,match='unconfirmed model usage'):
         budget.complete(replace(real_model(),context_window=65536),[{'role':'user','content':'固定输入'}],label=label)
     assert budget.snapshot()[1][0]['status']=='unknown-usage'
+
+
+@pytest.mark.parametrize('reasoning', [True, False, '8', 8.5, -1, None, {}, [], 25])
+def test_settlement_rejects_invalid_reasoning_even_for_confirmed_typed_receipt(reasoning):
+    response=ChatResponse(content='受控回复',input_tokens=80,output_tokens=24,cached_input_tokens=20,
+        reasoning_tokens=reasoning,latency_ms=1,attempts=1,finish_reason='stop',request_id='fixture',
+        usage_available=True,raw_usage={'completion_tokens_details':{'reasoning_tokens':reasoning}})
+    class Client:
+        def complete(self,*args,**kwargs):return response
+    budget=TaskCallBudget(Client(),100,100,capture_payload=True)
+    with pytest.raises(ValueError,match='invalid model usage'):
+        budget.complete(replace(real_model(),context_window=65536),
+                        [{'role':'user','content':'固定输入'}],label='reasoning-boundary')
+    _,calls=budget.snapshot()
+    assert calls[0]['status']=='unknown-usage' and calls[0]['charged']==calls[0]['reserved']>0
+    assert calls[0]['response']['raw_usage']==response.raw_usage

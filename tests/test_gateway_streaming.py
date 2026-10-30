@@ -158,3 +158,37 @@ def test_history_does_not_normalize_ambiguous_or_changed_arguments(tmp_path,argu
         gw.complete(followup)
     assert len(caller.actions)==1
     gw.close()
+
+
+@pytest.mark.parametrize('responses',[False,True],ids=['chat','responses'])
+@pytest.mark.parametrize('failure',['reasoning-usage','response-id'])
+def test_p1_errors_end_http_stream_without_tool_or_success(tmp_path,monkeypatch,responses,failure):
+    from refractrouter.gateway_responses import to_chat
+    from tests.recipe_protocol_fixtures import (
+        MemoryUpstream,PRIVATE,completion,decode_sse,function_call,responses_request,sse_bytes,stream_events,
+    )
+    raw=completion('可见片段',[function_call()])
+    if failure=='reasoning-usage':
+        raw['usage']['completion_tokens_details']['reasoning_tokens']=True
+    events=stream_events(raw)
+    if failure=='response-id':events[-1]['id']='other-response'
+    memory=MemoryUpstream(monkeypatch,[],body=sse_bytes(events))
+    gw=memory.gateway(tmp_path);server=create_server(gw,port=0)
+    Thread(target=server.serve_forever,daemon=True).start()
+    request=responses_request(stream=True)
+    if not responses:request=to_chat(request)
+    path='responses' if responses else 'chat/completions'
+    try:
+        with urlopen(Request(f'http://127.0.0.1:{server.server_port}/v1/{path}',
+                data=json.dumps(request).encode(),headers={'Content-Type':'application/json'}),timeout=5) as reply:
+            body=reply.read()
+        decoded=decode_sse([body])
+        assert b'router_stream_failed' in body and '[DONE]' not in decoded
+        assert PRIVATE not in body.decode()
+        assert not any(v.get('type')=='response.completed' or 'function_call' in v.get('type','') or
+            any(c.get('delta',{}).get('tool_calls') for c in v.get('choices',[])) for v in decoded)
+        row=next(iter(gw.runtime.runs.values()))['budget'].records[0]
+        assert row['status']=='unknown-usage' and row['charged']==row['reserved']>0
+        assert gw.state['tools']=={} and len(memory.requests)==1
+    finally:
+        server.shutdown();server.server_close();gw.close()

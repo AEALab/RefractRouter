@@ -14,7 +14,7 @@ from .planning_config import compile_config, preview, PROTOCOL, REQUIRED
 from .planning_policy import tool_events, stage_decision, static_choice, text_of
 from .host_evidence import validate_evidence
 from .privacy_placement import classify_view, allows_sensitive
-from .task_budget import request_input_bound
+from .task_budget import InvalidModelOutput, request_input_bound
 from .planning_budget import PlanningBudget
 from .planning_decision import (LocalDecisionCapacityError, candidate_assessments,
                                 decision_request, filter_candidates, parse_decision, select_task_candidate,
@@ -1303,13 +1303,19 @@ class PlanningRuntime(StageHybridRuntime):
             if write_tokens and reservation.model.cache_write_cost_per_1k is None:
                 raise ValueError("缓存写入价格未确认；保留预留并停止")
             run["budget"].settle(reservation, response)
+        except InvalidModelOutput:
+            if run["status"] != "cancelled" or reservation.row["status"] != "billed":
+                self.stop(run, "call-failed")
+                raise
+            # 取消后的不完整正文不能交付，但已知终止用量已经由原账本正确结算。
         except Exception:
             self.stop(run, "call-failed")
             raise
         flow["pending"] = None
         flow["responses"][token] = {"content": response.content, "toolCalls": response.tool_calls,
                                     "finishReason": response.finish_reason}
-        reservation.row["disposition"] = "consult" if purpose in ("task", "advisor", "escalation") else "buffered"
+        reservation.row["disposition"] = ("discarded" if run["status"] == "cancelled" else
+            "consult" if purpose in ("task", "advisor", "escalation") else "buffered")
         self.persist(run)
         if run["status"] != "running" or (run["deadline"] is not None and time.monotonic() >= run["deadline"]):
             self.stop(run, run["status"] if run["status"] != "running" else "deadline-exhausted")
