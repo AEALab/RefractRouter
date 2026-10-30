@@ -1,5 +1,6 @@
 """真实客户端＋账本＋事实宿主的确定性回归；传输层只用内存模拟。"""
 import json
+from pathlib import Path
 
 import pytest
 
@@ -18,7 +19,7 @@ def suite(tmp_path):
     finance.write_bytes(wire({'plan_no_overage_is_user_declared': True, 'cash_limit_cny': '300',
         'cumulative_cash_protected_cny': '26.3507702502422', 'all_current_calls_settled': True,
         'unknown_reserves_released': False}))
-    task = {'taskId': 'dev-test', 'root': 'visible/dev-test', 'criteria': {'question': '提取 CAP'},
+    task = {'taskId': 'dev-test', 'root': 'visible/dev-test', 'criteria': {'question': '提取 CAP', 'contract': '只输出JSON'},
         'criteriaSha256': 'a'*64, 'half': 0, 'kind': '确定性提取',
         'host': 'visible/host.json', 'hostSha256': sha(host.read_bytes()),
         'files': [{'path': 'a.py', 'sha256': sha(source.read_bytes())}]}
@@ -91,6 +92,25 @@ def test_rejects_model_price_mismatch_and_duplicate_execution_even_if_rehashed(t
     (root/'manifest.json').write_bytes(wire(manifest))
     with pytest.raises(ValueError):
         load_suite(root, sha((root/'manifest.json').read_bytes()))
+
+
+@pytest.mark.parametrize('closed', [False, True])
+def test_new_batch_requires_prior_batch_closed_and_unknown_reserves_retained(tmp_path, closed):
+    root, _ = suite(tmp_path)
+    manifest = json.loads((root/'manifest.json').read_bytes())
+    finance_path = tmp_path/'finance.json'
+    finance = json.loads(finance_path.read_bytes())
+    finance.update(all_current_calls_settled=False, batch_closed_no_inflight=closed,
+        outstanding_unknown_preserved=closed, cumulative_unknown_reserved_standard_afp='52.4288')
+    finance_path.write_bytes(wire(finance))
+    manifest['funding']['sourceSha256'] = sha(finance_path.read_bytes())
+    (root/'manifest.json').write_bytes(wire(manifest))
+    expected = sha((root/'manifest.json').read_bytes())
+    if closed:
+        assert load_suite(root, expected)
+    else:
+        with pytest.raises(ValueError, match='财务'):
+            load_suite(root, expected)
 
 
 def test_live_source_swap_cannot_send_hidden_answer_to_next_request(tmp_path):
@@ -196,3 +216,44 @@ def test_scoring_rejects_ledger_gaps_and_disagreeing_terminal_receipts(tmp_path,
     if mutation == 'output-hash': ledger['calls'][0]['output_sha256'] = '0'*64
     (output/'ledger.json').write_bytes(wire(ledger))
     with pytest.raises(ValueError): score(root, output, expected, sha(oracle_path.read_bytes()))
+
+
+def test_only_one_prompt_revision_leaves_old_evidence_and_scoring_rules_unchanged(tmp_path):
+    from experiments.revise_whole_task_development import revise
+    from refractrouter.development_study import save
+    root, _ = suite(tmp_path)
+    finance_path = tmp_path/'finance.json'
+    finance = json.loads(finance_path.read_bytes())
+    finance.update(historical_unknown_cash_retained_cny='2', cumulative_known_standard_afp_lower='10',
+        cumulative_unknown_reserved_standard_afp='20')
+    finance_path.write_bytes(wire(finance))
+    manifest = json.loads((root/'manifest.json').read_bytes())
+    manifest['funding']['sourceSha256'] = sha(finance_path.read_bytes())
+    (root/'manifest.json').write_bytes(wire(manifest))
+    expected = sha((root/'manifest.json').read_bytes())
+    save(root/'source-provenance.json', {})
+    oracles = {'dev-test': {'oracle': {'criteriaSha256': 'a'*64, 'answers': {'cap': 3},
+        'evidence': {'秘密评分': '不可出现在提示中'}, 'expectedTrees': {}}, 'goldSelfTest': '固定'}}
+    save(root/'isolated-evaluation/oracles.json', oracles)
+    run = tmp_path/'old-run'
+    save(run/'ledger.json', {'manifestSha256': expected,
+        'calls': [{'status': 'billed', 'charged': .1}, {'status': 'unknown-usage', 'charged': 52.4288}],
+        'chargedStandardAFPIncludingUnknownReserves': 52.5288,
+        'results': [{'candidate': '```json\n{}\n```'}]})
+    save(run/'generation-summary.json', {'manifestSha256': expected, 'stopReason': 'unknown-usage'})
+    before = {str(p): sha(p.read_bytes()) for p in [root/'manifest.json',
+        root/'isolated-evaluation/oracles.json', run/'ledger.json']}
+    revised = tmp_path/'revised'
+    result = revise(root, run, revised)
+    assert result['developmentRevision'] == 1
+    newer = json.loads((revised/'isolated-evaluation/oracles.json').read_bytes())
+    newer['dev-test']['oracle']['criteriaSha256'] = 'a'*64
+    assert newer == oracles
+    assert all(sha(Path(p).read_bytes()) == value for p, value in before.items())
+    after = json.loads((revised/'financial-before.json').read_bytes())
+    assert after['cumulative_known_standard_afp_lower'] == '10.1'
+    assert after['cumulative_unknown_reserved_standard_afp'] == '72.4288'
+    assert after['historical_unknown_cash_retained_cny'] == '2'
+    assert not after['all_current_calls_settled']
+    with pytest.raises(ValueError, match='第二次'):
+        revise(revised, run, tmp_path/'forbidden-second-revision')

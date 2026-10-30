@@ -67,6 +67,11 @@ def load_suite(path, expected_sha):
     if suite['output'] != {'wireAnswerTokens': 131072, 'contextWindow': 1024000,
             'costContextEnvelopeTokens': 1048576, 'thinking': {'type': 'enabled'}, 'reasoningEffort': 'low'}:
         raise ValueError('原生容量或思考配置偏离冻结合同')
+    for key, ceiling in {'maxCalls': 36, 'maxWFCallsPerTask': 4, 'maxToolQueriesPerTask': 8,
+            'maxInputBytes': 512000, 'perCallTimeoutSeconds': 600, 'batchTimeboxSeconds': 10800}.items():
+        value = suite['limits'][key]
+        if type(value) is not int or not 1 <= value <= ceiling:
+            raise ValueError('研究运行上限超出已冻结包络')
     funding = suite['funding']
     finance_raw = Path(funding['sourcePath']).read_bytes()
     if sha(finance_raw) != funding['sourceSha256']:
@@ -74,8 +79,11 @@ def load_suite(path, expected_sha):
     finance = strict_json(finance_raw)
     from decimal import Decimal
     protected = Decimal(finance['cumulative_cash_protected_cny'])
+    closed_with_reserves = (finance.get('batch_closed_no_inflight') is True
+        and finance.get('outstanding_unknown_preserved') is True
+        and Decimal(finance.get('cumulative_unknown_reserved_standard_afp', '0')) > 0)
     if (not finance['plan_no_overage_is_user_declared'] or finance['cash_limit_cny'] != '300'
-            or protected > Decimal('300') or not finance['all_current_calls_settled']
+            or protected > Decimal('300') or not (finance['all_current_calls_settled'] or closed_with_reserves)
             or finance['unknown_reserves_released'] or suite['billing'].get(
                 'incrementalCashConditionalOnPlanNoOverageCNY') != 0):
         raise ValueError('财务授权或未知预留条件不满足')

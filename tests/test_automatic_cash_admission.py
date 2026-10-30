@@ -147,7 +147,10 @@ def test_live_comparison_stops_after_planner_when_tool_cash_is_insufficient(tmp_
     payload = {'task': '分别比较甲与乙，再汇总。', 'strategy': 'auto', 'maxDshToolCalls': 2}
     preview = run_agent(payload, provider_config=config, runs_dir=tmp_path/'preview',
                         tool_runtime=runtime, production_budget=100, evaluation_budget=100)
-    client = CompactClient()
+    class ConfirmedUsageClient(CompactClient):
+        def complete(self, *args, **kwargs):
+            return replace(super().complete(*args, **kwargs), raw_usage={'cacheWriteTokens': 0})
+    client = ConfirmedUsageClient()
     result = run_agent({**payload, 'authorization': authorization(preview['live_authorization_preview'])},
                        provider_config=config, runs_dir=tmp_path/'live', mode='live',
                        execute_paid_run=True, client=client, tool_runtime=runtime,
@@ -190,7 +193,7 @@ def test_live_diagnostics_include_models_filtered_before_node_admission(tmp_path
     config, _ = compile_dsh_model_pool(pool, catalog)
     class Worker:
         def complete(self, model, messages, **kwargs):
-            return reply('42')
+            return replace(reply('42'), raw_usage={'cacheWriteTokens': 0})
     payload = {'task': '计算 18 + 24，只回答结果数字。不调用工具。', 'strategy': 'auto'}
     preview = run_agent(payload, provider_config=config, runs_dir=tmp_path/'preview',
         production_budget=100, evaluation_budget=100)
